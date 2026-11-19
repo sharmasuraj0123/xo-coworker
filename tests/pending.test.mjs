@@ -1,7 +1,7 @@
-// js/pending.js: a request answers once until it settles; a failure frees it for a retry.
+// core/platform/pending.js: a request answers once until it settles; a failure frees it for a retry.
 //   node tests/pending.test.mjs
 import assert from "node:assert/strict";
-import { once, isPending, busyAttrs } from "../js/pending.js";
+import { once, isPending, busyAttrs } from "../core/platform/pending.js";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

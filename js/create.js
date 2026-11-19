@@ -8,7 +8,7 @@ import { api } from "./api.js";
 import { fmtSize } from "./attach.js";
 import { redraw } from "./redraw.js";
 import { usable } from "./focusview.js";
-import { copyText, COPY_REFUSED } from "./util.js";
+import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 
 const PHASE = { counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" };
 

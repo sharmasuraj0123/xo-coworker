@@ -9,9 +9,9 @@
 // redraw. Then the write paths themselves, read from the source: no region on the render path is drawn anew.
 //   node tests/press-keeps-node.test.mjs   (linkedom: LINKEDOM=<its esm/index.js>, else `npm i linkedom` in ~/.cache/xo-test-deps)
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, copyFileSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
 import { tmpdir, homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname, relative, resolve } from "node:path";
 
 // linkedom, outside the repo (it has no dependencies of its own): LINKEDOM, else ~/.cache/xo-test-deps or /tmp/dom
 const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f)) || "~/.cache/xo-test-deps";
@@ -138,22 +138,41 @@ if (!existsSync(LD)) {
   // Files: js/files.js on its real redraw, with its other imports stood in for (a folder of copies, as the app has them)
   const dir = mkdtempSync(join(tmpdir(), "files-press-"));
   try {
-    // the pure modules it uses as they are (Find: fuzzy ranking over every path in the place)
-    for (const f of ["files.js", "redraw.js", "fuzzy.js", "paths.js"]) copyFileSync(new URL(`../js/${f}`, import.meta.url), join(dir, f));
+    // a folder laid out as the repo is: js/files.js, the pure modules it uses as they are, the rest stood in for
+    const filesSrc = src("files.js");
+    const specs = [...filesSrc.matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((m) => m[1]);
+    const STUB = {
+      "focusview.js": "export const inSight = () => true; export const bringWhole = () => {};",
+      "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
+      "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
+      "api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",
+      "map.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
+      "fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
+      "changesframe.js": 'export const countsHtml = () => "";',
+      "viewer.js": "export const RUNS = /^(\\.git|\\.claude)\\//;",
+      "keynav.js": "export const pointerFollows = () => {};",
+    };
+    const ROOT = new URL("../", import.meta.url).pathname;
+    const repoRel = (from, spec) => relative(ROOT, resolve(ROOT, dirname(from), spec));
+    const place = (rel, text) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); writeFileSync(join(dir, rel), text); };
+    const stubFor = (rel) => STUB[rel] ?? STUB[rel.replace(/^js\//, "")];
     writeFileSync(join(dir, "package.json"), '{"type":"module"}');
-    writeFileSync(join(dir, "focusview.js"), "export const inSight = () => true; export const bringWhole = () => {};");
-    writeFileSync(join(dir, "util.js"), 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0;');
-    writeFileSync(join(dir, "ui.js"), 'export const ICON = new Proxy({}, { get: () => "<i></i>" });');
-    writeFileSync(join(dir, "api.js"), "export const calls = []; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };");
-    writeFileSync(join(dir, "map.js"), 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });');
-    writeFileSync(join(dir, "fileicons.js"), 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";');
-    writeFileSync(join(dir, "changesframe.js"), 'export const countsHtml = () => "";');
-    writeFileSync(join(dir, "viewer.js"), "export const RUNS = /^(\\.git|\\.claude)\\//;");
-    writeFileSync(join(dir, "keynav.js"), "export const pointerFollows = () => {};");
+    const todo = ["js/files.js"], seen = new Set();
+    while (todo.length) {
+      const rel = todo.pop();
+      if (seen.has(rel)) continue;
+      seen.add(rel);
+      const stub = stubFor(rel);
+      if (stub != null) { place(rel, stub); for (const m of stub.matchAll(/export [^;]* from "([^"]+)";/g)) todo.push(repoRel(rel, m[1])); continue; }
+      const text = readFileSync(join(ROOT, rel), "utf8");
+      place(rel, text);
+      for (const m of text.matchAll(/^(?:import|export) [^;]* from "([^"]+)";$/gm)) todo.push(repoRel(rel, m[1]));
+    }
+    assert.ok(specs.length > 5, "files.js's imports were read");
     // the copy registers its own press listener on the same document: both see the same presses
-    const { createFiles } = await import(join(dir, "files.js"));
-    const { calls } = await import(join(dir, "api.js"));
-    const { MARKS } = await import(join(dir, "map.js"));
+    const { createFiles } = await import(join(dir, "js/files.js"));
+    const { calls } = await import(join(dir, "js/api.js"));
+    const { MARKS } = await import(join(dir, "js/map.js"));
     const world = { state: { turns: [], threads: [{ id: "t1", project: "p", sessionId: "s", title: "Agent" }], projects: [{ id: "p", name: "P" }] }, thread: () => null };
     const viewer = { hasFile: false, file: null, open() {}, close() {} };
     const FILES = createFiles({ world, viewer, isBusy: () => true, PROJ: (id) => id.toUpperCase(), go() {} });

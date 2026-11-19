@@ -24,7 +24,7 @@
 // app.js calls: button, toggle, open, close, sync, isOpen, owns.
 
 import { ICON, $ } from "./ui.js";
-import { esc } from "./util.js";
+import { esc, since } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { usable } from "./focusview.js";
 import { fileIcon } from "./fileicons.js";
@@ -41,7 +41,6 @@ const FILES_IC = ICON.folder;
 
 const sget = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch { return {}; } };
 const sset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
-const ago = (ms) => { if (!Number.isFinite(ms)) return ""; const s = Math.max(0, Math.floor((Date.now() - ms) / 1000)); return s < 60 ? `${s}s` : s < 3600 ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, "0")}s` : `${Math.floor(s / 3600)}h ${String(Math.floor(s / 60) % 60).padStart(2, "0")}m`; };
 
 /**
  * map: the Map (mount, show, hide, render, live, agents, mode, setMode). files: js/files.js
@@ -235,7 +234,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
         `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.coord ? ICON.project : ICON.threadOne}${mark}</span>` +
         `<span class="ag-t"><b>${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
         // the right column: the time on the title's line, the agent's mark small under it on the summary's line
-        `<span class="ag-tm"><span class="ag-when">${r.since ? `<span class="elapsed" data-since="${r.since}">${ago(r.since)}</span>` : esc(r.at || "")}</span>${r.mark ? `<span class="ag-mk">${r.mark}</span>` : ""}</span></button></li>`;
+        `<span class="ag-tm"><span class="ag-when">${r.since ? `<span class="elapsed" data-since="${r.since}">${since(r.since)}</span>` : esc(r.at || "")}</span>${r.mark ? `<span class="ag-mk">${r.mark}</span>` : ""}</span></button></li>`;
     };
     return `<ul class="ag-list tg-list">${groups.map((x) => {
       const folded = !!g[x.k], n = x.rows.length, cap = more[x.k] ? Infinity : SHOW[x.k] ?? 5;
@@ -249,7 +248,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (!list.length) return `<p class="fr-none">No agent is working here right now.</p>`;
     return `<ul class="ag-list">${list.map((a) => `<li><button type="button" class="ag-r${a.busy ? "" : " is-idle"}${a.go === view() ? " is-on" : ""}"${a.go === view() ? ' aria-current="page"' : ""} data-go="${esc(a.go)}" title="Open ${esc(a.title)}">` +
       `<span class="ag-ic" style="--c:${esc(a.color)}" aria-hidden="true">${ICON.threadOne}${a.waiting ? `<i class="ag-wait">${ICON.pause}</i>` : a.busy ? '<i class="arc"></i>' : ""}</span><span class="ag-t"><b>${esc(a.title)}</b><span class="ag-activity"><span class="ag-doing">${esc(a.doing)}</span></span></span>` +
-      `<span class="ag-tm">${a.busy && Number.isFinite(a.since) ? `<span class="elapsed" data-since="${a.since}">${ago(a.since)}</span>` : ""}</span></button></li>`).join("")}</ul>`;
+      `<span class="ag-tm">${a.busy && Number.isFinite(a.since) ? `<span class="elapsed" data-since="${a.since}">${since(a.since)}</span>` : ""}</span></button></li>`).join("")}</ul>`;
   }
   function changesHtml(list) {
     if (!list.length) return `<p class="fr-none">${view() === "home" || view() === "ws" ? "Open a project or thread to see what its agents changed." : "Nothing changed here yet."}</p>`;

@@ -7,7 +7,8 @@
 
 import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
-import { ICON, elapsed } from "./ui.js";
+import { elapsed } from "../core/platform/index.js";
+import { ICON } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";

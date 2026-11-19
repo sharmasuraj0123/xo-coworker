@@ -9,17 +9,17 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, space } from "./util.js";
+import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPending, busyAttrs } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "./kit.js";
-import * as K from "./keys.js";
+import * as K from "../core/platform/keys.js";
 import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -62,7 +62,6 @@ import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } f
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
-import { once, isPending, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
@@ -2592,7 +2591,7 @@ function sendLive(raw, K = MK) {
 }
 
 /** The server's row replaces the optimistic one (same bubble, never twice); errors keep the text. One request at
- *  a time per message: a Retry pressed again while it's out joins it (js/pending.js). */
+ *  a time per message: a Retry pressed again while it's out joins it (core/platform/pending.js). */
 function deliverLive(m, thread) { return once(`send:${m.cid}`, () => postLive(m, thread)); }
 async function postLive(m, thread) {
   m.status = "sending"; delete m.err;
@@ -3405,7 +3404,7 @@ function sendAbout(f, text) {
 
 // ── a thread's own header: resolve and reopen with Undo (R1), rename, label ──
 /**
- * Resolve or reopen. One request at a time per thread (js/pending.js): a second press, a held Enter, or the
+ * Resolve or reopen. One request at a time per thread (core/platform/pending.js): a second press, a held Enter, or the
  * All row's swipe while the header's is out, joins the first, and the button says it's waiting. "Resolved" is
  * said only once Space has. A refusal says so with Retry; sayFail: false leaves that to the caller (the All
  * row, whose herald sits behind the sheet). Resolves to {ok} and, refused, {why}.

@@ -12,13 +12,13 @@
 //
 // Someone else's change (an agent, bash, git, another tab: Space's file.version event, or today's /changes signal)
 // comes in through `changed`: a saved document takes the new text in place, as a new version, with the lines
-// that changed marked; a dirty one merges it into yours (js/merge.js), and only lines you both changed ask.
+// that changed marked; a dirty one merges it into yours (core/platform/diff.js), and only lines you both changed ask.
 // Each text the document has been is a version (newest last): who made it, when, and its text while it's held.
 //
 // Drafts (js/drafts.js) stay what VS Code calls hot exit: unsaved text kept in this browser after a pause, on
 // leaving, and before the page goes; a document opened over its draft takes it back, unsaved, for ⌘S.
 
-import { merge3, changes, linesOf } from "./merge.js";
+import { merge3, changes, linesOf } from "../core/platform/index.js";
 import { draftKey, getDraft, putDraft, dropDraft } from "./drafts.js";
 
 // (no autosave: the owner, 19 Nov 11:42Z. A save is ⌘S, Restore, or Save in the "save your changes?" question)

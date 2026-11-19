@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 676 |
+| planned | 670 |
 | vendor | 367 |
 | deleted | 232 |
-| split | 34 |
-| moved | 4 |
+| split | 35 |
+| moved | 9 |
 
-Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -28,7 +28,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) |
+| `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) · next: the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules |
 | `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) |
 | `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/normalise.js, core/platform/util.js |
 | `js/blocks.js` | 241 | planned | core/services/world/turns.js |
@@ -51,8 +51,8 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `js/filespage.js` | 150 | planned | modules/files/page.js |
 | `js/focusview.js` | 138 | planned | core/ui/a11y/focus.js |
 | `js/follow.js` | 150 | planned | modules/conversation/follow.js |
-| `js/fuzzy.js` | 118 | planned | core/platform/fuzzy.js |
-| `js/gestures.js` | 451 | planned | core/platform/gestures.js |
+| `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: js/fuzzy.js re-exports core/platform until the shims go |
+| `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | split | core/services/notices.js, shell (notice renderer) |
 | `js/highlight.js` | 149 | planned | core/ui/markdown/highlight.js |
 | `js/hopstate.js` | 13 | planned | core/services/world/hops.js |
@@ -60,7 +60,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `js/imagechange.js` | 120 | planned | modules/changes/imagechange.js |
 | `js/intel.js` | 743 | planned | modules/intelligence/ |
 | `js/keynav.js` | 109 | planned | core/ui/a11y/keynav.js |
-| `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js |
+| `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
 | `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js |
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
@@ -69,7 +69,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `js/markdown.js` | 519 | planned | core/ui/markdown/markdown.js |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
-| `js/merge.js` | 101 | planned | core/platform/diff.js |
+| `js/merge.js` | 101 | moved | core/platform/diff.js · next: js/merge.js re-exports core/platform/diff.js until the shims go |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | planned | core/ui/motion.js |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
@@ -77,7 +77,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `js/paid.js` | 152 | planned | core/services/world/paid.js |
 | `js/paidview.js` | 21 | planned | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | planned | core/services/paths.js |
-| `js/pending.js` | 22 | planned | core/platform/pending.js |
+| `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
 | `js/projicons.js` | 83 | planned | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | planned | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
@@ -96,13 +96,13 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
-| `js/sse.js` | 190 | planned | core/platform/sse.js |
+| `js/sse.js` | 190 | moved | core/platform/sse.js · next: js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm |
 | `js/stage.js` | 870 | split | shell/panel, core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) |
 | `js/storm.js` | 1242 | split | core/services/storm/client, core/services/storm/stream, core/services/storm/reducers/*, core/services/storm/selectors/*, core/services/storm/commands, core/services/account, core/services/review |
 | `js/timeline.js` | 816 | split | core/services/world/normalise.js, modules/conversation/model.js, modules/threads, modules/decisions |
 | `js/turnview.js` | 331 | planned | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 397 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound |
-| `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
+| `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
 | `js/viewer.js` | 1157 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
 | `js/words.js` | 48 | planned | modules/conversation/words.js |
 | `js/world.js` | 56 | planned | core/services/world/store.js |
@@ -195,7 +195,7 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 | `tests/key-layer.test.mjs` | 20 | planned | shell (phone drawer)/tests/key-layer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keys-dispatch.test.mjs` | 87 | planned | core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/keys.test.mjs` | 48 | planned | core/platform/tests/keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/keys.test.mjs` | 48 | moved | core/platform/tests/keys.test.mjs |
 | `tests/launchpad.test.mjs` | 326 | planned | modules/launchpad/tests/launchpad.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/layout-reads.test.mjs` | 25 | planned | modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

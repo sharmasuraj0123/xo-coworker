@@ -2177,11 +2177,12 @@
    "home": [
     "core/platform/http.js",
     "per-module clients (routes declared in each module.json)"
-   ]
+   ],
+   "note": "the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules"
   },
   "js/app.js": {
    "status": "split",
-   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md \u00a72.6)"
+   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)"
   },
   "js/attach.js": {
    "status": "split",
@@ -2293,12 +2294,17 @@
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js": {
-   "status": "planned",
-   "home": "core/platform/fuzzy.js"
+   "status": "moved",
+   "home": "core/platform/fuzzy.js",
+   "note": "js/fuzzy.js re-exports core/platform until the shims go"
   },
   "js/gestures.js": {
-   "status": "planned",
-   "home": "core/platform/gestures.js"
+   "status": "split",
+   "home": [
+    "core/platform/gestures.js",
+    "shell (the app's gestures: wireGestures, dockGestures, long press)"
+   ],
+   "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
   },
   "js/herald.js": {
    "status": "split",
@@ -2337,7 +2343,8 @@
     "core/platform/keys.js",
     "core/kernel (shortcut place)",
     "modules/settings/keyboard.js"
-   ]
+   ],
+   "note": "the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys"
   },
   "js/kit.js": {
    "status": "split",
@@ -2386,8 +2393,9 @@
    ]
   },
   "js/merge.js": {
-   "status": "planned",
-   "home": "core/platform/diff.js"
+   "status": "moved",
+   "home": "core/platform/diff.js",
+   "note": "js/merge.js re-exports core/platform/diff.js until the shims go"
   },
   "js/model.js": {
    "status": "planned",
@@ -2425,8 +2433,9 @@
    "home": "core/services/paths.js"
   },
   "js/pending.js": {
-   "status": "planned",
-   "home": "core/platform/pending.js"
+   "status": "moved",
+   "home": "core/platform/pending.js",
+   "note": "js/pending.js re-exports core/platform until the shims go"
   },
   "js/projicons.js": {
    "status": "planned",
@@ -2524,8 +2533,9 @@
    ]
   },
   "js/sse.js": {
-   "status": "planned",
-   "home": "core/platform/sse.js"
+   "status": "moved",
+   "home": "core/platform/sse.js",
+   "note": "js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm"
   },
   "js/stage.js": {
    "status": "split",
@@ -2581,7 +2591,8 @@
     "core/platform/util.js",
     "core/platform/time.js",
     "core/platform/clipboard.js"
-   ]
+   ],
+   "note": "js/util.js re-exports core/platform until the shims go"
   },
   "js/vendor/agent-marks/README.md": {
    "status": "vendor",
@@ -4392,8 +4403,8 @@
    "home": "core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/keys.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/platform/tests/keys.test.mjs"
   },
   "tests/launchpad.test.mjs": {
    "status": "planned",
@@ -6239,20 +6250,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::exports::coderHeaders": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::ApiError": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::STORM_DOWN": {
    "status": "split-region",
@@ -6263,36 +6266,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::exports::WRITE_MS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "the export only: nothing imported it; the constant stays where requests use it"
   },
   "js/api.js::exports::READ_MS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "the export only: nothing imported it; the constant stays where requests use it"
   },
   "js/api.js::exports::request": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::missingRoute": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::attachmentUrl": {
    "status": "split-region",
@@ -6327,12 +6314,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::exports::clientId": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::exports::NEWEST": {
    "status": "split-region",
@@ -6351,36 +6334,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::functions::deadline": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::request": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::exchange": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::errorOf": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::functions::terminalSocketUrl": {
    "status": "split-region",
@@ -6407,20 +6374,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::functions::blob": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::storage::xo-coder-token": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/api.js::routes::/api/chat/*": {
    "status": "split-region",
@@ -6807,12 +6766,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/api.js::keys::http_404": {
-   "status": "split-region",
-   "home": [
-    "core/platform/http.js",
-    "per-module clients (routes declared in each module.json)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/http.js"
   },
   "js/app.js::functions::applyTheme": {
    "status": "planned",
@@ -6820,7 +6775,7 @@
   },
   "js/app.js::functions::announce": {
    "status": "planned",
-   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.162)"
+   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.162)"
   },
   "js/app.js::functions::savedSoon": {
    "status": "planned",
@@ -6864,15 +6819,15 @@
   },
   "js/app.js::functions::landed": {
    "status": "planned",
-   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.617)"
+   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.617)"
   },
   "js/app.js::functions::patch": {
    "status": "planned",
-   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.629)"
+   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.629)"
   },
   "js/app.js::functions::homeParts": {
    "status": "planned",
-   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.642)"
+   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.642)"
   },
   "js/app.js::functions::optHtml": {
    "status": "planned",
@@ -6892,7 +6847,7 @@
   },
   "js/app.js::functions::homeRender": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.716)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
   },
   "js/app.js::functions::endRender": {
    "status": "planned",
@@ -6916,7 +6871,7 @@
   },
   "js/app.js::functions::messagesOf": {
    "status": "planned",
-   "home": "modules/conversation (model, pure) \u2192 core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
+   "home": "modules/conversation (model, pure) → core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
   },
   "js/app.js::functions::proseHtml": {
    "status": "planned",
@@ -6952,11 +6907,11 @@
   },
   "js/app.js::functions::msgItems": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1170)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1170)"
   },
   "js/app.js::functions::msgItemsOf": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1174)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "planned",
@@ -7064,39 +7019,39 @@
   },
   "js/app.js::functions::HER": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1964)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1964)"
   },
   "js/app.js::functions::heraldShow": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1967)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1967)"
   },
   "js/app.js::functions::heraldFor": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1969)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1969)"
   },
   "js/app.js::functions::heraldPut": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1970)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1970)"
   },
   "js/app.js::functions::heraldNext": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1971)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1971)"
   },
   "js/app.js::functions::heraldDrop": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1973)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1973)"
   },
   "js/app.js::functions::heraldRender": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1974)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1974)"
   },
   "js/app.js::functions::heraldRoom": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2015)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2015)"
   },
   "js/app.js::functions::heraldBack": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2025)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
   },
   "js/app.js::functions::recordLine": {
    "status": "planned",
@@ -7152,35 +7107,35 @@
   },
   "js/app.js::functions::chatTargetRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2267)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
   },
   "js/app.js::functions::targetLineRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2280)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2280)"
   },
   "js/app.js::functions::updateComposer": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2294)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
   },
   "js/app.js::functions::syncPlaceholder": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2336)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2336)"
   },
   "js/app.js::functions::atClose": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2345)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2345)"
   },
   "js/app.js::functions::pickAt": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2355)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
   },
   "js/app.js::functions::saveDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2365)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2365)"
   },
   "js/app.js::functions::loadDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2366)"
+   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2366)"
   },
   "js/app.js::functions::sendNowRender": {
    "status": "planned",
@@ -7204,27 +7159,27 @@
   },
   "js/app.js::functions::lift": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2521)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
   },
   "js/app.js::functions::liveBlock": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2529)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2529)"
   },
   "js/app.js::functions::blockFor": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2537)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2537)"
   },
   "js/app.js::functions::refuse": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2543)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2543)"
   },
   "js/app.js::functions::connDest": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2548)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2548)"
   },
   "js/app.js::functions::composerDest": {
    "status": "planned",
-   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2551)"
+   "home": "modules/composer (send gate → core/services send) (app.js l.2551)"
   },
   "js/app.js::functions::sendLive": {
    "status": "planned",
@@ -7296,11 +7251,11 @@
   },
   "js/app.js::functions::faviconRender": {
    "status": "planned",
-   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2900)"
+   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2900)"
   },
   "js/app.js::functions::loadAhead": {
    "status": "planned",
-   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2921)"
+   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2921)"
   },
   "js/app.js::functions::loadOlderNow": {
    "status": "planned",
@@ -7312,27 +7267,27 @@
   },
   "js/app.js::functions::readingPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2986)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2986)"
   },
   "js/app.js::functions::holdPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2997)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2997)"
   },
   "js/app.js::functions::stirred": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3004)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3004)"
   },
   "js/app.js::functions::foldsBefore": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3013)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3013)"
   },
   "js/app.js::functions::workMotion": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3033)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3033)"
   },
   "js/app.js::functions::saveScroll": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3087)"
+   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
    "status": "planned",
@@ -7348,23 +7303,23 @@
   },
   "js/app.js::functions::follow": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3187)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3187)"
   },
   "js/app.js::functions::loadChatHops": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3200)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3200)"
   },
   "js/app.js::functions::ensureRoot": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3208)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3217)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3217)"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3227)"
+   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
   },
   "js/app.js::functions::showMsg": {
    "status": "planned",
@@ -7448,15 +7403,15 @@
   },
   "js/app.js::functions::openNext": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3736)"
+   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3736)"
   },
   "js/app.js::functions::threadState": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3746)"
+   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3746)"
   },
   "js/app.js::functions::panelThreads": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3755)"
+   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3755)"
   },
   "js/app.js::functions::allRender": {
    "status": "planned",
@@ -7532,35 +7487,35 @@
   },
   "js/app.js::functions::soundRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4132)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4132)"
   },
   "js/app.js::functions::hopsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4158)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4158)"
   },
   "js/app.js::functions::webpicsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4159)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
   },
   "js/app.js::functions::deviceSaid": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4165)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4165)"
   },
   "js/app.js::functions::setChatBubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4186)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4186)"
   },
   "js/app.js::functions::bubblesRender": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4193)"
+   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4193)"
   },
   "js/app.js::functions::openKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4208)"
+   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4208)"
   },
   "js/app.js::functions::closeKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4209)"
+   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4209)"
   },
   "js/app.js::functions::shapeApply": {
    "status": "planned",
@@ -7584,15 +7539,15 @@
   },
   "js/app.js::functions::closeSettings": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4277)"
+   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4277)"
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4296)"
+   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4302)"
+   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4302)"
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
@@ -7612,11 +7567,11 @@
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",
-   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4722)"
+   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4722)"
   },
   "js/app.js::functions::resolveFromRow": {
    "status": "planned",
-   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4735)"
+   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
   },
   "js/app.js::ids::nx-note-in": {
    "status": "planned",
@@ -7628,43 +7583,43 @@
   },
   "js/app.js::ids::hm-head": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-body": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-since": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-next": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-then": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-end": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-made": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::home-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.734)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.734)"
   },
   "js/app.js::ids::then-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.779)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.779)"
   },
   "js/app.js::ids::handled": {
    "status": "planned",
-   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.152)"
+   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.152)"
   },
   "js/app.js::ids::hd-head": {
    "status": "planned",
@@ -7764,7 +7719,7 @@
   },
   "js/app.js::ids::keys-reset-all": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4315)"
+   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4315)"
   },
   "js/app.js::ids::all-list": {
    "status": "planned",
@@ -7776,7 +7731,7 @@
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4182)"
+   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4182)"
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "planned",
@@ -9489,151 +9444,151 @@
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js::exports::score": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::exports::rank": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::exports::marked": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::exports::lineOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::score": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::scoreWord": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::best": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::charBonus": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::rank": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::marked": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/fuzzy.js::functions::lineOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/fuzzy.js"
   },
   "js/gestures.js::exports::FLICK": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::edgeIsSafari": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::tick": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::scrollsX": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::scrolledY": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::drag": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::glide": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::follow": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::unstyle": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::dockGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::exports::wireGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::exports::copyText": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::functions::tick": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::scrollsX": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::scrolledY": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::drag": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::glide": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::follow": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::unstyle": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::dockGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::functions::wireGestures": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::functions::longPress": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::ids::msgs": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::ids::scroller": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::keys::Escape": {
    "status": "planned",
-   "home": "core/platform/gestures.js"
+   "home": "shell (the app's gestures)"
   },
   "js/gestures.js::custom_events::xo:gesture": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/gestures.js"
   },
   "js/herald.js::exports::OWN": {
@@ -9937,283 +9892,128 @@
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keys.js::exports::GROUPS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::ACTIONS": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::fromEvent": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::binding": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::changed": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::typing": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::is": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::hasMod": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::globalFor": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::show": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::label": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::hint": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::set": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::reset": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::resetAll": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::anyChanged": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::exports::onChange": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::load": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::save": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::parse": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::str": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::fromEvent": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::is": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::globalFor": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::show": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::set": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::reset": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::resetAll": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::functions::onChange": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::storage::cv-keys": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/keys.js::keys:: ": {
-   "status": "split-region",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/keys.js"
   },
   "js/kit.js::exports::COMMIT_MS": {
    "status": "split-region",
@@ -11867,23 +11667,23 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/merge.js::exports::linesOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::exports::changes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::exports::merge3": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::functions::changes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::functions::merge3": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/model.js::exports::parseChecklist": {
@@ -12571,19 +12371,19 @@
    "home": "core/services/paths.js"
   },
   "js/pending.js::exports::isPending": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/pending.js::exports::busyAttrs": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/pending.js::exports::once": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/pending.js::functions::once": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/pending.js"
   },
   "js/projicons.js::exports::TOPICS": {
@@ -14474,15 +14274,15 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/sse.js::exports::createParser": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/sse.js"
   },
   "js/sse.js::exports::SSEStream": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/sse.js"
   },
   "js/sse.js::functions::createParser": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/sse.js"
   },
   "js/stage.js::exports::createStage": {
@@ -16098,28 +15898,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::mmss": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::exports::waited": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::exports::$": {
    "status": "split-region",
@@ -16182,52 +15966,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::clock": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::exports::dayOf": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::exports::short": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::exports::elapsed": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::exports::plain": {
    "status": "split-region",
@@ -16338,64 +16090,24 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::functions::waited": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::functions::clock": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::functions::dayOf": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::functions::short": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::functions::elapsed": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/ui.js::functions::reconcile": {
    "status": "split-region",
@@ -16446,229 +16158,104 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/util.js::exports::space": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/util.js::exports::esc": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/util.js::exports::WORKSPACE": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::WORKSPACE_ID": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::chatLabel": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::toMs": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/util.js::exports::relTime": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::clockTime": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::fullTime": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::dayLabel": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::plural": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::exports::isImagePath": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/util.js::exports::copyText": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/clipboard.js"
   },
   "js/util.js::exports::COPY_REFUSED": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/clipboard.js"
   },
   "js/util.js::functions::space": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/util.js::functions::esc": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/util.js::functions::chatLabel": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::toMs": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/time.js"
   },
   "js/util.js::functions::relTime": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::clockTime": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::fullTime": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::dayLabel": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::plural": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "nothing imported it (core/platform/tests/exports-used.test.mjs); record.js and app.js keep their own plural"
   },
   "js/util.js::functions::copyText": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/clipboard.js"
   },
   "js/util.js::functions::legacy": {
-   "status": "split-region",
-   "home": [
-    "core/platform/util.js",
-    "core/platform/time.js",
-    "core/platform/clipboard.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/clipboard.js"
   },
   "js/viewer.js::exports::RUNS": {
    "status": "split-region",
