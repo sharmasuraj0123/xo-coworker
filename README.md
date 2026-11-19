@@ -28,7 +28,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Stone and glass** (design-research/2026-11-vision/direction): the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `css/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
-Plain HTML, CSS and vanilla ES modules: no build step, no npm, no CDN.
+Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only checkers (types, lint), installed with `npm ci` for `node tools/check.mjs`. Rules for working here: `AGENTS.md`. The modular rebuild: `architecture/PLAN.md`.
 
 ## Start
 
@@ -159,21 +159,13 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 ## Tests
 
 ```sh
-node tests/logic.test.mjs        # pure modules; the live-data part only sends GETs through :5180
-node tests/attach.test.mjs       # files on a message and the hop line; no network
-node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm hashes; no network
-python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
-node tests/storm.test.mjs        # the stream parser and the turn store; no network
-node tests/busy.test.mjs         # "Working": storm's busy, the live rule between reads, waiting on you; fake fetch and stream
-node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
-node tests/runtimes.test.mjs     # runtimes, policy, moves and the usage-limit card; no network
-node tests/files.test.mjs        # Files: which folder a view shows, where an opened file sits in it; no network
-node tests/record.test.mjs       # Made and Since you left: kinds, order, groups, git words, the headline; no network
-node tests/map.test.mjs          # the Map's pure parts: folders, paths, what a session touched, the diagram's layout; no network
-node tests/media.test.mjs        # pictures in the conversation: fitting, albums, the fallback frame, dedupe by made_id, titles, names cut in the middle; no network
-node tests/shape.test.mjs        # the shape: layers, per-key fallback, unknown keys, order, capabilities, migration, Storm's copy (a fake); no network
-node tests/design-budget.test.mjs  # Plan F: sizes, weights, line heights, radii, curves and shadows come from css/tokens.css
+node tests/run.mjs               # every unit test (tests/*.test.mjs and tests/*.test.py), judged by exit code; ~15 s
+node tests/run.mjs files         # only the tests whose name contains "files"
+node tools/check.mjs             # the full check before a merge: lint, types, ratchets, ledger, then every test
+node tools/check.mjs --fast      # the same without the tests (the pre-commit hook: git config core.hooksPath .githooks)
 ```
+
+Each test file says what it covers in its header. Browser suites (`tests/browser/`) run only when the owner asks.
 
 Measuring the live UI (read-only; every non-GET request is aborted in the browser): `design-research/2026-11-vision/audit/tools/` (`XO_URL=http://127.0.0.1:<port>/ node capture.cjs dark|light`, `titlebar.cjs`, `hoverscan.cjs`, `states.cjs`, `boot.cjs`; `PRESET=engineering|marketing|everything` answers the first-run question).
 

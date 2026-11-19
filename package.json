@@ -1,0 +1,15 @@
+{
+  "name": "xo-coworker",
+  "private": true,
+  "description": "Dev-only tools for checking the code (types, lint). The app never needs them: it runs from plain files with no build. See AGENTS.md.",
+  "type": "module",
+  "scripts": {
+    "check": "node tools/check.mjs",
+    "check:fast": "node tools/check.mjs --fast",
+    "test": "node tests/run.mjs"
+  },
+  "devDependencies": {
+    "oxlint": "1.94.0",
+    "typescript": "7.0.2"
+  }
+}

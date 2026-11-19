@@ -20,3 +20,6 @@ __pycache__/
 #   design-research/2026-11-vision/launchpad/tools/mockspace.cjs (tests/browser/harness.cjs)
 #   design-research/2026-11-lg/lp-shell/world.cjs (tests/browser/lpshell.test.cjs)
 design-research/
+
+# Dev-only tools (package.json): never needed to run the app
+node_modules/

@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["import"],
+  "categories": { "correctness": "off" },
+  "env": { "browser": true, "es2024": true },
+  "ignorePatterns": ["js/vendor/**", "vendor/**", "node_modules/**", "design-research/**", "ui-mockups/**", "tools/diffview/**", "tools/filetree/**"],
+  "rules": {
+    "no-undef": "error",
+    "no-unused-vars": ["error", { "args": "none", "caughtErrors": "none", "ignoreRestSiblings": true }],
+    "no-dupe-keys": "error",
+    "no-unreachable": "error",
+    "no-self-assign": "error",
+    "no-const-assign": "error",
+    "no-empty": ["error", { "allowEmptyCatch": false }],
+    "import/no-cycle": "error"
+  },
+  "overrides": [
+    { "files": ["tests/**", "tools/**", "e2e/**"], "env": { "node": true, "browser": true } }
+  ]
+}

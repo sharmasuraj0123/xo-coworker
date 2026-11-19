@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2024", "dom", "dom.iterable"],
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["js/**/*.js", "core/**/*.js", "core/**/*.d.ts", "shell/**/*.js", "modules/**/*.js", "boot.js"],
+  "exclude": ["js/vendor/**", "vendor/**", "node_modules/**"]
+}
