@@ -2190,7 +2190,7 @@
    "status": "split",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here"
@@ -2577,7 +2577,7 @@
   "js/timeline.js": {
    "status": "split",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -7868,7 +7868,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7877,7 +7877,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7886,7 +7886,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7895,7 +7895,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7904,7 +7904,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7913,7 +7913,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7922,7 +7922,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7931,7 +7931,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7940,7 +7940,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7949,7 +7949,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7958,7 +7958,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7967,7 +7967,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7988,7 +7988,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -7997,7 +7997,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8006,7 +8006,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8015,7 +8015,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8024,7 +8024,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8033,7 +8033,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8042,7 +8042,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8051,7 +8051,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8060,7 +8060,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8077,7 +8077,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8086,7 +8086,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -8095,7 +8095,7 @@
    "status": "split-region",
    "home": [
     "modules/composer/attachments.js",
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "core/platform/util.js"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
@@ -13887,7 +13887,7 @@
   "js/timeline.js::exports::reactionGroups": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -13909,7 +13909,7 @@
   "js/timeline.js::exports::pageFloor": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -13919,7 +13919,7 @@
   "js/timeline.js::exports::inPage": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -13933,7 +13933,7 @@
   "js/timeline.js::exports::waitsForTurn": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -13943,7 +13943,7 @@
   "js/timeline.js::exports::echoes": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14005,7 +14005,7 @@
   "js/timeline.js::exports::heldClock": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14015,7 +14015,7 @@
   "js/timeline.js::exports::heldWords": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14025,7 +14025,7 @@
   "js/timeline.js::exports::heldBadge": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14035,7 +14035,7 @@
   "js/timeline.js::exports::heldShort": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14045,7 +14045,7 @@
   "js/timeline.js::exports::soonestHeld": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14063,7 +14063,7 @@
   "js/timeline.js::exports::threadAnchors": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14073,7 +14073,7 @@
   "js/timeline.js::exports::parseTarget": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14083,7 +14083,7 @@
   "js/timeline.js::exports::stripTarget": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14093,7 +14093,7 @@
   "js/timeline.js::exports::cliName": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14107,7 +14107,7 @@
   "js/timeline.js::exports::sendErrorTitle": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14121,7 +14121,7 @@
   "js/timeline.js::exports::routingOf": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14131,7 +14131,7 @@
   "js/timeline.js::exports::connLine": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14141,7 +14141,7 @@
   "js/timeline.js::exports::sendBlock": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14151,7 +14151,7 @@
   "js/timeline.js::exports::chatOrder": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14165,7 +14165,7 @@
   "js/timeline.js::exports::hopLine": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14175,7 +14175,7 @@
   "js/timeline.js::exports::sharedFileRoute": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14185,7 +14185,7 @@
   "js/timeline.js::exports::hopNotes": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14195,7 +14195,7 @@
   "js/timeline.js::exports::forwardOrigin": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14205,7 +14205,7 @@
   "js/timeline.js::exports::relayedInto": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14219,7 +14219,7 @@
   "js/timeline.js::exports::stopWords": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14241,7 +14241,7 @@
   "js/timeline.js::functions::reactionGroups": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14263,7 +14263,7 @@
   "js/timeline.js::functions::pageFloor": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14273,7 +14273,7 @@
   "js/timeline.js::functions::inPage": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14283,7 +14283,7 @@
   "js/timeline.js::functions::waitsForTurn": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14293,7 +14293,7 @@
   "js/timeline.js::functions::echoes": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14339,7 +14339,7 @@
   "js/timeline.js::functions::whenParts": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14349,7 +14349,7 @@
   "js/timeline.js::functions::heldClock": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14359,7 +14359,7 @@
   "js/timeline.js::functions::whenWords": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14369,7 +14369,7 @@
   "js/timeline.js::functions::heldWords": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14379,7 +14379,7 @@
   "js/timeline.js::functions::heldShort": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14389,7 +14389,7 @@
   "js/timeline.js::functions::soonestHeld": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14407,7 +14407,7 @@
   "js/timeline.js::functions::threadAnchors": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14417,7 +14417,7 @@
   "js/timeline.js::functions::parseTarget": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14427,7 +14427,7 @@
   "js/timeline.js::functions::stripTarget": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14437,7 +14437,7 @@
   "js/timeline.js::functions::sendErrorTitle": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14451,7 +14451,7 @@
   "js/timeline.js::functions::routingOf": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14461,7 +14461,7 @@
   "js/timeline.js::functions::offLine": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14471,7 +14471,7 @@
   "js/timeline.js::functions::connLine": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14481,7 +14481,7 @@
   "js/timeline.js::functions::sendBlock": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14491,7 +14491,7 @@
   "js/timeline.js::functions::chatOrder": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14505,7 +14505,7 @@
   "js/timeline.js::functions::hopLine": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14515,7 +14515,7 @@
   "js/timeline.js::functions::sharedFileRoute": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14525,7 +14525,7 @@
   "js/timeline.js::functions::hopNotes": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14535,7 +14535,7 @@
   "js/timeline.js::functions::forwardOrigin": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14545,7 +14545,7 @@
   "js/timeline.js::functions::relayedInto": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14559,7 +14559,7 @@
   "js/timeline.js::functions::stopWords": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14569,7 +14569,7 @@
   "js/timeline.js::routes::/api/xo-projects/<project>/file": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14579,7 +14579,7 @@
   "js/timeline.js::keys::router_off": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14589,7 +14589,7 @@
   "js/timeline.js::keys::chat_retired": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14599,7 +14599,7 @@
   "js/timeline.js::keys::auth_required": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14609,7 +14609,7 @@
   "js/timeline.js::keys::no_runtime": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14619,7 +14619,7 @@
   "js/timeline.js::keys::coordinator_busy": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14629,7 +14629,7 @@
   "js/timeline.js::keys::thread_not_found": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14639,7 +14639,7 @@
   "js/timeline.js::keys::session_retired": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"
@@ -14649,7 +14649,7 @@
   "js/timeline.js::keys::timeout": {
    "status": "split-region",
    "home": [
-    "core/services/world/normalise.js",
+    "core/services/world/rows.js + sessions.js + threads.js",
     "modules/conversation/model.js",
     "modules/threads",
     "modules/decisions"

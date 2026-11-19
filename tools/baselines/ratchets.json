@@ -8,7 +8,7 @@
   "js/files.js": 940,
   "js/intel.js": 742,
   "js/launchpad.js": 1166,
-  "js/map.js": 1138,
+  "js/map.js": 1102,
   "js/markdown.js": 519,
   "js/media.js": 609,
   "js/msgx.js": 917,
@@ -16,7 +16,7 @@
   "js/shells/dock.js": 704,
   "js/timeline.js": 455,
   "js/viewer.js": 1157,
-  "css/app.css": 3154,
+  "css/app.css": 3108,
   "css/launchpad.css": 438,
   "css/msgx.css": 408,
   "css/panel.css": 645

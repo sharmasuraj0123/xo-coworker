@@ -124,7 +124,7 @@
   "refs": 0
  },
  "js/map.js": {
-  "extra": 96,
+  "extra": 93,
   "refs": 0
  },
  "js/markdown.js": {
@@ -157,14 +157,6 @@
  },
  "js/paidview.js": {
   "extra": 2,
-  "refs": 0
- },
- "js/projicons.js": {
-  "extra": 5,
-  "refs": 0
- },
- "js/record.js": {
-  "extra": 57,
   "refs": 0
  },
  "js/recordview.js": {
@@ -232,7 +224,7 @@
   "refs": 0
  },
  "css/app.css": {
-  "extra": 198,
+  "extra": 196,
   "refs": 0
  },
  "css/artifacts.css": {

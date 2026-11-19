@@ -66,7 +66,7 @@ import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before t
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
-// the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
+// the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
 import { setWorkMode } from "./turnview.js";
@@ -251,7 +251,7 @@ world.onEvent((e) => {
     PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
   }
 });
-// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
+// every file in a place (core/services/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
 const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
 /** The place the view shows files of (a thread's worktree, a project's folder), or null. */
 const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };
