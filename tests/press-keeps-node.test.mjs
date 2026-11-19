@@ -143,7 +143,7 @@ if (!existsSync(LD)) {
     for (const f of ["files.js", "redraw.js", "fuzzy.js", "paths.js"]) copyFileSync(new URL(`../js/${f}`, import.meta.url), join(dir, f));
     writeFileSync(join(dir, "package.json"), '{"type":"module"}');
     writeFileSync(join(dir, "focusview.js"), "export const inSight = () => true; export const bringWhole = () => {};");
-    writeFileSync(join(dir, "util.js"), 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = "";');
+    writeFileSync(join(dir, "util.js"), 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0;');
     writeFileSync(join(dir, "ui.js"), 'export const ICON = new Proxy({}, { get: () => "<i></i>" });');
     writeFileSync(join(dir, "api.js"), "export const calls = []; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };");
     writeFileSync(join(dir, "map.js"), 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });');

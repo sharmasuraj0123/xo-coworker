@@ -4,6 +4,16 @@
 const ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;" };
 
 /** Escape text for HTML element content AND quoted attribute values. */
+/**
+ * A spacing token's px, read from the page (css/tokens.css --s-1 … --s-12), for what script places beside something
+ * (a popover, a menu, a button over the conversation): its gaps come from the same scale as the stylesheets', never a
+ * number chosen in the script. 0 where there's no page (node).
+ */
+export function space(token) {
+  if (typeof document === "undefined") return 0;
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(token)) || 0;
+}
+
 export function esc(value) {
   return String(value ?? "").replace(/[&<>"'`]/g, (c) => ESC[c]);
 }

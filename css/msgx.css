@@ -9,7 +9,7 @@
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
    top, tracked in msgx.js), its right edge on the composer's right edge. It rises in
    when you've read up more than half a screen; new messages since are counted on it in a quiet ink pill. */
-.mx-down{position:absolute;z-index:4;right:var(--col-x);bottom:calc(var(--dock-h) + 12px);display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
+.mx-down{position:absolute;z-index:4;right:var(--col-x);bottom:calc(var(--dock-h) + var(--s-3));display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:color-mix(in srgb,var(--fill-1) 90%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);box-shadow:var(--e2),var(--hairline);color:var(--ink-2);opacity:0;transform:translateY(8px) scale(.92);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),color var(--d-hover) var(--ease)}
 .mx-down.is-on{opacity:1;transform:none;pointer-events:auto;transition-duration:var(--d-in)}
 /* hidden, it's out of the keyboard order and unread by screen readers (it faded only: QA #12); visibility
    waits for the fade out, and comes back at once */

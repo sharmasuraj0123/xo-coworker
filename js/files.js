@@ -17,7 +17,7 @@
 //
 // stage.js calls: mount, show, hide, render, reveal, count.
 
-import { esc, copyText, COPY_REFUSED } from "./util.js";
+import { esc, copyText, COPY_REFUSED, space } from "./util.js";
 import { ICON } from "./ui.js";
 import { redraw } from "./redraw.js";
 import { api } from "./api.js";
@@ -518,8 +518,10 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     m.hidden = false;
     btn.setAttribute("aria-expanded", "true");
     const r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
-    m.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.right - w))}px`;
-    m.style.top = `${r.bottom + 4 + h > innerHeight - 8 ? r.top - 4 - h : r.bottom + 4}px`;
+    // the window's edge keeps --s-2, the row --s-1 (they were 8 and 4 written here)
+    const edge = space("--s-2"), gap = space("--s-1");
+    m.style.left = `${Math.max(edge, Math.min(innerWidth - w - edge, r.right - w))}px`;
+    m.style.top = `${r.bottom + gap + h > innerHeight - edge ? r.top - gap - h : r.bottom + gap}px`;
     m.querySelector("button").focus();
   }
   function closeMenu(back = false) {

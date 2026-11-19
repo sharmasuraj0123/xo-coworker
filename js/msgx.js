@@ -14,7 +14,7 @@
 
 import { elapsed } from "./ui.js";
 import { toLatest, fromLatest } from "./follow.js";
-import { copyText, COPY_REFUSED } from "./util.js";
+import { copyText, COPY_REFUSED, space } from "./util.js";
 import { wordsOf } from "./words.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -719,8 +719,9 @@ function onSelect() {
   picked = { m, text };
   qpop.hidden = false;
   const w = qpop.offsetWidth;
-  qpop.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`;
-  qpop.style.top = `${Math.max(8, r.top - qpop.offsetHeight - 8)}px`;
+  const gap = space("--s-2"); // the window's edge and the words keep --s-2 (8, written here before)
+  qpop.style.left = `${Math.max(gap, Math.min(innerWidth - w - gap, r.left + r.width / 2 - w / 2))}px`;
+  qpop.style.top = `${Math.max(gap, r.top - qpop.offsetHeight - gap)}px`;
 }
 document.addEventListener("mouseup", () => setTimeout(onSelect, 0));
 document.addEventListener("keyup", (e) => { if (e.shiftKey) onSelect(); });
@@ -839,9 +840,10 @@ function dockTop() {
   return top;
 }
 function downSync() {
-  // 12 px above whatever is docked: the decision card when one is docked, else the composer itself
+  // --s-3 above whatever is docked (the stylesheet's own gap for it, css/msgx.css .mx-down): the decision card when
+  // one is docked, else the composer itself
   const top = dockTop(), v = conv.getBoundingClientRect();
-  if (Number.isFinite(top) && composer.getBoundingClientRect().height) down.style.bottom = `${Math.round(v.bottom - top + 12)}px`;
+  if (Number.isFinite(top) && composer.getBoundingClientRect().height) down.style.bottom = `${Math.round(v.bottom - top + space("--s-3"))}px`;
   // on a short phone a docked card can take nearly all the room: if the button would reach the header (less
   // than 8 px below the conversation's top), it stays away rather than sit on the title or the tabs
   const room = top - 12 - 40 >= scroller.getBoundingClientRect().top + 8;

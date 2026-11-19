@@ -9,7 +9,7 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED } from "./util.js";
+import { copyText, COPY_REFUSED, space } from "./util.js";
 import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
@@ -3008,7 +3008,7 @@ function returnPill(target) {
       }, { passive: true });
     }
     pill._find = find; pill._seen = inSight;
-    pill.style.top = `${scroller.offsetTop + 12}px`; // just under the header, whatever its height
+    pill.style.top = `${scroller.offsetTop + space("--s-3")}px`; // --s-3 under the header, whatever its height
     pill.innerHTML = `${ICON.arrow}<span>Back to where you were</span>`;
     pill.hidden = false;
   });

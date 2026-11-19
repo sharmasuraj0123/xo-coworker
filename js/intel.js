@@ -13,6 +13,7 @@
 
 import * as K from "./keys.js";
 import { esc } from "./world.js";
+import { space } from "./util.js";
 import { redraw } from "./redraw.js";
 import { once } from "./pending.js";
 import { ICON, RM } from "./ui.js";
@@ -453,10 +454,12 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (matchMedia("(max-width: 760px)").matches) { pop.style.left = pop.style.top = pop.style.width = ""; pop.classList.add("is-sheet"); return; }
     pop.classList.remove("is-sheet");
     const r = P.anchor.getBoundingClientRect();
-    const w = Math.min(360, innerWidth - 24);
+    // a window's edge keeps --s-3, the chip --s-2 (they were 12 and 10 written here)
+    const edge = space("--s-3"), gap = space("--s-2");
+    const w = Math.min(360, innerWidth - 2 * edge);
     pop.style.width = `${w}px`;
-    pop.style.left = `${Math.max(12, Math.min(r.right - w + 10, innerWidth - w - 12))}px`;
-    pop.style.top = `${Math.max(12, r.top - pop.offsetHeight - 10)}px`;
+    pop.style.left = `${Math.max(edge, Math.min(r.right - w + gap, innerWidth - w - edge))}px`;
+    pop.style.top = `${Math.max(edge, r.top - pop.offsetHeight - gap)}px`;
   }
   /** Read the models the list shows (the runtime it runs on now). */
   async function loadModels(s) {

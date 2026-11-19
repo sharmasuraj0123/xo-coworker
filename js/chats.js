@@ -7,6 +7,7 @@
 
 import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
+import { space } from "./util.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
@@ -322,9 +323,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (a && !matchMedia("(max-width: 760px)").matches) {
       // anchored by its bottom edge just above the line: it grows upwards and never leaves the screen
       pop.classList.remove("is-sheet");
-      const r = a.getBoundingClientRect(); const w = Math.min(400, innerWidth - 24);
-      pop.style.width = `${w}px`; pop.style.left = `${Math.max(12, Math.min(r.left, innerWidth - w - 12))}px`;
-      pop.style.top = ""; pop.style.bottom = `${Math.max(12, innerHeight - r.top + 10)}px`; pop.style.maxHeight = `${Math.max(240, r.top - 22)}px`;
+      // a window's edge keeps --s-3, the button --s-2 (they were 12 and 10 written here)
+      const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(400, innerWidth - 2 * edge);
+      pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(r.left, innerWidth - w - edge))}px`;
+      pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, r.top - edge - gap)}px`;
     } else { pop.style.left = pop.style.top = pop.style.bottom = pop.style.width = pop.style.maxHeight = ""; pop.classList.add("is-sheet"); }
   }
   function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.focus?.({ preventScroll: true }); }
