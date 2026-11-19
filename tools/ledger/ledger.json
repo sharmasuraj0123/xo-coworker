@@ -3257,16 +3257,16 @@
    "home": "vendor/katex/katex.min.js"
   },
   "js/vendor/lucide/LICENSE": {
-   "status": "planned",
-   "home": "delete: no importer anywhere (owner D6)"
+   "status": "deleted",
+   "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/lucide/files.js": {
-   "status": "planned",
-   "home": "delete: no importer anywhere (owner D6)"
+   "status": "deleted",
+   "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/lucide/projects.js": {
-   "status": "planned",
-   "home": "delete: no importer anywhere (owner D6)"
+   "status": "deleted",
+   "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/mermaid/LICENSE": {
    "status": "vendor",

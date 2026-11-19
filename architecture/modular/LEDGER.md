@@ -4,9 +4,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 615 |
+| planned | 612 |
 | vendor | 367 |
-| deleted | 241 |
+| deleted | 244 |
 | moved | 54 |
 | split | 35 |
 | kept | 1 |
@@ -506,9 +506,9 @@ Items inside first-party files: 2290 (planned 977, moved 695, split-region 561, 
 | `js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2 |
 | `js/vendor/katex/katex.min.css` | 1 | vendor | vendor/katex/katex.min.css |
 | `js/vendor/katex/katex.min.js` | 1 | vendor | vendor/katex/katex.min.js |
-| `js/vendor/lucide/LICENSE` |  | planned | delete: no importer anywhere (owner D6) |
-| `js/vendor/lucide/files.js` | 25 | planned | delete: no importer anywhere (owner D6) |
-| `js/vendor/lucide/projects.js` | 38 | planned | delete: no importer anywhere (owner D6) |
+| `js/vendor/lucide/LICENSE` |  | deleted | no importer anywhere (owner D6) |
+| `js/vendor/lucide/files.js` | 25 | deleted | no importer anywhere (owner D6) |
+| `js/vendor/lucide/projects.js` | 38 | deleted | no importer anywhere (owner D6) |
 | `js/vendor/mermaid/LICENSE` |  | vendor | vendor/mermaid/LICENSE |
 | `js/vendor/mermaid/README.md` | 3 | vendor | vendor/mermaid/README.md |
 | `js/vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs` | 1 | vendor | vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs |
