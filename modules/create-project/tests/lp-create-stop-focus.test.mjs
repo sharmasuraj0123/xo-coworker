@@ -1,9 +1,10 @@
 // Create's progress row (the clone's Stop) never takes focus away with it: setBusy hands focus in the row to Create before hiding it.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { pageHtml } from "../../../tests/lib/page.mjs";
 
 const src = readFileSync(new URL("../create.js", import.meta.url), "utf8");
-const html = readFileSync(new URL("../../../index.html", import.meta.url), "utf8");
+const html = pageHtml();
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const setBusy = (() => { const i = src.indexOf("function setBusy(on, repoOf) {"); assert.ok(i > 0, "setBusy found"); return src.slice(i, src.indexOf("\n  }\n", i)); })();
