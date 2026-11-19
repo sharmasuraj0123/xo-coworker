@@ -8414,135 +8414,135 @@
    "home": "modules/chats/"
   },
   "js/comms.js::exports::nameWith": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::exports::commsTool": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::exports::commsBusy": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::exports::commsLine": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::exports::commsHeader": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::exports::commsText": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::exports::commsPause": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::nameWith": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::commsTool": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::commsBusy": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::words": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::commsLine": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::commsHeader": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::commsText": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/comms.js::functions::commsPause": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/content.js::exports::EFFORT": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::effortOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::leverageOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::fmtMin": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::estLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::fmtAgent": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::bidOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::rank": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::suggestFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::whyLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::evidenceFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::effortOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::leverageOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::estLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::rank": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::suggestFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::whyLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::evidenceFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/create.js::exports::slugify": {
@@ -9437,59 +9437,59 @@
    "home": "core/ui/a11y/focus.js"
   },
   "js/follow.js::exports::createFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::fromLatest": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::fromTop": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::isPinned": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::toLatest": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::unpin": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::toRow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::exports::initFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::functions::createFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::functions::initFollow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::scroller": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::column": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::msgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/follow.js::ids::dock": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/follow.js"
   },
   "js/fuzzy.js::exports::score": {
@@ -10037,112 +10037,60 @@
    "home": "core/platform/keys.js"
   },
   "js/kit.js::exports::COMMIT_MS": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::HOLD_MS": {
    "status": "moved",
    "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::READ_MS": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::GROUPS": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::riskOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::isBinary": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::askKey": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::groupOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::asksOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::commandOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::prefixOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::teachSentence": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::answer": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::createCommitQueue": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::holdButton": {
    "status": "moved",
@@ -10153,68 +10101,36 @@
    "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::createAnnouncer": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::exports::titleFor": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::groupOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::asksOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::commandOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::prefixOf": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::answer": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::createCommitQueue": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::functions::holdButton": {
    "status": "moved",
@@ -10225,12 +10141,8 @@
    "home": "core/ui/components/hold.js"
   },
   "js/kit.js::functions::createAnnouncer": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/kit.js"
   },
   "js/kit.js::keys::Enter": {
    "status": "moved",
@@ -12167,19 +12079,19 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/pacing.js::exports::SMALL_MIN": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/pacing.js::exports::PING_MIN": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/pacing.js::exports::createPacing": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/pacing.js::functions::createPacing": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/pacing.js"
   },
   "js/paid.js::exports::MODES": {
@@ -12263,11 +12175,11 @@
    "home": "core/services/world/paid.js"
   },
   "js/paidview.js::exports::paidHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paidview.js::functions::paidHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paths.js::exports::createPaths": {
@@ -12711,80 +12623,80 @@
    "home": "core/ui/redraw.js"
   },
   "js/review.js::exports::VERB": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::itemParts": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::holdWords": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::questionsOf": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::itemBody": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::isNo": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::itemEffort": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::fromWords": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::evidenceOf": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::hostOf": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::exports::askedBy": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::itemParts": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::holdWords": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::questionsOf": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::itemBody": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::itemEffort": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::evidenceOf": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::hostOf": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/review.js::functions::askedBy": {
-   "status": "planned",
-   "home": "modules/decisions/items.js"
+   "status": "moved",
+   "home": "core/services/review.js"
   },
   "js/rich.js::exports::cachedMath": {
    "status": "moved",
@@ -15182,11 +15094,11 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/words.js::exports::wordsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/words.js"
   },
   "js/words.js::functions::wordsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/words.js"
   },
   "js/world.js::exports::STATES": {
