@@ -3,7 +3,6 @@
 //   await install(page, "building")
 // Every other non-GET request is aborted: tests never write to the live backend.
 
-const MIN = 60;
 const REPO = "sharmasuraj0123/xo-coworker", HOST = "xo-coworker-xo-4f1c2a9.apps.xo.builders", URL_ = `https://${HOST}`;
 const RUN_URL = `https://github.com/${REPO}/actions/runs/128`;
 
