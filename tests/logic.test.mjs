@@ -406,6 +406,13 @@ t("a forwarded copy is followed to where you wrote it (a copy of a copy is no ne
   assert.equal(forwardOrigin({ chatId: "chat_co", id: "ffcd" }, find).chatId, "chat_co", "one written there is its own origin");
   const u = forwardOrigin({ chatId: "chat_sp", id: "nope" }, find);
   assert.deepEqual([u.known, u.chatId, u.id], [false, "chat_sp", "nope"], "a source not read yet stays unknown, never guessed");
+  // XO names the root on a copy: no walk, and the root need not be read
+  const r = forwardOrigin({ chatId: "chat_sp", id: "9ee8", root: { chatId: "chat_co", id: "ffcd" } }, () => null);
+  assert.deepEqual([r.known, r.chatId, r.id, r.row], [true, "chat_co", "ffcd", undefined], "root named: known without reading anything");
+  assert.equal(forwardOrigin({ chatId: "chat_sp", id: "9ee8", root: { chatId: "chat_co", id: "ffcd" } }, find).row.id, "ffcd", "its row, when held");
+  const viaRow = { cp: { id: "cp", chat_id: "chat_x", extra: { forwarded_from: { chat_id: "chat_sp", message_id: "9ee8", root: { chat_id: "chat_co", message_id: "ffcd" } } } } };
+  assert.equal(forwardOrigin({ chatId: "chat_x", id: "cp" }, (id) => viaRow[id] || rows[id] || null).id, "ffcd", "a copy on the way that names a root ends the walk");
+  assert.deepEqual(uiMsg({ id: "c", chat_id: "x", seq: 1, created_at: "2026-11-19T10:00:00Z", author_kind: "owner", author_id: "owner", extra: { forwarded_from: { chat_id: "a", message_id: "b", via: [], root: { chat_id: "r", message_id: "q" } } } }).fwd.root, { chatId: "r", id: "q" });
   const loop = { a: { id: "a", extra: { forwarded_from: { chat_id: "c", message_id: "b" } } }, b: { id: "b", extra: { forwarded_from: { chat_id: "c", message_id: "a" } } } };
   assert.equal(forwardOrigin({ chatId: "c", id: "a" }, (id) => loop[id]).known, false, "a loop ends");
 });

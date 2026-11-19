@@ -28,7 +28,8 @@ export function uiMsg(row) {
     who,
     role: row.author_id || null,
     text: String(row.text ?? ""),
-    fwd: f && f.message_id ? { chatId: f.chat_id || null, id: f.message_id, via: f.via || [] } : null,
+    // `root`: where the message began, when XO says so (a copy of a copy names it; older copies don't)
+    fwd: f && f.message_id ? { chatId: f.chat_id || null, id: f.message_id, via: f.via || [], ...(f.root && f.root.message_id ? { root: { chatId: f.root.chat_id || null, id: f.root.message_id } } : {}) } : null,
     job: x.job || null,
     noOne: !!row.reply_to, // XO's "This message reached no one: …" note
     files: attachmentsOf(row),
@@ -735,15 +736,20 @@ export function hopNotes(thread, hops) {
  * Where a forwarded copy of your message began. A copy's `forwarded_from` names only the copy before it
  * (xo-space's chat holds a copy of the one you wrote; a forward back into the first chat copies that copy), so
  * the chain is followed through `find(id, chatId)`, which returns a stored row or null, up to `max` copies.
- * Returns {chatId, id, known, row?}: `known` when the row at the end of the chain was read (it forwards from
+ * Starts from `fwd.root` when XO named it. Returns {chatId, id, known, row?}: `known` when the row at the end of the chain was read (it forwards from
  * nothing: this is where you wrote it); otherwise the last copy's source, not yet read.
  */
 export function forwardOrigin(fwd, find, max = 6) {
-  let cur = { chatId: fwd.chatId || null, id: fwd.id };
+  // XO names the root on a copy (`root`): no walk. Older copies name only the copy before them: follow those.
+  const at = (r) => ({ chatId: r.chatId || null, id: r.id });
+  const rooted = (r) => { const row = find(r.id, r.chatId); return { ...at(r), known: true, ...(row ? { row } : {}) }; };
+  if (fwd.root) return rooted(fwd.root);
+  let cur = at(fwd);
   for (let i = 0; i < max; i++) {
     const row = find(cur.id, cur.chatId);
     if (!row) return { ...cur, known: false };
     const f = row.extra && row.extra.forwarded_from;
+    if (f && f.root && f.root.message_id) return rooted({ chatId: f.root.chat_id, id: f.root.message_id });
     if (!f || !f.message_id) return { chatId: row.chat_id || cur.chatId, id: cur.id, known: true, row };
     cur = { chatId: f.chat_id || null, id: f.message_id };
   }
