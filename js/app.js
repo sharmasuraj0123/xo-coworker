@@ -2746,6 +2746,7 @@ function tpShow(key, { focus = false } = {}) {
     if (TP.tid && TP.K) saveDraft(TP.K);
     TP.tid = key;
     TP.C.rendered = null; TP.C.filled = null;
+    TPD.key = null; TPD.busy = false;
     world.act.watchSideThread?.(key);
     loadDraft(TP.K);
     TP.viewSubs.forEach((fn) => fn());
@@ -2758,6 +2759,7 @@ function tpUnmount() {
   TP.follow?.destroy();
   world.act.watchSideThread?.(null);
   Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null }); TP.viewSubs.clear();
+  Object.assign(TPD, { key: null, busy: false });
 }
 STAGE.page("thread", {
   // wider by default (the owner, 19 Nov 16:09Z): 720 reads at the chat's own measure (its column less its 20 insets,
@@ -2788,13 +2790,60 @@ function drawThreadPage(needs) {
   tpHead(t);
   checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
   drawConv(TP.C, needs);
-  // what it asks you: a line above its composer that opens the decision where it's decided today (the thread's own
-  // page, its card docked over the composer); deciding inside the panel is a later step
-  const ask = needs.find((x) => x.t.id === t.id && !x.later);
-  const dk = $("#tptdock"), dh = ask ? `<button type="button" class="tp-ask" data-tp-full="${esc(t.id)}"><i class="g g-needs_reply" aria-hidden="true"></i><span>It asks you: ${esc(askShort(ask))}</span><span class="tp-ask-go">Decide ${ICON.arrow}</span></button>` : "";
-  if (dk._h !== dh) { redraw(dk, dh); dk._h = dh; }
+  tpDockRender(t, needs);
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
+/**
+ * What the thread asks you, decided in place (the owner's known gap, 19 Nov): its decision card docked over the
+ * page's composer, the same card as the chat's (D.cardHtml(n, "dock"), D.wireCard), its stamp, then one calm line
+ * with its Undo for the window, then gone. One at a time; a decision you open elsewhere (the decision panel) isn't
+ * doubled here.
+ */
+const TPD = { key: null, busy: false };
+function tpDockRender(t, needs) {
+  const dk = $("#tptdock");
+  const n = !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
+  const key = n ? n.key : null;
+  if (TPD.busy || key === TPD.key) return;
+  TPD.key = key;
+  if (!n) { dk.innerHTML = ""; return; }
+  const frame = document.createElement("article");
+  frame.className = `card is-dock r-${n.risk} e-${n.effort}`;
+  frame.tabIndex = -1;
+  frame.setAttribute("aria-roledescription", "decision");
+  frame.innerHTML = `<div class="stamp stamp-allow" aria-hidden="true">${ICON.stampAllow}</div><div class="stamp stamp-back" aria-hidden="true">${ICON.stampBack}</div>`;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = D.cardHtml(n, "dock").trim();
+  const inner = tpl.content.firstElementChild;
+  frame.appendChild(inner);
+  const h = inner.querySelector(".c-h");
+  if (h) { h.id = `tp-${h.id || "c-h"}`; frame.setAttribute("aria-labelledby", h.id); }
+  dk.innerHTML = ""; dk.appendChild(frame);
+  D.wireCard(frame, inner, n, {
+    surface: "dock",
+    onStep: () => {},
+    after: async (how) => {
+      TPD.busy = true;
+      if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380); }
+      if (how !== "later") {
+        const e = D.decisions()[0];
+        const verb = e && e.verb === "Answered" ? `Answered “${e.said}”` : e ? e.verb : "Done";
+        const had = frame.contains(document.activeElement);
+        frame.className = "card is-dock r-done";
+        frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-tpd-undo>Undo</button></p>`;
+        if (had) frame.querySelector("[data-tpd-undo]").focus({ preventScroll: true });
+        let undone = false;
+        await new Promise((end) => { TPD.undone = () => { undone = true; end(); }; hold(RM.matches ? 3000 : 2700).then(end); });
+        TPD.undone = null;
+        if (undone) { TPD.busy = false; TPD.key = null; schedule(); return; }
+      }
+      TPD.busy = false; TPD.key = null;
+      dk.innerHTML = "";
+      schedule();
+    },
+  });
+}
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-tpd-undo]")) { D.undo(); TPD.undone?.(); } });
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as

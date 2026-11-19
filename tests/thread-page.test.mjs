@@ -46,15 +46,19 @@ console.log("thread-page: ok");
   for (const re of [/if \(t\.closest\("\[data-older\]"\)\) \{ loadOlderNow\(convAt\(t\)\); return; \}/, /stopRun\(convAt\(t\)\.view\)/, /interruptRun\(convAt\(t\)\.view\)/,
     /editFailed\(ed\.dataset\.edit, composerAt\(ed\)\)/, /S\.tbToggled = \{ k, open: S\.tbOpen\[k\], focus: [^\n]*, in: tc\.msgs \};/, /const cv = convAt\(cf\), c = CHG\.forTarget\(cv\.view, cf\.dataset\.file\);/,
     /:is\(#thead,#tpthead\) \[data-runs\]/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
-  // what it asks you: one line above its composer that opens the decision
-  assert.match(a, /class="tp-ask" data-tp-full="\$\{esc\(t\.id\)\}"/);
+  // what it asks you: decided in place, the chat's own card docked over its composer, with its Undo
+  assert.match(a, /tpDockRender\(t, needs\);/);
+  const td = a.slice(a.indexOf("function tpDockRender("), a.indexOf("\n}\n", a.indexOf("function tpDockRender(")));
+  assert.match(td, /tpl\.innerHTML = D\.cardHtml\(n, "dock"\)\.trim\(\);/);
+  assert.match(td, /D\.wireCard\(frame, inner, n, \{/);
+  assert.match(td, /data-tpd-undo>Undo<\/button>/);
+  assert.match(a, /if \(e\.target\.closest\?\.\("\[data-tpd-undo\]"\)\) \{ D\.undo\(\); TPD\.undone\?\.\(\); \}/);
   console.log("thread-page clicks: ok");
 }
 
 // the page's one reading column: its messages and its dock (asks line, composer) share their edges
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
-  assert.match(c2, /\.stage \.tp-ask\{display:flex;align-items:center;gap:var\(--s-2\);width:100%;margin:0 0 var\(--s-2\);/);
   const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
   assert.match(st2, /w\(\{ room: innerWidth - sideW\(\) - READ \}\)/);
   console.log("thread-page column and width: ok"); }
