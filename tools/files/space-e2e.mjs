@@ -117,10 +117,13 @@ await step("/paths: every file, nothing ignored", async () => {
   const r = await api.projectPaths(P);
   assert.ok(r.paths.includes("scratch.txt") && r.paths.includes("src/app.js"));
   assert.ok(!r.paths.some((p) => p.startsWith(".git/")));
+  assert.deepEqual(r.paths.filter((p) => p.startsWith(".xo/")), [], "XO's own files aren't offered");
 });
 await step("/search finds text, by line", async () => {
   const r = await api.projectSearch(P, { q: "const a" });
   assert.ok(r.matches.length >= 1 && r.matches[0].path === "src/app.js", JSON.stringify(r).slice(0, 200));
+  const xo = await api.projectSearch(P, { q: "demo" });
+  assert.deepEqual(xo.matches.filter((m) => m.path.startsWith(".xo/")).map((m) => m.path), [], "nor searched");
   let err = null; try { await api.projectSearch(P, { q: "(", regex: true }); } catch (e) { err = e; }
   assert.equal(err && err.status, 400);
 });
