@@ -5,11 +5,12 @@ import { sessions } from "./sessions.js";
 import { runs } from "./runs.js";
 import { review } from "./review.js";
 import { space } from "./space.js";
+import { apps } from "./apps.js";
 
 /** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Reducer} Reducer */
 
 /** Every stream frame type storm keeps in the world, and what it does; turn and block frames go to the turn store. @type {Record<string, Reducer>} */
-export const REDUCERS = { ...messages, ...threads, ...sessions, ...runs, ...review, ...space };
+export const REDUCERS = { ...messages, ...threads, ...sessions, ...runs, ...review, ...space, ...apps };
 
 /** Applying a frame: where the stream stands, the turn store, then its reducer. @param {Ctx} ctx */
 export function installApply(ctx) {
