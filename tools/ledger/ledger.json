@@ -2185,7 +2185,7 @@
   },
   "js/app.js": {
    "status": "split",
-   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)",
+   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md \u00a72.6)",
    "note": "moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js"
   },
   "js/attach.js": {
@@ -2255,8 +2255,7 @@
   "js/diffview.js": {
    "status": "split",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ]
   },
   "js/doceditor.js": {
@@ -4069,8 +4068,8 @@
    "home": "vendor/pierre-diffs/diffs.js"
   },
   "js/vendor/pierre-diffs/edit.js": {
-   "status": "planned",
-   "home": "delete with diffview's dead editor path (owner D6)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6): nothing imported it"
   },
   "js/vendor/pierre-diffs/manifest.json": {
    "status": "vendor",
@@ -4334,12 +4333,12 @@
    "home": "core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/editor-caret.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/editor-caret.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read the source of that editor's caret handling; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/editor-exit.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/editor-exit.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test tested diffview's exitKeys, which only that editor used; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/edits.test.mjs": {
    "status": "planned",
@@ -4366,12 +4365,12 @@
    "home": "modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/find-bar.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/find-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-bar stylesheet (FIND_CSS); tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/find-race.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/find-race.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-key handling and its vendored source; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/fixtures/plain-turn.sse": {
    "status": "planned",
@@ -4640,8 +4639,8 @@
    "home": "modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/pierre-find-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/vendor/tests/pierre-find-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test checked the local patch to the vendored edit.js; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/press-inks.test.mjs": {
    "status": "planned",
@@ -6839,7 +6838,7 @@
   },
   "js/app.js::functions::announce": {
    "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.162)"
+   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.162)"
   },
   "js/app.js::functions::savedSoon": {
    "status": "planned",
@@ -6883,15 +6882,15 @@
   },
   "js/app.js::functions::landed": {
    "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.617)"
+   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.617)"
   },
   "js/app.js::functions::patch": {
    "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.629)"
+   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.629)"
   },
   "js/app.js::functions::homeParts": {
    "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.642)"
+   "home": "`patch` \u2192 core/ui (render primitives, next to redraw.js); `homeParts` \u2192 modules/home (app.js l.642)"
   },
   "js/app.js::functions::optHtml": {
    "status": "planned",
@@ -6911,7 +6910,7 @@
   },
   "js/app.js::functions::homeRender": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.716)"
   },
   "js/app.js::functions::endRender": {
    "status": "planned",
@@ -6935,7 +6934,7 @@
   },
   "js/app.js::functions::messagesOf": {
    "status": "planned",
-   "home": "modules/conversation (model, pure) → core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
+   "home": "modules/conversation (model, pure) \u2192 core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
   },
   "js/app.js::functions::proseHtml": {
    "status": "planned",
@@ -6971,11 +6970,11 @@
   },
   "js/app.js::functions::msgItems": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1170)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1170)"
   },
   "js/app.js::functions::msgItemsOf": {
    "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
+   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind \u2192 renderer); limit \u2192 runtimes, control \u2192 threads, turn \u2192 conversation/turns (app.js l.1174)"
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "planned",
@@ -7083,39 +7082,39 @@
   },
   "js/app.js::functions::HER": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1964)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1964)"
   },
   "js/app.js::functions::heraldShow": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1967)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1967)"
   },
   "js/app.js::functions::heraldFor": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1969)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1969)"
   },
   "js/app.js::functions::heraldPut": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1970)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1970)"
   },
   "js/app.js::functions::heraldNext": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1971)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1971)"
   },
   "js/app.js::functions::heraldDrop": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1973)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1973)"
   },
   "js/app.js::functions::heraldRender": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1974)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.1974)"
   },
   "js/app.js::functions::heraldRoom": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2015)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2015)"
   },
   "js/app.js::functions::heraldBack": {
    "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
+   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` \u2192 core/ui boot (app.js l.2025)"
   },
   "js/app.js::functions::recordLine": {
    "status": "planned",
@@ -7171,35 +7170,35 @@
   },
   "js/app.js::functions::chatTargetRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2267)"
   },
   "js/app.js::functions::targetLineRender": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2280)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2280)"
   },
   "js/app.js::functions::updateComposer": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2294)"
   },
   "js/app.js::functions::syncPlaceholder": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2336)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2336)"
   },
   "js/app.js::functions::atClose": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2345)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2345)"
   },
   "js/app.js::functions::pickAt": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2355)"
   },
   "js/app.js::functions::saveDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2365)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2365)"
   },
   "js/app.js::functions::loadDraft": {
    "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2366)"
+   "home": "modules/composer; @-mention \u2192 `composer.mention` provider from modules/projects; drafts \u2192 core/services drafts (app.js l.2366)"
   },
   "js/app.js::functions::sendNowRender": {
    "status": "planned",
@@ -7223,27 +7222,27 @@
   },
   "js/app.js::functions::lift": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2521)"
   },
   "js/app.js::functions::liveBlock": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2529)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2529)"
   },
   "js/app.js::functions::blockFor": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2537)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2537)"
   },
   "js/app.js::functions::refuse": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2543)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2543)"
   },
   "js/app.js::functions::connDest": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2548)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2548)"
   },
   "js/app.js::functions::composerDest": {
    "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2551)"
+   "home": "modules/composer (send gate \u2192 core/services send) (app.js l.2551)"
   },
   "js/app.js::functions::sendLive": {
    "status": "planned",
@@ -7319,7 +7318,7 @@
   },
   "js/app.js::functions::loadAhead": {
    "status": "planned",
-   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2921)"
+   "home": "`placeRegion` \u2192 shell (focus fallback); favicon \u2192 shell (tab status) (app.js l.2921)"
   },
   "js/app.js::functions::loadOlderNow": {
    "status": "planned",
@@ -7331,27 +7330,27 @@
   },
   "js/app.js::functions::readingPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2986)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2986)"
   },
   "js/app.js::functions::holdPlace": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2997)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.2997)"
   },
   "js/app.js::functions::stirred": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3004)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3004)"
   },
   "js/app.js::functions::foldsBefore": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3013)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3013)"
   },
   "js/app.js::functions::workMotion": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3033)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3033)"
   },
   "js/app.js::functions::saveScroll": {
    "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
+   "home": "modules/conversation (scroll/motion); dock measuring \u2192 shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
    "status": "planned",
@@ -7367,23 +7366,23 @@
   },
   "js/app.js::functions::follow": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3187)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3187)"
   },
   "js/app.js::functions::loadChatHops": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3200)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3200)"
   },
   "js/app.js::functions::ensureRoot": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3217)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3217)"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
+   "home": "router enter-hook per page (conversation/chats); `back` \u2192 router (app.js l.3227)"
   },
   "js/app.js::functions::showMsg": {
    "status": "planned",
@@ -7467,15 +7466,15 @@
   },
   "js/app.js::functions::openNext": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3736)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3736)"
   },
   "js/app.js::functions::threadState": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3746)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3746)"
   },
   "js/app.js::functions::panelThreads": {
    "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3755)"
+   "home": "modules/threads (public `threadState`, `panelThreads` \u2192 panel frame \"threads\") (app.js l.3755)"
   },
   "js/app.js::functions::allRender": {
    "status": "planned",
@@ -7554,35 +7553,35 @@
   },
   "js/app.js::functions::soundRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4132)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4132)"
   },
   "js/app.js::functions::hopsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4158)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4158)"
   },
   "js/app.js::functions::webpicsRender": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4159)"
   },
   "js/app.js::functions::deviceSaid": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4165)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4165)"
   },
   "js/app.js::functions::setChatBubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4186)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4186)"
   },
   "js/app.js::functions::bubblesRender": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4193)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4193)"
   },
   "js/app.js::functions::openKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4208)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4208)"
   },
   "js/app.js::functions::closeKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4209)"
+   "home": "modules/settings host; shape fan-out \u2192 core/services shape `onChange` subscribers per module (app.js l.4209)"
   },
   "js/app.js::functions::shapeApply": {
    "status": "planned",
@@ -7613,7 +7612,7 @@
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
+   "home": "core/platform keys (sheet + settings section); rail keys \u2192 modules/settings (app.js l.4296)"
   },
   "js/app.js::functions::keysPageRender": {
    "status": "moved",
@@ -7640,11 +7639,11 @@
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4722)"
+   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4722)"
   },
   "js/app.js::functions::resolveFromRow": {
    "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
+   "home": "`whenWorld` \u2192 core/services world; `resolveFromRow` \u2192 modules/threads (app.js l.4735)"
   },
   "js/app.js::ids::nx-note-in": {
    "status": "planned",
@@ -7656,43 +7655,43 @@
   },
   "js/app.js::ids::hm-head": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-body": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-since": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-next": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-then": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-end": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::hm-made": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.719)"
   },
   "js/app.js::ids::home-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.734)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.734)"
   },
   "js/app.js::ids::then-h": {
    "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.779)"
+   "home": "modules/home; `#hm-since`, `#hm-made` slots \u2192 `home.block` place (artifacts registers) (app.js l.779)"
   },
   "js/app.js::ids::handled": {
    "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.152)"
+   "home": "`S` must be split per module (see \u00a73); `announce` \u2192 core/platform a11y (app.js l.152)"
   },
   "js/app.js::ids::hd-head": {
    "status": "planned",
@@ -7805,7 +7804,7 @@
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4182)"
+   "home": "`settings.section` contributions: sounds \u2192 core/ui sound; bubbles + webpics \u2192 modules/conversation; hops \u2192 modules/threads; keys sheet \u2192 core/platform keys (app.js l.4182)"
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "moved",
@@ -8683,218 +8682,149 @@
   "js/diffview.js::exports::langOf": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::exports::loaded": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::exports::ready": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::exports::prefetch": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::exports::setTheme": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::exports::diff": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::exports::conflict": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::exports::jump": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::exports::exitKeys": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::exports::file": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::functions::langOf": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::load": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::workers": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::ready": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::functions::prefetch": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::setTheme": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::parse": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::diff": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::conflict": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::functions::jump": {
    "status": "split-region",
    "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
+    "modules/changes/diff-renderer/"
    ],
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/diffview.js::functions::exitKeys": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::functions::file": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::keys::Tab": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::keys::f": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::keys::F": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/diffview.js::keys::KeyF": {
-   "status": "split-region",
-   "home": [
-    "modules/changes/diff-renderer/",
-    "decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6)"
   },
   "js/doceditor.js::exports::loadCM": {
    "status": "planned",
@@ -16166,8 +16096,8 @@
    "home": "modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/editor-exit.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/files/tests/editor-exit.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); the test went with it"
   },
   "tests/edits.test.mjs::globals::matchMedia": {
    "status": "planned",

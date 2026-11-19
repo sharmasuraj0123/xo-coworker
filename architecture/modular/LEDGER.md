@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 624 |
+| planned | 618 |
 | vendor | 367 |
-| deleted | 232 |
+| deleted | 238 |
 | moved | 54 |
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560, deleted 24, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1006, moved 696, split-region 546, deleted 39, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -42,7 +42,7 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
 | `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
 | `js/diffthemes.js` | 4 | planned | modules/changes/diff-renderer/themes.js (generated) |
-| `js/diffview.js` | 421 | split | modules/changes/diff-renderer/, decide: ~230 dead lines (file/conflict/exitKeys/ready/loaded/FIND_CSS) |
+| `js/diffview.js` | 421 | split | modules/changes/diff-renderer/ |
 | `js/doceditor.js` | 290 | planned | modules/files/editor/doceditor.js |
 | `js/docs.js` | 420 | planned | modules/files/documents/docs.js |
 | `js/drafts.js` | 61 | planned | modules/files/documents/drafts.js |
@@ -167,16 +167,16 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `tests/drafts.test.mjs` | 77 | planned | core/services/tests/drafts.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/dropdown-held.test.mjs` | 27 | planned | core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/edge-ring.test.mjs` | 18 | planned | core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/editor-caret.test.mjs` | 28 | planned | modules/files/tests/editor-caret.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/editor-exit.test.mjs` | 52 | planned | modules/files/tests/editor-exit.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/editor-caret.test.mjs` | 28 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read the source of that editor's caret handling; tests/diffview.test.mjs checks the adapter offers no editor |
+| `tests/editor-exit.test.mjs` | 52 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test tested diffview's exitKeys, which only that editor used; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/edits.test.mjs` | 50 | planned | modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/field-ring.test.mjs` | 42 | planned | core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/file-cache.test.mjs` | 25 | planned | modules/files/tests/file-cache.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files-stop-look.test.mjs` | 26 | planned | modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files-tree-scroll-fold.test.mjs` | 54 | planned | modules/files/tests/files-tree-scroll-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files.test.mjs` | 66 | planned | modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/find-bar.test.mjs` | 38 | planned | modules/files/tests/find-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/find-race.test.mjs` | 38 | planned | modules/files/tests/find-race.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/find-bar.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-bar stylesheet (FIND_CSS); tests/diffview.test.mjs checks the adapter offers no editor |
+| `tests/find-race.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-key handling and its vendored source; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/focus-back.test.mjs` | 55 | planned | core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/focusview.test.mjs` | 151 | planned | core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/follow-instance.test.mjs` | 30 | moved | modules/conversation/tests/follow-instance.test.mjs |
@@ -239,7 +239,7 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `tests/phone-hit-area.test.mjs` | 34 | planned | core/ui (css guard)/tests/phone-hit-area.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-panel-go.test.mjs` | 40 | planned | shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/picker-keys.test.mjs` | 34 | planned | modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/pierre-find-focus.test.mjs` | 36 | planned | modules/vendor/tests/pierre-find-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/pierre-find-focus.test.mjs` | 36 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test checked the local patch to the vendored edit.js; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/press-inks.test.mjs` | 57 | planned | core/ui (css guard)/tests/press-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/press-keeps-node.test.mjs` | 231 | planned | core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/press-reach.test.mjs` | 114 | planned | core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -709,7 +709,7 @@ Items inside first-party files: 2290 (planned 1007, moved 696, split-region 560,
 | `js/vendor/pierre-diffs/c/xml-QIC37UDC.js` | 1 | vendor | vendor/pierre-diffs/c/xml-QIC37UDC.js |
 | `js/vendor/pierre-diffs/c/yaml-5I454EOF.js` | 1 | vendor | vendor/pierre-diffs/c/yaml-5I454EOF.js |
 | `js/vendor/pierre-diffs/diffs.js` | 157 | vendor | vendor/pierre-diffs/diffs.js |
-| `js/vendor/pierre-diffs/edit.js` | 68 | planned | delete with diffview's dead editor path (owner D6) |
+| `js/vendor/pierre-diffs/edit.js` | 68 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6): nothing imported it |
 | `js/vendor/pierre-diffs/manifest.json` | 187 | vendor | vendor/pierre-diffs/manifest.json |
 | `js/vendor/pierre-diffs/worker.js` | 1 | vendor | vendor/pierre-diffs/worker.js |
 | `js/vendor/pierre/LICENSE.md` | 189 | vendor | vendor/pierre/LICENSE.md |

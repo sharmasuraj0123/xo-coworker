@@ -69,6 +69,13 @@ await t("every language langOf() asks for is in the build", async () => {
   for (const [p, l] of Object.entries(cases)) assert.equal(langOf(p), l, p);
 });
 
+await t("the adapter offers only what the app draws: diffs, J/K, the theme, idle warm-up; no editor or merge view", async () => {
+  const D = await import("../js/diffview.js");
+  assert.deepEqual(Object.keys(D).sort(), ["diff", "jump", "langOf", "prefetch", "setTheme"]);
+  assert.ok(!("edit.js" in manifest.files) && !manifest.patches, "Pierre's editor isn't vendored, so nothing patches it");
+  assert.doesNotMatch(readFileSync(join(ROOT, "tools/diffview/vendor.mjs"), "utf8"), /diffs\/edit/, "and the vendoring script doesn't bring it back");
+});
+
 await t("first load stays as it was: only js/diffview.js reaches the library, and only by import()", () => {
   const src = readFileSync(join(ROOT, "js/diffview.js"), "utf8").replace(/\/\/.*$/gm, "");
   assert.ok(!/^\s*import\s[^(]/m.test(src), "js/diffview.js has a static import");

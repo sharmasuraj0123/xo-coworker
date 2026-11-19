@@ -14,13 +14,11 @@
 // tools/diffview/theme.mjs); everything else is CSS custom properties on the library's element
 // (css/diffs.css), so light and dark switch without a redraw. app.js calls setTheme() when you switch.
 //
-// Calls: ready, prefetch, diff, file (with edit), conflict, jump, langOf, setTheme, loaded.
+// Calls: prefetch, diff, jump, langOf, setTheme.
 
 const LIB = new URL("./vendor/pierre-diffs/diffs.js", import.meta.url).href;
 const WORKER = new URL("./vendor/pierre-diffs/worker.js", import.meta.url).href;
-const EDIT = new URL("./vendor/pierre-diffs/edit.js", import.meta.url).href;
 const THEMES = { dark: "xo-dark", light: "xo-light" };
-const PLAIN_OVER = 262144; // a file over 256 KB stays plain text: colouring it would cost more than reading it
 
 // ── languages: what the vendored build carries (tools/diffview/vendor.mjs LANGS) ─────────────
 const EXT = {
@@ -68,9 +66,6 @@ function workers(P) {
   return pool;
 }
 
-/** Is the library here already (so a draw is quick)? */
-export const loaded = () => !!lib;
-
 /**
  * Get the first draw ready when you've stopped touching the page for a moment (no scroll, key or press for
  * 1.2 s, then an idle callback): the library, the worker, and each language's grammar, handed to the worker.
@@ -88,12 +83,6 @@ const quiet = () => new Promise((r) => {
   const check = () => (performance.now() - last >= 1200 ? (typeof requestIdleCallback === "function" ? requestIdleCallback(done, { timeout: 1000 }) : done()) : setTimeout(check, 1200 - (performance.now() - last)));
   setTimeout(check, 1200);
 });
-/** Files opened: you're about to read a file, so the library and its worker start now (≈25 ms on the page),
- *  not on your first click (≈370 ms then). */
-export function ready() {
-  if (typeof Worker !== "function") return;
-  load().then((P) => workers(P)).catch(() => {});
-}
 export function prefetch(paths = []) {
   if (typeof Worker !== "function") return; // nowhere to colour (a test, an old browser): the first draw loads it
   const langs = [...new Set(paths.map(langOf))].filter((l) => l !== "text" && !loadedLangs.has(l));
@@ -111,40 +100,6 @@ const common = (o) => ({
   theme: THEMES, themeType: themeNow(), preferredHighlighter: "shiki-js",
   disableFileHeader: true, overflow: o.wrap ? "wrap" : "scroll", tokenizeMaxLineLength: 1000,
 });
-
-/**
- * The editor's find bar, from outside it (Pierre's, in the file's shadow root, where the page's rules can't reach; the
- * library is pinned), as one family (the controls grader on e55c2d8, S242–S252):
- *   · on a phone every one of its controls is a real 36 px target, the app's floor (css/phone.css): the fields 36 tall,
- *     the in-field toggles, the arrows, Replace and Replace all, the replace toggle and Close 36 × 36 (they were 16–28);
- *     Close keeps its small round look inside its 36 px box;
- *   · its words take the role tokens, which read on every surface: the match count and "No results" the secondary
- *     ink (they were 50% and 35% mixes, 2.6–2.9:1 and 1.9–2.0:1), the fields' placeholder the tertiary.
- * The library puts this stylesheet in its last cascade layer (unsafe), and the bar's own rules are unlayered, so they
- * win any property both set whatever the selectors' weight (the browser pass found the count still the library's mix):
- * those declarations are !important, the one way a layered rule outranks an unlayered one. The count's states are all
- * coloured here, from one place: a pattern that isn't a valid regexp is the error's ink, by its data-invalid (an
- * inline colour lost to this sheet's !important: the controls grader on dead20c, S245).
- */
-const FIND_CSS = `
-[data-matches]{color:var(--ink-2)!important}
-[data-matches][data-invalid]{color:var(--err-ink)!important}
-[data-input-box] input::placeholder{color:var(--ink-3)!important;opacity:1!important}
-/* the bar keeps Close's corner to itself: Close (20 px, half out of the corner) reaches 10 px in, so the bar's own
-   controls end 16 px from its right edge, never under it (the flows case found Next and Close overlapping 6 × 4 px) */
-[data-search-panel] [data-editor-widget]{padding-right:16px!important}
-@media (max-width:760px){
-  [data-input-box] input{min-height:36px}
-  [data-input-box][data-find] input{padding-inline-end:116px!important}
-  [data-search-panel] [data-search-icon]{width:36px!important;height:36px!important;min-width:36px;min-height:36px}
-  [data-search-panel] [data-search-close]{background:transparent!important;top:-8px!important;right:-8px!important;transform:none!important;isolation:isolate}
-  /* the bar keeps Close's corner to itself: Close (36, from the corner's 8 px out) reaches 28 px in, so the bar's own
-     controls end 36 px from its right edge, never under Close (a tap meant for Regexp closed Find: the controls
-     grader on 76a53c1, 390, the two targets overlapping 14 × 18 px) */
-  [data-search-panel] [data-editor-widget]{padding-right:36px!important}
-  [data-search-panel] [data-search-close]::before{content:"";position:absolute;inset:8px;z-index:-1;border-radius:50%;background:color-mix(in lab, var(--diffs-widget-fg) 50%, var(--diffs-bg))}
-  [data-search-panel] [data-search-close]:not(:disabled):hover::before{background:var(--diffs-widget-fg)}
-}`;
 
 /** One file's diff out of git's patch for it (its whole `diff --git` block). */
 function parse(P, patch, path, key) {
@@ -177,83 +132,6 @@ export async function diff(host, patch, o = {}) {
 }
 
 /**
- * A file with conflict markers (core/platform/diff.js), in Pierre's merge view: each marked place offers three
- * choices, drawn here (o.labels: {current, incoming, both}: the words for yours, theirs, both). o.onResolve
- * (text, left) after each choice: the file as it now reads, and how many places are still to choose; o.onDone()
- * once a choice made from the keyboard leaves none (where focus goes next: the viewer's Save).
- * Resolves to {destroy()}.
- */
-let findN = 0; // the editor search's message ids (aria-errormessage)
-export async function conflict(host, text, o = {}) {
-  const P = await load();
-  const L = { current: "Keep current", incoming: "Take incoming", both: "Keep both", ...(o.labels || {}) };
-  const left = (t) => (t.match(/^<<<<<<< /gm) || []).length;
-  const v = new P.UnresolvedFile({
-    ...common({ wrap: true }), diffIndicators: "bars", hunkSeparators: "line-info",
-    // the marker rows say "yours" and "the agent's" themselves: no "(Current Change)" after them
-    unsafeCSS: "[data-merge-conflict=marker-start]::after,[data-merge-conflict=marker-end]::after{content:none}",
-    mergeConflictActionsType: (action, inst) => {
-      const bar = document.createElement("div");
-      bar.className = "xd-merge";
-      bar.setAttribute("role", "group"); bar.setAttribute("aria-label", "Choose what to keep here"); bar.tabIndex = -1;
-      bar.dataset.place = String(action.conflictIndex);
-      bar.addEventListener("focusin", (e) => { on = { place: action.conflictIndex, b: [...bar.querySelectorAll("button")].indexOf(e.target) }; });
-      for (const res of ["current", "incoming", "both"]) {
-        const b = document.createElement("button");
-        b.type = "button"; b.className = `xd-mbtn${res === "current" ? " is-mine" : ""}`; b.textContent = L[res];
-        b.addEventListener("click", () => {
-          // the choice goes with its place: focus waits on the file's body while the view redraws (never the
-          // page), then goes on to the next place still to choose, else to o.onDone (Astra S232)
-          const had = bar.contains(document.activeElement), y = bar.getBoundingClientRect().top;
-          on = null;
-          if (had) host.focus({ preventScroll: true });
-          inst.resolveConflictAndRender(action.conflictIndex, res);
-          // on, unless you went somewhere yourself meanwhile (focus still on the file's body, or nowhere)
-          if (had) requestAnimationFrame(() => { const a = document.activeElement; if (!a || a === host || a === document.body) onward(bar, y); });
-        });
-        bar.appendChild(b);
-      }
-      return bar;
-    },
-    onMergeConflictResolve: (file) => { places = left(file.contents); if (o.onResolve) o.onResolve(file.contents, places); },
-  }, workers(P));
-  // Pierre draws the choice bars again when the file's colours arrive from its worker (new nodes, the same places):
-  // the place you're on is still the place you're on, so focus goes to it as drawn now, in the same step; only
-  // while focus would otherwise be nowhere (the browser run: focus reached the next place, then fell to the page)
-  let on = null, places = left(text); // places: how many are still to choose (a bar left over from a redraw isn't one)
-  // want: where the place just chosen was, while the next place to choose isn't drawn yet (focus waits on the file)
-  let want = null;
-  const out = (e) => { if (e.relatedTarget && !host.contains(e.relatedTarget)) on = null; if (e.relatedTarget && e.relatedTarget !== host) want = null; };
-  host.addEventListener("focusout", out);
-  const keep = new MutationObserver(() => {
-    const a = document.activeElement;
-    if (want != null && (!a || a === document.body || a === host)) { const y = want; want = null; onward(null, y); return; }
-    if (!on || (a && a !== document.body)) return;
-    const bar = places ? host.querySelector(`.xd-merge[data-place="${on.place}"]`) : null;
-    if (bar) (bar.querySelectorAll("button")[on.b] || bar).focus({ preventScroll: true });
-    else { on = null; if (!places && o.onDone) o.onDone(); else host.focus({ preventScroll: true }); }
-  });
-  keep.observe(host, { childList: true, subtree: true });
-  /** The next place to choose after the one at y (the place itself, not a choice in it: one Tab more chooses, so
-   *  a held Enter can't choose for every place), else the first left; none left: o.onDone. */
-  function onward(gone, y) {
-    // none left: Pierre leaves the last bar drawn until its next redraw, and that bar isn't a place any more
-    if (!places) { want = null; if (o.onDone) o.onDone(); return; }
-    const bars = [...host.querySelectorAll(".xd-merge")].filter((x) => x !== gone && x.isConnected && x.getClientRects().length)
-      .map((x) => [x, x.getBoundingClientRect().top]).sort((a, b) => a[1] - b[1]);
-    const to = (bars.find(([, t]) => t >= y - 1) || bars[0])?.[0];
-    if (to) { want = null; to.focus(); return; } // brought into view if it's out of it
-    // places are left, and none is drawn yet (Pierre draws them again): focus waits on the file's body and goes on
-    // to the next place once it's there; never to Save while a place is left (Files/Map grader on 44e429d)
-    want = y;
-    if (!host.contains(document.activeElement)) host.focus({ preventScroll: true });
-  }
-  v.render({ file: { name: String(o.path || "").split("/").pop(), contents: text, lang: langOf(o.path) }, containerWrapper: host });
-  live.add(v);
-  return { destroy() { keep.disconnect(); host.removeEventListener("focusout", out); on = null; want = null; live.delete(v); v.cleanUp(); host.replaceChildren(); } };
-}
-
-/**
  * J / K: bring the next (dir 1) or previous (dir −1) change in a drawn diff to the top of its scroller,
  * 40 px down. A change is a run of added or removed rows. Returns false when there's none that way.
  */
@@ -269,153 +147,4 @@ export function jump(scroller, dir) {
   if (!to) return false;
   scroller.scrollTop += at(to);
   return true;
-}
-
-/**
- * The keyboard can always leave a code editor that keeps Tab for indenting: Escape, then Tab or Shift+Tab, moves focus
- * on, as code editors do; Tab alone indents. The next key after Escape that isn't Tab, or focus leaving, ends it.
- * Every editor here is diffview's file().edit (the controls grader on d79d37e: Tab indented and Escape only eased the
- * selection, so the Created notice's Undo couldn't be reached by keyboard). within: the editor's element. Returns one
- * handler, for keydown and focusout, listened to in capture on within, before the editor's own.
- */
-export function exitKeys(within) {
-  let leaving = false;
-  return (e) => {
-    if (e.type === "focusout") { if (!within.contains(e.relatedTarget)) leaving = false; return; }
-    if (e.isComposing) return;
-    if (e.key === "Escape") { leaving = true; return; }
-    // the browser's own Tab, which the editor never sees: focus moves on
-    if (e.key === "Tab" && leaving && !e.ctrlKey && !e.metaKey && !e.altKey) { leaving = false; e.stopPropagation(); return; }
-    if (!["Shift", "Control", "Alt", "Meta"].includes(e.key)) leaving = false;
-  };
-}
-
-/**
- * A whole file, drawn into scroller (the element that scrolls it): virtualised, so only the rows on screen
- * are drawn (a 3,155-line file's rows in ≈4 ms) and the worker colours them. o: {path, wrap, key,
- * onSelect(range | null) when a selection ends or clears, note(lineNumber) → the element to show under that
- * line (the "Ask about these lines" composer; the code moves down for it)}. Resolves to {select(range),
- * note(line | null), place(line) → {top, bottom} in the scroller's content, reveal(line), destroy()}.
- */
-export async function file(scroller, contents, o = {}) {
-  const P = await load();
-  const lang = contents.length > PLAIN_OVER ? "text" : langOf(o.path);
-  const host = document.createElement("div");
-  scroller.appendChild(host);
-  const VZ = new P.Virtualizer();
-  VZ.setup(scroller, host);
-  const v = new P.VirtualizedFile({
-    ...common(o), unsafeCSS: FIND_CSS,
-    ...(o.onSelect ? { enableLineSelection: true, onLineSelectionEnd: (r) => o.onSelect(r), onLineSelected: (r) => { if (!r) o.onSelect(null); } } : {}),
-    ...(o.note ? { renderAnnotation: (a) => o.note(a.lineNumber) } : {}),
-  }, VZ, undefined, lang !== "text" ? workers(P) : undefined);
-  v.render({ file: { name: String(o.path || "").split("/").pop(), contents, lang, ...(o.key ? { cacheKey: o.key } : {}) }, containerWrapper: host });
-  live.add(v);
-  const place = (n) => { const p = v.getLinePosition(n); return p ? { top: host.offsetTop + p.top, bottom: host.offsetTop + p.top + p.height } : null; };
-  return {
-    select(range) { v.setSelectedLines(range); },
-    note(line) { v.setLineAnnotations(line ? [{ lineNumber: line }] : []); v.rerender(); },
-    place,
-    reveal(line) { const p = place(line); if (p) scroller.scrollTop = Math.max(0, p.top - 96); },
-    /**
-     * Pierre's editor on this file, in place: a caret, undo, find. onChange() after each edit. Resolves to
-     * {text() (exactly what's in it: line endings as they were), dirty(), undo(), focus(), stop()}.
-     */
-    async edit({ onChange } = {}) {
-      const E = await import(EDIT);
-      const ed = new E.Editor("file", { onChange: () => onChange && onChange() });
-      const detach = ed.edit(v);
-      // Pierre's find bar, from outside it (the library is pinned): its Close and its Escape put you back at your
-      // caret before the bar goes (it left focus nowhere, and the Escape went on to leave the editor: Astra
-      // EDITOR-close); a pattern that isn't a valid regexp says so, where it said "No results" (EDITOR-regex)
-      const along = (e, key) => e.composedPath().find((n) => n.dataset && key in n.dataset);
-      const back = (e) => {
-        if (e.type !== "keydown") { if (along(e, "searchClose")) ed.focus(); return; }
-        const g = e.key === "Escape" && !e.isComposing && along(e, "searchGrid");
-        if (!g) return;
-        // Escape from one of the bar's buttons (its arrows, Regexp, Match case): Pierre's own Escape is its field's
-        // only, so this one closes the bar here and goes no further (it went on to leave the editor: Files/Map
-        // grader on 44e429d)
-        const t = e.composedPath()[0];
-        if (!(t && t.matches && t.matches("input, textarea"))) {
-          e.preventDefault(); e.stopPropagation();
-          (g.querySelector("[data-search-close]") || g.getRootNode().querySelector?.("[data-search-close]"))?.click();
-        }
-        ed.focus();
-      };
-      // what the bar says about a pattern that isn't a valid regexp stays said: Pierre writes its count again as the
-      // document changes (an edit while the bar is open), so its words are watched, not only your typing (grader)
-      let grid = null, watch = null;
-      const check = (g) => {
-        const inp = g && g.querySelector("[data-search]"), re = g && g.querySelector('[aria-label="Regexp"]'), n = g && g.querySelector("[data-matches]");
-        if (!inp || !re) return;
-        let bad = false;
-        if (re.getAttribute("aria-pressed") === "true" && inp.value) { try { new RegExp(inp.value); } catch { bad = true; } }
-        if (inp.getAttribute("aria-invalid") !== String(bad)) inp.setAttribute("aria-invalid", String(bad));
-        // the words read in the error's ink (the library's count style is 35% ink: ~1.9:1), the field names them as
-        // its error and description, and they're said once, as a status (Astra on dd15034: unlinked, faint)
-        if (n && !n.id) n.id = `xd-find-msg-${++findN}`;
-        if (bad && n) {
-          if (n.getAttribute("role") !== "status") n.setAttribute("role", "status");
-          if (!n.hasAttribute("data-invalid")) n.setAttribute("data-invalid", ""); // FIND_CSS colours it: one place
-          if (n.textContent !== "Not a valid pattern") n.textContent = "Not a valid pattern";
-          if (inp.getAttribute("aria-errormessage") !== n.id) { inp.setAttribute("aria-errormessage", n.id); inp.setAttribute("aria-describedby", n.id); }
-        } else if (n && inp.hasAttribute("aria-errormessage")) {
-          n.removeAttribute("role"); n.removeAttribute("data-invalid");
-          inp.removeAttribute("aria-errormessage"); inp.removeAttribute("aria-describedby");
-        }
-      };
-      const pattern = (e) => {
-        const g = along(e, "searchGrid");
-        if (!g) return;
-        if (g !== grid) { watch?.disconnect(); grid = g; watch = new MutationObserver(() => check(grid)); watch.observe(g, { childList: true, characterData: true, subtree: true }); }
-        check(g);
-      };
-      // the keyboard can always leave: Escape, then Tab or Shift+Tab (exitKeys)
-      const leave = exitKeys(host);
-      // Find keeps its focus. A caret landing the editor still owes (a move to a line not drawn yet, Ctrl+End in a long
-      // file: its next render puts the caret there and focuses it from a frame callback, traced: __syncRenderView → #ae
-      // → #D) took focus from Find's field, which had opened in between (the controls grader on e55c2d8, S242). When a
-      // Find key comes, the editor is told to keep focus where it will be, as it does across its own redraws
-      // (__captureFocusForDOMReplacement): its landing then puts the caret, and focuses it only if the editor still
-      // holds focus, never taking it from Find. The editor's own rule, no timer, no focus moved back
-      const findKey = (e) => (e.ctrlKey || e.metaKey) && (e.key === "f" || e.key === "F" || e.code === "KeyF");
-      const keepFind = (e) => { if (!e.isComposing && findKey(e) && typeof ed.__captureFocusForDOMReplacement === "function") ed.__captureFocusForDOMReplacement(); };
-      for (const [t, f, c] of [["keydown", keepFind, true], ["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.addEventListener(t, f, c);
-      const unwire = () => { watch?.disconnect(); watch = null; grid = null; for (const [t, f, c] of [["keydown", keepFind, true], ["keydown", leave, true], ["focusout", leave, true], ["keydown", back, true], ["click", back, true], ["input", pattern, false], ["click", pattern, false]]) host.removeEventListener(t, f, c); };
-      // the document arrives a frame or two after attaching
-      for (let i = 0; i < 60 && contents && !ed.getText(); i++) await new Promise((r) => requestAnimationFrame(r));
-      return {
-        text: () => ed.getText(),
-        dirty: () => ed.canUndo,
-        undo: () => ed.undo(),
-        // Pierre's focus does nothing until its document has arrived and it's active (an empty file's can take
-        // longer than a few frames: the controls grader's S242–S252 contract, Edit on an empty file left focus on the
-        // viewer in three cells of four). It's asked again each frame until the caret holds focus, the moment it can
-        // (a second at the most), never by a count of frames that a slow arrival outlasts
-        async focus(o) {
-          const caret = () => { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return !!a && host.contains(a.getRootNode().host || a) && a.isContentEditable; };
-          // and the editor's own caret: Pierre runs Tab (indent) and its other commands on its selections, and a focus
-          // that finds none leaves them unset until the browser reports a selection, which it never does when the
-          // caret is already where it lands. A Tab then did nothing: its key taken, no indent (EDITOR-exit, 1 in 20
-          // at 1440 light: an "Open on the first line" asked before the new file's document had arrived returned
-          // without a caret, while focus reached the text anyway). So a focus is done when both hold: the text has
-          // focus and the editor has its caret, placed at the first line shown if it had none
-          const placed = () => { try { const v = ed.getViewState(); return !!(v && v.selections && v.selections.length); } catch { return false; } };
-          const FIRST = "first-visible";
-          const at = o && o.lineNumber != null ? o : { ...(o || {}), lineNumber: FIRST };
-          const from = document.activeElement; // focus moved on meanwhile (you, or a script): it's left there
-          for (let i = 0; i < 60; i++) {
-            if (document.activeElement !== from && !host.contains(document.activeElement)) return;
-            ed.focus(placed() && !(o && o.lineNumber != null) ? o : at);
-            if (caret() && placed()) return;
-            await new Promise((r) => requestAnimationFrame(r));
-            if (caret() && placed()) return; // its own focus lands in a frame callback
-          }
-        },
-        stop() { unwire(); detach(); ed.cleanUp("discard"); },
-      };
-    },
-    destroy() { live.delete(v); v.cleanUp(); VZ.cleanUp(); host.remove(); },
-  };
 }
