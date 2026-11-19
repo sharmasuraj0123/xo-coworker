@@ -2435,8 +2435,9 @@
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paths.js": {
-   "status": "planned",
-   "home": "core/services/paths.js"
+   "status": "moved",
+   "home": "core/services/paths.js",
+   "note": "every importer points at the new home, so it leaves with no re-export"
   },
   "js/pending.js": {
    "status": "moved",
@@ -12319,11 +12320,11 @@
    "home": "modules/decisions/cards/paid.js"
   },
   "js/paths.js::exports::createPaths": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/paths.js"
   },
   "js/paths.js::functions::createPaths": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/paths.js"
   },
   "js/pending.js::exports::isPending": {

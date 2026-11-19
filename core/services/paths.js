@@ -1,24 +1,23 @@
-// Every file in a place, as a flat list of paths (⌘P, the tree's Find): Space's GET /xo-projects/{id}/paths
-// (git ls-files -co --exclude-standard, worktree-aware; SPACE-CONTRACT.md §4.6) when it has it, otherwise walked
-// from /tree a folder at a time in the background, skipping what nobody searches (.git, node_modules…). Kept per
-// place and refreshed when files come and go (Space's file.version create/delete/rename), never on a keystroke.
+// @ts-check
+import { missingRoute } from "../../js/api.js";
 
-import { missingRoute } from "./api.js";
+/** @typedef {{ project: string, base?: string }} Place @typedef {{ state: "idle" | "loading" | "ok" | "error", paths: string[], truncated: boolean, stamp: string | null, via: string | null, gen: number }} Entry */
 
 const SKIP = new Set([".git", "node_modules", "__pycache__", ".venv", "venv", "dist", "build", ".next", ".cache", ".xo"]);
 const WALK_MAX = 20000; // paths walked from /tree before it stops (says so: truncated)
 const WALK_PARALLEL = 4;
 
-/**
- * Paths for places. api: {projectPaths?(project, {worktree, stamp}), projectTree(project, rel)}. A place is
- * {project, base} (base: "" or ".xo/worktrees/<name>"). onChange(place) when a place's list grows or changes.
- */
+/** Every file in a place (⌘P, Find): Space's /paths when it has it, else a background walk of /tree; refreshed by file events, never a keystroke. @param {{ api: Record<string, any>, onChange?: (pl: Place) => void }} o */
 export function createPaths({ api, onChange = () => {} }) {
-  const P = new Map(); // key → {state: "idle"|"loading"|"ok"|"error", paths: [], truncated, stamp, via, gen}
+  /** @type {Map<string, Entry>} */
+  const P = new Map();
   let routeMissing = false;
+  /** @param {Place} pl */
   const keyOf = (pl) => `${pl.project}|${pl.base || ""}`;
-  const entry = (pl) => { const k = keyOf(pl); if (!P.has(k)) P.set(k, { state: "idle", paths: [], truncated: false, stamp: null, via: null, gen: 0 }); return P.get(k); };
+  /** @param {Place} pl @returns {Entry} */
+  const entry = (pl) => { const k = keyOf(pl); if (!P.has(k)) P.set(k, { state: "idle", paths: [], truncated: false, stamp: null, via: null, gen: 0 }); return /** @type {Entry} */ (P.get(k)); };
 
+  /** @param {Place} pl @param {{ force?: boolean }} [o] */
   async function load(pl, { force = false } = {}) {
     const e = entry(pl);
     if (e.state === "loading" || (e.state === "ok" && !force)) return e;
@@ -41,11 +40,14 @@ export function createPaths({ api, onChange = () => {} }) {
     }
     // today's Space: walk /tree, folder by folder, several at once; the list fills as it goes
     e.via = "tree"; e.paths = []; e.truncated = false;
-    const queue = [""], out = [];
+    /** @type {string[]} */
+    const queue = [""];
+    /** @type {string[]} */
+    const out = [];
     let shown = 0;
     const one = async () => {
       while (queue.length && my === e.gen) {
-        const rel = queue.shift();
+        const rel = /** @type {string} */ (queue.shift());
         let d;
         try { d = await api.projectTree(pl.project, [pl.base, rel].filter(Boolean).join("/")); } catch { continue; }
         for (const f of d.files || []) out.push(rel ? `${rel}/${f.name}` : f.name);
@@ -62,21 +64,21 @@ export function createPaths({ api, onChange = () => {} }) {
   }
 
   return {
-    /** The place's paths as far as they're known: {state, paths, truncated, via}; starts reading when idle. */
+    /** The place's paths as far as they're known: {state, paths, truncated, via}; starts reading when idle. @param {Place} pl */
     of(pl) { const e = entry(pl); if (e.state === "idle") load(pl); return e; },
     load,
-    /** A file came, went or moved in a place (Space's events): the list changes in place, and is read again later. */
+    /** A file came, went or moved in a place (Space's events): the list changes in place, and is read again later. @param {Place} pl @param {{ kind: string, path?: string, old_path?: string }} ev */
     changed(pl, { kind, path, old_path }) {
       const e = P.get(keyOf(pl));
       if (!e || e.state !== "ok") return;
-      const has = (p) => e.paths.includes(p);
+      const has = (/** @type {string} */ p) => e.paths.includes(p);
       if (kind === "create" && path && !has(path)) e.paths = [...e.paths, path].sort();
       else if (kind === "delete" && path) e.paths = e.paths.filter((p) => p !== path);
       else if (kind === "rename" && path) e.paths = [...e.paths.filter((p) => p !== old_path && p !== path), path].sort();
       else return;
       onChange(pl);
     },
-    /** Forget a place (its list is read again next time). */
+    /** Forget a place (its list is read again next time). @param {Place} pl */
     drop(pl) { P.delete(keyOf(pl)); },
     get routeMissing() { return routeMissing; },
   };

@@ -46,7 +46,7 @@ import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
-import { createPaths } from "./paths.js";
+import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
 import { createSettingsFrame } from "../modules/settings/frame.js";
