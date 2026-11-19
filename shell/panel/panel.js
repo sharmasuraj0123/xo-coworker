@@ -5,12 +5,11 @@
 import { ICON, $ } from "../../js/ui.js";
 import { redraw } from "../../js/redraw.js";
 import { usable } from "../../js/focusview.js";
-import { createChangesFrame, countsHtml } from "../../js/changesframe.js";
-import { setTheme as diffTheme } from "../../js/diffview.js";
 import { ORDER, MAP_H, ROW, createFrames } from "./frames.js";
 import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
 import { createWidth } from "./width.js";
+import { countsHtml } from "../../core/ui/components/counts.js";
 
 const KEY = "xo-stage";
 const FR_KEY = "xo-stage-frames-3"; // Threads · Changes · Map, the Map folded at first
@@ -25,11 +24,14 @@ const sget = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") |
 /** @param {string} k @param {unknown} v */
 const sset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
-/** @typedef {{ map: any, files: any, changes: any, openFiles?: (() => void) | null, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], launch?: any, threads?: any, shell?: ((on: boolean, host?: HTMLElement) => void) | null, owns?: (e: Event) => boolean, at: () => import("../../core/kernel/types").At, icon: (name: string) => string, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
+/** @typedef {{ files: any, openFiles?: (() => void) | null, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], threads?: any, shell?: ((on: boolean, host?: HTMLElement) => void) | null, owns?: (e: Event) => boolean, at: () => import("../../core/kernel/types").At, icon: (name: string) => string, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
 
 /** @param {StageDeps} deps */
-export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false, at, icon, places }) {
+export function createStage({ files, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, icon, places }) {
   const saved = sget(KEY);
+  // the frames' own parts are the panel.frame place's entries: the Map, Changes and, where it's there, Launchpad
+  const frameOf = (/** @type {string} */ id) => /** @type {any} */ (places.get("panel.frame", id));
+  const map = frameOf("map").api, launch = frameOf("launch")?.api ?? null, CHF = frameOf("changes");
   // the Map starts folded, in its Graph: Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
   if (!fr.agents.groups) fr.agents.groups = { done: true };
@@ -75,13 +77,13 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       if (e.key === "ArrowDown" || e.key === "Enter") { const r = body("agents").querySelector(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
     });
   }
-  map.mount(body("map"));
+  frameOf("map").mount(body("map"));
   const LPF = el.querySelector('[data-fr="launch"]');
-  if (launch) launch.mount(LPF, { open: () => openLaunch(), hide: () => { S.lp = false; layout(); paint(); } });
+  if (launch) frameOf("launch").mount(LPF, { open: () => openLaunch(), hide: () => { S.lp = false; layout(); paint(); } });
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
   body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
-  const CX = createChangesFrame({
-    host: body("changes").firstElementChild, changes, view,
+  const CX = CHF.mount(body("changes").firstElementChild, {
+    view,
     openFile: (/** @type {any} */ s, /** @type {string} */ path, /** @type {any} */ from) => viewer.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, show: "changes" }, from),
     onChange: () => onChange && onChange(),
   });
@@ -371,7 +373,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     /** The file chosen in the panel's Changes for a view, while the panel shows it. @param {string} v */
     chosen(v) { return S.open && !fr.changes.folded && frames().includes("changes") ? CX.chosen(v) : null; },
     /** The app's theme switched: drawn diffs follow. @param {string} t */
-    theme: (t) => diffTheme(t),
+    theme: (t) => CHF.theme(t),
     /** The place's name for the title bar (app.js knows the names). @param {(v: string) => string} fn */
     set names(fn) { nameOf = fn; },
     /** Is this element inside the panel (so the app's Esc leaves it alone)? @param {Node | null} node */
