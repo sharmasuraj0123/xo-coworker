@@ -208,7 +208,7 @@ About **two weeks** in all. P1 and P2 together give the first thing you'll notic
 ## 6. Things to settle before starting
 
 1. **Today's release.** This is a ~2-week root fix, so none of it can land today without being a patch. Recommendation: **today's release ships the other fixes** (Back to Chat, Stop button, dismissable stopped notice, chat view). P1 and P2 start now. The first visible piece is ~3 days out.
-2. **xo-space's branch.** The file routes this builds on (`/file` save, `/edits`, `/changes`) **are not on xo-space `main`**. The running Space (`/opt/xo-space`) is the same code as branch `xo/thread-db1062`. P1 has to be built on that line, and the coordinator should confirm which branch is the real one before any Space work.
+2. **xo-space's branch** (answered by the coordinator, 09:51Z). :5002 runs `feat/storm-reliability` (PR #296, head `ef4a931`, the same as `xo/thread-db1062`). That's where the file routes are; xo-space `main` doesn't have them. P1 is built by the xo-space project, routed through the workspace with this plan as its spec, not from this repo.
 3. **Coordination.**
    - The page view needs `rich.js` to export its draw/cache calls (the chat-view thread).
    - The Back to Chat fix touches `filesview.js`, so P4 goes after it.
