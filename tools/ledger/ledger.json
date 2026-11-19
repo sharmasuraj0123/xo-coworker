@@ -2441,7 +2441,7 @@
    "note": "js/pending.js re-exports core/platform until the shims go"
   },
   "js/projicons.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js": {
@@ -12362,23 +12362,23 @@
    "home": "core/platform/pending.js"
   },
   "js/projicons.js::exports::TOPICS": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/projects/projicons.js"
   },
   "js/projicons.js::exports::classify": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/projects/projicons.js"
   },
   "js/projicons.js::exports::glyph": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/projects/projicons.js"
   },
   "js/projicons.js::functions::classify": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/projects/projicons.js"
   },
   "js/projicons.js::functions::glyph": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js::exports::createQuickOpen": {

@@ -59,7 +59,7 @@ import { setTheme as setDiffTheme } from "./diffview.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "./api.js";
 import { initCreate } from "../modules/create-project/create.js";
-import { classify, glyph, TOPICS } from "./projicons.js";
+import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
@@ -274,7 +274,7 @@ REC.view = () => S.view;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
-// Each project its own icon (js/projicons.js): from its name, and its threads' titles when the name says
+// Each project its own icon (modules/projects/projicons.js): from its name, and its threads' titles when the name says
 // nothing. Offline and instant; worked out again only when the project's thread count changes. A project
 // it can't place keeps the cube.
 const projIcons = new Map();
