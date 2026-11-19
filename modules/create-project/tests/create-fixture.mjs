@@ -35,7 +35,13 @@ export async function createDialog() {
     },
     cancelClone: async () => ({}),
     githubStatus: async () => ({ status: "needs_auth" }),
-    githubConnect: async () => { const r = await github.connect(); if (r && r.session_id) sessions.add(r.session_id); return r; },
+    githubConnect: async () => {
+      const r = await github.connect();
+      if (!r || !r.session_id) return r;
+      const sid = `${clone.id}:${r.session_id}`;
+      sessions.add(sid);
+      return { ...r, session_id: sid };
+    },
     githubConnectPoll: (sid) => (sessions.has(sid) ? github.poll(sid) : new Promise(() => {})),
   });
   const { initCreate } = await import("../create.js");

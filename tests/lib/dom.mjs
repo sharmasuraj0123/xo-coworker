@@ -10,19 +10,20 @@ export async function dom(body) {
   if (!existsSync(LINKEDOM)) throw new Error("linkedom is not installed: run npm ci (dev-only tools, see AGENTS.md)");
   const { parseHTML } = await import(LINKEDOM.href);
   const { window, document } = parseHTML(`<!doctype html><html><body>${body}</body></html>`);
-  /** @type {any} */
-  let active = null;
-  Object.defineProperty(document, "activeElement", { configurable: true, get: () => (active && active.isConnected ? active : document.body) });
-  const fire = (/** @type {any} */ el, /** @type {string} */ type, /** @type {boolean} */ bubbles, /** @type {any} */ related) => { const e = new window.Event(type, { bubbles }); e.relatedTarget = related; el.dispatchEvent(e); };
+  const ACTIVE = Symbol.for("xo.test.active");
+  const activeOf = (/** @type {any} */ doc) => doc[ACTIVE] || null;
+  Object.defineProperty(document, "activeElement", { configurable: true, get: () => { const a = activeOf(document); return a && a.isConnected ? a : document.body; } });
+  const fire = (/** @type {any} */ el, /** @type {string} */ type, /** @type {boolean} */ bubbles, /** @type {any} */ related) => { const e = new el.ownerDocument.defaultView.Event(type, { bubbles }); e.relatedTarget = related; el.dispatchEvent(e); };
   const proto = Object.getPrototypeOf(Object.getPrototypeOf(document.createElement("button")));
+  // focus is each document's own: a node of an earlier page never takes this page's focus
   proto.focus = function () {
-    if (active === this) return;
-    const was = active;
+    const doc = this.ownerDocument, was = activeOf(doc);
+    if (was === this) return;
     if (was && was.isConnected) { fire(was, "blur", false, this); fire(was, "focusout", true, this); }
-    active = this;
+    doc[ACTIVE] = this;
     fire(this, "focus", false, was); fire(this, "focusin", true, was);
   };
-  proto.blur = function () { if (active !== this) return; active = null; fire(this, "blur", false, null); fire(this, "focusout", true, null); };
+  proto.blur = function () { const doc = this.ownerDocument; if (activeOf(doc) !== this) return; doc[ACTIVE] = null; fire(this, "blur", false, null); fire(this, "focusout", true, null); };
   proto.scrollIntoView = function () {};
   const tplProto = Object.getPrototypeOf(document.createElement("template"));
   Object.defineProperty(tplProto, "innerHTML", { configurable: true, get() { const box = this.ownerDocument.createElement("div"); box.append(...[...this.content.childNodes].map((n) => n.cloneNode(true))); return box.innerHTML; }, set(html) { this.content.replaceChildren(); const box = this.ownerDocument.createElement("div"); box.innerHTML = html; this.content.append(...box.childNodes); } });
