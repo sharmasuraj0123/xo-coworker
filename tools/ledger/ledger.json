@@ -2386,8 +2386,9 @@
    ]
   },
   "js/merge.js": {
-   "status": "planned",
-   "home": "core/platform/diff.js"
+   "status": "moved",
+   "home": "core/platform/diff.js",
+   "note": "js/merge.js re-exports core/platform/diff.js until the shims go"
   },
   "js/model.js": {
    "status": "planned",
@@ -11868,23 +11869,23 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/merge.js::exports::linesOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::exports::changes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::exports::merge3": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::functions::changes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/merge.js::functions::merge3": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/diff.js"
   },
   "js/model.js::exports::parseChecklist": {

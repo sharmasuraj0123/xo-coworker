@@ -1,8 +1,8 @@
-// Your edit and an agent's, merged (js/merge.js): what one side changed is taken, what both changed the same
+// Your edit and an agent's, merged (core/platform/diff.js): what one side changed is taken, what both changed the same
 // way once, and what both changed differently is marked for the merge view; line endings survive. No browser.
 //   node tests/merge.test.mjs
 import assert from "node:assert/strict";
-import { linesOf, changes, merge3 } from "../js/merge.js";
+import { linesOf, changes, merge3 } from "../core/platform/diff.js";
 
 let passed = 0;
 const t = (name, fn) => {

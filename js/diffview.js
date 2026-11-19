@@ -177,7 +177,7 @@ export async function diff(host, patch, o = {}) {
 }
 
 /**
- * A file with conflict markers (js/merge.js), in Pierre's merge view: each marked place offers three
+ * A file with conflict markers (core/platform/diff.js), in Pierre's merge view: each marked place offers three
  * choices, drawn here (o.labels: {current, incoming, both}: the words for yours, theirs, both). o.onResolve
  * (text, left) after each choice: the file as it now reads, and how many places are still to choose; o.onDone()
  * once a choice made from the keyboard leaves none (where focus goes next: the viewer's Save).

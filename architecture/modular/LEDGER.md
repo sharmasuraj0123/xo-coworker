@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 910 |
+| planned | 909 |
 | vendor | 367 |
 | split | 34 |
-| moved | 2 |
+| moved | 3 |
 
-Items inside first-party files: 2290 (planned 1352, split-region 887, moved 34, deleted 17), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1347, split-region 887, moved 39, deleted 17), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -68,7 +68,7 @@ Items inside first-party files: 2290 (planned 1352, split-region 887, moved 34, 
 | `js/markdown.js` | 519 | planned | core/ui/markdown/markdown.js |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
-| `js/merge.js` | 101 | planned | core/platform/diff.js |
+| `js/merge.js` | 101 | moved | core/platform/diff.js |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | planned | core/ui/motion.js |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
