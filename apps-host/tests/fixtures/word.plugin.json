@@ -30,6 +30,7 @@
         "header": [{ "id": "open-outline", "title": "Outline", "opens": "outline", "icon": "doc" }],
         "commands": [
           { "id": "new", "slash": "/word", "title": "New document", "run": { "tool": "word_create" } },
+          { "id": "delete", "title": "Delete this document", "run": { "tool": "word_delete" } },
           { "id": "tighten", "slash": "/tighten", "title": "Tighten this", "when": "view == 'thread'", "run": { "prompt": "tighten" } }
         ],
         "inline": [{ "id": "card", "view": "ui://dev.example.word/card", "maxHeight": 240 }],

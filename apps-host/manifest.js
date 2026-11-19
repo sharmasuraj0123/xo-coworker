@@ -58,6 +58,7 @@ export function checkManifest(plugin) {
   if (!x || typeof x !== "object") return { app: null, problems: ["plugin.json has no extensions[\"space.xo\"] block"] };
   const id = String(x.id || "");
   if (!APP_ID.test(id) || id.length < 3 || id.length > 100) problems.push(`id must be reverse-DNS like "dev.me.word" (got "${id}")`);
+  else if (/^xo\./.test(id)) problems.push(`"xo." ids belong to XO's own modules (got "${id}")`);
   const version = String(plugin.version || "");
   if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) problems.push(`version must be semver like "0.1.0" (got "${version}")`);
   const engines = x.engines && x.engines.xo;
@@ -76,7 +77,7 @@ export function checkManifest(plugin) {
     }
     if (p.cap === "network" && !(list(p.hosts).length && list(p.hosts).every((h) => typeof h === "string" && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)))) { problems.push(`${where} network: hosts must be named, like "api.example.com"`); return null; }
     if (p.cap === "secrets" && !(list(p.names).length && list(p.names).every((n) => typeof n === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(n)))) { problems.push(`${where} secrets: names must look like "API_KEY"`); return null; }
-    return { cap: p.cap, why: p.why, paths: p.paths, hosts: p.hosts, names: p.names, askWhen: typeof p.askWhen === "string" ? p.askWhen : undefined };
+    return { cap: p.cap, why: p.why, paths: p.paths, hosts: p.hosts, names: p.names, askWhen: typeof p.askWhen === "string" && /^[a-z][a-z0-9-]{0,39}$/.test(p.askWhen) ? p.askWhen : undefined };
   };
   const perms = x.permissions || {};
   const permissions = {

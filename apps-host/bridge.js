@@ -31,7 +31,7 @@ export function createBridge(o) {
   const now = o.now || (() => Date.now());
   const T = o.timers || globalThis;
   const granted = new Set(o.granted);
-  let tokens = BURST, last = now(), seq = 0, closed = false, ready = false;
+  let tokens = BURST, last = now(), seq = 0, closed = false, ready = false, quiet = false;
   /** @type {Map<number, { resolve: (v: any) => void, reject: (e: Error) => void, timer: any }>} */
   const pending = new Map();
 
@@ -54,7 +54,7 @@ export function createBridge(o) {
       hostCapabilities: { openLinks: {}, serverTools: {}, serverResources: {}, logging: {} },
       hostContext: handlers.hostContext(),
     }),
-    "ui/notifications/initialized": () => { ready = true; handlers.initialized(); },
+    "ui/notifications/initialized": () => { if (ready) return; ready = true; handlers.initialized(); },
     "ui/notifications/size-changed": (p) => { need(isObj(p) && Number.isFinite(p.height), "height must be a number"); handlers.resize(Math.max(0, Math.min(10000, p.height))); },
     "notifications/message": (p) => { if (handlers.log) handlers.log(p); },
     "ping": () => ({}),
@@ -108,6 +108,7 @@ export function createBridge(o) {
       else waiter.resolve(msg.result);
       return;
     }
+    if (quiet) { if (id !== undefined) post({ id, error: { code: ERR.refused, message: "the view is closing" } }); return; }
     const fn = Object.hasOwn(METHODS, msg.method) ? METHODS[msg.method] : undefined;
     if (!ready && fn && !["ui/initialize", "ui/notifications/initialized", "ping", "notifications/message"].includes(msg.method)) {
       if (id !== undefined) post({ id, error: { code: ERR.invalid, message: "initialize first" } });
@@ -150,6 +151,7 @@ export function createBridge(o) {
         post({ id, method, ...(params === undefined ? {} : { params }) });
       });
     },
+    quiesce() { quiet = true; },
     close() {
       if (closed) return;
       closed = true;

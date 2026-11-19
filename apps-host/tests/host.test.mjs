@@ -14,14 +14,15 @@ const calls = [];
 const client = /** @type {any} */ (new Proxy({}, { get: (_t, k) => async (...a) => { calls.push([k, ...a]); if (k === "list") return { apps: rows }; if (k === "resource") return { contents: [{ uri: a[1], text: "<p>view</p>" }] }; if (k === "prompt") return { text: "Tighten the selected paragraph." }; return {}; } }));
 const doc = new FakeDoc();
 /** @type {any[]} */
-const drafts = [], opened = [];
+const drafts = [], opened = [], asked = [];
+let yes = true;
 const win = Object.assign(new EventTarget(), { setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval, open: () => null });
 const K = createKernel({ warn: () => {}, log: () => {} });
 definePlaces(K);
 K.register(createAppsHost({
   client, doc: /** @type {any} */ (doc), win: /** @type {any} */ (win), redraw: (el, html) => { /** @type {any} */ (el).html = html; },
   projects: () => [{ id: "p1", name: "Book" }, { id: "p2", name: "Site" }],
-  draft: (t, at) => drafts.push([t, at.project]), openPanel: (k, at) => opened.push([k, at.project]), confirm: async () => true, context() {},
+  draft: (t, at) => drafts.push([t, at.project]), openPanel: (k, at) => opened.push([k, at.project]), confirm: async (text) => { asked.push(text); return yes; }, context() {},
 }));
 const report = await K.start();
 assert.deepEqual(report.failed, []);
@@ -35,8 +36,8 @@ assert.deepEqual(P.entries("panel.page", p1).map((e) => e.id), ["dev.example.wor
 assert.deepEqual(P.entries("panel.page", p2), [], "off in p2: nothing shows there");
 assert.deepEqual(P.entries("panel.page", {}), [], "outside a project: nothing shows");
 assert.deepEqual(P.entries("header.action", p1).map((e) => e.id), ["dev.example.word:open-outline"]);
-assert.deepEqual(P.entries("command", p1).map((e) => e.id), ["dev.example.word:new", "dev.example.word:tighten"]);
-assert.deepEqual(P.entries("command", { project: "p1", view: "project" }).map((e) => e.id), ["dev.example.word:new"], "a when clause hides /tighten outside threads");
+assert.deepEqual(P.entries("command", p1).map((e) => e.id), ["dev.example.word:delete", "dev.example.word:new", "dev.example.word:tighten"]);
+assert.deepEqual(P.entries("command", { project: "p1", view: "project" }).map((e) => e.id), ["dev.example.word:delete", "dev.example.word:new"], "a when clause hides /tighten outside threads");
 assert.deepEqual(P.entries("decision.evidence", p1).map((e) => e.id), ["dev.example.word:pick"]);
 
 const kind = /** @type {any} */ (P.first("files.viewer.kind", p1));
@@ -50,7 +51,15 @@ assert.deepEqual(opened, [["dev.example.word:outline", "p1"]]);
 await /** @type {any} */ (P.get("command", "dev.example.word:tighten")).run(p1);
 assert.deepEqual(drafts, [["Tighten the selected paragraph.", "p1"]], "a prompt command drafts; nothing sends itself");
 await /** @type {any} */ (P.get("command", "dev.example.word:new")).run(p1, { title: "x" });
-assert.deepEqual(calls.find((c) => c[0] === "call").slice(1), ["dev.example.word", { project: "p1" }, "word_create", { title: "x" }]);
+assert.deepEqual(calls.find((c) => c[0] === "call").slice(1), ["dev.example.word", { project: "p1" }, "word_create", { title: "x" }, { confirm: false }]);
+
+yes = false;
+await assert.rejects(/** @type {any} */ (P.get("command", "dev.example.word:delete")).run(p1), /you said no/);
+assert.match(asked.at(-1), /Word wants to run word_delete/);
+assert.ok(!calls.some((c) => c[0] === "call" && c[3] === "word_delete"), "a destructive command never runs without a yes");
+yes = true;
+await /** @type {any} */ (P.get("command", "dev.example.word:delete")).run(p1);
+assert.deepEqual(calls.at(-1).slice(3), ["word_delete", {}, { confirm: true }]);
 
 const host = doc.createElement("div");
 doc.body.append(host);
@@ -62,6 +71,21 @@ const iframe = host.find((n) => n.tagName === "IFRAME");
 assert.ok(iframe && iframe.srcdoc.includes("<p>view</p>"));
 unmount();
 assert.ok(calls.some((c) => c[0] === "viewClosed"));
+
+const keep = doc.createElement("div");
+doc.body.append(keep);
+/** @type {any} */ (P.get("panel.page", "dev.example.word:outline")).mount(keep, p1);
+await tick(); await tick();
+assert.ok(keep.find((n) => n.tagName === "IFRAME"));
+rows = [{ ...rows[0], projects: { p1: { state: "disabled" } } }];
+K.bus.emit("apps:refresh");
+await tick(); await tick();
+assert.equal(keep.find((n) => n.tagName === "IFRAME"), null, "turning it off in a project closes its open views at once");
+assert.deepEqual(P.entries("panel.page", p1), []);
+rows = [{ ...rows[0], projects: { p1: { state: "enabled", granted: ["files.read", "composer.draft"] }, p2: { state: "disabled" } } }];
+K.bus.emit("apps:refresh");
+await tick(); await tick();
+assert.equal(P.entries("panel.page", p1).length, 1);
 assert.equal(host.children.length, 0);
 
 const el = doc.createElement("div");

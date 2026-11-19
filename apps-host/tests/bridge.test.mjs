@@ -97,6 +97,10 @@ const late = b.request("ping", undefined, 500);
 T.advance(600);
 await assert.rejects(late, /didn't answer/);
 
+b.quiesce();
+assert.match((await ask("tools/call", { name: "word_read" })).error.message, /closing/);
+assert.ok(!log.some((l) => l[0] === "tool" && l[2] === undefined));
+
 b.close();
 view.sent.length = 0;
 win.dispatchEvent(message({ jsonrpc: "2.0", id: 5000, method: "ping" }, view));

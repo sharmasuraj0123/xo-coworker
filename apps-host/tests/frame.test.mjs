@@ -14,6 +14,7 @@ assert.match(CSP, /connect-src 'none'/);
 assert.match(CSP, /default-src 'none'/);
 assert.match(CSP, /form-action 'none'/);
 assert.ok(!/allow-same-origin/.test(SANDBOX) && SANDBOX === "allow-scripts");
+assert.ok(doc0.indexOf("RTCPeerConnection") < doc0.indexOf("<script>x()"), "peer connections are gone before the view runs");
 
 const vars = themeVariables((t) => ({ "--surface": "#111", "--accent": "red;}</style><script>alert(1)</script>", "--sans": "Geist, sans-serif" })[t] || "");
 assert.deepEqual(vars, { "--color-background-primary": "#111", "--font-sans": "Geist, sans-serif" }, "a value that could leave its declaration is dropped");
@@ -82,6 +83,34 @@ assert.match(box.children[0].children[0].textContent, /tried to leave its frame/
 
 f.destroy();
 assert.equal(host.children.length, 0);
+
+const silent = make();
+await tick();
+const sBox = host.children[0];
+sBox.find((n) => n.tagName === "IFRAME").dispatch("load");
+sBox.focus();
+T.advance(15000);
+assert.equal(silent.state, "stopped", "a view that never initializes stops after 15 s");
+assert.match(sBox.children[0].children[0].textContent, /didn't open/);
+const reloadBtn = sBox.children[0].children[1];
+assert.equal(doc.activeElement, reloadBtn, "focus goes to Reload, never to the page");
+reloadBtn.dispatch("click");
+assert.equal(doc.activeElement, sBox, "while it reopens, the frame holds focus");
+await tick();
+const v2 = sBox.find((n) => n.tagName === "IFRAME");
+v2.dispatch("load");
+win.dispatchEvent(message({ jsonrpc: "2.0", id: 1, method: "ui/initialize", params: {} }, v2.contentWindow));
+win.dispatchEvent(message({ jsonrpc: "2.0", method: "ui/notifications/initialized" }, v2.contentWindow));
+await tick();
+assert.equal(doc.activeElement, v2, "then the view has it");
+seen.length = 0;
+win.dispatchEvent(message({ jsonrpc: "2.0", method: "ui/notifications/initialized" }, v2.contentWindow));
+await tick();
+assert.deepEqual(seen, [], "initialized is one-shot");
+silent.destroy();
+T.advance(600);
+await tick();
+assert.equal(host.children.length, 0, "teardown gets 500 ms, then the frame goes");
 
 const bad = make(async () => { throw new Error("it isn't on in this project"); });
 await tick();

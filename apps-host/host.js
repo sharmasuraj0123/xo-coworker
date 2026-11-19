@@ -37,15 +37,24 @@ export function createAppsHost(d) {
     async activate(ctx) {
       /** @type {Map<string, { row: Row, app: App | null, problems: string[], key: string, undo: Undo[] }>} */
       const apps = new Map();
-      /** @type {Set<{ retheme(): void, destroy(): void }>} */
+      /** @type {Set<{ app: string, retheme(): void, destroy(): void, gone?: () => void }>} */
       const frames = new Set();
+      let disposed = false;
       const enabled = (/** @type {string} */ id, /** @type {string | undefined} */ project) => !!project && apps.get(id)?.row.projects?.[project]?.state === "enabled";
       const granted = (/** @type {string} */ id, /** @type {string} */ project) => {
         const g = apps.get(id)?.row.projects?.[project];
         return Array.isArray(g?.granted) ? g.granted.filter((x) => typeof x === "string") : [];
       };
 
-      /** @param {HTMLElement} el @param {{ app: App, surface: Surface, kind: string, at: At, input?: unknown }} v */
+      /** @param {App} app @param {At} at @param {string} name @param {unknown} args */
+      const callTool = async (app, at, name, args) => {
+        const w = whereOf(at);
+        const risky = app.tools[name]?.risk === "destructive";
+        if (risky && !(await d.confirm(`${app.name} wants to run ${name}. This can't be undone.`))) throw new Error("you said no");
+        return d.client.call(app.id, w, name, args && typeof args === "object" ? args : {}, { confirm: risky });
+      };
+
+      /** @param {HTMLElement} el @param {{ app: App, surface: Surface, kind: string, at: At, input?: unknown, onGone?: () => void }} v */
       const mountView = (el, v) => {
         const { app, surface, at } = v;
         let where, alive = 0;
@@ -65,12 +74,7 @@ export function createAppsHost(d) {
           },
           ready: (notify) => { if (v.input !== undefined) notify(v.kind === "inline" ? "ui/notifications/tool-result" : "ui/notifications/tool-input", v.kind === "inline" ? { structuredContent: v.input } : { arguments: v.input }); },
           handlers: {
-            callTool: async (name, args) => {
-              const w = whereOf(at);
-              const risky = app.tools[name]?.risk === "destructive";
-              if (risky && !(await d.confirm(`${app.name} wants to run ${name}. This can't be undone.`))) throw new Error("you said no");
-              return d.client.call(app.id, w, name, args, { confirm: risky });
-            },
+            callTool: (name, args) => callTool(app, at, name, args),
             readResource: (uri) => d.client.resource(app.id, uri, whereOf(at)),
             draft: (text) => d.draft(text, at),
             context: (params) => d.context(app.id, at, params),
@@ -79,6 +83,8 @@ export function createAppsHost(d) {
           },
         });
         const handle = {
+          app: app.id,
+          gone: v.onGone,
           retheme: () => frame.retheme(),
           destroy: () => {
             frames.delete(handle);
@@ -92,10 +98,9 @@ export function createAppsHost(d) {
 
       /** @param {App} app @param {Surface} c @param {At} at @param {unknown} [args] */
       const runCommand = async (app, c, at, args) => {
-        const w = whereOf(at);
-        if (c.run?.tool) return d.client.call(app.id, w, c.run.tool, args && typeof args === "object" ? args : {});
+        if (c.run?.tool) return callTool(app, at, c.run.tool, args);
         if (c.run?.prompt) {
-          const p = await d.client.prompt(app.id, w, c.run.prompt);
+          const p = await d.client.prompt(app.id, whereOf(at), c.run.prompt);
           if (typeof p?.text === "string" && p.text) d.draft(p.text, at);
         }
         return undefined;
@@ -109,19 +114,25 @@ export function createAppsHost(d) {
       ctx.effect(() => () => { cards.closeAll(); for (const f of [...frames]) f.destroy(); });
 
       /** @param {string} id */
-      const drop = (id) => { const a = apps.get(id); if (a) for (const u of a.undo.reverse()) u(); apps.delete(id); };
+      const drop = (id) => {
+        for (const f of [...frames]) if (f.app === id) { f.destroy(); if (f.gone) f.gone(); }
+        const a = apps.get(id);
+        if (a) for (const u of a.undo.reverse()) u();
+        apps.delete(id);
+      };
       /** @type {Promise<void>} */
       let queue = Promise.resolve();
       const refresh = () => (queue = queue.catch(() => {}).then(load));
       async function load() {
         const res = await d.client.list();
+        if (disposed) return;
         /** @type {Row[]} */
         const rows = Array.isArray(res) ? res : Array.isArray(res?.apps) ? res.apps : [];
         const seen = new Set();
         for (const row of rows) {
           if (!row || typeof row.id !== "string") continue;
           seen.add(row.id);
-          const key = `${row.version}|${row.state}`;
+          const key = JSON.stringify([row.version, row.state, row.projects ?? null, row.manifest ?? null]);
           const old = apps.get(row.id);
           if (old && old.key === key) { old.row = row; continue; }
           drop(row.id);
@@ -140,7 +151,8 @@ export function createAppsHost(d) {
         ctx.emit("apps:changed", { ids: [...apps.keys()] });
         settings.redraw();
       }
-      ctx.effect(() => () => { for (const id of [...apps.keys()]) drop(id); });
+      ctx.effect(() => () => { disposed = true; for (const id of [...apps.keys()]) drop(id); });
+      ctx.on("apps:refresh", () => { refresh().catch((e) => settings.loaded(false, `XO couldn't list your apps: ${String(/** @type {any} */ (e)?.message || e)}`)); });
 
       const html = d.doc.documentElement;
       const MO = /** @type {typeof MutationObserver | undefined} */ (/** @type {any} */ (d.win).MutationObserver);

@@ -10,7 +10,7 @@ const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something w
 /** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
 export function createAppsSettings(d) {
   /** @type {State} */
-  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: null };
+  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {} };
   /** @type {Set<HTMLElement>} */
   const shown = new Set();
   /** @type {WeakSet<HTMLElement>} */
@@ -33,24 +33,26 @@ export function createAppsSettings(d) {
   /** @param {string} busy @param {() => Promise<Partial<State> | void>} fn */
   const work = async (busy, fn) => {
     if (s.busy) return;
+    const at = `${s.mode}|${s.appId}`;
     set({ busy, error: "" });
-    try { const next = await fn(); set({ busy: "", ...(next || {}) }); } catch (e) { set({ busy: "", error: words(e) }); }
+    const still = () => `${s.mode}|${s.appId}` === at;
+    try { const next = await fn(); set({ busy: "", ...(still() ? next || {} : {}) }); } catch (e) { set({ busy: "", ...(still() ? { error: words(e) } : {}) }); }
   };
   /** @param {HTMLElement} el @param {string} sel */
   const val = (el, sel) => String(/** @type {HTMLInputElement | null} */ (el.querySelector(sel))?.value || "").trim();
   /** @param {HTMLElement} el */
   const loadValues = (el) => {
-    const project = where.get(el)?.project, id = s.appId;
-    if (!project || !id) return;
-    d.client.settings(id, project).then((v) => { if (s.appId === id && !s.values) set({ values: v && typeof v === "object" ? (v.values || v) : {} }); }).catch(() => {});
+    const project = where.get(el)?.project, id = s.appId, key = `${id}|${project}`;
+    if (!project || !id || Object.hasOwn(s.values, key)) return;
+    d.client.settings(id, project).then((v) => { if (!Object.hasOwn(s.values, key)) set({ values: { ...s.values, [key]: v && typeof v === "object" ? (v.values || v) : {} } }); }).catch(() => {});
   };
   const app = () => { const r = s.rows.find((x) => x.id === s.appId); return r ? checkManifest(r.manifest).app : null; };
 
   /** @type {Record<string, (el: HTMLElement, data: DOMStringMap) => unknown>} */
   const ACTS = {
     install: () => set({ mode: "install", error: "" }),
-    back: () => set({ mode: "list", error: "", staged: null, appId: "", grantFor: "", activity: null, values: null }),
-    open: (el, data) => { set({ mode: "app", appId: data.app || "", error: "", grantFor: "", activity: null, values: null }); loadValues(el); },
+    back: () => set({ mode: "list", error: "", staged: null, appId: "", grantFor: "", activity: null, values: {} }),
+    open: (el, data) => { set({ mode: "app", appId: data.app || "", error: "", grantFor: "", activity: null, values: {} }); loadValues(el); },
     stage: (el) => work("Fetching and checking…", async () => {
       const source = s.source === "git" ? { git: val(el, "#xa-git"), ...(val(el, "#xa-ref") ? { ref: val(el, "#xa-ref") } : {}) } : { path: val(el, "#xa-path") };
       const staged = await d.client.stage(source);
@@ -69,7 +71,7 @@ export function createAppsSettings(d) {
       const a = app();
       if (!a || !data.project) return {};
       const picked = new Set([...el.querySelectorAll("input[data-optional]:checked")].map((i) => /** @type {HTMLElement} */ (i).dataset.optional));
-      const optional = a.permissions.optional.filter((p, i) => picked.has(`${p.cap}#${i}`)).map((p) => p.askWhen || p.cap);
+      const optional = a.permissions.optional.map((p, i) => i).filter((i) => picked.has(`${a.permissions.optional[i].cap}#${i}`));
       await d.client.setGrant(a.id, data.project, { optional, routes: a.routes.map((r) => `${r.method} ${r.template}`) });
       await d.refresh();
       return { grantFor: "" };
@@ -107,7 +109,7 @@ export function createAppsSettings(d) {
         values[input.dataset.setting || ""] = input.type === "checkbox" ? input.checked : input.type === "number" ? Number(input.value) : input.value;
       }
       await d.client.saveSettings(s.appId, project, values);
-      return { values };
+      return { values: { ...s.values, [`${s.appId}|${project}`]: values } };
     }),
   };
 
@@ -133,7 +135,7 @@ export function createAppsSettings(d) {
       where.set(el, { project: typeof at.project === "string" ? at.project : undefined });
       shown.add(el);
       wire(el);
-      if (s.mode === "app" && !s.values) loadValues(el);
+      if (s.mode === "app") loadValues(el);
       draw();
       return () => { shown.delete(el); };
     },

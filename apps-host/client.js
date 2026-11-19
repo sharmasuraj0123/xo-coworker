@@ -30,7 +30,7 @@ const stamp = (at) => {
 function checkSource(source) {
   if ("git" in source) {
     if (!HTTPS_GIT.test(source.git)) throw new Error("A repo is an https address, like https://github.com/me/xo-word");
-    if (source.ref !== undefined && !/^[A-Za-z0-9._\/-]{1,100}$/.test(source.ref)) throw new Error("A ref is a tag, branch or commit");
+    if (source.ref !== undefined && !/^[A-Za-z0-9._][A-Za-z0-9._\/-]{0,99}$/.test(source.ref)) throw new Error("A ref is a tag, branch or commit");
     return { git: source.git, ...(source.ref ? { ref: source.ref } : {}) };
   }
   if (typeof source.path !== "string" || !source.path.startsWith("/") || source.path.split("/").includes("..")) throw new Error("A folder is an absolute path on this machine");
@@ -53,7 +53,7 @@ export function createAppsClient(request) {
     rollback: (/** @type {string} */ id) => request(`${app(id)}/rollback`, { method: "POST" }),
     remove: (/** @type {string} */ id, { deleteData = false } = {}) => request(app(id), { method: "DELETE", body: { delete_data: !!deleteData } }),
     grant: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { query: { project: token(project, "project id") } }),
-    setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ optional: string[], routes: string[] }} */ grant) =>
+    setGrant: (/** @type {string} */ id, /** @type {string} */ project, /** @type {{ optional: number[], routes: string[] }} */ grant) =>
       request(`${app(id)}/grants`, { method: "PUT", query: { project: token(project, "project id") }, body: { required: true, optional: grant.optional, routes: grant.routes } }),
     revoke: (/** @type {string} */ id, /** @type {string} */ project) => request(`${app(id)}/grants`, { method: "DELETE", query: { project: token(project, "project id") } }),
     stop: (/** @type {string} */ id) => request(`${app(id)}/stop`, { method: "POST" }),

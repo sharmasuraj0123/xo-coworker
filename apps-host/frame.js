@@ -6,7 +6,8 @@ import { createBridge } from "./bridge.js";
 export const CSP = "default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; worker-src blob:; connect-src 'none'; frame-src 'none'; child-src blob:; form-action 'none'; base-uri 'none'; object-src 'none'";
 export const SANDBOX = "allow-scripts";
 export const ALLOW = "camera 'none'; microphone 'none'; geolocation 'none'; usb 'none'; serial 'none'; hid 'none'; bluetooth 'none'; payment 'none'; display-capture 'none'; fullscreen 'none'; clipboard-read 'none'; publickey-credentials-get 'none'";
-const PING_MS = 5000, DEAD_MS = 10000;
+const PING_MS = 5000, DEAD_MS = 10000, OPEN_MS = 15000;
+const NO_PEERS = "<script>for(const k of [\"RTCPeerConnection\",\"webkitRTCPeerConnection\",\"RTCDataChannel\",\"RTCRtpSender\",\"RTCRtpReceiver\"])try{Object.defineProperty(window,k,{value:undefined,configurable:false,writable:false})}catch{}</script>";
 
 export const THEME_VARS = Object.freeze([
   ["--color-background-primary", "--surface"], ["--color-background-secondary", "--sunken"], ["--color-background-tertiary", "--fill-1"],
@@ -38,7 +39,7 @@ export function buildSrcdoc(html, look) {
   const body = String(html).replace(/^﻿?\s*<!doctype[^>]*>/i, "");
   const vars = Object.entries(look.variables).map(([k, v]) => `${k}:${v}`).join(";");
   const theme = look.theme === "light" ? "light" : "dark";
-  return `<!doctype html><html class="xo-${theme}" data-theme="${theme}"><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="no-referrer"><style>:root{color-scheme:${theme};${vars}}</style></head>${body}`;
+  return `<!doctype html><html class="xo-${theme}" data-theme="${theme}"><head><meta http-equiv="Content-Security-Policy" content="${CSP}"><meta name="referrer" content="no-referrer"><style>:root{color-scheme:${theme};${vars}}</style>${NO_PEERS}</head>${body}`;
 }
 
 /** @param {Document} doc */
@@ -55,6 +56,7 @@ export function createAppFrame(host, o) {
   const T = o.timers || globalThis;
   const box = doc.createElement("div");
   box.className = "xa-frame";
+  box.tabIndex = -1;
   box.dataset.state = "loading";
   const status = doc.createElement("div");
   status.className = "xa-frame-status";
@@ -73,7 +75,7 @@ export function createAppFrame(host, o) {
   let iframe = null;
   /** @type {ReturnType<typeof createBridge> | null} */
   let bridge = null;
-  let watch = /** @type {any} */ (null), loads = 0, gone = false, gen = 0;
+  let watch = /** @type {any} */ (null), opening = /** @type {any} */ (null), loads = 0, gone = false, gen = 0;
   let mode = o.displayMode || "inline";
 
   /** @param {"loading" | "live" | "stopped"} state @param {string} text */
@@ -87,12 +89,13 @@ export function createAppFrame(host, o) {
 
   const unmount = () => {
     if (watch) { T.clearInterval(watch); watch = null; }
+    if (opening) { T.clearTimeout(opening); opening = null; }
     if (bridge) { bridge.close(); bridge = null; }
     if (iframe) { iframe.remove(); iframe = null; }
   };
   /** @param {string} text */
   const stop = (text) => {
-    const hadFocus = !!iframe && doc.activeElement === iframe;
+    const hadFocus = box.contains(doc.activeElement);
     unmount();
     show("stopped", text);
     if (hadFocus) reload.focus();
@@ -123,7 +126,10 @@ export function createAppFrame(host, o) {
         resize: (h) => box.style.setProperty("--xa-view-h", `${Math.ceil(h)}px`),
         initialized: () => {
           if (my !== gen) return;
+          if (opening) { T.clearTimeout(opening); opening = null; }
+          const focusView = doc.activeElement === box;
           show("live", "");
+          if (focusView) f.focus();
           if (o.ready) o.ready((m, p) => b.notify(m, p));
           watch = T.setInterval(() => { b.request("ping", undefined, DEAD_MS).catch(() => { if (bridge === b) stop(`${app.name} stopped responding.`); }); }, PING_MS);
         },
@@ -132,9 +138,10 @@ export function createAppFrame(host, o) {
     });
     bridge = b;
     box.append(f);
+    opening = T.setTimeout(() => { if (my === gen && !b.ready) stop(`${app.name} didn't open.`); }, OPEN_MS);
   }
 
-  reload.addEventListener("click", () => { void mount().then(() => { if (iframe) iframe.focus(); }); });
+  reload.addEventListener("click", () => { box.focus(); void mount(); });
   void mount();
 
   return {
@@ -149,6 +156,7 @@ export function createAppFrame(host, o) {
       gone = true;
       gen++;
       const b = bridge;
+      if (b) b.quiesce();
       if (b && b.ready) b.request("ui/resource-teardown", {}, 500).catch(() => {}).finally(() => { unmount(); box.remove(); });
       else { unmount(); box.remove(); }
     },

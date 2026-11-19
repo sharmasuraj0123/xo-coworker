@@ -25,8 +25,9 @@ assert.throws(() => c.staged("../x"), /staging id/);
 
 assert.throws(() => c.get("../secrets"), /isn't an app id/);
 assert.throws(() => c.get("dev.x/../../secrets"), /isn't an app id/);
-await c.setGrant("dev.example.word", "p1", { optional: ["suggest"], routes: ["GET /api/chat/status"] });
-assert.deepEqual(last(), ["/api/apps/dev.example.word/grants", { method: "PUT", query: { project: "p1" }, body: { required: true, optional: ["suggest"], routes: ["GET /api/chat/status"] } }]);
+await c.setGrant("dev.example.word", "p1", { optional: [0], routes: ["GET /api/chat/status"] });
+assert.deepEqual(last(), ["/api/apps/dev.example.word/grants", { method: "PUT", query: { project: "p1" }, body: { required: true, optional: [0], routes: ["GET /api/chat/status"] } }]);
+assert.throws(() => c.stage({ git: "https://github.com/me/x", ref: "-oProxyCommand=x" }), /ref/);
 assert.throws(() => c.revoke("dev.example.word", "p1&x=1"), /project id/);
 await c.remove("dev.example.word");
 assert.deepEqual(last()[1], { method: "DELETE", body: { delete_data: false } });

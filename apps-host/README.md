@@ -20,15 +20,17 @@
 
 ## The sandbox
 
-- Frames are `<iframe sandbox="allow-scripts">` with no same-origin, loaded from `srcdoc`, with XO's CSP as the first thing parsed: no network, no forms, no frames, no base.
+- Frames are `<iframe sandbox="allow-scripts">` with no same-origin, loaded from `srcdoc`, with XO's CSP as the first thing parsed: no fetch or sockets, no forms, no frames, no base. Peer connections (WebRTC) are removed before the view's code runs.
+- A view that doesn't initialize in 15 s, stops answering pings for 10 s, or navigates its frame is closed, with Reload.
+- Turning an app off in a project, updating it or removing it closes its open views at once. Grants are sent by the manifest's permission index, never by a name the app chose.
 - A view never calls an XO route. It calls its own app's tools through the bridge, and its server uses the local routes under the owner's grants.
 - `ui/message` becomes a composer draft; only the person sends. Links open only over https, after the person agrees.
 
 ## What the shell gives it
 
-`createAppsHost({ client, doc, win, redraw, projects, draft, openPanel, confirm, context })`: `client` from `createAppsClient(core/platform's request)`, `redraw` from `core/ui`.
+`createAppsHost({ client, doc, win, redraw, projects, draft, openPanel, confirm, context })`: `client` from `createAppsClient(core/platform's request)`, `redraw` from `core/ui`. Emit `apps:refresh` on the bus when xo-space says an app changed; the host emits `apps:changed` after it re-reads.
 
 ## Known limits
 
 - Views share XO's renderer process. A busy loop in a view can freeze the tab until views move to their own origin.
-- A view can navigate its own frame before its first load ends; the second load closes it, but data the view already holds can leave that way.
+- "No network" for a view is not yet airtight: a view can navigate its own frame (the second load closes it), and a DNS prefetch can carry a little data out. Until views move to their own origin with a header CSP, treat the `network` permission as advisory for views; app servers are held to it by xo-space's sandbox.

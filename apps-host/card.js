@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("../core/kernel/types").At} At @typedef {import("./contributions.js").Mounted} Mounted @typedef {{ app?: string, tool?: string, card?: string, snapshot?: string, caption?: string, structured?: unknown }} AppBlock @typedef {{ doc: Document, find(appId: string, project: string | undefined): App | null, mountView(el: HTMLElement, v: { app: App, surface: Surface, kind: string, at: At, input?: unknown }): Mounted }} CardDeps */
+/** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("../core/kernel/types").At} At @typedef {import("./contributions.js").Mounted} Mounted @typedef {{ app?: string, tool?: string, card?: string, snapshot?: string, caption?: string, structured?: unknown }} AppBlock @typedef {{ doc: Document, find(appId: string, project: string | undefined): App | null, mountView(el: HTMLElement, v: { app: App, surface: Surface, kind: string, at: At, input?: unknown, onGone?: () => void }): Mounted }} CardDeps */
 
 export const MAX_LIVE = 3;
 const PICTURE = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
@@ -39,17 +39,20 @@ export function createCards(d) {
     pic.setAttribute("aria-label", `Open ${app.name}'s card`);
     /** @type {Mounted | null} */
     let view = null;
+    const back = (refocus = box.contains(doc.activeElement)) => {
+      view = null;
+      box.dataset.live = "";
+      pic.hidden = false;
+      const i = live.indexOf(handle);
+      if (i >= 0) live.splice(i, 1);
+      if (refocus) pic.focus();
+    };
     const handle = {
       close() {
         if (!view) return;
         const refocus = box.contains(doc.activeElement);
         view.destroy();
-        view = null;
-        box.dataset.live = "";
-        pic.hidden = false;
-        const i = live.indexOf(handle);
-        if (i >= 0) live.splice(i, 1);
-        if (refocus) pic.focus();
+        back(refocus);
       },
     };
     const open = () => {
@@ -57,7 +60,7 @@ export function createCards(d) {
       const refocus = doc.activeElement === pic;
       while (live.length >= MAX_LIVE) live[0].close();
       box.style.setProperty("--xa-card-max", `${surface.maxHeight || 360}px`);
-      view = d.mountView(box, { app, surface, kind: "inline", at, input: block.structured });
+      view = d.mountView(box, { app, surface, kind: "inline", at, input: block.structured, onGone: () => back() });
       box.dataset.live = "true";
       pic.hidden = true;
       live.push(handle);

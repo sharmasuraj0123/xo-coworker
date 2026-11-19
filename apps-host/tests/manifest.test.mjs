@@ -22,6 +22,9 @@ assert.equal(app.settings.length, 2);
 assert.deepEqual(Object.keys(app.surfaces).sort(), ["canvas", "commands", "evidence", "header", "inline", "panel"]);
 assert.equal(app.tools.agent_only.visibility.join(), "model");
 assert.equal(app.surfaces.inline[0].maxHeight, 240);
+const sneaky = clone();
+x(sneaky).permissions.optional[0].askWhen = "context.update; x";
+assert.equal(checkManifest(sneaky).app?.permissions.optional[0].askWhen, undefined, "askWhen is a plain key or nothing");
 assert.equal(permissionWords(app.permissions.required[0]), "Read files in docs/**, **/*.word.json");
 assert.ok(globRe("**/*.word.json").test("a/b/c.word.json"));
 assert.ok(globRe("**/*.word.json").test("c.word.json"));
@@ -37,6 +40,7 @@ const refused = (edit, why) => {
 };
 refused((p) => { delete p.extensions; }, /no extensions/);
 refused((p) => { x(p).id = "Word"; }, /reverse-DNS/);
+refused((p) => { x(p).id = "xo.files"; }, /belong to XO/);
 refused((p) => { p.version = "1"; }, /semver/);
 refused((p) => { x(p).engines.xo = ">=1.0 <2"; }, /needs XO apps contract/);
 refused((p) => { x(p).routes.push("GET /api/secrets/env"); }, /never opens/);

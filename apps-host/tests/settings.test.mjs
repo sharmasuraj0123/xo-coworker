@@ -5,7 +5,7 @@ import { createAppsSettings } from "../settings.js";
 import { FakeDoc, tick } from "./dom.mjs";
 
 const WORD = JSON.parse(readFileSync(new URL("./fixtures/word.plugin.json", import.meta.url), "utf8"));
-const base = { mode: "list", rows: [], loading: false, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: null };
+const base = { mode: "list", rows: [], loading: false, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {} };
 const ctx = { projects: [{ id: "p1", name: "Book" }], project: "p1" };
 
 assert.match(view(/** @type {any} */ ({ ...base }), ctx), /No apps yet/);
@@ -24,7 +24,7 @@ const buttons = (/** @type {string} */ h) => [...h.matchAll(/<button type="butto
 assert.deepEqual(buttons(sheet), [["back", "btn"], ["confirm", "btn"]], "Install and Not now carry equal weight");
 
 const row = { id: "dev.example.word", name: "Word", version: "0.3.0", manifest: WORD, projects: { p1: { state: "enabled" } } };
-const page = view(/** @type {any} */ ({ ...base, mode: "app", appId: row.id, rows: [row], grantFor: "p1", values: { units: "px" } }), ctx);
+const page = view(/** @type {any} */ ({ ...base, mode: "app", appId: row.id, rows: [row], grantFor: "p1", values: { "dev.example.word|p1": { units: "px" }, "dev.example.word|p2": { units: "pt" } } }), ctx);
 assert.match(page, /Turn Word on in Book\?/);
 assert.match(page, /data-optional="composer.draft#0"/);
 assert.deepEqual(buttons(page).filter(([a]) => a === "allow" || a === "cancel-grant").map(([, c]) => c), ["btn", "btn"]);
@@ -70,7 +70,7 @@ assert.deepEqual(calls.at(-1), ["confirm", "s1", "a".repeat(64)]);
 assert.match(el.html, /<h3 class="xa-title"[^>]*>Word<\/h3>/);
 await press("grant", { project: "p1" });
 await press("allow", { project: "p1" });
-assert.deepEqual(calls.at(-1), ["setGrant", "dev.example.word", "p1", { optional: ["suggest"], routes: ["GET /api/chat/chats/{chat_id}/threads", "POST /api/chat/chats/{chat_id}/messages", "GET /api/xo-projects/{project_id}/file"] }]);
+assert.deepEqual(calls.at(-1), ["setGrant", "dev.example.word", "p1", { optional: [0], routes: ["GET /api/chat/chats/{chat_id}/threads", "POST /api/chat/chats/{chat_id}/messages", "GET /api/xo-projects/{project_id}/file"] }]);
 ok = false;
 await press("remove");
 assert.equal(calls.at(-1)[0], "setGrant", "No to the confirm removes nothing");
