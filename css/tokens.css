@@ -68,6 +68,9 @@
 
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
+  /* the coordinator's speaker colour, as the bubbles first set it, for every view: its name in violet over the
+     label's grey, its mark's ring in violet over the line (the owner, 19 Nov: keep the purple in the chat view) */
+  --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
 
   /* The three lights. Green: done or go. Blue: working now. Amber: needs you. Red: real, irreversible danger.
      Their quiet tints are mixed here, so a state never hard-codes one theme's RGB. */
