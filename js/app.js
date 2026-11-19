@@ -1908,7 +1908,7 @@ function openAsk(project) {
   return best;
 }
 let TYPING = null;
-function typingRender(C = MAIN) { return (TYPING ||= createTyping({ world, CH, S, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, schedule: () => schedule(), tick: () => tickElapsed() })).render(C); }
+function typingRender(C = MAIN) { return (TYPING ||= createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, schedule: () => schedule(), tick: () => tickElapsed() })).render(C); }
 // only a clock whose words changed is written (a rewrite is a mutation every layer reacts to)
 function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t = elapsed(Math.max(0, Math.floor((Date.now() - +el.dataset.since) / 1000))); if (el.textContent !== t) el.textContent = t; } }
 setInterval(tickElapsed, 1000);

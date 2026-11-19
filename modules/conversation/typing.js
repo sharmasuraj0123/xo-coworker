@@ -6,12 +6,16 @@ import { ICON, XO } from "../../core/ui/icons/names.js";
 
 /** @typedef {{ typing: HTMLElement & { _k?: string | null, _h?: string }, view: string }} TypingConv */
 
-/** @typedef {{ world: any, CH: any, S: any, PROJ: (p: string) => string, convThread: (v: string) => any, chatOf: (v: string) => string | null, isBusy: (t: any) => boolean, heldWords: (h: any) => string, openAsk: (chat: string) => any, schedule: () => void, tick: () => void }} TypingDeps */
+/** @typedef {{ world: any, CH: any, PROJ: (p: string) => string, convThread: (v: string) => any, chatOf: (v: string) => string | null, isBusy: (t: any) => boolean, heldWords: (h: any) => string, openAsk: (chat: string) => any, schedule: () => void, tick: () => void }} TypingDeps */
 
 /** @param {TypingDeps} d */
-export function createTyping({ world, CH, S, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, schedule, tick }) {
+export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, schedule, tick }) {
+  /** @type {WeakMap<TypingConv, { held?: ReturnType<typeof setTimeout>, ask?: ReturnType<typeof setTimeout> }>} */
+  const timers = new WeakMap();
   /** @param {TypingConv} C */
   function render(C) {
+    const tm = timers.get(C) || {};
+    timers.set(C, tm);
     const box = C.typing, view = C.view;
     const t = convThread(view);
     /** @type {{ key: string, cls: string, icon: string, text: string, since: any, wait?: boolean } | null} */
@@ -24,9 +28,9 @@ export function createTyping({ world, CH, S, PROJ, convThread, chatOf, isBusy, h
       const who = coHeld ? (view === "ws" ? "The coordinator" : `${PROJ(/** @type {string} */ (chat))} coordinator`) : "";
       const words = heldWords(held);
       spec = { key: `held:${coHeld ? chat : chHeld ? view : t.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
-      clearTimeout(S.heldT);
+      clearTimeout(tm.held);
       const at = Date.parse(held.until || "");
-      if (at > Date.now()) S.heldT = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
+      if (at > Date.now()) tm.held = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
     } else if (chat && world.act.replying(chat)) {
       const aw = world.state.awaiting[chat];
       const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
@@ -35,8 +39,8 @@ export function createTyping({ world, CH, S, PROJ, convThread, chatOf, isBusy, h
     } else if (chat && chat !== "workspace" && openAsk(chat)) {
       const ask = openAsk(chat);
       spec = { key: `ask:${ask.id}`, cls: "av-w", icon: XO, text: `${PROJ(chat)} coordinator · Waiting for the Workspace coordinator to reply`, since: null };
-      clearTimeout(S.askT);
-      S.askT = setTimeout(schedule, Math.max(0, (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3 - Date.now()) + 50);
+      clearTimeout(tm.ask);
+      tm.ask = setTimeout(schedule, Math.max(0, (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3 - Date.now()) + 50);
     } else if (view.startsWith("c:")) {
       const sid = view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
       if (CH.working(view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
