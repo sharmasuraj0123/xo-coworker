@@ -2537,14 +2537,15 @@
   "js/stage.js": {
    "status": "split",
    "home": [
-    "shell/panel",
+    "shell/panel (panel.js, pages.js, frames.js, width.js, lists.js)",
     "core/kernel (panel.page/panel.frame places)",
     "modules/threads (Threads frame)",
     "modules/changes (frame wiring)",
     "modules/map (frame wiring)",
     "modules/launchpad (cover)",
     "modules/shells (shell page)"
-   ]
+   ],
+   "note": "moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules"
   },
   "js/storm.js": {
    "status": "split",
@@ -14128,238 +14129,76 @@
    "home": "core/platform/sse.js"
   },
   "js/stage.js::exports::createStage": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::functions::createStage": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::fr-title-launch": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::fr-body-launch": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::stage-map-tree": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::stage-map-graph": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::herald": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::storage::${W_KEY}:${S.page.name}": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/width.js"
   },
   "js/stage.js::storage::<k>": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::storage::xo-stage-w": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/width.js"
   },
   "js/stage.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowDown": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::Home": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::End": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowRight": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::/": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowLeft": {
-   "status": "split-region",
-   "home": [
-    "shell/panel",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/panel/panel.js"
   },
   "js/storm.js::exports::WAITING_STATES": {
    "status": "split-region",

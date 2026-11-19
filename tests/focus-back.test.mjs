@@ -22,8 +22,9 @@ await t("one helper says a control can take focus: no file keeps its own copy", 
   assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
   const copies = sourcePaths(".js").filter((f) => f !== "js/focusview.js" && /closest\("\[inert\], \[hidden\]"\)/.test(read(f)));
   assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
-  for (const f of ["app.js", "decide.js", "viewer.js", "stage.js", "ui.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
+  for (const f of ["app.js", "decide.js", "viewer.js", "ui.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
   assert.match(read("modules/create-project/create.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/js\/focusview\.js";/, "create.js takes it from focusview.js");
+  assert.match(read("shell/panel/panel.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/js\/focusview\.js";/, "the panel takes it from focusview.js");
 });
 
 await t("hookOf names a control so the redraw's copy is found: its id, else its tag and data- hooks, a count aside", async () => {
