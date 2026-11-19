@@ -29,20 +29,25 @@ node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit
    Nothing is injected into the app's modules, and no `window.__t`. Any of these **fails the case**:
    - a read the seed doesn't answer (it gets a 404);
    - a write the seed doesn't answer (it gets a 405);
-   - an error inside the fake Space itself.
+   - a body that isn't JSON (it gets a 400), or an error inside the fake Space itself.
+
+   A request whose body never fully arrived is dropped, never answered as an empty write. `t.space.gate(path)`
+   holds a path's answers until the returned function is called.
 2. **The page.** One Chromium for the run and one context per case:
    - reduced motion, at DPR 1;
    - locale en-GB, time zone UTC;
-   - `Date` fixed to the seed's `now`, so "6m ago" reads the same on every run. Timers still run in real time.
-     A case that needs time to pass (an undo window, a "fresh" mark) moves it with `t.tick(ms)`.
+   - `Date` fixed to the seed's `now`, so "6m ago" reads the same on every run. Timers still run in real time,
+     so an undo window or a notice's timer runs its real length, and `Date`-based ages stay at zero.
 
    A page error fails the case, and so does focus that falls to the page because the control holding it went
    away.
 3. **The settle barrier** (`lib/settle.mjs`). `t.settle()` waits until all of these hold at once:
-   - no request is open (an event stream counts until its first event arrives);
-   - no timer under 1 s is waiting (a timer of 1 s or more is a poll, not work in progress);
-   - no animation-frame callback is waiting;
-   - nothing has changed for 3 animation frames: no DOM change, and no request or timer has just finished;
+   - no request is open: a fetch until its body is read, an event stream until its first event (a resume with
+     `Last-Event-ID` until its headers), and anything the Space serves, so `import()`, workers and uploads too;
+   - no timer under 10 s is waiting, unless it is a poll: one whose function or call site re-arms it from its
+     own callback;
+   - no animation-frame callback is waiting, and no worker owes a reply;
+   - nothing has changed for 3 animation frames: no DOM change, and no request, timer or reply has just ended;
    - the fonts are loaded;
    - nothing is `[aria-busy="true"]`.
 
@@ -51,7 +56,7 @@ node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit
 4. **ARIA snapshots** (`lib/aria.mjs`). `t.snap(name, locator?)` compares the accessibility tree's text with
    `snapshots/<spec>/<case>--<name>.aria.yml`. A mismatch fails the case with a line diff, and the case carries
    on, so one run shows every difference. The snapshots don't depend on the theme or the DPR. A full run (no
-   filter) fails on a golden that no case uses; `UPDATE=1` removes it.
+   filter) in which every case passed fails on a golden that no case uses; `UPDATE=1` removes it.
 
 ## Writing a case
 
@@ -61,7 +66,7 @@ export const cases = [{
   name: "the project opens on its conversation",
   seed: "basic",            // e2e/seeds/basic.json (or a seed object)
   viewport: "desktop",      // or "phone" (390×844), or {width, height}
-  async run(t) {            // t: page, space, store, open(), settle(), snap(), fail(), tick()
+  async run(t) {            // t: page, space, store, open(), settle(), snap(), fail()
     await t.open();
     await t.page.getByRole("link", { name: "demo" }).click();
     await t.settle();

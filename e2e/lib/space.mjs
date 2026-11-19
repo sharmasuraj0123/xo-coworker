@@ -13,14 +13,14 @@ import { createStore, answer } from "./store.mjs";
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2", ".wasm": "application/wasm", ".ico": "image/x-icon", ".webmanifest": "application/manifest+json", ".md": "text/markdown" };
 const HEARTBEAT_MS = 15000;
 
-/** A request's body as JSON; null when empty, not JSON, or the client went away. @param {IncomingMessage} req @returns {Promise<any>} */
+/** A request's JSON body: {body} (null when empty), {bad} when it isn't JSON, {gone} when the client left first. @param {IncomingMessage} req @returns {Promise<{body?: unknown, bad?: string, gone?: true}>} */
 function bodyOf(req) {
   return new Promise((ok) => {
     let b = "";
     req.on("data", (c) => { b += c; });
-    req.on("end", () => { try { ok(b ? JSON.parse(b) : null); } catch { ok(null); } });
-    req.on("error", () => ok(null));
-    req.on("close", () => ok(null));
+    req.on("end", () => { try { ok({ body: b ? JSON.parse(b) : null }); } catch (e) { ok({ bad: String(/** @type {Error} */ (e).message) }); } });
+    req.on("error", () => ok({ gone: true }));
+    req.on("close", () => { if (!req.complete) ok({ gone: true }); });
   });
 }
 
@@ -36,9 +36,10 @@ export async function startSpace({ root, seed = {} }) {
   const waiters = new Set();
   /** @type {string[]} */
   const errors = [];
-  let open = 0;
-  const log = /** @type {string[]} */ ([]);
-  const done = () => { if (--open === 0) for (const w of [...waiters]) w(); };
+  /** @type {Map<string, Promise<void>>} */
+  const gates = new Map();
+  let open = 0, served = 0;
+  const done = () => { served++; if (--open === 0) for (const w of [...waiters]) w(); };
 
   /** A frame to every stream; a frame for a row just numbered keeps that row's seq. @param {string} type @param {unknown} [data] @param {FrameMeta} [meta] */
   function push(type, data = {}, { chat_id = null, thread_ts = null, session_id = null, turn_id = null, seq = null } = {}) {
@@ -50,8 +51,11 @@ export async function startSpace({ root, seed = {} }) {
   }
 
   /** @param {IncomingMessage} req @param {ServerResponse} res */
-  function stream(req, res) {
+  async function stream(req, res) {
     res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store", Connection: "keep-alive" });
+    res.flushHeaders();
+    await gates.get(new URL(req.url || "/", "http://e2e").pathname);
+    if (res.destroyed) return;
     const after = Number(req.headers["last-event-id"]);
     if (req.headers["last-event-id"] && Number.isFinite(after)) { for (const f of sent) if (f.seq > after) res.write(f.text); }
     else res.write(`event: snapshot\ndata: ${JSON.stringify({ type: "snapshot", id: null, seq: null, ts: null, chat_id: null, session_id: null, thread_ts: null, turn_id: null, run_id: null, data: { seq: store.seq, turns: [] } })}\n\n`);
@@ -64,9 +68,16 @@ export async function startSpace({ root, seed = {} }) {
   /** @param {IncomingMessage} req @param {ServerResponse} res @param {URL} url */
   async function api(req, res, url) {
     const method = req.method || "GET";
-    const body = method === "GET" || method === "HEAD" ? null : await bodyOf(req);
-    const { answer: a, frames } = answer(store, { method, path: url.pathname, query: url.searchParams, body });
-    log.push(`${method} ${url.pathname}${url.search} → ${a.status}`);
+    await gates.get(url.pathname);
+    const got = method === "GET" || method === "HEAD" ? { body: null } : await bodyOf(req);
+    if (got.gone) { res.destroy(); return; }
+    if (got.bad) {
+      errors.push(`${method} ${url.pathname}: the body isn't JSON (${got.bad})`);
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ detail: { code: "bad_json", message: got.bad } }));
+      return;
+    }
+    const { answer: a, frames } = answer(store, { method, path: url.pathname, query: url.searchParams, body: got.body });
     res.writeHead(a.status, { "Content-Type": a.type || "application/json", "Cache-Control": "no-store" });
     res.end(typeof a.body === "string" ? a.body : JSON.stringify(a.body));
     for (const f of frames) push(f.type, f.data, f);
@@ -87,8 +98,8 @@ export async function startSpace({ root, seed = {} }) {
   const server = createServer((req, res) => {
     const url = new URL(req.url || "/", "http://e2e");
     if (url.pathname === "/api/chat/stream") return stream(req, res);
-    if (!url.pathname.startsWith("/api/")) return file(res, url);
     open++;
+    if (!url.pathname.startsWith("/api/")) { res.on("close", done); return file(res, url); }
     api(req, res, url).catch((e) => {
       errors.push(`${req.method} ${url.pathname}: ${e && e.stack ? e.stack.split("\n").slice(0, 3).join(" ") : e}`);
       if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" });
@@ -99,9 +110,16 @@ export async function startSpace({ root, seed = {} }) {
   const addr = server.address();
   const base = `http://127.0.0.1:${typeof addr === "object" && addr ? addr.port : 0}`;
   return {
-    base, store, push, log, errors,
+    base, store, push, errors,
     get misses() { return store.misses; },
     get open() { return open; },
+    get served() { return served; },
+    gate(path) {
+      /** @type {() => void} */
+      let release = () => {};
+      gates.set(path, new Promise((ok) => { release = () => { gates.delete(path); ok(); }; }));
+      return release;
+    },
     idle(ms) {
       if (open === 0) return Promise.resolve(true);
       return new Promise((ok) => {

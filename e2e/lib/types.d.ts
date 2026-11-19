@@ -10,7 +10,7 @@ export interface Seed {
   routes?: Record<string, unknown>;
 }
 
-export interface Write { method: string; path: string; body: any; unknown?: boolean }
+export interface Write { method: string; path: string; body: unknown; unknown?: boolean }
 
 export interface Store {
   now: string;
@@ -26,8 +26,8 @@ export interface Store {
   misses: string[];
 }
 
-export interface Ask { method: string; path: string; query: URLSearchParams; body: any }
-export interface Answer { status: number; body: any; type?: string }
+export interface Ask { method: string; path: string; query: URLSearchParams; body: unknown }
+export interface Answer { status: number; body: unknown; type?: string }
 
 export interface FrameMeta { chat_id?: string | null; thread_ts?: string | null; session_id?: string | null; turn_id?: string | null; seq?: number | null }
 export interface Frame extends FrameMeta { type: string; data: unknown }
@@ -35,8 +35,9 @@ export interface Frame extends FrameMeta { type: string; data: unknown }
 export interface Space {
   base: string;
   store: Store;
-  log: string[];
   readonly open: number;
+  readonly served: number;
+  gate(path: string): () => void;
   idle(ms: number): Promise<boolean>;
   errors: string[];
   misses: string[];
@@ -48,6 +49,7 @@ export interface Probe {
   fetches: Map<number, string>;
   timers: Map<unknown, string>;
   frames: number;
+  workers: number;
   quiet: number;
   changed: string[];
   n: number;
@@ -62,7 +64,7 @@ export interface Locator { ariaSnapshot(): Promise<string> }
 
 export interface Page {
   waitForFunction<A>(fn: (arg: A) => unknown, arg: A, options: { polling: "raf"; timeout: number }): Promise<unknown>;
-  evaluate<A, R>(fn: (arg: A) => R, arg: A): Promise<R>;
+  evaluate<A, R>(fn: (arg: A) => R, arg?: A): Promise<R>;
 }
 
 export interface Tools {
@@ -73,7 +75,6 @@ export interface Tools {
   open(path?: string): Promise<number>;
   snap(name: string, locator?: Locator): Promise<void>;
   fail(msg: string): void;
-  tick(ms: number): Promise<void>;
 }
 
 export interface Case {

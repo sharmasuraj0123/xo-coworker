@@ -13,7 +13,8 @@ const ROOT = join(DIR, "..", "..");
 const basic = JSON.parse(readFileSync(join(DIR, "..", "seeds", "basic.json"), "utf8"));
 let passed = 0;
 const test = async (/** @type {string} */ name, /** @type {() => unknown} */ fn) => { await fn(); passed++; console.log(`ok ${name}`); };
-const ask = (/** @type {import("../lib/types.d.ts").Store} */ st, /** @type {string} */ method, /** @type {string} */ path, /** @type {any} */ body = null) => { const u = new URL(path, "http://e2e"); return answer(st, { method, path: u.pathname, query: u.searchParams, body }); };
+/** @returns {{answer: {status: number, body: any}, frames: import("../lib/types.d.ts").Frame[]}} */
+const ask = (/** @type {import("../lib/types.d.ts").Store} */ st, /** @type {string} */ method, /** @type {string} */ path, /** @type {unknown} */ body = null) => { const u = new URL(path, "http://e2e"); return answer(st, { method, path: u.pathname, query: u.searchParams, body }); };
 
 await test("an empty seed is the quiet Space: the Workspace and demo, no messages", () => {
   const st = createStore({});
@@ -122,10 +123,20 @@ await test("a read the seed doesn't answer is a 404 and kept, so the case fails 
   assert.deepEqual(st.misses, ["GET /api/chat/nope"]);
 });
 
-await test("rows without a seq are numbered after the highest seq in the seed, across chats and threads", () => {
-  const st = createStore({ chats: [{ id: "a", kind: "project", project: "a" }, { id: "b", kind: "project", project: "b" }], messages: { a: [{ id: "1" }, { id: "2", seq: 7 }], b: [{ id: "3" }] } });
-  assert.deepEqual([...st.messages.a, ...st.messages.b].map((m) => m.seq), [8, 7, 9]);
-  assert.equal(st.seq, 9);
+await test("seed rows keep their order: a missing seq follows the row before it; out of order or reused is refused", () => {
+  const chats = [{ id: "a", kind: "project", project: "a" }, { id: "b", kind: "project", project: "b" }];
+  const st = createStore({ chats, messages: { a: [{ id: "1" }, { id: "2", seq: 7 }, { id: "3" }], b: [{ id: "4", seq: 20 }] } });
+  assert.deepEqual(st.messages.a.map((m) => m.seq), [1, 7, 8]);
+  assert.equal(st.seq, 20);
+  assert.throws(() => createStore({ chats, messages: { a: [{ id: "1", seq: 5 }, { id: "2", seq: 3 }] } }), /seq 3 after 5/);
+  assert.throws(() => createStore({ chats, messages: { a: [{ id: "1", seq: 5 }], b: [{ id: "2", seq: 5 }] } }), /seq 5 is used twice/);
+});
+
+await test("a seeded project with no files has an empty tree; an unknown project's is a 404", () => {
+  const st = createStore({});
+  assert.deepEqual(ask(st, "GET", "/api/xo-projects/demo/tree").answer.body, { dirs: [], files: [] });
+  assert.equal(ask(st, "GET", "/api/xo-projects/demo/file?relative_path=a.md").answer.status, 404);
+  assert.equal(ask(st, "GET", "/api/xo-projects/nope/tree").answer.status, 404);
 });
 
 await test("over HTTP: a path is decoded once; a bad one is answered, never a crash", async () => {
@@ -152,6 +163,9 @@ await test("over HTTP: a client that goes away mid-body leaves no request open",
     while (sp.open === 0) await new Promise((ok) => setImmediate(ok));
     req.destroy();
     assert.equal(await sp.idle(2000), true, "idle() resolves once the request is gone");
+    assert.equal(sp.store.messages.chat_demo.length, 3, "no message made from a body that never arrived");
+    assert.deepEqual(sp.store.writes, []);
+    assert.deepEqual(sp.errors, []);
   } finally { await sp.close(); }
 });
 
@@ -168,6 +182,45 @@ await test("over HTTP: a stream resumed with Last-Event-ID gets the frames after
     assert.match(text, /^id: 7\nevent: pool/);
     assert.doesNotMatch(text, /snapshot|id: 6/);
     ctl.abort();
+  } finally { await sp.close(); }
+});
+
+await test("over HTTP: a body that isn't JSON is a 400 and a Space error, never an empty write", async () => {
+  const sp = await startSpace({ root: ROOT, seed: basic });
+  try {
+    const r = await fetch(sp.base + "/api/chat/chats/chat_demo/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{not json" });
+    assert.equal(r.status, 400);
+    assert.equal(sp.errors.length, 1);
+    assert.equal(sp.store.messages.chat_demo.length, 3);
+    assert.deepEqual(sp.store.writes, []);
+  } finally { await sp.close(); }
+});
+
+await test("over HTTP: a resume that missed nothing gets its headers at once, then only heartbeats", async () => {
+  const sp = await startSpace({ root: ROOT, seed: basic });
+  try {
+    const ctl = new AbortController();
+    const res = await fetch(sp.base + "/api/chat/stream", { headers: { "Last-Event-ID": "5" }, signal: AbortSignal.any([ctl.signal, AbortSignal.timeout(2000)]) });
+    assert.equal(res.status, 200);
+    assert.match(String(res.headers.get("content-type")), /^text\/event-stream/);
+    ctl.abort();
+  } finally { await sp.close(); }
+});
+
+await test("over HTTP: a gated path waits until it is released; served counts every answered request", async () => {
+  const sp = await startSpace({ root: ROOT, seed: basic });
+  try {
+    const before = sp.served;
+    const release = sp.gate("/api/chat/chats");
+    let answered = false;
+    const p = fetch(sp.base + "/api/chat/chats").then((r) => { answered = true; return r.json(); });
+    while (sp.open === 0) await new Promise((ok) => setImmediate(ok));
+    assert.equal(answered, false);
+    release();
+    assert.equal((await p).chats.length, 2);
+    await (await fetch(sp.base + "/favicon.svg")).arrayBuffer();
+    assert.equal(await sp.idle(1000), true);
+    assert.equal(sp.served - before, 2);
   } finally { await sp.close(); }
 });
 

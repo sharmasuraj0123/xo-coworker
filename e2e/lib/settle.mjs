@@ -2,56 +2,89 @@
 
 /** @import { Probe, Page, SettleOptions } from "./types.d.ts" */
 
-// The in-page probe (open requests, pending timers and frames, DOM changes, focus that falls to the page) and the settle barrier.
+// The in-page probe (requests, timers, frames, worker replies, DOM changes, focus drops) and the settle barrier.
 
-export const POLL_MS = 1000;
+export const LONG_MS = 10000;
+export const POLL_MIN_MS = 1000;
 export const QUIET_FRAMES = 3;
 
-/** Runs before the app's first script (context.addInitScript). @param {number} poll */
-export function probe(poll) {
+/** Runs before the app's first script (context.addInitScript). @param {{long: number, pollMin: number}} o */
+export function probe({ long, pollMin }) {
   const w = /** @type {any} */ (window);
   if (w.__e2e) return;
   /** @type {Probe} */
-  const S = { fetches: new Map(), timers: new Map(), frames: 0, quiet: 0, changed: [], n: 0, drops: [], busy: () => [], checkDrops: () => {} };
+  const S = { fetches: new Map(), timers: new Map(), frames: 0, workers: 0, quiet: 0, changed: [], n: 0, drops: [], busy: () => [], checkDrops: () => {} };
   w.__e2e = S;
-  const raf = globalThis.requestAnimationFrame.bind(globalThis), caf = globalThis.cancelAnimationFrame.bind(globalThis);
-  /** @type {Set<number>} */
-  const frames = new Set();
-  const of = globalThis.fetch.bind(globalThis);
-  globalThis.fetch = function (input, init) {
+  const g = /** @type {any} */ (globalThis);
+  const raf = g.requestAnimationFrame.bind(g), caf = g.cancelAnimationFrame.bind(g), st = g.setTimeout.bind(g), ct = g.clearTimeout.bind(g);
+  const pathOf = (/** @type {unknown} */ raw) => { try { return new URL(String(raw), location.href).pathname; } catch { return String(raw); } };
+
+  const of = g.fetch.bind(g);
+  g.fetch = (/** @type {RequestInfo | URL} */ input, /** @type {RequestInit | undefined} */ init) => {
     const raw = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const resume = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined)).has("Last-Event-ID");
     const id = ++S.n;
-    S.fetches.set(id, new URL(raw, location.href).pathname);
+    S.fetches.set(id, pathOf(raw));
     const end = () => { if (S.fetches.delete(id)) S.quiet = 0; };
-    return of(input, init).then((r) => {
-      const c = r.clone();
-      if (/^text\/event-stream/.test(r.headers.get("content-type") || "")) {
-        const reader = c.body?.getReader();
-        if (!reader) end();
-        else reader.read().then(() => { end(); reader.cancel().catch(() => {}); }, end);
-      } else c.arrayBuffer().then(end, end);
+    return of(input, init).then((/** @type {Response} */ r) => {
+      if (!/^text\/event-stream/.test(r.headers.get("content-type") || "")) { r.clone().arrayBuffer().then(end, end); return r; }
+      if (resume || !r.body) { end(); return r; }
+      const reader = r.clone().body?.getReader();
+      if (!reader) end(); else reader.read().then(() => { end(); reader.cancel().catch(() => {}); }, end);
       return r;
-    }, (e) => { end(); throw e; });
+    }, (/** @type {unknown} */ e) => { end(); throw e; });
   };
-  const st = globalThis.setTimeout, ct = globalThis.clearTimeout;
-  /** @type {(fn: unknown, ms?: number, ...a: unknown[]) => number} */
-  const later = (fn, ms, ...a) => {
+
+  /** @type {Set<unknown>} */
+  const polls = new Set();
+  /** @type {Map<unknown, number>} */
+  const running = new Map();
+  const enter = (/** @type {unknown[]} */ keys) => { for (const k of keys) running.set(k, (running.get(k) || 0) + 1); };
+  const leave = (/** @type {unknown[]} */ keys) => { for (const k of keys) { const n = (running.get(k) || 1) - 1; if (n) running.set(k, n); else running.delete(k); } };
+  const siteOf = () => (new Error().stack || "").split("\n")[3]?.trim() || "?";
+  g.setTimeout = (/** @type {unknown} */ fn, /** @type {number | undefined} */ ms, /** @type {unknown[]} */ ...a) => {
     const d = Number(ms) || 0;
-    if (d >= poll || typeof fn !== "function") return /** @type {any} */ (st)(fn, ms, ...a);
-    const id = st(() => { S.timers.delete(id); S.quiet = 0; fn(...a); }, d);
-    S.timers.set(id, `${d} ms ${fn.name || "anonymous"}`);
+    if (typeof fn !== "function" || d >= long) return st(fn, ms, ...a);
+    const at = siteOf(), keys = [at, fn];
+    if (d >= pollMin && keys.some((k) => running.has(k))) for (const k of keys) polls.add(k);
+    if (keys.some((k) => polls.has(k))) return st(fn, ms, ...a);
+    const id = st(() => {
+      S.timers.delete(id);
+      S.quiet = 0;
+      enter(keys);
+      const out = () => leave(keys);
+      try { const r = fn(...a); if (r && typeof r.then === "function") r.then(out, out); else out(); } catch (e) { out(); throw e; }
+    }, d);
+    S.timers.set(id, `${d} ms from ${at}`);
     return id;
   };
-  const g = /** @type {any} */ (globalThis);
-  g.setTimeout = later;
   g.clearTimeout = (/** @type {number | undefined} */ id) => { S.timers.delete(id); ct(id); };
+
+  /** @type {Set<number>} */
+  const frames = new Set();
   g.requestAnimationFrame = (/** @type {FrameRequestCallback} */ fn) => {
-    const id = raf((t) => { frames.delete(id); S.frames = frames.size; fn(t); });
+    const id = raf((/** @type {number} */ t) => { frames.delete(id); S.frames = frames.size; fn(t); });
     frames.add(id);
     S.frames = frames.size;
     return id;
   };
   g.cancelAnimationFrame = (/** @type {number} */ id) => { frames.delete(id); S.frames = frames.size; caf(id); };
+
+  const W = g.Worker;
+  if (W) g.Worker = class extends W {
+    /** @param {string | URL} u @param {WorkerOptions} [o] */
+    constructor(u, o) {
+      super(u, o);
+      const self = /** @type {Worker} */ (/** @type {unknown} */ (this));
+      let owed = 0;
+      self.addEventListener("message", () => { if (owed) { owed--; S.workers--; S.quiet = 0; } });
+      self.addEventListener("error", () => { S.workers -= owed; owed = 0; });
+      const post = self.postMessage.bind(self), stop = self.terminate.bind(self);
+      self.postMessage = (/** @type {any[]} */ ...a) => { owed++; S.workers++; return /** @type {any} */ (post)(...a); };
+      self.terminate = () => { S.workers -= owed; owed = 0; stop(); };
+    }
+  };
+
   const name = (/** @type {Node} */ n) => {
     const e = n instanceof Element ? n : n.parentElement;
     if (!e) return "#text";
@@ -76,12 +109,14 @@ export function probe(poll) {
   if (document.documentElement) watch(); else addEventListener("DOMContentLoaded", watch, { once: true });
   const tick = () => { S.quiet++; raf(tick); };
   raf(tick);
+
   S.busy = (quietFrames) => {
     /** @type {string[]} */
     const why = [];
     if (S.fetches.size) why.push(`requests open: ${[...S.fetches.values()].join(", ")}`);
     if (S.timers.size) why.push(`timers waiting: ${[...S.timers.values()].join(", ")}`);
     if (S.frames) why.push(`${S.frames} animation frame callback(s) waiting`);
+    if (S.workers > 0) why.push(`${S.workers} worker message(s) unanswered`);
     if (S.quiet < quietFrames) why.push(`last change ${S.quiet} frame(s) ago: ${S.changed.join("; ") || "pending work finished"}`);
     if (document.fonts && document.fonts.status !== "loaded") why.push("fonts loading");
     const b = document.querySelector('[aria-busy="true"]');
@@ -93,18 +128,20 @@ export function probe(poll) {
 /** What still keeps the page busy; [] once it has settled. @param {number} q */
 export const busyNow = (q) => { /** @type {Probe | undefined} */ const S = /** @type {any} */ (window).__e2e; return S ? S.busy(q) : ["the e2e probe isn't installed"]; };
 
-/** Wait for the page and the Space to settle; past `timeout` ms, throw with what is still busy. @param {Page} page @param {{open: number, idle(ms: number): Promise<boolean>}} [space] @param {SettleOptions} [o] */
-export async function settle(page, space, { timeout = 5000, quietFrames = QUIET_FRAMES } = {}) {
+/** Wait for the page and the Space to settle; past `timeout` ms, throw with what is still busy. @param {Page} page @param {{open: number, served: number, idle(ms: number): Promise<boolean>}} [space] @param {SettleOptions} [o] */
+export async function settle(page, space, { timeout = 6000, quietFrames = QUIET_FRAMES } = {}) {
   const t0 = Date.now();
   const left = () => Math.max(1, timeout - (Date.now() - t0));
   for (;;) {
     /** @type {string[]} */
     let why;
     try {
+      const served = space ? space.served : 0;
       await page.waitForFunction((/** @type {number} */ q) => /** @type {any} */ (window).__e2e?.busy(q).length === 0, quietFrames, { polling: "raf", timeout: left() });
-      if (!space || space.open === 0) return Date.now() - t0;
-      why = [`the Space is still answering ${space.open} request(s)`];
+      if (!space || (space.open === 0 && space.served === served)) return Date.now() - t0;
+      why = [`the Space answered or is answering requests the page didn't wait for (${space.open} open)`];
       await space.idle(left());
+      await page.evaluate(() => { /** @type {any} */ (window).__e2e.quiet = 0; });
     } catch (e) {
       if (!/Timeout/i.test(String(e && /** @type {any} */ (e).message))) throw e;
       why = await page.evaluate(busyNow, quietFrames).catch(() => ["the page is gone"]);

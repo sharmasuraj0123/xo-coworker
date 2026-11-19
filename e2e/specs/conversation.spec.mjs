@@ -28,7 +28,7 @@ export const cases = [
       await t.page.keyboard.press("Enter");
       await t.settle();
       const posts = t.store.writes.filter((w) => w.method === "POST" && w.path === "/api/chat/chats/chat_demo/messages");
-      if (posts.length !== 1 || posts[0].body.text !== "Please add a licence") t.fail(`expected one post of the text, got ${JSON.stringify(posts)}`);
+      if (posts.length !== 1 || /** @type {any} */ (posts[0].body).text !== "Please add a licence") t.fail(`expected one post of the text, got ${JSON.stringify(posts)}`);
       if ((await box.inputValue()) !== "") t.fail("the composer wasn't emptied after sending");
       await t.snap("messages", t.page.getByRole("log", { name: "Messages" }));
       await t.snap("status", t.page.getByRole("main").getByRole("status"));

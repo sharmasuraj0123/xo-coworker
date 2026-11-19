@@ -43,26 +43,35 @@ export function createStore(seed = {}) {
   const s = structuredClone(seed);
   const now = s.now || "2026-11-19T12:00:00Z";
   const chats = (s.chats || [{ id: "chat_ws", kind: "workspace" }, { id: "chat_demo", kind: "project", project: "demo" }]).map((c) => chatRow(c, now));
-  let next = Math.max(0, ...[...Object.values(s.messages || {}), ...Object.values(s.threadMessages || {})].flat().map((r) => Number(r.seq) || 0));
-  /** @type {(row: Row, chatId: string | null) => Row} */
-  const fill = (row, chatId) => ({ chat_id: chatId, thread_ts: null, author_kind: "owner", author_id: "owner", created_at: now, extra: {}, ...row, seq: row.seq ?? ++next });
+  let next = 0;
+  /** @type {Set<number>} */
+  const seqs = new Set();
+  /** @type {(row: Row, chatId: string | null, where: string) => Row} */
+  const fill = (row, chatId, where) => {
+    const seq = row.seq ?? next + 1;
+    if (seq <= next) throw new Error(`seed: ${where} has seq ${seq} after ${next}; rows go in seq order`);
+    if (seqs.has(seq)) throw new Error(`seed: seq ${seq} is used twice (${where})`);
+    seqs.add(seq);
+    next = seq;
+    return { chat_id: chatId, thread_ts: null, author_kind: "owner", author_id: "owner", created_at: now, extra: {}, ...row, seq };
+  };
   /** @type {Record<string, Row[]>} */
   const messages = {};
   /** @type {Record<string, Row[]>} */
   const threads = {};
   /** @type {Record<string, Row[]>} */
   const threadMessages = {};
-  for (const [id, rows] of Object.entries(s.messages || {})) messages[id] = rows.map((r) => fill(r, id));
+  for (const [id, rows] of Object.entries(s.messages || {})) { next = 0; messages[id] = rows.map((r) => fill(r, id, `messages.${id}`)); }
   for (const [id, rows] of Object.entries(s.threads || {})) threads[id] = rows.map((r) => ({ chat_id: id, label: null, resolved_at: null, session_id: null, cwd: null, branch: null, worktree_path: null, status_md: null, outputs: [], created_at: now, updated_at: now, summary: null, state: "done", activity: null, wait_reason: null, card: null, agent_ms: 0, git: null, ...r }));
   /** @param {string} ts */
   const chatOf = (ts) => Object.keys(threads).find((id) => threads[id].some((t) => t.ts === ts)) || null;
-  for (const [ts, rows] of Object.entries(s.threadMessages || {})) threadMessages[ts] = rows.map((r) => fill({ thread_ts: ts, ...r }, r.chat_id || chatOf(ts)));
+  for (const [ts, rows] of Object.entries(s.threadMessages || {})) { next = 0; threadMessages[ts] = rows.map((r) => fill({ thread_ts: ts, ...r }, r.chat_id || chatOf(ts), `threadMessages.${ts}`)); }
   return {
     now, chats, messages, threads, threadMessages,
     files: s.files || {},
     routes: s.routes || {},
     statics: quiet(now),
-    seq: next,
+    seq: Math.max(0, ...seqs),
     writes: [],
     misses: [],
   };
@@ -125,11 +134,12 @@ export function answer(st, q) {
   }
   if (/^\/api\/chat\/runtimes\/[^/]+\/models$/.test(p) && m === "GET") return done(ok({ name: "claude_code", models: MODELS }));
   if ((k = /^\/api\/chat\/chats\/([^/]+)\/messages$/.exec(p)) && m === "POST") {
-    const id = decodeURIComponent(k[1]), b = q.body || {};
+    const id = decodeURIComponent(k[1]), b = /** @type {Record<string, unknown>} */ (q.body || {});
     st.writes.push({ method: m, path: p, body: b });
     st.seq += 1;
-    const row = { id: `msg_e2e_${st.seq}`, chat_id: id, thread_ts: b.thread_ts || null, seq: st.seq, author_kind: "owner", author_id: "owner", text: String(b.text ?? ""), created_at: st.now, client_id: b.client_id ?? null, extra: {} };
-    const list = row.thread_ts ? (st.threadMessages[row.thread_ts] ||= []) : (st.messages[id] ||= []);
+    const ts = typeof b.thread_ts === "string" ? b.thread_ts : null;
+    const row = { id: `msg_e2e_${st.seq}`, chat_id: id, thread_ts: ts, seq: st.seq, author_kind: "owner", author_id: "owner", text: String(b.text ?? ""), created_at: st.now, client_id: b.client_id ?? null, extra: {} };
+    const list = ts ? (st.threadMessages[ts] ||= []) : (st.messages[id] ||= []);
     list.push(row);
     frames.push({ type: "message", data: row, chat_id: id, thread_ts: row.thread_ts, seq: row.seq });
     return done(ok(row));
@@ -155,8 +165,9 @@ export function answer(st, q) {
     return done(ok({ project_id: id, worktree: null, root: `/home/test/${id}`, base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: st.now, truncated: false, total_files: 0, files: [] }));
   }
   if ((k = /^\/api\/xo-projects\/([^/]+)\/(tree|file)$/.exec(p)) && m === "GET") {
-    const files = st.files[decodeURIComponent(k[1])];
-    if (!files) return done(err(404, "not_found", "No such project"));
+    const id = decodeURIComponent(k[1]);
+    if (!st.chats.some((c) => c.project === id)) return done(err(404, "not_found", "No such project"));
+    const files = st.files[id] || {};
     const rel = query.get("relative_path") || "";
     if (k[2] === "tree") return done(ok(treeOf(files, rel)));
     if (!(rel in files)) return done(err(404, "not_found", "No such file"));
