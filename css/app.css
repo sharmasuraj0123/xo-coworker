@@ -1861,6 +1861,15 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tw-rt:hover,.tw-rt:focus-visible{color:var(--ink-2);background:var(--hover-fill)}
 .tw-rt.is-warn,.ar-r.is-warn{color:var(--warn)}
 .ar-r{color:var(--ink-4)}
+/* An agent's mark (js/runtimes.js rtMark; files and their source in js/vendor/agent-marks): one 16 px size on the icon
+   grid, centred on the text's line. Claude and Antigravity in their own colours; OpenAI's Blossom in the text's ink,
+   as a mask, since OpenAI's rules keep it black or white. Beside its name it sits 6 px from it, as an icon in a chip. */
+.agm{display:inline-block;flex:none;width:16px;height:16px;vertical-align:-3px;background:center/contain no-repeat}
+.agm-claude{background-image:url(../js/vendor/agent-marks/claude.svg)}
+.agm-antigravity{background-image:url(../js/vendor/agent-marks/antigravity.svg)}
+.agm-openai{background-color:currentColor;-webkit-mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat;mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat}
+.agm-n{display:inline-flex;align-items:center;gap:6px}
+.iq-l>.agm{align-self:center}
 .tw-acts{position:relative;flex:none;display:flex;align-items:center;gap:8px}
 .tw-act{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .tw-act svg{width:16px;height:16px}

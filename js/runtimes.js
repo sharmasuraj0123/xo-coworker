@@ -5,6 +5,8 @@
 // health, the policy and the `why_not` sentences come from the API. Names are only ever *shown*
 // through the display map below; no logic branches on a runtime's name.
 
+import { esc } from "./util.js";
+
 /** How people say a runtime's name. Anything not listed shows as the server names it. */
 const NAME = { claude_code: "Claude Code", codex: "Codex", antigravity: "Antigravity" };
 /** The login command a runtime's CLI takes, where we know it (shown as a fix, never run). */
@@ -13,6 +15,21 @@ const LOGIN = { codex: "codex login" };
 const WINDOW = { five_hour: "5-hour window", seven_day: "Weekly window", weekly: "Weekly window", daily: "Daily window", monthly: "Monthly window" };
 
 export const rtName = (name) => NAME[name] || String(name || "The agent");
+
+/** A runtime's mark (js/vendor/agent-marks, drawn by css/app.css .agm): its company's own sign reads faster than its
+ *  name in a tight row (the owner, 19 Nov). Codex is OpenAI's, so it wears OpenAI's mark. */
+const MARK = { claude_code: "claude", codex: "openai", antigravity: "antigravity" };
+export const markOf = (name) => MARK[name] || null;
+/**
+ * The runtime's mark as HTML, its name on hover and for screen readers; null for a runtime without one (its name
+ * stays text there). withName: the name written out beside it, where there's room (a header, a picker).
+ */
+export function rtMark(name, { withName = false } = {}) {
+  const m = MARK[name];
+  if (!m) return null;
+  const n = esc(rtName(name));
+  return withName ? `<span class="agm-n"><i class="agm agm-${m}" aria-hidden="true"></i>${n}</span>` : `<i class="agm agm-${m}" role="img" aria-label="${n}" title="${n}"></i>`;
+}
 export const windowName = (id) => WINDOW[id] || String(id || "").replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
 
 const healthOfRt = (rt) => (rt && rt.health) || {};
