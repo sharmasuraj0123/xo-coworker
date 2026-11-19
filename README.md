@@ -13,7 +13,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
 - **Shape** (`js/shape.js`, `js/shapeview.js`, `presets/`): the UI fits the person. A first-run question picks **Build software**, **Make content and campaigns** or **Everything**; Settings › Shape switches it, shows what it changes, resets it, shows everything, and edits your own layer as JSON. Layers: defaults < preset < yours < this device (Compact lives here). Yours is Storm's where it keeps one (`GET/PUT /api/chat/shape`, xo-space 8c6bc03), so it follows you to every device: read on load (a 404 keeps this browser's copy), written only on your change with `if_version`, another device's change applied live from the stream's `ui.shape` setting, and a conflict said quietly (your one-key change is put back on top; a larger one gives way). Marketing hides branch chips, runtime names, sub-agent counts, raw commands, Shells and the Map, says "task", and puts Recently made first. XO never reshapes itself on its own.
 - **A coordinator's own ask** (it, or one of its sub-agents, asks with no thread): it sits above the composer of the project's or the Workspace's chat, the header's count line leads with "Coordinator needs you", and Home and the panel name it "xo-space › Coordinator". A thread with any open item reads Needs you in its list row, header and Now chip, whatever its row's state says yet.
 - **Map** (`⌘\`, or Map at the top right of any conversation): where your agents are working, drawn. Two ways to see it, one icon apart: a **Diagram** (the folder as boxes and connectors) or a **Graph** (a living node graph that settles). Each agent is a coloured cursor with its name that moves to the file it reads or edits, or that its command names, and the way down to it lights in its colour. In a thread, its own worktree, with what it made or changed marked; in a project, the project's folder with every agent at work; elsewhere, your projects and the agents in them. Drag, zoom, Fit, Follow, full size. With a file open, the Map and the viewer are one right-hand panel with two modes, **Live** and **File**.
-- **Changes and files** (`js/diffview.js`, `js/changes.js`, `js/changesframe.js`; `@pierre/diffs` 1.6.4, vendored in `js/vendor/pierre-diffs`; design-research/2026-11-vision/pierre-build):
+- **Changes and files** (`js/diffview.js`, `js/changes.js`, `js/changesframe.js`; `@pierre/diffs` 1.6.4, vendored in `js/vendor/pierre-diffs`):
   - **The panel's Changes**, on top of Agents and Map, lists every file the thread changed, with `+n −n` counts (Space's `/changes`). The chosen file's diff sits below the list, drawn from git's patch.
   - **Following** is on by default: it shows the file the agent just changed. A touch pauses it, and later edits show as a "changed · Show" pill instead of a jump. Sending a message resumes it.
   - **In the chat**, a changed file's chip carries its counts and opens its diff in the panel.
@@ -25,7 +25,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
   - All colouring happens in a worker, so the page never freezes. The library loads only after you pause. J / K step through changes.
 - **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect. The line above it follows the world: "Sending is paused" shows only while it's true.
 - **Creating a project**: "Create XO Project" in Home's header, always, and "+ New" on the sidebar's Projects label.
-- **Stone and glass** (design-research/2026-11-vision/direction): the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `css/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
+- **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `css/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
 Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only checkers (types, lint), installed with `npm ci` for `node tools/check.mjs`. Rules for working here: `AGENTS.md`. The modular rebuild: `architecture/PLAN.md`.
@@ -89,7 +89,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 - **Open thread:** polled every 4 s while its agent is busy and every 15 s otherwise. "Working" means the session is actually busy: storm's `busy` (on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the stream's session status, `run.*` events and `runs` counts (`timeline.js` `sessionBusy`). Waiting on you is never Working. An idle one reads "Idle".
 - **Coordinator messages:** storm keeps what a coordinator and a thread write each other as hops (`GET /chats/{chat}/hops?thread=`, the text in `note`), not as messages. A thread shows them in place: the coordinator's brief, follow-ups and answers as its messages, the thread's own questions as a quiet "Asked the coordinator" line, and your messages they cite. A hop that arrives on the stream has no note, so the open thread reads its hops again.
 - **Asks:** a thread waiting on you is titled from its agent's last message. You answer in words, as a thread reply.
-- **Since you left and Made (design-research/12):** each place (Home, a project) remembers per browser when you last
+- **Since you left and Made:** each place (Home, a project) remembers per browser when you last
   looked (leaving it, hiding the tab or closing it). Back after 8 h or more, a card under the header says what moved:
   needs you, not saved, not pushed, stopped, finished, still going, one line per thread with what it did. The git
   words come from `GET /chat/worktrees` (`would_lose`). **Made** beside All threads lists what a project's threads
@@ -138,12 +138,12 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/rtsettings.js` | Settings › Runtimes: each runtime's health, and the defaults |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
-| `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |
-| `css/foundation.css` | the foundation (design-research/14): loaded last; flush side panels with one hairline, one left edge, one press, whole pixels, inset focus rings, nothing looping unless an agent works |
-| `js/motion.js` | one motion system (design-research/15): arrive (fade and settle), glide (FLIP), update in place, pictures fade in once decoded; `syncList` keeps a list in step without redrawing it |
-| `js/stage.js` | the panel (design-research/13): one card on the right, tools as labelled tabs (Files, Made, Map; apps later, past four into More), one header button (`mod+\`) that opens on Files first and then on the last tool, full size, Esc; the Map mounts into its tab |
+| `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy |
+| `css/foundation.css` | the foundation: loaded last; flush side panels with one hairline, one left edge, one press, whole pixels, inset focus rings, nothing looping unless an agent works |
+| `js/motion.js` | one motion system: arrive (fade and settle), glide (FLIP), update in place, pictures fade in once decoded; `syncList` keeps a list in step without redrawing it |
+| `js/stage.js` | the panel: one card on the right, tools as labelled tabs (Files, Made, Map; apps later, past four into More), one header button (`mod+\`) that opens on Files first and then on the last tool, full size, Esc; the Map mounts into its tab |
 | `js/files.js` | Files: the project's (or a thread's worktree's) files a folder at a time, the README first, the file beside the tree or one at a time, what agents touched marked; the one place a file opens (the viewer lives in it) |
-| `js/record.js`, `js/recordview.js` | a project's record (design-research/12): what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
+| `js/record.js`, `js/recordview.js` | a project's record: what its threads made (Made, Recently made on Home, ⌘K) and Since you left; the pure part, then the screen |
 | `js/fileicons.js` | one resolver for every file's icon (Files, Made, the viewer, the Map, file chips): the swarm's Pierre Trees set (`js/vendor/pierre`, Apache-2.0), matched as Pierre matches; folders a Lucide line glyph |
 | `js/map.js` | the Map: the folder drawn as a diagram (`/xo-projects/{p}/tree`, a level at a time), agents as cursors (from the stream's activity rows), pan and zoom, the Live · File switch with the viewer |
 | `js/shells/dock.js` | shells: the dock, its tabs and list, the sidebar's toggle; what `app.js` calls |
@@ -162,16 +162,14 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 node tests/run.mjs               # every unit test (tests/*.test.mjs and tests/*.test.py), judged by exit code; ~15 s
 node tests/run.mjs files         # only the tests whose name contains "files"
 node tools/check.mjs             # the full check before a merge: lint, types, ratchets, ledger, then every test
-node tools/check.mjs --fast      # the same without the tests (the pre-commit hook: git config core.hooksPath .githooks)
+node tools/check.mjs --fast      # the same without the tests; the pre-commit hook runs it (already on in the shared git config)
 ```
 
-Each test file says what it covers in its header. Browser suites (`tests/browser/`) run only when the owner asks.
-
-Measuring the live UI (read-only; every non-GET request is aborted in the browser): `design-research/2026-11-vision/audit/tools/` (`XO_URL=http://127.0.0.1:<port>/ node capture.cjs dark|light`, `titlebar.cjs`, `hoverscan.cjs`, `states.cjs`, `boot.cjs`; `PRESET=engineering|marketing|everything` answers the first-run question).
-
-The browser suites (Playwright) live outside the repo:
-- a 59-check suite for Live, which mocks or blocks every non-GET request;
-- a no-writes-on-load check.
+Each test file says what it covers in its header. Browser suites (`tests/browser/`, Playwright) run only when the owner asks. Their mocks live in `e2e/`:
+- `e2e/fixtures/mockspace-harness.cjs`: Space's deploy routes for `tests/browser/harness.cjs` and the Launchpad + Shells world;
+- `e2e/fixtures/mockspace.cjs`: the newer copy `tools/launchpad/smoke.cjs` uses;
+- `e2e/worlds/lp-shell.cjs`: the world `tests/browser/lpshell.test.cjs` runs in;
+- `e2e/fixtures/controls/`: the controls registry and its generator, read by `tests/stale-pass.test.mjs`.
 
 **Never let a test send a non-GET request to a live backend.**
 

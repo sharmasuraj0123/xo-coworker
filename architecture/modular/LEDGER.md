@@ -4,12 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 906 |
+| planned | 670 |
 | vendor | 367 |
+| deleted | 232 |
 | split | 35 |
-| moved | 5 |
+| moved | 9 |
 
-Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -27,7 +28,7 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) |
+| `js/api.js` | 428 | split | core/platform/http.js, per-module clients (routes declared in each module.json) · next: the transport is in core/platform/http.js; js/api.js keeps the route table (and re-exports the transport) until the routes go to their modules |
 | `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) |
 | `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/normalise.js, core/platform/util.js |
 | `js/blocks.js` | 241 | planned | core/services/world/turns.js |
@@ -50,8 +51,8 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 | `js/filespage.js` | 150 | planned | modules/files/page.js |
 | `js/focusview.js` | 138 | planned | core/ui/a11y/focus.js |
 | `js/follow.js` | 150 | planned | modules/conversation/follow.js |
-| `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js |
-| `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) |
+| `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: js/fuzzy.js re-exports core/platform until the shims go |
+| `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | split | core/services/notices.js, shell (notice renderer) |
 | `js/highlight.js` | 149 | planned | core/ui/markdown/highlight.js |
 | `js/hopstate.js` | 13 | planned | core/services/world/hops.js |
@@ -59,7 +60,7 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 | `js/imagechange.js` | 120 | planned | modules/changes/imagechange.js |
 | `js/intel.js` | 743 | planned | modules/intelligence/ |
 | `js/keynav.js` | 109 | planned | core/ui/a11y/keynav.js |
-| `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js |
+| `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
 | `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js |
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
@@ -68,7 +69,7 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 | `js/markdown.js` | 519 | planned | core/ui/markdown/markdown.js |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
-| `js/merge.js` | 101 | moved | core/platform/diff.js |
+| `js/merge.js` | 101 | moved | core/platform/diff.js · next: js/merge.js re-exports core/platform/diff.js until the shims go |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | planned | core/ui/motion.js |
 | `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
@@ -76,7 +77,7 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 | `js/paid.js` | 152 | planned | core/services/world/paid.js |
 | `js/paidview.js` | 21 | planned | modules/decisions/cards/paid.js |
 | `js/paths.js` | 83 | planned | core/services/paths.js |
-| `js/pending.js` | 22 | moved | core/platform/pending.js |
+| `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
 | `js/projicons.js` | 83 | planned | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | planned | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
@@ -95,13 +96,13 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
-| `js/sse.js` | 190 | moved | core/platform/sse.js |
+| `js/sse.js` | 190 | moved | core/platform/sse.js · next: js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm |
 | `js/stage.js` | 870 | split | shell/panel, core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) |
 | `js/storm.js` | 1242 | split | core/services/storm/client, core/services/storm/stream, core/services/storm/reducers/*, core/services/storm/selectors/*, core/services/storm/commands, core/services/account, core/services/review |
 | `js/timeline.js` | 816 | split | core/services/world/normalise.js, modules/conversation/model.js, modules/threads, modules/decisions |
 | `js/turnview.js` | 331 | planned | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 397 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound |
-| `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
+| `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
 | `js/viewer.js` | 1157 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
 | `js/words.js` | 48 | planned | modules/conversation/words.js |
 | `js/world.js` | 56 | planned | core/services/world/store.js |
@@ -1114,246 +1115,246 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `ui-mockups/create-project/README.md` | 43 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-home.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-1440-sidebar.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-home-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-home-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-home-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-home-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-home.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-side-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-side-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-side-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-side-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-320-sidebar.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-home-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-home-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-home-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-home-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-home.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-side-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-side-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-side-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-side-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/dark-390-sidebar.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-home-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-home-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-home-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-home-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-home.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-side-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-side-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-side-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-side-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-1440-sidebar.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-home-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-home-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-home-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-home-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-home.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-side-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-side-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-side-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-side-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-320-sidebar.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-home-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-home-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-home-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-home-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-home.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-side-active.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-side-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-side-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-side-rest.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/light-390-sidebar.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/craft-audit/measurements.json` | 536 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-dark-create-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-dark-phone.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-dark-plus-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-dark-plus-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-light-create-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-light-phone.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-light-plus-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-light-plus-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/3400/built-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/A-dark-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/A-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/A-light-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/A-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/B-dark-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/B-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/B-light-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/B-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/C-dark-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/C-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/C-light-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/C-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/D-dark-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/D-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/D-light-side.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/D-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/base-live-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/base-live-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/base-sg-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/base-sg-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/base-sg-workspace-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark-create-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark-phone-320.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark-phone-390.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark-phone.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark-plus-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark-plus-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-light-create-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-light-phone.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-light-plus-focus.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-light-plus-hover.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/shots/built-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/tools/craft-audit.cjs` | 68 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/tools/variants.cjs` | 63 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `ui-mockups/create-project/tools/verify.cjs` | 33 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
+| `ui-mockups/create-project/README.md` | 43 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/measurements.json` | 536 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-live-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-sg-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-sg-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-sg-workspace-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-phone-320.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-phone-390.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/tools/craft-audit.cjs` | 68 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/tools/variants.cjs` | 63 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/tools/verify.cjs` | 33 | deleted | moved to the design archive (owner D4) |
 
 ## design-research (127)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `design-research/2026-11-19-icons/ICONS.md` | 231 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/COVERAGE.md` | 73 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/1-project-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/2-project-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/3-thread-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/4-folded-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/5-arts-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/6-settings-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/after/7-phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/1-project-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/2-project-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/3-thread-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/4-folded-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/5-arts-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/6-settings-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/before/7-phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/empty-page/after-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/empty-page/after-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-icons/pack/empty-page/before-live-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/DELETE-SPEC.md` | 68 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/1-counts-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/2-again-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/3-filter-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/4-nothing-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-space-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/B-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/C-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/final-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/final-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/header-threads/final-phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/home-colour/before-live-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/outlines/recommended-mock.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/outlines/today-needs-you.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/outlines/today-working.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p1/folded-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p1/folded-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p1/more-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p1/open-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p1/open-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-search-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-thread-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p3/all-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p3/delete-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p3/menu-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p3/menu-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p3/project-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p4/shell-back-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p4/shell-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p4/shell-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5-colour/after-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5-colour/after-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5-colour/before-live-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5/all-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5/panel-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5/panel-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p5/panel-thread-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p6/arts-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p6/arts-docs-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p6/arts-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p7/head-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p7/head-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/p7/head-quiet-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/project-icons/1-picker-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/project-icons/2-chosen-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/project-icons/3-picker-keys-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/1-more-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/2-edit-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/3-edit-custom-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/4-bar-custom-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/5-folded-custom-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/CONV-MAP.md` | 94 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md` | 98 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/beside-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/beside-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/align-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/align-before-live.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-before-live.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-card-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-main-line-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-full.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-full.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-page.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/menu-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/menu-fixed.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/menu-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-light.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/title-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/built/title-before-live.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/files-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/focus-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/mock.cjs` | 71 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-19-threads-panel/thread-page/phone-dark.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-chatview/hardcoded-positioning-audit.md` | 309 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png` |  | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-chatview/showcase.cjs` | 151 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-lg/controls-ids.json` | 2686 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
-| `design-research/2026-11-lg/lp-shell/world.cjs` | 212 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
-| `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
-| `design-research/2026-11-vision/canvas-editing/PLAN.md` | 215 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-vision/canvas-editing/README.md` | 444 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | planned | out of the repo: the design archive (owner D4); removed from git once the copy is verified |
-| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | planned | e2e/fixtures/ (tests need it; then it leaves design-research) |
+| `design-research/2026-11-19-icons/ICONS.md` | 231 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/COVERAGE.md` | 73 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/1-project-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/2-project-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/3-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/4-folded-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/5-arts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/6-settings-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/7-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/1-project-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/2-project-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/3-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/4-folded-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/5-arts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/6-settings-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/7-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/empty-page/after-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/empty-page/after-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/empty-page/before-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/DELETE-SPEC.md` | 68 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/1-counts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/2-again-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/3-filter-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/4-nothing-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-space-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/B-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/C-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/final-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/final-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/final-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/before-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/outlines/recommended-mock.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/outlines/today-needs-you.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/outlines/today-working.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/folded-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/folded-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/more-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/open-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/open-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-search-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/all-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/delete-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/menu-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/menu-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/project-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p4/shell-back-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p4/shell-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p4/shell-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5-colour/after-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5-colour/after-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5-colour/before-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/all-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/panel-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/panel-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/panel-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p6/arts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p6/arts-docs-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p6/arts-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p7/head-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p7/head-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p7/head-quiet-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/project-icons/1-picker-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/project-icons/2-chosen-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/project-icons/3-picker-keys-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/1-more-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/2-edit-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/3-edit-custom-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/4-bar-custom-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/5-folded-custom-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/CONV-MAP.md` | 94 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md` | 98 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/beside-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/beside-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/align-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/align-before-live.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-before-live.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-card-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-main-line-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-full.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-full.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-page.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/menu-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/menu-fixed.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/menu-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/title-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/title-before-live.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/files-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/focus-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/mock.cjs` | 71 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/hardcoded-positioning-audit.md` | 309 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/showcase.cjs` | 151 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-lg/controls-ids.json` | 2686 | moved | e2e/fixtures/controls/controls-ids.json |
+| `design-research/2026-11-lg/lp-shell/world.cjs` | 212 | moved | e2e/worlds/lp-shell.cjs |
+| `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | deleted | archived to the design archive: a generator whose inputs live outside the repo; the test's data is now e2e/fixtures/controls/link-rows.json |
+| `design-research/2026-11-vision/canvas-editing/PLAN.md` | 215 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/README.md` | 444 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
 
 ## tools/codemirror (1)
 
@@ -1410,7 +1411,7 @@ Items inside first-party files: 2290 (planned 1327, split-region 842, moved 102,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/launchpad/mockspace.cjs` | 164 | planned | e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes) |
+| `tools/launchpad/mockspace.cjs` | 164 | moved | e2e/fixtures/mockspace.cjs · next: Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks |
 | `tools/launchpad/smoke.cjs` | 128 | planned | delete: a one-off probe with machine paths (owner D6) |
 
 ## tools/xoicons (1)

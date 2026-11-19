@@ -1,5 +1,5 @@
 // A stand-in for Space's GET /api/xo-projects/{p}/changes, for the browser harness until xo-space ships the
-// route: the agreed shape (design-research/2026-11-vision/pierre/README.md, "What Space has agreed"), worked
+// route: the agreed shape, worked
 // out by git from a real folder, so the UI is driven by real patches. Never served by the app; the harness
 // answers the page's request with it (page.route).
 //

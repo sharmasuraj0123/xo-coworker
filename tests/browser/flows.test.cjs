@@ -10,7 +10,7 @@
 //   G8  the whole-file capsule's × is named for the file, a line range's for its lines
 //
 // Self-contained: the app is served from this folder by a small static server, and every /api request is
-// answered in the page from a mock world (the Launchpad routes by design-research's mockspace). Nothing
+// answered in the page from a mock world (the Launchpad routes by the mockspace). Nothing
 // reaches a Space; nothing is written anywhere.
 //   node tests/browser/flows.test.cjs [name-pattern]
 // Every case runs in four cells: dark and light, at 1440×900 and 390×844. A case that can't apply in a cell (the

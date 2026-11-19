@@ -1644,512 +1644,513 @@
    "home": "core/ui/tokens.css"
   },
   "design-research/2026-11-19-icons/ICONS.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/COVERAGE.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/1-project-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/2-project-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/3-thread-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/4-folded-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/5-arts-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/6-settings-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/after/7-phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/1-project-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/2-project-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/3-thread-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/4-folded-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/5-arts-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/6-settings-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/before/7-phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/empty-page/after-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/empty-page/after-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-icons/pack/empty-page/before-live-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/DELETE-SPEC.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/1-counts-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/2-again-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/3-filter-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/filter-and-counts/4-nothing-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/A-space-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/B-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/C-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/final-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/final-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/header-threads/final-phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/after-home-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/after-home-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/after-home-phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/home-colour/before-live-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/outlines/recommended-mock.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/outlines/today-needs-you.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/outlines/today-working.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p1/folded-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p1/folded-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p1/more-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p1/open-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p1/open-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-search-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p2/panel-thread-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p3/all-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p3/delete-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p3/menu-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p3/menu-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p3/project-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p4/shell-back-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p4/shell-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p4/shell-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5-colour/after-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5-colour/after-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5-colour/before-live-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5/all-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5/panel-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5/panel-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p5/panel-thread-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p6/arts-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p6/arts-docs-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p6/arts-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p7/head-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p7/head-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/p7/head-quiet-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/project-icons/1-picker-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/project-icons/2-chosen-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/project-icons/3-picker-keys-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/1-more-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/2-edit-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/3-edit-custom-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/4-bar-custom-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/build/sidebar-edit/5-folded-custom-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/CONV-MAP.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/beside-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/beside-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/align-after.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/align-before-live.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-before-live.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-card-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-line-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-line-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/fold-main-line-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-after-full.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-full.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-page.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/menu-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/menu-fixed.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/menu-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/title-after.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/built/title-before-live.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/files-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/focus-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/mock.cjs": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-19-threads-panel/thread-page/phone-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-chatview/hardcoded-positioning-audit.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-chatview/showcase.cjs": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-lg/controls-ids.json": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "moved",
+   "home": "e2e/fixtures/controls/controls-ids.json"
   },
   "design-research/2026-11-lg/lp-shell/world.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "moved",
+   "home": "e2e/worlds/lp-shell.cjs"
   },
   "design-research/2026-11-lg/tools/controls-md.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "deleted",
+   "reason": "archived to the design archive: a generator whose inputs live outside the repo; the test's data is now e2e/fixtures/controls/link-rows.json"
   },
   "design-research/2026-11-vision/canvas-editing/PLAN.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-vision/canvas-editing/README.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-vision/canvas-editing/files-as-editor.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-vision/canvas-editing/vscode-behaviours.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "design-research/2026-11-vision/launchpad/tools/mockspace.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/ (tests need it; then it leaves design-research)"
+   "status": "moved",
+   "home": "e2e/fixtures/mockspace-harness.cjs",
+   "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
   },
   "favicon.svg": {
    "status": "planned",
@@ -4954,8 +4955,9 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs": {
-   "status": "planned",
-   "home": "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)"
+   "status": "moved",
+   "home": "e2e/fixtures/mockspace.cjs",
+   "note": "Wave 4 Launchpad: fold the scenarios Launchpad's tests need into e2e/fixtures/mockspace-harness.cjs, then delete tools/launchpad/smoke.cjs (D6) and e2e/fixtures/mockspace.cjs together, after one browser run when the owner asks"
   },
   "tools/launchpad/smoke.cjs": {
    "status": "planned",
@@ -4966,436 +4968,436 @@
    "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
   },
   "ui-mockups/create-project/README.md": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-home.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-side-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-1440-sidebar.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-home.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-side-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-320-sidebar.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-home.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-side-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/dark-390-sidebar.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-home.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-side-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-1440-sidebar.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-home-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-home.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-side-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-320-sidebar.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-home-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-home.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-active.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-side-rest.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/light-390-sidebar.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/craft-audit/measurements.json": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-dark-create-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-dark-phone.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-dark-plus-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-dark-plus-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-light-create-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-light-phone.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-light-plus-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-light-plus-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/3400/built-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/A-dark-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/A-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/A-light-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/A-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/B-dark-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/B-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/B-light-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/B-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/C-dark-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/C-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/C-light-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/C-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/D-dark-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/D-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/D-light-side.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/D-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/base-live-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/base-live-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/base-sg-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/base-sg-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/base-sg-workspace-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark-create-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark-phone-320.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark-phone-390.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark-phone.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark-plus-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark-plus-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-dark.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-light-create-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-light-phone.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-light-plus-focus.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-light-plus-hover.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/shots/built-light.png": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/tools/craft-audit.cjs": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/tools/variants.cjs": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   },
   "ui-mockups/create-project/tools/verify.cjs": {
-   "status": "planned",
-   "home": "out of the repo: the design archive (owner D4); removed from git once the copy is verified"
+   "status": "deleted",
+   "reason": "moved to the design archive (owner D4)"
   }
  },
  "items": {
@@ -18332,8 +18334,8 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/launchpad/mockspace.cjs::functions::body": {
-   "status": "planned",
-   "home": "e2e/fixtures/mockspace.cjs (one copy; the design-research copy goes)"
+   "status": "moved",
+   "home": "e2e/fixtures/mockspace.cjs"
   },
   "tools/launchpad/smoke.cjs::ids::main": {
    "status": "planned",

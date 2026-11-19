@@ -259,7 +259,7 @@ wireDragOut($("#msgs"));
 // shells (js/shells/): the dock under the main column, the sidebar's Shells row, the top bar's Shell buttons
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule(), wanted: () => SHAPE.on("xo:dock/shells") });
 CAP.terminal = () => SH.available;
-// a project's record: Since you left, Made, Recently made (design-research/12)
+// a project's record: Since you left, Made, Recently made
 const REC = createRecord({ world, go: (v) => go(v), VW, PROJ, schedule: () => schedule(), announce, mark: (t) => threadMark(t, { lead: true }) });
 REC.view = () => S.view;
 /** A Shell button for the top bar: a count when shells already run there (it opens their list then). */
@@ -383,7 +383,7 @@ const SORT_STATE = { needs_approval: 0, needs_reply: 0, paused: 0, failed: 1, wo
 // the Map (js/map.js): where your agents are working, beside the conversation; the viewer stacks over it
 const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), announce, isBusy, onChange: () => schedule(), openFile: (f, from) => VW.open(f, from) });
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
-// Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
+// Files: the project's files, and the one place a file opens (js/files.js)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
 // Files is a page of the panel (js/filespage.js); otherwise the panel is a stack of frames: Threads · Changes · Map
 // Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
@@ -1296,7 +1296,7 @@ function msgItemsOf(conv, needs) {
 }
 
 // ── headers: Workspace, project (title + one sentence + the Now shelf), thread (+ checklist) ──
-/** hub #28, thinned (design-research/12 §3): the Workspace is the conversation with your coordinator,
+/** hub #28, thinned: the Workspace is the conversation with your coordinator,
  *  so the top of its history only says what this place is. The counts are one line in the header; what
  *  needs you lives on Home, and the header's Next move opens it. Nothing here repeats Home. */
 function wsHeadRender() {
@@ -2274,7 +2274,7 @@ function chatTargetRender() {
 /**
  * The line above the composer: where this message goes, or why it can't go yet. It follows the world,
  * not only the keyboard: render() calls it too, so a cold Home never keeps saying "Sending is paused ·
- * Connecting to XO…" once everything has loaded (design-research/2026-11-vision/audit E4).
+ * Connecting to XO…" once everything has loaded.
  */
 function targetLineRender(K = MK) {
   const tg = targetOf(K.say.value, world.state.projects);
@@ -2697,8 +2697,7 @@ function editFailed(id, K = MK) {
 }
 
 // ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
-// (design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md; the owner chose the proper build, 19 Nov
-// 15:20Z.) One page, its key the thread it shows: its own head (state, runtime, branch, Open full width), checklist,
+// One page, its key the thread it shows: its own head (state, runtime, branch, Open full width), checklist,
 // conversation (createConv + createFollow + msgx), typing line and composer (wireComposer). It opens from the
 // panel's Threads beside a chat; ⌘/Ctrl-click, or Open full width, gives today's full page.
 const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
@@ -2811,10 +2810,9 @@ function openFromPanel(v, e) {
 // ── render ──────────────────────────────────────────────────────────────────
 const scroller = $("#scroller"), msgsEl = $("#msgs");
 /**
- * A conversation on screen (P1 of a thread beside the coordinator's chat, design-research/2026-11-19-threads-panel/
- * thread-page): its view, its own elements (messages, scroller, column, typing line) and its follower, and what
- * its drawing remembers (rendered, filled). The main chat (#conv) is MAIN, its view always S.view; the panel's
- * thread page makes its own. drawConv(C, needs) draws one.
+ * A conversation on screen (P1 of a thread beside the coordinator's chat): its view, its own elements (messages,
+ * scroller, column, typing line), its follower, and what its drawing remembers (rendered, filled). The main chat
+ * (#conv) is MAIN, its view always S.view; the panel's thread page makes its own. drawConv(C, needs) draws one.
  */
 function createConv({ view, msgs, scroller: sc, column, typing, follow, main = false }) {
   return { get view() { return typeof view === "function" ? view() : view; }, msgs, scroller: sc, column, typing, follow, main, rendered: null, filled: null };

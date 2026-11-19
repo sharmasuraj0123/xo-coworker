@@ -1,4 +1,4 @@
-// The UI's shape, per person (design-research/2026-11-vision/shape/proposal.md). What overwhelms a
+// The UI's shape, per person. What overwhelms a
 // non-technical person can comfort a technical one, so the person picks the shape (a preset, a switch,
 // Edit as JSON) and the UI never reshapes itself on its own: only a person's click writes a layer.
 //

@@ -74,7 +74,7 @@ export const api = {
   patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
   /** Delete a thread (Space, when it offers it: a thread row's can_delete). {keep_branch, confirm?} → {deleted,
    *  undo_until}; 409 would_lose_work {what, confirm} when its worktree holds work kept nowhere else. Undone by
-   *  restoreThread until undo_until. design-research/2026-11-19-threads-panel/DELETE-SPEC.md */
+   *  restoreThread until undo_until. */
   deleteThread: (chat, ts, body) => send("DELETE", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
   restoreThread: (chat, ts) => send("POST", `/chat/chats/${enc(chat)}/threads/${enc(ts)}/restore`, {}),
   /** Continue a thread on another runtime (§2.4): it stops, freezes, and a linked new thread starts from its work. */
@@ -163,7 +163,7 @@ export const api = {
   /** Undo a save (Space's edit log): the file goes back to what it was before that save. */
   undoProjectEdit: (project, editId) => send("POST", `/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, {}),
   /**
-   * What changed in a project (Space, design-research/2026-11-vision/pierre): a thread's worktree against
+   * What changed in a project (Space): a thread's worktree against
    * where its branch left the default branch, uncommitted work included, or the project's own checkout
    * against its HEAD. {root, base_commit, head_commit, computed_at, truncated, files: [{path, old_path?,
    * status, additions, deletions, binary, version, patch, patch_omitted?}]}. path: one file (up to 1 MB).

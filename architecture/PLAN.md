@@ -164,18 +164,18 @@ These are first-party places for v1. **Open to apps** says whether an app may co
 | `thread.head` | list | thread | checklist, sub-agent strip | no |
 | `panel.frame` (stacked frames) | list, shape `xo:panel/*` | conversation | Threads, Changes, Map; Launchpad as a covering frame | yes |
 | `panel.page` | keyed (single or per key) | app | Shell, Files, Thread | **yes** |
-| `panel.titleAction` | list | app | Shell toggle, Full, Close | no |
+| `panel.title-action` | list | app | Shell toggle, Full, Close | no |
 | `dock.bottom` (re-hostable into a panel page) | single | app | Shells | no |
 | `conversation.source` | keyed by view prefix | app | coordinator chats, threads, plain chats | no |
 | `conversation.row` | keyed by item `who` | conversation | you, coordinator, agent, turn, card, system, control, limit, hist, event, rec | yes (app cards) |
 | `conversation.block` | keyed by storm block type | conversation | thinking, activity, plan, shared_files, narration, text, answer | yes (`app` block) |
-| `conversation.toolWords` | chain | app | comms words | yes (an MCP tool describes its own calls) |
+| `conversation.tool-words` | chain | app | comms words | yes (an MCP tool describes its own calls) |
 | `conversation.typing` | chain | conversation | held, coordinator replying, ask, working | no |
 | `message.action` | list | conversation | Copy, Reply, Good, Bad | yes |
 | `message.decorator` | list | conversation | tails, quote card, emoji, project marks | no |
 | `composer.tool` | list | per composer | attach, intelligence chip, send now | yes (`/` commands, attach pickers) |
 | `composer.target` | chain | per composer | chat target, send gate, @project, thread target | no |
-| `composer.sendGate` | chain (first refusal wins) | app | connection, routing off, chat ended, files busy | no |
+| `composer.send-gate` | chain (first refusal wins) | app | connection, routing off, chat ended, files busy | no |
 | `composer.above` | stack | per composer | herald notices, docked decision, put-away file chip | no |
 | `decision.card` / `decision.detail` | single / keyed by kind | app | decisions card; usage, limit, permission, question, create_project | `decision.evidence` yes (4 Nov) |
 | `home.section` | list, shape `xo:home/*` | app | next, then, handled, since, recently made | no (apps reach Home only as evidence in asks) |

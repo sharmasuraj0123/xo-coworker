@@ -1,5 +1,5 @@
-/* Plan F: the one token file every screen is built from (design-research/2026-11-vision/direction,
-   refined by design-research/2026-11-lg). Later stylesheets use these names and never define a palette,
+/* Plan F: the one token file every screen is built from.
+   Later stylesheets use these names and never define a palette,
    a scale or a theme of their own: a theme is this file's two blocks, nothing else.
 
    Colours distilled from xo-space-architecture-chip.html. The accent is XO's green (#83D63A, the "O" of

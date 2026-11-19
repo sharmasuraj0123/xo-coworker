@@ -1,6 +1,6 @@
 // Plays the section's flows in the real app (preview stand-in) and reports each screen it lands on, and any page error.
 const { chromium } = require('/tmp/pw/node_modules/playwright-core');
-const { install } = require('./mockspace.cjs');
+const { install } = require('../../e2e/fixtures/mockspace.cjs');
 const EXE = process.env.HOME + '/.cache/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell';
 const FLOWS = {
   play: [['click', '[data-lp="deploy"]'], ['wait', 1000], ['screen'], ['wait', 3200], ['screen'], ['wait', 9000], ['screen'], ['head']],

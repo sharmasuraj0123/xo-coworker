@@ -1,4 +1,4 @@
-// The team, visible: what an agent's XO tool call means, in people's words (design-research/2026-11-lg).
+// The team, visible: what an agent's XO tool call means, in people's words.
 //
 // Coordinators and threads work together through XO's comms tools (message_thread, message_coordinator,
 // ask_workspace, forward_to_project, start_thread_session, …). The server reports each call as a step whose

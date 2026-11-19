@@ -10,7 +10,7 @@
      · two text sizes: 13 px (names, titles, inputs) and 12 px (what's secondary), one family (the UI's
        sans) with tabular figures for numbers; mono only for code and paths.
    File icons are the swarm's (Pierre Trees, js/fileicons.js), in their own colours. The left sidebar is
-   not touched here. Measured: design-research/panel/measure.md. */
+   not touched here. */
 
 .stage{container:stage / inline-size;--pe:12px;--pn:36px}
 
