@@ -5,7 +5,7 @@
 import { api } from "../../js/api.js";
 import { esc } from "../../js/world.js";
 import { ICON } from "../../js/ui.js";
-import { holdButton } from "../../js/kit.js";
+import { holdButton } from "../../core/ui/components/hold.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";
 
 /** @param {import("./types").SettingsHost} host @param {Omit<import("./types").PageDeps, "onChange">} deps */

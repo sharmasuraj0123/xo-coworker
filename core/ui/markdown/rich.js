@@ -1,0 +1,265 @@
+// @ts-check
+
+// Draws a reply's math (KaTeX) and diagrams (Mermaid) in place and gives charts their hover, only between keystrokes, every drawing cached by its source.
+
+import { setRich } from "./inline.js";
+
+const QUIET = 600; // ms without input before anything loads or draws
+const SLICE = 8; // ms of drawing before yielding to the page
+const MAX_TEX = 4000, MAX_DIAGRAM = 20000;
+const root = document.documentElement;
+const theme = () => (root.dataset.theme === "light" ? "light" : "dark");
+
+/** @type {Map<string, string>} */
+const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
+/** @typedef {{ html: string, theme: string, w: number | null }} Drawing */
+
+/** @type {Map<string, Drawing>} */
+const DIAGRAMS = new Map(); // theme + "\n" + src → {html, theme}
+/** @type {Map<string, string>} */
+const FAILED = new Map(); // src → why it couldn't be drawn (any theme)
+const cap = (/** @type {Map<string, unknown>} */ m, n = 600) => { if (m.size > n) m.delete(/** @type {string} */ (m.keys().next().value)); };
+/** A formula's drawing if it's been drawn (KaTeX's HTML), else null. Synchronous: markdown.js asks it as it writes. @param {string} tex */
+export function cachedMath(tex, display = false) { return MATH.get((display ? "D" : "I") + tex) ?? null; }
+/** A diagram's drawing if drawn: {html, theme, w} for this theme (else the other's until redrawn), {error} if unreadable, else null. @param {string} src */
+export function cachedDiagram(src) {
+  if (FAILED.has(src)) return { error: FAILED.get(src) };
+  return DIAGRAMS.get(theme() + "\n" + src) || DIAGRAMS.get((theme() === "dark" ? "light" : "dark") + "\n" + src) || null;
+}
+setRich({ math: cachedMath, diagram: cachedDiagram });
+
+let lastInput = -Infinity;
+for (const t of ["keydown", "pointerdown", "wheel", "touchstart", "compositionupdate"]) addEventListener(t, () => { lastInput = performance.now(); }, { capture: true, passive: true });
+const quietFor = () => performance.now() - lastInput;
+function afterPause() {
+  return new Promise((/** @type {(v?: unknown) => void} */ ok) => {
+    const check = () => { const q = quietFor(); if (q >= QUIET) ok(); else setTimeout(check, QUIET - q + 16); };
+    check();
+  });
+}
+
+const PENDING = ".md-math:not(.is-done):not(.is-failed), .md-diagram:not(.is-done):not(.is-failed), .md-diagram.is-done:not([data-dg-theme])";
+let running = false, again = false;
+function wake() {
+  if (running) { again = true; return; }
+  running = true;
+  pass().catch((e) => console.warn("rich:", e)).finally(() => { running = false; if (again) { again = false; wake(); } });
+}
+async function pass() {
+  for (;;) {
+    const stale = [...document.querySelectorAll(`.md-diagram.is-done[data-dg-theme]:not([data-dg-theme="${theme()}"])`)];
+    const todo = /** @type {HTMLElement[]} */ ([...document.querySelectorAll(PENDING), ...stale]);
+    if (!todo.length) return;
+    await afterPause();
+    // what's on screen first, then the rest from the bottom up (the latest reply is what's being read)
+    const vh = innerHeight;
+    const rank = (/** @type {Element} */ el) => { const r = el.getBoundingClientRect(); return r.bottom >= 0 && r.top <= vh ? 0 : r.top > vh ? 1 : 2; };
+    todo.sort((a, b) => rank(a) - rank(b));
+    let t0 = performance.now(), did = 0;
+    for (const el of todo) {
+      if (!el.isConnected) continue;
+      if (quietFor() < QUIET) break; // a key: stop, and wait for the next pause
+      if (el.classList.contains("md-math")) await drawMathEl(el);
+      else await drawDiagramEl(el);
+      did++;
+      if (performance.now() - t0 > SLICE) { await new Promise((r) => setTimeout(r, 0)); t0 = performance.now(); }
+    }
+    if (!did) await new Promise((r) => setTimeout(r, QUIET));
+  }
+}
+
+/** @type {Promise<any> | null} */
+let katexP = null;
+function loadKatex() {
+  const w = /** @type {any} */ (window);
+  if (w.katex) return Promise.resolve(w.katex);
+  katexP ||= new Promise((ok, no) => {
+    const base = new URL("../../../js/vendor/katex/", import.meta.url).href;
+    const css = Object.assign(document.createElement("link"), { rel: "stylesheet", href: base + "katex.min.css" });
+    const js = Object.assign(document.createElement("script"), { src: base + "katex.min.js", async: true });
+    // the stylesheet first: a formula drawn before KaTeX's own CSS lands would show twice (HTML and MathML) for a frame
+    let cssDone = false, jsDone = false;
+    const both = () => { if (cssDone && jsDone) (w.katex ? ok(w.katex) : no(new Error("KaTeX didn't load"))); };
+    css.onload = () => { cssDone = true; both(); };
+    css.onerror = () => no(new Error("KaTeX's stylesheet didn't load"));
+    js.onload = () => { jsDone = true; both(); };
+    js.onerror = () => no(new Error("KaTeX didn't load"));
+    document.head.append(css, js);
+  });
+  return katexP;
+}
+/** A formula drawn by KaTeX, cached by its TeX; loads KaTeX the first time; a TeX error is drawn in place, a refusal rejects. @param {unknown} tex @returns {Promise<string>} */
+export async function drawMath(tex, display = false) {
+  const t = String(tex ?? "");
+  const key = (display ? "D" : "I") + t;
+  const have = MATH.get(key);
+  if (have != null) return have;
+  if (t.length > MAX_TEX) throw new Error("This formula is too long to draw here.");
+  const katex = await loadKatex();
+  // trust off (no \href, \includegraphics…), errors drawn in place in the error colour rather than thrown
+  const html = katex.renderToString(t, { displayMode: display, throwOnError: false, trust: false, strict: "ignore", output: "htmlAndMathml", maxSize: 50, maxExpand: 500 });
+  MATH.set(key, html); cap(MATH, 2000);
+  return html;
+}
+/** @param {HTMLElement} el */
+async function drawMathEl(el) {
+  const tex = el.dataset.tex || "", display = el.classList.contains("is-block");
+  let html;
+  try { html = await drawMath(tex, display); } catch { el.classList.add("is-failed"); return; }
+  if (!el.isConnected || el.dataset.tex !== tex) return;
+  el.innerHTML = html;
+  el.classList.add("is-done");
+}
+
+/** @type {Promise<any> | null} */
+let mermaidP = null;
+/** @type {string | null} */
+let mermaidTheme = null;
+let seq = 0;
+/** A colour token as #rrggbb, whatever the stylesheet wrote it in (oklch, color-mix): Mermaid reads only plain colours. */
+const probe = /** @type {CanvasRenderingContext2D} */ (document.createElement("canvas").getContext("2d", { willReadFrequently: true }));
+/** @param {string} css @param {string} fallback */
+function hexOf(css, fallback) {
+  const el = document.createElement("i");
+  el.style.cssText = `position:absolute;visibility:hidden;color:${css}`;
+  document.body.append(el);
+  const c = getComputedStyle(el).color;
+  el.remove();
+  probe.clearRect(0, 0, 1, 1);
+  probe.fillStyle = fallback; probe.fillStyle = c; probe.fillRect(0, 0, 1, 1);
+  const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+  return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+/** @param {string} th */
+async function mermaidFor(th) {
+  mermaidP ||= import("../../../js/vendor/mermaid/mermaid.esm.min.mjs").then((m) => m.default);
+  const mermaid = await mermaidP;
+  if (mermaidTheme !== th) {
+    // XO's own tokens, so a diagram reads as part of the page in either theme: stone nodes, hairline edges, ink text
+    const v = (/** @type {string} */ t, /** @type {string} */ f) => hexOf(`var(${t})`, f);
+    const ink = v("--ink", "#eee"), ink2 = v("--ink-2", "#ccc"), ink3 = v("--ink-3", "#999"), line = v("--line-strong", "#555");
+    const node = v("--fill-2", "#2a2a2a"), canvas = v("--canvas", "#141414"), soft = v("--fill-1", "#1d1d1d");
+    mermaid.initialize({
+      startOnLoad: false, securityLevel: "strict", theme: "base", darkMode: th === "dark",
+      fontFamily: getComputedStyle(document.body).fontFamily, fontSize: 14,
+      flowchart: { curve: "basis", padding: 12, nodeSpacing: 40, rankSpacing: 48, htmlLabels: true },
+      themeVariables: {
+        background: canvas, mainBkg: node, primaryColor: node, primaryTextColor: ink, primaryBorderColor: line,
+        secondaryColor: soft, secondaryTextColor: ink, secondaryBorderColor: line, tertiaryColor: soft, tertiaryTextColor: ink, tertiaryBorderColor: line,
+        lineColor: ink3, textColor: ink, titleColor: ink, nodeBorder: line, nodeTextColor: ink, clusterBkg: soft, clusterBorder: line,
+        edgeLabelBackground: canvas, labelBackground: canvas, noteBkgColor: soft, noteTextColor: ink2, noteBorderColor: line,
+        actorBkg: node, actorBorder: line, actorTextColor: ink, actorLineColor: ink3, signalColor: ink2, signalTextColor: ink, labelBoxBkgColor: node, labelBoxBorderColor: line, labelTextColor: ink, loopTextColor: ink2, activationBkgColor: soft, activationBorderColor: line, sequenceNumberColor: canvas,
+        fontSize: "14px",
+        // no drop shadows or gradients (Mermaid's themes add both): flat stone, as every card in XO
+        dropShadow: "none", useGradient: false,
+      },
+    });
+    mermaidTheme = th;
+  }
+  return mermaid;
+}
+/** Mermaid draws one diagram at a time through one queue (its configuration is global). @type {Promise<unknown>} */
+let queue = Promise.resolve();
+/** @type {Map<string, Promise<Drawing | { error: string }>>} */
+const INFLIGHT = new Map(); // theme + "\n" + src → its drawing's promise
+/** {html, theme, w} for this theme, drawing it if needed; {error} when Mermaid can't read it. Never rejects. @param {string} src @returns {Promise<Drawing | { error: string }>} */
+function diagramFor(src, th = theme()) {
+  const key = th + "\n" + src;
+  const have = DIAGRAMS.get(key);
+  if (have) return Promise.resolve(have);
+  if (FAILED.has(src)) return Promise.resolve({ error: /** @type {string} */ (FAILED.get(src)) });
+  if (src.length > MAX_DIAGRAM) { FAILED.set(src, "it's too long to draw here."); return Promise.resolve({ error: /** @type {string} */ (FAILED.get(src)) }); }
+  const going = INFLIGHT.get(key);
+  if (going) return going;
+  const p = /** @type {Promise<Drawing | { error: string }>} */ (queue = queue.then(async () => {
+    const id = `xo-dg-${++seq}`;
+    try {
+      const mermaid = await mermaidFor(th);
+      const { svg } = await mermaid.render(id, src);
+      // drawn no wider than its viewBox and no narrower than 80 % of it: on a phone a wide diagram scrolls sideways
+      const vb = /viewBox="[-\d.]+[ ,]+[-\d.]+[ ,]+([\d.]+)/.exec(svg);
+      const got = { html: svg, theme: th, w: vb ? Math.round(+vb[1]) : null };
+      DIAGRAMS.set(key, got); cap(DIAGRAMS, 200);
+      return got;
+    } catch (e) {
+      FAILED.set(src, String((e && /** @type {any} */ (e).message) || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));
+      return { error: /** @type {string} */ (FAILED.get(src)) };
+    } finally {
+      document.getElementById("d" + id)?.remove(); // Mermaid's scratch box, left behind when it throws
+      INFLIGHT.delete(key);
+    }
+  }));
+  INFLIGHT.set(key, p);
+  return p;
+}
+/** A Mermaid diagram in XO's tokens for the current theme, cached by source and theme; loads Mermaid the first time; rejects with its reason. @param {unknown} src @returns {Promise<string>} */
+export async function drawDiagram(src) {
+  const got = await diagramFor(String(src ?? ""));
+  if ("error" in got && got.error) throw new Error(got.error);
+  return /** @type {Drawing} */ (got).html;
+}
+/** @param {HTMLElement} fig */
+async function drawDiagramEl(fig) {
+  const src = fig.querySelector(":scope > .md-dg-src")?.textContent ?? "";
+  const got0 = await diagramFor(src);
+  const got = "error" in got0 && got0.error ? null : /** @type {Drawing} */ (got0);
+  if (!fig.isConnected || (fig.querySelector(":scope > .md-dg-src")?.textContent ?? "") !== src) return;
+  if (got) {
+    // swap the drawing in one step: the old one (another theme's) stays until this one is ready
+    for (const old of fig.querySelectorAll(":scope > svg")) old.remove();
+    fig.insertAdjacentHTML("afterbegin", got.html);
+    fig.dataset.dgTheme = got.theme;
+    if (got.w) fig.style.setProperty("--dg-w", got.w + "px"); else fig.style.removeProperty("--dg-w");
+    fig.classList.add("is-done");
+  } else if (FAILED.has(src)) {
+    fig.classList.add("is-failed");
+    if (!fig.querySelector(":scope > .md-dg-why")) fig.insertAdjacentHTML("afterbegin", `<figcaption class="md-dg-why"></figcaption>`);
+    /** @type {Element} */ (fig.querySelector(":scope > .md-dg-why")).textContent = `This diagram couldn't be drawn: ${FAILED.get(src)}`;
+  }
+}
+
+/** Charts: a crosshair at the nearest x and a card with each series' value there, read from the chart's own data table. @param {any} e */
+function chartHover(e) {
+  const plot = e.target.closest?.(".md-chart .mc-plot");
+  if (!plot) return;
+  const fig = plot.closest(".md-chart"), hov = plot.querySelector(":scope > .mc-hover");
+  if (!hov || fig.dataset.chart === "scatter") return;
+  const r = plot.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
+  const rows = [...fig.querySelectorAll(".mc-data tbody tr[data-at]")];
+  if (!rows.length) return;
+  let best = rows[0], d = Infinity;
+  for (const row of rows) { const dd = Math.abs(+row.dataset.at - f); if (dd < d) { d = dd; best = row; } }
+  const at = +best.dataset.at, names = [...fig.querySelectorAll(".mc-data thead th")].slice(1).map((th) => th.textContent);
+  const vals = [...best.querySelectorAll("td")].map((td) => td.textContent);
+  let tip = hov.querySelector(":scope > .mc-tip[data-own]");
+  if (!tip) {
+    hov.insertAdjacentHTML("beforeend", `<i class="mc-cross" data-own></i><div class="mc-tip" data-own></div>`);
+    tip = hov.querySelector(":scope > .mc-tip");
+  }
+  tip.innerHTML = `<b></b>${vals.map((_, i) => `<span><i class="mc-sw" style="--c:var(--viz-${i + 1})"></i><em></em><strong></strong></span>`).join("")}`;
+  tip.querySelector("b").textContent = best.querySelector("th").textContent;
+  tip.querySelectorAll("span").forEach((/** @type {any} */ s, /** @type {number} */ i) => { s.querySelector("em").textContent = names[i] || ""; s.querySelector("strong").textContent = vals[i]; });
+  hov.style.setProperty("--at", `${at * 100}%`);
+  hov.classList.toggle("is-left", at > 0.6);
+  hov.classList.add("is-on");
+}
+/** @param {any} e */
+function chartLeave(e) {
+  const plot = e.target.closest?.(".md-chart .mc-plot");
+  if (plot && !plot.contains(e.relatedTarget)) plot.querySelector(":scope > .mc-hover")?.classList.remove("is-on");
+}
+
+let started = false;
+/** Start watching the page for formulas and diagrams to draw (once). */
+export function startRich() {
+  if (started) return;
+  started = true;
+  // cheap per mutation: only a flag and one timer; the search runs once per batch
+  let t = 0;
+  new MutationObserver(() => { if (!t) t = setTimeout(() => { t = 0; if (document.querySelector(PENDING)) wake(); }, 50); })
+    .observe(document.body, { childList: true, subtree: true });
+  new MutationObserver(() => { if (document.querySelector(".md-diagram.is-done")) wake(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  document.addEventListener("pointermove", chartHover, { passive: true });
+  document.addEventListener("pointerout", chartLeave, { passive: true });
+  if (document.querySelector(PENDING)) wake();
+}

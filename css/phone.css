@@ -273,7 +273,7 @@
   :where(.fl-q,.ar-q,.all-q,.side-find,.fl-new-r){min-height:var(--h-touch)}
   /* the square icon buttons stay square at the floor, and so do those whose words hide on a phone (Edit, Runs code,
      the header's and the map's actions): the browser pass at 320/390 found Edit 28 wide, Open in Files 28, New file 32 */
-  :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.stg-x,.lbx-btn,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act,.map-btn){min-width:var(--h-touch)}
+  :where(.x,.vw-x,.vw-btn,.fr-ib,.stg-x,.lbx-btn,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act){min-width:var(--h-touch)}
   /* controls whose own min-height was smaller: Files' rows, a turn's step rows, a stop's notice with its Undo */
   .fl-r,.tb-rh,.hr-ev.k-stopped.has-undo{min-height:var(--h-touch)}
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,

@@ -1562,7 +1562,7 @@
    "home": "modules/artifacts/artifacts.css"
   },
   "css/base.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/foundation.css"
   },
   "css/diffs.css": {
@@ -1574,7 +1574,7 @@
    "home": "modules/files/editor/docs.css"
   },
   "css/dropdown.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/components/xo-select.css"
   },
   "css/foundation.css": {
@@ -1625,7 +1625,7 @@
    ]
   },
   "css/rich.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/shape.css": {
@@ -1641,7 +1641,7 @@
    "home": "shell/sidebar.css"
   },
   "css/tokens.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/tokens.css"
   },
   "design-research/2026-11-19-icons/ICONS.md": {
@@ -2216,8 +2216,9 @@
    ]
   },
   "js/chart.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/chart.js"
+   "status": "moved",
+   "home": "core/ui/markdown/chart.js",
+   "note": "js/chart.js re-exports it until the shims go"
   },
   "js/chats.js": {
    "status": "planned",
@@ -2269,12 +2270,14 @@
    "home": "modules/files/documents/drafts.js"
   },
   "js/dropdown.js": {
-   "status": "planned",
-   "home": "core/ui/components/xo-select.js"
+   "status": "moved",
+   "home": "core/ui/components/xo-select.js",
+   "note": "js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets"
   },
   "js/fileicons.js": {
-   "status": "planned",
-   "home": "core/ui/icons/fileicons.js"
+   "status": "moved",
+   "home": "core/ui/icons/fileicons.js",
+   "note": "js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go"
   },
   "js/files.js": {
    "status": "split",
@@ -2290,8 +2293,9 @@
    "home": "modules/files/page.js"
   },
   "js/focusview.js": {
-   "status": "planned",
-   "home": "core/ui/a11y/focus.js"
+   "status": "moved",
+   "home": "core/ui/a11y/focus.js",
+   "note": "js/focusview.js re-exports core/ui/a11y/focus.js until the shims go"
   },
   "js/follow.js": {
    "status": "planned",
@@ -2316,8 +2320,9 @@
    "note": "every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes"
   },
   "js/highlight.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/highlight.js"
+   "status": "moved",
+   "home": "core/ui/markdown/highlight.js",
+   "note": "js/highlight.js re-exports it until the shims go"
   },
   "js/hopstate.js": {
    "status": "moved",
@@ -2325,8 +2330,9 @@
    "note": "nothing imports the old path, so it leaves with no re-export"
   },
   "js/icon.js": {
-   "status": "planned",
-   "home": "core/ui/icons/icon.js"
+   "status": "moved",
+   "home": "core/ui/icons/icon.js",
+   "note": "js/icon.js re-exports core/ui/icons/icon.js until the shims go"
   },
   "js/imagechange.js": {
    "status": "planned",
@@ -2337,8 +2343,9 @@
    "home": "modules/intelligence/"
   },
   "js/keynav.js": {
-   "status": "planned",
-   "home": "core/ui/a11y/keynav.js"
+   "status": "moved",
+   "home": "core/ui/a11y/keynav.js",
+   "note": "js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go"
   },
   "js/keys.js": {
    "status": "split",
@@ -2354,15 +2361,20 @@
    "home": [
     "modules/decisions/kit.js",
     "core/ui/components/hold.js"
-   ]
+   ],
+   "note": "the hold button and its guard are in core/ui/components/hold.js (kit.js re-exports them); the rest goes to modules/decisions"
   },
   "js/launchpad.js": {
    "status": "planned",
    "home": "modules/launchpad/ (store, controller, views, section)"
   },
   "js/lightbox.js": {
-   "status": "planned",
-   "home": "core/ui/lightbox.js"
+   "status": "split",
+   "home": [
+    "core/ui/lightbox.js",
+    "modules/conversation (the pictures it lends the lightbox)"
+   ],
+   "note": "the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves"
   },
   "js/lpapi.js": {
    "status": "split",
@@ -2382,8 +2394,12 @@
    "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map is deleted; the rest waits for modules/map"
   },
   "js/markdown.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "split",
+   "home": [
+    "core/ui/markdown/markdown.js",
+    "core/ui/markdown/inline.js"
+   ],
+   "note": "blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go"
   },
   "js/mdlive.js": {
    "status": "planned",
@@ -2406,8 +2422,9 @@
    "home": "modules/threads/checklist.js"
   },
   "js/motion.js": {
-   "status": "planned",
-   "home": "core/ui/motion.js"
+   "status": "moved",
+   "home": "core/ui/motion.js",
+   "note": "js/motion.js re-exports core/ui/motion.js until the shims go"
   },
   "js/msgx.js": {
    "status": "split",
@@ -2469,20 +2486,23 @@
    ]
   },
   "js/redraw.js": {
-   "status": "planned",
-   "home": "core/ui/redraw.js"
+   "status": "moved",
+   "home": "core/ui/redraw.js",
+   "note": "js/redraw.js re-exports core/ui/redraw.js until the shims go"
   },
   "js/review.js": {
    "status": "planned",
    "home": "modules/decisions/items.js"
   },
   "js/rich.js": {
-   "status": "planned",
-   "home": "core/ui/markdown/rich.js"
+   "status": "moved",
+   "home": "core/ui/markdown/rich.js",
+   "note": "js/rich.js re-exports it until the shims go"
   },
   "js/ring.js": {
-   "status": "planned",
-   "home": "core/ui/a11y/ring.js"
+   "status": "moved",
+   "home": "core/ui/a11y/ring.js",
+   "note": "js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them"
   },
   "js/rtsettings.js": {
    "status": "moved",
@@ -2597,7 +2617,8 @@
     "core/platform/dom",
     "core/platform/time",
     "core/services/sound"
-   ]
+   ],
+   "note": "reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go"
   },
   "js/util.js": {
    "status": "split",
@@ -4113,8 +4134,9 @@
    "note": "js/world.js re-exports the store and the platform's esc until the shims go"
   },
   "js/xoicons.js": {
-   "status": "planned",
-   "home": "core/ui/icons/xoicons.js (generated)"
+   "status": "moved",
+   "home": "core/ui/icons/xoicons.js",
+   "note": "generated by tools/xoicons/build.mjs; js/xoicons.js re-exports it until the shims go"
   },
   "presets/engineering.json": {
    "status": "planned",
@@ -5001,8 +5023,9 @@
    "home": "delete: a one-off probe with machine paths (owner D6)"
   },
   "tools/xoicons/build.mjs": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs",
+   "note": "writes core/ui/icons/xoicons.js"
   },
   "ui-mockups/create-project/README.md": {
    "status": "deleted",
@@ -5501,19 +5524,19 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "css/rich.css::ids::msgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/rich.css::ids::tmsgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/rich.css::ids::typing": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "css/rich.css::ids::ttyping": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.css"
   },
   "index.html::ids::app": {
@@ -8319,35 +8342,35 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/chart.js::exports::readChart": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::exports::niceTicks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::exports::fmt": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::exports::chartHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::readChart": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::niceTicks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::fmt": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chart.js::functions::chartHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/chart.js"
   },
   "js/chats.js::exports::createChats": {
@@ -8994,39 +9017,39 @@
    "home": "modules/files/documents/drafts.js"
   },
   "js/fileicons.js::exports::iconKey": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::exports::fileIcon": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::exports::FOLDER_ICON": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::exports::FOLDER_OPEN_ICON": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::exports::folderIcon": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::exports::fileColor": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::functions::iconKey": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::functions::fileIcon": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/fileicons.js::functions::fileColor": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/fileicons.js"
   },
   "js/files.js::exports::FILES_ICON": {
@@ -9318,95 +9341,95 @@
    "home": "modules/files/page.js"
   },
   "js/focusview.js::exports::usable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::hookOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::outside": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::scrollerOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::seen": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::room": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::ringsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::decoration": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::bring": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::lost": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::inSight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::bringWhole": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::exports::keepFocusInView": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::hookOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::scrollerOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::room": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::ringsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::decoration": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::shift": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::bring": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::inSight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::bringWhole": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/focusview.js::functions::keepFocusInView": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/focus.js"
   },
   "js/follow.js::exports::createFollow": {
@@ -9642,27 +9665,27 @@
    "home": "core/services/notices.js"
   },
   "js/highlight.js::exports::langOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::exports::highlight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::langOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::diffHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::tokens": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/highlight.js::functions::highlight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/highlight.js"
   },
   "js/hopstate.js::exports::hopRank": {
@@ -9682,15 +9705,15 @@
    "home": "core/services/world/hops.js"
   },
   "js/icon.js::exports::xi": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/icon.js"
   },
   "js/icon.js::exports::hasIcon": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/icon.js"
   },
   "js/icon.js::functions::xi": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/icon.js"
   },
   "js/imagechange.js::exports::isImageChange": {
@@ -9806,83 +9829,83 @@
    "home": "modules/intelligence/"
   },
   "js/keynav.js::exports::usable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::step": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::rovingTab": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::radioKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::pointerFollows": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::exports::menuKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::step": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::radioKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::pointerFollows": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::functions::menuKeys": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys:: ": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Enter": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowDown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowRight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowUp": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::ArrowLeft": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Tab": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::Home": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keynav.js::keys::End": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/keynav.js"
   },
   "js/keys.js::exports::GROUPS": {
@@ -10018,12 +10041,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::exports::HOLD_MS": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::READ_MS": {
    "status": "split-region",
@@ -10122,20 +10141,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::exports::holdButton": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::holdToConfirm": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::exports::createAnnouncer": {
    "status": "split-region",
@@ -10202,20 +10213,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::functions::holdButton": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::functions::holdToConfirm": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::functions::createAnnouncer": {
    "status": "split-region",
@@ -10226,20 +10229,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/kit.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/kit.js::keys:: ": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/kit.js",
-    "core/ui/components/hold.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/components/hold.js"
   },
   "js/launchpad.js::exports::LP_ICON": {
    "status": "planned",
@@ -10330,31 +10325,31 @@
    "home": "modules/launchpad/ (store, controller, views, section)"
   },
   "js/lightbox.js::exports::createLightbox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::functions::ms": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::functions::createLightbox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::ArrowLeft": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::ArrowRight": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lightbox.js::keys::Tab": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/lightbox.js"
   },
   "js/lpapi.js::exports::nextStep": {
@@ -10732,159 +10727,159 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/markdown.js::exports::setThreadInfo": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::ARROW_OUT": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::shortUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::outText": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::setRich": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::webImageUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::fileImagePath": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::imageLine": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::setWebImages": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::renderInline": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::exports::cells": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::exports::renderMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::exports::excerptMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::exports::threadLinks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::setThreadInfo": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::shortUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::addrHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::outHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::labelOut": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::outText": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::hostOf": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::fit": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::linkHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::setRich": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::mathHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::diagramHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::webImageUrl": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::fileImagePath": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::imageLine": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::setWebImages": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::imagesHtml": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::renderInline": {
-   "status": "planned",
-   "home": "core/ui/markdown/markdown.js"
+   "status": "moved",
+   "home": "core/ui/markdown/inline.js"
   },
   "js/markdown.js::functions::codeBlock": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::cells": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::renderTable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::renderList": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::renderMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::excerptMarkdown": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/markdown.js::functions::threadLinks": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/markdown.js"
   },
   "js/mdlive.js::exports::toggleMark": {
@@ -11612,55 +11607,55 @@
    "home": "modules/threads/checklist.js"
   },
   "js/motion.js::exports::EASE": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::IN": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::still": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::arrive": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::fadeImage": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::syncList": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::setHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::setText": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::arrive": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::fadeImage": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::syncList": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::setHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::setText": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/motion.js"
   },
   "js/msgx.js::exports::decorateConversation": {
@@ -12676,39 +12671,39 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/redraw.js::exports::redraw": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::exports::pressedNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::exports::redrawNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::redraw": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::redrawNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::deepActive": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::keyOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::syncChildren": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::syncNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/review.js::exports::VERB": {
@@ -12788,111 +12783,111 @@
    "home": "modules/decisions/items.js"
   },
   "js/rich.js::exports::cachedMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::cachedDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::drawMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::drawDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::exports::startRich": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::cachedMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::cachedDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::afterPause": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::wake": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::pass": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::loadKatex": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawMath": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawMathEl": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::hexOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::mermaidFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::diagramFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawDiagram": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawDiagramEl": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::chartHover": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::chartLeave": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::startRich": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::ids::d": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/markdown/rich.js"
   },
   "js/ring.js::exports::REGIONS": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::exports::ringBox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::exports::regionRings": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::functions::ringBox": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/ring.js::functions::regionRings": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js::exports::usualOf": {
@@ -14737,112 +14732,41 @@
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/ui.js::exports::xi": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/icons/icon.js"
   },
   "js/ui.js::exports::ICON": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::exports::NEXT_GLYPH": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::exports::dial": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::exports::XO": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::exports::morph": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::EASE": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/motion.js",
+   "note": "core/ui/motion.js re-exports it"
   },
   "js/ui.js::exports::EXPAND_MS": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::expand": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::mmss": {
    "status": "deleted",
@@ -14877,40 +14801,17 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::RM": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/motion.js",
+   "note": "core/ui/motion.js re-exports it"
   },
   "js/ui.js::exports::wait": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::hold": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::exports::clock": {
    "status": "moved",
@@ -14941,16 +14842,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::reconcile": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/ui.js::exports::sound": {
    "status": "split-region",
@@ -14977,64 +14870,24 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::keepTurning": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::dial": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::functions::morph": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::expand": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::expandFrame": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::functions::waited": {
    "status": "deleted",
@@ -15057,28 +14910,12 @@
    "home": "core/platform/time.js"
   },
   "js/ui.js::functions::reconcile": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/ui.js::functions::keepTurning": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/ui.js::storage::cv-sound": {
    "status": "split-region",
@@ -15093,16 +14930,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::custom_events::redrawn": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/util.js::exports::space": {
    "status": "moved",
@@ -15389,8 +15218,8 @@
    "home": "core/platform/util.js (the one esc; the same characters)"
   },
   "js/xoicons.js::exports::XI": {
-   "status": "planned",
-   "home": "core/ui/icons/xoicons.js (generated)"
+   "status": "moved",
+   "home": "core/ui/icons/xoicons.js"
   },
   "tests/attach.test.mjs::exports::f": {
    "status": "planned",

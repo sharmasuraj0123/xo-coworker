@@ -49,6 +49,5 @@
  "modules/settings/shape-page.js -> js/keynav.js": 1,
  "modules/worktrees/page.js -> js/api.js": 1,
  "modules/worktrees/page.js -> js/world.js": 1,
- "modules/worktrees/page.js -> js/ui.js": 1,
- "modules/worktrees/page.js -> js/kit.js": 1
+ "modules/worktrees/page.js -> js/ui.js": 1
 }

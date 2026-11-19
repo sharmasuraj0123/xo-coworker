@@ -1,7 +1,7 @@
 // The panel's live parts are drawn in place, so the control you're on survives an update (the controls grader on
 // 9d1f71b, C072–C074, all four cells: Tab to a frame's head under Launchpad; a live agent moves its count 1 → 2 → 3
 // and the button was replaced, focus to BODY ~150 ms later: stage.js set it with innerHTML). Checked from the source:
-// the heads under Launchpad and every list the panel keeps current go through js/redraw.js; innerHTML is left only
+// the heads under Launchpad and every list the panel keeps current go through core/ui/redraw.js; innerHTML is left only
 // for what's built once, and for icons inside a button that stays. The walk is the flows case C072–C074.
 //   node tests/stage-inplace.test.mjs
 import assert from "node:assert/strict";

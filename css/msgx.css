@@ -1,7 +1,7 @@
 /* The conversation's bubbles (with js/msgx.js): message bubbles and tails, replies and quotes, the working
    bubble and opened work card, thread cards and their progress band, back-to-latest. This is the shipped
    chat look (owner, 5 Nov: XO's green for yours, glass for theirs, tails on, every reply in a bubble), not
-   an experiment: removing this file breaks the conversation. Every value comes from css/tokens.css.
+   an experiment: removing this file breaks the conversation. Every value comes from core/ui/tokens.css.
    Corners nest: an inner radius is the outer one minus the inset between them (the composer's reply
    28 → 18 at 10 in, a quote in a bubble 20 → 14 at 6 in, a card's progress band 20 → 4 at 16 in). */
 
@@ -115,7 +115,7 @@
 :root{--mx-you:oklch(.39 .084 134);--mx-you-ink:var(--ink);--mx-you-hi:var(--mx-lift)}
 :root[data-theme="light"]{--mx-you:oklch(.875 .125 130)}
 /* (your colour and its lift are the page's, not only the bubbles': the document view's own message wears them too,
-   css/rich.css; the owner, 19 Nov: "change the colour to xo green, like it is in the bubble version") */
+   core/ui/markdown/rich.css; the owner, 19 Nov: "change the colour to xo green, like it is in the bubble version") */
 /* XO (the default): XO's green, deepened so it holds its colour on the dark canvas (#324E1D-ish, --ink at
    7.1:1, a touch brighter than first tried at the owner's ask); in light, a clear leaf (#BBE78D, 11.9:1).
    A colour you own, not a status chip. */

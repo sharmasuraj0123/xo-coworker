@@ -9,7 +9,6 @@
   "js/intel.js": 742,
   "js/launchpad.js": 1166,
   "js/map.js": 1102,
-  "js/markdown.js": 519,
   "js/media.js": 609,
   "js/msgx.js": 917,
   "js/recordview.js": 855,
@@ -24,13 +23,13 @@
  "important": {
   "css/app.css": 7,
   "css/artifacts.css": 1,
-  "css/base.css": 6,
   "css/docs.css": 7,
   "css/foundation.css": 14,
   "css/launchpad.css": 1,
   "css/msgx.css": 7,
   "css/panel.css": 11,
   "css/phone.css": 1,
-  "css/rich.css": 2
+  "core/ui/foundation.css": 6,
+  "core/ui/markdown/rich.css": 2
  }
 }

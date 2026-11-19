@@ -11,7 +11,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("Stop: a stone disc with the owner's stop square, its radius concentric with the composer's", () => {
-  const app = nc(read("css/app.css")), js = read("js/app.js"), tok = read("css/tokens.css");
+  const app = nc(read("css/app.css")), js = read("js/app.js"), tok = read("core/ui/tokens.css");
   // the owner's stop (assets/icons/xo/c-actions/stop.svg: a 12 square, 3.5 corners, on the 24 grid), at --ic-lg
   assert.match(js, /const STOP_ICON = ICON\.stop;/);
   assert.match(app, /\.send\.is-stop\{--stop:var\(--fill-4\);--ring-in:var\(--focus\);background:var\(--stop\);color:var\(--ink\)\}/);

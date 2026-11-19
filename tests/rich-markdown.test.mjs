@@ -1,10 +1,10 @@
 // What a reply can hold beyond words (owner, 19 Nov): math, charts, diagrams and the conversation's own pictures, as
-// js/markdown.js writes them (js/chart.js draws charts; js/rich.js draws math and diagrams in the browser, through
+// core/ui/markdown writes them (chart.js draws charts; rich.js draws math and diagrams in the browser, through
 // setRich). Pure: node only.
 //   node tests/rich-markdown.test.mjs
 import assert from "node:assert/strict";
-import { renderMarkdown, renderInline, setRich, imageLine } from "../js/markdown.js";
-import { chartHtml, readChart, niceTicks, fmt } from "../js/chart.js";
+import { renderMarkdown, renderInline, setRich, imageLine } from "../core/ui/markdown/markdown.js";
+import { chartHtml, readChart, niceTicks, fmt } from "../core/ui/markdown/chart.js";
 
 let passed = 0;
 const t = (name, fn) => {

@@ -1,23 +1,23 @@
-// The owner's icon pack (assets/icons/xo, 19 Nov) is the one source of the app's icons: js/xoicons.js is what
+// The owner's icon pack (assets/icons/xo, 19 Nov) is the one source of the app's icons: core/ui/icons/xoicons.js is what
 // tools/xoicons/build.mjs makes of it (each file passed an allowlist; ink is currentColor; no Figma ids), and every
 // icon set (ICON, the panel, Map, Files, viewer, chat, steps, Launchpad, links, file types, project topics) draws
 // from it, so no module keeps a hand-drawn <svg> of its own.
 //   node tests/xoicons.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { build, clean } from "../tools/xoicons/build.mjs";
-import { XI } from "../js/xoicons.js";
-import { xi, hasIcon } from "../js/icon.js";
-import { classify, glyph } from "../modules/projects/projicons.js";
-import { fileIcon, iconKey, FOLDER_ICON } from "../js/fileicons.js";
 import { sourcePaths } from "./lib/sources.mjs";
+import { build, clean } from "../tools/xoicons/build.mjs";
+import { XI } from "../core/ui/icons/xoicons.js";
+import { xi, hasIcon } from "../core/ui/icons/icon.js";
+import { classify, glyph } from "../modules/projects/projicons.js";
+import { fileIcon, iconKey, FOLDER_ICON } from "../core/ui/icons/fileicons.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("js/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
-  assert.equal(read("js/xoicons.js"), build());
+t("core/ui/icons/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
+  assert.equal(read("core/ui/icons/xoicons.js"), build());
   const man = JSON.parse(read("assets/icons/xo/manifest.json"));
   assert.equal(Object.keys(XI).length, man.icons.length);
 });
@@ -45,7 +45,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
   assert.match(xi("lock", "", "sm"), /class="xi ic-sm"/);
   assert.throws(() => xi("lock", "", "15"));
   assert.throws(() => xi("no-such-icon"));
-  const base = read("css/base.css");
+  const base = read("core/ui/foundation.css");
   assert.match(base, /:where\(svg\.xi:not\(\.xo-mark\)\)\{width:var\(--ic\);height:var\(--ic\)\}/);
   for (const k of ["xs", "sm", "lg"]) assert.match(base, new RegExp(`:where\\(svg\\.xi\\.ic-${k}\\)\\{width:var\\(--ic-${k}\\);height:var\\(--ic-${k}\\)\\}`));
 });
@@ -59,11 +59,11 @@ t("every icon a module names is in the pack", () => {
 });
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
-  const sets = ["js/ui.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "modules/settings/shape-page.js",
-    "js/viewer.js", "js/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
-    "js/launchpad.js", "js/markdown.js", "modules/projects/projicons.js"];
+  const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "modules/settings/shape-page.js",
+    "js/viewer.js", "core/ui/lightbox.js", "modules/create-project/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
+    "js/launchpad.js", "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "modules/projects/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
-  const ui = read("js/ui.js");
+  const ui = read("core/ui/icons/names.js");
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));
   for (const line of block.split("\n").slice(1)) if (/^ {2}\w+:/.test(line)) assert.match(line, /: xi\("[a-z0-9-]+"/, line);
   // the stamps and the Stop come from the pack too; the undo ring (an animation) and the tab's live icon are drawn

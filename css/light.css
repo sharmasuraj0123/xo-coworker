@@ -1,4 +1,4 @@
-/* Light: the rules that differ in light beyond its palette (the palette itself is css/tokens.css).
+/* Light: the rules that differ in light beyond its palette (the palette itself is core/ui/tokens.css).
    Light has no glow: borders carry the layering and shadows only lift (--lift-1…3). */
 
 /* ── structure: separators that used a fill step (#1C) are lines in light ── */

@@ -20,7 +20,7 @@ const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const css = cssNames().map((f) => [f, read(`css/${f}`)]);
 const all = css.map((x) => x[1]).join("\n");
-const base = read("css/base.css"), fnd = read("css/foundation.css"), tokens = read("css/tokens.css");
+const base = read("core/ui/foundation.css"), fnd = read("css/foundation.css"), tokens = read("core/ui/tokens.css");
 const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
 const ext = +ring[2] + +ring[3], room = +tokens.match(/--ring-room:(\d+)px/)[1];
 const inset = (fnd.match(/:is\(([^)]*)\):focus-visible\{outline-offset:-2px;outline-color:var\(--ring-in,var\(--focus\)\)\}/) || [])[1] || "";

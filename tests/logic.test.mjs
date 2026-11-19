@@ -3,10 +3,10 @@
 //   node tests/logic.test.mjs            (the live part runs if a UI answers on 127.0.0.1:5180, else it's skipped)
 //   XO_UI=http://127.0.0.1:3000 node tests/logic.test.mjs   (the live part through that UI; it must answer)
 import assert from "node:assert/strict";
-import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../js/markdown.js";
+import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../core/ui/markdown/markdown.js";
 import { parseChecklist, tasksOf } from "../js/model.js";
 import { request } from "../js/api.js";
-import { highlight, langOf } from "../js/highlight.js";
+import { highlight, langOf } from "../core/ui/markdown/highlight.js";
 import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../js/timeline.js";
 import { mapLimit } from "../core/services/storm/load.js";
 
@@ -79,7 +79,7 @@ t("a bare address wraps only at its seams, and its last piece keeps the arrow (Q
 t("relative file links open in the viewer; anything that leaves the folder stays text", () => {
   const f = renderInline("[the turn view](js/turnview.js) and [readme](./README.md#L10)");
   assert.match(f, /<a href="#js\/turnview.js" class="lk lk-in lk-file" data-file="js\/turnview.js" data-file-name="turnview.js"/);
-  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from js/fileicons.js, whichever set it draws
+  assert.match(f, /<span class="lk-ic"><svg class="fi"/); // the file icon from core/ui/icons/fileicons.js, whichever set it draws
   assert.match(f, /data-file="README.md"/);
   for (const bad of ["[x](../etc/passwd)", "[x](/etc/passwd)", "[x](a/../../b.txt)", "[x](file:///etc/passwd)", "[x](mailto:a@b.c)", "[x](folder/)"]) {
     const out = renderInline(bad);

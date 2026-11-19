@@ -6,7 +6,7 @@
    (suggestions, finds). Intelligence is neutral ink only. Nothing glows. */
 
 :root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
-/* The theme (both palettes, every surface, line and ink) lives in css/tokens.css; this file only uses it. */
+/* The theme (both palettes, every surface, line and ink) lives in core/ui/tokens.css; this file only uses it. */
 :root[data-theme="light"] body{background:var(--sunken)}
 :root[data-theme="light"] .send:not(:disabled):not(.is-stop){color:#141414}
 :root[data-theme="light"] .next{--nx-arc:rgba(72,118,32,.75);background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(72,118,32,.55),#DCDCD8 34%,#E2E2DF) border-box;box-shadow:var(--e2)}
@@ -416,7 +416,7 @@ button:disabled{cursor:default}
 .sg.s-done{background:var(--accent-fill)}
 .sg.s-doing{background:var(--info)}
 /* the landing (Plan F's one flourish): a step that just finished fills left to right in green, like ink
-   drawn along a rule, instead of jumping; reduced motion lands it at once (base.css) */
+   drawn along a rule, instead of jumping; reduced motion lands it at once (core/ui/foundation.css) */
 .sg.s-done.is-pop{position:relative;overflow:hidden;background:var(--fill-3);animation:none}
 .sg.s-done.is-pop::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
 @keyframes seg-fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -2167,7 +2167,7 @@ body.viewer-open .tdock{display:none}
 .vw-body{flex:1;min-height:0;overflow:auto}
 .vw-body.is-frame{display:flex;flex-direction:column;overflow:hidden}
 .vw-md{padding:20px 28px 40px}
-/* a document reads in the app's one reading style (css/tokens.css: read 16/24, .prose), as a message does; Files'
+/* a document reads in the app's one reading style (core/ui/tokens.css: read 16/24, .prose), as a message does; Files'
    page view takes the same tokens (css/docs.css, .cm-xo-page) */
 .vw-frame{flex:1;width:100%;min-height:0;border:0;background:#fff}
 /* an image: fitted to the panel, or 1:1 (scrolls); the checkerboard shows through transparency */

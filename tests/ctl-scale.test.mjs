@@ -17,11 +17,11 @@ import { rules, context, decls, px } from "./lib/cascade.mjs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
-// The type scale's tokens (css/tokens.css, 19 Nov) read back as the values these checks were written against, so a
+// The type scale's tokens (core/ui/tokens.css, 19 Nov) read back as the values these checks were written against, so a
 // size measured here is the same size whether a rule spells it or names its token
 const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-12)": "16px", "var(--lh-13)": "20px", "var(--lh-14)": "20px", "var(--lh-15)": "24px", "var(--lh-20)": "28px", "var(--lh-28)": "36px", "var(--lh-40)": "44px", "var(--lh-read)": "24px" };
 const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:12|13|14|15|20|28|40|read))\)/g, (m) => TYPE[m] || m);
-const tokensCss = readCss(new URL("css/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const tokensCss = readCss(new URL("core/ui/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 // the desktop's tokens: the :root block, not a phone's media query below it
 const desk = tokensCss.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
 const tokens = Object.fromEntries([...desk.matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));

@@ -1,8 +1,8 @@
-// js/keynav.js: a radio group's and a menu's keys (WAI-ARIA APG), on a few stand-in elements.
+// core/ui/a11y/keynav.js: a radio group's and a menu's keys (WAI-ARIA APG), on a few stand-in elements.
 // The real DOM, and each control that uses them, are in the browser suite.
 //   node tests/keynav.test.mjs
 import assert from "node:assert/strict";
-import { step, usable, rovingTab, radioKeys, menuKeys, pointerFollows } from "../js/keynav.js";
+import { step, usable, rovingTab, radioKeys, menuKeys, pointerFollows } from "../core/ui/a11y/keynav.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

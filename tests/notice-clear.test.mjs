@@ -48,7 +48,7 @@ t("census: the line is placed by the stack alone, never against one thing docked
   const bars = css("app.css").match(/\.cbar\{[^}]*padding:[^;}]+/g).map((d) => d.replace(/^.*padding:/, ""));
   assert.ok(bars.length >= 2, "the bar's rules: the dock's, a phone's");
   for (const p of bars) assert.ok(p === "0" || p.startsWith("var(--cbar-fade) "), `the bar's top room is --cbar-fade: ${p}`);
-  const tok = css("tokens.css");
+  const tok = css("../core/ui/tokens.css");
   assert.match(tok, /--dock-gap:var\(--s-\d+\)/, "the gap is on the space scale");
   assert.match(tok, /--cbar-fade:\d+px/);
   assert.match(app, /\.tdock:not\(:empty\)\{margin-bottom:var\(--dock-gap\)\}/, "the decision over the box: the same gap");

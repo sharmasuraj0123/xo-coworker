@@ -10,7 +10,7 @@
 //   node tests/focus-back.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { sourcePaths } from "./lib/sources.mjs";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
@@ -18,18 +18,19 @@ let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 await t("one helper says a control can take focus: no file keeps its own copy", () => {
-  const fv = read("js/focusview.js");
+  const fv = read("core/ui/a11y/focus.js");
   assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
-  const copies = sourcePaths(".js").filter((f) => f !== "js/focusview.js" && /closest\("\[inert\], \[hidden\]"\)/.test(read(f)));
+  const copies = sourcePaths(".js").filter((f) => f !== "core/ui/a11y/focus.js" && /closest\("\[inert\], \[hidden\]"\)/.test(readSource(f)));
   assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
-  for (const f of ["app.js", "decide.js", "viewer.js", "ui.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
+  for (const f of ["app.js", "decide.js", "viewer.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
   assert.match(read("modules/create-project/create.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/js\/focusview\.js";/, "create.js takes it from focusview.js");
   assert.match(read("shell/panel/panel.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/js\/focusview\.js";/, "the panel takes it from focusview.js");
+  assert.match(read("core/ui/redraw.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\/a11y\/focus\.js";/, "reconcile takes it from a11y/focus.js");
 });
 
 await t("hookOf names a control so the redraw's copy is found: its id, else its tag and data- hooks, a count aside", async () => {
   globalThis.CSS = { escape: (s) => String(s).replace(/["\\]/g, "\\$&") };
-  const { hookOf } = await import(new URL("js/focusview.js", ROOT));
+  const { hookOf } = await import(new URL("core/ui/a11y/focus.js", ROOT));
   const el = (tag, attrs, id = "") => ({ tagName: tag.toUpperCase(), id, attributes: Object.entries(attrs).map(([name, value]) => ({ name, value })), getAttribute: (n) => attrs[n] ?? null });
   assert.equal(hookOf(el("button", { class: "nx-link", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
   assert.equal(hookOf(el("button", { class: "x", "data-runs": "", "data-n": "45" })), "button[data-runs]", "a count isn't its identity");

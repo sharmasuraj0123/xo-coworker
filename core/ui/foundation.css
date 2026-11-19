@@ -1,13 +1,17 @@
-/* Shared base for every ux-test: XO tokens + Geist, a reset, and the
-   reduced-motion contract. Each concept's own style.css is only its idea. */
-@import url("./tokens.css");
+/* The cascade's layers, lowest first; a sheet not yet in one outranks them all. */
+@layer reset, tokens, foundation, components, shell, modules, apps, theme, density, phone;
+@import url("./tokens.css") layer(tokens);
 
+@layer reset{
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-md)/var(--lh-ui) var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
+}
+
+@layer foundation{
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 /* the ring has room wherever focus scrolls a control into view, by a Tab or a script's scrollIntoView: the browser
    brings a control only as far as its own edge, so at a scroller's foot the ring was cut off (the create-project
@@ -42,6 +46,8 @@ svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,po
 :where(svg.xi.ic-xs){width:var(--ic-xs);height:var(--ic-xs)}
 :where(svg.xi.ic-sm){width:var(--ic-sm);height:var(--ic-sm)}
 :where(svg.xi.ic-lg){width:var(--ic-lg);height:var(--ic-lg)}
+
+}
 
 @media (prefers-reduced-motion:reduce){
   /* nothing moves. Transitions are none, not 0.01 ms: a 0.01 ms one is given to every property of every element (its

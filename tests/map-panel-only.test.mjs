@@ -1,6 +1,7 @@
 // node tests/map-panel-only.test.mjs: the Map lives only in the right panel (no #map, no cv-map key, no body classes); needs linkedom.
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { sourceText } from "./lib/sources.mjs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -48,4 +49,8 @@ if (!LD) {
     assert.ok(!keys.includes("cv-map"), `keys touched: ${keys.join(", ")}`);
   });
 }
+await t("no stylesheet keeps the standalone Map's toggle or its file tab's close", () => {
+  const css = sourceText(".css");
+  assert.doesNotMatch(css, /\.map-btn\b|\.st-x\b/);
+});
 console.log(`\n${passed} passed`);

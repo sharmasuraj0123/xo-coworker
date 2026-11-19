@@ -20,9 +20,9 @@ const KEYS = ["ink", "com", "kw", "str", "num", "fn", "bi", "prop", "tag", "pun"
 /** The page's stylesheets in order, each with its @imports inlined where they stand. */
 function sheets(root) {
   const html = readFileSync(join(root, "index.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
-  const hrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\.\/(css\/[^"]+)"/g)].map((m) => m[1]);
+  const hrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\.\/((?!js\/vendor\/)[^"]+\.css)"/g)].map((m) => m[1]);
   const read = (rel) => readFileSync(join(root, rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/@import\s+url\(["']?\.\/([^"')]+)["']?\)\s*;/g, (_, f) => read(join(dirname(rel), f)));
+    .replace(/@import\s+url\(["']?\.\/([^"')]+)["']?\)\s*(?:layer\([\w.-]+\))?\s*;/g, (_, f) => read(join(dirname(rel), f)));
   return hrefs.map(read).join("\n");
 }
 
@@ -113,7 +113,7 @@ export function codeColors(root = ROOT) {
   return { dark: of(p.dark), light: of(p.light) };
 }
 
-/** A TextMate theme from the code colours: the scopes js/highlight.js colours, mapped onto TextMate's. */
+/** A TextMate theme from the code colours: the scopes core/ui/markdown/highlight.js colours, mapped onto TextMate's. */
 export function textmate(name, type, c) {
   const s = (scope, foreground, fontStyle) => ({ scope, settings: fontStyle ? { foreground, fontStyle } : { foreground } });
   return {

@@ -4,8 +4,8 @@
 // these check: a data update never replaces a control. It changes the control's text and attributes in place, and
 // the node under a press (as the one with focus) is never moved or replaced while the new HTML still has it.
 //
-// On a real DOM (linkedom): node identity across redraws (js/redraw.js), rows under a press in keyed lists
-// (js/ui.js reconcile), and the Files tree (js/files.js) while an agent's marks change, with a press held across each
+// On a real DOM (linkedom): node identity across redraws (core/ui/redraw.js), rows under a press in keyed lists
+// (its reconcile), and the Files tree (js/files.js) while an agent's marks change, with a press held across each
 // redraw. Then the write paths themselves, read from the source: no region on the render path is drawn anew.
 //   node tests/press-keeps-node.test.mjs   (linkedom, a dev-only tool: npm ci)
 import assert from "node:assert/strict";
@@ -77,7 +77,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   /** A press held across `fn`: pointerdown on `node`, fn() (a redraw), then the press ends. True if the node stayed. */
   const pressAcross = async (node, fn) => { ev(node, "pointerdown"); await fn(); const kept = node.isConnected; ev(node, "pointerup"); ev(node, "click"); return kept; };
 
-  const { redraw, redrawNode, pressedNode } = await import("../js/redraw.js");
+  const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
   const host = document.getElementById("host");
 
   await t("redraw: a control whose key stays is the same node when its text, class and count change", () => {
@@ -113,7 +113,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     assert.equal(top.className, "vw-top is-upd"); assert.equal(top.querySelector(".vw-n").textContent, "a.md · Updated");
   });
 
-  const { reconcile } = await import("../js/ui.js");
+  const { reconcile } = await import("../core/ui/redraw.js");
   await t("reconcile: a row that is itself the button, changed while pressed, is updated in place", async () => {
     const box = document.createElement("div"); host.replaceChildren(box);
     const row = (busy) => `<button type="button" class="prow${busy ? " is-busy" : ""}" data-go="p:x"><span class="pr-n">X</span>${busy ? "<i class=\"pr-busy\"></i>" : ""}</button>`;
@@ -133,6 +133,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     const specs = [...filesSrc.matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((m) => m[1]);
     const STUB = {
       "focusview.js": "export const inSight = () => true; export const bringWhole = () => {};",
+      "core/ui/a11y/focus.js": "export const inSight = () => true; export const bringWhole = () => {}; export const usable = () => true;",
       "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
       "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
       "api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",

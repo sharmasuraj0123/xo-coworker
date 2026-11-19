@@ -170,7 +170,7 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
       box.appendChild(jsonBuild());
       V.built = true;
     }
-    redraw(box.querySelector(".shp-top"), topHtml());
+    redraw(/** @type {Element} */ (box.querySelector(".shp-top")), topHtml());
     jsonRender();
   }
   /** @param {any} r @param {string} ok @param {string} where */

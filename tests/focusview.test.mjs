@@ -1,5 +1,5 @@
 // Focus is never somewhere you can't see it (the create-project/Launchpad grader on c055e74, S023: Settings › Keyboard's
-// Reset all put focus on the first shortcut 972 px above the screen, desktop, 1097 on a phone). js/focusview.js runs
+// Reset all put focus on the first shortcut 972 px above the screen, desktop, 1097 on a phone). core/ui/a11y/focus.js runs
 // here on stand-in elements: a focused element wholly out of the box it scrolls in is brought in (nearest); one in
 // view, a 1 px hidden one, or one that lost focus before the check is left; a Tab's or a press's isn't checked.
 //   node tests/focusview.test.mjs
@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 let F = {};
-try { F = await import("../js/focusview.js"); } catch (e) { console.error("  (no js/focusview.js: " + e.code + ")"); }
+try { F = await import("../core/ui/a11y/focus.js"); } catch (e) { console.error("  (no core/ui/a11y/focus.js: " + e.code + ")"); }
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -24,7 +24,7 @@ function standIn(top, { size = 36, scrolls = true } = {}) {
 }
 
 t("a focused element wholly out of its scroller is brought in: that scroller only, the least distance", () => {
-  assert.equal(typeof F.keepFocusInView, "function", "js/focusview.js keepFocusInView(doc, win)");
+  assert.equal(typeof F.keepFocusInView, "function", "core/ui/a11y/focus.js keepFocusInView(doc, win)");
   const P = standIn(-972); // Reset all's first shortcut, above the box
   F.keepFocusInView(P.doc, P.win);
   P.focus(); P.flush();
@@ -94,7 +94,7 @@ t("content that grows above the control under the keyboard: it was in sight, so 
   assert.equal(F.inSight(P.el, P.win), false);
   F.bringWhole(P.el, P.win);
   assert.equal(P.scroller.scrollTop, 2000 + 76, "the least distance: its foot to the box's foot");
-  const red = readFileSync(new URL("../js/redraw.js", import.meta.url), "utf8");
+  const red = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
   assert.ok(/const seen = !!focus && el\.contains\(focus\) && inSight\(focus\);[^]*?const changed = syncChildren\(el, tpl\.content, focus(?:, [^;]*)?\);\s*if \(changed && seen && focus\.isConnected && !inSight\(focus\)\) bringWhole\(focus\);/.test(red), "redraw keeps it: in sight before, so in sight after");
 });
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");

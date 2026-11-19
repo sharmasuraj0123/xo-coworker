@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { cssNames } from "./lib/sources.mjs";
 
 const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const tokens = css("tokens.css");
+const tokens = css("../core/ui/tokens.css");
 const block = (sel) => { const i = tokens.indexOf(sel + "{"); if (i < 0) return null; const j = tokens.indexOf("}", i); return Object.fromEntries([...tokens.slice(i + sel.length + 1, j).matchAll(/(--[\w-]+):([^;]+);/g)].map((m) => [m[1], m[2].trim()])); };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

@@ -19,10 +19,6 @@
   "extra": 26,
   "refs": 1
  },
- "js/chart.js": {
-  "extra": 19,
-  "refs": 0
- },
  "js/chats.js": {
   "extra": 27,
   "refs": 0
@@ -59,24 +55,12 @@
   "extra": 7,
   "refs": 0
  },
- "js/dropdown.js": {
-  "extra": 25,
-  "refs": 0
- },
- "js/fileicons.js": {
-  "extra": 16,
-  "refs": 0
- },
  "js/files.js": {
   "extra": 66,
   "refs": 0
  },
  "js/filespage.js": {
   "extra": 15,
-  "refs": 0
- },
- "js/focusview.js": {
-  "extra": 33,
   "refs": 0
  },
  "js/follow.js": {
@@ -87,14 +71,6 @@
   "extra": 11,
   "refs": 0
  },
- "js/highlight.js": {
-  "extra": 13,
-  "refs": 0
- },
- "js/icon.js": {
-  "extra": 8,
-  "refs": 0
- },
  "js/imagechange.js": {
   "extra": 18,
   "refs": 0
@@ -103,20 +79,12 @@
   "extra": 48,
   "refs": 0
  },
- "js/keynav.js": {
-  "extra": 24,
-  "refs": 0
- },
  "js/kit.js": {
-  "extra": 44,
+  "extra": 30,
   "refs": 0
  },
  "js/launchpad.js": {
   "extra": 86,
-  "refs": 0
- },
- "js/lightbox.js": {
-  "extra": 31,
   "refs": 0
  },
  "js/lpapi.js": {
@@ -125,10 +93,6 @@
  },
  "js/map.js": {
   "extra": 93,
-  "refs": 0
- },
- "js/markdown.js": {
-  "extra": 41,
   "refs": 0
  },
  "js/mdlive.js": {
@@ -141,10 +105,6 @@
  },
  "js/model.js": {
   "extra": 5,
-  "refs": 0
- },
- "js/motion.js": {
-  "extra": 13,
   "refs": 0
  },
  "js/msgx.js": {
@@ -163,20 +123,8 @@
   "extra": 71,
   "refs": 0
  },
- "js/redraw.js": {
-  "extra": 28,
-  "refs": 0
- },
  "js/review.js": {
   "extra": 21,
-  "refs": 0
- },
- "js/rich.js": {
-  "extra": 28,
-  "refs": 0
- },
- "js/ring.js": {
-  "extra": 9,
   "refs": 0
  },
  "js/runsview.js": {
@@ -208,7 +156,7 @@
   "refs": 0
  },
  "js/ui.js": {
-  "extra": 46,
+  "extra": 10,
   "refs": 0
  },
  "js/viewer.js": {
@@ -219,10 +167,6 @@
   "extra": 11,
   "refs": 0
  },
- "js/xoicons.js": {
-  "extra": 2,
-  "refs": 0
- },
  "css/app.css": {
   "extra": 196,
   "refs": 0
@@ -231,20 +175,12 @@
   "extra": 15,
   "refs": 0
  },
- "css/base.css": {
-  "extra": 18,
-  "refs": 0
- },
  "css/diffs.css": {
   "extra": 20,
   "refs": 0
  },
  "css/docs.css": {
   "extra": 4,
-  "refs": 0
- },
- "css/dropdown.css": {
-  "extra": 7,
   "refs": 0
  },
  "css/foundation.css": {
@@ -279,20 +215,12 @@
   "extra": 77,
   "refs": 0
  },
- "css/rich.css": {
-  "extra": 62,
-  "refs": 0
- },
  "css/shape.css": {
   "extra": 8,
   "refs": 0
  },
  "css/side.css": {
   "extra": 39,
-  "refs": 0
- },
- "css/tokens.css": {
-  "extra": 68,
   "refs": 0
  },
  "tests/agent-marks.test.mjs": {
@@ -768,7 +696,7 @@
   "refs": 0
  },
  "tests/reconcile-focus.test.mjs": {
-  "extra": 5,
+  "extra": 2,
   "refs": 0
  },
  "tests/record.test.mjs": {
@@ -1073,6 +1001,22 @@
  },
  "index.html": {
   "extra": 285,
+  "refs": 0
+ },
+ "core/ui/foundation.css": {
+  "extra": 17,
+  "refs": 0
+ },
+ "core/ui/components/xo-select.css": {
+  "extra": 7,
+  "refs": 0
+ },
+ "core/ui/markdown/rich.css": {
+  "extra": 62,
+  "refs": 0
+ },
+ "core/ui/tokens.css": {
+  "extra": 68,
   "refs": 0
  }
 }

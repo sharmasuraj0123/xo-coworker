@@ -10,7 +10,7 @@ const M = await import("../js/media.js");
 const { attachmentsOf } = await import("../js/attach.js");
 const { uiMsg, updateMessage } = await import("../js/timeline.js");
 const { turnHtml } = await import("../js/turnview.js");
-const MD = await import("../js/markdown.js");
+const MD = await import("../core/ui/markdown/markdown.js");
 
 let passed = 0;
 const t = (name, fn) => {

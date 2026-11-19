@@ -1,6 +1,6 @@
 /* Files: a file you read and type in (js/viewer.js, js/doceditor.js, js/mdlive.js). One editor for every text file:
    code as code, Markdown as a page; the open files as tabs; the file's versions under its head. Built from the one
-   scale (css/tokens.css), soft corners everywhere. */
+   scale (core/ui/tokens.css), soft corners everywhere. */
 
 /* ── the editor fills the file's body ── */
 .vw-doc{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--canvas)}
@@ -21,7 +21,7 @@
 .vw-doc .cm-panel.cm-gotoLine{padding:8px 12px;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-panel.cm-gotoLine input{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 
-/* ── Markdown as a page: the app's one reading style (css/tokens.css: read 16/24, the heads on the scale), a page's
+/* ── Markdown as a page: the app's one reading style (core/ui/tokens.css: read 16/24, the heads on the scale), a page's
    column, the marks only where the caret is ── */
 .vw-doc.is-page{background:var(--surface)}
 .vw-doc .cm-xo-page .cm-scroller{font-family:var(--sans);font-size:var(--fs-read);line-height:var(--lh-read)}

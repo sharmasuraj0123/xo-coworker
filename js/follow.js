@@ -17,7 +17,7 @@
 // at 1280 wide). The browser's own clamp when the conversation gets shorter is never read as you reaching
 // the latest (the chat leaving its 400 px column lost your place to it).
 
-const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+import { RM } from "../core/ui/motion.js";
 
 /**
  * One conversation's follower (P1 of a thread beside the coordinator's chat: two conversations on screen, each its
@@ -39,7 +39,7 @@ export function createFollow(els) {
   function toLatest(smooth = false) {
     const s = sc();
     pinned = true;
-    s.scrollTo({ top: s.scrollHeight, behavior: smooth && !reduced() ? "smooth" : "auto" });
+    s.scrollTo({ top: s.scrollHeight, behavior: smooth && !RM.matches ? "smooth" : "auto" });
   }
   /** You've chosen something to read where it is: growth no longer carries the view. Given the row you acted on
    *  (or anything in it: a file chip opening the panel), that row is the one held if the view changes width,
@@ -68,7 +68,7 @@ export function createFollow(els) {
     const r = el.getBoundingClientRect(), sr = s.getBoundingClientRect();
     const top = Math.max(0, Math.min(s.scrollHeight - s.clientHeight, s.scrollTop + (r.top - sr.top) - Math.max(0, (view - r.height) / 2)));
     // a glide only over a short way: a long one (a phone 10,000 px up took 2 s) jumps, and the row's flash says where
-    if (smooth && !reduced() && Math.abs(top - s.scrollTop) <= s.clientHeight * 1.5) s.scrollTo({ top, behavior: "smooth" });
+    if (smooth && !RM.matches && Math.abs(top - s.scrollTop) <= s.clientHeight * 1.5) s.scrollTo({ top, behavior: "smooth" });
     else { s.scrollTop = top; lastTop = s.scrollTop; notePlace(); }
   }
 

@@ -6,9 +6,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-// the stylesheet with its size tokens read as their px (css/tokens.css) and simple calc()s worked out, so a size said
+// the stylesheet with its size tokens read as their px (core/ui/tokens.css) and simple calc()s worked out, so a size said
 // by a token is checked as the size it is
-const tokens = Object.fromEntries([...readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(-?[\d.]+)px/g)].map((m) => [m[1], +m[2]]));
+const tokens = Object.fromEntries([...readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(-?[\d.]+)px/g)].map((m) => [m[1], +m[2]]));
 const resolve = (css) => css.replace(/var\((--[\w-]+)\)/g, (m, k) => (k in tokens ? `${tokens[k]}px` : m))
   .replace(/calc\(([-\d.px\s()+*/]+)\)/g, (m, e) => { try { return `${Function(`return (${e.replace(/px/g, "")})`)()}px`; } catch { return m; } });
 const app = resolve(readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));

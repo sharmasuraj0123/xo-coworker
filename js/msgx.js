@@ -14,7 +14,7 @@
 
 import { ICON, xi } from "./ui.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
-import { copyText, COPY_REFUSED, space, elapsed } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, space, elapsed, RM } from "../core/platform/index.js";
 import { wordsOf } from "./words.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -22,7 +22,7 @@ const root = document.documentElement;
 const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON.close, down: ICON.chevron, good: ICON.good, bad: ICON.bad };
 
 // The look keys off <html data-msgx="bubbles"> (and data-msgx-tails): set before the first paint (index.html) when
-// this device turned Chat bubbles on in Settings › General; without it the conversation reads as a document (css/rich.css).
+// this device turned Chat bubbles on in Settings › General; without it the conversation reads as a document (core/ui/markdown/rich.css).
 // The bubbles, when on, are as the owner finalised them on 5 Nov: XO's green for yours, tails on, every reply in a bubble.
 // Everything else here (Reply, Copy, swipes, back-to-latest, the working turn) works in both looks.
 // (the switch is app.js's chatBubbles/setChatBubbles: it writes the same two attributes and localStorage cv-bubbles)
@@ -393,7 +393,7 @@ function working(el) {
       const letGo = () => { HOLD.delete(key); holdRules(); };
       // its own height, read while the hold still stands (so this layout never sees the drop either)
       const to = naturalHeight(el);
-      if (from && to < from - 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (from && to < from - 1 && !RM.matches) {
         const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
         // it waits one beat first: the turn's answer usually lands with its end, and the app's follow is
         // carrying the view down to it; a shrink during that glide is absorbed, where one at the very bottom
@@ -473,7 +473,7 @@ function working(el) {
   if (Math.abs(held - st.h) >= 1) {
     HOLD.set(key, st.h); holdRules();
     // it got shorter (the work folded back): ease down to it instead of snapping, the way it opened
-    if (held > st.h + 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (held > st.h + 1 && !RM.matches) {
       const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
       el.animate([{ minHeight: `${held}px` }, { minHeight: `${st.h}px` }], { duration: parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320, easing: cs.getPropertyValue("--ease").trim() || "ease" });
     }
@@ -530,7 +530,7 @@ function settle(el, st) {
   previous?.animation.cancel();
   if (st.card) st.card.style.overflow = "";
   st.resize = null;
-  if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !RM.matches) {
     card.style.overflow = "hidden";
     const animation = card.animate([{ height: `${from}px` }, { height: `${h}px` }], { duration, easing: style.getPropertyValue("--ease").trim(), fill: "both" });
     const resize = st.resize = { animation, from, to: h, duration };
@@ -706,7 +706,7 @@ msgs.addEventListener("click", async (e) => {
   if (q) {
     const want = q.dataset.mxJump.replace(/…$/, "").slice(0, 80);
     const hit = [...msgs.querySelectorAll(".m")].reverse().find((m) => m !== q.closest(".m") && textOf(m).replace(/\s+/g, " ").includes(want));
-    if (hit) { hit.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); hit.classList.remove("mx-flash"); void hit.offsetWidth; hit.classList.add("mx-flash"); }
+    if (hit) { hit.scrollIntoView({ block: "center", behavior: RM.matches ? "auto" : "smooth" }); hit.classList.remove("mx-flash"); void hit.offsetWidth; hit.classList.add("mx-flash"); }
   }
 });
 

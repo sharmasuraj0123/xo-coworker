@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const side = readFileSync(new URL("../css/side.css", import.meta.url), "utf8");
-const tokens = readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8");
+const tokens = readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8");
 const { ACTIONS, binding } = await import("../core/platform/keys.js");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 

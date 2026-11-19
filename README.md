@@ -25,7 +25,7 @@ A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It
   - All colouring happens in a worker, so the page never freezes. The library loads only after you pause. J / K step through changes.
 - **Composer**: `@project` aims a message at a project. The model chip shows the routing in effect. The line above it follows the world: "Sending is paused" shows only while it's true.
 - **Creating a project**: "Create XO Project" in Home's header, always, and "+ New" on the sidebar's Projects label.
-- **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `css/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
+- **Stone and glass**: the chrome is stone (neutral, crisp, shadowless; controls 32 px with 6 px corners), the work is glass (soft bubbles, vivid pictures). One scale for everything in `core/ui/tokens.css` (**Plan F**): 8 type sizes with whole-pixel line heights and tracking by size, 3 weights, radii 6 · 12 · 20 · 22, one floating elevation, one motion curve (a hover engages in 120 ms and releases in 200, a press in 60; nothing overshoots), three lights (green done, blue working, amber needs you). Icons outside the sidebar draw one 1.5 px line at any size. Documents in Files read in a serif. `tests/design-budget.test.mjs` fails the build when a stylesheet strays from the scale. The left sidebar keeps its own look (the owner's decision).
 - Light and dark themes. Geist type and the XO palette, with XO green as the accent. Motion honours reduced-motion settings.
 
 Plain HTML, CSS and vanilla ES modules: no build step and no CDN. The app needs nothing installed to run; `package.json` holds only dev-only checkers (types, lint), installed with `npm ci` for `node tools/check.mjs`. Rules for working here: `AGENTS.md`. The modular rebuild: `architecture/PLAN.md`.
@@ -125,8 +125,8 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | File | Role |
 |---|---|
 | `index.html` | the shell: sidebar, Home, conversation, dock, panel, sheets |
-| `css/tokens.css` | **Plan F**, the one scale: palette, type sizes and line heights, tracking, weights, radii, elevation, motion, hover and press fills, the three lights, Geist faces. Other sheets use these names and never define a scale of their own |
-| `css/base.css`, `css/app.css` | reset and the UI |
+| `core/ui/tokens.css` | **Plan F**, the one scale: palette, type sizes and line heights, tracking, weights, radii, elevation, motion, hover and press fills, the three lights, Geist faces. Other sheets use these names and never define a scale of their own |
+| `core/ui/foundation.css`, `css/app.css` | reset and the UI |
 | `js/app.js` | views, rendering, navigation, composer, sending |
 | `core/services/world/`, `core/services/storm/` | the world the views render, from the real API (`js/world.js`, `js/storm.js` re-export them) |
 | `js/api.js`, `js/stream.js` | HTTP client and SSE `ChatStream` |
