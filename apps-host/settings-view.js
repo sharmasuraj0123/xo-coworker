@@ -15,10 +15,10 @@ const perms = (list, title, o = {}) => (list && list.length ? `<section class="s
   return `<div class="set-row" data-key="${esc(key)}">${o.pick ? `<label class="xa-pick"><input type="checkbox" data-optional="${esc(key)}"> ${words}</label>` : words}</div>`;
 }).join("")}</section>` : "");
 
+const failed = (/** @type {Row} */ r) => (r.runtime && typeof r.runtime === "object" ? /** @type {any} */ (r.runtime).state : r.runtime) === "failed";
 /** @param {Row} r */
 const rowState = (r) => {
-  const run = r.runtime && typeof r.runtime === "object" ? /** @type {any} */ (r.runtime).state : r.runtime;
-  return [r.version ? `v${r.version}` : "", r.development ? "Development" : "", run === "failed" ? "Stopped after crashes" : "", (r.pending || []).some((w) => !w.project) ? "Waiting for your approval in Needs you" : ""].filter(Boolean).join(" · ");
+  return [r.version ? `v${r.version}` : "", r.development ? "Development" : "", failed(r) ? "Stopped after crashes" : "", (r.pending || []).some((w) => !w.project) ? "Waiting for your approval in Needs you" : ""].filter(Boolean).join(" · ");
 };
 /** @param {string} title @param {string} inner @param {string} [key] */
 const sec = (title, inner, key = "") => `<section class="set-sec"${key ? ` data-key="${esc(key)}"` : ""}><h3>${esc(title)}</h3>${inner}</section>`;
@@ -92,7 +92,7 @@ ${app && app.summary ? `<p class="set-lead">${esc(app.summary)}</p>` : ""}
 ${problems.length ? `<div class="set-err" role="alert"><p>XO won't show this version:</p><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>` : ""}
 ${r.error ? `<p class="set-err">${esc(r.error)}</p>` : ""}
 ${note(s)}${sec("Projects", projects || `<p class="set-note">No projects yet.</p>`)}${sheetFor}${here}
-<div class="set-fa">${btn("Update", "update")}${r.previous && r.previous.version ? btn(`Use v${r.previous.version} again`, "rollback") : ""}${rowState(r).includes("Stopped") ? btn("Restart", "start") : ""}${btn(s.activity ? "Hide activity" : "Activity", "activity")}${btn("Remove", "remove")}</div>${activity}`;
+<div class="set-fa">${btn("Update", "update")}${r.previous && r.previous.version ? btn(`Use v${r.previous.version} again`, "rollback") : ""}${failed(r) ? btn("Restart", "start") : ""}${btn(s.activity ? "Hide activity" : "Activity", "activity")}${btn("Remove", "remove")}</div>${activity}`;
 }
 
 /** @param {App} app @param {Record<string, unknown>} values */

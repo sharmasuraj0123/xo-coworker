@@ -52,7 +52,8 @@ export function createAppsSettings(d) {
   const approved = async (r) => {
     const id = r && typeof r.approval_id === "string" ? r.approval_id : "";
     if (!id) return r ?? {};
-    const until = Date.parse(r.expires_at) || Infinity;
+    const until = typeof r.expires_at === "number" ? r.expires_at * 1000 : Date.parse(r.expires_at) || Infinity;
+    const here = `${s.mode}|${s.appId}`;
     set({ busy: "Waiting for your approval in Needs you…" });
     for (;;) {
       const a = await d.client.approval(id);
@@ -63,7 +64,7 @@ export function createAppsSettings(d) {
       if (state === "withdrawn") throw new Error("That request was withdrawn. Nothing changed.");
       if (state === "failed") throw new Error(`XO couldn't do it${a.reason ? `: ${a.reason}` : "."} Nothing changed.`);
       if (state !== "pending") throw new Error("XO couldn't tell what happened to that request, so nothing changed.");
-      if (!showing()) return null;
+      if (!showing() || `${s.mode}|${s.appId}` !== here) return null;
       await wait(2000);
     }
   };

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ok = (/** @type {unknown} */ body, status = 200) => ({ status, body });
+const soon = () => new Date(Date.now() + 3600_000).toISOString();
 const err = (/** @type {number} */ status, /** @type {string} */ code, /** @type {string} */ message) => ({ status, body: { detail: { code, message } } });
 
 /** @typedef {{ packages?: Record<string, string>, answers?: Record<string, string> }} AppsSeed @typedef {{ plugin: Row, views: Record<string, string>, source: Row, sha: string }} Pkg @typedef {{ approval_id: string, action: string, title: string, project: string | null, state: string, apply: () => Row | null, result: Row | null }} Approval */
@@ -50,7 +51,7 @@ const sheet = (pkg, id) => {
   const x = pkg.plugin.extensions["space.xo"];
   const tools = Object.entries(x.tools || {}).map(([name, t]) => ({ name, title: name, description: "", risk: t.risk || "routine", read_only: !!t.readOnly }));
   return {
-    staging_id: id, expires_at: "2026-11-19T13:00:00Z", id: x.id, name: x.displayName, version: pkg.plugin.version, summary: x.summary || "", publisher: "unverified",
+    staging_id: id, expires_at: soon(), id: x.id, name: x.displayName, version: pkg.plugin.version, summary: x.summary || "", publisher: "unverified",
     source: pkg.source, development: pkg.source.kind === "folder", sha256: pkg.sha, size: 4096, files: 6,
     permissions: { required: x.permissions?.required || [], optional: (x.permissions?.optional || []).map((/** @type {Row} */ p) => ({ ...p, ask_when: p.askWhen ?? null })) },
     routes: x.routes || [], capabilities: (x.routes || []).length ? [{ capability: "files.write", routes: x.routes }] : [], uses_internet: true, secrets: [],
@@ -68,7 +69,7 @@ export function answerApps(A, q, frames) {
   const approval = (/** @type {string} */ action, /** @type {string} */ title, /** @type {string | null} */ project, /** @type {() => Row | null} */ apply) => {
     const id = `ap_${++A.n}`;
     A.approvals.set(id, { approval_id: id, action, title, project, state: "pending", apply, result: null });
-    return ok({ approval_id: id, state: "pending", expires_at: "2026-11-19T13:00:00Z" }, 202);
+    return ok({ approval_id: id, state: "pending", expires_at: soon() }, 202);
   };
   /** @type {RegExpExecArray | null} */
   let k;
@@ -98,7 +99,7 @@ export function answerApps(A, q, frames) {
   if ((k = /^\/api\/apps\/approvals\/([^/]+)$/.exec(p)) && m === "GET") {
     const a = A.approvals.get(k[1]);
     if (!a) return err(404, "not_found", "No such approval");
-    return ok({ approval_id: a.approval_id, action: a.action, slug: a.result?.slug || "", title: a.title, state: a.state, reason: null, expires_at: "2026-11-19T13:00:00Z", result: a.result });
+    return ok({ approval_id: a.approval_id, action: a.action, slug: a.result?.slug || "", title: a.title, state: a.state, reason: null, expires_at: soon(), result: a.result });
   }
   if ((k = /^\/api\/apps\/([^/]+)\/grants$/.exec(p))) {
     const row = A.installed.get(k[1]), project = query.get("project") || "";
