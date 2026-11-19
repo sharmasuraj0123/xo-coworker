@@ -79,7 +79,8 @@ body.files-open.chat-docked .mx-down{display:grid}
 /* the dock: the composer and the thread's own ask, on the column's 16 px edges */
 body.files-open.chat-docked .dock{display:block;left:auto;right:0;width:var(--cw)}
 body.files-open.chat-docked .tdock{display:block}
-body.chat-docked .cbar{padding:22px 0 12px;background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
+body.chat-docked{--cbar-fade:22px}
+body.chat-docked .cbar{padding:var(--cbar-fade) 0 12px;background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
 body.chat-docked #target>span:last-child{display:none}
 
 /* a file put away: it keeps its place and its scroll, unseen (js/filesview.js minimise) */
@@ -202,7 +203,7 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root:root body.chat-sheet .crail-m{display:none}
   /* the put-away file's chip: above the composer, where there's room for its name and counts */
   :root:root .top .fchip{display:none}
-  :root:root .fdock:not(:empty){display:flex;width:var(--col-w);margin:0 0 8px var(--col-x);pointer-events:auto}
+  :root:root .fdock:not(:empty){display:flex;width:var(--col-w);margin:0 0 var(--dock-gap) var(--col-x);pointer-events:auto}
   :root:root .fdock .fchip{max-width:100%;height:var(--h-ctl);background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--line-soft)}
   :root[data-theme="light"]:root .fdock .fchip{background:var(--surface);box-shadow:var(--e1),inset 0 0 0 1px var(--panel-line)}
   :root:root .fdock :is(.fchip-b,.fchip-x){height:var(--h-ctl)}
