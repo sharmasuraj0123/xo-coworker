@@ -1,4 +1,4 @@
-// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <release ref>]: lint, types, ratchets, comments, layers, places, ledger, tests.
+// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <ref>]: lint, types, ratchets, comments, layers, places, ledger, tests; --fast skips types and tests.
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
@@ -49,7 +49,7 @@ step("lint", () => {
   return `new lint findings (fix them; the baseline only allows what existed before):\n${lines.join("\n")}`;
 });
 
-step("types", () => {
+if (!FAST) step("types", () => {
   if (!existsSync(bin("tsc"))) return "tsc is not installed: run `npm ci`";
   for (const project of ["jsconfig.json", "e2e/jsconfig.json"]) {
     const r = run(bin("tsc"), ["-p", project]);

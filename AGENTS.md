@@ -12,7 +12,7 @@
 
 ## Before you commit or merge
 - `node tools/check.mjs` must pass: lint, types, ratchets, comments, ledger, then every unit test, judged by exit code.
-- The pre-commit hook runs `--fast`. It is already on: `core.hooksPath` is set in the shared git config, so never run `git config` for it.
+- The pre-commit hook runs `--fast` (no types, no tests: the type checker takes ~430 MB, so only the full check runs it). It is already on: `core.hooksPath` is set in the shared git config, so never run `git config` for it.
 - Dev-only tools: run `npm ci` once, and again whenever `package.json` changes, or the types step fails. The app never needs them; it runs from plain files with no build.
 - Never weaken a baseline. `--update-baselines` only lowers numbers.
 - No browser suites unless the owner asks. Hold the `headless-browser-suite` lease, and run one suite at a time.
@@ -28,7 +28,7 @@
 - Size limits: a new file may not pass 400 lines; an old file may shrink, never grow.
 - Styles: tokens only, no literal colours or sizes. Every visual change goes through shared tokens, app-wide. No `!important`: use `@layer`.
 - Every storage key keeps its name, or gets a migration.
-- A module that calls a backend route adds that request to `core/platform/tests/routes-contract.test.mjs`, so the route is checked against xo-space's OpenAPI snapshot (`node tools/openapi/snapshot.mjs` refreshes it).
+- A module that calls a backend route checks it in its own `modules/<m>/tests/routes-contract.test.mjs` against xo-space's OpenAPI snapshot, as Launchpad's does (`node tools/openapi/snapshot.mjs` refreshes it).
 
 ## The owner's standing rules
 - Nothing goes to GitHub or any remote unless the owner asks for that push.
