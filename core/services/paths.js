@@ -1,5 +1,5 @@
 // @ts-check
-import { missingRoute } from "../../js/api.js";
+import { missingRoute } from "../platform/http.js";
 
 /** @typedef {{ project: string, base?: string }} Place @typedef {{ state: "idle" | "loading" | "ok" | "error", paths: string[], truncated: boolean, stamp: string | null, via: string | null, gen: number }} Entry */
 

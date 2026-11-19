@@ -10,7 +10,7 @@ export function startStorm(ctx) {
   const { state, rawThreads, chatProject, watched, trimmed, framesBefore, emit } = ctx;
   /** @type {Frame[]} */
   let held = [];
-  /** @type {any} */
+  /** @type {SSEStream | null} */
   let stream = null;
   /** @type {(v?: unknown) => void} */
   let firstFrame = () => {};
@@ -65,7 +65,7 @@ export function startStorm(ctx) {
   }
 
   function startStream() {
-    stream = new SSEStream(client.streamUrl(), /** @type {any} */ ({
+    stream = new SSEStream(client.streamUrl(), {
       headers: coderHeaders,
       onFrame,
       onState: (/** @type {string} */ s, /** @type {any} */ info) => {
@@ -74,7 +74,7 @@ export function startStorm(ctx) {
         emit();
       },
       onReset: async () => { await reload(); },
-    })).start();
+    }).start();
   }
 
   async function boot() {

@@ -1,6 +1,7 @@
 // @ts-check
-import { api, clientId, NEWEST, coderHeaders } from "../../../js/api.js";
-import { SSEStream } from "../../../js/sse.js";
+import { api, NEWEST } from "../../../js/api.js";
+import { clientId, coderHeaders } from "../../platform/http.js";
+import { SSEStream } from "../../platform/sse.js";
 
 export { clientId, NEWEST, coderHeaders, SSEStream };
 

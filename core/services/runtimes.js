@@ -1,5 +1,5 @@
 // @ts-check
-import { esc } from "../../js/util.js";
+import { esc } from "../platform/util.js";
 
 /** @typedef {Record<string, any>} Row @typedef {Row | null | undefined} Rt @typedef {Row | null | undefined} Policy */
 
