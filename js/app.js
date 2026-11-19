@@ -4234,7 +4234,7 @@ function keysSheetRender() {
     K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
-const KP = createKeysPage({ K, box: $("#set-keys-list"), state: S, announce, resetIcon: ICON.retry });
+const KP = createKeysPage({ box: $("#set-keys-list"), state: S, announce, resetIcon: ICON.retry });
 K.onChange(() => { KP.render(); if (!keys.hidden) keysSheetRender(); schedule(); });
 KP.render();
 

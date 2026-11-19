@@ -4,9 +4,10 @@
 
 import { esc } from "../../js/world.js";
 import { redraw } from "../../js/redraw.js";
+import * as K from "../../core/platform/keys.js";
 
 /** @param {import("./types").KeysPageDeps} deps */
-export function createKeysPage({ K, box, state: S, announce, resetIcon }) {
+export function createKeysPage({ box, state: S, announce, resetIcon }) {
   /** @param {string} sel */
   const $ = (sel) => /** @type {HTMLElement | null} */ (document.querySelector(sel));
   function render() {
@@ -43,7 +44,7 @@ export function createKeysPage({ K, box, state: S, announce, resetIcon }) {
     const combo = K.fromEvent(e);
     if (!combo) return;
     const id = S.recording;
-    const r = K.set(id, combo);
+    const r = /** @type {{ ok?: boolean, error?: string }} */ (K.set(id, combo));
     S.recording = null;
     S.keyErr = r.error ? { id, msg: r.error } : null;
     render();
