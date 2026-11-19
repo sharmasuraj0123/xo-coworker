@@ -2486,7 +2486,7 @@
     "modules/artifacts",
     "modules/since"
    ],
-   "note": "Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the dead Since card is deleted; Made, the Artifacts page and the cards wait for modules/artifacts"
+   "note": "Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; the dead Since card is deleted; the Made tab, Home's strip, the Artifacts page and ⌘K wait for modules/artifacts"
   },
   "js/redraw.js": {
    "status": "moved",

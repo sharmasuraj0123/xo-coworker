@@ -1,6 +1,6 @@
 // @ts-check
 
-// A DOM for behaviour tests in node: linkedom, with the focus model it lacks (activeElement, focus, blur, focusin/focusout).
+// A DOM for behaviour tests in node: linkedom, with the focus model it lacks (activeElement, focus, blur, focusin/focusout) and a template that parses again on every innerHTML.
 import { existsSync } from "node:fs";
 
 const LINKEDOM = new URL("../../node_modules/linkedom/esm/index.js", import.meta.url);
@@ -24,6 +24,8 @@ export async function dom(body) {
   };
   proto.blur = function () { if (active !== this) return; active = null; fire(this, "blur", false, null); fire(this, "focusout", true, null); };
   proto.scrollIntoView = function () {};
+  const tplProto = Object.getPrototypeOf(document.createElement("template"));
+  Object.defineProperty(tplProto, "innerHTML", { configurable: true, get() { return [...this.content.childNodes].map((n) => n.outerHTML ?? n.textContent).join(""); }, set(html) { this.content.replaceChildren(); const box = document.createElement("div"); box.innerHTML = html; this.content.append(...box.childNodes); } });
   proto.getClientRects = function () { return this.isConnected && !this.closest("[hidden]") ? [{}] : []; };
   window.getComputedStyle = window.getComputedStyle || (() => new Proxy({}, { get: (_, k) => (k === "getPropertyValue" ? () => "" : "") }));
   const g = /** @type {any} */ (globalThis);
