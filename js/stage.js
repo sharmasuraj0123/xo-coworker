@@ -24,7 +24,7 @@
 // app.js calls: button, toggle, open, close, sync, isOpen, owns.
 
 import { ICON, $ } from "./ui.js";
-import { esc } from "./util.js";
+import { esc } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { usable } from "./focusview.js";
 import { fileIcon } from "./fileicons.js";

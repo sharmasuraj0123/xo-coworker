@@ -7,7 +7,7 @@
 //   place() → {project, base, label} for the view (null: nothing to search); openFile(rel, {line, col}) opens a file
 //   of the place; openFiles() → the files open now ({rel}); layer.shown()/hidden() keeps the page behind inert.
 
-import { esc } from "./util.js";
+import { esc } from "../core/platform/index.js";
 import { xi } from "./icon.js";
 import { fileIcon } from "./fileicons.js";
 import { rank, marked, lineOf } from "./fuzzy.js";

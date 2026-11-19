@@ -17,7 +17,7 @@
 //
 // stage.js calls: mount, show, hide, render, reveal, count.
 
-import { esc, copyText, COPY_REFUSED, space } from "./util.js";
+import { esc, copyText, COPY_REFUSED, space } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { redraw } from "./redraw.js";
 import { api } from "./api.js";

@@ -22,7 +22,7 @@
 // The layout math (fitImage, albumLayout, dedupeByMade) is pure and tested from Node
 // (tests/media.test.mjs). The DOM part (hydrateMedia) only runs in a browser.
 
-import { esc, isImagePath } from "./util.js";
+import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";

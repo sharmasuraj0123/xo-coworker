@@ -8,7 +8,7 @@
 // mind halfway. Touch events (not pointer events) because only a cancelable touchmove can stop the
 // browser's own scroll once a direction is picked.
 
-import { copyText, COPY_REFUSED } from "./util.js";
+import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { menuKeys } from "./keynav.js";
 import { wordsOf } from "./words.js";
 const LOCK = 10;     // px before a touch picks its direction

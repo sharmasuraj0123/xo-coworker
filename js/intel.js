@@ -13,7 +13,7 @@
 
 import * as K from "./keys.js";
 import { esc } from "./world.js";
-import { space } from "./util.js";
+import { space } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { once } from "./pending.js";
 import { ICON, RM, xi } from "./ui.js";

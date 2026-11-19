@@ -9,7 +9,7 @@
 // of deciding. Stop while anything runs. Intelligence per session in the
 // composer. Light and dark.
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, space } from "./util.js";
+import { copyText, COPY_REFUSED, space } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";

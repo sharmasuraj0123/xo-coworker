@@ -14,7 +14,7 @@
 
 import { elapsed, ICON, xi } from "./ui.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
-import { copyText, COPY_REFUSED, space } from "./util.js";
+import { copyText, COPY_REFUSED, space } from "../core/platform/index.js";
 import { wordsOf } from "./words.js";
 
 const $ = (s, r = document) => r.querySelector(s);

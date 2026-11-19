@@ -26,7 +26,7 @@ import { redraw } from "./redraw.js";
 import { radioKeys, rovingTab } from "./keynav.js";
 import * as R from "./record.js";
 import { api } from "./api.js";
-import { esc } from "./util.js";
+import { esc } from "../core/platform/index.js";
 import { ICON, $, short } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
 import { fileIcon, fileColor } from "./fileicons.js";

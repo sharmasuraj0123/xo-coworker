@@ -12,7 +12,7 @@
 //
 // changesframe.js (the panel) and viewer.js (Files) call drawImageChange; both ask isImageChange first.
 
-import { esc } from "./util.js";
+import { esc } from "../core/platform/index.js";
 import { api } from "./api.js";
 
 // Space's /image types, but SVG (a text file: it has a diff)

@@ -19,7 +19,7 @@
 // double click on its tab, keeps it). Esc puts the file away (or closes it); on phones it takes the whole screen.
 // Focus goes in, and back to what opened it.
 
-import { esc, isImagePath } from "./util.js";
+import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON, $, xi } from "./ui.js";
 import { usable } from "./focusview.js";

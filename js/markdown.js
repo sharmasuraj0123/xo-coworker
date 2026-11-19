@@ -30,7 +30,7 @@
 // the web" off on this device) the same lines are outbound links, so nothing is lost.
 
 import { xi } from "./icon.js";
-import { esc } from "./util.js";
+import { esc } from "../core/platform/index.js";
 import { highlight } from "./highlight.js";
 import { fileIcon } from "./fileicons.js";
 import { chartHtml } from "./chart.js";

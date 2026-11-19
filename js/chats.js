@@ -7,7 +7,7 @@
 
 import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
-import { space } from "./util.js";
+import { space } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
