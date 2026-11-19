@@ -42,7 +42,7 @@ import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
-import { createQuickOpen } from "./quickopen.js";
+import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createFilesPage } from "./filespage.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -243,7 +243,7 @@ world.onEvent((e) => {
     PATHS.changed({ project: d.project_id, base: m ? m[1] : "" }, { kind: d.kind, path: m ? m[2] : d.path, old_path: d.old_path ? d.old_path.replace(/^\.xo\/worktrees\/[^/]+\//, "") : null });
   }
 });
-// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (js/quickopen.js)
+// every file in a place (js/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
 const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
 /** The place the view shows files of (a thread's worktree, a project's folder), or null. */
 const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };

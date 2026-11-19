@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 670 |
+| planned | 669 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 35 |
-| moved | 9 |
+| moved | 10 |
 
-Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1316, split-region 842, moved 113, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -79,7 +79,7 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 | `js/paths.js` | 83 | planned | core/services/paths.js |
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
 | `js/projicons.js` | 83 | planned | modules/projects/projicons.js |
-| `js/quickopen.js` | 179 | planned | modules/search/quickopen.js |
+| `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
 | `js/redraw.js` | 130 | planned | core/ui/redraw.js |

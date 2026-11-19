@@ -1,20 +1,16 @@
-// Go to a file (⌘P) or find text in the place's files (⌘⇧F), as VS Code's Quick Open and Search do, in the sheet ⌘K
-// uses (#qo, the same card). Files: a few letters of a path (core/platform/fuzzy.js over js/paths.js: every file in the place,
-// open ones first), and `:120` to land on a line. Text: Space's GET /search (git grep, SPACE-CONTRACT.md §4.7),
-// results by file, a line each; Enter opens the file at that line. Where Space has no /search yet, it says so.
-//
-// createQuickOpen({paths, api, place, openFile, openFiles, announce, layer}) → {open(mode), close, isOpen}.
-//   place() → {project, base, label} for the view (null: nothing to search); openFile(rel, {line, col}) opens a file
-//   of the place; openFiles() → the files open now ({rel}); layer.shown()/hidden() keeps the page behind inert.
+// @ts-check
 
-import { esc, rank, marked, lineOf } from "../core/platform/index.js";
-import { xi } from "./icon.js";
-import { fileIcon } from "./fileicons.js";
-import { missingRoute } from "../core/platform/http.js";
+// Go to a file (⌘P) or find text in the place's files (⌘⇧F), in the sheet ⌘K uses (#qo).
+
+import { esc, rank, marked, lineOf } from "../../core/platform/index.js";
+import { xi } from "../../js/icon.js";
+import { fileIcon } from "../../js/fileicons.js";
+import { missingRoute } from "../../core/platform/http.js";
 
 const SEARCH_MS = 220;
 const MAX_FILES = 60;
 
+/** @param {import("./types").QuickOpenDeps} deps */
 export function createQuickOpen({ paths, api, place, openFile, openFiles = () => [], announce = () => {}, layer = {} }) {
   const el = document.createElement("div");
   el.className = "sheet";
@@ -27,8 +23,14 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     `<div class="qo-opts" hidden><button type="button" class="qo-opt" data-qo-opt="case" aria-pressed="false" title="Match case">Aa</button><button type="button" class="qo-opt" data-qo-opt="word" aria-pressed="false" title="Whole word">ab</button><button type="button" class="qo-opt" data-qo-opt="regex" aria-pressed="false" title="Regular expression">.*</button></div>` +
     `<ul class="jump-list qo-list" id="qo-list" role="listbox"></ul><p class="qo-foot" role="status"></p></div>`;
   document.body.appendChild(el);
-  const q = el.querySelector("#qo-q"), list = el.querySelector("#qo-list"), foot = el.querySelector(".qo-foot"), opts = el.querySelector(".qo-opts");
-  const S = { mode: "files", pl: null, items: [], sel: 0, back: null, gen: 0, t: 0, o: { case: false, word: false, regex: false }, noSearch: false };
+  const q = /** @type {HTMLInputElement} */ (el.querySelector("#qo-q"));
+  const list = /** @type {HTMLElement} */ (el.querySelector("#qo-list"));
+  const foot = /** @type {HTMLElement} */ (el.querySelector(".qo-foot"));
+  const opts = /** @type {HTMLElement} */ (el.querySelector(".qo-opts"));
+  const ic = /** @type {HTMLElement} */ (el.querySelector(".qo-ic"));
+  const where = /** @type {HTMLElement} */ (el.querySelector(".qo-where"));
+  /** @type {import("./types").QuickOpenState} */
+  const S = { mode: "files", pl: /** @type {import("./types").Place} */ (/** @type {unknown} */ (null)), items: [], sel: 0, back: null, gen: 0, t: 0, o: { case: false, word: false, regex: false }, noSearch: false };
 
   function open(mode = "files") {
     const pl = place();
@@ -38,11 +40,11 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     el.hidden = false;
     el.setAttribute("aria-label", mode === "files" ? "Go to a file" : "Find in files");
     q.placeholder = mode === "files" ? "Go to a file (type :120 for a line)" : "Find in files";
-    el.querySelector(".qo-ic").innerHTML = mode === "files" ? xi("doc") : xi("search");
-    el.querySelector(".qo-where").textContent = pl.label || "";
+    ic.innerHTML = mode === "files" ? xi("doc") : xi("search");
+    where.textContent = pl.label || "";
     opts.hidden = mode !== "text";
     q.value = "";
-    if (mode === "files") paths.of(pl); // starts reading the place's list if it hasn't
+    if (mode === "files") paths.of(pl);
     draw();
     layer.shown && layer.shown(el);
     q.focus({ preventScroll: true });
@@ -52,7 +54,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     if (el.hidden) return;
     el.hidden = true; S.gen++; clearTimeout(S.t);
     layer.hidden && layer.hidden(el);
-    if (restore && S.back && S.back.isConnected) S.back.focus({ preventScroll: true });
+    if (restore && S.back && S.back.isConnected) /** @type {HTMLElement} */ (S.back).focus({ preventScroll: true });
   }
 
   function draw() {
@@ -61,17 +63,19 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
   function drawFiles() {
     const { query, line } = lineOf(q.value);
     const e = paths.of(S.pl);
-    const open = openFiles().map((f) => f.rel).filter(Boolean);
+    const open = /** @type {string[]} */ (openFiles().map((f) => f.rel).filter(Boolean));
     const all = e.paths || [];
     const base = S.pl.base ? `${S.pl.base}/` : "";
     const openLocal = open.filter((r) => r.startsWith(base)).map((r) => r.slice(base.length));
     const pool = query.trim() ? all : [...openLocal, ...all.filter((p) => !openLocal.includes(p))];
-    S.items = rank(pool, query, MAX_FILES).map((m) => ({ kind: "file", path: m.path, hits: m.hits, line }));
+    const ranked = /** @type {{ path: string, hits: number[] }[]} */ (rank(pool, query, MAX_FILES));
+    const files = ranked.map((m) => ({ kind: /** @type {const} */ ("file"), path: m.path, hits: m.hits, line }));
+    S.items = files;
     if (S.sel >= S.items.length) S.sel = 0;
-    list.innerHTML = S.items.map((x, i) => {
-      const name = x.path.split("/").pop(), dir = x.path.slice(0, x.path.length - name.length).replace(/\/$/, "");
-      const nameHits = x.hits.filter((h) => h >= x.path.length - name.length).map((h) => h - (x.path.length - name.length));
-      const dirHits = x.hits.filter((h) => h < dir.length);
+    list.innerHTML = files.map((x, i) => {
+      const name = /** @type {string} */ (x.path.split("/").pop()), dir = x.path.slice(0, x.path.length - name.length).replace(/\/$/, "");
+      const nameHits = x.hits.filter((/** @type {number} */ h) => h >= x.path.length - name.length).map((/** @type {number} */ h) => h - (x.path.length - name.length));
+      const dirHits = x.hits.filter((/** @type {number} */ h) => h < dir.length);
       return `<li id="qo-${i}" role="option" data-i="${i}" aria-selected="${i === S.sel}"><span class="qo-fi" aria-hidden="true">${fileIcon(name)}</span><span class="qo-n">${marked(name, nameHits, esc)}</span><span class="qo-d">${marked(dir, dirHits, esc)}</span>${openLocal.includes(x.path) && !query.trim() ? `<span class="qo-tag">open</span>` : ""}</li>`;
     }).join("");
     q.setAttribute("aria-activedescendant", S.items.length ? `qo-${S.sel}` : "");
@@ -84,11 +88,12 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       foot.textContent = "Finding text in files needs the newer XO Space (its /search). Go to a file with ⌘P meanwhile.";
       return;
     }
-    list.innerHTML = S.items.map((x, i) => x.kind === "head"
+    list.innerHTML = S.items.map((/** @type {any} */ x, i) => x.kind === "head"
       ? `<li class="qo-h" role="presentation"><span class="qo-fi" aria-hidden="true">${fileIcon(x.path)}</span><span class="qo-n">${esc(x.path.split("/").pop())}</span><span class="qo-d">${esc(x.path)}</span><span class="qo-tag">${x.n}</span></li>`
       : `<li id="qo-${i}" role="option" data-i="${i}" aria-selected="${i === S.sel}" class="qo-m"><span class="qo-ln">${x.line}</span><span class="qo-t">${hl(x.text, x.ranges)}</span></li>`).join("");
     q.setAttribute("aria-activedescendant", S.items[S.sel] && S.items[S.sel].kind === "match" ? `qo-${S.sel}` : "");
   }
+  /** @param {string} text @param {[number, number][] | undefined} ranges */
   const hl = (text, ranges) => {
     if (!ranges || !ranges.length) return esc(text);
     let out = "", at = 0;
@@ -104,8 +109,9 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       const worktree = S.pl.base ? S.pl.base.split("/").pop() : null;
       const r = await api.projectSearch(S.pl.project, { q: text, worktree, ...S.o });
       if (my !== S.gen) return;
+      /** @type {Map<string, import("./types").Match[]>} */
       const by = new Map();
-      for (const m of r.matches || []) { if (!by.has(m.path)) by.set(m.path, []); by.get(m.path).push(m); }
+      for (const m of r.matches || []) { if (!by.has(m.path)) by.set(m.path, []); /** @type {import("./types").Match[]} */ (by.get(m.path)).push(m); }
       S.items = [];
       for (const [path, ms] of by) {
         S.items.push({ kind: "head", path, n: ms.length });
@@ -115,7 +121,7 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
       const n = (r.matches || []).length;
       foot.textContent = n ? `${n} ${n === 1 ? "match" : "matches"} in ${r.files ?? by.size} ${by.size === 1 ? "file" : "files"}${r.truncated ? " (the first ones)" : ""}` : "Nothing found.";
       announce(foot.textContent);
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       if (my !== S.gen) return;
       if (missingRoute(err)) { S.noSearch = true; S.items = []; }
       else foot.textContent = err && err.code === "bad_regex" ? `Not a valid pattern: ${err.message || ""}` : (err && err.message) || "Couldn't search.";
@@ -123,23 +129,27 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     drawText();
   }
 
+  /** @param {number} i */
   function pick(i) {
     const x = S.items[i];
     if (!x || x.kind === "head") return;
     close({ restore: false });
     const base = S.pl.base ? `${S.pl.base}/` : "";
-    openFile(base + x.path, { line: x.line || null, col: x.col || null });
+    openFile(base + x.path, { line: x.line || null, col: /** @type {{ col?: number }} */ (x).col || null });
   }
+  /** @param {number} d */
   function move(d) {
     const n = S.items.length;
     if (!n) return;
     let i = S.sel;
     for (let k = 0; k < n; k++) { i = (i + d + n) % n; if (S.items[i].kind !== "head") break; }
     S.sel = i;
-    for (const li of list.querySelectorAll("[aria-selected]")) li.setAttribute("aria-selected", String(+li.dataset.i === i));
+    for (const li of /** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll("[aria-selected]"))) li.setAttribute("aria-selected", String(+(li.dataset.i ?? "") === i));
     q.setAttribute("aria-activedescendant", `qo-${i}`);
     list.querySelector(`#qo-${i}`)?.scrollIntoView({ block: "nearest" });
   }
+  /** @param {Event} e */
+  const row = (e) => /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-i]"));
 
   q.addEventListener("input", () => {
     S.sel = 0; S.pendingEnter = false;
@@ -152,22 +162,20 @@ export function createQuickOpen({ paths, api, place, openFile, openFiles = () =>
     else if (e.key === "Enter") {
       e.preventDefault();
       if (S.mode === "text" && S.t && !S.items.length) { clearTimeout(S.t); search(); return; }
-      // the place's files still being read: Enter waits for the first match rather than doing nothing
       if (S.mode === "files" && !S.items.length && paths.of(S.pl).state === "loading") { S.pendingEnter = true; foot.textContent = "Opening the first match once the files are read…"; return; }
       pick(S.sel);
     }
     else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
   });
-  list.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) pick(+li.dataset.i); });
-  list.addEventListener("pointermove", (e) => { const li = e.target.closest("[data-i]"); if (li && +li.dataset.i !== S.sel && S.items[+li.dataset.i]?.kind !== "head") { S.sel = +li.dataset.i; for (const x of list.querySelectorAll("[aria-selected]")) x.setAttribute("aria-selected", String(x === li)); } });
-  opts.addEventListener("click", (e) => { const b = e.target.closest("[data-qo-opt]"); if (!b) return; const k = b.dataset.qoOpt; S.o[k] = !S.o[k]; b.setAttribute("aria-pressed", String(S.o[k])); q.focus(); search(); });
+  list.addEventListener("click", (e) => { const li = row(e); if (li) pick(+(li.dataset.i ?? "")); });
+  list.addEventListener("pointermove", (e) => { const li = row(e); if (li && +(li.dataset.i ?? "") !== S.sel && S.items[+(li.dataset.i ?? "")]?.kind !== "head") { S.sel = +(li.dataset.i ?? ""); for (const x of list.querySelectorAll("[aria-selected]")) x.setAttribute("aria-selected", String(x === li)); } });
+  opts.addEventListener("click", (e) => { const b = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-qo-opt]")); if (!b) return; const k = /** @type {string} */ (b.dataset.qoOpt); S.o[k] = !S.o[k]; b.setAttribute("aria-pressed", String(S.o[k])); q.focus(); search(); });
   el.addEventListener("mousedown", (e) => { if (e.target === el) close(); });
 
   return {
     open, close,
     get isOpen() { return !el.hidden; },
     el,
-    /** The place's list changed (it grew while being read, a file came or went): redraw if open. */
     refresh() {
       if (el.hidden || S.mode !== "files") return;
       drawFiles();

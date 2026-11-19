@@ -51,6 +51,7 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
 
 t("every icon a module names is in the pack", () => {
   const files = readdirSync(new URL("../js/", import.meta.url)).filter((f) => f.endsWith(".js")).map((f) => `js/${f}`);
+  for (const f of readdirSync(new URL("../modules/", import.meta.url), { recursive: true })) if (/\.js$/.test(String(f)) && !/(^|\/)tests\//.test(String(f))) files.push(`modules/${f}`);
   const names = new Set();
   for (const f of files) for (const m of read(f).matchAll(/\bxi\("([a-z0-9-]+)"/g)) names.add(m[1]);
   assert.ok(names.size > 60, `${names.size} names`);
@@ -59,7 +60,7 @@ t("every icon a module names is in the pack", () => {
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
   const sets = ["js/ui.js", "js/stage.js", "js/map.js", "js/files.js", "js/filespage.js", "js/changesframe.js", "js/shapeview.js",
-    "js/viewer.js", "js/lightbox.js", "js/create.js", "js/intel.js", "js/quickopen.js", "js/msgx.js", "js/turnview.js",
+    "js/viewer.js", "js/lightbox.js", "js/create.js", "js/intel.js", "modules/search/quickopen.js", "js/msgx.js", "js/turnview.js",
     "js/launchpad.js", "js/markdown.js", "js/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
   const ui = read("js/ui.js");

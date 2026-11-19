@@ -2442,7 +2442,7 @@
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/record.js": {
@@ -12417,43 +12417,43 @@
    "home": "modules/projects/projicons.js"
   },
   "js/quickopen.js::exports::createQuickOpen": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::functions::createQuickOpen": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-q": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-list": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::ids::qo-": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::bad_regex": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::ArrowDown": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::ArrowUp": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::Enter": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/quickopen.js::keys::Escape": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/search/quickopen.js"
   },
   "js/record.js::exports::AWAY_MS": {
