@@ -10,7 +10,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 33 |
 | moved | 22 |
 
-Items inside first-party files: 2290 (planned 1308, split-region 815, moved 148, deleted 19), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1305, split-region 815, moved 151, deleted 19), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -305,16 +305,16 @@ Items inside first-party files: 2290 (planned 1308, split-region 815, moved 148,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs |
-| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs |
-| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs |
-| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs |
-| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs |
-| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs |
-| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs |
-| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs |
-| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs |
-| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs |
+| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs |
+| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 
 ## tests-lib (2)
 

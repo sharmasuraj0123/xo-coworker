@@ -19,3 +19,9 @@ export interface QuickOpenState {
   mode: string; pl: Place; items: Item[]; sel: number; back: Element | null; gen: number;
   t: ReturnType<typeof setTimeout> | 0; o: Record<string, boolean>; noSearch: boolean; pendingEnter?: boolean;
 }
+export interface JumpItem { v?: string; name: string; sub: string; icon: string; t?: boolean; run?: () => void }
+export interface JumpDeps {
+  host: HTMLElement; field: HTMLInputElement; list: HTMLElement;
+  places: () => JumpItem[]; actions: () => JumpItem[]; more: (q: string) => JumpItem[];
+  go: (v: string) => void; announce: (text: string) => void; focusIn: (el: HTMLElement) => void; onHidden: () => void;
+}

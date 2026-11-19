@@ -7470,20 +7470,23 @@
    "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4025)"
   },
   "js/app.js::functions::jumpRender": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4029)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::focusOverlay": {
    "status": "planned",
    "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4058)"
   },
   "js/app.js::functions::openJump": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4063)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::closeJump": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4064)"
+   "status": "moved",
+   "home": "modules/search/jump.js",
+   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::syncInert": {
    "status": "planned",

@@ -43,6 +43,7 @@ import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
+import { createJump } from "../modules/search/jump.js";
 import { createFilesPage } from "./filespage.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
@@ -4015,72 +4016,38 @@ $("#side-x").addEventListener("click", () => setDrawer(false));
 $("#side-scrim").addEventListener("click", () => setDrawer(false));
 
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
-const jump = $("#jump"), jq = $("#jump-q"), jl = $("#jump-list");
-let jsel = 0, jitems = [];
-/** A thread's icon in ⌘K: its state glyph, the one every list uses (the blue working arc while it works, amber
-    when it needs you); no dot on a corner (the owner: no blue dots anywhere). */
+const jump = $("#jump");
+/** A thread's icon in ⌘K: its state glyph, the one every list uses (amber when it needs you). */
 function threadIc(t) {
   const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
   return `<span class="j-th"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i></span>`;
 }
-function jumpRender() {
-  const q = jq.value.trim().toLowerCase();
+function jumpPlaces() {
   const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
   for (const p of projects()) {
     all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
-  // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
+  return all;
+}
+function jumpActions() {
   const light = document.documentElement.dataset.theme === "light";
-  const verbs = q ? [
+  return [
     { name: "New project…", sub: "Action", icon: ICON.plus, run: () => CREATE.open() },
     { name: "Settings", sub: "Action", icon: ICON.sliders, run: () => openSettings() },
     { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
     { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
     ...(IQ.kindOf(sessionOf(S.view)) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(S.view), $("#iq")) }] : []),
     ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
-  ].filter((x) => x.name.toLowerCase().includes(q)) : [];
-  jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, REC.jumpItems(q));
-  jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
-  jl.innerHTML = jitems.map((x, i) => `<li role="option" id="j-${i}" aria-selected="${i === jsel}" data-i="${i}" class="${x.t ? "is-t" : ""}"><span class="j-ic">${x.icon}</span><span class="j-n">${esc(x.name)}</span><span class="j-s">${esc(x.sub)}</span></li>`).join("") || `<li class="j-none">Nothing matches “${esc(q)}”.</li>`;
-  jq.setAttribute("aria-activedescendant", jitems.length ? `j-${jsel}` : "");
-  jl.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  ];
 }
-let jumpReturn = null;
-/**
- * Focus an overlay that is opening. A native modal still closing (Create's 160 ms) holds focus until it lets go,
- * and then hands it back to whatever opened it: the overlay takes it now if it can, and again once the modal has
- * closed, so the person's keys land where they now look (Astra C020: Create, Esc, Ctrl+K at once).
- */
+// Focus an opening overlay now, and again once a native modal still closing (Create's 160 ms) lets go of it.
 function focusOverlay(target) {
   target.focus({ preventScroll: true });
   const modal = [...document.querySelectorAll("dialog[open]")].find((d) => d.matches(":modal"));
   if (modal) modal.addEventListener("close", () => { if (target.isConnected && !target.closest("[hidden]")) target.focus({ preventScroll: true }); }, { once: true });
 }
-function openJump() { jumpReturn = document.activeElement; jump.hidden = false; jq.value = ""; jsel = 0; jumpRender(); focusOverlay(jq); }
-function closeJump({ restore = true } = {}) { if (jump.hidden) return; jump.hidden = true; syncInert(); if (restore && jumpReturn && jumpReturn.isConnected && jumpReturn.offsetParent) jumpReturn.focus({ preventScroll: true }); }
-jq.addEventListener("input", () => { jsel = 0; jumpRender(); });
-jq.addEventListener("keydown", (e) => {
-  // every key of a word being composed (an IME) is the word's: its arrows move among the candidates, Escape
-  // cancels it, Enter finishes it; none of them moves the selection or closes Jump (Astra SRC-MAIN-IME-1)
-  if (e.isComposing || e.keyCode === 229) return;
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); jsel = (jsel + (e.key === "ArrowDown" ? 1 : jitems.length - 1)) % Math.max(1, jitems.length); jumpRender(); }
-  // Enter while a word is being composed (an IME) finishes the word; with nothing found, Jump stays open on what
-  // you typed (it never closes onto nothing: Astra, e20231c)
-  if (e.key === "Enter") { e.preventDefault(); const x = jitems[jsel]; if (!x) { announce("Nothing matches. Change what you typed, or Esc to close."); return; } closeJump({ restore: !!x.run }); x.run ? x.run() : go(x.v); }
-  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeJump(); }
-});
-// the row under a moving pointer becomes the selection, as the arrows make it (only on a real move: a list
-// scrolling under a still pointer never steals the keyboard's row)
-jl.addEventListener("pointermove", (e) => {
-  const li = e.target.closest("[data-i]");
-  if (!li || +li.dataset.i === jsel) return;
-  jl.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
-  jsel = +li.dataset.i; li.setAttribute("aria-selected", "true");
-  jq.setAttribute("aria-activedescendant", li.id);
-});
-jl.addEventListener("click", (e) => { const li = e.target.closest("[data-i]"); if (li) { const x = jitems[+li.dataset.i]; closeJump({ restore: !!x.run }); if (x.run) x.run(); else go(x.v); } });
-jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); });
+const JUMP = createJump({ host: jump, field: $("#jump-q"), list: $("#jump-list"), places: jumpPlaces, actions: jumpActions, more: (q) => REC.jumpItems(q), go: (v) => go(v), announce, focusIn: focusOverlay, onHidden: () => syncInert() });
 
 // ── one layer on top ──────────────────────────────────────────────────────────
 // A sheet (Jump, Keys, All threads, Runs) is modal: everything under it is inert, so Tab and Shift+Tab stay in
@@ -4516,7 +4483,7 @@ const SIDE = {
   },
 };
 $("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
-$("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
+$("#side-jump").addEventListener("click", () => (jump.hidden ? JUMP.open() : JUMP.close()));
 $("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
 $("#side-more").addEventListener("click", (e) => {
   const t = e.target, pop = $("#side-more");
@@ -4576,7 +4543,7 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
   shells: () => SH.toggle(),
-  jump: () => (jump.hidden ? openJump() : closeJump()),
+  jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),
   intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
   write: () => say.focus(),
   keys: () => openKeys(),
@@ -4597,7 +4564,7 @@ addEventListener("keydown", (e) => {
   // also fold the tree (the editor's keymap answers first, and says so with preventDefault)
   const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
   if (g && K.hasMod(g) && !taken && runGlobal(g)) { e.preventDefault(); return; }
-  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
+  if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); JUMP.close(); } return; }
   if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
   if (CREATE.isOpen()) return;
   if (e.key === "Escape") {
@@ -4648,7 +4615,7 @@ function canBack() {
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
   if (CREATE.isOpen()) { CREATE.close(); return true; }
-  if (!jump.hidden) { closeJump(); return true; }
+  if (!jump.hidden) { JUMP.close(); return true; }
   if (IQ.isOpen) { IQ.close(); return true; }
   if (CH.setupOpen) { CH.closeSetup(); return true; }
   if (RS.open) { runsEscape(); return true; }
@@ -4704,7 +4671,7 @@ wireGestures({
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
     { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
-    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
+    { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: JUMP.close },
     { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
     { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
     { host: $("#cs-pop"), open: () => CH.setupOpen && $("#cs-pop").classList.contains("is-sheet"), close: () => { CH.closeSetup(); updateComposer(); } },
