@@ -97,8 +97,10 @@
        meta    12/16 (--fs-sm / --lh-12)      times, counts, secondary lines
        heads   20/28 · 28/36 · 40/44 (--fs-2xl/--lh-20 · --fs-3xl/--lh-28 · --fs-4xl/--lh-40)
      weights --fw-regular 400 · --fw-medium 500 · --fw-strong 600; one set of Geist letterforms (no alternates).
-     Text lines of what's read stop at --measure (~80 characters); code, tables, charts and cards keep their column. */
-  --fs-read:16px; --measure:37.5em;
+     Text lines of what's read stop at --measure: the reading column less one breathing inset (--s-12, 48) on the
+     right, so words end short of where your message ends; a column narrower than 528 (a phone, beside a file) reads
+     on its whole width. Code, tables, charts and cards keep the whole column. */
+  --fs-read:16px; --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.
