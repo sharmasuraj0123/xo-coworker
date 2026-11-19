@@ -7,15 +7,14 @@
 // On a real DOM (linkedom): node identity across redraws (js/redraw.js), rows under a press in keyed lists
 // (js/ui.js reconcile), and the Files tree (js/files.js) while an agent's marks change, with a press held across each
 // redraw. Then the write paths themselves, read from the source: no region on the render path is drawn anew.
-//   node tests/press-keeps-node.test.mjs   (linkedom: LINKEDOM=<its esm/index.js>, else `npm i linkedom` in ~/.cache/xo-test-deps)
+//   node tests/press-keeps-node.test.mjs   (linkedom, a dev-only tool: npm ci)
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync } from "node:fs";
-import { tmpdir, homedir } from "node:os";
+import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, dirname, relative, resolve } from "node:path";
+import { dom } from "./lib/dom.mjs";
 
-// linkedom, outside the repo (it has no dependencies of its own): LINKEDOM, else ~/.cache/xo-test-deps or /tmp/dom
-const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f)) || "~/.cache/xo-test-deps";
-let passed = 0, skipped = 0;
+let passed = 0;
 const t = async (name, fn) => {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
@@ -70,18 +69,9 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
 });
 
 // ── on a DOM ──────────────────────────────────────────────────────────────────
-if (!existsSync(LD)) {
-  skipped++;
-  console.log(`  skip the DOM cases: linkedom isn't installed (npm i linkedom in ~/.cache/xo-test-deps, or set LINKEDOM)`);
-} else {
-  const { parseHTML } = await import(LD);
-  const { window, document } = parseHTML(`<!doctype html><html><body><main id="host"></main><div id="viewer"></div></body></html>`);
-  Object.assign(globalThis, {
-    window, document, HTMLElement: window.HTMLElement, CustomEvent: window.CustomEvent, Event: window.Event,
-    CSS: { escape: (s) => String(s).replace(/["\\]/g, "\\$&") },
-    requestAnimationFrame: (f) => setTimeout(f, 0), matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
-    innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} },
-  });
+{
+  const { window } = await dom(`<main id="host"></main><div id="viewer"></div>`);
+  Object.assign(globalThis, { innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} } });
   globalThis.performance ??= { now: () => Date.now() };
   const ev = (el, type) => el.dispatchEvent(new window.Event(type, { bubbles: true }));
   /** A press held across `fn`: pointerdown on `node`, fn() (a redraw), then the press ends. True if the node stayed. */
@@ -248,4 +238,4 @@ if (!existsSync(LD)) {
     });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
-console.log(`\n${passed} passed${skipped ? `, ${skipped} skipped (said above)` : ""}${process.exitCode ? ", some FAILED" : ""}`);
+console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
