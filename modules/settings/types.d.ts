@@ -32,5 +32,5 @@ export interface SettingsState {
 export interface SectionEntry { id: string; label: string; icon?: string; order?: number; owner?: string; render(el: HTMLElement, at: { project?: string }): void | (() => void) }
 export interface SectionsDeps {
   places: { entries(place: string, at?: object): any[]; watch(place: string, fn: () => void): () => void };
-  nav: HTMLElement; pages: HTMLElement; at: () => { project?: string }; pick: (id: string) => void;
+  nav: HTMLElement; pages: HTMLElement; at: () => { project?: string }; pick: (id: string) => void; isOpen: () => boolean; onTabs?: () => void;
 }

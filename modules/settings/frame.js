@@ -39,10 +39,11 @@ export function createSettingsFrame({ el, side, phoneButton, closeButton, onPage
   side.addEventListener("click", () => (el.hidden ? open() : close()));
   phoneButton.addEventListener("click", open);
   closeButton.addEventListener("click", () => close());
-  for (const b of all("[data-set]")) b.addEventListener("click", () => setPage(/** @type {string} */ (b.dataset.set)));
   // a link into one Settings page (a thread's runtime name opens Runtimes)
   document.addEventListener("click", (e) => { const b = /** @type {any} */ (e.target).closest("[data-set-open]"); if (b) { setPage(b.dataset.setOpen); if (el.hidden) open(); else /** @type {HTMLElement | null} */ (el.querySelector('[aria-selected="true"]'))?.focus({ preventScroll: true }); } });
   const nav = /** @type {HTMLElement} */ (el.querySelector(".set-nav"));
+  // one listener for every tab, so a tab added later (a settings.section) is a tab too
+  nav.addEventListener("click", (e) => { const b = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest("[data-set]")); if (b) setPage(/** @type {string} */ (b.dataset.set)); });
   // the rail's keys (WAI-ARIA tabs, chosen as they're reached): arrows the next or previous, wrapping; Home, End
   nav.addEventListener("keydown", (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;

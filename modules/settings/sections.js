@@ -3,7 +3,7 @@
 // Settings pages from the settings.section place: a tab and a page each; the entry draws its own .set-live under the title when it opens.
 
 /** @param {import("./types").SectionsDeps} deps */
-export function createSettingsSections({ places, nav, pages, at, pick }) {
+export function createSettingsSections({ places, nav, pages, at, pick, isOpen, onTabs = () => {} }) {
   /** @type {Map<string, { tab: HTMLButtonElement, page: HTMLElement, live: HTMLElement, entry: import("./types").SectionEntry, undo?: () => void }>} */
   const shown = new Map();
   const refused = new Set();
@@ -23,7 +23,6 @@ export function createSettingsSections({ places, nav, pages, at, pick }) {
     tab.dataset.set = e.id;
     tab.setAttribute("aria-selected", "false");
     tab.setAttribute("aria-controls", `set-p-${e.id}`);
-    tab.addEventListener("click", () => pick(e.id));
     const page = document.createElement("div");
     Object.assign(page, { className: "set-page", id: `set-p-${e.id}`, hidden: true });
     page.setAttribute("role", "tabpanel");
@@ -40,22 +39,28 @@ export function createSettingsSections({ places, nav, pages, at, pick }) {
     const ids = new Set(entries.map((e) => e.id));
     for (const [id, s] of shown) {
       if (ids.has(id)) continue;
-      const was = !s.page.hidden;
+      const was = !s.page.hidden, a = document.activeElement, had = !!a && (s.tab.contains(a) || s.page.contains(a));
       leave(id); s.tab.remove(); s.page.remove(); shown.delete(id);
       if (was) pick(/** @type {HTMLElement} */ (nav.querySelector("[data-set]")).dataset.set || "general");
+      if (had) /** @type {HTMLElement | null} */ (nav.querySelector('[aria-selected="true"]'))?.focus({ preventScroll: true });
     }
+    const seen = new Set();
     for (const e of entries) {
-      if (!shown.has(e.id) && nav.querySelector(`[data-set="${CSS.escape(e.id)}"]`)) { if (!refused.has(e.id)) console.error(`settings.section "${e.id}": a Settings page already has that id`); refused.add(e.id); continue; }
+      const taken = seen.has(e.id) || (!shown.has(e.id) && nav.querySelector(`[data-set="${CSS.escape(e.id)}"]`));
+      seen.add(e.id);
+      if (taken) { if (!refused.has(e.id)) console.error(`settings.section "${e.id}": a Settings page already has that id`); refused.add(e.id); continue; }
       const s = shown.get(e.id) || add(e);
       s.entry = e;
       s.tab.textContent = e.label;
       /** @type {HTMLElement} */ (s.page.querySelector("h2")).textContent = e.label;
       shown.set(e.id, s);
-      if (!s.page.hidden && !s.undo) show(e.id);
+      if (!s.page.hidden && !s.undo && isOpen()) show(e.id);
     }
     const mine = [...nav.children].filter((el) => [...shown.values()].some((s) => s.tab === el));
-    const want = entries.map((e) => shown.get(e.id)?.tab).filter((x) => !!x);
+    const want = [...new Set(entries.map((e) => shown.get(e.id)?.tab).filter((x) => !!x))];
+    const before = mine.length;
     if (want.some((el, i) => mine[i] !== el)) for (const el of want) nav.append(/** @type {HTMLElement} */ (el));
+    if (want.length !== before || want.some((el, i) => mine[i] !== el)) onTabs();
   }
   /** A Settings page was opened: a section's entry draws it now; any other section that was drawn lets go. @param {string} id */
   function show(id) {
@@ -63,7 +68,8 @@ export function createSettingsSections({ places, nav, pages, at, pick }) {
     const s = shown.get(id);
     if (!s) return;
     leave(id);
-    const r = s.entry.render(s.live, at());
+    let r;
+    try { r = s.entry.render(s.live, at()); } catch (e) { console.error(`settings.section "${id}": its render threw`, e); }
     s.undo = typeof r === "function" ? r : undefined;
   }
   const unwatch = places.watch("settings.section", sync);
