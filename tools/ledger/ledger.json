@@ -2563,7 +2563,7 @@
   "js/sse.js": {
    "status": "moved",
    "home": "core/platform/sse.js",
-   "note": "js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm"
+   "note": "every importer points at core/platform/sse.js, so it leaves with no re-export"
   },
   "js/stage.js": {
    "status": "split",
