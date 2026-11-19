@@ -29,3 +29,8 @@ export interface SettingsState {
   router: any; models: any[]; rules: any[] | null; defaults: any[]; trees: any[] | null; reported: any[];
   err: Record<string, any>; form: string | null; confirm: any;
 }
+export interface SectionEntry { id: string; label: string; icon?: string; order?: number; owner?: string; render(el: HTMLElement, at: { project?: string }): void | (() => void) }
+export interface SectionsDeps {
+  places: { entries(place: string, at?: object): any[]; watch(place: string, fn: () => void): () => void };
+  nav: HTMLElement; pages: HTMLElement; at: () => { project?: string }; pick: (id: string) => void;
+}
