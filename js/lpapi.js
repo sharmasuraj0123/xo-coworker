@@ -14,6 +14,7 @@
 // the POST's body; nothing here keeps, logs or puts them in a URL.
 
 import { request, coderHeaders, ApiError } from "../core/platform/http.js";
+import { createParser } from "../core/platform/sse.js";
 
 const enc = encodeURIComponent;
 
@@ -155,17 +156,12 @@ export function rows(on) {
 
 /** A Server-Sent Events body, read as it arrives: each event's JSON to `on`. */
 async function sse(res, on, signal) {
-  const rd = res.body.getReader(), dec = new TextDecoder();
-  let buf = "";
+  const rd = res.body.getReader(), dec = new TextDecoder(), parser = createParser();
   for (;;) {
     const { value, done } = await rd.read();
     if (done || signal.aborted) return;
-    buf += dec.decode(value, { stream: true });
-    let i;
-    while ((i = buf.indexOf("\n\n")) >= 0) {
-      const block = buf.slice(0, i); buf = buf.slice(i + 2);
-      const data = block.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trimStart()).join("\n");
-      if (data) { try { on(JSON.parse(data)); } catch { /* a ping or a line that isn't JSON */ } }
+    for (const f of parser.feed(dec.decode(value, { stream: true }))) {
+      if (f.data) { try { on(JSON.parse(f.data)); } catch { /* a ping or a line that isn't JSON */ } }
     }
   }
 }
