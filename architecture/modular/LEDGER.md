@@ -4,11 +4,11 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 667 |
+| planned | 666 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 34 |
-| moved | 12 |
+| moved | 13 |
 | kept | 1 |
 
 Items inside first-party files: 2290 (planned 1283, split-region 902, moved 105), in `ledger.json` as `path::kind::name`.
@@ -46,7 +46,7 @@ Items inside first-party files: 2290 (planned 1283, split-region 902, moved 105)
 | `js/doceditor.js` | 290 | planned | modules/files/editor/doceditor.js |
 | `js/docs.js` | 420 | planned | modules/files/documents/docs.js |
 | `js/drafts.js` | 61 | planned | modules/files/documents/drafts.js |
-| `js/dropdown.js` | 321 | planned | core/ui/components/xo-select.js |
+| `js/dropdown.js` | 321 | moved | core/ui/components/xo-select.js · next: js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets |
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
 | `js/files.js` | 940 | split | modules/files/tree, modules/files/ops, core/services/places.js, core/services/activity.js |
 | `js/filespage.js` | 150 | planned | modules/files/page.js |

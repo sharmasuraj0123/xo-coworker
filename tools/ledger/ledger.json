@@ -2264,8 +2264,9 @@
    "home": "modules/files/documents/drafts.js"
   },
   "js/dropdown.js": {
-   "status": "planned",
-   "home": "core/ui/components/xo-select.js"
+   "status": "moved",
+   "home": "core/ui/components/xo-select.js",
+   "note": "js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets"
   },
   "js/fileicons.js": {
    "status": "moved",

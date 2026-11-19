@@ -20,6 +20,6 @@ t("under reduced motion, transitions are none: no duration, no delay", () => {
 });
 t("the waits on a transition's or an animation's end have their own time-outs", () => {
   assert.match(js("media.js"), /addEventListener\("transitionend"[^\n]*\n\s*setTimeout\(done, MOVE \+ 80\)/);
-  assert.match(js("dropdown.js"), /addEventListener\("animationend", done, \{ once: true \}\); setTimeout\(done, \d+\)/);
+  assert.match(readFileSync(new URL("../core/ui/components/xo-select.js", import.meta.url), "utf8"), /addEventListener\("animationend", done, \{ once: true \}\); setTimeout\(done, \d+\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -1,6 +1,6 @@
 // Every xo-select busy saving keeps focus but takes no new choice (the create-project grader on 9d1f71b, S209: while
 // 70% saved, the busy threshold still opened, End then Enter showed 90% and sent nothing, and the 70% answer put it
-// back; settings put aria-busy/aria-disabled on the host and dropdown.js only heeded disabled). Checked from the
+// back; settings put aria-busy/aria-disabled on the host and the dropdown only heeded disabled). Checked from the
 // source: one "held" state from the host's busy attributes; held, it doesn't open and a choice is none; it hears those
 // attributes change (closing an open list) and says it on the focused button, which stays focusable. The drawn
 // sequence is settings.test.cjs "S209 a dropdown busy saving".
@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/dropdown.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../core/ui/components/xo-select.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("held: from the host's busy attributes", () => {
