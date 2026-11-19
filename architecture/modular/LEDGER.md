@@ -305,16 +305,16 @@ Items inside first-party files: 2290 (planned 1326, split-region 842, moved 103,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/chat-read-order.test.cjs |
-| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/conversation.test.cjs |
-| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/coordinator-busy.test.cjs |
-| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/flows.test.cjs |
-| `tests/browser/harness.cjs` | 444 | planned | e2e/harness.cjs |
-| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/held-contract.test.cjs |
-| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/held-waiting.test.cjs |
-| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/lpshell.test.cjs |
-| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/settings.test.cjs |
-| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/smoke.test.cjs |
+| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs |
+| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs |
+| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs |
+| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs |
+| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs |
+| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs |
+| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs |
+| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs |
+| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs |
+| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs |
 
 ## tests-lib (2)
 

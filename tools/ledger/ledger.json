@@ -4136,43 +4136,53 @@
   },
   "tests/browser/chat-read-order.test.cjs": {
    "status": "planned",
-   "home": "e2e/chat-read-order.test.cjs"
+   "home": "e2e/specs/chat-read-order.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/conversation.test.cjs": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/coordinator-busy.test.cjs": {
    "status": "planned",
-   "home": "e2e/coordinator-busy.test.cjs"
+   "home": "e2e/specs/coordinator-busy.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/flows.test.cjs": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/harness.cjs": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs",
+   "note": "its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs"
   },
   "tests/browser/held-contract.test.cjs": {
    "status": "planned",
-   "home": "e2e/held-contract.test.cjs"
+   "home": "e2e/specs/held-contract.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/held-waiting.test.cjs": {
    "status": "planned",
-   "home": "e2e/held-waiting.test.cjs"
+   "home": "e2e/specs/held-waiting.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/lpshell.test.cjs": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/settings.test.cjs": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/browser/smoke.test.cjs": {
    "status": "planned",
-   "home": "e2e/smoke.test.cjs"
+   "home": "e2e/specs/smoke.spec.mjs",
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
   },
   "tests/busy.test.mjs": {
    "status": "planned",
@@ -16455,859 +16465,863 @@
   },
   "tests/browser/chat-read-order.test.cjs::ids::send": {
    "status": "planned",
-   "home": "e2e/chat-read-order.test.cjs"
+   "home": "e2e/specs/chat-read-order.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::convApi": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::app": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::watchFocus": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::menuOpen": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::renameTo": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::openAllSheet": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::failSend": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::chatOpen": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::swipeRow": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::longPress": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::lpPage": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::attach": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::replyPage": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::chosenAnswer": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::liveTurn": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::conv-title": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::tw-edit": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::all-f": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::cs-pop": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::all-list": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::msgs": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::scroller": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::herald": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::all-q": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::say": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::at-list": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::att-tray": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::target": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::live": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::tdock": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::storage::cv-theme": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::storage::__seeded": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::storage::<k>": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/chats/chat_demo/threads": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/threads.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/chats/chat_demo/messages": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/messages.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/runtimes": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/runtimes.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/sessions": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/sessions.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/prompt": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/prompt.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__focusDrops": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__ck": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__af": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__rb": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__ask": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__u": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__copied": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__op": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__x": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__mb": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__row": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__cp": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__tick": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::globals::__b": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::custom_events::DOMContentLoaded": {
    "status": "planned",
-   "home": "e2e/conversation.test.cjs"
+   "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/coordinator-busy.test.cjs::ids::send": {
    "status": "planned",
-   "home": "e2e/coordinator-busy.test.cjs"
+   "home": "e2e/specs/coordinator-busy.spec.mjs"
   },
   "tests/browser/coordinator-busy.test.cjs::ids::projects": {
    "status": "planned",
-   "home": "e2e/coordinator-busy.test.cjs"
+   "home": "e2e/specs/coordinator-busy.spec.mjs"
   },
   "tests/browser/coordinator-busy.test.cjs::routes::/api/chat/abort": {
    "status": "planned",
-   "home": "e2e/coordinator-busy.test.cjs"
+   "home": "e2e/specs/abort.spec.mjs"
   },
   "tests/browser/flows.test.cjs::exports::line$": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::editing": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::typeAll": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::copyCase": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::panelOpen": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::filesOpen": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::ringSides": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::choose": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::window_focusEditor": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::keysPage": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::diffOpen": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::movePicker": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::toThread": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::turnChip": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::bigMap": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::graphStill": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::hopRace": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::select": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::picker": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::dockAsk": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::homeAsk": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::decisions": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::functions::ctxDone": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::rd-in": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::main": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::stage": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::stage-map-tree": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::viewer": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::fv": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::msgs": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::scroller": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::rule-sr": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::rule-real": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::rule-box": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::app": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::side": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::herald": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-body": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::arts": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::cp-stop": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::create-dlg": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::runs": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::drop-veil": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::set-side": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::settings": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::live": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::vw-h": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::iq-pop": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::iq": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::stage-map-graph": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::jump": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::jump-list": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-pj": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-f": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::say": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::typing": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::t-sel": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::at-list": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::send": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::composer": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::tdock": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::lbx-states": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::hm-next": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::ids::card": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::storage::cv-keys": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::storage::cv-shape-device": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::storage::cv-theme": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__copied": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__fl": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__rule": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::requestAnimationFrame": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__seen": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__look": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__cp": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::__cpq": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::calls": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::globals::d": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/flows.test.cjs::custom_events::focusbrought": {
    "status": "planned",
-   "home": "e2e/flows.test.cjs"
+   "home": "e2e/specs/flows.spec.mjs"
   },
   "tests/browser/harness.cjs::functions::serve": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/space.mjs"
   },
   "tests/browser/harness.cjs::functions::mockApi": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::functions::hooks": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "none: e2e/ injects nothing into the app",
+   "note": "goes with harness.cjs once its suites are ported"
   },
   "tests/browser/harness.cjs::functions::openApp": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/run.mjs"
   },
   "tests/browser/harness.cjs::functions::launch": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/browser.mjs"
   },
   "tests/browser/harness.cjs::functions::pngPixels": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/sweeps.mjs"
   },
   "tests/browser/harness.cjs::functions::visible": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/sweeps.mjs"
   },
   "tests/browser/harness.cjs::functions::stateSweep": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/sweeps.mjs"
   },
   "tests/browser/harness.cjs::storage::cv-theme": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/run.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/chats": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/status": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/shape": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/terminal/status": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/terminal/sessions": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/sessions": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/review": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/runtimes": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/runtime-policy": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/router": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/deploy/": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/stream": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/xo-projects": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/config/workspace": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/files/mkdir": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/connectors/github/status": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::routes::/api/connectors/github/cli/start": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/store.mjs"
   },
   "tests/browser/harness.cjs::globals::__ED": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "none: e2e/ injects nothing into the app",
+   "note": "goes with harness.cjs once its suites are ported"
   },
   "tests/browser/harness.cjs::globals::__V": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "none: e2e/ injects nothing into the app",
+   "note": "goes with harness.cjs once its suites are ported"
   },
   "tests/browser/harness.cjs::globals::__storm": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "none: e2e/ injects nothing into the app",
+   "note": "goes with harness.cjs once its suites are ported"
   },
   "tests/browser/harness.cjs::globals::__focusDrops": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/settle.mjs"
   },
   "tests/browser/harness.cjs::custom_events::DOMContentLoaded": {
    "status": "planned",
-   "home": "e2e/harness.cjs"
+   "home": "e2e/lib/settle.mjs"
   },
   "tests/browser/held-contract.test.cjs::ids::typing": {
    "status": "planned",
-   "home": "e2e/held-contract.test.cjs"
+   "home": "e2e/specs/held-contract.spec.mjs"
   },
   "tests/browser/held-waiting.test.cjs::functions::world": {
    "status": "planned",
-   "home": "e2e/held-waiting.test.cjs"
+   "home": "e2e/specs/held-waiting.spec.mjs"
   },
   "tests/browser/held-waiting.test.cjs::ids::typing": {
    "status": "planned",
-   "home": "e2e/held-waiting.test.cjs"
+   "home": "e2e/specs/held-waiting.spec.mjs"
   },
   "tests/browser/held-waiting.test.cjs::ids::herald": {
    "status": "planned",
-   "home": "e2e/held-waiting.test.cjs"
+   "home": "e2e/specs/held-waiting.spec.mjs"
   },
   "tests/browser/held-waiting.test.cjs::ids::msgs": {
    "status": "planned",
-   "home": "e2e/held-waiting.test.cjs"
+   "home": "e2e/specs/held-waiting.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::functions::done": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-name": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::live": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-size": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::ids::shd": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::routes::/api/terminal/sessions": {
    "status": "planned",
-   "home": "e2e/lpshell.test.cjs"
+   "home": "e2e/specs/sessions.spec.mjs"
   },
   "tests/browser/settings.test.cjs::functions::world": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::functions::settingsApi": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::functions::open": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::functions::settings": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::functions::settle": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::functions::keyFocus": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::ids::pb-menu": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::ids::app": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::ids::settings": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::ids::hm-body": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-theme": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-device": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-unsynced": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-keys": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-mine": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::storage::[data-wt=": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/router": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/router.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/router/models": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/models.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/chats": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/chats.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/rules": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/rules.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/worktrees": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/worktrees.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/runtimes": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/runtimes.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/runtime-policy": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/runtime-policy.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/review": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/review.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/advisory": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/advisory.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/intent": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/intent.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/intent/paid": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/paid.spec.mjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/shape": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/shape.spec.mjs"
   },
   "tests/browser/settings.test.cjs::keys::paid": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/settings.test.cjs::globals::__taBlurs": {
    "status": "planned",
-   "home": "e2e/settings.test.cjs"
+   "home": "e2e/specs/settings.spec.mjs"
   },
   "tests/browser/smoke.test.cjs::ids::stage": {
    "status": "planned",
-   "home": "e2e/smoke.test.cjs"
+   "home": "e2e/specs/smoke.spec.mjs"
   },
   "tests/browser/smoke.test.cjs::ids::theme": {
    "status": "planned",
-   "home": "e2e/smoke.test.cjs"
+   "home": "e2e/specs/smoke.spec.mjs"
   },
   "tests/browser/smoke.test.cjs::ids::say": {
    "status": "planned",
-   "home": "e2e/smoke.test.cjs"
+   "home": "e2e/specs/smoke.spec.mjs"
   },
   "tests/browser/smoke.test.cjs::ids::keys-reset-all": {
    "status": "planned",
-   "home": "e2e/smoke.test.cjs"
+   "home": "e2e/specs/smoke.spec.mjs"
   },
   "tests/browser/smoke.test.cjs::ids::main": {
    "status": "planned",
-   "home": "e2e/smoke.test.cjs"
+   "home": "e2e/specs/smoke.spec.mjs"
   },
   "tests/busy.test.mjs::functions::fakeBackend": {
    "status": "planned",

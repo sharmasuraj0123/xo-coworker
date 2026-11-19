@@ -1,0 +1,16 @@
+- complementary "Navigation":
+  - button "Fold the sidebar" [expanded]
+  - paragraph: XO Space
+  - button "Search and jump"
+  - navigation "Main":
+    - button "Home, nothing needs you": Home
+    - button "Workspace"
+    - button "Chats"
+    - button "Artifacts"
+    - button "More"
+  - text: Projects
+  - button "New project": New
+  - navigation "Projects":
+    - button "demo"
+  - switch "Light mode"
+  - button "Settings"
