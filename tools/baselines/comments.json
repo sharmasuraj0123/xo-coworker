@@ -20,7 +20,7 @@
   "refs": 1
  },
  "js/chats.js": {
-  "extra": 27,
+  "extra": 25,
   "refs": 0
  },
  "js/comms.js": {
@@ -140,7 +140,7 @@
   "refs": 0
  },
  "js/turnview.js": {
-  "extra": 63,
+  "extra": 61,
   "refs": 0
  },
  "js/ui.js": {
@@ -200,7 +200,7 @@
   "refs": 0
  },
  "css/shape.css": {
-  "extra": 8,
+  "extra": 4,
   "refs": 0
  },
  "css/side.css": {
