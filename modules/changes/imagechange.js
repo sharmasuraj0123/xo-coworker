@@ -3,8 +3,7 @@
 // An image in a place's changes (the owner, 6 Nov: "when I click on an image, it doesn't show there").
 
 import { esc } from "../../core/platform/index.js";
-import { api } from "../../js/api.js";
-/** @import { ChangeFile, HttpError } from "./types.d.ts" */
+/** @import { ChangeFile, HttpError, ChangesApi } from "./types.d.ts" */
 
 // Space's /image types, but SVG (a text file: it has a diff)
 const SHOWN = /\.(png|jpe?g|gif|webp|avif|bmp|ico)$/i;
@@ -37,8 +36,8 @@ function whyNot(err, which) {
   return which === "before" ? "Couldn't read the earlier version." : "Couldn't read this image.";
 }
 
-/** Draw a change's image into host (Before beside Now for a changed one, a line of sizes under it); returns {drop()}, to call before drawing anything else there. @param {HTMLElement} host @param {{ project: string, rel: string, file: ChangeFile, at?: string | null, open?: ((b: HTMLElement) => void) | null }} o */
-export function drawImageChange(host, { project, rel, file, at = null, open = null }) {
+/** Draw a change's image into host (Before beside Now for a changed one, a line of sizes under it); returns {drop()}, to call before drawing anything else there. @param {HTMLElement} host @param {{ project: string, rel: string, file: ChangeFile, read: ChangesApi, at?: string | null, open?: ((b: HTMLElement) => void) | null }} o */
+export function drawImageChange(host, { project, rel, file, read: api, at = null, open = null }) {
   const w = imageWords(file), ctl = new AbortController(), /** @type {string[]} */ urls = [];
   let gone = false;
   const sides = [w.before && at && Date.now() - missingAt > MISSING_FOR && "before", w.now && "now"].filter(/** @returns {k is string} */ (k) => !!k);

@@ -3,9 +3,9 @@
 // The panel's Changes: every file the place changed, one row each with its +/− counts, and the chosen file's diff below.
 
 import { esc } from "../../core/platform/index.js";
-import { xi } from "../../js/icon.js";
-import { redraw } from "../../js/redraw.js";
-import { fileIcon } from "../../js/fileicons.js";
+import { xi } from "../../core/ui/icons/icon.js";
+import { redraw } from "../../core/ui/redraw.js";
+import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import * as DV from "./diffview.js";
 import * as K from "../../core/platform/keys.js";
 import { isImageChange, drawImageChange } from "./imagechange.js";
@@ -124,7 +124,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
         note.hidden = true; im.hidden = false;
         const rel = s.worktree ? `.xo/worktrees/${s.worktree}/${f.path}` : f.path;
         const c = changes.of(view()), at = (c && "data" in c && c.data?.base_commit) || null;
-        D.img = drawImageChange(im, { project: s.project, rel, file: f, at, open: (from) => openFile(/** @type {Scope} */ (s), f.path, from) });
+        D.img = drawImageChange(im, { project: s.project, rel, file: f, read: changes.read, at, open: (from) => openFile(/** @type {Scope} */ (s), f.path, from) });
         return;
       }
       note.hidden = false;

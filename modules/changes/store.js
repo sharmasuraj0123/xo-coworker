@@ -2,10 +2,9 @@
 
 // What a place changed, from Space: a thread's worktree against its branch point, or a project's checkout against its last commit.
 
-import { api } from "../../js/api.js";
 import { folderOf, placeOf } from "../../core/services/places.js";
 import { prefetch } from "./diffview.js";
-/** @import { Scope, PlaceChanges, Activity, ChangeFile, HttpError } from "./types.d.ts" */
+/** @import { Scope, PlaceChanges, Activity, ChangeFile, HttpError, ChangesApi } from "./types.d.ts" */
 
 const EDITS = new Set(["create_file", "edit_file", "delete_file"]);
 const QUIET = 250; // ms: edits that finish together are read once
@@ -68,8 +67,8 @@ export function activityIn(scope, threads, turns) {
   return out;
 }
 
-/** @param {{ world: any, onChange?: () => void }} deps */
-export function createChanges({ world, onChange }) {
+/** @param {{ world: any, api: ChangesApi, onChange?: () => void }} deps */
+export function createChanges({ world, api, onChange }) {
   /** @type {Map<string, PlaceChanges>} */
   const P = new Map();
   /** @type {Set<string>} */
@@ -176,6 +175,8 @@ export function createChanges({ world, onChange }) {
       return memo.a;
     },
     scope: (/** @type {string} */ view) => scopeOf(view, world),
+    /** The reads an image change draws from. */
+    read: api,
   };
   return api_;
 }

@@ -13,6 +13,7 @@ globalThis.fetch = async (url) => {
 };
 const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../store.js");
 const { choose, newestHunkLine, countsHtml } = await import("../frame.js");
+const { api } = await import("../../../js/api.js");
 const { createTurns } = await import("../../../core/services/world/turns.js");
 
 let passed = 0;
@@ -69,10 +70,20 @@ await t("what agents are doing there: finished edits sign it, the running one is
   assert.equal(b.last, "js/z.js");
 });
 
+await t("the store reads through the client it is handed, and hands image changes the same client", async () => {
+  const asked = [];
+  const own = { projectChanges: async (p, q) => { asked.push([p, q]); return { files: [] }; }, projectImage: async () => new Blob(), projectVersion: async () => new Blob() };
+  const C = createChanges({ api: own, world: world(store([])), onChange() {} });
+  C.sync("p:p");
+  await tick(5);
+  assert.deepEqual(asked, [["p", {}]]);
+  assert.equal(C.read, own);
+});
+
 await t("Space without /changes: one read, then the place says so and today's list stays", async () => {
   calls.length = 0;
   reply = () => ({ status: 404, body: { detail: "Not Found" } });
-  const C = createChanges({ world: world(store([])), onChange() {} });
+  const C = createChanges({ api, world: world(store([])), onChange() {} });
   C.sync("t:a");
   await tick(5);
   assert.equal(C.of("t:a").state, "unsupported");
@@ -86,7 +97,7 @@ await t("a project that isn't a git repository, or a thread whose worktree is go
   reply = (u) => (u.searchParams.get("worktree")
     ? { status: 404, body: { detail: { code: "worktree_not_found", message: "There is no such worktree in this project." } } }
     : { status: 404, body: { detail: { code: "not_a_repository", message: "This project isn't a git repository." } } });
-  const C = createChanges({ world: world(store([])), onChange() {} });
+  const C = createChanges({ api, world: world(store([])), onChange() {} });
   C.sync("t:a"); C.sync("p:p");
   await tick(10);
   assert.equal(C.of("t:a").state, "unsupported");   // this thread's worktree is gone
@@ -97,14 +108,14 @@ await t("a project that isn't a git repository, or a thread whose worktree is go
   assert.equal(calls.length, before, "a project that isn't a repository isn't asked again");
   // git older than 2.40 on Space's machine: no place can say what changed, so the same list, not an error
   reply = () => ({ status: 501, body: { detail: { code: "git_too_old", message: "Space's git is older than 2.40." } } });
-  const G = createChanges({ world: world(store([])), onChange() {} });
+  const G = createChanges({ api, world: world(store([])), onChange() {} });
   G.sync("t:a"); G.sync("p:p");
   await tick(10);
   assert.equal(G.of("t:a").state, "unsupported");
   assert.equal(G.of("p:p").state, "unsupported");
   // anything else is an error said in Space's own words
   reply = () => ({ status: 500, body: { detail: { code: "internal", message: "Space broke." } } });
-  const D = createChanges({ world: world(store([])), onChange() {} });
+  const D = createChanges({ api, world: world(store([])), onChange() {} });
   D.sync("t:a");
   await tick(10);
   assert.equal(D.of("t:a").state, "error");
@@ -121,7 +132,7 @@ await t("a place is read on opening, and once more per finished edit (not per re
   ].filter((f) => !u.searchParams.get("path") || f.path === u.searchParams.get("path")).map((f) => (u.searchParams.get("path") && f.path === "big.json" ? { ...f, patch: patch("big.json", "@@ -1 +1 @@\n-x\n+y\n"), patch_omitted: null } : f)) } });
   let changed = 0;
   const W = world(T);
-  const C = createChanges({ world: W, onChange() { changed++; } });
+  const C = createChanges({ api, world: W, onChange() { changed++; } });
   for (let i = 0; i < 5; i++) C.sync("t:a");   // five renders: one read
   await tick(10);
   assert.equal(calls.filter((c) => c.startsWith("/api/xo-projects/p/changes")).length, 1);

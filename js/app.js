@@ -224,7 +224,7 @@ const CH = createChats({
 });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
 // what a place changed, from Space's /changes (js/changes.js): the panel's Changes, Files' diffs, the chips' counts
-const CHG = createChanges({ world, onChange: () => schedule() });
+const CHG = createChanges({ world, api, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },

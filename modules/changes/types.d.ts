@@ -27,3 +27,8 @@ export interface FrameDeps {
   host: HTMLElement; changes: import("./store.js").Changes; view: () => string;
   openFile: (s: Scope, path: string, from: HTMLElement | null) => void; onChange?: () => void;
 }
+export interface ChangesApi {
+  projectChanges(project: string, q?: { worktree?: string, path?: string }): Promise<any>;
+  projectImage(project: string, rel: string, opts?: { signal?: AbortSignal }): Promise<Blob>;
+  projectVersion(project: string, rel: string, q: { commit: string | null, was: any }, opts?: { signal?: AbortSignal }): Promise<Blob>;
+}
