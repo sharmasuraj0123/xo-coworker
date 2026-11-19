@@ -1,21 +1,18 @@
-// The team, visible: what an agent's XO tool call means, in people's words.
-//
-// Coordinators and threads work together through XO's comms tools (message_thread, message_coordinator,
-// ask_workspace, forward_to_project, start_thread_session, …). The server reports each call as a step whose
-// line is the tool's name ("`message_thread` on `xo_comms`"), so the conversation, the working bubble and
-// the Map said nothing about the cooperation they were watching. This turns a step into what it is,
-// from the call itself and nothing else: while it runs, what it is doing ("Talking to xo-space's
-// coordinator"); once done, what it did ("Sent to “Experimental LG UI”", from the result the call returned).
-// A target the call didn't name yet is said generally ("a thread"), never guessed. A comms tool this file
-// doesn't know yet is said generally too ("Working with XO"): the tool's name is never the line.
+// @ts-check
 
+// An agent's XO comms tool calls in people's words: what it is doing, what it did, and why a turn it ended is only a pause.
+
+/** @typedef {{ thread: (id: string) => string | null, project: (chatId: string) => string | null, here: () => string | null }} Names */
+
+/** @typedef {{ tool?: string, target?: string, status?: string, summary?: any }} Row */
+
+/** @type {Names} */
 let names = { thread: () => null, project: () => null, here: () => null };
-/** app.js tells it how to name things: a thread's title by id, a project by chat id, the open conversation's project. */
+/** @param {Partial<Names>} fns */
 export function nameWith(fns) { names = { ...names, ...fns }; }
 
 const COMMS = /^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/;
-// What each sending tool returns when it worked (read from live results, 2026-11-08): its receipt. A result
-// without one (a runtime that reports no result body, say) is said as written, never as sent.
+/** @type {Record<string, (r: any) => boolean>} */
 const RECEIPT = {
   message_thread: (r) => r.delivered === true,
   message_coordinator: (r) => r.delivered === true || r.ok === true || !!r.hop_id,
@@ -24,26 +21,25 @@ const RECEIPT = {
   post_message: (r) => !!r.message_id,
   reply: (r) => !!r.message_id,
 };
-/** The comms tool a step calls, or null. */
+/** @param {Row | null | undefined} row */
 export function commsTool(row) {
   const m = COMMS.exec(String((row && (row.tool || row.target)) || ""));
   return m ? m[1] : null;
 }
+/** @param {unknown} s @returns {any} */
 const parse = (s) => { if (!s || typeof s !== "string" || s[0] !== "{") return {}; try { return JSON.parse(s) || {}; } catch { return {}; } };
+/** @param {string | null} t */
 const q = (t) => (t ? `“${t}”` : "");
 
-/** A leased resource in words: the browser seat (whatever the lease is called), else its own name. */
+/** @param {string | undefined} name */
 const resourceOf = (name) => (!name ? "a shared resource" : /browser/i.test(name) ? "the browser" : `“${name}”`);
-// what XO answers a lease another session holds: "headless-browser-suite is held by session cse_… since …"
 const HELD = /^(\S+) is held by\b/;
-/** A lease refused because another session holds it: the agent waits its turn (it can ask to be woken when
-    it frees), so this is routine, not a failure to show in red. */
+/** @param {Row} row */
 export function commsBusy(row) {
   return commsTool(row) === "lease" && row.status === "error" && typeof row.summary === "string" && HELD.test(row.summary);
 }
 
-/** [in flight, done, failed] for a comms call; done words may name what the result returned. ctx.project: the
-    project the calling agent works in (the Map shows several), else the open conversation's. */
+/** @param {string} tool @param {any} res @param {{ project?: string }} [ctx] @returns {string[]} */
 function words(tool, res, ctx = {}) {
   const thread = res.thread_id ? names.thread(res.thread_id) : null;
   const t = thread ? q(thread) : "a thread";
@@ -78,8 +74,6 @@ function words(tool, res, ctx = {}) {
     case "list_jobs": return ["Looking over the jobs", "Looked over the jobs"];
     case "cancel_job": return ["Turning a job off", "Turned a job off"];
     case "message_coordinator_reply": return ["Answering", "Answered"];
-    // the tools XO added since (storm comms/tools.py, read 2026-11-13): every one has words, so the server's
-    // "`ask` on `xo_comms`" never reaches the conversation, the typing line or the Map
     case "ask": {
       const done = res.review_id ? "Asked you" : res.to === "workspace" ? "Asked the Workspace coordinator" : res.to === "coordinator" ? `Asked ${coord}` : res.hop_id ? "Passed a question on" : "Asked a question";
       return ["Asking a question", done];
@@ -101,49 +95,40 @@ function words(tool, res, ctx = {}) {
     case "no_such_project": return ["Saying there's no such project", "Said there's no such project"];
     case "list_review": return ["Looking over what waits on you", "Looked over what waits on you"];
     case "annotate_review": return ["Adding a note to a question", "Added a note to a question"];
-    // one XO adds later: said generally, never as the tool's name
     default: return ["Working with XO", "Used an XO tool"];
   }
 }
 
-/** A step's line in words (markdown-safe plain text), or null when it isn't a comms call we know.
-    "Sent" means the call says it was delivered: a refused, cancelled or failed call, or a result that says
-    it wasn't (ok:false, delivered:false, an error), says that instead. */
+/** @param {Row} row @param {{ project?: string }} [ctx] */
 export function commsLine(row, ctx) {
   const tool = commsTool(row);
   if (!tool) return null;
   const res = parse(row.summary);
   const w = words(tool, res, ctx);
   if (!w) return null;
-  const lower = (x) => x.charAt(0).toLowerCase() + x.slice(1);
+  const lower = (/** @type {string} */ x) => x.charAt(0).toLowerCase() + x.slice(1);
   if (row.status === "running") return `${w[0]}…`;
   if (row.status === "denied") return `Not allowed: ${lower(w[0])}`;
   if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
-  // a call made after the agent ended its turn did nothing (XO refuses it: "This turn is closed, …")
   const refused = typeof row.summary === "string" && /^This turn is closed\b/.test(row.summary);
   const failed = row.status === "error" || refused || res.ok === false || res.delivered === false || !!res.error;
-  if (commsBusy(row)) { const r = resourceOf(HELD.exec(row.summary)[1]); return `${r.charAt(0).toUpperCase()}${r.slice(1)} was in use`; }
+  if (commsBusy(row)) { const r = resourceOf(/** @type {RegExpExecArray} */ (HELD.exec(row.summary))[1]); return `${r.charAt(0).toUpperCase()}${r.slice(1)} was in use`; }
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
-  // a message tool's success is its own receipt; without one (Codex drops the result body) it's said neutrally,
-  // "Message to …", which claims neither delivery nor failure
   if (RECEIPT[tool] && !RECEIPT[tool](res)) return w[3] || w[1];
   return w[1];
 }
 
-/** A group header for steps that are all comms calls: what they did, the last two in order. */
+/** @param {Row[] | null | undefined} rows @param {{ project?: string }} [ctx] */
 export function commsHeader(rows, ctx) {
   if (!rows || !rows.length || !rows.every((r) => commsTool(r))) return null;
   const all = rows.map((r) => commsLine(r, ctx)).filter(Boolean);
   const said = all.filter((l) => l !== "Nothing to add");
-  // a group that only ended the turn says so, not the server's "Used a tool"
   if (!said.length) return all.length ? all[all.length - 1] : null;
-  // side by side, not "then": two calls may have run at once
   return said.slice(-2).join(" · ");
 }
 
 const STEP = /(?:call )?`([\w-]+)` on `xo_comms`/g;
-/** A server line with an XO comms call in it ("`ask` on `xo_comms`", a group header or a stopped turn's last
-    step) in words: each call becomes what it was doing ("Asking a question"). Anything else stays as it is. */
+/** @param {any} s @param {{ project?: string }} [ctx] */
 export function commsText(s, ctx) {
   if (!s || typeof s !== "string" || !s.includes("xo_comms")) return s;
   return s.replace(STEP, (_, tool, at) => {
@@ -152,9 +137,7 @@ export function commsText(s, ctx) {
   });
 }
 
-/** Why a turn the agent ended itself is only a pause: the wake it set before it stopped (wake_me), in words
-    ("Paused to wait for the browser"), or null when it set none. Read from the call's result, which the
-    runtime may have shortened mid-way, so by its fields rather than as JSON. */
+/** @param {Row[] | null | undefined} rows */
 export function commsPause(rows) {
   const wake = (rows || []).filter((r) => commsTool(r) === "wake_me" && r.status === "ok" && typeof r.summary === "string").pop();
   if (!wake) return null;
@@ -168,6 +151,6 @@ export function commsPause(rows) {
     return "Paused until it's woken";
   }
   const when = at && Date.parse(at[1]);
-  if (Number.isFinite(when)) return `Paused until ${new Date(when).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  if (Number.isFinite(when)) return `Paused until ${new Date(/** @type {number} */ (when)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
   return "Paused until it's woken";
 }

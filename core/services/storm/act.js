@@ -1,7 +1,7 @@
 // @ts-check
 import { client } from "./client.js";
 import { heldOf, mainRuntime, sessionBusy } from "../world/sessions.js";
-import { commsLine, commsHeader, commsText } from "../../../js/comms.js";
+import { commsLine, commsHeader, commsText } from "../comms.js";
 import { AWAIT_CAP_MS } from "./config.js";
 import { createCommands } from "./commands.js";
 

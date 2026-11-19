@@ -2227,8 +2227,8 @@
    "home": "modules/chats/"
   },
   "js/comms.js": {
-   "status": "planned",
-   "home": "modules/conversation/blocks/comms.js"
+   "status": "moved",
+   "home": "core/services/comms.js"
   },
   "js/content.js": {
    "status": "planned",

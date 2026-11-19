@@ -23,7 +23,7 @@ import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wai
 import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
-import { nameWith } from "./comms.js";
+import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
@@ -348,7 +348,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-
 document.addEventListener("pointerdown", (e) => { if (PICK.el && !e.target.closest(".pk-pop,[data-pj-icon]")) closePick(); });
 const threadsOf = (pid) => world.state.threads.filter((t) => t.project === pid && t.state !== "resolved");
 const convThread = (v) => (v && v.startsWith("t:") ? world.thread(v.slice(2)) : null);
-// the team, visible (js/comms.js): a comms call names the thread, project or coordinator it reached
+// the team, visible (core/services/comms.js): a comms call names the thread, project or coordinator it reached
 nameWith({
   thread: (id) => world.thread(id)?.title || null,
   project: (chatId) => (world.state.projects || []).find((p) => p.chatId === chatId)?.name || null,

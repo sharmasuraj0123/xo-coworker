@@ -37,7 +37,7 @@ Items inside first-party files: 2290 (planned 1007, moved 695, split-region 561,
 | `js/changesframe.js` | 323 | split | modules/changes/frame.js, core/ui/components/counts.js |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
 | `js/chats.js` | 452 | planned | modules/chats/ |
-| `js/comms.js` | 173 | planned | modules/conversation/blocks/comms.js |
+| `js/comms.js` | 173 | moved | core/services/comms.js |
 | `js/content.js` | 72 | planned | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
 | `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
