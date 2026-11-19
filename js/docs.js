@@ -25,6 +25,9 @@ export const AUTOSAVE_MS = 1000;
 export const DRAFT_MS = 800;
 // the versions held per document, with their text (older ones keep who and when; their text is read from Space)
 export const KEEP_TEXT = 20;
+// your saves this close together are one version (Space's merge window, SPACE-CONTRACT.md §1.1): a typing session
+// that autosaves every second reads as one step back, not fifty
+export const MERGE_MS = 10000;
 
 /** What a refused save means (Space's PUT /file), as a state and words. Pure. */
 export function refusal(err) {
@@ -102,7 +105,13 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
   function pushVersion(d, v) {
     const last = d.versions[d.versions.length - 1];
     if (last && last.version === v.version && v.version) { Object.assign(last, { ...v, text: v.text ?? last.text }); return; }
-    d.versions.push({ id: v.id || null, version: v.version || null, at: v.at || new Date(clock.now()).toISOString(), by: v.by || null, text: v.text ?? null, kind: v.kind || "edit" });
+    const now = clock.now();
+    if (last && v.by && v.by.kind === "ui" && last.by && last.by.kind === "ui" && last.restores == null && v.restores == null && last.t != null && now - last.t < MERGE_MS) {
+      Object.assign(last, { version: v.version || null, at: v.at || new Date(now).toISOString(), text: v.text ?? null, id: last.id || v.id || null, t: now });
+      emit(d, "version");
+      return;
+    }
+    d.versions.push({ t: now, restores: v.restores ?? null, id: v.id || null, version: v.version || null, at: v.at || new Date(clock.now()).toISOString(), by: v.by || null, text: v.text ?? null, kind: v.kind || "edit" });
     // only the newest few keep their text in memory
     const held = d.versions.filter((x) => x.text != null);
     for (const x of held.slice(0, Math.max(0, held.length - KEEP_TEXT))) x.text = null;
@@ -212,7 +221,7 @@ export function createDocs({ api, store = null, clock = { now: () => Date.now(),
         d.inflight = null;
         d.base = text; d.version = r.version; d.deleted = false; d.offline = false; d.confirm = false;
         if (confirm) d.confirmed = true;
-        pushVersion(d, { version: r.version, at: r.saved_at || null, by: { kind: "ui" }, text, id: r.edit_id || null, kind: "edit" });
+        pushVersion(d, { version: r.version, at: r.saved_at || null, by: { kind: "ui" }, text, id: r.edit_id || null, kind: restoreOf ? "restore" : "edit", restores: restoreOf || null });
         const now = textOf(d);
         if (now !== text) { setState(d, "dirty"); schedule(d); }
         else { dropDraft(store, d.key); setState(d, "saved"); }

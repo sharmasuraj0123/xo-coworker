@@ -337,7 +337,8 @@ export const api = {
 
   // ── projects ──────────────────────────────────────────────────────────────
   /** A text file inside a project, for the file viewer: {name, kind, size_bytes, truncated, content, …}. */
-  projectFile: (project, relativePath, at, { purpose } = {}) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}), ...(purpose ? { purpose } : {}) }),
+  // version: one of the file's versions from Space's version store (SPACE-CONTRACT.md §4.2), read only
+  projectFile: (project, relativePath, at, { purpose, version } = {}) => get(`/xo-projects/${enc(project)}/file`, { relative_path: relativePath, ...(at ? { commit: at.commit, commit_path: at.path } : {}), ...(purpose ? { purpose } : {}), ...(version ? { version } : {}) }),
   /**
    * Save a project file (Space; serve.py adds the UI's writer key). base_version: the version you started
    * from. → {version, saved_at, edit_id}; 409 file_changed {current: {content, version}}; 428

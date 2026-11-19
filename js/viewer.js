@@ -562,14 +562,24 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     TX.h.showChanges(V.showChanges && prev && prev.text != null ? prev.text : null);
   }
   /** Step to an older or newer version (read only), or back to the latest. */
-  function stepVersion(dir) {
+  async function stepVersion(dir) {
     const D = doc();
     if (!D || !TX.h) return;
     const n = D.versions.length, at = D.viewing ? D.versions.indexOf(D.viewing) : n - 1;
     let to = Math.min(n - 1, Math.max(0, at + dir));
-    // a version whose text isn't held here can't be shown: skip it, toward the direction asked
-    while (to > 0 && to < n - 1 && D.versions[to].text == null) to += dir;
     if (to === at || to < 0 || to > n - 1) return;
+    // an older version whose text isn't held here is read from Space's version store (§4.2); one it no longer keeps
+    // (pruned, a secret's) is stepped over
+    for (; to > 0 && to < n - 1 && D.versions[to].text == null; to += dir) {
+      const v = D.versions[to];
+      if (!v.version || v.gone) continue;
+      try {
+        const r = await api.projectFile(D.project, D.rel, null, { version: v.version });
+        if (typeof r.content === "string") { v.text = r.content; break; }
+      } catch { v.gone = true; }
+      if (doc() !== D) return;
+    }
+    if (to === at || to < 0 || to > n - 1 || doc() !== D) return;
     if (to === n - 1) { docs.view(D, null); TX.h.showVersion(null); announce("The latest version."); }
     else {
       if (V.showChanges) { V.showChanges = false; TX.h.showChanges(null); }

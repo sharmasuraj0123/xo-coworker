@@ -4,7 +4,7 @@
 //   node tests/docs.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { createDocs, refusal, changedLines, minimalEdit, byWords, AUTOSAVE_MS } from "../js/docs.js";
+import { createDocs, refusal, changedLines, minimalEdit, byWords, AUTOSAVE_MS, MERGE_MS } from "../js/docs.js";
 import { draftKey, getDraft, putDraft } from "../js/drafts.js";
 
 let passed = 0;
@@ -245,16 +245,21 @@ t("versions: an older one is read only; restoring it is a new version", async ()
   const v = fakeView(docs, d);
   v.type("second\n"); await clock.tick(AUTOSAVE_MS + 10);
   v.type("third\n"); await clock.tick(AUTOSAVE_MS + 10);
-  assert.equal(d.versions.length, 3);
+  assert.equal(d.versions.length, 2, "saves a second apart are one version (the merge window)");
+  await clock.tick(MERGE_MS);
+  v.type("fourth\n"); await clock.tick(AUTOSAVE_MS + 10);
+  assert.equal(d.versions.length, 3, "a pause longer than the window starts a new one");
+  v.type("third\n"); await clock.tick(MERGE_MS + AUTOSAVE_MS);
   const old = docs.view(d, 0);
   assert.equal(old.text, "one\ntwo\nthree\n");
   docs.edited(d); // a key while looking at an old version does nothing
   await clock.tick(AUTOSAVE_MS * 2);
-  assert.equal(space.saves.length, 2);
+  assert.equal(space.saves.length, 4, "no save while an old version is shown");
+  assert.equal(d.versions.length, 3, "the last save folded into the version before it");
   await docs.restore(d, old.text); await settle();
   assert.equal(space.disk.get("a.md"), "one\ntwo\nthree\n");
   assert.equal(v.text, "one\ntwo\nthree\n");
-  assert.equal(d.versions.length, 4);
+  assert.equal(d.versions.length, 4, "a restore is always a version of its own");
   assert.equal(d.viewing, null);
 });
 
