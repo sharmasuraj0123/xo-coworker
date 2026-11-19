@@ -4,7 +4,7 @@
 //   node tests/artifacts-preview.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { previewOf } from "../js/record.js";
+import { previewOf } from "../modules/artifacts/model.js";
 
 // a document: its first heading, then its words (lists, quotes, code fences and tables left out)
 const doc = previewOf("README.md", "# Threads in the panel\n\nThis is a **proposal** only.\n\n- one\n- two\n```js\nx\n```\n| a | b |");

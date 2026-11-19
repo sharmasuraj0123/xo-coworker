@@ -1,8 +1,11 @@
-// A project's record (js/record.js): what threads made, and what happened since you last looked.
+// A project's record (js/record.js, modules/artifacts/model.js): what threads made, and what happened since you last looked.
 // Pure; no network.
 //   node tests/record.test.mjs
 import assert from "node:assert/strict";
-import * as R from "../js/record.js";
+import * as Record from "../js/record.js";
+import * as Made from "../modules/artifacts/model.js";
+
+const R = { ...Record, ...Made };
 
 // js/ui.js (through recordview.js) reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
