@@ -6,4 +6,4 @@
   - Use parallel threads, which merge into `coworker/modular` through its owner thread.
   - **D1:** dev-only tools (TypeScript checking of JSDoc, oxlint). The app still runs from plain files with no build.
   - **D4:** move `ui-mockups/` and the tracked `design-research/` files out of the repo, to a design archive. The four files the tests need move into the test fixtures first.
-- **Still open:** D2, D3, D5–D8 (PLAN §8). Until the owner answers them, the plan's recommendations stand.
+- **Settled since:** D2, D3 and D5–D8, at 19:34Z (see 2026-11-19-plan-decisions-d2-d8.md).
