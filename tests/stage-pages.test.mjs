@@ -48,4 +48,12 @@ const block = css.slice(css.indexOf("── Pages open in the panel"), css.index
 assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\(--s-1\)\}/, "a page's title centres on its ‹");
+// inside the Shell page's terminal Esc is the shell's (vim), not the panel's: the stage's keys ask the shells' one rule
+// first (owns: inside #shd .xterm), as the app's keys do
+{ const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8"), dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
+  assert.match(stage, /shell = null, owns = \(\) => false \}\) \{/);
+  assert.match(stage, /el\.addEventListener\("keydown", \(e\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(owns\(e\)\) return;/, "the terminal's keys before the panel's");
+  assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\) \}\);/);
+  assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
+  assert.match(app, /if \(SH\.owns\(e\)\) \{/); }
 console.log("stage-pages: ok");

@@ -401,7 +401,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host) });
+const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -1412,8 +1412,8 @@ function topRender(needs) {
       : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
     const resolved = t.state === "resolved";
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
-      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
-      (S.tMenu === t.id ? threadMenuHtml(t) : "") + `</span>` : "";
+      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id && S.tMenuIn !== "page"}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
+      (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
@@ -2725,6 +2725,7 @@ function tpMount(box) {
   wireComposer(TP.K);
   wireTray(TP.K);
   TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
+  menuKeys($("#tphead"), { close: () => closeThreadMenu() });
   // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
   TP.K.attach.addEventListener("click", () => TP.K.input.click());
   TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
@@ -2732,10 +2733,11 @@ function tpMount(box) {
   box.addEventListener("drop", (e) => { if (![...(e.dataTransfer?.types || [])].includes("Files")) return; e.preventDefault(); e.stopPropagation(); addFiles(e.dataTransfer.files, TP.K); });
   // its model and effort: the thread's own session, the chat's picker
   TP.K.iq.addEventListener("click", () => { const sid = sessionOf(tpView()); if (IQ.isOpen) IQ.close(); else IQ.open(sid, TP.K.iq); });
-  decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
+  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
     dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
   // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
-  new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`)).observe(els.dock);
+  TP.dockRO = new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`));
+  TP.dockRO.observe(els.dock);
   els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(TP.C); }); }, { passive: true });
 }
 function tpShow(key, { focus = false } = {}) {
@@ -2753,9 +2755,10 @@ function tpShow(key, { focus = false } = {}) {
 }
 function tpUnmount() {
   if (TP.K) saveDraft(TP.K);
-  TP.follow?.destroy();
+  // everything it hung on the page goes with it (a page closed and opened again added a set each time)
+  TP.follow?.destroy(); TP.deco?.destroy(); TP.dockRO?.disconnect();
   world.act.watchSideThread?.(null);
-  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null }); TP.viewSubs.clear();
+  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null, deco: null, dockRO: null, dock: null }); TP.viewSubs.clear();
 
 }
 STAGE.page("thread", {
@@ -2771,28 +2774,18 @@ STAGE.page("thread", {
   // a reply being written is kept (its draft), so closing never loses it: nothing to ask
   canClose: () => true,
   // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
-  escape: () => { if (TP.menu) { TP.menu = false; $("#tphead")._h = ""; render(); $("#tphead [data-tp-menu]")?.focus({ preventScroll: true }); return true; }
+  escape: () => { if (S.tMenu && S.tMenuIn === "page") { closeThreadMenu(); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
 /** The thread page's head: its state, its runtime and branch, Open full width. */
 function tpHead(t) {
   const head = $("#tphead");
+  const open = S.tMenu === t.id && S.tMenuIn === "page";
+  // (one ⤢: the panel's own, which widens this same page; the thread's own page is in its ⋯, "Open as its own page")
   const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
     `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}` +
-    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>` +
-    `<span class="tp-menu-w"><button type="button" class="stg-ic" data-tp-menu aria-haspopup="menu" aria-expanded="${!!TP.menu}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${TP.menu ? tpMenuHtml(t) : ""}</span>`;
+    `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
   if (head._h !== html) { redraw(head, html); head._h = html; }
-}
-/** The page's ⋯: what the thread can do from here (a shell in its worktree, its branch's name, Stop), and the rest
- *  (Rename, Label, Continue elsewhere, Delete) on its own page, where its header edits them in place. */
-function tpMenuHtml(t) {
-  const item = (attrs, words) => `<button type="button" role="menuitem" ${attrs}>${words}</button>`;
-  const sep = '<span class="tw-sep" role="separator"></span>';
-  const groups = [
-    [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "", t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : "", isBusy(t) ? item("data-chat-stop", "Stop") : ""],
-    [item(`data-tp-full="${esc(t.id)}"`, `Rename, label${t.canDelete ? ", delete" : ""}… (its page)`)],
-  ].map((g) => g.filter(Boolean).join("")).filter(Boolean);
-  return `<span class="tw-menu tp-menu" role="menu">${groups.join(sep)}</span>`;
 }
 function drawThreadPage(needs) {
   const t = convThread(tpView());
@@ -2803,13 +2796,6 @@ function drawThreadPage(needs) {
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-// the page's ⋯ opens and closes its menu; a choice in it (or a click elsewhere) closes it; Esc closes it first
-document.addEventListener("click", (e) => {
-  if (!TP.box) return;
-  const m = e.target.closest?.("[data-tp-menu]");
-  if (m) { TP.menu = !TP.menu; $("#tphead")._h = ""; render(); if (TP.menu) $("#tphead .tp-menu [role=menuitem]")?.focus({ preventScroll: true }); return; }
-  if (TP.menu) { TP.menu = false; $("#tphead")._h = ""; schedule(); }
-}, true);
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as
@@ -3459,10 +3445,11 @@ function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
 function closeThreadMenu({ focus = true } = {}) {
   if (!S.tMenu) return;
   const back = focus && !!document.activeElement?.closest?.(".tw-menu");
-  S.tMenu = null; $("#top-who")._h = null;
+  const opener = S.tMenuIn === "page" ? "#tphead [data-tmenu]" : "#top-who [data-tmenu]";
+  S.tMenu = null; S.tMenuIn = null; $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
   if (!back) { schedule(); return; }
   render();
-  $("[data-tmenu]")?.focus({ preventScroll: true });
+  $(opener)?.focus({ preventScroll: true });
 }
 menuKeys($("#top"), { close: () => closeThreadMenu() });
 function startThreadEdit(tid, field) {
@@ -3528,7 +3515,7 @@ $("#top").addEventListener("keydown", (e) => {
     return;
   }
   // the menu's own keys (↓ ↑ Home End, Escape, Tab) are menuKeys'; this is Escape with focus on ⋯ itself
-  if (e.key === "Escape" && S.tMenu) { e.preventDefault(); e.stopPropagation(); S.tMenu = null; $("#top-who")._h = null; render(); $("[data-tmenu]")?.focus(); }
+  if (e.key === "Escape" && S.tMenu) { e.preventDefault(); e.stopPropagation(); closeThreadMenu(); }
 });
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
 // leaving the field saves it, unless it's what was just refused (Enter retries that; leaving keeps it, as typed)
@@ -3618,11 +3605,31 @@ document.addEventListener("click", (e) => {
   const rs = t.closest("[data-resolve]");
   if (rs) { resolveThread(rs.dataset.resolve, rs.dataset.to === "resolve"); return; }
   const tm = t.closest("[data-tmenu]");
-  if (tm) { S.tMenu = S.tMenu === tm.dataset.tmenu ? null : tm.dataset.tmenu; $("#top-who")._h = null; schedule(); if (S.tMenu) requestAnimationFrame(() => $(".tw-menu [role=menuitem]")?.focus()); return; }
+  if (tm) {
+    const where = tm.dataset.tmenuIn || "main", again = S.tMenu === tm.dataset.tmenu && S.tMenuIn === where;
+    S.tMenu = again ? null : tm.dataset.tmenu; S.tMenuIn = again ? null : where;
+    $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
+    render(); // drawn now, in the click: the menu is there under the pointer at once (it was a frame or two late)
+    if (S.tMenu) tm.parentElement.querySelector(".tw-menu [role=menuitem]:not([aria-disabled=true])")?.focus({ preventScroll: true });
+    return;
+  }
   const tf = t.closest("[data-tfield]");
   // the thread's ⋯: previous / next thread, copy its branch's name
   const tg = t.closest("[data-tgo]");
-  if (tg) { if (tg.getAttribute("aria-disabled") !== "true" && tg.dataset.tgo) { closeThreadMenu({ focus: false }); go(tg.dataset.tgo); } return; }
+  if (tg) { if (tg.getAttribute("aria-disabled") !== "true" && tg.dataset.tgo) { const page = S.tMenuIn === "page"; closeThreadMenu({ focus: false }); if (page && tg.dataset.tgo.startsWith("t:")) STAGE.show("thread", tg.dataset.tgo.slice(2), { focus: true }); else go(tg.dataset.tgo); } return; }
+  const tsd = t.closest("[data-tside]");
+  if (tsd) { const th = world.thread(tsd.dataset.tside); closeThreadMenu({ focus: false }); if (th) { go("p:" + th.project); STAGE.show("thread", th.id, { focus: true }); } return; }
+  // from the page, what its own page's header does in place (rename, label, delete, another runtime): there, started
+  const fromPage = S.tMenuIn === "page" && (t.closest("[data-tfield]:not([data-tfield=clear-label])") || t.closest("[data-tdel]") || t.closest("[data-tmove]"));
+  if (fromPage) {
+    const tid = S.tMenu;
+    STAGE.closeTab("thread"); S.tMenu = null; S.tMenuIn = null;
+    go("t:" + tid); // drawn in this step: what the item leads to starts here too, never a frame later
+    if (fromPage.dataset.tdel) { S.tDel = tid; $("#top-who")._h = null; render(); $("[data-tdel-no]")?.focus({ preventScroll: true }); }
+    else if (fromPage.dataset.tfield) startThreadEdit(tid, fromPage.dataset.tfield);
+    else { const sid = sessionOf(S.view), ch = IQ.runtimeChoice(sid), to = ch.list.find((o) => o.id !== ch.on && o.usable); if (to) IQ.open(sid, $("#iq"), { rt: to.id }); }
+    return;
+  }
   const tc = t.closest("[data-tcopy]");
   if (tc) { const b = tc.dataset.tcopy; closeThreadMenu(); navigator.clipboard?.writeText(b).then(() => heraldShow({ kind: "done", text: "Branch name copied", sub: b }, 2400), () => heraldShow({ kind: "stopped", text: "Couldn't copy the branch name", sub: b }, 4200)); return; }
   const td = t.closest("[data-tdel]");
@@ -3831,11 +3838,15 @@ function threadSiblings(t) {
   const i = list.indexOf("t:" + t.id);
   return { prev: i > 0 ? list[i - 1] : null, next: i >= 0 && i < list.length - 1 ? list[i + 1] : null };
 }
-function threadMenuHtml(t) {
+/** The thread's ⋯ menu: ONE menu, the full header's and the panel's Thread page's (the owner, 19 Nov 18:59Z: "why
+ *  can't i have the same menu on the side thing?"): the same items, hover (pointerFollows), keys (menuKeys) and code.
+ *  where: "main" or "page"; the one item that differs is the way to its other place. */
+function threadMenuHtml(t, where = "main") {
   const sib = threadSiblings(t), item = (attrs, words, off = false) => `<button type="button" role="menuitem" ${attrs}${off ? ' aria-disabled="true"' : ""}>${words}</button>`;
   const sep = '<span class="tw-sep" role="separator"></span>';
   const groups = [
-    [item(`data-tgo="${esc(sib.prev || "")}"`, "Previous thread", !sib.prev), item(`data-tgo="${esc(sib.next || "")}"`, "Next thread", !sib.next)],
+    [item(`data-tgo="${esc(sib.prev || "")}"`, "Previous thread", !sib.prev), item(`data-tgo="${esc(sib.next || "")}"`, "Next thread", !sib.next),
+      where === "page" ? item(`data-tp-full="${esc(t.id)}"`, "Open as its own page") : item(`data-tside="${esc(t.id)}"`, "Open beside its project's chat")],
     [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "",
       t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : ""],
     [item('data-tfield="title"', "Rename"), item('data-tfield="label"', t.label ? "Change label" : "Add a label"), t.label ? item('data-tfield="clear-label"', "Remove the label") : "",
@@ -4584,8 +4595,10 @@ addEventListener("keydown", (e) => {
   // a key that works anywhere, by one rule (js/keys.js globalFor: the one Settings checks a key against): with ⌘/Ctrl
   // it works everywhere, even while typing (C118: only four actions' were answered here, so a ⌘/Ctrl key Settings
   // took for All shortcuts or Write did nothing)
-  const g = K.globalFor(e);
-  if (g && K.hasMod(g) && runGlobal(g)) { e.preventDefault(); return; }
+  // A key the field you're typing in already took stays the field's: ⌘B in a Markdown page makes bold and doesn't
+  // also fold the tree (the editor's keymap answers first, and says so with preventDefault)
+  const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
+  if (g && K.hasMod(g) && !taken && runGlobal(g)) { e.preventDefault(); return; }
   if (!jump.hidden) { if (e.key === "Escape") { e.preventDefault(); closeJump(); } return; }
   if (IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); IQ.close(); } return; }
   if (CREATE.isOpen()) return;
