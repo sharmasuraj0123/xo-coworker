@@ -2803,6 +2803,13 @@ function drawThreadPage(needs) {
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
+// the page's ⋯ opens and closes its menu; a choice in it (or a click elsewhere) closes it; Esc closes it first
+document.addEventListener("click", (e) => {
+  if (!TP.box) return;
+  const m = e.target.closest?.("[data-tp-menu]");
+  if (m) { TP.menu = !TP.menu; $("#tphead")._h = ""; render(); if (TP.menu) $("#tphead .tp-menu [role=menuitem]")?.focus({ preventScroll: true }); return; }
+  if (TP.menu) { TP.menu = false; $("#tphead")._h = ""; schedule(); }
+}, true);
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as

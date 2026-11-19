@@ -88,6 +88,9 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
 // its ⋯: a shell, the branch's name, Stop; the rest on its own page
 assert.match(app, /data-tp-menu aria-haspopup="menu" aria-expanded="\$\{!!TP\.menu\}"/);
 assert.match(app, /item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, `Rename, label\$\{t\.canDelete \? ", delete" : ""\}… \(its page\)`\)/);
+// its ⋯ answers a press (19 Nov 18:52Z: the listener went with a refactor and the button did nothing)
+assert.match(app, /const m = e\.target\.closest\?\.\("\[data-tp-menu\]"\);\n\s*if \(m\) \{ TP\.menu = !TP\.menu; \$\("#tphead"\)\._h = ""; render\(\);/);
+assert.match(app, /if \(TP\.menu\) \{ TP\.menu = false; \$\("#tphead"\)\._h = ""; schedule\(\); \}\n\}, true\);/, "a click elsewhere closes it");
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
