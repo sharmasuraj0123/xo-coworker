@@ -6,47 +6,32 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141414">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
-  <!-- how the conversation reads (Settings › General): a document, full width, unless this device turned Chat bubbles on;
-       set before the first paint so a reload never passes through the other look -->
   <script>try{if(localStorage.getItem("cv-bubbles")==="on"){document.documentElement.dataset.msgx="bubbles";document.documentElement.dataset.msgxTails=""}}catch(e){}</script>
   <title>XO Space</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <!-- the type, asked for at once: Home's first paint is in Geist, never swapped (and shifted) a moment later -->
   <link rel="preload" href="./fonts/geist/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./core/ui/foundation.css">
   <link rel="stylesheet" href="./js/vendor/xterm/xterm.css">
   <link rel="stylesheet" href="./css/app.css">
   <link rel="stylesheet" href="./css/light.css">
-  <!-- the foundation: structure that holds in both themes, so it loads last -->
   <link rel="stylesheet" href="./css/foundation.css">
   <link rel="stylesheet" href="./css/panel.css">
-  <!-- diffs and their chrome (js/diffview.js, js/changesframe.js): the look as custom properties on Pierre's element -->
   <link rel="stylesheet" href="./css/diffs.css">
   <link rel="stylesheet" href="./css/launchpad.css">
   <link rel="stylesheet" href="./css/links.css">
   <link rel="stylesheet" href="./css/artifacts.css">
   <link rel="stylesheet" href="./core/ui/components/xo-select.css">
-  <!-- pictures and files in the conversation, and the lightbox (js/media.js, js/lightbox.js) -->
   <link rel="stylesheet" href="./css/media.css">
-  <!-- the shape per person (js/shape.js): Settings › Shape, compact density -->
   <link rel="stylesheet" href="./css/shape.css">
-  <!-- the left sidebar: one corner system, and which project is open (thread-28ea9d) -->
   <link rel="stylesheet" href="./css/side.css">
-  <!-- the conversation's replies, back-to-latest, and its bubbles when Chat bubbles is on (css/msgx.css + js/msgx.js) -->
   <link rel="stylesheet" href="./css/msgx.css">
-  <!-- the conversation as a document (the default) and what a reply can hold: math, charts, diagrams (js/rich.js) -->
   <link rel="stylesheet" href="./core/ui/markdown/rich.css">
-  <!-- a file you read and type in: the editor, Markdown as a page, the open files as tabs, its versions (js/doceditor.js) -->
   <link rel="stylesheet" href="./css/docs.css">
-  <!-- the phone (≤760 px): its top bars, last so it settles every earlier phone rule (thread "Phone UI audit") -->
   <link rel="stylesheet" href="./css/phone.css">
 </head>
 <body>
   <div class="app" id="app">
-    <!-- Sidebar: places only. Home, Workspace, Chats, then projects as button-like rows (text only when a
-         project needs you). Tools that aren't places live in the foot: the shells toggle and Settings. -->
     <aside class="side" id="side" aria-label="Navigation">
-      <!-- the top row: fold the sidebar to its rail (where the eye starts), the brand, and search / jump (⌘K) -->
       <div class="side-top">
         <button type="button" class="side-ib side-fold" id="side-fold" aria-controls="side" aria-expanded="true" aria-label="Fold the sidebar"></button>
         <p class="brand"><span class="brand-mark" id="brand-mark"></span><span class="sr-only">XO </span><b>Space</b></p>
@@ -57,24 +42,15 @@
         <button type="button" class="nrow" data-go="home" id="nv-home"><span class="nr-ic" id="ic-home"></span><span class="nr-name">Home</span><span class="nr-n" id="home-n"></span></button>
         <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span><span class="nr-n" id="ws-n"></span></button>
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
-        <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
         <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
-        <!-- the places you keep, in your order (Edit the sidebar…, in More), then More: where the rest wait, so this list
-             never outgrows a screen -->
         <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span></button>
       </nav>
       <div class="side-pop" id="side-more" role="menu" aria-label="More places" hidden></div>
-      <!-- Create XO Project: "+ New" on the Projects label, where the new project will appear (a bare "+" was
-           too easy to miss: the owner, 4 Nov) -->
       <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
-      <!-- a filter once the list is long (hub #16): typing narrows it, ↑ ↓ and Enter open one, Esc clears -->
       <div class="side-find" id="side-find" hidden><span class="sf-ic" id="sf-ic" aria-hidden="true"></span><input id="pf-in" type="search" placeholder="Find a project" autocomplete="off" spellcheck="false" aria-label="Find a project" aria-controls="projects"><span class="sf-n" id="pf-n" aria-live="polite"></span></div>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
       <div class="side-foot">
-        <!-- Shells (js/shells/): not a place but a dock under every view; this toggles it and counts what runs.
-             Shown only when the backend has shells on. -->
         <button type="button" class="gear sh-tog" id="nv-shells" aria-pressed="false" hidden><span class="gear-ic" id="ic-shells"></span><span class="gear-t">Shells</span><span class="sh-n"></span></button>
-        <!-- the theme and Settings say themselves with their icons (the owner, 19 Nov: the gear does enough) -->
         <button type="button" class="gear is-ic" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
         <button type="button" class="gear is-ic" id="set-side" title="Settings" aria-label="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span></button>
       </div>
@@ -88,25 +64,19 @@
         <button type="button" class="help gear" id="set-phone" aria-label="Settings" title="Settings"></button>
       </header>
 
-      <!-- Home: what's worth your time, then the end of the day -->
       <section class="home" id="home" aria-labelledby="home-h" tabindex="-1"></section>
 
-      <!-- Artifacts: everything threads made, across projects (js/recordview.js) -->
       <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
 
-      <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>
         <header class="top" id="top">
-          <!-- a phone's menu, inside the conversation's own bar (css/phone.css); the phonebar's ☰ elsewhere -->
           <button type="button" class="top-menu" id="top-menu" aria-label="Open menu" aria-controls="side" aria-expanded="false"></button>
           <button type="button" class="top-back" id="top-back" hidden></button>
           <div class="top-who" id="top-who"></div>
           <div class="top-end" id="top-end"></div>
         </header>
         <div class="thead" id="thead" hidden></div>
-        <!-- Delete, asked in place under the thread's header (Settings › Worktrees' own confirm): Keep it first -->
         <div class="tdel" id="tdel" hidden></div>
-        <!-- since you were away (js/recordview.js sinceLine): one quiet line, the owner's pick (2026-11-08); the card stays removed -->
         <div class="since" id="since" hidden></div>
         <div class="scroller" id="scroller" tabindex="-1" data-own-scroll>
           <div class="column" id="column">
@@ -118,18 +88,13 @@
       </section>
       <div class="drop-veil" id="drop-veil" hidden><p><span id="drop-ic"></span>Drop to attach · text, images or PDFs, up to 25 MB each</p></div>
 
-      <!-- The dock: one calm labelled line, the thread's own decision (in a thread), the composer on a glass bar -->
       <div class="dock" id="dock">
-        <!-- what's docked over the composer is one stack, read top to bottom: the notices' line, on top of whatever
-             is docked (on the composer bar's fade when nothing is); the thread's decision; the composer -->
         <div class="herald" id="herald" aria-live="polite"></div>
         <div class="tdock" id="tdock"></div>
         <div class="cbar">
         <form class="composer" id="composer" autocomplete="off">
           <label class="sr-only" for="say" id="say-label">Message</label>
-          <!-- files on this message (hub #30): each uploads as it's added; Send waits for them -->
           <ul class="att-tray" id="att-tray" aria-label="Files on this message" hidden></ul>
-          <!-- the lines this message is about, from a file beside the chat (Ask about these lines) -->
           <div class="cref" id="cref" hidden></div>
           <div class="composer-field">
             <textarea id="say" rows="1" placeholder="Message" aria-autocomplete="list" aria-controls="at-list" aria-expanded="false" spellcheck="true"></textarea>
@@ -148,7 +113,6 @@
         </div>
       </div>
 
-      <!-- Global decisions: beside the conversation, sized to its content -->
       <section class="panel" id="panel" aria-labelledby="pn-h" hidden>
         <header class="pn-top">
           <div class="pn-title"><h2 id="pn-h">Needs you</h2><p class="pn-count" id="pn-count" aria-live="polite"></p></div>
@@ -159,15 +123,12 @@
         <footer class="pn-foot" id="pn-foot"></footer>
       </section>
 
-      <!-- The Map: where your agents are working, beside the conversation (js/map.js); the viewer stacks over it -->
       <aside class="map" id="map" aria-labelledby="mp-h" tabindex="-1" hidden></aside>
 
-      <!-- A shared file, opened beside the conversation (js/viewer.js) -->
       <section class="viewer" id="viewer" role="dialog" aria-labelledby="vw-h" tabindex="-1" hidden></section>
 
       <div class="toast-wrap"><div class="toast" id="toast" role="status" hidden></div></div>
 
-      <!-- Settings: a page over the main area; closing it returns exactly where you were -->
       <section class="settings" id="settings" role="dialog" aria-labelledby="set-h" hidden tabindex="-1">
         <header class="set-top"><h1 id="set-h">Settings</h1><button type="button" class="x" id="set-x" aria-label="Close settings" title="Close (Esc)"></button></header>
         <div class="set-body">
@@ -186,7 +147,6 @@
             <div class="set-row"><div class="set-l"><b id="hops-l">Show how messages travel</b><span>Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.</span></div><button type="button" class="switch" id="hops-tog" role="switch" aria-checked="false" aria-labelledby="hops-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
             <div class="set-row"><div class="set-l"><b id="webpics-l">Show pictures from the web</b><span>A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.</span></div><button type="button" class="switch" id="webpics-tog" role="switch" aria-checked="true" aria-labelledby="webpics-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
           </div>
-          <!-- Shape (js/shapeview.js): which parts of XO show, in what order and in which words; only ever by your choice -->
           <div class="set-page" role="tabpanel" id="set-p-shape" aria-labelledby="set-t-shape" data-page="shape" hidden><header class="set-ph"><h2>Shape</h2><p class="set-intro">What XO shows you, and in which words. It changes only when you change it.</p></header><div class="shp"></div></div>
           <div class="set-page" role="tabpanel" id="set-p-routing" aria-labelledby="set-t-routing" data-page="routing" hidden><header class="set-ph"><h2>Routing</h2></header><div class="set-live"></div></div>
           <div class="set-page" role="tabpanel" id="set-p-runtimes" aria-labelledby="set-t-runtimes" data-page="runtimes" hidden><header class="set-ph"><h2>Runtimes</h2><p class="set-intro">The agents XO can run threads on, and where each project's work may go.</p></header><div class="set-live"></div></div>
@@ -199,11 +159,9 @@
         </div>
       </section>
     </main>
-    <!-- The shells' dock: under the main column, outside every view, so navigating never detaches a terminal -->
     <section class="shd" id="shd" aria-label="Shells" hidden></section>
   </div>
 
-  <!-- Create XO Project: start empty, or clone a Git repository into it -->
   <dialog class="dlg" id="create-dlg" aria-labelledby="create-title">
     <form id="create-form" method="dialog" autocomplete="off" novalidate>
       <header class="dlg-head">
@@ -245,7 +203,6 @@
     </form>
   </dialog>
 
-  <!-- All threads in a project: searchable, filtered; finished ones fold into one line -->
   <div class="sheet" id="all" role="dialog" aria-modal="true" aria-labelledby="all-h" hidden>
     <div class="sheet-card all-card">
       <header class="sheet-h"><h2 id="all-h">All threads</h2><button type="button" class="x" data-close aria-label="Close"></button></header>
@@ -257,18 +214,14 @@
     </div>
   </div>
 
-  <!-- Sub-agents: the live list and the log of a thread's sub-agents; one opens like a thread of its own -->
   <div class="sheet" id="runs" role="dialog" aria-modal="true" aria-labelledby="runs-h" hidden>
     <div class="sheet-card runs-card" id="runs-card" tabindex="-1"></div>
   </div>
 
-  <!-- A new chat's setup: folder, agent, model, effort, what it may do -->
   <div class="iq-pop cs-pop" id="cs-pop" role="dialog" aria-label="New chat" tabindex="-1" hidden></div>
 
-  <!-- Intelligence for this conversation: an anchored popover (a bottom sheet on a phone) -->
   <div class="iq-pop" id="iq-pop" role="dialog" aria-labelledby="iq-hh" tabindex="-1" hidden></div>
 
-  <!-- Jump -->
   <div class="sheet" id="jump" role="dialog" aria-modal="true" aria-label="Jump to" hidden>
     <div class="sheet-card jump-card">
       <div class="jump-field"><span id="jump-ic"></span><input id="jump-q" placeholder="Go to a place, or type an action" aria-controls="jump-list" autocomplete="off"></div>
@@ -276,7 +229,6 @@
     </div>
   </div>
 
-  <!-- The only place shortcuts are shown -->
   <div class="sheet" id="keys" role="dialog" aria-modal="true" aria-labelledby="keys-h" hidden>
     <div class="sheet-card keys-card">
       <header class="sheet-h"><h2 id="keys-h">Keys</h2><button type="button" class="x" data-close aria-label="Close"></button></header>
@@ -285,7 +237,6 @@
   </div>
 
   <div id="live" class="sr-only" aria-live="polite"></div>
-  <!-- Home's greeting and its blocks' frames at once, ahead of app.js and everything it imports (js/skeleton.js) -->
   <script type="module" src="./js/skeleton.js"></script>
   <script type="module" src="./boot.js"></script>
   <script type="module" src="./js/msgx.js"></script>

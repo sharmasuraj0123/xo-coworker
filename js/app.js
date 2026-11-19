@@ -4234,7 +4234,7 @@ addEventListener("keydown", (e) => {
   if (e.isComposing || e.keyCode === 229) return;
   // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
   if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
-  // a key that works anywhere, by one rule (js/keys.js globalFor: the one Settings checks a key against): with ⌘/Ctrl
+  // a key that works anywhere, by one rule (keys' globalFor: the one Settings checks a key against): with ⌘/Ctrl
   // it works everywhere, even while typing (C118: only four actions' were answered here, so a ⌘/Ctrl key Settings
   // took for All shortcuts or Write did nothing)
   // A key the field you're typing in already took stays the field's: ⌘B in a Markdown page makes bold and doesn't
