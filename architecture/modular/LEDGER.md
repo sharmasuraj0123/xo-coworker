@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 618 |
+| planned | 616 |
 | vendor | 367 |
-| deleted | 238 |
+| deleted | 240 |
 | moved | 54 |
 | split | 35 |
 | kept | 1 |
 
-Items inside first-party files: 2290 (planned 988, moved 695, split-region 561, deleted 43, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 984, moved 695, split-region 561, deleted 47, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1394,8 +1394,8 @@ Items inside first-party files: 2290 (planned 988, moved 695, split-region 561, 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/files/space-e2e-reset.sh` | 6 | planned | delete: a one-off probe with machine paths (owner D6) |
-| `tools/files/space-e2e.mjs` | 156 | planned | delete: a one-off probe with machine paths (owner D6) |
+| `tools/files/space-e2e-reset.sh` | 6 | deleted | a one-off probe with machine paths (owner D6) |
+| `tools/files/space-e2e.mjs` | 156 | deleted | a one-off probe with machine paths (owner D6) |
 
 ## tools/filetree (6)
 

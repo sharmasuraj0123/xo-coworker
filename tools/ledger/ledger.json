@@ -4986,12 +4986,12 @@
    "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
   },
   "tools/files/space-e2e-reset.sh": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/README.md": {
    "status": "deleted",
@@ -17026,20 +17026,20 @@
    "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
   },
   "tools/files/space-e2e.mjs::routes::/api/chat/stream": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::routes::/xo-projects/demo/no-such-route": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::globals::fetch": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/files/space-e2e.mjs::globals::location": {
-   "status": "planned",
-   "home": "delete: a one-off probe with machine paths (owner D6)"
+   "status": "deleted",
+   "reason": "a one-off probe with machine paths (owner D6)"
   },
   "tools/filetree/bench.js::ids::ours": {
    "status": "deleted",
