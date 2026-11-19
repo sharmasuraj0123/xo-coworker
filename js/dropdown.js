@@ -19,6 +19,7 @@
 // follows. The open list is position:fixed, so no scrolling box or popover clips it.
 
 import { ICON } from "./ui.js";
+import { RM } from "../core/ui/motion.js";
 
 const CHEV = ICON.chevron;
 const GAP = 4;          // trigger → list
@@ -223,7 +224,7 @@ class XoSelect extends HTMLElement {
     this.classList.remove("is-open");
     const m = this._menu;
     const done = () => { if (!this._open) { m.hidden = true; m.classList.remove("is-out", "is-in"); } };
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) done();
+    if (RM.matches) done();
     else { m.classList.add("is-out"); m.addEventListener("animationend", done, { once: true }); setTimeout(done, 220); }
     if (refocus) this._btn.focus({ preventScroll: true });
   }

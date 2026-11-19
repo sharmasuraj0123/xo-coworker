@@ -12,7 +12,7 @@
 //     · swipe left anywhere: every message's time slides in, like Messages
 //     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
-import { elapsed, ICON, xi } from "./ui.js";
+import { elapsed, ICON, xi, RM } from "./ui.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
 import { copyText, COPY_REFUSED, space } from "./util.js";
 import { wordsOf } from "./words.js";
@@ -393,7 +393,7 @@ function working(el) {
       const letGo = () => { HOLD.delete(key); holdRules(); };
       // its own height, read while the hold still stands (so this layout never sees the drop either)
       const to = naturalHeight(el);
-      if (from && to < from - 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (from && to < from - 1 && !RM.matches) {
         const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
         // it waits one beat first: the turn's answer usually lands with its end, and the app's follow is
         // carrying the view down to it; a shrink during that glide is absorbed, where one at the very bottom
@@ -473,7 +473,7 @@ function working(el) {
   if (Math.abs(held - st.h) >= 1) {
     HOLD.set(key, st.h); holdRules();
     // it got shorter (the work folded back): ease down to it instead of snapping, the way it opened
-    if (held > st.h + 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (held > st.h + 1 && !RM.matches) {
       const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
       el.animate([{ minHeight: `${held}px` }, { minHeight: `${st.h}px` }], { duration: parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320, easing: cs.getPropertyValue("--ease").trim() || "ease" });
     }
@@ -530,7 +530,7 @@ function settle(el, st) {
   previous?.animation.cancel();
   if (st.card) st.card.style.overflow = "";
   st.resize = null;
-  if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !RM.matches) {
     card.style.overflow = "hidden";
     const animation = card.animate([{ height: `${from}px` }, { height: `${h}px` }], { duration, easing: style.getPropertyValue("--ease").trim(), fill: "both" });
     const resize = st.resize = { animation, from, to: h, duration };
@@ -706,7 +706,7 @@ msgs.addEventListener("click", async (e) => {
   if (q) {
     const want = q.dataset.mxJump.replace(/…$/, "").slice(0, 80);
     const hit = [...msgs.querySelectorAll(".m")].reverse().find((m) => m !== q.closest(".m") && textOf(m).replace(/\s+/g, " ").includes(want));
-    if (hit) { hit.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); hit.classList.remove("mx-flash"); void hit.offsetWidth; hit.classList.add("mx-flash"); }
+    if (hit) { hit.scrollIntoView({ block: "center", behavior: RM.matches ? "auto" : "smooth" }); hit.classList.remove("mx-flash"); void hit.offsetWidth; hit.classList.add("mx-flash"); }
   }
 });
 

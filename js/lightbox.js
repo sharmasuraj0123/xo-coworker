@@ -22,7 +22,7 @@ import { ARROW_OUT } from "./markdown.js";
 import { ICON, clock } from "./ui.js";
 import { api, attachmentUrl } from "./api.js";
 import { typeWord, fmtSize } from "./attach.js";
-import { still } from "./motion.js";
+import { still, EASE } from "./motion.js";
 import { mediaItemOf, galleryOf, slotOf, cachedSrc, loadSrc, labelOf, midName, midNameHtml } from "./media.js";
 
 // The flight back is a touch quicker than the flight out (proposal §7): leaving should never feel slower
@@ -43,7 +43,6 @@ function ms(name, fallback) {
   return /ms$/.test(v) ? n : /s$/.test(v) ? n * 1000 : n;
 }
 const token = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-const curve = () => token("--ease", "cubic-bezier(.2,.8,.2,1)");
 // corners: a picture in the conversation has the cards' 12; at rest in the lightbox, the smallest on the scale
 const R_SLOT = () => token("--r-lg", "12px"), R_REST = () => token("--r-xs", "6px");
 const px = (r) => ({ left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
@@ -179,14 +178,14 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     place(frame, to);
     frame.style.borderRadius = r1;
     if (still()) return Promise.resolve();
-    const a = frame.animate([{ ...px(from), borderRadius: r0 }, { ...px(to), borderRadius: r1 }], { duration: dur, easing: curve() });
+    const a = frame.animate([{ ...px(from), borderRadius: r0 }, { ...px(to), borderRadius: r1 }], { duration: dur, easing: EASE });
     return a.finished.catch(() => {});
   }
   /** A fade. Reduced motion still cross-fades (a fade isn't a flight); only a browser without animate() snaps. */
   function fade(node, from, to, dur, delay = 0) {
     node.style.opacity = String(to);
     if (typeof node.animate !== "function") return Promise.resolve();
-    const a = node.animate([{ opacity: from }, { opacity: to }], { duration: dur, delay, easing: curve(), fill: "backwards" });
+    const a = node.animate([{ opacity: from }, { opacity: to }], { duration: dur, delay, easing: EASE, fill: "backwards" });
     return a.finished.catch(() => {});
   }
 
@@ -250,7 +249,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     f.style.borderRadius = R_REST();
     if (old) fade(old, Number(getComputedStyle(old).opacity) || 1, 0, ms("--d-out", 160)).then(() => old.remove());
     if (still()) { fade(f, 0, 1, ms("--d-hover-in", 120)); return; }
-    f.animate([{ opacity: 0, transform: `translateX(${d * 24}px)` }, { opacity: 1, transform: "none" }], { duration: ms("--d-in", 280), easing: curve() });
+    f.animate([{ opacity: 0, transform: `translateX(${d * 24}px)` }, { opacity: 1, transform: "none" }], { duration: ms("--d-in", 280), easing: EASE });
   }
 
   /** Send it back into its spot, or fade it where it is when the spot has gone. quick: no flight (Open in Files). */
@@ -264,7 +263,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     let done;
     if (quick || still() || !f || !inView(slot) || slot.classList.contains("is-tiny")) {
       const dur = quick || still() ? ms("--d-hover-in", 120) : ms("--d-out", 160);
-      if (f && !quick && !still()) f.animate([{ opacity: 1, transform: f.style.transform || "none" }, { opacity: 0, transform: "scale(.96)" }], { duration: dur, easing: curve(), fill: "forwards" });
+      if (f && !quick && !still()) f.animate([{ opacity: 1, transform: f.style.transform || "none" }, { opacity: 0, transform: "scale(.96)" }], { duration: dur, easing: EASE, fill: "forwards" });
       done = fade(el, 1, 0, dur);
     } else {
       const from = box(f);
@@ -376,8 +375,8 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     const o = Number(scrim.style.opacity || 1);
     scrim.style.opacity = "";
     if (still()) return;
-    f.animate([{ transform: was }, { transform: "none" }], { duration: BACK_MS, easing: curve() });
-    scrim.animate([{ opacity: o }, { opacity: 1 }], { duration: BACK_MS, easing: curve() });
+    f.animate([{ transform: was }, { transform: "none" }], { duration: BACK_MS, easing: EASE });
+    scrim.animate([{ opacity: o }, { opacity: 1 }], { duration: BACK_MS, easing: EASE });
   }
 
   return { open, close, get isOpen() { return L.open; } };
