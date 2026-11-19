@@ -11,10 +11,16 @@
    composer's edge). The time moves from the header to the action row, under every message. */
 :root:not([data-msgx]) .m-them{grid-template-columns:24px minmax(0,1fr);gap:0 8px}
 :root:not([data-msgx]) .m-them>.mb{grid-area:1/1/2/3;min-width:0}
-:root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:24px;height:24px;margin-top:4px;border-radius:var(--r-sm)}
+:root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:24px;height:24px;margin-top:0;border-radius:var(--r-sm)}
 :root:not([data-msgx]) .m-them>.av svg{width:14px;height:14px}
 :root:not([data-msgx]) .m-them>.av-gap,:root:not([data-msgx]) .m-turn>.av{display:none}
-:root:not([data-msgx]) .m-them>.mb>.mh{padding-left:32px}
+/* The name line is a label above the words, not a line of them (the owner, 19 Nov: the name and the body had
+   "nothing differentiating" them: the name was 14/600 in the body's own ink, read as one more bold line). Now it's the
+   UI's label voice: 13 px (--fs-base) at 500 in the third ink, on a 24 px line with the speaker's mark, then 8 px to the
+   words (15 px in the first ink). A role or the model chosen trails it in the fourth ink. */
+:root:not([data-msgx]) .m-them>.mb>.mh{min-height:24px;margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
+:root:not([data-msgx]) .m-them>.mb>.mh b{font:500 var(--fs-base)/24px var(--sans);color:var(--ink-3)}
+:root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:400 var(--fs-sm)/24px var(--sans);color:var(--ink-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
@@ -29,7 +35,8 @@
 
 /* ── one rhythm for the conversation (the owner, 19 Nov: "the gaps ... inconsistent ... cluttered") ──────────
    Four steps of the scale, each with one job, set here once:
-     4   inside a message: its name line to its words, its words to its action row, a turn's work rows
+     4   inside a message: its words to its action row, a turn's work rows
+     8   a message's name line (a label, with the speaker's mark) to its words
      12  between a reply's paragraphs, lists and headings (half its 24 px line)
      16  around a block inside a reply (code, a table, a chart, a diagram, a formula, pictures, a thread's card), and
          between messages of the same speaker, and around a line between messages (an approval, a thread finished)
@@ -42,7 +49,15 @@
 :root:not([data-msgx]) #msgs>.m:not(.cont,.m-card){margin-top:24px}
 :root:not([data-msgx]) #msgs>.ev{min-height:var(--h-sm);margin-block:16px}
 :root:not([data-msgx]) #msgs>:first-child{margin-top:0}
+/* the action row is a 32 px control row whose 16 px glyphs leave 8 px of air under them: that air counts toward the
+   gap after it, so the next thing sits 16 (or 24) from the glyphs you see, as from any other line */
+:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow){margin-bottom:8px}
+:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow)+*{margin-top:8px}
+:root:not([data-msgx]) #msgs>.m:has(>.mb>.mx-actrow)+.m:not(.cont,.m-card){margin-top:16px}
 :root:not([data-msgx]) .typing{padding-bottom:16px}
+/* someone replying is a new speaker: 24 above it, whatever the conversation ends with (its margin collapses with the
+   last message's, through #msgs and #typing, so the larger wins) */
+:root:not([data-msgx]) #typing>.typing{margin-top:24px}
 /* inside a reply */
 :root:not([data-msgx]) .prose>*+*{margin-top:12px}
 :root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack),
@@ -50,7 +65,7 @@
 :root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack):first-child{margin-top:0}
 :root:not([data-msgx]) .prose>:is(.md-code,.md-table,.md-chart,.md-diagram,.md-display,.mx-stack):last-child{margin-bottom:0}
 :root:not([data-msgx]) .mb>:is(.tcard,.mx-stack,.m-reacts){margin-top:16px}
-:root:not([data-msgx]) .mb>.mh+:is(.tcard,.mx-stack){margin-top:4px}
+:root:not([data-msgx]) .mb>.mh+:is(.tcard,.mx-stack){margin-top:0}
 :root:not([data-msgx]) .turn{gap:4px}
 :root:not([data-msgx]) .turn>:is(.tb-text,.tb-answer,.tb-narr)+:is(.tb-text,.tb-answer,.tb-narr){margin-top:8px}
 
