@@ -204,7 +204,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
   .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:20px;height:20px}
   .md-pane .md-meta{gap:0;padding:0}
   .md-pane .md-meta b{line-height:20px}
-  .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg));padding:0;gap:4px;border-radius:0;background-color:transparent!important;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
+  .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg) - var(--halo));padding:0 var(--halo);gap:4px;border-radius:var(--r);background-color:transparent!important;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-4)}
   .md-pane .md-from:hover{color:var(--ink-2)}
   .md-pane .md-from svg{display:none}
   .md-pane .md-from span::before{content:"from "}

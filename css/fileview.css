@@ -132,7 +132,9 @@ body.chat-docked.chat-railed .fv-cgrip{display:none}
 body.chat-docked.chat-railed .crail{display:flex;position:absolute;z-index:6;top:0;right:0;bottom:0;width:44px;padding:0;background:var(--canvas);box-shadow:inset 1px 0 var(--line-faint)}
 :root[data-theme="light"] body.chat-docked.chat-railed .crail{box-shadow:inset 1px 0 rgba(0,0,0,.08)}
 .crail-b{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;width:44px;padding:3.5px 0 12px;border-radius:0;color:var(--ink-3)} /* its tile on the heads' controls' line (y 3.5) */
-.crail-b:hover{background:var(--surface);color:var(--ink)}
+.crail-b:hover{color:var(--ink)}
+/* its hover is the cell's inset layer (css/foundation.css, "a cell of a flush bar"), never the whole square cell */
+body.chat-docked.chat-railed .crail-b:hover::before{background:var(--surface)}
 .crail-b:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .crail-ic{position:relative;display:grid;place-items:center;width:32px;height:32px;border-radius:var(--r);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft);color:var(--ink-2)}
 :root[data-theme="light"] .crail-ic{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}

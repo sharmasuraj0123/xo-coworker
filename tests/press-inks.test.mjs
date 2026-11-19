@@ -23,7 +23,10 @@ t("the shared press fill lifts the secondary inks with it", () => {
 t("every fill of its own does too", () => {
   const own = files.flatMap((f) => [...read(f).matchAll(/([^{}]*:active[^{}]*)\{([^}]*background:var\(--press-fill\)[^}]*)\}/g)].map((m) => ({ f, sel: m[1].trim(), body: m[2] })));
   assert.ok(own.length >= 4, "the own fills (.create, .iq, .iq-row, .btn)");
-  const bare = own.filter((x) => !x.body.includes(LIFT)).map((x) => `${x.f}: ${x.sel}`);
+  // a fill drawn on a control's own layer (::before, a cell's inset fill: foundation.css "a cell of a flush bar") lifts
+  // its host's inks in the host's :active rule, where its words are
+  const hostLifts = (x) => { const host = x.sel.replace(/::before$/, "").replace(/:not\([^)]*\)$/, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); return new RegExp(`(?:^|[}\\s])${host}\\{[^}]*${LIFT.replace(/[()]/g, "\\$&")}`).test(read(x.f)); };
+  const bare = own.filter((x) => !x.body.includes(LIFT) && !(/::before$/.test(x.sel) && hostLifts(x))).map((x) => `${x.f}: ${x.sel}`);
   assert.deepEqual(bare, [], "a press fill without the lift");
 });
 // the numbers behind it: the second ink keeps 4.5:1 on every base the fill can sit on, the meta inks don't

@@ -92,6 +92,10 @@
      never chosen: inner = outer − inset.
        6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
+     focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
+     fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */
+  --halo:8px; --cell-in:4px;
   /* Controls with a body come in three sizes. Hit areas may be larger (44 under a coarse pointer); compact
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */

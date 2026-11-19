@@ -89,4 +89,9 @@
   .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:44px;height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
   .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
   .arts:not(.is-pics) .ar-grid .md-pin svg{width:16px;height:16px}
+  /* a cell of the row (its full height): its press and focus are drawn --cell-in inside it, at --r, never square */
+  .arts:not(.is-pics) .ar-grid .md-pin{position:relative;isolation:isolate;border-radius:var(--r-lg)}
+  .arts:not(.is-pics) .ar-grid .md-pin::before{content:"";position:absolute;inset:var(--cell-in);z-index:-1;border-radius:var(--r);background:transparent}
+  .arts:not(.is-pics) .ar-grid .md-pin:active{background-image:none!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+  .arts:not(.is-pics) .ar-grid .md-pin:active::before{background:var(--press-fill)}
 }

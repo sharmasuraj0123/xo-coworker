@@ -37,9 +37,10 @@ body.stage-full .stg-grip{display:none}
 
 /* ── 1 · hover fills inside the column: no negative margins ──────────────────────────────────────── */
 .top-back,.tw-rt,.target,.attach{margin-left:0}
-/* 4 · work rows read as text: no fill, the ink brightens and a chevron shows; the text starts on the
-   message's own column (the live turn's agent tile sits in the avatar gutter) */
-.tb-h{margin-left:0;padding:4px 0;border-radius:0;background-color:transparent!important}
+/* 4 · work rows read as text: no fill at rest or on hover, the ink brightens and a chevron shows; the text starts on
+   the message's own column. Their press (and their focus ring) is a shape, not a square: see "a control that reads
+   as text" under 3 · press. */
+.tb-h{background-color:transparent!important}
 .tb-h:hover .tb-ht,.tb-h:focus-visible .tb-ht{color:var(--ink)}
 .tb-wh .tb-hi{display:none}
 .tb-work>.tb:not(.tb-work){margin-left:0}
@@ -76,6 +77,24 @@ body.stage-full .stg-grip{display:none}
    as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
 :is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.nw,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
 :where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+/* A control that reads as text, and a cell of a flush bar, still have a shape (the owner, 19 Nov: "this rectangle when
+   clicking looks weird ... give it some space to breathe ... consistent curvature"). The press above is a fill of the
+   control's own box at the control's own corners, and a focus ring (base.css) follows those corners too, so a control
+   drawn with radius 0 and no room around its words pressed into a square flush with them: a turn's work rows
+   (.tb-h, made text-like by 4 above), Made's source line and pin on a phone, the panel's tabs, the docked chat's rail.
+   Fixed at their shape, not their press:
+   · reading as text: the box reaches --halo past the words on both sides (margin out, padding in, so the words stay
+     on their edge), corners --r; hovered it stays text, pressed or focused the fill and ring take that shape.
+   · a cell of a flush bar keeps its cell (and the bar's underline), and its fill is drawn --cell-in inside it, at
+     --r, on its own layer (::before), so the fill never meets the bar's edges. */
+:is(.tb-h,.tb-rh){width:calc(100% + 2 * var(--halo));margin-inline:calc(-1 * var(--halo));padding-inline:var(--halo);border-radius:var(--r)}
+/* the cell's own corners are the fill's plus its inset (--r 8 + --cell-in 4 = --r-lg 12), so its focus ring (just inside the cell)
+   rounds concentric with the fill */
+:is(.stg-tab,body.chat-docked.chat-railed .crail-b){position:relative;isolation:isolate;border-radius:var(--r-lg)}
+:is(.stg-tab,body.chat-docked.chat-railed .crail-b)::before{content:"";position:absolute;inset:var(--cell-in);z-index:-1;border-radius:var(--r);background:transparent;transition:background-color var(--d-hover) var(--ease)}
+/* the shared press (and a chosen control's three veils) goes to that layer: class specificity, so it holds over both */
+:is(.stg-tab,body.chat-docked.chat-railed .crail-b):active{background-image:none!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+:is(.stg-tab,body.chat-docked.chat-railed .crail-b):active:not(:disabled,[aria-disabled="true"])::before{background:var(--press-fill)}
 /* a chosen control (on, checked, pressed, current) has a fill of its own, and the press's 9% veil over it read as its
    hover (the controls grader on 5f52deb, C084: Changes' Follow held vs hovered, 18–20 RGB-sum on average): held, it
    goes three veils deep, as an accent control goes to its own press (S135) */
