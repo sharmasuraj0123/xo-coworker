@@ -108,6 +108,9 @@ WRITER_ROUTES = [
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/edits/[^/]+/undo$")),
     # the file work in Files' tree (SPACE-CONTRACT.md §4.3–4.5): rename or move, delete into Space's trash, a new folder
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/files/(?:rename|delete|mkdir)$")),
+    # deleting a thread and taking it back (design-research/2026-11-19-threads-panel/DELETE-SPEC.md; xo-space asks for the key)
+    ("DELETE", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+$")),
+    ("POST", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+/restore$")),
 ]
 _WRITER = {"stamp": None, "key": None}
 
