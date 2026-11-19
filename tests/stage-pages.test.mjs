@@ -47,4 +47,5 @@ assert.match(css, /\.stage\[data-page\] \.stg-frames\{display:none\}\n\.stage\[d
 const block = css.slice(css.indexOf("── Pages open in the panel"), css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
+assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\(--s-1\)\}/, "a page's title centres on its ‹");
 console.log("stage-pages: ok");

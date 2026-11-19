@@ -605,7 +605,9 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .pg-tab svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .stage .pg-tab:hover{background:var(--hover-fill);color:var(--ink)}
 .stage .pg-tab.is-on{background:var(--fill-2);color:var(--ink)}
-.stage .stg-t:has(.pg-tabs){align-items:center;gap:var(--s-1)}
+/* a page's bar leads with ‹ (a 32 control): the title centres on it as the bar's own buttons do (the owner, 19 Nov
+   18:00Z: it sat 4 px low, aligned to the button's baseline); the words-only bar keeps its baseline pair */
+.stage .stg-t:has(.pg-back){align-items:center;gap:var(--s-1)}
 /* each page kind's own box in the host, kept while hidden (a file's editor and caret live on) */
 .stage .stg-pg{flex:1;min-height:0;display:flex;flex-direction:column}
 /* ‹ Sections says when the sections need you (an ask in Threads) while a page is up */
