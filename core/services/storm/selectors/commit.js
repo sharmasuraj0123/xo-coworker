@@ -1,7 +1,7 @@
 // @ts-check
 import { stormAsks } from "../../../../js/timeline.js";
 import { hostOf, askedBy } from "../../../../js/review.js";
-import { isLimitItem, limitItem } from "../../../../js/runtimes.js";
+import { isLimitItem, limitItem } from "../../runtimes.js";
 import { paidItem, accountRows, heldModes } from "../../../../js/paid.js";
 import { WAITING_STATES } from "../config.js";
 

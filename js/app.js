@@ -65,7 +65,7 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures, dockGestures } from "./gestures.js";
-import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
+import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/shape-page.js";
@@ -420,7 +420,7 @@ STAGE.names = (v) => {
 REC.panel = STAGE;
 /** The runtime a thread runs on, fixed for its life (its session's agent). */
 const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
-/** A thread's agent as its company's mark (js/runtimes.js rtMark), wherever a thread is listed (the owner, 19 Nov:
+/** A thread's agent as its company's mark (core/services/runtimes.js rtMark), wherever a thread is listed (the owner, 19 Nov:
  *  "show that this is a claude thread or a codex thread"), when there's more than one runtime to tell apart; its name
  *  on hover and to a screen reader; nothing for a runtime without a mark or a thread whose agent isn't known yet. */
 const threadMark = (t, opts) => { const a = agentOf(t); return a && manyRuntimes(world.state.runtimes) ? rtMark(a, opts) || "" : ""; };
@@ -462,7 +462,7 @@ function rtTag(t, cls) {
   if (cls === "ar" && !warn) return "";
   // a shape without runtime names (xo:thread/runtime) still says when the runtime is in trouble
   if (!warn && !SHAPE.on("xo:thread/runtime")) return "";
-  // its company's mark (js/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
+  // its company's mark (core/services/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
   // without a mark keeps its name
   return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${rtMark(agent) || esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;

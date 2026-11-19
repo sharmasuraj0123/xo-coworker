@@ -18,7 +18,7 @@ import { redraw } from "./redraw.js";
 import { ICON, RM, xi } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
-import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
+import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "../core/services/runtimes.js";
 
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };

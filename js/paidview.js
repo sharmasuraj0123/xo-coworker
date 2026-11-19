@@ -4,7 +4,7 @@
 
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
-import { resetWords } from "./runtimes.js";
+import { resetWords } from "../core/services/runtimes.js";
 import { creditsWords } from "./paid.js";
 
 export function paidHtml(it) {

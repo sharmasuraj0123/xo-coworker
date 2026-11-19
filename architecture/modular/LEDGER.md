@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 655 |
+| planned | 654 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 26 |
+| moved | 27 |
 
-Items inside first-party files: 2290 (planned 1278, split-region 717, moved 271, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1241, split-region 717, moved 308, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -88,7 +88,7 @@ Items inside first-party files: 2290 (planned 1278, split-region 717, moved 271,
 | `js/ring.js` | 65 | planned | core/ui/a11y/ring.js |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 138 | planned | modules/threads/runs/ |
-| `js/runtimes.js` | 179 | planned | core/services/runtimes.js |
+| `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
 | `js/shape.js` | 731 | planned | core/services/shape/shape.js |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |

@@ -11,7 +11,7 @@
 //
 // The wire is read in this one place: a field renamed on the server changes here and nowhere else.
 
-import { humanize } from "./runtimes.js";
+import { humanize } from "../core/services/runtimes.js";
 
 export const MODES = ["never", "ask", "always"];
 export const MODE_NAME = { never: "Never", ask: "Ask me", always: "Always allow" };

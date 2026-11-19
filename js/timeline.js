@@ -2,7 +2,7 @@
 // shapes. No DOM, no fetch: tested from Node (tests/logic.test.mjs).
 
 import { attachmentsOf } from "./attach.js";
-import { clockWords } from "./runtimes.js";
+import { clockWords } from "../core/services/runtimes.js";
 
 const COORDINATORS = new Set(["workspace-coordinator", "project-coordinator"]);
 

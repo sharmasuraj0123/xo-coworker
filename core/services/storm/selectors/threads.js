@@ -1,7 +1,7 @@
 // @ts-check
 import { tasksOf } from "../../../../js/model.js";
 import { stopOf, uiMsg, stormAsks, threadState, askingState } from "../../../../js/timeline.js";
-import { isLimitItem, limitItem } from "../../../../js/runtimes.js";
+import { isLimitItem, limitItem } from "../../runtimes.js";
 import { BUSY } from "../config.js";
 
 /** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Row} Row */

@@ -2493,8 +2493,9 @@
    "home": "modules/threads/runs/"
   },
   "js/runtimes.js": {
-   "status": "planned",
-   "home": "core/services/runtimes.js"
+   "status": "moved",
+   "home": "core/services/runtimes.js",
+   "note": "every importer points at the new home, so it leaves with no re-export"
   },
   "js/settings.js": {
    "status": "split",
@@ -13065,151 +13066,151 @@
    "home": "modules/threads/runs/"
   },
   "js/runtimes.js::exports::rtName": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::markOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::rtMark": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::windowName": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::isInstalled": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::manyRuntimes": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::findRt": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::untilWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::clockWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::resetWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::healthOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::usable": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::windowsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::allowedOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::defaultOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::policyWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::moveTargets": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::canMove": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::policyErrors": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::errorField": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::isLimitItem": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::humanize": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::exports::limitItem": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::rtMark": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::untilWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::clockWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::healthOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::windowsOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::allowedOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::policyWords": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::moveTargets": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::policyErrors": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::errorField": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::humanize": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::functions::limitItem": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::keys::cli_missing": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/runtimes.js::keys::unknown_runtime": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/runtimes.js"
   },
   "js/settings.js::exports::createSettings": {
