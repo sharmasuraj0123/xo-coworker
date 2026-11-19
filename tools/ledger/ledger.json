@@ -2320,8 +2320,9 @@
    "home": "core/ui/markdown/highlight.js"
   },
   "js/hopstate.js": {
-   "status": "planned",
-   "home": "core/services/world/hops.js"
+   "status": "moved",
+   "home": "core/services/world/hops.js",
+   "note": "js/hopstate.js is a one-line re-export until the shims go"
   },
   "js/icon.js": {
    "status": "planned",
@@ -9709,19 +9710,19 @@
    "home": "core/ui/markdown/highlight.js"
   },
   "js/hopstate.js::exports::hopRank": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/hops.js"
   },
   "js/hopstate.js::exports::furtherState": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/hops.js"
   },
   "js/hopstate.js::exports::mergeHop": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/hops.js"
   },
   "js/hopstate.js::functions::mergeHop": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/services/world/hops.js"
   },
   "js/icon.js::exports::xi": {

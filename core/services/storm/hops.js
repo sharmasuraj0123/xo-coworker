@@ -1,6 +1,6 @@
 // @ts-check
 import { client, NEWEST } from "./client.js";
-import { hopRank, mergeHop } from "../../../js/hopstate.js";
+import { hopRank, mergeHop } from "../world/hops.js";
 
 /** @typedef {import("./types").Ctx} Ctx */
 
@@ -19,12 +19,12 @@ export function installHops(ctx) {
   /** A receipt for a hop not known yet is held until the hop arrives, so a cold load never shows a wait that ended. @type {Map<string, string>} */
   const heldMoves = new Map();
   ctx.holdMove = (id, st) => {
-    if (hopRank(st) <= hopRank(/** @type {any} */ (heldMoves.get(id)))) return;
+    if (hopRank(st) <= hopRank(heldMoves.get(id))) return;
     heldMoves.delete(id); heldMoves.set(id, st);
     if (heldMoves.size > 500) heldMoves.delete(/** @type {string} */ (heldMoves.keys().next().value));
   };
   ctx.putHop = (h, extra) => {
-    state.hops.set(h.id, mergeHop(state.hops.get(h.id), h, extra, /** @type {any} */ (heldMoves.get(h.id))));
+    state.hops.set(h.id, mergeHop(state.hops.get(h.id), h, extra, heldMoves.get(h.id)));
     heldMoves.delete(h.id);
   };
   /** @type {Set<string>} */

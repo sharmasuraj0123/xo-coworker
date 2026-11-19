@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 657 |
+| planned | 656 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 33 |
-| moved | 24 |
+| moved | 25 |
 
-Items inside first-party files: 2290 (planned 1285, split-region 717, moved 264, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1281, split-region 717, moved 268, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -55,7 +55,7 @@ Items inside first-party files: 2290 (planned 1285, split-region 717, moved 264,
 | `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
 | `js/herald.js` | 92 | split | core/services/notices.js, shell (notice renderer) |
 | `js/highlight.js` | 149 | planned | core/ui/markdown/highlight.js |
-| `js/hopstate.js` | 13 | planned | core/services/world/hops.js |
+| `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: js/hopstate.js is a one-line re-export until the shims go |
 | `js/icon.js` | 24 | planned | core/ui/icons/icon.js |
 | `js/imagechange.js` | 120 | planned | modules/changes/imagechange.js |
 | `js/intel.js` | 743 | planned | modules/intelligence/ |

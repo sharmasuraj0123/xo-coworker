@@ -8,7 +8,7 @@ import { createParser, SSEStream } from "../js/sse.js";
 import { createTurns } from "../js/blocks.js";
 import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../js/review.js";
 import { askingState } from "../js/timeline.js";
-import { hopRank, furtherState, mergeHop } from "../js/hopstate.js";
+import { hopRank, furtherState, mergeHop } from "../core/services/world/hops.js";
 
 let passed = 0;
 const pending = [];
@@ -373,7 +373,7 @@ t("a coordinator's sub-agent asks in its chat, named as the coordinator; a threa
   assert.equal(askingState("working", 1, true), "working", "a thread continued elsewhere is frozen, not asking");
 });
 
-// ── hops (js/hopstate.js): a state only moves on, whichever of the stream and a read comes last ──
+// ── hops (core/services/world/hops.js): a state only moves on, whichever of the stream and a read comes last ──
 t("hops: a history read that left before a receipt can't put it back", () => {
   const sent = { id: "h1", kind: "ask", state: "sent", created_at: "2026-11-08T07:00:00Z" };
   const live = mergeHop(sent, { id: "h1", state: "answered" }, { seq: 9, at: "t" });
