@@ -146,7 +146,8 @@ if (!existsSync(LD)) {
       "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
       "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
       "api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",
-      "map.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files }); export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
+      "core/services/agent-activity.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files });',
+      "core/services/places.js": 'export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
       "fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
       "changesframe.js": 'export const countsHtml = () => "";',
       "viewer.js": "export const RUNS = /^(\\.git|\\.claude)\\//;",
@@ -172,7 +173,7 @@ if (!existsSync(LD)) {
     // the copy registers its own press listener on the same document: both see the same presses
     const { createFiles } = await import(join(dir, "js/files.js"));
     const { calls } = await import(join(dir, "js/api.js"));
-    const { MARKS } = await import(join(dir, "js/map.js"));
+    const { MARKS } = await import(join(dir, "core/services/agent-activity.js"));
     const world = { state: { turns: [], threads: [{ id: "t1", project: "p", sessionId: "s", title: "Agent" }], projects: [{ id: "p", name: "P" }] }, thread: () => null };
     const viewer = { hasFile: false, file: null, open() {}, close() {} };
     const FILES = createFiles({ world, viewer, isBusy: () => true, PROJ: (id) => id.toUpperCase(), go() {} });

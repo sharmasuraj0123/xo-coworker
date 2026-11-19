@@ -10,7 +10,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 33 |
 | moved | 23 |
 
-Items inside first-party files: 2290 (planned 1290, split-region 786, moved 192, deleted 19, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1290, split-region 777, moved 201, deleted 19, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -65,7 +65,7 @@ Items inside first-party files: 2290 (planned 1290, split-region 786, moved 192,
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | planned | core/ui/lightbox.js |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js |
+| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; the rest still waits for modules/map |
 | `js/markdown.js` | 519 | planned | core/ui/markdown/markdown.js |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |

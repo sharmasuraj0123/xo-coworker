@@ -24,10 +24,10 @@ import { commsLine, commsText } from "./comms.js";
 import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";
+import { folderOf } from "../core/services/places.js";
+import { activityOf } from "../core/services/agent-activity.js";
 
 const KEY = "cv-map";
-const FILE_KINDS = new Set(["create_file", "edit_file", "delete_file", "read"]);
-const VERB_NOW = { create_file: "Writing", edit_file: "Editing", delete_file: "Deleting", read: "Reading" };
 
 // the drawing
 const NW = 148, NH = 32, COL = 184, ROW = 42, PAD = 28; // compact: two columns read at 360px
@@ -50,121 +50,6 @@ const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.sl
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 /** An agent's colour: the same agent keeps it, wherever it shows. */
 export function colorOf(id) { let h = 7; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; }
-
-
-/** A thread's folder: its absolute root and, inside the project, the relative base the tree route takes. */
-export function folderOf(t) {
-  if (!t || !t.project) return null;
-  const wt = String(t.worktree || "").replace(/\/+$/, "");
-  if (wt) {
-    const i = wt.indexOf("/.xo/worktrees/");
-    const sub = i < 0 ? "" : wt.slice(i + 1);
-    return /^\.xo\/worktrees\/[^/]+$/.test(sub) ? { root: wt, base: sub, project: t.project, projectRoot: wt.slice(0, i) } : null;
-  }
-  const cwd = String(t.cwd || "").replace(/\/+$/, "");
-  return cwd && cwd.split("/").pop() === t.project ? { root: cwd, base: "", project: t.project, projectRoot: cwd } : null;
-}
-
-/** A row's target, relative to `root` ({rel}), or outside it ({abs}). */
-export function placeOf(root, target) {
-  let p = String(target || "").replace(/\\/g, "/");
-  if (!p) return null;
-  if (p.startsWith("/")) {
-    if (root && p.startsWith(root + "/")) p = p.slice(root.length + 1);
-    else return { abs: p };
-  }
-  p = p.replace(/^(\.\/)+/, "");
-  if (!p || p.split("/").some((s) => s === ".." || s === "")) return { abs: target };
-  return { rel: p };
-}
-
-/** A path with "." and ".." resolved; null if it climbs above its start. */
-function norm(p) {
-  const out = [];
-  for (const seg of p.split("/")) {
-    if (seg === "" || seg === ".") continue;
-    if (seg === "..") { if (!out.length) return null; out.pop(); } else out.push(seg);
-  }
-  return (p.startsWith("/") ? "/" : "") + out.join("/");
-}
-
-/**
- * The files and folders a shell command names, inside `root`, in order: so a cursor can follow an agent
- * through `cd js && sed -i … app.js` as well as through its edits. A `cd` moves where later relative
- * paths start; a glob counts as its folder; flags, URLs and sed-like expressions don't count. Pure.
- */
-export function pathsInCommand(cmd, root) {
-  const out = [];
-  let cwd = root || "";
-  for (const part of String(cmd || "").split(/&&|\|\||;|\||\n/)) {
-    const words = (part.trim().match(/"[^"]*"|'[^']*'|\S+/g) || []).map((t) => t.replace(/^["']|["']$/g, ""));
-    if (!words.length) continue;
-    if (words[0] === "cd") {
-      const d = words[1];
-      if (d && !d.startsWith("-")) { const n = norm(d.startsWith("/") ? d : `${cwd}/${d}`); if (n) cwd = n; }
-      continue;
-    }
-    for (const w of words.slice(1)) {
-      if (!w || w.length > 240 || w.startsWith("-") || w.includes("://") || /[\\^$#|<>(){}=;'"`\s]/.test(w)) continue;
-      if (!(w.includes("/") || /\.[A-Za-z0-9]{1,8}$/.test(w))) continue;
-      if (/^s([\/#|]).*\1.*\1[gimp]*$/.test(w)) continue; // a sed expression, not a path
-      let p = w.replace(/[,:]+$/, "");
-      const g = p.search(/[*?[]/);
-      if (g >= 0) p = p.slice(0, g).replace(/\/[^/]*$/, "");
-      if (!p) continue;
-      const abs = norm(p.startsWith("/") ? p : cwd ? `${cwd}/${p}` : p);
-      if (!abs) continue;
-      const pl = placeOf(root, abs);
-      if (pl && pl.rel != null) out.push(pl.rel);
-    }
-  }
-  return out;
-}
-
-/**
- * What a session's loaded turns did, from storm's activity rows. Pure: `turns` is the turn store.
- * → {files: Map rel → F, outside: Map abs → F, now: {row, turn} | null, last, running,
- *    nowSpots: the paths the running step names (a command's files), lastFile: the last file it was on}
- * F = {path, mark: "new" | "edited" | "deleted" | "read", live, waiting, verb}
- */
-export function activityOf(turns, session, root) {
-  const out = { files: new Map(), outside: new Map(), now: null, last: null, running: null, nowSpots: [], lastFile: null };
-  if (!turns || !session) return out;
-  let n = 0;
-  for (const tu of turns.list((x) => x.session === session)) {
-    const live = tu.status === "running";
-    if (live) out.running = tu;
-    for (const b of turns.blocksOf(tu)) {
-      if (b.type !== "activity") continue;
-      for (const r of b.rows || []) {
-        n++;
-        if (r.kind === "notice" || r.kind === "error") continue;
-        const on = live && r.status === "running";
-        out.last = { row: r, turn: tu };
-        if (on) out.now = { row: r, turn: tu };
-        if (on && (r.kind === "command" || r.kind === "search" || r.kind === "list") && r.target) out.nowSpots = pathsInCommand(r.target, root);
-        if (!FILE_KINDS.has(r.kind) || !r.target || r.status === "error" || r.status === "denied" || r.status === "cancelled") continue;
-        const pl = placeOf(root, r.target);
-        if (!pl) continue;
-        const into = pl.rel != null ? out.files : out.outside;
-        const key = pl.rel ?? pl.abs;
-        const f = into.get(key) || { path: key, kinds: new Set(), seq: 0 };
-        f.kinds.add(r.kind);
-        f.lastKind = r.kind;
-        f.seq = n;
-        f.live = on;
-        f.waiting = on && !!r.waiting;
-        f.verb = VERB_NOW[r.kind];
-        into.set(key, f);
-        if (pl.rel != null) out.lastFile = pl.rel;
-      }
-    }
-  }
-  for (const m of [out.files, out.outside]) for (const f of m.values()) {
-    f.mark = f.lastKind === "delete_file" ? "deleted" : f.kinds.has("create_file") ? "new" : f.kinds.has("edit_file") ? "edited" : "read";
-  }
-  return out;
-}
 
 
 /**
