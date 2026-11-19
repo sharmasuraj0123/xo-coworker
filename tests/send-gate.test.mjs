@@ -19,7 +19,7 @@ t("one gate judges a destination: blockFor({ thread }) or blockFor({ pid })", ()
   assert.match(b, /sendBlock\(world\.state, \{ timeline: !dest\.thread, pid:/, "the routing rule, for that destination");
 });
 t("the composer asks about where its draft goes (the @-named project's chat, else this place's; a thread's reply)", () => {
-  assert.match(body("liveBlock") || "", /blockFor\(composerDest\(\)\)/);
+  assert.match(body("liveBlock") || "", /blockFor\(composerDest\(view, text\)\)/); // its own conversation and draft (P1)
 });
 t("Retry asks about the message's own destination, never the composer's draft", () => {
   const b = body("retry") || "";

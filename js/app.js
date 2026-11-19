@@ -1081,7 +1081,7 @@ function queuedMeta(conv) {
   if (S.stops.has(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
   // a runtime that steers took it into the running turn: nothing waits, nothing to interrupt (F7)
   if (sendWhileRunning(t) === "steered") return `<div class="meta"><span>Sent into its current turn</span></div>`;
-  const run = conv === S.view ? running() : null;
+  const run = running(conv); // the conversation it's drawn in (the main chat, or a thread page in the panel)
   const n = workingRuns(t);
   const title = `Stop the agent's current turn${n ? ` and its ${n} sub-agent${n === 1 ? "" : "s"}` : ""} so it reads this now (Undo for 3 s)`;
   return `<div class="meta"><span>Waiting · the agent reads this when its current turn ends</span>` +
@@ -1162,6 +1162,10 @@ function startDraft(i) {
 }
 
 function msgItems(conv, needs) {
+  drawing = conv;
+  try { return msgItemsOf(conv, needs); } finally { drawing = null; }
+}
+function msgItemsOf(conv, needs) {
   if (CH.isChats(conv)) return CH.items(conv);
   if (conv.startsWith("t:") && !convThread(conv)) {
     // a link to a thread that isn't here (removed, or from before a reset): said plainly, never an empty page
@@ -2104,7 +2108,7 @@ const tray = createTray({ upload: uploadAttachment, onChange: () => { if (!trayR
 const canAttach = (v) => v !== "chats" && !CH.isChats(v);
 /** The chat id a file added here uploads to: the Workspace, the project, or the thread's project. */
 const attachChat = (v) => { const p = chatOf(v); return p && world.act.chatId ? world.act.chatId(p) : null; };
-const filesHere = () => (canAttach(S.view) ? tray.status(S.view) : { count: 0, busy: false, failed: false });
+const filesHere = (view = S.view) => (canAttach(view) ? tray.status(view) : { count: 0, busy: false, failed: false });
 // An image chip shows the picture itself, from the bytes the browser already holds: no request.
 const thumbs = new WeakMap(); // blob → object URL, freed when the chip leaves the composer
 const thumbOf = (c) => { let u = thumbs.get(c.blob); if (!u) { u = URL.createObjectURL(c.blob); thumbs.set(c.blob, u); } return u; };
@@ -2231,17 +2235,18 @@ function growSay() {
   say.classList.toggle("is-capped", h > 200);
 }
 /** What would Stop stop here? The coordinator replying, or this thread's agent working. */
-function running() {
+// (P1: each conversation's own: view defaults to the main chat's, a thread page in the panel passes its own)
+function running(view = S.view) {
   // a thread whose session works, or the coordinator of this chat while it works
   // nothing more to stop where a Stop waits out its Undo or is on its way, or the session is stopping
   const live = (run) => (run && !S.stops.has(run.session) && world.act.sessionState(run.session) !== "stopping" ? run : null);
-  const t = convThread(S.view);
+  const t = convThread(view);
   if (t) return t.busy && t.sessionId ? live({ kind: "thread", t, session: t.sessionId }) : null;
-  if (S.view.startsWith("c:")) return CH.busy(S.view) ? live({ kind: "chat", session: S.view.slice(2) }) : null;
-  if (S.view === "chats") return null;
-  const chat = chatOf(S.view);
+  if (view.startsWith("c:")) return CH.busy(view) ? live({ kind: "chat", session: view.slice(2) }) : null;
+  if (view === "chats") return null;
+  const chat = chatOf(view);
   const sid = chat && world.act.coordinatorBusy ? world.act.coordinatorBusy(chat) : null;
-  return sid ? live({ kind: "coord", conv: S.view, session: sid }) : null;
+  return sid ? live({ kind: "coord", conv: view, session: sid }) : null;
 }
 function sendRender() {
   const btn = $("#send");
@@ -2515,9 +2520,9 @@ function lift(el, from) {
 }
 
 /** Why sending is paused right now, or "" (classic composerBlock, in plain words). */
-function liveBlock() {
-  if (CH.isChats(S.view)) return CH.blocked(S.view) || sendBlock(world.state, { timeline: false });
-  return blockFor(composerDest());
+function liveBlock(view = S.view, text = say.value) {
+  if (CH.isChats(view)) return CH.blocked(view) || sendBlock(world.state, { timeline: false });
+  return blockFor(composerDest(view, text));
 }
 /** The one send gate: why a message to this destination can't go right now, or "". dest: { thread: true } (a reply
  *  in a thread, which xo-space never routes) or { pid } (a new message to that chat's timeline: refused when its
@@ -2537,10 +2542,10 @@ function refuse(block, kept = "your words are kept") {
 function connDest() { const d = composerDest(); return d.thread ? { thread: true } : { pid: d.pid }; }
 /** Where the composer's draft goes, as sendLive sends it: this thread, unless it names a project; else the named
  *  project's chat, or this place's. */
-function composerDest() {
-  if (CH.isChats(S.view)) return { thread: true }; // a plain chat's message is never routed (as liveBlock sends it)
-  const tg = targetOf(say.value, world.state.projects), t = convThread(S.view);
-  return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(S.view) || "workspace" };
+function composerDest(view = S.view, text = say.value) {
+  if (CH.isChats(view)) return { thread: true }; // a plain chat's message is never routed (as liveBlock sends it)
+  const tg = targetOf(text, world.state.projects), t = convThread(view);
+  return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(view) || "workspace" };
 }
 
 function sendLive(raw) {
@@ -3149,9 +3154,11 @@ function openMedia(el, e) {
  * Where an agent's path is served from: a thread's file is in its own folder; in a project's conversation
  * (its coordinator's words) a relative path is the project folder's; a plain chat's files have no route yet.
  */
-function fileRoute(path) {
-  const t = convThread(S.view);
-  const pid = !t && S.view.startsWith("p:") ? S.view.slice(2) : null;
+// the conversation a file belongs to: the one being drawn (a thread page draws its own), else the main chat's
+let drawing = null;
+function fileRoute(path, conv = drawing || S.view) {
+  const t = convThread(conv);
+  const pid = !t && conv.startsWith("p:") ? conv.slice(2) : null;
   const rel = String(path || "").replace(/^\.\//, "");
   return pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, path);
 }
