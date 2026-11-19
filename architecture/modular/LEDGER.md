@@ -1115,245 +1115,245 @@ Items inside first-party files: 2290 (planned 1366, split-region 923, moved 1), 
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `ui-mockups/create-project/README.md` | 43 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-home-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-home.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-side-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-1440-sidebar.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-home-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-home-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-home-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-home-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-home.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-side-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-side-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-side-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-side-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-320-sidebar.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-home-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-home-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-home-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-home-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-home.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-side-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-side-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-side-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-side-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/dark-390-sidebar.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-home-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-home-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-home-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-home-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-home.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-side-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-side-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-side-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-side-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-1440-sidebar.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-home-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-home-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-home-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-home-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-home.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-side-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-side-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-side-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-side-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-320-sidebar.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-home-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-home-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-home-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-home-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-home.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-side-active.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-side-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-side-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-side-rest.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/light-390-sidebar.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/craft-audit/measurements.json` | 536 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-dark-create-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-dark-phone.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-dark-plus-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-dark-plus-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-light-create-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-light-phone.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-light-plus-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-light-plus-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/3400/built-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/A-dark-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/A-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/A-light-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/A-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/B-dark-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/B-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/B-light-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/B-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/C-dark-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/C-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/C-light-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/C-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/D-dark-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/D-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/D-light-side.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/D-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/base-live-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/base-live-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/base-sg-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/base-sg-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/base-sg-workspace-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark-create-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark-phone-320.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark-phone-390.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark-phone.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark-plus-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark-plus-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-light-create-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-light-phone.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-light-plus-focus.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-light-plus-hover.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/shots/built-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/tools/craft-audit.cjs` | 68 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/tools/variants.cjs` | 63 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `ui-mockups/create-project/tools/verify.cjs` | 33 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
+| `ui-mockups/create-project/README.md` | 43 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-1440-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-320-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/dark-390-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-1440-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-320-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-home.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-active.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-side-rest.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/light-390-sidebar.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/craft-audit/measurements.json` | 536 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/3400/built-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/A-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/B-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/C-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-dark-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-light-side.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/D-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-live-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-sg-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-sg-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/base-sg-workspace-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-phone-320.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-phone-390.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-create-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-phone.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-plus-focus.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light-plus-hover.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/shots/built-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/tools/craft-audit.cjs` | 68 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/tools/variants.cjs` | 63 | deleted | moved to the design archive (owner D4) |
+| `ui-mockups/create-project/tools/verify.cjs` | 33 | deleted | moved to the design archive (owner D4) |
 
 ## design-research (127)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `design-research/2026-11-19-icons/ICONS.md` | 231 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/COVERAGE.md` | 73 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/1-project-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/2-project-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/3-thread-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/4-folded-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/5-arts-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/6-settings-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/after/7-phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/1-project-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/2-project-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/3-thread-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/4-folded-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/5-arts-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/6-settings-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/before/7-phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/empty-page/after-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/empty-page/after-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-icons/pack/empty-page/before-live-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/DELETE-SPEC.md` | 68 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/1-counts-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/2-again-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/3-filter-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/filter-and-counts/4-nothing-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/A-space-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/B-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/C-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/final-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/final-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/header-threads/final-phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/home-colour/before-live-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/outlines/recommended-mock.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/outlines/today-needs-you.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/outlines/today-working.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p1/folded-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p1/folded-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p1/more-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p1/open-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p1/open-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-search-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p2/panel-thread-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p3/all-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p3/delete-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p3/menu-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p3/menu-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p3/project-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p4/shell-back-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p4/shell-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p4/shell-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5-colour/after-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5-colour/after-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5-colour/before-live-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5/all-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5/panel-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5/panel-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p5/panel-thread-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p6/arts-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p6/arts-docs-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p6/arts-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p7/head-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p7/head-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/p7/head-quiet-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/project-icons/1-picker-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/project-icons/2-chosen-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/project-icons/3-picker-keys-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/1-more-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/2-edit-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/3-edit-custom-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/4-bar-custom-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/build/sidebar-edit/5-folded-custom-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/CONV-MAP.md` | 94 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md` | 98 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/beside-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/beside-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/align-after.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/align-before-live.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-before-live.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-card-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/fold-main-line-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-full.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-full.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-page.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/menu-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/menu-fixed.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/menu-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-light.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/title-after.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/built/title-before-live.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/files-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/focus-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/mock.cjs` | 71 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-19-threads-panel/thread-page/phone-dark.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-chatview/hardcoded-positioning-audit.md` | 309 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png` |  | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-chatview/showcase.cjs` | 151 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
+| `design-research/2026-11-19-icons/ICONS.md` | 231 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/COVERAGE.md` | 73 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/1-project-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/2-project-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/3-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/4-folded-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/5-arts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/6-settings-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/after/7-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/1-project-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/2-project-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/3-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/4-folded-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/5-arts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/6-settings-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/before/7-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/empty-page/after-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/empty-page/after-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-icons/pack/empty-page/before-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/DELETE-SPEC.md` | 68 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/1-counts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/2-again-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/3-filter-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/filter-and-counts/4-nothing-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/A-space-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/B-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/C-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/final-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/final-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/header-threads/final-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/after-home-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/home-colour/before-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/outlines/recommended-mock.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/outlines/today-needs-you.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/outlines/today-working.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/folded-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/folded-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/more-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/open-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p1/open-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-search-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p2/panel-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/all-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/delete-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/menu-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/menu-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p3/project-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p4/shell-back-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p4/shell-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p4/shell-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5-colour/after-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5-colour/after-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5-colour/before-live-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/all-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/panel-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/panel-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p5/panel-thread-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p6/arts-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p6/arts-docs-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p6/arts-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p7/head-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p7/head-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/p7/head-quiet-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/project-icons/1-picker-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/project-icons/2-chosen-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/project-icons/3-picker-keys-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/1-more-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/2-edit-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/3-edit-custom-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/4-bar-custom-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/build/sidebar-edit/5-folded-custom-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/CONV-MAP.md` | 94 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md` | 98 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/beside-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/beside-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/align-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/align-before-live.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-before-live.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-card-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-line-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/fold-main-line-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-full.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-after-page.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-full.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/gap-before-live-page.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/menu-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/menu-fixed.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/menu-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-main-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/one-menu-page-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p2-beside-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-desk-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/p3-phone-light.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/title-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/built/title-before-live.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/files-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/focus-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/mock.cjs` | 71 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-19-threads-panel/thread-page/phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/hardcoded-positioning-audit.md` | 309 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/now-gap-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/shots-gaps/thread-strip-before-after.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-chatview/showcase.cjs` | 151 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-lg/controls-ids.json` | 2686 | moved | e2e/fixtures/controls/controls-ids.json |
 | `design-research/2026-11-lg/lp-shell/world.cjs` | 212 | moved | e2e/worlds/lp-shell.cjs |
 | `design-research/2026-11-lg/tools/controls-md.cjs` | 761 | deleted | archived with design-research; the only part a test read, its Recheck list for a4faed2, is e2e/fixtures/controls/link-rows.json |
-| `design-research/2026-11-vision/canvas-editing/PLAN.md` | 215 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-vision/canvas-editing/README.md` | 444 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
-| `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | archived to ~/xo-design-archive/xo-coworker, checksums in its SHA256SUMS (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/PLAN.md` | 215 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/README.md` | 444 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md` | 244 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs |
 
 ## tools/codemirror (1)
