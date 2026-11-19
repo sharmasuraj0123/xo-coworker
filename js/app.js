@@ -2212,7 +2212,6 @@ function targetLineRender() {
   const block = liveBlock();
   let html;
   if (block) html = `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(block)}</span>`;
-  else if (tg && tg.unknown && !/(^|\s)@[\w.-]*$/.test(say.value.slice(0, say.selectionStart))) html = `<span class="tg-warn">${ICON.close}</span><span>No project called <b>${esc(tg.unknown)}</b></span>`;
   else if (pid === "workspace") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span>`;
   else if (pid) html = `${ICON.arrow}<span>New work for <b>${esc(PROJ(pid))}</b></span>`;
   else if (t) html = threadTargetHtml(t);
@@ -2482,7 +2481,6 @@ function sendLive(raw) {
   const block = liveBlock();
   if (block) { refuse(block, "your text is kept"); return; }
   const tg = targetOf(raw, world.state.projects);
-  if (tg.unknown) { heraldShow({ kind: "stopped", text: `No project called “${tg.unknown}”`, sub: "pick one from the @ list" }, 4600); announce(`There's no project called ${tg.unknown}. Nothing was sent.`); return; }
   let text = stripTarget(raw, tg.token);
   const files = filesHere();
   if (!text && !files.count) return;

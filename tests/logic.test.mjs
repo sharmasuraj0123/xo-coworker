@@ -208,12 +208,26 @@ t("thread cards sit under the coordinator's reply to the root, else alone", () =
   assert.deepEqual([...on], [["c1", ["r1"]]]);
   assert.deepEqual([...alone].sort(), ["r2", "r3"]);
 });
-t("@project targets: only a known project is stripped", () => {
+t("@project targets: only a known project routes; any other @ is text", () => {
   const ps = [{ id: "workspace", name: "Workspace" }, { id: "billing-api", name: "billing-api" }];
-  assert.deepEqual(parseTarget("@billing-api add tests", ps), { pid: "billing-api", token: "billing-api", unknown: null });
+  const none = { pid: null, token: null };
+  assert.deepEqual(parseTarget("@billing-api add tests", ps), { pid: "billing-api", token: "billing-api" });
   assert.equal(parseTarget("@Workspace hi", ps).pid, "workspace");
-  assert.deepEqual(parseTarget("ask @nope about it", ps), { pid: null, token: null, unknown: "nope" });
-  assert.equal(parseTarget("mail me at a@b.c", ps).unknown, null);
+  // an @ that names no project is plain text: it never blocks a send (the owner, 19 Nov)
+  assert.deepEqual(parseTarget("ask @nope about it", ps), none);
+  assert.deepEqual(parseTarget("mail me at a@b.c", ps), none);
+  assert.deepEqual(parseTarget("meet @ 5pm", ps), none);
+  assert.deepEqual(parseTarget("ping @ankit please", ps), none);
+  assert.deepEqual(parseTarget("cc @someone.", ps), none);
+  assert.deepEqual(parseTarget("```py\n@dataclass\nclass A: pass\n```", ps), none);
+  assert.deepEqual(parseTarget("use `@billing-api` as the handle", ps), none);
+  assert.deepEqual(parseTarget("```\n@billing-api", ps), none); // a fence still being typed
+  // the first @ that names a project routes, past unknown ones and code; the rest stays text
+  assert.deepEqual(parseTarget("see @jkdsf then @billing-api", ps), { pid: "billing-api", token: "billing-api" });
+  assert.deepEqual(parseTarget("`@workspace` then @Billing-API", ps), { pid: "billing-api", token: "Billing-API" });
+  assert.deepEqual(parseTarget("ask @billing-api.", ps), { pid: "billing-api", token: "billing-api" });
+  assert.equal(stripTarget("see @jkdsf then @billing-api", "billing-api"), "see @jkdsf then");
+  assert.equal(stripTarget("ask @billing-api. now", "billing-api"), "ask . now");
   assert.equal(stripTarget("add @billing-api tests", "billing-api"), "add tests");
   assert.equal(stripTarget("@billing-api.x keep", "billing-api"), "@billing-api.x keep");
   assert.equal(stripTarget("no token", null), "no token");

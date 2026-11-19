@@ -478,22 +478,27 @@ export function threadAnchors(msgs, threadIds) {
 }
 
 /**
- * The composer's @target. Only a token that names a known project (or the
- * Workspace) is a target; anything else is left in the text and reported.
- * Returns {pid, token, unknown}.
+ * The composer's @target: the first @word that names a known project (or the Workspace). Every other @
+ * is plain text and never stops a send: an email, a handle, "@ 5pm", a decorator, a name that isn't a
+ * project. Words inside `code` or ``` fences are skipped; a sentence's trailing "." or "-" isn't part
+ * of the name. Returns {pid, token}.
  */
 export function parseTarget(text, projects) {
-  const m = /(^|\s)@([\w.-]+)/.exec(String(text || ""));
-  if (!m) return { pid: null, token: null, unknown: null };
-  const q = m[2].toLowerCase();
-  const p = (projects || []).find((x) => x.id.toLowerCase() === q || String(x.name || "").toLowerCase() === q);
-  return p ? { pid: p.id, token: m[2], unknown: null } : { pid: null, token: null, unknown: m[2] };
+  const prose = String(text || "").replace(/```[\s\S]*?(?:```|$)/g, " ").replace(/`[^`\n]*`/g, " ");
+  const re = /(^|\s)@([\w.-]+)/g;
+  for (let m; (m = re.exec(prose)); ) {
+    const word = m[2].replace(/[.-]+$/, "");
+    const q = word.toLowerCase();
+    const p = q && (projects || []).find((x) => x.id.toLowerCase() === q || String(x.name || "").toLowerCase() === q);
+    if (p) return { pid: p.id, token: word };
+  }
+  return { pid: null, token: null };
 }
 
 /** Remove the @token that matched (and only that one). */
 export function stripTarget(text, token) {
   if (!token) return String(text || "").trim();
-  const re = new RegExp(`(^|\\s)@${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w.-])\\s?`);
+  const re = new RegExp(`(^|\\s)@${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![.-]*\\w)\\s?`);
   return String(text || "").replace(re, "$1").trim();
 }
 
