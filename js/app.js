@@ -54,7 +54,6 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures } from "./gestures.js";
-import { glassComposer, barLook, setBarLook } from "./glass/bar.js";
 import { rtName, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
@@ -2333,8 +2332,6 @@ atList.addEventListener("pointermove", (e) => {
   document.addEventListener("pointercancel", () => { if (comp.classList.contains("held")) release(0); }, true);
   document.addEventListener("click", () => { if (comp.classList.contains("held")) release(0); }, true);
 }
-// the composer is liquid glass (css/glass.css, js/glass/): what scrolls behind it bends at its edge
-glassComposer($("#composer"));
 $("#composer").addEventListener("submit", (e) => { e.preventDefault(); if ($("#send").dataset.mode === "stop") stopRun(); else send(); });
 $("#target").addEventListener("click", () => {
   if (S.view === "chats") { CH.openSetup($("#target")); return; }
@@ -3819,17 +3816,6 @@ $("#webpics-tog").addEventListener("click", (e) => {
   const on = !SHAPE.on(WEBPICS);
   deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
-// Settings › General › Chat bar: liquid glass or stone glass, this device's choice (js/glass/bar.js)
-function barRender() { for (const b of document.querySelectorAll("#bar-seg [data-bar]")) { const on = b.dataset.bar === barLook(); b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; } }
-$("#bar-seg").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-bar]");
-  if (!b || b.dataset.bar === barLook()) return;
-  const r = setBarLook(b.dataset.bar);
-  barRender();
-  deviceSaid(b, r, r.look === "stone" ? "The chat bar is stone glass." : "The chat bar is liquid glass.");
-});
-radioKeys($("#bar-seg"));
-barRender();
 // Settings › General › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
 // index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
