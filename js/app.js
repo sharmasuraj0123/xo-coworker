@@ -3544,7 +3544,7 @@ function panelThreads(v) {
   for (const t of ts) {
     const st = threadState(t, needs), ag = doing.get("t:" + t.id);
     const ask = st === "needs" ? needs.find((n) => n.t.id === t.id) : null;
-    groups[st].push({ go: "t:" + t.id, title: t.title, state: st, word: STATE_WORDS[st], mark: threadMark(t),
+    groups[st].push({ go: "t:" + t.id, title: t.title, state: st, word: STATE_WORDS[st], mark: threadMark(t), summary: t.summary || "", branch: t.branch || "",
       sub: st === "working" && ag ? ag.doing : ask ? askShort(ask) : t.stop ? stopWords(t.stop) : t.summary || (t.state === "failed" ? "Stopped" : t.state === "resolved" ? "Resolved" : isHeld(t) ? heldWords(t.held) : STATE_WORDS[st]),
       since: st === "working" && ag ? ag.since : null, at: st === "working" ? "" : short(t.lastAt), color: ag?.color, on: v === "t:" + t.id });
   }
@@ -3569,7 +3569,8 @@ function allRender() {
   $("#all-h").textContent = `All ${SHAPE.word("threads")} · ${PROJ(pid)}`;
   $("#all-h").title = SHAPE.word("threads") === "threads" ? "" : "XO's word: threads";
   $("#all-q").placeholder = `Search ${SHAPE.word("threads")}`;
-  let list = ts.filter((t) => !q || t.title.toLowerCase().includes(q) || (t.branch || "").toLowerCase().includes(q));
+  // title, summary and branch, every word (the panel's filter matches the same)
+  let list = ts.filter((t) => { if (!q) return true; const s = `${t.title} ${t.summary || ""} ${t.branch || ""}`.toLowerCase(); return q.split(/\s+/).every((w) => s.includes(w)); });
   if (S.allFilter !== "all") list = list.filter((t) => cat(t) === S.allFilter);
   const order = { needs: 0, working: 1, waiting: 2, done: 3 };
   list.sort((a, b) => order[cat(a)] - order[cat(b)] || b.lastAt - a.lastAt);
@@ -3724,6 +3725,9 @@ allEl.addEventListener("keydown", (e) => {
   if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; } // the IME's keys, not the switcher's or the page's
   if (e.altKey || e.ctrlKey || e.metaKey) return;
   const inSearch = e.target === $("#all-q");
+  // the same keys as the panel's filter: / goes to the search, Esc in it clears it before it closes anything
+  if (e.key === "/" && !inSearch && !e.target.closest?.("input, textarea, [contenteditable]")) { e.preventDefault(); e.stopPropagation(); $("#all-q").focus(); $("#all-q").select(); return; }
+  if (e.key === "Escape" && inSearch && $("#all-q").value) { e.preventDefault(); e.stopPropagation(); $("#all-q").value = ""; allRender(); return; }
   if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && !(inSearch && e.key === "Enter")) return;
   const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
   if (inSearch) {

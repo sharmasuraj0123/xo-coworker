@@ -94,6 +94,16 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
   // when it changes, in the observer, after layout, instead of a read forcing layout in the middle of a change
   if (typeof ResizeObserver === "function") new ResizeObserver(([e]) => { const h = Math.round(e.contentRect.height); if (h !== S.stackH) { S.stackH = h; if (S.open) capAgents(); } }).observe(el.querySelector(".stg-frames"));
   const body = (id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
+  // Threads' body: the filter field (kept, never redrawn under your typing) over the list (drawn in place)
+  body("agents").innerHTML = `<div class="tg-q" hidden><label class="tg-qf">${ICON.search}<input type="search" data-tg-q placeholder="Filter threads" aria-label="Filter threads by title, summary or branch" aria-keyshortcuts="/" autocomplete="off" spellcheck="false"></label><kbd class="tg-k" aria-hidden="true">/</kbd></div><div class="tg-box"></div>`;
+  {
+    const inp = body("agents").querySelector("[data-tg-q]");
+    inp.addEventListener("input", () => { S.tq = inp.value; paint(); });
+    inp.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && inp.value) { e.preventDefault(); e.stopPropagation(); inp.value = ""; S.tq = ""; paint(); return; }
+      if (e.key === "ArrowDown" || e.key === "Enter") { const r = body("agents").querySelector(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
+    });
+  }
   map.mount(body("map"));
   const LPF = el.querySelector('[data-fr="launch"]');
   if (launch) launch.mount(LPF, { open: () => openLaunch(), hide: () => { S.lp = false; layout(); paint(); } });
@@ -204,9 +214,18 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
    *  (tile, title, what it's on, when), its state the tile's corner mark: the arc while it works, the amber
    *  diamond when it needs you, a tick when it's done. Waiting shows its first few, then "Show N more". */
   const SHOW = { needs: Infinity, working: Infinity, waiting: 5, done: 5 };
-  function threadsHtml(groups) {
+  // a filter field once a place has more threads than this (the owner, 19 Nov 14:44Z: "the filter for long thread
+  // list can be made"): it matches the title, the summary and the branch, every word; / in the panel focuses it,
+  // Esc clears it; while it filters, every group shows all it matches
+  const FILTER_AT = 12;
+  const matchesQ = (r, q) => { const s = `${r.title} ${r.sub || ""} ${r.summary || ""} ${r.branch || ""}`.toLowerCase(); return q.split(/\s+/).every((w) => s.includes(w)); };
+  function threadsHtml(groups, q = "") {
+    if (q) {
+      groups = groups.map((x) => ({ ...x, rows: x.rows.filter((r) => matchesQ(r, q)) })).filter((x) => x.rows.length);
+      if (!groups.length) return `<p class="fr-none tg-none">No thread matches “${esc(q)}”. <button type="button" class="tg-clear" data-tg-clear>Clear the filter</button></p>`;
+    }
     if (!groups || !groups.length) return `<p class="fr-none">No ${"threads"} here yet.</p>`;
-    const g = fr.agents.groups || {}, more = S.tgMore || {};
+    const g = q ? {} : fr.agents.groups || {}, more = q ? { needs: 1, working: 1, waiting: 1, done: 1 } : S.tgMore || {};
     const row = (r) => {
       const mark = r.state === "working" ? '<i class="arc"></i>' : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
       return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
@@ -257,7 +276,10 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (launch && !LPF.hidden) launch.paint(v, S.lp && !S.rail);
     // under Launchpad Threads is a head: its list waits
     const tg = threads ? threads(v) : null;
-    if (!S.lp) set("agents", body("agents"), tg ? threadsHtml(tg) : agentsHtml(ag));
+    const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
+    const qBox = body("agents").querySelector(".tg-q");
+    qBox.hidden = !(tg && (total > FILTER_AT || tq));
+    if (!S.lp) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
     el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.length, 0) || "") : (ag.filter((a) => a.busy).length || "");
     // Changes: Space's list and diff where it has /changes, else today's list
     const cxOn = !fr.changes.folded && !S.lp && CX.paint();
@@ -476,6 +498,7 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
     if (tf) { const k = tf.dataset.tgFold; fr.agents.groups = { ...(fr.agents.groups || {}), [k]: !fr.agents.groups?.[k] }; persist(); paint(); el.querySelector(`[data-tg-fold="${CSS.escape(k)}"]`)?.focus({ preventScroll: true }); return; }
     const tm = t.closest("[data-tg-more]");
     if (tm) { const k = tm.dataset.tgMore; S.tgMore = { ...(S.tgMore || {}), [k]: true }; paint(); return; }
+    if (t.closest("[data-tg-clear]")) { const inp = el.querySelector("[data-tg-q]"); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go); }
   });
@@ -514,6 +537,11 @@ export function createStage({ map, mapIcon, files, changes, filesView, viewer, v
       const tabs = [...el.querySelectorAll("[data-map-mode]")], index = tabs.indexOf(e.target.closest("[data-map-mode]"));
       const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
       tabs[next].focus(); tabs[next].click(); return;
+    }
+    // / in the panel goes to the Threads filter when it shows (elsewhere / still writes, keys.js "write")
+    if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.("input, textarea, [contenteditable]")) {
+      const q = el.querySelector(".tg-q:not([hidden]) [data-tg-q]");
+      if (q) { e.preventDefault(); e.stopPropagation(); q.focus(); q.select(); return; }
     }
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't

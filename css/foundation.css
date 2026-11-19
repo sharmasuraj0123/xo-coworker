@@ -243,7 +243,7 @@ body.stage-full .stg-grip{display:none}
    (the owner, 11 Nov 07:52Z: "remove the current border of textbox, it doesn't look good", the green ring drawn round
    the message box, Find, All threads' search and the rest since C053/C007/C030). One rule for every such box, so none
    draws one: tests/field-ring.test.mjs */
-:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
+:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q,.tg-qf):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
 /* a field with its own border (Create's repository, name and description, Settings' and Launchpad's fields, a select,
    the dropdown's button) shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders with
    the page between (the owner, 11 Nov 08:00Z: "like it has 2 borders"). At −1 px its 2 px cover the border and one inside */

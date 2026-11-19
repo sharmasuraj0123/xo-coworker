@@ -574,3 +574,19 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .shd.in-panel>*{align-self:stretch}
 .shd.in-panel .shd-grip{display:none}
 @media (max-width:760px){.stg-shell-b{display:none}}
+
+/* ── Threads' filter (the owner, 19 Nov 14:44Z): once a place has more than 12 threads, a 32 field over the list,
+   held at the top while the list scrolls under it; "/" in the panel focuses it. It matches the title, the summary
+   and the branch; while it filters every group shows all it matches; nothing found says so, with Clear. */
+.stage .tg-q{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:var(--s-2);padding:0 var(--s-3) var(--s-2);background:var(--sunken)}
+.stage .tg-qf{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r);border:1px solid var(--line-soft);background:var(--fill-1);color:var(--ink-4)}
+.stage .tg-qf:focus-within{border-color:var(--line-strong);color:var(--ink-3)}
+.stage .tg-qf svg{flex:none;width:var(--ic);height:var(--ic)}
+.stage .tg-qf input{flex:1;min-width:0;height:100%;border:0;background:none;outline:none;color:var(--ink);font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
+.stage .tg-qf input::placeholder{color:var(--ink-4)}
+.stage .tg-qf input::-webkit-search-cancel-button{display:none}
+.stage .tg-k{flex:none;display:grid;place-items:center;min-width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-4);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono)}
+.stage .tg-q:focus-within .tg-k{visibility:hidden}
+.stage .tg-none{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s-2)}
+.stage .tg-clear{color:var(--accent);font:inherit;text-decoration:underline;text-underline-offset:var(--s-1)}
+.stage .tg-clear:hover{color:var(--accent-hover)}
