@@ -104,6 +104,13 @@
 .ar-grid .md-th.has-well{display:block;place-items:normal;padding:var(--cell-in) var(--cell-in) 0;background:transparent}
 .ar-grid .md-th.has-well>:is(.md-ic,.md-ext){display:none}
 .md-well{position:relative;display:block;height:100%;overflow:hidden;border-radius:var(--r) var(--r) 0 0;background:color-mix(in srgb,var(--wt,var(--ink-4)) 11%,var(--fill-1))}
+/* drawn at once (the owner, 19 Nov 14:46Z): until its preview lands, the well holds the kind's icon in its colour;
+   the picture or the page fades in over it */
+.md-well.is-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-2)}
+.md-well.is-wait .md-ext{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.md-well:not(.is-wait)>:is(.md-pic,.md-sheet){animation:md-in var(--d-hover) var(--ease)}
+@keyframes md-in{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.md-well:not(.is-wait)>:is(.md-pic,.md-sheet){animation:none}}
 .md-well .md-pic{position:absolute;inset:var(--s-4) var(--s-4) 0;width:calc(100% - 2 * var(--s-4));height:calc(100% - var(--s-4));object-fit:cover;object-position:top left;border-radius:var(--r-xs) var(--r-xs) 0 0;box-shadow:0 0 0 1px var(--line-soft),var(--e2)}
 .md-sheet{position:absolute;inset:var(--s-4) var(--s-4) calc(-1 * var(--s-2));display:block;padding:var(--s-3) var(--s-4);overflow:hidden;border-radius:var(--r-xs);background:var(--surface);box-shadow:0 0 0 1px var(--line-soft),var(--e2);text-align:left}
 .md-pt{display:block;margin-bottom:var(--s-1);font:var(--fw-strong) var(--fs-base)/var(--lh-13) var(--serif);color:var(--ink)}

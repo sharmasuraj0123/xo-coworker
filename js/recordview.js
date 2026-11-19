@@ -339,14 +339,18 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     // there supposed to be some colours here?": a picture's well was left grey)
     const tint = fileColor(m.name || m.path) || "";
     const wt = tint ? ` style="--wt:${esc(tint)}"` : "";
-    if (m.kind === "image") { const u = thumbs.get(m.key); return u ? `<span class="md-well"${wt}><img class="md-pic" src="${esc(u)}" alt="" loading="lazy" decoding="async"></span>` : ""; }
+    // drawn at once: until its preview lands the well holds the kind's icon, already in its colour
+    const wait = () => (previewable(m) && !failed.has(m.key) ? `<span class="md-well is-wait"${wt}>${iconHtml(m)}</span>` : "");
+    if (m.kind === "image") { const u = thumbs.get(m.key); return u ? `<span class="md-well"${wt}><img class="md-pic" src="${esc(u)}" alt="" decoding="async"></span>` : wait(); }
     const p = texts.get(m.key);
-    if (!p) return "";
+    if (!p) return wait();
     const page = p.kind === "doc"
       ? `${p.title ? `<span class="md-pt">${esc(p.title)}</span>` : ""}<span class="md-pp">${esc(p.text)}</span>`
       : `<span class="md-pl">${p.lines.map((l) => esc(l) || " ").join("\n")}</span>`;
     return `<span class="md-well"${wt}><span class="md-sheet${p.kind === "doc" ? " is-doc" : ""}">${page}</span></span>`;
   }
+  /** A card on the page that will show the thing itself (a picture, a text file it can read). */
+  const previewable = (m) => m.exists !== false && !!routeOf(m).project && (m.kind === "image" || (TEXTS.has(m.kind) && !/\.(pdf|docx?|xlsx?|pptx?|zip|gz)$/i.test(m.name || m.path || "")));
   function thumbHtml(m, where) {
     if (where === "page") { const w = wellHtml(m); if (w) return w + iconHtml(m); }
     if (m.kind === "image") {
@@ -360,29 +364,92 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     const ic = m.kind === "link" || m.kind === "branch" ? KIND_IC[m.kind] : fileIcon(m.name || m.path);
     return `<span class="md-ic">${ic}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
   }
-  /** Text files on the Artifacts page show their first lines: each read once, through its thread's folder, only
-   *  when its card comes near view (the pictures' observer); a file that can't be read keeps its icon. */
+  /** Previews (a picture, a text file's first lines) never hold the page up (the owner, 19 Nov 14:46Z: Artifacts took
+   *  far too long to show). Measured on live becb59d, opening it fired every near card's read at once, up to 22 in
+   *  flight, about 6.4 MB of full-size pictures and 300 KB of whole text files in the first screens. Over a remote
+   *  link those queued in the browser's 6 connections ahead of the app's own reads, and nothing was kept, so every
+   *  open did it again. Now:
+   *  · a card is drawn at once, its well already tinted in its file's colour (wellHtml), whatever has arrived;
+   *  · reads go through one queue, PREV_CAP at a time, nearest the view first, so the app's own requests always have
+   *    room and the first row fills first;
+   *  · what was read is kept on this device (Cache Storage): a picture as a small copy for its card (PREV_W wide),
+   *    a text file as its preview. The next open draws them at once; a file that changed is a new made record.
+   *  A file that can't be read keeps its icon. */
+  const PREV_CAP = 3, PREV_W = 640, PREV_CACHE = "xo-previews-1";
   const TEXTS = new Set(["doc", "code", "data", "page"]);
-  const texts = new Map(); // key → previewOf(…), or null when it couldn't be read
+  const texts = new Map(); // key → previewOf(…), or null when it couldn't be read (or is on its way)
   const wantsText = (m) => TEXTS.has(m.kind) && !texts.has(m.key) && m.exists !== false && !/\.(pdf|docx?|xlsx?|pptx?|zip|gz)$/i.test(m.name || m.path || "");
+  const routeOf = (m) => (m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : m.server ? {} : sharedFileRoute(world.thread(m.tid), m.path));
+  const PQ = { q: [], n: 0, seq: 0, landed: 0 };
+  /** Where a card is, for the queue: its top in the Artifacts page (from the observer's own entry, no layout read),
+   *  else its place in the list it was asked from. */
+  const nearY = new Map(); // key → {y} on the page
+  const failed = new Set(); // keys whose preview couldn't be read: they keep their icon
+  function prio(job) {
+    const w = nearY.get(job.key), box = A.box;
+    if (w && box && !box.hidden) return Math.abs(w.y - box.scrollTop - box.clientHeight / 3);
+    return 1e6 + job.seq;
+  }
+  function enqueue(key, run) {
+    PQ.q.push({ key, run, seq: PQ.seq++ });
+    pump();
+  }
+  function pump() {
+    while (PQ.n < PREV_CAP && PQ.q.length) {
+      let bi = 0, bp = Infinity;
+      for (let k = 0; k < PQ.q.length; k++) { const p = prio(PQ.q[k]); if (p < bp) { bp = p; bi = k; } }
+      const job = PQ.q.splice(bi, 1)[0];
+      PQ.n++;
+      Promise.resolve().then(job.run).catch(() => { failed.add(job.key); landed(); }).finally(() => { PQ.n--; pump(); });
+    }
+  }
+  /** What arrived is drawn once a frame, not once per arrival. */
+  function landed() {
+    if (PQ.landed) return;
+    PQ.landed = requestAnimationFrame(() => { PQ.landed = 0; schedule(); if (shown()) madeRender(); });
+  }
+  const cacheKey = (m, kind) => `/__xo-preview/${kind}/${encodeURIComponent(m.key)}/${m.at || 0}/${m.bytes ?? ""}`;
+  const cacheOpen = () => (typeof caches !== "undefined" ? caches.open(PREV_CACHE).catch(() => null) : Promise.resolve(null));
+  async function cached(m, kind) { const c = await cacheOpen(); const r = c && (await c.match(cacheKey(m, kind)).catch(() => null)); return r || null; }
+  async function keep(m, kind, body, type) { const c = await cacheOpen(); if (c) await c.put(cacheKey(m, kind), new Response(body, { headers: { "content-type": type } })).catch(() => {}); }
+  /** A picture made small for its card: PREV_W wide at most (a card shows it at about a third of that), WebP. */
+  async function small(b) {
+    if (typeof createImageBitmap !== "function" || typeof OffscreenCanvas !== "function") return b;
+    const bm = await createImageBitmap(b);
+    if (bm.width <= PREV_W) { bm.close?.(); return b; }
+    const h = Math.round((bm.height * PREV_W) / bm.width), c = new OffscreenCanvas(PREV_W, h);
+    c.getContext("2d").drawImage(bm, 0, 0, PREV_W, h); bm.close?.();
+    return c.convertToBlob({ type: "image/webp", quality: 0.82 });
+  }
   function loadTexts(items) {
     for (const m of items) {
       if (!wantsText(m)) continue;
-      const r = m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : m.server ? {} : sharedFileRoute(world.thread(m.tid), m.path);
+      const r = routeOf(m);
       texts.set(m.key, null);
       if (!r.project) continue;
-      api.projectFile(r.project, r.rel).then((d) => { texts.set(m.key, R.previewOf(m.name || m.path, String(d && d.content || "").slice(0, 4096))); schedule(); if (shown()) madeRender(); }).catch(() => {});
+      enqueue(m.key, async () => {
+        const hit = await cached(m, "text");
+        const p = hit ? await hit.json() : R.previewOf(m.name || m.path, String((await api.projectFile(r.project, r.rel))?.content || "").slice(0, 4096));
+        if (!hit && p) keep(m, "text", JSON.stringify(p), "application/json");
+        if (!p) throw new Error("nothing to show");
+        texts.set(m.key, p); landed();
+      });
     }
   }
-  /** Image files show themselves: each read once, through its thread's folder. */
+  /** Image files show themselves: each read once, through its thread's folder (the queue, the device's copy). */
   function loadThumbs(items) {
     for (const m of items) {
       if (m.kind !== "image" || thumbs.has(m.key)) continue;
-      const r = m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : m.server ? {} : sharedFileRoute(world.thread(m.tid), m.path);
-      if (m.exists === false) { thumbs.set(m.key, ""); continue; }
-      if (!r.project) { thumbs.set(m.key, ""); continue; }
+      const r = routeOf(m);
+      if (m.exists === false || !r.project) { thumbs.set(m.key, ""); continue; }
       thumbs.set(m.key, "");
-      api.projectImage(r.project, r.rel).then((b) => { thumbs.set(m.key, URL.createObjectURL(b)); schedule(); if (shown()) madeRender(); }).catch(() => {});
+      enqueue(m.key, async () => {
+        const hit = await cached(m, "pic");
+        let b = hit ? await hit.blob() : null;
+        if (!b) { b = await small(await api.projectImage(r.project, r.rel)).catch(() => null) || b; if (b) keep(m, "pic", b, b.type || "image/png"); }
+        if (!b) throw new Error("no picture");
+        thumbs.set(m.key, URL.createObjectURL(b)); landed();
+      });
     }
   }
   const hostOf = (u) => { try { return new URL(u).host; } catch { return "link"; } };
@@ -397,7 +464,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     // on the page a card says where it's from, what it is and when; its size is in the file itself
     const meta = (where === "page" ? [PROJ(m.project), what, ago] : [what, size(m.bytes), ago]).filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
-      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${where === "page" && (m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
+      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${where === "page" && ((m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) || (previewable(m) && !failed.has(m.key))) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
       `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
       (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.threadOne}<span>${esc(n.from)}</span></button>`
         : where === "page" ? `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>` : "") + // on the page every card is one height
@@ -445,7 +512,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     const counts = Object.fromEntries(R.KINDS.map(([k]) => [k, k === "all" ? items.length : items.filter((m) => m.kind === k).length]));
     const list = R.filterMade(items, { kind: M.kind, q: M.q });
     const groups = R.madeGroups(list);
-    loadThumbs(list);
+    loadThumbs(list.slice(0, 48)); // the first screens' worth; the queue takes them nearest first
     const h = M.host;
     if (!M.built) {
       h.innerHTML = `<div class="md-pane"><header class="md-h"><h2 id="made-h"></h2><p id="made-sub"></p></header>` +
@@ -651,7 +718,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
           if (!e.isIntersecting) continue;
           A.tio.unobserve(e.target);
           const m = A.byKey.get(e.target.dataset.k);
-          if (m) { loadThumbs([m]); loadTexts([m]); }
+          if (m) { nearY.set(m.key, { y: e.boundingClientRect.top - e.rootBounds.top + A.box.scrollTop }); loadThumbs([m]); loadTexts([m]); }
         }
       }, { root: box, rootMargin: "50% 0px" });
     }
