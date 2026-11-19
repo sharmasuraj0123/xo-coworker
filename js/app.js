@@ -33,7 +33,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, unpin, isPinned, fromTop, toRow } from "./follow.js";
+import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest } from "./follow.js";
 import { createViewer } from "./viewer.js";
 import { createMap, MAP_ICON } from "./map.js";
 import { createStage } from "./stage.js";
@@ -1916,21 +1916,21 @@ function openAsk(project) {
   }
   return best;
 }
-function typingRender() {
-  const box = $("#typing");
-  const t = convThread(S.view);
+function typingRender(C = MAIN) {
+  const box = C.typing, view = C.view;
+  const t = convThread(view);
   let spec = null;
-  const chat = !t && S.view !== "home" ? chatOf(S.view) : null;
+  const chat = !t && view !== "home" ? chatOf(view) : null;
   // held back by a gate (the usage limit…): nothing runs, so no arc, no shimmer and no clock, only what it
   // waits for and until when (timeline.js heldWords), in the pause's amber
   const coHeld = chat && world.act.coordinatorHeld ? world.act.coordinatorHeld(chat) : null;
-  const chHeld = !chat && S.view.startsWith("c:") && world.act.sessionHeld ? world.act.sessionHeld(S.view.slice(2)) : null;
+  const chHeld = !chat && view.startsWith("c:") && world.act.sessionHeld ? world.act.sessionHeld(view.slice(2)) : null;
   // a thread's own wait shows here even while an item on it asks you (it's true, and the item says the rest)
   const held = coHeld || chHeld || (t && t.held && !isBusy(t) && t.state !== "resolved" ? t.held : null);
   if (held) {
-    const who = coHeld ? (S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`) : "";
+    const who = coHeld ? (view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`) : "";
     const words = heldWords(held);
-    spec = { key: `held:${coHeld ? chat : chHeld ? S.view : t.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
+    spec = { key: `held:${coHeld ? chat : chHeld ? view : t.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
     // the words change when its reset passes ("starts at 6:50 AM" → "to reset"): drawn again then, not at a chance render
     clearTimeout(S.heldT);
     const at = Date.parse(held.until || "");
@@ -1938,7 +1938,7 @@ function typingRender() {
   } else if (chat && world.act.replying(chat)) {
     // the coordinator's session really works, or our message still waits for its answer (never a timer)
     const aw = world.state.awaiting[chat];
-    const who = S.view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
+    const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
     spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${aw ? "replying" : "working"}`, since: aw ? aw.at : null };
   } else if (chat && chat !== "workspace" && openAsk(chat)) {
@@ -1948,9 +1948,9 @@ function typingRender() {
     // the line goes when its 20 minutes are up, not at the next render that happens to come along
     clearTimeout(S.askT);
     S.askT = setTimeout(schedule, Math.max(0, (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3 - Date.now()) + 50);
-  } else if (S.view.startsWith("c:")) {
-    const sid = S.view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
-    if (CH.working(S.view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
+  } else if (view.startsWith("c:")) {
+    const sid = view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
+    if (CH.working(view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
   } else if (t && t.sessionId && world.state.turns && world.state.turns.running(t.sessionId) && world.state.turns.blocksOf(world.state.turns.running(t.sessionId)).length) {
     spec = null; // its running turn shows the work itself
   } else if (t && isBusy(t)) {
@@ -2690,6 +2690,17 @@ function editFailed(id) {
 
 // ── render ──────────────────────────────────────────────────────────────────
 const scroller = $("#scroller"), msgsEl = $("#msgs");
+/**
+ * A conversation on screen (P1 of a thread beside the coordinator's chat, design-research/2026-11-19-threads-panel/
+ * thread-page): its view, its own elements (messages, scroller, column, typing line) and its follower, and what
+ * its drawing remembers (rendered, filled). The main chat (#conv) is MAIN, its view always S.view; the panel's
+ * thread page makes its own. drawConv(C, needs) draws one.
+ */
+function createConv({ view, msgs, scroller: sc, column, typing, follow, main = false }) {
+  return { get view() { return typeof view === "function" ? view() : view; }, msgs, scroller: sc, column, typing, follow, main, rendered: null, filled: null };
+}
+const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
+  follow: { toLatest, unpin, isPinned, fromTop, toRow, fromLatest } });
 // the oldest message on screen; day lines don't count, since older messages of the same day land below theirs
 const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='day|'])";
 let rendered = null, raf = 0;
@@ -2721,36 +2732,17 @@ function render() {
   const pbt = isHome ? "Home" : isArts ? "Artifacts" : "";
   if ($("#pb-t")._h !== pbt + v) { $("#pb-t").innerHTML = pbt ? esc(pbt) : XO; $("#pb-t")._h = pbt + v; }
   sideRender(needs);
-  if (isHome) { homeRender(needs); rendered = "home"; }
-  else if (isArts) { REC.artifacts.render(); rendered = "artifacts"; }
+  if (isHome) { homeRender(needs); rendered = MAIN.rendered = "home"; }
+  else if (isArts) { REC.artifacts.render(); rendered = MAIN.rendered = "artifacts"; }
   else {
     topRender(needs);
     wsHeadRender(needs);
-    const opening = rendered !== v;
-    let quiet = opening;
-    // the first real fill of a conversation lands quietly (no arrivals), and where you are
-    const ready = liveReady(v);
-    if (!opening && ready && S.filled !== v) quiet = true;
-    S.filled = ready ? v : null;
-    CHG.sync(v); // what this place changed: read on opening, and after each edit an agent finishes
-    const items = msgItems(v, needs);
-    // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
-    const folds = quiet ? null : foldsBefore(items);
-    const place = !opening && !isPinned() ? readingPlace() : null;
-    reconcile(msgsEl, items, { quiet, fallback: () => $("#say") });
-    hydrateMedia(msgsEl); // new pictures load and fade in; redrawn ones keep their pixels
-    if (place) { holdPlace(place); queueMicrotask(() => holdPlace(place)); } // after msgx's decoration too
-    if (folds) workMotion(folds);
-    ensureRoot();
-    typingRender();
-    // opening a conversation lands at the latest (the owner, 5 Nov). After that, follow.js keeps you there
-    // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
-    // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
-    if (opening) { rendered = v; toLatest(false); }
+    drawConv(MAIN, needs);
+    rendered = MAIN.rendered;
     // focus in the composer as it goes with its thread: to Go to Home, else the conversation, never the page
     if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
   }
-  if (!isHome && !isArts) requestAnimationFrame(loadAhead);
+  if (!isHome && !isArts) requestAnimationFrame(() => loadAhead(MAIN));
   dockRender(needs);
   heraldRender(needs);
   // the line above the composer follows the world on every view: a thread's follows its agent's turn
@@ -2804,12 +2796,13 @@ function faviconRender(t, need = false) {
 /** Earlier messages load before you reach them (hub #28). Within about a screen of the top, the next
  *  page is fetched, and it lands above what you're reading without moving it; a first page too short to
  *  scroll keeps loading until it fills the view or the conversation begins. A thread pages the same way. */
-function loadAhead() {
-  if (rendered !== S.view || S.view === "home" || CH.isChats(S.view)) return;
-  if (fromTop() > Math.max(600, scroller.clientHeight)) return;
-  const t = convThread(S.view);
+function loadAhead(C = MAIN) {
+  const v = C.view;
+  if (C.rendered !== v || v === "home" || CH.isChats(v)) return;
+  if (C.follow.fromTop() > Math.max(600, C.scroller.clientHeight)) return;
+  const t = convThread(v);
   if (t) { if (world.act.loadOlderThread && canPageOlder(world.state.threadHist?.[t.id])) world.act.loadOlderThread(t.id); return; }
-  const c = chatOf(S.view); const h = c && world.state.hist[c];
+  const c = chatOf(v); const h = c && world.state.hist[c];
   if (h && h.loaded && !h.all && !h.loading && !h.olderError) world.act.loadOlder(c);
 }
 /** "Earlier messages" (or "Try again"), pressed: the conversation's next older page. */
@@ -2819,18 +2812,46 @@ function loadAhead() {
  * button that's there again (Try again after another failure, Earlier messages when there's more), and stays on
  * the conversation at its beginning (Astra DET-3: it fell to the page).
  */
-function loadOlderNow() {
-  const from = document.activeElement?.closest?.("[data-older]") ? S.view : null;
-  if (from) scroller.focus({ preventScroll: true });
+function loadOlderNow(C = MAIN) {
+  const from = document.activeElement?.closest?.("[data-older]") ? C.view : null;
+  if (from) C.scroller.focus({ preventScroll: true });
   let read = null;
-  const t = convThread(S.view);
+  const t = convThread(C.view);
   if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) read = world.act.loadOlderThread(t.id); }
-  else { const c = chatOf(S.view); if (c) read = world.act.loadOlder(c); }
+  else { const c = chatOf(C.view); if (c) read = world.act.loadOlder(c); }
   if (from) Promise.resolve(read).finally(() => {
-    if (S.view !== from || document.activeElement !== scroller) return;
+    if (C.view !== from || document.activeElement !== C.scroller) return;
     render();
-    msgsEl.querySelector("[data-older]")?.focus({ preventScroll: true });
+    C.msgs.querySelector("[data-older]")?.focus({ preventScroll: true });
   });
+}
+
+/** One conversation's drawing: its messages (reconciled in place), pictures, the place you read held, the work's
+ *  folds gliding, its thread's root found, its typing line; opening it lands at the latest. */
+function drawConv(C, needs) {
+  const v = C.view;
+  const opening = C.rendered !== v;
+  let quiet = opening;
+  // the first real fill of a conversation lands quietly (no arrivals), and where you are
+  const ready = liveReady(v);
+  if (!opening && ready && C.filled !== v) quiet = true;
+  C.filled = ready ? v : null;
+  if (C.main) S.filled = C.filled;
+  CHG.sync(v); // what this place changed: read on opening, and after each edit an agent finishes
+  const items = msgItems(v, needs);
+  // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
+  const folds = quiet ? null : foldsBefore(C, items);
+  const place = !opening && !C.follow.isPinned() ? readingPlace(C) : null;
+  reconcile(C.msgs, items, { quiet, fallback: () => (C.main ? $("#say") : C.scroller) });
+  hydrateMedia(C.msgs); // new pictures load and fade in; redrawn ones keep their pixels
+  if (place) { holdPlace(C, place); queueMicrotask(() => holdPlace(C, place)); } // after msgx's decoration too
+  if (folds) workMotion(C, folds);
+  ensureRoot(v);
+  typingRender(C);
+  // opening a conversation lands at the latest (the owner, 5 Nov). After that, follow.js keeps you there
+  // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
+  // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
+  if (opening) { C.rendered = v; C.follow.toLatest(false); }
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
@@ -2840,9 +2861,9 @@ function loadOlderNow() {
  *  line (it moves above older messages of its day). Held on that line, the place stayed at the top while a
  *  landing page pushed what you read 5,000-8,000 px down, and the hold undid the browser's own correction. */
 const isMessageRow = (k) => k !== "hist" && k !== "note" && k !== "empty" && !k.startsWith("day|");
-function readingPlace() {
-  const top = scroller.getBoundingClientRect().top;
-  for (const el of msgsEl.children) {
+function readingPlace(C = MAIN) {
+  const top = C.scroller.getBoundingClientRect().top;
+  for (const el of C.msgs.children) {
     const k = el.dataset.k;
     if (!k || !isMessageRow(k)) continue;
     const r = el.getBoundingClientRect();
@@ -2850,12 +2871,12 @@ function readingPlace() {
   }
   return null;
 }
-const childOf = (k) => { for (const el of msgsEl.children) if (el.dataset.k === k) return el; return null; };
-function holdPlace(a) {
-  const el = childOf(a.k);
+const childOf = (C, k) => { for (const el of C.msgs.children) if (el.dataset.k === k) return el; return null; };
+function holdPlace(C, a) {
+  const el = childOf(C, a.k);
   if (!el) return;
   const d = el.getBoundingClientRect().top - a.top;
-  if (Math.abs(d) >= 1) { scroller.scrollTop += d; }
+  if (Math.abs(d) >= 1) { C.scroller.scrollTop += d; }
 }
 /** Something here already moves to its own CSS animation (another layer's): motion is never stacked on it. */
 function stirred(el, root) {
@@ -2867,10 +2888,10 @@ function stirred(el, root) {
  * and rows ([data-b], [data-r]) and which of them it has, so workMotion can glide what changed height and
  * bring in what's new. Only the items whose markup changes are measured.
  */
-function foldsBefore(items) {
+function foldsBefore(C, items) {
   const out = [];
   const now = new Map();
-  for (const el of msgsEl.children) if (el.dataset.k) now.set(el.dataset.k, el);
+  for (const el of C.msgs.children) if (el.dataset.k) now.set(el.dataset.k, el);
   for (const it of items) {
     const el = now.get(it.key);
     if (!el || el._h === it.html || !el.querySelector("[data-tb]")) continue;
@@ -2887,15 +2908,16 @@ function foldsBefore(items) {
  * that's new arrives (motion.js). Only on screen: above what you're reading, it lands still (holdAnchor
  * kept your place). What you just opened isn't "new": its fold's glide shows it. Reduced motion: none.
  */
-function workMotion(folds) {
-  const toggled = S.tbToggled;
-  S.tbToggled = null;
-  if (toggled && toggled.focus) msgsEl.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.focus({ preventScroll: true });
+function workMotion(C, folds) {
+  // the fold you toggled is the one in this conversation (a click remembers where it was, S.tbToggled.in)
+  const toggled = S.tbToggled && (!S.tbToggled.in || S.tbToggled.in === C.msgs) ? S.tbToggled : null;
+  if (toggled) S.tbToggled = null;
+  if (toggled && toggled.focus) C.msgs.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.focus({ preventScroll: true });
   if (still() || !folds.length) return;
-  const top = scroller.getBoundingClientRect().top, bottom = top + scroller.clientHeight;
+  const top = C.scroller.getBoundingClientRect().top, bottom = top + C.scroller.clientHeight;
   const seen = (r) => r.bottom > top && r.top < bottom;
   for (const f of folds) {
-    const el = childOf(f.k);
+    const el = childOf(C, f.k);
     if (!el || !seen(el.getBoundingClientRect())) continue;
     const opened = toggled ? el.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.closest("[data-b],[data-r]") : null;
     const glide = (x, h0) => {
@@ -3061,8 +3083,8 @@ function loadChatHops(v) {
 /** An open thread's root request (on the project's timeline): looked up by id once the thread has been read
  *  back to its beginning, just below its first message. It used to page the project's own conversation back
  *  (up to 6 pages), which grew that conversation for nothing. */
-function ensureRoot() {
-  const t = convThread(S.view);
+function ensureRoot(view = S.view) {
+  const t = convThread(view);
   if (!t || !world.act.findRows) return;
   const th = world.state.threadHist?.[t.id];
   if (!th || !th.loaded || !th.all) return;

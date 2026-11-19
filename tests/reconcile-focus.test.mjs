@@ -27,6 +27,6 @@ t("before it's removed, focus goes to that row's first control that shows, else 
   assert.match(before, /if \(to && to\.focus\) to\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the conversation's fallback is its message box", () => {
-  assert.match(app, /reconcile\(msgsEl, items, \{ quiet, fallback: \(\) => \$\("#say"\) \}\);/);
+  assert.match(app, /reconcile\(C\.msgs, items, \{ quiet, fallback: \(\) => \(C\.main \? \$\("#say"\) : C\.scroller\) \}\);/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
