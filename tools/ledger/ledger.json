@@ -5942,9 +5942,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "index.html::ids::map": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "the standalone Map's own aside; the Map draws only in the panel's Map frame (tests/map-panel-only.test.mjs)"
   },
   "index.html::ids::viewer": {
    "status": "split-region",
