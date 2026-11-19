@@ -479,6 +479,43 @@ class WriterKey(unittest.TestCase):
         ask("PUT", "/api/xo-projects/demo/file", self.page(), b"{}")
         self.assertEqual(self.writer(), "ef" * 32)
 
+    def test_app_management_and_app_views_carry_it(self):
+        for method, path in [("POST", "/api/apps/installs"), ("POST", "/api/apps/installs/s_1/confirm"),
+                             ("POST", "/api/apps/dev.me.word/update"), ("POST", "/api/apps/dev.me.word/rollback"),
+                             ("POST", "/api/apps/dev.me.word/stop"), ("POST", "/api/apps/dev.me.word/start"),
+                             ("PUT", "/api/apps/dev.me.word/grants?project=p1"), ("DELETE", "/api/apps/dev.me.word/grants?project=p1"),
+                             ("PUT", "/api/apps/dev.me.word/settings?project=p1"), ("DELETE", "/api/apps/dev.me.word"),
+                             ("POST", "/api/coworker/apps/dev.me.word/call"), ("GET", "/api/coworker/apps/dev.me.word/resources?uri=ui://dev.me.word/a"),
+                             ("POST", "/api/coworker/apps/dev.me.word/views/heartbeat")]:
+            self.assertEqual(ask(method, path, self.page(), b"{}" if method != "GET" else None)[0], 200, path)
+            self.assertEqual(self.writer(), self.KEY, f"{method} {path}")
+        for method, path in [("GET", "/api/apps"), ("GET", "/api/apps/dev.me.word"), ("GET", "/api/apps/dev.me.word/grants?project=p1"),
+                             ("GET", "/api/apps/contract")]:
+            self.assertEqual(ask(method, path, self.page(), None)[0], 200, path)
+            self.assertIsNone(self.writer(), f"{method} {path}")
+
+    def test_only_its_own_page_gets_the_key(self):
+        for headers in [local(), {**local(), "Sec-Fetch-Site": "same-origin"}, {**local(), "Origin": f"http://localhost:{PORT}"},
+                        {**local(), "Origin": f"http://localhost:{PORT}", "Sec-Fetch-Site": "none"},
+                        {**local(), "Origin": "null", "Sec-Fetch-Site": "same-origin"}]:
+            for method, path in [("PUT", "/api/xo-projects/demo/file"), ("POST", "/api/apps/installs"), ("POST", "/api/coworker/apps/dev.me.word/call")]:
+                SEEN.clear()
+                status, _ = ask(method, path, headers, b"{}")
+                self.assertEqual(status, 403, f"{method} {path} {headers}")
+                self.assertEqual(SEEN, [], f"{method} {path} {headers}")
+
+    def test_mcp_is_never_forwarded(self):
+        SEEN.clear()
+        status, _ = ask("POST", "/mcp/apps/dev.me.word", self.page(), b"{}")
+        self.assertNotEqual(status, 200)
+        self.assertEqual(SEEN, [])
+
+    def test_app_bodies_keep_the_one_mib_cap(self):
+        SEEN.clear()
+        status, _ = ask("POST", "/api/coworker/apps/dev.me.word/call", self.page(), b"x" * ((1 << 20) + 1))
+        self.assertEqual(status, 413)
+        self.assertEqual(SEEN, [])
+
     def test_a_cross_origin_page_never_gets_there(self):
         status, _ = ask("PUT", "/api/xo-projects/demo/file", {**local(), "Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, b"{}")
         self.assertEqual(status, 403)

@@ -111,6 +111,13 @@ WRITER_ROUTES = [
     # deleting a thread and taking it back (xo-space asks for the key)
     ("DELETE", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+$")),
     ("POST", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+/restore$")),
+    # installing, granting, updating and removing apps; an agent's curl may read the list, never change it
+    ("POST", re.compile(r"^/api/apps/installs(?:/[^/]+/confirm)?$")),
+    ("POST", re.compile(r"^/api/apps/[^/]+/(?:update|rollback|stop|start)$")),
+    ("PUT", re.compile(r"^/api/apps/[^/]+/(?:grants|settings)$")),
+    ("DELETE", re.compile(r"^/api/apps/[^/]+(?:/grants)?$")),
+    # an app view's calls, made for the person by this page's bridge: every method
+    ("*", re.compile(r"^/api/coworker/apps/[^/]+/.+$")),
 ]
 _WRITER = {"stamp": None, "key": None}
 
@@ -125,7 +132,7 @@ def clean_path(path: str) -> str:
 def writer_route(method: str, path: str) -> bool:
     """True for a request that carries the writer key upstream: a file save or an undo, in any spelling."""
     p = clean_path(path)
-    return any(m == method and rx.match(p) for m, rx in WRITER_ROUTES)
+    return any(m in (method, "*") and rx.match(p) for m, rx in WRITER_ROUTES)
 
 
 def writer_key_path() -> str:
@@ -351,6 +358,11 @@ class Handler(SimpleHTTPRequestHandler):
         line = (fmt % args).replace(self.path, strip_token(self.path))
         sys.stderr.write("%s - %s\n" % (self.log_date_time_string(), line))
 
+    def _from_own_page(self) -> bool:
+        """True only for a request a page of this UI sent: same-origin Sec-Fetch-Site and Origin, both present."""
+        origin = self.headers.get("Origin")
+        return self.headers.get("Sec-Fetch-Site") == "same-origin" and origin is not None and parse_origin(origin) in (self._own_origins() or [])
+
     # ── same-origin check for writes ─────────────────────────────────────────
     def _write_allowed(self) -> bool:
         """True for a request from a page this server served, or from no page at all."""
@@ -399,6 +411,8 @@ class Handler(SimpleHTTPRequestHandler):
 
         headers = {k: v for k, v in self.headers.items() if k.lower() not in DROP_REQUEST}
         if writer_route(method, self.path):
+            if not self._from_own_page():
+                return self._json_error(403, "not_a_page", "Only XO's own page may do this.")
             key = writer_key()
             if key is None:
                 return self._json_error(503, "writer_key_missing", "XO Space hasn't given this UI its key for saving files yet.")
