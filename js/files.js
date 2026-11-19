@@ -31,14 +31,13 @@ import { rank, marked } from "./fuzzy.js";
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
 
-const I = (d, w = 15) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-export const FILES_ICON = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
-const CH = I('<path d="m9 6 6 6-6 6"/>', 13);
-const BACK = I('<path d="m15 6-6 6 6 6"/>');
-const CHANGED_IC = I('<path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.5z"/><path d="M9.5 13.5l2 2 3.5-4"/>', 16);
-const MORE_IC = I('<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>', 15);
-const NEW_IC = I('<path d="M13.5 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8.5z"/><path d="M13.5 3.5v5h5M12 11.5v6M9 14.5h6"/>', 16);
-const FOLDER_IC = I('<path d="M3.5 18V6.5A1.5 1.5 0 0 1 5 5h4l2 2h8A1.5 1.5 0 0 1 20.5 8.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/>', 16);
+export const FILES_ICON = ICON.folder;
+const CH = ICON.right;
+const BACK = ICON.back;
+const CHANGED_IC = ICON.changes;
+const MORE_IC = ICON.more;
+const NEW_IC = ICON.fileNew;
+const FOLDER_IC = ICON.folder;
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const base = (p) => String(p || "").split("/").pop();

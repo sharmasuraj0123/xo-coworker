@@ -16,7 +16,7 @@ import { esc } from "./world.js";
 import { space } from "./util.js";
 import { redraw } from "./redraw.js";
 import { once } from "./pending.js";
-import { ICON, RM } from "./ui.js";
+import { ICON, RM, xi } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
@@ -354,7 +354,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     redraw(pop, html);
     place();
   }
-  const CHECK = `<svg class="iq-ck" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+  const CHECK = xi("check", "iq-ck");
   const routeWord = (c) => { const r = c.routing || {}; return !c.ownRouting ? "the Space's routing" : r.mode === "off" ? "routing off" : r.mode === "decision" ? `${cap(r.decision_model)} routes` : "its coordinator routes"; };
   function routingHtml(s, c) {
     const space = world.state.router || { mode: "agent" };

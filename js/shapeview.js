@@ -14,7 +14,7 @@ import { bringWhole } from "./focusview.js";
 import { rovingTab } from "./keynav.js";
 
 /** Settings' rail icon for Shape: a window and its parts. */
-export const SHAPE_IC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15M9.5 11h11"/></svg>';
+export const SHAPE_IC = ICON.shape;
 
 /** Said when a change applied but this browser won't keep it (the shape store's kept: false). */
 export const UNKEPT = "Applied for now: this browser won't keep it after a reload (its storage is full or switched off).";

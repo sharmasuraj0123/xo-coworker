@@ -19,11 +19,12 @@ t("Back to chat is a quiet control: 32 tall, the head's 8 px corner, no fill or 
   assert.doesNotMatch(r, /(^|;)(background|box-shadow|border):/);
   assert.doesNotMatch(fv, /--ret-(ink|fill|line|hover)/, "no plum left");
 });
-t("Stop: a stone disc with a 14 px square of 4 px corners, its radius concentric with the composer's", () => {
+t("Stop: a stone disc with the owner's stop square, its radius concentric with the composer's", () => {
   const app = nc(read("css/app.css")), js = read("js/app.js"), tok = read("css/tokens.css");
-  assert.match(js, /const STOP_ICON = `<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true"><rect width="14" height="14" rx="4" fill="currentColor"\/><\/svg>`;/);
+  // the owner's stop (assets/icons/xo/c-actions/stop.svg: a 12 square, 3.5 corners, on the 24 grid), at --ic-lg
+  assert.match(js, /const STOP_ICON = ICON\.stop;/);
   assert.match(app, /\.send\.is-stop\{--stop:var\(--fill-4\);--ring-in:var\(--focus\);background:var\(--stop\);color:var\(--ink\)\}/);
-  assert.match(app, /\.send\.is-stop svg\{width:14px;height:14px\}/);
+  assert.match(app, /\.send\.is-stop svg\{width:var\(--ic-lg\);height:var\(--ic-lg\)\}/);
   // the disc's radius is the composer's corner less its inset: 28 − (1 border + 9 padding − 2 margin) = 20 = 40 / 2
   const comp = /\.composer\{[^}]*padding:12px 9px 9px 9px;border:1px solid[^}]*border-radius:var\(--r-3xl\)/.test(app);
   assert.ok(comp, "the composer's corner and inset as measured");

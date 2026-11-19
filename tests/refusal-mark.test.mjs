@@ -10,8 +10,9 @@ const ui = read("js/ui.js"), vw = read("js/viewer.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("the icon set has the mark: the clock's circle with a mark in it", () => {
-  assert.match(ui, /warn: I\('<circle cx="12" cy="12" r="8\.5"\/><path d="M12 7\.5v5\.2M12 16\.4v\.1"\/>'\)/);
+t("the icon set has the mark: the pack's warning", () => {
+  // the owner's warning (assets/icons/xo/d-things-and-kinds/warning.svg), not the clock
+  assert.match(ui, /warn: xi\("warning"\)/);
 });
 t("the viewer's refusal line (a refused Copy path, a save refused) and the editor's error line draw it", () => {
   assert.match(vw, /V\.saveError \? `<p class="vw-cut" role="alert">\$\{ICON\.warn\}/);

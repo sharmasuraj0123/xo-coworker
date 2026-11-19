@@ -29,6 +29,7 @@
 // image's alt as its words, never a stray "!"). Without the app's renderer (node, or "Show pictures from
 // the web" off on this device) the same lines are outbound links, so nothing is lost.
 
+import { xi } from "./icon.js";
 import { esc } from "./util.js";
 import { highlight } from "./highlight.js";
 import { fileIcon } from "./fileicons.js";
@@ -44,8 +45,8 @@ let threadInfo = null;
 /** Let the app tell the renderer about threads it knows (their live state), for thread tokens. */
 export function setThreadInfo(fn) { threadInfo = typeof fn === "function" ? fn : null; }
 
-const ARROW_OUT = `<svg class="lk-ar" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.6 3.5h3.9v3.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const THREAD_G = `<svg class="lk-tg" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M13.6 7.8a5.6 5.6 0 0 1-8.1 5L2.4 13.6l.9-3A5.6 5.6 0 1 1 13.6 7.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+const ARROW_OUT = xi("external-link", "lk-ar");
+const THREAD_G = xi("chat", "lk-tg");
 const STATES = new Set(["working", "idle", "needs_reply", "needs_approval", "done", "failed", "paused", "resolved"]);
 
 /** The "leaves XO" arrow after an outbound link (js/media.js uses it for a web picture that couldn't show). */

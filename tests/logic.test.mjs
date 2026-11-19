@@ -59,7 +59,7 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   const web = renderInline("[PR #37](https://github.com/a/b/pull/37)");
   assert.match(web, /class="lk lk-out"/);
   // the last word and the ↗ never part (QA F3)
-  assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="lk-ar"/);
+  assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="xi lk-ar"/);
   const bare = renderInline("at http://localhost:3000/ now");
   assert.match(bare, /lk-out is-local is-bare/);
   assert.match(bare, /<span class="lk-t">localhost:3000<\/span>/);
@@ -68,7 +68,7 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
 });
 t("a bare address wraps only at its seams, and its last piece keeps the arrow (QA F3)", () => {
   const out = renderInline("https://github.com/pierrecomputer/pierre");
-  assert.match(out, /<span class="lk-t">github<wbr>\.com\/<wbr>pierrecomputer\/<\/span><span class="lk-end"><span class="lk-t">pierre<\/span><svg class="lk-ar"/);
+  assert.match(out, /<span class="lk-t">github<wbr>\.com\/<wbr>pierrecomputer\/<\/span><span class="lk-end"><span class="lk-t">pierre<\/span><svg class="xi lk-ar"/);
   // a long last piece keeps only its last 6 characters with the arrow, so it can still wrap
   const sha = renderInline("https://x.io/c/4f765da0b2c1d3e4f5a6b7c8");
   assert.match(sha, /<span class="lk-end"><span class="lk-t">a6b7c8<\/span><svg/);

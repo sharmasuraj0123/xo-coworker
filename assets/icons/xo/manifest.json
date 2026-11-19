@@ -1,0 +1,3081 @@
+{
+  "project": "XO Icons",
+  "document": "ic1",
+  "fileId": "01M7SVHZJXJ9JBQ6V2K1VMW0N2",
+  "exportedAt": "2026-11-19T13:45:34.011Z",
+  "count": 384,
+  "icons": [
+    {
+      "name": "home",
+      "category": "A · Places and the frame",
+      "nodeId": "3:3",
+      "file": "a-places-and-the-frame/home.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "xo-mark",
+      "category": "A · Places and the frame",
+      "nodeId": "3:6",
+      "file": "a-places-and-the-frame/xo-mark.svg",
+      "width": 42,
+      "height": 20
+    },
+    {
+      "name": "chat",
+      "category": "A · Places and the frame",
+      "nodeId": "3:10",
+      "file": "a-places-and-the-frame/chat.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "artifacts",
+      "category": "A · Places and the frame",
+      "nodeId": "3:13",
+      "file": "a-places-and-the-frame/artifacts.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "more",
+      "category": "A · Places and the frame",
+      "nodeId": "3:16",
+      "file": "a-places-and-the-frame/more.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project",
+      "category": "A · Places and the frame",
+      "nodeId": "3:21",
+      "file": "a-places-and-the-frame/project.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "plus",
+      "category": "A · Places and the frame",
+      "nodeId": "3:24",
+      "file": "a-places-and-the-frame/plus.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "search",
+      "category": "A · Places and the frame",
+      "nodeId": "3:27",
+      "file": "a-places-and-the-frame/search.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "menu",
+      "category": "A · Places and the frame",
+      "nodeId": "3:30",
+      "file": "a-places-and-the-frame/menu.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sidebar-left",
+      "category": "A · Places and the frame",
+      "nodeId": "3:33",
+      "file": "a-places-and-the-frame/sidebar-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "panel-right",
+      "category": "A · Places and the frame",
+      "nodeId": "3:36",
+      "file": "a-places-and-the-frame/panel-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "full-size",
+      "category": "A · Places and the frame",
+      "nodeId": "3:39",
+      "file": "a-places-and-the-frame/full-size.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "exit-full-size",
+      "category": "A · Places and the frame",
+      "nodeId": "3:42",
+      "file": "a-places-and-the-frame/exit-full-size.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "fold-to-rail",
+      "category": "A · Places and the frame",
+      "nodeId": "3:45",
+      "file": "a-places-and-the-frame/fold-to-rail.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gear",
+      "category": "A · Places and the frame",
+      "nodeId": "3:48",
+      "file": "a-places-and-the-frame/gear.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sun",
+      "category": "A · Places and the frame",
+      "nodeId": "3:51",
+      "file": "a-places-and-the-frame/sun.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "moon",
+      "category": "A · Places and the frame",
+      "nodeId": "3:54",
+      "file": "a-places-and-the-frame/moon.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "terminal",
+      "category": "A · Places and the frame",
+      "nodeId": "3:57",
+      "file": "a-places-and-the-frame/terminal.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "threads",
+      "category": "A · Places and the frame",
+      "nodeId": "3:60",
+      "file": "a-places-and-the-frame/threads.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "changes",
+      "category": "A · Places and the frame",
+      "nodeId": "3:63",
+      "file": "a-places-and-the-frame/changes.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "map",
+      "category": "A · Places and the frame",
+      "nodeId": "3:66",
+      "file": "a-places-and-the-frame/map.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "graph",
+      "category": "A · Places and the frame",
+      "nodeId": "3:69",
+      "file": "a-places-and-the-frame/graph.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevron-down",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:74",
+      "file": "b-arrows-and-chevrons/chevron-down.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevron-right",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:77",
+      "file": "b-arrows-and-chevrons/chevron-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevron-left",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:80",
+      "file": "b-arrows-and-chevrons/chevron-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-right",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:83",
+      "file": "b-arrows-and-chevrons/arrow-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-left",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:86",
+      "file": "b-arrows-and-chevrons/arrow-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-down",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:89",
+      "file": "b-arrows-and-chevrons/arrow-down.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "send",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:92",
+      "file": "b-arrows-and-chevrons/send.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "external-link",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:95",
+      "file": "b-arrows-and-chevrons/external-link.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "next-move",
+      "category": "B · Arrows and chevrons",
+      "nodeId": "3:98",
+      "file": "b-arrows-and-chevrons/next-move.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "close",
+      "category": "C · Actions",
+      "nodeId": "3:103",
+      "file": "c-actions/close.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "check",
+      "category": "C · Actions",
+      "nodeId": "3:106",
+      "file": "c-actions/check.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "stop",
+      "category": "C · Actions",
+      "nodeId": "3:109",
+      "file": "c-actions/stop.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "copy",
+      "category": "C · Actions",
+      "nodeId": "3:112",
+      "file": "c-actions/copy.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "edit",
+      "category": "C · Actions",
+      "nodeId": "3:115",
+      "file": "c-actions/edit.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "retry",
+      "category": "C · Actions",
+      "nodeId": "3:118",
+      "file": "c-actions/retry.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "send-back",
+      "category": "C · Actions",
+      "nodeId": "3:121",
+      "file": "c-actions/send-back.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "reply",
+      "category": "C · Actions",
+      "nodeId": "3:124",
+      "file": "c-actions/reply.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "attach",
+      "category": "C · Actions",
+      "nodeId": "3:127",
+      "file": "c-actions/attach.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "pin",
+      "category": "C · Actions",
+      "nodeId": "3:130",
+      "file": "c-actions/pin.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "eye",
+      "category": "C · Actions",
+      "nodeId": "3:133",
+      "file": "c-actions/eye.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-new",
+      "category": "C · Actions",
+      "nodeId": "3:136",
+      "file": "c-actions/file-new.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "minimize",
+      "category": "C · Actions",
+      "nodeId": "3:139",
+      "file": "c-actions/minimize.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "link",
+      "category": "C · Actions",
+      "nodeId": "3:142",
+      "file": "c-actions/link.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "split-view",
+      "category": "C · Actions",
+      "nodeId": "3:145",
+      "file": "c-actions/split-view.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "code",
+      "category": "C · Actions",
+      "nodeId": "3:148",
+      "file": "c-actions/code.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "thumbs-up",
+      "category": "C · Actions",
+      "nodeId": "3:151",
+      "file": "c-actions/thumbs-up.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "thumbs-down",
+      "category": "C · Actions",
+      "nodeId": "3:154",
+      "file": "c-actions/thumbs-down.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "follow",
+      "category": "C · Actions",
+      "nodeId": "3:157",
+      "file": "c-actions/follow.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "fit",
+      "category": "C · Actions",
+      "nodeId": "3:161",
+      "file": "c-actions/fit.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "interrupt",
+      "category": "C · Actions",
+      "nodeId": "3:164",
+      "file": "c-actions/interrupt.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "runs-code",
+      "category": "C · Actions",
+      "nodeId": "3:167",
+      "file": "c-actions/runs-code.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "lock",
+      "category": "C · Actions",
+      "nodeId": "3:170",
+      "file": "c-actions/lock.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key",
+      "category": "C · Actions",
+      "nodeId": "3:173",
+      "file": "c-actions/key.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "delete",
+      "category": "C · Actions",
+      "nodeId": "3:176",
+      "file": "c-actions/delete.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "thread",
+      "category": "D · Things and kinds",
+      "nodeId": "3:181",
+      "file": "d-things-and-kinds/thread.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "agent",
+      "category": "D · Things and kinds",
+      "nodeId": "3:184",
+      "file": "d-things-and-kinds/agent.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "branch",
+      "category": "D · Things and kinds",
+      "nodeId": "3:190",
+      "file": "d-things-and-kinds/branch.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "doc",
+      "category": "D · Things and kinds",
+      "nodeId": "3:193",
+      "file": "d-things-and-kinds/doc.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "image",
+      "category": "D · Things and kinds",
+      "nodeId": "3:196",
+      "file": "d-things-and-kinds/image.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "folder",
+      "category": "D · Things and kinds",
+      "nodeId": "3:199",
+      "file": "d-things-and-kinds/folder.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "folder-open",
+      "category": "D · Things and kinds",
+      "nodeId": "3:202",
+      "file": "d-things-and-kinds/folder-open.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "web",
+      "category": "D · Things and kinds",
+      "nodeId": "3:205",
+      "file": "d-things-and-kinds/web.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "list",
+      "category": "D · Things and kinds",
+      "nodeId": "3:208",
+      "file": "d-things-and-kinds/list.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "runtime",
+      "category": "D · Things and kinds",
+      "nodeId": "3:214",
+      "file": "d-things-and-kinds/runtime.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "routing",
+      "category": "D · Things and kinds",
+      "nodeId": "3:217",
+      "file": "d-things-and-kinds/routing.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "rules",
+      "category": "D · Things and kinds",
+      "nodeId": "3:220",
+      "file": "d-things-and-kinds/rules.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "shape",
+      "category": "D · Things and kinds",
+      "nodeId": "3:223",
+      "file": "d-things-and-kinds/shape.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "settings-general",
+      "category": "D · Things and kinds",
+      "nodeId": "3:226",
+      "file": "d-things-and-kinds/settings-general.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sound",
+      "category": "D · Things and kinds",
+      "nodeId": "3:229",
+      "file": "d-things-and-kinds/sound.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "clock",
+      "category": "D · Things and kinds",
+      "nodeId": "3:232",
+      "file": "d-things-and-kinds/clock.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "hourglass",
+      "category": "D · Things and kinds",
+      "nodeId": "3:235",
+      "file": "d-things-and-kinds/hourglass.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "suggestion",
+      "category": "D · Things and kinds",
+      "nodeId": "3:238",
+      "file": "d-things-and-kinds/suggestion.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "warning",
+      "category": "D · Things and kinds",
+      "nodeId": "3:241",
+      "file": "d-things-and-kinds/warning.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "pause",
+      "category": "D · Things and kinds",
+      "nodeId": "3:245",
+      "file": "d-things-and-kinds/pause.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "plug",
+      "category": "D · Things and kinds",
+      "nodeId": "3:248",
+      "file": "d-things-and-kinds/plug.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "question",
+      "category": "D · Things and kinds",
+      "nodeId": "3:251",
+      "file": "d-things-and-kinds/question.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "step-dot",
+      "category": "D · Things and kinds",
+      "nodeId": "3:255",
+      "file": "d-things-and-kinds/step-dot.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "agent-cursor",
+      "category": "D · Things and kinds",
+      "nodeId": "3:258",
+      "file": "d-things-and-kinds/agent-cursor.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "deploy",
+      "category": "D · Things and kinds",
+      "nodeId": "3:261",
+      "file": "d-things-and-kinds/deploy.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "github",
+      "category": "D · Things and kinds",
+      "nodeId": "3:264",
+      "file": "d-things-and-kinds/github.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "container",
+      "category": "D · Things and kinds",
+      "nodeId": "3:267",
+      "file": "d-things-and-kinds/container.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "server",
+      "category": "D · Things and kinds",
+      "nodeId": "3:270",
+      "file": "d-things-and-kinds/server.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-working",
+      "category": "E · State marks",
+      "nodeId": "3:277",
+      "file": "e-state-marks/state-working.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "badge-working",
+      "category": "E · State marks",
+      "nodeId": "3:281",
+      "file": "e-state-marks/badge-working.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-needs-you",
+      "category": "E · State marks",
+      "nodeId": "3:286",
+      "file": "e-state-marks/state-needs-you.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-done",
+      "category": "E · State marks",
+      "nodeId": "3:289",
+      "file": "e-state-marks/state-done.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-failed",
+      "category": "E · State marks",
+      "nodeId": "3:292",
+      "file": "e-state-marks/state-failed.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-stopped",
+      "category": "E · State marks",
+      "nodeId": "3:295",
+      "file": "e-state-marks/state-stopped.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-resolved",
+      "category": "E · State marks",
+      "nodeId": "3:298",
+      "file": "e-state-marks/state-resolved.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-held",
+      "category": "E · State marks",
+      "nodeId": "3:301",
+      "file": "e-state-marks/state-held.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-paused",
+      "category": "E · State marks",
+      "nodeId": "3:304",
+      "file": "e-state-marks/state-paused.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "state-idle",
+      "category": "E · State marks",
+      "nodeId": "3:307",
+      "file": "e-state-marks/state-idle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "step-doing",
+      "category": "E · State marks",
+      "nodeId": "3:310",
+      "file": "e-state-marks/step-doing.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "alert",
+      "category": "E · State marks",
+      "nodeId": "3:313",
+      "file": "e-state-marks/alert.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "effort-glance",
+      "category": "E · State marks",
+      "nodeId": "3:316",
+      "file": "e-state-marks/effort-glance.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "effort-decide",
+      "category": "E · State marks",
+      "nodeId": "3:320",
+      "file": "e-state-marks/effort-decide.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "effort-think",
+      "category": "E · State marks",
+      "nodeId": "3:324",
+      "file": "e-state-marks/effort-think.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "undo-countdown",
+      "category": "E · State marks",
+      "nodeId": "3:328",
+      "file": "e-state-marks/undo-countdown.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "stamp-allowed",
+      "category": "E · State marks",
+      "nodeId": "3:332",
+      "file": "e-state-marks/stamp-allowed.svg",
+      "width": 88,
+      "height": 88
+    },
+    {
+      "name": "stamp-sent-back",
+      "category": "E · State marks",
+      "nodeId": "3:337",
+      "file": "e-state-marks/stamp-sent-back.svg",
+      "width": 88,
+      "height": 88
+    },
+    {
+      "name": "key-command",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:344",
+      "file": "f-keyboard-keys/key-command.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-shift",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:347",
+      "file": "f-keyboard-keys/key-shift.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-option",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:350",
+      "file": "f-keyboard-keys/key-option.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-return",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:353",
+      "file": "f-keyboard-keys/key-return.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-up",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:356",
+      "file": "f-keyboard-keys/key-up.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-down",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:359",
+      "file": "f-keyboard-keys/key-down.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-left",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:362",
+      "file": "f-keyboard-keys/key-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-right",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:365",
+      "file": "f-keyboard-keys/key-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-delete",
+      "category": "F · Keyboard keys",
+      "nodeId": "3:368",
+      "file": "f-keyboard-keys/key-delete.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "favicon",
+      "category": "G · App icon",
+      "nodeId": "3:373",
+      "file": "g-app-icon/favicon.svg",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "name": "favicon-progress",
+      "category": "G · App icon",
+      "nodeId": "3:378",
+      "file": "g-app-icon/favicon-progress.svg",
+      "width": 48,
+      "height": 48
+    },
+    {
+      "name": "project-research",
+      "category": "H · Project topics",
+      "nodeId": "3:389",
+      "file": "h-project-topics/project-research.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-hardware",
+      "category": "H · Project topics",
+      "nodeId": "3:392",
+      "file": "h-project-topics/project-hardware.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-agents",
+      "category": "H · Project topics",
+      "nodeId": "3:395",
+      "file": "h-project-topics/project-agents.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-swarm",
+      "category": "H · Project topics",
+      "nodeId": "3:401",
+      "file": "h-project-topics/project-swarm.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-space",
+      "category": "H · Project topics",
+      "nodeId": "3:410",
+      "file": "h-project-topics/project-space.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-backend",
+      "category": "H · Project topics",
+      "nodeId": "3:414",
+      "file": "h-project-topics/project-backend.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-deploy",
+      "category": "H · Project topics",
+      "nodeId": "3:420",
+      "file": "h-project-topics/project-deploy.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-interface",
+      "category": "H · Project topics",
+      "nodeId": "3:423",
+      "file": "h-project-topics/project-interface.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-design",
+      "category": "H · Project topics",
+      "nodeId": "3:426",
+      "file": "h-project-topics/project-design.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-pitch",
+      "category": "H · Project topics",
+      "nodeId": "3:433",
+      "file": "h-project-topics/project-pitch.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-marketing",
+      "category": "H · Project topics",
+      "nodeId": "3:436",
+      "file": "h-project-topics/project-marketing.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-writing",
+      "category": "H · Project topics",
+      "nodeId": "3:439",
+      "file": "h-project-topics/project-writing.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-data",
+      "category": "H · Project topics",
+      "nodeId": "3:442",
+      "file": "h-project-topics/project-data.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-finance",
+      "category": "H · Project topics",
+      "nodeId": "3:445",
+      "file": "h-project-topics/project-finance.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-legal",
+      "category": "H · Project topics",
+      "nodeId": "3:449",
+      "file": "h-project-topics/project-legal.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-security",
+      "category": "H · Project topics",
+      "nodeId": "3:452",
+      "file": "h-project-topics/project-security.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-people",
+      "category": "H · Project topics",
+      "nodeId": "3:455",
+      "file": "h-project-topics/project-people.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-web",
+      "category": "H · Project topics",
+      "nodeId": "3:458",
+      "file": "h-project-topics/project-web.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-mobile",
+      "category": "H · Project topics",
+      "nodeId": "3:461",
+      "file": "h-project-topics/project-mobile.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-messaging",
+      "category": "H · Project topics",
+      "nodeId": "3:464",
+      "file": "h-project-topics/project-messaging.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-media",
+      "category": "H · Project topics",
+      "nodeId": "3:467",
+      "file": "h-project-topics/project-media.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-video",
+      "category": "H · Project topics",
+      "nodeId": "3:470",
+      "file": "h-project-topics/project-video.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-music",
+      "category": "H · Project topics",
+      "nodeId": "3:473",
+      "file": "h-project-topics/project-music.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-games",
+      "category": "H · Project topics",
+      "nodeId": "3:476",
+      "file": "h-project-topics/project-games.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-learning",
+      "category": "H · Project topics",
+      "nodeId": "3:481",
+      "file": "h-project-topics/project-learning.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-health",
+      "category": "H · Project topics",
+      "nodeId": "3:484",
+      "file": "h-project-topics/project-health.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-shopping",
+      "category": "H · Project topics",
+      "nodeId": "3:487",
+      "file": "h-project-topics/project-shopping.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-travel",
+      "category": "H · Project topics",
+      "nodeId": "3:490",
+      "file": "h-project-topics/project-travel.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-code",
+      "category": "H · Project topics",
+      "nodeId": "3:493",
+      "file": "h-project-topics/project-code.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-automation",
+      "category": "H · Project topics",
+      "nodeId": "3:496",
+      "file": "h-project-topics/project-automation.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project-work",
+      "category": "H · Project topics",
+      "nodeId": "3:499",
+      "file": "h-project-topics/project-work.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-default",
+      "category": "I · File types",
+      "nodeId": "3:504",
+      "file": "i-file-types/file-default.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-text",
+      "category": "I · File types",
+      "nodeId": "3:507",
+      "file": "i-file-types/file-text.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-code-html",
+      "category": "I · File types",
+      "nodeId": "3:510",
+      "file": "i-file-types/file-code-html.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-json",
+      "category": "I · File types",
+      "nodeId": "3:513",
+      "file": "i-file-types/file-json.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-yaml",
+      "category": "I · File types",
+      "nodeId": "3:516",
+      "file": "i-file-types/file-yaml.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-shell",
+      "category": "I · File types",
+      "nodeId": "3:519",
+      "file": "i-file-types/file-shell.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-image",
+      "category": "I · File types",
+      "nodeId": "3:522",
+      "file": "i-file-types/file-image.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-svg",
+      "category": "I · File types",
+      "nodeId": "3:526",
+      "file": "i-file-types/file-svg.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-font",
+      "category": "I · File types",
+      "nodeId": "3:529",
+      "file": "i-file-types/file-font.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-table",
+      "category": "I · File types",
+      "nodeId": "3:532",
+      "file": "i-file-types/file-table.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-database",
+      "category": "I · File types",
+      "nodeId": "3:535",
+      "file": "i-file-types/file-database.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-archive",
+      "category": "I · File types",
+      "nodeId": "3:538",
+      "file": "i-file-types/file-archive.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "home.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:44",
+      "file": "j-new-in-the-pack/home-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chat.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:48",
+      "file": "j-new-in-the-pack/chat-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "thread.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:52",
+      "file": "j-new-in-the-pack/thread-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "folder.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:56",
+      "file": "j-new-in-the-pack/folder-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "project.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:60",
+      "file": "j-new-in-the-pack/project-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "doc.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:65",
+      "file": "j-new-in-the-pack/doc-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "lock.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:69",
+      "file": "j-new-in-the-pack/lock-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gear.fill",
+      "category": "J · New in the pack",
+      "nodeId": "35:73",
+      "file": "j-new-in-the-pack/gear-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "share",
+      "category": "J · New in the pack",
+      "nodeId": "35:77",
+      "file": "j-new-in-the-pack/share.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bell",
+      "category": "J · New in the pack",
+      "nodeId": "35:80",
+      "file": "j-new-in-the-pack/bell.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "inbox",
+      "category": "J · New in the pack",
+      "nodeId": "35:83",
+      "file": "j-new-in-the-pack/inbox.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "calendar",
+      "category": "J · New in the pack",
+      "nodeId": "35:86",
+      "file": "j-new-in-the-pack/calendar.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "person",
+      "category": "J · New in the pack",
+      "nodeId": "35:89",
+      "file": "j-new-in-the-pack/person.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sparkles",
+      "category": "J · New in the pack",
+      "nodeId": "35:92",
+      "file": "j-new-in-the-pack/sparkles.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bookmark",
+      "category": "J · New in the pack",
+      "nodeId": "35:95",
+      "file": "j-new-in-the-pack/bookmark.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "star",
+      "category": "J · New in the pack",
+      "nodeId": "35:98",
+      "file": "j-new-in-the-pack/star.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "heart",
+      "category": "J · New in the pack",
+      "nodeId": "35:101",
+      "file": "j-new-in-the-pack/heart.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "filter",
+      "category": "J · New in the pack",
+      "nodeId": "35:104",
+      "file": "j-new-in-the-pack/filter.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "upload",
+      "category": "J · New in the pack",
+      "nodeId": "35:107",
+      "file": "j-new-in-the-pack/upload.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "download",
+      "category": "J · New in the pack",
+      "nodeId": "35:110",
+      "file": "j-new-in-the-pack/download.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "cloud",
+      "category": "J · New in the pack",
+      "nodeId": "35:113",
+      "file": "j-new-in-the-pack/cloud.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "lightbulb",
+      "category": "J · New in the pack",
+      "nodeId": "35:116",
+      "file": "j-new-in-the-pack/lightbulb.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "mic",
+      "category": "J · New in the pack",
+      "nodeId": "35:119",
+      "file": "j-new-in-the-pack/mic.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "keyboard",
+      "category": "J · New in the pack",
+      "nodeId": "35:122",
+      "file": "j-new-in-the-pack/keyboard.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "tag",
+      "category": "J · New in the pack",
+      "nodeId": "35:125",
+      "file": "j-new-in-the-pack/tag.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "flag",
+      "category": "J · New in the pack",
+      "nodeId": "35:129",
+      "file": "j-new-in-the-pack/flag.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "eye-off",
+      "category": "J · New in the pack",
+      "nodeId": "35:132",
+      "file": "j-new-in-the-pack/eye-off.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "wand",
+      "category": "J · New in the pack",
+      "nodeId": "35:135",
+      "file": "j-new-in-the-pack/wand.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "compose",
+      "category": "K · More icons",
+      "nodeId": "36:3",
+      "file": "k-more-icons/compose.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "plus-circle",
+      "category": "K · More icons",
+      "nodeId": "36:6",
+      "file": "k-more-icons/plus-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "check-circle",
+      "category": "K · More icons",
+      "nodeId": "36:9",
+      "file": "k-more-icons/check-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "x-circle",
+      "category": "K · More icons",
+      "nodeId": "36:12",
+      "file": "k-more-icons/x-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "info",
+      "category": "K · More icons",
+      "nodeId": "36:15",
+      "file": "k-more-icons/info.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "more-circle",
+      "category": "K · More icons",
+      "nodeId": "36:19",
+      "file": "k-more-icons/more-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "at",
+      "category": "K · More icons",
+      "nodeId": "36:25",
+      "file": "k-more-icons/at.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "hash",
+      "category": "K · More icons",
+      "nodeId": "36:28",
+      "file": "k-more-icons/hash.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "quote",
+      "category": "K · More icons",
+      "nodeId": "36:31",
+      "file": "k-more-icons/quote.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chat-ai",
+      "category": "K · More icons",
+      "nodeId": "36:34",
+      "file": "k-more-icons/chat-ai.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "timer",
+      "category": "K · More icons",
+      "nodeId": "36:38",
+      "file": "k-more-icons/timer.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "history",
+      "category": "K · More icons",
+      "nodeId": "36:41",
+      "file": "k-more-icons/history.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "archive",
+      "category": "K · More icons",
+      "nodeId": "36:44",
+      "file": "k-more-icons/archive.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "play",
+      "category": "K · More icons",
+      "nodeId": "36:47",
+      "file": "k-more-icons/play.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "stop-circle",
+      "category": "K · More icons",
+      "nodeId": "36:50",
+      "file": "k-more-icons/stop-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sort",
+      "category": "K · More icons",
+      "nodeId": "36:54",
+      "file": "k-more-icons/sort.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevron-up-down",
+      "category": "K · More icons",
+      "nodeId": "36:57",
+      "file": "k-more-icons/chevron-up-down.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "grid",
+      "category": "K · More icons",
+      "nodeId": "36:60",
+      "file": "k-more-icons/grid.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "rows",
+      "category": "K · More icons",
+      "nodeId": "36:63",
+      "file": "k-more-icons/rows.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-up-right",
+      "category": "K · More icons",
+      "nodeId": "36:66",
+      "file": "k-more-icons/arrow-up-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "paperplane",
+      "category": "K · More icons",
+      "nodeId": "36:69",
+      "file": "k-more-icons/paperplane.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chart-bar",
+      "category": "K · More icons",
+      "nodeId": "36:72",
+      "file": "k-more-icons/chart-bar.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "wifi",
+      "category": "K · More icons",
+      "nodeId": "36:75",
+      "file": "k-more-icons/wifi.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "power",
+      "category": "K · More icons",
+      "nodeId": "36:79",
+      "file": "k-more-icons/power.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "checklist",
+      "category": "K · More icons",
+      "nodeId": "36:82",
+      "file": "k-more-icons/checklist.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bolt.fill",
+      "category": "K · More icons",
+      "nodeId": "36:86",
+      "file": "k-more-icons/bolt-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "heart.fill",
+      "category": "K · More icons",
+      "nodeId": "36:89",
+      "file": "k-more-icons/heart-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "star.fill",
+      "category": "K · More icons",
+      "nodeId": "36:92",
+      "file": "k-more-icons/star-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bookmark.fill",
+      "category": "K · More icons",
+      "nodeId": "36:95",
+      "file": "k-more-icons/bookmark-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "delete.fill",
+      "category": "K · More icons",
+      "nodeId": "36:98",
+      "file": "k-more-icons/delete-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "more-vertical",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:3",
+      "file": "l-navigation-and-arrows/more-vertical.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sidebar-right",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:8",
+      "file": "l-navigation-and-arrows/sidebar-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "tabs",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:12",
+      "file": "l-navigation-and-arrows/tabs.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "window",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:15",
+      "file": "l-navigation-and-arrows/window.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "compass",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:20",
+      "file": "l-navigation-and-arrows/compass.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "dashboard",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:23",
+      "file": "l-navigation-and-arrows/dashboard.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "layout-columns",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:26",
+      "file": "l-navigation-and-arrows/layout-columns.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "back-to-top",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:29",
+      "file": "l-navigation-and-arrows/back-to-top.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevron-up",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:32",
+      "file": "l-navigation-and-arrows/chevron-up.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-up",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:35",
+      "file": "l-navigation-and-arrows/arrow-up.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-down-left",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:38",
+      "file": "l-navigation-and-arrows/arrow-down-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-up-left",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:41",
+      "file": "l-navigation-and-arrows/arrow-up-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-down-right",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:44",
+      "file": "l-navigation-and-arrows/arrow-down-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevrons-left",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:47",
+      "file": "l-navigation-and-arrows/chevrons-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chevrons-right",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:50",
+      "file": "l-navigation-and-arrows/chevrons-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "undo",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:53",
+      "file": "l-navigation-and-arrows/undo.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "redo",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:56",
+      "file": "l-navigation-and-arrows/redo.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "expand-vertical",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:59",
+      "file": "l-navigation-and-arrows/expand-vertical.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "collapse-vertical",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:62",
+      "file": "l-navigation-and-arrows/collapse-vertical.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "swap",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:65",
+      "file": "l-navigation-and-arrows/swap.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "move",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:68",
+      "file": "l-navigation-and-arrows/move.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sync",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:71",
+      "file": "l-navigation-and-arrows/sync.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "arrow-right-circle",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:74",
+      "file": "l-navigation-and-arrows/arrow-right-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "forward",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:77",
+      "file": "l-navigation-and-arrows/forward.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "drag-handle",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:80",
+      "file": "l-navigation-and-arrows/drag-handle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "restore",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:88",
+      "file": "l-navigation-and-arrows/restore.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "checkbox",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:91",
+      "file": "l-navigation-and-arrows/checkbox.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "duplicate",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:94",
+      "file": "l-navigation-and-arrows/duplicate.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "cut",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:97",
+      "file": "l-navigation-and-arrows/cut.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "paste",
+      "category": "L · Navigation and arrows",
+      "nodeId": "39:100",
+      "file": "l-navigation-and-arrows/paste.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "clipboard",
+      "category": "M · Editing and text",
+      "nodeId": "39:105",
+      "file": "m-editing-and-text/clipboard.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "save",
+      "category": "M · Editing and text",
+      "nodeId": "39:108",
+      "file": "m-editing-and-text/save.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "print",
+      "category": "M · Editing and text",
+      "nodeId": "39:111",
+      "file": "m-editing-and-text/print.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "unlink",
+      "category": "M · Editing and text",
+      "nodeId": "39:114",
+      "file": "m-editing-and-text/unlink.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "unpin",
+      "category": "M · Editing and text",
+      "nodeId": "39:117",
+      "file": "m-editing-and-text/unpin.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "lock-open",
+      "category": "M · Editing and text",
+      "nodeId": "39:120",
+      "file": "m-editing-and-text/lock-open.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "minus-circle",
+      "category": "M · Editing and text",
+      "nodeId": "39:123",
+      "file": "m-editing-and-text/minus-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "plus-square",
+      "category": "M · Editing and text",
+      "nodeId": "39:126",
+      "file": "m-editing-and-text/plus-square.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "play-circle",
+      "category": "M · Editing and text",
+      "nodeId": "39:129",
+      "file": "m-editing-and-text/play-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "emoji",
+      "category": "M · Editing and text",
+      "nodeId": "39:133",
+      "file": "m-editing-and-text/emoji.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bold",
+      "category": "M · Editing and text",
+      "nodeId": "39:138",
+      "file": "m-editing-and-text/bold.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "italic",
+      "category": "M · Editing and text",
+      "nodeId": "39:141",
+      "file": "m-editing-and-text/italic.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "underline",
+      "category": "M · Editing and text",
+      "nodeId": "39:144",
+      "file": "m-editing-and-text/underline.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "strikethrough",
+      "category": "M · Editing and text",
+      "nodeId": "39:147",
+      "file": "m-editing-and-text/strikethrough.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "heading",
+      "category": "M · Editing and text",
+      "nodeId": "39:150",
+      "file": "m-editing-and-text/heading.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "text-size",
+      "category": "M · Editing and text",
+      "nodeId": "39:153",
+      "file": "m-editing-and-text/text-size.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "align-left",
+      "category": "M · Editing and text",
+      "nodeId": "39:156",
+      "file": "m-editing-and-text/align-left.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "align-center",
+      "category": "M · Editing and text",
+      "nodeId": "39:159",
+      "file": "m-editing-and-text/align-center.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "align-right",
+      "category": "M · Editing and text",
+      "nodeId": "39:162",
+      "file": "m-editing-and-text/align-right.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "list-numbered",
+      "category": "M · Editing and text",
+      "nodeId": "39:165",
+      "file": "m-editing-and-text/list-numbered.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "indent",
+      "category": "M · Editing and text",
+      "nodeId": "39:168",
+      "file": "m-editing-and-text/indent.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "outdent",
+      "category": "M · Editing and text",
+      "nodeId": "39:171",
+      "file": "m-editing-and-text/outdent.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "highlighter",
+      "category": "M · Editing and text",
+      "nodeId": "39:174",
+      "file": "m-editing-and-text/highlighter.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "note",
+      "category": "M · Editing and text",
+      "nodeId": "39:177",
+      "file": "m-editing-and-text/note.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "book",
+      "category": "M · Editing and text",
+      "nodeId": "39:180",
+      "file": "m-editing-and-text/book.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "library",
+      "category": "M · Editing and text",
+      "nodeId": "39:183",
+      "file": "m-editing-and-text/library.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-pdf",
+      "category": "M · Editing and text",
+      "nodeId": "39:186",
+      "file": "m-editing-and-text/file-pdf.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-video",
+      "category": "M · Editing and text",
+      "nodeId": "39:189",
+      "file": "m-editing-and-text/file-video.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-audio",
+      "category": "M · Editing and text",
+      "nodeId": "39:193",
+      "file": "m-editing-and-text/file-audio.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "file-markdown",
+      "category": "M · Editing and text",
+      "nodeId": "39:198",
+      "file": "m-editing-and-text/file-markdown.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "person-add",
+      "category": "N · People, status and time",
+      "nodeId": "39:203",
+      "file": "n-people-status-and-time/person-add.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "person-remove",
+      "category": "N · People, status and time",
+      "nodeId": "39:206",
+      "file": "n-people-status-and-time/person-remove.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "person-2",
+      "category": "N · People, status and time",
+      "nodeId": "39:209",
+      "file": "n-people-status-and-time/person-2.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "person-circle",
+      "category": "N · People, status and time",
+      "nodeId": "39:212",
+      "file": "n-people-status-and-time/person-circle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "mail",
+      "category": "N · People, status and time",
+      "nodeId": "39:215",
+      "file": "n-people-status-and-time/mail.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "phone",
+      "category": "N · People, status and time",
+      "nodeId": "39:218",
+      "file": "n-people-status-and-time/phone.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "video-call",
+      "category": "N · People, status and time",
+      "nodeId": "39:221",
+      "file": "n-people-status-and-time/video-call.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "mic-off",
+      "category": "N · People, status and time",
+      "nodeId": "39:224",
+      "file": "n-people-status-and-time/mic-off.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bell-off",
+      "category": "N · People, status and time",
+      "nodeId": "39:227",
+      "file": "n-people-status-and-time/bell-off.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bell-badge",
+      "category": "N · People, status and time",
+      "nodeId": "39:230",
+      "file": "n-people-status-and-time/bell-badge.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "comment",
+      "category": "N · People, status and time",
+      "nodeId": "39:234",
+      "file": "n-people-status-and-time/comment.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "spinner",
+      "category": "N · People, status and time",
+      "nodeId": "39:237",
+      "file": "n-people-status-and-time/spinner.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "loading-dots",
+      "category": "N · People, status and time",
+      "nodeId": "39:247",
+      "file": "n-people-status-and-time/loading-dots.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "shield-check",
+      "category": "N · People, status and time",
+      "nodeId": "39:252",
+      "file": "n-people-status-and-time/shield-check.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "app-badge",
+      "category": "N · People, status and time",
+      "nodeId": "39:255",
+      "file": "n-people-status-and-time/app-badge.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "cloud-off",
+      "category": "N · People, status and time",
+      "nodeId": "39:259",
+      "file": "n-people-status-and-time/cloud-off.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "wifi-off",
+      "category": "N · People, status and time",
+      "nodeId": "39:262",
+      "file": "n-people-status-and-time/wifi-off.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "battery",
+      "category": "N · People, status and time",
+      "nodeId": "39:266",
+      "file": "n-people-status-and-time/battery.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "folder-add",
+      "category": "N · People, status and time",
+      "nodeId": "39:270",
+      "file": "n-people-status-and-time/folder-add.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "folder-shared",
+      "category": "N · People, status and time",
+      "nodeId": "39:273",
+      "file": "n-people-status-and-time/folder-shared.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "photo-stack",
+      "category": "N · People, status and time",
+      "nodeId": "39:276",
+      "file": "n-people-status-and-time/photo-stack.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "alarm",
+      "category": "N · People, status and time",
+      "nodeId": "39:279",
+      "file": "n-people-status-and-time/alarm.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "snooze",
+      "category": "N · People, status and time",
+      "nodeId": "39:282",
+      "file": "n-people-status-and-time/snooze.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "calendar-add",
+      "category": "N · People, status and time",
+      "nodeId": "39:285",
+      "file": "n-people-status-and-time/calendar-add.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "calendar-check",
+      "category": "N · People, status and time",
+      "nodeId": "39:288",
+      "file": "n-people-status-and-time/calendar-check.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "location-arrow",
+      "category": "N · People, status and time",
+      "nodeId": "39:291",
+      "file": "n-people-status-and-time/location-arrow.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "schedule-send",
+      "category": "N · People, status and time",
+      "nodeId": "39:294",
+      "file": "n-people-status-and-time/schedule-send.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chart-pie",
+      "category": "N · People, status and time",
+      "nodeId": "39:297",
+      "file": "n-people-status-and-time/chart-pie.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "zoom-in",
+      "category": "N · People, status and time",
+      "nodeId": "39:300",
+      "file": "n-people-status-and-time/zoom-in.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "zoom-out",
+      "category": "N · People, status and time",
+      "nodeId": "39:303",
+      "file": "n-people-status-and-time/zoom-out.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "skip-forward",
+      "category": "O · Media, data and system",
+      "nodeId": "39:308",
+      "file": "o-media-data-and-system/skip-forward.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "skip-back",
+      "category": "O · Media, data and system",
+      "nodeId": "39:312",
+      "file": "o-media-data-and-system/skip-back.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "rewind",
+      "category": "O · Media, data and system",
+      "nodeId": "39:316",
+      "file": "o-media-data-and-system/rewind.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "fast-forward",
+      "category": "O · Media, data and system",
+      "nodeId": "39:319",
+      "file": "o-media-data-and-system/fast-forward.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "repeat",
+      "category": "O · Media, data and system",
+      "nodeId": "39:322",
+      "file": "o-media-data-and-system/repeat.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "shuffle",
+      "category": "O · Media, data and system",
+      "nodeId": "39:325",
+      "file": "o-media-data-and-system/shuffle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "volume-mute",
+      "category": "O · Media, data and system",
+      "nodeId": "39:328",
+      "file": "o-media-data-and-system/volume-mute.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "volume-low",
+      "category": "O · Media, data and system",
+      "nodeId": "39:331",
+      "file": "o-media-data-and-system/volume-low.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "camera",
+      "category": "O · Media, data and system",
+      "nodeId": "39:334",
+      "file": "o-media-data-and-system/camera.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "film",
+      "category": "O · Media, data and system",
+      "nodeId": "39:337",
+      "file": "o-media-data-and-system/film.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "screen-share",
+      "category": "O · Media, data and system",
+      "nodeId": "39:340",
+      "file": "o-media-data-and-system/screen-share.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "captions",
+      "category": "O · Media, data and system",
+      "nodeId": "39:343",
+      "file": "o-media-data-and-system/captions.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "picture-in-picture",
+      "category": "O · Media, data and system",
+      "nodeId": "39:346",
+      "file": "o-media-data-and-system/picture-in-picture.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "chart-area",
+      "category": "O · Media, data and system",
+      "nodeId": "39:350",
+      "file": "o-media-data-and-system/chart-area.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "trend-up",
+      "category": "O · Media, data and system",
+      "nodeId": "39:354",
+      "file": "o-media-data-and-system/trend-up.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "trend-down",
+      "category": "O · Media, data and system",
+      "nodeId": "39:357",
+      "file": "o-media-data-and-system/trend-down.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gauge",
+      "category": "O · Media, data and system",
+      "nodeId": "39:360",
+      "file": "o-media-data-and-system/gauge.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "table",
+      "category": "O · Media, data and system",
+      "nodeId": "39:364",
+      "file": "o-media-data-and-system/table.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "kanban",
+      "category": "O · Media, data and system",
+      "nodeId": "39:367",
+      "file": "o-media-data-and-system/kanban.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "percent",
+      "category": "O · Media, data and system",
+      "nodeId": "39:370",
+      "file": "o-media-data-and-system/percent.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sliders-vertical",
+      "category": "O · Media, data and system",
+      "nodeId": "39:373",
+      "file": "o-media-data-and-system/sliders-vertical.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "toggle",
+      "category": "O · Media, data and system",
+      "nodeId": "39:376",
+      "file": "o-media-data-and-system/toggle.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bug",
+      "category": "O · Media, data and system",
+      "nodeId": "39:380",
+      "file": "o-media-data-and-system/bug.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "memory",
+      "category": "O · Media, data and system",
+      "nodeId": "39:383",
+      "file": "o-media-data-and-system/memory.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "database",
+      "category": "O · Media, data and system",
+      "nodeId": "39:386",
+      "file": "o-media-data-and-system/database.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "fingerprint",
+      "category": "O · Media, data and system",
+      "nodeId": "39:389",
+      "file": "o-media-data-and-system/fingerprint.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "qr-code",
+      "category": "O · Media, data and system",
+      "nodeId": "39:392",
+      "file": "o-media-data-and-system/qr-code.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "accessibility",
+      "category": "O · Media, data and system",
+      "nodeId": "39:395",
+      "file": "o-media-data-and-system/accessibility.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "translate",
+      "category": "O · Media, data and system",
+      "nodeId": "39:399",
+      "file": "o-media-data-and-system/translate.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "contrast",
+      "category": "O · Media, data and system",
+      "nodeId": "39:402",
+      "file": "o-media-data-and-system/contrast.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "display",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:408",
+      "file": "p-devices-development-and-everyday/display.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "laptop",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:411",
+      "file": "p-devices-development-and-everyday/laptop.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "tablet",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:414",
+      "file": "p-devices-development-and-everyday/tablet.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "commit",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:417",
+      "file": "p-devices-development-and-everyday/commit.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "merge",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:420",
+      "file": "p-devices-development-and-everyday/merge.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "pull-request",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:423",
+      "file": "p-devices-development-and-everyday/pull-request.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "diff",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:426",
+      "file": "p-devices-development-and-everyday/diff.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "fork",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:429",
+      "file": "p-devices-development-and-everyday/fork.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "milestone",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:432",
+      "file": "p-devices-development-and-everyday/milestone.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "git-compare",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:435",
+      "file": "p-devices-development-and-everyday/git-compare.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "test-flask",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:438",
+      "file": "p-devices-development-and-everyday/test-flask.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "logs",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:441",
+      "file": "p-devices-development-and-everyday/logs.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "api",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:447",
+      "file": "p-devices-development-and-everyday/api.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "webhook",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:450",
+      "file": "p-devices-development-and-everyday/webhook.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "layers",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:453",
+      "file": "p-devices-development-and-everyday/layers.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "secret",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:456",
+      "file": "p-devices-development-and-everyday/secret.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "agent-add",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:462",
+      "file": "p-devices-development-and-everyday/agent-add.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "brain",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:467",
+      "file": "p-devices-development-and-everyday/brain.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "wrench",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:470",
+      "file": "p-devices-development-and-everyday/wrench.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "cloud-upload",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:473",
+      "file": "p-devices-development-and-everyday/cloud-upload.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "cart",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:476",
+      "file": "p-devices-development-and-everyday/cart.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "credit-card",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:481",
+      "file": "p-devices-development-and-everyday/credit-card.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "receipt",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:484",
+      "file": "p-devices-development-and-everyday/receipt.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "gift",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:487",
+      "file": "p-devices-development-and-everyday/gift.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "location-pin",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:490",
+      "file": "p-devices-development-and-everyday/location-pin.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "trophy",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:493",
+      "file": "p-devices-development-and-everyday/trophy.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "award",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:496",
+      "file": "p-devices-development-and-everyday/award.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "leaf",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:499",
+      "file": "p-devices-development-and-everyday/leaf.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "coffee",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:502",
+      "file": "p-devices-development-and-everyday/coffee.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "globe-lock",
+      "category": "P · Devices, development and everyday",
+      "nodeId": "39:505",
+      "file": "p-devices-development-and-everyday/globe-lock.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-control",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:510",
+      "file": "q-keys-and-filled-variants/key-control.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-escape",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:513",
+      "file": "q-keys-and-filled-variants/key-escape.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-tab",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:516",
+      "file": "q-keys-and-filled-variants/key-tab.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-space",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:519",
+      "file": "q-keys-and-filled-variants/key-space.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-capslock",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:522",
+      "file": "q-keys-and-filled-variants/key-capslock.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "key-forward-delete",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:525",
+      "file": "q-keys-and-filled-variants/key-forward-delete.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "search.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:528",
+      "file": "q-keys-and-filled-variants/search-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "bell.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:532",
+      "file": "q-keys-and-filled-variants/bell-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "person.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:536",
+      "file": "q-keys-and-filled-variants/person-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "calendar.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:540",
+      "file": "q-keys-and-filled-variants/calendar-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "tag.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:545",
+      "file": "q-keys-and-filled-variants/tag-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "flag.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:548",
+      "file": "q-keys-and-filled-variants/flag-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "eye.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:552",
+      "file": "q-keys-and-filled-variants/eye-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "cloud.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:556",
+      "file": "q-keys-and-filled-variants/cloud-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "mic.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:559",
+      "file": "q-keys-and-filled-variants/mic-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "pin.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:563",
+      "file": "q-keys-and-filled-variants/pin-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "inbox.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:567",
+      "file": "q-keys-and-filled-variants/inbox-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "message.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:572",
+      "file": "q-keys-and-filled-variants/message-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "check-circle.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:575",
+      "file": "q-keys-and-filled-variants/check-circle-fill.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "x-circle.fill",
+      "category": "Q · Keys and filled variants",
+      "nodeId": "39:579",
+      "file": "q-keys-and-filled-variants/x-circle-fill.svg",
+      "width": 24,
+      "height": 24
+    }
+  ]
+}

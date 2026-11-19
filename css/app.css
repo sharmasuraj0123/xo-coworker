@@ -55,7 +55,7 @@ button:disabled{cursor:default}
 .eff{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .eff b{font-weight:var(--fw-strong);color:var(--ink-2)}
 .eff span{color:var(--ink-4)}
-.dial{flex:none}
+.dial{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .e-glance .dial{color:var(--e-glance)}
 .e-decide .dial{color:var(--e-decide)}
 .e-think .dial{color:var(--e-think)}
@@ -758,7 +758,8 @@ button.hr:active{transform:scale(.97)}
 .send.is-stop{--stop:var(--fill-4);--ring-in:var(--focus);background:var(--stop);color:var(--ink)}
 :root[data-theme="light"] .send.is-stop{--stop:var(--fill-3)}
 .send.is-stop:hover{background:color-mix(in srgb,var(--ink) 9%,var(--stop))}
-.send.is-stop svg{width:14px;height:14px}
+/* the owner's stop is a 12 square on its 24 grid: drawn at --ic-lg it is a 10 px square in the 40 disc */
+.send.is-stop svg{width:var(--ic-lg);height:var(--ic-lg)}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}
 .at-list{position:absolute;left:calc(-1 * var(--halo));bottom:100%;margin-bottom:12px;z-index:6;list-style:none;min-width:260px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
@@ -1152,11 +1153,12 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* stamps + choreography (within a stable frame; nothing jumps) */
 .stamp{position:absolute;left:50%;top:42%;z-index:3;width:88px;height:88px;margin:-44px 0 0 -44px;opacity:0;pointer-events:none}
-.stamp svg{width:100%;height:100%}
-.sc{fill:var(--stamp-bg);stroke-width:2}
-.sk{fill:none;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60}
-.stamp-allow .sc{stroke:rgba(var(--accent-rgb),.55)}.stamp-allow .sk{stroke:var(--accent)}
-.stamp-back .sc{stroke:var(--ink-5)}.stamp-back .sk{stroke:var(--ink-2)}
+/* the owner's stamps (assets/icons/xo/e-state-marks): two soft discs and the mark, in the stamp's colour, on the
+   stamp's own ground so the card under it doesn't show through; the mark draws itself in */
+.stamp svg{width:100%;height:100%;border-radius:50%;background:var(--stamp-bg)}
+.stamp-svg .sk{stroke-dasharray:60;stroke-dashoffset:60}
+.stamp-allow{color:var(--accent)}
+.stamp-back{color:var(--ink-2)}
 .card.st-allow .stamp-allow,.card.st-back .stamp-back{animation:stamp var(--d-long) var(--ease) forwards}
 .card.st-allow .stamp-allow .sk,.card.st-back .stamp-back .sk{animation:draw var(--d-sheet) var(--ease) var(--d-press) forwards}
 @keyframes stamp{0%{opacity:0;transform:scale(.8)}35%,60%{opacity:1;transform:none}100%{opacity:0;transform:scale(.98)}}
@@ -1183,8 +1185,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .done{align-items:center;justify-content:center;text-align:center;gap:8px;padding:34px 20px 30px}
 .done-ring{width:72px;height:72px;margin-bottom:8px;animation:ring-in var(--d-long) var(--ease) var(--d-press) both}
 .done-ring svg{width:100%;height:100%}
-.done-ring .sc{fill:rgba(var(--accent-rgb),.1);stroke:rgba(var(--accent-rgb),.45)}
-.done-ring .sk{stroke:var(--accent);animation:draw var(--d-long) var(--ease) var(--d-sheet) forwards}
+.done-ring{color:var(--accent)}
+.done-ring .sk{animation:draw var(--d-long) var(--ease) var(--d-sheet) forwards}
 @keyframes ring-in{from{opacity:0;transform:scale(.7)}}
 .done h3{font:var(--fw-strong) var(--fs-3xl)/var(--lh-28) var(--sans);letter-spacing:var(--tr-28)}
 .done p{font-size:var(--fs-md);color:var(--ink-3)}
