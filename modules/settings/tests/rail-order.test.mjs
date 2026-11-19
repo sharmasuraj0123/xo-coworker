@@ -1,46 +1,42 @@
-// The Settings rail takes the shape's order without ever moving the focused item (node modules/settings/tests/rail-order.test.mjs)
+// The Settings rail takes the shape's order, technical pages under "Advanced", without ever moving the focused tab.
 import assert from "node:assert/strict";
-import process from "node:process";
-import { readFileSync } from "node:fs";
+import { shapePage, RAIL } from "./shape-fixture.mjs";
 
-const src = readFileSync(new URL("../shape-page.js", import.meta.url), "utf8");
 let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const i = src.indexOf("function placeInOrder(want) {"), body = src.slice(i, src.indexOf("\n  }\n", i) + 4);
-// a tiny DOM: a parent with children, insertBefore/appendChild that record every move
-function dom(names, focused) {
-  const nav = { kids: [], moved: [] };
-  const mk = (n) => ({ n, contains: (x) => x === mkd[n] });
-  const mkd = {}; for (const n of names) mkd[n] = mk(n);
-  for (const n of names) nav.kids.push(mkd[n]);
-  const sib = (x) => nav.kids[nav.kids.indexOf(x) + 1] || null;
-  for (const n of names) Object.defineProperty(mkd[n], "nextSibling", { get: () => sib(mkd[n]) });
-  Object.defineProperty(nav, "firstChild", { get: () => nav.kids[0] || null });
-  nav.insertBefore = (el, ref) => { nav.moved.push(el.n); nav.kids.splice(nav.kids.indexOf(el), 1); const at = ref ? nav.kids.indexOf(ref) : nav.kids.length; nav.kids.splice(at, 0, el); };
-  nav.appendChild = (el) => { nav.moved.push(el.n); nav.kids.splice(nav.kids.indexOf(el), 1); nav.kids.push(el); };
-  return { nav, el: mkd, focus: mkd[focused] };
+const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
+const order = (nav) => [...nav.children].map((el) => el.dataset.set || el.className);
+/** Each node the rail moves, by name, from now on. */
+function moves(nav) {
+  const moved = [];
+  for (const k of ["insertBefore", "appendChild"]) { const f = nav[k].bind(nav); nav[k] = (el, ...r) => { moved.push(el.dataset.set || el.className); return f(el, ...r); }; }
+  return moved;
 }
-const run = (names, order, focused) => {
-  const D = dom(names, focused);
-  const f = new Function("nav", "document", body + "\nreturn placeInOrder;")(D.nav, { activeElement: D.focus });
-  f(order.map((n) => D.el[n]));
-  return { order: D.nav.kids.map((k) => k.n), moved: D.nav.moved };
-};
-t("the shape's order comes out, and the focused item never moves", () => {
-  for (const [names, order, focused] of [
-    [["general", "shape", "routing", "rules"], ["general", "routing", "rules", "shape"], "shape"],
-    [["routing", "general", "shape"], ["general", "shape", "routing"], "shape"],
-    [["shape", "a", "b", "c"], ["a", "b", "c", "shape"], "shape"],
-    [["a", "b", "shape"], ["shape", "a", "b"], "shape"],
-    [["a", "b", "c"], ["c", "b", "a"], "b"],
-  ]) {
-    const r = run(names, order, focused);
-    assert.deepEqual(r.order, order, `${names} → ${order}`);
-    assert.ok(!r.moved.includes(focused), `${focused} never moved (moved: ${r.moved})`);
-  }
+
+await t("pages a shape marks advanced go under one label at the rail's foot; the rest keep their order", async () => {
+  const P = await shapePage({ advanced: ["general", "routing"] });
+  assert.deepEqual(order(P.nav()), ["shape", "rules", "shp-navh", "general", "routing"]);
+  assert.equal(P.nav().querySelector('[data-set="general"]').hasAttribute("data-advanced"), true);
 });
-t("the rail uses it, never appendChild for every item", () => {
-  assert.match(src, /want\.some\(\(el, i\) => cur\[i\] !== el\)\) placeInOrder\(want\);/);
-  assert.doesNotMatch(src, /for \(const el of want\) nav\.appendChild\(el\)/);
+
+for (const focused of RAIL) {
+  await t(`the focused tab (${focused}) never moves: what's around it does`, async () => {
+    const P = await shapePage();
+    const nav = P.nav(), tab = nav.querySelector(`[data-set="${focused}"]`);
+    tab.focus();
+    const moved = moves(nav);
+    P.shape.list = (k) => (k === "settings" ? [{ id: "xo:settings/general", advanced: true }, { id: "xo:settings/shape", advanced: true }] : []);
+    P.view.apply();
+    assert.deepEqual(order(nav), ["routing", "rules", "shp-navh", "general", "shape"]);
+    assert.ok(!moved.includes(focused), `${focused} moved: ${moved}`);
+    assert.equal(document.activeElement, tab, "focus stays on it");
+  });
+}
+
+await t("a rail already in order moves nothing", async () => {
+  const P = await shapePage({ advanced: ["rules"] });
+  const moved = moves(P.nav());
+  P.view.apply();
+  assert.deepEqual(moved, []);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+process.exit();

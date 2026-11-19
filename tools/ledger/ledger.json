@@ -4668,7 +4668,7 @@
   "tests/rail-order.test.mjs": {
    "status": "moved",
    "home": "modules/settings/tests/rail-order.test.mjs",
-   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
+   "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/rec-undo-focus.test.mjs": {
    "status": "planned",
@@ -4779,12 +4779,12 @@
   "tests/shape-held.test.mjs": {
    "status": "moved",
    "home": "modules/settings/tests/shape-held.test.mjs",
-   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
+   "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/shape-unkept.test.mjs": {
    "status": "moved",
    "home": "modules/settings/tests/shape-unkept.test.mjs",
-   "note": "re-pointed at shape-page.js; still reads the source, a behaviour rewrite is open"
+   "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/shape.test.mjs": {
    "status": "planned",
