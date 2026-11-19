@@ -52,7 +52,8 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     if (!head) { head = document.createElement("p"); head.className = "shp-navh"; head.setAttribute("aria-hidden", "true"); head.textContent = "Advanced"; }
     /** @param {string} id */
     const btn = (id) => nav.querySelector(`[data-set="${id}"]`);
-    const want = /** @type {Element[]} */ ([...navOrder.filter((id) => !adv.has(id)).map(btn), ...(adv.size ? [head, ...navOrder.filter((id) => adv.has(id)).map(btn)] : [])].filter(Boolean));
+    const added = [...nav.children].filter((el) => el !== head && !navOrder.includes(/** @type {HTMLElement} */ (el).dataset.set || ""));
+    const want = /** @type {Element[]} */ ([...navOrder.filter((id) => !adv.has(id)).map(btn), ...added, ...(adv.size ? [head, ...navOrder.filter((id) => adv.has(id)).map(btn)] : [])].filter(Boolean));
     if (!adv.size) head.remove();
     for (const id of navOrder) btn(id)?.toggleAttribute("data-advanced", adv.has(id));
     const cur = [...nav.children];

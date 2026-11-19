@@ -33,6 +33,17 @@ for (const focused of RAIL) {
   });
 }
 
+await t("a tab added later (an app's Settings page) stays above Advanced, after the pages that aren't advanced", async () => {
+  const P = await shapePage();
+  const b = document.createElement("button"); b.dataset.set = "apps"; P.nav().append(b);
+  P.shape.list = (k) => (k === "settings" ? [{ id: "xo:settings/routing", advanced: true }] : []);
+  P.view.apply();
+  assert.deepEqual(order(P.nav()), ["general", "shape", "rules", "apps", "shp-navh", "routing"]);
+  const moved = moves(P.nav());
+  P.view.apply();
+  assert.deepEqual(moved, [], "and once in order, nothing moves again");
+});
+
 await t("a rail already in order moves nothing", async () => {
   const P = await shapePage({ advanced: ["rules"] });
   const moved = moves(P.nav());
