@@ -2456,7 +2456,7 @@
     "core/services/git-state.js",
     "core/ui/virtual.js"
    ],
-   "note": "the Made model is in modules/artifacts/model.js (record.js re-exports it until the shims go); the since model, gitState and the gallery lines wait"
+   "note": "every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go"
   },
   "js/recordview.js": {
    "status": "split",
@@ -12422,14 +12422,8 @@
    "home": "modules/search/quickopen.js"
   },
   "js/record.js::exports::AWAY_MS": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::madeKind": {
    "status": "moved",
@@ -12472,24 +12466,12 @@
    "home": "modules/artifacts/model.js"
   },
   "js/record.js::exports::galleryLines": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/virtual.js"
   },
   "js/record.js::exports::linesIn": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/virtual.js"
   },
   "js/record.js::exports::mergeMadeRows": {
    "status": "moved",
@@ -12500,84 +12482,36 @@
    "home": "modules/artifacts/model.js"
   },
   "js/record.js::exports::gitState": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/git-state.js"
   },
   "js/record.js::exports::didLine": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::firstSentence": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::catchUp": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::headline": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::awayWord": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::sinceWord": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::exports::createSeen": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::madeKind": {
    "status": "moved",
@@ -12608,24 +12542,12 @@
    "home": "modules/artifacts/model.js"
   },
   "js/record.js::functions::galleryLines": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/virtual.js"
   },
   "js/record.js::functions::linesIn": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/virtual.js"
   },
   "js/record.js::functions::mergeMadeRows": {
    "status": "moved",
@@ -12636,84 +12558,36 @@
    "home": "modules/artifacts/model.js"
   },
   "js/record.js::functions::gitState": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/git-state.js"
   },
   "js/record.js::functions::didLine": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::firstSentence": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::catchUp": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::headline": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::awayWord": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::sinceWord": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/record.js::functions::createSeen": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts/model.js",
-    "modules/since/model.js",
-    "core/services/git-state.js",
-    "core/ui/virtual.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/since/model.js"
   },
   "js/recordview.js::exports::madeNaming": {
    "status": "split-region",

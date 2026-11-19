@@ -10,7 +10,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | split | 33 |
 | moved | 24 |
 
-Items inside first-party files: 2290 (planned 1285, split-region 754, moved 227, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1285, split-region 733, moved 248, deleted 21, kept 2, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -80,7 +80,7 @@ Items inside first-party files: 2290 (planned 1285, split-region 754, moved 227,
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: js/pending.js re-exports core/platform until the shims go |
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
-| `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: the Made model is in modules/artifacts/model.js (record.js re-exports it until the shims go); the since model, gitState and the gallery lines wait |
+| `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
 | `js/redraw.js` | 130 | planned | core/ui/redraw.js |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
