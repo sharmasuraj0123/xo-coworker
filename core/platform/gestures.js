@@ -2,12 +2,12 @@
 
 // One touch primitive, drag: the surface follows the finger and settles by distance or speed; touch events, since only a cancelable touchmove stops the browser's scroll.
 
+import { EASE, RM } from "./motion.js";
+
 const LOCK = 10;     // px before a touch picks its direction
 const SLOPE = 1.7;   // the picked axis must lead the other by this much: within ~30° of it
 export const FLICK = 0.45; // px/ms: a quick flick commits whatever the distance
-const EASE = "cubic-bezier(.2,.8,.2,1)";
 
-const RM = matchMedia("(prefers-reduced-motion: reduce)");
 const IOS = /iP(hone|ad|od)/.test(navigator.platform) || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
 const STANDALONE = matchMedia("(display-mode: standalone)").matches || /** @type {any} */ (navigator).standalone === true;
 /** Safari owns its left edge (its own Back, which history makes the app's Back); a home-screen app has none. @param {number} x */
