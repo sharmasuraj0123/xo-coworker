@@ -94,7 +94,7 @@ t("content that grows above the control under the keyboard: it was in sight, so 
   assert.equal(F.inSight(P.el, P.win), false);
   F.bringWhole(P.el, P.win);
   assert.equal(P.scroller.scrollTop, 2000 + 76, "the least distance: its foot to the box's foot");
-  const red = readFileSync(new URL("../js/redraw.js", import.meta.url), "utf8");
+  const red = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
   assert.ok(/const seen = !!focus && el\.contains\(focus\) && inSight\(focus\);[^]*?const changed = syncChildren\(el, tpl\.content, focus(?:, [^;]*)?\);\s*if \(changed && seen && focus\.isConnected && !inSight\(focus\)\) bringWhole\(focus\);/.test(red), "redraw keeps it: in sight before, so in sight after");
 });
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");

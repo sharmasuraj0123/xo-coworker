@@ -4,13 +4,13 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 673 |
+| planned | 672 |
 | vendor | 367 |
 | deleted | 232 |
 | split | 34 |
-| moved | 7 |
+| moved | 8 |
 
-Items inside first-party files: 2290 (planned 1318, split-region 923, moved 49), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2290 (planned 1309, split-region 920, moved 61), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -82,7 +82,7 @@ Items inside first-party files: 2290 (planned 1318, split-region 923, moved 49),
 | `js/quickopen.js` | 179 | planned | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
 | `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
-| `js/redraw.js` | 130 | planned | core/ui/redraw.js |
+| `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
 | `js/rich.js` | 281 | planned | core/ui/markdown/rich.js |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |

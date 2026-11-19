@@ -21,7 +21,8 @@ await t("one helper says a control can take focus: no file keeps its own copy", 
   assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
   const copies = readdirSync(new URL("js/", ROOT)).filter((f) => f.endsWith(".js")).filter((f) => /closest\("\[inert\], \[hidden\]"\)/.test(read(`js/${f}`)));
   assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
-  for (const f of ["app.js", "decide.js", "viewer.js", "stage.js", "create.js", "ui.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
+  for (const f of ["app.js", "decide.js", "viewer.js", "stage.js", "create.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
+  assert.match(read("core/ui/redraw.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\/a11y\/focus\.js";/, "reconcile takes it from a11y/focus.js");
 });
 
 await t("hookOf names a control so the redraw's copy is found: its id, else its tag and data- hooks, a count aside", async () => {

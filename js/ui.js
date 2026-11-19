@@ -1,8 +1,7 @@
 // Converged · small shared helpers: icons, a keyed DOM reconciler, time words, smooth disclosure,
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
-import { redraw, pressedNode } from "./redraw.js";
-import { usable } from "./focusview.js";
+export { reconcile } from "../core/ui/redraw.js";
 
 import { xi } from "./icon.js";
 export { xi };
@@ -255,76 +254,6 @@ export function elapsed(secs) {
   return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`;
 }
 export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]").replace(/[*_`#>]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\s+/g, " ").trim();
-
-/**
- * Keyed reconcile: items [{key, html}] → children of `box`. Unchanged items
- * keep their element (so animations, focus and selection survive a tick);
- * new ones get `is-new` unless `quiet`. Returns the list of new elements.
- *
- * A changed item is drawn anew, except the one you're in: a row holding focus is brought to its new HTML in
- * place (js/redraw.js), so the control you're on stays (Astra DET-1: a tool's output arriving took focus from
- * its disclosure). Its own attributes come from the new HTML; once the list is in order it hears "redrawn"
- * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
- * is replaced as before.
- */
-/** Where focus can land in a row: its controls, in order. */
-const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
-export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
-  const old = new Map();
-  for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
-  const added = [];
-  const tpl = document.createElement("template");
-  const active = document.activeElement, inPlace = [];
-  // the node under a press: a row holding it is updated in place, as one holding focus is, so the press still clicks
-  // (a row drawn anew mid-press took the pressed node with it, and the browser drops that click: the owner, 19 Nov)
-  const pressed = pressedNode();
-  // a row that's going while it holds focus hands it on first, never to BODY (the create-project/Launchpad grader on
-  // f70ca6b, C050/C121: the working mini, dropped with no finished blocks, took focus with it): the nearest row that
-  // stays, before it, else after it (found now, before anything moves), or the list's fallback
-  const keep = new Set(items.map((it) => it.key));
-  const going = [...box.children].find((el) => el.dataset.k && !keep.has(el.dataset.k) && el.contains(active));
-  let near = null;
-  if (going) {
-    for (let s = going.previousElementSibling; s && !near; s = s.previousElementSibling) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
-    for (let s = going.nextElementSibling; s && !near; s = s.nextElementSibling) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
-  }
-  items.forEach((it, i) => {
-    let el = old.get(it.key);
-    if (el && el._h !== it.html) {
-      tpl.innerHTML = it.html.trim();
-      const fresh = tpl.content.firstElementChild;
-      if (((active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
-        for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
-        for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
-        redraw(el, fresh.innerHTML);
-        el._h = it.html;
-        inPlace.push(el);
-      } else {
-        fresh.dataset.k = it.key; fresh._h = it.html;
-        const had = el === active;
-        el.replaceWith(fresh); el = fresh;
-        if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
-      }
-    } else if (!el) {
-      tpl.innerHTML = it.html.trim();
-      el = tpl.content.firstElementChild;
-      el.dataset.k = it.key; el._h = it.html;
-      if (!quiet) { el.classList.add("is-new"); added.push(el); }
-    }
-    old.delete(it.key);
-    const at = box.children[i];
-    if (at !== el) box.insertBefore(el, at || null);
-  });
-  if (going) {
-    near = near && [...box.children].find((el) => el.dataset.k === near);
-    const to = (near && [...near.querySelectorAll(LANDING)].find(usable)) || (fallback && fallback());
-    if (to && to.focus) to.focus({ preventScroll: true });
-  }
-  for (const el of old.values()) el.remove();
-  // told once the list is in its final order, so what decorates rows sees their neighbours as they are
-  for (const el of inPlace) if (el.isConnected) el.dispatchEvent(new CustomEvent("redrawn", { bubbles: true }));
-  return added;
-}
 
 // ── optional soft sounds (OFF by default; the person turns them on) ─────────
 // Turning sounds on takes a choice the browser will keep (sound that came back after a reload, or didn't, would be a

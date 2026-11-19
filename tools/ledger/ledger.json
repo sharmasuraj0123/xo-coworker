@@ -2455,8 +2455,9 @@
    ]
   },
   "js/redraw.js": {
-   "status": "planned",
-   "home": "core/ui/redraw.js"
+   "status": "moved",
+   "home": "core/ui/redraw.js",
+   "note": "js/redraw.js re-exports core/ui/redraw.js until the shims go"
   },
   "js/review.js": {
    "status": "planned",
@@ -13222,39 +13223,39 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/redraw.js::exports::redraw": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::exports::pressedNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::exports::redrawNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::redraw": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::redrawNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::deepActive": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::keyOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::syncChildren": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/redraw.js::functions::syncNode": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/review.js::exports::VERB": {
@@ -16245,16 +16246,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::exports::reconcile": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/ui.js::exports::sound": {
    "status": "split-region",
@@ -16401,16 +16394,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::functions::reconcile": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/ui.js::functions::keepTurning": {
    "status": "split-region",
@@ -16437,16 +16422,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/ui.js::custom_events::redrawn": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/util.js::exports::space": {
    "status": "split-region",
