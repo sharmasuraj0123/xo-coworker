@@ -624,7 +624,9 @@ body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, e
 .stage .tp-br{display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .stage .tp-br svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
 .stage .tp-full{margin-left:auto}
-.stage .tp-thead{padding-left:var(--s-4);padding-right:var(--s-4)}
+/* the page's checklist takes the header gutter as its own (--hg is the conversation's: undefined here, it voided
+   the strip's whole padding, so it sat on the head with no gap) */
+.stage .tp-thead{--hg:var(--s-4)}
 .stage .tp .scroller{flex:1;min-height:0}
 .stage .tp .dock{left:0;right:0;width:auto}
 .stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}

@@ -2078,11 +2078,12 @@ function undoRecord(id) {
     }
   }
 }
-function chipRender(fade = false) {
-  const chip = $("#iq");
+function chipRender(fade = false, K = MK) {
+  const chip = K.iq;
+  if (!chip) return;
   // a chat's agent, model and mode are set in the line above the composer, not by the router
-  const s = sessionOf(S.view);
-  chip.hidden = CH.isChats(S.view) || !IQ.kindOf(s);
+  const s = sessionOf(K.view);
+  chip.hidden = CH.isChats(K.view) || !IQ.kindOf(s);
   if (chip.hidden) return;
   const html = IQ.chipHtml(s, PHONE.matches);
   chip.title = IQ.chipTitle(s);
@@ -2102,7 +2103,8 @@ const say = $("#say"), atList = $("#at-list");
  * thread page's in the panel (its own field, Send and target line; a reply in its thread). Its view is its
  * conversation's; sendLive, send, sendRender, the target line, the placeholder, the draft and Stop take it.
  */
-const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; } };
+const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
+  tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq") };
 /** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
 function wireComposer(K) {
   K.say.addEventListener("input", () => { updateComposer(K); saveDraft(K); });
@@ -2146,20 +2148,20 @@ function chipHtml(c) {
     btn("x", `Remove ${c.paste ? "the pasted text" : c.name}`, ICON.close) +
     `<i class="att-bar" aria-hidden="true"></i></li>`;
 }
-function trayRender() {
-  const on = canAttach(S.view);
-  $("#attach").hidden = !on;
-  const list = on ? tray.list(S.view) : [];
-  trayEl.hidden = !list.length;
-  $("#att-note").hidden = !list.length;
-  $("#composer").classList.toggle("has-files", !!list.length);
+function trayRender(K = MK) {
+  const on = canAttach(K.view);
+  K.attach.hidden = !on;
+  const list = on ? tray.list(K.view) : [];
+  K.tray.hidden = !list.length;
+  K.note.hidden = !list.length;
+  K.form.classList.toggle("has-files", !!list.length);
   const html = list.map(chipHtml).join("");
   // in place (js/redraw.js): a chip whose upload finishes or fails is the same chip, its Remove the same button,
   // so a focused Remove keeps focus (Astra H28)
-  if (trayEl._h !== html) { redraw(trayEl, html); trayEl._h = html; }
+  if (K.tray._h !== html) { redraw(K.tray, html); K.tray._h = html; }
   // progress moves without redrawing the chips (a focused Remove stays focused)
   for (const c of list) {
-    const el = trayEl.querySelector(`[data-lid="${CSS.escape(c.lid)}"]`);
+    const el = K.tray.querySelector(`[data-lid="${CSS.escape(c.lid)}"]`);
     if (!el) continue;
     const p = c.state === "uploading" ? Math.min(1, (c.sent || 0) / Math.max(1, c.size)) : c.state === "done" ? 1 : 0;
     el.style.setProperty("--p", String(p));
@@ -2167,67 +2169,70 @@ function trayRender() {
     if (pct) pct.textContent = c.sent ? `${Math.floor(p * 100)}%` : "Uploading";
   }
 }
-function addFiles(files) {
+function addFiles(files, K = MK) {
   const list = [...(files || [])];
   if (!list.length) return;
-  if (!canAttach(S.view)) { announce("Files can't be attached in this conversation."); return; }
-  const chat = attachChat(S.view);
+  if (!canAttach(K.view)) { announce("Files can't be attached in this conversation."); return; }
+  const chat = attachChat(K.view);
   if (!chat) { heraldShow({ kind: "stopped", text: "Files can't be attached yet", sub: "still connecting to XO" }, 4600); return; }
-  const refused = tray.add(S.view, chat, list);
+  const refused = tray.add(K.view, chat, list);
   const took = list.length - refused.length;
   if (refused.length) {
     heraldShow({ kind: "stopped", text: refused.length === 1 ? `${refused[0].name} wasn't attached` : `${refused.length} files weren't attached`, sub: refused[0].why }, 6000);
     announce(`${refused.map((r) => `${r.name}: ${r.why}`).join(" ")}`);
   }
   if (took) announce(`${took === 1 ? "1 file" : `${took} files`} uploading.`);
-  updateComposer();
-  say.focus({ preventScroll: true });
+  updateComposer(K);
+  K.say.focus({ preventScroll: true });
 }
-function insertText(text) {
-  say.focus({ preventScroll: true });
-  say.setRangeText(text, say.selectionStart, say.selectionEnd, "end");
-  updateComposer(); saveDraft();
+function insertText(text, K = MK) {
+  K.say.focus({ preventScroll: true });
+  K.say.setRangeText(text, K.say.selectionStart, K.say.selectionEnd, "end");
+  updateComposer(K); saveDraft(K);
 }
 $("#attach").innerHTML = ICON.clip;
 $("#attach").addEventListener("click", () => attInput.click());
 attInput.addEventListener("change", () => { addFiles(attInput.files); attInput.value = ""; });
-trayEl.addEventListener("click", (e) => {
+function wireTray(K) {
+K.tray.addEventListener("click", (e) => {
   const b = e.target.closest("[data-a]");
   const li = b && b.closest("[data-lid]");
   if (!li) return;
-  const lid = li.dataset.lid, c = tray.list(S.view).find((x) => x.lid === lid);
+  const lid = li.dataset.lid, c = tray.list(K.view).find((x) => x.lid === lid);
   if (!c) return;
   if (b.dataset.a === "x") {
     // just drop its id: the server sweeps a file no message names. Focus goes on first, to the next chip's Remove
     // (or the composer), so it never sits on a chip that's going
     const next = li.nextElementSibling?.querySelector("[data-a=x]") || li.previousElementSibling?.querySelector("[data-a=x]");
-    if (li.contains(document.activeElement)) (next || say).focus({ preventScroll: true });
-    dropThumb(tray.remove(S.view, lid));
+    if (li.contains(document.activeElement)) (next || K.say).focus({ preventScroll: true });
+    dropThumb(tray.remove(K.view, lid));
     announce(`${c.paste ? "The pasted text" : c.name} removed.`);
-    trayRender();
+    trayRender(K);
   } else if (b.dataset.a === "retry") {
     // Retry goes as the upload starts again: focus moves first to the same chip's Remove, which stays (H28)
     if (b === document.activeElement) li.querySelector("[data-a=x]")?.focus({ preventScroll: true });
-    tray.retry(S.view, lid);
-    trayRender();
+    tray.retry(K.view, lid);
+    trayRender(K);
   }
   else if (b.dataset.a === "view") VW.open(c.paste != null ? { name: c.name, bytes: c.size, local: c.paste } : { name: c.name, type: c.type, bytes: c.bytes ?? c.size, att: { chat: c.chat, id: c.id } }, b);
-  else if (b.dataset.a === "inline") { tray.remove(S.view, lid); insertText(c.paste); announce("The pasted text is back in the message."); }
+  else if (b.dataset.a === "inline") { tray.remove(K.view, lid); insertText(c.paste, K); announce("The pasted text is back in the message."); }
 });
-say.addEventListener("paste", (e) => {
+K.say.addEventListener("paste", (e) => {
   const cd = e.clipboardData;
-  if (!cd || !canAttach(S.view)) return;
+  if (!cd || !canAttach(K.view)) return;
   const files = [...(cd.files || [])];
-  if (files.length) { e.preventDefault(); addFiles(files); return; }
+  if (files.length) { e.preventDefault(); addFiles(files, K); return; }
   const text = cd.getData("text/plain");
   if (!text || !isLargePaste(text)) return;
-  const chat = attachChat(S.view);
+  const chat = attachChat(K.view);
   if (!chat) return; // not connected yet: it goes in as text
   e.preventDefault();
-  if (!tray.addPaste(S.view, chat, text)) { insertText(text); announce(`A message takes at most ${MAX_FILES} files, so the paste went in as text.`); return; }
+  if (!tray.addPaste(K.view, chat, text)) { insertText(text, K); announce(`A message takes at most ${MAX_FILES} files, so the paste went in as text.`); return; }
   announce("The long paste was added as a file. As text puts it back in the message.");
-  updateComposer();
+  updateComposer(K);
 });
+}
+wireTray(MK);
 // a drop anywhere on the page adds the files to the message being written
 {
   const veil = $("#drop-veil");
@@ -2310,6 +2315,7 @@ function targetLineRender(K = MK) {
 }
 function updateComposer(K = MK) {
   if (!K.main) {
+    trayRender(K); chipRender(false, K);
     targetLineRender(K); syncPlaceholder(K);
     K.form.classList.toggle("has-text", !!K.say.value);
     sendRender(K); growSay(K);
@@ -2727,14 +2733,26 @@ function tpMount(box) {
     `<div class="scroller tp-scroller" id="tscroller" tabindex="-1" data-own-scroll><div class="column" id="tcolumn">` +
     `<div class="msgs" id="tmsgs" role="log" aria-live="off" aria-label="The thread's messages"></div><div class="typing-slot" id="ttyping"></div></div></div>` +
     `<div class="dock tp-dock" id="tpdock"><div class="tdock" id="tptdock"></div><div class="cbar"><form class="composer" id="tpcomposer" autocomplete="off">` +
-    `<label class="sr-only" for="tsay" id="tsay-label">Reply</label><div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" spellcheck="true"></textarea></div>` +
-    `<div class="composer-row"><span class="tp-target" id="ttarget"></span><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div></form></div></div>`;
+    `<label class="sr-only" for="tsay" id="tsay-label">Reply</label><ul class="att-tray" id="tatt-tray" aria-label="Files on this reply" hidden></ul>` +
+    `<div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" spellcheck="true"></textarea></div>` +
+    `<div class="composer-row"><button type="button" class="attach" id="tattach" aria-label="Add files" title="Add files: text, images or PDFs, up to 25 MB each">${ICON.clip}</button><input type="file" id="tatt-input" multiple hidden tabindex="-1" accept="${esc($("#att-input").accept)}">` +
+    `<span class="tp-target" id="ttarget"></span><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
+    `<p class="att-note" id="tatt-note" hidden>Files are kept in the project's <code>.xo/</code> folder. Unlike chat text, they aren't scrubbed for secrets.</p></form></div></div>`;
   const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
   TP.follow = createFollow(els);
   TP.follow.init();
   TP.C = createConv({ view: tpView, msgs: els.msgs, scroller: els.scroller, column: els.column, typing: $("#ttyping"), follow: TP.follow });
-  TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C };
+  TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
+    tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq") };
   wireComposer(TP.K);
+  wireTray(TP.K);
+  // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
+  TP.K.attach.addEventListener("click", () => TP.K.input.click());
+  TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
+  box.addEventListener("dragover", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "copy"; } });
+  box.addEventListener("drop", (e) => { if (![...(e.dataTransfer?.types || [])].includes("Files")) return; e.preventDefault(); e.stopPropagation(); addFiles(e.dataTransfer.files, TP.K); });
+  // its model and effort: the thread's own session, the chat's picker
+  TP.K.iq.addEventListener("click", () => { const sid = sessionOf(tpView()); if (IQ.isOpen) IQ.close(); else IQ.open(sid, TP.K.iq); });
   decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
     dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
   // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)

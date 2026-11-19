@@ -79,3 +79,19 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
 assert.match(app, /data-tp-menu aria-haspopup="menu" aria-expanded="\$\{!!TP\.menu\}"/);
 assert.match(app, /item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, `Rename, label\$\{t\.canDelete \? ", delete" : ""\}… \(its page\)`\)/);
 console.log("thread-page menu: ok");
+
+// its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
+for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(app, new RegExp(`id="${id}"`), id);
+assert.match(app, /wireTray\(TP\.K\);/);
+assert.match(app, /wireTray\(MK\);/);
+assert.match(app, /addFiles\(e\.dataTransfer\.files, TP\.K\)/);
+assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
+assert.match(app, /IQ\.open\(sid, TP\.K\.iq\)/);
+console.log("thread-page files and model: ok");
+// a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
+// 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
+{ const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8"), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-2\) var\(--hg\) 10px;/);
+  assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
+  assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
+  console.log("thread-page checklist gap: ok"); }
