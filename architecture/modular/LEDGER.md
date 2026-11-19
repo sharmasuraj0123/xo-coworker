@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 625 |
+| planned | 624 |
 | vendor | 367 |
 | deleted | 232 |
-| moved | 53 |
+| moved | 54 |
 | split | 35 |
 | kept | 1 |
 
@@ -66,7 +66,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | `js/launchpad.js` | 1166 | planned | modules/launchpad/ (store, controller, views, section) |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation (the pictures it lends the lightbox) · next: the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves |
 | `js/lpapi.js` | 239 | split | modules/launchpad/client.js, modules/launchpad/model.js, core/services/github.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map is deleted; the rest waits for modules/map |
+| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | planned | modules/files/editor/markdown-page.js |
 | `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
@@ -82,7 +82,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
-| `js/recordview.js` | 855 | split | modules/artifacts, modules/since |
+| `js/recordview.js` | 855 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the dead Since card is deleted; Made, the Artifacts page and the cards wait for modules/artifacts |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
 | `js/review.js` | 153 | planned | modules/decisions/items.js |
 | `js/rich.js` | 281 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
@@ -114,7 +114,7 @@ Items inside first-party files: 2290 (planned 1008, split-region 631, moved 624,
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `css/app.css` | 3154 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
-| `css/artifacts.css` | 126 | planned | modules/artifacts/artifacts.css |
+| `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css · next: css/artifacts.css imports it, and keeps the phone pin's background-image !important until the sheet gets its @layer |
 | `css/base.css` | 52 | moved | core/ui/foundation.css |
 | `css/diffs.css` | 245 | planned | modules/changes/diffs.css |
 | `css/docs.css` | 141 | planned | modules/files/editor/docs.css |

@@ -18,24 +18,26 @@
 // "Seen" is the backend's per chat when it has it (the later of it and this browser's), else this
 // browser's; the thread's `summary` and `git` state make the card's words exact when they're there.
 //
-// app.js calls: placeOf, leave, projectSince, homeSinceHtml, homeMade, madeCount, jumpItems, and
+// app.js calls: placeOf, leave, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems, and
 // the panel's Made tab (made: mount, show, count); `panel` is set to the panel once it exists.
 
 import { syncList, fadeImage, setHtml, setText } from "./motion.js";
 import { redraw } from "./redraw.js";
 import { radioKeys, rovingTab } from "./keynav.js";
 import * as R from "./record.js";
+import { createSince } from "../modules/since/view.js";
+import { createPreviews } from "../modules/artifacts/previews.js";
+import { sinceSection } from "../modules/since/section.js";
+import { madeSection } from "../modules/artifacts/section.js";
 import { api } from "./api.js";
 import { esc, short } from "../core/platform/index.js";
-import { ICON, $ } from "./ui.js";
+import { ICON } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
 import { fileIcon, fileColor } from "./fileicons.js";
 import { midName, midNameHtml } from "./media.js";
 import { skTile, bar as skBar, rememberedMade } from "./skeleton.js";
 
 const PINS = "xo-made-pins";
-const TREES_MS = 60000;     // worktrees read at most this often per chat
-const LINES = 6;            // a card's lines before "+N more"
 const RECENT = 6;           // Recently made on Home
 
 const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit, link: ICON.arrow, branch: ICON.branch };
@@ -57,178 +59,13 @@ export function madeNaming(m, max = 28) {
   };
 }
 
-export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = () => "" }) {
-  const seen = R.createSeen(localStorage);
-  const since = new Map();        // place → when you'd last looked, if you were away long enough; null: nothing to say
-  const done = new Set();         // places whose card you dismissed in this page
-  const more = new Set();         // places whose card shows every line
-  const trees = new Map();        // chat id ("" for all) → {at, loading, map: thread ts → worktree}
+export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = () => "", places }) {
+  const SL = createSince({ world, api, schedule, announce });
   let pins = new Set();
   try { pins = new Set(JSON.parse(localStorage.getItem(PINS) || "[]")); } catch { /* private mode */ }
   const savePins = () => { try { localStorage.setItem(PINS, JSON.stringify([...pins])); } catch { /* private mode */ } };
 
   const threadsIn = (pid) => world.state.threads.filter((t) => t.project === pid);
-  const allThreads = () => world.state.threads.filter((t) => t.project && t.project !== "workspace");
-
-  /** The place a view belongs to: a thread is part of its project; chats and the Workspace keep no record. */
-  function placeOf(v) {
-    if (v === "home") return "home";
-    if (v.startsWith("p:")) return v;
-    if (v.startsWith("t:")) { const t = world.thread(v.slice(2)); return t && t.project && t.project !== "workspace" ? "p:" + t.project : null; }
-    return null;
-  }
-  // the backend's seen marks, per project chat ({seen_at}); null until read, {} when it has none
-  let remoteSeen = null;
-  api.chats().then((d) => {
-    const m = {};
-    for (const c of d.chats || []) if (c && "seen" in c) m[c.id] = c.seen ? Date.parse(c.seen.seen_at) || null : null;
-    remoteSeen = m;
-  }).catch(() => { remoteSeen = {}; }).finally(() => schedule());
-  const chatOfPlace = (place) => (place && place.startsWith("p:") ? world.project(place.slice(2))?.chatId || null : null);
-  function markPlace(place) {
-    seen.mark(place);
-    const chat = chatOfPlace(place);
-    if (chat && remoteSeen && chat in remoteSeen) { remoteSeen[chat] = Date.now(); api.markSeen(chat).catch(() => { /* this browser's mark still holds */ }); }
-  }
-  /** First arrival at a place in this page: were you away long enough to be told what happened? */
-  function arrive(place) {
-    if (since.has(place)) return since.get(place);
-    const chat = chatOfPlace(place);
-    if (chat && remoteSeen == null) return null;         // the backend's mark is on its way: decide then
-    const local = seen.get(place);
-    const remote = chat && remoteSeen && remoteSeen[chat] != null ? remoteSeen[chat] : null;
-    const at = local == null && remote == null ? null : Math.max(local ?? 0, remote ?? 0); // any device looking counts
-    const s = at != null && Date.now() - at >= R.AWAY_MS ? at : null;
-    since.set(place, s);
-    if (at == null) markPlace(place); // first visit ever: nothing to catch up on, but from now on there is
-    return s;
-  }
-  /** Leaving a view: the place it belonged to is seen, unless you're only moving inside it. */
-  function leave(from, to) {
-    const a = placeOf(from), b = to == null ? null : placeOf(to);
-    if (a && a !== b) markPlace(a);
-  }
-  // a hidden tab counts as gone: back after AWAY_MS, every place speaks again
-  let hiddenAt = 0;
-  document.addEventListener("visibilitychange", () => {
-    const v = currentView();
-    if (document.hidden) { hiddenAt = Date.now(); const p = v && placeOf(v); if (p) markPlace(p); return; }
-    if (hiddenAt && Date.now() - hiddenAt >= R.AWAY_MS) { since.clear(); done.clear(); more.clear(); schedule(); }
-  });
-  addEventListener("pagehide", () => { const v = currentView(); const p = v && placeOf(v); if (p) markPlace(p); });
-  let currentView = () => null;
-
-  // ── worktrees: the git words ────────────────────────────────────────────
-  function treesFor(chat = "") {
-    const c = trees.get(chat);
-    if (!c || (!c.loading && Date.now() - c.at > TREES_MS)) {
-      const entry = { at: Date.now(), loading: true, map: c ? c.map : new Map() };
-      trees.set(chat, entry);
-      api.worktrees(chat || undefined).then((d) => {
-        entry.map = new Map((d.worktrees || []).map((w) => [w.thread_ts, w]));
-        // a newer backend: threads whose worktree was removed, with their branch's last git state
-        for (const w of d.removed || []) if (w && w.thread_ts && !entry.map.has(w.thread_ts)) entry.map.set(w.thread_ts, { ...w, exists: false });
-      }).catch(() => { /* no git words: the groups still hold */ }).finally(() => { entry.loading = false; entry.at = Date.now(); schedule(); });
-    }
-    return trees.get(chat).map;
-  }
-
-  // ── Since you left ──────────────────────────────────────────────────────
-  function needingSet(needs) { return new Set(needs.filter((n) => n.admitted && !n.later).map((n) => n.t.id)); }
-
-  function gitHtml(git) {
-    return git.word ? `<span class="syl-git g-${git.group}">${esc(git.word)}</span>` : "";
-  }
-  function cardHead(place, s, counts, extra = "") {
-    const h = R.headline(counts);
-    return `<header class="syl-hd"><div class="syl-hw"><p class="syl-k">${ICON.clock}<span>Since you left · ${esc(R.sinceWord(s))}, ${esc(R.awayWord(s))} ago</span></p>` +
-      `<h2 class="syl-t">${esc(h.lead)} <em>${esc(h.tail)}</em></h2></div>` +
-      `<button type="button" class="syl-got" data-rec-got="${esc(place)}">Got it</button>${extra}</header>`;
-  }
-
-  /** The project's card, into #since (shown under the header, outside the scrolling conversation). */
-  function projectSince(pid, needs) {
-    const box = $("#since");
-    const place = pid ? "p:" + pid : null;
-    const s = place ? arrive(place) : null;
-    if (!place || s == null || done.has(place)) { box.hidden = true; if (box._h) { box.innerHTML = ""; box._h = ""; } return; }
-    const p = world.project(pid);
-    const map = p && p.chatId ? treesFor(p.chatId) : new Map();
-    const cu = R.catchUp(threadsIn(pid), { since: s, needing: needingSet(needs), trees: map });
-    if (!cu.total) { box.hidden = true; box.innerHTML = ""; box._h = ""; return; }
-    const all = more.has(place);
-    let left = all ? Infinity : LINES;
-    let body = "";
-    for (const g of cu.groups) {
-      if (left <= 0) break;
-      const items = g.items.slice(0, left);
-      left -= items.length;
-      body += `<p class="syl-gh"><i class="t-${g.tone}" aria-hidden="true"></i>${esc(g.label)}${g.why ? `<span> · ${esc(g.why)}</span>` : ""}</p>` +
-        items.map(({ t, line, git }) => `<button type="button" class="syl-ln" data-go="t:${esc(t.id)}"><span class="syl-tt"><b>${mark(t)}${esc(t.title)}</b>${line ? `<small>${esc(line)}</small>` : ""}</span>${gitHtml(git)}<span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>`).join("");
-    }
-    const hidden = cu.total - Math.min(cu.total, all ? cu.total : LINES);
-    const made = madeOf(pid).filter((m) => m.at > s).length;
-    const foot = [hidden > 0 ? `<button type="button" class="syl-more" data-rec-more="${esc(place)}">+${hidden} more</button>` : "",
-      made ? `<button type="button" class="syl-more is-made" data-made-open="${esc(pid)}">${ICON.spark}${made} ${made === 1 ? "thing" : "things"} made</button>` : ""].filter(Boolean).join("");
-    const html = `<section class="syl" aria-label="Since you left">${cardHead(place, s, cu.counts)}<div class="syl-b">${body}</div>${foot ? `<footer class="syl-f">${foot}</footer>` : ""}</section>`;
-    box.hidden = false;
-    if (box._h !== html) { redraw(box, html); box._h = html; } // in place: its buttons stay the same nodes as counts change
-  }
-
-  /** The quiet form (the owner removed the card on 2026-11-04 and chose this one line on 2026-11-08): after
-      AWAY_MS away, one line under a project's header, "Since Friday · 3 finished · 1 not pushed · 1 needs you",
-      each part opening its newest thread, and a dismiss. Home: the same line per project that moved. */
-  function partsHtml(cu) {
-    return cu.groups.map((g) => { const t = g.items[0].t; return `<button type="button" class="sl-part t-${g.tone}" data-go="t:${esc(t.id)}" title="${esc(g.items.map((x) => x.t.title).join(" · "))}">${g.items.length} ${esc(g.label.toLowerCase())}</button>`; }).join(`<span class="sl-sep" aria-hidden="true">·</span>`);
-  }
-  function sinceLine(pid, needs) {
-    const box = $("#since");
-    if (!box) return;
-    const place = pid ? "p:" + pid : null;
-    const s = place ? arrive(place) : null;
-    const off = () => { box.hidden = true; if (box._h) { box.innerHTML = ""; box._h = ""; } };
-    if (!place || s == null || done.has(place)) return off();
-    const p = world.project(pid);
-    const cu = R.catchUp(threadsIn(pid), { since: s, needing: needingSet(needs), trees: p && p.chatId ? treesFor(p.chatId) : new Map() });
-    if (!cu.total) return off();
-    const html = `<p class="sl" role="status">${ICON.clock}<span class="sl-k">Since ${esc(R.sinceWord(s))}</span>${partsHtml(cu)}<button type="button" class="sl-x" data-rec-got="${esc(place)}" aria-label="Got it" title="Got it">${ICON.close}</button></p>`;
-    box.hidden = false;
-    if (box._h !== html) { redraw(box, html); box._h = html; } // in place: its buttons stay the same nodes as counts change
-  }
-  function homeSinceLines(needs) {
-    const s = arrive("home");
-    if (s == null || done.has("home")) return "";
-    const map = treesFor(""), needing = needingSet(needs), rows = [];
-    for (const p of world.state.projects || []) {
-      if (!p || p.id === "workspace") continue;
-      const cu = R.catchUp(threadsIn(p.id), { since: s, needing, trees: map });
-      if (cu.total) rows.push({ at: Math.max(...cu.groups.flatMap((g) => g.items.map((x) => x.t.lastAt))), html: `<p class="sl is-home"><button type="button" class="sl-p" data-go="p:${esc(p.id)}">${esc(p.name || p.id)}</button>${partsHtml(cu)}</p>` });
-    }
-    if (!rows.length) return "";
-    rows.sort((a, b) => b.at - a.at);
-    return `<section class="sl-home" aria-label="Since you were away"><p class="sl-k">${ICON.clock}Since ${esc(R.sinceWord(s))}<button type="button" class="sl-x" data-rec-got="home" aria-label="Got it" title="Got it">${ICON.close}</button></p>${rows.slice(0, 5).map((r) => r.html).join("")}</section>`;
-  }
-
-  /** Home's card: one line per project that moved, its groups as counts. "" when there's nothing to say. */
-  function homeSinceHtml(needs) {
-    const s = arrive("home");
-    if (s == null || done.has("home")) return "";
-    const map = treesFor("");
-    const needing = needingSet(needs);
-    const total = {};
-    const rows = [];
-    for (const p of world.state.projects || []) {
-      if (!p || p.id === "workspace") continue;
-      const cu = R.catchUp(threadsIn(p.id), { since: s, needing, trees: map });
-      if (!cu.total) continue;
-      for (const [k, n] of Object.entries(cu.counts)) total[k] = (total[k] || 0) + n;
-      const chips = cu.groups.map((g) => `<span class="syl-chip"><i class="t-${g.tone}" aria-hidden="true"></i>${g.items.length} ${esc(g.label.toLowerCase())}</span>`).join("");
-      rows.push({ at: Math.max(...cu.groups.flatMap((g) => g.items.map((x) => x.t.lastAt))), html: `<button type="button" class="syl-ln is-p" data-go="p:${esc(p.id)}"><span class="syl-p">${esc(p.name || p.id)}</span><span class="syl-chips">${chips}</span><span class="syl-ch" aria-hidden="true">${ICON.right}</span></button>` });
-    }
-    if (!rows.length) return "";
-    rows.sort((a, b) => b.at - a.at);
-    return `<section class="syl is-home" aria-label="Since you left">${cardHead("home", s, total)}<div class="syl-b">${rows.map((r) => r.html).join("")}</div></section>`;
-  }
 
   // ── Made ────────────────────────────────────────────────────────────────
   const M = { pid: null, kind: "all", q: "", host: null, built: false };
@@ -236,7 +73,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   const shown = () => !!(M.host && !M.host.hidden && panel && panel.isOpen);
   /** The project a view belongs to, or null (Home, the Workspace, Chats: every project). */
   const pidOf = (v) => (!v ? null : v.startsWith("p:") ? v.slice(2) : v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
-  const thumbs = new Map(); // key → object URL, or "" when it couldn't be read
+  const PV = createPreviews({ world, api, sharedFileRoute, box: () => A.box, landed: () => { schedule(); if (shown()) madeRender(); } });
 
   // The backend's Made, per chat: {at, loading, rows, more, v} while it answers, {off} when it has no such route.
   // The newest page is read when something shows Made (and again every MADE_MS); `more` is where the next older
@@ -340,22 +177,20 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     const tint = fileColor(m.name || m.path) || "";
     const wt = tint ? ` style="--wt:${esc(tint)}"` : "";
     // drawn at once: until its preview lands the well holds the kind's icon, already in its colour
-    const wait = () => (previewable(m) && !failed.has(m.key) ? `<span class="md-well is-wait"${wt}>${iconHtml(m)}</span>` : "");
-    if (m.kind === "image") { const u = thumbs.get(m.key); return u ? `<span class="md-well"${wt}><img class="md-pic" src="${esc(u)}" alt="" decoding="async"></span>` : wait(); }
-    const p = texts.get(m.key);
+    const wait = () => (PV.previewable(m) && !PV.failed.has(m.key) ? `<span class="md-well is-wait"${wt}>${iconHtml(m)}</span>` : "");
+    if (m.kind === "image") { const u = PV.thumbs.get(m.key); return u ? `<span class="md-well"${wt}><img class="md-pic" src="${esc(u)}" alt="" decoding="async"></span>` : wait(); }
+    const p = PV.texts.get(m.key);
     if (!p) return wait();
     const page = p.kind === "doc"
       ? `${p.title ? `<span class="md-pt">${esc(p.title)}</span>` : ""}<span class="md-pp">${esc(p.text)}</span>`
       : `<span class="md-pl">${p.lines.map((l) => esc(l) || " ").join("\n")}</span>`;
     return `<span class="md-well"${wt}><span class="md-sheet${p.kind === "doc" ? " is-doc" : ""}">${page}</span></span>`;
   }
-  /** A card on the page that will show the thing itself (a picture, a text file it can read). */
-  const previewable = (m) => m.exists !== false && !!routeOf(m).project && (m.kind === "image" || (TEXTS.has(m.kind) && !/\.(pdf|docx?|xlsx?|pptx?|zip|gz)$/i.test(m.name || m.path || "")));
   function thumbHtml(m, where) {
     // the Artifacts page and Home's Recently made show the thing itself, on its colour (the owner, 19 Nov 14:57Z: Home too)
     if (where === "page" || where === true) { const w = wellHtml(m); if (w) return w + iconHtml(m); }
     if (m.kind === "image") {
-      const u = thumbs.get(m.key);
+      const u = PV.thumbs.get(m.key);
       if (u) return `<img src="${esc(u)}" alt="" loading="lazy" decoding="async">`;
     }
     return iconHtml(m);
@@ -364,94 +199,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? R.gitState(null, m.git).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || R.KIND_WORD[m.kind];
     const ic = m.kind === "link" || m.kind === "branch" ? KIND_IC[m.kind] : fileIcon(m.name || m.path);
     return `<span class="md-ic">${ic}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
-  }
-  /** Previews (a picture, a text file's first lines) never hold the page up (the owner, 19 Nov 14:46Z: Artifacts took
-   *  far too long to show). Measured on live becb59d, opening it fired every near card's read at once, up to 22 in
-   *  flight, about 6.4 MB of full-size pictures and 300 KB of whole text files in the first screens. Over a remote
-   *  link those queued in the browser's 6 connections ahead of the app's own reads, and nothing was kept, so every
-   *  open did it again. Now:
-   *  · a card is drawn at once, its well already tinted in its file's colour (wellHtml), whatever has arrived;
-   *  · reads go through one queue, PREV_CAP at a time, nearest the view first, so the app's own requests always have
-   *    room and the first row fills first;
-   *  · what was read is kept on this device (Cache Storage): a picture as a small copy for its card (PREV_W wide),
-   *    a text file as its preview. The next open draws them at once; a file that changed is a new made record.
-   *  A file that can't be read keeps its icon. */
-  const PREV_CAP = 3, PREV_W = 640, PREV_CACHE = "xo-previews-1";
-  const TEXTS = new Set(["doc", "code", "data", "page"]);
-  const texts = new Map(); // key → previewOf(…), or null when it couldn't be read (or is on its way)
-  const wantsText = (m) => TEXTS.has(m.kind) && !texts.has(m.key) && m.exists !== false && !/\.(pdf|docx?|xlsx?|pptx?|zip|gz)$/i.test(m.name || m.path || "");
-  const routeOf = (m) => (m.fileProject && m.rel ? { project: m.fileProject, rel: m.rel } : m.server ? {} : sharedFileRoute(world.thread(m.tid), m.path));
-  const PQ = { q: [], n: 0, seq: 0, landed: 0 };
-  /** Where a card is, for the queue: its top in the Artifacts page (from the observer's own entry, no layout read),
-   *  else its place in the list it was asked from. */
-  const nearY = new Map(); // key → {y} on the page
-  const failed = new Set(); // keys whose preview couldn't be read: they keep their icon
-  function prio(job) {
-    const w = nearY.get(job.key), box = A.box;
-    if (w && box && !box.hidden) return Math.abs(w.y - box.scrollTop - box.clientHeight / 3);
-    return 1e6 + job.seq;
-  }
-  function enqueue(key, run) {
-    PQ.q.push({ key, run, seq: PQ.seq++ });
-    pump();
-  }
-  function pump() {
-    while (PQ.n < PREV_CAP && PQ.q.length) {
-      let bi = 0, bp = Infinity;
-      for (let k = 0; k < PQ.q.length; k++) { const p = prio(PQ.q[k]); if (p < bp) { bp = p; bi = k; } }
-      const job = PQ.q.splice(bi, 1)[0];
-      PQ.n++;
-      Promise.resolve().then(job.run).catch(() => { failed.add(job.key); landed(); }).finally(() => { PQ.n--; pump(); });
-    }
-  }
-  /** What arrived is drawn once a frame, not once per arrival. */
-  function landed() {
-    if (PQ.landed) return;
-    PQ.landed = requestAnimationFrame(() => { PQ.landed = 0; schedule(); if (shown()) madeRender(); });
-  }
-  const cacheKey = (m, kind) => `/__xo-preview/${kind}/${encodeURIComponent(m.key)}/${m.at || 0}/${m.bytes ?? ""}`;
-  const cacheOpen = () => (typeof caches !== "undefined" ? caches.open(PREV_CACHE).catch(() => null) : Promise.resolve(null));
-  async function cached(m, kind) { const c = await cacheOpen(); const r = c && (await c.match(cacheKey(m, kind)).catch(() => null)); return r || null; }
-  async function keep(m, kind, body, type) { const c = await cacheOpen(); if (c) await c.put(cacheKey(m, kind), new Response(body, { headers: { "content-type": type } })).catch(() => {}); }
-  /** A picture made small for its card: PREV_W wide at most (a card shows it at about a third of that), WebP. */
-  async function small(b) {
-    if (typeof createImageBitmap !== "function" || typeof OffscreenCanvas !== "function") return b;
-    const bm = await createImageBitmap(b);
-    if (bm.width <= PREV_W) { bm.close?.(); return b; }
-    const h = Math.round((bm.height * PREV_W) / bm.width), c = new OffscreenCanvas(PREV_W, h);
-    c.getContext("2d").drawImage(bm, 0, 0, PREV_W, h); bm.close?.();
-    return c.convertToBlob({ type: "image/webp", quality: 0.82 });
-  }
-  function loadTexts(items) {
-    for (const m of items) {
-      if (!wantsText(m)) continue;
-      const r = routeOf(m);
-      texts.set(m.key, null);
-      if (!r.project) continue;
-      enqueue(m.key, async () => {
-        const hit = await cached(m, "text");
-        const p = hit ? await hit.json() : R.previewOf(m.name || m.path, String((await api.projectFile(r.project, r.rel))?.content || "").slice(0, 4096));
-        if (!hit && p) keep(m, "text", JSON.stringify(p), "application/json");
-        if (!p) throw new Error("nothing to show");
-        texts.set(m.key, p); landed();
-      });
-    }
-  }
-  /** Image files show themselves: each read once, through its thread's folder (the queue, the device's copy). */
-  function loadThumbs(items) {
-    for (const m of items) {
-      if (m.kind !== "image" || thumbs.has(m.key)) continue;
-      const r = routeOf(m);
-      if (m.exists === false || !r.project) { thumbs.set(m.key, ""); continue; }
-      thumbs.set(m.key, "");
-      enqueue(m.key, async () => {
-        const hit = await cached(m, "pic");
-        let b = hit ? await hit.blob() : null;
-        if (!b) { b = await small(await api.projectImage(r.project, r.rel)).catch(() => null) || b; if (b) keep(m, "pic", b, b.type || "image/png"); }
-        if (!b) throw new Error("no picture");
-        thumbs.set(m.key, URL.createObjectURL(b)); landed();
-      });
-    }
   }
   const hostOf = (u) => { try { return new URL(u).host; } catch { return "link"; } };
   const size = (n) => (n == null || n === "" ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
@@ -465,7 +212,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     // on the page a card says where it's from, what it is and when; its size is in the file itself
     const meta = (where === "page" ? [PROJ(m.project), what, ago] : [what, size(m.bytes), ago]).filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
-      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${(where === "page" || where === true) && ((m.kind === "image" ? thumbs.get(m.key) : texts.get(m.key)) || (previewable(m) && !failed.has(m.key))) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
+      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${(where === "page" || where === true) && ((m.kind === "image" ? PV.thumbs.get(m.key) : PV.texts.get(m.key)) || (PV.previewable(m) && !PV.failed.has(m.key))) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
       `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project)} · ${ago}` : meta)}</span></span></button>` +
       (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.threadOne}<span>${esc(n.from)}</span></button>`
         : where === "page" ? `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>` : "") + // on the page every card is one height
@@ -513,7 +260,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     const counts = Object.fromEntries(R.KINDS.map(([k]) => [k, k === "all" ? items.length : items.filter((m) => m.kind === k).length]));
     const list = R.filterMade(items, { kind: M.kind, q: M.q });
     const groups = R.madeGroups(list);
-    loadThumbs(list.slice(0, 48)); // the first screens' worth; the queue takes them nearest first
+    PV.loadThumbs(list.slice(0, 48)); // the first screens' worth; the queue takes them nearest first
     const h = M.host;
     if (!M.built) {
       h.innerHTML = `<div class="md-pane"><header class="md-h"><h2 id="made-h"></h2><p id="made-sub"></p></header>` +
@@ -626,7 +373,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     sec.hidden = !items.length;
     if (!items.length) return;
     const list = [...items.filter((m) => m.pinned), ...items.filter((m) => !m.pinned)].slice(0, RECENT);
-    loadThumbs(list); loadTexts(list);
+    PV.loadThumbs(list); PV.loadTexts(list);
     syncCards(ul, list, true);
   }
 
@@ -697,7 +444,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
         const items = l.g.items.slice(l.start, l.start + l.n);
         syncCards(el, items, "page");
         // pictures: read when their card comes within a screen of view
-        if (A.tio) for (const c of el.children) { const m = A.byKey.get(c.dataset.k); if (!c._tw && m && ((m.kind === "image" && !thumbs.has(m.key)) || wantsText(m))) { c._tw = true; A.tio.observe(c); } }
+        if (A.tio) for (const c of el.children) { const m = A.byKey.get(c.dataset.k); if (!c._tw && m && ((m.kind === "image" && !PV.thumbs.has(m.key)) || PV.wantsText(m))) { c._tw = true; A.tio.observe(c); } }
       }
       // in order, so Tab goes card by card down the page
       const at = prev ? prev.nextElementSibling : be.firstElementChild;
@@ -719,7 +466,7 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
           if (!e.isIntersecting) continue;
           A.tio.unobserve(e.target);
           const m = A.byKey.get(e.target.dataset.k);
-          if (m) { nearY.set(m.key, { y: e.boundingClientRect.top - e.rootBounds.top + A.box.scrollTop }); loadThumbs([m]); loadTexts([m]); }
+          if (m) { PV.nearY.set(m.key, { y: e.boundingClientRect.top - e.rootBounds.top + A.box.scrollTop }); PV.loadThumbs([m]); PV.loadTexts([m]); }
         }
       }, { root: box, rootMargin: "50% 0px" });
     }
@@ -812,18 +559,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   // ── events ──────────────────────────────────────────────────────────────
   document.addEventListener("click", (e) => {
     const t = e.target;
-    const got = t.closest("[data-rec-got]");
-    if (got) {
-      const p = got.dataset.recGot;
-      // the line goes with its button: focus moves on first, to the place it was read in (Home, or the
-      // conversation), never the page (Astra: dismissing left focus on BODY)
-      if (got.contains(document.activeElement)) document.getElementById(p === "home" ? "home" : "scroller")?.focus({ preventScroll: true });
-      done.add(p); markPlace(p); announce("Caught up"); schedule(); return;
-    }
-    const mr = t.closest("[data-rec-more]");
-    if (mr) { more.add(mr.dataset.recMore); schedule(); return; }
-    const mo = t.closest("[data-made-open]");
-    if (mo && panel) { panel.open("made"); return; }
     const pin = t.closest("[data-made-pin]");
     if (pin) { togglePin(pin.dataset.madePin); return; }
     const f = t.closest("[data-made-file]");
@@ -839,8 +574,11 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     if (g) { go(g.dataset.madeGo); return; }
   });
 
+  places.contribute("home.section", sinceSection(SL), "xo.since");
+  places.contribute("home.section", madeSection({ homeMade }), "xo.artifacts");
+
   return {
-    placeOf, leave, projectSince, homeSinceHtml, sinceLine, homeSinceLines, homeMade, madeCount, jumpItems,
+    placeOf: SL.placeOf, leave: SL.leave, sinceLine: SL.sinceLine, homeSinceLines: SL.homeSinceLines, homeMade, madeCount, jumpItems,
     /** The newest file a thread made (not a branch): what its finished card offers to open. */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     /** The Artifacts page (a sidebar place): render() draws it; count() is what the sidebar shows. */
@@ -850,6 +588,6 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
     set panel(p) { panel = p; },
     refresh() { if (shown()) madeRender(); },
     /** app.js tells it where you are, for the tab's hide and close. */
-    set view(fn) { currentView = fn; },
+    set view(fn) { SL.view = fn; },
   };
 }

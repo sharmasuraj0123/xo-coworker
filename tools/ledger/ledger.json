@@ -1558,8 +1558,9 @@
    "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)"
   },
   "css/artifacts.css": {
-   "status": "planned",
-   "home": "modules/artifacts/artifacts.css"
+   "status": "moved",
+   "home": "modules/artifacts/artifacts.css",
+   "note": "css/artifacts.css imports it, and keeps the phone pin's background-image !important until the sheet gets its @layer"
   },
   "css/base.css": {
    "status": "moved",
@@ -2391,7 +2392,7 @@
     "core/services/places.js",
     "core/services/agent-activity.js"
    ],
-   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map is deleted; the rest waits for modules/map"
+   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map"
   },
   "js/markdown.js": {
    "status": "split",
@@ -2483,7 +2484,8 @@
    "home": [
     "modules/artifacts",
     "modules/since"
-   ]
+   ],
+   "note": "Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the dead Since card is deleted; Made, the Artifacts page and the cards wait for modules/artifacts"
   },
   "js/redraw.js": {
    "status": "moved",

@@ -24,7 +24,7 @@ assert.equal(previewOf("data.csv", "a,b\n1,2").lines[0], "a,b");
 assert.equal(previewOf("empty.js", "   \n "), null, "nothing to show: the icon stays");
 
 // the view: only near view, once, through the thread's folder; never a binary
-const view = readFileSync(new URL("../js/recordview.js", import.meta.url), "utf8");
+const view = ["../js/recordview.js", "../modules/artifacts/previews.js"].map((f) => readFileSync(new URL(f, import.meta.url), "utf8")).join("\n").replace(/\bPV\./g, "");
 assert.match(view, /if \(m\) \{ nearY\.set\(m\.key, \{ y: e\.boundingClientRect\.top - e\.rootBounds\.top \+ A\.box\.scrollTop \}\); loadThumbs\(\[m\]\); loadTexts\(\[m\]\); \}/, "read when its card comes near view; where it is comes from the observer, no layout read");
 assert.match(view, /String\(\(await api\.projectFile\(r\.project, r\.rel\)\)\?\.content \|\| ""\)\.slice\(0, 4096\)/, "from its first bytes");
 assert.match(view, /!\/\\\.\(pdf\|docx\?\|xlsx\?\|pptx\?\|zip\|gz\)\$\/i\.test/);
@@ -52,7 +52,7 @@ assert.doesNotMatch(view, /m\.kind === "image" \? "" : fileColor/);
 assert.match(view, /title="Open the thread that made it">\$\{ICON\.threadOne\}<span>/);
 
 // CSS: concentric, tokens only
-const css = readFileSync(new URL("../css/artifacts.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("../modules/artifacts/artifacts.css", import.meta.url), "utf8");
 const block = css.slice(css.indexOf("── The thing itself"));
 assert.match(block, /:is\(\.ar-grid,\.md-grid\.is-strip\) \.md-th\.has-well\{display:block;place-items:normal;padding:var\(--cell-in\) var\(--cell-in\) 0;/);
 assert.match(block, /\.md-well\{[^}]*border-radius:var\(--r\) var\(--r\) 0 0;/);
