@@ -76,6 +76,10 @@ await t("the adapter offers only what the app draws: diffs, J/K, the theme, idle
   assert.doesNotMatch(readFileSync(join(ROOT, "tools/diffview/vendor.mjs"), "utf8"), /diffs\/edit/, "and the vendoring script doesn't bring it back");
 });
 
+await t("no rule styles the deleted merge view's choices", () => {
+  assert.doesNotMatch(readFileSync(join(ROOT, "css/diffs.css"), "utf8"), /\.xd-merge|\.xd-mbtn/);
+});
+
 await t("tools/diffview holds only what makes the vendored library and its themes, no one-off probes", () => {
   assert.deepEqual(readdirSync(join(ROOT, "tools/diffview")).sort(), ["theme.mjs", "vendor.mjs"]);
 });
