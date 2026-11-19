@@ -1,0 +1,216 @@
+// @ts-check
+// The kernel: modules, their services, and the lifecycle that makes every registration undoable.
+// A module is a manifest (module.json) plus activate(ctx). The kernel orders modules by what they need,
+// activates each in its own error boundary, and on disable runs every undo it collected, newest first,
+// taking dependents down before what they depend on. See types.d.ts for the contract.
+
+import { createUndos } from "./undo.js";
+import { createBus } from "./bus.js";
+import { createPlaces } from "./places.js";
+import { createScheduler } from "./scheduler.js";
+import { createLayers } from "./layers.js";
+import { satisfies } from "./semver.js";
+
+/** @typedef {import("./types").Kernel} Kernel @typedef {import("./types").ModuleDef} ModuleDef */
+/** @typedef {import("./types").ModuleManifest} ModuleManifest @typedef {import("./types").ModuleContext} ModuleContext */
+/** @typedef {import("./types").ModuleStatus} ModuleStatus @typedef {import("./types").StartReport} StartReport */
+
+export const KERNEL_VERSION = "1.0.0";
+const MODULE_ID = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
+
+/** Plain-words problems with a manifest ([] when it is fine). @param {any} m @returns {string[]} */
+export function manifestProblems(m) {
+  const out = [];
+  if (!m || typeof m !== "object") return ["the manifest is missing"];
+  if (!MODULE_ID.test(m.id || "")) out.push(`id must look like "xo.files" (got "${m.id}")`);
+  if (!/^\d+\.\d+\.\d+/.test(m.version || "")) out.push(`version must be semver like "1.0.0" (got "${m.version}")`);
+  if (typeof m.kernel !== "string" || !m.kernel) out.push(`kernel must name the kernel API range, e.g. "^1"`);
+  for (const k of ["needs", "provides", "contributes", "defines", "routes", "storage", "styles", "vendor"]) {
+    if (m[k] !== undefined && !(Array.isArray(m[k]) && m[k].every((/** @type {unknown} */ x) => typeof x === "string"))) out.push(`${k} must be a list of strings`);
+  }
+  return out;
+}
+
+/**
+ * @param {{ warn?: (...a: unknown[]) => void, log?: (...a: unknown[]) => void, request?: (fn: () => void) => unknown,
+ *           timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} [opts]
+ * @returns {Kernel}
+ */
+export function createKernel(opts = {}) {
+  const warn = opts.warn || console.error;
+  const log = opts.log || console.log;
+  const T = opts.timers || globalThis;
+  const places = createPlaces(warn), bus = createBus(warn), layers = createLayers(warn);
+  const scheduler = createScheduler({ request: opts.request, warn });
+  /** @type {Map<string, { def: ModuleDef, status: ModuleStatus, error?: string, undos: ReturnType<typeof createUndos>, order: number }>} */
+  const mods = new Map();
+  /** @type {Map<string, { api: unknown, owner: string }>} */
+  const services = new Map();
+  let order = 0, safe = false;
+  /** @type {Set<string>} */
+  const off = new Set();
+
+  const provider = (/** @type {string} */ svc) => [...mods.values()].find((r) => (r.def.manifest.provides || []).includes(svc));
+  const missing = (/** @type {ModuleManifest} */ m) => (m.needs || []).filter((s) => !services.has(s));
+
+  /** @param {ReturnType<typeof mods.get> & {}} rec @returns {ModuleContext} */
+  function contextFor(rec) {
+    const m = rec.def.manifest, U = rec.undos, id = m.id;
+    const allowed = (/** @type {string} */ place, /** @type {string} */ entryId) => {
+      const c = m.contributes || [];
+      return c.includes(place) || c.includes(`${place}:${entryId}`);
+    };
+    /** @type {ModuleContext} */
+    const ctx = {
+      id, kernelVersion: KERNEL_VERSION,
+      use(svc) {
+        if (!(m.needs || []).includes(svc)) throw new Error(`${id}: ctx.use("${svc}") but "${svc}" is not in its manifest's needs`);
+        const s = services.get(svc);
+        if (!s) throw new Error(`${id}: service "${svc}" is not available`);
+        return /** @type {any} */ (s.api);
+      },
+      has: (svc) => services.has(svc),
+      provide(name, api) {
+        if (!(m.provides || []).includes(name)) throw new Error(`${id}: ctx.provide("${name}") but "${name}" is not in its manifest's provides`);
+        if (services.has(name)) throw new Error(`${id}: service "${name}" is already provided by ${services.get(name)?.owner}`);
+        services.set(name, { api, owner: id });
+        return U.add(() => { if (services.get(name)?.owner === id) services.delete(name); });
+      },
+      contribute(place, entry) {
+        if (!allowed(place, entry && entry.id)) throw new Error(`${id}: contributes to "${place}:${entry && entry.id}" but its manifest's contributes doesn't list it`);
+        return U.add(places.contribute(place, entry, id));
+      },
+      definePlace(def) {
+        if (!(m.defines || []).includes(def.id)) throw new Error(`${id}: defines place "${def.id}" but its manifest's defines doesn't list it`);
+        return U.add(places.define(def, id));
+      },
+      effect: (fn) => U.add(fn() || undefined),
+      on: (topic, fn) => U.add(bus.on(topic, fn)),
+      emit: (topic, payload) => bus.emit(topic, payload),
+      listen(target, type, fn, o) { target.addEventListener(type, fn, o); return U.add(() => target.removeEventListener(type, fn, o)); },
+      timeout(fn, ms) { const t = T.setTimeout(() => { undo(); fn(); }, ms); const undo = U.add(() => T.clearTimeout(t)); return undo; },
+      interval(fn, ms) { const t = T.setInterval(fn, ms); return U.add(() => T.clearInterval(t)); },
+      frame(fn) {
+        if (typeof requestAnimationFrame !== "function") return ctx.timeout(() => fn(Date.now()), 16);
+        const r = requestAnimationFrame((t) => { undo(); fn(t); });
+        const undo = U.add(() => cancelAnimationFrame(r));
+        return undo;
+      },
+      observe: (o) => U.add(() => o.disconnect()),
+      onFlush: (key, fn) => U.add(scheduler.onFlush(key, fn)),
+      invalidate: (key) => scheduler.invalidate(key),
+      pushLayer: (layer) => U.add(layers.push(layer, id)),
+      places: { entries: places.entries, get: places.get, first: places.first, watch: (p, fn) => U.add(places.watch(p, fn)), has: places.has },
+      log: (...a) => log(`[${id}]`, ...a),
+    };
+    return ctx;
+  }
+
+  /** @param {string} id */
+  async function activate(id) {
+    const rec = mods.get(id);
+    if (!rec || rec.status === "active" || off.has(id) || (safe && !rec.def.manifest.core)) return;
+    if (missing(rec.def.manifest).length) { rec.status = "waiting"; return; }
+    try {
+      await rec.def.activate(contextFor(rec));
+      rec.status = "active";
+      rec.error = undefined;
+      bus.emit("kernel:module-active", { id });
+    } catch (e) {
+      rec.undos.dispose();
+      rec.status = "failed";
+      rec.error = String(/** @type {any} */ (e)?.message || e);
+      warn(`module ${id} failed to activate:`, e);
+      bus.emit("kernel:module-failed", { id, error: rec.error });
+    }
+  }
+  /** Activate everything that can run, in dependency order, until nothing changes. */
+  async function settle() {
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const rec of [...mods.values()].sort((a, b) => a.order - b.order)) {
+        if (rec.status === "active" || rec.status === "failed" || rec.status === "disabled") continue;
+        const before = rec.status;
+        await activate(rec.def.manifest.id);
+        if (rec.status !== before) changed = true;
+      }
+    }
+  }
+  /** @returns {StartReport} */
+  function report() {
+    const all = [...mods.values()];
+    return {
+      active: all.filter((r) => r.status === "active").map((r) => r.def.manifest.id),
+      waiting: all.filter((r) => r.status === "waiting" || r.status === "registered").map((r) => ({ id: r.def.manifest.id, missing: missing(r.def.manifest) })),
+      failed: all.filter((r) => r.status === "failed").map((r) => ({ id: r.def.manifest.id, error: r.error || "" })),
+      disabled: all.filter((r) => r.status === "disabled").map((r) => r.def.manifest.id),
+    };
+  }
+  /** The active modules that need a service `id` provides, transitively, deepest first. @param {string} id @returns {string[]} */
+  function dependents(id, seen = new Set([id])) {
+    const out = [];
+    const provides = mods.get(id)?.def.manifest.provides || [];
+    for (const r of mods.values()) {
+      const rid = r.def.manifest.id;
+      if (seen.has(rid) || r.status !== "active") continue;
+      if ((r.def.manifest.needs || []).some((s) => provides.includes(s))) {
+        seen.add(rid);
+        out.push(...dependents(rid, seen), rid);
+      }
+    }
+    return out;
+  }
+  /** @param {string} id @param {ModuleStatus} to */
+  function deactivate(id, to) {
+    const rec = mods.get(id);
+    if (!rec) return;
+    rec.undos.dispose();
+    rec.status = to;
+    bus.emit("kernel:module-inactive", { id, status: to });
+  }
+
+  return {
+    version: KERNEL_VERSION, places, bus, scheduler, layers,
+    register(def) {
+      const p = manifestProblems(def && def.manifest);
+      if (p.length) throw new Error(`module manifest: ${p.join("; ")}`);
+      const m = def.manifest;
+      if (mods.has(m.id)) throw new Error(`module ${m.id} is already registered`);
+      if (typeof def.activate !== "function") throw new Error(`module ${m.id}: activate(ctx) is missing`);
+      if (!satisfies(KERNEL_VERSION, m.kernel)) throw new Error(`module ${m.id} needs kernel ${m.kernel}; this is ${KERNEL_VERSION}`);
+      for (const s of m.provides || []) { const p2 = provider(s); if (p2) throw new Error(`module ${m.id} provides "${s}", which ${p2.def.manifest.id} already provides`); }
+      mods.set(m.id, { def, status: "registered", undos: createUndos(warn), order: order++ });
+    },
+    async start(o = {}) {
+      safe = !!o.safe;
+      if (safe) for (const r of mods.values()) if (!r.def.manifest.core) r.status = "disabled";
+      for (const id of o.disabled || []) {
+        const r = mods.get(id);
+        if (r && !r.def.manifest.core) { off.add(id); r.status = "disabled"; }
+      }
+      await settle();
+      return report();
+    },
+    async enable(id) {
+      const rec = mods.get(id);
+      if (!rec) throw new Error(`no module ${id}`);
+      off.delete(id);
+      if (rec.status === "disabled" || rec.status === "failed") rec.status = "registered";
+      await settle();
+      return report();
+    },
+    async disable(id) {
+      const rec = mods.get(id);
+      if (!rec) throw new Error(`no module ${id}`);
+      if (rec.def.manifest.core) throw new Error(`module ${id} is part of the core and can't be disabled`);
+      const down = dependents(id);
+      for (const d of down) deactivate(d, "waiting");
+      deactivate(id, "disabled");
+      off.add(id);
+      return [...down, id];
+    },
+    status: (id) => mods.get(id)?.status,
+    live: (id) => mods.get(id)?.undos.size ?? 0,
+    modules: () => [...mods.values()].sort((a, b) => a.order - b.order).map((r) => ({ id: r.def.manifest.id, status: r.status, error: r.error, manifest: r.def.manifest })),
+  };
+}
