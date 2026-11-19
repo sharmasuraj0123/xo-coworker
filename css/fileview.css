@@ -32,7 +32,7 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
    was a plum chip (a fill, a hairline, 12 px sides) and the owner found it too big and overwhelming (19 Nov 08:57Z):
    now it's drawn as Back is and the icon buttons beside it are, 32 tall, 4 px in from the 40 px head, their 8 px
    corner, ink-2 words with no fill until hover. On hover or keyboard focus a note under it says what it does */
-.fv-ret{position:relative;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 8px;border-radius:var(--r);font:500 var(--fs-base)/20px var(--sans);white-space:nowrap;color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.fv-ret{position:relative;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 8px;border-radius:var(--r);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);white-space:nowrap;color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fv-ret:hover,.fv-ret:focus-visible{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
 .fv-ret:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px} /* inside it, as the head's others (S070) */
 .fv-ret>svg{flex:none;width:16px;height:16px;color:var(--ink-3)}
@@ -43,11 +43,11 @@ body.chat-docked .fv-h{padding:0 4px 0 16px}
    only the room the name leaves (a basis of 0, growing up to its own width), so the name is cut only when it
    alone doesn't fit; shrinking both, the name lost a fraction of a pixel and showed "xo-cowork…" */
 .fv-h .fv-s{flex:1 1 0;min-width:0;max-width:max-content;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:calc(var(--z-panel) + 10);display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-strong);font:500 var(--fs-base)/20px var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity var(--dur-fast) var(--ease),visibility 0s linear var(--dur-fast)}
+.fv-tip{position:absolute;top:calc(100% + 8px);left:0;z-index:calc(var(--z-panel) + 10);display:flex;flex-direction:column;gap:2px;min-width:208px;padding:10px 12px;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--line-strong);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink);text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity var(--dur-fast) var(--ease),visibility 0s linear var(--dur-fast)}
 :root[data-theme="light"] .fv-tip{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
 .fv-tip-t{display:flex;align-items:center;justify-content:space-between;gap:24px}
-.fv-tip kbd{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
-.fv-tip-s{font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+.fv-tip kbd{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.fv-tip-s{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .fv-ret:hover .fv-tip{opacity:1;visibility:visible;transition-delay:var(--d-long),var(--d-long)}
 .fv-ret:focus-visible .fv-tip{opacity:1;visibility:visible;transition-delay:0s,0s}
 @media (hover:none){.fv-tip{display:none}}
@@ -58,7 +58,7 @@ body.chat-docked :is(.conv,.dock){--gut-min:16px}
 body.chat-docked .conv>.top{display:none}
 body.chat-docked .chead{display:flex;align-items:center;gap:8px;flex:none;box-sizing:border-box;height:40px;padding:0 4px 0 16px;box-shadow:inset 0 -1px 0 var(--line-faint);background:var(--canvas)}  /* its rule inside it: 4 + 32 + 4 (panel.css, .vw-top) */
 :root[data-theme="light"] body.chat-docked .chead{border-bottom-color:rgba(0,0,0,.06)}
-.chead-t{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
+.chead-t{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
 .chead .badge{height:20px;padding:0 8px;gap:6px}
 /* the thread's strip, one line: the checklist, then its sub-agents as counts in the same 40 px boxes (as a
    phone has them); the chips are a tap away in the checklist's list */
@@ -67,11 +67,11 @@ body.chat-docked .thead .ckbar{flex:1;min-width:0}
 body.chat-docked .thead .rn-strip{display:none}
 body.chat-docked .thead .rn-log{flex:none;height:40px;margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
 body.chat-docked .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-body.chat-docked .thead .rn-log::after{content:attr(data-n);font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+body.chat-docked .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
 body.chat-docked .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
 body.chat-docked .thead .rn-live:hover{background:color-mix(in srgb,var(--info) 11%,transparent);border-color:color-mix(in srgb,var(--info) 42%,var(--line-soft));color:var(--ink)}
 body.chat-docked .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
-body.chat-docked .thead .rn-live .rn-n{font:500 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+body.chat-docked .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
 body.files-open.chat-docked .mx-down{display:grid}
 /* agent bubbles stop 72 px short of the column's edge, so their hover Reply and Copy fit inside it */
 :root[data-msgx] body.chat-docked :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text):not(.has-table){max-width:calc(100% - 72px)}
@@ -93,7 +93,7 @@ body.fv-min .fv{visibility:hidden;pointer-events:none;right:var(--cw)}
 .fchip::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--line-soft);pointer-events:none}
 :root[data-theme="light"] .fchip{background:var(--surface)}
 :root[data-theme="light"] .fchip::after{box-shadow:inset 0 0 0 1px var(--panel-line)}
-.fchip-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:500 var(--fs-sm)/16px var(--sans);color:var(--ink-2)}
+.fchip-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 4px 0 8px;border-radius:var(--r) 0 0 var(--r);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2)}
 .fchip-i{display:grid;place-items:center;width:16px;height:16px}
 .fchip-i svg{width:16px;height:16px}
 .fchip-n{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
@@ -140,10 +140,10 @@ body.chat-docked.chat-railed .crail-b:hover::before{background:var(--surface)}
 :root[data-theme="light"] .crail-ic{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .crail-ic svg{width:16px;height:16px}
 .crail-m{position:absolute;top:0;right:2px;font-style:normal} /* on the tile's corner, inside the 44 px rail */
-.crail-m.is-new{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:600 10px/1 var(--sans);font-variant-numeric:tabular-nums} /* a count, never a blue dot */
+.crail-m.is-new{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:var(--fw-strong) var(--fs-xs)/1 var(--sans);font-variant-numeric:tabular-nums} /* a count, never a blue dot */
 :root[data-theme="light"] .crail-m.is-new{background:var(--ink-2);color:var(--surface)}
-.crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:600 10px/1 var(--sans)}
-.crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 var(--fs-sm)/16px var(--sans)}
+.crail-m.is-ask{display:grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--warn);color:#1A1200;font:var(--fw-strong) var(--fs-xs)/1 var(--sans)}
+.crail-t{writing-mode:vertical-rl;transform:rotate(180deg);max-height:min(320px,60vh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
 /* compact (under sidebar + 44 + the chat + 560): opened, the chat lies over the file's right edge */
 body.chat-docked.chat-over .fv{right:44px}
 body.chat-docked.chat-over :is(.conv,.dock){z-index:8;box-shadow:var(--e2)}
@@ -188,17 +188,17 @@ body.chat-docked.chat-over .conv{background:var(--canvas)}
   :root[data-theme="light"]:root body.chat-sheet.files-open:not(.sheet-up) .crail{background:var(--surface);box-shadow:var(--e2),inset 0 0 0 1px var(--panel-line)}
   :root:root body.chat-sheet .crail-b{flex:1;width:auto;height:56px;padding:0 8px 0 12px;border-radius:var(--r-xl);text-align:left;display:grid;grid-template-columns:32px minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:12px;row-gap:0;align-content:center}
   :root:root body.chat-sheet .crail-ic{grid-row:1/3}
-  :root:root body.chat-sheet .crail-t{writing-mode:horizontal-tb;transform:none;max-height:none;font:600 var(--fs-base)/20px var(--sans);color:var(--ink)}
-  :root:root body.chat-sheet .crail-s{display:block;grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-sm)/16px var(--sans);color:var(--ink-3)}
+  :root:root body.chat-sheet .crail-t{writing-mode:horizontal-tb;transform:none;max-height:none;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
+  :root:root body.chat-sheet .crail-s{display:block;grid-column:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
   :root:root body.chat-sheet :is(.crail-n,.crail-up,.crail-open){grid-column:3;grid-row:1/3}
   :root:root body.chat-sheet .crail-up{display:grid;place-items:center;width:32px;height:32px;color:var(--ink-3);transform:rotate(180deg)}
   :root:root body.chat-sheet .crail-up svg{width:16px;height:16px}
   :root:root body.chat-sheet .crail-b:has(.crail-n) .crail-up{display:none}
-  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:600 var(--fs-sm)/16px var(--sans);font-variant-numeric:tabular-nums}
+  :root:root body.chat-sheet .crail-n{display:grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:999px;background:var(--fill-4);color:var(--ink);font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
   :root[data-theme="light"]:root body.chat-sheet .crail-n{background:var(--ink-2);color:var(--surface)}
   :root:root body.chat-sheet .crail-b.is-ask{background:color-mix(in srgb,var(--warn) 12%,transparent)}
   :root:root body.chat-sheet .crail-b.is-ask .crail-s{color:var(--warn)}
-  :root:root body.chat-sheet .crail-open{display:grid;place-items:center;height:32px;padding:0 12px;border-radius:var(--r);background:var(--warn);color:#1A1200;font:600 var(--fs-sm)/16px var(--sans)}
+  :root:root body.chat-sheet .crail-open{display:grid;place-items:center;height:32px;padding:0 12px;border-radius:var(--r);background:var(--warn);color:#1A1200;font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans)}
   :root:root body.chat-sheet .crail-m{display:none}
   /* the put-away file's chip: above the composer, where there's room for its name and counts */
   :root:root .top .fchip{display:none}

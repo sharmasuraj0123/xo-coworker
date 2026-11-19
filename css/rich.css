@@ -19,14 +19,16 @@
    UI's label voice: 13 px (--fs-base) at 500 in the third ink, on a 24 px line with the speaker's mark, then 8 px to the
    words (15 px in the first ink). A role or the model chosen trails it in the fourth ink. */
 :root:not([data-msgx]) .m-them>.mb>.mh{min-height:24px;margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
-:root:not([data-msgx]) .m-them>.mb>.mh b{font:500 var(--fs-base)/24px var(--sans);color:var(--ink-3)}
-:root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:400 var(--fs-sm)/24px var(--sans);color:var(--ink-4)}
+:root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-base)/var(--lh-15) var(--sans);color:var(--ink-3)}
+:root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:var(--fw-regular) var(--fs-sm)/var(--lh-15) var(--sans);color:var(--ink-4)}
 :root:not([data-msgx]) .m-them>.mb>.mh time{display:none}
-:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none;font-size:var(--fs-read);line-height:var(--lh-chat)}
+:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
 /* Read like a page (the owner, 19 Nov 11:31Z: "painful to read"; measured on 9f3c85a: 109 characters a line at 15 px).
    A reply's words are 16 on 26 and its text lines stop at --measure (600 px at 16, ~80 characters); its code, tables,
    charts, diagrams, formulas, pictures and cards keep the whole column. */
-:root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text)>:is(p,ul,ol,blockquote,.md-h){max-width:var(--measure)}
+.prose>:is(p,ul,ol,blockquote,.md-h){max-width:var(--measure)}
+/* your message is XO's green, the same token as in the bubbles (css/msgx.css --mx-you, 7.1:1 dark, 11.9:1 light) */
+:root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
    names' edge (24 + 8) */
 :root:not([data-msgx]) #msgs>.ev{gap:8px}
@@ -86,7 +88,7 @@
 :root:not([data-msgx]) .turn .tb.is-live:not(.is-waiting):not(:has(.tb.is-live))>.tb-h::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;margin:0 2px;border:1.5px solid color-mix(in srgb,var(--info) 22%,transparent);border-top-color:var(--info);border-radius:50%;animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){:root:not([data-msgx]) .turn .tb.is-live>.tb-h::before{animation:none}}
 /* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */
-:root:not([data-msgx]) :is(#typing,#msgs) .shimmer{font-weight:400}
+:root:not([data-msgx]) :is(#typing,#msgs) .shimmer{font-weight:var(--fw-regular)}
 
 /* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
    Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
@@ -104,7 +106,7 @@
 .mx-actrow svg{width:16px;height:16px}
 .mx-actrow [aria-pressed="true"]{color:var(--ink)}
 .mx-actrow [aria-pressed="true"] svg{fill:currentColor;fill-opacity:.2}
-.mx-actrow time{padding:0 8px;font:400 var(--fs-xs)/16px var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mx-actrow time{padding:0 8px;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 .mx-actrow time:empty{display:none}
 /* a phone's controls are 36 at least (css/phone.css's floor, ≤ 760 px), and a finger has no hover: the buttons take
    36 (the row's offset follows, so the glyph stays on the edge), and without hover every row shows */
@@ -132,15 +134,15 @@
 /* the title on the text edge (the band already says the state: no glyph before it), where it stands on the right */
 :root:not([data-msgx]) .tc-top{gap:16px}
 :root:not([data-msgx]) .tc-top>.g{display:none}
-:root:not([data-msgx]) .tc-st{font:500 var(--fs-sm)/20px var(--sans);color:var(--st)}
+:root:not([data-msgx]) .tc-st{font:var(--fw-medium) var(--fs-sm)/var(--lh-14) var(--sans);color:var(--st)}
 :root:not([data-msgx]) .tcard.st-working .tc-st{color:var(--ink-3)}
-:root:not([data-msgx]) .tc-now{font:400 var(--fs-base)/20px var(--sans)}
-:root:not([data-msgx]) .tc-foot{gap:8px;margin-top:4px;font:400 var(--fs-sm)/20px var(--sans)}
+:root:not([data-msgx]) .tc-now{font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
+:root:not([data-msgx]) .tc-foot{gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-sm)/var(--lh-14) var(--sans)}
 :root:not([data-msgx]) .tc-go{gap:4px}
 :root:not([data-msgx]) .tc-go svg{width:14px;height:14px}
 /* Decide: at the foot's right end, on the text edge, a 24 px pill in the ask's amber (centred on the foot's line);
    Open steps aside for it */
-:root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:10px;width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:600 var(--fs-sm)/16px var(--sans)}
+:root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:10px;width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans)}
 :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:calc(var(--dec-w) + 8px)}
 @media (max-width:760px){
   /* a phone: Decide is a 36 px control, its own line under the foot, on the text edge */
@@ -154,7 +156,7 @@
    Before it's drawn (a beat, while KaTeX loads between keystrokes), a formula shows its TeX quietly, in the code
    face; drawn, it takes the text's colour. A displayed formula is centred on its own line and scrolls sideways on
    its own when it's wider than the column, never the page. */
-.md-math:not(.is-done){font:400 .9em/inherit var(--mono);color:var(--ink-3)}
+.md-math:not(.is-done){font:var(--fw-regular) .9em/inherit var(--mono);color:var(--ink-3)}
 .md-math.is-failed{color:var(--ink-3)}
 .md-math.is-block{display:block;text-align:center}
 .md-math.is-block:not(.is-done){white-space:pre-wrap}
@@ -175,12 +177,12 @@
 :root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
 :root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
 .md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--mc-bg);font-variant-numeric:tabular-nums}
-.mc-title{font:600 var(--fs-md)/20px var(--sans);color:var(--ink)}
-.mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:400 var(--fs-sm)/20px var(--sans);color:var(--ink-2)}
+.mc-title{font:var(--fw-strong) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink)}
+.mc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;font:var(--fw-regular) var(--fs-sm)/var(--lh-14) var(--sans);color:var(--ink-2)}
 .mc-key{display:inline-flex;align-items:center;gap:8px}
 .mc-sw{flex:none;width:8px;height:8px;border-radius:2px;background:var(--c)}
 .mc-sw.is-line{width:12px;height:2px;border-radius:1px}
-.mc-frame{display:grid;grid-template-columns:var(--yw) minmax(0,1fr);grid-template-rows:auto 200px 24px auto;column-gap:8px;margin-top:12px;font:400 var(--fs-xs)/16px var(--sans);color:var(--ink-3)}
+.mc-frame{display:grid;grid-template-columns:var(--yw) minmax(0,1fr);grid-template-rows:auto 200px 24px auto;column-gap:8px;margin-top:12px;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .mc-yl{grid-column:1/-1;grid-row:1;margin-bottom:12px}
 .mc-y{position:relative;grid-column:1;grid-row:2}
 .mc-y>span{position:absolute;right:0;transform:translateY(-50%);white-space:nowrap}
@@ -200,12 +202,12 @@
 .mc-hover{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity var(--d-out) var(--ease)}
 .mc-hover.is-on{opacity:1;transition-duration:var(--d-hover-in)}
 .mc-cross{position:absolute;top:0;bottom:0;left:var(--at);width:1px;background:var(--line-strong)}
-.mc-tip{position:absolute;top:0;left:calc(var(--at) + 12px);display:grid;gap:4px;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--float);box-shadow:var(--e2);font:400 var(--fs-sm)/16px var(--sans);color:var(--ink);white-space:nowrap}
+.mc-tip{position:absolute;top:0;left:calc(var(--at) + 12px);display:grid;gap:4px;min-width:140px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--float);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink);white-space:nowrap}
 .mc-hover.is-left .mc-tip{left:auto;right:calc(100% - var(--at) + 12px)}
-.mc-tip b{font-weight:600}
+.mc-tip b{font-weight:var(--fw-strong)}
 .mc-tip span{display:flex;align-items:center;gap:8px}
 .mc-tip em{flex:1;font-style:normal;color:var(--ink-2)}
-.mc-tip strong{font-weight:500}
+.mc-tip strong{font-weight:var(--fw-medium)}
 @media (max-width:760px){.mc-frame{grid-template-rows:auto 168px 24px auto}.md-chart{padding:12px 12px 8px}}
 
 /* ── diagrams (Mermaid, js/rich.js) ───────────────────────────────────────────
@@ -217,8 +219,8 @@
 /* no hard corners (the owner: "consistently rounded"): a plain node is the scale's 8 px; Mermaid's own shadows off */
 .md-diagram>svg .node>rect:not([rx]),.md-diagram>svg .node>rect[rx="0"]{rx:var(--r);ry:var(--r)}
 .md-diagram>svg :is(.node,.cluster)>:is(rect,polygon,circle,path){filter:none}
-.md-dg-src{margin:0;font:400 var(--fs-base)/20px var(--mono);color:var(--ink-4);white-space:pre-wrap;text-align:left}
+.md-dg-src{margin:0;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--mono);color:var(--ink-4);white-space:pre-wrap;text-align:left}
 .md-dg-src code{background:none;border:0;padding:0;font:inherit}
 .md-diagram.is-done>.md-dg-src{display:none}
 .md-diagram.is-failed>.md-dg-src{color:var(--ink-2)}
-.md-dg-why{margin:0 0 8px;font:400 var(--fs-sm)/20px var(--sans);color:var(--ink-3);text-align:left}
+.md-dg-why{margin:0 0 8px;font:var(--fw-regular) var(--fs-sm)/var(--lh-14) var(--sans);color:var(--ink-3);text-align:left}

@@ -92,7 +92,7 @@
 .lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:.0495em;color:var(--accent);transition:transform var(--dur-fast) var(--ease)}
 .lk-out:hover .lk-ar{transform:translate(1.5px,-1.5px)}
 /* a bare address is shown as people read it (host and path) in the code face */
-.lk-out.is-bare .lk-t{font:400 .9em/1 var(--mono);letter-spacing:-.01em}
+.lk-out.is-bare .lk-t{font:var(--fw-regular) .9em/1 var(--mono);letter-spacing:var(--tr-20)}
 /* wrapping (QA F3): an address breaks at its own seams (js/markdown.js puts <wbr> after / - _ and before
    . ? & = #), never mid-word unless one piece is wider than the line; the last piece and the ↗ never part */
 .lk-out .lk-t{overflow-wrap:break-word;word-break:normal}
