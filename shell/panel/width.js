@@ -2,7 +2,7 @@
 
 // The panel's width: flush to the window's right edge, 360 px by default, 320–720 by dragging its left edge.
 
-/** @typedef {{ el: any, S: any, PAGES: Map<string, any>, coverSync: () => void, capAgents: () => void }} WidthDeps */
+/** @typedef {{ el: any, S: any, PAGES: { get(name: string): any }, coverSync: () => void, capAgents: () => void }} WidthDeps */
 
 /** @param {WidthDeps} P @returns {{ apply: () => void }} */
 export function createWidth({ el, S, PAGES, coverSync, capAgents }) {

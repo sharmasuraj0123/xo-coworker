@@ -1,6 +1,6 @@
 // @ts-check
 
-// The panel's pages: it shows its sections, or one page in their place (Shell, Files, Thread), each kind registered once.
+// The panel's pages: it shows its sections, or one page in their place (Shell, Files, Thread).
 
 import { ICON } from "../../js/ui.js";
 import { esc } from "../../core/platform/index.js";
@@ -9,14 +9,16 @@ import { esc } from "../../core/platform/index.js";
 
 /** @typedef {{ title?: (key: string) => string, icon?: (key: string) => string, width?: number | ((o: { room: number }) => number), single?: boolean, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount: (host: HTMLElement, key: string) => void, onShow?: (key: string, o: { focus: boolean }) => void, onHide?: (key: string) => void, unmount?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, escape?: (key: string) => boolean }} PageSpec */
 
-/** @typedef {{ el: any, S: any, view: () => string, threads: ((v: string) => Array<{ k: string, rows: any[] }>) | null, shell: any, nameOf: () => (v: string) => string, open: (o?: { focus?: boolean }) => void, close: () => void, setFull: (on: boolean) => void, apply: () => void, paint: () => void, onChange: any }} PagesDeps */
+/** @typedef {{ el: any, S: any, places: import("../../core/kernel/types").Kernel["places"], view: () => string, threads: ((v: string) => Array<{ k: string, rows: any[] }>) | null, shell: any, nameOf: () => (v: string) => string, open: (o?: { focus?: boolean }) => void, close: () => void, setFull: (on: boolean) => void, apply: () => void, paint: () => void, onChange: any }} PagesDeps */
 
 const TAB_MAX = 5;
 
 /** @param {PagesDeps} P */
-export function createPages({ el, S, view, threads, shell, nameOf, open, close, setFull, apply, paint, onChange }) {
-  /** @type {{ get(name: string): PageSpec } & Map<string, PageSpec>} */
-  const PAGES = new Map();
+export function createPages({ el, S, places, view, threads, shell, nameOf, open, close, setFull, apply, paint, onChange }) {
+  // the pages are the kernel's panel.page entries; registering a kind again replaces it
+  const PAGES = { get: (/** @type {string} */ name) => /** @type {PageSpec} */ (/** @type {unknown} */ (places.get("panel.page", name))) };
+  /** @type {Map<string, () => void>} */
+  const mine = new Map();
   /** @type {Map<string, any>} */
   const BOXES = new Map();
   Object.assign(S, { page: null, tabs: [] });
@@ -25,7 +27,7 @@ export function createPages({ el, S, view, threads, shell, nameOf, open, close, 
   /** @param {string} name @param {unknown} key @returns {Tab} */
   const tabOf = (name, key) => { const sp = PAGES.get(name); return { name, key: sp && sp.single ? name : String(key) }; };
   /** @param {string} name @param {PageSpec} spec */
-  function page(name, spec) { PAGES.set(name, spec); }
+  function page(name, spec) { mine.get(name)?.(); mine.set(name, places.contribute("panel.page", { ...spec, id: name }, "xo.shell")); }
   /** A page kind's own box in the host: made on its first show, hidden while another shows, gone with its tab. @param {Tab} t */
   function boxFor(t) {
     const id = `${t.name}\u0000${t.key}`;
