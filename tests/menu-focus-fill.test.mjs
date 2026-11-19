@@ -4,10 +4,11 @@
 // in every theme block.
 //   node tests/menu-focus-fill.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { cssNames } from "./lib/sources.mjs";
 
 const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const all = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css")).map(css).join("\n");
+const all = cssNames().map(css).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));

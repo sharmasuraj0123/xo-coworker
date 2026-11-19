@@ -4,8 +4,9 @@
 // reaches, and that nothing draws a ring on the sidebar's box anyway.
 //   node tests/conv-find-ring.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
-const css = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css")).map((f) => [f, readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")]);
+import { readFileSync } from "node:fs";
+import { cssNames } from "./lib/sources.mjs";
+const css = cssNames().map((f) => [f, readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")]);
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const all = css.map(([, s]) => s).join("\n");

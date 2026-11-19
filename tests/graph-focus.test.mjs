@@ -5,10 +5,11 @@
 // Checked from the source; the drawn ring is the grader's case graph-focus-paint (closed folder, open folder, file).
 //   node tests/graph-focus.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { cssNames } from "./lib/sources.mjs";
 
 const R = new URL("../", import.meta.url);
-const css = readdirSync(new URL("css/", R)).filter((f) => f.endsWith(".css")).map((f) => readFileSync(new URL(`css/${f}`, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const css = cssNames().map((f) => readFileSync(new URL(`css/${f}`, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 // every rule whose selector paints the dot, with its declarations

@@ -6,10 +6,11 @@
 // its own: the Changes panel's mark (.ch-m, --ink-4, 500) restyled it by its bare class name.
 //   node tests/press-inks.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { cssNames } from "./lib/sources.mjs";
 
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const files = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css"));
+const files = cssNames();
 const tokens = read("tokens.css"), found = read("foundation.css"), panel = read("panel.css"), app = read("app.css");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

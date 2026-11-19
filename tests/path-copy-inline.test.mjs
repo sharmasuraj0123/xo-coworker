@@ -3,10 +3,11 @@
 // icon-only class, .vw-btn, whose words panel.css hides, so it had no accessible name and its Copied never showed).
 //   node tests/path-copy-inline.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { cssNames } from "./lib/sources.mjs";
 
 const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
-const css = readdirSync(new URL("../css/", import.meta.url)).filter((f) => f.endsWith(".css")).map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const css = cssNames().map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const line = src.split("\n").find((l) => l.includes('class="vw-path"')) || "";
