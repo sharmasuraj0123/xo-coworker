@@ -2526,8 +2526,9 @@
    ]
   },
   "js/sse.js": {
-   "status": "planned",
-   "home": "core/platform/sse.js"
+   "status": "moved",
+   "home": "core/platform/sse.js",
+   "note": "js/sse.js re-exports core/platform until the shims go; storm.js still imports it there while core-services splits storm"
   },
   "js/stage.js": {
    "status": "split",
@@ -14476,15 +14477,15 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/sse.js::exports::createParser": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/sse.js"
   },
   "js/sse.js::exports::SSEStream": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/sse.js"
   },
   "js/sse.js::functions::createParser": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/platform/sse.js"
   },
   "js/stage.js::exports::createStage": {

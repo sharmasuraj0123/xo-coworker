@@ -7,3 +7,4 @@ export * from "./clipboard.js";
 export * from "./pending.js";
 export * from "./fuzzy.js";
 export * from "./diff.js";
+export * from "./sse.js";
