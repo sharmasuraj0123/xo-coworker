@@ -41,6 +41,7 @@ import { createStage } from "./stage.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
 import { stackLayers } from "../shell/layers.js";
+import { wireBack } from "../shell/back.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "./launchpad.js";
@@ -4310,22 +4311,7 @@ function stepBack() {
   if (S.view !== "home") { S.retrace = true; go("home"); S.retrace = false; return true; }
   return false;
 }
-const HIST = { armed: history.state?.xo === 1 };
-function armBack() {
-  if (HIST.armed || !canBack()) return;
-  try { history.pushState({ ...(history.state || {}), xo: 1 }, ""); HIST.armed = true; } catch { /* a sandboxed frame */ }
-}
-addEventListener("popstate", () => {
-  HIST.armed = history.state?.xo === 1;
-  if (HIST.armed) return; // forward onto our own entry: nothing to undo
-  if (!stepBack()) { history.back(); return; }
-  armBack();
-});
-// arm on the person's own taps and keys (an entry pushed without one can be skipped by Back)
-document.addEventListener("click", () => setTimeout(armBack, 0), true);
-addEventListener("keyup", () => setTimeout(armBack, 0), true);
-document.addEventListener("touchend", () => setTimeout(armBack, 0), { capture: true, passive: true });
-document.addEventListener("xo:gesture", armBack);
+wireBack({ canBack, stepBack });
 
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({

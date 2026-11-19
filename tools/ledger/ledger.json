@@ -7632,8 +7632,8 @@
    "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
   },
   "js/app.js::functions::armBack": {
-   "status": "planned",
-   "home": "core/platform gestures, fed by the layer registry (each layer declares `swipeClose`) (app.js l.4678)"
+   "status": "moved",
+   "home": "shell/back.js"
   },
   "js/app.js::functions::whenWorld": {
    "status": "planned",
