@@ -10,7 +10,7 @@ const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something w
 /** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
 export function createAppsSettings(d) {
   /** @type {State} */
-  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "" };
+  const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "", waiting: "" };
   /** @type {Set<HTMLElement>} */
   const shown = new Set();
   /** @type {WeakSet<HTMLElement>} */
@@ -32,11 +32,11 @@ export function createAppsSettings(d) {
   const set = (next) => { Object.assign(s, next); draw(); };
   /** @param {string} busy @param {() => Promise<Partial<State> | void>} fn */
   const work = async (busy, fn) => {
-    if (s.busy) return;
+    if (s.busy || s.waiting) return;
     const at = `${s.mode}|${s.appId}`;
     set({ busy, error: "" });
     const still = () => `${s.mode}|${s.appId}` === at;
-    try { const next = await fn(); set({ busy: "", ...(still() ? next || {} : {}) }); } catch (e) { set({ busy: "", ...(still() ? { error: words(e) } : {}) }); }
+    try { const next = await fn(); set({ busy: "", waiting: "", ...(still() ? next || {} : {}) }); } catch (e) { set({ busy: "", waiting: "", ...(still() ? { error: words(e) } : {}) }); }
   };
   /** @param {HTMLElement} el @param {string} sel */
   const val = (el, sel) => String(/** @type {HTMLInputElement | null} */ (el.querySelector(sel))?.value || "").trim();
@@ -54,7 +54,7 @@ export function createAppsSettings(d) {
     if (!id) return r ?? {};
     const until = typeof r.expires_at === "number" ? r.expires_at * 1000 : Date.parse(r.expires_at) || Infinity;
     const here = `${s.mode}|${s.appId}`;
-    set({ busy: "Waiting for your approval in Needs you…" });
+    set({ busy: "", waiting: "Waiting for your approval in Needs you…" });
     for (;;) {
       const a = await d.client.approval(id);
       const state = a && a.state;
