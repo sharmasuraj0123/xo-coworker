@@ -2781,9 +2781,10 @@ STAGE.page("thread", {
 function tpHead(t) {
   const head = $("#tphead");
   const open = S.tMenu === t.id && S.tMenuIn === "page";
-  // (one ⤢: the panel's own, which widens this same page; the thread's own page is in its ⋯, "Open as its own page")
+  // ⤢ beside its ⋯ (the owner, 19 Nov 19:25Z: "old expand button go?"): the thread's own page, full width
   const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
     `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}` +
+    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>` +
     `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
   if (head._h !== html) { redraw(head, html); head._h = html; }
 }

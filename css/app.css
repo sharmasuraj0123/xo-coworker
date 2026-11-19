@@ -2857,7 +2857,9 @@ body.panel-open .stage{display:none}
 .stage.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 :root[data-theme="light"] .stage{background:var(--surface)}
 body.stage-full .stage{left:var(--float-inset);width:auto;z-index:calc(var(--z-panel) + 1)}
-body.stage-full .dock,body.stage-full .tdock{visibility:hidden}
+/* at full size the panel covers the chat: the chat's own dock (its composer, its card) hides under it; a dock inside the
+   panel (the Thread page's reply box and decision) is the page's own and stays */
+body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock){visibility:hidden}
 .stg-bar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 10px;border-bottom:1px solid var(--line-faint)}
 .stg-tabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
 .stg-tabs::-webkit-scrollbar{display:none}
