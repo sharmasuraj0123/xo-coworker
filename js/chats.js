@@ -46,8 +46,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (C.loading) return;
     C.loading = true;
     try {
-      // the read stands where it was sent in the stream's order: a status frame that lands while it's out stays
-      // (core/services/storm noteSession, timeline.js statusLater)
+      // the read stands where it was sent in the stream's order, so a status frame that lands meanwhile stays
       const sent = world.act.sentAt();
       const d = await api.sessions({ role: "plain", before_seq: NEWEST, limit: 100 });
       for (const s of d.sessions || []) world.act.noteSession(s, sent);
@@ -79,8 +78,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const waiting = (s) => s.state === "waiting_on_person";
   /** What a gate holds this chat for (the usage limit…), or null: it waits, nothing runs. */
   const heldOf = (s) => (s && s.state === "queued" && world.act.sessionHeld ? world.act.sessionHeld(s.id) : null);
-  /** A turn in progress: its status says so (BUSY), or it says queued and the stream has seen it work since
-   *  (core/services/storm onTurn: the frame that ended the wait is late). Stop, delivery and the badge read this. */
+  /** A turn in progress: its status says so, or it says queued and the stream has seen it work since. */
   const inTurn = (s) => !!s && (BUSY.has(s.state) || (s.state === "queued" && !!(world.act.onTurn && world.act.onTurn(s.id))));
 
   function listItems() {

@@ -37,7 +37,7 @@ await t("stopWords: the quiet line", () => {
   assert.equal(stopWords(null), "");
 });
 
-// ── storm.js end to end: fetch and the stream are fakes, nothing is written ──
+// ── storm end to end: fetch and the stream are fakes, nothing is written ──
 globalThis.addEventListener = () => {};
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const realInterval = globalThis.setInterval;
@@ -67,7 +67,7 @@ const until = async (cond, ms = 3000) => { const t0 = Date.now(); while (!cond()
 const settle = () => new Promise((r) => setTimeout(r, 80));
 
 let world;
-await t("storm.js: activity and wait_reason are kept; t.stop only for a stop someone meant, with who and why once the control is read", async () => {
+await t("storm: activity and wait_reason are kept; t.stop only for a stop someone meant, with who and why once the control is read", async () => {
   const at = "2026-11-16T14:51:28Z";
   const th = (ts, extra) => ({ ts, chat_id: "chat_p", title: ts, state: "failed", session_id: "cse_" + ts, created_at: at, updated_at: at, session: { state: "warm", busy: false }, busy: false, ...extra });
   const be = fakeBackend({

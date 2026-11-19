@@ -1,9 +1,5 @@
 @import url("../modules/settings/shape.css");
-/* The shape per person (core/services/shape, modules/settings/shape-page.js): compact density, Settings › Shape, and
-   the simple model choice. Built from Plan F only (core/ui/tokens.css): the scale's sizes and
-   line heights, three weights, its radii, --e2 for the one floating sheet, --ease and its durations.
-   Everything else reuses the existing parts (.set-choice cards, .btn, .switch, .sheet), so it reads as
-   one product. The left sidebar is never styled here: a shape may only hide its Shells row. */
+/* The shape per person (core/services/shape): compact density and the simple model choice, from tokens only; never the sidebar. */
 
 /* ── Compact density: one step tighter, in the main column, its sheets and popovers ──────────────
    Rows 36 → 32, controls 32 → 24, reading 15/24 → 14/20: each the scale's next step down (controls on the 24 · 32 · 40

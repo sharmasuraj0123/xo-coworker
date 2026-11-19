@@ -1,4 +1,4 @@
-// A fake XO Space for storm.js: answered routes, a stream the test feeds, a clock it moves, nothing written by surprise.
+// A fake XO Space for storm: answered routes, a stream the test feeds, a clock it moves, nothing written by surprise.
 import assert from "node:assert/strict";
 
 /** @type {Map<string, Function[]>} */

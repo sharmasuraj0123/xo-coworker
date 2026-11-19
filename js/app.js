@@ -378,7 +378,7 @@ const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approva
 // A working thread whose session sits idle reads "Waiting" (the one vocabulary, 19 Nov; it read "Idle", P1-8).
 const isBusy = (t) => t.busy === true || (t.state === "working" && t.busy !== false);
 // held back by a gate (the usage limit, the paid gate, the founder's pause…): nothing runs, its next input waits
-// (timeline.js heldOf). One shown state, as storm.js promotes it (threadState: a done, stopped or needs-reply thread
+// (timeline.js heldOf). One shown state, as storm promotes it (threadState: a done, stopped or needs-reply thread
 // whose input waits is "working"): never Working and never Idle, but "Waiting", with when it starts where a reset
 // says it. An open item on it still reads Needs you (askingState), and a resolved one Resolved.
 const isHeld = (t) => !!(t && t.held && !isBusy(t) && t.state === "working");

@@ -1,4 +1,4 @@
-// storm.js writes, end to end on a fake backend: optimistic with an honest rollback, and a refused decision never reported as made.
+// storm writes, end to end on a fake backend: optimistic with an honest rollback, and a refused decision never reported as made.
 import { fakeBackend, boot, settle, fail, thread, runner } from "./storm-harness.mjs";
 
 const { t, done, assert } = runner();
