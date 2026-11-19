@@ -13,7 +13,7 @@
 // returns HTML we'd have to trust. If full fidelity is ever wanted, it can replace highlight()
 // behind the same signature.
 
-import { esc } from "../core/platform/index.js";
+import { esc } from "./util.js";
 
 const MAX = 200000; // above this a block stays plain
 

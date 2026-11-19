@@ -19,7 +19,7 @@
 // what the hover reads, js/rich.js), so nothing is told by colour alone; ≥ 2 series also get a legend.
 // Safety: every word goes through esc(); numbers are checked finite; the spec never becomes markup.
 
-import { esc } from "../core/platform/index.js";
+import { esc } from "./util.js";
 
 const MAX_SERIES = 8, MAX_POINTS = 2000;
 const num = (v) => (typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN);

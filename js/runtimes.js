@@ -5,7 +5,7 @@
 // health, the policy and the `why_not` sentences come from the API. Names are only ever *shown*
 // through the display map below; no logic branches on a runtime's name.
 
-import { esc } from "../core/platform/index.js";
+import { esc } from "./util.js";
 
 /** How people say a runtime's name. Anything not listed shows as the server names it. */
 const NAME = { claude_code: "Claude Code", codex: "Codex", antigravity: "Antigravity" };
