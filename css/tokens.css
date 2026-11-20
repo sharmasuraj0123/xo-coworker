@@ -118,6 +118,7 @@
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
+  --pop-x:10px;   /* a popover's inner inset inside its 5 px frame: where its head, labels and rows start */
   --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
   /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool
      disclosure) · 48 a row with an action or a second line (Handled) · 56 a two-line list row (Chats). Compact

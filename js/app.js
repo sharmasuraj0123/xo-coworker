@@ -33,7 +33,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
+import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap } from "./map.js";
@@ -2836,7 +2836,7 @@ function createConv({ view, msgs, scroller: sc, column, typing, follow, main = f
   return { get view() { return typeof view === "function" ? view() : view; }, msgs, scroller: sc, column, typing, follow, main, rendered: null, filled: null };
 }
 const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
-  follow: { toLatest, unpin, isPinned, fromTop, toRow, fromLatest } });
+  follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } });
 // the oldest message on screen; day lines don't count, since older messages of the same day land below theirs
 const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='day|'])";
 let rendered = null, raf = 0;
@@ -2988,7 +2988,7 @@ function drawConv(C, needs) {
   // opening a conversation lands at the latest (the owner, 5 Nov). After that, follow.js keeps you there
   // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
   // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
-  if (opening) { C.rendered = v; C.follow.toLatest(false); }
+  if (opening) { C.rendered = v; if (v === "chats") C.follow.toTop(); else C.follow.toLatest(false); }
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
@@ -4850,6 +4850,8 @@ $("#ic-shells").innerHTML = ICON.shell;
   cs.addEventListener("click", (e) => {
     const m = e.target.closest("[data-csmode]");
     if (m) { CH.setPref("mode", m.dataset.csmode); CH.renderSetup(); updateComposer(); return; }
+    const ag = e.target.closest("[data-cs-agent]");
+    if (ag) { if (ag.getAttribute("aria-checked") !== "true") { CH.setPref("agent", ag.dataset.csAgent); CH.renderSetup(); updateComposer(); } return; }
     if (e.target.closest("[data-cs-done]")) { CH.closeSetup(); updateComposer(); }
   });
   cs.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); CH.closeSetup(); } });

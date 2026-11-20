@@ -75,11 +75,15 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
   const capFirst = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const modelWord = (agent, id) => { const m = (C.models.get(agent) || []).find((x) => x.id === id); return m ? m.name : id; };
-  const metaLine = (s) => capFirst([folderWord(s.cwd), cliName(s.agent), s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "", (MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]].filter(Boolean).join(" · "));
+  const agentMark = (agent, lead = true) => rtMark(agent, { lead }) || `${esc(cliName(agent))}${lead ? " " : ""}`;
+  /** A chat's header line: folder · the agent's mark beside its model · effort · mode. */
+  const isHome = (cwd) => !cwd || /^\/home\/[^/]+\/?$/.test(cwd);
+  const metaHtml = (s) => [`${agentMark(s.agent)}${esc(s.model ? modelWord(s.agent, s.model) : "Default model")}`, s.effort ? esc(EFFORT_WORD[s.effort] || s.effort) : "",
+    esc((MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]), isHome(s.cwd) ? "" : `in ${esc(folderWord(s.cwd))}`].filter(Boolean).join(" · ");
   /** The list's second line: the model (else the agent's name), the effort, and the mode or folder only when not the default. */
   const rowLine = (s) => {
-    const home = !s.cwd || /^\/home\/[^/]+\/?$/.test(s.cwd);
-    return [s.model ? modelWord(s.agent, s.model) : cliName(s.agent), s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
+    const home = isHome(s.cwd);
+    return [s.model ? modelWord(s.agent, s.model) : "Default model", s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
       s.permission_mode && s.permission_mode !== "auto" ? (MODE_WORDS[s.permission_mode] || [s.permission_mode])[0] : "", home ? "" : `in ${folderWord(s.cwd)}`].filter(Boolean).join(" · ");
   };
   const waiting = (s) => s.state === "waiting_on_person";
@@ -187,7 +191,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, world.state.turns.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
-        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
+        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${rtMark(s.agent) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
     if (!all.length && !h.loading && !h.error) items.push({ key: "chat-empty", html: `<p class="m-note">Nothing here yet.</p>` });
@@ -199,7 +203,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
     const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Waiting"];
-    return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${esc(metaLine(s))}</span></span>` +
+    return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${metaHtml(s)}</span></span>` +
       `<span class="badge st-${st[0]}"><i class="g g-${st[1]}" aria-hidden="true"></i>${st[2]}</span>`;
   }
 
@@ -252,7 +256,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${esc(cliName(st.agent))} · ${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
+      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${agentMark(st.agent)}${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -302,20 +306,25 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     // options (another agent's catalog arriving) are handed to it below, through its own re-render path
     const opts = {
       cwd: folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join(""),
-      agent: rts.length > 1 ? rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("") : null,
       model: `<option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}`,
       effort: efforts.length ? `<option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}` : null,
     };
-    const field = (k, word) => (opts[k] == null ? "" : `<label class="cs-f"><span>${word}</span><xo-select data-cs="${k}">${opts[k]}</xo-select></label>`);
+    const field = (k, word) => (opts[k] == null ? "" : `<label class="cs-row"><span class="cs-lab">${word}</span><xo-select data-cs="${k}" aria-label="${word}">${opts[k]}</xo-select></label>`);
+    // the agent: each one's mark and name, one choice (a radio group, keynav.js's keys)
+    const agentRow = rts.length > 1 ? `<div class="cs-row"><span class="cs-lab" id="cs-agent-l">Agent</span><div class="rt-seg cs-agents" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
+      const on = r.name === st.agent;
+      return `<button type="button" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !rts.some((x) => x.name === st.agent))} data-cs-agent="${esc(r.name)}">${rtMark(r.name) || ""}<span>${esc(cliName(r.name))}</span></button>`;
+    }).join("")}</div></div>` : "";
+    const modeHint = st.mode && MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][1] : "";
     // What it may do: a radio group (keynav.js's keys); only the chosen mode is in the Tab order
     const html = `<header class="iq-h"><h2>New chat</h2></header>` +
-      `<div class="iq-sec">${field("cwd", "Folder")}${field("agent", "Agent")}${field("model", "Model")}` +
+      `<div class="cs-grid">${agentRow}${field("cwd", "Folder")}${field("model", "Model")}${field("effort", "Effort")}</div>` +
       // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
       (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>`
         : C.failed.has(st.agent) ? `<p class="iq-rl" role="status">Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.</p>`
         : st.unsure ? `<p class="iq-rl" role="status">Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.</p>` : "") +
-      `${field("effort", "Effort")}</div>` +
-      (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m, i) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
+      (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
+        : `<div class="cs-sec"><p class="cs-lab" id="cs-mode-l">What it may do</p><div class="cs-modes" role="radiogroup" aria-labelledby="cs-mode-l">${modes.map((m, i) => `<button type="button" role="radio" class="cs-mode${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}" title="${esc((MODE_WORDS[m] || ["", ""])[1])}"><span class="sc-dot" aria-hidden="true"></span>${esc((MODE_WORDS[m] || [m])[0])}</button>`).join("")}</div>${modeHint ? `<p class="cs-hint">${esc(modeHint)}</p>` : ""}</div>`) +
       `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;
     // in place (js/redraw.js): a mode chosen, a catalog arriving, keep the control you're on
     redraw(pop, html);
