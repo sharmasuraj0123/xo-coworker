@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141414">
-  <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+  <!-- the mode and the flavour, set before the first paint (js/app.js applyTheme keeps them after) -->
+  <script>try{var d=document.documentElement,t=localStorage.getItem("cv-theme"),f=localStorage.getItem("cv-flavour");if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.dataset.theme=t==="light"?"light":"dark";if(f&&f!=="stone"&&/^[a-z-]+$/.test(f))d.dataset.flavour=f}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <!-- how the conversation reads (Settings › General): a document, full width, unless this device turned Chat bubbles on;
        set before the first paint so a reload never passes through the other look -->
   <script>try{if(localStorage.getItem("cv-bubbles")==="on"){document.documentElement.dataset.msgx="bubbles";document.documentElement.dataset.msgxTails=""}}catch(e){}</script>
@@ -181,7 +182,9 @@
             <button type="button" role="tab" id="set-t-sounds" data-set="sounds" aria-selected="false" aria-controls="set-p-sounds" tabindex="-1">Sounds</button>
             <button type="button" role="tab" id="set-t-keys" data-set="keys" aria-selected="false" aria-controls="set-p-keys" tabindex="-1">Keyboard</button>
           </nav>
-          <div class="set-page" role="tabpanel" id="set-p-general" aria-labelledby="set-t-general" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How the conversation shows what happens behind it.</p></header>
+          <div class="set-page" role="tabpanel" id="set-p-general" aria-labelledby="set-t-general" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How XO looks, and how the conversation shows what happens behind it.</p></header>
+            <div class="set-row"><div class="set-l"><b id="mode-l">Mode</b><span>Dark, light, or whichever your system is set to. Only on this device.</span></div><div class="rt-seg is-paid" id="mode-seg" role="radiogroup" aria-labelledby="mode-l"></div></div>
+            <div class="set-row"><div class="set-l"><b id="flavour-l">Flavour</b><span>The tint of every surface, line and word, in dark and in light. Status colours and the XO mark stay as they are. Only on this device.</span></div><div class="rt-seg is-paid" id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"></div></div>
             <div class="set-row"><div class="set-l"><b id="bubbles-l">Chat bubbles</b><span>Messages in bubbles, as in a messaging app. Off, an agent's reply reads as a full-width document, with room for its math, code, charts and diagrams. Only on this device.</span></div><button type="button" class="switch" id="bubbles-tog" role="switch" aria-checked="false" aria-labelledby="bubbles-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
             <div class="set-row"><div class="set-l"><b id="hops-l">Show how messages travel</b><span>Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.</span></div><button type="button" class="switch" id="hops-tog" role="switch" aria-checked="false" aria-labelledby="hops-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
             <div class="set-row"><div class="set-l"><b id="webpics-l">Show pictures from the web</b><span>A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.</span></div><button type="button" class="switch" id="webpics-tog" role="switch" aria-checked="true" aria-labelledby="webpics-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>

@@ -48,6 +48,7 @@ function rootSel(sel) {
   const m = /^:root((?:\[[^\]]+\])*)$/.exec(sel.replace(/\s+/g, ""));
   if (!m) return null;
   const attrs = [...m[1].matchAll(/\[([^\]=]+)(?:=["']?([^"'\]]*)["']?)?\]/g)];
+  if (attrs.some((a) => a[1] === "data-flavour")) return null; // a flavour re-tints greys, never the code colours
   const theme = attrs.find((a) => a[1] === "data-theme");
   return { theme: theme ? theme[2] : null, spec: 1 + attrs.length };
 }

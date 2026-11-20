@@ -1,6 +1,7 @@
 /* Shared base for every ux-test: XO tokens + Geist, a reset, and the
    reduced-motion contract. Each concept's own style.css is only its idea. */
 @import url("./tokens.css");
+@import url("./flavours.css");
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}

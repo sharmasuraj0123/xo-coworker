@@ -35,7 +35,7 @@ xo-select>option{display:none}
 .dd-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 
-:root[data-theme="light"] .dd-btn{background:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .dd-btn{background:var(--surface);border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{border-color:rgba(0,0,0,.2)}
 :root[data-theme="light"] .dd-btn:disabled:hover{border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .dd-menu{box-shadow:var(--lift-3)}

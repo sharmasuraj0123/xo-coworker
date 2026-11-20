@@ -8,17 +8,8 @@
 :root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
 /* The theme (both palettes, every surface, line and ink) lives in css/tokens.css; this file only uses it. */
 :root[data-theme="light"] body{background:var(--sunken)}
-:root[data-theme="light"] .send:not(:disabled):not(.is-stop){color:#141414}
-:root[data-theme="light"] .next{--nx-arc:rgba(72,118,32,.75);background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(72,118,32,.55),#DCDCD8 34%,#E2E2DF) border-box;box-shadow:var(--e2)}
-:root[data-theme="light"] .next.r-destructive{animation:none;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(170deg,rgba(181,33,40,.6),rgba(181,33,40,.25) 40%,#E2E2DF) border-box}
-:root[data-theme="light"] .prow.needs .pr-name{color:#5E3507}
-:root[data-theme="light"] .hr-t b{color:#8A4B0B}
-:root[data-theme="light"] .dl-add{color:#2F5A12}
-:root[data-theme="light"] .dl-del{color:#9B1C22}
-:root[data-theme="light"] .c-facts{color:#9B1C22}
-:root[data-theme="light"] .facts.is-d li{color:#9B1C22}
-:root[data-theme="light"] .th-knob{color:#fff}
-:root[data-theme="light"] .xo-mark .x{stroke:#151515}
+:root[data-theme="light"] .next.r-destructive{animation:none}
+:root[data-theme="light"] .prow.needs .pr-name{color:var(--need-text)}
 
 ::selection{background:rgba(var(--accent-rgb),.28)}
 html,body{overflow:clip}
@@ -79,12 +70,12 @@ button:disabled{cursor:default}
 .side-top{display:flex;align-items:center;gap:8px;height:64px;padding:0 14px 0 20px}
 /* #28 a slide toggle for light mode */
 .theme{flex:none;display:grid;place-items:center;width:46px;height:var(--h-ctl);border-radius:999px}
-.th-track{position:relative;display:block;width:var(--h-lg);height:22px;border-radius:999px;background:var(--sb-bg-3);box-shadow:inset 0 0 0 1px var(--sb-line);transition:background var(--d-hover)}
+.th-track{position:relative;display:block;width:var(--h-lg);height:22px;border-radius:999px;background:var(--track);box-shadow:inset 0 0 0 1px var(--sb-line);transition:background var(--d-hover)}
 .th-knob{position:absolute;left:2px;top:2px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--ink-2);color:var(--sb-side);transition:transform var(--d-in) var(--ease),background var(--d-hover),scale var(--d-press) var(--ease)}
 .th-knob svg{position:absolute;width:12px;height:12px;stroke-width:2;transition:opacity var(--dur-base)}
 .th-knob svg:first-child{opacity:0}
 .theme[aria-checked="true"] .th-track{background:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3))}
-.theme[aria-checked="true"] .th-knob{transform:translateX(18px);background:#fff;color:#8A4B0B}
+.theme[aria-checked="true"] .th-knob{transform:translateX(18px);background:var(--knob);color:var(--warn)}
 .theme[aria-checked="true"] .th-knob svg:first-child{opacity:1}
 .theme[aria-checked="true"] .th-knob svg:last-child{opacity:0}
 .theme:hover .th-track{box-shadow:inset 0 0 0 1px var(--sb-line-hover)}
@@ -146,8 +137,8 @@ button:disabled{cursor:default}
 .side-plus svg{width:12px;height:12px;stroke-width:2.4}
 .side-plus:hover,.side-plus:focus-visible{color:var(--ink);background:var(--sb-g26)}
 .side-plus:active{transform:scale(.96)}
-:root[data-theme="light"] .side-plus{background:#FFFFFF;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07)}
-:root[data-theme="light"] .side-plus:hover,:root[data-theme="light"] .side-plus:focus-visible{background:color-mix(in srgb,var(--ink) 4%,#FFFFFF)}
+:root[data-theme="light"] .side-plus{background:var(--surface);box-shadow:inset 0 0 0 1px rgba(0,0,0,.07)}
+:root[data-theme="light"] .side-plus:hover,:root[data-theme="light"] .side-plus:focus-visible{background:color-mix(in srgb,var(--ink) 4%,var(--surface))}
 /* a scroll box keeps the ring's room inside it (it clips what's past its padding): 2 px above the first project cut its
    focused ring's top (the controls grader on 22046ec, C008); the label above gives the 4 px back, so the rows sit where
    they did */
@@ -178,7 +169,7 @@ button:disabled{cursor:default}
 @media (prefers-reduced-motion:reduce){.prow.busy .pr-ic{animation:none}}
 /* the accent: a row that needs you tints its tile and name, and shows a short label */
 .prow.needs .pr-ic{background:color-mix(in srgb,var(--warn) 13%,var(--sb-g1C));border-color:color-mix(in srgb,var(--warn) 30%,var(--sb-g26));color:var(--warn)}
-.prow.needs .pr-name{color:color-mix(in srgb,var(--warn) 22%,var(--ink))}
+.prow.needs .pr-name{color:var(--need-text)}
 .prow.needs{background:color-mix(in srgb,var(--warn) 6%,var(--row-bg));border-color:color-mix(in srgb,var(--warn) 22%,var(--row-line))}
 .prow.needs .pr-t{color:color-mix(in srgb,var(--warn) 72%,var(--ink-3))}
 .prow.needs.k-red{background:color-mix(in srgb,var(--err) 6%,var(--row-bg));border-color:color-mix(in srgb,var(--err-ink) 24%,var(--row-line))}
@@ -707,7 +698,7 @@ button.hr:hover{border-color:var(--line-strong);background:var(--herald-bg-hi)}
 button.hr:active{transform:scale(.97)}
 .hr.is-in{animation:float-in var(--d-move) var(--ease)}
 .hr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
-.hr-t b{color:var(--warn);font-weight:var(--fw-strong);font-variant-numeric:tabular-nums}
+.hr-t b{color:var(--warn-text);font-weight:var(--fw-strong);font-variant-numeric:tabular-nums}
 .hr-s{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
 .hr>svg{flex:none;width:14px;height:14px;color:var(--ink-4)}
 .hr-dot{flex:none;width:7px;height:7px;border-radius:1.5px;background:var(--warn);transform:rotate(45deg)}
@@ -1048,11 +1039,11 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .c-top .c-where{margin-left:auto;margin-right:calc(-1 * var(--halo));min-width:0}
 .c-h{margin-top:8px;font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
 .c-line{margin-top:6px;font-size:var(--fs-md);line-height:var(--lh-14);color:var(--ink-2);text-wrap:pretty}
-.c-facts{display:flex;gap:8px;margin-top:8px;font-size:var(--fs-md);line-height:var(--lh-14);color:#F0B3B6}
+.c-facts{display:flex;gap:8px;margin-top:8px;font-size:var(--fs-md);line-height:var(--lh-14);color:var(--danger-text)}
 .c-facts svg{flex:none;--ic:14px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--err-ink)}
 .facts{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .facts li{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:var(--r-sm);background:var(--fill-3);color:var(--ink-2);font-size:var(--fs-sm)}
-.facts.is-d li{background:rgb(215 55 63 / .12);color:#F0B3B6}
+.facts.is-d li{background:rgb(215 55 63 / .12);color:var(--danger-text)}
 
 /* details: a continuous height change (WAAPI, ~320 ms) with a cross-fade, never a jump (ui.js expand) */
 .dis{margin-top:14px;border-top:1px solid var(--line-soft)}
@@ -1082,8 +1073,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .chg figcaption{display:flex;align-items:center;gap:7px;height:30px;padding:0 12px;border-bottom:1px solid var(--line-faint);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .chg figcaption svg{width:13px;height:13px}
 .chg pre{margin:0;padding:10px 12px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-2)}
-.dl-add{display:inline-block;width:100%;color:#B8E68E;background:rgba(var(--accent-rgb),.08)}
-.dl-del{display:inline-block;width:100%;color:#F0A6AA;background:rgb(215 55 63 / .08)}
+.dl-add{display:inline-block;width:100%;color:var(--add-text);background:rgba(var(--accent-rgb),.08)}
+.dl-del{display:inline-block;width:100%;color:var(--del-text);background:rgb(215 55 63 / .08)}
 .r-destructive .chg{border-color:rgb(230 131 136 / .3)}
 .ev-msgs{list-style:none;display:grid;gap:4px}
 .ev-msgs li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:6px 10px;border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-base)}
@@ -1118,7 +1109,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .sw{position:relative;width:26px;height:15px;border-radius:var(--r-sm);background:var(--fill-3);transition:background var(--d-hover) var(--ease)}
 .sw::after{content:"";position:absolute;left:2px;top:2px;width:11px;height:11px;border-radius:50%;background:var(--ink-3);transition:transform var(--d-sheet) var(--ease),background var(--d-hover) var(--ease)}
 .teach-tog[aria-pressed="true"] .sw{background:color-mix(in srgb,var(--accent-fill) 55%,var(--fill-3))}
-.teach-tog[aria-pressed="true"] .sw::after{transform:translateX(11px);background:#fff}
+.teach-tog[aria-pressed="true"] .sw::after{transform:translateX(11px);background:var(--knob)}
 .teach-body{margin:var(--s-2) 0 0}
 .teach-scope{display:flex;flex-wrap:wrap;gap:6px}
 .teach-scope button{height:var(--h-ctl);padding:0 10px;border-radius:999px;border:1px solid var(--line);font-size:var(--fs-sm);color:var(--ink-3)}
@@ -1333,8 +1324,9 @@ button.tp-done-u:hover{color:var(--ink)}
 .field{display:flex;flex-direction:column;gap:8px}
 .field>span{font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
 .field em{font-style:normal;font-weight:var(--fw-regular);color:var(--ink-4);margin-left:4px}
-.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--fill-1);font-size:var(--fs-md);line-height:var(--lh-14);resize:vertical;transition:border-color var(--d-hover) var(--ease)}
+.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--field-line);border-radius:var(--r);background:var(--field-bg);font-size:var(--fs-md);line-height:var(--lh-14);resize:vertical;transition:border-color var(--d-hover) var(--ease)}
 .field input{height:var(--h-lg)}
+:root :is(.field input,.field textarea):focus{border-color:var(--field-line-focus)}
 .field input::placeholder,.field textarea::placeholder{color:var(--ink-5)}
 /* A note under a field: one icon, then one line of words (an action inside reads as a link) */
 .cp-note{display:flex;align-items:flex-start;gap:7px;min-height:16px;font-size:var(--fs-sm);line-height:var(--lh-12);color:var(--ink-4)}
@@ -1538,8 +1530,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .kp-f .btn:disabled:hover{background:none;color:var(--ink-2)}
 .switch{flex:none;display:grid;place-items:center;width:46px;height:var(--h-ctl);border-radius:999px}
 .switch .th-knob svg{opacity:1;width:11px;height:11px}
-.switch[aria-checked="true"] .th-track{background:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3))}
-.switch[aria-checked="true"] .th-knob{transform:translateX(18px);background:#fff;color:#487620}
+.switch[aria-checked="true"] .th-track{background:var(--switch-on)}
+.switch[aria-checked="true"] .th-knob{transform:translateX(18px);background:var(--knob);color:var(--knob-go)}
 .switch:hover .th-track{box-shadow:inset 0 0 0 1px var(--sb-line-hover)}
 
 @media (max-height:820px) and (min-width:761px){
@@ -2312,7 +2304,7 @@ button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil
 .drop-veil{position:absolute;inset:var(--s-2);z-index:calc(var(--z-panel) + 10);display:grid;place-items:center;border-radius:var(--r-2xl);border:2px dashed rgba(var(--accent-rgb),.6);background:rgb(0 0 0 / .32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);pointer-events:none;animation:msg-in var(--d-out) var(--ease)}
 .drop-veil p{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);font-size:var(--fs-md);color:var(--ink)}
 .drop-veil svg{width:18px;height:18px;color:var(--accent)}
-:root[data-theme="light"] .drop-veil{background:rgb(255 255 255 / .55)}
+:root[data-theme="light"] .drop-veil{background:color-mix(in srgb,var(--surface) 55%,transparent)}
 .m-reacts{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 0}
 .m-you .m-reacts{justify-content:flex-end}
 .m-react{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 7px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-base);line-height:1;cursor:default}
@@ -2576,12 +2568,12 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .md-from:hover{background:var(--fill-2);color:var(--ink)}
 .md-from svg{flex:none;width:12px;height:12px}
 .md-from span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.md-pin{position:absolute;top:4px;right:4px;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);background:rgb(20 20 20 / .78);color:var(--ink-3);opacity:0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.md-pin{position:absolute;top:4px;right:4px;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);background:color-mix(in srgb,var(--canvas) 78%,transparent);color:var(--ink-3);opacity:0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .md-pin svg{width:14px;height:14px}
 .md-it:hover .md-pin,.md-pin:focus-visible,.md-it.is-pin .md-pin{opacity:1}
 /* hovered, a pin takes a firmer backing and the first ink; a pinned one its accent's hover. The pinned colour is the
    stronger rule, so it had held through hover: no change (the controls grader on b340841, S094) */
-.md-pin:hover{background:rgb(44 44 44 / .92);color:var(--ink)}
+.md-pin:hover{background:color-mix(in srgb,var(--fill-3) 92%,transparent);color:var(--ink)}
 .md-it.is-pin .md-pin:hover{color:var(--accent-hover)}
 .md-it.is-pin .md-pin{color:var(--accent)}
 .md-it.is-pin .md-pin svg{fill:currentColor}
@@ -2608,8 +2600,8 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 :root[data-theme="light"] .sk{background:var(--fill-2)}
 :root[data-theme="light"] .hm-sk .sk-card{border-color:var(--line-soft)}
 :root[data-theme="light"] .handled.hm-sk .hd-ic{background:var(--fill-2)}
-:root[data-theme="light"] .md-pin{background:rgb(255 255 255 / .85)}
-:root[data-theme="light"] .md-pin:hover{background:#FFFFFF;box-shadow:0 0 0 1px var(--line)}
+:root[data-theme="light"] .md-pin{background:color-mix(in srgb,var(--surface) 85%,transparent)}
+:root[data-theme="light"] .md-pin:hover{background:var(--surface);box-shadow:0 0 0 1px var(--line)}
 /* (light's --accent-hover is a fill's hover, paler: as ink on white it fell to 2.2:1; a pinned pin's glyph goes a step firmer instead) */
 :root[data-theme="light"] .md-it.is-pin .md-pin:hover{color:color-mix(in srgb,var(--accent) 75%,var(--ink))}
 @media (hover:none){.md-pin{opacity:1}}
@@ -2687,7 +2679,6 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 /* the canvas: a dotted sheet you can drag around and zoom */
 .dg{position:relative;flex:1;min-height:0;margin:0 12px 12px;border-radius:var(--r-sm);overflow:clip;cursor:grab;touch-action:none;outline:none;
   background-color:var(--fill-1);background-image:radial-gradient(circle,var(--fill-3) 1px,transparent 1.2px);background-size:20px 20px;border:1px solid var(--line-faint)}
-:root[data-theme="light"] .dg{background-color:#FBFBFA;background-image:radial-gradient(circle,#DEDEDC 1px,transparent 1.2px);border-color:#E6E6E6}
 .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 .dg.is-drag{cursor:grabbing}
 .dg-world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
@@ -2695,16 +2686,13 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 .dg-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
 .dg-edges path,.dg-edges line{fill:none;stroke:var(--ink-5);stroke-width:1;transition:stroke var(--d-long) var(--ease)}
 .dg-edges .is-lit{stroke-width:1.6;opacity:.9}
-:root[data-theme="light"] .dg-edges path,:root[data-theme="light"] .dg-edges line{stroke:#C9C9C6}
 :root[data-theme="light"] .dg-edges .is-lit{stroke-width:1.6}
 .dg-nodes{position:absolute;left:0;top:0}
 
 /* the diagram's boxes: flat, one hairline, the name first */
 .dg-n{position:absolute;display:flex;align-items:center;gap:8px;width:172px;height:34px;padding:0 10px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line);text-align:left;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-2);transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),box-shadow var(--d-move) var(--ease)}
-:root[data-theme="light"] .dg-n{background:#FFF;border-color:#DCDCDA}
 button.dg-n{cursor:pointer}
 button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
-:root[data-theme="light"] button.dg-n:hover{border-color:#A9A9A6}
 .dg-n:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .dg-ic{flex:none;display:grid;place-items:center;width:15px;color:var(--ink-4)}
 .dg-ic svg{width:14px;height:14px}
@@ -2714,7 +2702,6 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-n.k-root{height:38px;margin-top:-2px;font-size:var(--fs-base)}
 .dg-n.k-root .dg-ic{color:var(--accent)}
 .dg-n.k-dir{font-weight:var(--fw-medium);color:var(--ink);background:var(--float)}
-:root[data-theme="light"] .dg-n.k-dir{background:#F7F7F6}
 .dg-ch{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .dg-ch svg{width:11px;height:11px;transform:rotate(-90deg);transition:transform var(--dur-fast)}
 .dg-n.is-open .dg-ch svg{transform:rotate(90deg)}
@@ -2745,10 +2732,8 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
    colour), the gap that parts it from the lines, the focus ring, and a halo (an agent is here). A state sets only
    its own layer, so none can take another's away: focus shows on every dot, whatever else it is (Astra S082: the
    folded folder's and the panel's whole-shadow rules hid it) */
-.gn-d{flex:none;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin-left:calc(var(--r) * -1);border-radius:50%;background:var(--fill-4);--gn-gap:var(--canvas);box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),var(--gn-halo,0 0 #0000);transition:background var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease),transform var(--dur-base)}
-:root[data-theme="light"] .gn-d{background:#B9B9B6}
+.gn-d{flex:none;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin-left:calc(var(--r) * -1);border-radius:50%;background:var(--map-dot);--gn-gap:var(--canvas);box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),var(--gn-halo,0 0 #0000);transition:background var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease),transform var(--dur-base)}
 .gn-l{text-shadow:0 0 3px var(--canvas),0 0 3px var(--canvas);transition:opacity var(--d-hover) var(--ease)}
-:root[data-theme="light"] .gn-l{text-shadow:0 0 3px #FBFBFA,0 0 3px #FBFBFA}
 .gn.k-root .gn-d{background:var(--accent)}
 .gn.k-root{font-size:var(--fs-base);font-weight:var(--fw-strong);color:var(--ink)}
 .gn.k-project{font-size:var(--fs-sm);font-weight:var(--fw-strong);color:var(--ink-2)}
@@ -2788,7 +2773,6 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-more{font-style:normal;font-weight:var(--fw-strong);padding:2px 5px;margin-right:-3px;border-radius:var(--r-sm);background:rgba(255,255,255,.22)}
 .dg-cur.is-idle .dg-arrow path{fill:var(--ink-5)}
 .dg-cur.is-idle .dg-tag{background:var(--fill-4);color:var(--ink)}
-:root[data-theme="light"] .dg-cur.is-idle .dg-tag{background:#E4E4E2;color:#444}
 .dg-cur.is-wait .dg-tag::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 1.5px rgba(255,255,255,.8)}
 .dg-cur.is-ping .dg-tag{animation:dg-ping var(--d-land) var(--ease)}
 @keyframes dg-ping{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 12px transparent}}
@@ -2797,18 +2781,13 @@ button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
 .dg-tools{position:absolute;right:10px;bottom:10px;display:flex;align-items:center;gap:2px;padding:3px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)));cursor:default}
 .dg-mode{display:flex;gap:2px}
 .dg-sep{width:1px;height:18px;margin:0 var(--s-1);background:var(--fill-3)}
-:root[data-theme="light"] .dg-tools{background:#FFF;border-color:#DCDCDA}
-:root[data-theme="light"] .dg-sep{background:#E2E2E0}
 .dg-tools button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}
-:root[data-theme="light"] .dg-tools button:hover,:root[data-theme="light"] .dg-mode button:hover{background:#F0F0EE}
 .dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
 .dg-mode button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
-:root[data-theme="light"] .dg-mode button[aria-pressed="true"]{background:#ECECEA}
 .dg-tools svg,.dg-mode svg{width:15px;height:15px}
 .dg-key{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;height:30px;align-items:center;padding:0 10px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3);cursor:default}
 .dg-key[hidden]{display:none}
-:root[data-theme="light"] .dg-key{background:#FFF;border-color:#DCDCDA}
 .dg-key span{display:inline-flex;align-items:center;gap:5px}
 .dg-key i{width:9px;height:9px;border-radius:3px;border:1.5px solid var(--ink-4)}
 .dg-key .m-new i{border-color:var(--accent)}
