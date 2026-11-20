@@ -16,8 +16,7 @@
 //     stands; the header's Deploy opens it, and while it's open it has the stack and the others keep their
 //     heads (their own folds are kept for when it closes).
 //
-// Over the sections it shows one page at a time (a thread, Files, a shell), at its own width, under one 40 px head.
-// The panel owns its frame: that head (the place or the page, full size, close), its width (dragged, 320–720, kept),
+// Over the sections it shows one page at a time. The panel owns its frame: its head, its width (dragged, 320–720, kept),
 // whether it's open (kept),
 // the page making room for it (body.stage-open, body.stage-full), and floating over the conversation
 // when that would get too narrow (body.stage-over).
@@ -258,8 +257,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       return `<li><button type="button" class="ch-r" data-change="${esc(x.rel)}" data-change-project="${esc(x.project)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="ch-i">${fileIcon(x.path)}</span><span class="ch-copy"><span class="ch-n">${esc(name)}</span>${dir ? `<span class="ch-path">${esc(dir)}</span>` : ""}</span><span class="ch-m m-${esc(x.live ? "live" : x.mark)}">${esc(x.live ? "editing" : x.mark)}</span></button></li>`;
     }).join("")}</ul>`;
   }
-  /** One head for every state: the place's name on the sections; on a page, ‹ (back to what's under it), the page's
-   *  own lead control and its title. */
+  // one head: the place on the sections; on a page ‹, its lead control and its title
   function titleHtml() {
     const place = nameOf(view());
     if (!S.page) return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`;
@@ -286,7 +284,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = body("agents").querySelector(".tg-q");
     qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
-    // under a page the sections wait: drawn when they show again (back() paints first)
+    // covered sections wait: back() paints them
     const covered = !!S.page;
     if (!S.lp && !covered) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
     // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
@@ -427,25 +425,19 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
 
   function toggle() { if (S.open) close(); else open(); }
-  // ── Pages: the panel shows its sections, or one page over them, at the panel's own width. A shell opened over a page
-  // keeps that page under it (‹ goes back to it); any other page takes the place of what was there. A page belongs to
-  // the place it was opened beside: another place, or the panel closing, closes it. Nothing is kept as a tab.
-  //   page(name, { title(key), lead(key), act(name, el), mount(box) once, onShow(key, {focus}), onHide(key),
-  //                close(key) (its content goes), canClose(key) → bool | Promise (asked by the panel's ×),
-  //                escape(key) → true when it took Esc })
+  // ── Pages: one over the sections; a shell keeps the page under it; another place or closing drops them
   const PAGES = new Map(), BOXES = new Map();
   Object.assign(S, { page: null, under: null });
   const same = (a, b) => !!a && !!b && a.name === b.name && a.key === b.key;
   const pageTitle = (t) => { const sp = PAGES.get(t.name); return (sp.title && sp.title(t.key)) || t.name; };
   function page(name, spec) { PAGES.set(name, spec); }
-  /** A page kind's box: made once, kept for the app's life, hidden while it isn't showing. */
+  // one box per kind, built once
   function boxFor(name) {
     let b = BOXES.get(name);
     if (!b) { b = document.createElement("div"); b.className = "stg-pg"; b.dataset.pg = name; b.hidden = true; el.querySelector(".stg-page").append(b); BOXES.set(name, b); }
     return b;
   }
-  // the slide: a page comes in 12 px from the right and fades up, over what stays laid out beneath it; back, it goes out
-  // the same way. Tokens (--d-sheet, --ease) read once
+  // the slide: 12 px and a fade, --d-sheet and --ease
   const RM = matchMedia("(prefers-reduced-motion: reduce)");
   let motion = null;
   const tokens = () => { if (!motion) { const cs = getComputedStyle(document.documentElement); motion = { d: parseFloat(cs.getPropertyValue("--d-sheet")) || 240, ease: cs.getPropertyValue("--ease").trim() || "ease" }; } return motion; };
@@ -456,7 +448,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const a = box.animate(dir === "in" ? [FROM, TO] : [TO, FROM], { duration: d, easing: ease });
     a.finished.then(() => done && done(), () => {});
   }
-  /** Covered: the sections leave the rendering (laid out still, so coming back costs nothing) once a page is over them. */
+  // covered sections leave the rendering but stay laid out
   function cover(on) {
     if (!on) { el.classList.remove("is-covered"); return; }
     if (S.page) el.classList.add("is-covered");
@@ -465,7 +457,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
     el.classList.toggle("is-shell", S.page?.name === "shell");
   }
-  /** A page goes: hidden if it was showing, then its content released. */
   function shut(t, shown) { const sp = PAGES.get(t.name); if (shown) sp.onHide?.(t.key); sp.close?.(t.key); }
 
   function show(name, key = name, { focus = false } = {}) {
@@ -473,7 +464,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (!sp) return false;
     const next = { name, key: String(key) }, fresh = !S.open;
     if (fresh) open({ focus: false });
-    // the same kind on another subject (another thread): its box stays, what's in it changes
+    // same kind, another subject: the box stays
     if (S.page && S.page.name === name) { S.page = next; sp.onShow?.(next.key, { focus }); pageChanged(); return true; }
     const prev = S.page, keep = name === "shell" && prev && !S.under ? prev : null;
     for (const t of [prev, S.under]) if (t && t !== keep) shut(t, t === prev);
@@ -484,13 +475,13 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     box.hidden = false;
     if (!box._m) { box._m = true; sp.mount?.(box, next.key); }
     sp.onShow?.(next.key, { focus });
-    // (opening with the panel, the panel's own entrance is the motion)
+    // opening with the panel, the panel's entrance is the motion
     const settle = () => { box.style.zIndex = ""; if (S.page && S.page.name === name) { if (old && old !== box) old.hidden = true; cover(true); } };
     if (fresh || RM.matches) settle(); else { box.style.zIndex = "1"; slide(box, "in", settle); }
     pageChanged();
     return true;
   }
-  /** ‹ and Esc: one level back, to the page under (a thread under its shell) or the sections. */
+  // ‹ and Esc: one level back
   function back() {
     if (!S.page) return;
     const t = S.page, under = S.under, box = BOXES.get(t.name);
@@ -505,7 +496,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     pageChanged();
     if (had && !under && S.open) el.focus({ preventScroll: true });
   }
-  /** Every page goes at once, without motion: the panel closing, another place. */
   function dropPages() {
     if (!S.page) return;
     const t = S.page, under = S.under;
@@ -515,12 +505,11 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     mark(); cover(false);
     pageChanged();
   }
-  /** One kind of page goes (a thread that's gone, its own page asked for): from the top it's ‹; from under, released. */
   function closePage(name) {
     if (S.page?.name === name) back();
     else if (S.under?.name === name) { shut(S.under, false); BOXES.get(name).hidden = true; S.under = null; pageChanged(); }
   }
-  /** The panel's ×: an open page may ask first (an unsaved file), then it closes. */
+  // the panel's ×: an unsaved file asks first
   async function requestClose() {
     for (const t of [S.page, S.under].filter(Boolean)) {
       const sp = PAGES.get(t.name);
@@ -531,7 +520,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     close();
     return true;
   }
-  /** Something in the sections needs you while a page is up: ‹ says so. */
   const sectionsNeed = () => { const tg = threads ? threads(view()) : null; return !!tg && tg.some((g) => g.k === "needs" && g.rows.length); };
   function pageChanged() {
     const b = el.querySelector("[data-stg-shell]");
@@ -539,8 +527,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     S.h.head = ""; paint();
     onChange && onChange();
   }
-  /** Shell (the owner, 19 Nov): the shells' own dock, moved into the panel (app.js shell(on, host, where)). Over a
-   *  thread it opens in that thread's worktree; elsewhere for the place beside the panel. */
+  // over a thread the shell opens in its worktree
   if (shell) page("shell", {
     title: (k) => `Shell · ${S.under ? pageTitle(S.under) : nameOf(k || view())}`,
     onShow: (k) => shell(true, boxFor("shell"), k), onHide: () => shell(false),
@@ -726,8 +713,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
-  // ── width: one for everything the panel shows, flush to the window's right edge, 360 px by default, 320–720 by
-  // dragging its left edge. A page never changes it: the conversation beside it never moves
+  // ── width: one for everything the panel shows, 320–720, dragged and kept
   const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720;
   // when the conversation beside it would drop under READ px, the panel floats over it (with a shadow)
   // instead of squeezing it: a cut-down thread title is worse than a covered margin
@@ -799,9 +785,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     shellOff: () => setShell(false),
     /** Pages (see "Pages" above): register a kind, show one, one level back, close one kind, the panel's ×. */
     page, show, back, closePage, requestClose,
-    /** Another place: the page beside the old one closes (a thread, a file, a shell belong to where they were opened). */
     leave: () => dropPages(),
-    /** The page's own controls in the head (the Thread page's ⋯), beside the panel's. */
     get slot() { return el.querySelector(".stg-pa"); },
     get pageShown() { return S.page ? { ...S.page } : null; },
     /** The header's Deploy. */
@@ -818,7 +802,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       if (!frames().includes("changes") || !CX.head()) return false;
       if (!CX.select(path)) return false;
       fr.changes.folded = false;
-      // a page in front (a file in Files, a thread) closes: the sections show the diff
       if (S.page) dropPages();
       if (!S.open) open({ focus: false }); else { layout(); paint(); persist(); }
       return true;

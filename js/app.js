@@ -2694,8 +2694,7 @@ function editFailed(id, K = MK) {
 
 // ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
 // (design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md; the owner chose the proper build, 19 Nov
-// 15:20Z.) One page, its key the thread it shows: its title and ⋯ in the panel's head, its facts (state, runtime,
-// branch) on one quiet line under it, checklist,
+// 15:20Z.) One page, its key the thread it shows: its title and ⋯ in the panel's head, its facts, checklist,
 // conversation (createConv + createFollow + msgx), typing line and composer (wireComposer). It opens from the
 // panel's Threads beside a chat; ⌘/Ctrl-click, or Open full width, gives today's full page.
 const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
@@ -2721,7 +2720,7 @@ function tpMount(box) {
   wireComposer(TP.K);
   wireTray(TP.K);
   TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
-  // its ⋯ (and the menu it opens) sits in the panel's head, beside the panel's own controls
+  // its ⋯ lives in the panel's head
   const acts = document.createElement("span");
   acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
   STAGE.slot.append(acts);
@@ -2750,8 +2749,7 @@ function tpShow(key, { focus = false } = {}) {
     world.act.watchSideThread?.(key);
     loadDraft(TP.K);
     TP.viewSubs.forEach((fn) => fn());
-    // a new thread's conversation is drawn once the page's first frame is on screen: the slide starts at the press, and
-    // the drawing (long threads take a while) happens under it rather than before it
+    // drawn after the first frame, so the slide starts at the press
     const t = convThread(tpView());
     if (t) tpHead(t);
     TP.wait = true;
@@ -2762,12 +2760,10 @@ function tpShow(key, { focus = false } = {}) {
     }, 0));
     return;
   }
-  // only the page is drawn: the chat beside it doesn't change
   drawThreadPage(D.needItems());
   if (focus) requestAnimationFrame(() => TP.K.say.focus({ preventScroll: true }));
 }
-/** The page closes (‹, another place, the panel closing): its draft is kept, the thread no longer watched. The page's
- *  parts stay built for the next thread. */
+// the page closes: its draft is kept, its parts stay built
 function tpClose() {
   if (TP.K && TP.tid) saveDraft(TP.K);
   if (S.tMenuIn === "page") { S.tMenu = null; S.tMenuIn = null; }
@@ -2775,7 +2771,6 @@ function tpClose() {
   TP.tid = null;
 }
 STAGE.page("thread", {
-  // at the panel's own width, like every page (the owner, 20 Nov: "keep the thread in the same size that of the right panel")
   title: (key) => world.thread(key)?.title || "Thread",
   mount: (box) => tpMount(box),
   onShow: (key, o) => tpShow(key, o),
@@ -2785,8 +2780,7 @@ STAGE.page("thread", {
   escape: () => { if (S.tMenu && S.tMenuIn === "page") { closeThreadMenu(); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
-/** The thread page's facts under the panel's head (state, runtime, branch), and its ⋯ in that head (Open as its own
- *  page is there). */
+// its facts under the panel's head, its ⋯ in it
 function tpHead(t) {
   const head = $("#tphead"), acts = $("#tpacts");
   const open = S.tMenu === t.id && S.tMenuIn === "page";
@@ -3103,7 +3097,7 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
-  // a page in the panel (a thread, a file, a shell) belongs to the place it was opened beside
+  // a page in the panel belongs to its place
   if (v !== S.view) STAGE.leave();
   closeSettings({ restore: false });
   setDrawer(false);
@@ -3910,7 +3904,7 @@ function panelShell(on, host, where) {
     if (!SH.enabled) { STAGE.shellOff(); heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200); return; }
     host.append(d); d.classList.add("in-panel");
     const at = where || S.view;
-    // one that couldn't open (its notice says why) leaves the panel as it was: the page under it, or the sections
+    // one that couldn't open goes back
     Promise.resolve(openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws")).then(() => { if (STAGE.isShell && d.hidden) STAGE.shellOff(); }, () => { if (STAGE.isShell) STAGE.shellOff(); });
   } else {
     d.classList.remove("in-panel");
@@ -4264,7 +4258,7 @@ async function unfreeze(tid, btn) {
 }
 function setPage(id) {
   // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
-  // Settings' own tabs and pages only: a [data-page] anywhere else on the page isn't Settings'
+  // Settings' own pages only
   for (const b of setEl.querySelectorAll("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
   for (const p of setEl.querySelectorAll("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
