@@ -188,15 +188,10 @@
   /* the field's placeholder already says where it goes ('Reply to the agent…', 'Message xo-coworker…'), so on a phone
      the target is its mark alone and the model and thinking the thread runs keep their room */
   :root:root .target b{display:none}
-  /* the target is bounded: it gives way before the model chip and Send, whatever it says, its words cut short with
-     an ellipsis (routing Off's paused words pushed both out of the row: the create-project grader on 9d1f71b, C111;
-     the whole of them shows above the composer) */
-  :root:root .target{flex:0 100 auto;min-width:0;overflow:hidden}
   /* paused (routing Off, can't reach XO …): only its mark here; its words are the banner right above, and the model
      chip keeps its whole word ("Au…" beside 202 px of the same words: the create-project grader on 65e84b7, C111) */
   :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
-  :root:root .iq{flex:0 1 auto;min-width:0;padding:0 6px;max-width:none}
-  :root:root :is(.target,.iq){font-size:var(--fs-sm)}
+  :root:root .iq{padding:0 6px}
   :root:root .iq-sep{margin:0 4px}
 }
 /* the narrowest phones (≤ 340): the field's placeholder says where a message goes, so the target steps aside and
