@@ -73,3 +73,25 @@ messages (40), events (500 frames, 70-360 KB), events (control kinds), hops. The
    or until Artifacts/Home shows, so a thread's reads never queue behind them. Optionally make the first
    events page smaller (it is the slowest read). Gain: perceived gap 0.41 → ~0.1 s full, 0.63 → ~0.25 s panel.
 5. **Lazy xterm** (import on the first terminal). Saves 345 KB and ~0.1-0.4 s of boot.
+
+## Corrections and the fix's numbers (2026-11-20 23:09Z, probe2.mjs → out2.json)
+
+Two figures above were artifacts of probe.mjs. It blocked writes with Playwright request routing, which sends
+every request through the test driver and turns the HTTP cache off:
+- **19.8 s** remote-like was mostly that interception. Without routing, the same link and CPU give **3.3 s**.
+- **"A warm reload re-downloads 3.2 MB"** is wrong. serve.py sent `no-cache` + Last-Modified, so a reload
+  revalidated all 104 files: 104 round trips of 304s (30 KB), not bytes.
+
+probe2.mjs blocks writes inside the page instead. Before = :3000 (release a497c6f1), after = this branch on :5193.
+
+| time until the sidebar is drawn | before | after |
+|---|---|---|
+| reload, local 1x | 0.80 s | **0.59 s** (0 requests for static files, all from cache) |
+| reload, remote-like (60 ms RTT, 3 MB/s, 4x CPU) | 2.63 s | **1.13 s** |
+| first visit, remote-like | 3.28 s | **2.58 s** (static 3.2 MB → 1.08 MB) |
+| first visit, local 1x | 1.32 s | 1.64 s* |
+
+\* The server's gzip cache was cold on that first request. ac6fb3a0 now gzips a new version in the background when
+index.html first names it (377 files, 0.8 s, once per deploy), so that cost no longer falls on a visitor.
+The thread-open step found no link in probe2 (a selector after the project click), so it was not re-measured.
+These fixes don't touch thread opening, beyond gzip on its 70–360 KB event reads.
