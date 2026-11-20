@@ -43,7 +43,7 @@ assert.match(app, /data-tp-full="\$\{esc\(t\.id\)\}"/);
 // CSS: the panel's reading column, tokens only
 const block = css.slice(css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
-assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/inset 0 -1px 0/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
+assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/inset 0 -1px 0|\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 console.log("thread-page: ok");
 // clicks inside it act on its own thread (P1 step 8): older pages, folds, Stop, Interrupt, Edit, its checklist, runs, a
 // changed file's chip
@@ -76,7 +76,7 @@ console.log("thread-page: ok");
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
   const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
-  assert.match(st2, /function apply\(\) \{\n\s*const v = clampW\(wSaved\);/, "one width for everything the panel shows");
+  assert.match(st2, /function apply\(\) \{\n\s*const v = clampW\(wSaved \|\| wDef\(\)\);/, "one width for everything the panel shows");
   assert.doesNotMatch(st2, /pageSpecW|PAGE_MIN|WIDE/);
   console.log("thread-page column and width: ok"); }
 

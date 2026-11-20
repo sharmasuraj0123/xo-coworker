@@ -54,7 +54,7 @@ assert.match(stage.slice(stage.indexOf("function close("), stage.indexOf("functi
 assert.match(fp, /close: \(\) => \{ if \(viewer\.hasFile\) viewer\.close\(\{ restore: false \}\); files\.hide\(\); \},/);
 
 // one width: the panel's, for every page; nothing beside it moves when a page opens
-assert.match(stage, /function apply\(\) \{\n\s*const v = clampW\(wSaved\);/);
+assert.match(stage, /function apply\(\) \{\n\s*const v = clampW\(wSaved \|\| wDef\(\)\);/);
 assert.doesNotMatch(code, /pageSpecW|PAGE_MIN|clampP|\bWIDE\b|S\.wide|xo-stage-w:/);
 assert.doesNotMatch(fp.replace(/\/\/[^\n]*/g, ""), /\bwidth: /);
 // --rp has one source per side panel: the viewer and the Map live in the panel now, so neither reserves room of its own
@@ -88,3 +88,12 @@ assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\
   assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
   assert.match(app, /if \(SH\.owns\(e\)\) \{/); }
 console.log("stage-pages: ok");
+// the default width is 2/5 of the main area (the owner, 20 Nov: main and panel 3:2); the chat keeps 480; a drag is kept
+assert.match(stage, /const W_KEY = "xo-stage-w2", W_SHARE = 0\.4, W_MIN = 320, CHAT_MIN = 480;/);
+assert.match(stage, /const wDef = \(\) => \(innerWidth - sideW\(\)\) \* W_SHARE;/);
+assert.match(stage, /const clampW = \(w\) => Math\.round\(Math\.max\(W_MIN, Math\.min\(innerWidth - sideW\(\) - CHAT_MIN, w\)\)\);/);
+// All files sits in the head beside Shell, not in Changes; pressed while Files shows, it goes back
+assert.match(stage, /<span class="stg-pa"><\/span>\$\{openFiles \? `<button type="button" class="stg-ic" data-open-files/);
+assert.doesNotMatch(stage, /class="fr-ib" data-open-files/);
+assert.match(stage, /if \(t\.closest\("\[data-open-files\]"\)\) \{ if \(S\.page\?\.name === "files"\) back\(\); else openFiles && openFiles\(\); return; \}/);
+console.log("stage-pages width and All files: ok");
