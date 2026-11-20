@@ -259,10 +259,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       return `<li><button type="button" class="ch-r" data-change="${esc(x.rel)}" data-change-project="${esc(x.project)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="ch-i">${fileIcon(x.path)}</span><span class="ch-copy"><span class="ch-n">${esc(name)}</span>${dir ? `<span class="ch-path">${esc(dir)}</span>` : ""}</span><span class="ch-m m-${esc(x.live ? "live" : x.mark)}">${esc(x.live ? "editing" : x.mark)}</span></button></li>`;
     }).join("")}</ul>`;
   }
-  // one head: the place on the sections; on a page ‹, its lead control and its title
+  // one head: on a page ‹, its lead control and its title; on the sections only the panel's controls
   function titleHtml() {
-    const place = nameOf(view());
-    if (!S.page) return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`;
+    if (!S.page) return ""; // the sections name no place: the chat beside them already does
     const sp = PAGES.get(S.page.name), title = pageTitle(S.page);
     const to = S.under ? pageTitle(S.under) : "Threads, Changes and Map", need = !S.under && sectionsNeed();
     const back = `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to ${esc(to)} (Esc)" aria-label="Back to ${esc(to)}${need ? ", something needs you" : ""}">${ICON.back}${need ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>`;
