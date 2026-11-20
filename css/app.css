@@ -731,9 +731,9 @@ button.hr:active{transform:scale(.97)}
 .composer textarea::-webkit-scrollbar{display:none;width:0;height:0}
 .composer textarea::placeholder{color:var(--ink-5)}
 .composer textarea:focus-visible{outline:none}
-.composer-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-/* the composer row's words: its target and its model chip, one size */
-:is(.target,.iq){font-size:var(--fs-body);line-height:var(--lh-body)}
+.composer-row{display:flex;align-items:center;gap:var(--s-2);margin-top:6px}
+/* the composer row's settings speak at the meta step, their icons and marks one step smaller with them */
+:is(.target,.iq){--ic:var(--ic-sm);font-size:var(--fs-sm);line-height:var(--lh-12)}
 .target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--fill-2);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
@@ -784,7 +784,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    routing folded away. What you pick shows at once and applies when it closes, as one change with Undo.
    Geometry: a 12 px float whose rows sit 6 px in (its 1 px line and 5 px of padding), so their 6 px corners
    are concentric with it (12 − 6); the phone sheet: 22, rows 16 in, 6. */
-.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,46%);height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* the model chip never shrinks for the target, only to leave Attach and Send their room */
+.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 .iq-l{min-width:0;overflow:hidden;text-overflow:ellipsis}
