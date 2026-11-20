@@ -584,6 +584,12 @@ class Gzip(unittest.TestCase):
         self.assertEqual(h.get("content-encoding"), "gzip")
         self.assertIn("importmap", gzip.decompress(body).decode())
 
+    def test_a_new_version_is_gzipped_ahead_of_its_first_visit(self):
+        serve._WARMED["version"] = None
+        serve._GZ.pop(os.path.join(ROOT, "js", "storm.js"), None)
+        fetch("/")
+        self.assertTrue(wait_for(lambda: os.path.join(ROOT, "js", "storm.js") in serve._GZ, 30))
+
     def test_fonts_are_not_gzipped(self):
         self.assertFalse(serve.gzippable("font/woff2", 50000))
         self.assertTrue(serve.gzippable("application/json; charset=utf-8", 5000))

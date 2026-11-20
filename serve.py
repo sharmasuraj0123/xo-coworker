@@ -42,6 +42,7 @@ import gzip
 import hashlib
 import http.client
 import ipaddress
+import mimetypes
 import os
 import posixpath
 import re
@@ -358,6 +359,29 @@ def gzipped(path: str, st: os.stat_result) -> bytes:
     return got[1]
 
 
+_WARMED = {"version": None}
+
+
+def warm_gzip(version: str, root: str = ROOT) -> None:
+    """Gzip a new version's text files once, off the request path, so its first visit doesn't wait on it."""
+    if _WARMED["version"] == version:
+        return
+    _WARMED["version"] = version
+
+    def run():
+        for top in VERSIONED:
+            for d, _, files in os.walk(os.path.join(root, top)):
+                for f in files:
+                    path = os.path.join(d, f)
+                    try:
+                        st = os.stat(path)
+                        if gzippable(mimetypes.guess_type(path)[0] or "", st.st_size):
+                            gzipped(path, st)
+                    except OSError:
+                        pass
+    threading.Thread(target=run, daemon=True).start()
+
+
 class Handler(SimpleHTTPRequestHandler):
     server_version = "xo-chat-ui"
     protocol_version = "HTTP/1.1"
@@ -434,7 +458,9 @@ class Handler(SimpleHTTPRequestHandler):
     def _index(self):
         try:
             with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as fh:
-                html = versioned_index(fh.read(), tree_version())
+                version = tree_version()
+                html = versioned_index(fh.read(), version)
+            warm_gzip(version)
         except OSError:
             return self.send_error(404)
         body = html.encode()
