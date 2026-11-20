@@ -2016,6 +2016,17 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .sc-b b{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .sc-b span{font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-3)}
 .set-row.is-sub{margin-top:4px}
+/* a row whose choice is a set of cards: its words above, the cards below on the row's whole width */
+.set-row.is-stack{flex-direction:column;align-items:stretch}
+.fl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--s-10) * 3),1fr));gap:var(--s-2);margin-top:0}
+.fl-opt{flex-direction:column;align-items:stretch;gap:var(--s-2);padding:var(--s-2)}
+/* a flavour's swatch: its canvas, a card of its surface on its line, a line of its words, and XO's green */
+.fl-sw{position:relative;display:block;height:var(--s-12);border-radius:var(--r);background:var(--sw-canvas);box-shadow:inset 0 0 0 1px var(--sw-line)}
+.fl-sw::before{content:"";position:absolute;inset:var(--s-2) var(--s-2) var(--s-2) var(--s-6);border-radius:var(--r-sm);background:var(--sw-surface);box-shadow:inset 0 0 0 1px var(--sw-line)}
+.fl-sw::after{content:"";position:absolute;left:var(--s-8);top:var(--s-4);width:45%;height:var(--s-1);border-radius:var(--r-pill);background:var(--sw-ink);box-shadow:0 var(--s-2) 0 0 var(--sw-ink-3)}
+.fl-sw{background-image:radial-gradient(circle at var(--s-3) var(--s-3),var(--accent-fill) 0 var(--s-1),transparent calc(var(--s-1) + .5px))}
+.fl-n{font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans);color:var(--ink-2);text-align:left}
+.fl-opt.is-on .fl-n{color:var(--ink)}
 .set-row.dm.is-on{border-color:color-mix(in srgb,var(--accent-fill) 35%,var(--line-soft))}
 /* a link in a row's words (a model's "about it") is one short action: it stays on one line while the words around it wrap */
 .set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong);white-space:nowrap}
