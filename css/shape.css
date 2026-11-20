@@ -11,7 +11,7 @@
    still carry their own heights from before Plan F, so they're named until they move onto the tokens. */
 :root[data-density="compact"] :is(.main,.sheet,.iq-pop){
   --h-row:32px; --h-ctl:var(--h-sm);
-  --fs-lg:var(--fs-body); --lh-15:var(--lh-body);
+  --fs-lg:var(--fs-body); --lh-15:var(--lh-body); --fs-read:var(--fs-body); --lh-read:var(--lh-body);
 }
 [data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
 /* the composer's two circles stay concentric with its 28 px corner: both 32 (r 16), 12 px in (1 + 11), 16 + 12 = 28 */
