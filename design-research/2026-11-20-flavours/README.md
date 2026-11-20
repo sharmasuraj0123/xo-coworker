@@ -177,3 +177,16 @@ An accent other than XO green is possible in the same system. I'd still hold it 
 | Send icon on green | #141414 | #1A1A1A | 6/255 |
 | Map node hover edge | #ABABAB | #BDBDBD | 18/255, the one visible change |
 | composer focus edge, button hover, Map dots, folder, tag, separator, tool hover, destructive card edge | | | 1–3/255 each, invisible |
+
+## 8. More flavours (owner, 2026-11-20 22:38Z)
+
+These are inspired by other dark themes, not copies of them. The ideas are borrowed, the values are our own, and every one goes through the same generator and contrast test.
+
+| ours | after | how |
+|---|---|---|
+| Dusk | Gemini's near-black with a hint of blue | hue 265, chroma .007 |
+| Harbor | GitHub dark dimmed, Nord, One Dark: a lifted blue-grey that's easier on the eyes | hue 245, chroma .022, dark lifted +.06 (words rise with it) |
+| Plum | Catppuccin Mocha, Dracula, Tokyo Night: a violet-tinted dark | hue 300, chroma .02, lift +.03 |
+| Onyx | Gemini's Android true black, Warp, OLED themes | no tint, dark lowered −.09 (words stay put); in light it is Stone |
+
+The accent stays XO green in every flavour. Linear's indigo, Raycast's red and Gemini's blue would need the accent split from "done", because green marks done across the app. That's for the owner to decide.
