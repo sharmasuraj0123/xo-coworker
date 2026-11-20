@@ -749,10 +749,12 @@ button.hr:active{transform:scale(.97)}
 .composer textarea::placeholder{color:var(--ink-5)}
 .composer textarea:focus-visible{outline:none}
 .composer-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.target{display:inline-flex;align-items:center;gap:6px;min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);font-size:var(--fs-sm);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+/* the composer row's words: its target and its model chip, one size */
+:is(.target,.tp-target,.iq){font-size:var(--fs-base);line-height:var(--lh-14)}
+.target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--fill-2);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
-.target svg{flex:none;width:13px;height:13px}
+.target svg{flex:none;width:var(--ic);height:var(--ic)}
 .target .tg-t svg{color:var(--info)}
 .target .muted{overflow:hidden;text-overflow:ellipsis}
 .send{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);margin:-2px -2px -2px 0;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
@@ -796,7 +798,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    routing folded away. What you pick shows at once and applies when it closes, as one change with Undo.
    Geometry: a 12 px float whose rows sit 6 px in (its 1 px line and 5 px of padding), so their 6 px corners
    are concentric with it (12 − 6); the phone sheet: 22, rows 16 in, 6. */
-.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,46%);height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);white-space:nowrap;font-variant-numeric:tabular-nums}
+.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,46%);height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 .iq-l{min-width:0;overflow:hidden;text-overflow:ellipsis}
