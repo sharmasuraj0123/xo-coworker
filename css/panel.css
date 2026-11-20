@@ -14,21 +14,15 @@
 
 .stage{container:stage / inline-size;--pe:12px;--pn:36px}
 
-/* ── the strip: 40 px; quiet tabs, the one in front underlined; under 360 px the counts step aside, the names stay ─ */
-.stg-bar{box-sizing:border-box;min-height:0;height:var(--h-lg);padding:0 8px 0 4px;gap:4px;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint)}
-.stg-tabs{gap:0;overflow:visible;align-self:stretch}
-.stg-tab{height:39px;padding:0 8px;gap:8px;border-radius:0;background-color:transparent!important;box-shadow:none!important;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3)}
-.stg-tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background var(--d-hover) var(--ease)}
-.stg-tab:hover{color:var(--ink-2)}
-.stg-tab.is-on{color:var(--ink)}
-.stg-tab.is-on::after{background:var(--ink-2)}
-.stg-tab svg{width:16px;height:16px}
-.stg-n{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.stg-acts{gap:4px}
-.stg-ic{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4)}
+/* ── the head: 40 px, one for every state: the place's name on the sections; on a page, ‹ (one level back), the
+   page's own lead control and its title. Then the page's controls (a thread's ⋯), then the panel's (Shell, full size, ×) ─ */
+.stg-bar{position:relative;z-index:2;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:var(--s-1);height:var(--h-lg);padding:0 var(--s-2) 0 var(--pe);box-shadow:inset 0 -1px 0 var(--panel-line,var(--line-faint));background:inherit}
+.stage[data-stg-page] .stg-bar{padding-left:var(--s-1)}
+.stg-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
+.stg-pa{display:contents}
+.stg-ic{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stg-ic svg{width:16px;height:16px}
 .stg-ic:hover{background:var(--fill-2);color:var(--ink)}
-@container stage (max-width:359px){.stg-n{display:none}}
 
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
 body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
@@ -295,11 +289,9 @@ button .spin,.btn .spin{color:inherit}
 
 /* ══ the panel as stacked frames (Premiere's panels): a 40 px title bar, then Agents · Map · Changes,
    each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
-.stg-bar{padding:0 8px 0 var(--pe)}
-.stg-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
-/* the place the panel is beside (a long name gives way first) */
-.stg-name{flex:none;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
-.stg-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.stg-t{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-1);white-space:nowrap;overflow:hidden}
+/* the place, or the page's title: a long one ends in an ellipsis */
+.stg-name{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
 .stg-frames{flex:1;min-height:0;display:flex;flex-direction:column}
 .fr{flex:none;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .fr.is-grow{flex:1 1 0;min-height:96px}
@@ -411,7 +403,6 @@ body.viewer-open .fv~.dock{display:none}
   background:var(--sunken);
 }
 :root[data-theme="light"] .stage{background:var(--sunken);--panel-lift:var(--lift-2)}
-.stage .stg-bar{box-shadow:none;border-bottom:1px solid var(--panel-line)}
 .stage .stg-name{font-weight:var(--fw-strong)}
 .stage .fr-h{height:var(--h-lg);padding:0 12px;border-bottom:0;align-items:center;gap:8px}
 .stage .fr-title{display:flex;align-items:baseline;gap:8px;margin:0;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
@@ -566,10 +557,14 @@ body.stage-covers .herald .hr-conn{display:none}
 /* ── Shell mode: the shells' own dock in the panel, in place of its frames (the owner, 19 Nov) ─────────────────
    The same dock (its tabs, its sessions), filling the panel under its bar; its drag grip has nothing to size here.
    A phone keeps its shells sheet: the panel's Shell button isn't there. */
-/* the panel's page (one panel model, 19 Nov): Shell today, Files and a Thread next; one host in place of the frames */
-.stg-page{display:none}
-.stage[data-page] .stg-frames{display:none}
-.stage[data-page] .stg-page{display:flex;flex:1;min-height:0;flex-direction:column}
+/* the body: the sections and the page share one cell, the page over them. Covered, the sections leave the rendering
+   but stay laid out, so ‹ shows them again at once */
+.stg-body{flex:1;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr)}
+.stg-body>*{grid-area:1/1;min-width:0;min-height:0}
+.stg-page{display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);pointer-events:none}
+.stage[data-stg-page] .stg-page{pointer-events:auto}
+.stage .stg-page>.stg-pg{grid-area:1/1;background:var(--sunken)}
+.stage.is-covered .stg-frames{visibility:hidden;content-visibility:hidden}
 .shd.in-panel{grid-column:auto;grid-row:auto;flex:1;align-self:stretch;align-items:stretch;height:auto;min-height:0;border-top:1px solid var(--line-faint);z-index:auto}
 .shd.in-panel>*{align-self:stretch}
 .shd.in-panel .shd-grip{display:none}
@@ -596,20 +591,12 @@ body.stage-covers .herald .hr-conn{display:none}
 @keyframes fr-flash{from{background:var(--hover-fill)}}
 @media (prefers-reduced-motion:reduce){.stage .fr.is-flash>.fr-h{animation:none}}
 
-/* ── Pages open in the panel, two or more: their tabs in the bar, ‹ back to the sections first (one strip for every
-   kind of page: a shell, files, threads). A tab is a 24 control, its icon and its name; the one showing is filled. */
-.stage .pg-tabs{display:flex;align-items:center;gap:var(--s-1);min-width:0}
-.stage .pg-tab{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);color:var(--ink-3);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);white-space:nowrap}
-.stage .pg-tab span{overflow:hidden;text-overflow:ellipsis}
-.stage .pg-tab svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
-.stage .pg-tab:hover{background:var(--hover-fill);color:var(--ink)}
-.stage .pg-tab.is-on{background:var(--fill-2);color:var(--ink)}
 /* a page's bar leads with ‹ (a 32 control): the title centres on it as the bar's own buttons do (the owner, 19 Nov
    18:00Z: it sat 4 px low, aligned to the button's baseline); the words-only bar keeps its baseline pair */
 .stage .stg-t:has(.pg-back){align-items:center;gap:var(--s-1)}
-/* each page kind's own box in the host, kept while hidden (a file's editor and caret live on) */
-.stage .stg-pg{flex:1;min-height:0;display:flex;flex-direction:column}
-/* ‹ Sections says when the sections need you (an ask in Threads) while a page is up */
+/* each page kind's own box, made once and kept (a thread's conversation, a file's editor and caret live on) */
+.stage .stg-pg{min-height:0;display:flex;flex-direction:column}
+/* ‹ says when the sections need you (an ask in Threads) while a page is up */
 .stage .pg-back{position:relative}
 /* Files' show/hide the file list, first after ‹: on (the list shown) in a stronger ink */
 .stage .pg-lead[aria-pressed="true"]{color:var(--ink-2)}
@@ -625,7 +612,7 @@ body.stage-covers .herald .hr-conn{display:none}
 .stage .tp,.stage .tp .dock{--col-w:calc(100cqw - 2 * var(--s-5));--col-x:var(--s-5);--measure:calc(var(--col-w) - var(--s-12))}
 /* at full size the page reads at the chat's own column (its --col-max), centred, as a thread does on its own page */
 body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--col-max),100cqw - 2 * var(--s-5));--col-x:calc((100cqw - var(--col-w)) / 2)}
-.stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-lg);padding:0 var(--s-3) 0 var(--s-4);box-shadow:inset 0 -1px 0 var(--line-faint)}
+.stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-ctl);padding:0 var(--s-3) 0 var(--s-4);box-shadow:inset 0 -1px 0 var(--line-faint)}
 .stage .tp-br{display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .stage .tp-br svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
 /* the page's checklist takes the header gutter as its own (--hg is the conversation's: undefined here, it voided
@@ -635,7 +622,9 @@ body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--co
 .stage .tp .dock{left:0;right:0;width:auto}
 .stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}
 .stage .tp-target{flex:1;display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;color:var(--ink-3);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
-.stage .tp-full{margin-left:auto}
+/* its ⋯ in the panel's head, there only while the thread shows */
+.stage .tp-acts{display:inline-flex}
+.stage:not([data-stg-page="thread"]) .tp-acts{display:none}
 .stage .tp-menu-w{position:relative;display:inline-flex}
 /* The list snaps row by row (scroll-snap-type: y mandatory), and its filter sits on top of it (sticky). The top of
    the list (the filter, the first group's head) wasn't a place it could rest, so scrolling up to "Needs you" snapped

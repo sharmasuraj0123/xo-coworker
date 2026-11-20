@@ -29,7 +29,7 @@ assert.match(stage, /No thread matches “\$\{esc\(q\)\}”\. <button type="butt
 assert.match(stage, /const g = q \? \{\} : fr\.agents\.groups \|\| \{\}, more = q \? \{ needs: 1, working: 1, waiting: 1, done: 1 \} : S\.tgMore \|\| \{\};/);
 // keys: / in the panel, Esc clears first, ↓ and Enter go to the first match
 assert.match(stage, /if \(e\.key === "\/" && !e\.metaKey && !e\.ctrlKey && !e\.altKey && !e\.target\.closest\?\.\("input, textarea, \[contenteditable\]"\)\)/);
-assert.match(stage, /if \(!fr\.agents\.folded && el\.querySelector\('\[data-fr="agents"\]:not\(\[hidden\]\)'\)\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); findThreads\(\); return; \}/);
+assert.match(stage, /if \(!S\.page && !fr\.agents\.folded && el\.querySelector\('\[data-fr="agents"\]:not\(\[hidden\]\)'\)\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); findThreads\(\); return; \}/);
 assert.match(stage, /if \(e\.key === "Escape" && inp\.value\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); inp\.value = ""; S\.tq = ""; paint\(\); return; \}/);
 assert.match(stage, /aria-keyshortcuts="\/"/);
 // the rows carry what it matches
