@@ -16,7 +16,7 @@
 //     stands; the header's Deploy opens it, and while it's open it has the stack and the others keep their
 //     heads (their own folds are kept for when it closes).
 //
-// Over the sections it shows one page at a time. The panel owns its frame: its head, its width (dragged, 320–720, kept),
+// Over the sections it shows one page at a time. The panel owns its frame: its head, its width (2/5 of the main area, or dragged and kept),
 // whether it's open (kept),
 // the page making room for it (body.stage-open, body.stage-full), and floating over the conversation
 // when that would get too narrow (body.stage-over).
@@ -77,12 +77,12 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
-    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
+    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-body"><div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
-    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "map") +
+    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
     `</div><div class="stg-page"></div></div>`;
   $("#main").appendChild(el);
@@ -522,6 +522,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
   const sectionsNeed = () => { const tg = threads ? threads(view()) : null; return !!tg && tg.some((g) => g.k === "needs" && g.rows.length); };
   function pageChanged() {
+    const fb = el.querySelector("[data-open-files]");
+    if (fb) { const on = S.page?.name === "files"; fb.setAttribute("aria-pressed", String(on)); fb.classList.toggle("is-on", on); }
     const b = el.querySelector("[data-stg-shell]");
     if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel"; }
     S.h.head = ""; paint();
@@ -570,7 +572,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
-    if (t.closest("[data-open-files]")) { openFiles && openFiles(); return; }
+    if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(); else openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
     if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
@@ -713,8 +715,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
-  // ── width: one for everything the panel shows, 320–720, dragged and kept
-  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720;
+  // ── width: one for everything the panel shows; 2/5 of the main area until you drag it (the owner, 20 Nov: 3:2)
+  const W_KEY = "xo-stage-w2", W_SHARE = 0.4, W_MIN = 320, CHAT_MIN = 480;
   // when the conversation beside it would drop under READ px, the panel floats over it (with a shadow)
   // instead of squeezing it: a cut-down thread title is worse than a covered margin
   const READ = 560;
@@ -726,22 +728,23 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     return sideWv;
   };
   addEventListener("resize", () => { sideWv = null; });
-  if (typeof ResizeObserver === "function" && document.querySelector(".side")) new ResizeObserver(() => { sideWv = null; }).observe(document.querySelector(".side"));
-  const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
-  let wSaved = W_DEF;
-  try { wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
+  if (typeof ResizeObserver === "function" && document.querySelector(".side")) new ResizeObserver(() => { sideWv = null; apply(); }).observe(document.querySelector(".side"));
+  const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(innerWidth - sideW() - CHAT_MIN, w)));
+  const wDef = () => (innerWidth - sideW()) * W_SHARE;
+  let wSaved = 0;
+  try { wSaved = Number(localStorage.getItem(W_KEY)) || 0; } catch { /* private mode */ }
   function apply() {
-    const v = clampW(wSaved);
+    const v = clampW(wSaved || wDef());
     document.documentElement.style.setProperty("--sw", `${v}px`);
     document.body.classList.toggle("stage-over", innerWidth > 760 && innerWidth - sideW() - v < READ);
   }
   const setW = (w, save = false) => {
-    wSaved = clampW(w);
+    wSaved = w ? clampW(w) : 0;
     if (save) { try { localStorage.setItem(W_KEY, String(wSaved)); } catch { /* private mode */ } }
     apply();
     return wSaved;
   };
-  setW(wSaved);
+  apply();
   addEventListener("resize", () => { apply(); coverSync(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
@@ -751,16 +754,16 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const right = el.getBoundingClientRect().right;
     document.body.classList.add("stage-sizing");
     const move = (ev) => setW(right - ev.clientX);
-    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(wSaved, true); };
+    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(wSaved || clampW(wDef()), true); };
     grip.addEventListener("pointermove", move);
     grip.addEventListener("pointerup", up, { once: true });
     grip.addEventListener("pointercancel", up, { once: true });
   });
-  grip.addEventListener("dblclick", () => { try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(W_DEF); });
+  grip.addEventListener("dblclick", () => { try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(0); });
   grip.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
-    setW(wSaved + (e.key === "ArrowLeft" ? 16 : -16), true);
+    setW((wSaved || clampW(wDef())) + (e.key === "ArrowLeft" ? 16 : -16), true);
   });
 
   if (saved.open) requestAnimationFrame(() => open({ focus: false }));

@@ -20,7 +20,7 @@
 .panel{max-height:none;height:100%}
 body.stage-full .stage{left:0}
 body.stage-open{--mw:var(--sw);--vw:var(--sw)}
-/* its left edge is the handle: 320–640 px, double-click for 360 */
+/* its left edge is the handle; double-click for the default */
 .stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:calc(var(--grip-w) / -2);width:var(--grip-w);cursor:col-resize;outline:none}
 .stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:calc((var(--grip-w) - 2px) / 2);width:2px;background:transparent;transition:background var(--d-hover) var(--ease)}
 .stg-grip:hover::after,.stg-grip:focus-visible::after,body.stage-sizing .stg-grip::after{background:var(--line-hover)}

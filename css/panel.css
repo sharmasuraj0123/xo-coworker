@@ -612,7 +612,8 @@ body.stage-covers .herald .hr-conn{display:none}
 .stage .tp,.stage .tp .dock{--col-w:calc(100cqw - 2 * var(--s-5));--col-x:var(--s-5);--measure:calc(var(--col-w) - var(--s-12))}
 /* at full size the page reads at the chat's own column (its --col-max), centred, as a thread does on its own page */
 body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--col-max),100cqw - 2 * var(--s-5));--col-x:calc((100cqw - var(--col-w)) / 2)}
-.stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-ctl);padding:0 var(--s-3) 0 var(--s-4);box-shadow:inset 0 -1px 0 var(--line-faint)}
+/* its facts: the same step of space above and below, its line on a pixel of its own (drawn inside, it took one from below) */
+.stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);padding:var(--s-2) var(--s-3) var(--s-2) var(--s-4);border-bottom:1px solid var(--line-faint)}
 .stage .tp-br{display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .stage .tp-br svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
 /* the page's checklist takes the header gutter as its own (--hg is the conversation's: undefined here, it voided
