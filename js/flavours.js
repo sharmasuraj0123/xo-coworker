@@ -8,7 +8,7 @@ export const FLAVOURS = [
   { id: "dusk", name: "Dusk", hue: 265, chroma: 0.007 },
   { id: "harbor", name: "Harbor", hue: 245, chroma: 0.022, lift: 0.06 },
   { id: "plum", name: "Plum", hue: 300, chroma: 0.02, lift: 0.03 },
-  { id: "onyx", name: "Onyx", hue: 0, chroma: 0, lift: -0.09 },
+  { id: "onyx", name: "Onyx", hue: 0, chroma: 0, lift: -0.08 },
   { id: "tide", name: "Tide", hue: 220, chroma: 0.04, lift: 0.03, ink: 0.3, light: { hue: 90, chroma: 0.03 } },
   { id: "ember", name: "Ember", hue: 65, chroma: 0.022, lift: 0.05, ink: 0.6, light: { hue: 88, chroma: 0.04, lift: -0.008, ink: 0.5 } },
   { id: "rose", name: "Rose", hue: 295, chroma: 0.03, lift: 0.02, ink: 0.5, light: { hue: 55, chroma: 0.016, lift: -0.01 } },
