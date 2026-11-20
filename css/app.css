@@ -486,7 +486,7 @@ button:disabled{cursor:default}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px)}}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}
 .m-you.is-new{animation:none}
-.bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl) var(--r-xl) var(--r-sm) var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink);font-size:var(--fs-body);line-height:var(--lh-body);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
+.bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl) var(--r-xl) var(--r-sm) var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink);font-size:var(--fs-read);line-height:var(--lh-read);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
 .m-you.cont .bubble{border-top-right-radius:8px}
 .m-you.is-pending .bubble{opacity:.72}
 .m-you.is-failed .bubble{border-style:dashed;border-color:color-mix(in srgb,var(--err) 65%,var(--line))}
@@ -527,7 +527,7 @@ button:disabled{cursor:default}
 .mh{display:flex;align-items:baseline;gap:8px;min-height:var(--h-ctl);padding-top:5px;font-size:var(--fs-sm);color:var(--ink-4)}
 .mh b{font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .mh time{font-variant-numeric:tabular-nums}
-.prose{max-width:none;font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink);overflow-wrap:anywhere}
+.prose{max-width:none;font-size:var(--fs-read);line-height:var(--lh-read);color:var(--ink);overflow-wrap:anywhere}
 .prose>*+*{margin-top:12px}
 .prose ul,.prose ol{padding-left:1.3em}
 .prose li+li{margin-top:.3em}
@@ -553,8 +553,8 @@ button:disabled{cursor:default}
    table, headings and all (a two-column table isn't always label and value: QA R3); its columns keep room
    for words, and past the frame it scrolls. */
 .md-table{--tl:color-mix(in srgb,currentColor 16%,transparent);margin:12px 0;overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:thin;border:1px solid var(--tl);border-radius:var(--r-lg);container-type:inline-size}
-.md-table table{width:100%;border-collapse:collapse;font-size:var(--fs-body);line-height:var(--lh-body);font-variant-numeric:tabular-nums}
-.md-table th{text-align:left;font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);background:color-mix(in srgb,currentColor 5%,transparent);white-space:nowrap}
+.md-table table{width:100%;border-collapse:collapse;font-size:var(--fs-read);line-height:var(--lh-read);font-variant-numeric:tabular-nums}
+.md-table th{text-align:left;font:var(--fw-strong) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-2);background:color-mix(in srgb,currentColor 5%,transparent);white-space:nowrap}
 .md-table th,.md-table td{min-width:9ch;padding:8px 12px;border-bottom:1px solid color-mix(in srgb,currentColor 10%,transparent);vertical-align:top}
 .md-table tr:last-child td{border-bottom:0}
 @container (max-width:400px){.md-table :is(th,td){min-width:12ch}}
@@ -726,7 +726,7 @@ button.hr:active{transform:scale(.97)}
    composer's 28 px corner is concentric with them (18 + 10). The text starts on the paperclip's glyph. */
 .composer-field{position:relative;padding-left:10px}
 /* #14: no scrollbar; it grows with what you write */
-.composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
+.composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-size:var(--fs-read);line-height:var(--lh-read);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
 .composer textarea.is-capped{overflow-y:auto}
 .composer textarea::-webkit-scrollbar{display:none;width:0;height:0}
 .composer textarea::placeholder{color:var(--ink-5)}
