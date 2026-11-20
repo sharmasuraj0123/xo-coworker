@@ -137,8 +137,8 @@ body.stage-full .stg-grip{display:none}
 /* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
    with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
    their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
-.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans)}
-.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans)}
+.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
+.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
 @media (max-width:760px){.top .badge,.top .tw-rt{height:var(--h-touch)}}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
    is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
@@ -156,7 +156,7 @@ body.stage-full .stg-grip{display:none}
   .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
 }
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
-.pj-s{line-height:var(--lh-14)}
+.pj-s{line-height:var(--lh-body)}
 .top[data-kind="project"] .tw-t{gap:4px}
 .pj-k{color:var(--ink-2);font-weight:var(--fw-medium);font-variant-numeric:tabular-nums}
 .pj-c{white-space:nowrap}
@@ -213,7 +213,7 @@ body.stage-full .stg-grip{display:none}
    avatar beside the turn, so the line needs no icon of its own */
 .turn>.tb>.tb-h .tb-hi{display:none}
 /* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
-.calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-3)}
+.calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-3)}
 /* the panel's content shares one edge (16) with its tabs */
 .md-pane .md-h{padding:16px 16px 2px}
 .md-pane .md-tools{padding:10px 16px}
