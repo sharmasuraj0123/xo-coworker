@@ -814,3 +814,23 @@ export function stopWords(stop) {
   const who = stop.by === "you" ? "Stopped by you" : stop.by === "workspace" ? "Stopped by the workspace coordinator" : stop.by === "coordinator" ? "Stopped by the coordinator" : "Stopped";
   return stop.reason ? `${who} · ${stop.reason}` : who;
 }
+
+const DAY = 86400000;
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+/** The list's day groups: Today, Yesterday, This week, then each month by name (with its year when not this one). */
+export function dayGroup(iso, now = new Date()) {
+  const t = new Date(Date.parse(iso)), ms = t.getTime(), day = startOfDay(now);
+  if (!Number.isFinite(ms)) return "Earlier";
+  if (ms >= day) return "Today";
+  if (ms >= day - DAY) return "Yesterday";
+  if (ms >= day - 6 * DAY) return "This week";
+  return t.toLocaleDateString(undefined, t.getFullYear() === now.getFullYear() ? { month: "long" } : { month: "long", year: "numeric" });
+}
+/** A row's time: the clock within the last two days (its group names the day), the weekday this week, else the date. */
+export function rowTime(iso, now = new Date()) {
+  const t = new Date(Date.parse(iso)), ms = t.getTime(), day = startOfDay(now);
+  if (!Number.isFinite(ms)) return "";
+  if (ms >= day - DAY) return t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  if (ms >= day - 6 * DAY) return t.toLocaleDateString(undefined, { weekday: "short" });
+  return t.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}

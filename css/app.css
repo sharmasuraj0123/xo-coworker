@@ -2076,15 +2076,23 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* live: a model's efforts come from the catalog (up to five); each pip is one effort */
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
-.ch-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin:6px 0 24px}
-.ch-row{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-row-list);padding:8px 14px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
-.ch-row:hover{border-color:var(--line-hover)}
-.ch-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.ch-t{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ch-m{font-size:var(--fs-sm);line-height:var(--lh-12);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ch-a{flex:none;font-size:var(--fs-sm);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.ch-a.is-need{color:var(--warn);font-weight:var(--fw-strong)}
-.ch-calm{margin-top:12px}
+.chl{display:flex;flex-direction:column;gap:var(--s-6);margin:var(--s-2) 0 var(--s-6)}
+.chl-h{margin:0 0 var(--s-2);padding:0 var(--s-4);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.chl-list{list-style:none;display:flex;flex-direction:column;margin:0;padding:var(--s-1);border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
+.chl-row{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row-list);padding:var(--s-2) var(--s-3);border-radius:var(--r);text-align:left;transition:background var(--d-hover) var(--ease)}
+@media (hover:hover){.chl-row:hover{background:var(--row-hover)}}
+.chl-tile{position:relative;flex:none;display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r);background:var(--row-bg);border:1px solid var(--row-line);color:var(--ink-3)}
+.chl-tile>.agm{width:var(--ic-lg);height:var(--ic-lg);vertical-align:0}
+/* its state sits on the tile's corner, cut out of the surface behind it */
+.chl-tile>.g{position:absolute;right:calc(-1 * var(--s-1));bottom:calc(-1 * var(--s-1));box-shadow:0 0 0 calc(var(--s-1) / 2) var(--surface);background-color:var(--surface)}
+.chl-tile>.g-needs_approval{background-color:var(--warn)}
+.chl-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chl-t{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chl-m{font-size:var(--fs-sm);line-height:var(--lh-12);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chl-a{flex:none;align-self:start;padding-top:var(--s-1);font-size:var(--fs-sm);line-height:var(--lh-12);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.chl-a.is-need{color:var(--warn);font-weight:var(--fw-strong)}
+.chl-a.is-busy{color:var(--info)}
+.chl-calm{margin-top:var(--s-3)}
 .tg-ch{margin-left:6px;color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:2px}
 .cs-pop{max-height:min(640px,80vh);overflow-y:auto}
 .cs-f{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:var(--fs-sm);color:var(--ink-3)}
