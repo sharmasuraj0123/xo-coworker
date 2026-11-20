@@ -190,7 +190,12 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
 
   // ── runtimes: the first of the three choices ───────────────────────────────
   const rts = () => world.state.runtimes || [];
-  const chatPolicy = (c) => (c && c.chatId && world.state.chatPolicy && world.state.chatPolicy[c.chatId]) || null;
+  const chatPolicy = (c) => {
+    if (!c || !c.chatId) return null;
+    const own = world.state.chatPolicy && world.state.chatPolicy[c.chatId];
+    if (!own) world.act.loadChatPolicy?.(c.chatId);
+    return own || null;
+  };
   const spaceEff = () => (world.state.policy && world.state.policy.effective) || null;
   /** The runtimes offered here, which one is on, and whether there is a choice at all. */
   function runtimeChoice(s) {
