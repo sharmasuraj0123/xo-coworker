@@ -40,11 +40,17 @@ const INK_LIFT = 0.8;
  * when the surfaces come toward them, and words take ink × the chroma. Chroma is cut back until it fits sRGB.
  */
 export function tint(rgb, look, dark) {
-  const { hue, chroma, lift = 0, ink = 1 } = look;
-  let [L] = toOklab(rgb);
-  const word = dark ? L >= 0.5 : L < 0.5;
+  const { hue, chroma, lift = 0, ink = 1, canvas } = look;
+  const L0 = toOklab(rgb)[0];
+  const word = dark ? L0 >= 0.5 : L0 < 0.5;
   const toward = dark ? Math.max(0, lift) : Math.min(0, lift);
-  L = Math.min(1, Math.max(0, L + (word ? toward * INK_LIFT : lift)));
+  let L = Math.min(1, Math.max(0, L0 + (word ? toward * INK_LIFT : lift)));
+  // a surface or line never comes closer to the canvas than Stone has it: its contrast with the canvas is kept
+  if (!word && lift && canvas != null && L0 !== canvas) {
+    const Y = (l) => Math.max(0, l) ** 3, Lof = (y) => Math.cbrt(Math.max(0, y));
+    const r = (Y(L0) + 0.05) / (Y(canvas) + 0.05), kept = Lof(r * (Y(canvas + lift) + 0.05) - 0.05);
+    L = L0 > canvas ? Math.max(L, kept) : Math.min(L, kept);
+  }
   let lo = 0, hi = word ? chroma * ink : chroma;
   if (inGamut(fromOklch(L, hi, hue))) lo = hi;
   else for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (inGamut(fromOklch(L, mid, hue))) lo = mid; else hi = mid; }
@@ -92,9 +98,13 @@ const SEL = {
 /** One flavour's blocks: every grey Stone sets in a place, re-tinted, in Stone's order. */
 /** A flavour's look in each mode: light takes the dark look without its lift, then its own light settings. */
 export const looks = (f) => { const dark = { hue: f.hue, chroma: f.chroma, lift: f.lift || 0, ink: f.ink ?? 1 }; return { dark, light: { ...dark, lift: 0, ...(f.light || {}) } }; };
+const Lof = (hex) => toOklab([1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)))[0];
 
 export function flavourBlocks(f, s = stone()) {
   const L = looks(f);
+  // each mode's canvas, where its surfaces' and lines' contrast is measured from
+  L.dark.canvas = Lof(new Map(s.main.dark).get("--canvas"));
+  L.light.canvas = Lof(new Map([...s.main.dark, ...s.main.light]).get("--canvas"));
   const re = (list, look, dark) => list.filter(([k, v]) => !KEEP.has(k) && greyOf(v)).map(([k, v]) => { const g = greyOf(v); return [k, g.out(tint(g.rgb, look, dark))]; }).filter(([k, v]) => v !== list.find(([x]) => x === k)[1]);
   const uniq = (list) => [...new Map(list).entries()];
   // light inherits whatever the dark root sets and light doesn't, so its block is taken from the two merged

@@ -70,5 +70,16 @@ for (const [id, mode, props] of palettes) {
   });
 }
 
+// boundaries: a flavour's lines and raised surfaces stand off its canvas at least about as well as Stone's (the owner,
+// 22:58Z: Onyx was too black to see where things end)
+const EDGES = [["--line", "--canvas"], ["--line", "--surface"], ["--surface", "--canvas"], ["--float", "--canvas"], ["--line-soft", "--surface"], ["--fill-2", "--surface"], ["--sunken", "--canvas"]];
+const stoneEdge = Object.fromEntries(palettes.filter(([id]) => id === "stone").map(([, mode, p]) => [mode, EDGES.map(([a, b]) => ratio(color(`var(${a})`, p), color(`var(${b})`, p)))]));
+for (const [id, mode, props] of palettes.filter(([id]) => id !== "stone")) {
+  t(`${id} in ${mode}: lines and surfaces keep at least 85% of Stone's step from what they sit on`, () => {
+    const low = EDGES.map(([a, b], i) => [a, b, ratio(color(`var(${a})`, props), color(`var(${b})`, props)), stoneEdge[mode][i]]).filter(([, , r, st]) => r - 1 < 0.85 * (st - 1)).map(([a, b, r, st]) => `${a} on ${b} ${r.toFixed(3)} (Stone ${st.toFixed(3)})`);
+    assert.deepEqual(low, []);
+  });
+}
+
 if (failed) { console.log(`${failed} FAILED`); process.exit(1); }
 console.log("all passed");
