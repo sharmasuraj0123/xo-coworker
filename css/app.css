@@ -851,7 +851,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-row.is-sel .iq-ck{opacity:1;transform:none}
 /* a segmented choice (thinking, runtime, routing): an 8 px track, its 6 px segments 2 px in (8 − 2) */
 .iq-route{display:flex;gap:2px;margin:0 4px;padding:4px;border-radius:var(--r);background:var(--fill-2)}
-.iq-route button{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:var(--h-sm);padding:0 6px;border-radius:calc(var(--r) - 4px);color:var(--ink-3);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);white-space:nowrap}
+/* each choice is at least as wide as its mark and name, so a long one never spills into the next */
+.iq-route button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:var(--h-sm);padding:0 6px;border-radius:calc(var(--r) - 4px);color:var(--ink-3);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);white-space:nowrap}
 .iq-route button:hover:not([aria-checked="true"]):not([aria-disabled="true"]){color:var(--ink);background:var(--hover-fill)}
 .iq-route button[aria-checked="true"]{background:var(--float);color:var(--ink);box-shadow:0 0 0 1px var(--line-soft),0 1px 2px rgb(0 0 0 / calc(.18 * var(--sha)))}
 .iq-route button[aria-disabled="true"]{color:var(--ink-5);cursor:default}
