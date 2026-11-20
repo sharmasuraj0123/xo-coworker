@@ -162,9 +162,10 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 node tests/logic.test.mjs        # pure modules; the live-data part only sends GETs through :5180
 node tests/attach.test.mjs       # files on a message and the hop line; no network
 node tests/shells.test.mjs       # shells' pure parts, and the vendored xterm hashes; no network
-python3 tests/serve.test.py      # serve.py: the Host allowlist and the WebSocket tunnel, against fake backends
+python3 tests/serve.test.py      # serve.py: the Host allowlist, the WebSocket tunnel, versioned caching and gzip, against fake backends
 node tests/storm.test.mjs        # the stream parser and the turn store; no network
 node tests/busy.test.mjs         # "Working": storm's busy, the live rule between reads, waiting on you; fake fetch and stream
+node tests/boot.test.mjs         # boot: the first draw waits for the stream's first frame (no timer), never the projects' own policies; fake fetch and stream
 node tests/turnview.test.mjs     # how a turn renders: changed-file chips, runtime notices; no network
 node tests/runtimes.test.mjs     # runtimes, policy, moves and the usage-limit card; no network
 node tests/files.test.mjs        # Files: which folder a view shows, where an opened file sits in it; no network
