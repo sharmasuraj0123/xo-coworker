@@ -461,14 +461,9 @@ function rtTag(t, cls) {
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;
 }
 /** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
-// The steer hint is off until xo-space's deploy makes a reply join the running turn: the composer never
-// promises what the backend doesn't do yet. Turn it on with that deploy (the runtimes already say "steered").
-const STEER_LIVE = false;
 const sendWhileRunning = (t) => {
   const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running;
-  const how = (f && f.behaviour) || null;
-  // "queued" is true today (agy waits for the turn); "steered" only once the backend half is deployed
-  return how === "steered" && !STEER_LIVE ? null : how;
+  return (f && f.behaviour) || null;
 };
 /** F4: a thread may continue elsewhere when another runtime its project allows can take work now, once. */
 const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
@@ -1081,12 +1076,12 @@ function threadCardHtml(tid, needs) {
 }
 
 /** Under your message that waits for the agent's turn to end: what happens to it, and Interrupt. */
-function queuedMeta(conv) {
+function queuedMeta(conv, answered = false) {
   const t = convThread(conv);
   if (!t) return "";
   if (S.stops.has(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
   // a runtime that steers took it into the running turn: nothing waits, nothing to interrupt (F7)
-  if (sendWhileRunning(t) === "steered") return `<div class="meta"><span>Sent into its current turn</span></div>`;
+  if (sendWhileRunning(t) === "steered") return answered ? "" : `<div class="meta"><span>Sent into its current turn</span></div>`;
   const run = running(conv); // the conversation it's drawn in (the main chat, or a thread page in the panel)
   const n = workingRuns(t);
   const title = `Stop the agent's current turn${n ? ` and its ${n} sub-agent${n === 1 ? "" : "s"}` : ""} so it reads this now (Undo for 3 s)`;
@@ -1199,7 +1194,7 @@ function msgItemsOf(conv, needs) {
       let meta = "";
       if (m.status === "sending") meta = `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`;
       else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
-      else if (m === lastQueued) meta = queuedMeta(conv);
+      else if (m === lastQueued) meta = queuedMeta(conv, answeredAfter(list, m));
       else if (m === lastYou && (m.status === "sent" || m.sent) && !answeredAfter(list, m)) {
         // a receipt that follows the message only as far as the record proves: received by XO, then handed to a
         // thread (a relay or brief hop that names this message); it goes once an answer is on screen
