@@ -102,3 +102,6 @@ assert.match(stage, /const placeless = \(\) => \{ const v = view\(\); return v =
 assert.match(stage, /if \(placeless\(\)\) \{ if \(S\.open\) \{ S\.resume = true; close\(\{ restore: false, quiet: true \}\); \} \}\n\s*else if \(S\.resume\) \{ S\.resume = false; open\(\{ focus: false \}\); \}/);
 assert.match(stage, /if \(saved\.open\) S\.resume = true;/);
 console.log("stage-pages home: ok");
+// the sections' head names no place (the owner, 20 Nov: the chat beside it already does); a page still shows its title
+assert.match(stage, /if \(!S\.page\) return ""; \/\/ the sections name no place/);
+console.log("stage-pages head: ok");
