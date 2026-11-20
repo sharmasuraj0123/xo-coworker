@@ -74,7 +74,7 @@ console.log("thread-page: ok");
 
 // the page's one reading column: its messages and its dock (asks line, composer) share their edges
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
-  assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
+  assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--gut-min\)\);--col-x:var\(--gut-min\);/);
   const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
   assert.match(st2, /function apply\(\) \{\n\s*const v = clampW\(wSaved \|\| wDef\(\)\);/, "one width for everything the panel shows");
   assert.doesNotMatch(st2, /pageSpecW|PAGE_MIN|WIDE/);
@@ -112,7 +112,7 @@ assert.match(app, /render\(\); \/\/ drawn now, in the click/);
   assert.doesNotMatch(a3, /body\.stage-full \.dock,body\.stage-full \.tdock\{/, "never every dock");
   // and at full size the page reads at the chat's own column, centred (it ran edge to edge)
   const p3 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
-  assert.match(p3, /body\.stage-full \.stage \.tp,body\.stage-full \.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--s-5\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\)\}/); }
+  assert.match(p3, /body\.stage-full \.stage \.tp,body\.stage-full \.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\)\}/); }
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
