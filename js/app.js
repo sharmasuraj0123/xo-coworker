@@ -4195,13 +4195,13 @@ $("#webpics-tog").addEventListener("click", (e) => {
 // Settings › Appearance › Mode and Flavour: this device's (localStorage cv-theme and cv-flavour, read before the first paint)
 const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
 const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
-for (const [id, list, key] of [["#mode-seg", MODES, "mode"], ["#flavour-seg", LOOKS, "flavour"]]) {
-  $(id).innerHTML = list.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-${key}="${v}">${esc(n)}</button>`).join("");
-  radioKeys($(id));
-}
+$("#mode-seg").innerHTML = MODES.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-mode="${v}">${esc(n)}</button>`).join("");
+// each flavour a card with its own swatch (css/flavours.css paints .fl-sw in the mode that's on)
+$("#flavour-seg").innerHTML = LOOKS.map(([v, n]) => `<button type="button" class="set-choice fl-opt" role="radio" aria-checked="false" data-flavour="${v}"><span class="fl-sw" data-sw="${v}" aria-hidden="true"></span><span class="fl-n">${esc(n)}</span></button>`).join("");
+radioKeys($("#mode-seg")); radioKeys($("#flavour-seg"));
 function lookSync() {
   for (const [id, now] of [["#mode-seg", THEME.pref()], ["#flavour-seg", THEME.flavour()]]) {
-    for (const b of $(id).querySelectorAll('[role="radio"]')) { const on = (b.dataset.mode || b.dataset.flavour) === now; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; }
+    for (const b of $(id).querySelectorAll('[role="radio"]')) { const on = (b.dataset.mode || b.dataset.flavour) === now; b.setAttribute("aria-checked", String(on)); b.classList.toggle("is-on", on); b.tabIndex = on ? 0 : -1; }
   }
 }
 function lookSet(key, v) {

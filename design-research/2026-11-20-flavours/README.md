@@ -177,3 +177,40 @@ An accent other than XO green is possible in the same system. I'd still hold it 
 | Send icon on green | #141414 | #1A1A1A | 6/255 |
 | Map node hover edge | #ABABAB | #BDBDBD | 18/255, the one visible change |
 | composer focus edge, button hover, Map dots, folder, tag, separator, tool hover, destructive card edge | | | 1–3/255 each, invisible |
+
+## 8. The flavour set (owner, 2026-11-20 22:38Z and 22:44Z)
+
+Each flavour is inspired by a palette people like, but none copies one. The ideas are borrowed, the names and values are ours, and every flavour goes through the same generator (tools/flavours/build.mjs) and the same contrast test.
+
+Generator inputs:
+- `hue` and `chroma`: the tint every grey takes.
+- `ink`: how much of that tint the words take.
+- `lift`: moves the surfaces. In dark, + is dimmer and − is deeper. In light, − is a darker paper. Words follow only when the surfaces come toward them.
+- `light`: the light mode's own settings.
+
+| ours | after | dark | light |
+|---|---|---|---|
+| Stone | XO's own | neutral | neutral |
+| Sand | warm paper | hue 75 | same |
+| Slate | cool greys | hue 255 | same |
+| Dusk | Gemini's near-black | hue 265, barely tinted | same |
+| Harbor | GitHub dark dimmed, Nord, One Dark | blue-grey, lifted +.06 | same tint |
+| Plum | Catppuccin Mocha, Dracula, Tokyo Night | violet, +.03 | same tint |
+| Onyx | Gemini on Android, Warp, OLED | true black (−.09) | Stone |
+| Tide | Solarized | deep teal (hue 220, chroma .04) | cream paper (hue 90) |
+| Ember | Gruvbox | warm brown, +.05 | warm cream |
+| Rose | Rosé Pine (and its Dawn) | dusky violet | blush paper |
+| Moss | Everforest | green-grey, +.07 | soft cream |
+| Washi | Kanagawa | ink-blue night | rice paper |
+| Deep | Ayu | blue-black (−.05) | warm white |
+| Midnight | Night Owl | navy (chroma .045, −.03) | cool white |
+| Cinder | Monokai Pro | warm charcoal, +.07 | warm white |
+
+The status hues, XO's green and the mark stay the same in every flavour. Lighter papers were tried and failed the test: on a darker paper, light mode's green and amber text fell under 4.5:1. So the creams get their warmth from tint, not darkness.
+
+**An accent split (proposed, not built).** Gemini's blue, Linear's indigo, Raycast's red, Solarized's yellow and Rosé Pine's rose would each want their own accent. Today `--accent` is both XO's accent and the colour that means done (`--go`), so recolouring it would silently recolour done. The split would work like this:
+- Pin `--go` to XO green.
+- Move every done mark onto `--go`.
+- Leave `--accent` for selection, focus and primary buttons, so a flavour may set it within the contrast test.
+
+That's an audit of every `var(--accent)` use and needs the owner's OK.
