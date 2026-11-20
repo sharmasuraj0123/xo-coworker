@@ -274,7 +274,7 @@ export function startRich() {
   let t = 0;
   new MutationObserver(() => { if (!t) t = setTimeout(() => { t = 0; if (document.querySelector(PENDING)) wake(); }, 50); })
     .observe(document.body, { childList: true, subtree: true });
-  new MutationObserver(() => { if (document.querySelector(".md-diagram.is-done")) wake(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  new MutationObserver(() => { if (document.querySelector(".md-diagram.is-done")) wake(); }).observe(root, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
   document.addEventListener("pointermove", chartHover, { passive: true });
   document.addEventListener("pointerout", chartLeave, { passive: true });
   if (document.querySelector(PENDING)) wake();

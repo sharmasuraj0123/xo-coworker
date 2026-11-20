@@ -111,10 +111,17 @@ const DRAFTS = "cv-drafts:live";
 // Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
 const STOP_ICON = ICON.stop;
 
-// ── theme: dark by default, a slide toggle in the sidebar (#28) ────────────
-const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };
+// ── theme: a mode (dark by default, light, or the system's) and a flavour of the palette (css/flavours.css) ──
+const LIGHT_OS = matchMedia("(prefers-color-scheme: light)");
+const THEME = {
+  pref() { try { const t = localStorage.getItem("cv-theme"); return t === "light" || t === "system" ? t : "dark"; } catch { return "dark"; } },
+  get() { const p = THEME.pref(); return p === "system" ? (LIGHT_OS.matches ? "light" : "dark") : p; },
+  flavour() { try { const f = localStorage.getItem("cv-flavour"); return f && /^[a-z-]+$/.test(f) ? f : "stone"; } catch { return "stone"; } },
+};
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
+  const f = THEME.flavour();
+  if (f === "stone") delete document.documentElement.dataset.flavour; else document.documentElement.dataset.flavour = f;
   setDiffTheme(t); // a drawn diff follows at once (js/diffview.js)
   document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
   // the browser's own chrome (Safari's bars, Android's status bar) takes the canvas's colour
@@ -129,6 +136,7 @@ function applyTheme(t) {
   }
 }
 applyTheme(THEME.get());
+LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") applyTheme(THEME.get()); });
 
 // ── state ───────────────────────────────────────────────────────────────────
 const S = {

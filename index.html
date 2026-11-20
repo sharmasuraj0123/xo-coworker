@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141414">
-  <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+  <!-- the mode and the flavour, set before the first paint (js/app.js applyTheme keeps them after) -->
+  <script>try{var d=document.documentElement,t=localStorage.getItem("cv-theme"),f=localStorage.getItem("cv-flavour");if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.dataset.theme=t==="light"?"light":"dark";if(f&&f!=="stone"&&/^[a-z-]+$/.test(f))d.dataset.flavour=f}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <!-- how the conversation reads (Settings › General): a document, full width, unless this device turned Chat bubbles on;
        set before the first paint so a reload never passes through the other look -->
   <script>try{if(localStorage.getItem("cv-bubbles")==="on"){document.documentElement.dataset.msgx="bubbles";document.documentElement.dataset.msgxTails=""}}catch(e){}</script>
