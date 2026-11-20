@@ -126,7 +126,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const c = current(s), r = running(s);
     // a thread says only what its session reports; when that's nothing, a waiting pin is said as what comes
     // next, never as what runs
-    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.pinned ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: null, next: false };
+    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.model ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: r.effort || c.effort || null, next: false };
     return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
   const live = (s) => !!kindOf(s) && (kindOf(s) !== "thread" || !!threadOf(s));
@@ -180,7 +180,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const r = running(s), { model, effort, next } = shownSetting(s);
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
       if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
-      if (!r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
+      if (!r.model) return `Its session names no model, so it runs its runtime's default${effort ? ` · ${effortWord(effort)}` : ""}. Change it${K.hint("intel")}`;
       const p = pendingOf(s);
       return `${r.working ? "Running" : "Runs"} ${what}${p ? `; next turn: ${p.words}` : ""}. Change it${K.hint("intel")}`;
     }
