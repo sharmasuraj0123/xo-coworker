@@ -84,8 +84,8 @@ const SEL = {
 export function flavourBlocks(f, s = stone()) {
   const re = (list) => list.filter(([k, v]) => !KEEP.has(k) && greyOf(v)).map(([k, v]) => { const g = greyOf(v); return [k, g.out(tint(g.rgb, f.hue, f.chroma))]; });
   const uniq = (list) => [...new Map(list).entries()];
-  // light inherits whatever the dark root sets and light doesn't, so its block carries both
-  const main = { dark: uniq(re(s.main.dark)), light: uniq(re([...s.main.dark, ...s.main.light])), inverse: uniq(re(s.main.inverse)) };
+  // light inherits whatever the dark root sets and light doesn't, so its block is taken from the two merged
+  const main = { dark: re(uniq(s.main.dark)), light: re(uniq([...s.main.dark, ...s.main.light])), inverse: re(uniq(s.main.inverse)) };
   const set = new Set([...main.dark, ...main.light].map(([k]) => k));
   // under prefers-contrast every key the flavour sets is said again, so the contrast values still win
   const hc = (list) => uniq(list.filter(([k]) => set.has(k) || greyOf(list.find(([x]) => x === k)[1])).map(([k, v]) => { const g = !KEEP.has(k) && greyOf(v); return [k, g ? g.out(tint(g.rgb, f.hue, f.chroma)) : v]; }));

@@ -44,6 +44,16 @@ t("a flavour never changes a status hue, the accent or the XO mark", () => {
   assert.deepEqual(set.filter((k) => fixed.includes(k)), []);
 });
 
+t("a flavour only re-tints what is grey in that mode (a colour light sets over dark's grey stays light's)", () => {
+  const grey = (v) => /^#([0-9A-F]{2})\1\1$/i.test(v) || /^rgba\((\d+),\1,\1,[\d.]+\)$/.test(v.replace(/\s+/g, ""));
+  const odd = [];
+  for (const f of FLAVOURS) {
+    const b = flavourBlocks(f);
+    for (const [mode, list] of [["dark", b.main.dark], ["light", b.main.light]]) for (const [k] of list) if (!grey(stone[mode][k])) odd.push(`${f.id} ${mode} ${k}: Stone has ${stone[mode][k]}`);
+  }
+  assert.deepEqual(odd, []);
+});
+
 const SURFACES = ["--canvas", "--surface", "--float", "--sunken"];
 const pairs = [
   ...["--ink", "--ink-2", "--ink-3", "--ink-4", "--accent", "--warn", "--info", "--violet", "--err-ink"].flatMap((fg) => SURFACES.map((bg) => [fg, bg, 4.5])),
