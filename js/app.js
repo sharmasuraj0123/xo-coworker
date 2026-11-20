@@ -2332,7 +2332,12 @@ function updateComposer(K = MK) {
     const w = world.state.threads.filter((x) => x.project === p.id && isBusy(x)).length;
     return `<li role="option" id="at-${i}" data-pid="${esc(p.id)}" aria-selected="${i === atList._sel}"><span class="at-ic" aria-hidden="true">${projectIcon(p.id)}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
   }).join("");
+  if (atList.hidden) atList.style.setProperty("--at-room", `${Math.round($("#composer").getBoundingClientRect().top)}px`);
   atList.hidden = false;
+  const li = atList.children[atList._sel];
+  // the keyboard's row stays in view inside the list's own scroll (never scrollIntoView: it would move the chat too)
+  if (li.offsetTop < atList.scrollTop) atList.scrollTop = li.offsetTop;
+  else if (li.offsetTop + li.offsetHeight > atList.scrollTop + atList.clientHeight) atList.scrollTop = li.offsetTop + li.offsetHeight - atList.clientHeight;
   say.setAttribute("aria-expanded", "true");
   say.setAttribute("aria-activedescendant", `at-${atList._sel}`);
 }

@@ -760,7 +760,8 @@ button.hr:active{transform:scale(.97)}
 .send.is-stop svg{width:var(--ic-lg);height:var(--ic-lg)}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}
-.at-list{position:absolute;left:calc(-1 * var(--halo));bottom:100%;margin-bottom:12px;z-index:6;list-style:none;min-width:260px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
+/* the @ list: the composer popovers' list height, its own scroll, never past the top bar (app.js sets --at-room) */
+.at-list{max-height:min(var(--pop-list-h),var(--at-room,100dvh) - var(--h-bar) - var(--s-3));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;position:absolute;left:calc(-1 * var(--halo));bottom:100%;margin-bottom:var(--s-3);z-index:6;list-style:none;min-width:260px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
 /* a row: 40 on a desktop (10 + its 20 px line + 10; it was 36: grader B on ba93c9b, C058) */
 .at-list li{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);cursor:pointer}
 .at-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
@@ -822,7 +823,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-now{padding:0 10px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .iq-now b{color:var(--ink-2);font-weight:var(--fw-medium)}
 .iq-lab{padding:10px 10px 4px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
-.iq-list{display:flex;flex-direction:column;max-height:min(296px,40vh);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.iq-list{display:flex;flex-direction:column;max-height:var(--pop-list-h);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .iq-row{flex:none;display:flex;align-items:center;gap:10px;min-width:0;height:var(--h-row);padding:0 10px;border-radius:var(--r-sm);cursor:pointer;outline:none}
 .iq-row:hover{background:var(--hover-fill)}
 .iq-row:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
