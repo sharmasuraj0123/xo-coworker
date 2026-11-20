@@ -58,6 +58,7 @@ export const ICON = {
   pause: xi("pause"),
   hourglass: xi("hourglass"),
   sun: xi("sun"),
+  contrast: xi("contrast"),
   rule: xi("rules"),
   key: xi("key"),
   // a thread: one agent's conversation with words in it (Chats keeps the empty bubble, `thread`)

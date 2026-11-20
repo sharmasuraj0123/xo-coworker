@@ -4192,7 +4192,7 @@ $("#webpics-tog").addEventListener("click", (e) => {
   const on = !SHAPE.on(WEBPICS);
   deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
-// Settings › General › Mode and Flavour: this device's (localStorage cv-theme and cv-flavour, read before the first paint)
+// Settings › Appearance › Mode and Flavour: this device's (localStorage cv-theme and cv-flavour, read before the first paint)
 const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
 const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
 for (const [id, list, key] of [["#mode-seg", MODES, "mode"], ["#flavour-seg", LOOKS, "flavour"]]) {
@@ -4220,7 +4220,7 @@ $("#flavour-seg").addEventListener("click", (e) => {
   if (b) deviceSaid(b, lookSet("cv-flavour", b.dataset.flavour), `${LOOKS.find(([v]) => v === b.dataset.flavour)[1]} flavour`);
 });
 lookSync();
-// Settings › General › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
+// Settings › Appearance › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
 // index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
 const chatBubbles = () => document.documentElement.dataset.msgx === "bubbles";
@@ -4858,7 +4858,7 @@ $("#set-x").innerHTML = ICON.close;
 $("#set-side-ic").innerHTML = ICON.gear;
 // Settings' rail: each section with its icon (hub #18/#19)
 {
-  const IC = { general: ICON.sliders, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
+  const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
   for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
 }
 $("#sf-ic").innerHTML = ICON.search;
