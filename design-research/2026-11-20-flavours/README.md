@@ -134,11 +134,11 @@ This is the debt from §1. It has to go first, or a flavour leaves parts of the 
 
 1. Turn the 104 literal light rules into role tokens. Add a role only where none fits (for example `--knob`, `--track`, `--paper` for the Map), giving it a value in both modes. Delete the shadowed warm duplicates in app.css. In my estimate, this removes most of light.css.
 2. Fold side.css's `--sb-*` palette into the shared roles.
-3. JS palettes:
-   - map.js agent colours become tokens (`--agent-1…6`);
-   - the Map's coordinator colour comes from `--coord`, which also fixes the green-versus-violet mismatch;
-   - term.js derives its ANSI set from the status tokens;
-   - the favicon SVG reads `--go`, `--work` and `--need`.
+3. JS palettes, after a closer look, are left as they are:
+   - the Map's agent colours are identity colours, like the chart palette (`--viz-*`), so a flavour shouldn't change them;
+   - the Map's green coordinator is a question for the owner, since the violet is kept to threads on purpose;
+   - the terminal already takes `--canvas` and `--ink`, and its ANSI hues are status hues;
+   - the favicon is the app icon, which is the XO brand.
 4. **Not touched:** panel.css (24 light rules) belongs to the right-panel audit. I'll pass the list to that audit instead of editing it.
 
 Phase 0 should change nothing visible in Stone dark or light. That's its test: before/after token dumps match, and the unit tests pass.
@@ -159,3 +159,21 @@ An accent other than XO green is possible in the same system. I'd still hold it 
 | A | phase 0 token clean-up, Stone unchanged | none, unit tests only |
 | B | `data-flavour`, flavours.css, generator, contrast test, head script and `system` mode | none |
 | C | Settings picker and the first two flavours | one small screenshot set at the end, under the lease |
+
+## 7. Phase 0 as done
+
+- Every opaque colour in a light-mode rule outside panel.css is now a role token. What's left is translucent black/white (shadows, edges), which carries no hue.
+- Dead rules are deleted: the Map's warm-grey copies in app.css, `.next`'s light background, and the light `.th-knob` colour.
+- New role tokens, each with a value in both modes:
+  - switches: `--knob --knob-go --track --switch-on`
+  - fields: `--field-bg --field-line --field-line-focus`
+  - the Map: `--map-dot`
+  - words in a status hue: `--warn-text --need-text --add-text --del-text --danger-text`
+- The sidebar's frozen `--sb-*` palette moved, unchanged, from side.css into tokens.css.
+- Stone is unchanged, except these light-mode nudges to the nearest role:
+
+| where | was | now | shift |
+|---|---|---|---|
+| Send icon on green | #141414 | #1A1A1A | 6/255 |
+| Map node hover edge | #ABABAB | #BDBDBD | 18/255, the one visible change |
+| composer focus edge, button hover, Map dots, folder, tag, separator, tool hover, destructive card edge | | | 1–3/255 each, invisible |

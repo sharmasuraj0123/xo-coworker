@@ -67,6 +67,16 @@
   --on-agent:#0B0B0C;
 
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
+  /* a switch's knob is white in every theme; the icon on a lit one */
+  --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
+  --map-dot:var(--fill-4);   /* a folder's dot on the Map */
+  --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
+  /* a form field: its well, its edge, its edge while typed in */
+  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:var(--line-hover);
+  /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
+  --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
+  --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
+
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
   /* the coordinator's speaker colour, as the bubbles first set it, for every view: its name in violet over the
      label's grey, its mark's ring in violet over the line (the owner, 19 Nov: keep the purple in the chat view) */
@@ -183,7 +193,10 @@
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323;
   --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
-  --mark-x:#1A1A1A; --mark-o:#83D63A;
+  --mark-x:#151515; --mark-o:#83D63A;
+  --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
+  --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:#A3A3A3;
+  --warn-text:#8A4B0B; --need-text:#5E3507; --add-text:#2F5A12; --del-text:#9B1C22; --danger-text:#9B1C22;
   --bubble:#EFEFEF; --bubble-line:#EFEFEF;
   --term-bg:var(--fill-1);
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
@@ -201,6 +214,15 @@
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
   --e-decide:#3B3B3B;
 }
+
+/* The left sidebar's own palette, frozen at the values it had on 2026-11-08 (the owner: keep it exactly as
+   it is, and ask before any change). A flavour re-values these with the rest of the palette. */
+:root{--sb-side:#111111; --sb-hair:#232323; --sb-line:#323232; --sb-line-hover:#565656; --sb-bg-3:#252525;
+  --sb-g17:#171717; --sb-g1A:#1A1A1A; --sb-g1C:#1C1C1C; --sb-g1F:#1F1F1F; --sb-g22:#222222; --sb-g26:#262626; --sb-g2A:#2A2A2A; --sb-g45:#454545}
+:root[data-theme="light"]{--sb-side:#F2F2F2; --sb-hair:#E8E8E8; --sb-line:#DCDCDC; --sb-line-hover:#BDBDBD; --sb-bg-3:#EEEEEE;
+  --sb-g17:#FFFFFF; --sb-g1A:#FFFFFF; --sb-g1C:#FFFFFF; --sb-g1F:#ECECEC; --sb-g22:#EDEDED; --sb-g26:#E3E3E3; --sb-g2A:#DBDBDB; --sb-g45:#ABABAB;
+  --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
+@media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
 
 /* An inverse surface: the toast is dark in both themes (--toast-bg), so in light everything on it takes the dark
    palette's roles: ink, fills, lines, hover and press, the accent's hue and the focus ring. Its words, Undo, Tell and
