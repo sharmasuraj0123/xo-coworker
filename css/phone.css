@@ -196,7 +196,7 @@
      chip keeps its whole word ("Au…" beside 202 px of the same words: the create-project grader on 65e84b7, C111) */
   :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
   :root:root .iq{flex:0 1 auto;min-width:0;padding:0 6px;max-width:none}
-  :root:root :is(.target,.tp-target,.iq){font-size:var(--fs-sm)}
+  :root:root :is(.target,.iq){font-size:var(--fs-sm)}
   :root:root .iq-sep{margin:0 4px}
 }
 /* the narrowest phones (≤ 340): the field's placeholder says where a message goes, so the target steps aside and

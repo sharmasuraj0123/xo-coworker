@@ -741,13 +741,16 @@ button.hr:active{transform:scale(.97)}
 .composer textarea:focus-visible{outline:none}
 .composer-row{display:flex;align-items:center;gap:8px;margin-top:6px}
 /* the composer row's words: its target and its model chip, one size */
-:is(.target,.tp-target,.iq){font-size:var(--fs-body);line-height:var(--lh-body)}
+:is(.target,.iq){font-size:var(--fs-body);line-height:var(--lh-body)}
 .target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--fill-2);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
 .target svg{flex:none;width:var(--ic);height:var(--ic)}
 .target .tg-t svg{color:var(--info)}
 .target .muted{overflow:hidden;text-overflow:ellipsis}
+/* a narrow composer (the panel's Thread page) gives up words, never wraps: the note first, then "Reply in" */
+@container (max-width:600px){.target .muted{display:none}}
+@container (max-width:520px){.target .tg-w{display:none}}
 .send{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);margin:-2px -2px -2px 0;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
 .send svg{width:17px;height:17px}
 .send:hover{background:var(--accent-hover)}

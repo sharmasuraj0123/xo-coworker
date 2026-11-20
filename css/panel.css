@@ -622,7 +622,6 @@ body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--co
 .stage .tp .scroller{flex:1;min-height:0}
 .stage .tp .dock{left:0;right:0;width:auto}
 .stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}
-.stage .tp-target{flex:1;display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-regular)}
 /* its ⋯ in the panel's head, there only while the thread shows */
 .stage .tp-acts{display:inline-flex}
 .stage:not([data-stg-page="thread"]) .tp-acts{display:none}

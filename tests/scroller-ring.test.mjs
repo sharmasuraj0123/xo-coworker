@@ -102,6 +102,7 @@ const CLIPPERS = {
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
   ".pj-s": ["margin", "a project's count line: \"Coordinator needs you\" leads it (S005)"], ":root:root .top .pj-s": ["margin", "the same line in a phone's bar"],
   ".ev-t": ["margin", "an event line's words: Passed to a project, Continued in a thread"],
+  ".target": ["text", "the composer's target line: the chat's is a button (its ring drawn outside it), the Thread page's only words"], ":root:root .target": ["text", "the same line on a phone"],
   ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-done": ["decor", "a step's mark"], ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-next": ["decor", "a step's mark"],
 };
 const CLIPS = (d) => (/^overflow(-[xy])?$/.test(d.p) && /hidden|clip/.test(d.v)) || (d.p === "contain" && /paint|strict|content/.test(d.v)) || (d.p === "clip-path" && d.v !== "none") || (/^(-webkit-)?mask(-image)?$/.test(d.p) && d.v !== "none");
