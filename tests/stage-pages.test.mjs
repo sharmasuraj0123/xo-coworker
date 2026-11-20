@@ -97,3 +97,8 @@ assert.match(stage, /<span class="stg-pa"><\/span>\$\{openFiles \? `<button type
 assert.doesNotMatch(stage, /class="fr-ib" data-open-files/);
 assert.match(stage, /if \(t\.closest\("\[data-open-files\]"\)\) \{ if \(S\.page\?\.name === "files"\) back\(\); else openFiles && openFiles\(\); return; \}/);
 console.log("stage-pages width and All files: ok");
+// Home and Artifacts have no panel (the owner, 20 Nov): open elsewhere, it steps aside there and comes back at the next place
+assert.match(stage, /const placeless = \(\) => \{ const v = view\(\); return v === "home" \|\| v === "artifacts"; \};/);
+assert.match(stage, /if \(placeless\(\)\) \{ if \(S\.open\) \{ S\.resume = true; close\(\{ restore: false, quiet: true \}\); \} \}\n\s*else if \(S\.resume\) \{ S\.resume = false; open\(\{ focus: false \}\); \}/);
+assert.match(stage, /if \(saved\.open\) S\.resume = true;/);
+console.log("stage-pages home: ok");

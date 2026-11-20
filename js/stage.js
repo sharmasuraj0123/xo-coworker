@@ -113,7 +113,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     onChange: () => onChange && onChange(),
   });
 
-  function persist() { sset(KEY, { open: S.open }); sset(FR_KEY, fr); }
+  function persist() { sset(KEY, { open: S.open || !!S.resume }); sset(FR_KEY, fr); }
+  // Home and Artifacts have no panel: open elsewhere, it steps aside there and comes back with the next place
+  const placeless = () => { const v = view(); return v === "home" || v === "artifacts"; };
 
   // ── the frames: folded or open, their heights ───────────────────────────────
   function layout() {
@@ -541,6 +543,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
 
   /** Every render: the frames follow the view. */
   function sync() {
+    if (placeless()) { if (S.open) { S.resume = true; close({ restore: false, quiet: true }); } }
+    else if (S.resume) { S.resume = false; open({ focus: false }); }
     // what the cover holds inert follows the page as it changes
     if (S.open || document.querySelector("[data-stage-inert]")) coverSync();
     if (!S.open) return;
@@ -766,7 +770,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     setW((wSaved || clampW(wDef())) + (e.key === "ArrowLeft" ? 16 : -16), true);
   });
 
-  if (saved.open) requestAnimationFrame(() => open({ focus: false }));
+  if (saved.open) S.resume = true; // opened by the first render of a place that has a panel
 
   return {
     get isOpen() { return S.open; },
