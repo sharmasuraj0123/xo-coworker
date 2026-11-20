@@ -30,7 +30,7 @@ t("it loads right after the tokens, and the mode and flavour are set before the 
   assert.match(head, /prefers-color-scheme: light/);
   assert.ok(head.indexOf("cv-flavour") < head.indexOf('rel="stylesheet"'), "before any stylesheet");
 });
-t("Settings › General offers the mode (dark, light, system) and every flavour, from the one list in js/flavours.js", () => {
+t("Settings › Appearance offers the mode (dark, light, system) and every flavour, from the one list in js/flavours.js", () => {
   const html = read("index.html"), app = read("js/app.js");
   assert.match(html, /id="mode-seg" role="radiogroup" aria-labelledby="mode-l"/);
   assert.match(html, /id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"/);
