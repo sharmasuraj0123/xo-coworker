@@ -14,7 +14,8 @@ const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 
 t("every menu's focused item is filled with --menu-focus, never a fill a step off its float", () => {
   const rules = [...all.matchAll(/([^{}]*(?:menu)[^{}]*:focus[^{}]*)\{([^{}]*background[^{}]*)\}/g)].map(([, sel, body]) => ({ sel: sel.trim(), body }));
-  assert.ok(rules.length >= 4, `menus with a focus fill: ${rules.length}`);
+  assert.ok(rules.some((r) => r.sel === "[role=menu] :is([role=menuitem],[role=menuitemradio]):focus"), "the shared rule for every [role=menu]");
+  assert.ok(rules.length >= 2, `menus with a focus fill: ${rules.length}`);
   const off = rules.filter((r) => !/background:var\(--menu-focus\)/.test(r.body)).map((r) => r.sel);
   assert.deepEqual(off, [], "a menu's focus fill that isn't --menu-focus");
 });

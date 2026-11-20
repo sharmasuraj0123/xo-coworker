@@ -1857,14 +1857,11 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tw-act:hover{background:var(--hover-fill);border-color:var(--line-strong);color:var(--ink)}
 .tw-act:active{transform:scale(.97)}
 .tw-more{width:var(--h-ctl);padding:0;justify-content:center}
-.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
+.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2)}
 .tw-menu button{height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-menu);line-height:var(--lh-menu);color:var(--ink-2)}
 /* one line each, the menu as wide as its longest (it wrapped "Open a shell in its worktree" onto two) */
 .tw-menu{min-width:calc(6 * var(--h-row))}
 .tw-menu button{white-space:nowrap}
-/* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
-   never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
-.tw-menu button:focus{background:var(--menu-focus);color:var(--ink)}
 /* the title being renamed: a field in the head, 32 like the head's controls (34: grader B on ba93c9b, S009) */
 .tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
