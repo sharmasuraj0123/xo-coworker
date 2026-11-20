@@ -34,7 +34,7 @@ const SCROLLERS = {
   ".mp-legend": ["room", "the Map's agents (none above the first row cut its ring)"],
   ".c-body": ["room", "a decision card's body"], ".all-list": ["room", "All threads"], ".jump-list": ["room", "Jump's list"],
   ".keys-cols": ["room", "Settings › Keyboard"], ".set-body": ["room", "Settings' page"], ".set-page": ["room", "a Settings page on a phone"],
-  ".rn-body": ["room", "Runs' sheet"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"],
+  ".rn-body": ["room", "Runs' sheet"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"], ".at-list": ["room", "the composer's @ projects"],
   ".cs-pop": ["room:.iq-pop", "the new chat's settings (an .iq-pop)"],
 ".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
   ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
