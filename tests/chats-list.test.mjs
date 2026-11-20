@@ -66,7 +66,7 @@ t("the New chat picker: one grid at the head's inset, the agents as one choice w
   assert.match(src, /class="cs-mode\$\{m === st\.mode \? " is-on" : ""\}"/);
   assert.match(css, /\.cs-grid\{display:grid;grid-template-columns:max-content minmax\(0,1fr\);[^}]*padding:var\(--s-3\) var\(--pop-x\) var\(--s-2\)\}/);
   assert.match(css, /\.rt-seg\.cs-agents button\{[^}]*height:var\(--h-sm\);/, "as tall as the fields: 24 in its 3 px frame");
-  assert.match(css, /\.cs-mode\{[^}]*height:var\(--h-ctl\);[^}]*font:var\(--fw-regular\) var\(--fs-menu\)\/var\(--lh-menu\)/);
+  assert.match(css, /\.cs-mode\{[^}]*height:var\(--h-ctl\);[^}]*font:var\(--fw-regular\) var\(--fs-ui\)\/var\(--lh-ui\)/);
   assert.match(css, /:is\(\.set-choice,\.cs-mode\)\.is-on \.sc-dot\{/, "one chosen dot");
   assert.match(read("css/tokens.css"), /--pop-x:10px;/);
   assert.match(read("js/app.js"), /const ag = e\.target\.closest\("\[data-cs-agent\]"\);/);

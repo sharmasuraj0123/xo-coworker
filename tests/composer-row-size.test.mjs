@@ -10,7 +10,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const rule = (css, sel) => { const i = css.indexOf(sel + "{"); assert.ok(i >= 0, sel); return css.slice(i + sel.length + 1, css.indexOf("}", i)); };
 
 t("one shared rule sizes the target (the chat's and the Thread page's, one class) and the model chip", () => {
-  assert.equal(rule(app, ":is(.target,.iq)"), "--ic:var(--ic-sm);font-size:var(--fs-sm);line-height:var(--lh-12)");
+  assert.equal(rule(app, ":is(.target,.iq)"), "--ic:var(--ic-sm);font-size:var(--fs-meta);line-height:var(--lh-meta)");
   assert.doesNotMatch(phone, /:is\(\.target,\.iq\)/);
   assert.doesNotMatch(panel + app + phone, /tp-target/);
   assert.match(app, /@container \(max-width:600px\)\{\.target \.muted\{display:none\}\}/);

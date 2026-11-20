@@ -18,8 +18,8 @@ import { rules, context, decls, px } from "./lib/cascade.mjs";
 const ROOT = new URL("../", import.meta.url);
 // The type scale's tokens (css/tokens.css, 19 Nov) read back as the values these checks were written against, so a
 // size measured here is the same size whether a rule spells it or names its token
-const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-12)": "16px", "var(--lh-body)": "20px", "var(--lh-15)": "24px", "var(--lh-20)": "28px", "var(--lh-28)": "36px", "var(--lh-40)": "44px" };
-const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:12|body|15|20|28|40))\)/g, (m) => TYPE[m] || m);
+const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-meta)": "16px", "var(--lh-ui)": "20px", "var(--lh-read)": "24px", "var(--lh-title)": "24px", "var(--lh-heading)": "28px", "var(--lh-display)": "36px", "var(--lh-hero)": "44px" };
+const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:meta|ui|read|title|heading|display|hero))\)/g, (m) => TYPE[m] || m);
 const tokensCss = readCss(new URL("css/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 // the desktop's tokens: the :root block, not a phone's media query below it
 const desk = tokensCss.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
@@ -85,8 +85,8 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
   // 16.9 at line heights of 1.3 and 1.35)
   assert.match(app, /\.chl-row\{[^}]*min-height:var\(--h-row-list\);padding:var\(--s-2\) var\(--s-3\);/, "Chats' rows 56: 8 + their two lines + 8, over the 56 floor");
-  assert.match(app, /\.chl-main\{[^}]*gap:2px\}/); assert.match(app, /\.chl-t\{font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.chl-m\{font-size:var\(--fs-sm\);line-height:16px;/, "20 + 2 + 16 = 38");
-  assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
+  assert.match(app, /\.chl-main\{[^}]*gap:2px\}/); assert.match(app, /\.chl-t\{font:500 var\(--fs-ui\)\/20px/); assert.match(app, /\.chl-m\{font-size:var\(--fs-meta\);line-height:16px;/, "20 + 2 + 16 = 38");
+  assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:400 var\(--fs-ui\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
@@ -153,8 +153,8 @@ t("a button's label sits on one line: the meta line's buttons never wrap or shri
 t("an answer is a row: one line 40, with its description line 56 (S025, S052)", () => {
   const app = readCss(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.b-opt\{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var\(--h-lg\);padding:9px 14px;[^}]*line-height:20px;/, "1 + 9 + 20 + 9 + 1 = 40");
-  assert.match(app, /\.o-l\{font:500 var\(--fs-body\)\/20px/);
-  assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-sm\)\/16px/, "+ 16 = 56, no gap between the lines");
+  assert.match(app, /\.o-l\{font:500 var\(--fs-ui\)\/20px/);
+  assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-meta\)\/16px/, "+ 16 = 56, no gap between the lines");
 });
 t("a button drawn as a link, standing on its own, has the desktop's 24 floor; one in a sentence is words (S014: the docked Undo, 39×20)", () => {
   const fnd = readCss(new URL("css/foundation.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");

@@ -51,7 +51,7 @@ t("pressed, the second ink keeps 4.5:1 on every base; the meta inks would not", 
 });
 t("the Chats row's meta is its own: the Changes mark's rules are scoped to its row", () => {
   assert.doesNotMatch(panel, /(^|[},])\s*\.ch-m(\.[\w-]+)?\s*[{,]/, "no bare .ch-m rule in panel.css");
-  assert.match(panel, /\.ch-r \.ch-m\{flex:none;font:var\(--fw-medium\) var\(--fs-sm\)\/var\(--lh-12\) var\(--sans\);color:var\(--ink-4\)\}/);
-  assert.match(app, /\.chl-m\{font-size:var\(--fs-sm\);(line-height:(16px|var\(--lh-12\));)?color:var\(--ink-3\);/, "the meta: --ink-3 at rest (5.4:1 dark)");
+  assert.match(panel, /\.ch-r \.ch-m\{flex:none;font:var\(--fw-medium\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-4\)\}/);
+  assert.match(app, /\.chl-m\{font-size:var\(--fs-meta\);(line-height:(16px|var\(--lh-meta\));)?color:var\(--ink-3\);/, "the meta: --ink-3 at rest (5.4:1 dark)");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
