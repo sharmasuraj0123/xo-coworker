@@ -152,7 +152,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const words = [];
     if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
     if (next) words.push(`<span class="iq-a">Next turn</span>`);
-    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
+    // a thread never runs on Auto: a session that names no model runs its runtime's default
+    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : threadOf(s) ? `<span class="iq-a">Default</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
     // a change waiting for the next turn stays in sight until the session runs it (Astra I3: a durable receipt,
     // not only a 3-second Undo): "Opus 5.5 · Deep → Fable 5.1 · Deeper"
