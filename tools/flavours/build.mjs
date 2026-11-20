@@ -8,14 +8,12 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FLAVOURS } from "../../js/flavours.js";
+
+export { FLAVOURS };
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** The flavours. hue in degrees, chroma in OKLCH units (Stone is 0). */
-export const FLAVOURS = [
-  { id: "sand", name: "Sand", hue: 75, chroma: 0.012 },
-  { id: "slate", name: "Slate", hue: 255, chroma: 0.016 },
-];
 /** Greys that are XO's own mark: they stay as Stone has them. */
 const KEEP = new Set(["--mark-x", "--mark-o"]);
 

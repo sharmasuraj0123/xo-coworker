@@ -64,6 +64,7 @@ import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, isPending, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
+import { STONE, FLAVOURS } from "./flavours.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable, hookOf } from "./focusview.js";
@@ -4187,6 +4188,34 @@ $("#webpics-tog").addEventListener("click", (e) => {
   const on = !SHAPE.on(WEBPICS);
   deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
+// Settings › General › Mode and Flavour: this device's (localStorage cv-theme and cv-flavour, read before the first paint)
+const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
+const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
+for (const [id, list, key] of [["#mode-seg", MODES, "mode"], ["#flavour-seg", LOOKS, "flavour"]]) {
+  $(id).innerHTML = list.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-${key}="${v}">${esc(n)}</button>`).join("");
+  radioKeys($(id));
+}
+function lookSync() {
+  for (const [id, now] of [["#mode-seg", THEME.pref()], ["#flavour-seg", THEME.flavour()]]) {
+    for (const b of $(id).querySelectorAll('[role="radio"]')) { const on = (b.dataset.mode || b.dataset.flavour) === now; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; }
+  }
+}
+function lookSet(key, v) {
+  let kept = true;
+  try { localStorage.setItem(key, v); } catch { kept = false; }
+  applyTheme(THEME.get());
+  lookSync();
+  return { kept };
+}
+$("#mode-seg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-mode]");
+  if (b) deviceSaid(b, lookSet("cv-theme", b.dataset.mode), `${MODES.find(([v]) => v === b.dataset.mode)[1]} mode`);
+});
+$("#flavour-seg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-flavour]");
+  if (b) deviceSaid(b, lookSet("cv-flavour", b.dataset.flavour), `${LOOKS.find(([v]) => v === b.dataset.flavour)[1]} flavour`);
+});
+lookSync();
 // Settings › General › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
 // index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
@@ -4371,6 +4400,7 @@ $("#theme").addEventListener("click", () => {
   const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
   try { localStorage.setItem("cv-theme", t); } catch { /* private */ }
   applyTheme(t);
+  lookSync();
   announce(t === "light" ? "Light mode" : "Dark mode");
 });
 
