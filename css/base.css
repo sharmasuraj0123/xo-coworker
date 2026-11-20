@@ -27,6 +27,10 @@ kbd{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);padding:2px 5px;
    and every ancestor, and their children would inherit 120 ms, so nothing would ever release slowly */
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for],li:has(> button)):hover{--d-hover:var(--d-hover-in)}
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]):active{--d-hover:var(--d-press)}
+/* a menu's active item is its focused one (keynav.js pointerFollows): it moves at once, never fading, and needs no ring */
+[role=menu] :is([role=menuitem],[role=menuitemradio]){transition:none}
+[role=menu] :is([role=menuitem],[role=menuitemradio]):focus{background:var(--menu-focus);color:var(--ink);outline:none}
+[role=menu]{animation:float-in-down var(--d-out) var(--ease)}
 ::selection{background:rgba(var(--accent-rgb),.24)}
 
 /* ── Plan F · icons: one drawn weight at every size, square ends like a ruled line ─────────────────
