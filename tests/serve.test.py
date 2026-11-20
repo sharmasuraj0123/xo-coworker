@@ -40,7 +40,8 @@ class Backend(BaseHTTPRequestHandler):
         body = self.rfile.read(length) if length else b""
         SEEN.append({"method": self.command, "path": self.path, "headers": dict(self.headers.items()),
                      "body": body})
-        data = json.dumps({"method": self.command, "path": self.path}).encode()
+        data = json.dumps({"method": self.command, "path": self.path,
+                           **({"pad": "x" * 5000} if "/big" in self.path else {})}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
@@ -483,6 +484,125 @@ class WriterKey(unittest.TestCase):
         status, _ = ask("PUT", "/api/xo-projects/demo/file", {**local(), "Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, b"{}")
         self.assertEqual(status, 403)
         self.assertEqual(SEEN, [])
+
+
+
+
+def fetch(path: str, headers: dict | None = None) -> tuple[int, dict, bytes]:
+    """GET through the UI: (status, headers with lower-case names, raw body)."""
+    conn = http.client.HTTPConnection("127.0.0.1", PORT, timeout=10)
+    try:
+        conn.putrequest("GET", path, skip_host=True, skip_accept_encoding=True)
+        for k, v in {**local(), **(headers or {})}.items():
+            conn.putheader(k, v)
+        conn.endheaders()
+        resp = conn.getresponse()
+        return resp.status, {k.lower(): v for k, v in resp.getheaders()}, resp.read()
+    finally:
+        conn.close()
+
+
+GZ = {"Accept-Encoding": "gzip, deflate, br"}
+
+
+class StaticCaching(unittest.TestCase):
+    """index.html points every local file under /v/<tree version>/, kept a year; index.html is revalidated."""
+
+    def test_index_links_and_import_map_carry_the_version(self):
+        status, h, body = fetch("/")
+        html, v = body.decode(), serve.tree_version()
+        self.assertEqual(status, 200)
+        self.assertRegex(v, r"^[0-9a-f]{12}$")
+        self.assertEqual(h["cache-control"], "no-cache")
+        self.assertIn('<script type="importmap">{"imports":{"./js/":"./v/%s/js/"}}</script>' % v, html)
+        self.assertIn('src="./v/%s/js/app.js"' % v, html)
+        self.assertIn('href="./v/%s/css/app.css"' % v, html)
+        self.assertNotRegex(html, r'(?:href|src)="\./(?:js|css|fonts)/')
+        self.assertLess(html.index("importmap"), html.index('type="module"'))
+
+    def test_index_revalidates_by_etag(self):
+        _, h, _ = fetch("/index.html")
+        status, h2, body = fetch("/index.html", {"If-None-Match": h["etag"]})
+        self.assertEqual((status, body), (304, b""))
+        self.assertEqual(h2["etag"], h["etag"])
+
+    def test_current_version_is_immutable(self):
+        status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")
+        self.assertEqual(status, 200)
+        self.assertEqual(h["cache-control"], serve.IMMUTABLE)
+        with open(os.path.join(ROOT, "js", "app.js"), "rb") as fh:
+            self.assertEqual(body, fh.read())
+
+    def test_an_old_version_is_served_but_revalidated(self):
+        status, h, _ = fetch("/v/000000000000/js/app.js")
+        self.assertEqual(status, 200)
+        self.assertEqual(h["cache-control"], "no-cache")
+
+    def test_unversioned_files_still_revalidate(self):
+        status, h, _ = fetch("/js/app.js")
+        self.assertEqual((status, h["cache-control"]), (200, "no-cache"))
+
+    def test_versions_reach_only_the_static_folders(self):
+        status, _, _ = fetch(f"/v/{serve.tree_version()}/serve.py")
+        self.assertEqual(status, 404)
+        status, _, _ = fetch(f"/v/{serve.tree_version()}/js/../../serve.py")
+        self.assertNotEqual(status, 200)
+
+    def test_version_follows_content(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "js"))
+            with open(os.path.join(d, "js", "a.js"), "w") as fh:
+                fh.write("1")
+            v1 = serve.tree_version(d)
+            self.assertEqual(serve.tree_version(d), v1)
+            with open(os.path.join(d, "js", "a.js"), "w") as fh:
+                fh.write("22")
+            self.assertNotEqual(serve.tree_version(d), v1)
+
+
+class Gzip(unittest.TestCase):
+    def test_static_text_is_gzipped_when_accepted(self):
+        import gzip
+        status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js", GZ)
+        self.assertEqual((status, h.get("content-encoding")), (200, "gzip"))
+        self.assertIn("Accept-Encoding", h["vary"])
+        self.assertEqual(int(h["content-length"]), len(body))
+        with open(os.path.join(ROOT, "js", "app.js"), "rb") as fh:
+            self.assertEqual(gzip.decompress(body), fh.read())
+        again, h2, _ = fetch(f"/v/{serve.tree_version()}/js/app.js", {**GZ, "If-None-Match": h["etag"]})
+        self.assertEqual(again, 304)
+
+    def test_not_gzipped_unless_asked(self):
+        for headers in ({}, {"Accept-Encoding": "gzip;q=0, identity"}):
+            _, h, _ = fetch("/js/app.js", headers)
+            self.assertNotIn("content-encoding", h)
+
+    def test_index_is_gzipped(self):
+        import gzip
+        _, h, body = fetch("/", GZ)
+        self.assertEqual(h.get("content-encoding"), "gzip")
+        self.assertIn("importmap", gzip.decompress(body).decode())
+
+    def test_fonts_are_not_gzipped(self):
+        self.assertFalse(serve.gzippable("font/woff2", 50000))
+        self.assertTrue(serve.gzippable("application/json; charset=utf-8", 5000))
+        self.assertFalse(serve.gzippable("application/json", 100))
+
+    def test_api_json_is_gzipped_and_upstream_asked_for_identity(self):
+        import gzip
+        SEEN.clear()
+        status, h, body = fetch("/api/big", GZ)
+        self.assertEqual((status, h.get("content-encoding")), (200, "gzip"))
+        self.assertEqual(json.loads(gzip.decompress(body))["path"], "/api/big")
+        self.assertEqual(SEEN[0]["headers"].get("Accept-Encoding"), "identity")
+
+    def test_small_or_unasked_api_answers_stay_plain(self):
+        _, h, body = fetch("/api/status", GZ)
+        self.assertNotIn("content-encoding", h)
+        _, h, body = fetch("/api/big")
+        self.assertNotIn("content-encoding", h)
+        self.assertEqual(json.loads(body)["path"], "/api/big")
 
 
 if __name__ == "__main__":
