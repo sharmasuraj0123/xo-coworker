@@ -79,8 +79,9 @@ export function stormSource(state, emit, event) {
   const isWatched = (ts) => !!ts && (ts === watched.thread || ts === watched.side);
   const trimmed = new Set(); // sessions whose older turns were pruned (read again when shown)
   const framesBefore = new Map(); // session → the cursor below its stored frames read so far (null: all read)
+  // the first frame, or the stream saying it can't connect yet (it keeps trying; the first load goes ahead without it)
   let firstFrame = null;
-  const sawFrame = new Promise((r) => { firstFrame = r; });
+  const subscribed = new Promise((r) => { firstFrame = r; });
 
   const projectOf = (chatId) => (chatId ? chatProject.get(chatId) || null : null);
   const chatIdOf = (project) => state.projects.find((p) => p.id === project)?.chatId || null;
@@ -465,11 +466,21 @@ export function stormSource(state, emit, event) {
 
   /** The runtime policy: the Space's, and each project's (a backend without them leaves both empty). */
   async function loadPolicies() {
-    try { state.policy = await api.runtimePolicy(); } catch { return; }
-    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => {
-      try { state.chatPolicy[p.chatId] = await api.chatRuntimePolicy(p.chatId); } catch { /* the Space's applies */ }
-    });
+    await loadSpacePolicy();
+    if (!state.policy) return;
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, (p) => loadChatPolicy(p.chatId, true));
     emit();
+  }
+  async function loadSpacePolicy() {
+    try { state.policy = await api.runtimePolicy(); } catch { /* none on this backend */ }
+  }
+  // a project's own policy, read once when something shows it (its composer); fresh: read it again
+  const policyReads = new Map();
+  function loadChatPolicy(chat, fresh = false) {
+    if (!chat || (!fresh && policyReads.has(chat))) return policyReads.get(chat) || null;
+    const read = api.chatRuntimePolicy(chat).then((p) => { state.chatPolicy[chat] = p; soon(); }, () => { /* the Space's applies */ });
+    policyReads.set(chat, read);
+    return read;
   }
 
   /** Everything, from the server. Returns once the world can render. */
@@ -478,7 +489,7 @@ export function stormSource(state, emit, event) {
     if (!state.projects.length) return;
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, loadThreads),
-      loadSessions(), loadReview(), loadRouted(), loadRuntimes(), loadPolicies(),
+      loadSessions(), loadReview(), loadRouted(), loadRuntimes(), loadSpacePolicy(),
     ]);
   }
 
@@ -877,6 +888,7 @@ export function stormSource(state, emit, event) {
       onFrame,
       onState: (s, info) => {
         state.conn = s; state.connInfo = info;
+        if (s !== "connecting") firstFrame();
         if (s === "live" && state.loaded) { loadStatus(); if (state.error || !state.projects.length) recover(); }
         emit();
       },
@@ -888,7 +900,7 @@ export function stormSource(state, emit, event) {
     startStream();
     // the subscription is in place once its first frame (the snapshot) arrives; frames from then on
     // are held during the load, so nothing that changes while it runs is lost or reverted
-    await Promise.race([sawFrame, new Promise((r) => setTimeout(r, 4000))]);
+    await subscribed;
     await Promise.all([loadAll(), loadStatus()]);
     commit();
     holding = false;
@@ -896,6 +908,8 @@ export function stormSource(state, emit, event) {
     commit();
     state.loaded = true;
     emit();
+    // the projects' own policies: a composer asks for its own first (loadChatPolicy); the rest follow, off the first draw
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, (p) => loadChatPolicy(p.chatId));
   }
   boot();
   setInterval(() => {
@@ -1104,6 +1118,8 @@ export function stormSource(state, emit, event) {
         return (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
       },
       loadPolicies,
+      /** A project's own runtime policy (chat id), read once; its composer asks when it shows. */
+      loadChatPolicy: (chat) => loadChatPolicy(chat),
       loadPaid,
       /** Set the Space's paid-usage mode (scope "space"), or an account's (scope "pool", id its pool; value null follows the Space). */
       setPaid: async (scope, id, value) => {
