@@ -201,8 +201,10 @@ export function askText(md, max = 140) {
  * (chats/thread_status.py: queued input comes before the agent's last report): "working", which a held
  * thread shows as Waiting. An open item still wins (askingState, after this).
  */
-export function threadState(state, turn, busy = false, held = false) {
+export function threadState(state, turn, busy = false, held = false, stalledOnYours = false) {
   if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
+  // stalled with your message the newest: it waits on its agent picking that up, not on you
+  if (state === "needs_reply" && stalledOnYours) return "working";
   if ((busy || held) && (state === "done" || state === "failed")) return "working";
   if (held && state === "needs_reply") return "working";
   return state || "working";

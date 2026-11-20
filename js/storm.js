@@ -186,6 +186,7 @@ export function stormSource(state, emit, event) {
   }
   // a thread's title and label are plain text: one that came escaped ("Settings &amp; Home") reads as it was meant
   const plainText = (v) => (v == null ? v : String(v).replace(/&(amp|lt|gt|quot|#39);/g, (m, e) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" })[e]));
+  const youWroteLast = (rows) => { let last = null; for (const m of rows || []) if (!last || (m.seq ?? -1) > (last.seq ?? -1)) last = m; return !!last && last.author_kind === "owner"; };
   function uiThread(r, runsBy = runsBySession()) {
     const project = projectOf(r.chat_id);
     const now = r.session_id ? sessionNow(r.session_id, r) : null;
@@ -199,7 +200,7 @@ export function stormSource(state, emit, event) {
       id: r.ts, project, chatId: r.chat_id,
       title: plainText(r.title) || "Thread", label: plainText(r.label) || null,
       // held is one shown state: a done, stopped or needs-reply thread whose next input waits reads Waiting
-      state: threadState(r.state, turn, busy, !!held),
+      state: threadState(r.state, turn, busy, !!held, r.activity === "stalled" && youWroteLast(state.threadMsgs[r.ts])),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
       createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),
