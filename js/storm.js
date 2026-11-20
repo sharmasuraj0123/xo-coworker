@@ -682,6 +682,8 @@ export function stormSource(state, emit, event) {
         const old = rawThreads.get(ts);
         if (!old && !d.chat_id) { refetchThread(env.chat_id, ts); break; }
         rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...sessRead(d, { at: Date.now(), seq: env.seq ?? state.lastSeq }), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
+        // a new thread's frame carries no session or pin: its model and effort come from one read
+        if (!rawThreads.get(ts).session) fillSession(rawThreads.get(ts).chat_id, ts);
         soon();
         break;
       }
@@ -848,6 +850,16 @@ export function stormSource(state, emit, event) {
     const sent = sentAt();
     try { const x = await api.thread(chatId, ts); rawThreads.set(ts, { ...x, _readAt: Date.now(), ...sessRead(x, sent) }); soon(); } catch { /* the next full frame fills it */ }
     refetchBusy.delete(ts);
+  }
+  const sessionAsked = new Set();
+  async function fillSession(chatId, ts) {
+    if (!chatId || sessionAsked.has(ts)) return;
+    sessionAsked.add(ts);
+    const sent = sentAt();
+    try {
+      const x = await api.thread(chatId, ts), r = rawThreads.get(ts);
+      if (r && x && !r.session) { rawThreads.set(ts, { ...r, session: x.session || null, pin: x.pin || r.pin || {}, ...sessRead(x, sent) }); soon(); }
+    } catch { sessionAsked.delete(ts); }
   }
   function settleAwaiting(chatId) {
     const project = projectOf(chatId);
