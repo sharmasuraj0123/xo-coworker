@@ -26,7 +26,7 @@ xo-select>option{display:none}
 .dd-menu.is-out{animation:float-out-up var(--d-out) var(--ease) forwards;pointer-events:none}
 .dd-menu.is-up.is-out{animation-name:float-out}
 
-.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:var(--h-ctl);padding:6px 8px;border-radius:calc(var(--r-lg) - 5px);color:var(--ink-2);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:var(--h-ctl);padding:6px 8px;border-radius:calc(var(--r-lg) - 5px);color:var(--ink-2);font:var(--fw-medium) var(--fs-menu)/var(--lh-menu) var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dd-row.is-cur{background:var(--fill-2);color:var(--ink)}
 .dd-row[aria-selected="true"]{color:var(--ink)}
 .dd-row[aria-disabled="true"]{opacity:.45;cursor:default}

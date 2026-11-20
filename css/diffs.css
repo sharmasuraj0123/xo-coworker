@@ -214,7 +214,7 @@ diffs-container{
 .vw-more.is-busy{color:var(--ink-2)} /* its spinner in the second ink: 9.9:1 on the dark head, 10:1 on the light (C092 at 320) */
 .vw-more .spin{width:12px;height:12px}
 .vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
-.vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);white-space:nowrap}
+.vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:var(--fw-regular) var(--fs-menu)/var(--lh-menu) var(--sans);color:var(--ink-2);white-space:nowrap}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .vw-menu :is([role=menuitem],[role=menuitemradio]):focus{background:var(--menu-focus);color:var(--ink);outline:none}
