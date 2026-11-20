@@ -44,4 +44,31 @@ t("its look: tokens only, one surface per day, rows 56, nothing hard-coded beyon
   assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/1px solid|gap:2px/g, ""), /\b\d+px\b|#[0-9a-f]{3,8}\b|rgba?\(/i);
   assert.doesNotMatch(css, /\n\.ch-(list|row|main|t|m|a)\{/, "no global ch- rules left to leak into the panel's Changes");
 });
+t("Chats opens at its top, the newest first; a chat still opens at its latest", () => {
+  const app = read("js/app.js"), fo = read("js/follow.js");
+  assert.match(app, /if \(opening\) \{ C\.rendered = v; if \(v === "chats"\) C\.follow\.toTop\(\); else C\.follow\.toLatest\(false\); \}/);
+  assert.match(fo, /function toTop\(\) \{\n\s*pinned = false; held = false;\n\s*sc\(\)\.scrollTop = 0; lastTop = 0;/);
+  assert.match(app, /follow: \{ toLatest, toTop, unpin/, "the main chat's follower has it too");
+});
+t("the agent is its mark, its name only on hover and for screen readers: the header, the composer's line, replies", () => {
+  const src = read("js/chats.js");
+  assert.match(src, /const agentMark = \(agent, lead = true\) => rtMark\(agent, \{ lead \}\) \|\| /);
+  assert.match(src, /<span class="pj-s">\$\{metaHtml\(s\)\}<\/span>/);
+  assert.match(src, /<\/b> · \$\{agentMark\(st\.agent\)\}\$\{esc\(st\.model \?/, "the composer's line: the mark beside the model");
+  assert.match(src, /`<div class="av av-t">\$\{rtMark\(s\.agent\) \|\| ICON\.thread\}<\/div>`/);
+  assert.doesNotMatch(src, /\$\{esc\(cliName\(st\.agent\)\)\} · /);
+});
+t("the New chat picker: one grid at the head's inset, the agents as one choice with their marks, modes a compact list", () => {
+  const src = read("js/chats.js"), css = read("css/app.css");
+  assert.match(src, /<div class="rt-seg cs-agents" role="radiogroup" aria-labelledby="cs-agent-l">/);
+  assert.match(src, /data-cs-agent="\$\{esc\(r\.name\)\}">\$\{rtMark\(r\.name\) \|\| ""\}<span>/);
+  assert.match(src, /<div class="cs-grid">\$\{agentRow\}\$\{field\("cwd", "Folder"\)\}\$\{field\("model", "Model"\)\}\$\{field\("effort", "Effort"\)\}<\/div>/);
+  assert.match(src, /class="cs-mode\$\{m === st\.mode \? " is-on" : ""\}"/);
+  assert.match(css, /\.cs-grid\{display:grid;grid-template-columns:max-content minmax\(0,1fr\);[^}]*padding:var\(--s-3\) var\(--pop-x\) var\(--s-2\)\}/);
+  assert.match(css, /\.rt-seg\.cs-agents button\{[^}]*height:var\(--h-sm\);/, "as tall as the fields: 24 in its 3 px frame");
+  assert.match(css, /\.cs-mode\{[^}]*height:var\(--h-ctl\);[^}]*font:var\(--fw-regular\) var\(--fs-menu\)\/var\(--lh-menu\)/);
+  assert.match(css, /:is\(\.set-choice,\.cs-mode\)\.is-on \.sc-dot\{/, "one chosen dot");
+  assert.match(read("css/tokens.css"), /--pop-x:10px;/);
+  assert.match(read("js/app.js"), /const ag = e\.target\.closest\("\[data-cs-agent\]"\);/);
+});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

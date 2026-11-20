@@ -42,7 +42,7 @@ xo-select>option{display:none}
 
 /* where each one stands */
 .ar-pj xo-select{width:200px}
-.cs-f xo-select{flex:0 1 232px}
+.cs-grid xo-select{width:100%}
 .set-row xo-select{flex:none;width:136px}
 
 /* a finger needs more than a pointer */
