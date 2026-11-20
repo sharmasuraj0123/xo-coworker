@@ -178,7 +178,7 @@
    conversation was laid out 54 px wide behind the panel and re-wrapped on the way back: closing the panel
    moved what you were reading by up to 1,400 px. */
 @media (max-width:760px){
-  :root:root body.stage-open .home{padding-right:16px}
+  :root:root body.stage-open .home{padding-right:var(--s-4)}
   :root:root body.stage-open :is(.dock,.toast-wrap){right:0}
 }
 /* the composer's target on a phone: just where it goes (the arrow or the thread mark says "to"); the words

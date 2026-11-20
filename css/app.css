@@ -185,16 +185,8 @@ button:disabled{cursor:default}
 /* clip, not hidden: a hidden box can still be scrolled by a script, and the editor's own scrollIntoView (Pierre, after a
    focus) scrolled the page's main area 262 px up and the file out of sight on a phone (the controls grader on 65e84b7,
    S138: MAIN#main scrollTop 262, every other ancestor 0). A clipped box isn't a scroll container: nothing scrolls it */
-/* ── One geometry for the main area (design-research/2026-11-lg, P0-1) ──────────────────────────────────
-   A side panel (Needs you, or the right panel with whatever page it shows) reserves --rp on the right, and
-   every view ends where it begins: Home, the conversation, Artifacts, the dock, the toasts. Inside each, the
-   reading column is placed from that view's own width (each is an inline-size container), never centred in
-   a scrollbox: a scrollbar can't move it, and the composer below shares both of its edges with the messages
-   above. 720 wide at most, never closer than --gut-min to an edge. The conversation (its messages and the dock under
-   them) reads a step wider, 768 (the owner, 19 Nov: "a bit wider, just a bit", for replies that hold tables, charts and
-   code); Home and Artifacts keep 720. Beside an open file the docked chat is narrower than either, so it's unchanged. */
-.main{--rp:0px;--gut-min:28px;--col-max:720px}
-.main :is(.conv,.dock){--col-max:768px}
+/* one column for every view (Home, the conversation, Artifacts, the dock), placed from its own width; --rp keeps the side panel clear */
+.main{--rp:0px;--gut-min:28px;--col-max:768px}
 :is(.home,.conv,.arts,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, 480px))}
 .main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
 @media (min-width:761px){
@@ -206,12 +198,12 @@ button:disabled{cursor:default}
 
 /* ── Home ────────────────────────────────────────────────────────────────── */
 .home{position:absolute;inset:0;scroll-padding-bottom:calc(var(--dock-h) + 20px);overflow-y:auto;overflow-x:hidden;outline:none;scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
-.hm{width:var(--col-w);margin-left:var(--col-x);padding:clamp(32px,6vh,64px) 0 calc(var(--dock-h) + 48px)}
+.hm{width:var(--col-w);margin-left:var(--col-x);padding:clamp(var(--s-8),6vh,calc(2 * var(--s-8))) 0 calc(var(--dock-h) + var(--s-12))}
 .home.enter{animation:rise-in var(--d-in) var(--ease)}
 .home.enter-l{animation:col-l var(--d-in) var(--ease)}
-.hm-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+.hm-top{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6)}
 .hm-hd{min-width:0}
-.hm-date{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-4);margin-bottom:12px}
+.hm-date{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-4);margin-bottom:var(--s-3)}
 .hm-h{font:var(--fw-strong) var(--fs-3xl)/var(--lh-28) var(--sans);letter-spacing:var(--tr-28);color:var(--ink);text-wrap:pretty}
 .hm-h span{display:block;color:var(--ink-3)}
 /* Create XO Project (Today's style, #19): prominent, not shouting */
@@ -258,11 +250,11 @@ button:disabled{cursor:default}
 .next.st-back .nx-in{animation:nx-back var(--d-sheet) var(--ease) forwards}
 @keyframes nx-out{0%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
 @keyframes nx-back{to{opacity:0;transform:translateX(-18px)}}   /* sent back: it leaves the way it goes, with no wind-up */
-.next .stamp{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;opacity:0;pointer-events:none}
+.next .stamp{position:absolute;left:50%;top:50%;width:84px;height:84px;translate:-50% -50%;opacity:0;pointer-events:none}
 .next.st-allow .stamp{animation:stamp var(--d-long) var(--ease) forwards}
 .next.st-allow .stamp .sk{animation:draw var(--d-in) var(--ease) var(--d-press) forwards}
-.nx-meta{display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:12px}
-.nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0 var(--halo);margin-right:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.nx-meta{display:flex;align-items:center;gap:var(--s-3);min-width:0;margin-bottom:var(--s-3)}
+.nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--halo);margin-right:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 /* where it was asked: a text link in the card's corner (it hangs 8 px into the margin to align its words),
    so its hover is the ink brightening, not a fill that would sit off the corner's curve */
 .nx-where:hover{color:var(--ink-2)}
@@ -270,26 +262,26 @@ button:disabled{cursor:default}
 .nx-h{font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
 /* the exact command under the headline: mono at reading size, two lines at most (audit A6) */
 .nx-cmd{margin-top:8px}
-.nx-cmd code{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-width:100%;padding:4px 8px;border-radius:var(--r-sm);background:var(--hover-fill);font:var(--fw-regular) var(--fs-code)/var(--lh-body) var(--mono);color:var(--ink-2);overflow-wrap:anywhere;width:fit-content}
+.nx-cmd code{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-width:100%;padding:var(--s-1) var(--s-2);border-radius:var(--r-sm);background:var(--hover-fill);font:var(--fw-regular) var(--fs-code)/var(--lh-body) var(--mono);color:var(--ink-2);overflow-wrap:anywhere;width:fit-content}
 .h-verb{color:var(--ink-3);font-weight:var(--fw-medium)}
 .h-cmd{font:var(--fw-medium) .84em/var(--lh-body) var(--mono);letter-spacing:var(--tr-20);padding:.08em .38em;border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line)}
-.nx-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:18px}
-.nx-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-.nx-btns.one{display:flex;gap:8px}
-.nx-btns.one .b{flex:none;padding:0 18px}
-.nx-foot{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px}
-.nx-link{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-body);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.nx-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s-2);margin-top:var(--s-5)}
+.nx-btns{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3);margin-top:var(--s-5)}
+.nx-btns.one{display:flex;gap:var(--s-2)}
+.nx-btns.one .b{flex:none;padding:0 var(--s-5)}
+.nx-foot{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin-top:var(--s-3)}
+.nx-link{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-body);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 /* a text link: its hover is the ink brightening, no fill (a fill would stick out of the card's corner,
    since the link hangs 8 px into the margin to align its glyph) */
 .nx-link:hover{color:var(--ink)}
 .nx-link svg{width:15px;height:15px}
 .next.noting .nx-opts,.next.noting .nx-btns,.next.noting .nx-foot{display:none}
-.nx-note{margin-top:16px}
+.nx-note{margin-top:var(--s-4)}
 
 /* then… */
 .then ol{list-style:none;display:flex;flex-direction:column}
 .then li+li{border-top:1px solid var(--line-faint)}
-.then-i{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto 16px;align-items:center;gap:14px;min-height:var(--h-row-act);padding:6px var(--halo-row);margin:0 calc(-1 * var(--halo-row));width:calc(100% + 2 * var(--halo-row));border-radius:var(--r-lg);text-align:left;transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.then-i{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto 16px;align-items:center;gap:var(--s-4);min-height:var(--h-row-act);padding:var(--s-2) var(--halo-row);margin:0 calc(-1 * var(--halo-row));width:calc(100% + 2 * var(--halo-row));border-radius:var(--r-lg);text-align:left;transition:background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .then-i:hover{background:var(--fill-1)}
 .then-i:active{transform:scale(.99)}
 .then-i>svg{width:15px;height:15px;color:var(--ink-5);transition:transform var(--dur-base) var(--ease),color var(--d-hover) var(--ease)}
@@ -297,23 +289,23 @@ button:disabled{cursor:default}
 .ti-t code,.wn-t code,.bl-tt code{font:var(--fw-medium) .9em/1 var(--mono);color:var(--ink)}
 .ti-t{min-width:0;font-size:var(--fs-body);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ti-dim{color:var(--ink-3)}
-.ti-lev{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-sm);color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ti-lev{display:inline-flex;align-items:center;gap:var(--s-1);font-size:var(--fs-sm);color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .ti-lev>svg{width:12px;height:12px;color:var(--accent)}
-.ti-p{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;min-width:84px;text-align:right}
-.then-foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.then-foot.solo{margin-top:22px}
-.hm-quiet{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-2);font-size:var(--fs-body);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.ti-p{display:inline-flex;align-items:center;justify-content:flex-end;gap:var(--s-2);font-size:var(--fs-sm);color:var(--ink-4);white-space:nowrap;min-width:84px;text-align:right}
+.then-foot{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:var(--s-3)}
+.then-foot.solo{margin-top:var(--s-6)}
+.hm-quiet{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3);border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-2);font-size:var(--fs-body);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .hm-quiet:hover{background:var(--surface);border-color:var(--line)}
 .hm-quiet:active{transform:scale(.97)}
 .hm-quiet span{color:var(--ink-4)}
 .hm-quiet svg{width:14px;height:14px;color:var(--ink-3)}
 .hm-quiet.is-glance .dial{color:var(--e-glance)}
 
-.calm{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:32px 30px 30px;margin-top:34px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-faint)}
+.calm{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3);padding:var(--s-8) var(--s-8) var(--s-8);margin-top:var(--s-8);border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-faint)}
 .calm-mark .xo-mark{display:block;width:58px;height:var(--h-sm);opacity:.9}
-.calm h2{margin-top:10px;font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20)}
+.calm h2{margin-top:var(--s-3);font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20)}
 .calm p{max-width:44ch;font-size:var(--fs-body);line-height:var(--lh-body);color:var(--ink-3)}
-.calm-act{display:flex;align-items:center;gap:18px;margin-top:10px}
+.calm-act{display:flex;align-items:center;gap:var(--s-5);margin-top:var(--s-3)}
 .calm-act .nx-link{margin-left:0}
 .calm .b svg{width:15px;height:15px}
 
@@ -1237,16 +1229,16 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hm-body{position:relative}
 /* each block holds its own margins, so its height is its whole place on the page (js/skeleton.js remembers it) */
 #hm-body>div{display:flow-root}
-.nx-est{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:var(--fs-body);color:var(--ink-3)}
+.nx-est{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-2);font-size:var(--fs-body);color:var(--ink-3)}
 .nx-est svg,.c-est svg{flex:none;width:14px;height:14px;color:var(--ink-4)}
 .c-est{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:var(--fs-body);color:var(--ink-3)}
-.next .c-sug{margin-top:10px}
-.in-panel{display:flex;align-items:center;gap:10px;min-height:58px;padding:0 20px;border-radius:var(--r-xl);border:1px dashed var(--line);color:var(--ink-3);font-size:var(--fs-body)}
+.next .c-sug{margin-top:var(--s-3)}
+.in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:58px;padding:0 var(--s-5);border-radius:var(--r-xl);border:1px dashed var(--line);color:var(--ink-3);font-size:var(--fs-body)}
 .in-panel svg{width:15px;height:15px;color:var(--ink-4)}
-.handled{margin-top:30px}
-.hd-row0{display:flex;align-items:stretch;gap:8px}
+.handled{margin-top:var(--s-8)}
+.hd-row0{display:flex;align-items:stretch;gap:var(--s-2)}
 .hd-row0>div:first-child{flex:1;min-width:0}
-.hd{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-row-act);padding:0 14px 0 12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);text-align:left;color:var(--ink-3);font-size:var(--fs-body);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
+.hd{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row-act);padding:0 var(--s-4) 0 var(--s-3);border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);text-align:left;color:var(--ink-3);font-size:var(--fs-body);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
 .hd:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));border-color:var(--line-soft)}
 .hd-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(var(--accent-rgb),.12);color:var(--accent)}
 .hd-ic svg{width:12px;height:12px}
@@ -1254,9 +1246,9 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hd-t b{color:var(--ink);font-weight:var(--fw-strong)}
 .hd>svg{flex:none;width:15px;height:15px;color:var(--ink-4);transition:transform var(--d-move) var(--ease)}
 .handled.is-open .hd>svg{transform:rotate(180deg)}
-.hd-in{padding-top:8px}
+.hd-in{padding-top:var(--s-2)}
 .hd-ul,.cw-ul{list-style:none;display:grid;gap:2px}
-.hd-r{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,.9fr) 44px;align-items:center;gap:12px;width:100%;min-height:var(--h-row);padding:4px 12px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-body);transition:background var(--d-hover) var(--ease)}
+.hd-r{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,.9fr) 44px;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row);padding:var(--s-1) var(--s-3);border-radius:var(--r-sm);text-align:left;font-size:var(--fs-body);transition:background var(--d-hover) var(--ease)}
 .hd-r:hover{background:var(--fill-1)}
 .hd-p{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* a block, so a long title ends in an ellipsis (a flex box cut it mid-letter); its glyph sits inline */
@@ -1265,7 +1257,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hd-now{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mini{display:block;height:3px;border-radius:3px;background:var(--fill-3);overflow:hidden}
 .mini i{display:block;height:100%;border-radius:3px;background:var(--info);transform-origin:left;transform:scaleX(var(--p));transition:transform var(--d-land) var(--ease)}
-.hd-k{margin:14px 12px 6px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.hd-k{margin:var(--s-4) var(--s-3) var(--s-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .cw{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 8px 6px 12px;border-radius:var(--r-lg);border:1px dashed var(--line)}
 .cw+.cw{margin-top:6px}
 .cw-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
@@ -1538,9 +1530,9 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .switch:hover .th-track{box-shadow:inset 0 0 0 1px var(--sb-line-hover)}
 
 @media (max-height:820px) and (min-width:761px){
-  .hm{padding-top:26px}
-  .hm-lbl{margin-top:24px}
-  .next{padding:21px}
+  .hm{padding-top:var(--s-6)}
+  .hm-lbl{margin-top:var(--s-6)}
+  .next{padding:var(--s-5)}
 }
 
 /* ── laptop ──────────────────────────────────────────────────────────────── */
@@ -1569,8 +1561,8 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .pb-t{flex:1;min-width:0;font:var(--fw-strong) var(--fs-lg)/var(--lh-15) var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pb-t .xo-mark{display:block;width:var(--tile);height:13px}
   .home,.conv,.arts{top:var(--h-phonebar)}
-  .hm{padding:24px 0 230px}
-  .hm-top{flex-direction:column;align-items:stretch;gap:16px}
+  .hm{padding:var(--s-6) 0 calc(var(--dock-h) + var(--s-12))}
+  .hm-top{flex-direction:column;align-items:stretch;gap:var(--s-4)}
   /* Give the date and action a real row, with 12px of air before the greeting.
      The 24px tile sits 5px from the 34px control's outer edge. */
   .hm-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}
@@ -1578,14 +1570,14 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .hm-date{grid-column:1;grid-row:1;align-self:center;margin-bottom:0}
   .hm-h{grid-column:1 / -1;grid-row:2}
   .create{grid-column:2;grid-row:1}
-  .hm-lbl{margin-top:26px}
+  .hm-lbl{margin-top:var(--s-6)}
   .hm-lbl-s{display:none}
-  .next{padding:15px;border-radius:var(--r-2xl)}
-  .nx-meta{flex-wrap:wrap;row-gap:8px}
+  .next{padding:var(--s-4);border-radius:var(--r-2xl)}
+  .nx-meta{flex-wrap:wrap;row-gap:var(--s-2)}
   .nx-where{margin-left:calc(-1 * var(--halo));order:3;flex-basis:100%}
   .nx-h{font-size:var(--fs-2xl)}
   .nx-opts{grid-template-columns:1fr}
-  .then-i{grid-template-columns:minmax(0,1fr) auto 16px;grid-template-rows:auto auto;row-gap:4px;padding:10px 12px}
+  .then-i{grid-template-columns:minmax(0,1fr) auto 16px;grid-template-rows:auto auto;row-gap:var(--s-1);padding:var(--s-3) var(--s-3)}
   .then-i .eff{grid-row:1;grid-column:1}
   .then-i .ti-t{grid-row:2;grid-column:1 / 3}
   .then-i .ti-lev{grid-row:1;grid-column:2}
@@ -2580,9 +2572,9 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .md-it.is-pin .md-pin:hover{color:var(--accent-hover)}
 .md-it.is-pin .md-pin{color:var(--accent)}
 .md-it.is-pin .md-pin svg{fill:currentColor}
-.md-grid.is-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.md-grid.is-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}
 .md-grid.is-strip .md-th{height:80px}
-.md-grid.is-strip .md-meta{padding-bottom:10px}
+.md-grid.is-strip .md-meta{padding-bottom:var(--s-3)}
 .md-recent .hm-lbl svg{width:14px;height:14px}
 /* Loading in its final shape (js/skeleton.js): a quiet bar where words will be, an empty frame where a picture
    will be. The real thing lands in the same place at the same size, so nothing below it moves. Grey, never a
@@ -2595,7 +2587,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 @media (prefers-reduced-motion:reduce){.sk{animation:none}}
 .hm-sk{overflow:hidden;pointer-events:none}
 .hm-sk.is-card{display:flex;flex-direction:column}
-.hm-sk .sk-card{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:24px;border-radius:var(--r-3xl);border:1px solid var(--line-faint);background:var(--surface)}
+.hm-sk .sk-card{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-4);padding:var(--s-6);border-radius:var(--r-3xl);border:1px solid var(--line-faint);background:var(--surface)}
 .hm-sk .sk-card .sk{flex:none}
 .handled.hm-sk .hd-ic{background:var(--fill-2)}
 .md-it.is-sk{pointer-events:none}
