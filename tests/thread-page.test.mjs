@@ -8,9 +8,15 @@ const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const storm = readFileSync(new URL("../js/storm.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
-// registered on the panel's page model: one page (single), 560 wide, its own box, kept while hidden
-assert.match(app, /single: true, width: \(\{ room \}\) => Math\.max\(560, Math\.min\(720, room\)\),/, "wider by default: 720 where the chat keeps its 560");
-assert.match(app, /mount: \(box\) => tpMount\(box\),\n\s*onShow: \(key, o\) => tpShow\(key, o\),\n\s*unmount: \(\) => tpUnmount\(\),/);
+// registered on the panel's page model at the panel's own width (the owner, 20 Nov), its box built once and kept
+const tps = app.slice(app.indexOf('STAGE.page("thread", {'), app.indexOf("});", app.indexOf('STAGE.page("thread", {')));
+assert.doesNotMatch(tps, /width:|single:/, "no width of its own: a thread opens at the panel's width");
+assert.match(tps, /mount: \(box\) => tpMount\(box\),\n\s*onShow: \(key, o\) => tpShow\(key, o\),/);
+assert.match(tps, /close: \(\) => tpClose\(\),/);
+// opening draws only the page: the chat beside it doesn't change
+const tsh = app.slice(app.indexOf("function tpShow("), app.indexOf("\n}\n", app.indexOf("function tpShow(")));
+assert.match(tsh, /drawThreadPage\(D\.needItems\(\)\);/);
+assert.doesNotMatch(tsh, /\brender\(\)/, "never the whole app");
 // its own elements (unique ids beside the main chat's), its own follower, drawing, composer and decoration
 for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(app, new RegExp(`id="${id}"`), id);
 assert.match(app, /TP\.follow = createFollow\(els\);/);
@@ -18,10 +24,10 @@ assert.match(app, /TP\.C = createConv\(\{ view: tpView, msgs: els\.msgs/);
 assert.match(app, /wireComposer\(TP\.K\);/);
 assert.match(app, /decorateConversation\(\{ conv: box, msgs: els\.msgs/);
 // it draws with everything else, as its own conversation; a thread that's gone leaves the panel
-assert.match(app, /if \(TP\.C && TP\.tid && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
+assert.match(app, /if \(TP\.C && TP\.tid && !TP\.wait && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
 assert.match(app, /drawConv\(TP\.C, needs\);/);
 assert.match(app, /checklistRender\(needs, \$\("#tpthead"\), tpView\(\), "tck-list"\);/);
-assert.match(app, /if \(!t\) \{ STAGE\.closeTab\("thread"\); return; \}/);
+assert.match(app, /if \(!t\) \{ STAGE\.closePage\("thread"\); return; \}/);
 // watched beside the main thread (storm keeps both)
 assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
 assert.match(storm, /watchSideThread: \(ts\) => \{ watched\.side = ts \|\| null;/);
@@ -70,7 +76,8 @@ console.log("thread-page: ok");
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:calc\(100cqw - 2 \* var\(--s-5\)\);--col-x:var\(--s-5\);/);
   const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
-  assert.match(st2, /w\(\{ room: innerWidth - sideW\(\) - READ \}\)/);
+  assert.match(st2, /function apply\(\) \{\n\s*const v = clampW\(wSaved\);/, "one width for everything the panel shows");
+  assert.doesNotMatch(st2, /pageSpecW|PAGE_MIN|WIDE/);
   console.log("thread-page column and width: ok"); }
 
 // a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
@@ -89,12 +96,16 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
 // (menuKeys on the page's head), drawn in the click; a choice acts there or goes to its own page with it started
 assert.match(app, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
 assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
-assert.match(app, /menuKeys\(\$\("#tphead"\), \{ close: \(\) => closeThreadMenu\(\) \}\);/);
+assert.match(app, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
+assert.match(app, /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
 assert.match(app, /where === "page" \? item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, "Open as its own page"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
 assert.match(app, /render\(\); \/\/ drawn now, in the click/);
-// the page's ⤢ is back beside its ⋯ (the owner, 19 Nov 19:25Z): the thread's own page, full width
-assert.match(app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead("))), /class="stg-ic tp-full" data-tp-full="\$\{esc\(t\.id\)\}"[^`]*\$\{ICON\.full\}<\/button>` \+\n\s*`<span class="tp-menu-w">/);
+// one ⤢ in the head (the panel's full size); the thread's own page is "Open as its own page" in its ⋯ (the owner, 20 Nov:
+// two ⤢ did different things)
+{ const th = app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead(")));
+  assert.doesNotMatch(th, /tp-full/);
+  assert.match(th, /redraw\(head, html\); redraw\(acts, menu\);/); }
 // at full size only the chat's own dock hides under the panel; the Thread page's reply box and decision stay
 { const a3 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
   assert.match(a3, /body\.stage-full \.dock:not\(\.stage \.dock\),body\.stage-full \.tdock:not\(\.stage \.tdock\)\{visibility:hidden\}/);
@@ -120,8 +131,8 @@ console.log("thread-page files and model: ok");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
   console.log("thread-page checklist gap: ok"); }
 
-// a Thread page that closes takes down what it hung on the page: msgx's document listeners, its timer, its quote button
-// and sheets, and the dock's ResizeObserver (closing and opening a thread added one more set each time)
+// msgx can take down what it hung on the page (its document listeners, its timer, its quote button and sheets); the
+// Thread page is built once and kept, so nothing is hung twice
 { const mx = readFileSync(new URL("../js/msgx.js", import.meta.url), "utf8"), ap = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
   const code = mx.replace(/\/\/[^\n]*/g, "");
   const body = code.slice(code.indexOf("export function decorateConversation(E) {"));
@@ -132,5 +143,6 @@ console.log("thread-page files and model: ok");
   assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) gone\.pop\(\)\(\); \} \};/);
   assert.match(ap, /TP\.deco = decorateConversation\(/);
   assert.match(ap, /TP\.dockRO = new ResizeObserver\(/);
-  assert.match(ap, /TP\.follow\?\.destroy\(\); TP\.deco\?\.destroy\(\); TP\.dockRO\?\.disconnect\(\);/);
+  assert.match(ap, /function tpClose\(\) \{/);
+  assert.doesNotMatch(ap, /function tpUnmount\(/, "the page is never torn down and rebuilt");
   console.log("thread-page teardown: ok"); }

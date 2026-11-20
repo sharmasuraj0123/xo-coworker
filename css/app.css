@@ -195,7 +195,7 @@ button:disabled{cursor:default}
    focus) scrolled the page's main area 262 px up and the file out of sight on a phone (the controls grader on 65e84b7,
    S138: MAIN#main scrollTop 262, every other ancestor 0). A clipped box isn't a scroll container: nothing scrolls it */
 /* ── One geometry for the main area (design-research/2026-11-lg, P0-1) ──────────────────────────────────
-   A side panel (the Agentic Control Pane, Needs you, the Map, the viewer) reserves --rp on the right, and
+   A side panel (Needs you, or the right panel with whatever page it shows) reserves --rp on the right, and
    every view ends where it begins: Home, the conversation, Artifacts, the dock, the toasts. Inside each, the
    reading column is placed from that view's own width (each is an inline-size container), never centred in
    a scrollbox: a scrollbar can't move it, and the composer below shares both of its edges with the messages
@@ -209,9 +209,7 @@ button:disabled{cursor:default}
 @media (min-width:761px){
   body.panel-open .main{--rp:var(--pw)}
   body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .main{--rp:var(--sw)}
-  body.viewer-open .main{--rp:var(--vw)}
 }
-@media (min-width:1041px){body.map-open:not(.panel-open):not(.viewer-open):not(.map-full) .main{--rp:var(--mw)}}
 @media (max-width:760px){.main{--gut-min:16px}}
 .phonebar{display:none}
 
@@ -2142,7 +2140,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 
 :root{--vw:clamp(460px,46vw,780px)
 }
-body.viewer-open .tdock{display:none}
 .viewer{position:absolute;z-index:calc(var(--z-panel) + 2);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--vw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden}
 .viewer.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 .vw-top{flex:none;display:flex;align-items:center;gap:12px;padding:14px 12px 12px 16px;border-bottom:1px solid var(--line-faint)}
@@ -2860,31 +2857,6 @@ body.stage-full .stage{left:var(--float-inset);width:auto;z-index:calc(var(--z-p
 /* at full size the panel covers the chat: the chat's own dock (its composer, its card) hides under it; a dock inside the
    panel (the Thread page's reply box and decision) is the page's own and stays */
 body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock){visibility:hidden}
-.stg-bar{flex:none;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 10px;border-bottom:1px solid var(--line-faint)}
-.stg-tabs{flex:1;min-width:0;display:flex;align-items:center;gap:2px;overflow-x:auto;scrollbar-width:none}
-.stg-tabs::-webkit-scrollbar{display:none}
-.stg-tab{position:relative;flex:none;display:inline-flex;align-items:center;gap:7px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.stg-tab svg{flex:none;width:15px;height:15px}
-.stg-tab:hover{background:var(--fill-2);color:var(--ink)}
-.stg-tab.is-on{background:var(--fill-2);color:var(--ink);box-shadow:var(--hairline)}
-.stg-tab:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
-.stg-n{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.stg-tab.is-on .stg-n{color:var(--ink-3)}
-.stg-filew{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;border-radius:var(--r-sm);transition:background var(--d-hover) var(--ease)}
-.stg-filew:hover{background:var(--fill-2)}
-.stg-filew.is-on{background:var(--fill-2);box-shadow:var(--hairline)}
-.stg-filew .stg-tab{min-width:0;max-width:220px;padding-right:4px;background:none;box-shadow:none}
-.stg-filew .stg-tab span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stg-x{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:4px;border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.stg-x svg{width:12px;height:12px}
-.stg-x:hover{background:var(--fill-3);color:var(--ink)}
-.stg-acts{flex:none;display:flex;align-items:center;gap:2px}
-.stg-ic{display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.stg-ic svg{width:16px;height:16px}
-.stg-ic:hover{background:var(--fill-2);color:var(--ink)}
-.stg-body{position:relative;flex:1;min-height:0}
-.stg-pane{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0}
-.stg-pane[hidden]{display:none}
 /* the Map and the viewer inside it: the panel is their card, their tabs and their close */
 .stage .map,.stage .viewer,body.map-full .stage .map{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
 .stage .stage-tabs,.stage [data-mp-close],.stage [data-mp-full],.stage [data-vw-close]{display:none}

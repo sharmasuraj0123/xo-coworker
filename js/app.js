@@ -222,7 +222,7 @@ const VW = createViewer({
   // who made a version: an agent's thread, by its title
   threadTitle: (ts) => world.thread(ts)?.title || null,
   // Esc from a file: back to the panel's sections, the file kept as the Files tab (js/filespage.js)
-  away: () => { if (!FP.isOpen) return false; STAGE.sections(); return true; },
+  away: () => { if (!FP.isOpen) return false; STAGE.back(); return true; },
   // every way a file opens ends in the panel's Files page
   opened: (f, o) => FP.show(o),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
@@ -401,7 +401,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e) });
+const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -2699,7 +2699,8 @@ function editFailed(id, K = MK) {
 
 // ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
 // (design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md; the owner chose the proper build, 19 Nov
-// 15:20Z.) One page, its key the thread it shows: its own head (state, runtime, branch, Open full width), checklist,
+// 15:20Z.) One page, its key the thread it shows: its title and ⋯ in the panel's head, its facts (state, runtime,
+// branch) on one quiet line under it, checklist,
 // conversation (createConv + createFollow + msgx), typing line and composer (wireComposer). It opens from the
 // panel's Threads beside a chat; ⌘/Ctrl-click, or Open full width, gives today's full page.
 const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
@@ -2725,7 +2726,11 @@ function tpMount(box) {
   wireComposer(TP.K);
   wireTray(TP.K);
   TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
-  menuKeys($("#tphead"), { close: () => closeThreadMenu() });
+  // its ⋯ (and the menu it opens) sits in the panel's head, beside the panel's own controls
+  const acts = document.createElement("span");
+  acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
+  STAGE.slot.append(acts);
+  menuKeys(acts, { close: () => closeThreadMenu() });
   // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
   TP.K.attach.addEventListener("click", () => TP.K.input.click());
   TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
@@ -2745,59 +2750,66 @@ function tpShow(key, { focus = false } = {}) {
     if (TP.tid && TP.K) saveDraft(TP.K);
     TP.tid = key;
     TP.C.rendered = null; TP.C.filled = null;
+    TP.C.msgs.replaceChildren(); $("#tpthead").hidden = true;
     Object.assign(TP.dock.TD, { key: null, busy: false });
     world.act.watchSideThread?.(key);
     loadDraft(TP.K);
     TP.viewSubs.forEach((fn) => fn());
+    // a new thread's conversation is drawn once the page's first frame is on screen: the slide starts at the press, and
+    // the drawing (long threads take a while) happens under it rather than before it
+    const t = convThread(tpView());
+    if (t) tpHead(t);
+    TP.wait = true;
+    requestAnimationFrame(() => setTimeout(() => {
+      TP.wait = false;
+      if (TP.tid === key && STAGE.pageShown?.name === "thread") drawThreadPage(D.needItems());
+      if (focus && TP.tid === key) TP.K.say.focus({ preventScroll: true });
+    }, 0));
+    return;
   }
-  render();
+  // only the page is drawn: the chat beside it doesn't change
+  drawThreadPage(D.needItems());
   if (focus) requestAnimationFrame(() => TP.K.say.focus({ preventScroll: true }));
 }
-function tpUnmount() {
-  if (TP.K) saveDraft(TP.K);
-  // everything it hung on the page goes with it (a page closed and opened again added a set each time)
-  TP.follow?.destroy(); TP.deco?.destroy(); TP.dockRO?.disconnect();
+/** The page closes (‹, another place, the panel closing): its draft is kept, the thread no longer watched. The page's
+ *  parts stay built for the next thread. */
+function tpClose() {
+  if (TP.K && TP.tid) saveDraft(TP.K);
+  if (S.tMenuIn === "page") { S.tMenu = null; S.tMenuIn = null; }
   world.act.watchSideThread?.(null);
-  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null, deco: null, dockRO: null, dock: null }); TP.viewSubs.clear();
-
+  TP.tid = null;
 }
 STAGE.page("thread", {
-  // wider by default (the owner, 19 Nov 16:09Z): 720 reads at the chat's own measure (its column less its 20 insets,
-  // less the 48 a line keeps: 632, about 72 characters of 16 px text); where that would push the chat under its
-  // 560, as much as leaves it 560; never under the 560 it was. A width you drag it to is kept (per page).
-  single: true, width: ({ room }) => Math.max(560, Math.min(720, room)),
+  // at the panel's own width, like every page (the owner, 20 Nov: "keep the thread in the same size that of the right panel")
   title: (key) => world.thread(key)?.title || "Thread",
-  icon: () => ICON.threadOne,
   mount: (box) => tpMount(box),
   onShow: (key, o) => tpShow(key, o),
-  unmount: () => tpUnmount(),
   // a reply being written is kept (its draft), so closing never loses it: nothing to ask
-  canClose: () => true,
+  close: () => tpClose(),
   // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
   escape: () => { if (S.tMenu && S.tMenuIn === "page") { closeThreadMenu(); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
-/** The thread page's head: its state, its runtime and branch, Open full width. */
+/** The thread page's facts under the panel's head (state, runtime, branch), and its ⋯ in that head (Open as its own
+ *  page is there). */
 function tpHead(t) {
-  const head = $("#tphead");
+  const head = $("#tphead"), acts = $("#tpacts");
   const open = S.tMenu === t.id && S.tMenuIn === "page";
-  // ⤢ beside its ⋯ (the owner, 19 Nov 19:25Z: "old expand button go?"): the thread's own page, full width
   const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
-    `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}` +
-    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>` +
-    `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
-  if (head._h !== html) { redraw(head, html); head._h = html; }
+    `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
+  const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
+  if (head._h !== html + menu) { redraw(head, html); redraw(acts, menu); head._h = html + menu; }
 }
 function drawThreadPage(needs) {
   const t = convThread(tpView());
-  if (!t) { STAGE.closeTab("thread"); return; } // a thread that's gone (deleted, resolved away) leaves the panel
+  if (!t) { STAGE.closePage("thread"); return; } // a thread that's gone (deleted, resolved away) leaves the panel
   tpHead(t);
   checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
   drawConv(TP.C, needs);
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
+document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; closeThreadMenu({ focus: false }); STAGE.closePage("thread"); go("t:" + id); } });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as
  * the panel's Thread page; ⌘/Ctrl-click, anywhere else (Home, Artifacts, another thread's page), or the thread
@@ -2864,7 +2876,7 @@ function render() {
     if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
   }
   if (!isHome && !isArts) requestAnimationFrame(() => loadAhead(MAIN));
-  if (TP.C && TP.tid && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
+  if (TP.C && TP.tid && !TP.wait && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
   dockRender(needs);
   heraldRender(needs);
   // the line above the composer follows the world on every view: a thread's follows its agent's turn
@@ -3096,7 +3108,8 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
-  if (v !== S.view) FP.reset();
+  // a page in the panel (a thread, a file, a shell) belongs to the place it was opened beside
+  if (v !== S.view) STAGE.leave();
   closeSettings({ restore: false });
   setDrawer(false);
   IQ.close({ restore: false });
@@ -3446,7 +3459,7 @@ function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
 function closeThreadMenu({ focus = true } = {}) {
   if (!S.tMenu) return;
   const back = focus && !!document.activeElement?.closest?.(".tw-menu");
-  const opener = S.tMenuIn === "page" ? "#tphead [data-tmenu]" : "#top-who [data-tmenu]";
+  const opener = S.tMenuIn === "page" ? "#tpacts [data-tmenu]" : "#top-who [data-tmenu]";
   S.tMenu = null; S.tMenuIn = null; $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
   if (!back) { schedule(); return; }
   render();
@@ -3624,7 +3637,7 @@ document.addEventListener("click", (e) => {
   const fromPage = S.tMenuIn === "page" && (t.closest("[data-tfield]:not([data-tfield=clear-label])") || t.closest("[data-tdel]") || t.closest("[data-tmove]"));
   if (fromPage) {
     const tid = S.tMenu;
-    STAGE.closeTab("thread"); S.tMenu = null; S.tMenuIn = null;
+    STAGE.closePage("thread"); S.tMenu = null; S.tMenuIn = null;
     go("t:" + tid); // drawn in this step: what the item leads to starts here too, never a frame later
     if (fromPage.dataset.tdel) { S.tDel = tid; $("#top-who")._h = null; render(); $("[data-tdel-no]")?.focus({ preventScroll: true }); }
     else if (fromPage.dataset.tfield) startThreadEdit(tid, fromPage.dataset.tfield);
@@ -3896,12 +3909,14 @@ async function deleteThread(tid) {
  *  shell opened for where you are (a thread's worktree, a project's folder, the workspace). Off, it goes back under
  *  the page, put away. Put away from inside the panel (its own ↓), the panel goes back to its frames. */
 const SHD_HOME = { parent: $("#shd").parentNode, next: $("#shd").nextSibling };
-function panelShell(on, host) {
+function panelShell(on, host, where) {
   const d = $("#shd");
   if (on) {
     if (!SH.enabled) { STAGE.shellOff(); heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200); return; }
     host.append(d); d.classList.add("in-panel");
-    openShell(S.view.startsWith("t:") || S.view.startsWith("p:") ? S.view : "ws");
+    const at = where || S.view;
+    // one that couldn't open (its notice says why) leaves the panel as it was: the page under it, or the sections
+    Promise.resolve(openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws")).then(() => { if (STAGE.isShell && d.hidden) STAGE.shellOff(); }, () => { if (STAGE.isShell) STAGE.shellOff(); });
   } else {
     d.classList.remove("in-panel");
     SHD_HOME.parent.insertBefore(d, SHD_HOME.next);
@@ -4254,8 +4269,9 @@ async function unfreeze(tid, btn) {
 }
 function setPage(id) {
   // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
-  for (const b of $$("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
-  for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
+  // Settings' own tabs and pages only: a [data-page] anywhere else on the page isn't Settings'
+  for (const b of setEl.querySelectorAll("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
+  for (const p of setEl.querySelectorAll("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
   if (id === "runtimes") RTSET.open();
   if (id === "shape") SV.open();
@@ -4611,7 +4627,7 @@ addEventListener("keydown", (e) => {
     if (!allEl.hidden) { closeAll(); return; }
     if (!setEl.hidden) { closeSettings(); return; }
     // a file in the panel: back to its sections (the file stays as the Files tab)
-    if (FP.isOpen) { STAGE.sections(); return; }
+    if (FP.isOpen) { STAGE.back(); return; }
     if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
     if (D.isOpen()) { D.close(); return; }
     if (CH.setupOpen) { CH.closeSetup(); return; }
@@ -4658,7 +4674,7 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (LB.isOpen) { LB.close(); return true; }
-  if (FP.isOpen) { STAGE.sections(); return true; }
+  if (FP.isOpen) { STAGE.back(); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
