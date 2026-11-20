@@ -5,7 +5,7 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
+body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
@@ -16,7 +16,7 @@ input,textarea{font:inherit;color:inherit}
    cut). Layout, not a smaller ring; zero specificity, and on controls only (a snapping list snaps its rows) */
 :where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-kbd{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
+kbd{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
 /* ── Plan F · every control answers (design-research/2026-11-vision/direction) ──────────────────────
    One curve. A hover engages in 120 ms and releases in 200 ms; a press goes down in 60 ms. Transitions
    that a component declares read var(--d-hover), which is set here per state, so the asymmetry holds

@@ -134,7 +134,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
 
   const theme = EditorView.theme({
     "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-code)" },
-    ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-body)", overflow: "auto" },
+    ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-ui)", overflow: "auto" },
     ".cm-content": { caretColor: "var(--ink)", padding: "var(--cell-in) 0" },
     ".cm-gutters": { backgroundColor: "transparent", color: "var(--ink-5)", border: "none" },
     ".cm-activeLine": { backgroundColor: "var(--row-hover)" },

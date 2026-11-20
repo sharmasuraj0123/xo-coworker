@@ -33,7 +33,7 @@
 .prow:not(.busy):not(.needs):not(.is-on):hover{background:var(--row-hover)}
 .prow:not(.is-on) .pr-name{color:var(--ink-2)}
 .prow:not(.is-on):hover .pr-name,.prow.is-on .pr-name{color:var(--ink)}
-.prow.is-on .pr-name{font-weight:var(--fw-strong)}
+.prow.is-on .pr-name{font-weight:var(--fw-medium)}
 
 /* the open project: the one raised card */
 .prow.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sb-side));border-color:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3)}
@@ -123,8 +123,8 @@
 .sm-sep{margin:var(--s-1) var(--s-3);border-top:1px solid var(--line-soft)}
 .side-pop[role="dialog"]{min-width:calc(7 * var(--h-row))}
 .se-h{display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-2) var(--s-3) var(--s-3)}
-.se-h b{font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
-.se-h span{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.se-h b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.se-h span{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .se-list{list-style:none;display:flex;flex-direction:column}
 .se-row{position:relative;display:flex;align-items:center;gap:var(--s-3);height:var(--h-row);padding:0 var(--s-2) 0 var(--s-1);border-radius:var(--r-lg)}
 .se-row:hover{background:var(--hover-fill)}
@@ -152,4 +152,4 @@
 .pk-o.is-on{border-color:var(--line-strong);background:var(--fill-2);color:var(--ink)}
 .pk-o svg{width:var(--ic);height:var(--ic)}
 .pk-auto{position:relative;display:grid;place-items:center}
-.pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-strong) var(--fs-xs)/1 var(--sans);font-style:normal;color:var(--ink-4)}
+.pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-medium) var(--fs-meta)/1 var(--sans);font-style:normal;color:var(--ink-4)}

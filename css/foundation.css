@@ -123,8 +123,8 @@ body.stage-full .stg-grip{display:none}
 .md-it:has(.md-open:active){transform:none}
 
 /* ── 6 · whole pixels: integer line heights, so 1 px borders land on whole pixels ────────────────── */
-.tw-t h1{line-height:var(--lh-20)}
-.hm-h{font-size:var(--fs-3xl);line-height:var(--lh-28)}
+.tw-t h1{line-height:var(--lh-title)}
+.hm-h{font-size:var(--fs-display);line-height:var(--lh-display)}
 .mh{padding-top:0;align-items:center;min-height:var(--h-ctl)}
 .md-grid{grid-template-columns:repeat(auto-fill,minmax(148px,1fr))}
 
@@ -137,8 +137,8 @@ body.stage-full .stg-grip{display:none}
 /* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
    with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
    their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
-.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
-.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
+.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 @media (max-width:760px){.top .badge,.top .tw-rt{height:var(--h-touch)}}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
    is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
@@ -156,23 +156,23 @@ body.stage-full .stg-grip{display:none}
   .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
 }
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
-.pj-s{line-height:var(--lh-body)}
+.pj-s{line-height:var(--lh-ui)}
 .top[data-kind="project"] .tw-t{gap:4px}
 .pj-k{color:var(--ink-2);font-weight:var(--fw-medium);font-variant-numeric:tabular-nums}
 .pj-c{white-space:nowrap}
 .pj-d{color:var(--ink-4)}
 /* one type system (pixel audit #8): the project title 20/28 at 600, the count line 13/20 at 400, 4 apart;
    Threads 32 high, 8 in and 8 between, its count 12/16 in tabular figures */
-.tw-t h1{font-size:var(--fs-2xl);font-weight:var(--fw-strong);letter-spacing:var(--tr-20)}
+.tw-t h1{font-size:var(--fs-title);font-weight:var(--fw-strong);letter-spacing:var(--tr-15)}
 .th-btn{gap:8px;padding:0 8px}
-.th-btn span{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
+.th-btn span{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
 /* a working thread in the Now strip: the neutral arc, one rule with task cards and link capsules (app.css) */
 /* a phone: the count line may wrap, so the tile sits on the title's line instead (28 px, the line's
    own height), and the name takes the whole first row (the desktop's 52% cap squeezed it to 186 px) */
 @media (max-width:760px){
   .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:12px}
   .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
-  .top[data-kind="project"] .tw-t h1{font-size:var(--fs-2xl)}
+  .top[data-kind="project"] .tw-t h1{font-size:var(--fs-title)}
 }
 .all-btn span{border-radius:var(--r-sm)}
 .dlg-head{align-items:flex-start}
@@ -213,7 +213,7 @@ body.stage-full .stg-grip{display:none}
    avatar beside the turn, so the line needs no icon of its own */
 .turn>.tb>.tb-h .tb-hi{display:none}
 /* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
-.calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-3)}
+.calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 /* the panel's content shares one edge (16) with its tabs */
 .md-pane .md-h{padding:16px 16px 2px}
 .md-pane .md-tools{padding:10px 16px}

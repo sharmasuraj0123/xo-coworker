@@ -3,7 +3,7 @@
    (28/36 title, 14/20 lines, 13/20 meta, 12/16 labels), integer line heights, the one motion system. */
 
 /* the sidebar's row: like Home, Workspace and Chats; its count is a quiet number, never a signal */
-.nr-q{margin-left:auto;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.nr-q{margin-left:auto;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .nrow.is-on .nr-q{color:var(--ink-3)}
 
 /* the page: a library, so no composer under it */
@@ -26,17 +26,17 @@
 .ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
 .ar-q:focus-within{border-color:var(--line-strong)}
 .ar-q svg{flex:none;width:16px;height:16px}
-.ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
+.ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .ar-q input::placeholder{color:var(--ink-4)}
 .ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.ar-kinds button span{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.ar-kinds button span{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .ar-kinds button:hover{color:var(--ink);border-color:var(--line-strong)}
 .ar-kinds button[aria-checked="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 .ar-kinds button[aria-checked="true"] span{color:var(--ink-3)}
 .ar-body{margin-top:8px}
-.ar-gh{padding:24px 0 12px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
-.ar-none{padding:48px 0;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-3)}
+.ar-gh{padding:24px 0 12px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.ar-none{padding:48px 0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 .ar-none b{display:block;margin-bottom:4px;color:var(--ink-2);font-weight:var(--fw-strong)}
 
 /* the gallery: cards on the same 16 px rhythm; pictures 160 high */
@@ -45,9 +45,9 @@
 .ar-grid .md-th{height:160px;border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:28px;height:28px}
 .ar-grid .md-meta{gap:4px;padding:12px 12px 4px}
-.ar-grid .md-meta b{font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans)}
-.ar-grid .md-meta > span{font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
-.ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
+.ar-grid .md-meta b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.ar-grid .md-meta > span{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.ar-grid .md-from{margin:0 4px 8px;padding:4px 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
 /* at any size (js/recordview.js): the gallery keeps its whole height and only the lines near the screen are
    drawn, each in its place; a card without a thread keeps an empty "from" line, so every card is one height */
 .ar-body{position:relative;overflow-anchor:none}
@@ -80,11 +80,11 @@
   .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
   .arts:not(.is-pics) .ar-grid .md-ext{display:none}
   .arts:not(.is-pics) .ar-grid .md-meta{flex:1;gap:2px;padding:0}
-  .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
   .arts:not(.is-pics) .ar-grid .md-meta b .mx-mid{display:inline}
   .arts:not(.is-pics) .ar-grid .md-meta b :is(.mx-mh,.mx-mt){white-space:normal}
-  .arts:not(.is-pics) .ar-grid .md-meta > span{font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
-  .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:3;margin:2px 0 0 54px;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-meta > span{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+  .arts:not(.is-pics) .ar-grid .md-from{grid-column:1;grid-row:3;margin:2px 0 0 54px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
   .arts:not(.is-pics) .ar-grid .md-from.is-none{display:none}
   .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:var(--h-hit);height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
   .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
@@ -110,15 +110,15 @@
 /* drawn at once (the owner, 19 Nov 14:46Z): until its preview lands, the well holds the kind's icon in its colour;
    the picture or the page fades in over it */
 .md-well.is-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-2)}
-.md-well.is-wait .md-ext{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.md-well.is-wait .md-ext{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .md-well:not(.is-wait)>:is(.md-pic,.md-sheet){animation:md-in var(--d-hover) var(--ease)}
 @keyframes md-in{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){.md-well:not(.is-wait)>:is(.md-pic,.md-sheet){animation:none}}
 .md-well .md-pic{position:absolute;inset:var(--s-4) var(--s-4) 0;width:calc(100% - 2 * var(--s-4));height:calc(100% - var(--s-4));object-fit:cover;object-position:top left;border-radius:var(--r-xs) var(--r-xs) 0 0;box-shadow:0 0 0 1px var(--line-soft),var(--e2)}
 .md-sheet{position:absolute;inset:var(--s-4) var(--s-4) calc(-1 * var(--s-2));display:block;padding:var(--s-3) var(--s-4);overflow:hidden;border-radius:var(--r-xs);background:var(--surface);box-shadow:0 0 0 1px var(--line-soft),var(--e2);text-align:left}
-.md-pt{display:block;margin-bottom:var(--s-1);font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
-.md-pp{display:block;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
-.md-pl{display:block;white-space:pre;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--mono);color:var(--ink-3)}
+.md-pt{display:block;margin-bottom:var(--s-1);font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.md-pp{display:block;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.md-pl{display:block;white-space:pre;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3)}
 @media (max-width:760px){
   .arts:not(.is-pics) .ar-grid .md-th.has-well{display:grid;padding:0;background:var(--fill-1)}
   .arts:not(.is-pics) .ar-grid .md-th.has-well>.md-ic{display:grid}
