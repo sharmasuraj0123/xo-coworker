@@ -11,7 +11,8 @@ import { space } from "./util.js";
 import { ICON } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
+import { rtMark } from "./runtimes.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { once } from "./pending.js";
@@ -30,8 +31,6 @@ const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PREFS = "cv-chat-prefs";
 const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
-const ago = (iso) => { const s = (Date.now() - Date.parse(iso)) / 1000; if (!Number.isFinite(s)) return ""; return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
-
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
   const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map() };
@@ -77,6 +76,12 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const capFirst = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const modelWord = (agent, id) => { const m = (C.models.get(agent) || []).find((x) => x.id === id); return m ? m.name : id; };
   const metaLine = (s) => capFirst([folderWord(s.cwd), cliName(s.agent), s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "", (MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]].filter(Boolean).join(" · "));
+  /** The list's second line: the model (else the agent's name), the effort, and the mode or folder only when not the default. */
+  const rowLine = (s) => {
+    const home = !s.cwd || /^\/home\/[^/]+\/?$/.test(s.cwd);
+    return [s.model ? modelWord(s.agent, s.model) : cliName(s.agent), s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
+      s.permission_mode && s.permission_mode !== "auto" ? (MODE_WORDS[s.permission_mode] || [s.permission_mode])[0] : "", home ? "" : `in ${folderWord(s.cwd)}`].filter(Boolean).join(" · ");
+  };
   const waiting = (s) => s.state === "waiting_on_person";
   /** What a gate holds this chat for (the usage limit…), or null: it waits, nothing runs. */
   const heldOf = (s) => (s && s.state === "queued" && world.act.sessionHeld ? world.act.sessionHeld(s.id) : null);
@@ -87,15 +92,21 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   function listItems() {
     const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
     if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
-    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm ch-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
-    return [{ key: "chats-list", html: `<ul class="ch-list" aria-label="Your chats">${rows.map((s) => {
+    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
+    const groups = new Map();
+    for (const s of rows) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(s); }
+    const row = (s) => {
       // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
       const wait = waiting(s), busy = inTurn(s) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
       const held = !wait && !busy ? heldOf(s) : null;
-      return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : held ? "paused" : "idle"}" aria-hidden="true"></i>` +
-        `<span class="ch-main"><span class="ch-t">${esc(titleFor(s))}</span><span class="ch-m">${esc(metaLine(s))}</span></span>` +
-        `<span class="ch-a${wait ? " is-need" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(ago(s.updated_at || s.created_at))}</span></button></li>`;
-    }).join("")}</ul>` }];
+      const state = wait ? "needs_approval" : busy ? "working" : held ? "paused" : "";
+      return `<li><button type="button" class="chl-row" data-go="c:${esc(s.id)}">` +
+        `<span class="chl-tile">${rtMark(s.agent) || ICON.thread}${state ? `<i class="g g-${state}" aria-hidden="true"></i>` : ""}</span>` +
+        `<span class="chl-main"><span class="chl-t">${esc(titleFor(s))}</span><span class="chl-m">${esc(rowLine(s))}</span></span>` +
+        `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at))}</span></button></li>`;
+    };
+    return [{ key: "chats-list", html: `<div class="chl">${[...groups].map(([g, list], i) =>
+      `<section class="chl-g" aria-labelledby="chl-g${i}"><h2 class="chl-h" id="chl-g${i}">${esc(g)}</h2><ul class="chl-list">${list.map(row).join("")}</ul></section>`).join("")}</div>` }];
   }
 
   // ── one chat ────────────────────────────────────────────────────────────

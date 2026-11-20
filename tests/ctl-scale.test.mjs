@@ -62,7 +62,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the census reads the controls (the graders' ten among them)", () => {
-  for (const k of [".nx-link", ".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".ch-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
+  for (const k of [".nx-link", ".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".chl-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
   assert.ok(ctl.size > 150, `${ctl.size} control classes`);
 });
 t("no desktop control is off the 24/32/40 scale, nor a row off its 40/48/56, but those listed for the next sweep", () => {
@@ -84,8 +84,8 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
   // 16.9 at line heights of 1.3 and 1.35)
-  assert.match(app, /\.ch-row\{[^}]*min-height:var\(--h-row-list\);padding:8px 14px;/, "Chats' rows 56: 1 + 8 + their two lines + 8 + 1");
-  assert.match(app, /\.ch-main\{[^}]*gap:2px\}/); assert.match(app, /\.ch-t\{font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.ch-m\{font-size:var\(--fs-sm\);line-height:16px;/, "20 + 2 + 16 = 38");
+  assert.match(app, /\.chl-row\{[^}]*min-height:var\(--h-row-list\);padding:var\(--s-2\) var\(--s-3\);/, "Chats' rows 56: 8 + their two lines + 8, over the 56 floor");
+  assert.match(app, /\.chl-main\{[^}]*gap:2px\}/); assert.match(app, /\.chl-t\{font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.chl-m\{font-size:var\(--fs-sm\);line-height:16px;/, "20 + 2 + 16 = 38");
   assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
@@ -105,7 +105,7 @@ t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed f
   // none kept: the six a phone had kept from before the 8 px steps moved onto them (the owner, 11 Nov 05:42Z)
   const KEPT = {};
   const phoneCss = readCss(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const rows = /\.(nrow|prow|ch-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
+  const rows = /\.(nrow|prow|chl-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
   const off = [];
   for (const m of phoneCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const sel = m[1].trim().split("\n").pop().trim(); if (!rows.test(sel)) continue;
