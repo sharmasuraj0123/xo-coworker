@@ -133,8 +133,8 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   if (isMd) { try { pageExt = (await import("./mdlive.js")).pageView(CM); } catch (e) { console.error(e); } }
 
   const theme = EditorView.theme({
-    "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-base)" },
-    ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-ui)", overflow: "auto" },
+    "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-code)" },
+    ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-body)", overflow: "auto" },
     ".cm-content": { caretColor: "var(--ink)", padding: "var(--cell-in) 0" },
     ".cm-gutters": { backgroundColor: "transparent", color: "var(--ink-5)", border: "none" },
     ".cm-activeLine": { backgroundColor: "var(--row-hover)" },

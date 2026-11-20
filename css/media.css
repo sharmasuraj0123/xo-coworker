@@ -66,7 +66,7 @@
   font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);font-variant-numeric:tabular-nums;pointer-events:none}
 
 /* an agent's words under a shared set */
-.mx-cap{max-width:66ch;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.mx-cap{max-width:66ch;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
 
 /* a picture from the web that couldn't show: the outbound link it would have been (css/links.css .lk-out), on a line
    where the picture was; several wrap. The lightbox's "Open original ↗" is a lightbox button, its arrow the link's. */
@@ -101,13 +101,13 @@ a.lbx-btn{text-decoration:none}
 
 .lbx-bar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;height:48px;padding:0 8px 0 16px;color:var(--lbx-ink)}
 .lbx-t{flex:1;min-width:0;display:flex;flex-direction:column}
-.lbx-name{font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbx-name{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lbx-by{font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lbx-by:empty{display:none}
 .lbx-meta{flex:none;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--lbx-ink-4);font-variant-numeric:tabular-nums}
 .lbx-acts{flex:none;display:flex;align-items:center;gap:8px}
 .lbx-btn{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
-  font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans);transition:background-color var(--d-hover) var(--ease)}
+  font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);transition:background-color var(--d-hover) var(--ease)}
 .lbx-btn:hover{background:var(--lbx-fill-hover)}
 .lbx-btn svg{flex:none;width:16px;height:16px}
 .lbx-x{width:28px;padding:0;justify-content:center}

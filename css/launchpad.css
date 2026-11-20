@@ -66,7 +66,7 @@
 .lp-h.t-go{color:var(--accent)}
 .lp-h.t-stop{color:var(--err-ink)}
 .lp-h.t-need{color:var(--need)}
-.lp-p{margin:4px 0 0;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
+.lp-p{margin:4px 0 0;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-3)}
 .lp :is(.lp-p,.lp-note,.lp-rec p) code{padding:0 4px;border-radius:calc(var(--r-xs) - 2px);background:var(--fill-2);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-3)}
 .lp-mono{font-family:var(--mono)}
 
@@ -75,11 +75,11 @@
 .lp-t{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft);color:var(--ink-3);transition:color var(--d-move) var(--ease),background var(--d-move) var(--ease),box-shadow var(--d-move) var(--ease)}
 .lp-t svg{width:16px;height:16px}
 .lp-c{display:flex;flex-direction:column;min-width:0}
-.lp-c>b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);transition:color var(--d-move) var(--ease)}
+.lp-c>b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);transition:color var(--d-move) var(--ease)}
 .lp-c>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lp-hash{font-style:normal;color:var(--ink-4)}
 .lp-new{display:inline-block;margin-left:6px;padding:0 6px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--go) 14%,transparent);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--accent)}
-.lp-m{display:flex;align-items:center;gap:6px;font:var(--fw-regular) var(--fs-sm)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
+.lp-m{display:flex;align-items:center;gap:6px;font:var(--fw-regular) var(--fs-sm)/var(--lh-body) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .lp-m:empty{display:none}
 .lp-ln{color:var(--ink-3);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
 .lp-ln:hover{color:var(--ink)}
@@ -98,11 +98,11 @@
 .lp-src svg{flex:none;--ic:14px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--ink-4)}
 .lp-set{padding:12px 12px 0}
 .lp-f{display:grid;grid-template-columns:104px minmax(0,1fr);column-gap:8px;align-items:start;padding:6px 8px}
-.lp-l{padding:6px 0;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lp-l{padding:6px 0;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lp-v{display:flex;flex-direction:column;gap:4px;min-width:0}
 .lp-v.is-row{flex-direction:row;align-items:center;gap:8px}
 .lp-v.is-row .lp-hint{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lp-in{box-sizing:border-box;width:100%;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink);transition:border-color var(--d-hover) var(--ease)}
+.lp-in{box-sizing:border-box;width:100%;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink);transition:border-color var(--d-hover) var(--ease)}
 .lp-in.is-short{flex:none;width:64px;font-variant-numeric:tabular-nums}
 /* On a phone every field is a form field, 40 (tokens: "40 form fields"), Size with them (dropdown.css's phone 36
    is off the scale): one height down the form, and a finger's target. The labels centre on it. */
@@ -135,7 +135,7 @@
 /* Tab never lands on a field hidden behind the sticky Deploy: the scroll keeps room for the foot (Astra on b33d3eb) */
 #fr-body-launch{scroll-padding-bottom:120px}
 .lp-pair .lp-ib{width:var(--h-ctl);height:var(--h-ctl)}
-.lp-ro{padding:6px 0;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.lp-ro{padding:6px 0;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
 .lp-hint code{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-3);background:none;padding:0}
 .lp-add{flex:none;margin-left:calc(-1 * var(--halo))}
 .lp-chg{flex:none;margin-left:auto}
@@ -145,12 +145,12 @@
 .lp-env legend{display:flex;align-items:baseline;gap:8px;width:100%;padding:8px 8px 2px;font:var(--fw-strong) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lp-env legend small{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lp-ev{align-items:center}
-.lp-ev .lp-l{padding:0;font:var(--fw-regular) var(--fs-sm)/var(--lh-14) var(--mono);color:var(--ink-2)}
+.lp-ev .lp-l{padding:0;font:var(--fw-regular) var(--fs-sm)/var(--lh-body) var(--mono);color:var(--ink-2)}
 .lp-lock{display:flex;align-items:center;gap:6px;margin:0;padding:4px 8px 0;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lp-lock svg{flex:none;width:14px;height:14px}
 
 /* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
-.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:var(--h-lg);padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:var(--h-lg);padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .lp-go span{overflow:hidden;text-overflow:ellipsis}
 .lp-go svg{flex:none;width:16px;height:16px}
 .lp-go:hover{background:var(--lit-hover);transition-duration:var(--d-hover-in)}
@@ -161,7 +161,7 @@
 .lp-go[aria-disabled="true"]:is(:hover,:active){background:var(--lit);transform:none;box-shadow:var(--lit-edge)}
 .lp-go .lp-arc,.lp-b .lp-arc{color:currentColor}
 .lp-wide{width:calc(100% - 24px);margin:16px 12px 0}
-.lp-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r);border:1px solid var(--line-soft);background:none;color:var(--ink-2);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);text-decoration:none;white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-b{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r);border:1px solid var(--line-soft);background:none;color:var(--ink-2);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);text-decoration:none;white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-b svg{flex:none;width:16px;height:16px}
 a.lp-b{padding:0 10px 0 12px}
 a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
@@ -187,7 +187,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-rec-c{padding:4px 8px 12px}
 .lp-rec-k{display:flex;align-items:center;gap:6px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lp-rec-k svg{width:14px;height:14px;color:var(--accent)}
-.lp-rec-c b{display:block;margin-top:8px;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
+.lp-rec-c b{display:block;margin-top:8px;font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .lp-rec-c p{margin:var(--s-1) 0 0;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .lp-rec-c p+p{margin-top:8px}
 .lp-also{margin:4px 0 0;padding:0;list-style:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
@@ -199,7 +199,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 
 .lp-mw{position:relative;margin-left:auto}
 .lp-mn{position:absolute;z-index:3;right:0;bottom:calc(100% + 4px);display:flex;flex-direction:column;min-width:200px;padding:4px;border-radius:var(--r-lg);background:var(--float);box-shadow:inset 0 0 0 1px var(--panel-line),var(--e2);transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
-.lp-mn button{height:var(--h-ctl);padding:0 8px;border-radius:var(--r);text-align:left;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.lp-mn button{height:var(--h-ctl);padding:0 8px;border-radius:var(--r);text-align:left;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .lp-mn button:focus{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
@@ -309,15 +309,15 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpv-h{display:flex;align-items:center;gap:6px;min-height:20px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lpv-h>svg{flex:none;width:14px;height:14px}
 .lpv-h .lp-tm,.lpv-acts{margin-left:auto}
-.lpv-acts{display:flex;gap:2px;margin:calc((var(--lh-14) - var(--h-ctl)) / 2) calc(-1 * var(--halo)) calc((var(--lh-14) - var(--h-ctl)) / 2) auto}
+.lpv-acts{display:flex;gap:2px;margin:calc((var(--lh-body) - var(--h-ctl)) / 2) calc(-1 * var(--halo)) calc((var(--lh-body) - var(--h-ctl)) / 2) auto}
 .lpv-acts .lp-ib{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r)}
 .lpv-host{display:flex;flex-direction:column;min-width:0}
-.lpv-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--mono);letter-spacing:var(--tr-20);color:var(--ink)}
+.lpv-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-code)/var(--lh-body) var(--mono);letter-spacing:var(--tr-20);color:var(--ink)}
 .lpv-host span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .lpv-tags{display:flex;flex-wrap:wrap;gap:6px}
-.lpv-tag{padding:0 8px;border-radius:var(--r-pill);background:var(--fill-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-14) var(--sans);color:var(--ink-3)}
+.lpv-tag{padding:0 8px;border-radius:var(--r-pill);background:var(--fill-2);font:var(--fw-medium) var(--fs-sm)/var(--lh-body) var(--sans);color:var(--ink-3)}
 .lpv-top{display:flex;align-items:center;gap:8px;min-width:0}
-.lpv-top b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-strong) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink)}
+.lpv-top b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .lpv-st{flex:none;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .lpv-st.ready{color:var(--accent)}
 .lpv-st.starting{color:var(--work)}
@@ -364,7 +364,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpm-addr{display:flex;align-items:center;gap:2px;margin:4px 0 0;padding:6px 6px 6px 12px;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 30%,var(--panel-line))}
 .lpm-addr.is-off{box-shadow:inset 0 0 0 1px var(--panel-line)} /* its address, not serving now: no green edge */
 .lpm-host{flex:1;min-width:0;display:flex;flex-direction:column;text-decoration:none}
-.lpm-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--mono);letter-spacing:var(--tr-20);color:var(--ink)}
+.lpm-host b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-code)/var(--lh-body) var(--mono);letter-spacing:var(--tr-20);color:var(--ink)}
 .lpm-host span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .lpm-host:hover b{text-decoration:underline;text-underline-offset:3px}
 .lpm-addr .lp-ib{border-radius:var(--r)}
@@ -374,7 +374,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpm-meta:has(>.lpm-k){position:relative;padding-left:120px}
 .lpm-k{position:absolute;left:8px;width:104px;color:var(--ink-3);font-weight:var(--fw-medium)}
 /* the setup form's own line (where the image comes from) reads like the fields round it: 13/20 */
-.lpm[data-mode="preview"] .lpm-meta{padding-top:6px;padding-bottom:6px;font-size:var(--fs-base);line-height:var(--lh-14)}
+.lpm[data-mode="preview"] .lpm-meta{padding-top:6px;padding-bottom:6px;font-size:var(--fs-body);line-height:var(--lh-body)}
 /* a line with a button (Machine, Environment): label | value | Change, on one grid, so the button sits on the line's
    first row at its end however the value wraps (it used to drop to a row of its own on a narrow panel) */
 .lpm-meta.lpm-env{display:grid;grid-template-columns:104px minmax(0,1fr) auto;grid-template-rows:16px auto;align-items:start;gap:0 8px;margin:0 12px;padding-top:4px;padding-left:8px}
