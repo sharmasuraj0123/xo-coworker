@@ -143,14 +143,14 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!live(s)) return "";
     warm(s);
     const c = current(s);
-    if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
+    const mark = rtMark(runtimeOf(s), { lead: true }) || "";
+    if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l">${mark}<span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
     const { model, effort, next } = shownSetting(s);
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
-    const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
+    // a runtime without a mark is named only where it differs from the usual one
+    const rt = !mark && manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
     const words = [];
-    // a runtime other than the usual one: its mark (its name on hover, and in the chip's title and the picker)
-    // (inside the chip's own text span, so it sits on the words' line by the one icon rule, css/app.css .agm)
-    if (rt) words.push(`<span class="iq-a">${rtMark(rtn) || esc(rt)}</span>`);
+    if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
     if (next) words.push(`<span class="iq-a">Next turn</span>`);
     words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
@@ -160,8 +160,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const now = words.join(`<span class="iq-sep" aria-hidden="true">·</span>`);
     // pending: the next setting has its own box that never gives way, so it's in sight at any width; on a phone it
     // takes the chip alone ("Next · …"), and the title, the name and the picker carry both
-    if (p) return `<span class="iq-l is-pending"><span class="iq-cur">${now}</span><span class="iq-next"><span class="iq-nk">Next</span><span class="iq-nw">${esc(p.words)}</span></span></span>`;
-    return `<span class="iq-l">${now}</span>`;
+    if (p) return `<span class="iq-l is-pending"><span class="iq-cur">${mark}${now}</span><span class="iq-next"><span class="iq-nk">Next</span><span class="iq-nw">${esc(p.words)}</span></span></span>`;
+    return `<span class="iq-l">${mark}${now}</span>`;
   }
   const AUTO = `<span class="iq-a">Auto</span>`;
   /** {dot: pinned, words: the label's parts (HTML), effort} */
