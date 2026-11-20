@@ -16,7 +16,7 @@
 .mx-down:not(.is-on){visibility:hidden;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),visibility 0s linear var(--d-out)}
 .mx-down:hover{color:var(--ink)}
 .mx-down svg{width:20px;height:20px}
-.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:var(--fw-strong) var(--fs-xs)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums;text-align:center}
+.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:var(--fw-strong) var(--fs-xs)/var(--lh-body) var(--sans);font-variant-numeric:tabular-nums;text-align:center}
 .mx-down-n[hidden]{display:none}
 @media (max-width:760px){.mx-down{right:16px}}
 @media (prefers-reduced-motion:reduce){.mx-down{transform:none}}
@@ -59,7 +59,7 @@
 @keyframes mx-up{from{opacity:0;transform:translateY(6px)}}
 .mx-r-ic{display:grid;color:var(--ink-3)}
 .mx-r-ic svg{width:16px;height:16px}
-.mx-r-t{flex:1;display:flex;gap:6px;min-width:0;font-size:var(--fs-md);line-height:var(--lh-14);white-space:nowrap}
+.mx-r-t{flex:1;display:flex;gap:6px;min-width:0;font-size:var(--fs-body);line-height:var(--lh-body);white-space:nowrap}
 .mx-r-t b{flex:none;font-weight:var(--fw-strong);color:var(--ink)}
 .mx-r-t span{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)}
 .mx-r-x{display:grid;place-items:center;flex:none;width:var(--h-sm);height:var(--h-sm);border-radius:50%;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -73,7 +73,7 @@
 .mx-qc{display:flex;flex-direction:column;gap:2px;width:calc(100% + 20px);margin:-4px -10px 8px;padding:6px 10px;border-radius:calc(var(--r-xl) - 6px);background:color-mix(in srgb,currentColor 8%,transparent);color:inherit;text-align:left;white-space:normal;transition:background var(--d-hover) var(--ease)}
 .mx-qc:hover{background:color-mix(in srgb,currentColor 13%,transparent)}
 .mx-qc b{font:var(--fw-strong) var(--fs-xs)/var(--lh-12) var(--sans);opacity:.86}
-.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-md);line-height:var(--lh-14);opacity:.84}
+.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-body);line-height:var(--lh-body);opacity:.84}
 .m.mx-flash{animation:mx-flash 1.6s var(--ease);border-radius:var(--r-lg)}
 @keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 
@@ -102,7 +102,7 @@
 /* at rest the label waits in place, unseen: parked 64 px past the edge it still widened the scroller's scrollable
    width on every row (438 of 390 px on a phone: Conversation's check on dd15034); it starts 64 px out only while a
    swipe pulls it in, and fades where it is when the swipe lets go */
-:is(#msgs,#tmsgs)>.m::after{content:attr(data-mx-time);position:absolute;top:calc((var(--h-lg) - var(--lh-14)) / 2);right:0;font:var(--fw-regular) var(--fs-xs)/var(--lh-14) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--d-move) var(--ease)}
+:is(#msgs,#tmsgs)>.m::after{content:attr(data-mx-time);position:absolute;top:calc((var(--h-lg) - var(--lh-body)) / 2);right:0;font:var(--fw-regular) var(--fs-xs)/var(--lh-body) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--d-move) var(--ease)}
 :is(#msgs,#tmsgs).mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
 :is(#msgs,#tmsgs).mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
@@ -216,7 +216,7 @@
    header and rows it opens to; its words keep their 16 px edge and sit centred, 6 px above and below */
 :root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
-:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:var(--h-ctl);margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:var(--lh-14)}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:var(--h-ctl);margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:var(--lh-body)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background-color:var(--hover-fill)!important}
@@ -254,7 +254,7 @@
 :root[data-msgx] .m-turn.is-live.is-folded.has-said .mx-work{margin-top:4px}
 :root[data-msgx] .mx-work.mx-under .mx-we{display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:var(--tile-xl);padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14);text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:var(--tile-xl);padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-body);line-height:var(--lh-body);text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover,:root[data-msgx] .m-turn.is-live.is-folded .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -273,7 +273,7 @@
 /* the line under a conversation (a coordinator replying) is the same bubble */
 :root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:20px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:var(--tile-xl);align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-md);line-height:var(--lh-14)}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:var(--tile-xl);align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-body);line-height:var(--lh-body)}
 /* the app writes this line itself, so when it's too long for the bubble its end fades out over 32 px
    (msgx.js marks it) instead of stopping mid-word: CSS's "…" takes the text colour, which the shimmer
    makes transparent */
@@ -300,12 +300,12 @@
 :root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
 @keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
-:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-md)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-body)}
 /* A long turn's open card is taller than the view, and it opens at its latest step: its header (what it's
    doing, the time, the chevron that folds it) stays at the top of the view while you read through it, so
    folding it back is always one press away. On the card's own glass, under the conversation's top fade. */
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background-color:var(--mx-them-top)!important}
-:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-md);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-body);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:var(--h-ctl);margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
@@ -322,9 +322,9 @@
    "Thinking…" or one tool group, and pressing the bubble opens that block itself): the glass card, a 44 px
    header row, then its lines as quiet rows on the text column, no rail. */
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-md)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-md);color:var(--ink-2)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:var(--lh-14);color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-body)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-body);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:var(--lh-body);color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn>.tb-think.is-unfolded>.tb-steps>li{padding:4px 0}
 :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows{padding:0 8px}
 :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-ctl);margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}

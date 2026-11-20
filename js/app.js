@@ -64,6 +64,7 @@ import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, isPending, busyAttrs } from "./pending.js";
 import { radioKeys, menuKeys } from "./keynav.js";
+import { STONE, FLAVOURS } from "./flavours.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable, hookOf } from "./focusview.js";
@@ -111,10 +112,17 @@ const DRAFTS = "cv-drafts:live";
 // Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
 const STOP_ICON = ICON.stop;
 
-// ── theme: dark by default, a slide toggle in the sidebar (#28) ────────────
-const THEME = { get() { try { return localStorage.getItem("cv-theme") === "light" ? "light" : "dark"; } catch { return "dark"; } } };
+// ── theme: a mode (dark by default, light, or the system's) and a flavour of the palette (css/flavours.css) ──
+const LIGHT_OS = matchMedia("(prefers-color-scheme: light)");
+const THEME = {
+  pref() { try { const t = localStorage.getItem("cv-theme"); return t === "light" || t === "system" ? t : "dark"; } catch { return "dark"; } },
+  get() { const p = THEME.pref(); return p === "system" ? (LIGHT_OS.matches ? "light" : "dark") : p; },
+  flavour() { try { const f = localStorage.getItem("cv-flavour"); return f && /^[a-z-]+$/.test(f) ? f : "stone"; } catch { return "stone"; } },
+};
 function applyTheme(t) {
   document.documentElement.dataset.theme = t;
+  const f = THEME.flavour();
+  if (f === "stone") delete document.documentElement.dataset.flavour; else document.documentElement.dataset.flavour = f;
   setDiffTheme(t); // a drawn diff follows at once (js/diffview.js)
   document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
   // the browser's own chrome (Safari's bars, Android's status bar) takes the canvas's colour
@@ -129,6 +137,7 @@ function applyTheme(t) {
   }
 }
 applyTheme(THEME.get());
+LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") applyTheme(THEME.get()); });
 
 // ── state ───────────────────────────────────────────────────────────────────
 const S = {
@@ -222,7 +231,7 @@ const VW = createViewer({
   // who made a version: an agent's thread, by its title
   threadTitle: (ts) => world.thread(ts)?.title || null,
   // Esc from a file: back to the panel's sections, the file kept as the Files tab (js/filespage.js)
-  away: () => { if (!FP.isOpen) return false; STAGE.sections(); return true; },
+  away: () => { if (!FP.isOpen) return false; STAGE.back(); return true; },
   // every way a file opens ends in the panel's Files page
   opened: (f, o) => FP.show(o),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
@@ -401,7 +410,7 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host) => panelShell(on, host), owns: (e) => SH.owns(e) });
+const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -461,14 +470,9 @@ function rtTag(t, cls) {
     : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;
 }
 /** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
-// The steer hint is off until xo-space's deploy makes a reply join the running turn: the composer never
-// promises what the backend doesn't do yet. Turn it on with that deploy (the runtimes already say "steered").
-const STEER_LIVE = false;
 const sendWhileRunning = (t) => {
   const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running;
-  const how = (f && f.behaviour) || null;
-  // "queued" is true today (agy waits for the turn); "steered" only once the backend half is deployed
-  return how === "steered" && !STEER_LIVE ? null : how;
+  return (f && f.behaviour) || null;
 };
 /** F4: a thread may continue elsewhere when another runtime its project allows can take work now, once. */
 const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
@@ -1081,12 +1085,12 @@ function threadCardHtml(tid, needs) {
 }
 
 /** Under your message that waits for the agent's turn to end: what happens to it, and Interrupt. */
-function queuedMeta(conv) {
+function queuedMeta(conv, answered = false) {
   const t = convThread(conv);
   if (!t) return "";
   if (S.stops.has(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
   // a runtime that steers took it into the running turn: nothing waits, nothing to interrupt (F7)
-  if (sendWhileRunning(t) === "steered") return `<div class="meta"><span>Sent into its current turn</span></div>`;
+  if (sendWhileRunning(t) === "steered") return answered ? "" : `<div class="meta"><span>Sent into its current turn</span></div>`;
   const run = running(conv); // the conversation it's drawn in (the main chat, or a thread page in the panel)
   const n = workingRuns(t);
   const title = `Stop the agent's current turn${n ? ` and its ${n} sub-agent${n === 1 ? "" : "s"}` : ""} so it reads this now (Undo for 3 s)`;
@@ -1199,7 +1203,7 @@ function msgItemsOf(conv, needs) {
       let meta = "";
       if (m.status === "sending") meta = `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`;
       else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
-      else if (m === lastQueued) meta = queuedMeta(conv);
+      else if (m === lastQueued) meta = queuedMeta(conv, answeredAfter(list, m));
       else if (m === lastYou && (m.status === "sent" || m.sent) && !answeredAfter(list, m)) {
         // a receipt that follows the message only as far as the record proves: received by XO, then handed to a
         // thread (a relay or brief hop that names this message); it goes once an answer is on screen
@@ -2699,7 +2703,7 @@ function editFailed(id, K = MK) {
 
 // ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
 // (design-research/2026-11-19-threads-panel/thread-page/THREAD-IN-PANEL.md; the owner chose the proper build, 19 Nov
-// 15:20Z.) One page, its key the thread it shows: its own head (state, runtime, branch, Open full width), checklist,
+// 15:20Z.) One page, its key the thread it shows: its title and ⋯ in the panel's head, its facts, checklist,
 // conversation (createConv + createFollow + msgx), typing line and composer (wireComposer). It opens from the
 // panel's Threads beside a chat; ⌘/Ctrl-click, or Open full width, gives today's full page.
 const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
@@ -2714,7 +2718,7 @@ function tpMount(box) {
     `<label class="sr-only" for="tsay" id="tsay-label">Reply</label><ul class="att-tray" id="tatt-tray" aria-label="Files on this reply" hidden></ul>` +
     `<div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" spellcheck="true"></textarea></div>` +
     `<div class="composer-row"><button type="button" class="attach" id="tattach" aria-label="Add files" title="Add files: text, images or PDFs, up to 25 MB each">${ICON.clip}</button><input type="file" id="tatt-input" multiple hidden tabindex="-1" accept="${esc($("#att-input").accept)}">` +
-    `<span class="tp-target" id="ttarget"></span><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
+    `<span class="target" id="ttarget"></span><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
     `<p class="att-note" id="tatt-note" hidden>Files are kept in the project's <code>.xo/</code> folder. Unlike chat text, they aren't scrubbed for secrets.</p></form></div></div>`;
   const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
   TP.follow = createFollow(els);
@@ -2725,7 +2729,11 @@ function tpMount(box) {
   wireComposer(TP.K);
   wireTray(TP.K);
   TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
-  menuKeys($("#tphead"), { close: () => closeThreadMenu() });
+  // its ⋯ lives in the panel's head
+  const acts = document.createElement("span");
+  acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
+  STAGE.slot.append(acts);
+  menuKeys(acts, { close: () => closeThreadMenu() });
   // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
   TP.K.attach.addEventListener("click", () => TP.K.input.click());
   TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
@@ -2745,59 +2753,61 @@ function tpShow(key, { focus = false } = {}) {
     if (TP.tid && TP.K) saveDraft(TP.K);
     TP.tid = key;
     TP.C.rendered = null; TP.C.filled = null;
+    TP.C.msgs.replaceChildren(); $("#tpthead").hidden = true;
     Object.assign(TP.dock.TD, { key: null, busy: false });
     world.act.watchSideThread?.(key);
     loadDraft(TP.K);
     TP.viewSubs.forEach((fn) => fn());
+    // drawn after the first frame, so the slide starts at the press
+    const t = convThread(tpView());
+    if (t) tpHead(t);
+    TP.wait = true;
+    requestAnimationFrame(() => setTimeout(() => {
+      TP.wait = false;
+      if (TP.tid === key && STAGE.pageShown?.name === "thread") drawThreadPage(D.needItems());
+      if (focus && TP.tid === key) TP.K.say.focus({ preventScroll: true });
+    }, 0));
+    return;
   }
-  render();
+  drawThreadPage(D.needItems());
   if (focus) requestAnimationFrame(() => TP.K.say.focus({ preventScroll: true }));
 }
-function tpUnmount() {
-  if (TP.K) saveDraft(TP.K);
-  // everything it hung on the page goes with it (a page closed and opened again added a set each time)
-  TP.follow?.destroy(); TP.deco?.destroy(); TP.dockRO?.disconnect();
+// the page closes: its draft is kept, its parts stay built
+function tpClose() {
+  if (TP.K && TP.tid) saveDraft(TP.K);
+  if (S.tMenuIn === "page") { S.tMenu = null; S.tMenuIn = null; }
   world.act.watchSideThread?.(null);
-  Object.assign(TP, { box: null, C: null, K: null, tid: null, follow: null, deco: null, dockRO: null, dock: null }); TP.viewSubs.clear();
-
+  TP.tid = null;
 }
 STAGE.page("thread", {
-  // wider by default (the owner, 19 Nov 16:09Z): 720 reads at the chat's own measure (its column less its 20 insets,
-  // less the 48 a line keeps: 632, about 72 characters of 16 px text); where that would push the chat under its
-  // 560, as much as leaves it 560; never under the 560 it was. A width you drag it to is kept (per page).
-  single: true, width: ({ room }) => Math.max(560, Math.min(720, room)),
   title: (key) => world.thread(key)?.title || "Thread",
-  icon: () => ICON.threadOne,
   mount: (box) => tpMount(box),
   onShow: (key, o) => tpShow(key, o),
-  unmount: () => tpUnmount(),
   // a reply being written is kept (its draft), so closing never loses it: nothing to ask
-  canClose: () => true,
+  close: () => tpClose(),
   // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
   escape: () => { if (S.tMenu && S.tMenuIn === "page") { closeThreadMenu(); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
-/** The thread page's head: its state, its runtime and branch, Open full width. */
+// its facts under the panel's head, its ⋯ in it
 function tpHead(t) {
-  const head = $("#tphead");
+  const head = $("#tphead"), acts = $("#tpacts");
   const open = S.tMenu === t.id && S.tMenuIn === "page";
-  // ⤢ beside its ⋯ (the owner, 19 Nov 19:25Z: "old expand button go?"): the thread's own page, full width
   const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
-    `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}` +
-    `<button type="button" class="stg-ic tp-full" data-tp-full="${esc(t.id)}" title="Open full width (the thread's own page)" aria-label="Open full width">${ICON.full}</button>` +
-    `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
-  if (head._h !== html) { redraw(head, html); head._h = html; }
+    `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
+  const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
+  if (head._h !== html + menu) { redraw(head, html); redraw(acts, menu); head._h = html + menu; }
 }
 function drawThreadPage(needs) {
   const t = convThread(tpView());
-  if (!t) { STAGE.closeTab("thread"); return; } // a thread that's gone (deleted, resolved away) leaves the panel
+  if (!t) { STAGE.closePage("thread"); return; } // a thread that's gone (deleted, resolved away) leaves the panel
   tpHead(t);
   checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
   drawConv(TP.C, needs);
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; STAGE.closeTab("thread"); go("t:" + id); } });
+document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; closeThreadMenu({ focus: false }); STAGE.closePage("thread"); go("t:" + id); } });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as
  * the panel's Thread page; ⌘/Ctrl-click, anywhere else (Home, Artifacts, another thread's page), or the thread
@@ -2864,7 +2874,7 @@ function render() {
     if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
   }
   if (!isHome && !isArts) requestAnimationFrame(() => loadAhead(MAIN));
-  if (TP.C && TP.tid && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
+  if (TP.C && TP.tid && !TP.wait && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
   dockRender(needs);
   heraldRender(needs);
   // the line above the composer follows the world on every view: a thread's follows its agent's turn
@@ -3096,7 +3106,8 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
-  if (v !== S.view) FP.reset();
+  // a page in the panel belongs to its place
+  if (v !== S.view) STAGE.leave();
   closeSettings({ restore: false });
   setDrawer(false);
   IQ.close({ restore: false });
@@ -3446,7 +3457,7 @@ function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
 function closeThreadMenu({ focus = true } = {}) {
   if (!S.tMenu) return;
   const back = focus && !!document.activeElement?.closest?.(".tw-menu");
-  const opener = S.tMenuIn === "page" ? "#tphead [data-tmenu]" : "#top-who [data-tmenu]";
+  const opener = S.tMenuIn === "page" ? "#tpacts [data-tmenu]" : "#top-who [data-tmenu]";
   S.tMenu = null; S.tMenuIn = null; $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
   if (!back) { schedule(); return; }
   render();
@@ -3624,7 +3635,7 @@ document.addEventListener("click", (e) => {
   const fromPage = S.tMenuIn === "page" && (t.closest("[data-tfield]:not([data-tfield=clear-label])") || t.closest("[data-tdel]") || t.closest("[data-tmove]"));
   if (fromPage) {
     const tid = S.tMenu;
-    STAGE.closeTab("thread"); S.tMenu = null; S.tMenuIn = null;
+    STAGE.closePage("thread"); S.tMenu = null; S.tMenuIn = null;
     go("t:" + tid); // drawn in this step: what the item leads to starts here too, never a frame later
     if (fromPage.dataset.tdel) { S.tDel = tid; $("#top-who")._h = null; render(); $("[data-tdel-no]")?.focus({ preventScroll: true }); }
     else if (fromPage.dataset.tfield) startThreadEdit(tid, fromPage.dataset.tfield);
@@ -3896,12 +3907,14 @@ async function deleteThread(tid) {
  *  shell opened for where you are (a thread's worktree, a project's folder, the workspace). Off, it goes back under
  *  the page, put away. Put away from inside the panel (its own ↓), the panel goes back to its frames. */
 const SHD_HOME = { parent: $("#shd").parentNode, next: $("#shd").nextSibling };
-function panelShell(on, host) {
+function panelShell(on, host, where) {
   const d = $("#shd");
   if (on) {
     if (!SH.enabled) { STAGE.shellOff(); heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200); return; }
     host.append(d); d.classList.add("in-panel");
-    openShell(S.view.startsWith("t:") || S.view.startsWith("p:") ? S.view : "ws");
+    const at = where || S.view;
+    // one that couldn't open goes back
+    Promise.resolve(openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws")).then(() => { if (STAGE.isShell && d.hidden) STAGE.shellOff(); }, () => { if (STAGE.isShell) STAGE.shellOff(); });
   } else {
     d.classList.remove("in-panel");
     SHD_HOME.parent.insertBefore(d, SHD_HOME.next);
@@ -4179,7 +4192,35 @@ $("#webpics-tog").addEventListener("click", (e) => {
   const on = !SHAPE.on(WEBPICS);
   deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
 });
-// Settings › General › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
+// Settings › Appearance › Mode and Flavour: this device's (localStorage cv-theme and cv-flavour, read before the first paint)
+const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
+const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
+$("#mode-seg").innerHTML = MODES.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-mode="${v}">${esc(n)}</button>`).join("");
+// each flavour a card with its own swatch (css/flavours.css paints .fl-sw in the mode that's on)
+$("#flavour-seg").innerHTML = LOOKS.map(([v, n]) => `<button type="button" class="set-choice fl-opt" role="radio" aria-checked="false" data-flavour="${v}"><span class="fl-sw" data-sw="${v}" aria-hidden="true"></span><span class="fl-n">${esc(n)}</span></button>`).join("");
+radioKeys($("#mode-seg")); radioKeys($("#flavour-seg"));
+function lookSync() {
+  for (const [id, now] of [["#mode-seg", THEME.pref()], ["#flavour-seg", THEME.flavour()]]) {
+    for (const b of $(id).querySelectorAll('[role="radio"]')) { const on = (b.dataset.mode || b.dataset.flavour) === now; b.setAttribute("aria-checked", String(on)); b.classList.toggle("is-on", on); b.tabIndex = on ? 0 : -1; }
+  }
+}
+function lookSet(key, v) {
+  let kept = true;
+  try { localStorage.setItem(key, v); } catch { kept = false; }
+  applyTheme(THEME.get());
+  lookSync();
+  return { kept };
+}
+$("#mode-seg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-mode]");
+  if (b) deviceSaid(b, lookSet("cv-theme", b.dataset.mode), `${MODES.find(([v]) => v === b.dataset.mode)[1]} mode`);
+});
+$("#flavour-seg").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-flavour]");
+  if (b) deviceSaid(b, lookSet("cv-flavour", b.dataset.flavour), `${LOOKS.find(([v]) => v === b.dataset.flavour)[1]} flavour`);
+});
+lookSync();
+// Settings › Appearance › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
 // index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
 const chatBubbles = () => document.documentElement.dataset.msgx === "bubbles";
@@ -4254,8 +4295,9 @@ async function unfreeze(tid, btn) {
 }
 function setPage(id) {
   // the rail is a tablist: only the chosen tab is in the Tab order (arrows move between them), Tab goes on into its page
-  for (const b of $$("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
-  for (const p of $$("[data-page]")) p.hidden = p.dataset.page !== id;
+  // Settings' own pages only
+  for (const b of setEl.querySelectorAll("[data-set]")) { const on = b.dataset.set === id; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
+  for (const p of setEl.querySelectorAll("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
   if (id === "runtimes") RTSET.open();
   if (id === "shape") SV.open();
@@ -4363,6 +4405,7 @@ $("#theme").addEventListener("click", () => {
   const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
   try { localStorage.setItem("cv-theme", t); } catch { /* private */ }
   applyTheme(t);
+  lookSync();
   announce(t === "light" ? "Light mode" : "Dark mode");
 });
 
@@ -4611,7 +4654,7 @@ addEventListener("keydown", (e) => {
     if (!allEl.hidden) { closeAll(); return; }
     if (!setEl.hidden) { closeSettings(); return; }
     // a file in the panel: back to its sections (the file stays as the Files tab)
-    if (FP.isOpen) { STAGE.sections(); return; }
+    if (FP.isOpen) { STAGE.back(); return; }
     if ($("#app").classList.contains("drawer")) { setDrawer(false); return; }
     if (D.isOpen()) { D.close(); return; }
     if (CH.setupOpen) { CH.closeSetup(); return; }
@@ -4658,7 +4701,7 @@ function stepBack() {
   if (!keys.hidden) { closeKeys(); return true; }
   if (!allEl.hidden) { closeAll(); return true; }
   if (LB.isOpen) { LB.close(); return true; }
-  if (FP.isOpen) { STAGE.sections(); return true; }
+  if (FP.isOpen) { STAGE.back(); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
@@ -4815,7 +4858,7 @@ $("#set-x").innerHTML = ICON.close;
 $("#set-side-ic").innerHTML = ICON.gear;
 // Settings' rail: each section with its icon (hub #18/#19)
 {
-  const IC = { general: ICON.sliders, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
+  const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
   for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
 }
 $("#sf-ic").innerHTML = ICON.search;

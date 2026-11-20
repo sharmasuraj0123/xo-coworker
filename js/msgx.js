@@ -3,7 +3,7 @@
 // works without it, but the chat as designed needs it. Nothing here sends anything on its own: a reply
 // only adds a quote ("> …") to the message you send yourself.
 //
-//   The bubbles are a choice (owner, 19 Nov: Settings › General › Chat bubbles, off by default); when on, they're as
+//   The bubbles are a choice (owner, 19 Nov: a Chat bubbles switch, off by default; Settings › Appearance); when on, they're as
 //   finalised on 5 Nov: yours in XO's green, theirs on glass, a tail on the first bubble of each run.
 //   Replies:
 //     · hover a message: Reply and Copy on a small glass bar
@@ -22,7 +22,7 @@ const root = document.documentElement;
 const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON.close, down: ICON.chevron, good: ICON.good, bad: ICON.bad };
 
 // The look keys off <html data-msgx="bubbles"> (and data-msgx-tails): set before the first paint (index.html) when
-// this device turned Chat bubbles on in Settings › General; without it the conversation reads as a document (css/rich.css).
+// this device turned Chat bubbles on in Settings › Appearance; without it the conversation reads as a document (css/rich.css).
 // The bubbles, when on, are as the owner finalised them on 5 Nov: XO's green for yours, tails on, every reply in a bubble.
 // Everything else here (Reply, Copy, swipes, back-to-latest, the working turn) works in both looks.
 // (the switch is app.js's chatBubbles/setChatBubbles: it writes the same two attributes and localStorage cv-bubbles)

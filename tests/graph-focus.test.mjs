@@ -36,7 +36,6 @@ t("the states keep their looks, each in its own layer", () => {
   has(".gn.k-dir:not(.is-open) .gn-d", "--gn-in:inset 0 0 0 1.5px var(--ink-3)");
   has(".gn.is-here .gn-d", "--gn-halo:0 0 0 5px color-mix(in srgb,var(--c) 25%,transparent)");
   has(".stage .map-host .gn-d", "--gn-gap:var(--panel-canvas)");
-  has(':root[data-theme="light"] .gn-d', "--gn-gap:#FAFAFA");
   has(':root[data-theme="light"] .stage .map-host .gn.is-here .gn-d', "--gn-in:inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,#000)");
 });
 t("the hit pulse keeps the layers too (an animation outweighs every rule while it runs)", () => {

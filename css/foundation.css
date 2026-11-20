@@ -20,14 +20,13 @@
 .panel{max-height:none;height:100%}
 body.stage-full .stage{left:0}
 body.stage-open{--mw:var(--sw);--vw:var(--sw)}
-/* its left edge is the handle: 320–640 px, double-click for 360 */
+/* its left edge is the handle; double-click for the default */
 .stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:calc(var(--grip-w) / -2);width:var(--grip-w);cursor:col-resize;outline:none}
 .stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:calc((var(--grip-w) - 2px) / 2);width:2px;background:transparent;transition:background var(--d-hover) var(--ease)}
 .stg-grip:hover::after,.stg-grip:focus-visible::after,body.stage-sizing .stg-grip::after{background:var(--line-hover)}
 body.stage-sizing{cursor:col-resize;user-select:none}
 body.stage-sizing .stage,body.stage-sizing .conv,body.stage-sizing .scroller,body.stage-sizing .dock{transition:none}
 body.stage-full .stg-grip{display:none}
-.stg-bar{min-height:52px;padding:0 8px 0 6px}
 @media (max-width:760px){.stg-grip{display:none}.stage{width:auto}}
 /* Home's green atmosphere tinted the canvas beside the sidebar: the canvas is one colour everywhere */
 .home{background:var(--canvas)}
@@ -75,7 +74,7 @@ body.stage-full .stg-grip{display:none}
    sweep by that bar on 7137115: Create and the runtime chip held 0%). tests/press-reach.test.mjs. A link drawn as a control
    takes it too (a file or a thread's capsule in a message: its own 14→18% step went by in its transition, held looked
    as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
-:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.stg-tab,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
 :where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* A control that reads as text, and a cell of a flush bar, still have a shape (the owner, 19 Nov: "this rectangle when
    clicking looks weird ... give it some space to breathe ... consistent curvature"). The press above is a fill of the
@@ -88,13 +87,6 @@ body.stage-full .stg-grip{display:none}
    · a cell of a flush bar keeps its cell (and the bar's underline), and its fill is drawn --cell-in inside it, at
      --r, on its own layer (::before), so the fill never meets the bar's edges. */
 :is(.tb-h,.tb-rh){width:calc(100% + 2 * var(--halo));margin-inline:calc(-1 * var(--halo));padding-inline:var(--halo);border-radius:var(--r)}
-/* the cell's own corners are the fill's plus its inset (--r 8 + --cell-in 4 = --r-lg 12), so its focus ring (just inside the cell)
-   rounds concentric with the fill */
-.stg-tab{position:relative;isolation:isolate;border-radius:var(--r-lg)}
-.stg-tab::before{content:"";position:absolute;inset:var(--cell-in);z-index:-1;border-radius:var(--r);background:transparent;transition:background-color var(--d-hover) var(--ease)}
-/* the shared press (and a chosen control's three veils) goes to that layer: class specificity, so it holds over both */
-.stg-tab:active{background-image:none!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
-.stg-tab:active:not(:disabled,[aria-disabled="true"])::before{background:var(--press-fill)}
 /* a chosen control (on, checked, pressed, current) has a fill of its own, and the press's 9% veil over it read as its
    hover (the controls grader on 5f52deb, C084: Changes' Follow held vs hovered, 18–20 RGB-sum on average): held, it
    goes three veils deep, as an accent control goes to its own press (S135) */
@@ -145,8 +137,8 @@ body.stage-full .stg-grip{display:none}
 /* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
    with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
    their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
-.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans)}
-.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans)}
+.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
+.top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
 @media (max-width:760px){.top .badge,.top .tw-rt{height:var(--h-touch)}}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
    is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
@@ -164,7 +156,7 @@ body.stage-full .stg-grip{display:none}
   .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
 }
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
-.pj-s{line-height:var(--lh-14)}
+.pj-s{line-height:var(--lh-body)}
 .top[data-kind="project"] .tw-t{gap:4px}
 .pj-k{color:var(--ink-2);font-weight:var(--fw-medium);font-variant-numeric:tabular-nums}
 .pj-c{white-space:nowrap}
@@ -199,7 +191,7 @@ body.stage-full .stg-grip{display:none}
 :where(.iq-done):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 76%,var(--canvas))!important}
 /* Stop, a stone disc: it presses a step deeper than its hover (app.css, .send.is-stop) */
 :where(.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 18%,var(--stop))!important}
-:is(.fl-r,.fl-sec,.shd-tab,.ar,.stg-tab,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
+:is(.fl-r,.fl-sec,.shd-tab,.ar,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
 .md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
 .scroller .wsh-home:focus-visible{outline-offset:1px}
@@ -207,7 +199,7 @@ body.stage-full .stg-grip{display:none}
 /* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */
 .next,.next.in-next,.next.in-undo{animation:none}
 .next:not(.r-destructive){background:var(--surface);border:1px solid color-mix(in srgb,var(--accent-fill) 32%,var(--line))}
-:root[data-theme="light"] .next:not(.r-destructive){background:#fff;border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
+:root[data-theme="light"] .next:not(.r-destructive){border-color:color-mix(in srgb,var(--accent-fill) 40%,rgba(0,0,0,.1))}
 .next.in-next{animation:in-next var(--d-long) var(--ease) both}
 .next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
 .shd-dot.d-wait{animation:none}
@@ -221,7 +213,7 @@ body.stage-full .stg-grip{display:none}
    avatar beside the turn, so the line needs no icon of its own */
 .turn>.tb>.tb-h .tb-hi{display:none}
 /* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
-.calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-3)}
+.calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-3)}
 /* the panel's content shares one edge (16) with its tabs */
 .md-pane .md-h{padding:16px 16px 2px}
 .md-pane .md-tools{padding:10px 16px}

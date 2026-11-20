@@ -10,7 +10,7 @@
 xo-select{position:relative;display:inline-flex;min-width:0;max-width:100%;vertical-align:middle}
 xo-select>option{display:none}
 
-.dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:var(--h-ctl);padding:0 8px 0 12px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);color:var(--ink-2);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);text-align:left;cursor:pointer;transition:border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:var(--h-ctl);padding:0 8px 0 12px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);color:var(--ink-2);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);text-align:left;cursor:pointer;transition:border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .dd-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dd-btn svg{flex:none;width:16px;height:16px;color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
 .dd-btn:hover,xo-select.is-open .dd-btn{border-color:var(--line-strong);color:var(--ink)}
@@ -26,7 +26,7 @@ xo-select>option{display:none}
 .dd-menu.is-out{animation:float-out-up var(--d-out) var(--ease) forwards;pointer-events:none}
 .dd-menu.is-up.is-out{animation-name:float-out}
 
-.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:var(--h-ctl);padding:6px 8px;border-radius:calc(var(--r-lg) - 5px);color:var(--ink-2);font:var(--fw-medium) var(--fs-md)/var(--lh-14) var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dd-row{display:flex;align-items:baseline;gap:8px;box-sizing:border-box;height:var(--h-ctl);padding:6px 8px;border-radius:calc(var(--r-lg) - 5px);color:var(--ink-2);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);white-space:nowrap;cursor:pointer;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dd-row.is-cur{background:var(--fill-2);color:var(--ink)}
 .dd-row[aria-selected="true"]{color:var(--ink)}
 .dd-row[aria-disabled="true"]{opacity:.45;cursor:default}
@@ -35,7 +35,7 @@ xo-select>option{display:none}
 .dd-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 
-:root[data-theme="light"] .dd-btn{background:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .dd-btn{background:var(--surface);border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{border-color:rgba(0,0,0,.2)}
 :root[data-theme="light"] .dd-btn:disabled:hover{border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .dd-menu{box-shadow:var(--lift-3)}

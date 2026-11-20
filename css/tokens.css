@@ -67,6 +67,16 @@
   --on-agent:#0B0B0C;
 
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
+  /* a switch's knob is white in every theme; the icon on a lit one */
+  --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
+  --map-dot:var(--fill-4);   /* a folder's dot on the Map */
+  --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
+  /* a form field: its well, its edge, its edge while typed in */
+  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:var(--line-hover);
+  /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
+  --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
+  --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
+
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
   /* the coordinator's speaker colour, as the bubbles first set it, for every view: its name in violet over the
      label's grey, its mark's ring in violet over the line (the owner, 19 Nov: keep the purple in the chat view) */
@@ -78,33 +88,16 @@
 
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --serif:"Iowan Old Style","Charter","Source Serif 4","Source Serif Pro",Georgia,serif;   /* documents read as documents */
 
-  /* Type. One family, eight sizes, three weights, whole-pixel line heights on a 4 px grid, tracking by
-     size (Geist has no optical-size axis, so tracking does that job). 16 is for inputs only (a phone zooms
-     into anything smaller). Numbers are tabular sans; mono is for code.
-       12/16 meta · 13/20 UI · 14/20 labels · 15/24 reading · 16/24 inputs · 20/28 titles · 28/36 places · 40/44 ceremony */
-  --fs-xs:12px; --fs-sm:12px; --fs-base:13px; --fs-md:14px; --fs-lg:15px; --fs-xl:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
-  --lh-12:16px; --lh-13:20px; --lh-14:20px; --lh-15:24px; --lh-16:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
+  /* Type: one family, three weights, 4 px line heights; body 14/20, chat read 15/24 (replies, messages, composer, tables), meta 12/16, code 13, phone inputs 16 */
+  --fs-xs:12px; --fs-sm:12px; --fs-body:14px; --fs-code:13px; --fs-input:16px; --fs-read:15px; --fs-lg:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
+  --lh-12:16px; --lh-body:20px; --lh-read:24px; --lh-15:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
   --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
   --cap-mid:.3595em;   /* half Geist's cap height (.719em): where an icon beside words centres (see .agm, .lk-ic) */
   --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
   --tr-code:.1em;    /* a code to read out or type (a pairing code) */
-  --lh-ui:20px; --lh-read:24px;
   --fw-regular:400; --fw-medium:500; --fw-strong:600;
-  /* ONE TYPE SCALE (the owner, 19 Nov: "consistency in the entire system"). Every text style uses these tokens, no
-     local sizes, line heights, weights, tracking or font features:
-       read    16/24 (--fs-read / --lh-read)  everything people read: messages from anyone in either view, replies,
-                                              a thread's words, decisions, runs, Files' Markdown, what you type
-       ui      14/20 (--fs-md / --lh-14)      controls and rows
-       label   13/20 (--fs-base / --lh-13)    a label above or beside something
-       meta    12/16 (--fs-sm / --lh-12)      times, counts, secondary lines
-       heads   20/28 · 28/36 · 40/44 (--fs-2xl/--lh-20 · --fs-3xl/--lh-28 · --fs-4xl/--lh-40)
-     weights --fw-regular 400 · --fw-medium 500 · --fw-strong 600; one set of Geist letterforms (no alternates).
-     Text lines of what's read stop at --measure: the reading column less one breathing inset (--s-12, 48) on the
-     right, so words end short of where your message ends; a column narrower than 528 (a phone, beside a file) reads
-     on its whole width. Code, tables, charts and cards keep the whole column. */
-  --fs-read:16px; --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
+  --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.
@@ -183,7 +176,10 @@
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323;
   --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
-  --mark-x:#1A1A1A; --mark-o:#83D63A;
+  --mark-x:#151515; --mark-o:#83D63A;
+  --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
+  --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:#A3A3A3;
+  --warn-text:#8A4B0B; --need-text:#5E3507; --add-text:#2F5A12; --del-text:#9B1C22; --danger-text:#9B1C22;
   --bubble:#EFEFEF; --bubble-line:#EFEFEF;
   --term-bg:var(--fill-1);
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
@@ -201,6 +197,15 @@
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
   --e-decide:#3B3B3B;
 }
+
+/* The left sidebar's own palette, frozen at the values it had on 2026-11-08 (the owner: keep it exactly as
+   it is, and ask before any change). A flavour re-values these with the rest of the palette. */
+:root{--sb-side:#111111; --sb-hair:#232323; --sb-line:#323232; --sb-line-hover:#565656; --sb-bg-3:#252525;
+  --sb-g17:#171717; --sb-g1A:#1A1A1A; --sb-g1C:#1C1C1C; --sb-g1F:#1F1F1F; --sb-g22:#222222; --sb-g26:#262626; --sb-g2A:#2A2A2A; --sb-g45:#454545}
+:root[data-theme="light"]{--sb-side:#F2F2F2; --sb-hair:#E8E8E8; --sb-line:#DCDCDC; --sb-line-hover:#BDBDBD; --sb-bg-3:#EEEEEE;
+  --sb-g17:#FFFFFF; --sb-g1A:#FFFFFF; --sb-g1C:#FFFFFF; --sb-g1F:#ECECEC; --sb-g22:#EDEDED; --sb-g26:#E3E3E3; --sb-g2A:#DBDBDB; --sb-g45:#ABABAB;
+  --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
+@media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
 
 /* An inverse surface: the toast is dark in both themes (--toast-bg), so in light everything on it takes the dark
    palette's roles: ink, fills, lines, hover and press, the accent's hue and the focus ring. Its words, Undo, Tell and

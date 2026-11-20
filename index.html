@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141414">
-  <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
-  <!-- how the conversation reads (Settings › General): a document, full width, unless this device turned Chat bubbles on;
+  <!-- the mode and the flavour, set before the first paint (js/app.js applyTheme keeps them after) -->
+  <script>try{var d=document.documentElement,t=localStorage.getItem("cv-theme"),f=localStorage.getItem("cv-flavour");if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.dataset.theme=t==="light"?"light":"dark";if(f&&f!=="stone"&&/^[a-z-]+$/.test(f))d.dataset.flavour=f}catch(e){document.documentElement.dataset.theme="dark"}</script>
+  <!-- how the conversation reads (Settings › Appearance): a document, full width, unless this device turned Chat bubbles on;
        set before the first paint so a reload never passes through the other look -->
   <script>try{if(localStorage.getItem("cv-bubbles")==="on"){document.documentElement.dataset.msgx="bubbles";document.documentElement.dataset.msgxTails=""}}catch(e){}</script>
   <title>XO Space</title>
@@ -173,6 +174,7 @@
         <div class="set-body">
           <nav class="set-nav" aria-label="Settings" role="tablist" aria-orientation="vertical">
             <button type="button" role="tab" id="set-t-general" data-set="general" aria-selected="true" aria-controls="set-p-general">General</button>
+            <button type="button" role="tab" id="set-t-appearance" data-set="appearance" aria-selected="false" aria-controls="set-p-appearance" tabindex="-1">Appearance</button>
             <button type="button" role="tab" id="set-t-shape" data-set="shape" aria-selected="false" aria-controls="set-p-shape" tabindex="-1">Shape</button>
             <button type="button" role="tab" id="set-t-routing" data-set="routing" aria-selected="false" aria-controls="set-p-routing" tabindex="-1">Routing</button>
             <button type="button" role="tab" id="set-t-runtimes" data-set="runtimes" aria-selected="false" aria-controls="set-p-runtimes" tabindex="-1">Runtimes</button>
@@ -182,9 +184,13 @@
             <button type="button" role="tab" id="set-t-keys" data-set="keys" aria-selected="false" aria-controls="set-p-keys" tabindex="-1">Keyboard</button>
           </nav>
           <div class="set-page" role="tabpanel" id="set-p-general" aria-labelledby="set-t-general" data-page="general"><header class="set-ph"><h2>General</h2><p class="set-intro">How the conversation shows what happens behind it.</p></header>
-            <div class="set-row"><div class="set-l"><b id="bubbles-l">Chat bubbles</b><span>Messages in bubbles, as in a messaging app. Off, an agent's reply reads as a full-width document, with room for its math, code, charts and diagrams. Only on this device.</span></div><button type="button" class="switch" id="bubbles-tog" role="switch" aria-checked="false" aria-labelledby="bubbles-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
             <div class="set-row"><div class="set-l"><b id="hops-l">Show how messages travel</b><span>Inside a thread, a quiet line each time a message passes between the workspace, a project's coordinator and the thread. Off unless you turn it on.</span></div><button type="button" class="switch" id="hops-tog" role="switch" aria-checked="false" aria-labelledby="hops-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
             <div class="set-row"><div class="set-l"><b id="webpics-l">Show pictures from the web</b><span>A picture an agent links to shows in the conversation, read straight from its site, which can tell someone looked. Off, it's a link. Only on this device.</span></div><button type="button" class="switch" id="webpics-tog" role="switch" aria-checked="true" aria-labelledby="webpics-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
+          </div>
+          <div class="set-page" role="tabpanel" id="set-p-appearance" aria-labelledby="set-t-appearance" data-page="appearance" hidden><header class="set-ph"><h2>Appearance</h2><p class="set-intro">How XO looks on this device.</p></header>
+            <div class="set-row"><div class="set-l"><b id="mode-l">Mode</b><span>Dark, light, or whichever your system is set to. Only on this device.</span></div><div class="rt-seg is-paid" id="mode-seg" role="radiogroup" aria-labelledby="mode-l"></div></div>
+            <div class="set-row is-stack"><div class="set-l"><b id="flavour-l">Flavour</b><span>The tint of every surface, line and word, in dark and in light. Status colours and the XO mark stay as they are. Only on this device.</span></div><div class="set-choices fl-grid" id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"></div></div>
+            <div class="set-row"><div class="set-l"><b id="bubbles-l">Chat bubbles</b><span>Messages in bubbles, as in a messaging app. Off, an agent's reply reads as a full-width document, with room for its math, code, charts and diagrams. Only on this device.</span></div><button type="button" class="switch" id="bubbles-tog" role="switch" aria-checked="false" aria-labelledby="bubbles-l"><span class="th-track" aria-hidden="true"><span class="th-knob"></span></span></button></div>
           </div>
           <!-- Shape (js/shapeview.js): which parts of XO show, in what order and in which words; only ever by your choice -->
           <div class="set-page" role="tabpanel" id="set-p-shape" aria-labelledby="set-t-shape" data-page="shape" hidden><header class="set-ph"><h2>Shape</h2><p class="set-intro">What XO shows you, and in which words. It changes only when you change it.</p></header><div class="shp"></div></div>

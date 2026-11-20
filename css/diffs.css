@@ -10,7 +10,7 @@ diffs-container{
   min-height:1px;
   --diffs-font-family:var(--mono);
   --diffs-header-font-family:var(--sans);
-  --diffs-font-size:var(--fs-base); --diffs-line-height:var(--lh-13); --diffs-tab-size:2;
+  --diffs-font-size:var(--fs-code); --diffs-line-height:var(--lh-body); --diffs-tab-size:2;
   --diffs-font-features:"liga" 0,"calt" 0;   /* => reads as two characters, as in the viewer */
   --diffs-bg-context-override:var(--fill-1);
   --diffs-bg-buffer-override:var(--fill-1);
@@ -72,7 +72,7 @@ diffs-container{
 .stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 :root[data-theme="light"] .stage .cx-r.is-on .cx-i .arc{background:var(--surface)}
 .stage .cx-t{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
-.stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
+.stage .cx-n{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
 .stage .cx-d{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .stage .cx-r:hover .cx-n,.stage .cx-r.is-on .cx-n{color:var(--ink)}
 .stage .cx-pane{position:relative;flex:1 1 0;min-height:120px;display:flex;flex-direction:column;margin:0 12px 12px;border-radius:var(--r-lg);border:1px solid var(--panel-line);background:var(--fill-1);overflow:hidden}
@@ -128,17 +128,17 @@ diffs-container{
 .xd-ask:hover{border-color:var(--line-hover)}
 .xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
 .xd-ask kbd{all:unset;margin-left:var(--s-1);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
-:root[data-theme="light"] .xd-ask{background:#fff}
+:root[data-theme="light"] .xd-ask{background:var(--surface)}
 @keyframes xd-in{from{opacity:0;transform:translateY(-2px)}}
 
 /* the composer under those lines: a row of the file (Pierre makes room; nothing is covered). Its corner is
    concentric with Send's, measured from its outer edge (1 px border + 7 px): a 28 px circle 8 px in,
    14 + 8 = 22. Send never shrinks: a long thread name is cut instead (Astra F3). */
 .xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:5px 5px 5px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
-:root[data-theme="light"] .xd-q{background:#fff}
+:root[data-theme="light"] .xd-q{background:var(--surface)}
 .xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .xd-q .xd-ref svg{width:14px;height:14px}
-.xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:var(--h-lg);margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink)}
+.xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:var(--h-lg);margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .xd-q .xd-in::placeholder{color:var(--ink-4)}
 .xd-q .xd-row{display:flex;align-items:center;gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .xd-q .xd-row b{font-weight:var(--fw-medium);color:var(--ink-2)}
@@ -165,7 +165,7 @@ diffs-container{
 .xd-state i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
-.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
@@ -181,13 +181,13 @@ diffs-container{
 .xd-runs svg{width:14px;height:14px}
 /* the run-code question, under Save */
 .vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
-.xd-pop{position:absolute;z-index:var(--z-panel);top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
-:root[data-theme="light"] .xd-pop{background:#fff}
+.xd-pop{position:absolute;z-index:var(--z-panel);top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
+:root[data-theme="light"] .xd-pop{background:var(--surface)}
 .xd-pop p{margin:0}
 .xd-pop b{color:var(--ink);font-weight:var(--fw-strong)}
 .xd-pop-a{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 /* the file changed while you edited: said in words above the merge view */
-.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.xd-bar{flex:none;margin:0;padding:10px 16px;border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--warn) 7%,var(--canvas));font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
 .xd-bar b{color:var(--ink);font-weight:var(--fw-strong)}
 .xd-bar:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 /* each place you both changed: your three choices, drawn by us in Pierre's slot */
@@ -214,7 +214,7 @@ diffs-container{
 .vw-more.is-busy{color:var(--ink-2)} /* its spinner in the second ink: 9.9:1 on the dark head, 10:1 on the light (C092 at 320) */
 .vw-more .spin{width:12px;height:12px}
 .vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:176px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
-.vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);white-space:nowrap}
+.vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);white-space:nowrap}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .vw-menu :is([role=menuitem],[role=menuitemradio]):focus{background:var(--menu-focus);color:var(--ink);outline:none}

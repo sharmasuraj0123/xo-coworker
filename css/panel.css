@@ -14,21 +14,15 @@
 
 .stage{container:stage / inline-size;--pe:12px;--pn:36px}
 
-/* ── the strip: 40 px; quiet tabs, the one in front underlined; under 360 px the counts step aside, the names stay ─ */
-.stg-bar{box-sizing:border-box;min-height:0;height:var(--h-lg);padding:0 8px 0 4px;gap:4px;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint)}
-.stg-tabs{gap:0;overflow:visible;align-self:stretch}
-.stg-tab{height:39px;padding:0 8px;gap:8px;border-radius:0;background-color:transparent!important;box-shadow:none!important;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-3)}
-.stg-tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background var(--d-hover) var(--ease)}
-.stg-tab:hover{color:var(--ink-2)}
-.stg-tab.is-on{color:var(--ink)}
-.stg-tab.is-on::after{background:var(--ink-2)}
-.stg-tab svg{width:16px;height:16px}
-.stg-n{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.stg-acts{gap:4px}
-.stg-ic{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4)}
+/* ── the head: 40 px, one for every state: the place's name on the sections; on a page, ‹ (one level back), the
+   page's own lead control and its title. Then the page's controls (a thread's ⋯), then the panel's (Shell, full size, ×) ─ */
+.stg-bar{position:relative;z-index:2;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:var(--s-1);height:var(--h-lg);padding:0 var(--s-2) 0 var(--pe);box-shadow:inset 0 -1px 0 var(--panel-line,var(--line-faint));background:inherit}
+.stage[data-stg-page] .stg-bar{padding-left:var(--s-1)}
+.stg-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
+.stg-pa{display:contents}
+.stg-ic{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stg-ic svg{width:16px;height:16px}
 .stg-ic:hover{background:var(--fill-2);color:var(--ink)}
-@container stage (max-width:359px){.stg-n{display:none}}
 
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
 body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
@@ -38,13 +32,13 @@ body.stage-over .stage{box-shadow:var(--e2)}
 /* ── the scope line and the field under it: the same in Files, Made and the Map ─────────────────────── */
 .fl-head{gap:8px;padding:12px var(--pe) 8px}
 .fl-crumb{gap:8px;min-height:var(--h-sm);padding:0}
-.fl-crumb b{font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans)}
+.fl-crumb b{font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
 .fl-up svg{width:14px;height:14px}
 .fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .fl-q svg,.md-pane .md-tools .all-q svg{width:16px;height:16px}
-.fl-q input,.md-pane .md-tools .all-q input{font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
+.fl-q input,.md-pane .md-tools .all-q input{font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
 :root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:#fff;border-color:rgba(0,0,0,.12)}
 
 /* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
@@ -61,7 +55,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-sec .fl-c svg{transition:transform var(--d-hover) var(--ease)}
 .fl-sec[aria-expanded="true"] .fl-c svg{transform:rotate(90deg)}
 .fl-sec-n{margin-left:auto;font-weight:var(--fw-regular);color:var(--ink-5)}
-.fl-r{height:var(--h-ctl);min-height:var(--h-ctl);gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.fl-r{height:var(--h-ctl);min-height:var(--h-ctl);gap:8px;padding:0 6px 0 calc(6px + var(--d) * 16px);border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
 .fl-r.is-dir{color:var(--ink-2);font-weight:var(--fw-regular)}
 .fl-r:hover{background:var(--surface);color:var(--ink)}
 .fl-r.is-on{background:var(--fill-2);color:var(--ink)}
@@ -69,15 +63,15 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-c svg{width:12px;height:12px}
 .fl-c.fl-i svg,.fl-c svg.fi{width:16px;height:16px}
 .fl-r.is-open .fl-c svg{transform:rotate(90deg)}
-.fl-n{line-height:var(--lh-14)}
-.fl-r.is-touch .fl-n{font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
+.fl-n{line-height:var(--lh-body)}
+.fl-r.is-touch .fl-n{font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
 .fl-who{margin-left:4px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
 .fl-sz{display:none;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 @container stage (min-width:480px){.fl-sz{display:inline}}
 .fl-note{min-height:28px;padding-left:calc(var(--pn) - 6px + var(--d,0) * 16px);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
 .fl-note .spin{width:10px;height:10px}
 .fl-bar{padding:6px 6px 0}
-.fl-back{height:var(--h-ctl);padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
+.fl-back{height:var(--h-ctl);padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
 .fl-back svg{width:16px;height:16px}
 :root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
 :root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
@@ -94,13 +88,13 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-r.has-more{padding-right:36px}
 .fl-menu{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;min-width:168px;padding:4px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2);animation:msg-in var(--d-out) var(--ease)}
 .fl-menu[hidden]{display:none}
-.fl-menu button{display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.fl-menu button{display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
 .fl-menu button:focus{background:var(--menu-focus);color:var(--ink);outline:none}
 .fl-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
 .fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
-.fl-new-r input{flex:1;min-width:0;height:var(--h-sm);margin-left:calc(-1 * var(--halo));padding:0 calc(var(--halo) - 1px);border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
+.fl-new-r input{flex:1;min-width:0;height:var(--h-sm);margin-left:calc(-1 * var(--halo));padding:0 calc(var(--halo) - 1px);border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .fl-new-r input[aria-invalid="true"]{border-color:var(--err)}
 .fl-new-say{box-sizing:border-box;height:28px;margin:0;padding:6px 6px 0 calc(6px + var(--d) * 16px + 18px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
 .fl-new-say.is-err{color:var(--err-ink)}
@@ -144,7 +138,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}
 .vw-t{display:flex;align-items:baseline;gap:8px;min-width:0}
 .vw-t{flex:1}
-.vw-t h2{flex:0 1 auto;min-width:0;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);letter-spacing:0}
+.vw-t h2{flex:0 1 auto;min-width:0;font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);letter-spacing:0}
 .vw-meta{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .vw-acts{gap:4px}
 .vw-btn{width:var(--h-ctl);height:var(--h-ctl);padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
@@ -178,7 +172,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
    until there's room for a gallery ──────────────────────────────────────────────────────────────── */
 .md-pane{container:made / inline-size}
 .md-pane .md-h{display:flex;align-items:baseline;gap:8px;min-width:0;padding:12px var(--pe) 0}
-.md-pane .md-h h2{flex:none;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans)}
+.md-pane .md-h h2{flex:none;font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans)}
 .md-pane .md-h p{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .md-pane .md-tools{gap:8px;padding:8px var(--pe)}
 .md-pane .md-tools .all-q{flex:1 1 100%;max-width:none}
@@ -194,7 +188,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .md-ic svg,.md-ic svg.fi{width:var(--h-sm);height:var(--h-sm)}
 .md-pane .md-meta{gap:4px;padding:12px 12px 4px}
 .md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
-.md-pane .md-meta b{font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
+.md-pane .md-meta b{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
 .md-pane .md-meta > span{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
 @container made (max-width:519px){
   .md-pane .md-body{padding:0 6px 12px}
@@ -209,7 +203,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
   .md-pane .md-ext{display:none}
   .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:20px;height:20px}
   .md-pane .md-meta{gap:0;padding:0}
-  .md-pane .md-meta b{line-height:var(--lh-14)}
+  .md-pane .md-meta b{line-height:var(--lh-body)}
   .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg) - var(--halo));padding:0 var(--halo);gap:4px;border-radius:var(--r);background-color:transparent!important;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
   .md-pane .md-from:hover{color:var(--ink-2)}
   .md-pane .md-from svg{display:none}
@@ -222,10 +216,10 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 
 /* ── the Map in the panel: the same scope line, then one surface edge to edge ─────────────────────── */
 .map-host .mp-top{padding:12px var(--pe) 8px}
-.map-host .mp-t h2{font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans)}
+.map-host .mp-t h2{font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans)}
 .map-host .mp-sub{margin-top:0;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
 .map-host .mp-now{margin:0 var(--pe) 8px;padding:6px 8px 6px 16px;border-radius:var(--r-sm)}
-.map-host .mp-nl{font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans)}
+.map-host .mp-nl{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans)}
 .map-host .mp-legend{padding:0 var(--pe) 8px;gap:4px}
 .map-host .mp-who{height:var(--h-sm);padding:0 8px;gap:8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
 .map-host .dg{margin:0;border-radius:0;border-width:1px 0 0}
@@ -274,7 +268,7 @@ button .spin,.btn .spin{color:inherit}
 /* a time is never its own font: it takes its line's, with steady (tabular) digits */
 .elapsed{font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;font-variant-numeric:tabular-nums;letter-spacing:0}
 .tb-ht .elapsed{color:inherit}
-.tb-wh .tb-ht,.tb-wh .tb-wn{font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);font-variant-numeric:tabular-nums}
+.tb-wh .tb-ht,.tb-wh .tb-wn{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);font-variant-numeric:tabular-nums}
 .tb-wn{color:var(--ink-4)}
 .tb-wn::before{margin-right:8px}
 .ty-b{align-items:baseline}
@@ -295,11 +289,9 @@ button .spin,.btn .spin{color:inherit}
 
 /* ══ the panel as stacked frames (Premiere's panels): a 40 px title bar, then Agents · Map · Changes,
    each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
-.stg-bar{padding:0 8px 0 var(--pe)}
-.stg-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
-/* the place the panel is beside (a long name gives way first) */
-.stg-name{flex:none;font:var(--fw-strong) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
-.stg-sub{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
+.stg-t{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-1);white-space:nowrap;overflow:hidden}
+/* the place, or the page's title: a long one ends in an ellipsis */
+.stg-name{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .stg-frames{flex:1;min-height:0;display:flex;flex-direction:column}
 .fr{flex:none;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .fr.is-grow{flex:1 1 0;min-height:96px}
@@ -308,7 +300,7 @@ button .spin,.btn .spin{color:inherit}
 .fr-h{flex:none;box-sizing:border-box;height:var(--h-ctl);display:flex;align-items:stretch;padding:0 6px 0 4px;border-bottom:1px solid var(--line-faint)}
 .fr.is-folded .fr-h{border-bottom:0}
 .fr-tabs{display:flex;align-items:stretch;min-width:0}
-.fr-t{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border:0;background:none;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-4);white-space:nowrap}
+.fr-t{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border:0;background:none;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-4);white-space:nowrap}
 button.fr-t:hover{color:var(--ink-2)}
 .fr-t.is-on{color:var(--ink)}
 .fr-t.is-on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--ink-2)}
@@ -335,7 +327,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 .ag-sw{justify-self:center;width:8px;height:8px;border-radius:2px;background:var(--c)}
 .ag-r.is-idle .ag-sw{opacity:.4}
 .ag-t{min-width:0;display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
-.ag-t b{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink)}
+.ag-t b{min-width:0;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
 .ag-t span{flex:0 100 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-4)}
 .ag-tm{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 :root[data-theme="light"] .ag-r{border-bottom-color:rgba(0,0,0,.06)}
@@ -343,7 +335,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 
 /* Changes: the tree's grid (icon on the edge, the name on the name column), its mark at the end */
 :is(.panel,.stage) .ch-list{padding:4px 6px 8px}
-.ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:var(--h-ctl);padding:0 6px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease)}
+.ch-r{box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;height:var(--h-ctl);padding:0 6px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease)}
 .ch-r:hover{background:var(--surface);color:var(--ink)}
 .ch-i{flex:none;display:grid;place-items:center;width:16px;height:16px}
 .ch-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -411,7 +403,6 @@ body.viewer-open .fv~.dock{display:none}
   background:var(--sunken);
 }
 :root[data-theme="light"] .stage{background:var(--sunken);--panel-lift:var(--lift-2)}
-.stage .stg-bar{box-shadow:none;border-bottom:1px solid var(--panel-line)}
 .stage .stg-name{font-weight:var(--fw-strong)}
 .stage .fr-h{height:var(--h-lg);padding:0 12px;border-bottom:0;align-items:center;gap:8px}
 .stage .fr-title{display:flex;align-items:baseline;gap:8px;margin:0;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
@@ -431,7 +422,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr-gut::before{content:"";position:absolute;inset:0 calc(12px - var(--ring-room));background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
 .stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
 .stage .fr-gut:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-1px}
-.stage .fr-none{padding:8px 20px 12px;margin:0;line-height:var(--lh-14)}
+.stage .fr-none{padding:8px 20px 12px;margin:0;line-height:var(--lh-body)}
 
 /* A thread's coloured glyph is its map identity; its tile carries the shared corner working arc.
    Neither tint nor a persistent card outline is needed on every row. */
@@ -460,7 +451,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .ag-r.is-on .ag-ic{background:color-mix(in srgb,var(--c) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,var(--panel-line))}
 .stage .ag-r.is-idle .ag-ic{color:var(--ink-4)}
 .stage .ag-t,.stage .ch-copy{display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:0;overflow:hidden}
-.stage .ag-t b,.stage .ch-n{display:block;flex:none;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-base)/var(--lh-14) var(--sans);color:var(--ink-2)}
+.stage .ag-t b,.stage .ch-n{display:block;flex:none;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
 .stage .ag-r.is-on .ag-t b,.stage .ag-r:hover .ag-t b,.stage .ch-r:hover .ch-n{color:var(--ink)}
 .stage .ag-r.is-on .ag-t b{font-weight:var(--fw-strong)}
 .stage .ag-activity{display:flex;align-items:center;gap:4px;min-width:0;height:16px}
@@ -471,7 +462,7 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage .ag-r.is-on :is(.arc,.ag-wait){background:var(--surface)}
 .stage .ag-wait{display:grid;place-items:center;color:var(--warn)}
 .stage .ag-wait svg{width:12px;height:12px}
-.stage .ag-tm,.stage .ch-r .ch-m{align-self:start;padding-top:0;font:var(--fw-regular) var(--fs-sm)/var(--lh-14) var(--sans)}
+.stage .ag-tm,.stage .ch-r .ch-m{align-self:start;padding-top:0;font:var(--fw-regular) var(--fs-sm)/var(--lh-body) var(--sans)}
 .stage .ch-r:not(:has(.ch-path)) .ch-m{align-self:center}
 
 /* The map belongs to the same rail. Idle nodes are open rows; only the root and an agent's current
@@ -559,17 +550,21 @@ body.stage-covers .herald .hr-conn{display:none}
    column, so the agent is known without shouting. The time sits on the title's line, the mark on the summary's line
    (each line's own height), both at the column's right edge; the title and summary keep the left. */
 .stage .ag-tm{display:flex;flex-direction:column;align-items:flex-end}
-.stage .ag-tm .ag-when{line-height:var(--lh-14);min-height:var(--lh-14)}
+.stage .ag-tm .ag-when{line-height:var(--lh-body);min-height:var(--lh-body)}
 .stage .ag-mk{display:flex;align-items:center;height:var(--lh-12)}
 .stage .ag-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}
 
 /* ── Shell mode: the shells' own dock in the panel, in place of its frames (the owner, 19 Nov) ─────────────────
    The same dock (its tabs, its sessions), filling the panel under its bar; its drag grip has nothing to size here.
    A phone keeps its shells sheet: the panel's Shell button isn't there. */
-/* the panel's page (one panel model, 19 Nov): Shell today, Files and a Thread next; one host in place of the frames */
-.stg-page{display:none}
-.stage[data-page] .stg-frames{display:none}
-.stage[data-page] .stg-page{display:flex;flex:1;min-height:0;flex-direction:column}
+/* the body: the sections and the page share one cell, the page over them. Covered, the sections leave the rendering
+   but stay laid out, so ‹ shows them again at once */
+.stg-body{flex:1;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr)}
+.stg-body>*{grid-area:1/1;min-width:0;min-height:0}
+.stg-page{display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);pointer-events:none}
+.stage[data-stg-page] .stg-page{pointer-events:auto}
+.stage .stg-page>.stg-pg{grid-area:1/1;background:var(--sunken)}
+.stage.is-covered .stg-frames{visibility:hidden;content-visibility:hidden}
 .shd.in-panel{grid-column:auto;grid-row:auto;flex:1;align-self:stretch;align-items:stretch;height:auto;min-height:0;border-top:1px solid var(--line-faint);z-index:auto}
 .shd.in-panel>*{align-self:stretch}
 .shd.in-panel .shd-grip{display:none}
@@ -582,7 +577,7 @@ body.stage-covers .herald .hr-conn{display:none}
 .stage .tg-qf{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r);border:1px solid var(--line-soft);background:var(--fill-1);color:var(--ink-4)}
 .stage .tg-qf:focus-within{border-color:var(--line-strong);color:var(--ink-3)}
 .stage .tg-qf svg{flex:none;width:var(--ic);height:var(--ic)}
-.stage .tg-qf input{flex:1;min-width:0;height:100%;border:0;background:none;outline:none;color:var(--ink);font:var(--fw-regular) var(--fs-base)/var(--lh-14) var(--sans)}
+.stage .tg-qf input{flex:1;min-width:0;height:100%;border:0;background:none;outline:none;color:var(--ink);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans)}
 .stage .tg-qf input::placeholder{color:var(--ink-4)}
 .stage .tg-qf input::-webkit-search-cancel-button{display:none}
 .stage .tg-k{flex:none;display:grid;place-items:center;min-width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-4);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--mono)}
@@ -596,20 +591,12 @@ body.stage-covers .herald .hr-conn{display:none}
 @keyframes fr-flash{from{background:var(--hover-fill)}}
 @media (prefers-reduced-motion:reduce){.stage .fr.is-flash>.fr-h{animation:none}}
 
-/* ── Pages open in the panel, two or more: their tabs in the bar, ‹ back to the sections first (one strip for every
-   kind of page: a shell, files, threads). A tab is a 24 control, its icon and its name; the one showing is filled. */
-.stage .pg-tabs{display:flex;align-items:center;gap:var(--s-1);min-width:0}
-.stage .pg-tab{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);color:var(--ink-3);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);white-space:nowrap}
-.stage .pg-tab span{overflow:hidden;text-overflow:ellipsis}
-.stage .pg-tab svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
-.stage .pg-tab:hover{background:var(--hover-fill);color:var(--ink)}
-.stage .pg-tab.is-on{background:var(--fill-2);color:var(--ink)}
 /* a page's bar leads with ‹ (a 32 control): the title centres on it as the bar's own buttons do (the owner, 19 Nov
    18:00Z: it sat 4 px low, aligned to the button's baseline); the words-only bar keeps its baseline pair */
 .stage .stg-t:has(.pg-back){align-items:center;gap:var(--s-1)}
-/* each page kind's own box in the host, kept while hidden (a file's editor and caret live on) */
-.stage .stg-pg{flex:1;min-height:0;display:flex;flex-direction:column}
-/* ‹ Sections says when the sections need you (an ask in Threads) while a page is up */
+/* each page kind's own box, made once and kept (a thread's conversation, a file's editor and caret live on) */
+.stage .stg-pg{min-height:0;display:flex;flex-direction:column}
+/* ‹ says when the sections need you (an ask in Threads) while a page is up */
 .stage .pg-back{position:relative}
 /* Files' show/hide the file list, first after ‹: on (the list shown) in a stronger ink */
 .stage .pg-lead[aria-pressed="true"]{color:var(--ink-2)}
@@ -622,10 +609,11 @@ body.stage-covers .herald .hr-conn{display:none}
    its dock (a .dock, which sets its own column from its own box: css/app.css) is given the same one, so the asks
    line, the composer and the rows share their edges (the owner, 19 Nov 16:09Z: "it's misaligned") */
 .stage .tp{position:relative;container-type:inline-size;--dock-h:var(--s-12)}
-.stage .tp,.stage .tp .dock{--col-w:calc(100cqw - 2 * var(--s-5));--col-x:var(--s-5);--measure:calc(var(--col-w) - var(--s-12))}
+.stage .tp,.stage .tp .dock{--col-w:calc(100cqw - 2 * var(--gut-min));--col-x:var(--gut-min);--measure:calc(var(--col-w) - var(--s-12))}
 /* at full size the page reads at the chat's own column (its --col-max), centred, as a thread does on its own page */
-body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--col-max),100cqw - 2 * var(--s-5));--col-x:calc((100cqw - var(--col-w)) / 2)}
-.stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-lg);padding:0 var(--s-3) 0 var(--s-4);box-shadow:inset 0 -1px 0 var(--line-faint)}
+body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2)}
+/* its facts: the same step of space above and below, its line on a pixel of its own (drawn inside, it took one from below) */
+.stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);padding:var(--s-2) var(--s-3) var(--s-2) var(--s-4);border-bottom:1px solid var(--line-faint)}
 .stage .tp-br{display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--mono);color:var(--ink-4)}
 .stage .tp-br svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
 /* the page's checklist takes the header gutter as its own (--hg is the conversation's: undefined here, it voided
@@ -634,8 +622,9 @@ body.stage-full .stage .tp,body.stage-full .stage .tp .dock{--col-w:min(var(--co
 .stage .tp .scroller{flex:1;min-height:0}
 .stage .tp .dock{left:0;right:0;width:auto}
 .stage .tp .cbar{background:linear-gradient(to bottom,transparent,var(--sunken) var(--s-8))}
-.stage .tp-target{flex:1;display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;color:var(--ink-3);font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans)}
-.stage .tp-full{margin-left:auto}
+/* its ⋯ in the panel's head, there only while the thread shows */
+.stage .tp-acts{display:inline-flex}
+.stage:not([data-stg-page="thread"]) .tp-acts{display:none}
 .stage .tp-menu-w{position:relative;display:inline-flex}
 /* The list snaps row by row (scroll-snap-type: y mandatory), and its filter sits on top of it (sticky). The top of
    the list (the filter, the first group's head) wasn't a place it could rest, so scrolling up to "Needs you" snapped

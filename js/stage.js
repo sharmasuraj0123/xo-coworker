@@ -16,8 +16,8 @@
 //     stands; the header's Deploy opens it, and while it's open it has the stack and the others keep their
 //     heads (their own folds are kept for when it closes).
 //
-// Made left the panel for the sidebar's Artifacts (another thread). The panel owns its frame: a 40 px
-// title bar (the place, full size, close), its width (dragged, 320–720, kept), whether it's open (kept),
+// Over the sections it shows one page at a time. The panel owns its frame: its head, its width (2/5 of the main area, or dragged and kept),
+// whether it's open (kept),
 // the page making room for it (body.stage-open, body.stage-full), and floating over the conversation
 // when that would get too narrow (body.stage-over).
 //
@@ -66,7 +66,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  const S = { lp: false, open: false, full: false, returnTo: null, wide: false, stackH: 0, h: { agents: "", changes: "", head: "", chn: "" } };
+  const S = { lp: false, open: false, full: false, returnTo: null, stackH: 0, h: { agents: "", changes: "", head: "", chn: "" } };
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -77,15 +77,14 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
-    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts">${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
-    `<div class="stg-page stg-shell"></div>` +
-    `<div class="stg-frames">` +
+    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
+    `<div class="stg-body"><div class="stg-frames">` +
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
-    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button><button type="button" class="fr-ib" data-open-files title="All files">${FILES_IC}</button>`) + gutter("changes", "map") +
+    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree">Diagram</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph">Graph</button></div>`) +
-    `</div>`;
+    `</div><div class="stg-page"></div></div>`;
   $("#main").appendChild(el);
   // the stack's height, as laid out (the panel opening, the window resizing): Agents' cap is worked out from it
   // when it changes, in the observer, after layout, instead of a read forcing layout in the middle of a change
@@ -258,25 +257,15 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       return `<li><button type="button" class="ch-r" data-change="${esc(x.rel)}" data-change-project="${esc(x.project)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="ch-i">${fileIcon(x.path)}</span><span class="ch-copy"><span class="ch-n">${esc(name)}</span>${dir ? `<span class="ch-path">${esc(dir)}</span>` : ""}</span><span class="ch-m m-${esc(x.live ? "live" : x.mark)}">${esc(x.live ? "editing" : x.mark)}</span></button></li>`;
     }).join("")}</ul>`;
   }
-  /** The panel's name, and the place it's showing beside it, quieter (the owner, 6 Nov). Who's at work is
-   *  Agents' own head, so it isn't said here too. */
+  // one head: the place on the sections; on a page ‹, its lead control and its title
   function titleHtml() {
-    // the panel says the place it's beside (the owner, 19 Nov: not "Agentic Control Pane"); in Shell mode, "› Shell"
     const place = nameOf(view());
-    const cur = S.page && PAGES.get(S.page.name);
-    const titleOf = (t) => { const sp = PAGES.get(t.name), k = sp.single ? (S.single?.[t.name] ?? t.key) : t.key; return sp.title ? sp.title(k) : t.name; };
-    // ‹ Sections leads any page but the shell (its own button is its way back, as before), with a dot when the
-    // sections need you (an ask in Threads)
-    const back = S.page && S.page.name !== "shell" ? `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections${sectionsNeed() ? ", something needs you" : ""}">${ICON.back}${sectionsNeed() ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>` : "";
-    // a page's own lead control (Files: show or hide its file list), first after ‹ Sections, where you look first
-    const lead = cur && cur.lead ? cur.lead(S.page.key) || "" : "";
-    // on the sections, what the pages keep (a file in Files, a thread) stays one click away as its tab, beside the place
-    // (‹ Sections or Esc from a file keeps it: the plan, FILES-IN-PANEL.md §2)
-    if (S.tabs.length > 1 || (!S.page && S.tabs.length)) return `${S.page ? (back || `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to Threads, Changes and Map (Esc)" aria-label="Sections">${ICON.back}</button>`) + lead : `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`}<span class="pg-tabs" role="tablist" aria-label="Open in the panel">${S.tabs.map((t) => {
-      const on = sameTab(t, S.page), sp = PAGES.get(t.name), tt = titleOf(t);
-      return `<button type="button" class="pg-tab${on ? " is-on" : ""}" role="tab" aria-selected="${on}" data-stg-tab="${esc(t.name)}" data-stg-key="${esc(t.key)}" title="${esc(tt)}">${sp.icon ? sp.icon(t.key) : ""}<span>${esc(tt)}</span></button>`; }).join("")}</span>`;
-    if (cur && back) return `${back}${lead}<b class="stg-name" title="${esc(titleOf(S.page))}">${esc(titleOf(S.page))}</b>`;
-    return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>${cur ? `<span class="stg-sub">${esc(titleOf(S.page))}</span>` : ""}`;
+    if (!S.page) return `<b class="stg-name" title="${esc(place || "")}">${esc(place || "Panel")}</b>`;
+    const sp = PAGES.get(S.page.name), title = pageTitle(S.page);
+    const to = S.under ? pageTitle(S.under) : "Threads, Changes and Map", need = !S.under && sectionsNeed();
+    const back = `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to ${esc(to)} (Esc)" aria-label="Back to ${esc(to)}${need ? ", something needs you" : ""}">${ICON.back}${need ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>`;
+    const lead = sp.lead ? sp.lead(S.page.key) || "" : "";
+    return `${back}${lead}<b class="stg-name" title="${esc(title)}">${esc(title)}</b>`;
   }
   let nameOf = () => "";
 
@@ -295,15 +284,17 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = body("agents").querySelector(".tg-q");
     qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
-    if (!S.lp) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
+    // covered sections wait: back() paints them
+    const covered = !!S.page;
+    if (!S.lp && !covered) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
     // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
     el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || "");
     // Changes: Space's list and diff where it has /changes, else today's list
-    const cxOn = !fr.changes.folded && !S.lp && CX.paint();
+    if (!fr.changes.folded && !S.lp && !covered) CX.paint();
     const hd = CX.head();
     const [cxHost, old] = body("changes").children;
     cxHost.hidden = !hd; old.hidden = !!hd;
-    if (!hd && !S.lp) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    if (!hd && !S.lp && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
     const empty = hd ? !hd.count : !files.changes(v).length;
     if (S.chEmpty !== empty) {
       // files arriving open Changes under Threads (the owner, 19 Nov 13:42Z); a fold you made since stays
@@ -323,9 +314,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       fw.setAttribute("aria-pressed", String(hd.follow));
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";
     }
-    // the panel keeps its width while Launchpad is open: folding Changes under it mustn't narrow the panel and
-    // reflow the whole conversation (560 ↔ 360 px on every fold and unfold, found timing it)
-    if (!S.lp && S.wide !== (cxOn && CX.wide)) { S.wide = cxOn && CX.wide; apply(); }
     for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
     body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
     const fb = el.querySelector("[data-stg-full]");
@@ -386,7 +374,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
 
   function close({ restore = true, quiet = false } = {}) {
-    if (S.page) sections({ paint: false });
+    if (S.page) dropPages();
     if (!S.open) return;
     S.open = false;
     if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
@@ -437,124 +425,118 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
 
   function toggle() { if (S.open) close(); else open(); }
-  // ── Pages (one panel model: the Files plan and the Thread page, 19 Nov; the Files thread's seven edits folded in)
-  // The panel shows its sections, or one page in their place. A kind is registered once:
-  //   page(name, { title(key), icon(key), width, single,
-  //                mount(host, key)   once, when its tab first shows (host is the page's own box, kept),
-  //                onShow(key, {focus}) / onHide(key)   every switch; hidden, a page lives on (Files keeps its
-  //                                     editor, undo and caret),
-  //                unmount(key)       when its tab closes,
-  //                canClose(key)      → true | false | Promise<boolean>: asked before its tab's ×, the panel's ×
-  //                                     or Esc closing it, and an eviction,
-  //                escape(key)        → true when it took Esc (its find bar, a question, an old version) })
-  // single: one tab for the kind, its key what it shows now (Files' own inner tabs); else a tab per key (threads).
-  // show(name, key, {focus}) opens or brings forward; sections() goes back, tabs kept; closeTab(name, key) asks
-  // first (a Promise<boolean>). dataset.page and --sw change in one write, nothing measured between.
+  // ── Pages: one over the sections; a shell keeps the page under it; another place or closing drops them
   const PAGES = new Map(), BOXES = new Map();
-  const TAB_MAX = 5;
-  Object.assign(S, { page: null, tabs: [] });
-  const sameTab = (a, b) => !!a && !!b && a.name === b.name && a.key === b.key;
-  const tabOf = (name, key) => { const sp = PAGES.get(name); return { name, key: sp && sp.single ? name : String(key) }; };
+  Object.assign(S, { page: null, under: null });
+  const same = (a, b) => !!a && !!b && a.name === b.name && a.key === b.key;
+  const pageTitle = (t) => { const sp = PAGES.get(t.name); return (sp.title && sp.title(t.key)) || t.name; };
   function page(name, spec) { PAGES.set(name, spec); }
-  /** A page kind's own box in the host: made on its first show, hidden while another shows, gone with its tab. */
-  function boxFor(t) {
-    const id = `${t.name}\u0000${t.key}`;
-    let b = BOXES.get(id);
-    if (!b) { b = document.createElement("div"); b.className = "stg-pg"; b.dataset.pg = t.name; el.querySelector(".stg-page").append(b); BOXES.set(id, b); b._new = true; }
+  // one box per kind, built once
+  function boxFor(name) {
+    let b = BOXES.get(name);
+    if (!b) { b = document.createElement("div"); b.className = "stg-pg"; b.dataset.pg = name; b.hidden = true; el.querySelector(".stg-page").append(b); BOXES.set(name, b); }
     return b;
   }
-  const ask = async (t) => { const sp = PAGES.get(t.name); try { return !sp.canClose || (await sp.canClose(t.key)) !== false; } catch { return false; } };
+  // the slide: 12 px and a fade, --d-sheet and --ease
+  const RM = matchMedia("(prefers-reduced-motion: reduce)");
+  let motion = null;
+  const tokens = () => { if (!motion) { const cs = getComputedStyle(document.documentElement); motion = { d: parseFloat(cs.getPropertyValue("--d-sheet")) || 240, ease: cs.getPropertyValue("--ease").trim() || "ease" }; } return motion; };
+  const FROM = { opacity: 0, transform: "translateX(12px)" }, TO = { opacity: 1, transform: "none" };
+  function slide(box, dir, done) {
+    box.getAnimations().forEach((x) => x.cancel());
+    const { d, ease } = tokens();
+    const a = box.animate(dir === "in" ? [FROM, TO] : [TO, FROM], { duration: d, easing: ease });
+    a.finished.then(() => done && done(), () => {});
+  }
+  // covered sections leave the rendering but stay laid out
+  function cover(on) {
+    if (!on) { el.classList.remove("is-covered"); return; }
+    if (S.page) el.classList.add("is-covered");
+  }
+  function mark() {
+    if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
+    el.classList.toggle("is-shell", S.page?.name === "shell");
+  }
+  function shut(t, shown) { const sp = PAGES.get(t.name); if (shown) sp.onHide?.(t.key); sp.close?.(t.key); }
+
   function show(name, key = name, { focus = false } = {}) {
     const sp = PAGES.get(name);
     if (!sp) return false;
-    const next = tabOf(name, key), shownKey = String(key);
-    if (!S.tabs.some((t) => sameTab(t, next))) { S.tabs.push(next); evict(next); }
-    if (sp.single) S.single = { ...(S.single || {}), [name]: shownKey }; // what the one tab shows now (its title)
-    if (!S.open) open({ focus: false });
-    const was = S.page;
-    if (!sameTab(was, next)) {
-      if (was) { PAGES.get(was.name).onHide?.(was.key); boxFor(was).hidden = true; }
-      // one write: the switch and the width, nothing measured between (the Files thread)
-      S.page = next;
-      el.dataset.page = name;
-      el.classList.toggle("is-shell", name === "shell");
-      if (S.full !== !!S.fullOf?.[name]) setFull(!!S.fullOf?.[name]); // full size belongs to the page
-      apply();
-      const box = boxFor(next);
-      box.hidden = false;
-      if (box._new) { box._new = false; sp.mount(box, next.key); }
-    }
-    sp.onShow?.(shownKey, { focus });
+    const next = { name, key: String(key) }, fresh = !S.open;
+    if (fresh) open({ focus: false });
+    // same kind, another subject: the box stays
+    if (S.page && S.page.name === name) { S.page = next; sp.onShow?.(next.key, { focus }); pageChanged(); return true; }
+    const prev = S.page, keep = name === "shell" && prev && !S.under ? prev : null;
+    for (const t of [prev, S.under]) if (t && t !== keep) shut(t, t === prev);
+    if (keep) PAGES.get(keep.name).onHide?.(keep.key);
+    S.under = keep; S.page = next;
+    mark();
+    const box = boxFor(name), old = prev ? BOXES.get(prev.name) : null;
+    box.hidden = false;
+    if (!box._m) { box._m = true; sp.mount?.(box, next.key); }
+    sp.onShow?.(next.key, { focus });
+    // opening with the panel, the panel's entrance is the motion
+    const settle = () => { box.style.zIndex = ""; if (S.page && S.page.name === name) { if (old && old !== box) old.hidden = true; cover(true); } };
+    if (fresh || RM.matches) settle(); else { box.style.zIndex = "1"; slide(box, "in", settle); }
     pageChanged();
     return true;
   }
-  /** Over TAB_MAX: the oldest tab that isn't showing goes if it lets itself; a page that refuses is skipped; when
-   *  every one refuses, nothing goes. */
-  async function evict(keep) {
-    let n = S.tabs.length - TAB_MAX;
-    for (const t of [...S.tabs]) {
-      if (n <= 0) break;
-      if (sameTab(t, S.page) || sameTab(t, keep)) continue;
-      if (await ask(t)) { drop(t); n--; }
-    }
-    if (n < S.tabs.length - TAB_MAX + 1) pageChanged();
-  }
-  function sections({ paint: draw = true } = {}) {
+  // ‹ and Esc: one level back
+  function back() {
     if (!S.page) return;
-    const t = S.page;
-    // focus in the page (a file, Esc from it) or on its head (‹ Sections itself, which goes with it) doesn't fall to the
-    // page's body: it goes to that page's tab, else the panel
+    const t = S.page, under = S.under, box = BOXES.get(t.name);
     const had = el.contains(document.activeElement);
-    PAGES.get(t.name).onHide?.(t.key);
-    boxFor(t).hidden = true;
-    S.fullOf = { ...(S.fullOf || {}), [t.name]: S.full };
-    S.page = null;
-    delete el.dataset.page;
-    el.classList.remove("is-shell");
-    if (S.full) setFull(false); // the sections come back at their own width
-    apply();
-    if (draw) pageChanged();
-    if (had && S.open) (el.querySelector(`[data-stg-tab="${CSS.escape(t.name)}"], [data-stg-page="${CSS.escape(t.name)}"]`) || el).focus({ preventScroll: true });
+    shut(t, true);
+    S.page = under; S.under = null;
+    mark();
+    if (under) { BOXES.get(under.name).hidden = false; PAGES.get(under.name).onShow?.(under.key, { focus: had }); } else cover(false);
+    box.style.zIndex = "1";
+    const gone = () => { box.style.zIndex = ""; if (S.page?.name !== t.name) box.hidden = true; };
+    if (RM.matches) gone(); else slide(box, "out", gone);
+    pageChanged();
+    if (had && !under && S.open) el.focus({ preventScroll: true });
   }
-  /** A tab goes: its page's own ×, or more than TAB_MAX. Asked first (canClose); refused, it stays. */
-  async function closeTab(name, key = name) {
-    const t = S.tabs.find((x) => sameTab(x, tabOf(name, key)));
-    if (!t) return true;
-    if (!(await ask(t))) return false;
-    const was = sameTab(S.page, t);
-    drop(t);
-    if (was) { const prev = S.tabs[S.tabs.length - 1]; if (prev) show(prev.name, prev.key); else { delete el.dataset.page; el.classList.remove("is-shell"); if (S.full) setFull(false); apply(); pageChanged(); } }
-    else pageChanged();
-    return true;
+  function dropPages() {
+    if (!S.page) return;
+    const t = S.page, under = S.under;
+    shut(t, true); if (under) shut(under, false);
+    for (const b of BOXES.values()) { b.getAnimations().forEach((x) => x.cancel()); b.hidden = true; b.style.zIndex = ""; }
+    S.page = null; S.under = null;
+    mark(); cover(false);
+    pageChanged();
   }
-  function drop(t) {
-    const sp = PAGES.get(t.name), id = `${t.name}\u0000${t.key}`;
-    if (sameTab(S.page, t)) { sp.onHide?.(t.key); S.page = null; }
-    sp.unmount?.(t.key);
-    BOXES.get(id)?.remove(); BOXES.delete(id);
-    S.tabs = S.tabs.filter((x) => x !== t);
+  function closePage(name) {
+    if (S.page?.name === name) back();
+    else if (S.under?.name === name) { shut(S.under, false); BOXES.get(name).hidden = true; S.under = null; pageChanged(); }
   }
-  /** The panel's × and Esc closing it: every open page is asked first (an unsaved file), then it closes. */
+  // the panel's ×: an unsaved file asks first
   async function requestClose() {
-    for (const t of [...S.tabs]) if (!(await ask(t))) { if (!sameTab(S.page, t)) show(t.name, t.key, { focus: true }); return false; }
+    for (const t of [S.page, S.under].filter(Boolean)) {
+      const sp = PAGES.get(t.name);
+      let ok = true;
+      try { ok = !sp.canClose || (await sp.canClose(t.key)) !== false; } catch { ok = false; }
+      if (!ok) return false;
+    }
     close();
     return true;
   }
-  /** Something in the sections needs you while a page is up: ‹ Sections says so (the Files thread). */
   const sectionsNeed = () => { const tg = threads ? threads(view()) : null; return !!tg && tg.some((g) => g.k === "needs" && g.rows.length); };
   function pageChanged() {
+    const fb = el.querySelector("[data-open-files]");
+    if (fb) { const on = S.page?.name === "files"; fb.setAttribute("aria-pressed", String(on)); fb.classList.toggle("is-on", on); }
     const b = el.querySelector("[data-stg-shell]");
-    if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? "Back to Threads, Changes and Map" : "A shell here, in the panel"; }
+    if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel"; }
     S.h.head = ""; paint();
     onChange && onChange();
   }
-  /** Shell mode (the owner, 19 Nov: a shell in the panel, the left panel's Shells as they are) is the page "shell":
-   *  the shells' own dock, the same sessions and tabs, moved into the panel in place of its frames; app.js moves it
-   *  (shell(on, host)). Hidden or closed, it goes back under the page, put away. */
-  if (shell) page("shell", { title: () => "Shell", mount: () => {}, onShow: () => shell(true, boxFor(S.page)), onHide: () => shell(false), unmount: () => {} });
+  // over a thread the shell opens in its worktree
+  if (shell) page("shell", {
+    title: (k) => `Shell · ${S.under ? pageTitle(S.under) : nameOf(k || view())}`,
+    onShow: (k) => shell(true, boxFor("shell"), k), onHide: () => shell(false),
+  });
   function setShell(on) {
     if (!shell || (S.page?.name === "shell") === !!on) return;
-    if (on) show("shell"); else closeTab("shell");
+    if (on) show("shell", S.page?.name === "thread" ? `t:${S.page.key}` : view()); else back();
   }
 
   /** Every render: the frames follow the view. */
@@ -573,11 +555,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (t.closest("[data-stg-close]")) { requestClose(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
-    if (t.closest("[data-stg-sections]")) { sections(); return; }
+    if (t.closest("[data-stg-sections]")) { back(); return; }
     const pa = t.closest("[data-stg-act]");
     if (pa && S.page) { PAGES.get(S.page.name).act?.(pa.dataset.stgAct, pa); return; }
-    const tab = t.closest("[data-stg-tab]");
-    if (tab) { const sp = PAGES.get(tab.dataset.stgTab); show(tab.dataset.stgTab, sp?.single ? S.single?.[tab.dataset.stgTab] ?? tab.dataset.stgKey : tab.dataset.stgKey, { focus: true }); return; }
     const fo = t.closest("[data-fr-fold]");
     if (fo) {
       const id = fo.dataset.frFold;
@@ -592,7 +572,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
-    if (t.closest("[data-open-files]")) { openFiles && openFiles(); return; }
+    if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(); else openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
     if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
@@ -633,7 +613,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     return [...document.querySelectorAll(FOCUS)].find((x) => (from ? node.contains(x) || (node.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING) : !node.contains(x) && (node.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING))
       && !el.contains(x) && x.getClientRects().length && !x.closest("[inert],[hidden],[aria-hidden='true']")) || null;
   }
-  // Esc: a search clears first; then full size steps back, then the panel closes
+  // Esc: a search clears first; then the page's own Esc, then one level back, then full size, then the panel closes
   el.addEventListener("keydown", (e) => {
     // inside the Shell page's terminal every key is the shell's (Esc for vim, / for less): the panel's Esc, tabs and /
     // leave it alone, by the shells' own rule (the app's keys ask the same one)
@@ -646,14 +626,14 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     }
     // / in the panel goes to the Threads filter when it shows (elsewhere / still writes, keys.js "write")
     if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.("input, textarea, [contenteditable]")) {
-      if (!fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
+      if (!S.page && !fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
     }
     if (e.key !== "Escape") return;
     if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
     e.preventDefault(); e.stopPropagation();
     // the page first (its find bar, a question, an old version), then full size, then the sections, then closed
     if (S.page && PAGES.get(S.page.name).escape?.(S.page.key) === true) return;
-    if (S.full) setFull(false); else if (S.page && S.page.name !== "shell") sections(); else requestClose();
+    if (S.page) back(); else if (S.full) setFull(false); else requestClose();
   }, true);
 
   // the line between two frames: drag it (or ↑ ↓ on it) to give one of them room
@@ -735,11 +715,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     g.addEventListener("dblclick", () => { fr.agents.rows = null; fr.map.h = MAP_H; layout(); persist(); });
   }
 
-  // ── width: flush to the window's right edge, 360 px by default, 320–720 by dragging its left edge ─
-  const W_KEY = "xo-stage-w", W_DEF = 360, W_MIN = 320, W_MAX = 720;
-  // a diff wants room for code: with one showing, the panel widens to WIDE while the conversation keeps READ
-  // (never past a width you dragged it to yourself)
-  const WIDE = 560;
+  // ── width: one for everything the panel shows; 2/5 of the main area until you drag it (the owner, 20 Nov: 3:2)
+  const W_KEY = "xo-stage-w2", W_SHARE = 0.4, W_MIN = 320, CHAT_MIN = 480;
   // when the conversation beside it would drop under READ px, the panel floats over it (with a shadow)
   // instead of squeezing it: a cut-down thread title is worse than a covered margin
   const READ = 560;
@@ -751,38 +728,23 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     return sideWv;
   };
   addEventListener("resize", () => { sideWv = null; });
-  if (typeof ResizeObserver === "function" && document.querySelector(".side")) new ResizeObserver(() => { sideWv = null; }).observe(document.querySelector(".side"));
-  const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(W_MAX, innerWidth - 480, w)));
-  let wSaved = W_DEF, wMine = false;
-  try { wMine = !!Number(localStorage.getItem(W_KEY)); wSaved = Number(localStorage.getItem(W_KEY)) || W_DEF; } catch { /* private mode */ }
-  // a page with a width of its own (a file 640, a thread 560) keeps it apart from the sections': 480 up to the window
-  // less READ for the conversation beside it, the width you dragged it to kept per page kind
-  const PAGE_MIN = 480;
-  // a page's default width: a number, or a function of the room it has (the window less the sidebar less the
-  // conversation's own READ): a thread page's reads at the chat's measure where that fits
-  const pageSpecW = () => { const w = S.page && PAGES.get(S.page.name)?.width; return (typeof w === "function" ? w({ room: innerWidth - sideW() - READ }) : w) || 0; };
-  // (a phone: the panel is its full-screen sheet, so a page is the window's width)
-  const clampP = (w) => (innerWidth <= 760 ? innerWidth : Math.round(Math.max(PAGE_MIN, Math.min(innerWidth - READ, w))));
-  const pageW = () => { let v = 0; try { v = Number(localStorage.getItem(`${W_KEY}:${S.page.name}`)) || 0; } catch { v = 0; } return clampP(v || pageSpecW()); };
-  const widthNow = () => (pageSpecW() ? pageW() : S.wide && !wMine && innerWidth - sideW() - WIDE >= READ ? Math.max(clampW(wSaved), clampW(WIDE)) : clampW(wSaved));
+  if (typeof ResizeObserver === "function" && document.querySelector(".side")) new ResizeObserver(() => { sideWv = null; apply(); }).observe(document.querySelector(".side"));
+  const clampW = (w) => Math.round(Math.max(W_MIN, Math.min(innerWidth - sideW() - CHAT_MIN, w)));
+  const wDef = () => (innerWidth - sideW()) * W_SHARE;
+  let wSaved = 0;
+  try { wSaved = Number(localStorage.getItem(W_KEY)) || 0; } catch { /* private mode */ }
   function apply() {
-    const v = widthNow();
+    const v = clampW(wSaved || wDef());
     document.documentElement.style.setProperty("--sw", `${v}px`);
     document.body.classList.toggle("stage-over", innerWidth > 760 && innerWidth - sideW() - v < READ);
   }
   const setW = (w, save = false) => {
-    if (pageSpecW()) {
-      const v = clampP(w);
-      try { if (save) localStorage.setItem(`${W_KEY}:${S.page.name}`, String(v)); else S.dragW = v; } catch { /* private mode */ }
-      document.documentElement.style.setProperty("--sw", `${v}px`);
-      return v;
-    }
-    wSaved = clampW(w);
-    if (save) { wMine = true; try { localStorage.setItem(W_KEY, String(wSaved)); } catch { /* private mode */ } }
+    wSaved = w ? clampW(w) : 0;
+    if (save) { try { localStorage.setItem(W_KEY, String(wSaved)); } catch { /* private mode */ } }
     apply();
     return wSaved;
   };
-  setW(wSaved);
+  apply();
   addEventListener("resize", () => { apply(); coverSync(); if (S.open) capAgents(); });
   const grip = el.querySelector(".stg-grip");
   grip.addEventListener("pointerdown", (e) => {
@@ -791,20 +753,17 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     grip.setPointerCapture(e.pointerId);
     const right = el.getBoundingClientRect().right;
     document.body.classList.add("stage-sizing");
-    const move = (ev) => { wMine = true; setW(right - ev.clientX); };
-    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(pageSpecW() ? S.dragW || pageW() : wSaved, true); };
+    const move = (ev) => setW(right - ev.clientX);
+    const up = () => { grip.removeEventListener("pointermove", move); document.body.classList.remove("stage-sizing"); setW(wSaved || clampW(wDef()), true); };
     grip.addEventListener("pointermove", move);
     grip.addEventListener("pointerup", up, { once: true });
     grip.addEventListener("pointercancel", up, { once: true });
   });
-  grip.addEventListener("dblclick", () => {
-    if (pageSpecW()) { try { localStorage.removeItem(`${W_KEY}:${S.page.name}`); } catch { /* private mode */ } apply(); return; }
-    wMine = false; try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(W_DEF);
-  });
+  grip.addEventListener("dblclick", () => { try { localStorage.removeItem(W_KEY); } catch { /* private mode */ } setW(0); });
   grip.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
-    setW(wSaved + (e.key === "ArrowLeft" ? 16 : -16), true);
+    setW((wSaved || clampW(wDef())) + (e.key === "ArrowLeft" ? 16 : -16), true);
   });
 
   if (saved.open) requestAnimationFrame(() => open({ focus: false }));
@@ -816,7 +775,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
      *  Threads whatever it showed. Shell mode and Launchpad give way, Threads unfolds, its list comes to its top,
      *  focus lands on its first thread and its head glows once, so the press always answers. */
     threads() {
-      if (S.page) sections({ paint: false });
+      if (S.page) dropPages();
       S.lp = false; fr.agents.folded = false;
       open({ focus: false });
       persist(); layout(); paint();
@@ -827,12 +786,11 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     },
     get isShell() { return S.page?.name === "shell"; },
     shellOff: () => setShell(false),
-    /** Pages (see "Pages" above): register a kind, show one, back to the sections, close a tab, what's open. */
-    page, show, sections, closeTab, requestClose,
-    pages: () => S.tabs.map((t) => ({ ...t, title: PAGES.get(t.name).title?.(t.key) || t.name, on: sameTab(t, S.page) })),
+    /** Pages (see "Pages" above): register a kind, show one, one level back, close one kind, the panel's ×. */
+    page, show, back, closePage, requestClose,
+    leave: () => dropPages(),
+    get slot() { return el.querySelector(".stg-pa"); },
     get pageShown() { return S.page ? { ...S.page } : null; },
-    /** A page's width changed (Files' tree folded or opened, its width dragged): the panel fits it again, one write. */
-    refit: () => apply(),
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp)) { openLaunch(); return; }
@@ -847,8 +805,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       if (!frames().includes("changes") || !CX.head()) return false;
       if (!CX.select(path)) return false;
       fr.changes.folded = false;
-      // a page in front (a file in Files, a thread): the sections come back to show it, the page kept as its tab
-      if (S.page) sections({ paint: false });
+      if (S.page) dropPages();
       if (!S.open) open({ focus: false }); else { layout(); paint(); persist(); }
       return true;
     },

@@ -36,7 +36,7 @@ const SCROLLERS = {
   ".keys-cols": ["room", "Settings › Keyboard"], ".set-body": ["room", "Settings' page"], ".set-page": ["room", "a Settings page on a phone"],
   ".rn-body": ["room", "Runs' sheet"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"],
   ".cs-pop": ["room:.iq-pop", "the new chat's settings (an .iq-pop)"],
-".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".stg-tabs": ["inset:.stg-tab", "the stage's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
+".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
   ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
   ".syl-b": ["inset:.syl-ln", "a record's lines"], ".stage .cx-list": ["inset:.cx-r", "the changes list"],
   ".md-body": ["inset:.md-from", "Made's cards (their ring a layer inside them, C013; their from line and pin inset)"],
@@ -102,6 +102,7 @@ const CLIPPERS = {
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
   ".pj-s": ["margin", "a project's count line: \"Coordinator needs you\" leads it (S005)"], ":root:root .top .pj-s": ["margin", "the same line in a phone's bar"],
   ".ev-t": ["margin", "an event line's words: Passed to a project, Continued in a thread"],
+  ".target": ["text", "the composer's target line: the chat's is a button (its ring drawn outside it), the Thread page's only words"], ":root:root .target": ["text", "the same line on a phone"],
   ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-done": ["decor", "a step's mark"], ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-next": ["decor", "a step's mark"],
 };
 const CLIPS = (d) => (/^overflow(-[xy])?$/.test(d.p) && /hidden|clip/.test(d.v)) || (d.p === "contain" && /paint|strict|content/.test(d.v)) || (d.p === "clip-path" && d.v !== "none") || (/^(-webkit-)?mask(-image)?$/.test(d.p) && d.v !== "none");

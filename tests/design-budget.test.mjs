@@ -14,7 +14,7 @@ const FRAME = /^\s*(?:from|to|[\d.]+%)(?:\s*,\s*(?:from|to|[\d.]+%))*\s*$/;
 /** Every declaration outside the sidebar, token blocks, @font-face and keyframe frames. */
 function declarations() {
   const out = [];
-  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css")) {
+  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css" && n !== "flavours.css")) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
       const sel = m[1].trim();
@@ -95,7 +95,7 @@ t("no malformed var() (a broken value drops its whole declaration without a word
 const ROLE = /^--(?:canvas|sunken|surface|float|fill-\d|line(?:-faint|-soft|-strong|-hover)?|ink(?:-\d)?|accent(?:-[\w]+)?|err(?:-ink)?|warn|info|violet|bg(?:-\d|-head)?|hair|raised|side|pop-(?:bg|line)|comp-line(?:-hi)?)$/;
 t("the palette lives in tokens.css alone", () => {
   const all = [];
-  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css")) {
+  for (const f of readdirSync(DIR).filter((n) => n.endsWith(".css") && n !== "tokens.css" && n !== "flavours.css")) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/(--[\w-]+)\s*:\s*([^;}]*)/g)) {
       const to = /^var\((--[\w-]+)\)$/.exec(m[2].trim());

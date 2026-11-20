@@ -37,4 +37,11 @@ t("every mark is a local file the stylesheet draws", () => {
   // OpenAI's Blossom stays in the ink (a mask), never coloured
   assert.match(css, /\.agm-openai\{background-color:currentColor;-webkit-mask:/);
 });
+t("a mark centres on its words' capitals at the one icon size, and a picker's choice never squeezes below its mark and name", () => {
+  const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  assert.match(css, /\.agm\{[^}]*width:var\(--ic\);height:var\(--ic\);vertical-align:calc\(var\(--cap-mid\) - var\(--ic\) \/ 2\)/);
+  const btn = css.match(/\.iq-route button\{([^}]*)\}/)[1];
+  assert.doesNotMatch(btn, /min-width:0/);
+  assert.match(btn, /white-space:nowrap/);
+});
 console.log(`\n${passed} passed`);
