@@ -19,7 +19,7 @@
 .rn-live{display:none}
 
 @media (max-width:760px){
-  :root:root .tp-done{min-height:var(--h-hit)}
+  :root{--dock-bar:var(--h-hit);--dock-btn:var(--h-touch)}
   /* the phonebar's outlined buttons end on the content's right edge (16, was 12); its
      controls centre on y = 26 (6 + 40 / 2), the same line as a conversation's bar, in whole pixels
      (it was 25.5: 51 px of content over a 1 px hairline) */
