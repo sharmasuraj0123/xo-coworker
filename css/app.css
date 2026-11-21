@@ -462,12 +462,14 @@ button:disabled{cursor:default}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}
 .m-you.is-new{animation:none}
 .bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink-read);font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
-.m-you.is-pending .bubble{opacity:.72}
+.m-you.is-pending .bubble{animation:pend var(--d-in) var(--ease) var(--d-wait) forwards}
+@keyframes pend{to{opacity:.72}}
+.meta.is-sending{animation:fade var(--d-in) var(--ease) var(--d-wait) both}   /* said only when sending is slow; its line is kept meanwhile */
 .m-you.is-failed .bubble{border-style:dashed;border-color:color-mix(in srgb,var(--err) 65%,var(--line))}
 .meta{display:flex;align-items:center;gap:8px;margin-top:5px;padding-right:4px;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .meta.is-err{color:var(--err-ink);font-weight:var(--fw-medium)}
 .meta.is-warn{color:var(--warn)}
-.sent{display:inline-flex;align-items:center;gap:4px;color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
+.sent{display:inline-flex;align-items:center;gap:4px;color:var(--ink-3);animation:fade var(--d-in) var(--ease)}
 .sent b{font-weight:var(--fw-medium);color:var(--ink-2)}
 .sent svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}
 .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}

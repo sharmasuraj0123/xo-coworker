@@ -1196,7 +1196,7 @@ function msgItemsOf(conv, needs) {
     if (m.who === "you") {
       spoke = "you";
       let meta = "";
-      if (m.status === "sending") meta = `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`;
+      if (m.status === "sending") meta = `<div class="meta is-sending"><i class="spin" aria-hidden="true"></i>Sending</div>`;
       else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
       else if (m === lastQueued) meta = queuedMeta(conv, answeredAfter(list, m));
       else if (m === lastYou && (m.status === "sent" || m.sent) && !answeredAfter(list, m)) {
@@ -1924,6 +1924,8 @@ function openAsk(project) {
   }
   return best;
 }
+// your message to a chat on its way: its coordinator's line shows from the moment you send
+const sendingTo = (chat) => (S.local[convOfChat(chat)] || []).find((m) => m.status === "sending" && m.target === chat) || null;
 function typingRender(C = MAIN) {
   const box = C.typing, view = C.view;
   const t = convThread(view);
@@ -1943,12 +1945,13 @@ function typingRender(C = MAIN) {
     clearTimeout(S.heldT);
     const at = Date.parse(held.until || "");
     if (at > Date.now()) S.heldT = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
-  } else if (chat && world.act.replying(chat)) {
+  } else if (chat && (world.act.replying(chat) || sendingTo(chat))) {
     // the coordinator's session really works, or our message still waits for its answer (never a timer)
     const aw = world.state.awaiting[chat];
     const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
-    spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${aw ? "replying" : "working"}`, since: aw ? aw.at : null };
+    const out = aw || sendingTo(chat);
+    spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${out ? "replying" : "working"}`, since: out ? out.at : null };
   } else if (chat && chat !== "workspace" && openAsk(chat)) {
     // its coordinator asked the Workspace and the answer hasn't come: said only while that hop is open
     const ask = openAsk(chat);
@@ -2608,12 +2611,6 @@ function interruptRun(view = S.view) {
   if (run && run.kind === "thread") stopLive(run, { interrupt: true, runs: workingRuns(run.t) });
 }
 
-function lift(el, from) {
-  const b = el && el.querySelector(".bubble");
-  if (!b || !from || RM.matches) return;
-  const to = b.getBoundingClientRect();
-  b.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(.98)`, opacity: 0.55 }, { transform: "none", opacity: 1 }], { duration: 320, easing: "cubic-bezier(.2,.8,.2,1)" });
-}
 
 /** Why sending is paused right now, or "" (classic composerBlock, in plain words). */
 function liveBlock(view = S.view, text = say.value) {
@@ -2661,7 +2658,6 @@ function sendLive(raw, K = MK) {
   // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
   const ref = here && S.lref[conv];
   if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
-  const from = K.say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, to: thread ? t.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat), cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   if (files.count) { m.files = tray.take(K.view); m.files.forEach(dropThumb); }
@@ -2672,10 +2668,10 @@ function sendLive(raw, K = MK) {
   // From Home, what you wrote carries you into the conversation it went to (the Workspace, or the
   // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
   // conversation, a message aimed elsewhere leaves you where you are and says where it went.
-  if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); lift(K.conv.msgs.querySelector(`[data-k="${m.id}"]`), from); }
+  if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
   // while it's out it says so; each answer sets this same notice whole (postLive: sent, or not sent; a Retry: out)
   else if (!here) heraldShow(noticeFor(m, "out"), 9000);
-  else { render(); K.conv.follow.toLatest(false); lift(K.conv.msgs.querySelector(`[data-k="${m.id}"]`), from); }
+  else { render(); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
   // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
   if (thread) STAGE.resumeFollow(conv);
   deliverLive(m, thread);
@@ -2690,7 +2686,6 @@ async function postLive(m, thread) {
   heraldFor(m.id, () => noticeFor(m, "out"));
   try {
     const row = await postWithFiles(m, thread);
-    if (row && row.id) { S.alias.set(row.id, m.id); m.merged = true; }
     m.status = "sent";
     const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
     announce(`Sent to ${where}.`);
