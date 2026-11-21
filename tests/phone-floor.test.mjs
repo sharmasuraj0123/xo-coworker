@@ -130,7 +130,7 @@ t("the floor reaches a link drawn as a control and leaves a link in text (S267):
 // fills its box leaves the floor to the box, which takes it; Files' new-name row grows with its field
 t("every text field is at least 36 px tall on a phone: the field itself, or the box it fills", () => {
   const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
-  const BOXES = ".fl-q,.ar-q,.all-q,.side-find,.jump-field";
+  const BOXES = ".fl-q,.ar-q,.all-q,.jump-field";
   assert.ok(phone.includes(`:where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(${BOXES}) input)){min-height:36px}`), "every text input, but one that fills its box");
   assert.ok(phone.includes(`:where(${BOXES.split(",").filter((b) => b !== ".jump-field").join(",")},.fl-new-r){min-height:36px}`), "the boxes (the jump field is 56), and Files' new-name row");
   // every input the templates make is covered: the box ones by their box, the rest by the rule

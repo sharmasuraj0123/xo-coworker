@@ -52,7 +52,7 @@ body.stage-full .stg-grip{display:none}
    Hovered, any chosen state takes one layer of its own ink over whatever it draws, as a press takes the press fill:
    a background layer, !important on a zero-specificity selector, so no state's own background can silence it, on
    any fill (its ink is the text's: an inverted chip, ink on canvas, darkens). Named out of it: the sidebar's rows
-   (their layer is side.css's, C008's), the lists whose selection the pointer moves (Find a project, Jump, a dropdown:
+   (their layer is side.css's, C008's), the lists whose selection the pointer moves (Jump, a dropdown:
    the pointer is the selection, one active row, C058), and a shell's tab inside its wrapper (the wrapper takes it).
    Before the press, so a press shows the press fill. tests/state-hover.test.mjs is the census. */
 :where(button,a[href],summary,[role=button],[role=tab],[role=radio],[role=switch],[role=checkbox],[role=option],[role=menuitem],[role=menuitemradio],.shd-tabw):where([aria-checked="true"],[aria-selected="true"],[aria-pressed="true"],[aria-current]:not([aria-current="false"]),.is-on,.is-cur,.is-here,.is-sel,.is-active,.is-pinned,.on):where(:hover:not(:disabled,[aria-disabled="true"],.prow,.nrow,.dd-row,.at-list li,.jump-list li,.shd-tabw > *,.shd-tabw.is-edit,.b-hold)){background-image:linear-gradient(color-mix(in srgb,currentColor 8%,transparent),color-mix(in srgb,currentColor 8%,transparent))!important}
@@ -224,7 +224,7 @@ body.stage-full .stg-grip{display:none}
    (the owner, 11 Nov 07:52Z: "remove the current border of textbox, it doesn't look good", the green ring drawn round
    the message box, Find, All threads' search and the rest since C053/C007/C030). One rule for every such box, so none
    draws one: tests/field-ring.test.mjs */
-:is(.fl-q,.all-q,.ar-q,.side-find,.composer,.jump-field,.xd-q,.tg-qf):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
+:is(.fl-q,.all-q,.ar-q,.composer,.jump-field,.xd-q,.tg-qf):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
 /* a field with its own border (Create's repository, name and description, Settings' and Launchpad's fields, a select,
    the dropdown's button) shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders with
    the page between (the owner, 11 Nov 08:00Z: "like it has 2 borders"). At −1 px its 2 px cover the border and one inside */
