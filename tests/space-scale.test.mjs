@@ -25,7 +25,7 @@ t("one-line buttons and bars are --h-ctl: the shared button, the checklist bar, 
   assert.match(rule(".b"), /;height:var\(--h-ctl\)/);
   assert.match(rule(".ck-tog"), /;height:var\(--h-ctl\)/);
   assert.match(rule(".tp-done"), /;min-height:var\(--dock-bar\)/);
-  assert.match(readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8"), /--dock-bar:var\(--h-ctl\); --dock-btn:var\(--h-sm\);/);
+  assert.match(readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8"), /--dock-bar:var\(--h-lg\); --dock-btn:var\(--h-ctl\);/);
   assert.match(rule(".dis-h"), /;min-height:var\(--h-ctl\)/);
 });
 t("the top bar is --h-bar with --s-3 above and below; a thread's head keeps its back line over the title", () => {

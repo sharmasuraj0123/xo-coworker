@@ -129,7 +129,7 @@
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
-  --dock-bar:var(--h-ctl); --dock-btn:var(--h-sm); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
+  --dock-bar:var(--h-lg); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
   --pop-x:10px;   /* a popover's inner inset inside its 5 px frame: where its head, labels and rows start */
   --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
   /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool

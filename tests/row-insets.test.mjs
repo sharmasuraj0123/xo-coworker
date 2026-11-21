@@ -27,17 +27,18 @@ t("each row's start (less its glyph's margin) equals its end", () => {
   const cases = [
     [".tp-done", "calc(var(--nest-in) - 1px)", "calc(var(--nest-in) - 1px - var(--ic) * var(--ic-ink))"],
     [".dock-fold", "calc(var(--nest-in) - 1px)", "calc(var(--nest-in) - 1px - var(--ic-sm) * var(--mark-ink))"],
-    [".hr", "calc(var(--nest-in) - 1px - var(--trail-ink, 0px))", "calc(var(--nest-in) - 1px)"],
+    [".hr", "calc(var(--end-in, var(--nest-in)) - 1px - var(--trail-ink, 0px))", "calc(var(--start-in, var(--nest-in)) - 1px)"],
     [".ck-tog", "calc(var(--s-3) - var(--ic) * var(--ic-ink-chev))", "var(--s-3)"],
   ];
   for (const [sel, end, start] of cases) assert.deepEqual(pad(rule(sel)), { end, start }, sel);
 });
 t("the notice: a disc sits concentric in its pill; an arrow's ink counts, an Undo nests in the corner", () => {
-  assert.match(rule(".hr"), /^--nest-r:calc\(var\(--h-ctl\) \/ 2\);--nest-in:calc\(var\(--s-3\) \+ 1px\);/);
-  assert.match(app, /\n\.hr:has\(>\.hr-ic\)\{--nest-in:calc\(\(var\(--h-ctl\) - var\(--ic-lg\)\) \/ 2\)\}/);
+  assert.match(rule(".hr"), /^--nest-r:calc\(var\(--h-ctl\) \/ 2\);--nest-in:calc\(var\(--s-3\) \+ 1px\);--ctl-in:calc\(\(var\(--h-ctl\) - var\(--ic-lg\)\) \/ 2\);/);
+  assert.match(app, /\n\.hr:has\(>\.hr-ic\)\{--start-in:var\(--ctl-in\)\}/);
+  assert.match(app, /\n\.hr:has\(>\.hr-undo\)\{--end-in:var\(--ctl-in\)\}/, "only a filled end takes the concentric inset; words keep the text inset");
   assert.match(app, /\n\.hr:has\(>\.hr-go\)\{--trail-ink:calc\(var\(--ic-sm\) \* var\(--ic-ink\)\)\}/);
   assert.match(rule(".hr-ic"), /width:var\(--ic-lg\);height:var\(--ic-lg\)/);
-  assert.match(rule(".hr-undo"), /border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\)/);
+  assert.match(rule(".hr-undo"), /^--nest-in:var\(--ctl-in\);[^}]*border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\)/);
   assert.doesNotMatch(app, /\.hr-ev\.k-stopped\.has-undo\{padding-right/);
 });
 console.log(`\n${passed} passed`);
