@@ -29,7 +29,7 @@
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
   --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
-  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;   /* text, secondary, meta, quiet (4.6:1), placeholder */
+  --ink:#EDEDED; --ink-2:#D6D6D6; --ink-3:#B8B8B8; --ink-4:#ACACAC; --ink-5:#8A8A8A;   /* text, secondary, meta, quiet (4.6:1), placeholder */
   --on-ink:#141414; --ink-hi:#FFFFFF;
   --accent:#83D63A; --accent-fill:#83D63A; --accent-ink:#141414; --accent-hover:#96DC58; --accent-press:#74C02F; --accent-rgb:131,214,58;
   --err:#D7373F; --err-ink:#E68388;
@@ -98,8 +98,8 @@
   --cap-mid:.3595em;   /* half Geist's cap height (.719em): where an icon beside words centres (see .agm, .lk-ic) */
   --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
   --tr-code:.1em;    /* a code to read out or type (a pairing code) */
-  --fw-regular:400; --fw-read:380; --fw-medium:500; --fw-strong:600;
-  --ink-read:color-mix(in srgb,var(--ink) 90%,var(--canvas));
+  --fw-regular:400; --fw-read:var(--fw-regular); --fw-medium:500; --fw-strong:600;
+  --ink-read:var(--ink);
   --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
@@ -180,12 +180,12 @@
    and on the side. Light has no glow: a shadow is a contact shadow plus a short, low ambient one. */
 :root[data-theme="light"]{
   color-scheme:light;
-  --fw-read:var(--fw-regular); --ink-read:color-mix(in srgb,var(--ink) 92%,var(--canvas));
+  
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
   --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
   --menu-focus:#EEEEEE;
   --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD;
-  --ink:#1A1A1A; --ink-2:#3B3B3B; --ink-3:#575757; --ink-4:#6B6B6B; --ink-5:#858585;
+  --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E;
   --on-ink:#FFFFFF; --ink-hi:#000000;
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323;
@@ -235,7 +235,7 @@
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
   --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
-  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;
+  --ink:#EDEDED; --ink-2:#D6D6D6; --ink-3:#B8B8B8; --ink-4:#ACACAC; --ink-5:#8A8A8A;
   --on-ink:#141414; --ink-hi:#FFFFFF;
   --accent:#83D63A; --accent-rgb:131,214,58; --err-ink:#E68388;
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
@@ -246,9 +246,9 @@
 
 /* High contrast, when the OS asks for it. */
 @media (prefers-contrast: more){
-  :root{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
-  :root[data-theme="light"]{--ink-3:#4B4B4B; --ink-4:#4B4B4B; --line:#8E8E8E; --line-hover:#6B6B6B}
-  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
+  :root{--ink-3:#C8C8C8; --ink-4:#C8C8C8; --line:#5A5A5A; --line-hover:#8E8E8E}
+  :root[data-theme="light"]{--ink-3:#333333; --ink-4:#333333; --line:#8E8E8E; --line-hover:#6B6B6B}
+  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#C8C8C8; --ink-4:#C8C8C8; --line:#5A5A5A; --line-hover:#8E8E8E}
 }
 
 /* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */
