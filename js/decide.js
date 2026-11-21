@@ -16,12 +16,13 @@
 import { esc, WAITING } from "./world.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
-import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
+import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, estLine } from "./content.js";
 import { ICON, stepMark, xi, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
-import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB, holdWords as holdWordsOf } from "./review.js";
+import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB } from "./review.js";
+import { KINDS, kindOf, headOf, whyOf, stripOf, chipsOf, actsOf, isOnePress } from "./cardparts.js";
 import { clientId as newKey } from "./api.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
@@ -31,11 +32,6 @@ import { redraw } from "./redraw.js";
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = ICON.stampAllow;
 const BIG_BACK = ICON.stampBack;
-// capitalise a plain lowercase sentence ("the agent asks…"), never a name or a path ("perm-test.txt")
-// a sentence starting with a command ("git push…", "npm install…") stays as written
-const COMMANDS = new Set(["git", "npm", "npx", "pnpm", "yarn", "bun", "deno", "node", "python", "python3", "pip", "pip3", "uv", "rm", "mv", "cp", "ls", "cd", "cat", "curl", "wget", "docker", "kubectl", "cargo", "rustc", "sudo", "chmod", "chown", "mkdir", "touch", "sed", "awk", "grep", "ssh", "scp", "tar", "brew", "apt", "gh", "terraform"]);
-const cap = (s) => { const t = String(s || "").trim(); const w = (t.match(/^[a-z]+(?= |$)/) || [])[0]; return w && !COMMANDS.has(w) ? t.charAt(0).toUpperCase() + t.slice(1) : t; };
-
 export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent }) {
   const panel = $("#panel"), stage = $("#pn-stage");
   const firstSeen = new Map();
@@ -400,22 +396,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   function undo() { return !!queue.undo(); }
 
   // ── the card (shared by the panel and the thread's own decision) ─────────
-  /** The command an ask is about, when its headline would otherwise be that command (shown under it). */
-  function headCmd(n) {
-    if (n.ask.item) { const m = (n.ask.title || "").match(/`([^`]+)`/); return m && (m[1].length >= 16 || /[\s/|;&]/.test(m[1])) ? m[1] : ""; }
-    return Kit.commandOf(n.ask) || "";
-  }
-  // The headline says what will happen, in words; the exact command sits under it in mono at reading
-  // size, never at headline size (design-research/2026-11-vision/audit A6, the same rule as Home's card).
-  function headline(n) {
-    const c = headCmd(n);
-    if (n.ask.item) return renderInline(c ? (n.ask.title || "").replace(`\`${c}\``, "a command") : n.ask.title || "", true); // the server's words
-    if (c) return `<span class="h-verb">Run</span> a command`;
-    if (n.group === "stopped") { const c = n.t.checklist.items.find((i) => i.state !== "done"); return `<span class="h-verb">Stopped at</span> ${esc(c ? c.text : n.t.title)}`; }
-    if (n.risk === "destructive") return esc(n.ask.title.replace(/:\s.*$/, ""));
-    return esc(n.ask.title);
-  }
-
   function changeBlock(c) {
     if (!c) return "";
     const hl = c.lang !== "diff" ? highlight(c.text, c.lang) : null;
@@ -470,65 +450,10 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       : changeBlock({ label: b.label, lang: b.lang, text: b.text })).join("");
     const notes = (it.annotations || []).map((a) => `<p class="dt-sug"><b>${a.by === "coordinator" ? "The coordinator" : "The agent"}:</b> ${esc(a.note)}</p>`).join("");
     const facts = ev.facts.length ? `<ul class="dt-facts">${ev.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>` : "";
-    // the why is the card's own line; Details repeats it only where the line shows facts instead
-    const why = it.why && n.risk === "destructive" ? `<p class="dt-why">${esc(cap(it.why))}</p>` : "";
     const t = n.t;
     const ck = t.checklist.items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
-    return `<div class="dt"><div class="dt-main">${blocks}${why}${facts}${notes}</div>` +
+    return `<div class="dt"><div class="dt-main">${blocks}${facts}${notes}</div>` +
       (t.host ? "" : `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>${t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : ""}</div>`) + `</div>`;
-  }
-
-  /** A storm item's answers, all from its own options (labels, scopes, sentences, hold). */
-  /** The hold button for an item's "yes" (its words from the server's label). */
-  const holdBtn = (it, P) => {
-    const words = holdWordsOf(P.primary);
-    return `<button type="button" class="b b-hold" data-act="hold" title="Press and hold for 1.2 s (hold Enter)" aria-label="${esc(words)}: ${esc(it.title)}. Press and hold for 1.2 seconds."><span class="hold-fill" aria-hidden="true"></span><span class="b-l"><span class="hold-ic">${ICON.lock}</span><span class="hold-txt" data-label="${esc(words)}">${esc(words)}</span></span></button>`;
-  };
-
-  function itemActsHtml(n, id) {
-    const it = n.ask.item, P = itemParts(it), qs = questionsOf(it);
-    const scope = teach.get(n.key);
-    let act = "";
-    if (it.kind === "question" && noSecret.has(it.id) && qs.some((q) => q.secret)) {
-      // XO refused to carry a secret to this question (secret_needs_a_call): it can't be answered here
-      return `<p class="c-iwhy">${ICON.lock}<span>XO can't pass a secret to this question. Don't paste it into the thread: XO keeps what's written there. Give it to the agent outside XO (for example in its environment), then tell the thread it's done; your reply replaces this question.</span></p>` +
-        `<div class="c-btns one"><button type="button" class="b b-reply" data-act="thread"><span class="b-l">${ICON.arrow}Open the thread</span></button></div>`;
-    }
-    if (it.kind === "question") {
-      // one plain choice is one press, unless it's destructive: then it's picked, then held
-      const one = qs.length === 1 && !qs[0].multi && !qs[0].secret && qs[0].options.length && !P.hold;
-      if (one) {
-        act += `<div class="c-opts n${Math.min(qs[0].options.length, 3)}" role="group" aria-label="Answers">${qs[0].options.map((o, i) => `<button type="button" class="b b-opt" data-iopt="${i}" title="Answer “${esc(o.label)}” (${i + 1})"><span class="o-l">${esc(o.label)}</span>${o.description ? `<span class="o-d">${esc(o.description)}</span>` : ""}</button>`).join("")}</div>`;
-        act += `<div class="c-btns one"><button type="button" class="b b-reply" data-act="reply" title="Answer in your words${K.hint("reply")}"><span class="b-l">${ICON.edit}Answer in words</span></button></div>`;
-      } else {
-        act += `<form class="c-qs" data-qform novalidate>${qs.map((q, qi) => {
-          const name = `q${id}-${qi}`;
-          // a lone question that is the card's own title isn't said twice (its label stays for screen readers)
-          const same = qs.length === 1 && !q.header && q.question === it.title;
-          const head = same ? `<legend class="sr-only">${esc(q.question)}</legend>` : `<legend>${esc(q.header || q.question)}</legend>${q.header && q.question ? `<p class="c-q-q">${esc(q.question)}</p>` : ""}`;
-          if (q.secret) return `<fieldset class="c-q">${head}<input type="password" class="c-q-in" name="${name}" data-qid="${esc(q.id)}" autocomplete="off" aria-label="${esc(q.question)}"><p class="c-q-s">Goes to the agent only; XO keeps it as [secret].</p></fieldset>`;
-          if (!q.options.length) return `<fieldset class="c-q">${head}<input class="c-q-in" name="${name}" data-qid="${esc(q.id)}" autocomplete="off" aria-label="${esc(q.question)}"></fieldset>`;
-          return `<fieldset class="c-q">${head}<div class="c-q-opts">${q.options.map((o) => `<label class="c-q-o"><input type="${q.multi ? "checkbox" : "radio"}" name="${name}" data-qid="${esc(q.id)}" value="${esc(o.label)}"><span><b>${esc(o.label)}</b>${o.description ? `<em>${esc(o.description)}</em>` : ""}</span></label>`).join("")}</div></fieldset>`;
-        }).join("")}<div class="c-btns one">${P.hold ? holdBtn(it, P) : `<button type="submit" class="b b-allow"><span class="b-l">${ICON.check}Send ${qs.length > 1 ? "answers" : "answer"}</span></button>`}</div></form>`;
-      }
-      return act;
-    }
-    if (it.kind === "create_project" && P.primary && P.primary.answer === "name") {
-      act += `<label class="c-name"><span>Project name</span><input class="c-name-in" data-name value="${esc((it.detail && it.detail.name) || "")}" maxlength="80" autocomplete="off"></label>`;
-    }
-    const label = (o, fallback) => esc((o && o.label) || fallback);
-    const primary = !P.primary ? "" : P.hold ? holdBtn(it, P)
-      : `<button type="button" class="b b-allow${n.risk === "notable" ? " arming" : ""}" data-act="allow" title="${label(P.primary)}${K.hint("allow")}" aria-keyshortcuts="${K.label("allow")}"><span class="b-l">${ICON.check}<span class="al-t">${esc(scopeWords(P, scope))}</span></span></button>`;
-    const back = !P.back ? "" : `<button type="button" class="b b-back" data-act="${P.back.note ? "back" : "back-now"}" title="${label(P.back)}${K.hint("back")}" aria-keyshortcuts="${K.label("back")}"><span class="b-l">${ICON.rewind}${label(P.back)}</span></button>`;
-    act += `<div class="c-btns${primary && back ? "" : " one"}">${primary}${back}</div>`;
-    if (P.why) act += `<p class="c-iwhy">${ICON.lock}<span>${esc(P.why)}</span></p>`;
-    if (P.scopes.length) {
-      act += `<div class="c-low"><button type="button" class="teach-tog" data-act="teach" aria-pressed="${!!scope}" title="Allow more than once${K.hint("rule")}"><span class="sw" aria-hidden="true"></span>${P.scopes.some((o) => o.scope === "rule") ? "Make it a rule" : "Allow for this thread"}</button></div>`;
-      const cur = P.scopes.find((o) => o.id === scope) || P.scopes[0];
-      act += `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope is-list" role="radiogroup" aria-label="How far it reaches">${P.scopes.map((o) => `<button type="button" role="radio" data-iscope="${esc(o.id)}" aria-checked="${o.id === (scope || cur.id)}">${esc(o.scope === "thread" ? o.label : (o.sentence || o.label))}</button>`).join("")}</div>` +
-        `<p class="teach-q"><span>${cur.scope === "rule" ? "Added to your rules, word for word:" : "For this thread only:"}</span><q>${esc(cur.sentence || cur.label)}</q></p></div></div>`;
-    }
-    return act;
   }
 
   /** A usage limit (F5): when it opens again, and the threads waiting on it (a link each). */
@@ -539,69 +464,122 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       `<ul class="lim-ts" aria-label="Waiting threads">${L.threads.map((x) => `<li><button type="button" class="rt-go" data-go="t:${esc(x.ts)}" title="Open “${esc(x.title || "the thread")}”"><b>${esc(x.title || "A thread")}</b></button>${x.stays ? `<span class="lim-stay">stays: its project doesn't allow ${esc(rtName(L.moveTo))}</span>` : ""}</li>`).join("")}</ul></div>`;
   }
 
+  /** A button from the card's parts (js/cardparts.js actsOf): its key, its icon, the item's own words. */
+  function actHtml(b, n, scope) {
+    const it = n.ask.item;
+    const keyed = (cls, icon, title, key) => `<button type="button" class="b ${cls}" data-act="${b.act}" title="${esc(title)}${K.hint(key)}" aria-keyshortcuts="${K.label(key)}"><span class="b-l">${icon}${esc(b.label)}</span></button>`;
+    switch (b.act) {
+      case "allow": return `<button type="button" class="b b-allow${n.risk === "notable" ? " arming" : ""}" data-act="allow" title="${esc(b.label)}${K.hint("allow")}" aria-keyshortcuts="${K.label("allow")}"><span class="b-l">${ICON.check}<span class="al-t">${esc(it ? scopeWords(itemParts(it), scope) : scope ? "Allow + rule" : b.label)}</span></span></button>`;
+      case "hold": return `<button type="button" class="b b-hold" data-act="hold" title="Press and hold for 1.2 s (hold Enter)" aria-label="${esc(b.label)}: ${esc(n.ask.title)}. Press and hold for 1.2 seconds."><span class="hold-fill" aria-hidden="true"></span><span class="b-l"><span class="hold-ic">${ICON.lock}</span><span class="hold-txt" data-label="${esc(b.label)}">${esc(b.label)}</span></span></button>`;
+      case "submit": return `<button type="submit" class="b b-allow"><span class="b-l">${ICON.check}${esc(b.label)}</span></button>`;
+      case "back": return keyed("b-back", ICON.rewind, "Send back with a note", "back");
+      case "back-now": return keyed("b-back", ICON.rewind, b.label, "back");
+      case "reply": return keyed("b-reply", ICON.edit, "Reply in your words", "reply");
+      case "note-reply": return keyed("b-back", ICON.edit, b.label, "reply");
+      case "retry": return keyed("b-allow", ICON.retry, b.label, "allow");
+      case "done": return keyed("b-done", ICON.check, "It's finished: resolve the thread", "done");
+      case "thread": return keyed("b-reply", ICON.arrow, "Open the thread", "open");
+      case "later": return keyed("b-ghost b-later", ICON.clock, "Plan for later today", "later");
+      default: return "";
+    }
+  }
+  /** The card's one row of buttons: the yes and the no at equal width, Later beside them. */
+  const rowHtml = (acts, n, scope) => acts.length ? `<div class="c-btns">${acts.map((b) => actHtml(b, n, scope)).join("")}</div>` : "";
+
+  /** A question's answers: one press each for a plain choice, else the form (several, multi, secret) with its Send. */
+  function questionHtml(n, id, acts) {
+    const it = n.ask.item, qs = questionsOf(it);
+    if (isOnePress(n)) {
+      const q = qs[0];
+      return `<div class="c-opts n${Math.min(q.options.length, 3)}" role="group" aria-label="Answers">${q.options.map((o, i) => `<button type="button" class="b b-opt" data-iopt="${i}" title="Answer “${esc(o.label)}” (${i + 1})"><span class="o-l">${esc(o.label)}</span>${o.description ? `<span class="o-d">${esc(o.description)}</span>` : ""}</button>`).join("")}</div>` + rowHtml(acts, n);
+    }
+    return `<form class="c-qs" data-qform novalidate>${qs.map((q, qi) => {
+      const name = `q${id}-${qi}`;
+      // a lone question that is the card's own title isn't said twice (its label stays for screen readers)
+      const same = qs.length === 1 && !q.header && q.question === it.title;
+      const head = same ? `<legend class="sr-only">${esc(q.question)}</legend>` : `<legend>${esc(q.header || q.question)}</legend>${q.header && q.question ? `<p class="c-q-q">${esc(q.question)}</p>` : ""}`;
+      if (q.secret) return `<fieldset class="c-q">${head}<input type="password" class="c-q-in" name="${name}" data-qid="${esc(q.id)}" autocomplete="off" aria-label="${esc(q.question)}"><p class="c-q-s">Goes to the agent only; XO keeps it as [secret].</p></fieldset>`;
+      if (!q.options.length) return `<fieldset class="c-q">${head}<input class="c-q-in" name="${name}" data-qid="${esc(q.id)}" autocomplete="off" aria-label="${esc(q.question)}"></fieldset>`;
+      return `<fieldset class="c-q">${head}<div class="c-q-opts">${q.options.map((o) => `<label class="c-q-o"><input type="${q.multi ? "checkbox" : "radio"}" name="${name}" data-qid="${esc(q.id)}" value="${esc(o.label)}"><span><b>${esc(o.label)}</b>${o.description ? `<em>${esc(o.description)}</em>` : ""}</span></label>`).join("")}</div></fieldset>`;
+    }).join("")}${rowHtml(acts, n)}</form>`;
+  }
+
+  /** How far an Allow reaches: the switch, and under it the choices with the exact sentence each adds. */
+  function ruleHtml(n) {
+    const it = n.ask.item, scope = teach.get(n.key);
+    if (it) {
+      const P = itemParts(it);
+      if (!P.scopes.length) return "";
+      const cur = P.scopes.find((o) => o.id === scope) || P.scopes[0];
+      return `<div class="c-rule"><button type="button" class="teach-tog" data-act="teach" aria-pressed="${!!scope}" title="Allow more than once${K.hint("rule")}"><span class="sw" aria-hidden="true"></span>${P.scopes.some((o) => o.scope === "rule") ? "Make it a rule" : "Allow for this thread"}</button></div>` +
+        `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope is-list" role="radiogroup" aria-label="How far it reaches">${P.scopes.map((o) => `<button type="button" role="radio" data-iscope="${esc(o.id)}" aria-checked="${o.id === (scope || cur.id)}">${esc(o.scope === "thread" ? o.label : (o.sentence || o.label))}</button>`).join("")}</div>` +
+        `<p class="teach-q"><span>${cur.scope === "rule" ? "Added to your rules, word for word:" : "For this thread only:"}</span><q>${esc(cur.sentence || cur.label)}</q></p></div></div>`;
+    }
+    const cmd = Kit.commandOf(n.ask);
+    if (n.ask.kind !== "permission" || n.risk === "destructive" || !cmd) return "";
+    return `<div class="c-rule"><button type="button" class="teach-tog" data-act="teach" aria-pressed="${!!scope}" title="Make it a rule${K.hint("rule")}"><span class="sw" aria-hidden="true"></span>Make it a rule</button></div>` +
+      `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope" role="radiogroup" aria-label="Rule scope"><button type="button" role="radio" data-scope="exact" aria-checked="${scope !== "prefix"}">Exactly this command</button><button type="button" role="radio" data-scope="prefix" aria-checked="${scope === "prefix"}">Any “${esc(Kit.prefixOf(cmd))}”</button></div><p class="teach-q"><span>Added to your rules, word for word:</span><q>${esc(Kit.teachSentence(PROJ(n.t.project), scope === "prefix" ? Kit.prefixOf(cmd) : cmd))}</q></p></div></div>`;
+  }
+
+  /** The card's one strip of evidence (cardparts stripOf), drawn: mono for a command, an address or a tool. */
+  function stripHtml(s) {
+    if (!s) return "";
+    const tag = s.tag ? `<span class="ev-tag">${esc(s.tag)}</span>` : "";
+    if (s.type === "diff") return `<div class="c-ev is-diff">${s.lines.map((l) => `<code class="${l.sign === "+" ? "dl-add" : "dl-del"}">${esc(l.sign + l.text)}</code>`).join("")}</div>`;
+    if (s.type === "plan") return `<div class="c-ev is-plan${s.more ? " is-more" : ""}">${tag}<p class="ev-plan">${esc(s.text.replace(/^#+\s*/gm, ""))}</p></div>`;
+    if (s.type === "paths") return `<ul class="c-ev is-paths">${s.items.map((p) => `<li><code>${esc(p.path)}</code>${p.add ? `<span class="dl-add">+${p.add}</span>` : ""}${p.del ? `<span class="dl-del">−${p.del}</span>` : ""}</li>`).join("")}${s.more ? `<li class="ev-more">${s.more} more</li>` : ""}</ul>`;
+    if (s.type === "error") return `<p class="c-ev is-error">${esc(s.text)}</p>`;
+    return `<p class="c-ev is-mono">${tag}<code>${esc(s.text)}</code></p>`;
+  }
+
   /** surface: "panel" | "dock" */
   function cardHtml(n, surface = "panel") {
     const id = ++cardN;
-    const a = n.ask, r = n.risk, t = n.t;
-    const stopped = n.group === "stopped";
-    const destructive = r === "destructive";
-    const binary = Kit.isBinary(a);
-    const cmd = Kit.commandOf(a);
-    const ev = evidenceFor(n);
-    const opts = !binary && !stopped && Array.isArray(a.options) && a.options.length ? a.options : null;
-    const teachable = a.kind === "permission" && !destructive && !!cmd;
+    const a = n.ask, t = n.t, it = a.item, kind = kindOf(n);
     const E = EFFORT[n.effort];
     const openEv = !!F.open0[n.key]?.ev && surface === "panel";
     const scope = teach.get(n.key);
+    const refused = !!(it && kind === "secret" && noSecret.has(it.id));
+    const acts = actsOf(n, { canResolve: !!world.act.resolve, refused });
 
     let act = "";
-    const storm = !!a.item;
-    if (storm) {
-      act += itemActsHtml(n, id);
-      // a big one can wait for a calmer moment, like any other card
-      if (destructive || n.effort === "think") act += `<div class="c-low"><button type="button" class="b-later" data-act="later" title="Plan for later today${K.hint("later")}">${ICON.clock}Later today</button>${destructive ? `<span class="c-low-t">or skip to the easier ones</span>` : ""}</div>`;
+    if (refused) {
+      // XO refused to carry a secret to this question (secret_needs_a_call): it can't be answered here
+      act += `<p class="c-iwhy">${ICON.lock}<span>XO can't pass a secret to this question. Don't paste it into the thread: XO keeps what's written there. Give it to the agent outside XO (for example in its environment), then tell the thread it's done; your reply replaces this question.</span></p>` + rowHtml(acts, n);
+    } else if (it && KINDS[kind].acts === "answer") {
+      act += questionHtml(n, id, acts);
     } else {
-    if (opts) act += `<div class="c-opts n${Math.min(opts.length, 3)}" role="group" aria-label="Answers">${opts.map((o, i) => optHtml(o, i, ev)).join("")}</div>`;
-    let primary;
-    if (destructive) primary = `<button type="button" class="b b-hold" data-act="hold" title="Press and hold for 1.2 s (hold Enter)" aria-label="Hold to allow: ${esc(a.title)}. Press and hold for 1.2 seconds."><span class="hold-fill" aria-hidden="true"></span><span class="b-l"><span class="hold-ic">${ICON.lock}</span><span class="hold-txt">Hold to allow</span></span></button>`;
-    else if (stopped) primary = `<button type="button" class="b b-allow" data-act="retry" title="Try again${K.hint("allow")}"><span class="b-l">${ICON.retry}Try again</span></button>`;
-    else if (binary) primary = `<button type="button" class="b b-allow${r === "notable" ? " arming" : ""}" data-act="allow" title="Allow${K.hint("allow")}" aria-keyshortcuts="${K.label("allow")}"><span class="b-l">${ICON.check}<span class="al-t">${scope ? "Allow + rule" : "Allow"}</span></span></button>`;
-    else primary = `<button type="button" class="b b-reply" data-act="reply" title="Reply in your words${K.hint("reply")}"><span class="b-l">${ICON.edit}Reply in words</span></button>`;
-    const secondary = stopped
-      ? `<button type="button" class="b b-back" data-act="note-reply" title="Tell it what to try${K.hint("reply")}"><span class="b-l">${ICON.edit}Tell it what to try</span></button>`
-      : `<button type="button" class="b b-back" data-act="back" title="Send back with a note${K.hint("back")}" aria-keyshortcuts="${K.label("back")}"><span class="b-l">${ICON.rewind}Send back</span></button>`;
-    // Live questions are answered in words: no "Send back" that would post a non-answer (P1-6). A thread
-    // that replied and waits (needs_reply) is often finished work: Done resolves it, after the 3 s Undo (if1 #4).
-    const canDone = !!(a.replyOnly && a.live && !a.paused && !a.pending && world.act.resolve);
-    const doneBtn = `<button type="button" class="b b-done" data-act="done" title="It's finished: resolve the thread${K.hint("done")}" aria-keyshortcuts="${K.label("done")}"><span class="b-l">${ICON.check}Done</span></button>`;
-    act += canDone ? `<div class="c-btns">${primary}${doneBtn}</div>` : a.stopByYou || a.replyOnly ? `<div class="c-btns one">${primary}</div>` : `<div class="c-btns">${primary}${secondary}</div>`;
-    const low = [];
-    // a live waiting thread: the way to read all of it is the thread itself (if1 #5)
-    if (a.live && a.replyOnly && !a.pending && surface === "panel" && !t.host) low.push(`<button type="button" class="b-later b-open" data-act="thread" title="Open the thread beside the panel${K.hint("open")}">${ICON.arrow}Open the thread</button>`);
-    if (teachable) low.push(`<button type="button" class="teach-tog" data-act="teach" aria-pressed="${!!scope}" title="Make it a rule${K.hint("rule")}"><span class="sw" aria-hidden="true"></span>Make it a rule</button>`);
-    if (destructive) low.push(`<button type="button" class="b-later" data-act="later" title="Plan for later today${K.hint("later")}">${ICON.clock}Later today</button><span class="c-low-t">or skip to the easier ones</span>`);
-    else if (n.effort === "think") low.push(`<button type="button" class="b-later" data-act="later" title="Plan for later today${K.hint("later")}">${ICON.clock}Later today</button>`);
-    if (low.length) act += `<div class="c-low">${low.join("")}</div>`;
-    if (teachable) act += `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope" role="radiogroup" aria-label="Rule scope"><button type="button" role="radio" data-scope="exact" aria-checked="${scope !== "prefix"}">Exactly this command</button><button type="button" role="radio" data-scope="prefix" aria-checked="${scope === "prefix"}">Any “${esc(Kit.prefixOf(cmd))}”</button></div><p class="teach-q"><span>Added to your rules, word for word:</span><q>${esc(Kit.teachSentence(PROJ(t.project), scope === "prefix" ? Kit.prefixOf(cmd) : cmd))}</q></p></div></div>`;
+      if (!it && Array.isArray(a.options) && a.options.length && KINDS[kind].acts === "answer") {
+        const ev = evidenceFor(n);
+        act += `<div class="c-opts n${Math.min(a.options.length, 3)}" role="group" aria-label="Answers">${a.options.map((o, i) => optHtml(o, i, ev)).join("")}</div>`;
+      }
+      if (it && kind === "create_project" && itemParts(it).primary?.answer === "name") act += `<label class="c-name"><span>Project name</span><input class="c-name-in" data-name value="${esc((it.detail && it.detail.name) || "")}" maxlength="80" autocomplete="off"></label>`;
+      act += ruleHtml(n);
+      const why = it && itemParts(it).why;
+      if (why) act += `<p class="c-iwhy">${ICON.lock}<span>${esc(why)}</span></p>`;
+      act += rowHtml(acts, n, scope);
     }
     act += `<div class="c-note" hidden><label for="c-note-${id}" class="c-note-l"></label><textarea id="c-note-${id}" class="c-note-in" rows="2"></textarea>` +
       `<div class="c-note-row"><button type="button" class="b b-sm b-go" data-act="note-send"></button><button type="button" class="b b-sm b-ghost" data-act="note-cancel" title="Cancel (Esc)">Cancel</button></div></div>`;
 
-    const line = destructive && !storm ? "" : storm ? (destructive ? "" : cap(a.item.why || "")) : whyLine(n);
-    const facts = destructive ? `<p class="c-facts">${ICON.lock}<span>${(storm ? (a.riskReasons || []).map((r) => r.charAt(0).toUpperCase() + r.slice(1)) : ["Can't be undone", ...ev.facts]).map((f) => esc(f)).join(" · ") || "Destructive"}</span></p>` : "";
-    const estT = estLine(n);
-    const est = !destructive && !a.stopByYou && estT ? `<p class="c-est" title="${t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}<span>${esc(estT)}</span></p>` : "";
-    const sug = n.sug ? `<p class="c-sug" title="${esc(n.sug.why)}">${ICON.spark}<span>Suggests <b>${esc(n.sug.label)}</b></span><em>${esc(n.sug.sure)}</em></p>` : "";
+    const head = headOf(n), line = whyOf(n);
+    const tag = n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : kind === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "";
+    const estT = n.risk !== "destructive" && !a.stopByYou ? estLine(n) : "";
+    const chips = chipsOf(n).map((c) => `<li class="chip${c.tone ? ` t-${c.tone}` : ""}">${esc(c.text)}${c.count > 1 ? `<b>${c.count}</b>` : ""}</li>`).join("") +
+      (estT ? `<li class="chip is-est" title="${t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estT)}</li>` : "");
+    const where = t.host
+      ? `<button type="button" class="c-where" data-act="thread" title="${t.asker ? (surface === "dock" ? `Its coordinator asks, in this chat` : `Open ${esc(PROJ(t.project))}, where its coordinator asks`) : "Open where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button>`
+      : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button>`;
 
     return `<div class="card-in" data-key="${esc(n.key)}">` +
       `<div class="c-body">` +
-      `<div class="c-top"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
-      (destructive ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : stopped ? `<span class="risk r-stopped">Stopped</span>` : "") +
-      (t.host ? `<button type="button" class="c-where" data-act="thread" title="${t.asker ? (surface === "dock" ? `Its coordinator asks, in this chat` : `Open ${esc(PROJ(t.project))}, where its coordinator asks`) : "Open where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button></div>` : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button></div>`) +
-      `<h3 class="c-h" id="card-h-${id}">${headline(n)}</h3>` + (headCmd(n) ? `<p class="nx-cmd"><code>${esc(headCmd(n))}</code></p>` : "") +
-      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") + (storm && a.item.limit ? limitHtml(a.item) : paidHtml(a.item)) + facts + est + sug +
-      `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button>` +
-      `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${storm ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, ev)}</div></div></div>` +
+      `<div class="c-top"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>${tag}${where}</div>` +
+      `<h3 class="c-h" id="card-h-${id}">${head.verb ? `<span class="h-verb">${esc(head.verb)}</span> ` : ""}${head.md ? renderInline(head.text, true) : esc(head.text)}</h3>` +
+      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") +
+      (a.item && a.item.parked ? `<p class="c-park">${ICON.pause}<span>Parked: the agent was told to wait; an answer wakes it</span></p>` : "") +
+      stripHtml(stripOf(n)) + (it && it.limit ? limitHtml(it) : paidHtml(it)) +
+      `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><div class="c-chips"><ul class="chips" aria-label="About this">${chips}</ul><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button></div>` +
+      `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${it ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, evidenceFor(n))}</div></div></div>` +
       `</div>` +
       `<div class="c-act">${act}<p class="c-hint" aria-live="polite"></p></div></div>`;
   }

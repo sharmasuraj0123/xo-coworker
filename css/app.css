@@ -1030,19 +1030,47 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .c-where b{font-weight:var(--fw-medium);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .c-top .c-where{margin-left:auto;margin-right:calc(-1 * var(--halo));min-width:0}
 .c-h{margin-top:var(--s-1);font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
-.c-line{margin-top:6px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);text-wrap:pretty}
-.c-facts{display:flex;gap:8px;margin-top:8px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--danger-text)}
-.c-facts svg{flex:none;--ic:14px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--err-ink)}
-.facts{list-style:none;display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
-.facts li{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:var(--r-sm);background:var(--fill-3);color:var(--ink-2);font-size:var(--fs-meta)}
-.facts.is-d li{background:var(--danger-tint);color:var(--danger-text)}
+/* one line of why, two at most; the rest is under Details */
+.c-line{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin-top:var(--s-1);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);text-wrap:pretty}
+.c-park{display:flex;align-items:flex-start;gap:var(--gap-icon);margin-top:var(--s-2);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--warn-text)}
+.c-park svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);margin-top:calc((1lh - var(--ic-sm)) / 2)}
+/* the one strip of evidence: a command, an address or a tool in mono, two lines of a change, a plan's start, the files */
+.c-ev{margin-top:var(--s-3);padding:var(--s-2) var(--s-3);border-radius:var(--r);background:var(--code-bg);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);color:var(--ink-2)}
+.c-ev code{font:inherit;overflow-wrap:anywhere}
+.c-ev.is-mono code{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.c-ev.is-diff{display:grid}
+.c-ev.is-diff code{overflow:hidden;text-overflow:ellipsis;white-space:pre}
+.c-ev .dl-add{color:var(--add-text)}
+.c-ev .dl-del{color:var(--del-text)}
+.c-ev.is-plan{font-family:var(--sans);font-size:var(--fs-ui)}
+.ev-plan{white-space:pre-line}
+.c-ev.is-plan.is-more .ev-plan{-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent);mask-image:linear-gradient(180deg,#000 60%,transparent)}
+.c-ev.is-paths{list-style:none;display:grid;gap:2px}
+.c-ev.is-paths li{display:flex;align-items:baseline;gap:var(--s-2);min-width:0}
+.c-ev.is-paths code{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-ev .ev-more{font-family:var(--sans);font-size:var(--fs-meta);color:var(--ink-4)}
+.c-ev.is-error{font-family:var(--sans);font-size:var(--fs-ui);color:var(--danger-text);background:var(--danger-tint)}
+.ev-tag{float:right;margin-left:var(--s-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+/* the facts as chips, Details at the row's end */
+.c-chips{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-3)}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-1);flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:var(--s-1);max-width:100%;height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-2);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip b{font-weight:var(--fw-medium);color:var(--ink)}
+.chip svg{flex:none;width:var(--ic-xs);height:var(--ic-xs);color:var(--ink-4)}
+.chip.t-warn{background:var(--warn-subtle);color:var(--warn-text)}
+.chip.t-err{background:var(--danger-tint);color:var(--danger-text)}
+:is(.chip.t-warn,.chip.t-err) b{color:inherit}
+.chip.is-est{background:transparent;padding-left:0;color:var(--ink-3)}
 
 /* details: a continuous height change (WAAPI, ~320 ms) with a cross-fade, never a jump (ui.js expand) */
 .dis{margin-top:14px;border-top:1px solid var(--line-soft)}
+.card .dis{margin-top:0;border-top:0}
 .dis-h{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:0 2px;text-align:left;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.c-chips .dis-h{flex:none;width:auto;margin-right:calc(-1 * var(--halo));padding:0 var(--halo);border-radius:var(--r-sm)}
+.c-chips .dis-h:hover{background:var(--fill-2)}
 .dis-h:hover{color:var(--ink)}
 .dis-h>svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4);transform:rotate(-90deg);transition:transform var(--d-move) var(--ease)}
-.dis.is-open>.dis-h>svg{transform:none}
+.dis.is-open :is(>.dis-h,>.c-chips>.dis-h)>svg{transform:none}
 .dis-in{padding-bottom:12px}
 .dis-sub{margin-top:10px;border-top:1px solid var(--line-soft)}
 .dt{display:grid;gap:12px;padding-top:2px}
@@ -1087,16 +1115,14 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the card's controls sit --card-in from its edge (its 1 px line included), so their corners are concentric with it */
 .c-act{flex:none;padding:var(--s-3) calc(var(--card-in) - 1px) calc(var(--card-in) - 1px);border-top:1px solid var(--line-soft);background:inherit}
-.c-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* the yes and the no at equal width, Later beside them at its own */
+.c-btns{display:flex;gap:var(--s-2)}
+.c-btns>.b{flex:1 1 0;min-width:0}
+.c-btns>.b-later{flex:none}
 .card :is(.c-btns,.c-opts) .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .c-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
-.card-in.noting .c-btns,.card-in.noting .c-opts,.card-in.noting .c-low,.card-in.noting .teach-body{display:none}
-.c-low{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-top:10px;font-size:var(--fs-meta);color:var(--ink-4)}
-.c-low-t{color:var(--ink-4)}
-.b-later{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);color:var(--ink-2);font-size:var(--fs-ui);font-weight:var(--fw-medium);transition:background var(--d-hover) var(--ease)}
-.b-later:hover{background:var(--fill-2);color:var(--ink)}
-.b-later svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
-.b-open:hover svg{color:var(--ink)}
+.card-in.noting :is(.c-btns,.c-opts,.c-rule,.teach-body){display:none}
+.c-rule{margin-bottom:var(--s-2)}
 .teach-tog{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px 0 2px;border-radius:var(--r-sm);color:var(--ink-3);font-size:var(--fs-ui)}
 .teach-tog:hover{color:var(--ink)}
 .sw{position:relative;width:26px;height:15px;border-radius:var(--r-sm);background:var(--fill-3);transition:background var(--d-hover) var(--ease)}
@@ -1226,8 +1252,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 /* each block holds its own margins, so its height is its whole place on the page (js/skeleton.js remembers it) */
 #hm-body>div{display:flow-root}
 .nx-est{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-2);font-size:var(--fs-ui);color:var(--ink-3)}
-.nx-est svg,.c-est svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
-.c-est{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:var(--fs-ui);color:var(--ink-3)}
+.nx-est svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .next .c-sug{margin-top:var(--s-3)}
 .in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:58px;padding:0 var(--s-5);border-radius:var(--r-xl);border:1px dashed var(--line);color:var(--ink-3);font-size:var(--fs-ui)}
 .in-panel svg{width:var(--ic);height:var(--ic);color:var(--ink-4)}
@@ -1644,7 +1669,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .ar .mini{display:none}
   /* touch targets: 36 px minimum at 390 */
   .help,.x,.pn-x{width:var(--h-touch);height:var(--h-touch)}
-  .nx-where,.nx-link,.c-where,.b-later,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
+  .nx-where,.nx-link,.c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
   .iq{padding:0 12px}
   .b-opt.has-pv{flex-direction:row;align-items:center;gap:12px;padding:8px 12px}
   .nx-opts,.c-opts{gap:4px}

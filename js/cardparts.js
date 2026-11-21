@@ -165,6 +165,7 @@ export function chipsOf(n) {
       else { const c = { tone, text: cap(text), count: 1 }; seen.set(key, c); out.push(c); }
     }
   }
+  if (!it && n.risk === "destructive") out.push({ tone: "err", text: "Can't be undone", count: 1 });
   const kind = kindOf(n);
   if (kind === "change" && Array.isArray(d.paths) && d.paths.length) out.push({ tone: "", text: d.paths.length === 1 ? String(d.paths[0]).split("/").pop() : `${d.paths.length} files`, count: 1 });
   if (kind === "create_job") {
