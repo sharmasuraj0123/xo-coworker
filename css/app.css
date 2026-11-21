@@ -1853,10 +1853,10 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tw-act:hover{background:var(--btn-fill-hover);color:var(--ink)}
 .tw-act:active{background:var(--btn-fill-press);transform:scale(.97)}
 .tw-more{width:var(--h-ctl);padding:0;justify-content:center}
-.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:var(--r-lg);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2)}
-.tw-menu button{height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);text-align:left;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
+.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:var(--menu-pad);border-radius:var(--r-menu);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2)}
+.tw-menu button{height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
 /* one line each, the menu as wide as its longest (it wrapped "Open a shell in its worktree" onto two) */
-.tw-menu{min-width:calc(6 * var(--h-row))}
+.tw-menu{min-width:var(--menu-w)}
 .tw-menu button{white-space:nowrap}
 /* the title being renamed: a field in the head, 32 like the head's controls (34: grader B on ba93c9b, S009) */
 .tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)}
