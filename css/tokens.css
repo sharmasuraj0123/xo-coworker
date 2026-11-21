@@ -144,7 +144,7 @@
   /* an agent's mark where a list row says it quietly, under the row's time (the owner, 19 Nov 13:42Z) */
   --mark-sm:var(--s-3);
   /* icons (the owner's pack, on its 24 grid): 16 by default, 12 and 14 in chips and meta lines, 20 on the phone bar */
-  --mask-working:url(../assets/icons/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-needs:url(../assets/icons/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
+  --mask-working:url(../assets/icons/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-load:url(../assets/icons/xo/n-people-status-and-time/spinner.svg) center/contain no-repeat; --mask-needs:url(../assets/icons/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
   --mask-done:url(../assets/icons/xo/e-state-marks/state-done.svg) center/contain no-repeat; --mask-failed:url(../assets/icons/xo/e-state-marks/state-failed.svg) center/contain no-repeat;
   --mask-dot:url(../assets/icons/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(../assets/icons/xo/c-actions/stop.svg) center/200% no-repeat;
   --mask-warn:url(../assets/icons/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(../assets/icons/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
@@ -177,7 +177,7 @@
   --ease-out:var(--ease);
   --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
   --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
-  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s;
+  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s; --d-wait:400ms;
   --press-scale:.97;
 }
 

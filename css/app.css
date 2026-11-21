@@ -487,6 +487,7 @@ button:disabled{cursor:default}
 @keyframes draw{to{stroke-dashoffset:0}}
 .spin{display:inline-block;width:10px;height:10px;background:currentColor;mask:var(--mask-working);animation:spin var(--d-land) linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.spin.is-load{width:var(--ic-lg);height:var(--ic-lg);mask:var(--mask-load);animation-duration:calc(var(--d-land) * 2);animation-timing-function:steps(8)}
 /* a button's label sits on one line: in a line of words that runs out of room the words wrap, never the button (the
    coordinator's ruling on 8aa58d3, S045: "Stop the turn" wrapped to two lines inside its 36 px on a phone) */
 .meta-btn{flex:none;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -1678,8 +1679,11 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 /* an empty project chat: what its coordinator can start, in the middle of the room the chat has (js/app.js
    startHtml). The scroller, column and list stretch to that room only while it shows, so it sits midway
    between the header and the composer; a few rows of plain words, the house's 40 px row, nothing else */
-.scroller:has(.m-start){display:flex;flex-direction:column}
-.column:has(.m-start),.msgs:has(> .m-start){display:flex;flex:1 0 auto;flex-direction:column}
+.scroller:has(.m-start,.m-load){display:flex;flex-direction:column}
+.column:has(.m-start,.m-load),.msgs:has(> .m-start,> .m-load){display:flex;flex:1 0 auto;flex-direction:column}
+/* a conversation on its way: the pack's spinner in the middle of the room it will fill, only once it takes a moment */
+.m-load{display:grid;place-items:center;flex:1;color:var(--ink-3);animation:hs-in var(--d-in) var(--ease) var(--d-wait) both}
+@media (prefers-reduced-motion:reduce){.m-load{animation-duration:0s}}
 .m-start{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;padding-bottom:var(--h-lg)}
 .st-h{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);text-align:center;text-wrap:balance;overflow-wrap:anywhere}
 .st-list{list-style:none;display:grid;width:max-content;max-width:100%;transition:opacity var(--d-hover) var(--ease),visibility 0s}
