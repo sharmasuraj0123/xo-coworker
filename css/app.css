@@ -730,7 +730,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    Geometry: a 12 px float whose rows sit 6 px in (its 1 px line and 5 px of padding), so their 6 px corners
    are concentric with it (12 − 6); the phone sheet: 22, rows 16 in, 6. */
 /* the model chip never shrinks for the target, only to leave Attach and Send their room */
-.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* the chip gives way only once the target has: a nearly rigid share, so Send is never pushed out */
+.iq{flex:0 0.01 auto;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 .is-fixed:is(.target,.iq),.is-fixed:is(.target,.iq):is(:hover,:active){cursor:default;background:none}
@@ -2145,11 +2146,16 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
   .hr-ev.has-undo{height:auto;min-height:38px;padding-top:1px;padding-bottom:1px}
 }
 /* Send now: its own toggle beside a running chat's line; pressed, it reads as a choice you made */
-.tg-now{flex:none;display:inline-flex;align-items:center;height:var(--h-ctl);padding:0 12px;margin-right:6px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-.tg-now:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-.tg-now.is-on{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
+.tg-now{flex:none;display:inline-flex;align-items:center;height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.tg-now:hover{background:var(--btn-fill-hover);color:var(--ink)}
+.tg-now.is-on{background:var(--ink);color:var(--canvas)}
 .tg-now-on{color:var(--ink)}
-@media (max-width:760px){.tg-now{height:var(--h-touch)}}
+@media (max-width:760px){
+  .tg-now{height:var(--h-touch)}
+  /* a phone's model chip names the model; its thinking is a tap away in the picker */
+  .iq .iq-sep,.iq .iq-e{display:none}
+  .target:not(.cs-perm):has(~ .tg-now:not([hidden])){display:none}
+}
 /* ── shared files (if1 #2, hub #25): the card is a button; the file opens in a viewer beside
    the conversation, like a canvas. Same slot as the Needs you panel, wider; on phones, the screen. */
 .tb-file{display:block;height:auto;padding:0;background:none;border:0;border-radius:0;min-width:0;max-width:100%}
