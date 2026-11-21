@@ -2810,7 +2810,14 @@ function drawThreadPage(needs) {
 // the thread moves from the panel into the main chat: its frame snaps across while the panel steps back without its copy
 function toMain(id) {
   closeThreadMenu({ focus: false });
-  const move = (still) => { STAGE.closePage("thread"); go("t:" + id, { still, panel: true }); };
+  // where you were reading in the panel: the same message at the same height in the main chat, or the latest if you were there
+  const at = TP.C && TP.follow && !TP.follow.isPinned() ? readingPlace(TP.C) : null;
+  const off = at ? at.top - TP.C.scroller.getBoundingClientRect().top : 0;
+  const move = (still) => {
+    STAGE.closePage("thread"); go("t:" + id, { still, panel: true });
+    const el = at && childOf(MAIN, at.k);
+    if (el) { holdPlace(MAIN, { k: at.k, top: MAIN.scroller.getBoundingClientRect().top + off }); MAIN.follow.unpin(el); }
+  };
   if (RM.matches || !document.startViewTransition) { move(false); return; }
   TP.box.classList.add("is-moving");
   const box = TP.box;
