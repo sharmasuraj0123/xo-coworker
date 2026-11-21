@@ -135,6 +135,20 @@ if (!existsSync(LD)) {
     assert.ok(el.classList.contains("is-busy"), "and shows the change");
   });
 
+  await t("reconcile inPlace: switching project, the row you leave keeps its line (its entrance isn't replayed)", () => {
+    const box = document.createElement("div"); host.replaceChildren(box);
+    const row = (id, on) => `<button type="button" class="prow busy${on ? " is-on" : ""}" data-go="p:${id}"><span class="pr-ic"></span><span class="pr-main"><span class="pr-l1"><span class="pr-name">${id}</span></span><span class="pr-t">2 threads working</span></span></button>`;
+    reconcile(box, [{ key: "a", html: row("a", true) }, { key: "b", html: row("b", false) }], { quiet: true, inPlace: true });
+    const a = box.firstElementChild, line = a.querySelector(".pr-t"), ic = a.querySelector(".pr-ic");
+    reconcile(box, [{ key: "a", html: row("a", false) }, { key: "b", html: row("b", true) }], { quiet: true, inPlace: true });
+    assert.equal(box.firstElementChild, a, "the row you left is the same node");
+    assert.equal(a.querySelector(".pr-t"), line, "its line too: nothing replays its rise-in");
+    assert.equal(a.querySelector(".pr-ic"), ic, "nor restarts its tile's orbit");
+    assert.ok(!a.classList.contains("is-on") && box.lastElementChild.classList.contains("is-on"), "where you are moved");
+    // the sidebar asks for it
+    assert.match(src("app.js"), /reconcile\(\$\("#projects"\), items, \{ quiet: !sideRender\.ready, inPlace: true \}\);/);
+  });
+
   // Files: js/files.js on its real redraw, with its other imports stood in for (a folder of copies, as the app has them)
   const dir = mkdtempSync(join(tmpdir(), "files-press-"));
   try {

@@ -584,7 +584,8 @@ function sideRender(needs) {
   });
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
   if (q && !items.length) items.push({ key: "pf-none", html: `<p class="pf-none">No project called “${esc(S.pfind.trim())}”.</p>` });
-  reconcile($("#projects"), items, { quiet: !sideRender.ready });
+  // a row that changes (where you are, a count) is updated in place: its lines stay, so nothing replays its entrance
+  reconcile($("#projects"), items, { quiet: !sideRender.ready, inPlace: true });
   sideRender.ready = true;
 }
 const FIND_AT = 8;
