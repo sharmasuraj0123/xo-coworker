@@ -20,7 +20,7 @@
 import { ICON, ARC } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
-import { pointerFollows } from "./keynav.js";
+import { pointerFollows, focusOpened } from "./keynav.js";
 import { redraw } from "./redraw.js";
 
 export const LP_ICON = {
@@ -533,7 +533,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     return hero(tone === "go" ? "Live" : words, sentence, tone) + askedHtml(p) +
       system(p, "live") + (s.run?.live ? warnHtml(s) : "") +
       `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button>${appUrl ? `<a class="lp-b" href="${esc(appUrl)}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` : ""}` +
-      `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More"><button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
+      `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More" tabindex="-1"><button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
   }
 
   function failedHtml(p) {
@@ -939,7 +939,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const inside = !open && !!S.body?.querySelector(".lp-mn")?.contains(document.activeElement);
     if (inside) land('[data-lp="menu"]'); // its item goes with it: focus back on More
     s.menu = open; changed();
-    if (open && focusIn) requestAnimationFrame(() => S.body?.querySelector('.lp-mn [role="menuitem"]')?.focus({ preventScroll: true }));
+    if (open && focusIn) requestAnimationFrame(() => focusOpened(S.body?.querySelector('.lp-mn'), focusIn === true ? undefined : focusIn));
   }
 
   /** A copy that says "Copied" only once the text is on the clipboard (util.copyText), and only for 1.5 s from that
@@ -952,7 +952,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     clearTimeout(S.copiedT); S.copiedT = setTimeout(changed, 1600); // the latest Copy's 1.5 s, not the first's
   }
 
-  function act(name, el) {
+  function act(name, el, e) {
     const p = projectOf(S.v);
     if (!p) return;
     const s = proj(p);
@@ -1006,7 +1006,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
       case "copy": copied((s.run?.live || s.check.app).url, "the address", () => { s.copied = Date.now() + 1500; }, () => { s.copied = 0; }); return;
-      case "menu": menu(p, !s.menu, !s.menu); return;
+      case "menu": menu(p, !s.menu, !s.menu && (e || true)); return;
       case "unlink": {
         // Undo is real: Space unlinks (and commits launchpad.json) only once its 3 s are up
         s.menu = false; s.needs = null;
@@ -1077,7 +1077,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const b = e.target.closest("[data-lp]");
       if (!b || !section.contains(b)) { if (!e.target.closest(".lp-mw")) { const p = projectOf(S.v); if (p && proj(p).menu) menu(p, false); } return; }
       e.preventDefault();
-      act(b.dataset.lp, b);
+      act(b.dataset.lp, b, e);
     });
     section.addEventListener("input", (e) => {
       const p = projectOf(S.v), t = e.target;
