@@ -70,6 +70,8 @@ export function stepIcon({ kind, tool, target, line } = {}) {
   return KIND_ICON[kind];
 }
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
+// a step's line in the row's own face: only a file or search target is code, a sub-agent's title is its own words
+export const stepLineHtml = (s, kind) => (kind === "subagent" ? esc(String(s).replace(/`([^`]*)`/g, "$1")) : renderInline(s, true));
 
 function rowMark(r) {
   if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="tb-live" aria-hidden="true"></i>`;
@@ -86,7 +88,7 @@ function rowHtml(r, open) {
   const out = r.output != null && r.output !== "" ? r.output : null;
   const canOpen = !!(out || (r.kind === "command" && r.target));
   const said = commsLine(r);
-  const head = `<span class="tb-ri">${xi(stepIcon(r))}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
+  const head = `<span class="tb-ri">${xi(stepIcon(r))}</span><span class="tb-rl">${said ? esc(said) : stepLineHtml(commsText(r.line) || "", r.kind)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
   // data-r: the row's own key, so a step that starts while you watch can arrive (js/app.js workMotion)
   // a step keeps its identity (data-call-id, which msgx reads) when its label, status, duration or output changes
