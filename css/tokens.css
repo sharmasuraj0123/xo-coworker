@@ -136,6 +136,7 @@
   --mark-sm:var(--s-3);
   /* icons (the owner's pack, on its 24 grid): 16 by default, 12 and 14 in chips and meta lines, 20 on the phone bar */
   --mask-working:url(../assets/icons/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-needs:url(../assets/icons/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
+  --mask-done:url(../assets/icons/xo/e-state-marks/state-done.svg) center/contain no-repeat; --mask-failed:url(../assets/icons/xo/e-state-marks/state-failed.svg) center/contain no-repeat;
   --mask-dot:url(../assets/icons/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(../assets/icons/xo/c-actions/stop.svg) center/200% no-repeat;
   --mask-warn:url(../assets/icons/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(../assets/icons/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
   --ic-xs:12px; --ic-sm:14px; --ic:var(--s-4); --ic-lg:var(--s-5);

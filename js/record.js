@@ -231,6 +231,8 @@ export function gitState(w, git = null) {
   return { group: "saved", word: "", n: 0 };
 }
 
+export const GIT_ICON = { unsaved: "edit", unpushed: "cloud-upload", unmerged: "pull-request", shipped: "merge" };
+
 const GROUPS = [
   { id: "needs", label: "Needs you", why: "waiting on your answer", tone: "amber" },
   { id: "unsaved", label: "Not saved", why: "changes no commit holds yet", tone: "amber" },

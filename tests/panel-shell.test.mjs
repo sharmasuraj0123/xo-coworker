@@ -48,7 +48,7 @@ assert.match(dock, /get shown\(\) \{ return R\.enabled && wanted\(\) && R\.open 
 assert.match(dock, /hide\(\) \{ if \(!R\.open\) return; R\.open = false; changed\(\); away\(\); \}/);
 
 // the left panel's Shells stay: its toggle and the dock under the page are untouched
-assert.match(html, /<button type="button" class="gear sh-tog" id="nv-shells"/);
+assert.match(html, /<button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"><\/span><span class="sh-n"><\/span><\/button>/);
 assert.match(html, /<section class="shd" id="shd" aria-label="Shells" hidden><\/section>/);
 
 // CSS: tokens only; the page over the frames in one cell; a phone keeps its own shells sheet

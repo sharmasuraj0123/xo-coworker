@@ -40,9 +40,10 @@
 .lp-st>i:not(.lp-arc){flex:none;width:6px;height:6px;background:currentColor;mask:var(--mask-dot)}
 .lp-st.t->i:not(.lp-arc){display:none}
 .lp-st.t-go{color:var(--go)}
+.lp-st:is(.t-go,.t-stop)>i:not(.lp-arc){width:var(--ic-sm);height:var(--ic-sm);mask:var(--mask-done)}
 .lp-st.t-work{color:var(--work)}
 .lp-st.t-stop{color:var(--err-ink)}
-.lp-st.t-stop>i:not(.lp-arc){mask:var(--mask-stop)}
+.lp-st.t-stop>i:not(.lp-arc){mask:var(--mask-failed)}
 .lp-st.t-need{color:var(--need)}
 .lp-st.t-need>i:not(.lp-arc){width:var(--ic-sm);height:var(--ic-sm);mask:var(--mask-warn)}
 .lp-tm{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}

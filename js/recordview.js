@@ -27,7 +27,7 @@ import { radioKeys, rovingTab } from "./keynav.js";
 import * as R from "./record.js";
 import { api } from "./api.js";
 import { esc } from "./util.js";
-import { ICON, $, short } from "./ui.js";
+import { ICON, xi, $, short } from "./ui.js";
 import { sharedFileRoute } from "./timeline.js";
 import { fileIcon, fileColor } from "./fileicons.js";
 import { midName, midNameHtml } from "./media.js";
@@ -137,7 +137,9 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, mark = (
   function needingSet(needs) { return new Set(needs.filter((n) => n.admitted && !n.later).map((n) => n.t.id)); }
 
   function gitHtml(git) {
-    return git.word ? `<span class="syl-git g-${git.group}">${esc(git.word)}</span>` : "";
+    if (!git.word) return "";
+    const ic = R.GIT_ICON[git.group], count = git.n || (/#\d+/.exec(git.word) || [""])[0];
+    return ic ? `<span class="syl-git g-${git.group}" title="${esc(git.word)}"><span class="sr-only">${esc(git.word)}</span>${xi(ic)}${count ? `<span aria-hidden="true">${count}</span>` : ""}</span>` : `<span class="syl-git g-${git.group}">${esc(git.word)}</span>`;
   }
   function cardHead(place, s, counts, extra = "") {
     const h = R.headline(counts);

@@ -7,18 +7,33 @@
 
 import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
-import { ICON, stepMark, elapsed, ARC } from "./ui.js";
+import { ICON, xi, stepMark, elapsed, ARC } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
 
 const KIND_ICON = {
-  create_file: "doc", edit_file: "edit", delete_file: "close", read: "eye", search: "search", list: "search",
-  command: "terminal", web_fetch: "globe", web_search: "globe", mcp: "plug", subagent: "agent", ask: "ask",
-  other: "dot", notice: "dot", error: "close",
+  create_file: "doc", edit_file: "edit", delete_file: "delete", read: "eye", search: "search", list: "folder-open",
+  command: "terminal", web_fetch: "web", web_search: "web", mcp: "plug", subagent: "agent", ask: "question",
+  other: "step-dot", notice: "info", error: "alert",
 };
-const EXTRA = { terminal: ICON.shell, plug: ICON.plug, agent: ICON.agent, ask: ICON.ask, dot: ICON.dot };
-const icon = (k) => ICON[KIND_ICON[k]] || EXTRA[KIND_ICON[k]] || EXTRA.dot;
+const CMD_ICON = [
+  [/^git\s+(?:-C\s+\S+\s+)?commit\b/, "commit"], [/^git\s+(?:-C\s+\S+\s+)?push\b/, "cloud-upload"],
+  [/^git\s+(?:-C\s+\S+\s+)?(?:pull|fetch|clone)\b/, "download"], [/^git\s+(?:-C\s+\S+\s+)?(?:merge|rebase|cherry-pick)\b/, "merge"],
+  [/^git\s+(?:-C\s+\S+\s+)?(?:diff|status|show)\b/, "diff"], [/^git\s+(?:-C\s+\S+\s+)?(?:checkout|switch|branch|worktree)\b/, "branch"],
+  [/^git\s+(?:-C\s+\S+\s+)?log\b/, "history"], [/^gh\s+pr\b/, "pull-request"],
+  [/^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test|pytest|vitest|jest|node\s+--test|go\s+test|cargo\s+test)\b|^node\s+\S*\.test\.m?[jt]s\b/, "test-flask"],
+  [/^(?:docker|docker-compose|podman)\b/, "container"], [/^(?:curl|wget)\b/, "api"],
+];
+export function cmdIcon(cmd) {
+  for (const part of String(cmd || "").split(/&&|\|\||;|\|/)) {
+    const c = part.trim().replace(/^(?:sudo\s+|\w+=\S*\s+)+/, "");
+    const hit = CMD_ICON.find(([re]) => re.test(c));
+    if (hit) return hit[1];
+  }
+  return "terminal";
+}
+const icon = (k, cmd) => xi(k === "command" ? cmdIcon(cmd) : KIND_ICON[k] || "step-dot");
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
 
 function rowMark(r) {
@@ -36,7 +51,7 @@ function rowHtml(r, open) {
   const out = r.output != null && r.output !== "" ? r.output : null;
   const canOpen = !!(out || (r.kind === "command" && r.target));
   const said = commsLine(r);
-  const head = `<span class="tb-ri">${icon(said ? "ask" : r.kind || "other")}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
+  const head = `<span class="tb-ri">${icon(said ? "ask" : r.kind || "other", r.target)}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
   // data-r: the row's own key, so a step that starts while you watch can arrive (js/app.js workMotion)
   // a step keeps its identity (data-call-id, which msgx reads) when its label, status, duration or output changes
