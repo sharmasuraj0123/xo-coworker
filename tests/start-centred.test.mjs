@@ -9,7 +9,7 @@ const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("css/app.css"), rich = read("css/rich.css");
 assert.match(app, /\.m-start\{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;/);
 assert.match(app, /\.column:has\(\.m-start\),\.msgs:has\(> \.m-start\)\{display:flex;flex:1 0 auto;flex-direction:column\}/);
-assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:16px\}/);
+assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:var\(--s-4\)\}/);
 assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:first-child:not\(\.m-start\)\{margin-top:0\}/);
 // no other rule of the conversation sets a margin on every row of #msgs
 for (const css of [rich, read("css/msgx.css"), app]) assert.doesNotMatch(css, /:is\(#msgs,#tmsgs\) ?> ?(\*|:first-child)\{[^}]*margin/);

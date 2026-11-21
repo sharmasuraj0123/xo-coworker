@@ -713,13 +713,15 @@ export function sharedFileRoute(thread, path) {
 
 const COORD_WORD = { "project-coordinator": "project", "workspace-coordinator": "workspace" };
 const DOWN_KINDS = { brief: "brief", relay: "follow-up", answer: "answer" };
+// a thread writing its coordinator: a relay until 11 Nov, an ask since (a status is a report, which wakes no one)
+const UP_KINDS = new Set(["relay", "ask"]);
 
 /**
  * What a thread and its coordinators said to each other. Storm keeps those words as hops, the text
  * in `note` (ch 11 §16), never as chat messages: a coordinator's brief, follow-up or answer to the
- * thread, and the thread's own message_coordinator. Returns [{id, seq, at, dir: "down"|"up", from,
+ * thread, and the thread's own message to it (a relay, or an ask). Returns [{id, seq, at, dir: "down"|"up", from,
  * kind, text}]: `down` is a coordinator writing to the thread (`from` "project" or "workspace", `kind`
- * brief | follow-up | answer), `up` the thread writing to its coordinator. A hop whose note hasn't
+ * brief | follow-up | answer), `up` the thread writing to its coordinator; `cause` the hop it answers. A hop whose note hasn't
  * been read yet (the stream's hop frame carries none) isn't here until it is.
  */
 export function hopNotes(thread, hops) {
@@ -727,9 +729,9 @@ export function hopNotes(thread, hops) {
   for (const hp of hops || []) {
     if (!hp || hp.thread_ts !== thread.id || !String(hp.note || "").trim()) continue;
     const at = Date.parse(hp.created_at || hp.at) || 0;
-    const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim() };
+    const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim(), cause: hp.cause || null };
     if (hp.to_role === "thread" && COORD_WORD[hp.from_role] && DOWN_KINDS[hp.kind]) out.push({ ...base, dir: "down", from: COORD_WORD[hp.from_role], kind: DOWN_KINDS[hp.kind] });
-    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && hp.kind === "relay") out.push({ ...base, dir: "up", from: "thread", kind: "relay" });
+    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && UP_KINDS.has(hp.kind)) out.push({ ...base, dir: "up", from: "thread", kind: hp.kind });
   }
   return out;
 }

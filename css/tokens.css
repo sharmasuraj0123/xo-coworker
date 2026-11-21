@@ -34,6 +34,8 @@
   --accent:#83D63A; --accent-fill:#83D63A; --accent-ink:#141414; --accent-hover:#96DC58; --accent-press:#74C02F; --accent-rgb:131,214,58;
   --err:#D7373F; --err-ink:#E68388;
   --warn:#F5A623; --info:#75ADF1; --violet:#BF8DFF;
+  --live-h:254; --live-l:.74; --live-c:.115;   /* the working dots: three hues around the flavour's own (css/flavours.css); Stone's is the info blue's */
+  --live-1:oklch(var(--live-l) var(--live-c) calc(var(--live-h) - 30)); --live-2:oklch(var(--live-l) var(--live-c) var(--live-h)); --live-3:oklch(var(--live-l) var(--live-c) calc(var(--live-h) + 30));
   --mark-x:#E1E1E1; --mark-o:#83D63A;
   --bubble:#232323; --bubble-line:#303030;
   --term-bg:#111111;
@@ -190,6 +192,7 @@
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323;
   --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
+  --live-l:.53; --live-c:.15;
   --mark-x:#151515; --mark-o:#83D63A;
   --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
   --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:#A3A3A3;

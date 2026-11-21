@@ -648,13 +648,17 @@ code.hl{color:var(--code-ink)}
 .av-w::after{content:"";position:absolute;inset:-4px;border-radius:var(--r-lg);border:1.5px solid rgba(var(--accent-rgb),.4);animation:breathe 2.4s var(--ease-loop) infinite}
 .av-t.av-w::after{border-color:color-mix(in srgb,var(--info) 45%,transparent)}
 .ty-b{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);min-width:0}
-.shimmer{background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 2.4s linear infinite;font-weight:var(--fw-medium);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dots{display:inline-flex;gap:2px;flex:none}
-.dots i{width:4px;height:4px;border-radius:50%;background:var(--ink-3);animation:bounce 1.2s var(--ease-loop) infinite}
-.dots i:nth-child(2){animation-delay:var(--d-out)}.dots i:nth-child(3){animation-delay:var(--d-in)}
+.shimmer{background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shimmer 2.4s linear infinite;font-weight:var(--fw-medium);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* working: three dots in three hues around the flavour's (tokens.css --live-*) rise one after another, a wave that
+   travels across and rests a beat before the next, on the page's one clock (ui.js keepTurning) */
+.dots{display:inline-flex;align-items:center;gap:var(--s-1);flex:none;height:var(--lh-ui)}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--live-1);animation:dot-hop calc(var(--d-loop) / 2) var(--ease-loop) infinite}
+.dots i:nth-child(2){background:var(--live-2);animation-delay:calc(var(--d-loop) / 12)}
+.dots i:nth-child(3){background:var(--live-3);animation-delay:calc(var(--d-loop) / 6)}
+@keyframes dot-hop{0%,40%,100%{transform:translateY(0) scale(.72);opacity:.5}20%{transform:translateY(calc(-1 * var(--s-1))) scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.dots i{animation:none;opacity:.6}.dots i:nth-child(2){opacity:.8}.dots i:nth-child(3){opacity:1}}
 .elapsed{flex:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
-@keyframes bounce{0%,60%,100%{opacity:.35}30%{opacity:1}}
 @keyframes breathe{0%,100%{opacity:.15;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}
 
 
@@ -1787,7 +1791,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* a turn's work, folded to one line (hub #29): the count, the live ticker, what changed, what failed */
 .tb-work{display:flex;flex-direction:column;gap:2px}
 .tb-wh .tb-ht{color:var(--ink-3)}
-.tb-work.is-live .tb-wh .tb-ht{color:var(--ink-2)}
 .tb-work.is-waiting .tb-wh .tb-ht{color:var(--warn)}
 .tb-work .elapsed{font-variant-numeric:tabular-nums}
 .tb-wn{flex:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}

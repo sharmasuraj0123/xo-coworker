@@ -14,6 +14,8 @@
 :root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:var(--h-sm);height:var(--h-sm);margin-top:0;border-radius:var(--r-sm)}
 :root:not([data-msgx]) .m-them>.av svg{width:var(--ic-sm);height:var(--ic-sm)}
 :root:not([data-msgx]) .m-them>.av-gap,:root:not([data-msgx]) .m-turn>.av{display:none}
+/* a speaker already known (the same as just before, or the one a project's chat is with) goes unnamed and unmarked */
+:root:not([data-msgx]) .m-anon>.av,:root:not([data-msgx]) .m-anon>.mb>.mh{display:none}
 /* the name line is a label above the words: body size at 500 in the third ink, a role or model trailing in the fourth */
 :root:not([data-msgx]) .m-them>.mb>.mh{min-height:var(--h-sm);margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
 :root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-3)}
@@ -32,9 +34,10 @@
    names' edge (24 + 8) */
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{gap:8px}
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev>.ev-ic{margin:0 1px}
-/* someone replying: the same mark and edge as a message's header */
-:root:not([data-msgx]) .typing{grid-template-columns:24px minmax(0,1fr);gap:8px}
-:root:not([data-msgx]) .typing>.av{width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm)}
+/* someone replying: the dots lead its line, on the text's edge, no mark */
+:root:not([data-msgx]) .typing{grid-template-columns:minmax(0,1fr)}
+:root:not([data-msgx]) .typing>.av{display:none}
+:root:not([data-msgx]) .ty-b{align-items:center;gap:8px}
 /* an agent's Reply and Copy are its action row; yours stay beside your bubble, on hover (no row under it) */
 :root:not([data-msgx]) :is(.m-them,.m-turn) .mx-acts{display:none!important}
 
@@ -44,23 +47,26 @@
      8   a message's name line (a label, with the speaker's mark) to its words
      12  between a reply's paragraphs, lists and headings (half its 24 px line)
      16  around a block inside a reply (code, a table, a chart, a diagram, a formula, pictures, a thread's card), and
-         between messages of the same speaker, and around a line between messages (an approval, a thread finished)
-     24  where the speaker changes
+         around a line between messages (an approval, a thread finished)
+     24  between messages: twice a paragraph's 12, so two messages never read as one (no name line marks them)
+     40  after a message with an action row: the row (32) floats in that gap, so nothing is reserved for it at rest
    Messages are blocks in normal flow, so their margins collapse: every row asks for 16 above and below, a row that
    starts a new speaker asks for 24 above, and the larger wins: no gap is ever a sum of two rules. (Before: 24 and
    −16 for a run, 8 after an action row, −8 and 16 around a line, 6 in a turn, 12 or 16 around blocks; an approval
    line sat 0 px under the action row above it.) */
 /* the rhythm is the conversation's: a project's empty page (.m-start, "What should get done in…?") isn't a message
    and keeps its own margin:auto, which centres it in the room (css/app.css) */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>:not(.m-start){margin-block:16px}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:not(.cont,.m-card){margin-top:24px}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{min-height:var(--h-sm);margin-block:16px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>:not(.m-start){margin-block:var(--s-4)}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:not(.m-card){margin-top:var(--s-6)}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{min-height:var(--h-sm);margin-block:var(--s-4)}
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>:first-child:not(.m-start){margin-top:0}
-/* the action row is a 32 px control row whose 16 px glyphs leave 8 px of air under them: that air counts toward the
-   gap after it, so the next thing sits 16 (or 24) from the glyphs you see, as from any other line */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow){margin-bottom:8px}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+*{margin-top:8px}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+.m:not(.cont,.m-card){margin-top:16px}
+/* words under the line that introduces them (a question and its answer, a steer and its note) read as one exchange: 8 under the line */
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev.is-lead{margin-bottom:var(--s-2)}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev+.m.m-under{margin-top:var(--s-2)}
+/* a message's action row sits in the gap under it, out of the flow: an unseen row never widens a gap */
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m>.mb:has(>.mx-actrow){position:relative}
 :root:not([data-msgx]) .typing{padding-bottom:16px}
 /* someone replying is a new speaker: 24 above it, whatever the conversation ends with (its margin collapses with the
    last message's, through #msgs and #typing, so the larger wins) */
@@ -76,18 +82,10 @@
 :root:not([data-msgx]) .turn{gap:4px}
 :root:not([data-msgx]) .turn>:is(.tb-text,.tb-answer,.tb-narr)+:is(.tb-text,.tb-answer,.tb-narr){margin-top:8px}
 
-/* ── a sign of life while a turn runs (the owner, 19 Nov: "at least some animation ... that something is happening") ──
-   Why it looked still: the document view hides a turn's mark (24c0369: no gutter beside the words), and the mark was
-   the turn's moving cue (.av-live, the blue arc travelling round it); the line's own icons are hidden too (foundation
-   4: work rows read as text), so only the 2.4 s shimmer was left, which reads as plain grey words in a glance.
-   Now the line the turn is on (the innermost running block: its thinking, its tool, or the work's own line) leads
-   with the working arc, the same blue arc as the sidebar's working thread and .tb-live (12 px in a 16 px slot, one
-   turn per 1.6 s, on the page's one clock: ui.js keepTurning syncs every arc-turn), then its shimmering words.
-   Truthful: only on a block that is running (.is-live); waiting for you (.is-waiting) or stopped, nothing moves. It's
-   a pseudo-element of the line, so the line's text updates in place and nothing is rebuilt for it. With reduced
-   motion it holds still. */
-:root:not([data-msgx]) .turn .tb.is-live:not(.is-waiting):not(:has(.tb.is-live))>.tb-h::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;margin:0 2px;color:var(--info);background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
-@media (prefers-reduced-motion:reduce){:root:not([data-msgx]) .turn .tb.is-live>.tb-h::before{animation:none}}
+/* ── a turn at work: one cue, the dots on its line (js/turnview.js workFold), with the wave on its words; the steps
+   under it carry no spinner of their own ── */
+:root:not([data-msgx]) .turn .tb-live{display:none}
+:root[data-msgx] :is(.tb-wh,.ty-b)>.dots{display:none}
 /* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */
 :root:not([data-msgx]) :is(:is(#typing,#ttyping),:is(#msgs,#tmsgs)) .shimmer{font-weight:var(--fw-regular)}
 
@@ -98,7 +96,8 @@
    the row holds its place (no shift on hover) and shows on hover or focus; the latest reply's always shows.
    Between messages: the row, then 8 px, so a run of messages keeps one rhythm. */
 .mx-actrow{display:none}
-:root:not([data-msgx]) .mx-actrow{--mx-b:var(--h-ctl);display:flex;align-items:center;height:var(--mx-b);margin:4px 0 0 calc((16px - var(--mx-b)) / 2);opacity:0;transition:opacity var(--d-out) var(--ease)}
+:root:not([data-msgx]) :is(#msgs,#tmsgs){--mx-b:var(--h-ctl)}
+:root:not([data-msgx]) .mx-actrow{position:absolute;top:100%;left:calc((var(--ic) - var(--mx-b,var(--h-ctl))) / 2);display:flex;align-items:center;height:var(--mx-b,var(--h-ctl));opacity:0;transition:opacity var(--d-out) var(--ease)}
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
 .mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -111,8 +110,8 @@
 .mx-actrow time:empty{display:none}
 /* a phone's controls are 36 at least (css/phone.css's floor, ≤ 760 px), and a finger has no hover: the buttons take
    36 (the row's offset follows, so the glyph stays on the edge), and without hover every row shows */
-@media (max-width:760px){:root:not([data-msgx]) .mx-actrow{--mx-b:36px}}
-@media (hover:none){:root:not([data-msgx]) .mx-actrow{--mx-b:36px;opacity:1}}
+@media (max-width:760px){:root:not([data-msgx]) :is(#msgs,#tmsgs){--mx-b:calc(var(--h-ctl) + var(--s-1))}}
+@media (hover:none){:root:not([data-msgx]) :is(#msgs,#tmsgs){--mx-b:calc(var(--h-ctl) + var(--s-1))}:root:not([data-msgx]) .mx-actrow{opacity:1}}
 
 /* ── a thread's card in the document view ────────────────────────────────────
    One of the reply's blocks, built as its code, tables and charts are (1 px line, 12 px corners, the same fill), and
