@@ -494,7 +494,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function runHtml(p) {
     const s = proj(p), r = s.run, name = esc(s.form.name || nameOf(p));
     if (r.undo) return hero("Starting", `Deploying ${name} in <span class="lp-count" data-until="${r.undo}">${Math.max(1, Math.ceil((r.undo - Date.now()) / 1000))}</span> s.`, "work") + system(p, "run") +
-      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="undo">${ICON.rewind || ICON.retry}<span>Undo</span></button></div>`;
+      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="undo">${ICON.undo}<span>Undo</span></button></div>`;
     const on = NODES.find((n) => r.steps[n]?.state === "doing") || "repo", rel = r.steps.release || {};
     const word = { repo: "Pushing", build: "Building", release: `Rolling out${r.release ? ` #${r.release}` : ""}`, live: "Going live" }[on];
     const sentence = on === "release" && rel.of

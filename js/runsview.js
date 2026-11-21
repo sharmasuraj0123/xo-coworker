@@ -30,7 +30,7 @@ export function runsStripHtml(live, total) {
       // each chip is a button in its own list item: role=listitem on the button itself took its button role away (Astra C047)
       `<div class="rn-it" role="listitem"><button type="button" class="rn-chip st-${esc(r.state)}" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}">${stateMark(glyph(r.state))}<span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button></div>`).join("")}</div>`;
   }
-  return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.list}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
+  return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.agent}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
 }
 
 /** One row of the list (recursive for children). */

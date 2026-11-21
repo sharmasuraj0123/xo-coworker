@@ -139,13 +139,12 @@ body.stage-full .stg-grip{display:none}
    their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
 .top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 @media (max-width:760px){.top .badge,.top .tw-rt{height:var(--h-touch)}}
-/* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
-   is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
-.tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
+/* the title bar's tile centres on the title's first line, whatever that line's height */
+.tw-ic{width:var(--tile-sm);height:var(--tile-sm);border-radius:var(--r-sm)}
+.top-who>.tw-ic{margin-block:calc((var(--lh-title) - var(--tile-sm)) / 2)}
 .tw-ic svg{width:var(--ic);height:var(--ic)}
 .tw-xo .xo-mark{width:20px;height:8px}
 .top[data-kind="project"] .top-who{gap:12px}
-.top[data-kind="project"] .top-who .tw-ic{margin-top:0}
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
 .pj-s{line-height:var(--lh-ui)}
 .top[data-kind="project"] .tw-t{gap:4px}
@@ -162,7 +161,6 @@ body.stage-full .stg-grip{display:none}
    own height), and the name takes the whole first row (the desktop's 52% cap squeezed it to 186 px) */
 @media (max-width:760px){
   .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:12px}
-  .top[data-kind="project"] .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-title)}
 }
 .all-btn span{border-radius:var(--r-sm)}

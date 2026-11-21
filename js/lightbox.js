@@ -65,7 +65,7 @@ export function createLightbox({ openFile = null, announce = () => {} } = {}) {
     el.innerHTML = `<div class="lbx-scrim"></div><div class="lbx-stage"></div>` +
       `<header class="lbx-bar"><div class="lbx-t"><b class="lbx-name"></b><span class="lbx-by"></span></div><span class="lbx-meta"></span>` +
       `<div class="lbx-acts"><button type="button" class="lbx-btn" data-lbx="files" title="Open in Files">${FILES}<span>Open in Files</span></button>` +
-      `<button type="button" class="lbx-btn" data-lbx="down" title="Download">${ICON.down}<span>Download</span></button>` +
+      `<button type="button" class="lbx-btn" data-lbx="down" title="Download">${ICON.download}<span>Download</span></button>` +
       `<a class="lbx-btn" data-lbx="orig" target="_blank" rel="noopener noreferrer nofollow" title="Open the original" hidden><span>Open original</span>${ARROW_OUT}</a>` +
       `<button type="button" class="lbx-btn lbx-x" data-lbx="close" aria-label="Close" title="Close (Esc)">${ICON.close}</button></div></header>` +
       `<button type="button" class="lbx-arrow is-prev" data-lbx="prev" aria-label="Previous picture" title="Previous (←)">${PREV}</button>` +

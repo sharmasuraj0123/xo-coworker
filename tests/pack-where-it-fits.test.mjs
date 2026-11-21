@@ -70,4 +70,24 @@ await t("an icon's size is a token: no svg rule writes its own px (15, 13, 17 an
     for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) if (m[1].includes("svg")) assert.doesNotMatch(m[2], /(^|;)(width|height):\d+px/, `${f}: ${m[1].trim()}`);
   }
 });
+await t("the exact pack icon for a download, a new tab, an undo, made code, links and data, and sub-agents", () => {
+  const ui = read("js/ui.js");
+  for (const [k, n] of [["download", "download"], ["undo", "undo"], ["table", "table"], ["code", "code"], ["link", "link"], ["agent", "agent"], ["out", "external-link"]]) assert.match(ui, new RegExp(`  ${k}: xi\\("${n}"\\),`), k);
+  assert.doesNotMatch(ui, /down: xi\("arrow-down"\)/);
+  assert.match(read("js/lightbox.js"), /title="Download">\$\{ICON\.download\}/);
+  const v = read("js/viewer.js");
+  assert.equal(v.match(/\$\{ICON\.download\}<span>Download<\/span>/g).length, 2);
+  assert.match(v, /\$\{ICON\.out\}<span>Open in a new tab<\/span>/);
+  assert.match(read("js/launchpad.js"), /\$\{ICON\.undo\}<span>Undo<\/span>/);
+  assert.match(read("js/recordview.js"), /data: ICON\.table, code: ICON\.code, link: ICON\.link,/);
+  assert.match(read("js/runsview.js"), /title="What its sub-agents did">\$\{ICON\.agent\}/);
+});
+await t("the title bar's tile centres on the title's first line, from the line height and the tile", () => {
+  const f = read("css/foundation.css");
+  assert.match(f, /\.tw-ic\{width:var\(--tile-sm\);height:var\(--tile-sm\);/);
+  assert.match(f, /\.top-who>\.tw-ic\{margin-block:calc\(\(var\(--lh-title\) - var\(--tile-sm\)\) \/ 2\)\}/);
+  assert.match(read("css/side.css"), /\.pj-pick\{[^}]*height:var\(--h-ctl\);margin:calc\(\(var\(--lh-title\) - var\(--h-ctl\)\) \/ 2\) /);
+  assert.doesNotMatch(read("css/app.css"), /\.tw-ic\{[^}]*width:30px/);
+  assert.match(read("css/app.css"), /\.help\.gear\{padding:0;justify-content:center\}/, "the phone gear is icon-only, not squeezed by the sidebar gear's text padding");
+});
 console.log(`\n${passed} passed`);
