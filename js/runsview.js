@@ -4,7 +4,7 @@
 // Pure HTML builders: the data comes from storm (runs, ancestry, transcript items).
 
 import { esc } from "./world.js";
-import { ICON } from "./ui.js";
+import { ICON, stepMark } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 
 const LIVE = new Set(["running", "waiting"]);
@@ -110,7 +110,7 @@ export function transcriptHtml(items, { open = {} } = {}) {
       const key = `rt:${it.id}`;
       const st = res ? res.status || "ok" : "running";
       const mark = st === "running" ? `<i class="spin tb-spin" aria-hidden="true"></i>` : st === "error" ? `<span class="tb-m is-err">${ICON.close}</span>` : st === "denied" ? `<span class="tb-m is-den">${ICON.lock}</span>` : `<span class="tb-m is-ok">${ICON.check}</span>`;
-      const plan = it.plan && it.plan.length ? `<ol class="tb-plan-l">${it.plan.map((p) => `<li class="ck ck-${esc(p.state)}"><span class="ck-m" aria-hidden="true">${p.state === "done" ? "✓" : p.state === "doing" ? "✱" : "○"}</span><span>${renderInline(p.text || "", true)}</span></li>`).join("")}</ol>` : "";
+      const plan = it.plan && it.plan.length ? `<ol class="tb-plan-l">${it.plan.map((p) => `<li class="ck ck-${esc(p.state)}"><span class="ck-m" aria-hidden="true">${stepMark(p.state)}</span><span>${renderInline(p.text || "", true)}</span></li>`).join("")}</ol>` : "";
       const body = res && res.text ? `<pre class="tb-out">${esc(res.text)}${res.truncated ? `\n… ${res.bytes ? `${num(res.bytes)} bytes in all` : "cut"}` : ""}</pre>` : "";
       const label = it.title || [it.tool, it.target].filter(Boolean).join(" ");
       out.push(`<div class="rt-call s-${esc(st)}"><button type="button" class="tb-rh is-btn" data-tb="${esc(key)}" aria-expanded="${!!open[key]}"><span class="tb-ri">${ICON.list}</span><span class="tb-rl">${renderInline(label || "A step", true)}</span>${mark}</button>${open[key] ? `<div class="tb-rb">${it.target && it.target !== label ? `<code class="tb-cmd">${esc(it.target)}</code>` : ""}${plan}${body}</div>` : ""}</div>`);

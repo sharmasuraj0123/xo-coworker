@@ -407,9 +407,9 @@ button:disabled{cursor:default}
 .ck-n{flex:none;font-weight:var(--fw-strong);color:var(--ink-2);font-variant-numeric:tabular-nums}
 .ck-now{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink-2);animation:rise-in var(--d-in) var(--ease)}
 .ck-now>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ck-m{flex:none;display:inline-grid;place-items:center;width:14px;font-weight:var(--fw-strong)}
-.ck-m svg{width:14px;height:14px}
-.ck-m.is-ok{color:var(--accent)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn);font-size:var(--fs-xs)}.ck-m.is-red{color:var(--err-ink);font-size:var(--fs-xs)}
+.ck-m{flex:none;display:grid;place-items:center;width:var(--ic-sm);height:1lh}
+.ck-m svg{width:var(--ic-sm);height:var(--ic-sm)}
+.ck-m.is-ok{color:var(--accent)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn)}.ck-m.is-red{color:var(--err-ink)}
 .ck-now[data-mode="fresh"]{color:var(--ink)}
 .ck-now[data-mode="fresh"] .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}
 /* the chevron centres on the row (as an inline glyph it sat on the text baseline, 3 px high) */
@@ -428,10 +428,10 @@ button:disabled{cursor:default}
 .ck-list>li:first-child{margin-top:4px}
 .ck-list>li:last-child{margin-bottom:12px}
 .ckbar.is-open .ck-list{opacity:1}
-.ck{display:flex;align-items:baseline;gap:10px;font-size:var(--fs-body);color:var(--ink-2)}
+.ck{display:flex;align-items:flex-start;gap:10px;font-size:var(--fs-body);color:var(--ink-2)}
 .ck-done{color:var(--ink-3)}.ck-done .ck-m{color:var(--accent)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}
-.ck-todo .ck-m{color:var(--ink-4);font-weight:var(--fw-regular)}
+.ck-todo .ck-m{color:var(--ink-4)}
 
 .scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 0 calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 /* (no transition on its padding: a panel taking room re-wraps the conversation once, not a step a frame, and
@@ -612,6 +612,8 @@ code.hl{color:var(--code-ink)}
 .tc-segs{display:flex;gap:3px;width:100%}
 .tc-segs .sg{flex:1;width:auto;max-width:64px}
 .tc-now{max-width:100%;font-size:var(--fs-body);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-now>svg{width:var(--ic-sm);height:var(--ic-sm);margin-right:6px;vertical-align:calc(var(--cap-mid) - var(--ic-sm) / 2)}
+.st-needs .tc-now>svg{color:var(--warn)}.st-working .tc-now>svg{color:var(--info)}
 .tc-now code{font:var(--fw-medium) .92em/1 var(--mono)}
 .st-needs .tc-now{color:color-mix(in srgb,var(--warn) 60%,var(--ink-2))}
 .tc-foot{display:flex;align-items:center;gap:10px;width:100%;font-size:var(--fs-sm);color:var(--ink-4)}

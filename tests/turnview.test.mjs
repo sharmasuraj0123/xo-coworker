@@ -198,10 +198,10 @@ t("while it runs, what the agent writes after choosing to say nothing doesn't sh
 
 t("a turn someone stopped says where, in words: an XO call as what it was doing, other steps as code", () => {
   const stopped = (last_step) => turnHtml({ ...turn("stopped"), stopped: { by: "founder", last_step } }, [answer]);
-  assert.match(stopped("`ask` on `xo_comms`"), /■ Stopped while asking a question</);
+  assert.match(stopped("`ask` on `xo_comms`"), /data-xi="stop".*<span>Stopped while asking a question<\/span>/);
   assert.doesNotMatch(stopped("`ask` on `xo_comms`"), /xo_comms|`/);
   assert.match(stopped("Run `npm test`"), /Stopped after “Run <code[^>]*>npm test<\/code>”/);
-  assert.match(stopped(null), /■ Stopped</);
+  assert.match(stopped(null), /data-xi="stop".*<span>Stopped<\/span>/);
 });
 
 t("no XO tool's name reaches a row or a header: unknown ones are said generally", () => {
