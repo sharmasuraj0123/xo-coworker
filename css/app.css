@@ -1067,10 +1067,10 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the card's controls sit --card-in from its edge (its 1 px line included), so their corners are concentric with it */
 .c-act{flex:none;padding:var(--s-3) calc(var(--card-in) - 1px) calc(var(--card-in) - 1px);border-top:1px solid var(--line-soft);background:inherit}
-/* the yes and the no at equal width, Later beside them at its own */
+/* a yes and a no share the row at equal width; a lone answer and Later keep their words' width */
 .c-btns{display:flex;gap:var(--s-2)}
-.c-btns>.b{flex:1 1 0;min-width:0}
-.c-btns>.b-later{flex:none}
+.c-btns>.b{flex:none}
+.c-btns:has(>.b:not(.b-later)~.b:not(.b-later))>.b:not(.b-later){flex:1 1 0;min-width:0}
 :is(.card,.next) :is(.c-btns,.c-opts) .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .c-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
 :is(.card-in,.next).noting :is(.c-btns,.c-opts,.c-rule,.teach-body){display:none}

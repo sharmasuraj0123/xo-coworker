@@ -61,6 +61,10 @@ t("Home's next card is the same card: the 24 corner, controls --card-in in, no r
   assert.doesNotMatch(app, /nx-orbit|--nx-a|\.nx-(?:btns|opts|foot|meta|where|cmd|est|h)\b/);
   assert.match(app, /\n:is\(\.card-in,\.next\)\.noting :is\(\.c-btns,\.c-opts,\.c-rule,\.teach-body\)\{display:none\}/);
 });
+t("a card's row: a yes and a no share it at equal width; a lone answer (Home's Decide) and Later keep their words' width", () => {
+  assert.equal(rule(app, ".c-btns>.b"), "flex:none");
+  assert.equal(rule(app, ".c-btns:has(>.b:not(.b-later)~.b:not(.b-later))>.b:not(.b-later)"), "flex:1 1 0;min-width:0");
+});
 t("the card's corner control (Read the thread first) sits --card-in from the corner, the same nest", () => {
   const r = rule(app, ".dock-hide");
   assert.equal(prop(r, "margin"), "0 calc(var(--card-in) - var(--card-pad)) 0 auto", "out of the text's inset to the card's");
