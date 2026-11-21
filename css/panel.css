@@ -251,7 +251,7 @@ svg.fi-line{color:inherit}
 
 /* ── working: the agent's mark holds still, one small arc at its corner turns, in step everywhere (js/ui.js
    keepTurning); its words carry the soft wave (the shimmer). The time is the same font, size and weight
-   as the words beside it, with tabular figures, on their baseline. No bouncing dots, no halo. ───────── */
+   as the words beside it, with tabular figures, on their baseline. No halo. ───────── */
 .av-live,.av-w{position:relative;animation:none!important;background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:none!important}
 .av-live:not(.is-wait){color:var(--ink-2)}
 .av-w::after{display:none}
@@ -277,7 +277,6 @@ button .spin,.btn .spin{color:inherit}
 .ty-b .elapsed:not(:empty)::before{content:"·";margin-right:8px}
 .mp-now .elapsed{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .typing{animation:none}
-.dots{display:none}
 /* the thread's working line at the top of the window sweeps again (the owner, 4 Nov: "I liked the blue accent on
    top that used to move"): it is the one loop that says an agent works right now (app.css, sl-sweep) */
 @media (prefers-reduced-motion:reduce){.arc>svg,.spin{animation:none}}

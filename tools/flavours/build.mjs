@@ -130,6 +130,8 @@ export function source(s = stone()) {
     const b = flavourBlocks(f, s);
     out += `\n/* ${f.name}: ${JSON.stringify(looks(f)).replace(/"/g, "")} */\n`;
     for (const w of ["dark", "light", "inverse"]) out += block(SEL[w](f.id), b.main[w]);
+    // the working dots take the flavour's own hue in each mode; a flavour without one keeps Stone's
+    for (const w of ["dark", "light"]) { const k = looks(f)[w]; if (k.chroma) out += block(SEL[w](f.id), [["--live-h", String(k.hue)]]); }
     const hc = ["dark", "light", "inverse"].map((w) => block(SEL[w](f.id), b.contrast[w], "  ")).join("");
     if (hc) out += `@media (prefers-contrast: more){\n${hc}}\n`;
   }

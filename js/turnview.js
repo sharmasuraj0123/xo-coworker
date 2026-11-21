@@ -7,7 +7,7 @@
 
 import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
-import { ICON, xi, stepMark, elapsed, ARC } from "./ui.js";
+import { ICON, xi, stepMark, elapsed, DOTS, ARC } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
@@ -175,6 +175,12 @@ function changedChips(rows, blocks, more, carried = [], changed = null) {
     (rest > 0 ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(more)}">+${rest} more</button></li>` : "") + `</ul>`;
 }
 
+/** A finished thought with nothing to read ("Thought for 2s"): left out of the opened line. */
+const emptyThought = (b) => b.type === "thinking" && b.done && !(b.steps || []).some(Boolean);
+/** Work that only kept the books (wrote to you, updated its checklist, nothing to add): what it did is already on the page. */
+const BOOKS = new Set(["reply", "report", "update_status", "submit_result", "no_reply_needed"]);
+const bookkeeping = (work) => work.some((b) => b.type === "activity") && work.every((b) => emptyThought(b) || (b.type === "activity" && b.done && (b.rows || []).length && b.rows.every((r) => BOOKS.has(commsTool(r)) && r.status !== "error" && r.status !== "denied")));
+
 function workFold(turn, work, blocks, open, live, now, media = {}) {
   const key = `work:${turn.id}`;
   const isOpen = !!open[key];
@@ -188,17 +194,19 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     : took != null ? ` ${secs(took)}` : "";
   const waiting = live && rows.some((r) => r.waiting);
   const head = `<button type="button" class="tb-h tb-wh" data-tb="${esc(key)}" aria-expanded="${isOpen}">` +
-    // while it runs, the agent's glowing tile beside the turn says so (turnAv); the line needs no spinner
-    (live ? "" : `<span class="tb-hi">${ICON.list}</span>`) +
+    (live ? (waiting ? "" : DOTS) : `<span class="tb-hi">${ICON.list}</span>`) +
     `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? `${waiting ? "Waiting for you" : "Working"}${time}` : WORDS ? esc(plainWork(rows)) : `Worked${time}`}</span>` +
     (WORDS && !live ? (took != null ? `<span class="tb-wn">${secs(took)}</span>` : "") : steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
-  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
+  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.filter((b) => !emptyThought(b)).map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
   let under = "";
   if (live) {
     // the ticker: only the latest block, as it streams; older ones are in the count. A step that
     // waits on you shows wherever it is.
     const asks = rows.filter((r) => r.waiting);
-    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !work.length ? "" : blockHtml(work[work.length - 1], open, live, now);
+    const last = work[work.length - 1];
+    // a tool group shows only the step it's on: the working line above is its header (its own repeated the step's words)
+    const step = last && last.type === "activity" ? [(last.rows || []).filter((r) => r.status === "running").pop() || (last.rows || []).at(-1)].filter(Boolean) : null;
+    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !last ? "" : step ? (step.length ? `<ul class="tb-rows is-cur">${step.map((r) => rowHtml(r, open)).join("")}</ul>` : "") : blockHtml(last, open, live, now);
   } else {
     // a failed turn's own error is said in its last line already. A command that exited non-zero in a
     // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
@@ -261,13 +269,15 @@ function stoppedAt(step) {
 export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false, changed = null } = {}) {
   const media = { carried, route, by, at: Date.parse(turn.at) || null, changed };
   const live = turn.status === "running";
-  const shown = afterSilence(blocks).filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
+  const kept = afterSilence(blocks).filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
+  const quiet = !live && bookkeeping(kept.filter((b) => WORK.has(b.type)));
+  // work that is only empty thoughts has nothing to open: no line (opened, a line leaves them out too)
+  const bare = !live && kept.some(emptyThought) && kept.filter((b) => WORK.has(b.type)).every(emptyThought);
+  const shown = quiet || bare ? kept.filter((b) => !WORK.has(b.type)) : kept;
   const work = shown.filter((b) => WORK.has(b.type));
-  const fold = work.length >= 2 || (WORDS && work.some((b) => b.type === "activity"));
+  // while it runs, any work folds into the one line that carries the turn's cue
+  const fold = work.length >= 2 || (live && work.length > 0) || (WORDS && work.some((b) => b.type === "activity"));
   const parts = [];
-  // working: the turn's latest stretch, after a message of its own, before it has any work to show: its
-  // line says it's still at it ("Working · 12s"), under that message
-  if (live && working && !work.length) parts.push(workFold(turn, [], shown, open, live, now, media));
   for (const b of shown) {
     if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now, media)); continue; }
     // a turn whose work is one tool group (codex often has no thinking or narration): its files show
@@ -275,6 +285,8 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
     const chips = b.type === "activity" && !live && b.done && !open[b.id] ? changedChips(b.rows || [], shown, b.id, carried, changed) : "";
     parts.push(blockHtml(b, open, live, now, media, chips));
   }
+  // a live stretch with no work yet (after a message of its own, or only words so far) still says it's at it, under them
+  if (live && !work.length && (working || shown.length)) parts.push(workFold(turn, [], shown, open, live, now, media));
   const html = parts.filter(Boolean);
   const end = turn.end || {};
   let foot = "";
