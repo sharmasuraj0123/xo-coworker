@@ -306,7 +306,7 @@ button:disabled{cursor:default}
    as a thin strip in the middle, All threads on the right. */
 .top[data-kind="project"]{gap:20px;padding:14px var(--hg);border-bottom:1px solid var(--line-faint)}
 .top[data-kind="project"] .top-who{flex:0 1 auto;min-width:120px;max-width:min(calc(34% + 46px),426px)}
-.app[data-view="ws"] .top .top-who{flex:1;max-width:none} /* no Now strip beside it: its line can run */
+.app[data-view="ws"] .top .top-who,.top[data-kind="project"]:has(> .top-end:empty) .top-who{flex:1;max-width:none} /* no Now strip beside it: its line can run */
 .top-end{flex:none;display:flex;align-items:center;margin-left:auto}
 .top-end:empty{display:none}
 .top[data-kind="thread"]{flex-direction:column;align-items:stretch;gap:0;padding:var(--s-2) var(--hg) var(--s-1)}
