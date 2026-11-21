@@ -165,6 +165,7 @@
      for the conversation to fade under (22 on a phone and beside Files); the line is placed from it, never from a
      number of its own. */
   --dock-gap:var(--s-3); --cbar-fade:30px;
+  --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
 
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;

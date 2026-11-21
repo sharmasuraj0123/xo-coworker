@@ -22,7 +22,7 @@
 .stage .fr-lp[data-tone=""]>.fr-h{background:none}
 .stage .fr-line{flex:none;height:1px;margin:0 12px;background:var(--panel-line)}
 .stage .fr-lp>.fr-b{outline:none;overscroll-behavior:contain}
-.stage .fr-lp>.fr-b.is-fade{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 32px),transparent)}
+.stage .fr-lp>.fr-b.is-fade{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - var(--edge-fade)),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - var(--edge-fade)),transparent)}
 /* the form's Deploy stays in reach: in a short window it sits at the section's foot, the fields scrolling under a fade */
 .lp-foot{position:sticky;z-index:1;bottom:0;margin-bottom:calc(-1 * var(--s-4));padding-bottom:12px;background:var(--sunken)}
 .lp-foot::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:var(--tile);background:linear-gradient(to bottom,transparent,var(--sunken));opacity:0;pointer-events:none;transition:opacity var(--d-hover) var(--ease)}

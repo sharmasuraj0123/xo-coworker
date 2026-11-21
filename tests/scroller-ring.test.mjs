@@ -97,7 +97,7 @@ const CLIPPERS = {
   ".fr[data-fr=\"map\"] .fr-b": ["inner", "the Map's frame: its host pads"], ".stage .fr[data-fr=\"changes\"] .fr-b": ["inner", "the changes frame: its list and pane are placed"],
   ".stg-t": ["text", "a tab's words"], ".ag-t": ["text", "an agent's name"], ".stage .ag-t": ["text", "an agent's name"], ".stage .cx-t": ["text", "a change's name"], ".stage .ch-copy": ["text", "a change's name and path"],
   ".stage .cx-pane": ["bars", "a change's pane: its head's controls and the diff (.cx-pd, panel.css) draw their ring inside"], ".ximg-c": ["decor", "a picture compared"],
-  ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
+  ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".stage :is([data-fr=\"agents\"]>.fr-b,.ch-old).is-fade": ["fade", "a panel list at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
   ".mx-album": ["decor", "a message's pictures"], ".lbx-frame": ["decor", "the lightbox's picture"], ".mx-wt": ["text", "the working line"],
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
   ".pj-s": ["margin", "a project's count line: \"Coordinator needs you\" leads it (S005)"], ":root:root .top .pj-s": ["margin", "the same line in a phone's bar"],
