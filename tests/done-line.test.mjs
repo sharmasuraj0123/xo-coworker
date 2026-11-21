@@ -22,6 +22,6 @@ t("the done line's frame has the dock card's corner: one family (its inset: test
 t("the done line has no rim: glass tinted by its state, the accent when done, a step back the quiet ink", () => {
   assert.match(css, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--glass:color-mix\(in srgb,var\(--state,transparent\) 12%,/);
   assert.match(css, /\n\.card\.is-dock\.r-done\{--state:var\(--accent\);background:var\(--glass\);[^}]*backdrop-filter:var\(--glass-blur\)\}/);
-  assert.match(css, /\n\.card\.is-dock\.r-done:has\(\.is-back\)\{--state:var\(--ink-4\)\}/);
+  assert.match(css, /\n\.card\.is-dock\.r-done:has\(\.is-back,\.is-gone\)\{--state:var\(--ink-4\)\}/);
 });
 console.log(`\n${passed} passed`);

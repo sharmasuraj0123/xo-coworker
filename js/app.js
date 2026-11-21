@@ -29,7 +29,7 @@ import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, v
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
-import { headOf } from "./cardparts.js";
+import { headOf, goneLine } from "./cardparts.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
@@ -1715,7 +1715,7 @@ const tdock = $("#tdock");
  * or drag it down) to one slim line that still says a decision waits (tap it, or drag it up, to open it again), its
  * Undo, its fit. o: { el, view() (its conversation), region() (where focus goes when its card goes), TD }.
  */
-function createDock({ el: tdock, view, region, TD = { key: null, busy: false, undone: null } }) {
+function createDock({ el: tdock, view, region, TD = { key: null, item: null, busy: false, undone: null } }) {
   const placeRegion = region;
 /**
  * The dock's contents change under the keyboard: when focus was on what goes, it goes to what takes its place (the
@@ -1736,6 +1736,7 @@ function dockSwap(fill, to = null, opts = null) {
  * question shows above them; on a short phone (375×667) the card is one scroll instead, question first,
  * so the answers never stand in for a question cut in half. Where it scrolls, the cut edge fades.
  */
+const GONE_FRESH = 5000; // a withdrawal older than this was not what just emptied the dock
 const DOCK_Q_ROOM = 8; // under the question's last line: the body's own bottom padding and a little air
 function fitDock(frame) {
   const body = frame && frame.querySelector(".c-body");
@@ -1785,10 +1786,12 @@ function dockRender(needs) {
   const folded = !!(n && S.dockFold[n.key]);
   const key = n ? n.key + (folded ? "|fold" : "") : null;
   if (TD.busy || key === TD.key) return;
-  const prev = TD.key;
+  const prev = TD.key, gone = !n && prev ? world.state.gone.get(TD.item) : null;
   TD.key = key;
+  TD.item = n && n.ask.item ? n.ask.item.id : null;
   if (!n) {
     if (!prev) { dockSwap(() => { tdock.innerHTML = ""; }); return; }
+    if (gone && Date.now() - gone.at < GONE_FRESH) { goneRender(gone); return; }
     dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 300 });
     return;
   }
@@ -1852,6 +1855,21 @@ function dockRender(needs) {
     },
   });
 }
+/** The item withdrawn or expired under the dock: one line says so for 3 s, in Space's words, then the dock clears. */
+async function goneRender(g) {
+  const L = goneLine(g);
+  const line = document.createElement("article");
+  line.className = "card is-dock r-done";
+  line.innerHTML = `<p class="tp-done is-gone" role="status"><span class="tp-done-ic">${ICON.clock}</span><span title="${esc(`${L.head}. ${L.text}`)}"><b>${esc(L.head)}.</b> ${esc(L.text)}</span></p>`;
+  TD.busy = true;
+  dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(line); }, null, { duration: 300 });
+  await hold(3000);
+  TD.busy = false;
+  TD.key = "__settling";
+  dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 320 });
+  TD.key = null;
+  schedule();
+}
 tdock.addEventListener("click", (e) => {
   if (e.target.closest("[data-dock-more]")) { tdock.querySelector(".card.is-dock .c-act")?.scrollIntoView({ block: "end", behavior: RM.matches ? "auto" : "smooth" }); return; }
   const f = e.target.closest("[data-fold]");
@@ -1869,7 +1887,7 @@ tdock.addEventListener("keydown", (e) => {
   dockGestures(tdock);
   return { render: dockRender, TD, el: tdock };
 }
-const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, busy: false, undone: null } });
+const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, item: null, busy: false, undone: null } });
 const TD = MDOCK.TD;
 const dockRender = (needs) => MDOCK.render(needs);
 

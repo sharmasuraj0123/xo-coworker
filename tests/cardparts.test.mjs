@@ -5,7 +5,7 @@
 //   node tests/cardparts.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress, cap } from "../js/cardparts.js";
+import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress, cap, goneLine } from "../js/cardparts.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -128,5 +128,10 @@ t("questions: one plain choice is one press; several, multi, secret or a hold ne
   assert.equal(isOnePress(held), false); assert.equal(actsOf(held)[0].act, "hold");
   const secret = q([{ question: "Key?", secret: true }]);
   assert.deepEqual(actsOf(secret, { refused: true }), [{ act: "thread", label: "Open the thread", role: "primary" }]);
+});
+t("an item that left unanswered: its one line in Space's words, else a plain one", () => {
+  assert.deepEqual(goneLine({ state: "withdrawn", reason: "superseded", why: "the agent found another way" }), { head: "Withdrawn", text: "The agent found another way" });
+  assert.deepEqual(goneLine({ state: "expired", reason: "timeout", why: "" }), { head: "Expired", text: "No longer needed" });
+  assert.deepEqual(goneLine({ state: "withdrawn" }), { head: "Withdrawn", text: "No longer needed" }, "a reason code alone is never shown");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

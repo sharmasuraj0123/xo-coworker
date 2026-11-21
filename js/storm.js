@@ -60,6 +60,7 @@ export function stormSource(state, emit, event) {
     failed: {},      // project id → {at, error}: the coordinator's turn for our message failed
     routed: {},      // workspace message id → [{chat: project id}]
     review: new Map(), // open review items by id
+    gone: new Map(),   // review id → {state: "withdrawn" | "expired", reason, why, at}: how an open item left without an answer
     runs: new Map(),   // sub-agent runs seen on the stream (run_… → summary), live list and log (ch 14 §11)
     hops: new Map(),   // hop id → hop (11 §16): how a message travelled; shown only by choice
     liveRuns: {},      // session → {running, waiting, tokens, at} from the live `runs` frames
@@ -845,6 +846,10 @@ export function stormSource(state, emit, event) {
         soon();
         break;
       case "review.decided": case "review.withdrawn": case "review.expired":
+        if (type !== "review.decided") {
+          state.gone.set(d.id, { state: type.slice(7), reason: d.reason || null, why: d.why || "", at: Date.now() });
+          if (state.gone.size > 200) state.gone.delete(state.gone.keys().next().value);
+        }
         state.review.delete(d.id);
         soon();
         break;

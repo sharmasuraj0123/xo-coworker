@@ -29,7 +29,7 @@ t("one hand-off for the dock: focus on what goes moves, in the same step, to wha
 t("every change dockRender makes to the dock goes through it: the card and the folded line take focus as they're drawn", () => {
   const dr = body("function dockRender(needs) {", "\ntdock.addEventListener(\"click\"");
   const writes = (dr.match(/tdock\.(innerHTML\s*=|appendChild|replaceChildren)/g) || []).length;
-  const swapped = (dr.match(/dockSwap\(\(\) => \{ tdock\.innerHTML = [^;]*;( tdock\.appendChild\((bar|frame)\);)?/g) || []).reduce((n, m) => n + (m.includes("appendChild") ? 2 : 1), 0);
+  const swapped = (dr.match(/dockSwap\(\(\) => \{ tdock\.innerHTML = [^;]*;( tdock\.appendChild\((bar|frame|line)\);)?/g) || []).reduce((n, m) => n + (m.includes("appendChild") ? 2 : 1), 0);
   assert.ok(writes > 0);
   assert.equal(swapped, writes, `${writes} writes to the dock, ${swapped} through dockSwap`);
   assert.doesNotMatch(dr, /morph\(tdock,/, "no morph of the dock but dockSwap's");

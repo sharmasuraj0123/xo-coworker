@@ -241,3 +241,6 @@ export function actsOf(n, opts = {}) {
   if (later) out.push({ act: "later", label: "Later", role: "later" });
   return out;
 }
+
+/** The dock's one line for an item that left unanswered: Space's own words (why), else a plain "No longer needed". */
+export const goneLine = (g) => ({ head: g && g.state === "expired" ? "Expired" : "Withdrawn", text: cap(String((g && g.why) || "").trim()) || "No longer needed" });
