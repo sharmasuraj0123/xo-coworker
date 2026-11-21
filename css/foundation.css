@@ -146,14 +146,6 @@ body.stage-full .stg-grip{display:none}
 .tw-xo .xo-mark{width:20px;height:8px}
 .top[data-kind="project"] .top-who{gap:12px}
 .top[data-kind="project"] .top-who .tw-ic{margin-top:0}
-/* and the bar's other controls share that line: the Now strip (40 high) and the end buttons (32 high)
-   centre on the title's 28 px line, not on the title-plus-counts block, so nothing sits 12 px lower */
-@media (min-width:761px){
-  /* 17 on top, so the tallest control (the Now strip's 34 px chips) clears the top by 14, the same
-     as the count line clears the hairline below */
-  .top[data-kind="project"]{align-items:flex-start;padding-top:17px}
-  .top[data-kind="project"] > .top-end{margin-top:calc((28px - 32px) / 2)}
-}
 /* the count line: whole-pixel line, figures a shade brighter than their words, quiet dots */
 .pj-s{line-height:var(--lh-ui)}
 .top[data-kind="project"] .tw-t{gap:4px}

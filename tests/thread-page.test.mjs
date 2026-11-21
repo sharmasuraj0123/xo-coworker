@@ -126,7 +126,7 @@ console.log("thread-page files and model: ok");
 // a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
 // 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
 { const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8"), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
-  assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-2\) var\(--hg\) 10px;/);
+  assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-1\) var\(--hg\) var\(--s-2\);/);
   assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
   console.log("thread-page checklist gap: ok"); }

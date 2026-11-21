@@ -318,11 +318,12 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const fw = el.querySelector("[data-follow]");
     fw.hidden = !hd || !hd.count;
     if (hd) {
-      const fh = hd.follow ? `${hd.busy ? '<i class="xd-arc" aria-hidden="true"></i>' : ""}<span>Following</span>` : "<span>Follow</span>";
+      const fh = `${hd.follow && hd.busy ? '<i class="xd-arc" aria-hidden="true"></i>' : ""}${ICON.follow}`;
       if (fw._h !== fh) { redraw(fw, fh); fw._h = fh; } // in place: its label stays the node a press is on
       fw.classList.toggle("is-on", hd.follow);
       fw.setAttribute("aria-pressed", String(hd.follow));
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";
+      fw.setAttribute("aria-label", hd.follow ? "Following the agent" : "Follow the agent");
     }
     for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
     body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);

@@ -157,7 +157,7 @@ t("C076: every control in the panel's bars (its own, a frame's head, a change's 
 });
 t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {
   assert.ok(inset.split(",").includes(".ck-tog"));
-  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-lg\);padding:0 10px 0 12px;border-radius:calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-ctl\);padding:0 10px 0 12px;border-radius:calc\(var\(--r-lg\) - 1px\);/);
   assert.match(all, /\.ckbar\{border-radius:var\(--r-lg\);[^}]*border:1px solid/);
 });
 t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {
@@ -167,6 +167,6 @@ t("S089: a code block clips nothing (its text clips itself and rounds its own co
   assert.match(all, /\.md-code-head\{display:flex;align-items:center;justify-content:space-between;min-height:34px;/, "a phone's 36 px Copy grows its head");
 });
 t("the runs strip gives the room back in its margin: its chips sit where they did (8 px under the head's line)", () => {
-  assert.match(all, /\.rn-strip\{display:flex;gap:6px;margin:calc\(8px - var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\);padding:var\(--ring-room\);overflow-x:auto;/);
+  assert.match(all, /\.rn-strip\{display:flex;gap:4px;margin:calc\(8px - var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\);padding:var\(--ring-room\);overflow-x:auto;/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

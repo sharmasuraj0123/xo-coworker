@@ -96,7 +96,7 @@
   /* 16 px in the fields: under 16, iPhone zooms the page when one takes focus (and the label's was 13) */
   :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-strong) var(--fs-input)/1 var(--sans)}
   :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-medium) var(--fs-input)/1 var(--sans)}
-  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:6px;background:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:4px;background:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
   :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-meta);line-height:var(--lh-meta);max-width:100%}
   :root:root .top[data-kind="thread"] .tw-acts{grid-column:4;grid-row:1 / 3;align-self:center;margin-left:8px}
   /* renaming or labelling: the field takes the name's whole block, 36 high, and the quiet line steps aside */
@@ -108,7 +108,7 @@
   :root:root .top[data-kind="thread"] .top-who:has(> .tw-t) .badge{height:28px;padding:0 10px;background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent)}
 
   /* a project: Threads keeps its icon and count (the word goes; its label says it) */
-  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:6px}
+  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:4px}
   /* its count: 20 high, 8 in from the button's outer edge all round (1 border + 7), so 12 − 8 = 4 round */
   :root:root .top .th-btn span{font-size:var(--fs-meta);border-radius:calc(var(--r-lg) - 8px)}
   :root:root .top[data-kind="project"] .top-who{flex:1 1 0}
@@ -122,7 +122,7 @@
   :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:0}
   :root:root .thead .ckbar{flex:1;min-width:0}
   /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
-  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
+  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:4px}
   :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   :root:root .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
   /* sub-agents working now: one count beside the checklist (its arc, or ◆ when one waits on you), the
