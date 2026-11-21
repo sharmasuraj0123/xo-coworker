@@ -31,9 +31,16 @@ t("hover and press go one fill step deeper and never bring a border back", () =>
   assert.doesNotMatch(all, /data-theme="light"\] \.gear[^{]*\{[^}]*border-color/);
 });
 
-t("Deploy is Apple's tinted style: the accent at 16/22/28% with no rim", () => {
-  assert.match(rule(".tw-act.lp-btn"), /background:color-mix\(in srgb,var\(--accent-fill\) 16%,transparent\);border-color:transparent/);
+t("Deploy, Done and Allow are Apple's tinted style: the status green at 16/22/28% with no rim, one token set for every flavour", () => {
+  assert.match(tok, /--ok-fill:color-mix\(in srgb,var\(--accent-fill\) 16%,transparent\); --ok-fill-hover:color-mix\(in srgb,var\(--accent-fill\) 22%,transparent\); --ok-fill-press:color-mix\(in srgb,var\(--accent-fill\) 28%,transparent\)/);
+  assert.match(rule(".tw-act.lp-btn"), /background:var\(--ok-fill\);border-color:transparent/);
   assert.doesNotMatch(rule(".tw-act.lp-btn:hover"), /border-color/);
+  assert.match(rule(".b-allow,.b-done"), /background:var\(--ok-fill\)/);
+  assert.match(rule(".b-allow:hover,.b-done:hover"), /background:var\(--ok-fill-hover\)/);
+});
+
+t("text in a card's Details reads the ui role, as the card's line and its buttons do", () => {
+  assert.match(rule(".dt .prose"), /font-size:var\(--fs-ui\);font-weight:var\(--fw-regular\);line-height:var\(--lh-ui\)/);
 });
 
 t("no state draws a coloured rim: needs, failed, chosen, destructive and their boxes say it with a tint", () => {

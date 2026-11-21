@@ -75,7 +75,7 @@ const OWN = {
   ".theme": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 28%/.test(fnd),
   ".switch": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image/.test(fnd),
   ".lp-go": () => /\.lp-go:active\{[^}]*background:var\(--lit-press\)/.test(all),
-  ".tw-act.lp-btn": () => /\.tw-act\.lp-btn:active,\.tw-act\.lp-btn\.is-on\{background:color-mix\(in srgb,var\(--accent-fill\) 28%/.test(all),
+  ".tw-act.lp-btn": () => /\.tw-act\.lp-btn:active,\.tw-act\.lp-btn\.is-on\{background:var\(--ok-fill-press\)\}/.test(all),
   ".lk:not(.lk-in)": () => /\.lk-out:active\{opacity:\.7\}/.test(all), // the links in text: .lk-out (.lk-in, a token, takes the layer)
   ":is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u)": () => DIM === ".vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u",
   // the sidebar's rows: the press fill over the hover fill over their wash, a chosen one two press veils deep (side.css)

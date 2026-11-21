@@ -263,11 +263,11 @@ a.lp-b svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 }
 /* The header's Deploy: Resolve's quiet button, set apart by a green rocket, a faint green tint and a green-tinted
    edge: enough to draw the eye to it without shouting. Pressed or open, the tint deepens. */
-.tw-act.lp-btn{background:color-mix(in srgb,var(--accent-fill) 16%,transparent);border-color:transparent;color:var(--ink)}
+.tw-act.lp-btn{background:var(--ok-fill);border-color:transparent;color:var(--ink)}
 .tw-act.lp-btn svg{color:var(--accent)}
 .tw-act.lp-btn .lp-arc{color:var(--work)}
-.tw-act.lp-btn:hover{background:color-mix(in srgb,var(--accent-fill) 22%,transparent);color:var(--ink)}
-.tw-act.lp-btn:active,.tw-act.lp-btn.is-on{background:color-mix(in srgb,var(--accent-fill) 28%,transparent)}
+.tw-act.lp-btn:hover{background:var(--ok-fill-hover);color:var(--ink)}
+.tw-act.lp-btn:active,.tw-act.lp-btn.is-on{background:var(--ok-fill-press)}
 .tw-act.lp-btn:active{transform:scale(.97)}
 .tw-act.lp-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .tw-act.lp-btn:disabled{background:var(--btn-fill);color:var(--ink-4);box-shadow:none;cursor:default;transform:none}
