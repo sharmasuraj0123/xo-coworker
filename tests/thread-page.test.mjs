@@ -124,7 +124,7 @@ assert.match(app, /wireTray\(TP\.K\);/);
 assert.match(app, /wireTray\(MK\);/);
 assert.match(app, /addFiles\(e\.dataTransfer\.files, TP\.K\)/);
 assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
-assert.match(app, /IQ\.open\(sid, TP\.K\.iq\)/);
+assert.match(app, /toggleIq\(sessionOf\(tpView\(\)\), TP\.K\.iq\)/);
 console.log("thread-page files and model: ok");
 // a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
 // 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
