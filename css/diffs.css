@@ -67,7 +67,7 @@ diffs-container{
 .stage .cx-r.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sunken));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 11%,transparent),var(--panel-lift)}
 :root[data-theme="light"] .stage .cx-r.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 .stage .cx-i{position:relative;display:grid;place-items:center;width:16px;height:16px}
-.stage .cx-i svg.fi{width:16px;height:16px}
+.stage .cx-i svg.fi{width:var(--ic);height:var(--ic)}
 .stage .cx-i .arc{right:-6px;bottom:-6px;background:var(--sunken)}
 .stage .cx-r.is-on .cx-i .arc{background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 :root[data-theme="light"] .stage .cx-r.is-on .cx-i .arc{background:var(--surface)}
@@ -82,7 +82,7 @@ diffs-container{
 .stage .cx-sp{flex:1}
 .stage .cx-ofi{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:calc(var(--r-lg) - 4px);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .cx-ofi:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
-.stage .cx-ofi svg{width:16px;height:16px}
+.stage .cx-ofi svg{width:var(--ic);height:var(--ic)}
 .stage .cx-pd{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .stage .cx-pd[hidden]{display:none}
 .stage .cx-pd diffs-container{--diffs-font-size:var(--fs-meta);--diffs-line-height:var(--lh-meta)}
@@ -125,7 +125,7 @@ diffs-container{
 /* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
 .xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
 .xd-ask:hover{border-color:var(--line-hover)}
-.xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
+.xd-ask svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
 .xd-ask kbd{all:unset;margin-left:var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 :root[data-theme="light"] .xd-ask{background:var(--surface)}
 @keyframes xd-in{from{opacity:0;transform:translateY(-2px)}}
@@ -136,7 +136,7 @@ diffs-container{
 .xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:5px 5px 5px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-q{background:var(--surface)}
 .xd-q .xd-ref{display:flex;align-items:center;gap:4px;margin:4px 0 4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
-.xd-q .xd-ref svg{width:14px;height:14px}
+.xd-q .xd-ref svg{width:var(--ic-sm);height:var(--ic-sm)}
 .xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:var(--h-lg);margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .xd-q .xd-in::placeholder{color:var(--ink-4)}
 .xd-q .xd-row{display:flex;align-items:center;gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
@@ -145,7 +145,7 @@ diffs-container{
 .xd-q .xd-send{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;background:var(--accent-fill);color:var(--accent-ink)}
 .xd-q .xd-to{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xd-q .xd-hint{flex:none}
-.xd-q .xd-send svg{width:16px;height:16px}
+.xd-q .xd-send svg{width:var(--ic);height:var(--ic)}
 .xd-q .xd-send{transition:background var(--d-hover) var(--ease)}
 .xd-q .xd-send:not(:disabled):hover{background:var(--accent-hover);transition-duration:var(--d-hover-in)}
 .xd-q .xd-send:focus-visible,.xd-ask:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -175,9 +175,9 @@ diffs-container{
 .xd-btn.is-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn kbd{all:unset;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);opacity:.6}
 .xd-ro{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 8px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);white-space:nowrap}
-.xd-ro svg{width:14px;height:14px}
+.xd-ro svg{width:var(--ic-sm);height:var(--ic-sm)}
 .xd-runs{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
-.xd-runs svg{width:14px;height:14px}
+.xd-runs svg{width:var(--ic-sm);height:var(--ic-sm)}
 /* the run-code question, under Save */
 .vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
 .xd-pop{position:absolute;z-index:var(--z-panel);top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
@@ -216,7 +216,7 @@ diffs-container{
 .vw-menu :is([role=menuitem],[role=menuitemradio]){display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;text-decoration:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);white-space:nowrap}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
-.vw-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
+.vw-menu svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
 :root[data-theme="light"] .vw-menu{box-shadow:var(--lift-3)}
 @media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}
 

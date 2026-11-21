@@ -21,12 +21,8 @@
    Weights 400–600; motion --d-move on --ease. */
 
 .nav{padding:4px 12px 0}
-/* the tile sits 7 px from the row's top, bottom and left alike (1 px line + 6 px padding), so 12 − 7 = 5
-   is concentric on every side (the left was 8, one pixel off: the corner checker, 4 Nov) */
-.nrow,.prow{border-radius:var(--r-lg);padding-left:6px}
-.nr-ic,.pr-ic{border-radius:calc(var(--r-lg) - 7px)}
 .side-find,.side .gear,.side-plus{border-radius:var(--r)}
-.side :is(.nrow,.prow):focus-visible{border-radius:var(--r-lg)}
+.side :is(.nrow,.prow):focus-visible{border-radius:var(--nest-r)}
 .side :is(.side-find,.gear,.side-plus):focus-visible{border-radius:var(--r)}
 
 .prow:not(.busy):not(.needs):not(.is-on){background:transparent;border-color:transparent;box-shadow:none}
@@ -93,6 +89,7 @@
 .side-pop{position:fixed;z-index:var(--z-popover);left:calc(var(--pop-x) + var(--s-2));top:calc(var(--pop-y) - var(--s-2));display:flex;flex-direction:column;min-width:calc(6 * var(--h-row));padding:var(--s-2);border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:msg-in var(--d-pop) var(--ease)}
 .side-pop[hidden]{display:none}
 .sm-row{position:relative}
+.side-pop .nrow{--nest-r:var(--r-pop-row)}
 .sm-row .nrow{padding-right:calc(var(--h-sm) + var(--s-3))}
 .sm-pin{position:absolute;right:var(--s-2);top:50%;translate:0 -50%;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);opacity:0;transition:opacity var(--d-hover) var(--ease)}
 .sm-pin svg{width:var(--s-3);height:var(--s-3)}

@@ -73,11 +73,11 @@
 .vw-tab-b:hover{color:var(--ink-2)}
 .vw-tab.is-on .vw-tab-b:hover{color:var(--ink)}
 .vw-tab-b{display:inline-flex;align-items:center;gap:4px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);cursor:pointer}
-.vw-tab-b .vw-ic svg{width:14px;height:14px}
+.vw-tab-b .vw-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
 .vw-tab.is-preview .vw-tn{font-style:italic}
 .vw-tn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vw-tab-x{position:relative;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:4px;border:none;border-radius:var(--r-xs);background:none;color:var(--ink-4);cursor:pointer}
-.vw-tab-x svg{width:12px;height:12px}
+.vw-tab-x svg{width:var(--ic-xs);height:var(--ic-xs)}
 .vw-tab-x>i{display:none}
 .vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;mask:var(--mask-dot);background:var(--ink-3)}
 .vw-tab-x.is-dirty svg{visibility:hidden}
@@ -114,7 +114,7 @@
 .qo-list li{gap:8px;min-height:var(--h-ctl);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .qo-list li b{font-weight:var(--fw-strong);color:var(--ink)}
 .qo-fi{flex:none;display:grid;place-items:center;width:16px}
-.qo-fi svg{width:16px;height:16px}
+.qo-fi svg{width:var(--ic);height:var(--ic)}
 .qo-n{flex:none;color:var(--ink-2);white-space:nowrap}
 .qo-d{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-4);font-size:var(--fs-meta)}
 .qo-tag{flex:none;margin-left:auto;font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}

@@ -50,7 +50,7 @@
 .lp-hh{min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4);text-decoration:none}
 .lp-hh:hover{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
 .lp-hb{display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 8px 0 6px;border-radius:var(--r);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.lp-hb svg{width:14px;height:14px}
+.lp-hb svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lp-hb:hover{background:var(--panel-hover);border-color:var(--line-strong);color:var(--ink);transition-duration:var(--d-hover-in)}
 
 /* the small working arc, inline (the panel's .arc is a corner badge) */
@@ -74,7 +74,7 @@
 .lp-check{list-style:none;margin:0 12px;padding:0;border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .lp-check li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;height:var(--h-hit);padding:0 8px}
 .lp-t{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft);color:var(--ink-3);transition:color var(--d-move) var(--ease),background var(--d-move) var(--ease),box-shadow var(--d-move) var(--ease)}
-.lp-t svg{width:16px;height:16px}
+.lp-t svg{width:var(--ic);height:var(--ic)}
 .lp-c{display:flex;flex-direction:column;min-width:0}
 .lp-c>b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);transition:color var(--d-move) var(--ease)}
 .lp-c>span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
@@ -148,12 +148,12 @@
 .lp-ev{align-items:center}
 .lp-ev .lp-l{padding:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);color:var(--ink-2)}
 .lp-lock{display:flex;align-items:center;gap:4px;margin:0;padding:4px 8px 0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.lp-lock svg{flex:none;width:14px;height:14px}
+.lp-lock svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 
 /* ── buttons: lit (the one thing to do), quiet (an alternative), a word (a way out) ───────────────── */
 .lp-go{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;height:var(--h-lg);padding:0 16px;border-radius:var(--r-lg);border:0;background:var(--lit);color:var(--accent-ink);font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);text-decoration:none;white-space:nowrap;box-shadow:var(--lit-edge);transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .lp-go span{overflow:hidden;text-overflow:ellipsis}
-.lp-go svg{flex:none;width:16px;height:16px}
+.lp-go svg{flex:none;width:var(--ic);height:var(--ic)}
 .lp-go:hover{background:var(--lit-hover);transition-duration:var(--d-hover-in)}
 .lp-go:active{transform:scale(.98);background:var(--lit-press);box-shadow:var(--lit-edge)} /* one fill change, no inner shadow (the owner, 11 Nov 08:19Z) */
 .lp-go:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
@@ -163,15 +163,15 @@
 .lp-go .lp-arc,.lp-b .lp-arc{color:currentColor}
 .lp-wide{width:calc(100% - 24px);margin:16px 12px 0}
 .lp-b{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r);border:1px solid var(--line-soft);background:none;color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);text-decoration:none;white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.lp-b svg{flex:none;width:16px;height:16px}
+.lp-b svg{flex:none;width:var(--ic);height:var(--ic)}
 a.lp-b{padding:0 10px 0 12px}
-a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
+a.lp-b svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .lp-b:hover{background:var(--panel-hover);border-color:var(--line-strong);color:var(--ink);transition-duration:var(--d-hover-in)}
 .lp-a{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.lp-a svg{width:14px;height:14px}
+.lp-a svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lp-a:hover{background:var(--panel-hover);color:var(--ink)}
 .lp-ib{display:grid;place-items:center;flex:none;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);border:0;background:none;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.lp-ib svg{width:16px;height:16px}
+.lp-ib svg{width:var(--ic);height:var(--ic)}
 .lp-ib:hover{background:var(--panel-hover);color:var(--ink)}
 .lp-alt{display:flex;justify-content:center;padding:8px 12px 0}
 .lp-acts{display:flex;align-items:center;gap:8px;padding:16px 12px 0}
@@ -187,7 +187,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-rec{margin:16px 12px 0;padding:8px;border-radius:var(--r-xl);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 .lp-rec-c{padding:4px 8px 12px}
 .lp-rec-k{display:flex;align-items:center;gap:4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.lp-rec-k svg{width:14px;height:14px;color:var(--accent)}
+.lp-rec-k svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}
 .lp-rec-c b{display:block;margin-top:8px;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .lp-rec-c p{margin:var(--s-1) 0 0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .lp-rec-c p+p{margin-top:8px}
@@ -213,11 +213,11 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lp-check .lp-c>b{white-space:normal;font-weight:var(--fw-regular);color:var(--ink-2)}
 .lp-check .lp-c>span{white-space:normal}
 .lp-more{margin:0 0 0 4px}
-.lp-more svg{width:12px;height:12px}
+.lp-more svg{width:var(--ic-xs);height:var(--ic-xs)}
 .lp-ck{display:grid;place-items:center;width:20px;height:20px;margin-left:4px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--line-strong)}
 .lp-check li.is-no .lp-ck{box-shadow:inset 0 0 0 1.5px var(--line-strong)}
 .lp-check li.is-ok .lp-ck{background:color-mix(in srgb,var(--go) 16%,transparent);box-shadow:none;color:var(--go)}
-.lp-ck svg{width:12px;height:12px}
+.lp-ck svg{width:var(--ic-xs);height:var(--ic-xs)}
 .lp-check li.is-ok .lp-c>b{color:var(--ink-3)}
 
 /* getting ready: the agent at it, raised like the panel's chosen row. It and an app to link are rows with a second
@@ -291,7 +291,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpv{--halo:transparent;display:flex;flex-direction:column;align-items:stretch;margin:0 12px}
 .lpv-vis{display:flex;flex-direction:column;align-items:center;gap:4px}
 .lpv-orb{display:grid;place-items:center;width:var(--tile-xl);height:var(--tile-xl);border-radius:50%;color:var(--ink-4);background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--ink) 9%,transparent),transparent 60%),var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
-.lpv-orb svg{width:20px;height:20px}
+.lpv-orb svg{width:var(--ic-lg);height:var(--ic-lg)}
 .lpv-orb.on{color:var(--ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 50%,transparent),0 0 28px -6px color-mix(in srgb,var(--go) 45%,transparent)}
 .lpv-cap{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .lpv-link{position:relative;flex:none;align-self:center;width:2px;height:20px;margin:var(--s-1) 0;border-radius:1px;overflow:hidden;background:repeating-linear-gradient(to bottom,var(--fill-4) 0 3px,transparent 3px 6px)}
@@ -308,7 +308,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpv-card.failing,.lpv-card.failed{--halo:color-mix(in srgb,var(--danger) 45%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 50%,transparent),0 0 24px -8px var(--halo)}
 .lpv-card.need{outline:1px dashed color-mix(in srgb,var(--need) 60%,transparent);outline-offset:-1px;background:transparent;box-shadow:none}
 .lpv-h{display:flex;align-items:center;gap:4px;min-height:20px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.lpv-h>svg{flex:none;width:14px;height:14px}
+.lpv-h>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .lpv-h .lp-tm,.lpv-acts{margin-left:auto}
 .lpv-acts{display:flex;gap:2px;margin:calc((var(--lh-ui) - var(--h-ctl)) / 2) calc(-1 * var(--halo)) calc((var(--lh-ui) - var(--h-ctl)) / 2) auto}
 .lpv-acts .lp-ib{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r)}
@@ -348,7 +348,7 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpm-n{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;min-width:0}
 .lpm-n b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .lpm-t{position:relative;display:grid;place-items:center;width:var(--tile-lg);height:var(--tile-lg);border-radius:var(--r-lg);background:var(--panel-surface);box-shadow:inset 0 0 0 1px var(--panel-line);color:var(--ink-3);font-style:normal;transition:box-shadow var(--d-move) var(--ease),color var(--d-move) var(--ease)}
-.lpm-t>svg{width:16px;height:16px}
+.lpm-t>svg{width:var(--ic);height:var(--ic)}
 .lpm-t .arc{right:-4px;bottom:-4px;background:var(--sunken)}
 .lpm-n:is(.plan,.off,.none,.todo,.paused) .lpm-t{background:transparent;box-shadow:none;outline:1px dashed var(--line-strong);outline-offset:-1px;color:var(--ink-4)}
 .lpm-n:is(.on,.ready) .lpm-t{color:var(--go);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--go) 45%,transparent),0 0 16px -4px color-mix(in srgb,var(--go) 45%,transparent)}

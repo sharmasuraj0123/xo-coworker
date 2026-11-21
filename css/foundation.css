@@ -142,7 +142,7 @@ body.stage-full .stg-grip{display:none}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre
    is the title's centre line (the cap centre of 20 px Geist in a 28 px line is the line's middle) */
 .tw-ic{width:28px;height:28px;border-radius:var(--r-sm)}
-.tw-ic svg{width:16px;height:16px}
+.tw-ic svg{width:var(--ic);height:var(--ic)}
 .tw-xo .xo-mark{width:20px;height:8px}
 .top[data-kind="project"] .top-who{gap:12px}
 .top[data-kind="project"] .top-who .tw-ic{margin-top:0}

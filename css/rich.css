@@ -12,7 +12,7 @@
 :root:not([data-msgx]) .m-them{grid-template-columns:24px minmax(0,1fr);gap:0 8px}
 :root:not([data-msgx]) .m-them>.mb{grid-area:1/1/2/3;min-width:0}
 :root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:var(--h-sm);height:var(--h-sm);margin-top:0;border-radius:var(--r-sm)}
-:root:not([data-msgx]) .m-them>.av svg{width:14px;height:14px}
+:root:not([data-msgx]) .m-them>.av svg{width:var(--ic-sm);height:var(--ic-sm)}
 :root:not([data-msgx]) .m-them>.av-gap,:root:not([data-msgx]) .m-turn>.av{display:none}
 /* the name line is a label above the words: body size at 500 in the third ink, a role or model trailing in the fourth */
 :root:not([data-msgx]) .m-them>.mb>.mh{min-height:var(--h-sm);margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
@@ -104,7 +104,7 @@
 .mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-actrow button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .mx-actrow button:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
-.mx-actrow svg{width:16px;height:16px}
+.mx-actrow svg{width:var(--ic);height:var(--ic)}
 .mx-actrow [aria-pressed="true"]{color:var(--ink)}
 .mx-actrow [aria-pressed="true"] svg{fill:currentColor;fill-opacity:.2}
 .mx-actrow time{padding:0 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -140,7 +140,7 @@
 :root:not([data-msgx]) .tc-now{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 :root:not([data-msgx]) .tc-foot{gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 :root:not([data-msgx]) .tc-go{gap:4px}
-:root:not([data-msgx]) .tc-go svg{width:14px;height:14px}
+:root:not([data-msgx]) .tc-go svg{width:var(--ic-sm);height:var(--ic-sm)}
 /* Decide: at the foot's right end, on the text edge, a 24 px pill in the ask's amber (centred on the foot's line);
    Open steps aside for it */
 :root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:calc(var(--s-3) + (var(--lh-ui) - var(--h-sm)) / 2);width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}

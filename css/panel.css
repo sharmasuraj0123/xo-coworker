@@ -21,7 +21,7 @@
 .stg-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
 .stg-pa{display:contents}
 .stg-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.stg-ic svg{width:16px;height:16px}
+.stg-ic svg{width:var(--ic);height:var(--ic)}
 .stg-ic:hover{background:var(--fill-2);color:var(--ink)}
 
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
@@ -35,9 +35,9 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-crumb b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
-.fl-up svg{width:14px;height:14px}
+.fl-up svg{width:var(--ic-sm);height:var(--ic-sm)}
 .fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.fl-q svg,.md-pane .md-tools .all-q svg{width:16px;height:16px}
+.fl-q svg,.md-pane .md-tools .all-q svg{width:var(--ic);height:var(--ic)}
 .fl-q input,.md-pane .md-tools .all-q input{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 :root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:#fff;border-color:rgba(0,0,0,.12)}
 
@@ -60,8 +60,8 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-r:hover{background:var(--surface);color:var(--ink)}
 .fl-r.is-on{background:var(--fill-2);color:var(--ink)}
 .fl-c{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
-.fl-c svg{width:12px;height:12px}
-.fl-c.fl-i svg,.fl-c svg.fi{width:16px;height:16px}
+.fl-c svg{width:var(--ic-xs);height:var(--ic-xs)}
+.fl-c.fl-i svg,.fl-c svg.fi{width:var(--ic);height:var(--ic)}
 .fl-r.is-open .fl-c svg{transform:rotate(90deg)}
 .fl-n{line-height:var(--lh-ui)}
 .fl-r.is-touch .fl-n{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
@@ -72,7 +72,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-note .spin{width:10px;height:10px}
 .fl-bar{padding:6px 6px 0}
 .fl-back{height:var(--h-ctl);padding:0 8px 0 6px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.fl-back svg{width:16px;height:16px}
+.fl-back svg{width:var(--ic);height:var(--ic)}
 :root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
 :root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
 /* New file (js/files.js): beside Find for the place itself, in a folder's ⋯ for that folder. One ⋯ for the
@@ -91,7 +91,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-menu button{display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 /* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
    never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
-.fl-menu svg{flex:none;width:15px;height:15px;color:var(--ink-3)}
+.fl-menu svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
 .fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
 .fl-new-r input{flex:1;min-width:0;height:var(--h-sm);margin-left:calc(-1 * var(--halo));padding:0 calc(var(--halo) - 1px);border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .fl-new-r input[aria-invalid="true"]{border-color:var(--err)}
@@ -134,7 +134,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
   .vw-top .vw-more.is-busy .spin{width:16px;height:16px} /* alone, it says the state: the icons' 16 px */
 }
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
-.vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}
+.vw-ic svg,.vw-ic svg.fi{width:var(--ic);height:var(--ic)}
 .vw-t{display:flex;align-items:baseline;gap:8px;min-width:0}
 .vw-t{flex:1}
 .vw-t h2{flex:0 1 auto;min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);letter-spacing:0}
@@ -142,7 +142,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .vw-acts{gap:4px}
 .vw-btn{width:var(--h-ctl);height:var(--h-ctl);padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
 .vw-btn span{display:none}
-.vw-btn svg{width:16px;height:16px}
+.vw-btn svg{width:var(--ic);height:var(--ic)}
 .vw-btn:hover{background:var(--fill-2);border:0;color:var(--ink)}
 .vw-seg{height:var(--h-ctl);padding:3px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .vw-seg button{height:var(--h-sm);padding:0 8px;border-radius:calc(var(--r-sm) - 4px);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
@@ -152,7 +152,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
    here, so an image's Actual size, words alone, was blank on a phone (the controls grader on 131d146, S225). (:where:
    the weight it had, so a phone's 36 still wins) */
 .vw-seg button{display:inline-flex;align-items:center;gap:4px}
-.vw-seg button svg{display:none;width:16px;height:16px}
+.vw-seg button svg{display:none;width:var(--ic);height:var(--ic)}
 @container flpv (max-width:520px){.vw-seg button:where(:has(svg)){width:var(--h-sm);padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button:where(:has(svg)) span{display:none}.vw-seg .vw-wide{display:none}.vw-seg .vw-narrow{display:inline}}
 /* (a narrow pane no longer hides the file's switch: a narrow head folds it into ⋯ instead, below) */
 .fl-pv{container:flpv / inline-size}
@@ -200,7 +200,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
   .md-pane .md-it:not(:has(.md-from)) .md-open{padding-bottom:8px}
   .md-pane .md-th{flex:none;width:var(--th);height:var(--th);gap:0;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface)}
   .md-pane .md-ext{display:none}
-  .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:20px;height:20px}
+  .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:var(--ic-lg);height:var(--ic-lg)}
   .md-pane .md-meta{gap:0;padding:0}
   .md-pane .md-meta b{line-height:var(--lh-ui)}
   .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg) - var(--halo));padding:0 var(--halo);gap:4px;border-radius:var(--r);background-color:transparent!important;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
@@ -232,7 +232,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
    reaches a neighbour's box, edge or centre (Files/Map grader on b153247). That keeps targets 24 px or more down to
    a scale of 24/42; further out a pointer press zooms in instead of acting (js/map.js PRESS_MIN) */
 .dg-n::before{content:"";position:absolute;inset:clamp(-5px, calc(12px * (1 - 1 / var(--dg-s, 1))), 0px)}
-.dg-ic svg,.dg-ic svg.fi{width:16px;height:16px}
+.dg-ic svg,.dg-ic svg.fi{width:var(--ic);height:var(--ic)}
 .gn.k-file .gn-d{background:var(--fc,var(--fill-4))}
 :root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
 .dg-tag{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
@@ -246,8 +246,8 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 svg.fi{flex:none;display:block;color:var(--fi-d,currentColor)}
 :root[data-theme="light"] svg.fi{color:var(--fi-l,currentColor)}
 svg.fi-line{color:inherit}
-.tb-fi svg.fi{width:20px;height:20px}
-.tb-cfi svg.fi{width:14px;height:14px}
+.tb-fi svg.fi{width:var(--ic-lg);height:var(--ic-lg)}
+.tb-cfi svg.fi{width:var(--ic-sm);height:var(--ic-sm)}
 
 /* ── working: the agent's mark holds still, one small arc at its corner turns, in step everywhere (js/ui.js
    keepTurning); its words carry the soft wave (the shimmer). The time is the same font, size and weight
@@ -310,7 +310,7 @@ button.fr-t:hover{color:var(--ink-2)}
 .fr-a{flex:none;margin-left:auto;display:flex;align-items:center;gap:4px}
 .fr-ib{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fr-ib:hover{background:var(--fill-2);color:var(--ink)}
-.fr-ib svg{width:16px;height:16px;transition:transform var(--d-out) var(--ease)}
+.fr-ib svg{width:var(--ic);height:var(--ic);transition:transform var(--d-out) var(--ease)}
 .fr.is-folded .fr-fold svg{transform:rotate(-90deg)}
 .fr-b{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
 .fr-gut{flex:none;position:relative;height:1px;background:var(--fill-2);cursor:row-resize;outline:none}
@@ -378,7 +378,7 @@ body.fv-sizing{cursor:col-resize;user-select:none}
 .fv .fl.is-wide.is-folded :is(.fl-tree,.fl-split){display:none}
 .fl-rb{position:relative;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-rb:hover{background:var(--fill-2);color:var(--ink)}
-.fl-rb svg{width:16px;height:16px}
+.fl-rb svg{width:var(--ic);height:var(--ic)}
 .fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;mask:var(--mask-dot);background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
 .fl-rb:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.fl-rb{transition:none}}
@@ -447,8 +447,8 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage .ag-r.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line),var(--panel-lift)}
 .stage .ag-ic,.stage .ch-i{position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:calc(var(--r-lg) - 8px);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-soft)}
 .stage .ag-ic{color:color-mix(in srgb,var(--c) 70%,var(--ink-2))}
-.stage .ag-ic svg{width:16px;height:16px}
-.stage .ch-i svg.fi{width:20px;height:20px}
+.stage .ag-ic svg{width:var(--ic);height:var(--ic)}
+.stage .ch-i svg.fi{width:var(--ic-lg);height:var(--ic-lg)}
 :root[data-theme="light"] .stage :is(.ag-ic,.ch-i){background:var(--surface);box-shadow:inset 0 0 0 1px var(--panel-line)}
 .stage .ag-r.is-on .ag-ic{background:color-mix(in srgb,var(--c) 12%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,var(--panel-line))}
 .stage .ag-r.is-idle .ag-ic{color:var(--ink-4)}
@@ -464,7 +464,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .ag-r.is-on :is(.arc,.ag-wait){background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 :root[data-theme="light"] .stage .ag-r.is-on :is(.arc,.ag-wait){background:var(--surface)}
 .stage .ag-wait{display:grid;place-items:center;color:var(--warn)}
-.stage .ag-wait svg{width:12px;height:12px}
+.stage .ag-wait svg{width:var(--ic-xs);height:var(--ic-xs)}
 .stage .ag-tm,.stage .ch-r .ch-m{align-self:start;padding-top:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .stage .ch-r:not(:has(.ch-path)) .ch-m{align-self:center}
 

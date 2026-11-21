@@ -63,4 +63,11 @@ await t("Launchpad's Live and failed marks are the threads' state-done and state
 await t("the sidebar's More is the pack's dashboard", () => {
   assert.match(read("js/app.js"), /\$\("#ic-more"\)\.innerHTML = xi\("dashboard"\);/);
 });
+await t("an icon's size is a token: no svg rule writes its own px (15, 13, 17 and 18 blurred the pack's 24 grid)", async () => {
+  const { readdirSync } = await import("node:fs");
+  for (const f of readdirSync(new URL("../css/", import.meta.url)).filter((x) => x.endsWith(".css") && x !== "tokens.css")) {
+    const css = read(`css/${f}`);
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) if (m[1].includes("svg")) assert.doesNotMatch(m[2], /(^|;)(width|height):\d+px/, `${f}: ${m[1].trim()}`);
+  }
+});
 console.log(`\n${passed} passed`);

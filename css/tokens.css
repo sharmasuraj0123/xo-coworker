@@ -104,6 +104,8 @@
      never chosen: inner = outer − inset.
        6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  /* a rounded box says its corner and its content's inset as --nest-r and --nest-in; what sits in its corner takes calc(var(--nest-r) - var(--nest-in)) */
+  --r-pop-row:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl popover's --s-2 padding and 1 px line */
   --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
   /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
      focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
@@ -131,7 +133,7 @@
      change a size, everywhere it's used). Controls: --h-sm 24 · --h-ctl 32 (compact: 24) · --h-lg 40 · --h-touch 36
      (a phone's floor for anything pressed) · --h-hit 44 (a full touch row or target). Boxes that don't follow density
      (an avatar, an icon or file tile, an orb, a fade): --tile 32 · --tile-lg 36 · --tile-xl 44. */
-  --h-touch:36px; --h-hit:44px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
+  --h-touch:36px; --h-hit:44px; --tile-sm:28px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
   /* an agent's mark where a list row says it quietly, under the row's time (the owner, 19 Nov 13:42Z) */
   --mark-sm:var(--s-3);
   /* icons (the owner's pack, on its 24 grid): 16 by default, 12 and 14 in chips and meta lines, 20 on the phone bar */
