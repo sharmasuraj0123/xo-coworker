@@ -19,6 +19,6 @@ t("the inline Copy path is a labelled button, not the head's icon-only one", () 
 t("its words are drawn: Copy the path, Copying… while it outlasts a moment, Copied once it's done", () => {
   assert.match(line, /<span>\$\{V\.copied \? "Copied" : V\.busy && V\.busy\.kind === "copy" && V\.busy\.shown \? "Copying…" : "Copy the path"\}<\/span>/);
   assert.ok(!/(^|[},])\s*\.btn span\{[^}]*display:none/.test(css) && !/\.vw-path-copy span\{[^}]*display:none/.test(css), "nothing hides them");
-  assert.ok(/\.vw-path-copy svg\{width:14px;height:14px\}/.test(css), "its icon at the inline size");
+  assert.ok(/\.vw-path-copy svg\{width:var\(--ic-sm\);height:var\(--ic-sm\)\}/.test(css), "its icon at the inline size");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

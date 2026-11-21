@@ -109,7 +109,7 @@ a.lbx-btn{text-decoration:none}
 .lbx-btn{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
   font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background-color var(--d-hover) var(--ease)}
 .lbx-btn:hover{background:var(--lbx-fill-hover)}
-.lbx-btn svg{flex:none;width:16px;height:16px}
+.lbx-btn svg{flex:none;width:var(--ic);height:var(--ic)}
 .lbx-x{width:28px;padding:0;justify-content:center}
 .lbx-arrow{position:absolute;top:calc(50% - var(--h-lg) / 2);display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);border-radius:var(--r-lg);background:var(--lbx-fill);color:var(--lbx-ink);
   transition:background-color var(--d-hover) var(--ease),opacity var(--d-hover) var(--ease)}

@@ -25,7 +25,7 @@
 .ar-tools{display:flex;align-items:center;gap:8px;margin-top:8px}
 .ar-q{flex:1;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);color:var(--ink-4);transition:border-color var(--d-hover) var(--ease)}
 .ar-q:focus-within{border-color:var(--line-strong)}
-.ar-q svg{flex:none;width:16px;height:16px}
+.ar-q svg{flex:none;width:var(--ic);height:var(--ic)}
 .ar-q input{flex:1;min-width:0;height:100%;border:0;outline:none;background:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .ar-q input::placeholder{color:var(--ink-4)}
 .ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -43,7 +43,7 @@
 .ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
 .ar-grid .md-it{border-radius:var(--r-lg)}
 .ar-grid .md-th{height:160px;border-radius:var(--r-lg-in) var(--r-lg-in) 0 0}
-.ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:28px;height:28px}
+.ar-grid .md-ic svg,.ar-grid .md-ic svg.fi{width:var(--tile-sm);height:var(--tile-sm)}
 .ar-grid .md-meta{gap:4px;padding:12px 12px 4px}
 .ar-grid .md-meta b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .ar-grid .md-meta > span{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
@@ -77,7 +77,7 @@
   .arts:not(.is-pics) .ar-grid .md-open{grid-column:1;grid-row:2;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:0 0 0 12px}
   .arts:not(.is-pics) .ar-grid .md-th{flex:none;width:var(--tile-lg);height:var(--tile-lg);gap:0;border:1px solid var(--line-soft);border-radius:var(--r)}
   .arts:not(.is-pics) .ar-grid .md-th .md-ic{width:auto;height:auto;border:0;background:none}
-  .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:20px;height:20px}
+  .arts:not(.is-pics) .ar-grid .md-th .md-ic svg{width:var(--ic-lg);height:var(--ic-lg)}
   .arts:not(.is-pics) .ar-grid .md-ext{display:none}
   .arts:not(.is-pics) .ar-grid .md-meta{flex:1;gap:2px;padding:0}
   .arts:not(.is-pics) .ar-grid .md-meta b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
@@ -88,7 +88,7 @@
   .arts:not(.is-pics) .ar-grid .md-from.is-none{display:none}
   .arts:not(.is-pics) .ar-grid .md-pin{position:static;grid-column:2;grid-row:1 / -1;width:var(--h-hit);height:auto;align-self:stretch;border-radius:0;background:none;color:var(--ink-4);opacity:1}
   .arts:not(.is-pics) .ar-grid .md-it.is-pin .md-pin{color:var(--accent)}
-  .arts:not(.is-pics) .ar-grid .md-pin svg{width:16px;height:16px}
+  .arts:not(.is-pics) .ar-grid .md-pin svg{width:var(--ic);height:var(--ic)}
   /* a cell of the row (its full height): its press and focus are drawn --cell-in inside it, at --r, never square */
   .arts:not(.is-pics) .ar-grid .md-pin{position:relative;isolation:isolate;border-radius:var(--r-lg)}
   .arts:not(.is-pics) .ar-grid .md-pin::before{content:"";position:absolute;inset:var(--cell-in);z-index:-1;border-radius:var(--r);background:transparent}
@@ -99,14 +99,14 @@
 /* ── The thing itself (the owner, 19 Nov: "artifacts look nice"): a card's picture is a well inside it, tinted with
    the file icon's own colour, and on it a page of the thing: a picture whole from its top left, a document its title
    and first words in the document serif, code and data their first lines. Corners: the card 12 → the well inset
-   --cell-in, so 12 − 4 = --r; the page inside sits --s-4 in, past the well's radius, so it takes the fixed --r-xs and runs
+   --cell-in and the card's 1 px line, so 12 − 5 (--nest-r − --nest-in); the page inside sits --s-4 in, past the well's radius, so it takes the fixed --r-xs and runs
    off the well's foot. On a phone's one-line rows the kind's icon leads instead, as before. */
 /* Home's Recently made wears the same (the owner, 19 Nov 14:57Z: "add colours to the home page as well") */
 :is(.ar-grid,.md-grid.is-strip) .md-th.has-well{display:block;place-items:normal;padding:var(--cell-in) var(--cell-in) 0;background:transparent}
 :is(.ar-grid,.md-grid.is-strip) .md-th.has-well>:is(.md-ic,.md-ext){display:none}
 .md-grid.is-strip .md-sheet{inset:var(--s-3) var(--s-3) calc(-1 * var(--s-2));padding:var(--s-2) var(--s-3)}
 .md-grid.is-strip .md-well .md-pic{inset:var(--s-3) var(--s-3) 0;width:calc(100% - 2 * var(--s-3));height:calc(100% - var(--s-3))}
-.md-well{position:relative;display:block;height:100%;overflow:hidden;border-radius:var(--r) var(--r) 0 0;background:color-mix(in srgb,var(--wt,var(--ink-4)) 11%,var(--fill-1))}
+.md-well{position:relative;display:block;height:100%;overflow:hidden;border-radius:calc(var(--nest-r) - var(--nest-in)) calc(var(--nest-r) - var(--nest-in)) 0 0;background:color-mix(in srgb,var(--wt,var(--ink-4)) 11%,var(--fill-1))}
 /* drawn at once (the owner, 19 Nov 14:46Z): until its preview lands, the well holds the kind's icon in its colour;
    the picture or the page fades in over it */
 .md-well.is-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-2)}

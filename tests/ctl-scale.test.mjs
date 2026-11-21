@@ -80,7 +80,7 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   // and its controls on the scale: 24, not 28 (C106, the Compact switch 46×28; the owner, 11 Nov 05:42Z)
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
   const app = readCss(new URL("css/app.css", ROOT), "utf8");
-  assert.match(app, /\.nrow,\.prow\{[^}]*min-height:var\(--h-row\);padding:5px 10px 5px 7px;/, "the sidebar's rows 40: 1 + 5 + its 28 px icon + 5 + 1, its left edge where it was");
+  assert.match(app, /\.nrow,\.prow\{[^}]*--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);/, "the sidebar's rows 40: 1 + 5 + its 28 px tile + 5 + 1, the same inset on its left");
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
   // 16.9 at line heights of 1.3 and 1.35)
