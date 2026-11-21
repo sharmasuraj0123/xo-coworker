@@ -1,5 +1,5 @@
-// A row with a mark at its start and a control at its end keeps both the same distance from its edges: one --nest-in,
-// less the glyph's own margin where the mark is a bare glyph; the end button sits concentric in the corner.
+// A bar's ends follow one rule: a filled control (a button, a tinted disc) nests concentric in the corner at --nest-in;
+// words or a bare glyph sit --edge-text inside the line, counted from the glyph's ink.
 //   node tests/row-insets.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -23,17 +23,18 @@ t("the folded ask and the done line are one bar: same height, inset and button, 
   assert.doesNotMatch(app, /\.tp-done[^{]*\{[^}]*white-space:normal/);
   assert.match(rule(".tp-done>span:not(.tp-done-ic)"), /white-space:nowrap/, "one line, so the bar never grows past the one it replaced");
 });
-t("each row's start (less its glyph's margin) equals its end", () => {
+t("a filled control at an end nests concentric; words or a bare glyph (less its margin) sit --edge-text in", () => {
+  assert.match(tokens, /--edge-text:var\(--s-3\);/);
   const cases = [
-    [".tp-done", "calc(var(--nest-in) - 1px)", "calc(var(--nest-in) - 1px - var(--ic) * var(--ic-ink))"],
-    [".dock-fold", "calc(var(--nest-in) - 1px)", "calc(var(--nest-in) - 1px - var(--ic-sm) * var(--mark-ink))"],
+    [".tp-done", "calc(var(--nest-in) - 1px)", "calc(var(--edge-text) - var(--ic) * var(--ic-ink))"],
+    [".dock-fold", "calc(var(--nest-in) - 1px)", "calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))"],
     [".hr", "calc(var(--end-in, var(--nest-in)) - 1px - var(--trail-ink, 0px))", "calc(var(--start-in, var(--nest-in)) - 1px)"],
-    [".ck-tog", "calc(var(--s-3) - var(--ic) * var(--ic-ink-chev))", "var(--s-3)"],
+    [".ck-tog", "calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev))", "var(--edge-text)"],
   ];
   for (const [sel, end, start] of cases) assert.deepEqual(pad(rule(sel)), { end, start }, sel);
 });
 t("the notice: a disc sits concentric in its pill; an arrow's ink counts, an Undo nests in the corner", () => {
-  assert.match(rule(".hr"), /^--nest-r:calc\(var\(--h-ctl\) \/ 2\);--nest-in:calc\(var\(--s-3\) \+ 1px\);--ctl-in:calc\(\(var\(--h-ctl\) - var\(--ic-lg\)\) \/ 2\);/);
+  assert.match(rule(".hr"), /^--nest-r:calc\(var\(--h-ctl\) \/ 2\);--nest-in:calc\(var\(--edge-text\) \+ 1px\);--ctl-in:calc\(\(var\(--h-ctl\) - var\(--ic-lg\)\) \/ 2\);/);
   assert.match(app, /\n\.hr:has\(>\.hr-ic\)\{--start-in:var\(--ctl-in\)\}/);
   assert.match(app, /\n\.hr:has\(>\.hr-undo\)\{--end-in:var\(--ctl-in\)\}/, "only a filled end takes the concentric inset; words keep the text inset");
   assert.match(app, /\n\.hr:has\(>\.hr-go\)\{--trail-ink:calc\(var\(--ic-sm\) \* var\(--ic-ink\)\)\}/);

@@ -150,6 +150,7 @@
   --mask-dot:url(../assets/icons/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(../assets/icons/xo/c-actions/stop.svg) center/200% no-repeat;
   --mask-warn:url(../assets/icons/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(../assets/icons/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
   --ic-xs:12px; --ic-sm:14px; --ic:var(--s-4); --ic-lg:var(--s-5);
+  --edge-text:var(--s-3); /* words or a bare glyph at a bar's end sit this far inside its line; a filled control nests concentric instead */
   --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
