@@ -113,4 +113,9 @@ await t("the title bar's tile centres on the title's first line, from the line h
   assert.doesNotMatch(read("css/app.css"), /\.tw-ic\{[^}]*width:30px/);
   assert.match(read("css/app.css"), /\.help\.gear\{padding:0;justify-content:center\}/, "the phone gear is icon-only, not squeezed by the sidebar gear's text padding");
 });
+await t("a thinking step leads with the brain, in a turn and in a sub-agent's work, and its line shows it", () => {
+  assert.match(read("js/ui.js"), /  brain: xi\("brain"\),/);
+  for (const f of ["js/turnview.js", "js/runsview.js"]) assert.match(read(f), /<span class="tb-hi">\$\{ICON\.brain\}<\/span><span class="tb-ht/, f);
+  assert.match(read("css/foundation.css"), /\.turn>\.tb:not\(\.tb-think\)>\.tb-h \.tb-hi\{display:none\}/);
+});
 console.log(`\n${passed} passed`);

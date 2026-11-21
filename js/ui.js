@@ -40,6 +40,7 @@ export const ICON = {
   home: xi("home"),
   right: xi("chevron-right"),
   clock: xi("clock"),
+  brain: xi("brain"),
   // a refusal or an error said in a line
   warn: xi("warning"),
   menu: xi("menu"),

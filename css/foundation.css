@@ -198,9 +198,8 @@ body.stage-full .stg-grip{display:none}
 .set-nav{border-left:0;padding-left:0}
 .set-nav button::before{display:none}
 .set-nav button[aria-selected="true"]{background:var(--row-bg-hover)}
-/* a turn's own lines (its work, a tool group) start on the text column: the agent's mark is the
-   avatar beside the turn, so the line needs no icon of its own */
-.turn>.tb>.tb-h .tb-hi{display:none}
+/* a turn's own tool groups start on the text column; its thinking leads with the brain, as its work leads with the dots */
+.turn>.tb:not(.tb-think)>.tb-h .tb-hi{display:none}
 /* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
 .calm-line{margin-top:12px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 /* the panel's content shares one edge (16) with its tabs */

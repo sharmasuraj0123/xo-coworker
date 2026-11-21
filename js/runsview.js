@@ -104,7 +104,7 @@ export function transcriptHtml(items, { open = {} } = {}) {
     else if (it.type === "thinking") {
       const key = `rt:${it.id}`;
       const steps = it.steps && it.steps.length ? it.steps : it.text ? [it.text] : [];
-      out.push(`<div class="tb tb-think"><button type="button" class="tb-h" data-tb="${esc(key)}" aria-expanded="${!!open[key]}"${steps.length ? "" : " disabled"}><span class="tb-hi">${ICON.clock}</span><span class="tb-ht">${it.duration_ms ? `Thought for ${Math.max(1, Math.round(it.duration_ms / 1000))}s` : "Thought"}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
+      out.push(`<div class="tb tb-think"><button type="button" class="tb-h" data-tb="${esc(key)}" aria-expanded="${!!open[key]}"${steps.length ? "" : " disabled"}><span class="tb-hi">${ICON.brain}</span><span class="tb-ht">${it.duration_ms ? `Thought for ${Math.max(1, Math.round(it.duration_ms / 1000))}s` : "Thought"}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
         (open[key] && steps.length ? `<ol class="tb-steps">${steps.map((s) => `<li>${renderInline(s, true)}</li>`).join("")}</ol>` : "") + `</div>`);
     } else if (it.type === "tool_call") {
       const res = results.get(it.call_id);
