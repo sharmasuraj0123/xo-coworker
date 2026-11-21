@@ -75,7 +75,7 @@ body.stage-full .stg-grip{display:none}
    takes it too (a file or a thread's capsule in a message: its own 14→18% step went by in its transition, held looked
    as hovered, the controls grader on 8aa58d3, S017/S088); a link in a sentence dims instead. */
 :is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.syl-got,.map-btn,.stg-btn,.fl-r,.ar,.syl-ln,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
-:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+:where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lp-go,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all,.tp-done-u))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* A control that reads as text, and a cell of a flush bar, still have a shape (the owner, 19 Nov: "this rectangle when
    clicking looks weird ... give it some space to breathe ... consistent curvature"). The press above is a fill of the
    control's own box at the control's own corners, and a focus ring (base.css) follows those corners too, so a control
@@ -101,9 +101,9 @@ body.stage-full .stg-grip{display:none}
    press dims it. One state for all of them (the controls grader on d79d37e, S139: the viewer's Try again looked the
    same at rest, on hover and pressed: full ink at rest left hover nowhere to go, and the shared press fill had no
    box to show in). */
-:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u){transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease),opacity var(--d-press) var(--ease)}
-:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:hover:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){color:var(--ink);text-decoration-color:currentColor}
-:is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){opacity:.7}
+:is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all,.tp-done-u){transition:color var(--d-hover) var(--ease),text-decoration-color var(--d-hover) var(--ease),opacity var(--d-press) var(--ease)}
+:is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:hover:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){color:var(--ink);text-decoration-color:currentColor}
+:is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all,.tp-done-u):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){opacity:.7}
 /* one of them standing on its own, not a word in a sentence, is a control like any other: on a desktop the 24 floor,
    as the phone's own floor gives it 36 (the create-project grader on 414de0f, S014: the docked decision's Undo,
    39×20). Zero specificity: one with a floor of its own keeps it (Files' links, 32). Links in a sentence are words,

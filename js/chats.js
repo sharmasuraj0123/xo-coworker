@@ -8,27 +8,27 @@
 import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
 import { space } from "./util.js";
-import { ICON, stateMark } from "./ui.js";
+import { ICON, stateMark, xi } from "./ui.js";
+import { EFFORT_WORD, EFFORT_HINT } from "./intel.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
-import { rtMark } from "./runtimes.js";
+import { rtMark, rtName } from "./runtimes.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { once } from "./pending.js";
 
 const MODE_WORDS = {
-  auto: ["Auto", "Its own safety check decides; most actions run unasked."],
-  ask: ["Ask first", "It asks you before each action."],
-  accept_edits: ["Edits", "It edits files freely and asks for the rest."],
-  plan: ["Plan only", "It plans and changes nothing."],
-  deny_unasked: ["Rules only", "Only what your rules allow; the rest is refused."],
+  auto: ["Auto", "Its own safety check decides"],
+  ask: ["Ask first", "Asks you before each action"],
+  accept_edits: ["Edits", "Edits files freely, asks for the rest"],
+  plan: ["Plan only", "Plans and changes nothing"],
+  deny_unasked: ["Rules only", "Only what your rules allow"],
 };
 // a turn in progress: waiting on your decision is still mid-turn (storm's session.py), so a message
 // joins it and Stop can end it. "queued" is no turn: a gate holds its message back with no process
 // (timeline.js heldOf), so nothing joins it and there is nothing to stop.
 const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
-const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PREFS = "cv-chat-prefs";
 const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
@@ -256,7 +256,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · </span>${agentMark(st.agent)}${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
+      return `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd).replace(/^your /, "")))}</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -273,6 +273,30 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b></span>`;
   }
 
+  const folderName = (cwd) => (cwd ? (world.project(cwd) || {}).name || cwd : "your projects folder");
+  const modelDesc = (m) => (m.description || "").replace(/\.$/, "");
+  /** The new chat's chip, as every composer's: the agent's mark, its model (Default until one is picked) and its thinking. */
+  function chipHtml(v) {
+    if (v !== "chats") return "";
+    const st = setup();
+    if (!st.agent) return "";
+    const sep = `<span class="iq-sep" aria-hidden="true">·</span>`;
+    const effort = st.effort && effortsFor(st).includes(st.effort) ? st.effort : null;
+    return `<span class="iq-l">${rtMark(st.agent, { lead: true }) || ""}${st.model ? `<span class="iq-t">${esc(modelWord(st.agent, st.model))}</span>` : `<span class="iq-a">Default</span>`}${effort ? `${sep}<span class="iq-e">${esc(EFFORT_WORD[effort] || effort)}</span>` : ""}</span>`;
+  }
+  /** The new chat's permission chip: what it may do on its own. */
+  function permHtml(v) {
+    if (v !== "chats") return "";
+    const st = setup();
+    return st.agent && st.mode ? `${ICON.lock}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
+  }
+  function chipTitle(v) {
+    if (v !== "chats") return "";
+    const st = setup();
+    if (!st.agent) return "";
+    return `A new chat runs ${rtName(st.agent)} · ${st.model ? modelWord(st.agent, st.model) : "its default model"}${st.effort ? ` · ${EFFORT_WORD[st.effort] || st.effort}` : ""}. Change it`;
+  }
+
   /** "Send now" is its own toggle beside the line, only where the runtime can interrupt a turn. */
   function nowState(v) {
     const s = v && v.startsWith("c:") ? session(v.slice(2)) : null;
@@ -280,9 +304,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return { on: C.now === s.id };
   }
 
-  async function openSetup(anchor) {
+  async function openSetup(anchor, part = "model") {
     const pop = document.getElementById("cs-pop");
-    C.pop = { open: true, anchor };
+    if (C.pop.open) C.pop.anchor?.setAttribute("aria-expanded", "false");
+    C.pop = { open: true, anchor, part };
+    anchor?.setAttribute("aria-expanded", "true");
     // shown (unseen) before it is measured, so it opens where it belongs the first time
     pop.style.visibility = "hidden";
     pop.hidden = false;
@@ -292,64 +318,54 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const st = setup();
     if (st.agent) await ensureModels(st.agent, { again: true });
   }
+  const CHECK = xi("check", "iq-ck");
   function renderSetup() {
     const pop = document.getElementById("cs-pop");
     if (!C.pop.open) return;
     const st = setup();
     const rts = world.state.runtimes || [];
-    const models = offered(st.agent);
-
+    const list = C.models.get(st.agent) || [];
+    const def = list.find((m) => m.is_default) || null;
     const efforts = effortsFor(st);
+    const effort = efforts.includes(st.effort) ? st.effort : null;
     const modes = st.modes;
     const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
-    // each picker's options, by its field: a picker draws its own insides (redraw.js leaves them to it), so new
-    // options (another agent's catalog arriving) are handed to it below, through its own re-render path
-    const opts = {
-      cwd: folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join(""),
-      model: `<option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}`,
-      effort: efforts.length ? `<option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}` : null,
-    };
-    const field = (k, word) => (opts[k] == null ? "" : `<label class="cs-row"><span class="cs-lab">${word}</span><xo-select data-cs="${k}" aria-label="${word}">${opts[k]}</xo-select></label>`);
-    // the agent: each one's mark and name, one choice (a radio group, keynav.js's keys)
-    const agentRow = rts.length > 1 ? `<div class="cs-row"><span class="cs-lab" id="cs-agent-l">Agent</span><div class="rt-seg cs-agents" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
+    // one choice per group (keynav.js's radio keys): only the chosen row, else the first, is in the Tab order
+    const row = (attr, id, name, desc, on, first) => `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, first)} ${attr}="${esc(id)}"${desc ? ` title="${esc(desc)}"` : ""}><span class="iq-n">${esc(name)}</span>${desc ? `<span class="iq-tr">${esc(desc)}</span>` : ""}${CHECK}</div>`;
+    const agents = rts.length > 1 ? `<div class="iq-sec"><p class="iq-lab" id="cs-agent-l">Agent</p><div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
       const on = r.name === st.agent;
-      return `<button type="button" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !rts.some((x) => x.name === st.agent))} data-cs-agent="${esc(r.name)}">${rtMark(r.name) || ""}<span>${esc(cliName(r.name))}</span></button>`;
+      return `<button type="button" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !rts.some((x) => x.name === st.agent))} data-cs-agent="${esc(r.name)}">${rtMark(r.name, { withName: true }) || esc(cliName(r.name))}</button>`;
     }).join("")}</div></div>` : "";
-    const modeHint = st.mode && MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][1] : "";
-    // What it may do: a radio group (keynav.js's keys); only the chosen mode is in the Tab order
-    const html = `<header class="iq-h"><h2>New chat</h2></header>` +
-      `<div class="cs-grid">${agentRow}${field("cwd", "Folder")}${field("model", "Model")}${field("effort", "Effort")}</div>` +
-      // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
-      (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>`
-        : C.failed.has(st.agent) ? `<p class="iq-rl" role="status">Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.</p>`
-        : st.unsure ? `<p class="iq-rl" role="status">Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.</p>` : "") +
-      (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
-        : `<div class="cs-sec"><p class="cs-lab" id="cs-mode-l">What it may do</p><div class="cs-modes" role="radiogroup" aria-labelledby="cs-mode-l">${modes.map((m, i) => `<button type="button" role="radio" class="cs-mode${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}" title="${esc((MODE_WORDS[m] || ["", ""])[1])}"><span class="sc-dot" aria-hidden="true"></span>${esc((MODE_WORDS[m] || [m])[0])}</button>`).join("")}</div>${modeHint ? `<p class="cs-hint">${esc(modeHint)}</p>` : ""}</div>`) +
-      `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;
-    // in place (js/redraw.js): a mode chosen, a catalog arriving, keep the control you're on
+    // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
+    const why = st.gone ? `“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.`
+      : C.failed.has(st.agent) ? `Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.`
+      : st.unsure ? `Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.` : "";
+    const models = `<div class="iq-sec"><p class="iq-lab" id="cs-model-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="cs-model-l">` +
+      row("data-cs-model", "", "Default", def ? modelDesc(def) || def.name : "The agent's own choice", !st.model, false) +
+      offered(st.agent).map((m) => row("data-cs-model", m.id, m.name, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
+    const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
+      `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
+    const lists = {
+      cwd: () => `<header class="iq-h"><h2 id="cs-hh">Folder <span>a new chat works in</span></h2></header><div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${folders.map((f, i) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div>`,
+      mode: () => `<header class="iq-h"><h2 id="cs-hh">What it may do <span>on its own</span></h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
+        : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${modes.map((m, i) => row("data-csmode", m, (MODE_WORDS[m] || [m])[0], (MODE_WORDS[m] || ["", ""])[1], m === st.mode, i === 0 && !modes.includes(st.mode))).join("")}</div>`),
+      model: () => `<header class="iq-h"><h2 id="cs-hh">New chat <span>agent, model and thinking</span></h2></header>${agents}${models}${thinking}<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`,
+    };
+    const part = lists[C.pop.part] ? C.pop.part : "model";
+    const html = lists[part]();
+    // in place (js/redraw.js): a choice made, a catalog arriving, keep the row you're on
     redraw(pop, html);
-    for (const x of pop.querySelectorAll("xo-select[data-cs]")) {
-      const want = opts[x.dataset.cs];
-      if (x._opts === undefined) x._opts = want; // drawn just now, with these options
-      else if (want != null && x._opts !== want) {
-        // only its <option>s change: its button (focused or not) and list stay, so focus never leaves it (S152)
-        x._opts = want;
-        const t = document.createElement("template"); t.innerHTML = want;
-        for (const o of [...x.children]) if (o.tagName === "OPTION") o.remove();
-        x.append(t.content);
-      }
-    }
     const a = C.pop.anchor;
     if (a && !matchMedia("(max-width: 760px)").matches) {
-      // anchored by its bottom edge just above the line: it grows upwards and never leaves the screen
+      // anchored by its bottom edge just above its chip, on the chip's outer edge: it grows upwards and never leaves the screen
       pop.classList.remove("is-sheet");
-      // a window's edge keeps --s-3, the button --s-2 (they were 12 and 10 written here)
-      const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(400, innerWidth - 2 * edge);
-      pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(r.left, innerWidth - w - edge))}px`;
+      const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(360, innerWidth - 2 * edge);
+      const x = part === "model" ? r.right - w + gap : r.left - gap;
+      pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(x, innerWidth - w - edge))}px`;
       pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, r.top - edge - gap)}px`;
     } else { pop.style.left = pop.style.top = pop.style.bottom = pop.style.width = pop.style.maxHeight = ""; pop.classList.add("is-sheet"); }
   }
-  function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.focus?.({ preventScroll: true }); }
+  function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.setAttribute("aria-expanded", "false"); C.pop.anchor?.focus?.({ preventScroll: true }); }
   const setPref = (k, v) => {
     C.prefs = { ...C.prefs, [k]: v || null };
     // another agent has its own models, efforts and modes: read them, and start from its defaults
@@ -456,7 +472,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     working: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s) && !waiting(s)); },
     /** Why this chat can't take a message, if it can't. */
     blocked: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.retired_at ? "This chat has ended" : ""; },
-    send, openSetup, closeSetup, setPref, renderSetup,
+    send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
+    permHtml,
+    /** A chip pressed: its own list opens, or closes when it is the one open. */
+    toggleSetup(anchor, part) { if (C.pop.open && C.pop.part === part) closeSetup(); else openSetup(anchor, part); },
     toggleNow: (v) => { const sid = v.slice(2); const s = session(sid); if (!s || !offers(runtime(s.agent), "interrupt")) return; C.now = C.now === sid ? null : sid; schedule(); },
     retry(id) { for (const [sid, list] of C.local) { const l = list.find((x) => x.id === id); if (l) { deliver(l, sid); return; } } },
     /** A failed message taken back to edit: it leaves the chat and its text is returned. */

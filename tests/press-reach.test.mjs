@@ -77,7 +77,7 @@ const OWN = {
   ".lp-go": () => /\.lp-go:active\{[^}]*background:var\(--lit-press\)/.test(all),
   ".tw-act.lp-btn": () => /\.tw-act\.lp-btn:active,\.tw-act\.lp-btn\.is-on\{background:var\(--ok-fill-press\)\}/.test(all),
   ".lk:not(.lk-in)": () => /\.lk-out:active\{opacity:\.7\}/.test(all), // the links in text: .lk-out (.lk-in, a token, takes the layer)
-  ":is(.vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u)": () => DIM === ".vw-cut-dl,.wsh-home,.cp-link,.tg-ch,.fl-link,.lp-ln,.shl-all,.tp-done-u",
+  ":is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all,.tp-done-u)": () => DIM === ".vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all,.tp-done-u",
   // the sidebar's rows: the press fill over the hover fill over their wash, a chosen one two press veils deep (side.css)
   ".prow": () => /:root:root \.side :is\(\.nrow,\.prow\):active\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\),linear-gradient\(var\(--hover-fill\)/.test(all) && /:root:root \.side :is\(\.nrow,\.prow\):not\(\[role=menuitem\]\):hover\{background-image:linear-gradient\(var\(--hover-fill\)/.test(all),
   ".nrow": () => /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):active\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\),linear-gradient\(var\(--press-fill\)/.test(all),
