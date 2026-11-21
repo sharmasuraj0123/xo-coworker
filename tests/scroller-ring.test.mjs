@@ -157,7 +157,7 @@ t("C076: every control in the panel's bars (its own, a frame's head, a change's 
 });
 t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {
   assert.ok(inset.split(",").includes(".ck-tog"));
-  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-ctl\);padding:0 10px 0 12px;border-radius:var\(--r-lg-in\);/);
+  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-ctl\);padding:0 calc\(var\(--s-3\) - var\(--ic\) \* var\(--ic-ink-chev\)\) 0 var\(--s-3\);border-radius:var\(--r-lg-in\);/);
   assert.match(all, /\.ckbar\{border-radius:var\(--r-lg\);[^}]*border:1px solid/);
 });
 t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {

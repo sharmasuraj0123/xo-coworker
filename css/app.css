@@ -366,7 +366,7 @@ button:disabled{cursor:default}
 .ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
 /* the toggle fills its bar edge to edge, and the bar clips to its corners (its row's hover fill), so its ring is drawn
    inside it, on the bar's inner corners (the controls grader on 414de0f, C045: only the ring's right edge showed) */
-.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-ctl);padding:0 10px 0 12px;border-radius:var(--r-lg-in);text-align:left;font-size:var(--fs-ui);color:var(--ink-3)}
+.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-ctl);padding:0 calc(var(--s-3) - var(--ic) * var(--ic-ink-chev)) 0 var(--s-3);border-radius:var(--r-lg-in);text-align:left;font-size:var(--fs-ui);color:var(--ink-3)}
 .ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:2px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--fill-3);transition:background var(--d-in) var(--ease)}
@@ -666,7 +666,7 @@ code.hl{color:var(--code-ink)}
 body:not(.stage-covers) .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
 /* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
 .dock.is-stacked>.cbar{padding-top:0}
-.hr{pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 14px 0 12px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
+.hr{--nest-r:calc(var(--h-ctl) / 2);--nest-in:calc(var(--s-3) + 1px);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 calc(var(--nest-in) - 1px - var(--trail-ink, 0px)) 0 calc(var(--nest-in) - 1px);border-radius:var(--nest-r);background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
 button.hr{transition:border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
 button.hr:hover{background:var(--herald-bg-hi)}
 button.hr:active{transform:scale(.97)}
@@ -676,7 +676,9 @@ button.hr:active{transform:scale(.97)}
 .hr-s{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
 .hr>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .hr-dot{flex:none;width:var(--ic-sm);height:var(--ic-sm);background:var(--warn);mask:var(--mask-needs)}
-.hr-ic{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%}
+.hr:has(>.hr-ic){--nest-in:calc((var(--h-ctl) - var(--ic-lg)) / 2)}
+.hr:has(>.hr-go){--trail-ink:calc(var(--ic-sm) * var(--ic-ink))}
+.hr-ic{flex:none;display:grid;place-items:center;width:var(--ic-lg);height:var(--ic-lg);border-radius:50%}
 .hr-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
 .hr-ic.k-ok{background:rgba(var(--accent-rgb),.14);color:var(--accent)}
 .hr-ic.k-stopped{background:rgb(215 55 63 / .14);color:var(--err-ink)}
@@ -1104,7 +1106,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the thread's own card: Today's wide layout (#20) */
 .card.is-dock{--nest-r:var(--r-2xl);max-height:min(58vh,520px);border-radius:var(--nest-r);background:var(--surface);border-color:var(--line);box-shadow:var(--e2)}
-.card.is-dock.r-done{border-radius:var(--r-lg)}
+:is(.dock-fold,.card.is-dock.r-done){--nest-r:var(--r-lg);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
 .card.is-dock.r-destructive{background:linear-gradient(180deg,rgb(215 55 63 / .11),transparent 200px) var(--surface)}
 .card.is-dock .c-body{padding:var(--s-4) var(--s-5) var(--s-1)}
 .card.is-dock .c-h{font-size:var(--fs-heading);margin-top:6px}
@@ -1260,24 +1262,24 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .dock-hide svg{width:var(--ic-sm);height:var(--ic-sm)}
 .dock-hide:hover{background:var(--fill-2);color:var(--ink)}
 .dock-hide:active{transform:scale(.96)}
-.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:6px 7px 6px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid transparent;box-shadow:var(--e2);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--nest-in) - 1px - var(--ic-sm) * var(--mark-ink));background:var(--surface);border:1px solid transparent;box-shadow:var(--e2);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .dock-fold.r-stopped,.dock-fold.r-destructive{background:color-mix(in srgb,var(--err) 6%,var(--surface))}
 .dock-fold:hover{background:var(--fill-2)}
 .dock-fold:active{transform:scale(.99)}
 .df-t{flex:1;min-width:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .df-e{flex:none;font-size:var(--fs-meta);color:var(--ink-4);white-space:nowrap}
-.df-go{flex:none;display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 10px 0 13px;border-radius:var(--r-sm);background:var(--warn-subtle);color:var(--warn);font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.df-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--dock-btn);padding:0 var(--s-1) 0 var(--s-2);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--warn-subtle);color:var(--warn);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .df-go svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(180deg)}
 .dock-fold.r-stopped .df-go,.dock-fold.r-destructive .df-go{background:var(--err-subtle);color:var(--err-ink)}
 .card.is-dock.r-done{border-color:transparent;background:linear-gradient(var(--ok-fill),var(--ok-fill)),var(--surface)}
 .card.is-dock.r-done:has(.is-back){background:linear-gradient(var(--btn-fill),var(--btn-fill)),var(--surface)}
-.tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--h-ctl);margin:0;padding:0 var(--s-1) 0 var(--s-3);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
-.tp-done>span:not(.tp-done-ic){flex:1;min-width:0;padding-block:var(--s-1)}
+.tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--dock-bar);margin:0;padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--nest-in) - 1px - var(--ic) * var(--ic-ink));font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
+.tp-done>span:not(.tp-done-ic){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tp-done b{color:var(--ink);font-weight:var(--fw-medium)}
 .tp-done-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--accent)}
 .tp-done.is-back .tp-done-ic{color:var(--ink-3)}
 .tp-done-ic svg{width:var(--ic);height:var(--ic)}
-.tp-done-u{flex:none;height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r);background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
+.tp-done-u{flex:none;height:var(--dock-btn);padding:0 var(--s-2);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
 .tp-done-u:hover{background:var(--btn-fill-hover)}
 
 /* records of intelligence changes, in the conversation */
@@ -1287,7 +1289,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .ev-undo:hover{background:var(--fill-2);color:var(--ink)}
 .m-iq{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tc-cw{color:var(--ink-4)}
-.hr-undo{margin-left:4px;height:var(--h-sm);padding:0 9px;border-radius:var(--r-sm);background:var(--fill-3);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
+.hr-undo{margin-left:4px;height:var(--h-sm);padding:0 9px;border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--fill-3);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
 .hr-undo:hover{background:var(--fill-4);transition-duration:var(--d-hover-in)}
 
 /* ── intelligence: the chip (quietest thing in the composer) and its popover ── */
@@ -2104,9 +2106,8 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
    without: cut to "XO shows everyt…", a notice hid what it meant (the create-project grader on 366e72d, S117's
    preset that couldn't be read; the whole of it was only in the live region) */
 @media (max-width:760px){
-  .hr-ev.k-stopped{flex-wrap:wrap;row-gap:2px;height:auto;min-height:var(--h-touch);padding:5px 14px 6px 12px;border-radius:var(--r-xl)}
+  .hr-ev.k-stopped{--nest-r:var(--r-xl);flex-wrap:wrap;row-gap:2px;height:auto;min-height:var(--h-touch);padding:5px calc(var(--nest-in) - 1px) 6px;border-radius:var(--nest-r)}
   .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
-  .hr-ev.k-stopped.has-undo{padding-right:6px}
   .hr-ev.k-stopped.has-undo .hr-undo{margin-left:auto}
   /* a 36 px button sits inside its line, never past its edge */
   .hr-ev.has-undo{height:auto;min-height:38px;padding-top:1px;padding-bottom:1px}
