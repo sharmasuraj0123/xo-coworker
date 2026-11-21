@@ -83,7 +83,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const isHome = (cwd) => !cwd || /^\/home\/[^/]+\/?$/.test(cwd);
   const metaHtml = (s) => [`${agentMark(s.agent)}${esc(s.model ? modelWord(s.agent, s.model) : "Default model")}`, s.effort ? esc(EFFORT_WORD[s.effort] || s.effort) : "",
     esc((MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]), isHome(s.cwd) ? "" : `in ${esc(folderWord(s.cwd))}`].filter(Boolean).join(" · ");
-  /** The list's second line: only what isn't a new chat's default (model, effort, mode, folder). */
+  /** What search matches besides the title: only what isn't a new chat's default (model, effort, mode, folder). */
   const rowLine = (s) => {
     const home = isHome(s.cwd);
     return [s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
@@ -104,8 +104,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const few = !C.all && rows.length > RECENT;
     const q = C.all ? C.q.trim().toLowerCase() : "";
     const shown = few ? rows.slice(0, RECENT) : q ? rows.filter((s) => `${titleFor(s)} ${rowLine(s)}`.toLowerCase().includes(q)) : rows;
-    const seg = rows.length > RECENT ? `<div class="rt-seg chl-seg" role="group" aria-label="Which chats"><button type="button" data-chl-all="0" aria-pressed="${!C.all}">Recent</button><button type="button" data-chl-all="1" aria-pressed="${C.all}">All <span class="chl-n">${rows.length}</span></button></div>` : `<h2 class="chl-k">Recent</h2>`;
-    const head = { key: `chats-head-${C.all ? "all" : "few"}`, html: `<div class="chl-top">${seg}${C.all ? `<label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label>` : ""}</div>` };
+    const more = !C.all && rows.length > RECENT ? `<button type="button" class="chl-more" data-chl-all="1">All chats<span class="chl-n"> · ${rows.length}</span></button>` : "";
+    const head = { key: `chats-head-${C.all ? "all" : "few"}`, html: C.all
+      ? `<div class="chl-top"><h2 class="chl-k">All chats</h2><label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label><button type="button" class="chl-more" data-chl-all="0">Show less</button></div>`
+      : `<div class="chl-top"><h2 class="chl-k">Recent</h2>${more}</div>` };
     if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">No chats match “${esc(C.q.trim())}”.</p>` }];
     const groups = new Map();
     for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(s); }
@@ -114,10 +116,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const wait = waiting(s), busy = inTurn(s) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
       const held = !wait && !busy ? heldOf(s) : null;
       const state = wait ? "needs_approval" : busy ? "working" : held ? "paused" : "";
-      const line = rowLine(s);
       return `<li><button type="button" class="chl-row" data-go="c:${esc(s.id)}">` +
         `<span class="chl-tile">${rtMark(s.agent) || ICON.thread}${state ? stateMark(state) : ""}</span>` +
-        `<span class="chl-main"><span class="chl-t">${esc(titleFor(s))}</span>${line ? `<span class="chl-m">${esc(line)}</span>` : ""}</span>` +
+        `<span class="chl-t">${esc(titleFor(s))}</span>` +
         `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at))}</span></button></li>`;
     };
     if (!C.all) return [head, { key: "chats-list", html: `<div class="chl chl-few"><ul class="chl-list">${shown.map(row).join("")}</ul></div>` }];

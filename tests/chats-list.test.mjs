@@ -25,23 +25,26 @@ t("a row's time: the clock for today and yesterday, the weekday this week, else 
   assert.equal(rowTime(at(4), now), new Date(at(4)).toLocaleDateString(undefined, { weekday: "short" }));
   assert.equal(rowTime(at(25), now), new Date(at(25)).toLocaleDateString(undefined, { month: "short", day: "numeric" }));
 });
-t("a row: the agent's mark on a tile, its state as a badge (none when idle), title, second line, time", () => {
+t("a row: the agent's mark, its state as a badge on it (none when idle), the title and the time, one line", () => {
   const src = read("js/chats.js");
   assert.match(src, /<span class="chl-tile">\$\{rtMark\(s\.agent\) \|\| ICON\.thread\}\$\{state \? stateMark\(state\) : ""\}<\/span>/);
   assert.match(src, /const state = wait \? "needs_approval" : busy \? "working" : held \? "paused" : "";/);
   assert.match(src, /<section class="chl-g" aria-labelledby="chl-g\$\{i\}"><h2 class="chl-h"/);
-  // the second line: model (else the agent), effort, and the mode or folder only when not the default
+  // search still matches the model, effort, and the mode or folder when not the default
   assert.match(src, /s\.permission_mode && s\.permission_mode !== "auto"/);
+  assert.match(src, /`<span class="chl-t">\$\{esc\(titleFor\(s\)\)\}<\/span>` \+/);
+  assert.doesNotMatch(src, /chl-(main|m)\b/, "no second line");
   assert.match(src, /home \? "" : `in \$\{folderWord\(s\.cwd\)\}`/);
   assert.doesNotMatch(src, /class="ch-(row|main|t|m|a)"/, "the Chats list has its own classes");
 });
-t("its look: tokens only, one quiet list split by hairlines, rows 56, nothing hard-coded beyond hairlines", () => {
+t("its look: tokens only, a list of titles with no tiles, rims or dividers, rows 48 whose hover reaches --halo-row past the words", () => {
   const css = read("css/app.css");
   const block = css.slice(css.indexOf(".cs-hi{"), css.indexOf(".chl-calm{"));
   assert.match(block, /\.chl-list\{list-style:none;display:flex;flex-direction:column;margin:0;padding:0\}/);
-  assert.match(block, /\.chl-list>li\+li\{border-top:1px solid var\(--line-faint\)\}/);
-  assert.match(block, /\.chl-row\{[^}]*min-height:var\(--h-row-list\)/);
-  assert.match(block, /\.chl-tile\{[^}]*width:var\(--tile\);height:var\(--tile\)/);
+  assert.doesNotMatch(block, /\.chl-list>li\+li/, "no dividers");
+  assert.match(block, /\.chl-row\{[^}]*height:var\(--h-row-act\);padding:0 var\(--halo-row\);margin:0 calc\(-1 \* var\(--halo-row\)\);border-radius:var\(--r-lg\)/);
+  assert.match(block, /\.chl-tile\{[^}]*width:var\(--ic\);height:var\(--ic\);color:var\(--ink-3\)\}/, "the mark is bare: no fill, no rim");
+  assert.match(block, /\.chl-t\{[^}]*font:var\(--fw-regular\) var\(--fs-read\)\/var\(--lh-read\)/, "titles at reading size");
   assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/1px solid|gap:2px/g, ""), /\b\d+px\b|#[0-9a-f]{3,8}\b|rgba?\(/i);
   assert.doesNotMatch(css, /\n\.ch-(list|row|main|t|m|a)\{/, "no global ch- rules left to leak into the panel's Changes");
 });
@@ -93,9 +96,10 @@ t("Chats starts with its composer: under the greeting at the top, the dock back 
 });
 t("Recent: the three latest under the composer, all of them a click away with a search over titles and lines, second lines only for what isn't the default", () => {
   const src = read("js/chats.js"), app = read("js/app.js");
-  assert.match(src, /<div class="rt-seg chl-seg" role="group" aria-label="Which chats"><button type="button" data-chl-all="0" aria-pressed="\$\{!C\.all\}">Recent<\/button><button type="button" data-chl-all="1" aria-pressed="\$\{C\.all\}">All/);
-  assert.match(src, /\$\{C\.all \? `<label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
-  assert.match(read("css/app.css"), /\.chl-top>\.chl-q\{[^}]*height:var\(--h-lg\);border-radius:var\(--r-lg\)\}/, "the field matches the segment beside it");
+  assert.match(src, /<button type="button" class="chl-more" data-chl-all="1">All chats<span class="chl-n"> · \$\{rows\.length\}<\/span><\/button>/, "a link, not a switch");
+  assert.match(src, /<h2 class="chl-k">All chats<\/h2><label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q[^`]*<button type="button" class="chl-more" data-chl-all="0">Show less<\/button>/);
+  assert.doesNotMatch(src, /chl-seg/);
+  assert.match(read("css/app.css"), /\.chl-more\{[^}]*padding:0 var\(--halo\);margin-right:calc\(-1 \* var\(--halo\)\);border-radius:var\(--r\)/, "a text control: its fill reaches --halo past its words");
   assert.match(src, /const RECENT = 3;/);
   assert.match(src, /few \? rows\.slice\(0, RECENT\) : q \? rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
   assert.match(read("css/app.css"), /\.scroller:has\(\.chl-few,\.chl-calm\)>\.column\{height:0;margin-bottom:auto\}/, "at rest the composer stands in the middle");

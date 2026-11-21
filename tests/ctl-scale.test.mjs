@@ -84,8 +84,7 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
   // 16.9 at line heights of 1.3 and 1.35)
-  assert.match(app, /\.chl-row\{[^}]*min-height:var\(--h-row-list\);padding:var\(--s-2\) var\(--s-3\);/, "Chats' rows 56: 8 + their two lines + 8, over the 56 floor");
-  assert.match(app, /\.chl-main\{[^}]*gap:2px\}/); assert.match(app, /\.chl-t\{font:500 var\(--fs-ui\)\/20px/); assert.match(app, /\.chl-m\{font-size:var\(--fs-meta\);line-height:16px;/, "20 + 2 + 16 = 38");
+  assert.match(app, /\.chl-row\{[^}]*height:var\(--h-row-act\);/, "Chats' rows 48: one line of titles");
   assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:400 var\(--fs-ui\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
