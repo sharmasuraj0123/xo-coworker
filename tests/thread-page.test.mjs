@@ -39,7 +39,7 @@ assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); re
 assert.match(app, /const STAGE = createStage\(\{[^\n]*go: \(v, e\) => openFromPanel\(v, e\)/);
 assert.match(app, /if \(g && !t\.closest\("#all"\) && !t\.closest\("#stage"\)\)/, "the panel's own links are the panel's");
 // Open full width: its own page, as today
-assert.match(app, /data-tp-full="\$\{esc\(t\.id\)\}"/);
+assert.match(app, /data-tp-main="\$\{esc\(t\.id\)\}"/);
 // CSS: the panel's reading column, tokens only
 const block = css.slice(css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
@@ -99,7 +99,7 @@ assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
 assert.match(app, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
 assert.match(app, /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
-assert.match(app, /where === "page" \? item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, "Open as its own page"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
+assert.match(app, /where === "page" \? item\(`data-tp-main="\$\{esc\(t\.id\)\}"`, "Open in main chat"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
 assert.match(app, /render\(\); \/\/ drawn now, in the click/);
 // one ⤢ in the head (the panel's full size); the thread's own page is "Open as its own page" in its ⋯ (the owner, 20 Nov:
 // two ⤢ did different things)
@@ -146,3 +146,15 @@ console.log("thread-page files and model: ok");
   assert.match(ap, /function tpClose\(\) \{/);
   assert.doesNotMatch(ap, /function tpUnmount\(/, "the page is never torn down and rebuilt");
   console.log("thread-page teardown: ok"); }
+// Open in main chat, left of the state badge (the owner, 21 Nov): the header's filled control, the owner's icon from the pack;
+// the thread's column morphs from the panel into the main chat on the motion tokens, at once under reduced motion
+{ const ui = readFileSync(new URL("../js/ui.js", import.meta.url), "utf8");
+  const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  assert.match(ui, /toMain: xi\("open-in-main"\),/);
+  assert.match(app, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
+  assert.match(app, /if \(RM\.matches \|\| !document\.startViewTransition\) \{ move\(false\); return; \}/);
+  assert.match(app, /if \(!still\) el\.classList\.add\(/);
+  assert.match(appCss, /\.is-moving\{view-transition-name:thread-move\}/);
+  assert.match(appCss, /::view-transition-group\(thread-move\),::view-transition-old\(root\),::view-transition-new\(root\)\{animation-duration:var\(--d-sheet\);animation-timing-function:var\(--ease\)\}/);
+  assert.doesNotMatch(app, /data-tp-full/); }
+console.log("thread-page open in main: ok");

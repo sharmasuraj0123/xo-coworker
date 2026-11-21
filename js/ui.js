@@ -82,6 +82,7 @@ export const ICON = {
   map: xi("map"),
   graph: xi("graph"),
   follow: xi("follow"),
+  toMain: xi("open-in-main"),
   fit: xi("fit"),
   // needs you: the mark the sidebar and the lists use
   diamond: xi("state-needs-you"),
