@@ -1,28 +1,28 @@
-// Converged · decisions. One card builder, two surfaces:
+// Converged · decisions. One card builder (its parts in js/cardparts.js), two surfaces:
 //
 //  • the global panel (from Home, the dock line, N): Next's size and place
 //    beside the conversation (#21), sized to its content (never a tall blank
-//    panel), with little text (#15): headline, one line of why, a labelled
-//    estimate of the work waiting, the suggestion, the answers. Details fold.
+//    panel), with little text (#15): headline, one line of why, one strip of
+//    evidence, the facts as chips, the answers. Details fold.
 //  • the thread's own decision (inside an opened thread): Today's wide card
 //    (#20) docked above the composer. Details open with a continuous height
 //    change (~320 ms) and a content cross-fade; nothing jumps.
 //
 // Decision Kit rules hold everywhere: destructive is red, set apart, never
 // forced first, 1.2 s hold; 3 s Undo; inline Send-back note; Teach shows the
-// exact sentence. Allow and Send back carry equal weight. The coordinator's
-// suggestion is a quiet line: never pre-selected, never focused, never sent,
-// no key takes it. Focus lands on the card itself, never on an answer.
+// exact sentence. Allow and Send back carry equal weight. The answer the agent
+// recommends leads its list on a soft tile: never pre-selected, never focused,
+// never sent, no key takes it. Focus lands on the card itself, never on an answer.
 import { esc, WAITING } from "./world.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
-import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, estLine } from "./content.js";
+import { EFFORT, effortOf, rank, evidenceFor, leverageOf, estLine } from "./content.js";
 import { ICON, stepMark, xi, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB } from "./review.js";
-import { KINDS, kindOf, headOf, whyOf, stripOf, chipsOf, actsOf, isOnePress } from "./cardparts.js";
+import { KINDS, kindOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "./cardparts.js";
 import { clientId as newKey } from "./api.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
@@ -88,7 +88,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       // idle: its agent isn't working, so nothing moves until you answer. Live threads say so by their
       // session (a "working" thread whose session sits warm is idle); an item with no thread is idle.
       n.idle = WAITING(n.t.state) || n.group === "stopped" || !!n.t.host || (n.t.live && n.t.busy === false);
-      n.sug = suggestFor(n);
       n.later = later.has(n.key);
     }
     P.classify(out);
@@ -318,8 +317,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     const done = !!(choice && choice.resolve);
     const verb = done ? "Done" : choice === "allow" ? "Allowed" : choice === "deny" ? "Sent back" : stopped ? "Asked to retry" : "Answered";
     const said = typeof choice === "object" && !done ? choice.option || choice.text : "";
-    const fromSug = !!(n.sug && said && said === n.sug.label) || (choice === "allow" && n.sug && n.sug.label === "Allow");
-    const entry = { id: ++logN, key: n.key, verb, choice: choice === "allow" || choice === "deny" ? choice : "answer", label: n.ask.title, said, typed: !done && typeof choice === "object" && !!choice && choice.text != null, note, taught, fromSug, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
+    const entry = { id: ++logN, key: n.key, verb, choice: choice === "allow" || choice === "deny" ? choice : "answer", label: n.ask.title, said, typed: !done && typeof choice === "object" && !!choice && choice.text != null, note, taught, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
     log.unshift(entry);
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, choice === "deny" ? "back" : "allow");
@@ -344,7 +342,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     const opt = body.scope === "thread" ? P.scopes.find((o) => o.scope === "thread") : body.option ? P.scopes.find((o) => o.id === body.option) : null;
     const said = typeof choice === "object" && choice ? (choice.option || choice.text || choice.name || (choice.answers ? "your answers" : "") || (opt ? opt.label : "")) : "";
     const verb = opt ? (opt.scope === "thread" ? "Allowed for this thread" : "Allowed, with a rule") : VERB[body.decision] || "Answered";
-    const entry = { id: ++logN, key: n.key, verb, choice: no ? "deny" : body.decision === "answer" ? "answer" : "allow", label: it.title, said, note, taught: !!opt && opt.scope === "rule", fromSug: false, project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
+    const entry = { id: ++logN, key: n.key, verb, choice: no ? "deny" : body.decision === "answer" ? "answer" : "allow", label: it.title, said, note, taught: !!opt && opt.scope === "rule", project: n.t.project, thread: n.t.title, tid: n.t.id, at: Date.now(), status: "queued", risk: n.risk, lev: n.lev, doneAt: n.t.checklist.done, secs: secs ?? (n.effort === "glance" ? 5 : 40) };
     log.unshift(entry);
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, no ? "back" : "allow");
@@ -414,7 +412,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     return `<div class="dt">` +
       `<div class="dt-main">${changeBlock(ev.change)}` +
       `<p class="dt-why">${esc(ev.why)}</p>` +
-      (n.sug ? `<p class="dt-sug"><b>Why ${esc(n.sug.label)}:</b> ${esc(n.sug.why)}</p>` : "") +
       `<ol class="ev-msgs">${msgs.map((m) => `<li><b>${m.who === "you" ? "You" : "Agent"}</b><span>${esc(m.text)}</span><time>${clock(m.at)}</time></li>`).join("")}</ol></div>` +
       `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>` +
       (t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : "") + `</div></div>`;
@@ -486,12 +483,16 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   /** The card's one row of buttons: the yes and the no at equal width, Later beside them. */
   const rowHtml = (acts, n, scope) => acts.length ? `<div class="c-btns">${acts.map((b) => actHtml(b, n, scope)).join("")}</div>` : "";
 
-  /** A question's answers: one press each for a plain choice, else the form (several, multi, secret) with its Send. */
+  /** An answer's grey line: "Suggested · " on the one the agent recommends, its reason, and what it costs. */
+  const optLine = (o, tag) => o.description || o.cost || o.recommended
+    ? `<${tag} class="o-d">${o.recommended ? `<span class="o-rec">Suggested · </span>` : ""}${[o.description && esc(o.description), o.cost && `<span class="o-cost">${esc(o.cost)}</span>`].filter(Boolean).join(" · ")}</${tag}>` : "";
+
+  /** A question's answers, one per row: one press each for a plain choice, else the form (several, multi, secret) with its Send. */
   function questionHtml(n, id, acts) {
     const it = n.ask.item, qs = questionsOf(it);
     if (isOnePress(n)) {
-      const q = qs[0];
-      return `<div class="c-opts n${Math.min(q.options.length, 3)}" role="group" aria-label="Answers">${q.options.map((o, i) => `<button type="button" class="b b-opt" data-iopt="${i}" title="Answer “${esc(o.label)}” (${i + 1})"><span class="o-l">${esc(o.label)}</span>${o.description ? `<span class="o-d">${esc(o.description)}</span>` : ""}</button>`).join("")}</div>` + rowHtml(acts, n);
+      const os = optionsOf(qs[0]), keys = pickKeys(os);
+      return `<div class="c-opts is-list" role="group" aria-label="Answers">${os.map((o, i) => `<button type="button" class="b b-opt${o.recommended ? " is-rec" : ""}" data-iopt="${o.index}"${keys[i] ? ` data-pick="${keys[i]}"` : ""} title="Answer “${esc(o.label)}”${keys[i] ? ` (${keys[i]})` : ""}"><span class="o-l">${esc(o.label)}</span>${optLine(o, "span")}</button>`).join("")}</div>` + rowHtml(acts, n);
     }
     return `<form class="c-qs" data-qform novalidate>${qs.map((q, qi) => {
       const name = `q${id}-${qi}`;
@@ -500,7 +501,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       const head = same ? `<legend class="sr-only">${esc(q.question)}</legend>` : `<legend>${esc(q.header || q.question)}</legend>${q.header && q.question ? `<p class="c-q-q">${esc(q.question)}</p>` : ""}`;
       if (q.secret) return `<fieldset class="c-q">${head}<input type="password" class="c-q-in" name="${name}" data-qid="${esc(q.id)}" autocomplete="off" aria-label="${esc(q.question)}"><p class="c-q-s">Goes to the agent only; XO keeps it as [secret].</p></fieldset>`;
       if (!q.options.length) return `<fieldset class="c-q">${head}<input class="c-q-in" name="${name}" data-qid="${esc(q.id)}" autocomplete="off" aria-label="${esc(q.question)}"></fieldset>`;
-      return `<fieldset class="c-q">${head}<div class="c-q-opts">${q.options.map((o) => `<label class="c-q-o"><input type="${q.multi ? "checkbox" : "radio"}" name="${name}" data-qid="${esc(q.id)}" value="${esc(o.label)}"><span><b>${esc(o.label)}</b>${o.description ? `<em>${esc(o.description)}</em>` : ""}</span></label>`).join("")}</div></fieldset>`;
+      const os = optionsOf(q), keys = qs.length === 1 ? pickKeys(os) : os.map(() => 0);
+      return `<fieldset class="c-q">${head}<div class="c-q-opts">${os.map((o, i) => `<label class="c-q-o${o.recommended ? " is-rec" : ""}"><input type="${q.multi ? "checkbox" : "radio"}" name="${name}" data-qid="${esc(q.id)}" value="${esc(o.label)}"${keys[i] ? ` data-pick="${keys[i]}"` : ""}><span><b>${esc(o.label)}</b>${optLine(o, "em")}</span></label>`).join("")}</div></fieldset>`;
     }).join("")}${rowHtml(acts, n)}</form>`;
   }
 
@@ -1037,9 +1039,9 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     else if (K.is(e, "undo")) { own(); undo(); }
     else if (inPanel && K.is(e, "open")) { own(); onOpenThread && onOpenThread(n.t.id, "panel"); }
     else if (/^[1-9]$/.test(k) && it && it.kind === "question") {
-      // a storm question: the k-th answer button, or (in a form) the k-th choice of a lone question
-      const b = card.querySelector(`[data-iopt="${+k - 1}"]`);
-      const r = !b && card.querySelectorAll("[data-qform] .c-q").length === 1 ? card.querySelectorAll("[data-qform] .c-q-o input")[+k - 1] : null;
+      // a storm question: the k-th answer as shown, or (in a form) the k-th choice of a lone question; never the recommended one
+      const b = card.querySelector(`button[data-pick="${k}"]`);
+      const r = !b ? card.querySelector(`[data-qform] input[data-pick="${k}"]`) : null;
       if (b) { own(); b.click(); } else if (r) { own(); r.checked = r.type === "checkbox" ? !r.checked : true; r.focus(); } else return false;
     }
     else if (/^[1-9]$/.test(k) && Array.isArray(n.ask.options) && !Kit.isBinary(n.ask)) {

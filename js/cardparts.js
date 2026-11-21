@@ -190,6 +190,9 @@ export function optionsOf(q) {
   return [...rec, ...opts.filter((o) => !rec.includes(o))];
 }
 
+/** The number key (1–9) for each answer in the order shown, 0 for none: the recommended one has none, no key takes it. */
+export const pickKeys = (os) => { let k = 0; return os.map((o) => (o.recommended || k >= 9 ? 0 : ++k)); };
+
 /** One plain question with answers to pick: a press on one sends it (no form, no Send). */
 export const isOnePress = (n) => {
   const it = n.ask.item;

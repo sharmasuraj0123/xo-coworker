@@ -697,7 +697,6 @@ function nextCardHtml(n) {
     (cmd ? `<p class="nx-cmd"><code>${esc(cmd)}</code></p>` : "") +
     (n.ask.item && n.ask.item.paid ? paidHtml(n.ask.item) : "") +
     (estLine(n) ? `<p class="nx-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estLine(n))}</p>` : "") +
-    (n.sug ? `<p class="c-sug" title="${esc(n.sug.why)}">${ICON.spark}<span>Suggests <b>${esc(n.sug.label)}</b></span><em>${esc(n.sug.sure)}</em></p>` : "") +
     nextActHtml(n) + `</div></article>`;
 }
 

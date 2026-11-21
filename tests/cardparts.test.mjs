@@ -4,7 +4,8 @@
 // yes is always a hold.
 //   node tests/cardparts.test.mjs
 import assert from "node:assert/strict";
-import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, actsOf, isOnePress, cap } from "../js/cardparts.js";
+import { readFileSync } from "node:fs";
+import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress, cap } from "../js/cardparts.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -75,6 +76,15 @@ t("answers: the recommended one first (only with its reason), each keeping the i
   assert.equal(optionsOf({ options: [{ label: "A", recommended: true }] })[0].recommended, false, "a recommendation without a reason isn't shown");
   const two = optionsOf({ options: [{ label: "A", description: "a", recommended: true }, { label: "B", description: "b", recommended: true }] });
   assert.equal(two.filter((x) => x.recommended).length, 1, "one suggestion at most");
+});
+t("number keys follow the order shown and skip the recommended answer; the card picks by them, never by index", () => {
+  const o = optionsOf({ options: [{ label: "A" }, { label: "B", description: "why", recommended: true }, { label: "C" }] });
+  assert.deepEqual(pickKeys(o), [0, 1, 2], "B leads with no key; A is 1, C is 2");
+  assert.deepEqual(pickKeys(optionsOf({ options: Array.from({ length: 11 }, (_, i) => ({ label: String(i) })) })).slice(8), [9, 0, 0]);
+  const src = readFileSync(new URL("../js/decide.js", import.meta.url), "utf8");
+  assert.match(src, /querySelector\(`button\[data-pick="\$\{k\}"\]`\)/);
+  assert.doesNotMatch(src, /querySelector\(`\[data-iopt="\$\{\+k - 1\}"\]`\)/, "a key never takes an answer by its index");
+  assert.doesNotMatch(src, /c-sug|suggestFor/, "the old suggestion line is gone");
 });
 t("every kind has a strip and buttons, and every ask maps to a kind", () => {
   const STRIPS = new Set(["command", "url", "tool", "diff", "plan", "paths", "error", "none"]), ACTS = new Set(["binary", "answer", "words", "stopped"]);
