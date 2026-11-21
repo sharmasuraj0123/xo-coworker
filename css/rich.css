@@ -33,7 +33,7 @@
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
    names' edge (24 + 8) */
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{gap:8px}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev>.ev-ic{margin:0 1px}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev>.ev-ic{margin:0 var(--s-1)}
 /* someone replying: the dots lead its line, on the text's edge, no mark */
 :root:not([data-msgx]) .typing{grid-template-columns:minmax(0,1fr)}
 :root:not([data-msgx]) .typing>.av{display:none}
@@ -62,6 +62,9 @@
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>:first-child:not(.m-start){margin-top:0}
 /* words under the line that introduces them (a question and its answer, a steer and its note) read as one exchange: 8 under the line */
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev.is-lead{margin-bottom:var(--s-2)}
+/* event lines in a row read as one short list */
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev:has(+.ev){margin-bottom:var(--s-2)}
+:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev+.ev{margin-top:var(--s-2)}
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev+.m.m-under{margin-top:var(--s-2)}
 /* a message's action row sits in the gap under it, out of the flow: an unseen row never widens a gap */
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-b) + var(--s-2))}

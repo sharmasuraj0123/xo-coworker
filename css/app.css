@@ -631,10 +631,10 @@ code.hl{color:var(--code-ink)}
 /* An event line sits on the conversation's grid (hub #23): its icon centred in the avatar column,
    its words on the message column, its time in quiet mono on the right. */
 .ev{display:flex;align-items:center;gap:12px;min-height:22px;margin:0 0 var(--s-4);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3);border-radius:var(--r-sm)}
-.ev-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;margin:0 4px;border-radius:50%;background:rgba(var(--accent-rgb),.12);color:var(--accent)}
+.ev-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);margin:0 4px;color:var(--accent)}
 .ev-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
-.ev-back .ev-ic{background:var(--fill-2);color:var(--ink-3)}
-.ev-stop .ev-ic{background:var(--danger-tint);color:var(--err-ink)}
+.ev-back .ev-ic{color:var(--ink-3)}
+.ev-stop .ev-ic{color:var(--err-ink)}
 /* a line of words that ellipsizes can hold a control (Passed to a project, Continued in a thread, a project's
    "Coordinator needs you"): it clips with the ring's room as its margin, so their ring is whole (S005) */
 .ev-t{min-width:0;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
@@ -1295,8 +1295,8 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .tp-done-u:hover{background:var(--btn-fill-hover)}
 
 /* records of intelligence changes, in the conversation */
-.ev-rec .ev-ic{background:var(--fill-2);color:var(--ink-3)}
-.ev-rec.is-refused .ev-ic{background:var(--danger-tint);color:var(--err-ink)}
+.ev-rec .ev-ic{color:var(--ink-3)}
+.ev-rec.is-refused .ev-ic{color:var(--err-ink)}
 .ev-undo{flex:none;height:var(--h-sm);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .ev-undo:hover{background:var(--fill-2);color:var(--ink)}
 .m-iq{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1719,7 +1719,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 @keyframes hs-breathe{to{opacity:.5}}
 @media (max-width:760px){.hs-them{grid-template-columns:26px minmax(0,1fr);gap:8px}.hs-av{width:26px;height:26px}}
 @media (prefers-reduced-motion:reduce){.hist-skel,.hs-bar{animation:none}}
-.ev-sys .ev-ic{background:var(--fill-2);color:var(--ink-3)}
+.ev-sys .ev-ic{color:var(--ink-3)}
 .ev-asked .ev-t{text-align:left;cursor:pointer}
 .ev-asked .ev-t:hover{color:var(--ink-2)}
 .ev-asked.is-open{align-items:flex-start}
@@ -3041,7 +3041,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 /* A continuation is an event line like every other (icon in the avatar column, words on the text edge, time
    on the column's right edge), not a box of its own; its reason may wrap to a second line. */
 .ev.mv-ban{align-items:flex-start;margin:4px 0 16px}
-.mv-ban .ev-ic{background:var(--fill-2);color:var(--ink-3)}
+.mv-ban .ev-ic{color:var(--ink-3)}
 .mv-ban .ev-t{flex:1;white-space:normal;overflow:visible;text-overflow:clip;text-wrap:pretty}
 .mv-ban .ev-t b{color:var(--ink-2);font-weight:var(--fw-medium)}
 .mv-ban .ev-t a{color:var(--ink-2)}
