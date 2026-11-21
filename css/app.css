@@ -1114,6 +1114,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the thread's own card: Today's wide layout (#20) */
 .card.is-dock{max-height:min(58vh,520px);border-radius:var(--r-2xl);background:var(--surface);border-color:var(--line);box-shadow:var(--e2)}
+.card.is-dock.r-done{border-radius:var(--r-lg)}
 .card.is-dock.r-destructive{background:linear-gradient(180deg,rgb(215 55 63 / .11),transparent 200px) var(--surface)}
 .card.is-dock .c-body{padding:var(--s-4) var(--s-5) var(--s-1)}
 .card.is-dock .c-h{font-size:var(--fs-heading);margin-top:6px}

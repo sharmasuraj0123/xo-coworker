@@ -13,4 +13,9 @@ t("the done line is a 32 px row with the shared padding, its disc and mark on th
   assert.match(css, /\n\.tp-done-ic svg\{width:var\(--ic-xs\);height:var\(--ic-xs\)\}/);
   assert.match(css, /\n\.ck-tog\{[^}]*height:var\(--h-ctl\)/);
 });
+t("the done line's frame has the checklist bar's corner, not the dock card's", () => {
+  assert.match(css, /\n\.card\.is-dock\.r-done\{border-radius:var\(--r-lg\)\}/);
+  assert.match(css, /\n\.ckbar\{border-radius:var\(--r-lg\)/);
+  assert.ok(css.indexOf(".card.is-dock.r-done{") > css.indexOf(".card.is-dock{"), "comes after the dock card's radius");
+});
 console.log(`\n${passed} passed`);
