@@ -51,7 +51,7 @@
 .lp-hh:hover{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
 .lp-hb{display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 8px 0 6px;border-radius:var(--r);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-hb svg{width:var(--ic-sm);height:var(--ic-sm)}
-.lp-hb:hover{background:var(--panel-hover);border-color:var(--line-strong);color:var(--ink);transition-duration:var(--d-hover-in)}
+.lp-hb:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 
 /* the small working arc, inline (the panel's .arc is a corner badge) */
 .lp-arc{flex:none;position:relative;display:inline-block;width:12px;height:12px;color:var(--work)}
@@ -87,7 +87,6 @@
 
 @keyframes lp-flow{from{background-position:0 -120%,0 0}to{background-position:0 220%,0 0}}
 
-
 /* checking: the card's shape, quietly breathing */
 @keyframes lp-skel{from{opacity:.55}to{opacity:1}}
 
@@ -116,7 +115,7 @@
 .lp-asked .lp-note{padding-top:0;padding-bottom:8px}
 .lp-asked .lp-ag{margin-bottom:12px}
 .lp-in::placeholder{color:var(--ink-4)}
-.lp-in:hover{border-color:var(--line-strong)}
+
 /* typed in: the focus every boxed field has (foundation.css: the edge darkens, the base ring) */
 .lp-hint{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .lp-f.is-bad .lp-in{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
@@ -166,7 +165,7 @@
 .lp-b svg{flex:none;width:var(--ic);height:var(--ic)}
 a.lp-b{padding:0 10px 0 12px}
 a.lp-b svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
-.lp-b:hover{background:var(--panel-hover);border-color:var(--line-strong);color:var(--ink);transition-duration:var(--d-hover-in)}
+.lp-b:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .lp-a{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 8px;border-radius:var(--r);border:0;background:none;color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lp-a svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lp-a:hover{background:var(--panel-hover);color:var(--ink)}
@@ -248,7 +247,7 @@ a.lp-b svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .lp-alt.lp-left{justify-content:flex-start;padding-left:12px}
 /* Deploy steps back while a decision Space asked for shows its own lit button */
 .lp-go.is-quiet{background:none;color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line-soft)}
-.lp-go.is-quiet:hover{background:var(--panel-hover);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.lp-go.is-quiet:hover{background:var(--panel-hover);color:var(--ink)}
 /* a decision Space asked for, above the form */
 .lp-ask{margin:0 12px 12px}
 .lp-wait{display:flex;align-items:center;gap:8px;margin:0;padding:12px 20px 0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}

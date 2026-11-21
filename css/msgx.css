@@ -83,7 +83,7 @@
 .mx-qpop svg{width:var(--ic);height:var(--ic);color:var(--ink-3)}
 /* it answers the pointer like every other button: a step brighter, its icon with it, pressed in (RPL-4) */
 .mx-qpop{transition:background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-.mx-qpop:hover{background:color-mix(in srgb,var(--fill-2) 90%,transparent);border-color:var(--line-strong);transition-duration:var(--d-hover-in)}
+.mx-qpop:hover{background:color-mix(in srgb,var(--fill-2) 90%,transparent);transition-duration:var(--d-hover-in)}
 .mx-qpop:hover svg{color:var(--ink-2)}
 .mx-qpop:active{background:color-mix(in srgb,var(--fill-3) 92%,transparent)}
 

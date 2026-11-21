@@ -22,7 +22,6 @@
 :root[data-theme="light"] .theme[aria-checked="true"] .th-track{background:var(--track)}
 :root[data-theme="light"] .theme[aria-checked="true"] .th-knob{color:var(--warn)}
 :root[data-theme="light"] .switch[aria-checked="true"] .th-knob{color:var(--knob-go)}
-:root[data-theme="light"] .theme:hover .th-track,:root[data-theme="light"] .switch:hover .th-track{box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
 
 /* ── composer: crisp edge, a contact shadow, no halo ── */
 :root[data-theme="light"] .composer{box-shadow:0 1px 2px rgba(0,0,0,.04),0 3px 10px -4px rgba(0,0,0,.07)}
@@ -34,9 +33,9 @@
 :root[data-theme="light"] .next.r-destructive{background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(170deg,color-mix(in srgb,var(--err-ink) 55%,transparent),color-mix(in srgb,var(--err-ink) 22%,transparent) 40%,var(--fill-3)) border-box}
 :root[data-theme="light"] .calm{border-color:var(--line-soft);box-shadow:var(--lift-1)}
 :root[data-theme="light"] .hd{border-color:var(--line-soft)}
-:root[data-theme="light"] .hd:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));border-color:var(--line)}
+:root[data-theme="light"] .hd:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface))}
 :root[data-theme="light"] .md-it{background:var(--surface);border-color:var(--line-soft)}
-:root[data-theme="light"] .md-it:hover{border-color:var(--line-strong)}
+:root[data-theme="light"] .md-it:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root[data-theme="light"] .md-it:has(.md-open:hover){background:color-mix(in srgb,var(--ink) 8%,var(--surface))}
 :root[data-theme="light"] .md-th{background:var(--fill-1);border-bottom-color:var(--line-soft)}
 :root[data-theme="light"] .wsh-mark{box-shadow:var(--lift-2)}
@@ -44,7 +43,7 @@
 /* ── conversation ── */
 :root[data-theme="light"] .bubble{background:var(--bubble);border-color:var(--bubble-line)}
 :root[data-theme="light"] .tcard{border-color:var(--line-soft);box-shadow:var(--lift-1)}
-:root[data-theme="light"] .tcard:hover{background:var(--surface);border-color:var(--line-strong)}
+:root[data-theme="light"] .tcard:hover{background:var(--surface)}
 :root[data-theme="light"] .ckbar{background:var(--surface);border-color:var(--line-soft)}
 :root[data-theme="light"] .hr{border-color:rgba(0,0,0,.08);box-shadow:var(--lift-2)}
 :root[data-theme="light"] .hr-calm{box-shadow:none}
@@ -62,7 +61,7 @@
 :root[data-theme="light"] .dg{background-color:var(--canvas);background-image:radial-gradient(circle,var(--line) 1px,transparent 1.2px);border-color:var(--line-soft)}
 :root[data-theme="light"] .dg-edges path,:root[data-theme="light"] .dg-edges line{stroke:var(--fill-4)}
 :root[data-theme="light"] .dg-n{background:var(--surface);border-color:var(--line)}
-:root[data-theme="light"] button.dg-n:hover{border-color:var(--line-hover)}
+:root[data-theme="light"] button.dg-n:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root[data-theme="light"] .dg-n.k-dir{background:var(--fill-1)}
 :root[data-theme="light"] .gn-l{text-shadow:0 0 3px var(--canvas),0 0 3px var(--canvas)}
 :root[data-theme="light"] .dg-cur.is-idle .dg-tag{background:var(--fill-3);color:var(--ink-2)}

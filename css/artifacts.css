@@ -31,7 +31,7 @@
 .ar-kinds{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .ar-kinds button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .ar-kinds button span{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.ar-kinds button:hover{color:var(--ink);border-color:var(--line-strong)}
+.ar-kinds button:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .ar-kinds button[aria-checked="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 .ar-kinds button[aria-checked="true"] span{color:var(--ink-3)}
 .ar-body{margin-top:8px}

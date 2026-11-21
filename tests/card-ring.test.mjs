@@ -27,7 +27,7 @@ t("a pin answers hover, a pinned one too: its own rule at least as strong as the
   assert.match(app, /\.md-it\.is-pin \.md-pin\{color:var\(--accent\)\}/);
   assert.match(app, /\.md-it\.is-pin \.md-pin:hover\{color:var\(--accent-hover\)\}/);
   assert.match(app, /\.md-pin:hover\{background:color-mix\(in srgb,var\(--fill-3\) 92%,transparent\);color:var\(--ink\)\}/);
-  assert.match(app, /:root\[data-theme="light"\] \.md-pin:hover\{background:var\(--surface\);/);
+  assert.match(app, /:root\[data-theme="light"\] \.md-pin:hover\{background:var\(--surface\)\}/);
   assert.match(app, /:root\[data-theme="light"\] \.md-it\.is-pin \.md-pin:hover\{color:color-mix\(in srgb,var\(--accent\) 75%,var\(--ink\)\)\}/, "light's pinned glyph a step firmer, not the paler fill hover");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

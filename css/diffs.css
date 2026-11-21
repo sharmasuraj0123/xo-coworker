@@ -97,7 +97,7 @@ diffs-container{
 .stage .cx-pill i{width:6px;height:6px;mask:var(--mask-dot);background:var(--ink-3)}
 .stage .cx-pill .cx-show{font-weight:var(--fw-medium);color:var(--ink)}
 .stage .cx-pill .cx-show::before{content:"·";margin-right:8px;font-weight:var(--fw-regular);color:var(--ink-4)}
-.stage .cx-pill:hover{border-color:var(--line-hover)}
+.stage .cx-pill:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 @keyframes cx-pill{from{opacity:0;transform:translate(-50%,-4px)}}
 /* the frame's head: the total beside the count, and Follow */
 .stage [data-fr="changes"] .fr-n{display:inline-flex;align-items:baseline;gap:8px}
@@ -124,7 +124,7 @@ diffs-container{
 
 /* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
 .xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
-.xd-ask:hover{border-color:var(--line-hover)}
+.xd-ask:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 .xd-ask svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
 .xd-ask kbd{all:unset;margin-left:var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 :root[data-theme="light"] .xd-ask{background:var(--surface)}
@@ -165,7 +165,7 @@ diffs-container{
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
 .xd-btn{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-btn:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .xd-btn.is-warn{border-color:transparent;background:var(--danger-fill);color:var(--err-ink)}
@@ -193,7 +193,7 @@ diffs-container{
 .xd-merge{display:flex;align-items:center;gap:4px;padding:4px 0;font-family:var(--sans);border-radius:var(--r-sm);outline:none}
 .xd-merge:focus-visible{box-shadow:0 0 0 2px var(--focus)}
 .xd-mbtn{height:var(--h-sm);padding:0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.xd-mbtn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.xd-mbtn:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-mbtn.is-mine{border-color:transparent;background:color-mix(in srgb,var(--accent-fill) 12%,var(--surface));color:var(--ink)}
 .xd-mbtn:focus-visible,.xd-btn:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
 /* "Saved · Undo · Tell the agent", at the foot of the file (the app's toast, here) */
