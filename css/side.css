@@ -105,7 +105,8 @@
   .side-folded :is(.brand,.side-label,.nr-name,.nr-q,.pr-main,.sh-n,.gear-t){display:none}
   .side-folded :is(.nrow,.prow){width:var(--h-row);padding:0;justify-content:center;gap:0}
   /* Home's count rides on its tile's corner */
-  .side-folded .nr-n:not(:empty){position:absolute;top:0;right:0;padding:0 var(--s-1);border-radius:var(--r-pill);background:var(--sb-side)}
+  .side-folded .nr-n:not(:empty){position:absolute;top:calc(var(--s-1) / 2);right:calc(var(--s-1) / 2);justify-content:center;min-width:var(--s-4);height:var(--s-4);padding:0 var(--s-1);border-radius:var(--r-pill);background:var(--warn);color:var(--sb-side);font-size:var(--fs-meta);box-shadow:0 0 0 calc(var(--s-1) / 2) var(--sb-side)}
+  .side-folded .nr-n .nv-dot{display:none}
   :root:root:root .side-folded .prow{border-color:transparent;box-shadow:none}
   :root:root:root .side-folded .prow:not(.is-on){background:transparent}
   :root:root .side-folded .prow::before{display:none}
