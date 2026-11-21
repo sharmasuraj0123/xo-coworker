@@ -33,8 +33,9 @@ const PREFS = "cv-chat-prefs";
 const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "" };
+  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
 
+  const RECENT = 3;
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? mainRuntime(world.state.runtimes) : null) || null;
@@ -96,10 +97,14 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   function listItems() {
     const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
     if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
-    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything above. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
-    const q = C.q.trim().toLowerCase();
-    const shown = q ? rows.filter((s) => `${titleFor(s)} ${rowLine(s)}`.toLowerCase().includes(q)) : rows;
-    const head = { key: "chats-head", html: `<div class="chl-top"><h2 class="chl-k">Recent chats</h2><label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label></div>` };
+    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Your first question starts one. No project needed.</p></div>` }];
+    // at rest a few of the latest under the composer; all of them, searchable and by day, a click away
+    const few = !C.all && rows.length > RECENT;
+    const q = C.all ? C.q.trim().toLowerCase() : "";
+    const shown = few ? rows.slice(0, RECENT) : q ? rows.filter((s) => `${titleFor(s)} ${rowLine(s)}`.toLowerCase().includes(q)) : rows;
+    const head = { key: `chats-head-${C.all ? "all" : "few"}`, html: C.all
+      ? `<div class="chl-top"><h2 class="chl-k">All chats</h2><label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label><button type="button" class="chl-all" data-chl-all="0">Recent</button></div>`
+      : `<div class="chl-top"><h2 class="chl-k">Recent</h2>${few ? `<button type="button" class="chl-all" data-chl-all="1">All ${rows.length}${ICON.right}</button>` : ""}</div>` };
     if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">No chats match “${esc(C.q.trim())}”.</p>` }];
     const groups = new Map();
     for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(s); }
@@ -114,6 +119,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         `<span class="chl-main"><span class="chl-t">${esc(titleFor(s))}</span>${line ? `<span class="chl-m">${esc(line)}</span>` : ""}</span>` +
         `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at))}</span></button></li>`;
     };
+    if (!C.all) return [head, { key: "chats-list", html: `<div class="chl chl-few"><ul class="chl-list">${shown.map(row).join("")}</ul></div>` }];
     return [head, { key: "chats-list", html: `<div class="chl">${[...groups].map(([g, list], i) =>
       `<section class="chl-g" aria-labelledby="chl-g${i}"><h2 class="chl-h" id="chl-g${i}">${esc(g)}</h2><ul class="chl-list">${list.map(row).join("")}</ul></section>`).join("")}</div>` }];
   }
@@ -203,7 +209,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return items;
   }
   function headHtml(v) {
-    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">One agent, one folder, outside your projects' coordinators</span></span>`;
+    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">Quick questions, big ideas, anything at all.</span></span>`;
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
@@ -480,6 +486,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     /** Why this chat can't take a message, if it can't. */
     blocked: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.retired_at ? "This chat has ended" : ""; },
     search(q) { if (C.q !== q) { C.q = q; schedule(); } },
+    showAll(on) { C.all = on; if (!on) C.q = ""; schedule(); },
     send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
     permHtml,
     /** A chip pressed: its own list opens, or closes when it is the one open. */

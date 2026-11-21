@@ -90,10 +90,13 @@ t("Chats starts with its composer: under the greeting at the top, the dock back 
   assert.match(css, /\.app\[data-conv="chats"\] \.main\{--dock-h:0px\}/, "nothing reserves the foot's room on Chats");
   assert.match(css, /\.cs-hi\{[^}]*var\(--fs-display\)\/var\(--lh-display\)/, "the greeting is Home's display role");
 });
-t("Recent chats: a search over titles and lines, second lines only for what isn't the default", () => {
+t("Recent: the three latest under the composer, all of them a click away with a search over titles and lines, second lines only for what isn't the default", () => {
   const src = read("js/chats.js"), app = read("js/app.js");
-  assert.match(src, /<h2 class="chl-k">Recent chats<\/h2><label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
-  assert.match(src, /rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
+  assert.match(src, /<h2 class="chl-k">All chats<\/h2><label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
+  assert.match(src, /<h2 class="chl-k">Recent<\/h2>\$\{few \? `<button type="button" class="chl-all" data-chl-all="1">All \$\{rows\.length\}/);
+  assert.match(src, /const RECENT = 3;/);
+  assert.match(src, /few \? rows\.slice\(0, RECENT\) : q \? rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
+  assert.match(read("css/app.css"), /\.scroller:has\(\.chl-few,\.chl-calm\)>\.column\{height:0;margin-bottom:auto\}/, "at rest the composer stands in the middle");
   assert.match(src, /No chats match/);
   assert.doesNotMatch(src.slice(src.indexOf("const rowLine"), src.indexOf("const waiting")), /Default model/);
   assert.match(app, /e\.target\.matches\?\.\("\[data-chl-q\]"\)\) CH\.search\(e\.target\.value\)/);
