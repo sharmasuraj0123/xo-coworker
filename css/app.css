@@ -509,6 +509,8 @@ button:disabled{cursor:default}
 .prose strong{font-weight:var(--fw-strong)}
 .prose em{color:var(--ink-2)}
 .prose code{font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);background:var(--fill-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:.1em .4em}
+/* a message's headings (markdown.js draws # to #### as h3 to h6) read at its own size, never under it; weight marks them */
+.prose :is(h3,h4,h5,h6).md-h{font-size:inherit;line-height:inherit;font-weight:var(--fw-strong);letter-spacing:0;color:var(--ink)}
 /* links in prose: css/links.css */
 /* the block clips nothing: only its text needs its corners, and the text clips itself (it scrolls sideways), so the
    head's Copy keeps its whole ring at every width (the controls grader's sweep on 06b997b, S089: on a phone Copy is
