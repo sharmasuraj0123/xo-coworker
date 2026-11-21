@@ -4,13 +4,15 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
-const has = (name) => ["a-places-and-the-frame", "c-actions", "d-things-and-kinds", "e-state-marks", "j-new-in-the-pack", "k-more-icons", "p-devices-development-and-everyday"].some((d) => existsSync(new URL(`../assets/icons/xo/${d}/${name}.svg`, import.meta.url)));
+const PACK = JSON.parse(read("assets/icons/xo/manifest.json")).icons.map((i) => i.file);
+const has = (name) => PACK.some((f) => f.endsWith(`/${name}.svg`)) && existsSync(new URL(`../assets/icons/xo/${PACK.find((f) => f.endsWith(`/${name}.svg`))}`, import.meta.url));
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
 const tv = read("js/turnview.js");
-const cmdSrc = tv.slice(tv.indexOf("const CMD_ICON"), tv.indexOf("const icon ="));
-const cmdIcon = new Function(`${cmdSrc.replace("export function", "function")}; return cmdIcon;`)();
+const iconSrc = tv.slice(tv.indexOf("const KIND_ICON"), tv.indexOf("const secs ="));
+const commsTool = (r) => (/^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/.exec(String(r.tool || r.target || "")) || [])[1] || null;
+const [cmdIcon, stepIcon] = new Function("commsTool", `${iconSrc.replaceAll("export function", "function")}; return [cmdIcon, stepIcon];`)(commsTool);
 
 await t("a command row shows the icon of what it does; anything else stays a terminal", () => {
   const want = {
@@ -19,12 +21,33 @@ await t("a command row shows the icon of what it does; anything else stays a ter
     "git switch -c feat/a": "branch", "git log --oneline -3": "history", "gh pr create": "pull-request",
     "npm test": "test-flask", "npm run test": "test-flask", "pytest -q": "test-flask", "node tests/a.test.mjs": "test-flask",
     "docker build .": "container", "curl -s http://x": "api", "cd repo && git commit -am x": "commit", "FOO=1 git push": "cloud-upload",
-    "ls -la": "terminal", "": "terminal", "echo git commit": "terminal",
+    "ls -la": "folder-open", "": "terminal", "echo git commit": "terminal", "python3 x.py": "terminal",
+    "git fetch -q . ; sed -n 1,60p js/turnview.js": "eye", "cd /x && grep -n foo css/*.css | head": "search", "git fetch && git merge --ff-only r": "merge",
+    "git add -A && git commit -m x && git log -1": "commit", "npm install && npm test": "test-flask", "rm -rf /tmp/a && mkdir -p /tmp/a": "delete",
+    "sed -i s/a/b/ f": "edit", "timeout 60 node tests/a.test.mjs": "test-flask", "cat > a <<'EOF'\ngit push origin main\nEOF\nls": "file-new", "echo hi > notes.md": "file-new", "cat a.txt 2>/dev/null": "eye",
   };
   for (const [c, n] of Object.entries(want)) assert.equal(cmdIcon(c), n, c);
 });
+await t("a step's icon comes from its kind, its tool's own name in any runtime, its command, then its own words", () => {
+  const want = [
+    [{ kind: "read" }, "eye"], [{ kind: "search" }, "search"], [{ kind: "list" }, "folder-open"], [{ kind: "create_file" }, "file-new"],
+    [{ kind: "edit_file" }, "edit"], [{ kind: "delete_file" }, "delete"], [{ kind: "web_fetch" }, "web"], [{ kind: "web_search" }, "web"],
+    [{ kind: "mcp" }, "plug"], [{ kind: "subagent" }, "agent"], [{ kind: "plan" }, "checklist"], [{ kind: "ask" }, "question"],
+    [{ kind: "command", target: "git push" }, "cloud-upload"], [{ kind: "command", target: "python3 x.py", line: "Read the type tokens" }, "eye"],
+    [{ kind: "command", target: "python3 x.py", line: "Find where the tick is drawn" }, "search"], [{ kind: "command", target: "python3 x.py", line: "Build it" }, "terminal"],
+    [{ kind: "other", tool: "Skill" }, "wand"], [{ kind: "other", tool: "ScheduleWakeup" }, "alarm"], [{ kind: "other", tool: "EnterWorktree" }, "branch"],
+    [{ kind: "other", tool: "image_generation" }, "image"], [{ kind: "other", tool: "Monitor" }, "logs"], [{ kind: "other", tool: "ToolSearch" }, "search"],
+    [{ kind: "other", tool: "something_new" }, "step-dot"], [{}, "step-dot"],
+    [{ kind: "mcp", tool: "mcp__xo_comms__update_status" }, "checklist"], [{ kind: "mcp", target: "xo_comms/share_files" }, "share"], [{ kind: "mcp", tool: "mcp__xo_comms__wake_me" }, "alarm"],
+    [{ kind: "mcp", tool: "mcp__xo_comms__reply" }, "chat"], [{ kind: "mcp", tool: "mcp__xo_comms__ask" }, "question"], [{ kind: "mcp", tool: "mcp__xo_comms__fetch_thread" }, "eye"],
+    [{ kind: "mcp", tool: "mcp__xo_comms__brand_new" }, "plug"], [{ kind: "mcp", tool: "mcp__github__create_issue" }, "plug"],
+  ];
+  for (const [r, n] of want) assert.equal(stepIcon(r), n, JSON.stringify(r));
+  assert.match(tv, /<span class="tb-ri">\$\{xi\(stepIcon\(r\)\)\}<\/span>/);
+  assert.match(read("js/runsview.js"), /<span class="tb-ri">\$\{xi\(stepIcon\(\{ kind: it\.kind, tool: it\.tool, target: it\.target, line: it\.title \}\)\)\}<\/span>/);
+});
 await t("every name the rows can draw is in the pack", () => {
-  const names = [...tv.slice(tv.indexOf("const KIND_ICON"), tv.indexOf("export function cmdIcon")).matchAll(/"([a-z-]+)"\]?[,\s}]/g)].map((m) => m[1]);
+  const names = [...tv.slice(tv.indexOf("const KIND_ICON"), tv.indexOf("export function stepIcon")).matchAll(/"([a-z-]+)"\]?[,\s}]/g)].map((m) => m[1]);
   assert.ok(names.length > 20);
   for (const n of names) assert.ok(has(n), n);
   assert.match(tv, /delete_file: "delete"/); assert.match(tv, /error: "alert"/); assert.match(tv, /notice: "info"/); assert.match(tv, /list: "folder-open"/);

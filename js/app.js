@@ -1313,7 +1313,7 @@ function msgItemsOf(conv, needs) {
       const canUndo = m.undo && Date.now() < m.until;
       html = `<div class="ev ev-rec${m.refused ? " is-refused" : ""}"><span class="ev-ic">${m.refused ? ICON.close : ICON.router}</span><span class="ev-t">${esc(m.text)}</span>${canUndo ? `<button type="button" class="ev-undo" data-rec-undo="${esc(m.id)}">Undo</button>` : ""}<time>${clock(m.at)}</time></div>`;
     }
-    items.push({ key: m.key, html });
+    items.push(m.who === "turn" ? { key: m.key, html, inPlace: true } : { key: m.key, html });
     prev = above = m;
   }
   return items;
