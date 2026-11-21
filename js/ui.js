@@ -271,7 +271,8 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  * place (js/redraw.js), so the control you're on stays (Astra DET-1: a tool's output arriving took focus from
  * its disclosure). Its own attributes come from the new HTML; once the list is in order it hears "redrawn"
  * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
- * is replaced as before, unless `inPlace`: then every changed row is updated in place (a list whose rows animate in).
+ * is replaced as before, unless `inPlace` (for the list, or for the item): then it is updated in place, so what stays keeps its node
+ * and nothing in it replays (an agent's turn redrawn as its steps land).
  */
 /** Where focus can land in a row: its controls, in order. */
 const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
@@ -298,7 +299,7 @@ export function reconcile(box, items, { quiet = false, fallback = null, inPlace:
     let el = old.get(it.key);
     if (el && el._h !== it.html) {
       const fresh = parse(it.html);
-      if ((always || (active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
+      if ((always || it.inPlace || (active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
         for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
         for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
         redraw(el, fresh.innerHTML);
