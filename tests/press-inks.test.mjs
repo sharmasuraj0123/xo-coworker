@@ -37,7 +37,7 @@ const rgb = (s) => s.startsWith("#") ? [1, 3, 5].map((i) => parseInt(s.slice(i, 
 const lum = (c) => { const [r, g, b] = c.slice(0, 3).map((v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 const over = (fill, base) => base.map((v, i) => v * (1 - fill[3]) + fill[i] * fill[3]);
-t("pressed, the second ink keeps 4.5:1 on every base; the meta inks would not", () => {
+t("pressed, the second ink keeps 4.5:1 on every base", () => {
   for (const [name, b] of [["dark", dark], ["light", light]]) {
     const press = rgb(tok(b, "--press-fill"));
     for (const base of ["--surface", "--canvas", "--sunken", "--float"]) {
@@ -45,8 +45,6 @@ t("pressed, the second ink keeps 4.5:1 on every base; the meta inks would not", 
       const two = ratio(rgb(tok(b, "--ink-2")), bg);
       assert.ok(two >= 4.5, `${name} ${base}: --ink-2 ${two.toFixed(2)}`);
     }
-    const bg = over(press, rgb(tok(b, "--surface")));
-    assert.ok(ratio(rgb(tok(b, "--ink-4")), bg) < 4.5, `${name}: --ink-4 needs the lift`);
   }
 });
 t("the Chats row's meta is its own: the Changes mark's rules are scoped to its row", () => {

@@ -19,10 +19,10 @@ t("tokens.css defines exactly the roles", () => {
   assert.deepEqual([...new Set(lh)].sort(), [...LINES].sort());
   assert.match(tokens, /--fs-read:16px/); assert.match(tokens, /--fs-ui:14px/); assert.match(tokens, /--fs-meta:12px/);
 });
-t("reading is lighter and softer on dark, regular on light", () => {
-  assert.match(tokens, /--fw-read:380/);
-  assert.match(tokens, /:root\[data-theme="light"\]\{[^}]*--fw-read:var\(--fw-regular\)/);
-  assert.match(tokens, /--ink-read:color-mix\(/);
+t("reading is the full ink at the regular weight, on dark and light alike", () => {
+  assert.match(tokens, /--fw-read:var\(--fw-regular\)/);
+  assert.match(tokens, /--ink-read:var\(--ink\)/);
+  assert.doesNotMatch(tokens, /--fw-read:3\d\d|--ink-read:color-mix/);
 });
 t("a thread's page title is the title role, as every top bar's", () => {
   const app = sheets.find(([f]) => f === "app.css")[1];

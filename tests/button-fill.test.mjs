@@ -36,4 +36,20 @@ t("Deploy is Apple's tinted style: the accent at 16/22/28% with no rim", () => {
   assert.doesNotMatch(rule(".tw-act.lp-btn:hover"), /border-color/);
 });
 
+t("no state draws a coloured rim: needs, failed, chosen, destructive and their boxes say it with a tint", () => {
+  const rims = [...all.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, sel, body]) => /(^|;)border(-color)?:[^;]*(--warn|--err|--danger|--accent|accent-rgb|245 166 35|230 131 136)/.test(body)
+    && !/\.btn-pri|\.is-pri|\.lp-f\.is-bad|aria-invalid|\.av-w|\.drop-veil|\.dg-|\.sc-dot|\.m-you\.is-failed|\.pr-ic/.test(sel));
+  assert.deepEqual(rims.map(([, sel]) => sel.trim()), []);
+});
+
+t("a destructive button is a red fill, deeper on hover and press, with no outline", () => {
+  assert.match(rule(".btn-danger"), /background:var\(--danger-fill\);border-color:transparent/);
+  assert.equal((tok.match(/--danger-fill:color-mix\(in srgb,var\(--err-ink\) \d+%,transparent\); --danger-fill-hover:[^;]+; --danger-fill-press:[^;]+;/g) || []).length, 3);
+});
+
+t("keyboard focus is Apple's soft glow: 3 px of the accent at 45%, 1 px out, following the corners", () => {
+  assert.match(read("base.css"), /(^|\n):focus-visible\{outline:3px solid var\(--focus\);outline-offset:1px\}/);
+  assert.equal((tok.match(/--focus:rgba\(var\(--accent-rgb\),\.45\)/g) || []).length, 2);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

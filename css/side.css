@@ -34,10 +34,10 @@
 /* the open project: the one raised card */
 .prow.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sb-side));border-color:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3)}
 .prow.is-on.busy{background:color-mix(in srgb,var(--info) 12%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:color-mix(in srgb,var(--info) 50%,transparent)}
-.prow.is-on.needs{background:color-mix(in srgb,var(--warn) 13%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:color-mix(in srgb,var(--warn) 52%,transparent)}
+.prow.is-on.needs{background:color-mix(in srgb,var(--warn) 13%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:transparent}
 :root[data-theme="light"] .prow.is-on{background:var(--surface);border-color:rgba(0,0,0,.07);box-shadow:var(--sb-lift-2)}
 :root[data-theme="light"] .prow.is-on.busy{background:color-mix(in srgb,var(--info) 6%,var(--surface));border-color:color-mix(in srgb,var(--info) 30%,transparent)}
-:root[data-theme="light"] .prow.is-on.needs{background:color-mix(in srgb,var(--warn) 7%,var(--surface));border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+:root[data-theme="light"] .prow.is-on.needs{background:color-mix(in srgb,var(--warn) 7%,var(--surface));border-color:transparent}
 /* a row in a state (working, needs you, the one you're on) answers hover too: its wash is the stronger rule, so the
    row's own hover never showed (the controls grader on 999f408, C008: a needs-you project row, and the current nav
    row, the same hovered as at rest). One layer over whatever wash the state has, a step toward the ink in either
