@@ -122,4 +122,7 @@ await t("a running tool group leads with its running step's own icon (blue while
   assert.match(read("js/turnview.js"), /<span class="tb-hi">\$\{cur\.length \? xi\(stepIcon\(cur\[0\]\)\) : ICON\.list\}<\/span>/);
   assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,\.tb-spin\{color:var\(--info\)\}/);
 });
+await t("the latest thinking under a closed work fold keeps its brain: no rule hides a line's icon there", () => {
+  assert.doesNotMatch(read("css/app.css"), /\.tb-work:not\(\.is-open\)>\.tb>\.tb-h \.tb-hi\{display:none\}/);
+});
 console.log(`\n${passed} passed`);

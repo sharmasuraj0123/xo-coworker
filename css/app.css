@@ -1809,12 +1809,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tb-rail .tb-narr{font-size:var(--fs-ui);color:var(--ink-3)}
 .tb-bad{margin-top:0}
 .tb-chg{list-style:none;display:flex;flex-wrap:wrap;gap:4px;margin:var(--s-1) 0 var(--s-1) var(--s-6)}
-/* One left edge (the owner, 4 Nov: "Thought for 8s" started 24 px in from "Working"). What a turn shows
-   without being opened starts on the message's text column, as its line does: the latest block, read as
-   a line of the turn (no icon of its own, like the line above it), a running or failed row (its icon on
-   the column), the plan's checklist, the files it changed. What you open (a group's rows, the thinking,
-   the whole work) hangs 24 px in, the work's rail on the column. */
-.tb-work:not(.is-open)>.tb>.tb-h .tb-hi{display:none}
+/* what a turn shows without being opened starts on the text column; what you open hangs 24 px in, on the work's rail */
 .tb-rows.is-cur,.tb-work>:is(.tb-rows,.tb-chg,.tb-wbad),.turn>.tb>:is(.tb-chg,.tb-plan-l){margin-left:0}
 /* the agent's tile beside a running turn centres on the turn's first line (30 px; 36 on a phone) */
 .m-turn{--tb-line:var(--h-ctl);--av-h:32px}
