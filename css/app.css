@@ -8,7 +8,6 @@
 :root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
 /* The theme (both palettes, every surface, line and ink) lives in css/tokens.css; this file only uses it. */
 :root[data-theme="light"] body{background:var(--sunken)}
-:root[data-theme="light"] .next.r-destructive{animation:none}
 :root[data-theme="light"] .prow.needs .pr-name{color:var(--need-text)}
 
 ::selection{background:rgba(var(--accent-rgb),.28)}
@@ -191,63 +190,22 @@ button:disabled{cursor:default}
 .nx-glyph{display:inline-grid;place-items:center;color:var(--accent)}
 .nx-glyph .nx-g{width:12px;height:12px}
 
-/* the next move */
-/* Your next move: the green corner glow stays, and a green arc travels slowly round the border, so the one thing that needs you
-   reads as waiting for action. It holds still under the pointer or focus (you're already there),
-   for destructive asks (moving red would push the ask the design says is never forced first),
-   and with reduced motion. */
-@property --nx-a{syntax:"<angle>";inherits:false;initial-value:300deg}
-@keyframes nx-orbit{to{--nx-a:660deg}}
-/* concentric: its 6 px buttons sit 22 px from every edge (21 + the 1 px edge), so its corner is 28 (22 + 6).
-   It used to be 22 with buttons 19 px up and 25 px in: unequal, so no corner could have matched. */
-.next{--nest-r:var(--r-3xl);--nest-pad:21px;--nest-in:calc(var(--nest-pad) + 1px);position:relative;isolation:isolate;border-radius:var(--nest-r);border:1px solid transparent;padding:var(--nest-pad);
-  --nx-arc:rgba(var(--accent-rgb),.8);
-  background:linear-gradient(var(--surface),var(--surface)) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(var(--accent-rgb),.45),var(--fill-3) 34%,var(--fill-2)) border-box;
-  box-shadow:var(--e2);
-  animation:nx-orbit 7s linear infinite}
-.next:hover,.next:focus-within{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.next{animation:none}}
-.next::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(90% 60% at 0% 0%,rgba(var(--accent-rgb),.05),transparent 60%);pointer-events:none}
-.next.r-destructive{animation:none;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(170deg,color-mix(in srgb,var(--err-ink) 70%,transparent),color-mix(in srgb,var(--err) 35%,transparent) 40%,var(--fill-3)) border-box}
-.next.in-next{animation:in-next var(--d-long) var(--ease) both,nx-orbit 7s linear infinite}
-.next.in-undo{animation:in-undo var(--d-long) var(--ease) both,nx-orbit 7s linear infinite}
-.next.r-destructive.in-next{animation:in-next var(--d-long) var(--ease) both}
-.next.r-destructive.in-undo{animation:in-undo var(--d-long) var(--ease) both}
+/* the next move: Home's decision card, the same parts and corner as the panel's and the dock's */
+.next{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);overflow:hidden;outline:none}
+.next:focus-visible{border-color:var(--line-hover)}
 /* the next decision arrives in place: a fade, no rise, so its buttons never travel under a waiting pointer */
+.next.in-next{animation:in-next var(--d-long) var(--ease) both}
+.next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
 @keyframes in-next{from{opacity:0}}
 @keyframes in-undo{from{opacity:0;transform:translateX(-24px)}}
 .next.st-allow .nx-in{animation:nx-out var(--d-in) var(--ease) forwards}
 .next.st-back .nx-in{animation:nx-back var(--d-sheet) var(--ease) forwards}
 @keyframes nx-out{0%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
-@keyframes nx-back{to{opacity:0;transform:translateX(-18px)}}   /* sent back: it leaves the way it goes, with no wind-up */
+@keyframes nx-back{to{opacity:0;transform:translateX(-18px)}}
 .next .stamp{position:absolute;left:50%;top:50%;width:84px;height:84px;translate:-50% -50%;opacity:0;pointer-events:none}
 .next.st-allow .stamp{animation:stamp var(--d-long) var(--ease) forwards}
 .next.st-allow .stamp .sk{animation:draw var(--d-in) var(--ease) var(--d-press) forwards}
-.nx-meta{display:flex;align-items:center;gap:var(--s-3);min-width:0;margin-bottom:var(--s-3)}
-.nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--halo);margin-right:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-meta);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-/* where it was asked: a text link in the card's corner (it hangs 8 px into the margin to align its words),
-   so its hover is the ink brightening, not a fill that would sit off the corner's curve */
-.nx-where:hover{color:var(--ink-2)}
-.nx-where span{color:var(--ink-5)}
-.nx-h{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
-/* the exact command under the headline: mono at reading size, two lines at most (audit A6) */
-.nx-cmd{margin-top:8px}
-.nx-cmd code{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-width:100%;padding:var(--s-1) var(--s-2);border-radius:var(--r-sm);background:var(--hover-fill);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);color:var(--ink-2);overflow-wrap:anywhere;width:fit-content}
 .h-verb{color:var(--ink-3);font-weight:var(--fw-medium)}
-.h-cmd{font:var(--fw-medium) .84em/var(--lh-ui) var(--mono);letter-spacing:var(--tr-20);padding:.08em .38em;border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line)}
-.nx-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s-2);margin-top:var(--s-5)}
-.nx-btns{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3);margin-top:var(--s-5)}
-.nx-btns.one{display:flex;gap:var(--s-2)}
-.nx-btns.one .b{flex:none;padding:0 var(--s-5)}
-.next .nx-btns .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
-.nx-foot{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin-top:var(--s-3)}
-.nx-link{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-ui);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-/* a text link: its hover is the ink brightening, no fill (a fill would stick out of the card's corner,
-   since the link hangs 8 px into the margin to align its glyph) */
-.nx-link:hover{color:var(--ink)}
-.nx-link svg{width:var(--ic);height:var(--ic)}
-.next.noting .nx-opts,.next.noting .nx-btns,.next.noting .nx-foot{display:none}
-.nx-note{margin-top:var(--s-4)}
 
 /* then… */
 .then ol{list-style:none;display:flex;flex-direction:column}
@@ -277,7 +235,6 @@ button:disabled{cursor:default}
 .calm h2{margin-top:var(--s-3);font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20)}
 .calm p{max-width:44ch;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .calm-act{display:flex;align-items:center;gap:var(--s-5);margin-top:var(--s-3)}
-.calm-act .nx-link{margin-left:0}
 .calm .b svg{width:var(--ic);height:var(--ic)}
 
 /* ── conversation ────────────────────────────────────────────────────────── */
@@ -1013,7 +970,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 /* the card: a stable frame whose contents change; its height eases, contents cross-fade */
 .card{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);outline:none;overflow:hidden;transition:border-color var(--d-in) var(--ease),background-color var(--d-in) var(--ease)}
 .card:focus-visible{border-color:var(--line-hover)}
-.card.r-destructive:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+:is(.card,.next).r-destructive:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
 .card.r-done{background:transparent;box-shadow:none}
 .card.r-vig{background:var(--surface);box-shadow:none}
 .card-in{display:flex;flex-direction:column;min-height:0;flex:1}
@@ -1114,9 +1071,9 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .c-btns{display:flex;gap:var(--s-2)}
 .c-btns>.b{flex:1 1 0;min-width:0}
 .c-btns>.b-later{flex:none}
-.card :is(.c-btns,.c-opts) .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
+:is(.card,.next) :is(.c-btns,.c-opts) .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .c-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
-.card-in.noting :is(.c-btns,.c-opts,.c-rule,.teach-body){display:none}
+:is(.card-in,.next).noting :is(.c-btns,.c-opts,.c-rule,.teach-body){display:none}
 .c-rule{margin-bottom:var(--s-2)}
 .teach-tog{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px 0 2px;border-radius:var(--r-sm);color:var(--ink-3);font-size:var(--fs-ui)}
 .teach-tog:hover{color:var(--ink)}
@@ -1246,8 +1203,6 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hm-body{position:relative}
 /* each block holds its own margins, so its height is its whole place on the page (js/skeleton.js remembers it) */
 #hm-body>div{display:flow-root}
-.nx-est{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-2);font-size:var(--fs-ui);color:var(--ink-3)}
-.nx-est svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:58px;padding:0 var(--s-5);border-radius:var(--r-xl);border:1px dashed var(--line);color:var(--ink-3);font-size:var(--fs-ui)}
 .in-panel svg{width:var(--ic);height:var(--ic);color:var(--ink-4)}
 .handled{margin-top:var(--s-8)}
@@ -1546,7 +1501,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 @media (max-height:820px) and (min-width:761px){
   .hm{padding-top:var(--s-6)}
   .hm-lbl{margin-top:var(--s-6)}
-  .next{--nest-pad:var(--s-5)}
 }
 
 /* ── laptop ──────────────────────────────────────────────────────────────── */
@@ -1586,11 +1540,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .create{grid-column:2;grid-row:1}
   .hm-lbl{margin-top:var(--s-6)}
   .hm-lbl-s{display:none}
-  .next{--nest-pad:var(--s-4);--nest-r:var(--r-2xl)}
-  .nx-meta{flex-wrap:wrap;row-gap:var(--s-2)}
-  .nx-where{margin-left:calc(-1 * var(--halo));order:3;flex-basis:100%}
-  .nx-h{font-size:var(--fs-heading)}
-  .nx-opts{grid-template-columns:1fr}
   .then-i{grid-template-columns:minmax(0,1fr) auto 16px;grid-template-rows:auto auto;row-gap:var(--s-1);padding:var(--s-3) var(--s-3)}
   .then-i .eff{grid-row:1;grid-column:1}
   .then-i .ti-t{grid-row:2;grid-column:1 / 3}
@@ -1663,11 +1612,10 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .ar .mini{display:none}
   /* touch targets: 36 px minimum at 390 */
   .help,.x,.pn-x{width:var(--h-touch);height:var(--h-touch)}
-  .nx-where,.nx-link,.c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
+  .c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
   .iq{padding:0 12px}
   .b-opt.has-pv{flex-direction:row;align-items:center;gap:12px;padding:8px 12px}
-  .nx-opts,.c-opts{gap:4px}
-  .nx-where{height:auto}
+  .c-opts{gap:4px}
   .hd-row0{flex-wrap:wrap}
 }
 
@@ -2307,10 +2255,10 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .settings{background:var(--canvas)}
 
 /* a decision's state is one colour, --state: amber needs a read, red is destructive or stopped, a routine one has none */
-:is(.card,.dock-fold).r-notable{--state:var(--warn)}
-:is(.card,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
+:is(.card,.next,.dock-fold).r-notable{--state:var(--warn)}
+:is(.card,.next,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
 /* the card's edge light: a hairline of its state across the top, and its glow under the content */
-.card:is(.r-notable,.r-destructive,.r-stopped)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+:is(.card,.next):is(.r-notable,.r-destructive,.r-stopped)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
   background:linear-gradient(90deg,transparent 10%,color-mix(in srgb,var(--state) 85%,transparent),transparent 90%) top/100% 1px no-repeat,
     radial-gradient(60% var(--s-12) at 50% 0,color-mix(in srgb,var(--state) 10%,transparent),transparent)}
 
@@ -3112,7 +3060,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .lim{display:flex;flex-direction:column;gap:8px;margin:var(--s-1) 0 var(--s-1)}
 .lim-when{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);color:var(--warn)}
 .lim-when svg{width:var(--ic-sm);height:var(--ic-sm)}
-.next .lim,.c-body .lim{margin:10px 0 12px}
+.c-body .lim{margin:10px 0 12px}
 .lim-acct{font-size:var(--fs-ui);font-weight:var(--fw-strong);color:var(--ink)}
 .lim-credits{font-size:var(--fs-ui);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .lim-ts{display:flex;flex-direction:column;gap:2px;padding-left:20px;list-style:disc}

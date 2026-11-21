@@ -18,7 +18,7 @@ import * as K from "./keys.js";
 import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
-import { EFFORT, estLine, evidenceFor } from "./content.js";
+import { EFFORT, evidenceFor } from "./content.js";
 import { keepTurning, DOTS, ARC, ICON, stepMark, stateMark, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
@@ -29,6 +29,7 @@ import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, v
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
 import { itemParts } from "./review.js";
+import { headOf } from "./cardparts.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
@@ -354,21 +355,8 @@ nameWith({
 });
 const convProject = (v) => (v === "ws" || v === "home" ? "workspace" : v.startsWith("p:") ? v.slice(2) : convThread(v)?.project);
 const sessionOf = (v) => (v === "home" ? "ws" : v);
-const askTitle = (n) => {
-  if (n.ask.live) return renderInline(n.ask.title || "", true); // the server's words; `code` stays code
-  const cmd = Kit.commandOf(n.ask);
-  if (cmd) return `Run <code>${esc(cmd)}</code>`;
-  if (n.group === "stopped") return esc(n.t.title);
-  return esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title);
-};
-const askShort = (n) => {
-  if (n.ask.live) return plainText(n.ask.title || "");
-  const cmd = Kit.commandOf(n.ask);
-  if (cmd) return `Run ${cmd}`;
-  if (n.group === "stopped") return "Stopped";
-  if (n.risk === "destructive") return n.ask.title.replace(/:\s.*$/, "");
-  return n.ask.title;
-};
+const askTitle = (n) => { const h = headOf(n); return (h.verb ? `${esc(h.verb)} ` : "") + (h.md ? renderInline(h.text, true) : esc(h.text)); };
+const askShort = (n) => { const h = headOf(n); return [h.verb, h.md ? plainText(h.text) : h.text].filter(Boolean).join(" "); };
 const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approval: "Needs you", paused: "Paused", done: "Done", failed: "Stopped", resolved: "Resolved" };
 // "Working" only while its agent really works: storm's `busy` (on a turn, or a sub-agent working on after it,
 // never while it waits on you), kept live between reads by the same rule (timeline.js sessionBusy). The Working
@@ -641,63 +629,46 @@ function optHtml(o, i, ev) {
   const pv = ev && ev.preview ? ev.preview.find((p) => p.label === o) : null;
   return `<button type="button" class="b b-opt${pv ? " has-pv" : ""}" data-fid="opt${i}" data-nx-opt="${i}" title="Answer “${esc(o)}”">${pv ? `<span class="o-pv" aria-hidden="true"><span class="o-s" style="${esc(pv.css)}">${esc(pv.sample || o)}</span></span>` : ""}<span class="o-l">${esc(o)}</span></button>`;
 }
+/** Home's answers: a glance answered in place, anything more opens the panel; the row is the panel card's. */
 function nextActHtml(n) {
   const a = n.ask;
   const binary = Kit.isBinary(a);
-  const ev = evidenceFor(n);
+  const details = `<button type="button" class="b b-ghost b-later" data-fid="ev" data-decide="${esc(n.key)}" title="Open it in the panel"><span class="b-l">${ICON.eye}Details</span></button>`;
   let html = "";
   if (n.effort === "glance" && Array.isArray(a.options) && !binary) {
-    html += `<div class="nx-opts" role="group" aria-label="Answers">${a.options.map((o, i) => optHtml(o, i, ev)).join("")}</div>` +
-      `<div class="nx-foot"><button type="button" class="nx-link" data-fid="ev" data-decide="${esc(n.key)}">${ICON.eye}Details</button><button type="button" class="nx-link" data-fid="back" data-nx-back>${ICON.rewind}Send back</button></div>`;
+    const ev = evidenceFor(n);
+    html += `<div class="c-opts n${Math.min(a.options.length, 3)}" role="group" aria-label="Answers">${a.options.map((o, i) => optHtml(o, i, ev)).join("")}</div>` +
+      `<div class="c-btns"><button type="button" class="b b-back" data-fid="back" data-nx-back><span class="b-l">${ICON.rewind}Send back</span></button>${details}</div>`;
   } else if (n.effort === "glance" && binary) {
     // a storm item's answers keep the server's own words (Allow once, Deny, Approve…)
     const IP = a.item ? itemParts(a.item) : null;
     const yes = IP && IP.primary ? IP.primary.label : "Allow", no = IP && IP.back ? IP.back.label : "Send back";
-    html += `<div class="nx-btns"><button type="button" class="b b-allow" data-fid="allow" data-nx-allow><span class="b-l">${ICON.check}${esc(yes)}</span></button><button type="button" class="b b-back" data-fid="back" data-nx-back><span class="b-l">${ICON.rewind}${esc(no)}</span></button></div>` +
-      `<div class="nx-foot"><button type="button" class="nx-link" data-fid="ev" data-decide="${esc(n.key)}">${ICON.eye}Details</button></div>`;
+    html += `<div class="c-btns"><button type="button" class="b b-allow" data-fid="allow" data-nx-allow><span class="b-l">${ICON.check}${esc(yes)}</span></button><button type="button" class="b b-back" data-fid="back" data-nx-back><span class="b-l">${ICON.rewind}${esc(no)}</span></button>${details}</div>`;
   } else {
     const verb = n.group === "stopped" ? "Look and choose" : n.risk === "destructive" ? "Read it closely" : n.ask.kind === "action" ? "See what it needs" : n.ask.replyOnly ? "Read and reply" : "Decide";
-    html += `<div class="nx-btns one"><button type="button" class="b b-go" data-fid="go" data-decide="${esc(n.key)}"><span class="b-l">${verb}${ICON.arrow}</span></button>` +
-      (n.effort === "think" ? `<button type="button" class="b b-ghost" data-fid="later" data-later="${esc(n.key)}" title="Park it until later today"><span class="b-l">${ICON.clock}Later today</span></button>` : "") + `</div>`;
+    html += `<div class="c-btns"><button type="button" class="b b-go" data-fid="go" data-decide="${esc(n.key)}"><span class="b-l">${verb}${ICON.arrow}</span></button>` +
+      (n.effort === "think" ? `<button type="button" class="b b-ghost b-later" data-fid="later" data-later="${esc(n.key)}" title="Park it until later today"><span class="b-l">${ICON.clock}Later today</span></button>` : "") + `</div>`;
   }
-  // a Send back that didn't go comes back with its note, open, to send again (Astra S031: the words were lost)
+  // a Send back that didn't go comes back with its note, open, to send again
   const kept = D.failedNote(n.key);
   html += `<div class="c-note nx-note"${kept ? "" : " hidden"}>${kept ? `<p class="c-hint show stay" role="status">That didn't send. Your note is still here: Send back tries again.</p>` : ""}<label for="nx-note-in" class="c-note-l">What should it do instead? (optional)</label><textarea id="nx-note-in" rows="2" placeholder="e.g. what it should try instead">${esc(kept)}</textarea>` +
     `<div class="c-note-row"><button type="button" class="b b-sm b-go" data-nx-send>${ICON.rewind}Send back</button><button type="button" class="b b-sm b-ghost" data-nx-cancel>Cancel</button></div></div>`;
   return html;
 }
-/**
- * The headline says what will happen, in words; the exact command sits under it in mono at reading
- * size, never at headline size (a raw `ls -la …` was the largest text on Home: audit A6).
- */
-function nextHead(n) {
-  const t = n.t;
-  if (n.ask.live) {
-    const title = n.ask.title || "";
-    const m = title.match(/`([^`]+)`/);
-    if (m && (m[1].length >= 16 || /[\s/|;&]/.test(m[1]))) return { head: renderInline(title.replace(m[0], "a command"), true), cmd: m[1] };
-    return { head: renderInline(title, true), cmd: "" };
-  }
-  const cmd = Kit.commandOf(n.ask);
-  if (cmd) return { head: `<span class="h-verb">Run</span> a command`, cmd };
-  if (n.group === "stopped") return { head: `<span class="h-verb">Stopped at</span> ${esc((t.checklist.items.find((i) => i.state !== "done") || t).text || t.title)}`, cmd: "" };
-  return { head: esc(n.risk === "destructive" ? n.ask.title.replace(/:\s.*$/, "") : n.ask.title), cmd: "" };
-}
 const NEXT_SEEN = new Map(); // Home's next ask → when it last became the current card (its re-arm runs from then)
 function nextCardHtml(n) {
-  const t = n.t, E = EFFORT[n.effort];
-  const { head, cmd } = nextHead(n);
-  return `<article class="next r-${n.risk} e-${n.effort}${D.failedNote(n.key) ? " noting" : ""}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-label="Your next move: ${esc(n.ask.title)}">` +
+  const t = n.t, P = D.parts;
+  const where = t.host
+    ? `<button type="button" class="c-where" data-fid="where"${t.chatId ? ` data-go="${esc(convOfChat(t.project))}"` : t.plainSession ? ` data-go="c:${esc(t.plainSession)}"` : ""} title="${t.asker ? `Open ${esc(PROJ(t.project))}, where its coordinator asks` : "Where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button>`
+    : `<button type="button" class="c-where" data-fid="where" data-go="t:${esc(t.id)}" title="Open the thread">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button>`;
+  const chips = P.chipsHtml(n);
+  return `<article class="next r-${n.risk} e-${n.effort}${D.failedNote(n.key) ? " noting" : ""}" data-key="${esc(n.key)}" data-fid="nextcard" tabindex="-1" aria-labelledby="nx-h">` +
     `<div class="stamp stamp-allow" aria-hidden="true">${ICON.stampAllow}</div>` +
-    `<div class="nx-in">` +
-    `<div class="nx-meta"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>` +
-    (n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "") +
-    (t.host ? `<button type="button" class="nx-where" data-fid="where"${t.chatId ? ` data-go="${esc(convOfChat(t.project))}"` : t.plainSession ? ` data-go="c:${esc(t.plainSession)}"` : ""} title="${t.asker ? `Open ${esc(PROJ(t.project))}, where its coordinator asks` : "Where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}` : esc(t.title)}</button></div>` : `<button type="button" class="nx-where" data-fid="where" data-go="t:${esc(t.id)}" title="Open the thread">${esc(PROJ(t.project))}<span aria-hidden="true">›</span>${esc(t.title)}</button></div>`) +
-    `<h2 class="nx-h" id="nx-h">${head}</h2>` +
-    (cmd ? `<p class="nx-cmd"><code>${esc(cmd)}</code></p>` : "") +
-    (n.ask.item && n.ask.item.paid ? paidHtml(n.ask.item) : "") +
-    (estLine(n) ? `<p class="nx-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estLine(n))}</p>` : "") +
-    nextActHtml(n) + `</div></article>`;
+    `<div class="nx-in"><div class="c-body">` +
+    `<div class="c-top">${P.effTagHtml(n)}${where}</div>` +
+    P.leadHtml(n, "nx", "h2") +
+    (chips ? `<div class="c-chips"><ul class="chips" aria-label="About this">${chips}</ul></div>` : "") +
+    `</div><div class="c-act">${nextActHtml(n)}</div></div></article>`;
 }
 
 function homeRender(needs) {

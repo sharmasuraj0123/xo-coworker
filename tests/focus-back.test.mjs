@@ -28,7 +28,7 @@ await t("hookOf names a control so the redraw's copy is found: its id, else its 
   globalThis.CSS = { escape: (s) => String(s).replace(/["\\]/g, "\\$&") };
   const { hookOf } = await import(new URL("js/focusview.js", ROOT));
   const el = (tag, attrs, id = "") => ({ tagName: tag.toUpperCase(), id, attributes: Object.entries(attrs).map(([name, value]) => ({ name, value })), getAttribute: (n) => attrs[n] ?? null });
-  assert.equal(hookOf(el("button", { class: "nx-link", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
+  assert.equal(hookOf(el("button", { class: "b b-ghost b-later", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
   assert.equal(hookOf(el("button", { class: "x", "data-runs": "", "data-n": "45" })), "button[data-runs]", "a count isn't its identity");
   assert.equal(hookOf(el("button", { "data-x": "1" }, "pn-x")), "#pn-x", "an id first");
   assert.equal(hookOf(el("button", { class: "plain" })), null, "no identity: no selector");

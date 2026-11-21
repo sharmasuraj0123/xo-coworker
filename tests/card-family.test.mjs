@@ -1,4 +1,4 @@
-// The dock family (every decision card, its folded and done lines, the composer and its reply quote) shares one
+// The dock family (every decision card on the panel, the dock and Home, its folded and done lines, the composer and its reply quote) shares one
 // corner, --r-card, and each control inside it sits so that its radius and its inset add up to that corner: worked
 // out from the tokens on a desktop and on a phone, so a token that moves keeps the family concentric or fails here.
 //   node tests/card-family.test.mjs
@@ -42,13 +42,24 @@ t("a card's buttons: --card-in from its edge, their corner the nest, so 12 + 12 
   const card = nest(rule(app, ".card"));
   assert.equal(card["--nest-r"], "var(--r-card)"); assert.equal(card["--nest-in"], "var(--card-in)");
   assert.equal(prop(rule(app, ".card"), "border-radius"), "var(--nest-r)");
-  assert.match(app, new RegExp(`\\n\\.card :is\\(\\.c-btns,\\.c-opts\\) \\.b\\{border-radius:${NEST.replace(/[()]/g, "\\$&")}\\}`));
+  assert.match(app, new RegExp(`\\n:is\\(\\.card,\\.next\\) :is\\(\\.c-btns,\\.c-opts\\) \\.b\\{border-radius:${NEST.replace(/[()]/g, "\\$&")}\\}`));
   const act = parts(prop(rule(app, ".c-act"), "padding"));
   for (const env of Object.values(SCREENS)) {
     assert.equal(px(act[1], env) + 1, px("var(--card-in)", env), "sides: the inset, its 1 px line included");
     assert.equal(px(act[2], env) + 1, px("var(--card-in)", env), "foot: the same");
     assert.equal(px(NEST, env, card) + px(card["--nest-in"], env), px("var(--r-card)", env));
   }
+});
+t("Home's next card is the same card: the 24 corner, controls --card-in in, no rim, the same shadow, no travelling edge", () => {
+  const r = rule(app, ".next");
+  assert.deepEqual(nest(r), { "--nest-r": "var(--r-card)", "--nest-in": "var(--card-in)" });
+  assert.equal(prop(r, "border-radius"), "var(--nest-r)");
+  assert.equal(prop(r, "border"), "1px solid transparent"); assert.equal(prop(r, "box-shadow"), prop(rule(app, ".card"), "box-shadow"));
+  assert.doesNotMatch(r, /padding/, "its insets are the card's body and action row");
+  const resize = (css) => [...css.matchAll(/(?:^|[}\n,])\s*\.next[^{,]*\{[^}]*--nest-(?:r|pad|in):/g)].length;
+  assert.equal(resize(app), 1, "only its own rule sets its nest"); assert.equal(resize(phoneCss) + resize(shape), 0, "no screen resizes it");
+  assert.doesNotMatch(app, /nx-orbit|--nx-a|\.nx-(?:btns|opts|foot|meta|where|cmd|est|h)\b/);
+  assert.match(app, /\n:is\(\.card-in,\.next\)\.noting :is\(\.c-btns,\.c-opts,\.c-rule,\.teach-body\)\{display:none\}/);
 });
 t("the card's corner control (Read the thread first) sits --card-in from the corner, the same nest", () => {
   const r = rule(app, ".dock-hide");
@@ -115,13 +126,13 @@ t("no rims: a card and the composer draw their 1 px line transparent at rest (fo
   assert.doesNotMatch(app, /\.card(?:\.is-dock)?\.r-destructive\{background/, "the state is the edge light, not a wash");
 });
 t("the edge light: one --state per risk (amber notable, red destructive or stopped), drawn only on a card that has one", () => {
-  assert.match(app, /\n:is\(\.card,\.dock-fold\)\.r-notable\{--state:var\(--warn\)\}/);
-  assert.match(app, /\n:is\(\.card,\.dock-fold\):is\(\.r-destructive,\.r-stopped\)\{--state:var\(--err-ink\)\}/);
-  const m = /\n\.card:is\(\.r-notable,\.r-destructive,\.r-stopped\)::before\{([^}]*)\}/.exec(app);
+  assert.match(app, /\n:is\(\.card,\.next,\.dock-fold\)\.r-notable\{--state:var\(--warn\)\}/);
+  assert.match(app, /\n:is\(\.card,\.next,\.dock-fold\):is\(\.r-destructive,\.r-stopped\)\{--state:var\(--err-ink\)\}/);
+  const m = /\n:is\(\.card,\.next\):is\(\.r-notable,\.r-destructive,\.r-stopped\)::before\{([^}]*)\}/.exec(app);
   assert.ok(m, "only those states light the edge");
   assert.match(m[1], /z-index:-1/, "under the card's content, over its fill");
   assert.match(m[1], /top\/100% 1px no-repeat/, "a 1 px hairline");
-  assert.doesNotMatch(app, /\n\.card::before\{/, "a plain card has none");
+  assert.doesNotMatch(app, /\n(?:\.card|\.next)::before\{/, "a plain card has none");
 });
 t("the lines are glass: the composer's fill tinted by --state, blurred, no edge light", () => {
   assert.match(tokensCss, /--glass-blur:blur\(\d+px\) saturate\([\d.]+\);/);

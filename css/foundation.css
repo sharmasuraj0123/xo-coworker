@@ -186,11 +186,6 @@ body.stage-full .stg-grip{display:none}
 .scroller .wsh-home:focus-visible{outline-offset:1px}
 
 /* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */
-.next,.next.in-next,.next.in-undo{animation:none}
-.next:not(.r-destructive){background:var(--surface);border:1px solid transparent}
-:root[data-theme="light"] .next:not(.r-destructive){border-color:transparent}
-.next.in-next{animation:in-next var(--d-long) var(--ease) both}
-.next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
 .shd-dot.d-wait{animation:none}
 
 /* ── the worst three ─────────────────────────────────────────────────────────────────────────────── */

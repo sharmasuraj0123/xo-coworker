@@ -46,9 +46,8 @@ t("an Artifacts card's well and pin, the @ list's rows, the Next and dock cards'
   assert.match(app, new RegExp(`\\.md-pin\\{position:absolute;top:var\\(--cell-in\\);right:var\\(--cell-in\\);[^}]*border-radius:${NEST}`));
   assert.match(app, new RegExp(`\\.at-list li\\{[^}]*border-radius:${NEST}`));
   assert.match(app, /\.at-list\{[^}]*--nest-r:var\(--r-lg\);--nest-in:7px;padding:6px;border-radius:var\(--nest-r\)/);
-  assert.match(app, new RegExp(`\\.next \\.nx-btns \\.b\\{border-radius:${NEST}\\}`));
-  assert.match(app, /\.next\{--nest-r:var\(--r-3xl\);--nest-pad:21px;--nest-in:calc\(var\(--nest-pad\) \+ 1px\);[^}]*padding:var\(--nest-pad\)/);
-  assert.match(app, new RegExp(`\\.card :is\\(\\.c-btns,\\.c-opts\\) \\.b\\{border-radius:${NEST}\\}`));
+  assert.match(app, /\.next\{--nest-r:var\(--r-card\);--nest-in:var\(--card-in\);/);
+  assert.match(app, new RegExp(`:is\\(\\.card,\\.next\\) :is\\(\\.c-btns,\\.c-opts\\) \\.b\\{border-radius:${NEST}\\}`));
   assert.doesNotMatch(app, /\.c-btns \.b\{border-radius:calc\(var\(--r-2xl\) - 13px\)\}/);
 });
 console.log(`\n${passed} passed`);

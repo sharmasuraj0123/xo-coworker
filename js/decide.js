@@ -22,7 +22,7 @@ import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB } from "./review.js";
-import { KINDS, kindOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "./cardparts.js";
+import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "./cardparts.js";
 import { clientId as newKey } from "./api.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "./runtimes.js";
@@ -203,6 +203,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),
     open, close, sync, undo, decide, decideNow, laterNow, bringIn,
     cardHtml, wireCard,
+    /** The parts Home's next card shares with this one. */
+    parts: { effTagHtml, leadHtml, chipsHtml },
     queued: (key) => queue.has(key),
     pendingKey: (key) => queue.has(key),
   };
@@ -307,7 +309,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     if (n.ask.item) return decideItem(n, choice, note, secs, inline);
     let taught = false, scope = null;
     if (choice === "allow" && teach.get(n.key)) {
-      const cmd = Kit.commandOf(n.ask);
+      const cmd = commandOf(n.ask);
       scope = teach.get(n.key);
       const sentence = Kit.teachSentence(PROJ(n.t.project), scope === "prefix" ? Kit.prefixOf(cmd) : cmd);
       note = note ? `${note} ${sentence}` : sentence;
@@ -517,7 +519,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
         `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope is-list" role="radiogroup" aria-label="How far it reaches">${P.scopes.map((o) => `<button type="button" role="radio" data-iscope="${esc(o.id)}" aria-checked="${o.id === (scope || cur.id)}">${esc(o.scope === "thread" ? o.label : (o.sentence || o.label))}</button>`).join("")}</div>` +
         `<p class="teach-q"><span>${cur.scope === "rule" ? "Added to your rules, word for word:" : "For this thread only:"}</span><q>${esc(cur.sentence || cur.label)}</q></p></div></div>`;
     }
-    const cmd = Kit.commandOf(n.ask);
+    const cmd = commandOf(n.ask);
     if (n.ask.kind !== "permission" || n.risk === "destructive" || !cmd) return "";
     return `<div class="c-rule"><button type="button" class="teach-tog" data-act="teach" aria-pressed="${!!scope}" title="Make it a rule${K.hint("rule")}"><span class="sw" aria-hidden="true"></span>Make it a rule</button></div>` +
       `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope" role="radiogroup" aria-label="Rule scope"><button type="button" role="radio" data-scope="exact" aria-checked="${scope !== "prefix"}">Exactly this command</button><button type="button" role="radio" data-scope="prefix" aria-checked="${scope === "prefix"}">Any “${esc(Kit.prefixOf(cmd))}”</button></div><p class="teach-q"><span>Added to your rules, word for word:</span><q>${esc(Kit.teachSentence(PROJ(n.t.project), scope === "prefix" ? Kit.prefixOf(cmd) : cmd))}</q></p></div></div>`;
@@ -534,11 +536,33 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     return `<p class="c-ev is-mono">${tag}<code>${esc(s.text)}</code></p>`;
   }
 
+  /** The top row's first two: how long it takes, and a tag only when it is destructive or stopped. */
+  function effTagHtml(n) {
+    const E = EFFORT[n.effort];
+    const tag = n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : kindOf(n) === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "";
+    return `<span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>${tag}`;
+  }
+
+  /** The headline in words, its one line of why, a parked note, the one strip, then what it costs. */
+  function leadHtml(n, idp, h) {
+    const head = headOf(n), line = whyOf(n), it = n.ask.item;
+    return `<${h} class="c-h" id="${idp}-h">${head.verb ? `<span class="h-verb">${esc(head.verb)}</span> ` : ""}${head.md ? renderInline(head.text, true) : esc(head.text)}</${h}>` +
+      (line ? `<p class="c-line" id="${idp}-why">${esc(line)}</p>` : "") +
+      (it && it.parked ? `<p class="c-park">${ICON.pause}<span>Parked: the agent was told to wait; an answer wakes it</span></p>` : "") +
+      stripHtml(stripOf(n)) + (it && it.limit ? limitHtml(it) : paidHtml(it));
+  }
+
+  /** The facts as chips, the estimate last. */
+  function chipsHtml(n) {
+    const estT = n.risk !== "destructive" && !n.ask.stopByYou ? estLine(n) : "";
+    return chipsOf(n).map((c) => `<li class="chip${c.tone ? ` t-${c.tone}` : ""}">${esc(c.text)}${c.count > 1 ? `<b>${c.count}</b>` : ""}</li>`).join("") +
+      (estT ? `<li class="chip is-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estT)}</li>` : "");
+  }
+
   /** surface: "panel" | "dock" */
   function cardHtml(n, surface = "panel") {
     const id = ++cardN;
     const a = n.ask, t = n.t, it = a.item, kind = kindOf(n);
-    const E = EFFORT[n.effort];
     const openEv = !!F.open0[n.key]?.ev && surface === "panel";
     const scope = teach.get(n.key);
     const refused = !!(it && kind === "secret" && noSecret.has(it.id));
@@ -564,23 +588,15 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     act += `<div class="c-note" hidden><label for="c-note-${id}" class="c-note-l"></label><textarea id="c-note-${id}" class="c-note-in" rows="2"></textarea>` +
       `<div class="c-note-row"><button type="button" class="b b-sm b-go" data-act="note-send"></button><button type="button" class="b b-sm b-ghost" data-act="note-cancel" title="Cancel (Esc)">Cancel</button></div></div>`;
 
-    const head = headOf(n), line = whyOf(n);
-    const tag = n.risk === "destructive" ? `<span class="risk r-destructive">${ICON.lock}Destructive</span>` : kind === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : "";
-    const estT = n.risk !== "destructive" && !a.stopByYou ? estLine(n) : "";
-    const chips = chipsOf(n).map((c) => `<li class="chip${c.tone ? ` t-${c.tone}` : ""}">${esc(c.text)}${c.count > 1 ? `<b>${c.count}</b>` : ""}</li>`).join("") +
-      (estT ? `<li class="chip is-est" title="${t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estT)}</li>` : "");
     const where = t.host
       ? `<button type="button" class="c-where" data-act="thread" title="${t.asker ? (surface === "dock" ? `Its coordinator asks, in this chat` : `Open ${esc(PROJ(t.project))}, where its coordinator asks`) : "Open where it was asked"}">${t.asker ? `${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b>` : esc(t.title)}</button>`
       : `<button type="button" class="c-where" data-act="thread" title="${surface === "dock" ? "Open the thread" : `Open the thread beside this${K.hint("open")}`}">${esc(PROJ(t.project))}<span aria-hidden="true">›</span><b>${esc(t.title)}</b></button>`;
 
     return `<div class="card-in" data-key="${esc(n.key)}">` +
       `<div class="c-body">` +
-      `<div class="c-top"><span class="eff e-${n.effort}">${dial(n.effort)}<b>${E.label}</b><span>${E.time}</span></span>${tag}${where}</div>` +
-      `<h3 class="c-h" id="card-h-${id}">${head.verb ? `<span class="h-verb">${esc(head.verb)}</span> ` : ""}${head.md ? renderInline(head.text, true) : esc(head.text)}</h3>` +
-      (line ? `<p class="c-line" id="card-why-${id}">${esc(line)}</p>` : "") +
-      (a.item && a.item.parked ? `<p class="c-park">${ICON.pause}<span>Parked: the agent was told to wait; an answer wakes it</span></p>` : "") +
-      stripHtml(stripOf(n)) + (it && it.limit ? limitHtml(it) : paidHtml(it)) +
-      `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><div class="c-chips"><ul class="chips" aria-label="About this">${chips}</ul><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button></div>` +
+      `<div class="c-top">${effTagHtml(n)}${where}</div>` +
+      leadHtml(n, `card-${id}`, "h3") +
+      `<div class="dis${openEv ? " is-open" : ""}" data-dis="ev"><div class="c-chips"><ul class="chips" aria-label="About this">${chipsHtml(n)}</ul><button type="button" class="dis-h" aria-expanded="${openEv}" aria-controls="dt-${id}" title="Details${K.hint("details")}">${ICON.chevron}<span>Details</span></button></div>` +
       `<div class="dis-b" id="dt-${id}"${openEv ? "" : " hidden"}><div class="dis-in">${it ? itemDetailsHtml(n) : a.live ? waitingDetailsHtml(n) : detailsHtml(n, evidenceFor(n))}</div></div></div>` +
       `</div>` +
       `<div class="c-act">${act}<p class="c-hint" aria-live="polite"></p></div></div>`;
@@ -794,7 +810,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       tog.setAttribute("aria-pressed", String(!!scope));
       const tb = q(".teach-body");
       if (tb.hidden === !!scope) expand(tb, tb, !!scope, { onStep: step, frame: frame.classList.contains("is-dock") ? frame : null });
-      const cmd = Kit.commandOf(n.ask);
+      const cmd = commandOf(n.ask);
       for (const r of el.querySelectorAll("[data-scope]")) r.setAttribute("aria-checked", String(r.dataset.scope === (scope || "exact")));
       q(".teach-q q").textContent = Kit.teachSentence(PROJ(n.t.project), scope === "prefix" ? Kit.prefixOf(cmd) : cmd);
       const al = q('[data-act="allow"] .al-t');
@@ -953,7 +969,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     el.setAttribute("role", "alertdialog");
     el.setAttribute("aria-labelledby", "cf-h");
     el.innerHTML = `<h3 id="cf-h" tabindex="-1">Allow all ${batch.length} routine asks?</h3><p>Read-only or reversible. Never includes notable or destructive asks.</p>` +
-      `<ul>${batch.map((n) => `<li><span class="cf-p">${esc(PROJ(n.t.project))}</span><code>${esc(Kit.commandOf(n.ask) || n.ask.title)}</code></li>`).join("")}</ul>` +
+      `<ul>${batch.map((n) => `<li><span class="cf-p">${esc(PROJ(n.t.project))}</span><code>${esc(commandOf(n.ask) || n.ask.title)}</code></li>`).join("")}</ul>` +
       `<div class="c-btns"><button type="button" class="b b-allow" data-cf="yes"><span class="b-l">${ICON.check}Allow ${batch.length}</span></button><button type="button" class="b b-back" data-cf="no" title="Cancel (Esc)"><span class="b-l">Cancel</span></button></div>`;
     stage.appendChild(el);
     el.querySelector("h3").focus();

@@ -27,9 +27,6 @@
 :root[data-theme="light"] .composer:focus-within{border-color:var(--line-hover);box-shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px -6px rgba(0,0,0,.1)}
 
 /* ── home ── */
-/* the next move: the same orbiting edge, on a neutral rim, lifted not haloed */
-:root[data-theme="light"] .next{box-shadow:var(--lift-3)}
-:root[data-theme="light"] .next.r-destructive{background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(170deg,color-mix(in srgb,var(--err-ink) 55%,transparent),color-mix(in srgb,var(--err-ink) 22%,transparent) 40%,var(--fill-3)) border-box}
 :root[data-theme="light"] .calm{border-color:var(--line-soft);box-shadow:var(--lift-1)}
 :root[data-theme="light"] .hd{border-color:var(--line-soft)}
 :root[data-theme="light"] .hd:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface))}

@@ -62,7 +62,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the census reads the controls (the graders' ten among them)", () => {
-  for (const k of [".nx-link", ".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".chl-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
+  for (const k of [".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".chl-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
   assert.ok(ctl.size > 150, `${ctl.size} control classes`);
 });
 t("no desktop control is off the 24/32/40 scale, nor a row off its 40/48/56, but those listed for the next sweep", () => {

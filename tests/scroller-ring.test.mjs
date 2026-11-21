@@ -85,7 +85,7 @@ const CLIPPERS = {
   ".c-ev.is-plan.is-more .ev-plan": ["text", "a plan's first lines on a decision card, plain words"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
   ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
-  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
+  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".next": ["inner", "Home's decision card: the same body and action row as a card"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
   ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
   ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".lpv-link": ["decor", "a dashed line"], ".lpm-l": ["decor", "a dashed line"], ".hm-sk": ["decor", "a loading shape"],
   ".sheet-card": ["inner", "a sheet (All, Jump, Keys, Runs): its head and body pad their controls; Jump's field, its whole head, draws its ring inside (C020)"], ".ar-di": ["inset:.ar", "All threads' done fold: its rows"],
