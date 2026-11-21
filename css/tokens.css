@@ -57,6 +57,7 @@
 
   /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+  --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
   /* The one focus ring: 2 px of the accent, following the element's own radius. */
   --focus:rgba(var(--accent-rgb),.75);
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
@@ -207,6 +208,7 @@
   --scrim:rgba(18,18,18,.16);
   --sha:.28;
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
+  --btn-fill:color-mix(in srgb,var(--ink) 7%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 10%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 13%,transparent);
   --e-decide:#3B3B3B;
 }
 
@@ -235,6 +237,7 @@
   --on-ink:#141414; --ink-hi:#FFFFFF;
   --accent:#83D63A; --accent-rgb:131,214,58; --err-ink:#E68388;
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+  --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
   --focus:rgba(var(--accent-rgb),.75);
 }
 
