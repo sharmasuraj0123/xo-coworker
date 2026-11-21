@@ -486,8 +486,7 @@ button:disabled{cursor:default}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px)}}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}
 .m-you.is-new{animation:none}
-.bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl) var(--r-xl) var(--r-sm) var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink-read);font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
-.m-you.cont .bubble{border-top-right-radius:8px}
+.bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink-read);font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
 .m-you.is-pending .bubble{opacity:.72}
 .m-you.is-failed .bubble{border-style:dashed;border-color:color-mix(in srgb,var(--err) 65%,var(--line))}
 .meta{display:flex;align-items:center;gap:7px;margin-top:5px;padding-right:4px;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
@@ -1714,7 +1713,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .hs-b>.hs-bar:nth-child(2){width:min(84%,540px)}
 .hs-b>.hs-bar:nth-child(3){width:min(56%,360px)}
 .hs-you{display:flex;justify-content:flex-end}
-.hs-bub{display:flex;align-items:center;width:min(44%,300px);height:var(--tile-xl);padding:0 17px;border-radius:var(--r-xl) var(--r-xl) var(--r-sm) var(--r-xl);border:1px solid var(--line-faint)}
+.hs-bub{display:flex;align-items:center;width:min(44%,300px);height:var(--tile-xl);padding:0 17px;border-radius:var(--r-xl);border:1px solid var(--line-faint)}
 /* its bar sits as far from the bubble's side as from its top (18 px): the corner reads concentric */
 .hs-bub>.hs-bar{width:72%}
 :root[data-theme="light"] .hs-bar{background:var(--fill-2)}
