@@ -345,6 +345,13 @@ export function stormSource(state, emit, event) {
       for (const [ts, r] of rawThreads) if (r.chat_id === p.chatId && !seen.has(ts) && (r._at || 0) < asked) rawThreads.delete(ts);
     } catch { /* keep the last good threads for this project */ }
   }
+  // turns already running when the page loads: a Working row has its turn's start before its thread is opened
+  async function loadActive() {
+    try {
+      const { turns } = await api.active();
+      for (const x of turns || []) if (x.turn_id && x.session_id && !state.turns.get(x.turn_id)) state.turns.apply({ type: "turn.started", envelope: { type: "turn.started", turn_id: x.turn_id, session_id: x.session_id, chat_id: x.chat_id || null, thread_ts: x.thread_ts || null, ts: x.started_at || null, data: { origin: x.origin || null } } });
+    } catch { /* a thread's own read fills it in */ }
+  }
   async function loadSessions() {
     // the coordinators (for "is replying") and the thread sessions' live state
     try {
@@ -914,7 +921,7 @@ export function stormSource(state, emit, event) {
     // the subscription is in place once its first frame (the snapshot) arrives; frames from then on
     // are held during the load, so nothing that changes while it runs is lost or reverted
     await subscribed;
-    await Promise.all([loadAll(), loadStatus()]);
+    await Promise.all([loadAll(), loadStatus(), loadActive()]);
     commit();
     holding = false;
     for (const f of held.splice(0)) apply(f);
