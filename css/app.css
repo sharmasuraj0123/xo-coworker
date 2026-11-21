@@ -707,6 +707,7 @@ button.hr:active{transform:scale(.97)}
 .composer:focus-within{border-color:var(--line-strong);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 /* the composer's corners hold two circles, attach and Send, 36 px and 10 px in from its edge, so the
    composer's 28 px corner is concentric with them (18 + 10). The text starts on the paperclip's glyph. */
+/* its chips are capsules: 32 high, 12 in from the edge, so 16 + 12 is the 28 corner */
 .composer-field{position:relative;padding-left:10px}
 /* #14: no scrollbar; it grows with what you write */
 .composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-size:var(--fs-read);font-weight:var(--fw-read);color:var(--ink-read);line-height:var(--lh-read);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
@@ -717,7 +718,7 @@ button.hr:active{transform:scale(.97)}
 .composer-row{display:flex;align-items:center;gap:var(--s-2);margin-top:6px}
 /* the composer row's settings speak at the meta step, their icons and marks one step smaller with them */
 :is(.target,.iq){--ic:var(--ic-sm);font-size:var(--fs-meta);line-height:var(--lh-meta)}
-.target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-sm);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-pill);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--fill-2);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
 .target svg{flex:none;width:var(--ic);height:var(--ic)}
@@ -769,7 +770,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    Geometry: a 12 px float whose rows sit 6 px in (its 1 px line and 5 px of padding), so their 6 px corners
    are concentric with it (12 − 6); the phone sheet: 22, rows 16 in, 6. */
 /* the model chip never shrinks for the target, only to leave Attach and Send their room */
-.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
+.iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 .iq-l{min-width:0;overflow:hidden;text-overflow:ellipsis}
@@ -2057,19 +2058,27 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* live: a model's efforts come from the catalog (up to five); each pip is one effort */
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
-.chl{display:flex;flex-direction:column;gap:var(--s-6);margin:var(--s-2) 0 var(--s-6)}
-.chl-h{margin:0 0 var(--s-2);padding:0 var(--s-4);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
-.chl-list{list-style:none;display:flex;flex-direction:column;margin:0;padding:var(--s-1);border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
+.app[data-conv="chats"] .main{--dock-h:0px}
+.cs-hi{width:var(--col-w);margin:clamp(var(--s-8),8vh,calc(2 * var(--s-8))) 0 var(--s-6) var(--col-x);text-align:center;font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans);letter-spacing:var(--tr-28);color:var(--ink);text-wrap:balance}
+.scroller>.dock{position:relative;right:auto;bottom:auto;margin-bottom:var(--s-10)}
+.scroller>.dock>.cbar{padding:0;background:none}
+.chl-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:0 0 var(--s-2) var(--s-3)}
+.chl-k{margin:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.chl-top>.chl-q{flex:0 1 50%}
+.chl{display:flex;flex-direction:column;gap:var(--s-5);margin:var(--s-2) 0 var(--s-6)}
+.chl-h{margin:0 0 var(--s-1);padding:0 var(--s-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.chl-list{list-style:none;display:flex;flex-direction:column;margin:0;padding:0}
+.chl-list>li+li{border-top:1px solid var(--line-faint)}
 .chl-row{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row-list);padding:var(--s-2) var(--s-3);border-radius:var(--r);text-align:left;transition:background var(--d-hover) var(--ease)}
 @media (hover:hover){.chl-row:hover{background:var(--row-hover)}}
 .chl-tile{position:relative;flex:none;display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r);background:var(--row-bg);border:1px solid var(--row-line);color:var(--ink-3)}
 .chl-tile>.agm{width:var(--ic-lg);height:var(--ic-lg);vertical-align:0}
 /* its state sits on the tile's corner, cut out of the surface behind it */
-.chl-tile>.g{position:absolute;right:calc(-1 * var(--s-1));bottom:calc(-1 * var(--s-1));border-radius:50%;box-shadow:0 0 0 calc(var(--s-1) / 2) var(--surface);background-color:var(--surface)}
+.chl-tile>.g{position:absolute;right:calc(-1 * var(--s-1));bottom:calc(-1 * var(--s-1));border-radius:50%;box-shadow:0 0 0 calc(var(--s-1) / 2) var(--canvas);background-color:var(--canvas)}
 .chl-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .chl-t{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chl-m{font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chl-a{flex:none;align-self:start;padding-top:var(--s-1);font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
+.chl-a{flex:none;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4);font-variant-numeric:tabular-nums}
 .chl-a.is-need{color:var(--warn);font-weight:var(--fw-strong)}
 .chl-a.is-busy{color:var(--info)}
 .chl-calm{margin-top:var(--s-3)}

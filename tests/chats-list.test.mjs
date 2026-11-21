@@ -35,10 +35,11 @@ t("a row: the agent's mark on a tile, its state as a badge (none when idle), tit
   assert.match(src, /home \? "" : `in \$\{folderWord\(s\.cwd\)\}`/);
   assert.doesNotMatch(src, /class="ch-(row|main|t|m|a)"/, "the Chats list has its own classes");
 });
-t("its look: tokens only, one surface per day, rows 56, nothing hard-coded beyond hairlines", () => {
+t("its look: tokens only, one quiet list split by hairlines, rows 56, nothing hard-coded beyond hairlines", () => {
   const css = read("css/app.css");
-  const block = css.slice(css.indexOf(".chl{"), css.indexOf(".chl-calm{"));
-  assert.match(block, /\.chl-list\{[^}]*border-radius:var\(--r-lg\);background:var\(--surface\);border:1px solid var\(--line-soft\)\}/);
+  const block = css.slice(css.indexOf(".cs-hi{"), css.indexOf(".chl-calm{"));
+  assert.match(block, /\.chl-list\{list-style:none;display:flex;flex-direction:column;margin:0;padding:0\}/);
+  assert.match(block, /\.chl-list>li\+li\{border-top:1px solid var\(--line-faint\)\}/);
   assert.match(block, /\.chl-row\{[^}]*min-height:var\(--h-row-list\)/);
   assert.match(block, /\.chl-tile\{[^}]*width:var\(--tile\);height:var\(--tile\)/);
   assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/1px solid|gap:2px/g, ""), /\b\d+px\b|#[0-9a-f]{3,8}\b|rgba?\(/i);
@@ -78,5 +79,24 @@ t("the New chat picker is the shared picker's look: the chip opens it, agents as
 t("Chats' header line runs the row's width: the project cap only shares a row with something in .top-end; the folder chip is the folder's name alone", () => {
   assert.match(read("css/app.css"), /\.top\[data-kind="project"\]:has\(> \.top-end:empty\) \.top-who\{flex:1;max-width:none\}/);
   assert.match(read("js/chats.js"), /return `\$\{ICON\.folder\}<span>\$\{esc\(capFirst\(folderName\(st\.cwd\)\.replace\(\/\^your \/, ""\)\)\)\}<\/span>`;/);
+});
+
+t("Chats starts with its composer: under the greeting at the top, the dock back at the foot in a chat", () => {
+  const app = read("js/app.js"), html = read("index.html"), css = read("css/app.css");
+  assert.match(html, /id="scroller"[^>]*>\s*<h2 class="cs-hi" id="cs-hi" hidden>What can I help with\?<\/h2>/);
+  assert.match(app, /dockAtTop\(v === "chats"\);/);
+  assert.match(app, /if \(top\) \$\("#cs-hi"\)\.after\(dock\); else \$\("#drop-veil"\)\.after\(dock\);/);
+  assert.match(app, /had\?\.focus\(\{ preventScroll: true \}\)/, "focus in the composer survives the move");
+  assert.match(css, /\.app\[data-conv="chats"\] \.main\{--dock-h:0px\}/, "nothing reserves the foot's room on Chats");
+  assert.match(css, /\.cs-hi\{[^}]*var\(--fs-display\)\/var\(--lh-display\)/, "the greeting is Home's display role");
+});
+t("Recent chats: a search over titles and lines, second lines only for what isn't the default", () => {
+  const src = read("js/chats.js"), app = read("js/app.js");
+  assert.match(src, /<h2 class="chl-k">Recent chats<\/h2><label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
+  assert.match(src, /rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
+  assert.match(src, /No chats match/);
+  assert.doesNotMatch(src.slice(src.indexOf("const rowLine"), src.indexOf("const waiting")), /Default model/);
+  assert.match(app, /e\.target\.matches\?\.\("\[data-chl-q\]"\)\) CH\.search\(e\.target\.value\)/);
+  assert.doesNotMatch(read("css/panel.css"), /\.stage \.tg-qf/, "the search field is one shared look");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
