@@ -381,7 +381,7 @@ button:disabled{cursor:default}
 .ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
 /* the toggle fills its bar edge to edge, and the bar clips to its corners (its row's hover fill), so its ring is drawn
    inside it, on the bar's inner corners (the controls grader on 414de0f, C045: only the ring's right edge showed) */
-.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-ctl);padding:0 10px 0 12px;border-radius:calc(var(--r-lg) - 1px);text-align:left;font-size:var(--fs-ui);color:var(--ink-3)}
+.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-ctl);padding:0 10px 0 12px;border-radius:var(--r-lg-in);text-align:left;font-size:var(--fs-ui);color:var(--ink-3)}
 .ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:2px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--fill-3);transition:background var(--d-in) var(--ease)}
@@ -406,6 +406,8 @@ button:disabled{cursor:default}
 .ck-chev{display:grid;place-items:center}
 .ck-chev svg{width:16px;height:16px;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .ckbar.is-open .ck-chev svg{transform:rotate(180deg)}
+/* open, the toggle's bottom edge meets its list, so its fill (press, focus) squares there like the row's hover */
+.ckbar.is-open .ck-tog{border-end-start-radius:0;border-end-end-radius:0}
 /* opening, the list grows out from under the line and fades in, one motion: the bar clips it, so its padding never
    changes (it jumped 16 px as the list's padding switched on at the start, then the height eased after it: the owner,
    11 Nov 07:57Z, "extremely bad") */
@@ -532,7 +534,7 @@ button:disabled{cursor:default}
 .md-code-head{display:flex;align-items:center;justify-content:space-between;min-height:34px;padding:0 6px 0 14px;border-bottom:1px solid var(--line-faint);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4)}
 .md-copy{height:var(--h-sm);padding:0 10px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .md-copy:hover{background:var(--fill-2);color:var(--ink)}
-.md-code pre{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono)}
+.md-code pre{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 var(--r-lg-in) var(--r-lg-in);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono)}
 .md-code code{background:none;border:0;padding:0;font:inherit}
 /* Tables read on whatever they sit on (the page, an agent's glass bubble, a card): their frame, rules and
    header are mixes of the text colour, not greys made for the page (on the bubble those measured 1.05 : 1

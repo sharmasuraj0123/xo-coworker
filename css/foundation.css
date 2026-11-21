@@ -184,7 +184,7 @@ body.stage-full .stg-grip{display:none}
 :where(.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 18%,var(--stop))!important}
 :is(.fl-r,.fl-sec,.shd-tab,.ar,.syl-ln,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
-.md-th{border-radius:calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0}
+.md-th{border-radius:var(--r-lg-in) var(--r-lg-in) 0 0}
 .scroller .wsh-home:focus-visible{outline-offset:1px}
 
 /* ── 8 · nothing loops unless an agent works ─────────────────────────────────────────────────────── */

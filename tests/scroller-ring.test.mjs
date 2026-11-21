@@ -157,13 +157,13 @@ t("C076: every control in the panel's bars (its own, a frame's head, a change's 
 });
 t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {
   assert.ok(inset.split(",").includes(".ck-tog"));
-  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-ctl\);padding:0 10px 0 12px;border-radius:calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-ctl\);padding:0 10px 0 12px;border-radius:var\(--r-lg-in\);/);
   assert.match(all, /\.ckbar\{border-radius:var\(--r-lg\);[^}]*border:1px solid/);
 });
 t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {
   const code = all.match(/(?:^|\n)\.md-code\{([^}]*)\}/)[1];
   assert.doesNotMatch(code, /overflow/, "the block itself doesn't clip");
-  assert.match(all, /\.md-code pre\{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 calc\(var\(--r-lg\) - 1px\) calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.md-code pre\{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 var\(--r-lg-in\) var\(--r-lg-in\);/);
   assert.match(all, /\.md-code-head\{display:flex;align-items:center;justify-content:space-between;min-height:34px;/, "a phone's 36 px Copy grows its head");
 });
 t("the runs strip gives the room back in its margin: its chips sit where they did (8 px under the head's line)", () => {

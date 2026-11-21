@@ -104,6 +104,7 @@
      never chosen: inner = outer − inset.
        6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
   /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
      focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
      fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */
