@@ -961,28 +961,6 @@ function messagesOf(conv) {
   // a move the thread row knows but whose note isn't in what we hold: its banner anyway (F4)
   if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
   if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(t.movedTo.at) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
-  // a thread's work: its session's turns, in place between its messages (storm's blocks). A turn is split
-  // where a message came during it, the agent's own or yours (turnview.js turnSegments): what it did
-  // before sits above that message, what it did after sits below, each stretch where it happened, so the
-  // running stretch grows under the latest message and nothing moves when the turn ends. The last stretch
-  // keeps the turn's own key (turn:<id>), so a running turn's line (and a layer's live bubble on it) is the
-  // same element all the way through; an earlier stretch is turn:<id>#<k>.
-  if (t && t.sessionId && st.turns) {
-    const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: m.seq, at: m.at, who: m.who }));
-    // what the agent's messages carry: a turn's shared_files block doesn't draw them a second time
-    const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
-    // a running turn's still-empty last stretch is "now": after everything held
-    const tail = rows.reduce((a, m) => (m.seq != null && m.seq > a ? m.seq : a), 0) + 0.5;
-    for (const tu of st.turns.list((x) => x.session === t.sessionId)) {
-      const blocks = st.turns.blocksOf(tu);
-      const said = says.some((q) => q.who === "agent" && q.seq >= (tu.seq ?? Infinity) && q.seq <= (tu.lastSeq || Infinity));
-      for (const sg of turnSegments(tu, blocks, says)) {
-        const turn = segmentTurn(tu, sg);
-        const seq = tu.status === "running" && sg.last && sg.k > 0 && !sg.blocks.length ? Math.max(sg.seq, tail) : sg.seq;
-        out.push({ key: sg.last ? `turn:${tu.id}` : `turn:${tu.id}#${sg.k}`, at: sg.from ?? (Date.parse(tu.at) || Date.now()), seq, who: "turn", turn, blocks: sg.blocks, hideAnswer: said, carried, working: sg.k > 0 });
-      }
-    }
-  }
   // your messages relayed into this thread by its coordinator (if1 #7): the relay hop names them, and they
   // stay on the project's timeline (storm doesn't copy them), so they're shown here in place, whatever the
   // hops setting, marked as passed on, linking back to where you wrote them
@@ -1020,6 +998,29 @@ function messagesOf(conv) {
       if (hp.thread_ts !== t.id || noted.has(hp.id)) continue;
       const text = hopLine(hp, PROJ(t.project));
       if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
+    }
+  }
+  // a thread's work: its session's turns, in place between its messages (storm's blocks). A turn is split
+  // where a message or a coordinator's note came during it (turnview.js turnSegments): what it did
+  // before sits above that message, what it did after sits below, each stretch where it happened, so the
+  // running stretch grows under the latest message and nothing moves when the turn ends. The last stretch
+  // keeps the turn's own key (turn:<id>), so a running turn's line (and a layer's live bubble on it) is the
+  // same element all the way through; an earlier stretch is turn:<id>#<k>.
+  if (t && t.sessionId && st.turns) {
+    const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: m.seq, at: m.at, who: m.who }))
+      .concat(out.filter((x) => x.seq != null && /^(hopn|relay|ctl|hop):/.test(x.key)).map((x) => ({ seq: x.seq, at: x.at, who: x.who })));
+    // what the agent's messages carry: a turn's shared_files block doesn't draw them a second time
+    const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
+    // a running turn's still-empty last stretch is "now": after everything held
+    const tail = says.reduce((a, m) => (m.seq > a ? m.seq : a), 0) + 0.5;
+    for (const tu of st.turns.list((x) => x.session === t.sessionId)) {
+      const blocks = st.turns.blocksOf(tu);
+      const said = says.some((q) => q.who === "agent" && q.seq >= (tu.seq ?? Infinity) && q.seq <= (tu.lastSeq || Infinity));
+      for (const sg of turnSegments(tu, blocks, says)) {
+        const turn = segmentTurn(tu, sg);
+        const seq = tu.status === "running" && sg.last && sg.k > 0 && !sg.blocks.length ? Math.max(sg.seq, tail) : sg.seq;
+        out.push({ key: sg.last ? `turn:${tu.id}` : `turn:${tu.id}#${sg.k}`, at: sg.from ?? (Date.parse(tu.at) || Date.now()), seq, who: "turn", turn, blocks: sg.blocks, hideAnswer: said, carried, working: sg.k > 0 });
+      }
     }
   }
   // the Workspace's and a project's own hops, by the same choice: what a coordinator did on its own, and
@@ -2831,14 +2832,15 @@ function drawThreadPage(needs) {
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-// the thread moves from the panel into the main chat: one view transition carries its column there
+// the thread moves from the panel into the main chat: its frame snaps across while the panel steps back without its copy
 function toMain(id) {
   closeThreadMenu({ focus: false });
   const move = (still) => { STAGE.closePage("thread"); go("t:" + id, { still, panel: true }); };
   if (RM.matches || !document.startViewTransition) { move(false); return; }
   TP.box.classList.add("is-moving");
-  const vt = document.startViewTransition(() => { TP.box.classList.remove("is-moving"); move(true); $("#column").classList.add("is-moving"); });
-  vt.finished.finally(() => $("#column").classList.remove("is-moving"));
+  const box = TP.box;
+  const vt = document.startViewTransition(() => { box.classList.remove("is-moving"); box.classList.add("is-left"); move(true); $("#column").classList.add("is-moving"); });
+  vt.finished.finally(() => { $("#column").classList.remove("is-moving"); box.classList.remove("is-left"); });
 }
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-main]"); if (b) toMain(b.dataset.tpMain); });
 /**
