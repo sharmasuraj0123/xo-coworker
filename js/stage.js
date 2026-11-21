@@ -23,7 +23,7 @@
 //
 // app.js calls: button, toggle, open, close, sync, isOpen, owns.
 
-import { ICON, $ } from "./ui.js";
+import { ICON, ARC, $ } from "./ui.js";
 import { esc } from "./util.js";
 import { redraw } from "./redraw.js";
 import { usable } from "./focusview.js";
@@ -231,7 +231,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (!groups || !groups.length) return `<p class="fr-none">No ${"threads"} here yet.</p>`;
     const g = q ? {} : fr.agents.groups || {}, more = q ? { needs: 1, working: 1, waiting: 1, done: 1 } : S.tgMore || {};
     const row = (r) => {
-      const mark = r.state === "working" ? '<i class="arc"></i>' : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
+      const mark = r.state === "working" ? ARC : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
       return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
         `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.coord ? ICON.project : ICON.threadOne}${mark}</span>` +
         `<span class="ag-t"><b>${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
@@ -249,7 +249,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   function agentsHtml(list) {
     if (!list.length) return `<p class="fr-none">No agent is working here right now.</p>`;
     return `<ul class="ag-list">${list.map((a) => `<li><button type="button" class="ag-r${a.busy ? "" : " is-idle"}${a.go === view() ? " is-on" : ""}"${a.go === view() ? ' aria-current="page"' : ""} data-go="${esc(a.go)}" title="Open ${esc(a.title)}">` +
-      `<span class="ag-ic" style="--c:${esc(a.color)}" aria-hidden="true">${ICON.threadOne}${a.waiting ? `<i class="ag-wait">${ICON.pause}</i>` : a.busy ? '<i class="arc"></i>' : ""}</span><span class="ag-t"><b>${esc(a.title)}</b><span class="ag-activity"><span class="ag-doing">${esc(a.doing)}</span></span></span>` +
+      `<span class="ag-ic" style="--c:${esc(a.color)}" aria-hidden="true">${ICON.threadOne}${a.waiting ? `<i class="ag-wait">${ICON.pause}</i>` : a.busy ? ARC : ""}</span><span class="ag-t"><b>${esc(a.title)}</b><span class="ag-activity"><span class="ag-doing">${esc(a.doing)}</span></span></span>` +
       `<span class="ag-tm">${a.busy && Number.isFinite(a.since) ? `<span class="elapsed" data-since="${a.since}">${ago(a.since)}</span>` : ""}</span></button></li>`).join("")}</ul>`;
   }
   function changesHtml(list) {

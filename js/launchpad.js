@@ -17,7 +17,7 @@
 // stage.js calls: mount(section), paint(v, open), tone(v), has(v), headless(v). app.js calls: button(v),
 // ensure(v), and opens the section through the panel (data-lp-open).
 
-import { ICON } from "./ui.js";
+import { ICON, ARC } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { pointerFollows } from "./keynav.js";
@@ -338,7 +338,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const fed = img === "failed" ? "err" : inst === "starting" || img === "building" ? "flow" : img === "ready" && (inst === "ready" || inst === "starting") ? "feed" : "ghost";
     const toAddr = on ? "ok" : "ghost", toApp = on && inst === "ready" ? "ok" : inst === "failing" ? "err" : "ghost";
     // the panel: the same system as one row of four small lit nodes (the demo's mini flow), what matters under it
-    const node = (st, icon, label, title, cls = "") => `<span class="lpm-n ${st}${cls}" title="${esc(title)}"><i class="lpm-t">${icon}${st === "starting" || st === "building" ? '<i class="arc"></i>' : ""}</i><b>${label}</b></span>`;
+    const node = (st, icon, label, title, cls = "") => `<span class="lpm-n ${st}${cls}" title="${esc(title)}"><i class="lpm-t">${icon}${st === "starting" || st === "building" ? ARC : ""}</i><b>${label}</b></span>`;
     const mline = (cls) => `<span class="lpm-l ${cls}" aria-hidden="true"></span>`;
     const appTitle = `${f.name || c.app?.name || nameOf(p)}: ${instWord}`;
     const detail = mode === "live" && real
@@ -567,7 +567,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (mine.held) return { k: "idle", word: mine.held };
     return { k: "idle", word: "Not working right now" };
   }
-  const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? '<i class="arc"></i>' : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;
+  const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? ARC : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;
   /** The thread an Ask (from a failed deploy) started: its row, with what it means for deploying. */
   function askedHtml(p) {
     const s = proj(p), g = s.asked;

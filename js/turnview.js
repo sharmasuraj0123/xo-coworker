@@ -7,7 +7,7 @@
 
 import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
-import { ICON, stepMark, elapsed } from "./ui.js";
+import { ICON, stepMark, elapsed, ARC } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
@@ -326,5 +326,5 @@ export function segmentTurn(turn, seg) {
 export function turnAv(turn, blocks = []) {
   if (!turn || turn.status !== "running") return `<div class="av av-gap"></div>`;
   const waiting = blocks.some((b) => (b.rows || []).some((r) => r.status === "running" && r.waiting));
-  return `<div class="av av-live${waiting ? " is-wait" : ""}" role="img" aria-label="${waiting ? "Waiting for you" : "Working"}" title="${waiting ? "Waiting for you" : "Working"}">${ICON.thread}${waiting ? "" : `<i class="arc" aria-hidden="true"></i>`}</div>`;
+  return `<div class="av av-live${waiting ? " is-wait" : ""}" role="img" aria-label="${waiting ? "Waiting for you" : "Working"}" title="${waiting ? "Waiting for you" : "Working"}">${ICON.thread}${waiting ? "" : ARC}</div>`;
 }
