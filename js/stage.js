@@ -58,7 +58,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false }) {
+export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false, place = () => true }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -114,8 +114,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   });
 
   function persist() { sset(KEY, { open: S.open || !!S.resume }); sset(FR_KEY, fr); }
-  // Home and Artifacts have no panel: open elsewhere, it steps aside there and comes back with the next place
-  const placeless = () => { const v = view(); return v === "home" || v === "artifacts"; };
+  // a place without a panel (the app says which have one): open elsewhere, it steps aside there and comes back with the next
+  const placeless = () => !place(view());
 
   // ── the frames: folded or open, their heights ───────────────────────────────
   function layout() {
@@ -366,6 +366,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
 
   function open({ focus = true } = {}) {
+    if (placeless()) return;
     if (!S.open) {
       S.open = true;
       S.returnTo = document.activeElement;
@@ -467,7 +468,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
 
   function show(name, key = name, { focus = false } = {}) {
     const sp = PAGES.get(name);
-    if (!sp) return false;
+    if (!sp || placeless()) return false;
     const next = { name, key: String(key) }, fresh = !S.open;
     if (fresh) open({ focus: false });
     // same kind, another subject: the box stays
@@ -819,7 +820,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     /** Is this element inside the panel (so the app's Esc leaves it alone)? */
     owns: (node) => !!(node && el.contains(node)),
     /** The one header button: opens the panel, or closes it. No dot: nothing blinks here. */
-    button() {
+    button(v) {
+      if (!place(v)) return "";
       return `<button type="button" class="stg-btn${S.open ? " is-on" : ""}" data-stage-toggle aria-pressed="${S.open}" aria-controls="stage" aria-label="Panel: threads, changes and map" title="Threads, Changes and Map">${PANEL_IC}</button>`;
     },
   };

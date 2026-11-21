@@ -82,7 +82,7 @@ assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\
 // inside the Shell page's terminal Esc is the shell's (vim), not the panel's: the stage's keys ask the shells' one rule
 // first (owns: inside #shd .xterm), as the app's keys do
 { const dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
-  assert.match(stage, /shell = null, owns = \(\) => false \}\) \{/);
+  assert.match(stage, /shell = null, owns = \(\) => false, place = \(\) => true \}\) \{/);
   assert.match(stage, /el\.addEventListener\("keydown", \(e\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(owns\(e\)\) return;/, "the terminal's keys before the panel's");
   assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\) \}\);/);
   assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
@@ -98,7 +98,18 @@ assert.doesNotMatch(stage, /class="fr-ib" data-open-files/);
 assert.match(stage, /if \(t\.closest\("\[data-open-files\]"\)\) \{ if \(S\.page\?\.name === "files"\) back\(\); else openFiles && openFiles\(\); return; \}/);
 console.log("stage-pages width and All files: ok");
 // Home and Artifacts have no panel (the owner, 20 Nov): open elsewhere, it steps aside there and comes back at the next place
-assert.match(stage, /const placeless = \(\) => \{ const v = view\(\); return v === "home" \|\| v === "artifacts"; \};/);
+assert.match(stage, /const placeless = \(\) => !place\(view\(\)\);/);
+// which places have a panel is one positive rule, the app's: a project's chat, the Workspace's, their threads
+assert.match(app, /const panelPlace = \(v\) => \/\^\(\?:ws\$\|\[pt\]:\)\/\.test\(v \|\| ""\);/);
+assert.match(app, /createStage\(\{ place: panelPlace,/);
+{ const panelPlace = (v) => /^(?:ws$|[pt]:)/.test(v || "");
+  for (const v of ["ws", "p:xo", "t:abc"]) assert.equal(panelPlace(v), true, v);
+  for (const v of ["home", "chats", "c:abc", "artifacts", "", undefined]) assert.equal(panelPlace(v), false, String(v)); }
+assert.doesNotMatch(stage.replace(/\/\/[^\n]*/g, ""), /"home"[^\n]*"artifacts"|"chats"/, "the stage names no place");
+// a place without a panel opens none: not by its button (there is none), a page, or a shortcut
+assert.match(stage, /function open\(\{ focus = true \} = \{\}\) \{\n\s*if \(placeless\(\)\) return;/);
+assert.match(stage, /if \(!sp \|\| placeless\(\)\) return false;/);
+assert.match(stage, /button\(v\) \{\n\s*if \(!place\(v\)\) return "";/);
 assert.match(stage, /if \(placeless\(\)\) \{ if \(S\.open\) \{ S\.resume = true; close\(\{ restore: false, quiet: true \}\); \} \}\n\s*else if \(S\.resume\) \{ S\.resume = false; open\(\{ focus: false \}\); \}/);
 assert.match(stage, /if \(saved\.open\) S\.resume = true;/);
 console.log("stage-pages home: ok");
