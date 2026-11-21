@@ -347,7 +347,7 @@ button:disabled{cursor:default}
 .tw-xo .xo-mark{display:block;width:22px;height:9px}
 .all-btn.is-need{border-color:transparent;background:color-mix(in srgb,var(--warn) 12%,transparent);color:var(--ink)}
 .all-btn.is-need span{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
-.badge{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-sm);padding:0 10px;border-radius:999px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent);color:var(--st,var(--ink-3))}
+.badge{flex:none;display:inline-flex;align-items:center;align-self:center;gap:8px;height:var(--h-ctl);padding:0 var(--s-3);border-radius:999px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent);color:var(--st,var(--ink-3))}
 .st-working{--st:var(--info)}.st-needs_reply,.st-needs_approval{--st:var(--warn)}.st-done{--st:var(--accent)}.st-failed{--st:var(--err-ink)}.st-stopped{--st:var(--ink-4)}.st-resolved{--st:var(--ink-4)}
 
 /* the Now shelf: at most three, needs-you first, never grows */
@@ -1970,7 +1970,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .rn-path b{font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);letter-spacing:0;color:var(--ink);flex-basis:100%;margin-top:4px}
 .rn-st{display:flex;align-items:center;gap:8px;margin-top:10px}
 /* the state and its Stop read as one pair (hub #26): one height, one type size, one icon size */
-.rn-st .badge{height:28px;padding:0 11px 0 10px;border-radius:999px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .rn-st .rn-stop{height:var(--h-ctl);border-radius:999px;padding:0 12px 0 10px}
 .rn-st .rn-stop svg{width:var(--ic-xs);height:var(--ic-xs)}
 .rn-run{display:flex;flex-direction:column;gap:8px;padding-top:14px}
