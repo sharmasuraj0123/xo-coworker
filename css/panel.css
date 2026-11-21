@@ -20,7 +20,7 @@
 .stage[data-stg-page] .stg-bar{padding-left:var(--s-1)}
 .stg-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
 .stg-pa{display:contents}
-.stg-ic{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stg-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stg-ic svg{width:16px;height:16px}
 .stg-ic:hover{background:var(--fill-2);color:var(--ink)}
 
@@ -601,7 +601,7 @@ body.stage-covers .herald .hr-conn{display:none}
 .stage .pg-back{position:relative}
 /* Files' show/hide the file list, first after ‹: on (the list shown) in a stronger ink */
 .stage .pg-lead[aria-pressed="true"]{color:var(--ink-2)}
-.stage .pg-dot{position:absolute;top:var(--s-1);right:var(--s-1);width:var(--s-2);height:var(--s-2);border-radius:50%;background:var(--need, var(--warn))}
+.stage .pg-dot{position:absolute;top:calc((var(--h-ctl) - var(--ic)) / 2);right:calc((var(--h-ctl) - var(--ic)) / 2);width:var(--badge-dot);height:var(--badge-dot);border-radius:50%;background:var(--need, var(--warn))}
 
 /* ── The Thread page (P2, the owner chose the proper build, 19 Nov 15:20Z): a thread beside the coordinator's chat,
    its conversation drawn by the same code as the chat's, in the panel's own reading column (inset --s-5 each

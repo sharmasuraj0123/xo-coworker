@@ -116,3 +116,11 @@ console.log("stage-pages home: ok");
 // the sections' head names no place (the owner, 20 Nov: the chat beside it already does); a page still shows its title
 assert.match(stage, /if \(!S\.page\) return ""; \/\/ the sections name no place/);
 console.log("stage-pages head: ok");
+// a head control keeps its full control size: in the title row a long title shrinks, never ‹ (the owner, 21 Nov: a sliver to click)
+assert.match(css, /\.stg-ic\{flex:none;display:grid;place-items:center;width:var\(--h-ctl\);height:var\(--h-ctl\);/);
+console.log("stage-pages head control size: ok");
+// ‹'s needs-you dot is the icon badge size, on the icon's corner (the owner, 21 Nov: too large)
+{ const tokens = readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8");
+  assert.match(tokens, /--badge-dot:calc\(var\(--ic\) \* 3 \/ 8\);/);
+  assert.match(css, /\.stage \.pg-dot\{position:absolute;top:calc\(\(var\(--h-ctl\) - var\(--ic\)\) \/ 2\);right:calc\(\(var\(--h-ctl\) - var\(--ic\)\) \/ 2\);width:var\(--badge-dot\);height:var\(--badge-dot\);/); }
+console.log("stage-pages back dot: ok");
