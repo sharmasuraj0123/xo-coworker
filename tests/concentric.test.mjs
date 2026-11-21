@@ -26,6 +26,11 @@ t("a menu's rows sit in its corner: --r-menu − its padding and line; More is a
   assert.match(side, /\.side-pop\[role=menu\]\{min-width:var\(--menu-w\);padding:var\(--menu-pad\);border-radius:var\(--r-menu\)\}/);
   assert.match(side, /\.side-pop\[role=dialog\] \.nrow\{--nest-r:var\(--r-xl-in\)\}/);
 });
+t("the model picker's footer buttons sit in its corner: --nest-r − --nest-in from the pop", () => {
+  assert.match(app, /\.iq-pop\{--nest-r:var\(--r-menu\);--nest-in:calc\(var\(--menu-pad\) \+ 1px\);[^}]*border-radius:var\(--nest-r\)/);
+  assert.match(app, /\.iq-f\{[^}]*padding:var\(--s-1\) 0 0 var\(--s-2\)/);
+  for (const sel of ["iq-back", "iq-done"]) assert.match(app, new RegExp(`\\.${sel}\\{[^}]*border-radius:${NEST}`), sel);
+});
 t("every menu reads the menu tokens: its padding and corner, its rows' height and corner", () => {
   const css = ["app", "diffs", "dropdown", "launchpad", "panel", "side"].map((f) => readFileSync(new URL(`../css/${f}.css`, import.meta.url), "utf8")).join("\n");
   for (const [box, row] of [[".tw-menu", ".tw-menu button"], [".vw-menu", ".vw-menu :is([role=menuitem],[role=menuitemradio])"], [".dd-menu", ".dd-row"], [".lp-mn", ".lp-mn button"], [".fl-menu", ".fl-menu button"]]) {
