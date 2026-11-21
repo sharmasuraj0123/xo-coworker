@@ -9,7 +9,7 @@ body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-u
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
-:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
 /* the ring has room wherever focus scrolls a control into view, by a Tab or a script's scrollIntoView: the browser
    brings a control only as far as its own edge, so at a scroller's foot the ring was cut off (the create-project
    grader on 65e84b7, S111/S112: Settings › Routing's Keep it and Disconnect flush with the foot, 3.56 px of the ring

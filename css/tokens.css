@@ -58,8 +58,9 @@
   /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
   /* The one focus ring: 2 px of the accent, following the element's own radius. */
-  --focus:rgba(var(--accent-rgb),.75);
+  --focus:rgba(var(--accent-rgb),.45);
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
      scrolls a control into view (base.css) */
   --ring-room:6px;
@@ -209,6 +210,7 @@
   --sha:.28;
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 7%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 10%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 13%,transparent);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 10%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 15%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 20%,transparent);
   --e-decide:#3B3B3B;
 }
 
@@ -238,7 +240,8 @@
   --accent:#83D63A; --accent-rgb:131,214,58; --err-ink:#E68388;
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
-  --focus:rgba(var(--accent-rgb),.75);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
+  --focus:rgba(var(--accent-rgb),.45);
 }
 
 /* High contrast, when the OS asks for it. */

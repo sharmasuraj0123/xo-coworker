@@ -129,7 +129,7 @@
      same 40 px box as the finished count; it opens the list, where each one is named */
   :root:root .thead .rn-strip{display:none}
   :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-lg);padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
-  :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
+  :root:root .thead .rn-live:has(.g-needs_reply){border-color:transparent;background:color-mix(in srgb,var(--warn) 7%,transparent)}
   :root:root .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-live:active{transform:scale(.96)}
 

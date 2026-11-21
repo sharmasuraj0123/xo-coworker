@@ -255,7 +255,7 @@ svg.fi-line{color:inherit}
 .av-live,.av-w{position:relative;animation:none!important;background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:none!important}
 .av-live:not(.is-wait){color:var(--ink-2)}
 .av-w::after{display:none}
-.av-live.is-wait{border-color:color-mix(in srgb,var(--warn) 45%,var(--line-soft))!important;background:color-mix(in srgb,var(--warn) 8%,var(--surface))!important}
+.av-live.is-wait{border-color:transparent!important;background:color-mix(in srgb,var(--warn) 8%,var(--surface))!important}
 /* the arc: the text colour on a 22% track of the same colour (the chat capsule's working glyph), never blue */
 /* one working-arc system, in the app's blue (--info), like .g-working in css/app.css: the avatar's corner arc and the
    generic spinner share its colour, 22% track and 1.6s turn. A spinner inside a button keeps the button's ink. */
