@@ -2898,6 +2898,7 @@ function render() {
   const appEl = $("#app"), kind = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
   if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
   if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
+  dockAtTop(v === "chats");
   // a thread that isn't here (gone with a reset, or a link older than this Space) offers no message box: there's
   // nothing to write to (the create-project grader on 131d146: its composer stayed, "Message undefined…")
   const gone = v.startsWith("t:") && !convThread(v);
@@ -3135,6 +3136,15 @@ scroller.addEventListener("scroll", () => {
     if (dock.classList.contains("is-stacked") !== on) dock.classList.toggle("is-stacked", on);
     heraldRoom(); // the line stands higher over what's docked (is-stacked)
   }).observe(dock);
+}
+/** Chats starts with its composer: the dock leads its scroller there, under the greeting, and sits at the foot elsewhere. */
+function dockAtTop(top) {
+  const dock = $("#dock"), sc = $("#scroller");
+  if (top === (dock.parentElement === sc)) return;
+  const had = dock.contains(document.activeElement) ? document.activeElement : null;
+  if (top) $("#cs-hi").after(dock); else $("#drop-veil").after(dock);
+  $("#cs-hi").hidden = !top;
+  had?.focus({ preventScroll: true });
 }
 initFollow();
 
@@ -3574,6 +3584,7 @@ $("#top").addEventListener("keydown", (e) => {
   // the menu's own keys (↓ ↑ Home End, Escape, Tab) are menuKeys'; this is Escape with focus on ⋯ itself
   if (e.key === "Escape" && S.tMenu) { e.preventDefault(); e.stopPropagation(); closeThreadMenu(); }
 });
+$("#msgs").addEventListener("input", (e) => { if (e.target.matches?.("[data-chl-q]")) CH.search(e.target.value); });
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
 // leaving the field saves it, unless it's what was just refused (Enter retries that; leaving keeps it, as typed)
 $("#top").addEventListener("focusout", (e) => {

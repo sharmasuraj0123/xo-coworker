@@ -33,7 +33,7 @@ const PREFS = "cv-chat-prefs";
 const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map() };
+  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "" };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
@@ -80,10 +80,10 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const isHome = (cwd) => !cwd || /^\/home\/[^/]+\/?$/.test(cwd);
   const metaHtml = (s) => [`${agentMark(s.agent)}${esc(s.model ? modelWord(s.agent, s.model) : "Default model")}`, s.effort ? esc(EFFORT_WORD[s.effort] || s.effort) : "",
     esc((MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]), isHome(s.cwd) ? "" : `in ${esc(folderWord(s.cwd))}`].filter(Boolean).join(" · ");
-  /** The list's second line: the model (else the agent's name), the effort, and the mode or folder only when not the default. */
+  /** The list's second line: only what isn't a new chat's default (model, effort, mode, folder). */
   const rowLine = (s) => {
     const home = isHome(s.cwd);
-    return [s.model ? modelWord(s.agent, s.model) : "Default model", s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
+    return [s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
       s.permission_mode && s.permission_mode !== "auto" ? (MODE_WORDS[s.permission_mode] || [s.permission_mode])[0] : "", home ? "" : `in ${folderWord(s.cwd)}`].filter(Boolean).join(" · ");
   };
   const waiting = (s) => s.state === "waiting_on_person";
@@ -96,20 +96,25 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   function listItems() {
     const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
     if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
-    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
+    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything above. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
+    const q = C.q.trim().toLowerCase();
+    const shown = q ? rows.filter((s) => `${titleFor(s)} ${rowLine(s)}`.toLowerCase().includes(q)) : rows;
+    const head = { key: "chats-head", html: `<div class="chl-top"><h2 class="chl-k">Recent chats</h2><label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label></div>` };
+    if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">No chats match “${esc(C.q.trim())}”.</p>` }];
     const groups = new Map();
-    for (const s of rows) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(s); }
+    for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(s); }
     const row = (s) => {
       // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
       const wait = waiting(s), busy = inTurn(s) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
       const held = !wait && !busy ? heldOf(s) : null;
       const state = wait ? "needs_approval" : busy ? "working" : held ? "paused" : "";
+      const line = rowLine(s);
       return `<li><button type="button" class="chl-row" data-go="c:${esc(s.id)}">` +
         `<span class="chl-tile">${rtMark(s.agent) || ICON.thread}${state ? stateMark(state) : ""}</span>` +
-        `<span class="chl-main"><span class="chl-t">${esc(titleFor(s))}</span><span class="chl-m">${esc(rowLine(s))}</span></span>` +
+        `<span class="chl-main"><span class="chl-t">${esc(titleFor(s))}</span>${line ? `<span class="chl-m">${esc(line)}</span>` : ""}</span>` +
         `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at))}</span></button></li>`;
     };
-    return [{ key: "chats-list", html: `<div class="chl">${[...groups].map(([g, list], i) =>
+    return [head, { key: "chats-list", html: `<div class="chl">${[...groups].map(([g, list], i) =>
       `<section class="chl-g" aria-labelledby="chl-g${i}"><h2 class="chl-h" id="chl-g${i}">${esc(g)}</h2><ul class="chl-list">${list.map(row).join("")}</ul></section>`).join("")}</div>` }];
   }
 
@@ -357,12 +362,14 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     redraw(pop, html);
     const a = C.pop.anchor;
     if (a && !matchMedia("(max-width: 760px)").matches) {
-      // anchored by its bottom edge just above its chip, on the chip's outer edge: it grows upwards and never leaves the screen
+      // on the chip's outer edge, opening to the side of it with more room, never past the screen
       pop.classList.remove("is-sheet");
       const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(360, innerWidth - 2 * edge);
       const x = part === "model" ? r.right - w + gap : r.left - gap;
       pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(x, innerWidth - w - edge))}px`;
-      pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, r.top - edge - gap)}px`;
+      const up = r.top - edge - gap, down = innerHeight - r.bottom - edge - gap;
+      if (down > up) { pop.style.bottom = ""; pop.style.top = `${r.bottom + gap}px`; pop.style.maxHeight = `${Math.max(240, down)}px`; }
+      else { pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, up)}px`; }
     } else { pop.style.left = pop.style.top = pop.style.bottom = pop.style.width = pop.style.maxHeight = ""; pop.classList.add("is-sheet"); }
   }
   function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.setAttribute("aria-expanded", "false"); C.pop.anchor?.focus?.({ preventScroll: true }); }
@@ -472,6 +479,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     working: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s) && !waiting(s)); },
     /** Why this chat can't take a message, if it can't. */
     blocked: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.retired_at ? "This chat has ended" : ""; },
+    search(q) { if (C.q !== q) { C.q = q; schedule(); } },
     send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
     permHtml,
     /** A chip pressed: its own list opens, or closes when it is the one open. */
