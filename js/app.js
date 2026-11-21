@@ -890,13 +890,13 @@ function messagesOf(conv) {
   // messages landed among them and pushed what you were reading away (1-5k px on a long thread, at 1x)
   if (t && !t.loaded) {
     const err = st.threadHist?.[t.id]?.error;
-    out.push({ key: "note", at: -Infinity, who: "note", text: err ? `Couldn't load this thread: ${err}` : "Loading the thread…" });
+    out.push({ key: "note", at: -Infinity, who: "note", ...(err ? { text: `Couldn't load this thread: ${err}` } : { load: "Loading the thread" }) });
     out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
     return out;
   }
   if (!t && h) {
     if (h.error && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: `Couldn't load this conversation: ${h.error} Retrying.` });
-    else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: "Loading the conversation…" });
+    else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", load: "Loading the conversation" });
     else if (rows.length || h.loading) out.push({ key: "hist", at: -Infinity, who: "hist", h });
   }
   // a thread read in pages: the same line at its top (older pages on their way, or its beginning once a
@@ -1300,7 +1300,7 @@ function msgItemsOf(conv, needs) {
     } else if (m.who === "system") {
       html = `<div class="ev ev-sys" title="${esc(m.text)}"><span class="ev-ic">${ICON.router}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
     } else if (m.who === "note") {
-      html = `<p class="m-note">${esc(m.text)}</p>`;
+      html = m.load ? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"></i><span class="sr-only">${esc(m.load)}</span></div>` : `<p class="m-note">${esc(m.text)}</p>`;
     } else if (m.who === "start") {
       html = startHtml(m.pid);
     } else if (m.who === "hist") {
