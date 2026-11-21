@@ -69,7 +69,7 @@ t("the New chat picker is the shared picker's look: the chip opens it, agents as
   assert.match(src, /const x = part === "model" \? r\.right - w \+ gap : r\.left - gap;/, "the model list by the chip's right edge, folder and permission by their left");
   assert.match(app, /\$\("#cs-perm"\)\.addEventListener\("click", \(\) => \{ CH\.toggleSetup\(\$\("#cs-perm"\), "mode"\);/);
   assert.match(read("index.html"), /<button type="button" class="target cs-perm" id="cs-perm" aria-haspopup="dialog" aria-expanded="false" aria-controls="cs-pop" hidden><\/button>/);
-  assert.match(src, /row\("data-csmode", m,/, "what it may do: rows, one choice");
+  assert.match(src, /role="radio" aria-checked="\$\{on\}"\$\{rovingTab\(on, i === 0 && !modes\.includes\(st\.mode\)\)\} data-csmode=/, "what it may do: rows, one choice");
   assert.match(src, /import \{ EFFORT_WORD, EFFORT_HINT \} from "\.\/intel\.js";/, "one set of thinking words");
   assert.match(app, /if \(S\.view === "chats"\) \{ CH\.toggleSetup\(\$\("#iq"\), "model"\);/);
   assert.match(app, /const html = chat \? CH\.chipHtml\(K\.view\) : IQ\.chipHtml/);
@@ -83,17 +83,18 @@ t("Chats' header line runs the row's width: the project cap only shares a row wi
 
 t("Chats starts with its composer: under the greeting at the top, the dock back at the foot in a chat", () => {
   const app = read("js/app.js"), html = read("index.html"), css = read("css/app.css");
-  assert.match(html, /id="scroller"[^>]*>\s*<h2 class="cs-hi" id="cs-hi" hidden>What can I help with\?<\/h2>/);
+  assert.match(html, /id="scroller"[^>]*>\s*<h1 class="cs-hi" id="cs-hi" hidden>What can I help with\?<\/h1>\s*<p class="cs-sub" id="cs-sub" hidden>[^<]+<\/p>/);
   assert.match(app, /dockAtTop\(v === "chats"\);/);
-  assert.match(app, /if \(top\) \$\("#cs-hi"\)\.after\(dock\); else \$\("#drop-veil"\)\.after\(dock\);/);
+  assert.match(app, /if \(top\) \$\("#cs-sub"\)\.after\(dock\); else \$\("#drop-veil"\)\.after\(dock\);/);
   assert.match(app, /had\?\.focus\(\{ preventScroll: true \}\)/, "focus in the composer survives the move");
   assert.match(css, /\.app\[data-conv="chats"\] \.main\{--dock-h:0px\}/, "nothing reserves the foot's room on Chats");
   assert.match(css, /\.cs-hi\{[^}]*var\(--fs-display\)\/var\(--lh-display\)/, "the greeting is Home's display role");
 });
 t("Recent: the three latest under the composer, all of them a click away with a search over titles and lines, second lines only for what isn't the default", () => {
   const src = read("js/chats.js"), app = read("js/app.js");
-  assert.match(src, /<h2 class="chl-k">All chats<\/h2><label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
-  assert.match(src, /<h2 class="chl-k">Recent<\/h2>\$\{few \? `<button type="button" class="chl-all" data-chl-all="1">All \$\{rows\.length\}/);
+  assert.match(src, /<div class="rt-seg chl-seg" role="group" aria-label="Which chats"><button type="button" data-chl-all="0" aria-pressed="\$\{!C\.all\}">Recent<\/button><button type="button" data-chl-all="1" aria-pressed="\$\{C\.all\}">All/);
+  assert.match(src, /\$\{C\.all \? `<label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
+  assert.match(read("css/app.css"), /\.chl-top>\.chl-q\{[^}]*height:var\(--h-lg\);border-radius:var\(--r-lg\)\}/, "the field matches the segment beside it");
   assert.match(src, /const RECENT = 3;/);
   assert.match(src, /few \? rows\.slice\(0, RECENT\) : q \? rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
   assert.match(read("css/app.css"), /\.scroller:has\(\.chl-few,\.chl-calm\)>\.column\{height:0;margin-bottom:auto\}/, "at rest the composer stands in the middle");
@@ -101,5 +102,19 @@ t("Recent: the three latest under the composer, all of them a click away with a 
   assert.doesNotMatch(src.slice(src.indexOf("const rowLine"), src.indexOf("const waiting")), /Default model/);
   assert.match(app, /e\.target\.matches\?\.\("\[data-chl-q\]"\)\) CH\.search\(e\.target\.value\)/);
   assert.doesNotMatch(read("css/panel.css"), /\.stage \.tg-qf/, "the search field is one shared look");
+});
+t("Chats has no bar over its greeting: the greeting is the title, a phone keeps its menu", () => {
+  const css = read("css/app.css"), ph = read("css/phone.css"), src = read("js/chats.js");
+  assert.match(css, /@media \(min-width:761px\)\{\.app\[data-conv="chats"\] \.top\{display:none\}\}/);
+  assert.match(ph, /\.app\[data-conv="chats"\] \.top-who\{display:none\}/);
+  assert.match(src, /v === "chats" \? "Ask anything to start a chat…"/);
+});
+t("what it may do on its own reads as a choice you make about trust: a question, each mode its mark and sentence, careful first", () => {
+  const src = read("js/chats.js"), css = read("css/app.css");
+  assert.match(src, /How much should it do on its own\?/);
+  assert.match(src, /plan: \["Plan only", "[^"]+", "lightbulb"\],\n  ask: \["Ask first", "[^"]+", "question"\],\n  accept_edits: \["Edits", "[^"]+", "edit"\],\n  auto: \["Auto", "[^"]+", "shield-check"\]/);
+  assert.match(src, /\$\{xi\(ic, "cs-mi"\)\}<span class="cs-mt"><span class="iq-n">/);
+  assert.match(src, /xi\(MODE_WORDS\[st\.mode\]\?\.\[2\] \|\| "lock"\)/, "the chip wears the chosen mode's mark");
+  assert.match(css, /\.cs-md\{font:var\(--fw-regular\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-3\);text-wrap:pretty\}/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
