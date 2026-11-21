@@ -169,10 +169,8 @@
   /* Motion. One curve for everything that responds. A hover engages in 120 ms and releases in 200 (the
      slower release is what feels expensive); a press goes down in 60. Floating things appear in 180 and
      leave in 140, from the side they were called from; dialogs and sheets take 240; content arrives in 280;
-     a panel moves in 320; the landing is 600. Only a thing carried to a new place overshoots: it snaps in and settles
-     (--ease-snap). Gated by prefers-reduced-motion in base.css. */
+     a panel moves in 320; the landing is 600. Nothing overshoots. Gated by prefers-reduced-motion in base.css. */
   --ease:cubic-bezier(.2,.8,.2,1);
-  --ease-snap:linear(0,.25 7%,.6 17%,.86 28%,.98 38%,1.02 48%,1.015 60%,1.003 75%,1);
   --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
   --ease-out:var(--ease);
   --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
