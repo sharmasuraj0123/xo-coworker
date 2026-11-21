@@ -54,25 +54,29 @@ t("the agent is its mark, its name only on hover and for screen readers: the hea
   const src = read("js/chats.js");
   assert.match(src, /const agentMark = \(agent, lead = true\) => rtMark\(agent, \{ lead \}\) \|\| /);
   assert.match(src, /<span class="pj-s">\$\{metaHtml\(s\)\}<\/span>/);
-  assert.match(src, /<\/b> · (?:<\/span>)?\$\{agentMark\(st\.agent\)\}\$\{esc\(st\.model \?/, "the composer's line: the mark beside the model");
+  assert.match(src, /return `<span class="iq-l">\$\{rtMark\(st\.agent, \{ lead: true \}\) \|\| ""\}/, "the chip: the mark beside the model");
   assert.match(src, /`<div class="av av-t">\$\{rtMark\(s\.agent\) \|\| ICON\.thread\}<\/div>`/);
   assert.doesNotMatch(src, /\$\{esc\(cliName\(st\.agent\)\)\} · /);
 });
-t("the New chat picker: one grid at the head's inset, the agents as one choice with their marks, modes a compact list", () => {
-  const src = read("js/chats.js"), css = read("css/app.css");
-  assert.match(src, /<div class="rt-seg cs-agents" role="radiogroup" aria-labelledby="cs-agent-l">/);
-  assert.match(src, /data-cs-agent="\$\{esc\(r\.name\)\}">\$\{rtMark\(r\.name\) \|\| ""\}<span>/);
-  assert.match(src, /<div class="cs-grid">\$\{agentRow\}\$\{field\("cwd", "Folder"\)\}\$\{field\("model", "Model"\)\}\$\{field\("effort", "Effort"\)\}<\/div>/);
-  assert.match(src, /class="cs-mode\$\{m === st\.mode \? " is-on" : ""\}"/);
-  assert.match(css, /\.cs-grid\{display:grid;grid-template-columns:max-content minmax\(0,1fr\);[^}]*padding:var\(--s-3\) var\(--pop-x\) var\(--s-2\)\}/);
-  assert.match(css, /\.rt-seg\.cs-agents button\{[^}]*height:var\(--h-sm\);/, "as tall as the fields: 24 in its 3 px frame");
-  assert.match(css, /\.cs-mode\{[^}]*height:var\(--h-ctl\);[^}]*font:var\(--fw-regular\) var\(--fs-ui\)\/var\(--lh-ui\)/);
-  assert.match(css, /:is\(\.set-choice,\.cs-mode\)\.is-on \.sc-dot\{/, "one chosen dot");
-  assert.match(read("css/tokens.css"), /--pop-x:10px;/);
-  assert.match(read("js/app.js"), /const ag = e\.target\.closest\("\[data-cs-agent\]"\);/);
+t("the New chat picker is the shared picker's look: the chip opens it, agents as a segment with their marks, models and folders as rows, thinking as the depth segment", () => {
+  const src = read("js/chats.js"), app = read("js/app.js"), css = read("css/app.css");
+  assert.match(src, /<div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">/);
+  assert.match(src, /data-cs-agent="\$\{esc\(r\.name\)\}">\$\{rtMark\(r\.name, \{ withName: true \}\)/);
+  assert.match(src, /<div class="iq-list" role="radiogroup" aria-labelledby="cs-model-l">/);
+  assert.match(src, /<div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">/);
+  assert.match(src, /toggleSetup\(anchor, part\) \{ if \(C\.pop\.open && C\.pop\.part === part\) closeSetup\(\); else openSetup\(anchor, part\); \}/, "each chip opens its own list");
+  assert.match(src, /const x = part === "model" \? r\.right - w \+ gap : r\.left - gap;/, "the model list by the chip's right edge, folder and permission by their left");
+  assert.match(app, /\$\("#cs-perm"\)\.addEventListener\("click", \(\) => \{ CH\.toggleSetup\(\$\("#cs-perm"\), "mode"\);/);
+  assert.match(read("index.html"), /<button type="button" class="target cs-perm" id="cs-perm" aria-haspopup="dialog" aria-expanded="false" aria-controls="cs-pop" hidden><\/button>/);
+  assert.match(src, /row\("data-csmode", m,/, "what it may do: rows, one choice");
+  assert.match(src, /import \{ EFFORT_WORD, EFFORT_HINT \} from "\.\/intel\.js";/, "one set of thinking words");
+  assert.match(app, /if \(S\.view === "chats"\) \{ CH\.toggleSetup\(\$\("#iq"\), "model"\);/);
+  assert.match(app, /const html = chat \? CH\.chipHtml\(K\.view\) : IQ\.chipHtml/);
+  assert.doesNotMatch(src + css, /cs-grid|class="cs-mode|xo-select data-cs|tg-ch/, "the form of dropdowns is gone");
+  assert.match(app, /const ag = e\.target\.closest\("\[data-cs-agent\]"\);/);
 });
-t("Chats' header line runs the row's width: the project cap only shares a row with something in .top-end; a phone's line drops the words, not the folder alone", () => {
+t("Chats' header line runs the row's width: the project cap only shares a row with something in .top-end; the folder chip is the folder's name alone", () => {
   assert.match(read("css/app.css"), /\.top\[data-kind="project"\]:has\(> \.top-end:empty\) \.top-who\{flex:1;max-width:none\}/);
-  assert.match(read("js/chats.js"), /<span class="tg-w">New chat in <b>[^`]*<\/b> · <\/span>\$\{agentMark/);
+  assert.match(read("js/chats.js"), /return `\$\{ICON\.folder\}<span>\$\{esc\(capFirst\(folderName\(st\.cwd\)\.replace\(\/\^your \/, ""\)\)\)\}<\/span>`;/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

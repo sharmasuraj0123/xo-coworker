@@ -2083,14 +2083,17 @@ function undoRecord(id) {
 function chipRender(fade = false, K = MK) {
   const chip = K.iq;
   if (!chip) return;
-  // a chat's agent, model and mode are set in the line above the composer, not by the router
+  // a new chat's agent, model and thinking are its own (js/chats.js), not the router's; a chat names them in its header
   const s = sessionOf(K.view);
-  chip.hidden = CH.isChats(K.view) || !IQ.kindOf(s);
+  const chat = K.view === "chats" && K === MK;
+  chip.hidden = chat ? !CH.chipHtml(K.view) : CH.isChats(K.view) || !IQ.kindOf(s);
   if (chip.hidden) return;
-  const html = IQ.chipHtml(s, PHONE.matches);
-  chip.title = IQ.chipTitle(s);
-  chip.setAttribute("aria-label", `Intelligence: ${IQ.chipTitle(s).replace(/ \([^)]*\)$/, "")}`);
-  chip.classList.toggle("is-pinned", IQ.current(s).pinned);
+  const html = chat ? CH.chipHtml(K.view) : IQ.chipHtml(s, PHONE.matches);
+  const title = chat ? CH.chipTitle(K.view) : IQ.chipTitle(s);
+  chip.title = title;
+  chip.setAttribute("aria-label", `Intelligence: ${title.replace(/ \([^)]*\)$/, "")}`);
+  chip.setAttribute("aria-controls", chat ? "cs-pop" : "iq-pop");
+  chip.classList.toggle("is-pinned", !chat && IQ.current(s).pinned);
   if (chip._h === html) return;
   const swap = () => { redraw(chip, html); chip._h = html; }; // in place: the chip's insides stay the nodes a press is on
   if (fade && chip._h && !RM.matches) {
@@ -2290,10 +2293,14 @@ function sendRender(K = MK) {
 /** A chat's line above the composer and its Send now toggle, which follow the chat's own state. */
 function chatTargetRender() {
   sendNowRender();
+  const perm = $("#cs-perm"), ph = S.view === "chats" && !liveBlock() ? CH.permHtml(S.view) : "";
+  perm.hidden = !ph;
+  if (perm._h !== ph) { perm.innerHTML = ph; perm._h = ph; }
   if (!CH.isChats(S.view)) return false;
   // an ended chat says so in its own words; "paused" would promise it comes back
   const html = CH.blocked(S.view) ? CH.targetHtml(S.view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(S.view);
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
+  $("#target").title = S.view === "chats" ? "The folder a new chat works in" : "";
   return true;
 }
 /**
@@ -2314,6 +2321,7 @@ function targetLineRender(K = MK) {
   else if (K.view === "ws" || K.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
   else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(K.view)))}</b><span class="tg-w"> coordinator</span></span>`;
   if (K.target._h !== html) { K.target.innerHTML = html; K.target._h = html; }
+  if (K.main) K.target.title = "Aim at a project (@)";
 }
 function updateComposer(K = MK) {
   if (!K.main) {
@@ -2440,7 +2448,7 @@ atList.addEventListener("pointermove", (e) => {
 }
 $("#composer").addEventListener("submit", (e) => { e.preventDefault(); if ($("#send").dataset.mode === "stop") stopRun(); else send(); });
 $("#target").addEventListener("click", () => {
-  if (S.view === "chats") { CH.openSetup($("#target")); return; }
+  if (S.view === "chats") { CH.toggleSetup($("#target"), "cwd"); updateComposer(); return; }
   if (S.view.startsWith("c:")) { say.focus(); return; }
   // the chooser opens on the recipient the draft already names, wherever it is, with every project listed and
   // that one active (Astra H26); with none, on a new @ at the start. Either way the draft is saved as it now reads
@@ -2460,8 +2468,12 @@ function sendNowRender() {
   b.hidden = !st;
   if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
 }
+$("#cs-perm").addEventListener("click", () => { CH.toggleSetup($("#cs-perm"), "mode"); updateComposer(); });
 $("#send-now").addEventListener("click", () => { CH.toggleNow(S.view); updateComposer(); say.focus(); });
-$("#iq").addEventListener("click", () => { if (IQ.isOpen) IQ.close(); else IQ.open(sessionOf(S.view), $("#iq")); });
+$("#iq").addEventListener("click", () => {
+  if (S.view === "chats") { CH.toggleSetup($("#iq"), "model"); updateComposer(); return; }
+  if (IQ.isOpen) IQ.close(); else IQ.open(sessionOf(S.view), $("#iq"));
+});
 
 /**
  * Live Stop: nothing is sent for 3 s (Undo), then the session's turn and its sub-agents stop at once
@@ -4876,17 +4888,22 @@ $("#ic-shells").innerHTML = ICON.shell;
 {
   const cs = $("#cs-pop");
   // drawn in place (CH.renderSetup): the picker or the mode you chose keeps focus; arrows move through the modes
-  cs.addEventListener("change", (e) => { const f = e.target.closest("[data-cs]"); if (f) { CH.setPref(f.dataset.cs, f.value); CH.renderSetup(); updateComposer(); } });
   radioKeys(cs);
   cs.addEventListener("click", (e) => {
     const m = e.target.closest("[data-csmode]");
-    if (m) { CH.setPref("mode", m.dataset.csmode); CH.renderSetup(); updateComposer(); return; }
+    if (m) { CH.setPref("mode", m.dataset.csmode); CH.closeSetup(); updateComposer(); return; }
     const ag = e.target.closest("[data-cs-agent]");
     if (ag) { if (ag.getAttribute("aria-checked") !== "true") { CH.setPref("agent", ag.dataset.csAgent); CH.renderSetup(); updateComposer(); } return; }
+    const cwd = e.target.closest("[data-cs-cwd]");
+    if (cwd) { CH.setPref("cwd", cwd.dataset.csCwd); CH.closeSetup(); updateComposer(); return; }
+    for (const [k, sel, attr] of [["model", "[data-cs-model]", "csModel"], ["effort", "[data-cs-effort]", "csEffort"]]) {
+      const r = e.target.closest(sel);
+      if (r) { CH.setPref(k, r.dataset[attr]); CH.renderSetup(); updateComposer(); return; }
+    }
     if (e.target.closest("[data-cs-done]")) { CH.closeSetup(); updateComposer(); }
   });
   cs.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); CH.closeSetup(); } });
-  document.addEventListener("pointerdown", (e) => { if (CH.setupOpen && !cs.contains(e.target) && !e.target.closest("#target")) CH.closeSetup(); });
+  document.addEventListener("pointerdown", (e) => { if (CH.setupOpen && !cs.contains(e.target) && !e.target.closest("#target, #iq, #cs-perm")) CH.closeSetup(); });
 }
 $("#pb-menu").innerHTML = ICON.menu;
 $("#top-menu").innerHTML = ICON.menu;
