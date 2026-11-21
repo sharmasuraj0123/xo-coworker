@@ -37,7 +37,7 @@ await t("a step's icon comes from its kind, its tool's own name in any runtime, 
     [{ kind: "command", target: "python3 x.py", line: "Find where the tick is drawn" }, "search"], [{ kind: "command", target: "python3 x.py", line: "Build it" }, "terminal"],
     [{ kind: "other", tool: "Skill" }, "wand"], [{ kind: "other", tool: "ScheduleWakeup" }, "alarm"], [{ kind: "other", tool: "EnterWorktree" }, "branch"],
     [{ kind: "other", tool: "image_generation" }, "image"], [{ kind: "other", tool: "Monitor" }, "logs"], [{ kind: "other", tool: "ToolSearch" }, "search"],
-    [{ kind: "other", tool: "something_new" }, "step-dot"], [{}, "step-dot"],
+    [{ kind: "other", tool: "something_new" }, "wrench"], [{}, "wrench"], [{ pending: true }, "compose"], [{ pending: true, kind: "create_file" }, "file-new"],
     [{ kind: "mcp", tool: "mcp__xo_comms__update_status" }, "checklist"], [{ kind: "mcp", target: "xo_comms/share_files" }, "share"], [{ kind: "mcp", tool: "mcp__xo_comms__wake_me" }, "alarm"],
     [{ kind: "mcp", tool: "mcp__xo_comms__reply" }, "chat"], [{ kind: "mcp", tool: "mcp__xo_comms__ask" }, "question"], [{ kind: "mcp", tool: "mcp__xo_comms__fetch_thread" }, "eye"],
     [{ kind: "mcp", tool: "mcp__xo_comms__brand_new" }, "plug"], [{ kind: "mcp", tool: "mcp__github__create_issue" }, "plug"],
@@ -128,5 +128,8 @@ await t("the latest thinking under a closed work fold keeps its brain: no rule h
 await t("a step's icon is blue while it runs and grey once finished, as a line's header or as a row, opened or not", () => {
   assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,:is\(\.tb-row,\.rt-call\)\.s-running:not\(\.is-waiting\) \.tb-ri,\.tb-spin\{color:var\(--info\)\}/);
   assert.match(read("css/msgx.css"), /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-hi\{display:grid\}/);
+});
+await t("a plan's line leads with the checklist, as its steps do", () => {
+  assert.match(read("js/turnview.js"), /<span class="tb-hi">\$\{xi\("checklist"\)\}<\/span><span class="tb-ht">\$\{esc\(b\.header \|\| "Plan"\)\}/);
 });
 console.log(`\n${passed} passed`);

@@ -15,7 +15,7 @@ import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } f
 const KIND_ICON = {
   create_file: "file-new", edit_file: "edit", delete_file: "delete", read: "eye", search: "search", list: "folder-open",
   command: "terminal", web_fetch: "web", web_search: "web", mcp: "plug", subagent: "agent", plan: "checklist", ask: "question",
-  other: "step-dot", notice: "info", error: "alert",
+  other: "wrench", notice: "info", error: "alert",
 };
 // a command's stages, strongest first: what it changes outranks what it reads, and a fetch or a status before the work loses
 const CMD_ICON = [
@@ -62,11 +62,12 @@ const COMMS_ICON = {
 const VERB_ICON = [[/^(?:read|view|show|look at|inspect|open|check)\b/i, "eye"], [/^(?:search|find|grep|look for|locate)\b/i, "search"], [/^list\b/i, "folder-open"], [/^(?:run|rerun)\b.*\btests?\b/i, "test-flask"]];
 const nameIcon = (list, s) => (list.find(([re]) => re.test(s || "")) || [])[1];
 /** The pack's icon for one step of a turn or a sub-agent's run, from its kind, its tool's own name, its command and its line. */
-export function stepIcon({ kind, tool, target, line } = {}) {
+export function stepIcon({ kind, tool, target, line, pending } = {}) {
+  if (pending && !kind && !tool) return "compose"; // still being written out: its tool isn't known yet
   const comms = commsTool({ tool, target });
   if (comms) return COMMS_ICON[comms] || (/^(?:fetch|list)_/.test(comms) ? "eye" : "plug");
   if (kind === "command") { const c = cmdIcon(target); return c !== "terminal" ? c : nameIcon(VERB_ICON, String(line || "").replace(/[`*_]/g, "").trim()) || c; }
-  if (kind === "other" || !KIND_ICON[kind]) return nameIcon(TOOL_ICON, tool) || "step-dot";
+  if (kind === "other" || !KIND_ICON[kind]) return nameIcon(TOOL_ICON, tool) || "wrench";
   return KIND_ICON[kind];
 }
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
@@ -130,7 +131,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
     case "plan": {
       const items = b.items || [];
       return `<div class="tb tb-plan${isOpen ? " is-unfolded" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
-        `<span class="tb-hi">${ICON.list}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
+        `<span class="tb-hi">${xi("checklist")}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
     }
     case "shared_files": {
