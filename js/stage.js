@@ -66,7 +66,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  const S = { lp: false, open: false, full: false, returnTo: null, stackH: 0, h: { agents: "", changes: "", head: "", chn: "" } };
+  const S = { lp: false, open: false, full: false, returnTo: null, stackH: 0, h: {} }; // h: the html each region holds; absent, unknown (redrawn next paint)
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -527,7 +527,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (fb) { const on = S.page?.name === "files"; fb.setAttribute("aria-pressed", String(on)); fb.classList.toggle("is-on", on); }
     const b = el.querySelector("[data-stg-shell]");
     if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel"; }
-    S.h.head = ""; paint();
+    delete S.h.head; paint(); // "" is a head too (the sections draw none), so unknown is absent, never ""
     onChange && onChange();
   }
   // over a thread the shell opens in its worktree
