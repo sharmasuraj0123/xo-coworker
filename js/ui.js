@@ -4,8 +4,8 @@ import { esc } from "./world.js";
 import { redraw, pressedNode } from "./redraw.js";
 import { usable } from "./focusview.js";
 
-import { xi } from "./icon.js";
-export { xi };
+import { xi, stateMark, ARC } from "./icon.js";
+export { xi, stateMark, ARC };
 
 // Every icon is the owner's (assets/icons/xo, 19 Nov), drawn on its 24 grid with its own pen (1.75, round ends),
 // cleaned for the page by tools/xoicons/build.mjs into js/xoicons.js: the one source (js/icon.js draws one).
@@ -19,7 +19,6 @@ export const ICON = {
   branch: xi("branch"),
   back: xi("chevron-left"),
   arrow: xi("arrow-right"),
-  down: xi("arrow-down"),
   close: xi("close"),
   search: xi("search"),
   // the tick draws itself in where it lands (.tk, css/app.css): its length is 24 to the animation
@@ -33,11 +32,15 @@ export const ICON = {
   list: xi("list"),
   lock: xi("lock"),
   stop: xi("stop"),
+  needs: xi("state-needs-you"),
+  doing: xi("step-doing"),
+  todo: xi("state-idle"),
   sound: xi("sound"),
   plus: xi("plus"),
   home: xi("home"),
   right: xi("chevron-right"),
   clock: xi("clock"),
+  brain: xi("brain"),
   // a refusal or an error said in a line
   warn: xi("warning"),
   menu: xi("menu"),
@@ -80,6 +83,7 @@ export const ICON = {
   map: xi("map"),
   graph: xi("graph"),
   follow: xi("follow"),
+  toMain: xi("open-in-main"),
   fit: xi("fit"),
   // needs you: the mark the sidebar and the lists use
   diamond: xi("state-needs-you"),
@@ -99,6 +103,9 @@ export const ICON = {
   link: xi("link"),
   split: xi("split-view"),
   code: xi("code"),
+  table: xi("table"),
+  undo: xi("undo"),
+  download: xi("download"),
   good: xi("thumbs-up"),
   bad: xi("thumbs-down"),
   del: xi("delete"),
@@ -266,15 +273,21 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  * place (js/redraw.js), so the control you're on stays (Astra DET-1: a tool's output arriving took focus from
  * its disclosure). Its own attributes come from the new HTML; once the list is in order it hears "redrawn"
  * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
- * is replaced as before.
+ * is replaced as before, unless `inPlace` (for the list, or for the item): then it is updated in place, so what stays keeps its node
+ * and nothing in it replays (an agent's turn redrawn as its steps land).
  */
 /** Where focus can land in a row: its controls, in order. */
 const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
-export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
+// a row that moves keeps its animations and focus where the browser can move it whole
+function move(box, el, at) {
+  if (el.isConnected && typeof box.moveBefore === "function") try { box.moveBefore(el, at); return; } catch {}
+  box.insertBefore(el, at);
+}
+export function reconcile(box, items, { quiet = false, fallback = null, inPlace: always = false } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
   const added = [];
-  const tpl = document.createElement("template");
+  const parse = (html) => { const tpl = document.createElement("template"); tpl.innerHTML = html.trim(); return tpl.content.firstElementChild; };
   const active = document.activeElement, inPlace = [];
   // the node under a press: a row holding it is updated in place, as one holding focus is, so the press still clicks
   // (a row drawn anew mid-press took the pressed node with it, and the browser drops that click: the owner, 19 Nov)
@@ -292,9 +305,8 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   items.forEach((it, i) => {
     let el = old.get(it.key);
     if (el && el._h !== it.html) {
-      tpl.innerHTML = it.html.trim();
-      const fresh = tpl.content.firstElementChild;
-      if (((active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
+      const fresh = parse(it.html);
+      if ((always || it.inPlace || (active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
         for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
         for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
         redraw(el, fresh.innerHTML);
@@ -307,14 +319,13 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
         if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
       }
     } else if (!el) {
-      tpl.innerHTML = it.html.trim();
-      el = tpl.content.firstElementChild;
+      el = parse(it.html);
       el.dataset.k = it.key; el._h = it.html;
       if (!quiet) { el.classList.add("is-new"); added.push(el); }
     }
     old.delete(it.key);
     const at = box.children[i];
-    if (at !== el) box.insertBefore(el, at || null);
+    if (at !== el) move(box, el, at || null);
   });
   if (going) {
     near = near && [...box.children].find((el) => el.dataset.k === near);
@@ -374,6 +385,9 @@ export const sound = {
 
 export { esc };
 
+/** The working cue: three dots that move through formations together (css/app.css .dots). */
+export const DOTS = `<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i>`;
+
 /**
  * Every turning arc and every shimmering "working" line on the page moves in step, from the page's first
  * moment, whenever it was drawn: one redrawn by a streamed update would otherwise restart from zero and
@@ -383,16 +397,19 @@ export function keepTurning() {
   if (typeof document === "undefined" || !document.getAnimations) return;
   const sync = () => {
     for (const a of document.getAnimations()) {
-      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
+      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer" || String(a.animationName).startsWith("dot-")) { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
   // only when something added holds an arc, a spinner or a shimmer (a scan of every animation on the page
   // after any change at all cost tens of ms on a busy page, QA #11), and at once, before the frame is
   // painted: a redrawn arc used to show one frame from its start before being put back in step
-  const MOVING = ".arc, .spin, .shimmer, .tb-live";
+  const MOVING = ".arc, .g-working, .spin, .shimmer, .tb-live, .dots";
   const moving = (n) => n.nodeType === 1 && (n.matches(MOVING) || !!n.querySelector(MOVING));
   new MutationObserver((recs) => {
     for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { sync(); return; }
   }).observe(document.body, { childList: true, subtree: true });
   sync();
 }
+
+/** A checklist step's mark, from the pack: done, doing, to do. */
+export const stepMark = (s) => (s === "done" ? ICON.check : s === "doing" ? ICON.doing : ICON.todo);

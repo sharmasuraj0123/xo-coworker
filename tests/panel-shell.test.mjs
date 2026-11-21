@@ -23,13 +23,13 @@ assert.match(set, /if \(on\) show\("shell", S\.page\?\.name === "thread" \? `t:\
 assert.match(stage, /onShow: \(k\) => shell\(true, boxFor\("shell"\), k\), onHide: \(\) => shell\(false\),/);
 // a shell over a page keeps that page under it (hidden, not closed); any other page takes the place of both
 const show = stage.slice(stage.indexOf("  function show("), stage.indexOf("  /** ‹ and Esc"));
-assert.match(show, /const prev = S\.page, keep = name === "shell" && prev && !S\.under \? prev : null;/);
+assert.match(show, /const prev = S\.page, keep = \(name === "shell" \|\| sp\.over\) && prev && !S\.under \? prev : null;/);
 assert.match(show, /for \(const t of \[prev, S\.under\]\) if \(t && t !== keep\) shut\(t, t === prev\);/);
 assert.match(show, /if \(keep\) PAGES\.get\(keep\.name\)\.onHide\?\.\(keep\.key\);/);
 const back = stage.slice(stage.indexOf("  function back("), stage.indexOf("  /** Every page goes at once"));
 assert.match(back, /S\.page = under; S\.under = null;/);
-assert.match(back, /if \(under\) \{ BOXES\.get\(under\.name\)\.hidden = false; PAGES\.get\(under\.name\)\.onShow\?\.\(under\.key, \{ focus: had \}\); \}/);
-assert.match(stage, /el\.classList\.toggle\("is-shell", S\.page\?\.name === "shell"\);/, "the shell's own CSS keeps its class");
+assert.match(back, /if \(under\) PAGES\.get\(under\.name\)\.onShow\?\.\(under\.key, \{ focus: keep \}\); else cover\(false\);/);
+assert.match(stage, /if \(S\.page\) el\.dataset\.stgPage = S\.page\.name; else delete el\.dataset\.stgPage;/, "the shell page is marked as every page is");
 assert.match(stage, /b\.setAttribute\("aria-pressed", String\(on\)\)/);
 const close = stage.slice(stage.indexOf("function close("), stage.indexOf("function close(") + 200);
 assert.match(close, /if \(S\.page\) dropPages\(\);/, "the panel closing puts its pages away (the shell goes back under the page)");
@@ -48,7 +48,7 @@ assert.match(dock, /get shown\(\) \{ return R\.enabled && wanted\(\) && R\.open 
 assert.match(dock, /hide\(\) \{ if \(!R\.open\) return; R\.open = false; changed\(\); away\(\); \}/);
 
 // the left panel's Shells stay: its toggle and the dock under the page are untouched
-assert.match(html, /<button type="button" class="gear sh-tog" id="nv-shells"/);
+assert.match(html, /<button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"><\/span><span class="sh-n"><\/span><\/button>/);
 assert.match(html, /<section class="shd" id="shd" aria-label="Shells" hidden><\/section>/);
 
 // CSS: tokens only; the page over the frames in one cell; a phone keeps its own shells sheet

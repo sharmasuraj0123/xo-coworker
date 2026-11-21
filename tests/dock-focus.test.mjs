@@ -41,7 +41,7 @@ t("S014: the done line's Undo takes focus from the control pressed, as the line 
   assert.match(dr, /const had = frame\.contains\(document\.activeElement\);\s*morph\(frame, \(\) => \{[^]*?data-dock-undo>Undo<\/button><\/p>`;\s*if \(had && !frame\.contains\(document\.activeElement\)\) frame\.querySelector\("\[data-dock-undo\]"\)\.focus\(\{ preventScroll: true \}\);\s*\}, \{ duration: 300 \}\);/);
 });
 t("S014: an undo ends the done line at once and draws the card again (it took focus from the Undo it replaced)", () => {
-  assert.match(app, /onUndone: \(key\) => \{[^\n]*if \(TD\.undone && TD\.undone\.key === key\) TD\.undone\.end\(\); \},/, "the decisions' undo, by the line's Undo or a key, reaches the dock");
+  assert.match(app, /onUndone: \(key\) => \{[^\n]*for \(const d of \[TD, TP\.dock\?\.TD\]\) if \(d\?\.undone && d\.undone\.key === key\) d\.undone\.end\(\); \},/, "the decisions' undo, by the line's Undo or a key, reaches the dock");
   const dr = body("function dockRender(needs) {", "\ntdock.addEventListener(\"click\"");
   assert.match(dr, /await new Promise\(\(end\) => \{ TD\.undone = \{ key: n\.key, end: \(\) => \{ undone = true; end\(\); \} \}; hold\(RM\.matches \? 3000 : 2700\)\.then\(end\); \}\);/, "the 3 s window, or less if it's undone");
   assert.match(dr, /TD\.undone = null;\s*if \(undone\) \{ TD\.busy = false; TD\.key = null; dockRender\(D\.needItems\(\)\); schedule\(\); return; \}/, "undone: the card at once, not after the window");

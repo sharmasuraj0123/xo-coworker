@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const SHEETS = ["app.css", "diffs.css", "panel.css", "launchpad.css"];
+const SHEETS = ["base.css", "app.css", "diffs.css", "panel.css", "launchpad.css"];
 const css = SHEETS.map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 const rules = [...css.matchAll(/([^{}@]+)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), d: m[2] }));
 /** the states a selector for an item of this menu paints: hover, focus (any), focus-visible */
@@ -29,7 +29,7 @@ function paints(menu, item) {
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-for (const [name, menu, item] of [["the file's More", ".vw-menu", "[role=menuitem]"], ["Files' folder menu", ".fl-menu", "button"], ["the thread menu", ".tw-menu", "button"], ["Launchpad's ⋯", ".lp-mn", "button"], ["the long-press menu", ".lp-menu", "button"]]) {
+for (const [name, menu, item] of [["the file's More", "[role=menu]", "[role=menuitem]"], ["Files' folder menu", "[role=menu]", "[role=menuitem]"], ["the thread menu", "[role=menu]", "[role=menuitem]"], ["Launchpad's ⋯", ".lp-mn", "button"], ["the long-press menu", ".lp-menu", "button"]]) {
   t(`${name}: mouse onto an item, then ↓: one painted item (the focused one)`, () => {
     const p = paints(menu, item);
     assert.ok(p.size, `${menu} ${item} has a highlight`);

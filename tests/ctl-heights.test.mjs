@@ -16,7 +16,7 @@ t("S003: the history's Load earlier is the inline height, --h-sm", () => {
   assert.match(app, /\.hist-more\{height:var\(--h-sm\);/);
 });
 t("S020: All's filters are the standard control height, --h-ctl", () => {
-  assert.match(app, /\.all-f button\{display:inline-flex;align-items:center;gap:7px;height:var\(--h-ctl\);/);
+  assert.match(app, /\.all-f button\{display:inline-flex;align-items:center;gap:8px;height:var\(--h-ctl\);/);
 });
 t("C046: on a phone the thread head's controls have their ring's 4 px above them, inside the head", () => {
   assert.match(phone, /:root:root \.thead\{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 8px\}/);

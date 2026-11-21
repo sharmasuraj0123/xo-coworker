@@ -16,15 +16,15 @@ import { esc } from "./world.js";
 import { space } from "./util.js";
 import { redraw } from "./redraw.js";
 import { once } from "./pending.js";
-import { ICON, RM, xi } from "./ui.js";
+import { ICON, RM, xi, stateMark } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
 
-const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
+export const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
 // what each depth means, said once under the control (the words are the setting; there are no dot codes)
-const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
+export const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
 const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 
 /**
@@ -126,7 +126,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const c = current(s), r = running(s);
     // a thread says only what its session reports; when that's nothing, a waiting pin is said as what comes
     // next, never as what runs
-    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.pinned ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: null, next: false };
+    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.model ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: r.effort || c.effort || null, next: false };
     return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
   const live = (s) => !!kindOf(s) && (kindOf(s) !== "thread" || !!threadOf(s));
@@ -152,7 +152,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const words = [];
     if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
     if (next) words.push(`<span class="iq-a">Next turn</span>`);
-    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
+    // a thread never runs on Auto: a session that names no model runs its runtime's default
+    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : threadOf(s) ? `<span class="iq-a">Default</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
     // a change waiting for the next turn stays in sight until the session runs it (Astra I3: a durable receipt,
     // not only a 3-second Undo): "Opus 5.5 · Deep → Fable 5.1 · Deeper"
@@ -179,7 +180,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const r = running(s), { model, effort, next } = shownSetting(s);
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
       if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
-      if (!r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
+      if (!r.model) return `Its session names no model, so it runs its runtime's default${effort ? ` · ${effortWord(effort)}` : ""}. Change it${K.hint("intel")}`;
       const p = pendingOf(s);
       return `${r.working ? "Running" : "Runs"} ${what}${p ? `; next turn: ${p.words}` : ""}. Change it${K.hint("intel")}`;
     }
@@ -190,7 +191,12 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
 
   // ── runtimes: the first of the three choices ───────────────────────────────
   const rts = () => world.state.runtimes || [];
-  const chatPolicy = (c) => (c && c.chatId && world.state.chatPolicy && world.state.chatPolicy[c.chatId]) || null;
+  const chatPolicy = (c) => {
+    if (!c || !c.chatId) return null;
+    const own = world.state.chatPolicy && world.state.chatPolicy[c.chatId];
+    if (!own) world.act.loadChatPolicy?.(c.chatId);
+    return own || null;
+  };
   const spaceEff = () => (world.state.policy && world.state.policy.effective) || null;
   /** The runtimes offered here, which one is on, and whether there is a choice at all. */
   function runtimeChoice(s) {
@@ -314,7 +320,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     let truth;
     if (kind === "thread") {
       const rtw = esc(rtName(runtimeOf(s)) || "");
-      const verb = r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs";
+      const verb = r && r.working ? `${stateMark("working")}Running` : "Runs";
       truth = r && r.model ? `${verb} ${nowWords(r.model, r.effort)}${rtw ? ` on ${rtw}` : ""}.` : `${verb}${rtw ? ` on ${rtw}` : ""}; its session hasn't said which model yet.`;
       const p = pendingOf(s);
       if (p) truth += ` Next turn: <b>${esc(p.words)}</b>.`;
@@ -727,7 +733,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     // Esc steps back out of continuing elsewhere first, then closes
     if (P.mv && !P.mv.busy) stepBack(); else if (!(P.mv && P.mv.busy)) close({ apply: false });
   });
-  document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !e.target.closest("#iq")) close({ restore: false }); });
+  document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains(e.target) && !P.anchor?.contains(e.target)) close({ restore: false }); }); // its own chip toggles it, wherever it sits
   addEventListener("resize", () => { if (P.open) place(); });
 
   return {

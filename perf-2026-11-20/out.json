@@ -1,0 +1,2916 @@
+{
+ "boot_local_1x": {
+  "nav": {
+   "ttfb": 4,
+   "dcl": 675,
+   "load": 675
+  },
+  "paint": {
+   "first-paint": 180,
+   "first-contentful-paint": 180
+  },
+  "marks": {
+   "sidebarProjects": 1558,
+   "anyThreadLink": 1558
+  },
+  "staticReq": 101,
+  "jsReq": 80,
+  "staticBytes": 3234132,
+  "staticDecoded": 3203832,
+  "lastJsEnd": 634,
+  "lastStaticEnd": 1610,
+  "jsDepthStarts": [
+   0,
+   125,
+   150,
+   175,
+   225,
+   300,
+   325,
+   375,
+   425,
+   475,
+   525,
+   575
+  ],
+  "api": [
+   {
+    "u": "api/chat/stream",
+    "s": 643,
+    "h": 684,
+    "e": 684,
+    "n": -1
+   },
+   {
+    "u": "api/chat/shape",
+    "s": 650,
+    "h": 691,
+    "e": 697,
+    "n": 146
+   },
+   {
+    "u": "api/terminal/status",
+    "s": 654,
+    "h": 691,
+    "e": 698,
+    "n": 101
+   },
+   {
+    "u": "api/chat/chats",
+    "s": 655,
+    "h": 693,
+    "e": 698,
+    "n": 7902
+   },
+   {
+    "u": "api/chat/status",
+    "s": 693,
+    "h": 699,
+    "e": 741,
+    "n": 4332
+   },
+   {
+    "u": "api/chat/chats",
+    "s": 692,
+    "h": 702,
+    "e": 745,
+    "n": 7902
+   },
+   {
+    "u": "api/terminal/sessions",
+    "s": 698,
+    "h": 701,
+    "e": 745,
+    "n": 16
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/threads",
+    "s": 743,
+    "h": 751,
+    "e": 752,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/threads",
+    "s": 743,
+    "h": 752,
+    "e": 753,
+    "n": 7500
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/threads",
+    "s": 744,
+    "h": 757,
+    "e": 758,
+    "n": 103744
+   },
+   {
+    "u": "api/chat/sessions",
+    "s": 744,
+    "h": 771,
+    "e": 773,
+    "n": 237127
+   },
+   {
+    "u": "api/advisory",
+    "s": 740,
+    "h": 746,
+    "e": 787,
+    "n": 8859
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/threads",
+    "s": 743,
+    "h": 752,
+    "e": 795,
+    "n": 6565
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/threads",
+    "s": 743,
+    "h": 752,
+    "e": 795,
+    "n": 15425
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/threads",
+    "s": 744,
+    "h": 756,
+    "e": 798,
+    "n": 14
+   },
+   {
+    "u": "api/chat/review",
+    "s": 744,
+    "h": 775,
+    "e": 814,
+    "n": 34
+   },
+   {
+    "u": "api/chat/chats/chat_e69aa2c67bef4e24/hops",
+    "s": 744,
+    "h": 890,
+    "e": 898,
+    "n": 608766
+   },
+   {
+    "u": "api/chat/runtime-policy",
+    "s": 744,
+    "h": 895,
+    "e": 947,
+    "n": 156
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/threads",
+    "s": 753,
+    "h": 898,
+    "e": 947,
+    "n": 14
+   },
+   {
+    "u": "api/chat/runtimes",
+    "s": 744,
+    "h": 898,
+    "e": 948,
+    "n": 20004
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/threads",
+    "s": 751,
+    "h": 898,
+    "e": 948,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/threads",
+    "s": 758,
+    "h": 948,
+    "e": 988,
+    "n": 9172
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/threads",
+    "s": 798,
+    "h": 952,
+    "e": 992,
+    "n": 14
+   },
+   {
+    "u": "api/chat/intent",
+    "s": 787,
+    "h": 951,
+    "e": 993,
+    "n": 763
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/threads",
+    "s": 795,
+    "h": 952,
+    "e": 993,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/threads",
+    "s": 794,
+    "h": 953,
+    "e": 994,
+    "n": 3866
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages",
+    "s": 897,
+    "h": 991,
+    "e": 1033,
+    "n": 29886
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/messages",
+    "s": 897,
+    "h": 996,
+    "e": 1046,
+    "n": 15612
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/messages",
+    "s": 897,
+    "h": 997,
+    "e": 1046,
+    "n": 26299
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/messages",
+    "s": 897,
+    "h": 997,
+    "e": 1046,
+    "n": 24337
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/messages",
+    "s": 897,
+    "h": 998,
+    "e": 1046,
+    "n": 37886
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/messages",
+    "s": 898,
+    "h": 1046,
+    "e": 1087,
+    "n": 11256
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/runtime-policy",
+    "s": 946,
+    "h": 1047,
+    "e": 1088,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/runtime-policy",
+    "s": 947,
+    "h": 1048,
+    "e": 1088,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/runtime-policy",
+    "s": 947,
+    "h": 1048,
+    "e": 1089,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/runtime-policy",
+    "s": 947,
+    "h": 1048,
+    "e": 1090,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/runtime-policy",
+    "s": 947,
+    "h": 1089,
+    "e": 1130,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/runtime-policy",
+    "s": 947,
+    "h": 1091,
+    "e": 1132,
+    "n": 233
+   },
+   {
+    "u": "api/chat/router",
+    "s": 948,
+    "h": 1091,
+    "e": 1145,
+    "n": 58
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/threads",
+    "s": 948,
+    "h": 1099,
+    "e": 1146,
+    "n": 42652
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/threads",
+    "s": 947,
+    "h": 1099,
+    "e": 1147,
+    "n": 21535
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/threads",
+    "s": 988,
+    "h": 1149,
+    "e": 1190,
+    "n": 29487
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/threads",
+    "s": 992,
+    "h": 1149,
+    "e": 1190,
+    "n": 5014
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/messages",
+    "s": 1033,
+    "h": 1150,
+    "e": 1191,
+    "n": 5515
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/threads",
+    "s": 994,
+    "h": 1150,
+    "e": 1191,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/threads",
+    "s": 993,
+    "h": 1151,
+    "e": 1192,
+    "n": 2353
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/runtime-policy",
+    "s": 1088,
+    "h": 1192,
+    "e": 1233,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/runtime-policy",
+    "s": 1088,
+    "h": 1192,
+    "e": 1234,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/runtime-policy",
+    "s": 1089,
+    "h": 1193,
+    "e": 1234,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/runtime-policy",
+    "s": 1130,
+    "h": 1193,
+    "e": 1234,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/runtime-policy",
+    "s": 1090,
+    "h": 1193,
+    "e": 1234,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/runtime-policy",
+    "s": 1132,
+    "h": 1237,
+    "e": 1277,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/threads",
+    "s": 1146,
+    "h": 1332,
+    "e": 1373,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/threads",
+    "s": 1189,
+    "h": 1341,
+    "e": 1382,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/threads",
+    "s": 1190,
+    "h": 1341,
+    "e": 1382,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/threads",
+    "s": 1146,
+    "h": 1385,
+    "e": 1391,
+    "n": 648000
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/threads",
+    "s": 1191,
+    "h": 1391,
+    "e": 1393,
+    "n": 151332
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/runtime-policy",
+    "s": 1234,
+    "h": 1389,
+    "e": 1427,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/runtime-policy",
+    "s": 1233,
+    "h": 1391,
+    "e": 1429,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/runtime-policy",
+    "s": 1234,
+    "h": 1391,
+    "e": 1430,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/runtime-policy",
+    "s": 1234,
+    "h": 1391,
+    "e": 1431,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/threads",
+    "s": 1192,
+    "h": 1391,
+    "e": 1431,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/runtime-policy",
+    "s": 1234,
+    "h": 1428,
+    "e": 1469,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/runtime-policy",
+    "s": 1277,
+    "h": 1430,
+    "e": 1471,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/runtime-policy",
+    "s": 1427,
+    "h": 1431,
+    "e": 1472,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/runtime-policy",
+    "s": 1429,
+    "h": 1432,
+    "e": 1472,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/runtime-policy",
+    "s": 1430,
+    "h": 1433,
+    "e": 1473,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/runtime-policy",
+    "s": 1431,
+    "h": 1471,
+    "e": 1511,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/runtime-policy",
+    "s": 1469,
+    "h": 1473,
+    "e": 1514,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/runtime-policy",
+    "s": 1471,
+    "h": 1474,
+    "e": 1520,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/made",
+    "s": 1527,
+    "h": 1567,
+    "e": 1567,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/made",
+    "s": 1527,
+    "h": 1568,
+    "e": 1568,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/made",
+    "s": 1526,
+    "h": 1568,
+    "e": 1569,
+    "n": 13780
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/made",
+    "s": 1527,
+    "h": 1569,
+    "e": 1569,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/made",
+    "s": 1527,
+    "h": 1572,
+    "e": 1572,
+    "n": 9938
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/made",
+    "s": 1527,
+    "h": 1569,
+    "e": 1610,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/made",
+    "s": 1528,
+    "h": 1570,
+    "e": 1611,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/made",
+    "s": 1528,
+    "h": 1571,
+    "e": 1612,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/made",
+    "s": 1528,
+    "h": 1574,
+    "e": 1615,
+    "n": 10731
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/made",
+    "s": 1528,
+    "h": 1615,
+    "e": 1655,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/made",
+    "s": 1528,
+    "h": 1615,
+    "e": 1655,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/made",
+    "s": 1528,
+    "h": 1615,
+    "e": 1655,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/made",
+    "s": 1528,
+    "h": 1615,
+    "e": 1656,
+    "n": 5125
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/made",
+    "s": 1528,
+    "h": 1622,
+    "e": 1663,
+    "n": 39306
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/made",
+    "s": 1528,
+    "h": 1663,
+    "e": 1700,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/made",
+    "s": 1528,
+    "h": 1662,
+    "e": 1700,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/made",
+    "s": 1528,
+    "h": 1662,
+    "e": 1700,
+    "n": 1917
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/made",
+    "s": 1528,
+    "h": 1664,
+    "e": 1705,
+    "n": 31432
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/made",
+    "s": 1529,
+    "h": 1664,
+    "e": 1705,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/made",
+    "s": 1529,
+    "h": 1703,
+    "e": 1744,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/made",
+    "s": 1529,
+    "h": 1703,
+    "e": 1744,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/made",
+    "s": 1529,
+    "h": 1748,
+    "e": 1749,
+    "n": 143540
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/made",
+    "s": 1529,
+    "h": 1757,
+    "e": 1758,
+    "n": 131491
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/made",
+    "s": 1529,
+    "h": 1718,
+    "e": 1762,
+    "n": 30
+   },
+   {
+    "u": "api/chat/runtimes/claude_code/models",
+    "s": 1543,
+    "h": 1749,
+    "e": 1790,
+    "n": 3668
+   },
+   {
+    "u": "api/xo-projects/xo-space/file",
+    "s": 1797,
+    "h": 1806,
+    "e": 1808,
+    "n": 25181
+   },
+   {
+    "u": "api/xo-projects/space-profiling/image",
+    "s": 1796,
+    "h": 1806,
+    "e": 1808,
+    "n": 145882
+   },
+   {
+    "u": "api/xo-projects/space-profiling/file",
+    "s": 1797,
+    "h": 1806,
+    "e": 1846,
+    "n": 1777
+   }
+  ],
+  "longtasks": [],
+  "ltTotal": 0,
+  "idle": [
+   16,
+   15,
+   15,
+   15,
+   15,
+   15,
+   16,
+   16,
+   16,
+   15,
+   15,
+   15,
+   15,
+   15,
+   16,
+   16,
+   16,
+   15,
+   15,
+   15,
+   16,
+   15,
+   15,
+   16,
+   16,
+   16,
+   15,
+   15,
+   15,
+   15,
+   15,
+   15,
+   16,
+   15,
+   16,
+   15,
+   15,
+   15,
+   15,
+   15
+  ],
+  "big": [
+   [
+    "/css/app.css",
+    279916,
+    8,
+    18
+   ],
+   [
+    "/js/app.js",
+    342216,
+    8,
+    104
+   ],
+   [
+    "/js/decide.js",
+    74794,
+    113,
+    170
+   ],
+   [
+    "/js/viewer.js",
+    79625,
+    114,
+    286
+   ],
+   [
+    "/js/map.js",
+    83327,
+    114,
+    288
+   ],
+   [
+    "/js/stage.js",
+    63124,
+    114,
+    328
+   ],
+   [
+    "/js/launchpad.js",
+    100587,
+    114,
+    293
+   ],
+   [
+    "/js/files.js",
+    63465,
+    114,
+    335
+   ],
+   [
+    "/js/storm.js",
+    72903,
+    162,
+    467
+   ],
+   [
+    "/js/xoicons.js",
+    134617,
+    371,
+    522
+   ],
+   [
+    "/js/vendor/xterm/xterm.mjs",
+    344970,
+    565,
+    594
+   ],
+   [
+    "/api/chat/chats/chat_f9d67e5cbef04c93/threads",
+    103744,
+    744,
+    756
+   ],
+   [
+    "/api/chat/sessions?after_seq=0&limit=500",
+    237127,
+    744,
+    770
+   ],
+   [
+    "/api/chat/chats/chat_e69aa2c67bef4e24/hops?before_seq=9007199254740991&limit=500",
+    608766,
+    744,
+    889
+   ],
+   [
+    "/api/chat/chats/chat_9460bc3363914c18/threads",
+    648000,
+    1146,
+    1384
+   ],
+   [
+    "/api/chat/chats/chat_7eadd3dcd6ea454c/threads",
+    151332,
+    1191,
+    1388
+   ],
+   [
+    "/api/chat/chats/chat_9460bc3363914c18/made?limit=200",
+    143540,
+    1529,
+    1748
+   ],
+   [
+    "/api/chat/chats/chat_7eadd3dcd6ea454c/made?limit=200",
+    131491,
+    1529,
+    1757
+   ],
+   [
+    "/api/xo-projects/space-profiling/image?relative_path=out%2Fusage-combo.png",
+    145882,
+    1797,
+    1806
+   ]
+  ]
+ },
+ "links_local_1x": {
+  "stage": 0,
+  "msgs": 1
+ },
+ "links2_local_1x": 7,
+ "panel_local_1x": {
+  "go": "t:cmsg_6d08be72ff6046a5",
+  "clickHandler": 62,
+  "loadingShownAt": 20,
+  "loadingGoneAt": 634,
+  "api": [
+   {
+    "u": "api/chat/events?session=cse_51f4052abc694495&before_seq=9007199254740991&limit=500",
+    "s": -31,
+    "h": 484,
+    "e": 484,
+    "n": 71237
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/hops?thread=cmsg_6d08be72ff6046a5&before_seq=90071992",
+    "s": -30,
+    "h": 522,
+    "e": 522,
+    "n": 2082
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages?thread=cmsg_6d08be72ff6046a5&before_seq=9007",
+    "s": -31,
+    "h": 560,
+    "e": 560,
+    "n": 409
+   },
+   {
+    "u": "api/chat/events?session=cse_51f4052abc694495&kinds=thread.control%2Cthread.continued&befor",
+    "s": -30,
+    "h": 561,
+    "e": 562,
+    "n": 58
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 636,
+    "h": 756,
+    "e": 756,
+    "n": 6331
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 636,
+    "h": 759,
+    "e": 759,
+    "n": 7706
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 636,
+    "h": 759,
+    "e": 760,
+    "n": 8015
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 636,
+    "h": 760,
+    "e": 760,
+    "n": 6179
+   }
+  ],
+  "longtasks": []
+ },
+ "full_local_1x": {
+  "go": "t:cmsg_13f4fbe3baa04fe3",
+  "clickHandler": 25,
+  "loadingShownAt": 22,
+  "loadingGoneAt": 408,
+  "api": [
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages?thread=cmsg_13f4fbe3baa04fe3&before_seq=9007",
+    "s": -23,
+    "h": 303,
+    "e": 304,
+    "n": 413
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/hops?thread=cmsg_13f4fbe3baa04fe3&before_seq=90071992",
+    "s": -23,
+    "h": 341,
+    "e": 342,
+    "n": 2162
+   },
+   {
+    "u": "api/chat/events?session=cse_db1c00a6af554794&before_seq=9007199254740991&limit=500",
+    "s": -23,
+    "h": 345,
+    "e": 345,
+    "n": 93072
+   },
+   {
+    "u": "api/chat/events?session=cse_db1c00a6af554794&kinds=thread.control%2Cthread.continued&befor",
+    "s": -23,
+    "h": 348,
+    "e": 349,
+    "n": 58
+   }
+  ],
+  "longtasks": []
+ },
+ "boot_warm_local_1x": {
+  "nav": {
+   "ttfb": 4,
+   "dcl": 791,
+   "load": 791
+  },
+  "paint": {
+   "first-paint": 172,
+   "first-contentful-paint": 172
+  },
+  "marks": {
+   "sidebarProjects": 2391,
+   "anyThreadLink": 2391
+  },
+  "staticReq": 101,
+  "jsReq": 80,
+  "staticBytes": 3234132,
+  "staticDecoded": 3203832,
+  "lastJsEnd": 768,
+  "lastStaticEnd": 2716,
+  "jsDepthStarts": [
+   25,
+   150,
+   175,
+   200,
+   225,
+   300,
+   350,
+   425,
+   450,
+   525,
+   575,
+   675,
+   700
+  ],
+  "api": [
+   {
+    "u": "api/chat/stream",
+    "s": 773,
+    "h": 817,
+    "e": 817,
+    "n": -1
+   },
+   {
+    "u": "api/terminal/status",
+    "s": 777,
+    "h": 817,
+    "e": 821,
+    "n": 101
+   },
+   {
+    "u": "api/chat/chats",
+    "s": 778,
+    "h": 817,
+    "e": 821,
+    "n": 7902
+   },
+   {
+    "u": "api/terminal/sessions",
+    "s": 821,
+    "h": 827,
+    "e": 828,
+    "n": 16
+   },
+   {
+    "u": "api/chat/shape",
+    "s": 774,
+    "h": 817,
+    "e": 841,
+    "n": 146
+   },
+   {
+    "u": "api/chat/status",
+    "s": 820,
+    "h": 828,
+    "e": 869,
+    "n": 4332
+   },
+   {
+    "u": "api/chat/chats",
+    "s": 820,
+    "h": 831,
+    "e": 872,
+    "n": 7902
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/threads",
+    "s": 871,
+    "h": 878,
+    "e": 878,
+    "n": 14
+   },
+   {
+    "u": "api/advisory",
+    "s": 869,
+    "h": 874,
+    "e": 915,
+    "n": 8908
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/threads",
+    "s": 871,
+    "h": 878,
+    "e": 919,
+    "n": 15425
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/threads",
+    "s": 871,
+    "h": 878,
+    "e": 919,
+    "n": 6565
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/threads",
+    "s": 871,
+    "h": 880,
+    "e": 920,
+    "n": 7500
+   },
+   {
+    "u": "api/chat/sessions",
+    "s": 871,
+    "h": 938,
+    "e": 939,
+    "n": 237083
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/threads",
+    "s": 871,
+    "h": 939,
+    "e": 941,
+    "n": 103744
+   },
+   {
+    "u": "api/chat/chats/chat_e69aa2c67bef4e24/hops",
+    "s": 871,
+    "h": 960,
+    "e": 967,
+    "n": 608766
+   },
+   {
+    "u": "api/chat/review",
+    "s": 871,
+    "h": 924,
+    "e": 968,
+    "n": 34
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/threads",
+    "s": 871,
+    "h": 938,
+    "e": 978,
+    "n": 14
+   },
+   {
+    "u": "api/chat/runtimes",
+    "s": 871,
+    "h": 948,
+    "e": 990,
+    "n": 20004
+   },
+   {
+    "u": "api/chat/runtime-policy",
+    "s": 871,
+    "h": 964,
+    "e": 1003,
+    "n": 156
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/threads",
+    "s": 878,
+    "h": 968,
+    "e": 1008,
+    "n": 14
+   },
+   {
+    "u": "api/chat/intent",
+    "s": 915,
+    "h": 981,
+    "e": 1021,
+    "n": 763
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/threads",
+    "s": 919,
+    "h": 991,
+    "e": 1032,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/threads",
+    "s": 919,
+    "h": 1008,
+    "e": 1048,
+    "n": 9172
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/threads",
+    "s": 920,
+    "h": 1010,
+    "e": 1051,
+    "n": 3866
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/threads",
+    "s": 940,
+    "h": 1023,
+    "e": 1064,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages",
+    "s": 965,
+    "h": 1034,
+    "e": 1076,
+    "n": 29886
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/messages",
+    "s": 966,
+    "h": 1050,
+    "e": 1091,
+    "n": 24337
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/messages",
+    "s": 966,
+    "h": 1053,
+    "e": 1094,
+    "n": 15612
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/messages",
+    "s": 966,
+    "h": 1066,
+    "e": 1107,
+    "n": 26299
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/messages",
+    "s": 966,
+    "h": 1077,
+    "e": 1118,
+    "n": 37886
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/messages",
+    "s": 966,
+    "h": 1093,
+    "e": 1134,
+    "n": 11256
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/threads",
+    "s": 978,
+    "h": 1095,
+    "e": 1136,
+    "n": 14
+   },
+   {
+    "u": "api/chat/router",
+    "s": 989,
+    "h": 1109,
+    "e": 1149,
+    "n": 58
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/runtime-policy",
+    "s": 1002,
+    "h": 1120,
+    "e": 1162,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/runtime-policy",
+    "s": 1003,
+    "h": 1138,
+    "e": 1178,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/runtime-policy",
+    "s": 1002,
+    "h": 1136,
+    "e": 1179,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/runtime-policy",
+    "s": 1003,
+    "h": 1151,
+    "e": 1192,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/runtime-policy",
+    "s": 1003,
+    "h": 1164,
+    "e": 1205,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/runtime-policy",
+    "s": 1003,
+    "h": 1181,
+    "e": 1222,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/threads",
+    "s": 1008,
+    "h": 1184,
+    "e": 1225,
+    "n": 21535
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/threads",
+    "s": 1032,
+    "h": 1200,
+    "e": 1241,
+    "n": 42652
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/threads",
+    "s": 1048,
+    "h": 1208,
+    "e": 1249,
+    "n": 29487
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/threads",
+    "s": 1051,
+    "h": 1225,
+    "e": 1266,
+    "n": 5014
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/threads",
+    "s": 1064,
+    "h": 1227,
+    "e": 1268,
+    "n": 2353
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/messages",
+    "s": 1075,
+    "h": 1243,
+    "e": 1284,
+    "n": 5515
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/threads",
+    "s": 1136,
+    "h": 1251,
+    "e": 1292,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/runtime-policy",
+    "s": 1162,
+    "h": 1268,
+    "e": 1308,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/runtime-policy",
+    "s": 1178,
+    "h": 1269,
+    "e": 1310,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/runtime-policy",
+    "s": 1179,
+    "h": 1286,
+    "e": 1326,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/runtime-policy",
+    "s": 1192,
+    "h": 1294,
+    "e": 1335,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/runtime-policy",
+    "s": 1205,
+    "h": 1310,
+    "e": 1351,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/runtime-policy",
+    "s": 1222,
+    "h": 1311,
+    "e": 1352,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/threads",
+    "s": 1225,
+    "h": 1328,
+    "e": 1369,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/threads",
+    "s": 1241,
+    "h": 1487,
+    "e": 1494,
+    "n": 652150
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/threads",
+    "s": 1268,
+    "h": 1494,
+    "e": 1496,
+    "n": 151332
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/threads",
+    "s": 1266,
+    "h": 1466,
+    "e": 1506,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/threads",
+    "s": 1249,
+    "h": 1465,
+    "e": 1506,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/threads",
+    "s": 1292,
+    "h": 1494,
+    "e": 1532,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/runtime-policy",
+    "s": 1308,
+    "h": 1494,
+    "e": 1533,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/runtime-policy",
+    "s": 1310,
+    "h": 1509,
+    "e": 1549,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/runtime-policy",
+    "s": 1326,
+    "h": 1509,
+    "e": 1550,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/runtime-policy",
+    "s": 1335,
+    "h": 1535,
+    "e": 1575,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/runtime-policy",
+    "s": 1351,
+    "h": 1535,
+    "e": 1576,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/runtime-policy",
+    "s": 1352,
+    "h": 1551,
+    "e": 1593,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/runtime-policy",
+    "s": 1533,
+    "h": 1551,
+    "e": 1593,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/runtime-policy",
+    "s": 1550,
+    "h": 1578,
+    "e": 1619,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/runtime-policy",
+    "s": 1549,
+    "h": 1578,
+    "e": 1619,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/runtime-policy",
+    "s": 1576,
+    "h": 2315,
+    "e": 2356,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/runtime-policy",
+    "s": 1593,
+    "h": 2316,
+    "e": 2356,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/runtime-policy",
+    "s": 1575,
+    "h": 2316,
+    "e": 2359,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/made",
+    "s": 2363,
+    "h": 2634,
+    "e": 2675,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/made",
+    "s": 2363,
+    "h": 2838,
+    "e": 2878,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/made",
+    "s": 2363,
+    "h": 2949,
+    "e": 2949,
+    "n": 9938
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/made",
+    "s": 2364,
+    "h": 2948,
+    "e": 2988,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/made",
+    "s": 2363,
+    "h": 2984,
+    "e": 3025,
+    "n": 13780
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/made",
+    "s": 2364,
+    "h": 3096,
+    "e": 3137,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/made",
+    "s": 2364,
+    "h": 3135,
+    "e": 3175,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/made",
+    "s": 2364,
+    "h": 3246,
+    "e": 3286,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/made",
+    "s": 2364,
+    "h": 3438,
+    "e": 3478,
+    "n": 10731
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/made",
+    "s": 2364,
+    "h": 3438,
+    "e": 3479,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/made",
+    "s": 2364,
+    "h": 3438,
+    "e": 3479,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/made",
+    "s": 2364,
+    "h": 3511,
+    "e": 3552,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/made",
+    "s": 2364,
+    "h": 3703,
+    "e": 3744,
+    "n": 5125
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/made",
+    "s": 2364,
+    "h": 4251,
+    "e": 4292,
+    "n": 31432
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/made",
+    "s": 2364,
+    "h": 4651,
+    "e": 4692,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/made",
+    "s": 2364,
+    "h": 4653,
+    "e": 4693,
+    "n": 1917
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/made",
+    "s": 2364,
+    "h": 4754,
+    "e": 4795,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/made",
+    "s": 2364,
+    "h": 4861,
+    "e": 4902,
+    "n": 39306
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/made",
+    "s": 2365,
+    "h": 4972,
+    "e": 5012,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/made",
+    "s": 2365,
+    "h": 5859,
+    "e": 5901,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/made",
+    "s": 2365,
+    "h": 5860,
+    "e": 5901,
+    "n": 30
+   },
+   {
+    "u": "api/chat/runtimes/claude_code/models",
+    "s": 2373,
+    "h": 6094,
+    "e": 6136,
+    "n": 3668
+   }
+  ],
+  "longtasks": [],
+  "ltTotal": 0,
+  "idle": [
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   13,
+   13,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16,
+   16
+  ],
+  "big": [
+   [
+    "/css/app.css",
+    279916,
+    17,
+    26
+   ],
+   [
+    "/js/app.js",
+    342216,
+    17,
+    149
+   ],
+   [
+    "/js/decide.js",
+    74794,
+    161,
+    211
+   ],
+   [
+    "/js/viewer.js",
+    79625,
+    162,
+    355
+   ],
+   [
+    "/js/map.js",
+    83327,
+    162,
+    356
+   ],
+   [
+    "/js/launchpad.js",
+    100587,
+    162,
+    373
+   ],
+   [
+    "/js/stage.js",
+    63124,
+    162,
+    396
+   ],
+   [
+    "/js/files.js",
+    63465,
+    162,
+    417
+   ],
+   [
+    "/js/storm.js",
+    72903,
+    209,
+    584
+   ],
+   [
+    "/js/xoicons.js",
+    134617,
+    459,
+    668
+   ],
+   [
+    "/js/vendor/xterm/xterm.mjs",
+    344970,
+    709,
+    728
+   ],
+   [
+    "/api/chat/chats/chat_f9d67e5cbef04c93/threads",
+    103744,
+    871,
+    938
+   ],
+   [
+    "/api/chat/sessions?after_seq=0&limit=500",
+    237083,
+    871,
+    937
+   ],
+   [
+    "/api/chat/chats/chat_e69aa2c67bef4e24/hops?before_seq=9007199254740991&limit=500",
+    608766,
+    871,
+    959
+   ],
+   [
+    "/api/chat/chats/chat_9460bc3363914c18/threads",
+    652150,
+    1241,
+    1486
+   ],
+   [
+    "/api/chat/chats/chat_7eadd3dcd6ea454c/threads",
+    151332,
+    1268,
+    1490
+   ]
+  ]
+ },
+ "boot_remote_like_cpu4x": {
+  "nav": {
+   "ttfb": 3,
+   "dcl": 2139,
+   "load": 2140
+  },
+  "paint": {
+   "first-paint": 524,
+   "first-contentful-paint": 524
+  },
+  "marks": {
+   "sidebarProjects": 19795,
+   "anyThreadLink": 19796
+  },
+  "staticReq": 101,
+  "jsReq": 80,
+  "staticBytes": 3234132,
+  "staticDecoded": 3203832,
+  "lastJsEnd": 1839,
+  "lastStaticEnd": 19964,
+  "jsDepthStarts": [
+   100,
+   600,
+   625,
+   650,
+   675,
+   700,
+   750,
+   775,
+   850,
+   1100,
+   1175,
+   1200,
+   1325,
+   1400,
+   1500,
+   1550,
+   1625
+  ],
+  "api": [
+   {
+    "u": "api/chat/stream",
+    "s": 1905,
+    "h": 2199,
+    "e": 2199,
+    "n": -1
+   },
+   {
+    "u": "api/chat/shape",
+    "s": 1933,
+    "h": 2281,
+    "e": 2290,
+    "n": 146
+   },
+   {
+    "u": "api/terminal/status",
+    "s": 1959,
+    "h": 2355,
+    "e": 2358,
+    "n": 101
+   },
+   {
+    "u": "api/chat/status",
+    "s": 2204,
+    "h": 2435,
+    "e": 2442,
+    "n": 4331
+   },
+   {
+    "u": "api/advisory",
+    "s": 2440,
+    "h": 2512,
+    "e": 2556,
+    "n": 8903
+   },
+   {
+    "u": "api/terminal/sessions",
+    "s": 2357,
+    "h": 2674,
+    "e": 2716,
+    "n": 16
+   },
+   {
+    "u": "api/chat/intent",
+    "s": 2555,
+    "h": 2850,
+    "e": 2891,
+    "n": 763
+   },
+   {
+    "u": "api/chat/chats",
+    "s": 1965,
+    "h": 3118,
+    "e": 3123,
+    "n": 7902
+   },
+   {
+    "u": "api/chat/chats",
+    "s": 2202,
+    "h": 3540,
+    "e": 3552,
+    "n": 7902
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/threads",
+    "s": 3545,
+    "h": 5018,
+    "e": 5024,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/threads",
+    "s": 3545,
+    "h": 5280,
+    "e": 5285,
+    "n": 6565
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/threads",
+    "s": 3544,
+    "h": 5279,
+    "e": 5327,
+    "n": 15425
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/threads",
+    "s": 3546,
+    "h": 5390,
+    "e": 5395,
+    "n": 7500
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/threads",
+    "s": 3546,
+    "h": 5536,
+    "e": 5575,
+    "n": 103744
+   },
+   {
+    "u": "api/chat/runtimes",
+    "s": 3550,
+    "h": 6095,
+    "e": 6143,
+    "n": 20004
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/threads",
+    "s": 3547,
+    "h": 7202,
+    "e": 7247,
+    "n": 14
+   },
+   {
+    "u": "api/chat/review",
+    "s": 3549,
+    "h": 7201,
+    "e": 7248,
+    "n": 34
+   },
+   {
+    "u": "api/chat/runtime-policy",
+    "s": 3550,
+    "h": 7384,
+    "e": 7407,
+    "n": 156
+   },
+   {
+    "u": "api/chat/sessions",
+    "s": 3547,
+    "h": 7389,
+    "e": 7489,
+    "n": 237083
+   },
+   {
+    "u": "api/chat/chats/chat_e69aa2c67bef4e24/hops",
+    "s": 3549,
+    "h": 9183,
+    "e": 9452,
+    "n": 608766
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/threads",
+    "s": 5284,
+    "h": 10082,
+    "e": 10148,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/threads",
+    "s": 5022,
+    "h": 10083,
+    "e": 10149,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/threads",
+    "s": 5573,
+    "h": 10298,
+    "e": 10346,
+    "n": 14
+   },
+   {
+    "u": "api/chat/router",
+    "s": 6141,
+    "h": 10299,
+    "e": 10346,
+    "n": 58
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/threads",
+    "s": 5326,
+    "h": 10299,
+    "e": 10347,
+    "n": 9172
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/threads",
+    "s": 5394,
+    "h": 10490,
+    "e": 10548,
+    "n": 3866
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/runtime-policy",
+    "s": 7403,
+    "h": 10492,
+    "e": 10549,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/runtime-policy",
+    "s": 7404,
+    "h": 10583,
+    "e": 10649,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/threads",
+    "s": 7246,
+    "h": 10583,
+    "e": 10650,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/runtime-policy",
+    "s": 7405,
+    "h": 10646,
+    "e": 10685,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/runtime-policy",
+    "s": 7406,
+    "h": 10701,
+    "e": 10747,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/runtime-policy",
+    "s": 7406,
+    "h": 10702,
+    "e": 10751,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/runtime-policy",
+    "s": 7406,
+    "h": 10821,
+    "e": 10861,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages",
+    "s": 9441,
+    "h": 11128,
+    "e": 11181,
+    "n": 29886
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/messages",
+    "s": 9444,
+    "h": 11382,
+    "e": 11447,
+    "n": 24337
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/messages",
+    "s": 9446,
+    "h": 11517,
+    "e": 11586,
+    "n": 26299
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/messages",
+    "s": 9445,
+    "h": 11644,
+    "e": 11678,
+    "n": 15612
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/messages",
+    "s": 9450,
+    "h": 12081,
+    "e": 12115,
+    "n": 37886
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/messages",
+    "s": 9451,
+    "h": 12148,
+    "e": 12192,
+    "n": 11256
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/threads",
+    "s": 10146,
+    "h": 13242,
+    "e": 13289,
+    "n": 21535
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/threads",
+    "s": 10148,
+    "h": 13342,
+    "e": 13395,
+    "n": 42652
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/threads",
+    "s": 10344,
+    "h": 13380,
+    "e": 13448,
+    "n": 29487
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/threads",
+    "s": 10346,
+    "h": 13501,
+    "e": 13546,
+    "n": 5014
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/runtime-policy",
+    "s": 10549,
+    "h": 13541,
+    "e": 13549,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/threads",
+    "s": 10547,
+    "h": 13540,
+    "e": 13550,
+    "n": 2353
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/runtime-policy",
+    "s": 10647,
+    "h": 13682,
+    "e": 13746,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/runtime-policy",
+    "s": 10746,
+    "h": 13882,
+    "e": 13947,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/threads",
+    "s": 10649,
+    "h": 13882,
+    "e": 13947,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/runtime-policy",
+    "s": 10683,
+    "h": 13883,
+    "e": 13948,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/runtime-policy",
+    "s": 10749,
+    "h": 13883,
+    "e": 13949,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/runtime-policy",
+    "s": 10859,
+    "h": 14001,
+    "e": 14048,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/messages",
+    "s": 11180,
+    "h": 14182,
+    "e": 14246,
+    "n": 5515
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/threads",
+    "s": 13288,
+    "h": 18481,
+    "e": 18542,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/runtime-policy",
+    "s": 13548,
+    "h": 18481,
+    "e": 18544,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/threads",
+    "s": 13446,
+    "h": 18621,
+    "e": 18663,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/threads",
+    "s": 13545,
+    "h": 18622,
+    "e": 18663,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/runtime-policy",
+    "s": 13745,
+    "h": 18912,
+    "e": 18953,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/runtime-policy",
+    "s": 13946,
+    "h": 18950,
+    "e": 18993,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/runtime-policy",
+    "s": 13947,
+    "h": 19267,
+    "e": 19308,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/runtime-policy",
+    "s": 13948,
+    "h": 19268,
+    "e": 19309,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/threads",
+    "s": 13947,
+    "h": 19282,
+    "e": 19319,
+    "n": 14
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/threads",
+    "s": 13394,
+    "h": 19181,
+    "e": 19445,
+    "n": 652150
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/runtime-policy",
+    "s": 14046,
+    "h": 19384,
+    "e": 19453,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/runtime-policy",
+    "s": 18951,
+    "h": 19385,
+    "e": 19453,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/runtime-policy",
+    "s": 18543,
+    "h": 19385,
+    "e": 19453,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/runtime-policy",
+    "s": 19306,
+    "h": 19484,
+    "e": 19493,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/runtime-policy",
+    "s": 18990,
+    "h": 19484,
+    "e": 19494,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/runtime-policy",
+    "s": 19309,
+    "h": 19484,
+    "e": 19494,
+    "n": 251
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/threads",
+    "s": 13549,
+    "h": 19453,
+    "e": 19508,
+    "n": 151332
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/runtime-policy",
+    "s": 19451,
+    "h": 19562,
+    "e": 19625,
+    "n": 233
+   },
+   {
+    "u": "api/chat/chats/chat_f9d67e5cbef04c93/made",
+    "s": 19644,
+    "h": 19886,
+    "e": 19896,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b4f3a6ada7904c23/made",
+    "s": 19644,
+    "h": 19886,
+    "e": 19896,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_81308a5f11654fa9/made",
+    "s": 19644,
+    "h": 19894,
+    "e": 19900,
+    "n": 9938
+   },
+   {
+    "u": "api/chat/chats/chat_dee64153ccb34ecf/made",
+    "s": 19640,
+    "h": 19897,
+    "e": 19900,
+    "n": 13780
+   },
+   {
+    "u": "api/chat/chats/chat_55cb8e6027d04897/made",
+    "s": 19643,
+    "h": 19884,
+    "e": 19949,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_cf095452707b47ac/made",
+    "s": 19645,
+    "h": 19947,
+    "e": 19949,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_1ced72efb79840d7/made",
+    "s": 19646,
+    "h": 19968,
+    "e": 19982,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_2392fe825ebd41b6/made",
+    "s": 19646,
+    "h": 19968,
+    "e": 20004,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_45a92a94f9da446a/made",
+    "s": 19647,
+    "h": 20043,
+    "e": 20086,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_23aa42db78d74f9c/made",
+    "s": 19647,
+    "h": 20050,
+    "e": 20100,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_da3a032108174bde/made",
+    "s": 19647,
+    "h": 20050,
+    "e": 20100,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b5a23353881e483e/made",
+    "s": 19648,
+    "h": 20051,
+    "e": 20102,
+    "n": 5125
+   },
+   {
+    "u": "api/chat/chats/chat_9b2527fc285c4e0f/made",
+    "s": 19647,
+    "h": 20051,
+    "e": 20102,
+    "n": 10731
+   },
+   {
+    "u": "api/chat/chats/chat_e5816b0c225f4f12/made",
+    "s": 19648,
+    "h": 20218,
+    "e": 20258,
+    "n": 1917
+   },
+   {
+    "u": "api/chat/chats/chat_d2c5a67138b14ddd/made",
+    "s": 19648,
+    "h": 20218,
+    "e": 20259,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_78d835fa31c447a0/made",
+    "s": 19648,
+    "h": 20220,
+    "e": 20259,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_d9f81eeac8e94018/made",
+    "s": 19648,
+    "h": 20217,
+    "e": 20296,
+    "n": 39306
+   },
+   {
+    "u": "api/chat/chats/chat_8db51785270b4422/made",
+    "s": 19648,
+    "h": 20244,
+    "e": 20297,
+    "n": 31432
+   },
+   {
+    "u": "api/chat/chats/chat_f306af8910844421/made",
+    "s": 19649,
+    "h": 20354,
+    "e": 20395,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_b6c060f52a304fe5/made",
+    "s": 19649,
+    "h": 20443,
+    "e": 20484,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_f17f81630cd14e52/made",
+    "s": 19649,
+    "h": 20444,
+    "e": 20484,
+    "n": 30
+   },
+   {
+    "u": "api/chat/runtimes/claude_code/models",
+    "s": 19713,
+    "h": 20592,
+    "e": 20648,
+    "n": 3668
+   },
+   {
+    "u": "api/chat/chats/chat_07161095a4754491/made",
+    "s": 19650,
+    "h": 20710,
+    "e": 20749,
+    "n": 30
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/made",
+    "s": 19649,
+    "h": 20744,
+    "e": 20794,
+    "n": 143055
+   },
+   {
+    "u": "api/chat/chats/chat_7eadd3dcd6ea454c/made",
+    "s": 19650,
+    "h": 21237,
+    "e": 21284,
+    "n": 131491
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image",
+    "s": 21355,
+    "h": 21421,
+    "e": 21422,
+    "n": 8015
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image",
+    "s": 21352,
+    "h": 21418,
+    "e": 21447,
+    "n": 6331
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image",
+    "s": 21355,
+    "h": 21419,
+    "e": 21451,
+    "n": 6179
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image",
+    "s": 21442,
+    "h": 21589,
+    "e": 21592,
+    "n": 7706
+   },
+   {
+    "u": "api/xo-projects/xo-space/file",
+    "s": 21511,
+    "h": 21591,
+    "e": 21602,
+    "n": 25181
+   }
+  ],
+  "longtasks": [
+   [
+    450,
+    54
+   ],
+   [
+    625,
+    54
+   ],
+   [
+    1851,
+    251
+   ],
+   [
+    9400,
+    51
+   ],
+   [
+    19625,
+    167
+   ],
+   [
+    21285,
+    62
+   ],
+   [
+    21619,
+    68
+   ]
+  ],
+  "ltTotal": 707,
+  "idle": [
+   14,
+   15,
+   15,
+   15,
+   15,
+   14,
+   15,
+   16,
+   15,
+   15,
+   13,
+   8,
+   15,
+   15,
+   16,
+   16,
+   16,
+   16,
+   15,
+   15,
+   14,
+   14,
+   15,
+   14,
+   14,
+   11,
+   15,
+   16,
+   15,
+   9,
+   15,
+   14,
+   14,
+   15,
+   15,
+   15,
+   16,
+   15,
+   14,
+   15
+  ],
+  "big": [
+   [
+    "/css/app.css",
+    279916,
+    96,
+    356
+   ],
+   [
+    "/js/app.js",
+    342216,
+    99,
+    614
+   ],
+   [
+    "/js/decide.js",
+    74794,
+    643,
+    842
+   ],
+   [
+    "/js/viewer.js",
+    79625,
+    645,
+    1097
+   ],
+   [
+    "/js/map.js",
+    83327,
+    645,
+    1105
+   ],
+   [
+    "/js/stage.js",
+    63124,
+    645,
+    1088
+   ],
+   [
+    "/js/launchpad.js",
+    100587,
+    645,
+    1177
+   ],
+   [
+    "/js/files.js",
+    63465,
+    646,
+    1139
+   ],
+   [
+    "/js/storm.js",
+    72903,
+    747,
+    1505
+   ],
+   [
+    "/js/xoicons.js",
+    134617,
+    1206,
+    1653
+   ],
+   [
+    "/js/vendor/xterm/xterm.mjs",
+    344970,
+    1614,
+    1839
+   ],
+   [
+    "/api/chat/chats/chat_f9d67e5cbef04c93/threads",
+    103744,
+    3547,
+    5568
+   ],
+   [
+    "/api/chat/sessions?after_seq=0&limit=500",
+    237083,
+    3548,
+    7477
+   ],
+   [
+    "/api/chat/chats/chat_e69aa2c67bef4e24/hops?before_seq=9007199254740991&limit=500",
+    608766,
+    3550,
+    9386
+   ],
+   [
+    "/api/chat/chats/chat_9460bc3363914c18/threads",
+    652150,
+    13394,
+    19401
+   ],
+   [
+    "/api/chat/chats/chat_7eadd3dcd6ea454c/threads",
+    151332,
+    13550,
+    19503
+   ],
+   [
+    "/api/chat/chats/chat_9460bc3363914c18/made?limit=200",
+    143055,
+    19649,
+    20789
+   ],
+   [
+    "/api/chat/chats/chat_7eadd3dcd6ea454c/made?limit=200",
+    131491,
+    19650,
+    21280
+   ]
+  ]
+ },
+ "links_remote_like_cpu4x": {
+  "stage": 0,
+  "msgs": 1
+ },
+ "links2_remote_like_cpu4x": 7,
+ "panel_remote_like_cpu4x": {
+  "go": "t:cmsg_6d08be72ff6046a5",
+  "clickHandler": 298,
+  "loadingShownAt": 203,
+  "loadingGoneAt": 1149,
+  "api": [
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages?thread=cmsg_6d08be72ff6046a5&before_seq=9007",
+    "s": -165,
+    "h": 444,
+    "e": 632,
+    "n": 3175
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/hops?thread=cmsg_6d08be72ff6046a5&before_seq=90071992",
+    "s": -160,
+    "h": 739,
+    "e": 794,
+    "n": 2099
+   },
+   {
+    "u": "api/chat/events?session=cse_51f4052abc694495&kinds=thread.control%2Cthread.continued&befor",
+    "s": -161,
+    "h": 740,
+    "e": 800,
+    "n": 58
+   },
+   {
+    "u": "api/chat/events?session=cse_51f4052abc694495&before_seq=9007199254740991&limit=500",
+    "s": -162,
+    "h": 810,
+    "e": 842,
+    "n": 84507
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 1157,
+    "h": 1251,
+    "e": 1253,
+    "n": 6331
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 1157,
+    "h": 1251,
+    "e": 1253,
+    "n": 6179
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 1156,
+    "h": 1310,
+    "e": 1328,
+    "n": 8015
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/image?relative_path=.xo%2Fworktrees%2Fthread-cmsg_6d08be72ff60",
+    "s": 1155,
+    "h": 1311,
+    "e": 1336,
+    "n": 7706
+   },
+   {
+    "u": "api/xo-projects/xo-coworker/changes?worktree=thread-cmsg_6d08be72ff6046a5",
+    "s": -127,
+    "h": 1328,
+    "e": 1342,
+    "n": 5908
+   }
+  ],
+  "longtasks": [
+   [
+    11,
+    246
+   ],
+   [
+    302,
+    134
+   ],
+   [
+    445,
+    89
+   ],
+   [
+    541,
+    90
+   ],
+   [
+    633,
+    72
+   ],
+   [
+    844,
+    87
+   ],
+   [
+    946,
+    160
+   ],
+   [
+    1344,
+    99
+   ]
+  ]
+ },
+ "full_remote_like_cpu4x": {
+  "go": "t:cmsg_13f4fbe3baa04fe3",
+  "clickHandler": 119,
+  "loadingShownAt": 65,
+  "loadingGoneAt": 771,
+  "api": [
+   {
+    "u": "api/chat/sessions/cse_db1c00a6af554794/runs?tree=true&depth=3&limit=200",
+    "s": -89,
+    "h": 86,
+    "e": 228,
+    "n": 1718
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/messages?thread=cmsg_13f4fbe3baa04fe3&before_seq=9007",
+    "s": -113,
+    "h": 420,
+    "e": 540,
+    "n": 413
+   },
+   {
+    "u": "api/chat/chats/chat_9460bc3363914c18/hops?thread=cmsg_13f4fbe3baa04fe3&before_seq=90071992",
+    "s": -114,
+    "h": 421,
+    "e": 541,
+    "n": 2162
+   },
+   {
+    "u": "api/chat/events?session=cse_db1c00a6af554794&before_seq=9007199254740991&limit=500",
+    "s": -112,
+    "h": 436,
+    "e": 553,
+    "n": 93072
+   },
+   {
+    "u": "api/chat/events?session=cse_db1c00a6af554794&kinds=thread.control%2Cthread.continued&befor",
+    "s": -111,
+    "h": 437,
+    "e": 554,
+    "n": 58
+   }
+  ],
+  "longtasks": [
+   [
+    2,
+    74
+   ],
+   [
+    86,
+    128
+   ],
+   [
+    228,
+    125
+   ],
+   [
+    440,
+    95
+   ],
+   [
+    590,
+    176
+   ]
+  ]
+ }
+}

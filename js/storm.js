@@ -79,8 +79,9 @@ export function stormSource(state, emit, event) {
   const isWatched = (ts) => !!ts && (ts === watched.thread || ts === watched.side);
   const trimmed = new Set(); // sessions whose older turns were pruned (read again when shown)
   const framesBefore = new Map(); // session → the cursor below its stored frames read so far (null: all read)
+  // the first frame, or the stream saying it can't connect yet (it keeps trying; the first load goes ahead without it)
   let firstFrame = null;
-  const sawFrame = new Promise((r) => { firstFrame = r; });
+  const subscribed = new Promise((r) => { firstFrame = r; });
 
   const projectOf = (chatId) => (chatId ? chatProject.get(chatId) || null : null);
   const chatIdOf = (project) => state.projects.find((p) => p.id === project)?.chatId || null;
@@ -185,6 +186,7 @@ export function stormSource(state, emit, event) {
   }
   // a thread's title and label are plain text: one that came escaped ("Settings &amp; Home") reads as it was meant
   const plainText = (v) => (v == null ? v : String(v).replace(/&(amp|lt|gt|quot|#39);/g, (m, e) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" })[e]));
+  const youWroteLast = (rows) => { let last = null; for (const m of rows || []) if (!last || (m.seq ?? -1) > (last.seq ?? -1)) last = m; return !!last && last.author_kind === "owner"; };
   function uiThread(r, runsBy = runsBySession()) {
     const project = projectOf(r.chat_id);
     const now = r.session_id ? sessionNow(r.session_id, r) : null;
@@ -198,7 +200,7 @@ export function stormSource(state, emit, event) {
       id: r.ts, project, chatId: r.chat_id,
       title: plainText(r.title) || "Thread", label: plainText(r.label) || null,
       // held is one shown state: a done, stopped or needs-reply thread whose next input waits reads Waiting
-      state: threadState(r.state, turn, busy, !!held),
+      state: threadState(r.state, turn, busy, !!held, r.activity === "stalled" && youWroteLast(state.threadMsgs[r.ts])),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
       createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),
@@ -343,6 +345,13 @@ export function stormSource(state, emit, event) {
       for (const [ts, r] of rawThreads) if (r.chat_id === p.chatId && !seen.has(ts) && (r._at || 0) < asked) rawThreads.delete(ts);
     } catch { /* keep the last good threads for this project */ }
   }
+  // turns already running when the page loads: a Working row has its turn's start before its thread is opened
+  async function loadActive() {
+    try {
+      const { turns } = await api.active();
+      for (const x of turns || []) if (x.turn_id && x.session_id && !state.turns.get(x.turn_id)) state.turns.apply({ type: "turn.started", envelope: { type: "turn.started", turn_id: x.turn_id, session_id: x.session_id, chat_id: x.chat_id || null, thread_ts: x.thread_ts || null, ts: x.started_at || null, data: { origin: x.origin || null } } });
+    } catch { /* a thread's own read fills it in */ }
+  }
   async function loadSessions() {
     // the coordinators (for "is replying") and the thread sessions' live state
     try {
@@ -465,11 +474,21 @@ export function stormSource(state, emit, event) {
 
   /** The runtime policy: the Space's, and each project's (a backend without them leaves both empty). */
   async function loadPolicies() {
-    try { state.policy = await api.runtimePolicy(); } catch { return; }
-    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => {
-      try { state.chatPolicy[p.chatId] = await api.chatRuntimePolicy(p.chatId); } catch { /* the Space's applies */ }
-    });
+    await loadSpacePolicy();
+    if (!state.policy) return;
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, (p) => loadChatPolicy(p.chatId, true));
     emit();
+  }
+  async function loadSpacePolicy() {
+    try { state.policy = await api.runtimePolicy(); } catch { /* none on this backend */ }
+  }
+  // a project's own policy, read once when something shows it (its composer); fresh: read it again
+  const policyReads = new Map();
+  function loadChatPolicy(chat, fresh = false) {
+    if (!chat || (!fresh && policyReads.has(chat))) return policyReads.get(chat) || null;
+    const read = api.chatRuntimePolicy(chat).then((p) => { state.chatPolicy[chat] = p; soon(); }, () => { /* the Space's applies */ });
+    policyReads.set(chat, read);
+    return read;
   }
 
   /** Everything, from the server. Returns once the world can render. */
@@ -478,7 +497,7 @@ export function stormSource(state, emit, event) {
     if (!state.projects.length) return;
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, loadThreads),
-      loadSessions(), loadReview(), loadRouted(), loadRuntimes(), loadPolicies(),
+      loadSessions(), loadReview(), loadRouted(), loadRuntimes(), loadSpacePolicy(),
     ]);
   }
 
@@ -682,6 +701,8 @@ export function stormSource(state, emit, event) {
         const old = rawThreads.get(ts);
         if (!old && !d.chat_id) { refetchThread(env.chat_id, ts); break; }
         rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...sessRead(d, { at: Date.now(), seq: env.seq ?? state.lastSeq }), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
+        // a new thread's frame carries no session or pin: its model and effort come from one read
+        if (!rawThreads.get(ts).session) fillSession(rawThreads.get(ts).chat_id, ts);
         soon();
         break;
       }
@@ -849,6 +870,16 @@ export function stormSource(state, emit, event) {
     try { const x = await api.thread(chatId, ts); rawThreads.set(ts, { ...x, _readAt: Date.now(), ...sessRead(x, sent) }); soon(); } catch { /* the next full frame fills it */ }
     refetchBusy.delete(ts);
   }
+  const sessionAsked = new Set();
+  async function fillSession(chatId, ts) {
+    if (!chatId || sessionAsked.has(ts)) return;
+    sessionAsked.add(ts);
+    const sent = sentAt();
+    try {
+      const x = await api.thread(chatId, ts), r = rawThreads.get(ts);
+      if (r && x && !r.session) { rawThreads.set(ts, { ...r, session: x.session || null, pin: x.pin || r.pin || {}, ...sessRead(x, sent) }); soon(); }
+    } catch { sessionAsked.delete(ts); }
+  }
   function settleAwaiting(chatId) {
     const project = projectOf(chatId);
     if (!project || !state.awaiting[project]) return;
@@ -877,6 +908,7 @@ export function stormSource(state, emit, event) {
       onFrame,
       onState: (s, info) => {
         state.conn = s; state.connInfo = info;
+        if (s !== "connecting") firstFrame();
         if (s === "live" && state.loaded) { loadStatus(); if (state.error || !state.projects.length) recover(); }
         emit();
       },
@@ -888,14 +920,16 @@ export function stormSource(state, emit, event) {
     startStream();
     // the subscription is in place once its first frame (the snapshot) arrives; frames from then on
     // are held during the load, so nothing that changes while it runs is lost or reverted
-    await Promise.race([sawFrame, new Promise((r) => setTimeout(r, 4000))]);
-    await Promise.all([loadAll(), loadStatus()]);
+    await subscribed;
+    await Promise.all([loadAll(), loadStatus(), loadActive()]);
     commit();
     holding = false;
     for (const f of held.splice(0)) apply(f);
     commit();
     state.loaded = true;
     emit();
+    // the projects' own policies: a composer asks for its own first (loadChatPolicy); the rest follow, off the first draw
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, (p) => loadChatPolicy(p.chatId));
   }
   boot();
   setInterval(() => {
@@ -1104,6 +1138,8 @@ export function stormSource(state, emit, event) {
         return (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
       },
       loadPolicies,
+      /** A project's own runtime policy (chat id), read once; its composer asks when it shows. */
+      loadChatPolicy: (chat) => loadChatPolicy(chat),
       loadPaid,
       /** Set the Space's paid-usage mode (scope "space"), or an account's (scope "pool", id its pool; value null follows the Space). */
       setPaid: async (scope, id, value) => {

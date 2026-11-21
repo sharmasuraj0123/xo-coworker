@@ -29,11 +29,13 @@
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
   --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
-  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;   /* text, secondary, meta, quiet (4.6:1), placeholder */
+  --ink:#EDEDED; --ink-2:#D6D6D6; --ink-3:#B8B8B8; --ink-4:#ACACAC; --ink-5:#8A8A8A;   /* text, secondary, meta, quiet (4.6:1), placeholder */
   --on-ink:#141414; --ink-hi:#FFFFFF;
   --accent:#83D63A; --accent-fill:#83D63A; --accent-ink:#141414; --accent-hover:#96DC58; --accent-press:#74C02F; --accent-rgb:131,214,58;
   --err:#D7373F; --err-ink:#E68388;
   --warn:#F5A623; --info:#75ADF1; --violet:#BF8DFF;
+  --live-h:254; --live-l:.74; --live-c:.115;   /* the working dots: three hues around the flavour's own (css/flavours.css); Stone's is the info blue's */
+  --live-1:oklch(var(--live-l) var(--live-c) calc(var(--live-h) - 30)); --live-2:oklch(var(--live-l) var(--live-c) var(--live-h)); --live-3:oklch(var(--live-l) var(--live-c) calc(var(--live-h) + 30));
   --mark-x:#E1E1E1; --mark-o:#83D63A;
   --bubble:#232323; --bubble-line:#303030;
   --term-bg:#111111;
@@ -57,8 +59,10 @@
 
   /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
+  --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
   /* The one focus ring: 2 px of the accent, following the element's own radius. */
-  --focus:rgba(var(--accent-rgb),.75);
+  --focus:rgba(var(--accent-rgb),.45);
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
      scrolls a control into view (base.css) */
   --ring-room:6px;
@@ -89,20 +93,27 @@
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  /* Type: one family, three weights, 4 px line heights; body 14/20, chat read 15/24 (replies, messages, composer, tables), meta 12/16, code 13, phone inputs 16 */
-  --fs-xs:12px; --fs-sm:12px; --fs-body:14px; --fs-code:13px; --fs-input:16px; --fs-read:15px; --fs-lg:15px; --fs-2xl:20px; --fs-3xl:28px; --fs-4xl:40px;
-  --lh-12:16px; --lh-body:20px; --lh-read:24px; --lh-15:24px; --lh-20:28px; --lh-28:36px; --lh-40:44px;
+  /* Type roles: every text in the app takes one; read is the chat's voice (drawn lighter and softer on dark), ui the rest */
+  --fs-meta:12px; --fs-ui:14px; --fs-code:14px; --fs-read:16px; --fs-title:16px; --fs-input:16px; --fs-heading:20px; --fs-display:28px; --fs-hero:40px;
+  --lh-meta:16px; --lh-ui:20px; --lh-read:24px; --lh-title:24px; --lh-heading:28px; --lh-display:36px; --lh-hero:44px;
   --tr-12:.01em; --tr-13:0em; --tr-15:0em; --tr-20:-.01em; --tr-28:-.02em; --tr-40:-.03em;
   --cap-mid:.3595em;   /* half Geist's cap height (.719em): where an icon beside words centres (see .agm, .lk-ic) */
   --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
   --tr-code:.1em;    /* a code to read out or type (a pairing code) */
-  --fw-regular:400; --fw-medium:500; --fw-strong:600;
+  --fw-regular:400; --fw-read:var(--fw-regular); --fw-medium:500; --fw-strong:600;
+  --ink-read:var(--ink);
+  --ok-fill:color-mix(in srgb,var(--accent-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--accent-fill) 22%,transparent); --ok-fill-press:color-mix(in srgb,var(--accent-fill) 28%,transparent);
   --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.
        6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  /* a rounded box says its corner and its content's inset as --nest-r and --nest-in; what sits in its corner takes calc(var(--nest-r) - var(--nest-in)) */
+  --r-menu:var(--r-lg); --menu-pad:var(--s-1); --menu-row:var(--h-ctl); --menu-w:calc(6 * var(--h-ctl));
+  --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
+  --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
+  --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl box's --s-2 padding and 1 px line */
   /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
      focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
      fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */
@@ -118,6 +129,9 @@
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
+  --dock-bar:var(--h-lg); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
+  --pop-x:10px;   /* a popover's inner inset inside its 5 px frame: where its head, labels and rows start */
+  --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
   /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool
      disclosure) · 48 a row with an action or a second line (Handled) · 56 a two-line list row (Chats). Compact
      density steps a one-line row down to 32 (css/shape.css). A phone keeps its rows as they were: one-line rows
@@ -127,11 +141,18 @@
      change a size, everywhere it's used). Controls: --h-sm 24 · --h-ctl 32 (compact: 24) · --h-lg 40 · --h-touch 36
      (a phone's floor for anything pressed) · --h-hit 44 (a full touch row or target). Boxes that don't follow density
      (an avatar, an icon or file tile, an orb, a fade): --tile 32 · --tile-lg 36 · --tile-xl 44. */
-  --h-touch:36px; --h-hit:44px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
+  --h-touch:36px; --h-hit:44px; --tile-sm:28px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
   /* an agent's mark where a list row says it quietly, under the row's time (the owner, 19 Nov 13:42Z) */
   --mark-sm:var(--s-3);
   /* icons (the owner's pack, on its 24 grid): 16 by default, 12 and 14 in chips and meta lines, 20 on the phone bar */
+  --mask-working:url(../assets/icons/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-load:url(../assets/icons/xo/n-people-status-and-time/spinner.svg) center/contain no-repeat; --mask-needs:url(../assets/icons/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
+  --mask-done:url(../assets/icons/xo/e-state-marks/state-done.svg) center/contain no-repeat; --mask-failed:url(../assets/icons/xo/e-state-marks/state-failed.svg) center/contain no-repeat;
+  --mask-dot:url(../assets/icons/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(../assets/icons/xo/c-actions/stop.svg) center/200% no-repeat;
+  --mask-warn:url(../assets/icons/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(../assets/icons/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
   --ic-xs:12px; --ic-sm:14px; --ic:var(--s-4); --ic-lg:var(--s-5);
+  --edge-text:var(--s-3); /* words or a bare glyph at a bar's end sit this far inside its line; a filled control nests concentric instead */
+  --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
+  --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
   /* The space between an icon and its label, said once for every place one sits beside words: a state glyph and
@@ -144,6 +165,7 @@
      for the conversation to fade under (22 on a phone and beside Files); the line is placed from it, never from a
      number of its own. */
   --dock-gap:var(--s-3); --cbar-fade:30px;
+  --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
 
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
@@ -157,7 +179,7 @@
   --ease-out:var(--ease);
   --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
   --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
-  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s;
+  --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s; --d-wait:400ms;
   --press-scale:.97;
 }
 
@@ -167,15 +189,17 @@
    and on the side. Light has no glow: a shadow is a contact shadow plus a short, low ambient one. */
 :root[data-theme="light"]{
   color-scheme:light;
+  
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
   --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
   --menu-focus:#EEEEEE;
   --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD;
-  --ink:#1A1A1A; --ink-2:#3B3B3B; --ink-3:#575757; --ink-4:#6B6B6B; --ink-5:#858585;
+  --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E;
   --on-ink:#FFFFFF; --ink-hi:#000000;
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323;
   --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
+  --live-l:.53; --live-c:.15;
   --mark-x:#151515; --mark-o:#83D63A;
   --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
   --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:#A3A3A3;
@@ -195,6 +219,8 @@
   --scrim:rgba(18,18,18,.16);
   --sha:.28;
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
+  --btn-fill:color-mix(in srgb,var(--ink) 7%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 10%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 13%,transparent);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 10%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 15%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 20%,transparent);
   --e-decide:#3B3B3B;
 }
 
@@ -219,18 +245,20 @@
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
   --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
   --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
-  --ink:#E1E1E1; --ink-2:#C1C1C1; --ink-3:#909090; --ink-4:#878787; --ink-5:#727272;
+  --ink:#EDEDED; --ink-2:#D6D6D6; --ink-3:#B8B8B8; --ink-4:#ACACAC; --ink-5:#8A8A8A;
   --on-ink:#141414; --ink-hi:#FFFFFF;
   --accent:#83D63A; --accent-rgb:131,214,58; --err-ink:#E68388;
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
-  --focus:rgba(var(--accent-rgb),.75);
+  --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
+  --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
+  --focus:rgba(var(--accent-rgb),.45);
 }
 
 /* High contrast, when the OS asks for it. */
 @media (prefers-contrast: more){
-  :root{--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
-  :root[data-theme="light"]{--ink-3:#4B4B4B; --ink-4:#4B4B4B; --line:#8E8E8E; --line-hover:#6B6B6B}
-  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#B0B0B0; --ink-4:#B0B0B0; --line:#5A5A5A; --line-hover:#8E8E8E}
+  :root{--ink-3:#C8C8C8; --ink-4:#C8C8C8; --line:#5A5A5A; --line-hover:#8E8E8E}
+  :root[data-theme="light"]{--ink-3:#333333; --ink-4:#333333; --line:#8E8E8E; --line-hover:#6B6B6B}
+  :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#C8C8C8; --ink-4:#C8C8C8; --line:#5A5A5A; --line-hover:#8E8E8E}
 }
 
 /* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */

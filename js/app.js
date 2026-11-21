@@ -19,7 +19,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "./pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, estLine, evidenceFor } from "./content.js";
-import { keepTurning, ICON, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, DOTS, ARC, ICON, stepMark, stateMark, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -33,7 +33,7 @@ import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
+import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap } from "./map.js";
@@ -56,14 +56,15 @@ import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
-import { wireGestures, dockGestures } from "./gestures.js";
+import { createCalmOrder } from "./sideorder.js";
+import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, isPending, busyAttrs } from "./pending.js";
-import { radioKeys, menuKeys } from "./keynav.js";
+import { radioKeys, menuKeys, pointerFollows, focusOpened } from "./keynav.js";
 import { STONE, FLAVOURS } from "./flavours.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
@@ -142,7 +143,6 @@ LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") apply
 // ── state ───────────────────────────────────────────────────────────────────
 const S = {
   view: "home",            // home | ws | p:<project> | t:<thread>
-  pfind: "", pfCur: 0,     // the sidebar's project filter (hub #16) and its highlighted row
   parent: {}, opener: {}, scroll: {},
   dockFold: {},
   lref: {},                // beside a file: the lines a message will be about, per conversation {path, a, b, name}
@@ -192,7 +192,7 @@ const D = createDecisions({
   onNotSent: (title, why) => { setTimeout(() => heraldShow({ kind: "stopped", text: "Not sent", sub: `${String(title).replace(/`/g, "").replace(/[.?!]$/, "")} · ${why}`, force: true }, 7000), RM.matches ? 0 : 950); },
   onAllClear: (summary) => { setTimeout(() => heraldShow({ kind: "clear", text: "All clear", sub: summary }, 4600), RM.matches ? 0 : 900); },
   // a docked decision's own line ("Allowed. Undo") ends the moment its decision is undone, by its Undo or a key
-  onUndone: (key) => { if (S.view === "home") { S.pin = key; S.pinAnim = "undo"; } if (TD.undone && TD.undone.key === key) TD.undone.end(); },
+  onUndone: (key) => { if (S.view === "home") { S.pin = key; S.pinAnim = "undo"; } for (const d of [TD, TP.dock?.TD]) if (d?.undone && d.undone.key === key) d.undone.end(); },
   onBreak: (left) => heraldShow({ kind: "calm", text: "Taking a break", sub: `${left} wait safely` }, 5200),
   onSent: (part) => {
     // "Stop here" after you stopped a thread: it ends there, honestly
@@ -203,7 +203,7 @@ const IQ = createIntel({
   world, PROJ,
   // the shape's xo:composer/intel: "simple" opens Auto · Deep first, today's picker behind More options
   simple: () => SHAPE.opts("xo:composer/intel").mode === "simple",
-  onChange: (o) => { chipRender(o && o.fade); },
+  onChange: (o) => { for (const K of composers()) chipRender(o && o.fade, K); },
   record: (session, rec) => recordLine(session, rec),
   onMoved: (next, agent) => { announce(`Continuing on ${rtName(agent)}. This thread is frozen; write in it to pick it back up.`); if (next) go(`t:${next.id}`, { focus: true }); },
 });
@@ -410,7 +410,9 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
-const STAGE = createStage({ map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
+// the panel is a project's: its chat, the Workspace's, and their threads; Home, Chats, Artifacts and the rest have none
+const panelPlace = (v) => /^(?:ws$|[pt]:)/.test(v || "");
+const STAGE = createStage({ place: panelPlace, map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -522,6 +524,7 @@ function pings(needs) {
 }
 
 // ── sidebar: button-like rows; text only when a project needs you (#27) ────
+const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false, t: 0 });
 function sideRender(needs) {
   const mine = needs.filter((x) => x.admitted && !x.later);
   const n = mine.length;
@@ -544,18 +547,7 @@ function sideRender(needs) {
   // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
   for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   const now = Date.now();
-  // the project filter (hub #16): shown once the list is long; matches keep the ones needing you first
-  const all = projects();
-  const find = $("#side-find");
-  find.hidden = all.length <= FIND_AT && !S.pfind;
-  const q = (S.pfind || "").trim().toLowerCase();
-  const needN = (p) => mine.filter((x) => x.t.project === p.id).length;
-  const shown = q ? all.filter((p) => String(p.name || p.id).toLowerCase().includes(q)).sort((a, b) => (needN(b) > 0) - (needN(a) > 0)) : all;
-  if (S.pfCur >= shown.length) S.pfCur = shown.length - 1;
-  const pfn = q ? (shown.length ? `${shown.length} of ${all.length}` : "None") : "";
-  if ($("#pf-n").textContent !== pfn) $("#pf-n").textContent = pfn;
-  sideRender.shown = shown;
-  const items = shown.map((p, pi) => {
+  const rows = projects().map((p) => {
     const on = S.view === "p:" + p.id || convThread(S.view)?.project === p.id;
     const asks = mine.filter((x) => x.t.project === p.id);
     const lead = asks.find((x) => x.group !== "stopped" && x.risk !== "destructive") || asks[0];
@@ -577,40 +569,32 @@ function sideRender(needs) {
     const w = S.wash.get(p.id);
     const washing = w && w.until > now;
     return { key: p.id, html:
-      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${SIDE.folded ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
+      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${SIDE.folded ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
       `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
       `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
-      (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
+      (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>`, active: busy || needsMe, urgent: needsMe };
   });
+  const held = SIDE_CALM.over || ($("#side").matches(":focus-within") && !!document.activeElement?.matches(":focus-visible"));
+  const calm = SIDE_CALM.order(rows.map((r) => ({ id: r.key, active: r.active, urgent: r.urgent })), now, { first: !sideRender.ready, held });
+  SIDE_CALM.pending = calm.pending;
+  clearTimeout(SIDE_CALM.t);
+  if (calm.next != null) SIDE_CALM.t = setTimeout(() => sideRender(D.needItems()), calm.next + 50);
+  const up = new Set(calm.top);
+  const items = [...rows.filter((r) => up.has(r.key)), ...(up.size && up.size < rows.length ? [{ key: "pr-sep", html: `<div class="pr-sep" aria-hidden="true"></div>` }] : []), ...rows.filter((r) => !up.has(r.key))];
+  const box = $("#projects"), sig = items.map((r) => r.key).join();
+  const from = sideRender.ready && sig !== sideRender.sig && !still() ? new Map([...box.children].map((el) => [el, el.getBoundingClientRect().top])) : null;
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
-  if (q && !items.length) items.push({ key: "pf-none", html: `<p class="pf-none">No project called “${esc(S.pfind.trim())}”.</p>` });
-  reconcile($("#projects"), items, { quiet: !sideRender.ready });
+  // a row that changes (where you are, a count) is updated in place: its lines stay, so nothing replays its entrance
+  reconcile(box, items, { quiet: !sideRender.ready, inPlace: true });
+  sideRender.sig = sig;
+  if (from) for (const [el, y] of from) { const dy = el.isConnected ? y - el.getBoundingClientRect().top : 0; if (Math.abs(dy) > 0.5) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: MOVE, easing: EASE }); }
   sideRender.ready = true;
 }
-const FIND_AT = 8;
 {
-  const inp = $("#pf-in");
-  const set = (v) => { S.pfind = v; S.pfCur = 0; sideRender(D.needItems()); };
-  inp.addEventListener("input", () => set(inp.value));
-  inp.addEventListener("keydown", (e) => {
-    const list = sideRender.shown || [];
-    // Escape: a typed filter clears and stays; an empty one goes back to where you are, never to the page (a blur
-    // left focus on BODY: the create-project grader on c8f4c45, C007): a phone's drawer closes (focus to what opened
-    // it), else the place's own region
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (inp.value) { inp.value = ""; set(""); } else if (PHONE.matches && $("#app").classList.contains("drawer")) setDrawer(false); else placeRegion().focus({ preventScroll: true }); return; }
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      e.preventDefault();
-      if (!list.length || !S.pfind) return;
-      S.pfCur = (Math.max(0, S.pfCur) + (e.key === "ArrowDown" ? 1 : list.length - 1)) % list.length;
-      sideRender(D.needItems());
-      $("#projects .prow.is-cur")?.scrollIntoView({ block: "nearest" });
-      return;
-    }
-    if (e.key === "Enter") {
-      const p = S.pfind ? list[Math.max(0, S.pfCur)] : null;
-      if (p) { e.preventDefault(); inp.value = ""; S.pfind = ""; S.pfCur = 0; go("p:" + p.id); }
-    }
-  });
+  const side = $("#side"), settle = () => { if (SIDE_CALM.pending) setTimeout(() => !SIDE_CALM.over && sideRender(D.needItems()), 800); };
+  side.addEventListener("pointerenter", () => { SIDE_CALM.over = true; });
+  side.addEventListener("pointerleave", () => { SIDE_CALM.over = false; settle(); });
+  side.addEventListener("focusout", (e) => { if (!side.contains(e.relatedTarget)) settle(); });
 }
 
 // ── Home ────────────────────────────────────────────────────────────────────
@@ -887,13 +871,13 @@ function messagesOf(conv) {
   // messages landed among them and pushed what you were reading away (1-5k px on a long thread, at 1x)
   if (t && !t.loaded) {
     const err = st.threadHist?.[t.id]?.error;
-    out.push({ key: "note", at: -Infinity, who: "note", text: err ? `Couldn't load this thread: ${err}` : "Loading the thread…" });
+    out.push({ key: "note", at: -Infinity, who: "note", ...(err ? { text: `Couldn't load this thread: ${err}` } : { load: "Loading the thread" }) });
     out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
     return out;
   }
   if (!t && h) {
     if (h.error && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: `Couldn't load this conversation: ${h.error} Retrying.` });
-    else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: "Loading the conversation…" });
+    else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", load: "Loading the conversation" });
     else if (rows.length || h.loading) out.push({ key: "hist", at: -Infinity, who: "hist", h });
   }
   // a thread read in pages: the same line at its top (older pages on their way, or its beginning once a
@@ -942,7 +926,7 @@ function messagesOf(conv) {
       if (x.state === "done") out.push({ key: `${x.id}:done`, at: x.lastAt, who: "event", text: `${x.title} finished`, tone: "ok" });
       if (x.state === "failed") out.push({ key: `${x.id}:failed`, at: x.lastAt, who: "event", text: `${x.title} stopped`, tone: "stop" });
     }
-    for (const d of D.decisions().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `You ${d.verb.toLowerCase()} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
+    for (const d of D.decisions().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `${d.verb} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
     for (const d of D.notSent().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
   }
   // what its coordinator did to its turn (F6): one row each, in order. An interrupt or a stop also left XO's
@@ -958,28 +942,6 @@ function messagesOf(conv) {
   // a move the thread row knows but whose note isn't in what we hold: its banner anyway (F4)
   if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
   if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(t.movedTo.at) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
-  // a thread's work: its session's turns, in place between its messages (storm's blocks). A turn is split
-  // where a message came during it, the agent's own or yours (turnview.js turnSegments): what it did
-  // before sits above that message, what it did after sits below, each stretch where it happened, so the
-  // running stretch grows under the latest message and nothing moves when the turn ends. The last stretch
-  // keeps the turn's own key (turn:<id>), so a running turn's line (and a layer's live bubble on it) is the
-  // same element all the way through; an earlier stretch is turn:<id>#<k>.
-  if (t && t.sessionId && st.turns) {
-    const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: m.seq, at: m.at, who: m.who }));
-    // what the agent's messages carry: a turn's shared_files block doesn't draw them a second time
-    const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
-    // a running turn's still-empty last stretch is "now": after everything held
-    const tail = rows.reduce((a, m) => (m.seq != null && m.seq > a ? m.seq : a), 0) + 0.5;
-    for (const tu of st.turns.list((x) => x.session === t.sessionId)) {
-      const blocks = st.turns.blocksOf(tu);
-      const said = says.some((q) => q.who === "agent" && q.seq >= (tu.seq ?? Infinity) && q.seq <= (tu.lastSeq || Infinity));
-      for (const sg of turnSegments(tu, blocks, says)) {
-        const turn = segmentTurn(tu, sg);
-        const seq = tu.status === "running" && sg.last && sg.k > 0 && !sg.blocks.length ? Math.max(sg.seq, tail) : sg.seq;
-        out.push({ key: sg.last ? `turn:${tu.id}` : `turn:${tu.id}#${sg.k}`, at: sg.from ?? (Date.parse(tu.at) || Date.now()), seq, who: "turn", turn, blocks: sg.blocks, hideAnswer: said, carried, working: sg.k > 0 });
-      }
-    }
-  }
   // your messages relayed into this thread by its coordinator (if1 #7): the relay hop names them, and they
   // stay on the project's timeline (storm doesn't copy them), so they're shown here in place, whatever the
   // hops setting, marked as passed on, linking back to where you wrote them
@@ -1002,8 +964,13 @@ function messagesOf(conv) {
   if (t && st.hops) {
     for (const n of hopNotes(t, st.hops.values())) {
       noted.add(n.id);
-      if (n.dir === "down") out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "coord", text: n.text, name: n.from === "workspace" ? "Workspace coordinator" : `${PROJ(t.project)} coordinator`, role: n.kind });
-      else out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "asked", text: n.text });
+      if (n.dir === "down") out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "coord", text: n.text, name: n.from === "workspace" ? "Workspace coordinator" : `${PROJ(t.project)} coordinator`, role: n.kind, cause: n.cause });
+      else out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "asked", text: n.text, hop: n.id });
+    }
+    // a steer delivers the coordinator's next note (the hop stored right after it): the line says what happened, the note what it said
+    for (const c of out.filter((x) => x.who === "control" && x.ctl.action === "steer" && x.seq != null).sort((a, b) => a.seq - b.seq)) {
+      const note = out.filter((x) => x.who === "coord" && !x.lead && x.key.startsWith("hopn:") && x.seq > c.seq && x.at - c.at >= 0 && x.at - c.at < 10000).sort((a, b) => a.seq - b.seq)[0];
+      if (note) note.lead = c.key;
     }
   }
   // how messages travelled to and from this thread (11 §16): hidden by default, shown by choice
@@ -1012,6 +979,29 @@ function messagesOf(conv) {
       if (hp.thread_ts !== t.id || noted.has(hp.id)) continue;
       const text = hopLine(hp, PROJ(t.project));
       if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
+    }
+  }
+  // a thread's work: its session's turns, in place between its messages (storm's blocks). A turn is split
+  // where a message or a coordinator's note came during it (turnview.js turnSegments): what it did
+  // before sits above that message, what it did after sits below, each stretch where it happened, so the
+  // running stretch grows under the latest message and nothing moves when the turn ends. The last stretch
+  // keeps the turn's own key (turn:<id>), so a running turn's line (and a layer's live bubble on it) is the
+  // same element all the way through; an earlier stretch is turn:<id>#<k>.
+  if (t && t.sessionId && st.turns) {
+    const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: m.seq, at: m.at, who: m.who }))
+      .concat(out.filter((x) => x.seq != null && /^(hopn|relay|ctl|hop):/.test(x.key)).map((x) => ({ seq: x.seq, at: x.at, who: x.who })));
+    // what the agent's messages carry: a turn's shared_files block doesn't draw them a second time
+    const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
+    // a running turn's still-empty last stretch is "now": after everything held
+    const tail = says.reduce((a, m) => (m.seq > a ? m.seq : a), 0) + 0.5;
+    for (const tu of st.turns.list((x) => x.session === t.sessionId)) {
+      const blocks = st.turns.blocksOf(tu);
+      const said = says.some((q) => q.who === "agent" && q.seq >= (tu.seq ?? Infinity) && q.seq <= (tu.lastSeq || Infinity));
+      for (const sg of turnSegments(tu, blocks, says)) {
+        const turn = segmentTurn(tu, sg);
+        const seq = tu.status === "running" && sg.last && sg.k > 0 && !sg.blocks.length ? Math.max(sg.seq, tail) : sg.seq;
+        out.push({ key: sg.last ? `turn:${tu.id}` : `turn:${tu.id}#${sg.k}`, at: sg.from ?? (Date.parse(tu.at) || Date.now()), seq, who: "turn", turn, blocks: sg.blocks, hideAnswer: said, carried, working: sg.k > 0 });
+      }
     }
   }
   // the Workspace's and a project's own hops, by the same choice: what a coordinator did on its own, and
@@ -1071,12 +1061,12 @@ function threadCardHtml(tid, needs) {
   const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
   const segs = c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("");
   const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
-  const now = n ? `◆ ${askTitle(n)}` : isBusy(t) && cur ? `✱ ${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.stop ? esc(stopWords(t.stop)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
+  const now = n ? `${ICON.needs}${askTitle(n)}` : isBusy(t) && cur ? `${ICON.doing}${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.stop ? esc(stopWords(t.stop)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
   // a finished thread offers its real next step: the newest file it made, one click away (no file, no offer)
   const made = !n && t.state === "done" && REC.latestOf ? REC.latestOf(t.id, t.project) : null;
   return `<div class="tcard st-${n ? "needs" : stOf(t)}${made ? " has-next" : ""}">` +
     `<button type="button" class="tc-open" data-go="t:${esc(t.id)}" aria-label="Open thread: ${esc(t.title)}, ${esc(st)}">` +
-    `<span class="tc-top"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
+    `<span class="tc-top">${stateMark(n ? "needs_reply" : glyphOf(t))}<b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
     `<span class="tc-segs${segs ? "" : " is-empty"}" aria-hidden="true">${segs}</span>` +
     (now ? `<span class="tc-now">${now}</span>` : "") +
     `<span class="tc-foot">${threadMark(t, { withName: true })}${t.branch && SHAPE.on("xo:thread/branch") ? `<code>${esc(t.branch)}</code>` : `<span>${noun("thread")}</span>`}${heldN ? `<span class="tc-cw">a small ask can wait</span>` : ""}<span>${short(t.lastAt) === "now" ? "just now" : short(t.lastAt) + " ago"}</span><span class="tc-go">Open ${ICON.arrow}</span></span></button>` +
@@ -1186,7 +1176,11 @@ function msgItemsOf(conv, needs) {
   }
   const list = messagesOf(conv);
   const items = [];
-  let day = "", prev = null;
+  let day = "", prev = null, above = null;
+  // who spoke last: a thread names a speaker only when it changes (its agent's turn counts as the agent); a
+  // project's or the Workspace's chat names no one
+  const named = !!convThread(conv);
+  let spoke = null;
   const lastYou = [...list].reverse().find((m) => m.who === "you");
   // your newest message the agent hasn't read yet: Interrupt stops the turn so it reads it next
   const lastQueued = [...list].reverse().find((m) => m.queued);
@@ -1196,12 +1190,13 @@ function msgItemsOf(conv, needs) {
   const changed = (target) => { const c = CHG.forTarget(conv, target); return c ? { additions: c.file.additions, deletions: c.file.deletions, binary: c.file.binary, on: c.path === chosen } : null; };
   for (const m of list) {
     const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
-    if (d !== day) { items.push({ key: "day|" + d, html: `<div class="day" role="separator"><span>${esc(d)}</span></div>` }); day = d; prev = null; }
-    const cont = prev && prev.who === m.who && m.at - prev.at < 5 * 60000 && (m.who === "you" || m.who === "coord" || m.who === "agent");
+    if (d !== day) { items.push({ key: "day|" + d, html: `<div class="day" role="separator"><span>${esc(d)}</span></div>` }); day = d; prev = null; above = null; spoke = null; }
+    const cont = prev && prev.who === m.who && prev.name === m.name && m.at - prev.at < 5 * 60000 && (m.who === "you" || m.who === "coord" || m.who === "agent");
     let html = "";
     if (m.who === "you") {
+      spoke = "you";
       let meta = "";
-      if (m.status === "sending") meta = `<div class="meta"><i class="spin" aria-hidden="true"></i>Sending</div>`;
+      if (m.status === "sending") meta = `<div class="meta is-sending"><i class="spin" aria-hidden="true"></i>Sending</div>`;
       else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
       else if (m === lastQueued) meta = queuedMeta(conv, answeredAfter(list, m));
       else if (m === lastYou && (m.status === "sent" || m.sent) && !answeredAfter(list, m)) {
@@ -1240,7 +1235,12 @@ function msgItemsOf(conv, needs) {
       const iq = m.iq ? `<span class="m-iq" title="${m.iq.src === "pinned" ? "Pinned for this conversation" : `Chosen by the ${esc(m.iq.src)}`}">${esc(m.iq.name)} ${m.iq.pips} · ${esc(m.iq.src)}</span>` : "";
       // what an agent shares on its message shows under its words, on its text column
       const media = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: name, at: m.at })), { side: "them" }) : "";
-      html = `<div class="m m-them${(m.who === "coord" || m.coord) && convThread(conv) ? " m-coord" : ""}${cont ? " cont" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
+      // words right under the line that introduces them (the question they answer, the steer that delivered them) are one exchange: that line already says who
+      const under = !!(above && ((m.cause && above.who === "asked" && above.hop === m.cause) || (m.lead && above.key === m.lead)));
+      const anon = !named || spoke === name || under;
+      spoke = name;
+      if (under) items[items.length - 1].html = items[items.length - 1].html.replace(/^<div class="ev /, '<div class="ev is-lead ');
+      html = `<div class="m m-them${(m.who === "coord" || m.coord) && convThread(conv) ? " m-coord" : ""}${cont ? " cont" : ""}${anon ? " m-anon" : ""}${under ? " m-under" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
         `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
@@ -1250,6 +1250,7 @@ function msgItemsOf(conv, needs) {
       const live = m.turn.status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
       // has-said: while it works it has already said something (words, files) that shows above its bubble
       const said = live && !unfolded && /class="turn[^"]*\bis-said\b/.test(inner);
+      spoke = nameOf(conv, "agent")[0];
       html = `<div class="m m-them m-turn${live ? " is-live" : ""}${live && !unfolded ? " is-folded" : ""}${said ? " has-said" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
     } else if (m.who === "card") {
       html = `<div class="m m-them m-card"><div class="av av-gap"></div><div class="mb">${threadCardHtml(m.thread, needs)}</div></div>`;
@@ -1280,7 +1281,7 @@ function msgItemsOf(conv, needs) {
     } else if (m.who === "system") {
       html = `<div class="ev ev-sys" title="${esc(m.text)}"><span class="ev-ic">${ICON.router}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
     } else if (m.who === "note") {
-      html = `<p class="m-note">${esc(m.text)}</p>`;
+      html = m.load ? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"></i><span class="sr-only">${esc(m.load)}</span></div>` : `<p class="m-note">${esc(m.text)}</p>`;
     } else if (m.who === "start") {
       html = startHtml(m.pid);
     } else if (m.who === "hist") {
@@ -1294,8 +1295,8 @@ function msgItemsOf(conv, needs) {
       const canUndo = m.undo && Date.now() < m.until;
       html = `<div class="ev ev-rec${m.refused ? " is-refused" : ""}"><span class="ev-ic">${m.refused ? ICON.close : ICON.router}</span><span class="ev-t">${esc(m.text)}</span>${canUndo ? `<button type="button" class="ev-undo" data-rec-undo="${esc(m.id)}">Undo</button>` : ""}<time>${clock(m.at)}</time></div>`;
     }
-    items.push({ key: m.key, html });
-    prev = m;
+    items.push(m.who === "turn" ? { key: m.key, html, inPlace: true } : { key: m.key, html });
+    prev = above = m;
   }
   return items;
 }
@@ -1334,8 +1335,8 @@ function threadCounts(pid, needs) {
 function threadsCtl(n, by) {
   if (!n) return ""; // a project with no threads yet: its empty page says what to start
   const words = [`${n} ${n === 1 ? "thread" : "threads"}`, by.working && `${by.working} working`, by.needs && `${by.needs} ${by.needs === 1 ? "needs" : "need"} you`].filter(Boolean).join(", ");
-  const live = (by.working ? `<span class="th-seg is-work"><i class="g g-working" aria-hidden="true"></i><span class="pj-k">${by.working}</span></span>` : "") +
-    (by.needs ? `<span class="th-seg is-need"><i class="g g-needs_reply" aria-hidden="true"></i><span class="pj-k">${by.needs}</span></span>` : "");
+  const live = (by.working ? `<span class="th-seg is-work">${stateMark("working")}<span class="pj-k">${by.working}</span></span>` : "") +
+    (by.needs ? `<span class="th-seg is-need">${stateMark("needs_reply")}<span class="pj-k">${by.needs}</span></span>` : "");
   return `<button type="button" class="tw-act th-ctl" data-stage-open aria-controls="stage" title="${esc(words)}: open them in the panel" aria-label="${esc(words)}. Open them in the panel">` +
     `${ICON.threadOne}<span class="th-w">Threads</span><span class="th-n">${n}</span>${live}</button>`;
 }
@@ -1348,7 +1349,7 @@ function hostNeedHtml(v, needs) {
   const k = h.asks.length;
   const who = h.asker ? "Coordinator" : h.title;
   return `<button type="button" class="pj-need" data-dock-open="${esc(n.key)}" title="Open the decision, above the composer">` +
-    `<i class="g g-needs_approval" aria-hidden="true"></i><span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
+    `${stateMark("needs_approval")}<span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
 }
 
 const convName = (v, t) => (t ? t.title : v.startsWith("p:") ? PROJ(v.slice(2)) : v === "ws" ? "Workspace" : ($("#conv-title")?.textContent || "Conversation"));
@@ -1420,7 +1421,7 @@ function topRender(needs) {
       (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
     const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
+    who = `${title}${label}<span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
@@ -1467,14 +1468,14 @@ function checklistRender(needs, th = $("#thead"), view = S.view, listId = "ck-li
   const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
   let mode = "working", nowHtml;
   if (fresh) { mode = "fresh"; nowHtml = `<span class="ck-m is-ok">${ICON.check}</span><span>${esc(fresh.text)}</span>`; }
-  else if (n && WAITING(t.state)) { mode = "needs"; nowHtml = `<span class="ck-m is-amber">◆</span><span>Paused on you</span>`; }
-  else if (t.stop) { mode = "stopped"; nowHtml = `<span class="ck-m">■</span><span>${esc(stopWords(t.stop))}</span>`; }
-  else if (t.state === "failed") { mode = "failed"; nowHtml = `<span class="ck-m is-red">■</span><span>Stopped at “${esc(cur ? cur.text : "a step")}”</span>`; }
+  else if (n && WAITING(t.state)) { mode = "needs"; nowHtml = `<span class="ck-m is-amber">${ICON.needs}</span><span>Paused on you</span>`; }
+  else if (t.stop) { mode = "stopped"; nowHtml = `<span class="ck-m">${ICON.stop}</span><span>${esc(stopWords(t.stop))}</span>`; }
+  else if (t.state === "failed") { mode = "failed"; nowHtml = `<span class="ck-m is-red">${ICON.stop}</span><span>Stopped at “${esc(cur ? cur.text : "a step")}”</span>`; }
   else if (c.done >= c.total) { mode = "done"; nowHtml = `<span class="ck-m is-ok">${ICON.check}</span><span>All ${c.total} steps done</span>`; }
-  else if (t.state === "resolved") { mode = "done"; nowHtml = `<span class="ck-m">■</span><span>Resolved at ${c.done} of ${c.total}</span>`; }
-  else nowHtml = `<span class="ck-m is-blue">✱</span><span>${esc(cur ? cur.text : "Working")}</span>`;
+  else if (t.state === "resolved") { mode = "done"; nowHtml = `<span class="ck-m">${ICON.stop}</span><span>Resolved at ${c.done} of ${c.total}</span>`; }
+  else nowHtml = `<span class="ck-m is-blue">${ICON.doing}</span><span>${esc(cur ? cur.text : "Working")}</span>`;
   const segs = c.items.map((i, k) => `<i class="sg s-${i.state}${fresh && k === c.done - 1 ? " is-pop" : ""}"></i>`).join("");
-  const list = c.items.map((i) => `<li class="ck ck-${i.state}"><span class="ck-m" aria-hidden="true">${i.state === "done" ? "✓" : i.state === "doing" ? "✱" : "○"}</span><span>${esc(i.text)}</span><span class="sr-only">, ${i.state === "doing" ? "in progress" : i.state}</span></li>`).join("");
+  const list = c.items.map((i) => `<li class="ck ck-${i.state}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${esc(i.text)}</span><span class="sr-only">, ${i.state === "doing" ? "in progress" : i.state}</span></li>`).join("");
   const html = `<div class="ckbar m-${mode}${open ? " is-open" : ""}">` +
     `<div class="ck-row"><button type="button" class="ck-tog" data-ck aria-expanded="${open}" aria-controls="${listId}" title="Checklist">` +
     `<span class="ck-segs" aria-hidden="true">${segs}</span><span class="ck-n">${c.done} of ${c.total}</span>` +
@@ -1509,56 +1510,73 @@ function runsStrip(t) {
   if (!SHAPE.on("xo:thread/subagents")) return runsStripHtml(live.filter((r) => r.state === "waiting"), 0);
   return runsStripHtml(live, total);
 }
-const runsEl = $("#runs"), runsCard = $("#runs-card");
-const RS = { said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
+// Sub-agents: a page in the right panel, over the thread page it was opened from
+const runsCard = document.createElement("div");
+Object.assign(runsCard, { id: "runs-card", className: "runs-pg", tabIndex: -1 });
+runsCard.setAttribute("role", "region");
+runsCard.setAttribute("aria-label", "Sub-agents");
+const RS = { cmdsOpen: true, cmdsAll: false, said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
-// this sheet's own stops still in their Undo: the page behind it is inert while it's open (Astra: Stop's only
-// Undo was out of reach)
+// this page's own stops still in their Undo, where you acted
 const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
-/** A control in the Runs sheet as a selector, by its first data- hook's name and value ([data-run-stop="a1"]). */
+/** A control in the Sub-agents page as a selector, by its first data- hook's name and value ([data-run-stop="a1"]). */
 const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !e.attributes) return ""; const a = [...e.attributes].find((x) => x.name.startsWith("data-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
 function runsRender() {
   if (!RS.open) return;
   const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session, out: [...stopsOut] })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen });
+    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session, out: [...stopsOut], cmdsOpen: RS.cmdsOpen, cmdsAll: RS.cmdsAll })
+    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen, cmdsOpen: RS.runCmds, cmdsAll: RS.cmdsAll });
   if (runsCard._h !== html) {
+    const had = runsCard.contains(document.activeElement);
     const body = runsCard.querySelector(".rn-body");
     const keep = body ? body.scrollTop : 0;
-    // the control with focus, by its hook's name and value: found again if the redraw replaced it (a Stop after its
-    // answer: the create-project grader on 2a8d278, S100, focus went to the sheet with its Stop still there)
+    // the control with focus, found again by its hook if the redraw replaced it
     const hook = runsHook(document.activeElement);
     // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
     redraw(runsCard, html); runsCard._h = html;
-    for (const x of runsCard.querySelectorAll("[data-close]")) if (!x.firstChild) x.innerHTML = ICON.close;
     const nb = runsCard.querySelector(".rn-body");
     if (nb && RS.keepScroll) nb.scrollTop = keep;
-    // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it): the same control, else the sheet
-    if (!runsEl.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usable(same) ? same : runsCard).focus({ preventScroll: true }); }
+    if (had && !runsCard.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usable(same) ? same : runsCard).focus({ preventScroll: true }); }
   }
 }
-function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false; runsRender(); } else closeRuns(); }
+/** ‹ and Esc: from a run to the list, its row in focus; from the list, back to the thread. */
+function runsEscape() {
+  if (RS.view !== "run") { closeRuns(); return; }
+  const id = RS.runId;
+  RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false;
+  runsRender(); STAGE.repaint();
+  runsLand(`[data-run="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+}
+const runsTitle = () => (RS.view === "run" ? (RS.run && /^(background_command|monitor)$/.test(RS.run.kind) ? "Command" : "Sub-agent") : "Sub-agents");
+STAGE.page("runs", {
+  over: true,
+  title: runsTitle,
+  backTo: () => (RS.view === "run" ? "Sub-agents" : RS.panelWas || STAGE.pageShown?.name !== "runs" ? "" : "the thread"),
+  mount: (box) => box.append(runsCard),
+  onShow: (_k, { focus } = {}) => { runsRender(); if (focus) runsCard.focus({ preventScroll: true }); },
+  close: () => runsGone(),
+  up: () => { runsEscape(); return true; },
+  escape: () => { runsEscape(); return true; },
+});
 async function openRuns(t, runId = null) {
   if (!t || !t.sessionId) return;
-  if (!RS.open) RS.returnTo = document.activeElement;
+  if (!RS.open) { RS.returnTo = document.activeElement; RS.head = (convAt(RS.returnTo) === MAIN ? $("#thead") : $("#tpthead")); }
   // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
   if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; RS.said = null; }
   // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
   // same thread never lands in this one (Astra SRC-MAIN-RUN-1: close, reopen, and the old answer won)
   const my = ++RS.opening;
+  if (!RS.open) Object.assign(RS, { panelWas: STAGE.isOpen, cmdsOpen: true, cmdsAll: false });
   Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false, listState: "loading", listErr: "" });
-  runsEl.hidden = false;
-  runsRender();
+  if (!STAGE.show("runs", t.sessionId)) { RS.open = false; return; }
   await readRunsList(t.sessionId, my);
   if (!RS.open || RS.session !== t.sessionId || RS.opening !== my) return;
   if (runId) openRun(runId); else { runsRender(); runsLand()?.focus(); }
 }
-/** Where focus lands in Runs once its list is drawn: Try again after a refusal, else the first run, else Close, in
- *  that order. (One comma selector matches in document order, and Close comes first in it: after a second refused
- *  read focus went to × instead of staying on Try again: Astra S238.) */
+/** Where focus lands in Sub-agents once its list is drawn: Try again after a refusal, else the first run, else the page. */
 function runsLand(...first) {
-  const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", "[data-runs-retry]", "[data-close]"];
-  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || null;
+  const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", ".rn-cmd-b", "[data-runs-retry]"];
+  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || runsCard;
 }
 /** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
  *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
@@ -1577,8 +1595,8 @@ async function readRunsList(sid, my = RS.opening) {
 async function openRun(id) {
   clearTimeout(RS.pollT);
   const gen = ++RS.gen; // a read for another run (or a closed sheet) never writes into this one
-  Object.assign(RS, { view: "run", runId: id, run: world.state.runs.get(id) || null, anc: null, items: [], cursor: null, children: [], loading: true, error: null, gone: null, keepScroll: false });
-  runsRender();
+  Object.assign(RS, { runCmds: false, view: "run", runId: id, run: world.state.runs.get(id) || null, anc: null, items: [], cursor: null, children: [], loading: true, error: null, gone: null, keepScroll: false });
+  runsRender(); STAGE.repaint();
   try {
     const r = await world.act.run(id);
     if (gen !== RS.gen) return;
@@ -1587,8 +1605,8 @@ async function openRun(id) {
     const findKids = (nodes) => { for (const n of nodes || []) { if (n.id === id) return n.children || []; const k = findKids(n.children); if (k) return k; } return null; };
     RS.children = findKids(RS.tree) || [];
   } catch (err) { if (gen !== RS.gen) return; RS.error = err.message; }
+  STAGE.repaint();
   await readTranscript(id, gen);
-  if (gen === RS.gen) runsCard.querySelector(".rn-back")?.focus();
 }
 /** Read the transcript; while the run works, read again from the last cursor and add only new items. */
 async function readTranscript(id, gen) {
@@ -1618,18 +1636,27 @@ async function readTranscript(id, gen) {
   const live = world.state.runs.get(id);
   if (mine() && (!live || LIVE_RUN(live)) && !RS.gone && !RS.error) RS.pollT = setTimeout(() => readTranscript(id, gen), 2500);
 }
+/** Back to the thread: the page steps back, or the panel closes if it opened for it. */
 function closeRuns() {
   if (!RS.open) return;
+  if (!RS.panelWas && STAGE.pageShown?.name === "runs") STAGE.close({ restore: false }); else STAGE.closePage("runs");
+  // a phone's panel covers the chat: what opened it takes focus once the panel is gone
+  const a = document.activeElement;
+  if (!a || a === document.body) RS.refocus?.();
+  RS.refocus = null;
+}
+// the page is gone (back, another place, the panel closed): focus, if it was here, goes back to what opened it
+function runsGone() {
+  if (!RS.open) return;
+  const here = runsCard.contains(document.activeElement) || STAGE.owns(document.activeElement);
   clearTimeout(RS.pollT);
-  RS.gen++; RS.open = false; runsEl.hidden = true; runsCard.innerHTML = ""; runsCard._h = "";
-  syncInert();
-  // back to what opened it; if that was redrawn while Runs was open (the thread's head redraws as its checklist
-  // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
-  // (the page itself is never a place to go back to: opened from nowhere in particular, the conversation)
+  RS.gen++; RS.open = false; runsCard.replaceChildren(); runsCard._h = "";
   const was = RS.returnTo;
-  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
+  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? RS.head?.querySelector("[data-runs]") : null; };
   RS.returnTo = null;
-  [was, like(was), $("#thead [data-runs]"), placeRegion()].find(usable)?.focus({ preventScroll: true }); // the place's own region (Home, Artifacts, the conversation)
+  const head = RS.head, to = () => [was, like(was), head?.querySelector("[data-runs]"), head === $("#tpthead") ? TP.C?.scroller : placeRegion()].find(usable)?.focus({ preventScroll: true });
+  RS.refocus = here ? to : null;
+  if (here) to();
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
@@ -1687,11 +1714,11 @@ function stopRunsUndo(what, fn, key = what, session = RS.session) {
     if (RS.open && RS.session === session) { await readRunsList(session); runsRender(); }
   }, Kit.COMMIT_MS);
 }
-runsEl.addEventListener("click", (e) => {
-  if (e.target === runsEl || e.target.closest("[data-close]")) { closeRuns(); return; }
+runsCard.addEventListener("click", (e) => {
+  if (e.target.closest("[data-runs-cmds]")) { if (RS.view === "run") RS.runCmds = !RS.runCmds; else RS.cmdsOpen = !RS.cmdsOpen; RS.keepScroll = true; runsRender(); return; }
+  if (e.target.closest("[data-runs-more]")) { RS.cmdsAll = true; RS.keepScroll = true; runsRender(); runsCard.querySelector(".rn-cmds li:nth-child(9) button")?.focus({ preventScroll: true }); return; }
   const tb = e.target.closest("[data-tb]");
   if (tb) { S.tbOpen[tb.dataset.tb] = !S.tbOpen[tb.dataset.tb]; RS.keepScroll = true; runsRender(); return; }
-  if (e.target.closest("[data-runs-back]")) { RS.gen++; clearTimeout(RS.pollT); RS.view = "list"; RS.runId = null; RS.keepScroll = false; runsRender(); return; }
   const st = e.target.closest("[data-run-stop]");
   if (st) { const r = world.state.runs.get(st.dataset.runStop) || { title: "this sub-agent" }; stopRunsUndo(r.title, () => world.act.stopRun(st.dataset.runStop), `run:${st.dataset.runStop}`); return; }
   if (e.target.closest("[data-runs-stop]")) { const sid = RS.session; stopRunsUndo("every sub-agent of this thread", () => world.act.stopRuns(sid), `all:${sid}`); return; }
@@ -1709,7 +1736,6 @@ runsEl.addEventListener("click", (e) => {
   const op = e.target.closest("[data-run]");
   if (op) openRun(op.dataset.run);
 });
-runsEl.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); runsEscape(); } });
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
@@ -1804,7 +1830,7 @@ function dockRender(needs) {
     bar.className = `dock-fold r-${n.risk}`;
     bar.dataset.unfold = n.key;
     bar.title = "Open the decision";
-    bar.innerHTML = `<i class="g g-${n.group === "stopped" ? "failed" : "needs_reply"}" aria-hidden="true"></i><span class="df-t">${esc(head)}</span><span class="df-e">${esc(E.label)} ${esc(E.time)}</span><span class="df-go">Open ${ICON.chevron}</span>`;
+    bar.innerHTML = `${stateMark(n.group === "stopped" ? "failed" : "needs_reply")}<span class="df-t">${esc(head)}</span><span class="df-e">${esc(E.label)} ${esc(E.time)}</span><span class="df-go">Open ${ICON.chevron}</span>`;
     dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(bar); }, bar, { duration: 300 });
     return;
   }
@@ -1837,7 +1863,7 @@ function dockRender(needs) {
         // the control pressed (Allow, an option, Send) goes with the card: focus goes to this line's Undo, at once
         const had = frame.contains(document.activeElement);
         morph(frame, () => {
-          frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`;
+          frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span title="${esc(verb)}."><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`;
           if (had && !frame.contains(document.activeElement)) frame.querySelector("[data-dock-undo]").focus({ preventScroll: true });
         }, { duration: 300 });
         // the only Undo for this decision now: it stays for the whole 3 s window, in real time (hold, not wait:
@@ -1898,6 +1924,8 @@ function openAsk(project) {
   }
   return best;
 }
+// your message to a chat on its way: its coordinator's line shows from the moment you send
+const sendingTo = (chat) => (S.local[convOfChat(chat)] || []).find((m) => m.status === "sending" && m.target === chat) || null;
 function typingRender(C = MAIN) {
   const box = C.typing, view = C.view;
   const t = convThread(view);
@@ -1917,12 +1945,13 @@ function typingRender(C = MAIN) {
     clearTimeout(S.heldT);
     const at = Date.parse(held.until || "");
     if (at > Date.now()) S.heldT = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
-  } else if (chat && world.act.replying(chat)) {
+  } else if (chat && (world.act.replying(chat) || sendingTo(chat))) {
     // the coordinator's session really works, or our message still waits for its answer (never a timer)
     const aw = world.state.awaiting[chat];
     const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
     const doing = world.act.doing ? world.act.doing(chat) : null;
-    spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${aw ? "replying" : "working"}`, since: aw ? aw.at : null };
+    const out = aw || sendingTo(chat);
+    spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${out ? "replying" : "working"}`, since: out ? out.at : null };
   } else if (chat && chat !== "workspace" && openAsk(chat)) {
     // its coordinator asked the Workspace and the answer hasn't come: said only while that hop is open
     const ask = openAsk(chat);
@@ -1947,7 +1976,7 @@ function typingRender(C = MAIN) {
   if (box._k !== spec.key) {
     box.innerHTML = spec.wait
       ? `<div class="typing is-held" role="status"><div class="av ${spec.cls}">${spec.icon}</div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`
-      : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
+      : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}${ARC}</div><div class="ty-b">${DOTS}<span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
     box._k = spec.key; box._h = spec.key;
     changed = true;
   }
@@ -1969,14 +1998,18 @@ function HER() { return S._her || (S._her = createHerald({ state: S, schedule: (
 regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
 keepFocusInView(); // focus a script hands on is never left out of sight (js/focusview.js)
 function heraldShow(h, ms) { return HER().show(h, ms); }
+function toastLine(text) { announce(text); heraldShow({ kind: "done", text }, 1600); }
 /** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
 function heraldPut(h, ms) { return HER().put(h, ms); }
 function heraldNext() { return HER().next(); }
 /** A subject's notice that's no longer true goes, on screen or waiting (js/herald.js drop). */
 function heraldDrop(mid) { return HER().drop(mid); }
+/** The notices' line of the conversation in use (the panel's thread page has its own); the other one is empty. */
+const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
 function heraldRender(needs) {
-  const box = $("#herald");
+  const box = heraldBox();
+  for (const o of [$("#herald"), $("#tpherald")]) if (o && o !== box && o.firstChild) { if (o.contains(document.activeElement)) heraldBack(o._line)?.focus({ preventScroll: true }); patch(o, ""); o._line = null; o._h = null; }
   const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
   let html;
   if (h) {
@@ -1986,10 +2019,10 @@ function heraldRender(needs) {
       : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
       : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
       : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
-  } else if (connLine(world.state, connDest())) {
+  } else if (connLine(world.state, box === $("#herald") ? connDest() : { thread: true })) {
     // an honest, persistent line when XO can't be reached, can't run, or waits on a limit (P0-8); routing Off only
     // for where the composer's draft goes, the send gate's own destination: never beside a thread's reply
-    const c = connLine(world.state, connDest());
+    const c = connLine(world.state, box === $("#herald") ? connDest() : { thread: true });
     html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
   } else if (S.view === "home" || convThread(S.view)) html = "";
   else {
@@ -2017,16 +2050,20 @@ function heraldRender(needs) {
  * the room changes (it watches the scroller's box).
  */
 function heraldRoom() {
-  const box = $("#herald"), dock = $("#dock");
-  const line = box.firstElementChild;
-  const shown = line && line.getClientRects().length > 0;
-  const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
-  const v = px ? `${px + 8}px` : "0px";
-  if ($("#app").style.getPropertyValue("--herald-room") !== v) $("#app").style.setProperty("--herald-room", v);
+  for (const [box, dock, host] of [[$("#herald"), $("#dock"), $("#app")], [$("#tpherald"), $("#tpdock"), TP.box]]) {
+    if (!box) continue;
+    const line = box.firstElementChild;
+    const shown = line && line.getClientRects().length > 0;
+    const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
+    const v = px ? `${px + 8}px` : "0px";
+    if (host.style.getPropertyValue("--herald-room") !== v) host.style.setProperty("--herald-room", v);
+  }
 }
 /** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
  *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
-function heraldBack(h) { return [...((h && h.back) || []).map((sel) => $(sel)), $("#say")].find(usable) || placeRegion(); }
+function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof sel === "function" ? sel() : $(sel))), composerNow().say].find(usable) || placeRegion(); }
+/** A notice's control in the conversation in use: its Send, or one in its own page. */
+const inUse = (sel) => () => { const K = composerNow(); return sel === "#send" ? K.send : K.main ? $(sel) : TP.box.querySelector(sel); };
 
 // ── intelligence: the record line and the chip ─────────────────────────────
 function recordLine(session, rec) {
@@ -2063,14 +2100,18 @@ function undoRecord(id) {
 function chipRender(fade = false, K = MK) {
   const chip = K.iq;
   if (!chip) return;
-  // a chat's agent, model and mode are set in the line above the composer, not by the router
+  // a chat's agent, model and thinking are its own (js/chats.js), not the router's: a new chat's to choose, an open chat's fixed
   const s = sessionOf(K.view);
-  chip.hidden = CH.isChats(K.view) || !IQ.kindOf(s);
+  const chat = CH.isChats(K.view) && K === MK, fixed = chat && K.view !== "chats";
+  chip.hidden = chat ? !CH.chipHtml(K.view) : CH.isChats(K.view) || !IQ.kindOf(s);
   if (chip.hidden) return;
-  const html = IQ.chipHtml(s, PHONE.matches);
-  chip.title = IQ.chipTitle(s);
-  chip.setAttribute("aria-label", `Intelligence: ${IQ.chipTitle(s).replace(/ \([^)]*\)$/, "")}`);
-  chip.classList.toggle("is-pinned", IQ.current(s).pinned);
+  const html = chat ? CH.chipHtml(K.view) : IQ.chipHtml(s, PHONE.matches);
+  const title = chat ? CH.chipTitle(K.view) : IQ.chipTitle(s);
+  chip.title = title;
+  chip.setAttribute("aria-label", `Intelligence: ${title.replace(/ \([^)]*\)$/, "")}`);
+  chip.setAttribute("aria-controls", chat ? "cs-pop" : "iq-pop");
+  fixChip(chip, fixed);
+  chip.classList.toggle("is-pinned", !chat && IQ.current(s).pinned);
   if (chip._h === html) return;
   const swap = () => { redraw(chip, html); chip._h = html; }; // in place: the chip's insides stay the nodes a press is on
   if (fade && chip._h && !RM.matches) {
@@ -2086,16 +2127,20 @@ const say = $("#say"), atList = $("#at-list");
  * conversation's; sendLive, send, sendRender, the target line, the placeholder, the draft and Stop take it.
  */
 const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
-  tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq") };
+  tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: atList };
 /** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
 function wireComposer(K) {
-  K.say.addEventListener("input", () => { updateComposer(K); saveDraft(K); });
+  K.say.addEventListener("input", () => { K.at._sel = 0; updateComposer(K); saveDraft(K); });
+  K.say.addEventListener("click", () => updateComposer(K));
   K.say.addEventListener("keydown", (e) => {
     if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
+    if (atKeys(e, K)) return;
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(K); }
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); K.say.blur(); }
   });
   K.form.addEventListener("submit", (e) => { e.preventDefault(); if (K.send.dataset.mode === "stop") stopRun(K.view); else send(K); });
+  wireAt(K);
+  K.target.addEventListener("click", () => aimAt(K));
 }
 
 // ── files on the unsent message (hub #30): the paperclip, a drop or a paste adds them; each uploads
@@ -2224,11 +2269,11 @@ wireTray(MK);
   const hide = () => { depth = 0; veil.hidden = true; };
   // only where the message being written can take it: on screen and in reach, under no open layer (Settings,
   // a sheet, a dialog, the phone's drawer make it inert): never into a composer that's hidden (Astra H29)
-  const takes = () => { const say = $("#say"); return canAttach(S.view) && !!say && say.getClientRects().length > 0 && !say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]"); };
-  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes()) { depth++; veil.hidden = false; } });
+  const takes = (K) => canAttach(K.view) && K.say.getClientRects().length > 0 && !K.say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]");
+  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes(composerAt(e.target))) { depth++; veil.hidden = false; } });
   addEventListener("dragover", (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = veil.hidden ? "none" : "copy"; });
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
-  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
+  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden, K = composerAt(e.target); hide(); if (on && takes(K)) addFiles(e.dataTransfer.files, K); });
   addEventListener("dragend", hide);
 }
 function growSay(K = MK) {
@@ -2267,13 +2312,26 @@ function sendRender(K = MK) {
   btn.setAttribute("aria-label", run ? (run.kind === "coord" ? "Stop the reply" : "Stop this run") : wait ? `Send · ${wait}` : "Send");
   btn.title = run ? (run.kind === "coord" ? "Stop the coordinator" : "Stop the agent (it keeps what's done)") : wait || "Send (Enter)";
 }
+/** A chip that only says (an open chat's model or mode): no popup to promise, nothing to press. */
+function fixChip(el, on) {
+  el.classList.toggle("is-fixed", on);
+  if (on) { el.setAttribute("aria-disabled", "true"); el.removeAttribute("aria-haspopup"); }
+  else { el.removeAttribute("aria-disabled"); el.setAttribute("aria-haspopup", "dialog"); }
+}
 /** A chat's line above the composer and its Send now toggle, which follow the chat's own state. */
 function chatTargetRender() {
   sendNowRender();
-  if (!CH.isChats(S.view)) return false;
+  const perm = $("#cs-perm"), ph = CH.isChats(S.view) && !liveBlock() ? CH.permHtml(S.view) : "";
+  perm.hidden = !ph;
+  perm.title = CH.permTitle(S.view);
+  fixChip(perm, S.view !== "chats");
+  if (perm._h !== ph) { perm.innerHTML = ph; perm._h = ph; }
+  if (!CH.isChats(S.view)) { $("#target").hidden = false; return false; }
   // an ended chat says so in its own words; "paused" would promise it comes back
   const html = CH.blocked(S.view) ? CH.targetHtml(S.view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(S.view);
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
+  $("#target").hidden = !html;
+  $("#target").title = S.view === "chats" ? "The folder a new chat works in" : "";
   return true;
 }
 /**
@@ -2294,6 +2352,7 @@ function targetLineRender(K = MK) {
   else if (K.view === "ws" || K.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
   else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(K.view)))}</b><span class="tg-w"> coordinator</span></span>`;
   if (K.target._h !== html) { K.target.innerHTML = html; K.target._h = html; }
+  K.target.title = "Aim at a project (@)";
 }
 function updateComposer(K = MK) {
   if (!K.main) {
@@ -2301,6 +2360,7 @@ function updateComposer(K = MK) {
     targetLineRender(K); syncPlaceholder(K);
     K.form.classList.toggle("has-text", !!K.say.value);
     sendRender(K); growSay(K);
+    if (document.activeElement === K.say) atRender(K); else atClose(K);
     return;
   }
   trayRender();
@@ -2319,22 +2379,31 @@ function updateComposer(K = MK) {
   $("#composer").classList.toggle("has-text", !!say.value);
   sendRender();
   growSay();
-  const before = say.value.slice(0, say.selectionStart);
+  atRender(MK);
+}
+/** A composer's @ list: the projects matching the @word at its caret. */
+function atRender(K) {
+  const at = K.at, pre = K.main ? "at" : "tat", before = K.say.value.slice(0, K.say.selectionStart);
   const m = before.match(/(^|\s)@([\w.-]*)$/);
   // no @ at the caret, or the list was shut here with Escape (until the text or the caret moves): closed
-  if (!m || atList._shut === before) { atClose(); return; }
-  atList._shut = null;
+  if (!m || at._shut === before) { atClose(K); return; }
+  at._shut = null;
   const q = m[2].toLowerCase();
   const opts = projects().filter((p) => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
-  if (!opts.length) { atClose(); return; }
-  atList._sel = Math.min(atList._sel || 0, opts.length - 1);
-  atList.innerHTML = opts.map((p, i) => {
+  if (!opts.length) { atClose(K); return; }
+  at._sel = Math.min(at._sel || 0, opts.length - 1);
+  at.innerHTML = opts.map((p, i) => {
     const w = world.state.threads.filter((x) => x.project === p.id && isBusy(x)).length;
-    return `<li role="option" id="at-${i}" data-pid="${esc(p.id)}" aria-selected="${i === atList._sel}"><span class="at-ic" aria-hidden="true">${projectIcon(p.id)}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
+    return `<li role="option" id="${pre}-${i}" data-pid="${esc(p.id)}" aria-selected="${i === at._sel}"><span class="at-ic" aria-hidden="true">${projectIcon(p.id)}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
   }).join("");
-  atList.hidden = false;
-  say.setAttribute("aria-expanded", "true");
-  say.setAttribute("aria-activedescendant", `at-${atList._sel}`);
+  if (at.hidden) at.style.setProperty("--at-room", `${Math.round(K.form.getBoundingClientRect().top)}px`);
+  at.hidden = false;
+  const li = at.children[at._sel];
+  // the keyboard's row stays in view inside the list's own scroll (never scrollIntoView: it would move the chat too)
+  if (li.offsetTop < at.scrollTop) at.scrollTop = li.offsetTop;
+  else if (li.offsetTop + li.offsetHeight > at.scrollTop + at.clientHeight) at.scrollTop = li.offsetTop + li.offsetHeight - at.clientHeight;
+  K.say.setAttribute("aria-expanded", "true");
+  K.say.setAttribute("aria-activedescendant", `${pre}-${at._sel}`);
 }
 /** The composer's placeholder follows the view, and a resolved thread says a reply reopens it. */
 function syncPlaceholder(K = MK) {
@@ -2346,28 +2415,28 @@ function syncPlaceholder(K = MK) {
 }
 /** The @ list closed, and the field's accessible state with it (no longer expanded, no active option): one
  *  operation, so what's seen and what's announced always agree (Astra H24). */
-function atClose() {
-  atList.hidden = true;
-  if (say.getAttribute("aria-expanded") !== "false") say.setAttribute("aria-expanded", "false");
-  say.removeAttribute("aria-activedescendant");
+function atClose(K = MK) {
+  K.at.hidden = true;
+  if (K.say.getAttribute("aria-expanded") !== "false") K.say.setAttribute("aria-expanded", "false");
+  K.say.removeAttribute("aria-activedescendant");
 }
 /**
  * The recipient chosen from the @ list: the whole @token at the caret (the part after it too) becomes @pid, one
  * space after it, and the draft is saved at once: who it goes to is part of the draft, so a reload keeps it
  * (Astra H27: it fell back to the Workspace).
  */
-function pickAt(pid) {
-  const pos = say.selectionStart;
-  const before = say.value.slice(0, pos).replace(/(^|\s)@([\w.-]*)$/, `$1@${pid}`);
-  const after = say.value.slice(pos).replace(/^[\w.-]*/, "");
-  say.value = before + (/^\s/.test(after) ? "" : " ") + after;
-  say.setSelectionRange(before.length + 1, before.length + 1);
-  atList._sel = 0; atList._shut = null;
-  saveDraft();
-  updateComposer(); say.focus();
+function pickAt(pid, K = MK) {
+  const f = K.say, pos = f.selectionStart;
+  const before = f.value.slice(0, pos).replace(/(^|\s)@([\w.-]*)$/, `$1@${pid}`);
+  const after = f.value.slice(pos).replace(/^[\w.-]*/, "");
+  f.value = before + (/^\s/.test(after) ? "" : " ") + after;
+  f.setSelectionRange(before.length + 1, before.length + 1);
+  K.at._sel = 0; K.at._shut = null;
+  saveDraft(K);
+  updateComposer(K); f.focus();
 }
 function saveDraft(K = MK) { const v = K.view; if (K.say.value) S.drafts[v] = K.say.value; else delete S.drafts[v]; store.set(DRAFTS, S.drafts); }
-function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; if (K.main) atList._sel = 0; updateComposer(K); }
+function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; K.at._sel = 0; updateComposer(K); }
 
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
 say.addEventListener("click", () => updateComposer());
@@ -2376,27 +2445,37 @@ say.addEventListener("keydown", (e) => {
   // every key: neither the @ list, nor Send, nor the page's own keys take them (Astra H25: a composing Enter chose
   // a recipient; a composing Escape would have left the thread)
   if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
-  if (!atList.hidden) {
-    const n = atList.children.length;
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); atList._sel = (atList._sel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; updateComposer(); return; }
-    // the open list owns Enter and Tab: they choose (never send); Shift+Enter is still a new line
-    if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); pickAt(atList.children[atList._sel].dataset.pid); return; }
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); atList._shut = say.value.slice(0, say.selectionStart); atClose(); return; }
-  }
+  if (atKeys(e, MK)) return;
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); say.blur(); }
 });
-atList.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickAt(li.dataset.pid); } });
-// the row under a moving mouse is the active one, as the arrows make it (Jump's model): one row looks active, Enter
-// picks it and the arrows go on from it (Astra C058 on 517af1c: hover painted a second row; Enter took the first)
-atList.addEventListener("pointermove", (e) => {
-  if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
-  const li = e.target.closest("li[role=option]"), i = li ? [...atList.children].indexOf(li) : -1;
-  if (i < 0 || i === atList._sel) return;
-  atList.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
-  atList._sel = i; li.setAttribute("aria-selected", "true");
-  say.setAttribute("aria-activedescendant", li.id);
-});
+/** The open @ list owns the arrows, Enter and Tab (they choose, never send; Shift+Enter is still a new line) and Escape. */
+function atKeys(e, K) {
+  const at = K.at;
+  if (at.hidden) return false;
+  const n = at.children.length;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); at._sel = (at._sel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; updateComposer(K); return true; }
+  if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); pickAt(at.children[at._sel].dataset.pid, K); return true; }
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); atShut(K); return true; }
+  return false;
+}
+/** Escape on an open @ list: it stays shut there until the text or the caret moves. */
+function atShut(K) { K.at._shut = K.say.value.slice(0, K.say.selectionStart); atClose(K); }
+function wireAt(K) {
+  const at = K.at;
+  at.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickAt(li.dataset.pid, K); } });
+  // the row under a moving mouse is the active one, as the arrows make it (Jump's model): one row looks active, Enter
+  // picks it and the arrows go on from it (Astra C058 on 517af1c: hover painted a second row; Enter took the first)
+  at.addEventListener("pointermove", (e) => {
+    if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+    const li = e.target.closest("li[role=option]"), i = li ? [...at.children].indexOf(li) : -1;
+    if (i < 0 || i === at._sel) return;
+    at.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
+    at._sel = i; li.setAttribute("aria-selected", "true");
+    K.say.setAttribute("aria-activedescendant", li.id);
+  });
+}
+wireAt(MK);
 // On Home an empty composer shrinks when it loses focus, which drops the dock (and the herald just above it)
 // 45 px under the pointer, so the click lands on nothing. Keep its shape from the press until the click.
 {
@@ -2415,19 +2494,22 @@ atList.addEventListener("pointermove", (e) => {
 }
 $("#composer").addEventListener("submit", (e) => { e.preventDefault(); if ($("#send").dataset.mode === "stop") stopRun(); else send(); });
 $("#target").addEventListener("click", () => {
-  if (S.view === "chats") { CH.openSetup($("#target")); return; }
+  if (S.view === "chats") { CH.toggleSetup($("#target"), "cwd"); updateComposer(); return; }
   if (S.view.startsWith("c:")) { say.focus(); return; }
-  // the chooser opens on the recipient the draft already names, wherever it is, with every project listed and
-  // that one active (Astra H26); with none, on a new @ at the start. Either way the draft is saved as it now reads
-  const tok = /(^|\s)@([\w.-]*)/.exec(say.value);
+  aimAt(MK);
+});
+/** The target line pressed: the chooser opens on the recipient the draft already names, wherever it is, with every
+ *  project listed and that one active (Astra H26); with none, on a new @ at the start. The draft is saved as it reads. */
+function aimAt(K) {
+  const f = K.say, tok = /(^|\s)@([\w.-]*)/.exec(f.value);
   let at = 1;
   if (tok) {
     at = tok.index + tok[1].length + 1;
-    atList._sel = Math.max(0, projects().findIndex((p) => p.id.toLowerCase() === tok[2].toLowerCase()));
-  } else { say.value = "@" + (say.value ? " " + say.value : ""); atList._sel = 0; saveDraft(); }
-  atList._shut = null;
-  say.focus(); say.setSelectionRange(at, at); updateComposer();
-});
+    K.at._sel = Math.max(0, projects().findIndex((p) => p.id.toLowerCase() === tok[2].toLowerCase()));
+  } else { f.value = "@" + (f.value ? " " + f.value : ""); K.at._sel = 0; saveDraft(K); }
+  K.at._shut = null;
+  f.focus(); f.setSelectionRange(at, at); updateComposer(K);
+}
 /** "Send now": its own toggle, shown in a chat whose turn is running where the agent can be interrupted. */
 function sendNowRender() {
   const b = $("#send-now");
@@ -2435,8 +2517,15 @@ function sendNowRender() {
   b.hidden = !st;
   if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
 }
+$("#cs-perm").addEventListener("click", () => { if (S.view !== "chats") return; CH.toggleSetup($("#cs-perm"), "mode"); updateComposer(); });
 $("#send-now").addEventListener("click", () => { CH.toggleNow(S.view); updateComposer(); say.focus(); });
-$("#iq").addEventListener("click", () => { if (IQ.isOpen) IQ.close(); else IQ.open(sessionOf(S.view), $("#iq")); });
+$("#iq").addEventListener("click", () => {
+  if (S.view === "chats") { CH.toggleSetup($("#iq"), "model"); updateComposer(); return; }
+  if (CH.isChats(S.view)) return;
+  toggleIq(sessionOf(S.view), $("#iq"));
+});
+// one picker for every composer: its chip opens it and closes it, in the main chat or a thread in the panel
+function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip); }
 
 /**
  * Live Stop: nothing is sent for 3 s (Undo), then the session's turn and its sub-agents stop at once
@@ -2483,7 +2572,7 @@ function stopLive(run, { interrupt = false, runs = 0 } = {}) {
       }
     } catch (err) {
       // Retry stops the same session, wherever you are when you press it
-      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry", back: interrupt ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"] }, 7000);
+      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry", back: interrupt ? [inUse("[data-interrupt]"), inUse("#send")] : [inUse("[data-chat-stop]"), inUse("#send")] }, 7000);
     } finally {
       if (S.stops.get(token.session) === token) S.stops.delete(token.session);
       schedule();
@@ -2500,7 +2589,7 @@ function stopsHerald() {
   const all = [...turns, ...runs];
   if (!all.length) { if (S.herald && S.herald.tag === "stops") { S.herald.until = 0; heraldNext(); } return; }
   const last = Math.max(...all.map((x) => x.until));
-  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), back: all.every((x) => x.interrupt) ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"], undo: () => {
+  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), back: all.every((x) => x.interrupt) ? [inUse("[data-interrupt]"), inUse("#send")] : [inUse("[data-chat-stop]"), inUse("#send")], undo: () => {
     for (const x of turns) { x.cancelled = true; if (S.stops.get(x.session) === x) S.stops.delete(x.session); }
     for (const j of runs) { j.cancelled = true; const i = pendingStops.indexOf(j); if (i >= 0) pendingStops.splice(i, 1); }
     announce(all.length > 1 ? "Not stopped. They keep working." : "Not stopped. It keeps working.");
@@ -2522,12 +2611,6 @@ function interruptRun(view = S.view) {
   if (run && run.kind === "thread") stopLive(run, { interrupt: true, runs: workingRuns(run.t) });
 }
 
-function lift(el, from) {
-  const b = el && el.querySelector(".bubble");
-  if (!b || !from || RM.matches) return;
-  const to = b.getBoundingClientRect();
-  b.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(.98)`, opacity: 0.55 }, { transform: "none", opacity: 1 }], { duration: 320, easing: "cubic-bezier(.2,.8,.2,1)" });
-}
 
 /** Why sending is paused right now, or "" (classic composerBlock, in plain words). */
 function liveBlock(view = S.view, text = say.value) {
@@ -2575,7 +2658,6 @@ function sendLive(raw, K = MK) {
   // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
   const ref = here && S.lref[conv];
   if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
-  const from = K.say.getBoundingClientRect();
   // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
   const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, to: thread ? t.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat), cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
   if (files.count) { m.files = tray.take(K.view); m.files.forEach(dropThumb); }
@@ -2586,10 +2668,10 @@ function sendLive(raw, K = MK) {
   // From Home, what you wrote carries you into the conversation it went to (the Workspace, or the
   // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
   // conversation, a message aimed elsewhere leaves you where you are and says where it went.
-  if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); lift(K.conv.msgs.querySelector(`[data-k="${m.id}"]`), from); }
+  if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
   // while it's out it says so; each answer sets this same notice whole (postLive: sent, or not sent; a Retry: out)
   else if (!here) heraldShow(noticeFor(m, "out"), 9000);
-  else { render(); K.conv.follow.toLatest(false); lift(K.conv.msgs.querySelector(`[data-k="${m.id}"]`), from); }
+  else { render(); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
   // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
   if (thread) STAGE.resumeFollow(conv);
   deliverLive(m, thread);
@@ -2604,7 +2686,6 @@ async function postLive(m, thread) {
   heraldFor(m.id, () => noticeFor(m, "out"));
   try {
     const row = await postWithFiles(m, thread);
-    if (row && row.id) { S.alias.set(row.id, m.id); m.merged = true; }
     m.status = "sent";
     const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
     announce(`Sent to ${where}.`);
@@ -2670,10 +2751,10 @@ function retry(id) {
       // the message's own destination, never the composer's newer draft: its chat, or its thread
       const block = blockFor(m.target ? { pid: m.target } : { thread: true });
       if (block) { refuse(block, "the message stays, to retry"); return; }
-      const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`);
+      const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`), K = composerAt(document.activeElement);
       deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
       schedule();
-      if (had) say.focus({ preventScroll: true });
+      if (had) K.say.focus({ preventScroll: true });
       return;
     }
   }
@@ -2714,18 +2795,18 @@ function tpMount(box) {
   box.innerHTML = `<header class="tp-head" id="tphead"></header><div class="thead tp-thead" id="tpthead" hidden></div>` +
     `<div class="scroller tp-scroller" id="tscroller" tabindex="-1" data-own-scroll><div class="column" id="tcolumn">` +
     `<div class="msgs" id="tmsgs" role="log" aria-live="off" aria-label="The thread's messages"></div><div class="typing-slot" id="ttyping"></div></div></div>` +
-    `<div class="dock tp-dock" id="tpdock"><div class="tdock" id="tptdock"></div><div class="cbar"><form class="composer" id="tpcomposer" autocomplete="off">` +
+    `<div class="dock tp-dock" id="tpdock"><div class="herald" id="tpherald" aria-live="polite"></div><div class="tdock" id="tptdock"></div><div class="cbar"><form class="composer" id="tpcomposer" autocomplete="off">` +
     `<label class="sr-only" for="tsay" id="tsay-label">Reply</label><ul class="att-tray" id="tatt-tray" aria-label="Files on this reply" hidden></ul>` +
-    `<div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" spellcheck="true"></textarea></div>` +
+    `<div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" aria-autocomplete="list" aria-controls="tat-list" aria-expanded="false" spellcheck="true"></textarea><ul id="tat-list" class="at-list" role="listbox" aria-label="Projects" hidden></ul></div>` +
     `<div class="composer-row"><button type="button" class="attach" id="tattach" aria-label="Add files" title="Add files: text, images or PDFs, up to 25 MB each">${ICON.clip}</button><input type="file" id="tatt-input" multiple hidden tabindex="-1" accept="${esc($("#att-input").accept)}">` +
-    `<span class="target" id="ttarget"></span><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
+    `<button type="button" class="target" id="ttarget" title="Aim at a project (@)"></button><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
     `<p class="att-note" id="tatt-note" hidden>Files are kept in the project's <code>.xo/</code> folder. Unlike chat text, they aren't scrubbed for secrets.</p></form></div></div>`;
   const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
   TP.follow = createFollow(els);
   TP.follow.init();
   TP.C = createConv({ view: tpView, msgs: els.msgs, scroller: els.scroller, column: els.column, typing: $("#ttyping"), follow: TP.follow });
   TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
-    tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq") };
+    tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
   wireComposer(TP.K);
   wireTray(TP.K);
   TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
@@ -2734,18 +2815,16 @@ function tpMount(box) {
   acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
   STAGE.slot.append(acts);
   menuKeys(acts, { close: () => closeThreadMenu() });
-  // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
+  // its files: the paperclip; a drop on the page is the app's one drop, into this composer
   TP.K.attach.addEventListener("click", () => TP.K.input.click());
   TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
-  box.addEventListener("dragover", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "copy"; } });
-  box.addEventListener("drop", (e) => { if (![...(e.dataTransfer?.types || [])].includes("Files")) return; e.preventDefault(); e.stopPropagation(); addFiles(e.dataTransfer.files, TP.K); });
   // its model and effort: the thread's own session, the chat's picker
-  TP.K.iq.addEventListener("click", () => { const sid = sessionOf(tpView()); if (IQ.isOpen) IQ.close(); else IQ.open(sid, TP.K.iq); });
-  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
-    dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
+  TP.K.iq.addEventListener("click", () => toggleIq(sessionOf(tpView()), TP.K.iq));
+  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: TP.K.at,
+    dock: els.dock, tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
   // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
-  TP.dockRO = new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`));
-  TP.dockRO.observe(els.dock);
+  TP.dockRO = watchDock(els.dock, box);
+  conversationGestures({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) });
   els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(TP.C); }); }, { passive: true });
 }
 function tpShow(key, { focus = false } = {}) {
@@ -2787,13 +2866,14 @@ STAGE.page("thread", {
   close: () => tpClose(),
   // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
   escape: () => { if (S.tMenu && S.tMenuIn === "page") { closeThreadMenu(); return true; }
+    if (TP.K && document.activeElement === TP.K.say && !TP.K.at.hidden) { atShut(TP.K); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
 // its facts under the panel's head, its ⋯ in it
 function tpHead(t) {
   const head = $("#tphead"), acts = $("#tpacts");
   const open = S.tMenu === t.id && S.tMenuIn === "page";
-  const html = `<span class="badge st-${stOf(t)}"><i class="g g-${glyphOf(t)}" aria-hidden="true"></i>${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
+  const html = `<button type="button" class="stg-btn tp-main" data-tp-main="${esc(t.id)}" title="Open in main chat" aria-label="Open in main chat">${ICON.toMain}</button><span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
     `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
   const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
   if (head._h !== html + menu) { redraw(head, html); redraw(acts, menu); head._h = html + menu; }
@@ -2807,16 +2887,22 @@ function drawThreadPage(needs) {
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; closeThreadMenu({ focus: false }); STAGE.closePage("thread"); go("t:" + id); } });
+// the thread moves from the panel into the main chat: its frame snaps across while the panel steps back without its copy
+function toMain(id) {
+  closeThreadMenu({ focus: false });
+  STAGE.closePage("thread"); go("t:" + id, { panel: true });
+}
+document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-main]"); if (b) toMain(b.dataset.tpMain); });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as
  * the panel's Thread page; ⌘/Ctrl-click, anywhere else (Home, Artifacts, another thread's page), or the thread
  * already in the main chat, it goes there as today.
  */
 function openFromPanel(v, e) {
-  const besideChat = S.view === "ws" || S.view.startsWith("p:");
-  if (v && v.startsWith("t:") && besideChat && !(e && (e.metaKey || e.ctrlKey)) && world.thread(v.slice(2))) { STAGE.show("thread", v.slice(2), { focus: true }); return; }
+  const besideChat = S.view === "ws" || S.view.startsWith("p:"), msg = e?.target?.closest?.("[data-go]")?.dataset.goMsg;
+  if (v && v.startsWith("t:") && besideChat && !(e && (e.metaKey || e.ctrlKey)) && world.thread(v.slice(2))) { STAGE.show("thread", v.slice(2), { focus: true }); if (msg) showMsg(msg, TP.C); return; }
   go(v, { panel: true });
+  if (msg) showMsg(msg);
 }
 
 // ── render ──────────────────────────────────────────────────────────────────
@@ -2831,7 +2917,7 @@ function createConv({ view, msgs, scroller: sc, column, typing, follow, main = f
   return { get view() { return typeof view === "function" ? view() : view; }, msgs, scroller: sc, column, typing, follow, main, rendered: null, filled: null };
 }
 const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
-  follow: { toLatest, unpin, isPinned, fromTop, toRow, fromLatest } });
+  follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } });
 // the oldest message on screen; day lines don't count, since older messages of the same day land below theirs
 const FIRST_MSG = "[data-k]:not([data-k=hist]):not([data-k=note]):not([data-k^='day|'])";
 let rendered = null, raf = 0;
@@ -2853,6 +2939,7 @@ function render() {
   const appEl = $("#app"), kind = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
   if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
   if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
+  dockAtTop(v === "chats");
   // a thread that isn't here (gone with a reset, or a link older than this Space) offers no message box: there's
   // nothing to write to (the create-project grader on 131d146: its composer stayed, "Message undefined…")
   const gone = v.startsWith("t:") && !convThread(v);
@@ -2983,7 +3070,7 @@ function drawConv(C, needs) {
   // opening a conversation lands at the latest (the owner, 5 Nov). After that, follow.js keeps you there
   // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
   // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
-  if (opening) { C.rendered = v; C.follow.toLatest(false); }
+  if (opening) { C.rendered = v; if (v === "chats") C.follow.toTop(); else C.follow.toLatest(false); }
 }
 
 // ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
@@ -3082,14 +3169,28 @@ scroller.addEventListener("scroll", () => {
 // anything is docked there is measured, not inferred from what's in the dock (the bar's top below the dock's top: a
 // chip shown only on a phone, a decision hidden while a panel covers it, one gliding in or out), in the observer's
 // step, before the frame is painted, so the line never lies on a docked control for a frame (css/app.css .herald)
-{
-  const dock = $("#dock"), bar = dock.querySelector(".cbar");
-  new ResizeObserver(() => {
-    $("#app").style.setProperty("--dock-h", `${dock.offsetHeight}px`);
+function watchDock(dock, host) {
+  const bar = dock.querySelector(".cbar");
+  const ro = new ResizeObserver(() => {
+    host.style.setProperty("--dock-h", `${dock.offsetHeight}px`);
     const on = bar.getBoundingClientRect().top - dock.getBoundingClientRect().top > 0.5;
     if (dock.classList.contains("is-stacked") !== on) dock.classList.toggle("is-stacked", on);
     heraldRoom(); // the line stands higher over what's docked (is-stacked)
-  }).observe(dock);
+  });
+  ro.observe(dock);
+  return ro;
+}
+watchDock($("#dock"), $("#app"));
+/** Chats starts with its composer: the dock leads its scroller there, under the greeting, and sits at the foot elsewhere. */
+function dockAtTop(top) {
+  const dock = $("#dock"), sc = $("#scroller");
+  if (top === (dock.parentElement === sc)) return;
+  const had = dock.contains(document.activeElement) ? document.activeElement : null;
+  if (top) $("#cs-sub").after(dock); else $("#drop-veil").after(dock);
+  $("#cs-hi").hidden = $("#cs-sub").hidden = !top;
+  if (!top) sc.style.removeProperty("--cs-lead");
+  dock.classList.toggle("is-top", top);
+  had?.focus({ preventScroll: true });
 }
 initFollow();
 
@@ -3099,10 +3200,10 @@ function saveScroll() {
   else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-function go(v, { from, focus = false, carry = false, panel = false } = {}) {
+function go(v, { from, focus = false, carry = false, panel = false, still = false } = {}) {
   if (!v) return;
   // a file with unsaved edits asks first (Files › Edit, its head): Discard, then on
-  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry, panel })); return; }
+  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry, panel, still })); return; }
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
@@ -3134,7 +3235,7 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   const el = v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : $("#column");
   el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
   void el.offsetWidth;
-  el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
+  if (!still) el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
   loadDraft();
   render();
   if (v === "home") $("#home").scrollTop = S.scroll.home || 0;
@@ -3251,12 +3352,12 @@ function decideKey(key, opts) {
 }
 
 /** After going to a conversation, bring one message into view and mark it for a moment (if it's loaded). */
-function showMsg(id) {
+function showMsg(id, C = MAIN) {
   let tries = 0;
   const look = () => {
-    const el = msgsEl.querySelector(`[data-k="${CSS.escape(S.alias.get(id) || id)}"]`);
+    const el = C.msgs.querySelector(`[data-k="${CSS.escape(S.alias.get(id) || id)}"]`);
     if (!el) { if (++tries < 20) setTimeout(look, 100); return; }
-    toRow(el, true); // through follow.js: following stops, then the row is centred (never scrollIntoView)
+    C.follow.toRow(el, true); // through follow.js: following stops, then the row is centred (never scrollIntoView)
     el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash");
     setTimeout(() => el.classList.remove("is-flash"), 1800);
   };
@@ -3341,7 +3442,7 @@ function youText(text) {
 }
 /** A question's capsule: Files, at those lines of the file in this conversation's place, selected. */
 function openLineRef(a) {
-  const s = CHG.scope(S.view), path = a.dataset.ref;
+  const s = CHG.scope(convAt(a).view), path = a.dataset.ref;
   if (!s) return;
   const lines = a.dataset.refA ? [+a.dataset.refA, +a.dataset.refB] : null;
   VW.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, ...(lines ? { lines } : {}) }, a);
@@ -3529,6 +3630,21 @@ $("#top").addEventListener("keydown", (e) => {
   // the menu's own keys (↓ ↑ Home End, Escape, Tab) are menuKeys'; this is Escape with focus on ⋯ itself
   if (e.key === "Escape" && S.tMenu) { e.preventDefault(); e.stopPropagation(); closeThreadMenu(); }
 });
+$("#msgs").addEventListener("input", (e) => { if (e.target.matches?.("[data-chl-q]")) CH.search(e.target.value); });
+$("#msgs").addEventListener("click", (e) => {
+  const b = e.target.closest?.("[data-chl-all]");
+  if (!b) return;
+  const all = b.dataset.chlAll === "1";
+  // the greeting keeps its place: the list grows under it instead of the page recentring
+  const sc = $("#scroller");
+  if (all) sc.style.setProperty("--cs-lead", getComputedStyle($("#cs-hi")).marginTop); else sc.style.removeProperty("--cs-lead");
+  CH.showAll(all);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const top = $("#msgs .chl-top");
+    if (!top) return;
+    (all && !matchMedia("(max-width: 760px)").matches ? top.querySelector("[data-chl-q]") : top.querySelector("[data-chl-all]"))?.focus({ preventScroll: true });
+  }));
+});
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
 // leaving the field saves it, unless it's what was just refused (Enter retries that; leaving keeps it, as typed)
 $("#top").addEventListener("focusout", (e) => {
@@ -3540,6 +3656,18 @@ $("#top").addEventListener("focusout", (e) => {
 /** The conversation a control is in (P1 step 8): the panel's thread page, else the main chat. */
 const convAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.C : MAIN);
 const composerAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.K : MK);
+/** The conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat. */
+function composerNow() {
+  if (!TP.K || STAGE.pageShown?.name !== "thread") return MK;
+  if (document.body.classList.contains("stage-full") || PHONE.matches) return TP.K;
+  const a = document.activeElement;
+  // focus dropped with the control it was on (a pressed Interrupt redrawn away): the one you were in
+  if (!a || a === document.body) return S.kNow || MK;
+  return TP.box.contains(a) ? TP.K : MK;
+}
+const composers = () => (TP.K ? [MK, TP.K] : [MK]);
+// the notices' line follows you between the chat and the panel's thread page
+document.addEventListener("focusin", () => { const K = composerNow(); if (K !== S.kNow) { S.kNow = K; schedule(); } });
 document.addEventListener("click", (e) => {
   const t = e.target;
   if (t.closest("#iq-pop")) return;
@@ -3547,7 +3675,7 @@ document.addEventListener("click", (e) => {
   // (the panel's own links are the panel's: it opens a thread as its page beside a chat, else goes as the panel)
   if (g && !t.closest("#all") && !t.closest("#stage")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
   const tl = t.closest("a[data-thread]");
-  if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) go("t:" + tl.dataset.thread); else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
+  if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) { if (t.closest("#stage")) openFromPanel("t:" + tl.dataset.thread, e); else go("t:" + tl.dataset.thread); } else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
   if (t.closest("[data-older]")) { loadOlderNow(convAt(t)); return; }
   const so = t.closest("[data-start]");
   if (so) { startDraft(+so.dataset.start); return; }
@@ -3577,7 +3705,7 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-herald-undo]")) {
     const h = S.herald, u = h?.undo;
     // a notice whose Undo names its own destination (Launchpad's) is left to it (lpshell LP21/LP36)
-    if (!h?.ownFocus) { heraldBack(h)?.focus({ preventScroll: true }); S.focusNext = [...((h && h.back) || []), "#say"]; }
+    if (!h?.ownFocus) { heraldBack(h)?.focus({ preventScroll: true }); const K = composerNow(); S.focusNext = [...((h && h.back) || []), () => K.say]; }
     if (typeof u === "function") { if (h.undoUntil && Date.now() > h.undoUntil) return; h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); // past its deadline an Undo undoes nothing: it does nothing
     return;
   }
@@ -3598,9 +3726,9 @@ document.addEventListener("click", (e) => {
   // sub-agents: the strip under the checklist, the log, a sub-agent's row in a turn
   const rc = t.closest("[data-run-call]");
   if (rc) { const th = convThread(convAt(rc).view); const r = [...(world.state.runs?.values() || [])].find((x) => x.spawn === rc.dataset.runCall); openRuns(th, r ? r.id : null); return; }
-  const ro = t.closest("#thead [data-run]");
+  const ro = t.closest(".thead [data-run]");
   if (ro) { openRuns(convThread(convAt(ro).view), ro.dataset.run); return; }
-  if (t.closest(":is(#thead,#tpthead) [data-runs]")) { openRuns(convThread(convAt(t).view)); return; }
+  if (t.closest(".thead [data-runs]")) { openRuns(convThread(convAt(t).view)); return; }
   // storm blocks: open or fold a block or a row (thinking steps, an activity group, a command's output)
   const tb = t.closest("[data-tb]");
   if (tb) {
@@ -3622,7 +3750,7 @@ document.addEventListener("click", (e) => {
     S.tMenu = again ? null : tm.dataset.tmenu; S.tMenuIn = again ? null : where;
     $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
     render(); // drawn now, in the click: the menu is there under the pointer at once (it was a frame or two late)
-    if (S.tMenu) tm.parentElement.querySelector(".tw-menu [role=menuitem]:not([aria-disabled=true])")?.focus({ preventScroll: true });
+    if (S.tMenu) focusOpened(tm.parentElement.querySelector(".tw-menu"), e);
     return;
   }
   const tf = t.closest("[data-tfield]");
@@ -3677,7 +3805,7 @@ document.addEventListener("click", (e) => {
   const r = t.closest("[data-retry]");
   if (r) { retry(r.dataset.retry); return; }
   // Interrupt goes as its turn stops: focus lands on its Undo (3 s), drawn in the same step (Astra RUN-5)
-  if (t.closest("[data-interrupt]")) { S.focusNext = ["#herald [data-herald-undo]"]; interruptRun(convAt(t).view); return; }
+  if (t.closest("[data-interrupt]")) { S.focusNext = [() => heraldBox()?.querySelector("[data-herald-undo]")]; interruptRun(convAt(t).view); return; }
   const ed = t.closest("[data-edit]");
   if (ed) { editFailed(ed.dataset.edit, composerAt(ed)); return; }
   const mx = t.closest("[data-mx]");
@@ -3814,7 +3942,7 @@ function allRender() {
   const row = (t) => {
     const c = t.checklist;
     const k = cat(t);
-    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}"><i class="g g-${k === "needs" ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i><span class="ar-tl"><span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${STATE_WORDS[k]}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a"><span>${esc(short(t.lastAt))}</span>${threadMark(t) ? `<span class="ar-mk">${threadMark(t)}</span>` : ""}</span></button></li>`;
+    return `<li><button type="button" class="ar st-${k}" data-go="t:${esc(t.id)}">${stateMark(k === "needs" ? "needs_reply" : glyphOf(t))}<span class="ar-tl"><span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${STATE_WORDS[k]}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a"><span>${esc(short(t.lastAt))}</span>${threadMark(t) ? `<span class="ar-mk">${threadMark(t)}</span>` : ""}</span></button></li>`;
   };
   const fold = S.allFilter === "all" && !q;
   const liveL = fold ? list.filter((t) => cat(t) !== "done") : list;
@@ -3858,7 +3986,7 @@ function threadMenuHtml(t, where = "main") {
   const sep = '<span class="tw-sep" role="separator"></span>';
   const groups = [
     [item(`data-tgo="${esc(sib.prev || "")}"`, "Previous thread", !sib.prev), item(`data-tgo="${esc(sib.next || "")}"`, "Next thread", !sib.next),
-      where === "page" ? item(`data-tp-full="${esc(t.id)}"`, "Open as its own page") : item(`data-tside="${esc(t.id)}"`, "Open beside its project's chat")],
+      where === "page" ? item(`data-tp-main="${esc(t.id)}"`, "Open in main chat") : item(`data-tside="${esc(t.id)}"`, "Open beside its project's chat")],
     [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "",
       t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : ""],
     [item('data-tfield="title"', "Rename"), item('data-tfield="label"', t.label ? "Change label" : "Add a label"), t.label ? item('data-tfield="clear-label"', "Remove the label") : "",
@@ -3866,7 +3994,7 @@ function threadMenuHtml(t, where = "main") {
       isBusy(t) ? item("data-chat-stop", "Stop") : ""],
     [t.canDelete ? item(`data-tdel="${esc(t.id)}" class="tw-danger"`, "Delete thread…") : ""],
   ].map((g) => g.filter(Boolean).join("")).filter(Boolean);
-  return `<span class="tw-menu" role="menu">${groups.join(sep)}</span>`;
+  return `<span class="tw-menu" role="menu" tabindex="-1">${groups.join(sep)}</span>`;
 }
 /** Delete, asked in place: what goes (its messages, its transcript, its worktree folder), what stays (its branch),
  *  for how long it can be undone; Keep it first. When Space says work would be lost, it names it and the button
@@ -4037,13 +4165,18 @@ let jsel = 0, jitems = [];
     when it needs you); no dot on a corner (the owner: no blue dots anywhere). */
 function threadIc(t) {
   const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
-  return `<span class="j-th"><i class="g g-${n ? "needs_reply" : glyphOf(t)}" aria-hidden="true"></i></span>`;
+  return `<span class="j-th">${stateMark(n ? "needs_reply" : glyphOf(t))}</span>`;
 }
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
-  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
-  for (const p of projects()) {
-    all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
+  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
+  const needN = new Map();
+  for (const x of D.needItems()) if (x.admitted && !x.later) needN.set(x.t.project, (needN.get(x.t.project) || 0) + 1);
+  // typed for, the projects that need you come first
+  const ps = q ? projects().sort((a, b) => needN.has(b.id) - needN.has(a.id)) : projects();
+  for (const p of ps) {
+    const n = needN.get(p.id) || 0;
+    all.push({ v: "p:" + p.id, name: p.name, sub: n ? `Project · ${n} need${n === 1 ? "s" : ""} you` : "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
   // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
@@ -4106,7 +4239,7 @@ jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); 
 function syncInert() {
   // only what this set inert is released here: Files keeps its own inert parts (a railed or folded chat)
   const hold = (el, on) => { if (on && !el.inert) { el.inert = true; el.dataset.layerInert = ""; } else if (!on && "layerInert" in el.dataset) { el.inert = false; delete el.dataset.layerInert; } };
-  hold($("#app"), [jump, keys, allEl, runsEl, QO.el].some((el) => !el.hidden));
+  hold($("#app"), [jump, keys, allEl, QO.el].some((el) => !el.hidden));
   const settings = !setEl.hidden;
   for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) hold(el, settings);
   // a phone: the sidebar is a drawer; closed, it is off screen and out of reach; open, it covers the main area
@@ -4114,11 +4247,11 @@ function syncInert() {
   hold($("#side"), PHONE.matches && !drawer);
   hold($("#main"), PHONE.matches && drawer);
 }
-queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
+queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
 /** The layer that holds the keyboard, the page behind it inert (syncInert): a sheet; on a phone, Settings (it covers
  *  the whole screen there), else the open drawer (the sidebar, over the main area). Null when the page itself does. */
 function keyLayer() {
-  return [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null)
+  return [keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null)
     || (PHONE.matches && $("#app").classList.contains("drawer") ? $("#side") : null);
 }
 // Tab and Shift+Tab go round the open layer: past its last control is its first, never the page behind it (inert,
@@ -4288,7 +4421,7 @@ async function unfreeze(tid, btn) {
   if (btn) { btn.setAttribute("aria-disabled", "true"); btn.setAttribute("aria-busy", "true"); }
   try {
     await world.act.editThread(th.id, { paused: false });
-    if (btn && btn.isConnected && btn === document.activeElement) S.focusNext = ["#say", "#scroller"];
+    if (btn && btn.isConnected && btn === document.activeElement) { const K = composerAt(btn); S.focusNext = [() => K.say, () => K.conv.scroller]; }
     announce("Picked back up. Its agent can carry on here.");
     schedule();
   } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
@@ -4337,7 +4470,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest("[data-se
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
 function keysSheetRender() {
   const col = (ids) => `<dl class="keys">${ids.map((g) => `<dt class="kh">${esc(K.GROUPS.find((x) => x.id === g).name)}</dt><dd></dd>` +
-    K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
+    K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${K.keyHtml(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
 /** The Keyboard page, drawn in place: the key under the keyboard stays the same node as it records, cancels or changes. */
@@ -4348,8 +4481,8 @@ function keysPageRender() {
     K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
       K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
         const key = a.fixed
-          ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${esc(a.fixed)}</kbd></span>`
-          : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${esc(K.label(a.id))}</kbd>`}</button>`;
+          ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${K.keyHtml(a.fixed)}</kbd></span>`
+          : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${K.keyHtml(K.label(a.id))}</kbd>`}</button>`;
         const reset = !a.fixed && K.changed(a.id) ? `<button type="button" class="kr-r" data-kreset="${a.id}" title="Back to ${esc(K.show(a.def))}" aria-label="Reset ${esc(a.label)} to ${esc(K.show(a.def))}">${ICON.retry}</button>` : `<span class="kr-r" aria-hidden="true"></span>`;
         return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
           (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");
@@ -4543,7 +4676,7 @@ const SIDE = {
     const pop = $("#side-more");
     (on ? pop.querySelector("[data-se-grip]") : pop.querySelector('[role="menuitem"]'))?.focus({ preventScroll: true });
   },
-  openMore() {
+  openMore(e) {
     const pop = $("#side-more"), row = $("#nv-more");
     SIDE.drawMore();
     pop.hidden = false;
@@ -4551,7 +4684,7 @@ const SIDE = {
     // it springs from its row: beside it, level with it
     const r = row.getBoundingClientRect();
     pop.style.setProperty("--pop-x", `${Math.round(r.right)}px`); pop.style.setProperty("--pop-y", `${Math.round(r.top)}px`);
-    pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
+    focusOpened(pop, e);
   },
   closeMore({ focus = false } = {}) {
     const pop = $("#side-more"), row = $("#nv-more");
@@ -4563,11 +4696,12 @@ const SIDE = {
 };
 $("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
 $("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
-$("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
+$("#nv-more").addEventListener("click", (e) => ($("#side-more").hidden ? SIDE.openMore(e) : SIDE.closeMore({ focus: true })));
+pointerFollows($("#side-more"));
 $("#side-more").addEventListener("click", (e) => {
   const t = e.target, pop = $("#side-more");
   const pin = t.closest("[data-side-pin]");
-  if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }); return; }
+  if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); focusOpened(pop, e); return; }
   if (t.closest("[data-side-edit]")) { SIDE.edit(true); return; }
   const sw = t.closest("[data-se-sw]");
   if (sw) { const id = sw.dataset.seSw, on = sw.getAttribute("aria-checked") !== "true"; SIDE.pin(id, on); announce(`${SIDE.byId(id).name}: ${on ? "in the sidebar" : "in More"}`); pop.querySelector(`[data-se-sw="${id}"]`)?.focus({ preventScroll: true }); return; }
@@ -4589,7 +4723,7 @@ $("#side-more").addEventListener("keydown", (e) => {
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (SIDE.editing) SIDE.edit(false); else SIDE.closeMore({ focus: true }); return; }
   if (SIDE.editing) return;
   const items = $$('#side-more [role="menuitem"]'), i = items.indexOf(document.activeElement);
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = i < 0 ? (e.key === "ArrowDown" ? 0 : items.length - 1) : (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
 });
 // the editor's drag: a row dropped on another goes before it (after it, past its middle)
 $("#side-more").addEventListener("dragstart", (e) => { const r = e.target.closest?.(".se-row"); if (!r) return; e.dataTransfer.setData("text/x-xo-place", r.dataset.se); e.dataTransfer.effectAllowed = "move"; r.classList.add("is-drag"); });
@@ -4623,8 +4757,8 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-
 const GLOBAL = {
   shells: () => SH.toggle(),
   jump: () => (jump.hidden ? openJump() : closeJump()),
-  intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
-  write: () => say.focus(),
+  intel: () => { const K = composerNow(); toggleIq(sessionOf(K.view), K.iq); },
+  write: () => composerNow().say.focus(),
   keys: () => openKeys(),
   map: () => STAGE.toggle(),
   sideFold: () => SIDE.fold(!SIDE.folded),
@@ -4745,11 +4879,10 @@ wireGestures({
   settingsOpen: () => !setEl.hidden, closeSettings: () => closeSettings(),
   viewerOpen: () => VW.isOpen, closeViewer: () => VW.close(),
   panelOpen: () => D.isOpen(),
-  runsDeep: () => RS.open && RS.view === "run", runsBack: () => runsEscape(),
+  runsDeep: () => RS.open && RS.view === "run", runsBack: () => runsEscape(), runsCard,
   sheets: [
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
-    { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
     { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
     { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
     { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
@@ -4759,7 +4892,7 @@ wireGestures({
   canResolve: () => !!world.act.storm,
   threadOf: (id) => world.thread(id),
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
-  toast: (text) => { announce(text); heraldShow({ kind: "done", text }, 1600); },
+  toast: (text) => toastLine(text),
 });
 /** fn, once the world shows what test() looks for: an act's answer reaches the world on its next commit. */
 function whenWorld(test, fn) {
@@ -4840,15 +4973,22 @@ $("#ic-shells").innerHTML = ICON.shell;
 {
   const cs = $("#cs-pop");
   // drawn in place (CH.renderSetup): the picker or the mode you chose keeps focus; arrows move through the modes
-  cs.addEventListener("change", (e) => { const f = e.target.closest("[data-cs]"); if (f) { CH.setPref(f.dataset.cs, f.value); CH.renderSetup(); updateComposer(); } });
   radioKeys(cs);
   cs.addEventListener("click", (e) => {
     const m = e.target.closest("[data-csmode]");
-    if (m) { CH.setPref("mode", m.dataset.csmode); CH.renderSetup(); updateComposer(); return; }
+    if (m) { CH.setPref("mode", m.dataset.csmode); CH.closeSetup(); updateComposer(); return; }
+    const ag = e.target.closest("[data-cs-agent]");
+    if (ag) { if (ag.getAttribute("aria-checked") !== "true") { CH.setPref("agent", ag.dataset.csAgent); CH.renderSetup(); updateComposer(); } return; }
+    const cwd = e.target.closest("[data-cs-cwd]");
+    if (cwd) { CH.setPref("cwd", cwd.dataset.csCwd); CH.closeSetup(); updateComposer(); return; }
+    for (const [k, sel, attr] of [["model", "[data-cs-model]", "csModel"], ["effort", "[data-cs-effort]", "csEffort"]]) {
+      const r = e.target.closest(sel);
+      if (r) { CH.setPref(k, r.dataset[attr]); CH.renderSetup(); updateComposer(); return; }
+    }
     if (e.target.closest("[data-cs-done]")) { CH.closeSetup(); updateComposer(); }
   });
   cs.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); CH.closeSetup(); } });
-  document.addEventListener("pointerdown", (e) => { if (CH.setupOpen && !cs.contains(e.target) && !e.target.closest("#target")) CH.closeSetup(); });
+  document.addEventListener("pointerdown", (e) => { if (CH.setupOpen && !cs.contains(e.target) && !e.target.closest("#target, #iq, #cs-perm")) CH.closeSetup(); });
 }
 $("#pb-menu").innerHTML = ICON.menu;
 $("#top-menu").innerHTML = ICON.menu;
@@ -4861,7 +5001,6 @@ $("#set-side-ic").innerHTML = ICON.gear;
   const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
   for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
 }
-$("#sf-ic").innerHTML = ICON.search;
 $("#set-phone").innerHTML = ICON.gear;
 $("#sound-tog .th-knob").innerHTML = ICON.sound;
 for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;
@@ -4871,7 +5010,7 @@ $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 applyTheme(THEME.get());
 $("#side-fold").innerHTML = ICON.sidebar;
 $("#side-jump").innerHTML = ICON.search;
-$("#ic-more").innerHTML = ICON.more;
+$("#ic-more").innerHTML = xi("dashboard");
 SIDE.fold(SIDE.folded, { quiet: true });
 soundRender();
 PHONE.addEventListener("change", () => { setDrawer(false); render(); });

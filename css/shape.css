@@ -11,7 +11,7 @@
    still carry their own heights from before Plan F, so they're named until they move onto the tokens. */
 :root[data-density="compact"] :is(.main,.sheet,.iq-pop){
   --h-row:32px; --h-ctl:var(--h-sm);
-  --fs-lg:var(--fs-body); --lh-15:var(--lh-body); --fs-read:var(--fs-body); --lh-read:var(--lh-body);
+  --fs-title:var(--fs-ui); --lh-title:var(--lh-ui); --fs-read:var(--fs-ui); --lh-read:var(--lh-ui); --fw-read:var(--fw-regular);
 }
 [data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
 /* the composer's two circles stay concentric with its 28 px corner: both 32 (r 16), 12 px in (1 + 11), 16 + 12 = 28 */
@@ -23,7 +23,7 @@
 [data-density="compact"] .tb-h{min-height:var(--h-ctl)}
 
 /* ── Settings' rail: technical pages under one quiet label, at its foot ─────────────────────────── */
-.shp-navh{margin:16px 0 4px;padding:0 10px;font:var(--fw-medium) var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
+.shp-navh{margin:16px 0 4px;padding:0 10px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
 @media (max-width:760px){
   .shp-navh{flex:none;align-self:center;margin:0 4px 0 12px;padding:0}
 }
@@ -31,7 +31,7 @@
 /* ── Settings › Shape ─────────────────────────────────────────────────────────────────────────── */
 .shp,.shp-top{display:flex;flex-direction:column;gap:32px}
 /* what a preset changes, read as one panel: a line per change */
-.shp-diff{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
+.shp-diff{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .shp-diff li{display:flex;gap:8px}
 .shp-diff li::before{content:"–";flex:none;color:var(--ink-4)}
 .shp-own{margin-top:8px;color:var(--ink-2)}
@@ -39,30 +39,30 @@
 .shp-acts .btn:disabled{opacity:.45;cursor:default}
 .shp-acts .btn:disabled:hover{background:none;color:var(--ink-2)}
 /* switching clears your own changes: asked in place, calmly (it can be made again; nothing is lost for good) */
-.shp-confirm{display:flex;flex-direction:column;gap:12px;margin-top:4px;padding:16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-hover);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
+.shp-confirm{display:flex;flex-direction:column;gap:12px;margin-top:4px;padding:16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-hover);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .shp-confirm b{font-weight:var(--fw-strong);color:var(--ink)}
 
 /* Edit as JSON: a disclosure, closed by default */
-.shp-json summary{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;height:var(--h-row);padding:0 var(--s-3) 0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r);list-style:none;cursor:pointer;font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.shp-json summary{display:flex;align-items:center;gap:8px;width:max-content;max-width:100%;height:var(--h-row);padding:0 var(--s-3) 0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r);list-style:none;cursor:pointer;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .shp-json summary::-webkit-details-marker{display:none}
 .shp-json summary:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .shp-json summary:focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
 .shp-chev{display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
-.shp-chev svg{width:16px;height:16px;transform:rotate(-90deg);transition:transform var(--d-in) var(--ease)}
+.shp-chev svg{width:var(--ic);height:var(--ic);transform:rotate(-90deg);transition:transform var(--d-in) var(--ease)}
 .shp-json[open] .shp-chev svg{transform:none}
-.shp-n{font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--need)}
+.shp-n{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--need)}
 .shp-n:empty{display:none}
 .shp-jb{display:flex;flex-direction:column;gap:12px;padding-top:12px}
 .shp-held:empty{display:none} /* XO's answer to the last Save, when there is one: no gap held for it otherwise */
-.shp-jb .shp-ta{font:var(--fw-regular) var(--fs-code)/var(--lh-body) var(--mono);tab-size:2;white-space:pre;overflow:auto}
-.shp-status{min-height:var(--lh-12);font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.shp-jb .shp-ta{font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);tab-size:2;white-space:pre;overflow:auto}
+.shp-status{min-height:var(--lh-meta);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .shp-status.is-err{color:var(--need)}
 .shp-probs{display:flex;flex-direction:column;gap:8px}
-.shp-probs h4{font:var(--fw-medium) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
-.shp-probs ul{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink-2)}
+.shp-probs h4{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.shp-probs ul{list-style:none;display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .shp-where{font-weight:var(--fw-medium);color:var(--ink)}
 .shp-sep{margin:0 8px;color:var(--ink-4)}
-.shp-probs code{margin-right:4px;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--mono);color:var(--ink-3)}
+.shp-probs code{margin-right:4px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3)}
 
 /* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */
 .iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}

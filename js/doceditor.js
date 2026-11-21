@@ -11,6 +11,7 @@
 //
 // mount(host, {docs, doc, name, page, onLines, onAsk, onSave, onKey}) → handle (below).
 
+import { xi } from "./icon.js";
 const CM_URL = new URL("./vendor/codemirror/cm.js", import.meta.url).href;
 const MERGE_URL = new URL("./vendor/codemirror/merge.js", import.meta.url).href;
 let cmP = null, mergeP = null;
@@ -95,7 +96,7 @@ function askTip(CM, { onLines, onAsk }) {
           dom.className = "cm-xo-asktip";
           const b = document.createElement("button");
           b.type = "button"; b.className = "xd-ask";
-          b.innerHTML = `<span>Ask about ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span><kbd>${MAC ? "⌘" : "Ctrl "}L</kbd>`;
+          b.innerHTML = `<span>Ask about ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span><kbd>${MAC ? xi("key-command", "kb-ic") : "Ctrl "}L</kbd>`;
           b.addEventListener("mousedown", (e) => e.preventDefault()); // the selection stays
           b.addEventListener("click", () => onAsk({ a: l.a, b: l.b }));
           dom.appendChild(b);
@@ -134,7 +135,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
 
   const theme = EditorView.theme({
     "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-code)" },
-    ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-body)", overflow: "auto" },
+    ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-ui)", overflow: "auto" },
     ".cm-content": { caretColor: "var(--ink)", padding: "var(--cell-in) 0" },
     ".cm-gutters": { backgroundColor: "transparent", color: "var(--ink-5)", border: "none" },
     ".cm-activeLine": { backgroundColor: "var(--row-hover)" },

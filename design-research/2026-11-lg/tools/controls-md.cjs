@@ -77,7 +77,7 @@ const verdictOf = (id) => {
 // tests/stale-pass.test.mjs finds them again from the code, so a new one can't be missed (the controls grader: S238,
 // Runs' Try again, is .fl-link too; the diff renderer's Try again, S272, is .vw-cut-dl: it was S127's until it had a
 // hook of its own, the controls grader on 70375ad, Image-renderer-retry-v2)
-const LINK_ROWS = ['S139', 'S253', 'S126', 'S272', 'C022', 'S049', 'S155', 'S156', 'S061', 'S238', 'S266', 'S220', 'S014'];
+const LINK_ROWS = ['S139', 'S253', 'S126', 'S272', 'C022', 'S049', 'S155', 'S156', 'S061', 'S238', 'S266', 'S220'];
 const SINCE = [{ commit: 'a4faed2', what: 'its hover and press became the shared link state', ids: LINK_ROWS }];
 const hasCommit = (rev, c) => { try { require('child_process').execSync(`git merge-base --is-ancestor ${c} ${rev}`, { cwd: ROOT, stdio: 'ignore' }); return true; } catch { return false; } };
 const verdictNow = (id) => {

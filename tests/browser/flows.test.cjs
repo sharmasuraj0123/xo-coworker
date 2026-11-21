@@ -3675,28 +3675,18 @@ t("xo-select: PageDown never rests on a disabled option, and rows nest in the me
   await page.keyboard.press("Escape");
   await done(page);
 });
-// ── the search fields show focus (a light-theme finding; every cell checks it) ──
-for (const [name, sel, place] of [["C007 project search", "#pf-in", "home"], ["C063 artifact search", "#arts-q", "artifacts"]]) {
-  t(`${name}: its box changes when it has focus`, async () => {
-    // the project search shows once the list is long: enough projects for it
-    const W = sel === "#pf-in" ? { extraChats: Array.from({ length: 12 }, (_, i) => H.chat(`chat_p${i}`, "project", `proj-${i}`)) } : {};
-    const page = await app(W);
-    await page.evaluate((v) => window.__t.go(v), place);
-    if (WIDTH < 600 && sel === "#pf-in") {
-      // on a phone the project list is in the drawer: opened as a person opens it, with the menu button
-      await page.locator("#pb-menu, #top-menu").filter({ visible: true }).first().click();
-      await page.waitForFunction(() => document.querySelector("#app").classList.contains("drawer"));
-      await page.waitForTimeout(300); // the drawer done sliding in
-    }
-    await page.locator(sel).waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
-    const box = await page.evaluate((sel) => { const e = document.querySelector(sel); const b = e.parentElement; return { rest: getComputedStyle(b).borderColor }; }, sel);
-    await page.locator(sel).focus();
-    await page.waitForTimeout(300); // its border eases over --d-hover
-    const on = await page.evaluate((sel) => getComputedStyle(document.querySelector(sel).parentElement).borderColor, sel);
-    assert.notEqual(on, box.rest, "the box's border changes on focus");
-    await done(page);
-  });
-}
+// ── the artifact search shows focus (a light-theme finding; every cell checks it) ──
+t("C063 artifact search: its box changes when it has focus", async () => {
+  const page = await app();
+  await page.evaluate(() => window.__t.go("artifacts"));
+  await page.locator("#arts-q").waitFor({ state: "attached", timeout: 20000 }); // the place's own field, once it's drawn
+  const rest = await page.evaluate(() => getComputedStyle(document.querySelector("#arts-q").parentElement).borderColor);
+  await page.locator("#arts-q").focus();
+  await page.waitForTimeout(300); // its border eases over --d-hover
+  const on = await page.evaluate(() => getComputedStyle(document.querySelector("#arts-q").parentElement).borderColor);
+  assert.notEqual(on, rest, "the box's border changes on focus");
+  await done(page);
+});
 
 t("C058: the @ list has one active row: the mouse moves it, Enter picks it, the arrows go on from it", async () => {
   const page = await app({ extraChats: Array.from({ length: 3 }, (_, i) => H.chat(`chat_r${i}`, "project", `rcpt-${i}`)) });

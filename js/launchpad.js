@@ -17,10 +17,10 @@
 // stage.js calls: mount(section), paint(v, open), tone(v), has(v), headless(v). app.js calls: button(v),
 // ensure(v), and opens the section through the panel (data-lp-open).
 
-import { ICON } from "./ui.js";
+import { ICON, ARC } from "./ui.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
-import { pointerFollows } from "./keynav.js";
+import { pointerFollows, focusOpened } from "./keynav.js";
 import { redraw } from "./redraw.js";
 
 export const LP_ICON = {
@@ -338,7 +338,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const fed = img === "failed" ? "err" : inst === "starting" || img === "building" ? "flow" : img === "ready" && (inst === "ready" || inst === "starting") ? "feed" : "ghost";
     const toAddr = on ? "ok" : "ghost", toApp = on && inst === "ready" ? "ok" : inst === "failing" ? "err" : "ghost";
     // the panel: the same system as one row of four small lit nodes (the demo's mini flow), what matters under it
-    const node = (st, icon, label, title, cls = "") => `<span class="lpm-n ${st}${cls}" title="${esc(title)}"><i class="lpm-t">${icon}${st === "starting" || st === "building" ? '<i class="arc"></i>' : ""}</i><b>${label}</b></span>`;
+    const node = (st, icon, label, title, cls = "") => `<span class="lpm-n ${st}${cls}" title="${esc(title)}"><i class="lpm-t">${icon}${st === "starting" || st === "building" ? ARC : ""}</i><b>${label}</b></span>`;
     const mline = (cls) => `<span class="lpm-l ${cls}" aria-hidden="true"></span>`;
     const appTitle = `${f.name || c.app?.name || nameOf(p)}: ${instWord}`;
     const detail = mode === "live" && real
@@ -494,7 +494,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   function runHtml(p) {
     const s = proj(p), r = s.run, name = esc(s.form.name || nameOf(p));
     if (r.undo) return hero("Starting", `Deploying ${name} in <span class="lp-count" data-until="${r.undo}">${Math.max(1, Math.ceil((r.undo - Date.now()) / 1000))}</span> s.`, "work") + system(p, "run") +
-      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="undo">${ICON.rewind || ICON.retry}<span>Undo</span></button></div>`;
+      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="undo">${ICON.undo}<span>Undo</span></button></div>`;
     const on = NODES.find((n) => r.steps[n]?.state === "doing") || "repo", rel = r.steps.release || {};
     const word = { repo: "Pushing", build: "Building", release: `Rolling out${r.release ? ` #${r.release}` : ""}`, live: "Going live" }[on];
     const sentence = on === "release" && rel.of
@@ -533,7 +533,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     return hero(tone === "go" ? "Live" : words, sentence, tone) + askedHtml(p) +
       system(p, "live") + (s.run?.live ? warnHtml(s) : "") +
       `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button>${appUrl ? `<a class="lp-b" href="${esc(appUrl)}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` : ""}` +
-      `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More"><button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
+      `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More" tabindex="-1"><button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
   }
 
   function failedHtml(p) {
@@ -567,7 +567,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (mine.held) return { k: "idle", word: mine.held };
     return { k: "idle", word: "Not working right now" };
   }
-  const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? '<i class="arc"></i>' : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;
+  const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? ARC : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;
   /** The thread an Ask (from a failed deploy) started: its row, with what it means for deploying. */
   function askedHtml(p) {
     const s = proj(p), g = s.asked;
@@ -939,7 +939,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const inside = !open && !!S.body?.querySelector(".lp-mn")?.contains(document.activeElement);
     if (inside) land('[data-lp="menu"]'); // its item goes with it: focus back on More
     s.menu = open; changed();
-    if (open && focusIn) requestAnimationFrame(() => S.body?.querySelector('.lp-mn [role="menuitem"]')?.focus({ preventScroll: true }));
+    if (open && focusIn) requestAnimationFrame(() => focusOpened(S.body?.querySelector('.lp-mn'), focusIn === true ? undefined : focusIn));
   }
 
   /** A copy that says "Copied" only once the text is on the clipboard (util.copyText), and only for 1.5 s from that
@@ -952,7 +952,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     clearTimeout(S.copiedT); S.copiedT = setTimeout(changed, 1600); // the latest Copy's 1.5 s, not the first's
   }
 
-  function act(name, el) {
+  function act(name, el, e) {
     const p = projectOf(S.v);
     if (!p) return;
     const s = proj(p);
@@ -1006,7 +1006,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "again": s.run = null; s.form.errs = {}; deploy(p, true); return; // the linked app, the same settings: 3 s, then it goes
       case "retry": s.run = null; deploy(p); return;
       case "copy": copied((s.run?.live || s.check.app).url, "the address", () => { s.copied = Date.now() + 1500; }, () => { s.copied = 0; }); return;
-      case "menu": menu(p, !s.menu, !s.menu); return;
+      case "menu": menu(p, !s.menu, !s.menu && (e || true)); return;
       case "unlink": {
         // Undo is real: Space unlinks (and commits launchpad.json) only once its 3 s are up
         s.menu = false; s.needs = null;
@@ -1077,7 +1077,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const b = e.target.closest("[data-lp]");
       if (!b || !section.contains(b)) { if (!e.target.closest(".lp-mw")) { const p = projectOf(S.v); if (p && proj(p).menu) menu(p, false); } return; }
       e.preventDefault();
-      act(b.dataset.lp, b);
+      act(b.dataset.lp, b, e);
     });
     section.addEventListener("input", (e) => {
       const p = projectOf(S.v), t = e.target;

@@ -61,7 +61,7 @@ t("one left edge: a one-group turn's files sit inside its line's block, as under
 });
 
 t("blocks and rows carry their keys, so what's new can arrive and a fold can glide", () => {
-  const think = { id: "th", type: "thinking", done: true, header: "Thought for 2s" };
+  const think = { id: "th", type: "thinking", done: true, header: "Thought for 2s", steps: ["Looking at the tree"] };
   const act = { id: "g0", type: "activity", done: false, header: "Running", rows: [row(0, "command", "ls", "running")] };
   const live = turnHtml({ ...turn("running"), id: "t9" }, [think, act]);
   assert.match(live, /class="tb tb-work is-live[^"]*" data-b="work:t9"/);
@@ -72,7 +72,7 @@ t("blocks and rows carry their keys, so what's new can arrive and a fold can gli
   const open = turnHtml({ ...turn("running"), id: "t9" }, [think, act], { open: { "work:t9": true } });
   assert.match(open, /data-b="th"/);
   assert.match(open, /data-b="g0"/);
-  const one = turnHtml({ ...turn("running"), id: "t9" }, [act], { open: { g0: true } });
+  const one = turnHtml({ ...turn("running"), id: "t9" }, [act], { open: { g0: true, "work:t9": true } });
   assert.match(one, /class="tb tb-act is-live is-unfolded has-rows"/, "a block pressed open says so");
 });
 
@@ -144,7 +144,7 @@ t("blocks keep the seq of their first frame, so the split follows the frames as 
 });
 
 t("tool rows keep call identity across progress, output and row-control changes", () => {
-  const render = (rows) => turnHtml(turn("running"), [{ id: "g", type: "activity", rows }], { open: { g: true } });
+  const render = (rows) => turnHtml(turn("running"), [{ id: "g", type: "activity", rows }], { open: { g: true, "work:t1": true } });
   const first = { call_id: 'read:"one', kind: "read", line: "Reading a file", status: "running", progress: { duration_ms: 1000 } };
   const ids = (html) => [...html.matchAll(/data-call-id="([^"]*)"/g)].map((m) => m[1]);
   assert.deepEqual(ids(render([first])), ["read:&quot;one"]);
@@ -181,7 +181,8 @@ t("a turn the agent ended itself (no_reply_needed) reads as finished: no Stopped
     assert.doesNotMatch(html, /tb-end|Stopped/);
     assert.doesNotMatch(html, /coordinator pass/);
     assert.doesNotMatch(html, /xo_comms|no_reply_needed/);
-    assert.match(html, /Nothing to add/);
+    // "Nothing to add" is the books, not news: the turn shows no line
+    assert.doesNotMatch(html, /Nothing to add/);
   }
 });
 
@@ -198,10 +199,17 @@ t("while it runs, what the agent writes after choosing to say nothing doesn't sh
 
 t("a turn someone stopped says where, in words: an XO call as what it was doing, other steps as code", () => {
   const stopped = (last_step) => turnHtml({ ...turn("stopped"), stopped: { by: "founder", last_step } }, [answer]);
-  assert.match(stopped("`ask` on `xo_comms`"), /■ Stopped while asking a question</);
+  assert.match(stopped("`ask` on `xo_comms`"), /data-xi="stop".*<span>Stopped while asking a question<\/span>/);
   assert.doesNotMatch(stopped("`ask` on `xo_comms`"), /xo_comms|`/);
   assert.match(stopped("Run `npm test`"), /Stopped after “Run <code[^>]*>npm test<\/code>”/);
-  assert.match(stopped(null), /■ Stopped</);
+  assert.match(stopped(null), /data-xi="stop".*<span>Stopped<\/span>/);
+});
+
+t("while it runs, the line under Working is the step it's on, said once (the owner, 21 Nov: \"this duplication\")", () => {
+  const run = { call_id: "c", kind: "command", line: "Retake the after shots", status: "running" };
+  const html = turnHtml(turn("running"), [{ id: "g", type: "activity", rows: [run], header: "Retake the after shots" }], { open: {} });
+  assert.equal(html.match(/Retake the after shots/g).length, 1);
+  assert.doesNotMatch(html, /class="tb-n"/);
 });
 
 t("no XO tool's name reaches a row or a header: unknown ones are said generally", () => {
@@ -209,7 +217,7 @@ t("no XO tool's name reaches a row or a header: unknown ones are said generally"
   const odd = { call_id: "o", kind: "mcp", tool: "mcp__xo_comms__frobnicate", target: "xo_comms/frobnicate", line: "`frobnicate` on `xo_comms`", status: "ok" };
   const note = { call_id: "w", kind: "notice", line: "Retrying", status: "ok" };
   // a group that isn't all XO calls keeps the server's header: its XO call is put in words there too
-  const html = turnHtml(turn("running"), [{ id: "g", type: "activity", rows: [ask, odd, note], header: "`ask` on `xo_comms`" }], { open: { g: true } });
+  const html = turnHtml(turn("running"), [{ id: "g", type: "activity", rows: [ask, odd, note], header: "`ask` on `xo_comms`" }], { open: { g: true, "work:t1": true } });
   assert.doesNotMatch(html, /xo_comms|frobnicate|`/);
   assert.match(html, /Asking a question/);
   assert.match(html, /Used an XO tool/);
@@ -244,6 +252,56 @@ t("a turn that paused for the browser: no red lease rows, no made-up wake, no St
   // an earlier stretch of the same turn (cut where a message came) doesn't say it paused
   const early = segmentTurn(tw, { k: 0, last: false, from: 0, to: 1000, blocks: [] });
   assert.doesNotMatch(turnHtml(early, T.blocksOf(tw)), /Paused/);
+});
+
+const xo = (i, tool) => ({ call_id: `c:${i}`, kind: "mcp", status: "ok", tool: `mcp__xo_comms__${tool}`, line: tool, target: `mcp__xo_comms__${tool}` });
+const thought = (id, steps = []) => ({ id, type: "thinking", done: true, header: "Thought for 2s", steps });
+
+t("a turn that only kept the books (wrote to you, updated its checklist) shows no line; its words stay", () => {
+  const books = { id: "g0", type: "activity", done: true, header: "Wrote to you", rows: [xo(0, "reply"), xo(1, "update_status")] };
+  assert.equal(turnHtml(turn(), [thought("th0"), books]), "");
+  assert.doesNotMatch(turnHtml(turn(), [thought("th0"), books, answer]), /tb-work|tb-act|tb-think/);
+  assert.match(turnHtml(turn(), [thought("th0"), books, answer]), /Done\./);
+  // a real step, a thought with words, or a failed call keeps the line
+  assert.match(turnHtml(turn(), [books, { ...books, id: "g1", rows: [row(2, "command", "ls")] }]), /tb-work/);
+  assert.match(turnHtml(turn(), [thought("th0", ["Checking the cache"]), books]), /tb-work/);
+  assert.match(turnHtml(turn(), [{ ...books, rows: [{ ...xo(0, "reply"), status: "error" }] }]), /tb-act/);
+});
+
+t("only the tools that report what the page shows are the books: a wake, a lease or a job keeps its line", () => {
+  for (const tool of ["wake_me", "lease", "create_job", "cancel_job", "ask"]) {
+    const g = { id: "g0", type: "activity", done: true, header: tool, rows: [xo(0, "report"), xo(1, tool)] };
+    assert.match(turnHtml(turn(), [g, answer]), /tb-act|tb-work/, tool);
+  }
+});
+
+t("a finished turn of only empty thoughts draws nothing to open", () => {
+  assert.equal(turnHtml(turn(), [thought("th0"), thought("th1")]), "");
+  assert.doesNotMatch(turnHtml(turn(), [thought("th0"), thought("th1"), answer]), /tb-work|tb-think/);
+});
+
+t("a live turn that has only written words so far keeps its working line, under them", () => {
+  const words = { id: "x0", type: "text", done: false, text: "Looking now." };
+  const html = turnHtml(turn("running"), [words]);
+  assert.equal((html.match(/class="dots"/g) || []).length, 1);
+  assert.ok(html.indexOf("Looking now.") < html.indexOf('class="dots"'), "the line sits under the words");
+});
+
+t("opened, a turn's line leaves out thoughts with nothing to read", () => {
+  const act = { id: "g0", type: "activity", done: true, header: "Ran a command", rows: [row(0, "command", "ls")] };
+  const html = turnHtml(turn(), [thought("th0"), act, thought("th1", ["Weighing two fixes"])], { open: { "work:t1": true } });
+  assert.match(html, /data-b="th1"/);
+  assert.doesNotMatch(html, /data-b="th0"/);
+});
+
+t("while it runs, the turn's one cue is the dots on its line, with the wave on its words", () => {
+  const act = { id: "g0", type: "activity", done: false, header: "Running a command", rows: [{ ...row(0, "command", "ls"), status: "running" }] };
+  const html = turnHtml(turn("running"), [act]);
+  assert.equal((html.match(/class="dots"/g) || []).length, 1);
+  assert.match(html, /tb-wh"[^>]*>[^]*?<i class="dots"[^]*?<span class="tb-ht shimmer">Working/);
+  // waiting on you: no dots, no wave
+  const ask = { ...act, rows: [{ ...act.rows[0], waiting: true }] };
+  assert.doesNotMatch(turnHtml(turn("running"), [ask]), /class="dots"|tb-ht shimmer/);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

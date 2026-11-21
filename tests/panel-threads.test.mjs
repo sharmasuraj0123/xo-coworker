@@ -43,8 +43,8 @@ assert.equal(threadState({ id: "e", state: "working", frozen: true }, needs), "d
 // arc and its number, the needs-you mark and its number; one 32 control (.tw-act) among the actions; opens Threads
 assert.match(app, /class="tw-act th-ctl" data-stage-open aria-controls="stage" title="\$\{esc\(words\)\}: open them in the panel"/);
 assert.match(app, /\$\{ICON\.threadOne\}<span class="th-w">Threads<\/span><span class="th-n">\$\{n\}<\/span>\$\{live\}/);
-assert.match(app, /g-working" aria-hidden="true"><\/i><span class="pj-k">\$\{by\.working\}/);
-assert.match(app, /g-needs_reply" aria-hidden="true"><\/i><span class="pj-k">\$\{by\.needs\}/);
+assert.match(app, /\$\{stateMark\("working"\)\}<span class="pj-k">\$\{by\.working\}/);
+assert.match(app, /\$\{stateMark\("needs_reply"\)\}<span class="pj-k">\$\{by\.needs\}/);
 assert.match(app, /\(pv \? S\.hdrCtl \+ LP\.button\(v, STAGE\.launchOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
 assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
 const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");

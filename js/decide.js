@@ -17,7 +17,7 @@ import { esc, WAITING } from "./world.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
 import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
-import { ICON, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
+import { ICON, stepMark, xi, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
@@ -31,7 +31,6 @@ import { redraw } from "./redraw.js";
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = ICON.stampAllow;
 const BIG_BACK = ICON.stampBack;
-const MARK = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
 // capitalise a plain lowercase sentence ("the agent asks…"), never a name or a path ("perm-test.txt")
 // a sentence starting with a command ("git push…", "npm install…") stays as written
 const COMMANDS = new Set(["git", "npm", "npx", "pnpm", "yarn", "bun", "deno", "node", "python", "python3", "pip", "pip3", "uv", "rm", "mv", "cp", "ls", "cd", "cat", "curl", "wget", "docker", "kubectl", "cargo", "rustc", "sudo", "chmod", "chown", "mkdir", "touch", "sed", "awk", "grep", "ssh", "scp", "tar", "brew", "apt", "gh", "terraform"]);
@@ -431,7 +430,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   function detailsHtml(n, ev) {
     const t = n.t;
     const msgs = t.messages.slice(-2);
-    const ck = t.checklist.items.map((i) => `<li class="ck ck-${i.state}"><span class="ck-m" aria-hidden="true">${MARK(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
+    const ck = t.checklist.items.map((i) => `<li class="ck ck-${i.state}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
     return `<div class="dt">` +
       `<div class="dt-main">${changeBlock(ev.change)}` +
       `<p class="dt-why">${esc(ev.why)}</p>` +
@@ -450,7 +449,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     const t = n.t, a = n.ask;
     const { md, more } = excerptMarkdown(a.full || a.detail || "", 600);
     const items = [...t.checklist.items].sort((x, y) => (x.state === "done") - (y.state === "done"));
-    const ck = items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${MARK(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("");
+    const ck = items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("");
     const main = md ? `<div class="prose dt-ex${more ? " is-more" : ""}">${renderMarkdown(md)}</div>${more ? `<button type="button" class="dt-more" data-act="thread" title="Open the thread${K.hint("open")}">The rest is in the thread ${ICON.chevron}</button>` : ""}` : `<p class="dt-why">Open the thread to see what it needs.</p>`;
     return `<div class="dt"><div class="dt-main">${main}</div>` +
       (items.length ? `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>${t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : ""}</div>` : "") + `</div>`;
@@ -474,7 +473,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     // the why is the card's own line; Details repeats it only where the line shows facts instead
     const why = it.why && n.risk === "destructive" ? `<p class="dt-why">${esc(cap(it.why))}</p>` : "";
     const t = n.t;
-    const ck = t.checklist.items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${MARK(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
+    const ck = t.checklist.items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
     return `<div class="dt"><div class="dt-main">${blocks}${why}${facts}${notes}</div>` +
       (t.host ? "" : `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>${t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : ""}</div>`) + `</div>`;
   }
@@ -1010,7 +1009,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     toast.className = `toast t-${deny ? "back" : "allow"}`;
     toast.hidden = false;
     toast.innerHTML = `<span class="t-ic">${deny ? ICON.rewind : ICON.check}</span><span class="t-m"><b>${esc(it.meta.verb)}</b> <span>${esc(it.meta.label)}</span></span>` +
-      `<button type="button" class="t-undo" title="Undo"><svg class="t-ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" style="animation-duration:${left}ms"/></svg>Undo</button>`;
+      `<button type="button" class="t-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
     toast.querySelector(".t-undo").addEventListener("click", () => queue.undo(it.id));
   }
 

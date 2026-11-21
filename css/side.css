@@ -7,7 +7,7 @@
    Corners, measured (they were 13, 9, 11, 11, 16 and 8): Plan F's scale, nested ones computed.
    · Rows (Home…Artifacts, projects; 42 tall) are cards: --r-lg (12).
    · Their 28px tiles sit 7px in (1px line + 6px padding): 12 − 7 = 5.
-   · Controls (Find a project 34, Shells and Settings 32, the + 28): --r (8). The +'s hover tile sits
+   · Controls (Shells and Settings 32, the + 28): --r (8). The +'s hover tile sits
      2px in: 8 − 2 = 6. Round things (the theme switch) stay round.
    · Focus follows the shape it's on (it used to flatten every corner to 6).
    Edges: every row, the find field and the foot start 12px in (the nav rows were 10).
@@ -21,27 +21,23 @@
    Weights 400–600; motion --d-move on --ease. */
 
 .nav{padding:4px 12px 0}
-/* the tile sits 7 px from the row's top, bottom and left alike (1 px line + 6 px padding), so 12 − 7 = 5
-   is concentric on every side (the left was 8, one pixel off: the corner checker, 4 Nov) */
-.nrow,.prow{border-radius:var(--r-lg);padding-left:6px}
-.nr-ic,.pr-ic{border-radius:calc(var(--r-lg) - 7px)}
-.side-find,.side .gear,.side-plus{border-radius:var(--r)}
-.side :is(.nrow,.prow):focus-visible{border-radius:var(--r-lg)}
-.side :is(.side-find,.gear,.side-plus):focus-visible{border-radius:var(--r)}
+.side .gear,.side-plus{border-radius:var(--r)}
+.side :is(.nrow,.prow):focus-visible{border-radius:var(--nest-r)}
+.side :is(.gear,.side-plus):focus-visible{border-radius:var(--r)}
 
 .prow:not(.busy):not(.needs):not(.is-on){background:transparent;border-color:transparent;box-shadow:none}
 .prow:not(.busy):not(.needs):not(.is-on):hover{background:var(--row-hover)}
 .prow:not(.is-on) .pr-name{color:var(--ink-2)}
 .prow:not(.is-on):hover .pr-name,.prow.is-on .pr-name{color:var(--ink)}
-.prow.is-on .pr-name{font-weight:var(--fw-strong)}
+.prow.is-on .pr-name{font-weight:var(--fw-medium)}
 
 /* the open project: the one raised card */
 .prow.is-on{background:color-mix(in srgb,var(--ink) 8%,var(--sb-side));border-color:color-mix(in srgb,var(--ink) 11%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 7%,transparent),0 6px 14px -10px rgb(0 0 0 / .7),0 1px 2px rgb(0 0 0 / .3)}
 .prow.is-on.busy{background:color-mix(in srgb,var(--info) 12%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:color-mix(in srgb,var(--info) 50%,transparent)}
-.prow.is-on.needs{background:color-mix(in srgb,var(--warn) 13%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:color-mix(in srgb,var(--warn) 52%,transparent)}
+.prow.is-on.needs{background:color-mix(in srgb,var(--warn) 13%,color-mix(in srgb,var(--ink) 7%,var(--sb-side)));border-color:transparent}
 :root[data-theme="light"] .prow.is-on{background:var(--surface);border-color:rgba(0,0,0,.07);box-shadow:var(--sb-lift-2)}
 :root[data-theme="light"] .prow.is-on.busy{background:color-mix(in srgb,var(--info) 6%,var(--surface));border-color:color-mix(in srgb,var(--info) 30%,transparent)}
-:root[data-theme="light"] .prow.is-on.needs{background:color-mix(in srgb,var(--warn) 7%,var(--surface));border-color:color-mix(in srgb,var(--warn) 32%,transparent)}
+:root[data-theme="light"] .prow.is-on.needs{background:color-mix(in srgb,var(--warn) 7%,var(--surface));border-color:transparent}
 /* a row in a state (working, needs you, the one you're on) answers hover too: its wash is the stronger rule, so the
    row's own hover never showed (the controls grader on 999f408, C008: a needs-you project row, and the current nav
    row, the same hovered as at rest). One layer over whatever wash the state has, a step toward the ink in either
@@ -52,7 +48,7 @@
    over a row's quiet wash, and the press fill over that when held; a chosen row, two press veils over its hover's. Their
    3.5–4% wash alone read 0% of the box by the graders' bar (a pixel past 30 RGB-sum over ≥10% of it), held 4–9% (the
    state sweep on 7137115). The press layer names the rows out for this (css/foundation.css); tests/press-reach.test.mjs */
-:root:root .side :is(.nrow,.prow):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
+:root:root .side :is(.nrow,.prow):not([role=menuitem]):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root:root .side :is(.nrow,.prow):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(color-mix(in srgb,var(--ink) 6%,transparent),color-mix(in srgb,var(--ink) 6%,transparent))}
 
@@ -78,7 +74,7 @@
 /* ── The top that scales, More, and folding to a rail (the owner, 19 Nov) ─────────────────────────────────────
    Top row: fold (where the eye starts) · the brand · search / jump. Its controls sit on the rows' 12 px edge.
    More: every further place arrives there, so the list never outgrows a screen; a place you pin joins the rows.
-   Its popover is the sidebar's own rows in a float: 20 = the rows' 12 + its 8 inset, so they're concentric.
+   Its popover is a menu like every other (the --menu-* tokens); the sidebar editor keeps the rows' own 40 at --r-xl.
    Folded (desktop only; a phone's sidebar is a drawer): the same rows with their words hidden, 64 wide
    (--side-rail-w); and no border or ring round a working or waiting project there (the owner, 19 Nov 11:54:
    only when it's minimised; the open sidebar keeps them). */
@@ -88,11 +84,17 @@
 .side-ib:hover,.side-ib:focus-visible{color:var(--ink)}
 .side-ib svg{width:var(--s-4);height:var(--s-4)}
 .gear.is-ic{width:var(--h-ctl);padding:0;justify-content:center}
+.gear.sh-tog:has(.sh-n:not(:empty)){width:auto;padding-inline:var(--s-2)}
 .nv-pins{display:contents}
 .side-pop{position:fixed;z-index:var(--z-popover);left:calc(var(--pop-x) + var(--s-2));top:calc(var(--pop-y) - var(--s-2));display:flex;flex-direction:column;min-width:calc(6 * var(--h-row));padding:var(--s-2);border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:msg-in var(--d-pop) var(--ease)}
 .side-pop[hidden]{display:none}
 .sm-row{position:relative}
-.sm-row .nrow{padding-right:calc(var(--h-sm) + var(--s-3))}
+.side-pop .nrow{--nest-r:var(--r-pop-row)}
+.side-pop[role=menu]{min-width:var(--menu-w);padding:var(--menu-pad);border-radius:var(--r-menu)}
+.side-pop[role=menu] .nrow{gap:var(--s-2);min-height:var(--menu-row);padding:0 var(--s-2)}
+.side-pop[role=menu] .nr-ic{width:var(--ic);height:var(--ic);background:none;border:0}
+.side-pop[role=dialog] .nrow{--nest-r:var(--r-xl-in)}
+.sm-row .nrow{padding-right:calc(var(--h-sm) + var(--s-2))}
 .sm-pin{position:absolute;right:var(--s-2);top:50%;translate:0 -50%;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);opacity:0;transition:opacity var(--d-hover) var(--ease)}
 .sm-pin svg{width:var(--s-3);height:var(--s-3)}
 .sm-row:hover .sm-pin,.sm-row:focus-within .sm-pin,.sm-pin[aria-pressed="true"]{opacity:1}
@@ -100,10 +102,11 @@
 @media (min-width:761px){
   .app.side-folded{--side-w:var(--side-rail-w)}
   .side-folded .side-top{flex-direction:column;justify-content:center;height:auto;gap:var(--s-1);padding:var(--s-3) 0 var(--s-2)}
-  .side-folded :is(.brand,.side-label,.side-find,.nr-name,.nr-q,.pr-main,.sh-n,.gear-t){display:none}
+  .side-folded :is(.brand,.side-label,.nr-name,.nr-q,.pr-main,.sh-n,.gear-t){display:none}
   .side-folded :is(.nrow,.prow){width:var(--h-row);padding:0;justify-content:center;gap:0}
   /* Home's count rides on its tile's corner */
-  .side-folded .nr-n:not(:empty){position:absolute;top:0;right:0;padding:0 var(--s-1);border-radius:var(--r-pill);background:var(--sb-side)}
+  .side-folded .nr-n:not(:empty){position:absolute;top:calc(var(--s-1) / 2);right:calc(var(--s-1) / 2);justify-content:center;min-width:var(--s-4);height:var(--s-4);padding:0 var(--s-1);border-radius:var(--r-pill);background:var(--warn);color:var(--sb-side);font-size:var(--fs-meta);box-shadow:0 0 0 calc(var(--s-1) / 2) var(--sb-side)}
+  .side-folded .nr-n .nv-dot{display:none}
   :root:root:root .side-folded .prow{border-color:transparent;box-shadow:none}
   :root:root:root .side-folded .prow:not(.is-on){background:transparent}
   :root:root .side-folded .prow::before{display:none}
@@ -120,11 +123,11 @@
    ends with "Edit the sidebar…"; editing, the same popover lists every place in its order: a grip (drag it, or
    ↑ ↓ on it), the place's own icon and name, and a switch: on, it's a row of the bar; off, it waits in More.
    Rows are the sidebar's own (40, r 12) inside the popover's 8, so 20 = 12 + 8 still holds. */
-.sm-sep{margin:var(--s-1) var(--s-3);border-top:1px solid var(--line-soft)}
+.sm-sep{margin:var(--s-1) var(--s-2);border-top:1px solid var(--line-soft)}
 .side-pop[role="dialog"]{min-width:calc(7 * var(--h-row))}
 .se-h{display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-2) var(--s-3) var(--s-3)}
-.se-h b{font:var(--fw-strong) var(--fs-body)/var(--lh-body) var(--sans);color:var(--ink)}
-.se-h span{font:var(--fw-regular) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+.se-h b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.se-h span{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .se-list{list-style:none;display:flex;flex-direction:column}
 .se-row{position:relative;display:flex;align-items:center;gap:var(--s-3);height:var(--h-row);padding:0 var(--s-2) 0 var(--s-1);border-radius:var(--r-lg)}
 .se-row:hover{background:var(--hover-fill)}
@@ -143,8 +146,8 @@
 
 /* ── A project's icon, yours to choose (the owner, 19 Nov 14:44Z): its header tile opens the picker, More's popover
    in shape: "Automatic" (its own guess, marked A) first, then the owner's topics and the cube, 32 tiles 8 apart */
-.pj-pick{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);margin:calc(-1 * var(--s-1) / 2);border-radius:var(--r)}
-.pj-pick:hover .tw-ic,.pj-pick[aria-expanded="true"] .tw-ic{border-color:var(--line-strong);color:var(--ink)}
+.pj-pick{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);margin:calc((var(--lh-title) - var(--h-ctl)) / 2) calc(-1 * var(--s-1) / 2);border-radius:var(--r)}
+.pj-pick:hover .tw-ic,.pj-pick[aria-expanded="true"] .tw-ic{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .pk-pop{left:var(--pop-x);top:var(--pop-y);width:calc(8 * var(--tile) + 7 * var(--s-2) + 2 * var(--s-3) + 2 * var(--s-2))}
 .pk-grid{display:grid;grid-template-columns:repeat(8,var(--tile));gap:var(--s-2);padding:0 var(--s-3) var(--s-3)}
 .pk-o{display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r);border:1px solid transparent;color:var(--ink-3)}
@@ -152,4 +155,4 @@
 .pk-o.is-on{border-color:var(--line-strong);background:var(--fill-2);color:var(--ink)}
 .pk-o svg{width:var(--ic);height:var(--ic)}
 .pk-auto{position:relative;display:grid;place-items:center}
-.pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-strong) var(--fs-xs)/1 var(--sans);font-style:normal;color:var(--ink-4)}
+.pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-medium) var(--fs-meta)/1 var(--sans);font-style:normal;color:var(--ink-4)}

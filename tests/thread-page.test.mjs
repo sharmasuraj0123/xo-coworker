@@ -33,13 +33,13 @@ assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
 assert.match(storm, /watchSideThread: \(ts\) => \{ watched\.side = ts \|\| null;/);
 // opening: beside a chat, from the panel's rows; ⌘/Ctrl-click or elsewhere: today's full page
 const ofp = app.slice(app.indexOf("function openFromPanel("), app.indexOf("\n}\n", app.indexOf("function openFromPanel(")));
-assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\);/);
+assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\),/);
 assert.match(ofp, /!\(e && \(e\.metaKey \|\| e\.ctrlKey\)\)/);
-assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); return;/);
+assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); if \(msg\) showMsg\(msg, TP\.C\); return;/);
 assert.match(app, /const STAGE = createStage\(\{[^\n]*go: \(v, e\) => openFromPanel\(v, e\)/);
 assert.match(app, /if \(g && !t\.closest\("#all"\) && !t\.closest\("#stage"\)\)/, "the panel's own links are the panel's");
 // Open full width: its own page, as today
-assert.match(app, /data-tp-full="\$\{esc\(t\.id\)\}"/);
+assert.match(app, /data-tp-main="\$\{esc\(t\.id\)\}"/);
 // CSS: the panel's reading column, tokens only
 const block = css.slice(css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
@@ -51,7 +51,10 @@ console.log("thread-page: ok");
   const a = app;
   for (const re of [/if \(t\.closest\("\[data-older\]"\)\) \{ loadOlderNow\(convAt\(t\)\); return; \}/, /stopRun\(convAt\(t\)\.view\)/, /interruptRun\(convAt\(t\)\.view\)/,
     /editFailed\(ed\.dataset\.edit, composerAt\(ed\)\)/, /S\.tbToggled = \{ k, open: S\.tbOpen\[k\], focus: [^\n]*, in: tc\.msgs \};/, /const cv = convAt\(cf\), c = CHG\.forTarget\(cv\.view, cf\.dataset\.file\);/,
-    /:is\(#thead,#tpthead\) \[data-runs\]/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
+    /t\.closest\(\"\.thead \[data-runs\]\"\)/, /t\.closest\(\"\.thead \[data-run\]\"\)/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
+  // sub-agents open from either head, and closing goes back to the head that opened them
+  assert.doesNotMatch(a, /#thead \[data-runs?\]/);
+  assert.match(a, /RS\.head = \(convAt\(RS\.returnTo\) === MAIN \? \$\("#thead"\) : \$\("#tpthead"\)\);/);
   // what it asks you: decided in place, the chat's own card docked over its composer, with its Undo
   // what it asks you: the chat's own dock over the page's element (one code path, the owner 19 Nov 17:52Z): its
   // card, its fold to a slim line and back (⌄, a drag), its Undo
@@ -99,7 +102,7 @@ assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
 assert.match(app, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
 assert.match(app, /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
-assert.match(app, /where === "page" \? item\(`data-tp-full="\$\{esc\(t\.id\)\}"`, "Open as its own page"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
+assert.match(app, /where === "page" \? item\(`data-tp-main="\$\{esc\(t\.id\)\}"`, "Open in main chat"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
 assert.match(app, /render\(\); \/\/ drawn now, in the click/);
 // one ⤢ in the head (the panel's full size); the thread's own page is "Open as its own page" in its ⋯ (the owner, 20 Nov:
 // two ⤢ did different things)
@@ -119,14 +122,14 @@ console.log("thread-page menu: ok");
 for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(app, new RegExp(`id="${id}"`), id);
 assert.match(app, /wireTray\(TP\.K\);/);
 assert.match(app, /wireTray\(MK\);/);
-assert.match(app, /addFiles\(e\.dataTransfer\.files, TP\.K\)/);
+assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/, "a drop on the page: the app's one drop, into its composer");
 assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
-assert.match(app, /IQ\.open\(sid, TP\.K\.iq\)/);
+assert.match(app, /toggleIq\(sessionOf\(tpView\(\)\), TP\.K\.iq\)/);
 console.log("thread-page files and model: ok");
 // a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
 // 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
 { const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8"), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
-  assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-2\) var\(--hg\) 10px;/);
+  assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-1\) var\(--hg\) var\(--s-2\);/);
   assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
   console.log("thread-page checklist gap: ok"); }
@@ -142,7 +145,19 @@ console.log("thread-page files and model: ok");
   assert.match(body, /document\.body\.append\(qpop\); gone\.push\(\(\) => qpop\.remove\(\)\);/);
   assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) gone\.pop\(\)\(\); \} \};/);
   assert.match(ap, /TP\.deco = decorateConversation\(/);
-  assert.match(ap, /TP\.dockRO = new ResizeObserver\(/);
+  assert.match(ap, /TP\.dockRO = watchDock\(els\.dock, box\);/);
   assert.match(ap, /function tpClose\(\) \{/);
   assert.doesNotMatch(ap, /function tpUnmount\(/, "the page is never torn down and rebuilt");
   console.log("thread-page teardown: ok"); }
+// Open in main chat, left of the state badge (the owner, 21 Nov): the header's filled control, the owner's icon from the pack;
+// the thread takes the main chat with its usual entrance and the panel's page goes back
+{ const ui = readFileSync(new URL("../js/ui.js", import.meta.url), "utf8");
+  const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  assert.match(ui, /toMain: xi\("open-in-main"\),/);
+  assert.match(app, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
+  assert.match(app, /if \(!still\) el\.classList\.add\(/);
+  assert.match(app, /function toMain\(id\) \{\n  closeThreadMenu\(\{ focus: false \}\);\n  STAGE\.closePage\("thread"\); go\("t:" \+ id, \{ panel: true \}\);\n\}/);
+  assert.doesNotMatch(app, /startViewTransition/, "no pictures of the thread are morphed: nothing zooms or seems to scroll");
+  assert.doesNotMatch(appCss, /view-transition/);
+  assert.doesNotMatch(app, /data-tp-full/); }
+console.log("thread-page open in main: ok");

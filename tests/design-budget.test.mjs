@@ -61,8 +61,8 @@ t("line heights are whole pixels", () => {
 t("radii come from the scale", () => {
   const vals = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.split(/\s+/));
   // a nested corner may be computed from its container's: calc(var(--r-lg) - 1px) is inner = outer − inset
-  const vals2 = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.replace(/calc\(var\(--r(?:-[\w]+)?\)\s*-\s*\d+px\)/g, "var(--r)").split(/\s+/));
-  const bad = [...new Set(vals2.filter((v) => !/^var\(--r(?:-[\w]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
+  const vals2 = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.replace(/calc\(var\(--nest-r\)\s*-\s*var\(--nest-in\)\)/g, "var(--r)").replace(/calc\(var\(--r(?:-[\w]+)?\)\s*-\s*\d+px\)/g, "var(--r)").split(/\s+/));
+  const bad = [...new Set(vals2.filter((v) => !/^var\(--(?:r|nest-r)(?:-[\w-]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
   assert.deepEqual(bad, [], `radii off the scale: ${bad.join(", ")}`);
 });
 
@@ -74,6 +74,7 @@ t("one motion curve (and nothing overshoots)", () => {
     const [, y1, , y2] = m[1].split(",").map(Number);
     assert.ok(y1 <= 1 && y2 <= 1, `an overshooting curve in tokens.css: ${m[0]}`);
   }
+  assert.doesNotMatch(tokens, /linear\(/, "no overshooting linear() curve");
 });
 
 t("no heavy shadows: floating things use var(--e2)", () => {

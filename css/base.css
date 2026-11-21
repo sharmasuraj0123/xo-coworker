@@ -5,18 +5,19 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-body)/var(--lh-body) var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
+body{background:var(--canvas);color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
-:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
 /* the ring has room wherever focus scrolls a control into view, by a Tab or a script's scrollIntoView: the browser
    brings a control only as far as its own edge, so at a scroller's foot the ring was cut off (the create-project
    grader on 65e84b7, S111/S112: Settings › Routing's Keep it and Disconnect flush with the foot, 3.56 px of the ring
    cut). Layout, not a smaller ring; zero specificity, and on controls only (a snapping list snaps its rows) */
 :where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-kbd{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
+.kb-ic{width:1em;height:1em;vertical-align:calc(var(--cap-mid) - .5em)}
+kbd{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
 /* ── Plan F · every control answers (design-research/2026-11-vision/direction) ──────────────────────
    One curve. A hover engages in 120 ms and releases in 200 ms; a press goes down in 60 ms. Transitions
    that a component declares read var(--d-hover), which is set here per state, so the asymmetry holds
@@ -27,6 +28,10 @@ kbd{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);padding:2px 5px;
    and every ancestor, and their children would inherit 120 ms, so nothing would ever release slowly */
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for],li:has(> button)):hover{--d-hover:var(--d-hover-in)}
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]):active{--d-hover:var(--d-press)}
+/* a menu's active item is its focused one (keynav.js pointerFollows): it moves at once, never fading, and needs no ring */
+[role=menu] :is([role=menuitem],[role=menuitemradio]){transition:none}
+[role=menu] :is([role=menuitem],[role=menuitemradio]):focus{background:var(--menu-focus);color:var(--ink);outline:none}
+[role=menu]{animation:float-in-down var(--d-out) var(--ease)}
 ::selection{background:rgba(var(--accent-rgb),.24)}
 
 /* ── Plan F · icons: one drawn weight at every size, square ends like a ruled line ─────────────────

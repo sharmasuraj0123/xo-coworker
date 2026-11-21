@@ -41,6 +41,11 @@ export function createFollow(els) {
     pinned = true;
     s.scrollTo({ top: s.scrollHeight, behavior: smooth && !reduced() ? "smooth" : "auto" });
   }
+  /** To the top, not following: a list (Chats) reads from its newest, at its top. */
+  function toTop() {
+    pinned = false; held = false;
+    sc().scrollTop = 0; lastTop = 0;
+  }
   /** You've chosen something to read where it is: growth no longer carries the view. Given the row you acted on
    *  (or anything in it: a file chip opening the panel), that row is the one held if the view changes width,
    *  until you scroll; else the row at the top of the view (a fold you opened). */
@@ -136,7 +141,7 @@ export function createFollow(els) {
   }
   /** Its observers go with its conversation (a thread page closed). */
   function destroy() { ro?.disconnect(); ro = null; if (onScroll) sc()?.removeEventListener("scroll", onScroll); onScroll = null; }
-  return { fromLatest, fromTop, isPinned, toLatest, unpin, toRow, init, destroy };
+  return { fromLatest, fromTop, isPinned, toLatest, toTop, unpin, toRow, init, destroy };
 }
 
 // the main conversation's follower (#conv): what app.js and msgx.js have always called
@@ -145,6 +150,7 @@ export const fromLatest = () => MAIN.fromLatest();
 export const fromTop = () => MAIN.fromTop();
 export const isPinned = () => MAIN.isPinned();
 export const toLatest = (smooth = false) => MAIN.toLatest(smooth);
+export const toTop = () => MAIN.toTop();
 export const unpin = (row) => MAIN.unpin(row);
 export const toRow = (el, smooth = false) => MAIN.toRow(el, smooth);
 export function initFollow() { MAIN.init(); }

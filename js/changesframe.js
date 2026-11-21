@@ -14,7 +14,7 @@
 // wide. It reads js/changes.js; "Open in Files" goes through openFile.
 
 import { esc } from "./util.js";
-import { xi } from "./icon.js";
+import { xi, ARC } from "./icon.js";
 import { redraw } from "./redraw.js";
 import { fileIcon } from "./fileicons.js";
 import * as DV from "./diffview.js";
@@ -115,7 +115,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
     const dir = dirOf(f.path), isLive = live.has(f.path);
     const sub = [dir, isLive ? "editing now" : f.status === "added" ? "new" : f.status === "deleted" ? "deleted" : f.status === "renamed" ? `from ${base(f.old_path)}` : ""].filter(Boolean).join(" · ");
     return `<li role="presentation"><button type="button" class="cx-r" role="option" aria-selected="false" data-cx="${esc(f.path)}" title="${esc(f.path)}">` +
-      `<span class="cx-i">${fileIcon(f.path)}${isLive ? '<i class="arc"></i>' : ""}</span><span class="cx-t"><span class="cx-n">${esc(base(f.path))}</span>${sub ? `<span class="cx-d">${esc(sub)}</span>` : ""}</span>` +
+      `<span class="cx-i">${fileIcon(f.path)}${isLive ? ARC : ""}</span><span class="cx-t"><span class="cx-n">${esc(base(f.path))}</span>${sub ? `<span class="cx-d">${esc(sub)}</span>` : ""}</span>` +
       `${countsHtml(f)}</button></li>`;
   }
 

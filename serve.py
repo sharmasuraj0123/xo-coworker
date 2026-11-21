@@ -29,14 +29,22 @@ What it adds: the UI's writer key (X-XO-UI-Writer, read from the file XO Space k
 two writes, saving a project file and undoing a save (WRITER_ROUTES), after its own same-origin check.
 A page can never send that header itself.
 
+Static files: index.html is rewritten as served so every local file it reaches sits under /v/<version>/
+(the tree's content hash), kept for a year; index.html is revalidated each visit. Text answers, static or
+proxied (not SSE), are gzipped when the browser accepts it.
+
 Standard library only.
 """
 
 from __future__ import annotations
 
+import gzip
+import hashlib
 import http.client
 import ipaddress
+import mimetypes
 import os
+import posixpath
 import re
 import socket
 import sys
@@ -281,6 +289,99 @@ def max_body(method: str, path: str) -> int:
     return MAX_UPLOAD if method == "POST" and UPLOAD.match(path.split("?", 1)[0]) else MAX_BODY
 
 
+# ── static files: one version for the whole tree, long-lived caching, gzip ──────────────────────────────
+# index.html is rewritten as served: its links point under /v/<version>/ and an import map sends every module
+# under ./js/ there too, so files under a version never change and are cached for a year; index.html itself is
+# revalidated (ETag) on every visit, so a deploy shows on the next load.
+VERSIONED = ("js", "css", "fonts", "presets", "assets")
+VERSION_PATH = re.compile(r"^/v/([0-9a-f]{12})(/(?:%s)/.*)$" % "|".join(VERSIONED))
+IMMUTABLE = "public, max-age=31536000, immutable"
+GZIP_TYPES = ("text/", "application/json", "application/javascript", "image/svg+xml", "application/xml")
+GZIP_MIN = 1024
+_SHA: dict[str, tuple[tuple, str]] = {}    # path → (stat stamp, sha1 of its bytes)
+_GZ: dict[str, tuple[tuple, bytes]] = {}   # path → (stat stamp, its gzip)
+
+
+def _stamp(st: os.stat_result) -> tuple:
+    return (st.st_ino, st.st_mtime_ns, st.st_size)
+
+
+def tree_version(root: str = ROOT) -> str:
+    """12 hex characters naming the static files' contents: any changed, added or removed file changes it."""
+    h = hashlib.sha1()
+    for top in VERSIONED:
+        for d, dirs, files in os.walk(os.path.join(root, top)):
+            dirs.sort()
+            for f in sorted(files):
+                path = os.path.join(d, f)
+                try:
+                    st = os.stat(path)
+                except OSError:
+                    continue
+                got = _SHA.get(path)
+                if not got or got[0] != _stamp(st):
+                    with open(path, "rb") as fh:
+                        got = (_stamp(st), hashlib.sha1(fh.read()).hexdigest())
+                    _SHA[path] = got
+                h.update(f"{os.path.relpath(path, root)}\0{got[1]}\n".encode())
+    return h.hexdigest()[:12]
+
+
+def versioned_index(html: str, version: str) -> str:
+    """index.html with its local links under /v/<version>/ and an import map doing the same for module imports."""
+    prefix = f"./v/{version}/"
+    html = re.sub(r'((?:href|src)=")\./(%s)/' % "|".join(VERSIONED), lambda m: f"{m[1]}{prefix}{m[2]}/", html)
+    imap = '<script type="importmap">{"imports":{"./js/":"%sjs/"}}</script>' % prefix
+    at = re.search(r"<meta charset=[^>]*>", html) or re.search(r"<head[^>]*>", html)
+    return html[:at.end()] + "\n  " + imap + html[at.end():] if at else imap + html
+
+
+def accepts_gzip(header: str | None) -> bool:
+    """True when Accept-Encoding allows gzip (not refused with q=0)."""
+    for part in (header or "").lower().split(","):
+        name, _, params = part.strip().partition(";")
+        if name.strip() in ("gzip", "*"):
+            q = re.search(r"q=([0-9.]+)", params)
+            return not q or float(q[1]) > 0
+    return False
+
+
+def gzippable(ctype: str, size: int) -> bool:
+    return size >= GZIP_MIN and ctype.split(";")[0].strip().lower().startswith(GZIP_TYPES)
+
+
+def gzipped(path: str, st: os.stat_result) -> bytes:
+    got = _GZ.get(path)
+    if not got or got[0] != _stamp(st):
+        with open(path, "rb") as fh:
+            got = (_stamp(st), gzip.compress(fh.read(), 6, mtime=0))
+        _GZ[path] = got
+    return got[1]
+
+
+_WARMED = {"version": None}
+
+
+def warm_gzip(version: str, root: str = ROOT) -> None:
+    """Gzip a new version's text files once, off the request path, so its first visit doesn't wait on it."""
+    if _WARMED["version"] == version:
+        return
+    _WARMED["version"] = version
+
+    def run():
+        for top in VERSIONED:
+            for d, _, files in os.walk(os.path.join(root, top)):
+                for f in files:
+                    path = os.path.join(d, f)
+                    try:
+                        st = os.stat(path)
+                        if gzippable(mimetypes.guess_type(path)[0] or "", st.st_size):
+                            gzipped(path, st)
+                    except OSError:
+                        pass
+    threading.Thread(target=run, daemon=True).start()
+
+
 class Handler(SimpleHTTPRequestHandler):
     server_version = "xo-chat-ui"
     protocol_version = "HTTP/1.1"
@@ -315,14 +416,80 @@ class Handler(SimpleHTTPRequestHandler):
             return self._tunnel()
         if self._is_api():
             return self._proxy()
-        return super().do_GET()
+        return self._static()
 
     def do_HEAD(self):
         if "Upgrade" in self.headers:
             return self._tunnel()
         if self._is_api():
             return self._proxy()
-        return super().do_HEAD()
+        return self._static()
+
+    # ── static ───────────────────────────────────────────────────────────────
+    _cache = "no-cache"
+
+    def _static(self):
+        self._cache = "no-cache"
+        path, _, query = self.path.partition("?")
+        if path in ("/", "/index.html"):
+            return self._index()
+        m = VERSION_PATH.match(posixpath.normpath(unquote(path)))
+        if path.startswith("/v/") and not m:
+            return self.send_error(404)
+        if m:
+            # an old version's URL gets today's file, revalidated rather than kept for a year
+            self._cache = IMMUTABLE if m[1] == tree_version() else "no-cache"
+            self.path = m[2] + ("?" + query if query else "")
+        file = self.translate_path(self.path)
+        ctype = self.guess_type(file)
+        try:
+            st = os.stat(file)
+        except OSError:
+            st = None
+        if st is None or not os.path.isfile(file) or not gzippable(ctype, st.st_size) \
+                or not accepts_gzip(self.headers.get("Accept-Encoding")):
+            return super().do_GET() if self.command == "GET" else super().do_HEAD()
+        etag = '"%x-%x-gz"' % (st.st_mtime_ns, st.st_size)
+        if self.headers.get("If-None-Match") == etag:
+            return self._not_modified(etag)
+        self._send_bytes(gzipped(file, st), ctype, etag, encoded=True,
+                         modified=self.date_time_string(int(st.st_mtime)))
+
+    def _index(self):
+        try:
+            with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as fh:
+                version = tree_version()
+                html = versioned_index(fh.read(), version)
+            warm_gzip(version)
+        except OSError:
+            return self.send_error(404)
+        body = html.encode()
+        etag = '"%s"' % hashlib.sha1(body).hexdigest()[:16]
+        if self.headers.get("If-None-Match") == etag:
+            return self._not_modified(etag)
+        encoded = accepts_gzip(self.headers.get("Accept-Encoding"))
+        self._send_bytes(gzip.compress(body, 6, mtime=0) if encoded else body, "text/html; charset=utf-8", etag,
+                         encoded=encoded)
+
+    def _not_modified(self, etag: str):
+        self.send_response(304)
+        self.send_header("ETag", etag)
+        self.send_header("Vary", "Accept-Encoding")
+        self.end_headers()
+
+    def _send_bytes(self, data: bytes, ctype: str, etag: str, encoded: bool, modified: str | None = None):
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        if encoded:
+            self.send_header("Content-Encoding", "gzip")
+        self.send_header("Vary", "Accept-Encoding")
+        self.send_header("ETag", etag)
+        if modified:
+            self.send_header("Last-Modified", modified)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
 
     def do_POST(self):
         if "Upgrade" in self.headers:
@@ -337,8 +504,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         if not self._is_api():
-            # Always revalidate static files so edits show up on reload.
-            self.send_header("Cache-Control", "no-cache")
+            # a versioned file is kept for a year; everything else is revalidated so edits show on reload
+            self.send_header("Cache-Control", self._cache)
         super().end_headers()
 
     def list_directory(self, path):  # no directory listings
@@ -426,10 +593,17 @@ class Handler(SimpleHTTPRequestHandler):
                 self._relay_stream(resp)
             else:
                 data = resp.read()
+                encode = (method != "HEAD" and resp.status == 200 and not resp.getheader("Content-Encoding")
+                          and gzippable(ctype, len(data)) and accepts_gzip(self.headers.get("Accept-Encoding")))
+                if encode:
+                    data = gzip.compress(data, 5, mtime=0)
                 self.send_response(resp.status, resp.reason)
                 for k, v in resp.getheaders():
                     if k.lower() not in DROP_RESPONSE:
                         self.send_header(k, v)
+                if encode:
+                    self.send_header("Content-Encoding", "gzip")
+                    self.send_header("Vary", "Accept-Encoding")
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 if method != "HEAD":

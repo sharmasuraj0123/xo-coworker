@@ -63,7 +63,7 @@ assert.doesNotMatch(appCss, /body\.viewer-open \.tdock\{display:none\}/);
 
 // one head: ‹ (one level back, named), the page's lead control, its title; the page's controls then the panel's
 const th = stage.slice(stage.indexOf("  function titleHtml("), stage.indexOf("  let nameOf"));
-assert.match(th, /const to = S\.under \? pageTitle\(S\.under\) : "Threads, Changes and Map"/);
+assert.match(th, /const to = sp\.backTo\?\.\(S\.page\.key\) \|\| \(S\.under \? pageTitle\(S\.under\) : "Threads, Changes and Map"\)/);
 assert.match(th, /return `\$\{back\}\$\{lead\}<b class="stg-name" title="\$\{esc\(title\)\}">\$\{esc\(title\)\}<\/b>`;/);
 assert.match(stage, /<div class="stg-acts"><span class="stg-pa"><\/span>/);
 assert.match(stage, /get slot\(\) \{ return el\.querySelector\("\.stg-pa"\); \},/);
@@ -82,7 +82,7 @@ assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\
 // inside the Shell page's terminal Esc is the shell's (vim), not the panel's: the stage's keys ask the shells' one rule
 // first (owns: inside #shd .xterm), as the app's keys do
 { const dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
-  assert.match(stage, /shell = null, owns = \(\) => false \}\) \{/);
+  assert.match(stage, /shell = null, owns = \(\) => false, place = \(\) => true \}\) \{/);
   assert.match(stage, /el\.addEventListener\("keydown", \(e\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(owns\(e\)\) return;/, "the terminal's keys before the panel's");
   assert.match(app, /createStage\(\{[^\n]*owns: \(e\) => SH\.owns\(e\) \}\);/);
   assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
@@ -97,3 +97,38 @@ assert.match(stage, /<span class="stg-pa"><\/span>\$\{openFiles \? `<button type
 assert.doesNotMatch(stage, /class="fr-ib" data-open-files/);
 assert.match(stage, /if \(t\.closest\("\[data-open-files\]"\)\) \{ if \(S\.page\?\.name === "files"\) back\(\); else openFiles && openFiles\(\); return; \}/);
 console.log("stage-pages width and All files: ok");
+// Home and Artifacts have no panel (the owner, 20 Nov): open elsewhere, it steps aside there and comes back at the next place
+assert.match(stage, /const placeless = \(\) => !place\(view\(\)\);/);
+// which places have a panel is one positive rule, the app's: a project's chat, the Workspace's, their threads
+assert.match(app, /const panelPlace = \(v\) => \/\^\(\?:ws\$\|\[pt\]:\)\/\.test\(v \|\| ""\);/);
+assert.match(app, /createStage\(\{ place: panelPlace,/);
+{ const panelPlace = (v) => /^(?:ws$|[pt]:)/.test(v || "");
+  for (const v of ["ws", "p:xo", "t:abc"]) assert.equal(panelPlace(v), true, v);
+  for (const v of ["home", "chats", "c:abc", "artifacts", "", undefined]) assert.equal(panelPlace(v), false, String(v)); }
+assert.doesNotMatch(stage.replace(/\/\/[^\n]*/g, ""), /"home"[^\n]*"artifacts"|"chats"/, "the stage names no place");
+// a place without a panel opens none: not by its button (there is none), a page, or a shortcut
+assert.match(stage, /function open\(\{ focus = true \} = \{\}\) \{\n\s*if \(placeless\(\)\) return;/);
+assert.match(stage, /if \(!sp \|\| placeless\(\)\) return false;/);
+assert.match(stage, /button\(v\) \{\n\s*if \(!place\(v\)\) return "";/);
+assert.match(stage, /if \(placeless\(\)\) \{ if \(S\.open\) \{ S\.resume = true; close\(\{ restore: false, quiet: true \}\); \} \}\n\s*else if \(S\.resume\) \{ S\.resume = false; open\(\{ focus: false \}\); \}/);
+assert.match(stage, /if \(saved\.open\) S\.resume = true;/);
+console.log("stage-pages home: ok");
+// the sections' head names no place (the owner, 20 Nov: the chat beside it already does); a page still shows its title
+assert.match(stage, /if \(!S\.page\) return ""; \/\/ the sections name no place/);
+console.log("stage-pages head: ok");
+// a head control keeps its full control size: in the title row a long title shrinks, never ‹ (the owner, 21 Nov: a sliver to click)
+assert.match(css, /\.stg-ic\{flex:none;display:grid;place-items:center;width:var\(--h-ctl\);height:var\(--h-ctl\);/);
+console.log("stage-pages head control size: ok");
+// ‹'s needs-you dot is the icon badge size, on the icon's corner (the owner, 21 Nov: too large)
+{ const tokens = readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8");
+  assert.match(tokens, /--badge-dot:calc\(var\(--ic\) \* 3 \/ 8\);/);
+  assert.match(css, /\.stage \.pg-dot\{position:absolute;top:calc\(\(var\(--h-ctl\) - var\(--ic\)\) \/ 2\);right:calc\(\(var\(--h-ctl\) - var\(--ic\)\) \/ 2\);width:var\(--badge-dot\);height:var\(--badge-dot\);/); }
+console.log("stage-pages back dot: ok");
+// Follow is its icon only: the agent at work shows once, as the live file's badge, never a second mark in the head
+{ const diffs = readFileSync(new URL("../css/diffs.css", import.meta.url), "utf8");
+  assert.match(stage, /class="xd-follow" data-follow hidden>\$\{ICON\.follow\}<\/button>/);
+  assert.doesNotMatch(stage + diffs, /xd-arc/);
+  // a head's controls never shrink: the panel head's group, a frame head's group
+  assert.match(css, /\.stg-acts\{flex:none;/);
+  assert.match(css, /\.fr-a\{flex:none;margin-left:auto;/); }
+console.log("stage-pages follow: ok");

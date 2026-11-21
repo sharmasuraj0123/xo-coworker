@@ -18,8 +18,8 @@ import { rules, context, decls, px } from "./lib/cascade.mjs";
 const ROOT = new URL("../", import.meta.url);
 // The type scale's tokens (css/tokens.css, 19 Nov) read back as the values these checks were written against, so a
 // size measured here is the same size whether a rule spells it or names its token
-const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-12)": "16px", "var(--lh-body)": "20px", "var(--lh-15)": "24px", "var(--lh-20)": "28px", "var(--lh-28)": "36px", "var(--lh-40)": "44px" };
-const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:12|body|15|20|28|40))\)/g, (m) => TYPE[m] || m);
+const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-meta)": "16px", "var(--lh-ui)": "20px", "var(--lh-read)": "24px", "var(--lh-title)": "24px", "var(--lh-heading)": "28px", "var(--lh-display)": "36px", "var(--lh-hero)": "44px" };
+const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:meta|ui|read|title|heading|display|hero))\)/g, (m) => TYPE[m] || m);
 const tokensCss = readCss(new URL("css/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 // the desktop's tokens: the :root block, not a phone's media query below it
 const desk = tokensCss.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
@@ -62,7 +62,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the census reads the controls (the graders' ten among them)", () => {
-  for (const k of [".nx-link", ".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".ch-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
+  for (const k of [".nx-link", ".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".chl-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
   assert.ok(ctl.size > 150, `${ctl.size} control classes`);
 });
 t("no desktop control is off the 24/32/40 scale, nor a row off its 40/48/56, but those listed for the next sweep", () => {
@@ -80,13 +80,12 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   // and its controls on the scale: 24, not 28 (C106, the Compact switch 46×28; the owner, 11 Nov 05:42Z)
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
   const app = readCss(new URL("css/app.css", ROOT), "utf8");
-  assert.match(app, /\.nrow,\.prow\{[^}]*min-height:var\(--h-row\);padding:5px 10px 5px 7px;/, "the sidebar's rows 40: 1 + 5 + its 28 px icon + 5 + 1, its left edge where it was");
+  assert.match(app, /\.nrow,\.prow\{[^}]*--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);/, "the sidebar's rows 40: 1 + 5 + its 28 px tile + 5 + 1, the same inset on its left");
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
   // 16.9 at line heights of 1.3 and 1.35)
-  assert.match(app, /\.ch-row\{[^}]*min-height:var\(--h-row-list\);padding:8px 14px;/, "Chats' rows 56: 1 + 8 + their two lines + 8 + 1");
-  assert.match(app, /\.ch-main\{[^}]*gap:2px\}/); assert.match(app, /\.ch-t\{font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.ch-m\{font-size:var\(--fs-sm\);line-height:16px;/, "20 + 2 + 16 = 38");
-  assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:500 var\(--fs-body\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
+  assert.match(app, /\.chl-row\{[^}]*height:var\(--h-row-act\);/, "Chats' rows 48: one line of titles");
+  assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:400 var\(--fs-ui\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
@@ -105,7 +104,7 @@ t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed f
   // none kept: the six a phone had kept from before the 8 px steps moved onto them (the owner, 11 Nov 05:42Z)
   const KEPT = {};
   const phoneCss = readCss(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const rows = /\.(nrow|prow|ch-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
+  const rows = /\.(nrow|prow|chl-row|hd-r|ar|ar-fold|ar-undo|syl-ln|ag-r|ch-r|tb-h|b-opt|set-row|iq-row|fl-r|cx-r|kr)\b/;
   const off = [];
   for (const m of phoneCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const sel = m[1].trim().split("\n").pop().trim(); if (!rows.test(sel)) continue;
@@ -153,19 +152,17 @@ t("a button's label sits on one line: the meta line's buttons never wrap or shri
 t("an answer is a row: one line 40, with its description line 56 (S025, S052)", () => {
   const app = readCss(new URL("css/app.css", ROOT), "utf8");
   assert.match(app, /\.b-opt\{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var\(--h-lg\);padding:9px 14px;[^}]*line-height:20px;/, "1 + 9 + 20 + 9 + 1 = 40");
-  assert.match(app, /\.o-l\{font:500 var\(--fs-body\)\/20px/);
-  assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-sm\)\/16px/, "+ 16 = 56, no gap between the lines");
+  assert.match(app, /\.o-l\{font:500 var\(--fs-ui\)\/20px/);
+  assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-meta\)\/16px/, "+ 16 = 56, no gap between the lines");
 });
 t("a button drawn as a link, standing on its own, has the desktop's 24 floor; one in a sentence is words (S014: the docked Undo, 39×20)", () => {
   const fnd = readCss(new URL("css/foundation.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
   const links = fnd.match(/:is\(([^)]*)\)\{transition:color var\(--d-hover\)/)[1].split(",");
   const floor = fnd.match(/:where\(([^)]*)\)\{min-height:var\(--h-sm\)\}/)[1].split(",");
-  // in a sentence: Copy path's (dialog text), Launchpad's lines, Home in the Workspace's sentence; and the @ line's
-  // "change", a word (a span) inside that line's own button
-  const words = [".cp-link", ".lp-ln", ".wsh-home", ".tg-ch"];
+  // in a sentence: Copy path's (dialog text), Launchpad's lines, Home in the Workspace's sentence
+  const words = [".cp-link", ".lp-ln", ".wsh-home"];
   assert.deepEqual([...floor, ...words].sort(), [...links].sort(), "every link-like button is placed: the floor, or words in a sentence");
   assert.match(readFileSync(new URL("js/app.js", ROOT), "utf8"), /<p class="wsh-p">[^<]*<button type="button" class="wsh-home"/, "Home is a word in the Workspace's sentence");
-  assert.match(readFileSync(new URL("js/chats.js", ROOT), "utf8"), /<span class="tg-ch">/, "the @ line's change is a word in its button");
 });
 t("the composer's circles in compact density sit on its corner: no comfortable margin moves them", () => {
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /\[data-density="compact"\] :is\(\.attach,\.send\)\{width:var\(--h-row\);height:var\(--h-row\);margin:0\}/);

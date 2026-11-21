@@ -8,8 +8,15 @@ import { readFileSync } from "node:fs";
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("css/app.css"), rich = read("css/rich.css");
 assert.match(app, /\.m-start\{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;/);
-assert.match(app, /\.column:has\(\.m-start\),\.msgs:has\(> \.m-start\)\{display:flex;flex:1 0 auto;flex-direction:column\}/);
-assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:16px\}/);
+assert.match(app, /\.column:has\(\.m-start,\.m-load\),\.msgs:has\(> \.m-start,> \.m-load\)\{display:flex;flex:1 0 auto;flex-direction:column\}/);
+// a conversation on its way: the pack's spinner in the middle of that same room, only once it takes a moment
+assert.match(app, /\.m-load\{display:grid;place-items:center;flex:1;[^}]*animation:hs-in var\(--d-in\) var\(--ease\) var\(--d-wait\) both\}/);
+assert.match(app, /\.spin\.is-load\{[^}]*mask:var\(--mask-load\);[^}]*steps\(8\)\}/);
+assert.match(readFileSync(new URL("../css/tokens.css", import.meta.url), "utf8"), /--mask-load:url\(\.\.\/assets\/icons\/xo\/n-people-status-and-time\/spinner\.svg\)/);
+const js = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+assert.match(js, /\{ load: "Loading the thread" \}/);
+assert.match(js, /m\.load \? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"><\/i><span class="sr-only">/);
+assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:var\(--s-4\)\}/);
 assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:first-child:not\(\.m-start\)\{margin-top:0\}/);
 // no other rule of the conversation sets a margin on every row of #msgs
 for (const css of [rich, read("css/msgx.css"), app]) assert.doesNotMatch(css, /:is\(#msgs,#tmsgs\) ?> ?(\*|:first-child)\{[^}]*margin/);

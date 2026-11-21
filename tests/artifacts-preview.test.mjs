@@ -55,7 +55,7 @@ assert.match(view, /title="Open the thread that made it">\$\{ICON\.threadOne\}<s
 const css = readFileSync(new URL("../css/artifacts.css", import.meta.url), "utf8");
 const block = css.slice(css.indexOf("── The thing itself"));
 assert.match(block, /:is\(\.ar-grid,\.md-grid\.is-strip\) \.md-th\.has-well\{display:block;place-items:normal;padding:var\(--cell-in\) var\(--cell-in\) 0;/);
-assert.match(block, /\.md-well\{[^}]*border-radius:var\(--r\) var\(--r\) 0 0;/);
+assert.match(block, /\.md-well\{[^}]*border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\) calc\(var\(--nest-r\) - var\(--nest-in\)\) 0 0;/);
 assert.match(block, /\.md-sheet\{[^}]*border-radius:var\(--r-xs\);/);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/);
 

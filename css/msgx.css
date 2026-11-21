@@ -15,8 +15,8 @@
    waits for the fade out, and comes back at once */
 .mx-down:not(.is-on){visibility:hidden;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),visibility 0s linear var(--d-out)}
 .mx-down:hover{color:var(--ink)}
-.mx-down svg{width:20px;height:20px}
-.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:var(--fw-strong) var(--fs-xs)/var(--lh-body) var(--sans);font-variant-numeric:tabular-nums;text-align:center}
+.mx-down svg{width:var(--ic-lg);height:var(--ic-lg)}
+.mx-down-n{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill);background:var(--ink);color:var(--canvas);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums;text-align:center}
 .mx-down-n[hidden]{display:none}
 @media (max-width:760px){.mx-down{right:16px}}
 @media (prefers-reduced-motion:reduce){.mx-down{transform:none}}
@@ -35,7 +35,7 @@
 .m:hover .mx-acts,.m:focus-within .mx-acts{opacity:1;transform:translate(0,-50%);pointer-events:auto;transition-duration:var(--d-in)}
 .mx-acts button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-acts button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
-.mx-acts svg{width:16px;height:16px}
+.mx-acts svg{width:var(--ic);height:var(--ic)}
 .prose>.mx-acts,.prose>.mx-swipe{margin:0}
 /* A long reply read open (no bubble) has them after the whole message, pictures included, on its text edge,
    as ChatGPT and Claude put theirs under an answer; never over a picture */
@@ -58,13 +58,13 @@
 .mx-reply.is-in{animation:mx-up var(--d-in) var(--ease)}
 @keyframes mx-up{from{opacity:0;transform:translateY(6px)}}
 .mx-r-ic{display:grid;color:var(--ink-3)}
-.mx-r-ic svg{width:16px;height:16px}
-.mx-r-t{flex:1;display:flex;gap:6px;min-width:0;font-size:var(--fs-body);line-height:var(--lh-body);white-space:nowrap}
+.mx-r-ic svg{width:var(--ic);height:var(--ic)}
+.mx-r-t{flex:1;display:flex;gap:4px;min-width:0;font-size:var(--fs-ui);line-height:var(--lh-ui);white-space:nowrap}
 .mx-r-t b{flex:none;font-weight:var(--fw-strong);color:var(--ink)}
 .mx-r-t span{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-3)}
 .mx-r-x{display:grid;place-items:center;flex:none;width:var(--h-sm);height:var(--h-sm);border-radius:50%;color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-r-x:hover{background:var(--hover-fill);color:var(--ink)}
-.mx-r-x svg{width:16px;height:16px}
+.mx-r-x svg{width:var(--ic);height:var(--ic)}
 /* its × is an inline dismiss, --h-sm (24; it was 28, off the scale, the same cause as C052): 6 px in on every side of
    the quote's 36, so its circle is concentric with the quote's corner (18 − 6 = 12). A phone keeps its 36 × at 4 px in */
 @media (max-width:760px){.mx-reply{padding-right:4px}}
@@ -72,18 +72,18 @@
 /* a sent reply: its quote is a card at the top of your bubble; press it to go back to the original */
 .mx-qc{display:flex;flex-direction:column;gap:2px;width:calc(100% + 20px);margin:-4px -10px 8px;padding:6px 10px;border-radius:calc(var(--r-xl) - 6px);background:color-mix(in srgb,currentColor 8%,transparent);color:inherit;text-align:left;white-space:normal;transition:background var(--d-hover) var(--ease)}
 .mx-qc:hover{background:color-mix(in srgb,currentColor 13%,transparent)}
-.mx-qc b{font:var(--fw-strong) var(--fs-xs)/var(--lh-12) var(--sans);opacity:.86}
-.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-body);line-height:var(--lh-body);opacity:.84}
+.mx-qc b{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);opacity:.86}
+.mx-qc span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-ui);line-height:var(--lh-ui);opacity:.84}
 .m.mx-flash{animation:mx-flash 1.6s var(--ease);border-radius:var(--r-lg)}
 @keyframes mx-flash{0%,30%{background:var(--hover-fill);box-shadow:0 0 0 8px var(--hover-fill)}100%{background:transparent;box-shadow:0 0 0 8px transparent}}
 
 /* select words: reply to exactly them */
-.mx-qpop{position:fixed;z-index:var(--z-overlay);display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
+.mx-qpop{position:fixed;z-index:var(--z-overlay);display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 12px 0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fill-1) 82%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink);animation:mx-up var(--d-in) var(--ease)}
 .mx-qpop[hidden]{display:none}
-.mx-qpop svg{width:16px;height:16px;color:var(--ink-3)}
+.mx-qpop svg{width:var(--ic);height:var(--ic);color:var(--ink-3)}
 /* it answers the pointer like every other button: a step brighter, its icon with it, pressed in (RPL-4) */
 .mx-qpop{transition:background-color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-.mx-qpop:hover{background:color-mix(in srgb,var(--fill-2) 90%,transparent);border-color:var(--line-strong);transition-duration:var(--d-hover-in)}
+.mx-qpop:hover{background:color-mix(in srgb,var(--fill-2) 90%,transparent);transition-duration:var(--d-hover-in)}
 .mx-qpop:hover svg{color:var(--ink-2)}
 .mx-qpop:active{background:color-mix(in srgb,var(--fill-3) 92%,transparent)}
 
@@ -91,7 +91,7 @@
 :is(#msgs,#tmsgs)>.m>*{transition:transform var(--d-move) var(--ease)}
 :is(#msgs,#tmsgs)>.m.mx-dragging>*:not(.mx-swipe){transform:translateX(calc(var(--mx-drag,0) * 1px));transition:none}
 .mx-swipe{position:absolute;left:12px;top:0;display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:50%;background:var(--float);color:var(--ink-3);opacity:0;transform:scale(.6);pointer-events:none;transition:opacity var(--d-out) var(--ease),transform var(--d-out) var(--ease),background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.mx-swipe svg{width:16px;height:16px}
+.mx-swipe svg{width:var(--ic);height:var(--ic)}
 .bubble{position:relative}
 .bubble>.mx-swipe{left:-44px;top:calc(50% - 16px)}
 .mx-dragging .mx-swipe{opacity:calc(var(--mx-drag,0) / 56);transform:scale(calc(.6 + min(var(--mx-drag,0),56) / 140));transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -102,7 +102,7 @@
 /* at rest the label waits in place, unseen: parked 64 px past the edge it still widened the scroller's scrollable
    width on every row (438 of 390 px on a phone: Conversation's check on dd15034); it starts 64 px out only while a
    swipe pulls it in, and fades where it is when the swipe lets go */
-:is(#msgs,#tmsgs)>.m::after{content:attr(data-mx-time);position:absolute;top:calc((var(--h-lg) - var(--lh-body)) / 2);right:0;font:var(--fw-regular) var(--fs-xs)/var(--lh-body) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--d-move) var(--ease)}
+:is(#msgs,#tmsgs)>.m::after{content:attr(data-mx-time);position:absolute;top:calc((var(--h-lg) - var(--lh-ui)) / 2);right:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--d-move) var(--ease)}
 :is(#msgs,#tmsgs).mx-pulling>.m::after{opacity:calc(var(--mx-pull,0) / 64);transform:translateX(calc((64 - var(--mx-pull,0)) * 1px));transition:none}
 :is(#msgs,#tmsgs).mx-pulling>.m>*{transform:translateX(calc(var(--mx-pull,0) * -1px));transition:none}
 
@@ -136,7 +136,7 @@
    app.css's old 32 + 12 grid, 8 px off on a desktop and 28 on a phone (QA #16). As the last row, it leaves
    the same space above the composer as a message does (QA #25). */
 :root[data-msgx] :is(#msgs,#tmsgs)>.ev{gap:24px}
-:root[data-msgx] :is(#msgs,#tmsgs)>.ev>.ev-ic{width:22px;margin:0 3px}
+:root[data-msgx] :is(#msgs,#tmsgs)>.ev>.ev-ic{width:var(--ic);margin:0 6px}
 :root[data-msgx] :is(#msgs,#tmsgs)>.ev:last-child{margin-bottom:20px}
 /* The space under the last message (owner, 5 Nov: "why this much gap?"). It was 99 px on a desktop (82 on a
    phone): the 20 px after a message, 48 (40) the app added under the conversation, and the composer bar's
@@ -146,7 +146,7 @@
    message then ends 24 px above the card instead.) */
 /* --herald-room: the notices' line over the conversation's foot, while it shows there (app.js heraldRoom) */
 :root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px + var(--herald-room, 0px))}
-:root[data-msgx] .app.has-tdock .scroller{padding-bottom:calc(var(--dock-h) + 4px + var(--herald-room, 0px))}
+:root[data-msgx] :is(.app.has-tdock .scroller:not(.tp .scroller),.tp.has-tdock .scroller){padding-bottom:calc(var(--dock-h) + 4px + var(--herald-room, 0px))}
 :root[data-msgx] :is(#msgs,#tmsgs)>.m:is(.mx-next-cont,:has(+.m.cont)){margin-bottom:var(--s-1)}   /* within a run: 4 (was 20 then −16) */
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the
@@ -172,11 +172,11 @@
 :root[data-msgx] .m-them>.av{position:relative;z-index:1;width:28px;height:28px;margin-top:8px;border-radius:50%}
 :root[data-msgx] .m-them>.av-gap{height:0;margin:0}
 :root[data-msgx] .av.mx-pm{color:var(--ink-2)}
-:root[data-msgx] .av.mx-pm>svg{width:16px;height:16px}
+:root[data-msgx] .av.mx-pm>svg{width:var(--ic);height:var(--ic)}
 :root[data-msgx] .m-them .mh{display:none;min-height:0;padding:0 0 4px 16px}
 /* a named sender's name is the first line inside their bubble (12/16, their colour); their mark centres on it */
 .mx-name{display:none}
-:root[data-msgx] .prose>.mx-name{display:block;margin:0 0 var(--s-1);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+:root[data-msgx] .prose>.mx-name{display:block;margin:0 0 var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 :root[data-msgx] .prose>.mx-name+*{margin-top:0}
 :root[data-msgx] .m-them.mx-other:not(.cont)>.av{margin-top:4px}
 /* an agent's turn: its mark centres on whatever comes first, a 28 px work pill (0), or a 44 px row (8):
@@ -185,7 +185,7 @@
 :root[data-msgx] :is(#msgs,#tmsgs)>.m-turn.is-live.is-folded:not(.has-said)>.av,:root[data-msgx] :is(#msgs,#tmsgs)>.m-turn.mx-av-row>.av{margin-top:8px}
 :root[data-msgx] :is(.mx-coord,.m-coord) .prose>.mx-name,:root[data-msgx] .m-coord>.mb>.mh b{color:var(--coord-ink)}
 /* an open (unboxed) reply has no bubble to hold it, so its name sits above on the same text edge */
-:root[data-msgx] .m-them .mh b{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+:root[data-msgx] .m-them .mh b{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-them .mh :is(time,.role,.m-iq){display:none}
 :root[data-msgx] :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){position:relative;width:fit-content;max-width:min(88%,560px);padding:10px 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
 /* a reply that holds a table takes the whole text column: structured content gets its room (QA #5) */
@@ -214,10 +214,10 @@
 /* What the agent did before it answered: one quiet pill on the bubbles' text edge, then the bubble. The pill is a
    button, so the compact control height, --h-ctl (it was 28, off the scale: the census of 30bd6d0), as the rail's
    header and rows it opens to; its words keep their 16 px edge and sit centred, 6 px above and below */
-:root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);color:var(--ink-3)}
+:root[data-msgx] .m-turn>.mb[data-mx-who]::before{content:attr(data-mx-who);display:block;padding:0 0 4px 16px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn{gap:4px;max-width:none}
-:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:var(--h-ctl);margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);line-height:var(--lh-body)}
-:root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-sm)}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h{width:fit-content;min-height:var(--h-ctl);margin:0;padding:4px 12px 4px 16px;border-radius:var(--r-pill);font-size:var(--fs-meta);line-height:var(--lh-ui)}
+:root[data-msgx] .m-turn .turn>.tb>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-meta)}
 :root[data-msgx] .m-turn .turn>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:is(.is-open,.has-rows)>.tb-h{background-color:var(--hover-fill)!important}
 :root[data-msgx] .m-turn .turn>.tb:not(.tb-answer):not(.tb-text):not(.is-open)>:not(.tb-h){margin-left:16px}
@@ -254,7 +254,7 @@
 :root[data-msgx] .m-turn.is-live.is-folded.has-said .mx-work{margin-top:4px}
 :root[data-msgx] .mx-work.mx-under .mx-we{display:none}
 .mx-work{display:none}
-:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:var(--tile-xl);padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-body);line-height:var(--lh-body);text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
+:root[data-msgx] .m-turn.is-live.is-folded .mx-work{position:relative;display:flex;align-items:center;gap:12px;max-width:min(88%,560px);height:var(--tile-xl);padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-ui);line-height:var(--lh-ui);text-align:left;overflow:visible;transition:width var(--d-move) var(--ease),background var(--d-hover) var(--ease)}
 :root[data-msgx] .mx-work:hover,:root[data-msgx] .m-turn.is-live.is-folded .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:20px;overflow:hidden}
 .mx-wl{position:absolute;inset:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -273,7 +273,7 @@
 /* the line under a conversation (a coordinator replying) is the same bubble */
 :root[data-msgx] .typing{grid-template-columns:28px minmax(0,1fr);gap:8px;padding-bottom:20px;animation:none}
 :root[data-msgx] .typing>.av{width:28px;height:28px;border-radius:50%;align-self:center}
-:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:var(--tile-xl);align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-body);line-height:var(--lh-body)}
+:root[data-msgx] .typing .ty-b{width:fit-content;max-width:min(88%,560px);height:var(--tile-xl);align-items:center;gap:12px;padding:0 16px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi);color:var(--ink-2);font-size:var(--fs-ui);line-height:var(--lh-ui)}
 /* the app writes this line itself, so when it's too long for the bubble its end fades out over 32 px
    (msgx.js marks it) instead of stopping mid-word: CSS's "…" takes the text colour, which the shimmer
    makes transparent */
@@ -300,37 +300,37 @@
 :root[data-msgx] .m-turn .mx-row-in{animation:mx-row var(--dur-slow) var(--ease) both}
 @keyframes mx-row{from{opacity:0;transform:translateY(4px)}}
 @media (prefers-reduced-motion:reduce){:root[data-msgx] .m-turn :is(.mx-opening,.mx-row-in){animation:none}}
-:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-body)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-ui)}
 /* A long turn's open card is taller than the view, and it opens at its latest step: its header (what it's
    doing, the time, the chevron that folds it) stays at the top of the view while you read through it, so
    folding it back is always one press away. On the card's own glass, under the conversation's top fade. */
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h{position:sticky;top:0;z-index:1;border-radius:var(--r-xl) var(--r-xl) 0 0;background-color:var(--mx-them-top)!important}
-:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-body);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h :is(.tb-ht,.tb-wn){font-size:var(--fs-ui);color:var(--ink-2)}
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:var(--h-ctl);margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-sm);color:var(--ink-3)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:var(--h-ctl);margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-meta);color:var(--ink-3)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid;color:var(--ink-4)}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:16px;height:16px}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:var(--ic);height:var(--ic)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
 /* Tool rows use the same 8 px inset and 12 px hover corners as the fold rows. Retain the nested
    text column, but remove the base row's asymmetric -6 px overhang on its left edge. */
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh{width:calc(100% + var(--halo));min-height:var(--h-ctl);margin-left:calc(-1 * var(--halo));padding:6px var(--halo);border-radius:calc(var(--r-xl) - 8px)}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-sm);color:var(--ink-3)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb-narr{margin:4px 8px;padding:0 8px;font-size:var(--fs-meta);color:var(--ink-3)}
 
 /* The same card for any single work block pressed open (early in a turn there's no fold yet, only one
    "Thinking…" or one tool group, and pressing the bubble opens that block itself): the glass card, a 44 px
    header row, then its lines as quiet rows on the text column, no rail. */
 :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded{width:min(88%,560px);padding:0 0 8px;border-radius:var(--r-xl);background:var(--mx-them);box-shadow:var(--mx-them-hi)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-body)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-body);color:var(--ink-2)}
-:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-sm);line-height:var(--lh-body);color:var(--ink-3)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{width:100%;min-height:var(--h-row);margin:0;padding:0 16px;border-radius:var(--r-xl);background-color:transparent!important;font-size:var(--fs-ui)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h :is(.tb-ht,.tb-n){font-size:var(--fs-ui);color:var(--ink-2)}
+:root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>:is(.tb-steps,.tb-rows,.tb-plan-l){margin:0;padding:0 16px;border:0;gap:4px;font-size:var(--fs-meta);line-height:var(--lh-ui);color:var(--ink-3)}
 :root[data-msgx] .m-turn .turn>.tb-think.is-unfolded>.tb-steps>li{padding:4px 0}
 :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows{padding:0 8px}
 :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-ctl);margin-left:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px)}
 
 /* a few emoji and nothing else are the message: large, no bubble */
-:root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-4xl);line-height:var(--lh-40)}
+:root[data-msgx] .mx-emoji :is(.bubble,.prose){padding:0;background:none!important;box-shadow:none;font-size:var(--fs-hero);line-height:var(--lh-hero)}
 :root[data-msgx] .m.mx-emoji :is(.bubble,.prose){box-shadow:none}
 
 /* Tails, as WhatsApp places them: on the first bubble of a run, at its top corner, pointing at the name and
@@ -372,7 +372,7 @@
 :root[data-msgx] .m-them .tc-segs{order:-1;margin:0 -16px 4px;width:calc(100% + 32px);min-height:var(--h-lg);padding:16px;gap:4px;background:color-mix(in srgb,var(--st,var(--ink-4)) 14%,var(--mx-them-top));transition:background var(--d-hover) var(--ease)}
 :root[data-msgx] .m-them .tcard:hover .tc-segs{background:color-mix(in srgb,var(--st,var(--ink-4)) 20%,var(--mx-them-top))}
 :root[data-msgx] .m-them .tc-segs .sg{max-width:none;height:8px;border-radius:calc(var(--r-xl) - 16px)}
-:root[data-msgx] .m-them .tc-top b{font:var(--fw-strong) var(--fs-lg)/var(--lh-15) var(--sans)}
+:root[data-msgx] .m-them .tc-top b{font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans)}
 :root[data-msgx] .m-them .tc-st{color:var(--st,var(--ink-3));font-weight:var(--fw-medium)}
 
 /* The card's progress, alive (owner 22:21).
@@ -402,7 +402,7 @@
      Long titles can wrap, and branch names cannot push Open past the card's right text edge. */
   :root[data-msgx] .m-them .tc-top{flex-direction:column;align-items:flex-start;gap:4px}
   :root[data-msgx] .m-them .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
-  :root[data-msgx] .m-them .tc-foot{flex-wrap:wrap;gap:4px 10px}
+  :root[data-msgx] .m-them .tc-foot{flex-wrap:wrap;gap:4px 8px}
   :root[data-msgx] .m-them .tc-foot>code{flex:0 1 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   :root[data-msgx] .m-them .tcard.st-needs>.tc-dec{height:var(--h-touch)}
 }

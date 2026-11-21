@@ -3,7 +3,7 @@
   "document": "ic1",
   "fileId": "01M7SVHZJXJ9JBQ6V2K1VMW0N2",
   "exportedAt": "2026-11-19T13:45:34.011Z",
-  "count": 384,
+  "count": 385,
   "icons": [
     {
       "name": "home",
@@ -178,6 +178,14 @@
       "category": "A · Places and the frame",
       "nodeId": "3:69",
       "file": "a-places-and-the-frame/graph.svg",
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "open-in-main",
+      "category": "A · Places and the frame",
+      "nodeId": "owner-2026-11-21",
+      "file": "a-places-and-the-frame/open-in-main.svg",
       "width": 24,
       "height": 24
     },

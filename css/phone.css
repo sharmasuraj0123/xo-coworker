@@ -19,6 +19,7 @@
 .rn-live{display:none}
 
 @media (max-width:760px){
+  :root{--dock-bar:var(--h-hit);--dock-btn:var(--h-touch)}
   /* the phonebar's outlined buttons end on the content's right edge (16, was 12); its
      controls centre on y = 26 (6 + 40 / 2), the same line as a conversation's bar, in whole pixels
      (it was 25.5: 51 px of content over a 1 px hairline) */
@@ -34,7 +35,7 @@
 
   /* ── three quick fixes ───────────────────────────────────────────────────────────────────────────── */
   /* 16 px in every field: under 16, iPhone zooms the page when one takes focus, and it stays zoomed
-     (Find a project was 13, New project 14, All threads 14, Jump 15, a decision's note 15) */
+     (New project was 14, All threads 14, Jump 15, a decision's note 15) */
   :root:root :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"]),textarea,select){font-size:var(--fs-input)}
   /* the notch and the status bar: as a home-screen app the page runs under them (viewport-fit=cover),
      so the bars start below the top safe area (0 in a browser tab) */
@@ -55,8 +56,10 @@
   :root:root .top-back[hidden]{display:none}
   :root:root .top-back:not([hidden]) ~ .top-menu{display:none}
   :root:root .top-menu{order:-2}
+  :root:root .app:is([data-conv="chats"],[data-conv^="c:"]) .top{border-bottom:0}
+  :root:root .app:is([data-conv="chats"],[data-conv^="c:"]) #top-who{display:none}
   :root:root .top-back{order:-1}
-  :root:root :is(.top-menu,.top-back) svg{width:20px;height:20px}
+  :root:root :is(.top-menu,.top-back) svg{width:var(--ic-lg);height:var(--ic-lg)}
   :root:root .top-back span{display:none}
   :root:root :is(.top-menu,.top-back):active{transform:scale(.94)}
   /* ☰ shows when there's no way back (the back button sits after it in the markup, so :has decides) */
@@ -68,9 +71,9 @@
   :root:root .top .tw-ic{display:none}
   :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:4px}
   :root:root .top .tw-t h1,
-  :root:root .top .tw-h{font:var(--fw-strong) var(--fs-lg)/var(--lh-body) var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-sm);line-height:var(--lh-12);color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
-  :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:var(--lh-12)}
+  :root:root .top .tw-h{font:var(--fw-strong) var(--fs-title)/var(--lh-ui) var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
+  :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:var(--lh-meta)}
   :root:root .top-end{gap:8px;margin-left:8px}
   /* when its coordinator asks, the quiet line says only that, and the ask's count never hides: past the
      room, its words give way first ("Coordinator nee… 2"). At 375 the Threads button cut "Coordinator
@@ -83,7 +86,7 @@
   /* and it's a button a thumb can take: 36 tall, a quiet warm pill under the name, only while the coordinator asks (the
      bar grows by 20 then). The owner, 11 Nov 05:42Z, with the coordinator's recommendation (S005: 154×16 on a phone) */
   :root:root .top .pj-s.has-need{height:var(--h-touch);margin-top:var(--s-1);overflow:visible}
-  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:var(--h-touch);min-height:var(--h-touch);padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-sm);line-height:var(--lh-12)}
+  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:var(--h-touch);min-height:var(--h-touch);padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-meta);line-height:var(--lh-meta)}
   /* its hover a deeper wash (12% → 24% of the warn: 46 RGB-sum in dark, 60 in light), held the shared press over it: its
      words' colour alone moved 6% of the box (the controls grader on fa49c3c, S005 at 390) */
   :root:root .top .pj-s > .pj-need:hover{background-color:color-mix(in srgb,var(--warn) 24%,transparent);color:var(--warn)}
@@ -96,9 +99,8 @@
   /* 16 px in the fields: under 16, iPhone zooms the page when one takes focus (and the label's was 13) */
   :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-strong) var(--fs-input)/1 var(--sans)}
   :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-medium) var(--fs-input)/1 var(--sans)}
-  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:6px;background:none;font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans)}
-  :root:root .top[data-kind="thread"] .badge .g{width:7px;height:7px}
-  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-sm);line-height:var(--lh-12);max-width:100%}
+  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:4px;background:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-meta);line-height:var(--lh-meta);max-width:100%}
   :root:root .top[data-kind="thread"] .tw-acts{grid-column:4;grid-row:1 / 3;align-self:center;margin-left:8px}
   /* renaming or labelling: the field takes the name's whole block, 36 high, and the quiet line steps aside */
   :root:root .top[data-kind="thread"] .top-who:has(.tw-in) :is(.badge,.tw-rt,.tw-label){display:none}
@@ -109,9 +111,9 @@
   :root:root .top[data-kind="thread"] .top-who:has(> .tw-t) .badge{height:28px;padding:0 10px;background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent)}
 
   /* a project: Threads keeps its icon and count (the word goes; its label says it) */
-  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:6px}
+  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:4px}
   /* its count: 20 high, 8 in from the button's outer edge all round (1 border + 7), so 12 − 8 = 4 round */
-  :root:root .top .th-btn span{font-size:var(--fs-sm);border-radius:calc(var(--r-lg) - 8px)}
+  :root:root .top .th-btn span{font-size:var(--fs-meta);border-radius:calc(var(--r-lg) - 8px)}
   :root:root .top[data-kind="project"] .top-who{flex:1 1 0}
   /* the Now strip: its own row under the bar, its chips' edge on the content's 16 px line */
   /* its chips 8 under the count line and 8 over the hairline: 6 + 40 + 4 + (2 + 36 + 2) + 6 + 1 = 97 */
@@ -123,15 +125,15 @@
   :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:0}
   :root:root .thead .ckbar{flex:1;min-width:0}
   /* finished sub-agents: their count alone ("≡ 9"), read from data-n; the words stay for VoiceOver */
-  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:6px}
+  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:4px}
   :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  :root:root .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
+  :root:root .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
   /* sub-agents working now: one count beside the checklist (its arc, or ◆ when one waits on you), the
      same 40 px box as the finished count; it opens the list, where each one is named */
   :root:root .thead .rn-strip{display:none}
   :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-lg);padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
-  :root:root .thead .rn-live:has(.g-needs_reply){border-color:color-mix(in srgb,var(--warn) 34%,var(--line-soft));background:color-mix(in srgb,var(--warn) 7%,transparent)}
-  :root:root .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-sm)/var(--lh-12) var(--sans);font-variant-numeric:tabular-nums}
+  :root:root .thead .rn-live:has(.g-needs_reply){border-color:transparent;background:color-mix(in srgb,var(--warn) 7%,transparent)}
+  :root:root .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-live:active{transform:scale(.96)}
 
   /* the state line: along the bar's top edge, under the status bar */
@@ -164,6 +166,7 @@
   :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
   /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */
   :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:var(--h-hit)}
+  :root:root .side-pop[role=menu] .nrow{min-height:var(--h-hit)}
   :root:root .fl-more{width:var(--h-ctl);height:28px;margin-top:0}
 }
 
@@ -188,15 +191,10 @@
   /* the field's placeholder already says where it goes ('Reply to the agent…', 'Message xo-coworker…'), so on a phone
      the target is its mark alone and the model and thinking the thread runs keep their room */
   :root:root .target b{display:none}
-  /* the target is bounded: it gives way before the model chip and Send, whatever it says, its words cut short with
-     an ellipsis (routing Off's paused words pushed both out of the row: the create-project grader on 9d1f71b, C111;
-     the whole of them shows above the composer) */
-  :root:root .target{flex:0 100 auto;min-width:0;overflow:hidden}
   /* paused (routing Off, can't reach XO …): only its mark here; its words are the banner right above, and the model
      chip keeps its whole word ("Au…" beside 202 px of the same words: the create-project grader on 65e84b7, C111) */
   :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
-  :root:root .iq{flex:0 1 auto;min-width:0;padding:0 6px;max-width:none}
-  :root:root :is(.target,.iq){font-size:var(--fs-sm)}
+  :root:root .iq{padding:0 6px}
   :root:root .iq-sep{margin:0 4px}
 }
 /* the narrowest phones (≤ 340): the field's placeholder says where a message goes, so the target steps aside and
@@ -222,7 +220,7 @@
 @media (max-width:760px){
   /* the file's buttons at the phone's 40, its title a step up (panel.css drew them 28 and base-size) */
   .vw-btn{width:var(--h-lg)}
-  .vw-t h2{font-size:var(--fs-lg)}
+  .vw-t h2{font-size:var(--fs-title)}
   /* the file's head stays on the grid, 40 like the phone's other bars, and its 40 px buttons fill it: the viewer clips
      at its edge, so there's no room outside them for the ring (the controls grader on e55c2d8, C092: a focused Copied's
      ring reached 4.5 px above the viewer and was cut). The head's rule is drawn inside it at every width (panel.css),
@@ -243,11 +241,6 @@
 @media (max-width:760px){
   /* Changes · File: words in the 40 px segment, at the phone's 36 like Preview · Source */
   .vw-seg.is-words button{height:var(--h-touch)}
-  /* Runs' Back to the list (the run view's head, a run inside a run too): the phone's 36 (Launchpad grader on 23c726e,
-     S099: 30 px, a desktop height with no phone rule, so no guard could see it undone) */
-  .rn-back{height:var(--h-touch)}
-  /* a sub-agent's own Stop (its view's pill): 36 tall, a round icon */
-  .rn-st .rn-stop{height:var(--h-touch);width:var(--h-touch);padding:0}
   /* a turn's rows (msgx's 28 and 32, compact density's 32) at the phone's floor */
   :root[data-msgx] .m-turn .turn>.tb>.tb-h,
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h,
@@ -270,8 +263,8 @@
   /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
      left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
      the box, which takes it; Files' new-name row grows with its field */
-  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.side-find,.jump-field) input)){min-height:var(--h-touch)}
-  :where(.fl-q,.ar-q,.all-q,.side-find,.fl-new-r){min-height:var(--h-touch)}
+  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.jump-field) input)){min-height:var(--h-touch)}
+  :where(.fl-q,.ar-q,.all-q,.fl-new-r){min-height:var(--h-touch)}
   /* the square icon buttons stay square at the floor, and so do those whose words hide on a phone (Edit, Runs code,
      the header's and the map's actions): the browser pass at 320/390 found Edit 28 wide, Open in Files 28, New file 32 */
   :where(.x,.vw-x,.vw-btn,.fr-ib,.st-x,.lbx-btn,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act,.map-btn){min-width:var(--h-touch)}
@@ -284,6 +277,7 @@
      the desktop's 48 (their own 44 is gone). Chats' rows are the desktop's 56: their 58 floor drew 66, 1 + 10 + 20 + 4 +
      20 + 10 + 1 (the controls grader on 8aa58d3, C048, by the standard S052 was fixed to) */
   .nrow,.prow{min-height:var(--h-lg);padding-top:5px;padding-bottom:5px}
+  .side-pop[role=menu] .nrow{min-height:var(--menu-row)}
   .hd-r{min-height:var(--h-lg)}
   :is(.ar,.ar-fold,.ar-undo){min-height:var(--h-lg)}
   .syl-ln{min-height:48px;padding-top:7px;padding-bottom:7px}

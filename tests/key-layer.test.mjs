@@ -12,7 +12,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 t("one layer holds the keyboard: a sheet, a phone's Settings, else a phone's open drawer; the Tab wrap asks it", () => {
   const k = /function keyLayer\(\) \{([\s\S]*?)\n\}/.exec(app);
   assert.ok(k, "one keyLayer()");
-  assert.match(k[1], /\[runsEl, keys, allEl, jump\]\.find\(\(el\) => !el\.hidden\)/, "the sheets first");
+  assert.match(k[1], /\[keys, allEl, jump\]\.find\(\(el\) => !el\.hidden\)/, "the sheets first");
   assert.match(k[1], /PHONE\.matches && !setEl\.hidden \? setEl/, "a phone's Settings");
   assert.match(k[1], /PHONE\.matches && \$\("#app"\)\.classList\.contains\("drawer"\) \? \$\("#side"\)/, "the open drawer, on a phone");
   assert.ok(/if \(e\.key !== "Tab" \|\| e\.defaultPrevented\) return;\s*const top = keyLayer\(\);/.test(app), "the Tab wrap asks it");
