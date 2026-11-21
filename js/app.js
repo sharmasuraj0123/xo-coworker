@@ -56,6 +56,7 @@ import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
+import { createCalmOrder } from "./sideorder.js";
 import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
@@ -523,6 +524,7 @@ function pings(needs) {
 }
 
 // ── sidebar: button-like rows; text only when a project needs you (#27) ────
+const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false, t: 0 });
 function sideRender(needs) {
   const mine = needs.filter((x) => x.admitted && !x.later);
   const n = mine.length;
@@ -545,8 +547,7 @@ function sideRender(needs) {
   // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
   for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   const now = Date.now();
-  const shown = projects();
-  const items = shown.map((p) => {
+  const rows = projects().map((p) => {
     const on = S.view === "p:" + p.id || convThread(S.view)?.project === p.id;
     const asks = mine.filter((x) => x.t.project === p.id);
     const lead = asks.find((x) => x.group !== "stopped" && x.risk !== "destructive") || asks[0];
@@ -571,12 +572,29 @@ function sideRender(needs) {
       `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${SIDE.folded ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
       `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
       `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
-      (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
+      (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>`, active: busy || needsMe, urgent: needsMe };
   });
+  const held = SIDE_CALM.over || ($("#side").matches(":focus-within") && !!document.activeElement?.matches(":focus-visible"));
+  const calm = SIDE_CALM.order(rows.map((r) => ({ id: r.key, active: r.active, urgent: r.urgent })), now, { first: !sideRender.ready, held });
+  SIDE_CALM.pending = calm.pending;
+  clearTimeout(SIDE_CALM.t);
+  if (calm.next != null) SIDE_CALM.t = setTimeout(() => sideRender(D.needItems()), calm.next + 50);
+  const up = new Set(calm.top);
+  const items = [...rows.filter((r) => up.has(r.key)), ...(up.size && up.size < rows.length ? [{ key: "pr-sep", html: `<div class="pr-sep" aria-hidden="true"></div>` }] : []), ...rows.filter((r) => !up.has(r.key))];
+  const box = $("#projects"), sig = items.map((r) => r.key).join();
+  const from = sideRender.ready && sig !== sideRender.sig && !still() ? new Map([...box.children].map((el) => [el, el.getBoundingClientRect().top])) : null;
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
   // a row that changes (where you are, a count) is updated in place: its lines stay, so nothing replays its entrance
-  reconcile($("#projects"), items, { quiet: !sideRender.ready, inPlace: true });
+  reconcile(box, items, { quiet: !sideRender.ready, inPlace: true });
+  sideRender.sig = sig;
+  if (from) for (const [el, y] of from) { const dy = el.isConnected ? y - el.getBoundingClientRect().top : 0; if (Math.abs(dy) > 0.5) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: MOVE, easing: EASE }); }
   sideRender.ready = true;
+}
+{
+  const side = $("#side"), settle = () => { if (SIDE_CALM.pending) setTimeout(() => !SIDE_CALM.over && sideRender(D.needItems()), 800); };
+  side.addEventListener("pointerenter", () => { SIDE_CALM.over = true; });
+  side.addEventListener("pointerleave", () => { SIDE_CALM.over = false; settle(); });
+  side.addEventListener("focusout", (e) => { if (!side.contains(e.relatedTarget)) settle(); });
 }
 
 // ── Home ────────────────────────────────────────────────────────────────────
