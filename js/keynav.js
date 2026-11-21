@@ -62,6 +62,15 @@ export function radioKeys(root, { follow = true } = {}) {
  *  item by :focus and never by :hover, so one item looks active, Enter chooses it, and the arrows carry on from it. A
  *  touch moving, or focus elsewhere, moves nothing (Astra C058 on 517af1c, and on e1f8666: mouse, then ↓). menuKeys
  *  brings it; a menu with keys of its own calls it. */
+/** A menu just opened: from a key (a click with no pointer, detail 0) its first item takes focus; from the pointer the menu
+ *  itself does, so nothing is lit until the pointer or a key picks an item. */
+export function focusOpened(menu, e) {
+  if (!menu) return;
+  const first = e && e.detail > 0 ? null : [...menu.querySelectorAll(ITEM)].find(usable);
+  if (first) { first.focus({ preventScroll: true }); return; }
+  if (!menu.hasAttribute("tabindex")) menu.tabIndex = -1;
+  menu.focus({ preventScroll: true });
+}
 export function pointerFollows(root, sel = ITEM) {
   root.addEventListener("pointermove", (e) => {
     if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;

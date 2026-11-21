@@ -63,7 +63,7 @@ import { createShapeStore } from "./shape.js";
 import { createShapeView, SHAPE_IC, UNKEPT } from "./shapeview.js";
 import { setWorkMode } from "./turnview.js";
 import { once, isPending, busyAttrs } from "./pending.js";
-import { radioKeys, menuKeys } from "./keynav.js";
+import { radioKeys, menuKeys, pointerFollows, focusOpened } from "./keynav.js";
 import { STONE, FLAVOURS } from "./flavours.js";
 import { createHerald, noticeFor, refusedNotice } from "./herald.js";
 import { regionRings } from "./ring.js";
@@ -3630,7 +3630,7 @@ document.addEventListener("click", (e) => {
     S.tMenu = again ? null : tm.dataset.tmenu; S.tMenuIn = again ? null : where;
     $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
     render(); // drawn now, in the click: the menu is there under the pointer at once (it was a frame or two late)
-    if (S.tMenu) tm.parentElement.querySelector(".tw-menu [role=menuitem]:not([aria-disabled=true])")?.focus({ preventScroll: true });
+    if (S.tMenu) focusOpened(tm.parentElement.querySelector(".tw-menu"), e);
     return;
   }
   const tf = t.closest("[data-tfield]");
@@ -3874,7 +3874,7 @@ function threadMenuHtml(t, where = "main") {
       isBusy(t) ? item("data-chat-stop", "Stop") : ""],
     [t.canDelete ? item(`data-tdel="${esc(t.id)}" class="tw-danger"`, "Delete thread…") : ""],
   ].map((g) => g.filter(Boolean).join("")).filter(Boolean);
-  return `<span class="tw-menu" role="menu">${groups.join(sep)}</span>`;
+  return `<span class="tw-menu" role="menu" tabindex="-1">${groups.join(sep)}</span>`;
 }
 /** Delete, asked in place: what goes (its messages, its transcript, its worktree folder), what stays (its branch),
  *  for how long it can be undone; Keep it first. When Space says work would be lost, it names it and the button
@@ -4551,7 +4551,7 @@ const SIDE = {
     const pop = $("#side-more");
     (on ? pop.querySelector("[data-se-grip]") : pop.querySelector('[role="menuitem"]'))?.focus({ preventScroll: true });
   },
-  openMore() {
+  openMore(e) {
     const pop = $("#side-more"), row = $("#nv-more");
     SIDE.drawMore();
     pop.hidden = false;
@@ -4559,7 +4559,7 @@ const SIDE = {
     // it springs from its row: beside it, level with it
     const r = row.getBoundingClientRect();
     pop.style.setProperty("--pop-x", `${Math.round(r.right)}px`); pop.style.setProperty("--pop-y", `${Math.round(r.top)}px`);
-    pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
+    focusOpened(pop, e);
   },
   closeMore({ focus = false } = {}) {
     const pop = $("#side-more"), row = $("#nv-more");
@@ -4571,11 +4571,12 @@ const SIDE = {
 };
 $("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
 $("#side-jump").addEventListener("click", () => (jump.hidden ? openJump() : closeJump()));
-$("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
+$("#nv-more").addEventListener("click", (e) => ($("#side-more").hidden ? SIDE.openMore(e) : SIDE.closeMore({ focus: true })));
+pointerFollows($("#side-more"));
 $("#side-more").addEventListener("click", (e) => {
   const t = e.target, pop = $("#side-more");
   const pin = t.closest("[data-side-pin]");
-  if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }); return; }
+  if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); focusOpened(pop, e); return; }
   if (t.closest("[data-side-edit]")) { SIDE.edit(true); return; }
   const sw = t.closest("[data-se-sw]");
   if (sw) { const id = sw.dataset.seSw, on = sw.getAttribute("aria-checked") !== "true"; SIDE.pin(id, on); announce(`${SIDE.byId(id).name}: ${on ? "in the sidebar" : "in More"}`); pop.querySelector(`[data-se-sw="${id}"]`)?.focus({ preventScroll: true }); return; }
@@ -4597,7 +4598,7 @@ $("#side-more").addEventListener("keydown", (e) => {
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (SIDE.editing) SIDE.edit(false); else SIDE.closeMore({ focus: true }); return; }
   if (SIDE.editing) return;
   const items = $$('#side-more [role="menuitem"]'), i = items.indexOf(document.activeElement);
-  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = i < 0 ? (e.key === "ArrowDown" ? 0 : items.length - 1) : (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
 });
 // the editor's drag: a row dropped on another goes before it (after it, past its middle)
 $("#side-more").addEventListener("dragstart", (e) => { const r = e.target.closest?.(".se-row"); if (!r) return; e.dataTransfer.setData("text/x-xo-place", r.dataset.se); e.dataTransfer.effectAllowed = "move"; r.classList.add("is-drag"); });
