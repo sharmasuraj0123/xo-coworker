@@ -13,27 +13,62 @@ import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
 
 const KIND_ICON = {
-  create_file: "doc", edit_file: "edit", delete_file: "delete", read: "eye", search: "search", list: "folder-open",
-  command: "terminal", web_fetch: "web", web_search: "web", mcp: "plug", subagent: "agent", ask: "question",
+  create_file: "file-new", edit_file: "edit", delete_file: "delete", read: "eye", search: "search", list: "folder-open",
+  command: "terminal", web_fetch: "web", web_search: "web", mcp: "plug", subagent: "agent", plan: "checklist", ask: "question",
   other: "step-dot", notice: "info", error: "alert",
 };
+// a command's stages, strongest first: what it changes outranks what it reads, and a fetch or a status before the work loses
 const CMD_ICON = [
-  [/^git\s+(?:-C\s+\S+\s+)?commit\b/, "commit"], [/^git\s+(?:-C\s+\S+\s+)?push\b/, "cloud-upload"],
-  [/^git\s+(?:-C\s+\S+\s+)?(?:pull|fetch|clone)\b/, "download"], [/^git\s+(?:-C\s+\S+\s+)?(?:merge|rebase|cherry-pick)\b/, "merge"],
-  [/^git\s+(?:-C\s+\S+\s+)?(?:diff|status|show)\b/, "diff"], [/^git\s+(?:-C\s+\S+\s+)?(?:checkout|switch|branch|worktree)\b/, "branch"],
-  [/^git\s+(?:-C\s+\S+\s+)?log\b/, "history"], [/^gh\s+pr\b/, "pull-request"],
+  [/^git\s+(?:-C\s+\S+\s+)?push\b/, "cloud-upload"], [/^git\s+(?:-C\s+\S+\s+)?commit\b/, "commit"], [/^gh\s+pr\b/, "pull-request"],
+  [/^git\s+(?:-C\s+\S+\s+)?(?:merge|rebase|cherry-pick)\b/, "merge"],
   [/^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test|pytest|vitest|jest|node\s+--test|go\s+test|cargo\s+test)\b|^node\s+\S*\.test\.m?[jt]s\b/, "test-flask"],
-  [/^(?:docker|docker-compose|podman)\b/, "container"], [/^(?:curl|wget)\b/, "api"],
+  [/^(?:docker|docker-compose|podman)\b/, "container"], [/^(?:rm|rmdir|git\s+rm)\b/, "delete"], [/^(?:sed|perl)\s+(?:-\w+\s+)*-i/, "edit"],
+  [/^(?:cat|tee|printf|echo)\b[^>]*(?:^|[^2&>])>{1,2}\s*(?!&|\/dev\/)\S/, "file-new"],
+  [/^(?:curl|wget|http)\b/, "api"], [/^git\s+(?:-C\s+\S+\s+)?clone\b/, "download"],
+  [/^(?:grep|egrep|rg|ag|ack|git\s+grep)\b/, "search"],
+  [/^(?:cat|sed|head|tail|less|bat|nl|wc|jq|awk|xxd|od)\b/, "eye"],
+  [/^(?:ls|find|fd|tree|du)\b/, "folder-open"],
+  [/^git\s+(?:-C\s+\S+\s+)?(?:checkout|switch|branch|worktree)\b/, "branch"], [/^git\s+(?:-C\s+\S+\s+)?(?:diff|status|show)\b/, "diff"],
+  [/^git\s+(?:-C\s+\S+\s+)?log\b/, "history"], [/^git\s+(?:-C\s+\S+\s+)?(?:pull|fetch)\b/, "download"],
 ];
+// each stage of a chain counts by the command that starts its pipe; the strongest stage names the step
 export function cmdIcon(cmd) {
-  for (const part of String(cmd || "").split(/&&|\|\||;|\|/)) {
-    const c = part.trim().replace(/^(?:sudo\s+|\w+=\S*\s+)+/, "");
-    const hit = CMD_ICON.find(([re]) => re.test(c));
-    if (hit) return hit[1];
+  let best = CMD_ICON.length;
+  for (const stage of String(cmd || "").replace(/<<-?\s*['"]?(\w+)['"]?([^\n]*)\n[\s\S]*?(?:\n\1\b|$)/g, "$2").split(/&&|\|\||;|\n/)) {
+    const c = stage.split("|")[0].trim().replace(/^(?:sudo\s+|timeout\s+\S+\s+|\w+=\S*\s+)+/, "").replace(/^\(\s*/, "");
+    const i = CMD_ICON.findIndex(([re]) => re.test(c));
+    if (i >= 0 && i < best) best = i;
   }
-  return "terminal";
+  return best < CMD_ICON.length ? CMD_ICON[best][1] : "terminal";
 }
-const icon = (k, cmd) => xi(k === "command" ? cmdIcon(cmd) : KIND_ICON[k] || "step-dot");
+// a tool no kind covers, by its own name in any runtime
+const TOOL_ICON = [
+  [/todo|plan/i, "checklist"], [/worktree/i, "branch"], [/cron|schedule|wakeup|trigger|timer/i, "alarm"],
+  [/skill/i, "wand"], [/toolsearch|search|find|grep/i, "search"], [/image/i, "image"], [/monitor|output|logs?$/i, "logs"],
+  [/stop|kill/i, "stop"], [/agent|workflow|subagent/i, "agent"], [/message|send/i, "send"], [/permission/i, "lock"],
+  [/browser|url|web/i, "web"], [/read|view/i, "eye"], [/write|edit|patch/i, "edit"],
+];
+// XO's own comms tools, by what each one does
+const COMMS_ICON = {
+  message_thread: "send", message_coordinator: "send", message_coordinator_reply: "send", forward_to_project: "forward",
+  ask: "question", ask_owner: "question", ask_workspace: "question", withdraw_ask: "undo", post_message: "chat", reply: "chat", react: "emoji",
+  start_thread_session: "thread", continue_thread: "thread", stop_thread: "stop", report: "comment", handoff_note: "note", no_reply_needed: "minus-circle",
+  update_status: "checklist", add_todo: "checklist", update_todo: "checklist", list_todos: "checklist", submit_result: "check-circle", set_thread_resolved: "check-circle",
+  share_files: "share", wake_me: "alarm", cancel_wake: "bell-off", lease: "lock", release: "lock-open",
+  create_job: "calendar-add", list_jobs: "calendar", cancel_job: "x-circle", set_goal: "flag", create_task: "plus-circle", propose_project: "project",
+  rename_thread: "tag", set_thread_label: "tag", update_memory: "bookmark", read_memory: "eye", read_state: "eye", annotate_review: "highlighter", list_review: "list",
+};
+// a command that names no tool still says what it does in its own words: "Read the tokens", "Find where…"
+const VERB_ICON = [[/^(?:read|view|show|look at|inspect|open|check)\b/i, "eye"], [/^(?:search|find|grep|look for|locate)\b/i, "search"], [/^list\b/i, "folder-open"], [/^(?:run|rerun)\b.*\btests?\b/i, "test-flask"]];
+const nameIcon = (list, s) => (list.find(([re]) => re.test(s || "")) || [])[1];
+/** The pack's icon for one step of a turn or a sub-agent's run, from its kind, its tool's own name, its command and its line. */
+export function stepIcon({ kind, tool, target, line } = {}) {
+  const comms = commsTool({ tool, target });
+  if (comms) return COMMS_ICON[comms] || (/^(?:fetch|list)_/.test(comms) ? "eye" : "plug");
+  if (kind === "command") { const c = cmdIcon(target); return c !== "terminal" ? c : nameIcon(VERB_ICON, String(line || "").replace(/[`*_]/g, "").trim()) || c; }
+  if (kind === "other" || !KIND_ICON[kind]) return nameIcon(TOOL_ICON, tool) || "step-dot";
+  return KIND_ICON[kind];
+}
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
 
 function rowMark(r) {
@@ -51,7 +86,7 @@ function rowHtml(r, open) {
   const out = r.output != null && r.output !== "" ? r.output : null;
   const canOpen = !!(out || (r.kind === "command" && r.target));
   const said = commsLine(r);
-  const head = `<span class="tb-ri">${icon(said ? "ask" : r.kind || "other", r.target)}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
+  const head = `<span class="tb-ri">${xi(stepIcon(r))}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
   // data-r: the row's own key, so a step that starts while you watch can arrive (js/app.js workMotion)
   // a step keeps its identity (data-call-id, which msgx reads) when its label, status, duration or output changes
