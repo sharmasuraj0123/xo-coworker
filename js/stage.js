@@ -66,7 +66,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Agents went by rows (any pixel count, so a row could show in half): its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  const S = { lp: false, open: false, full: false, returnTo: null, stackH: 0, h: {} }; // h: the html each region holds; absent, unknown (redrawn next paint)
+  const S = { lp: false, open: false, full: false, returnTo: null, stackH: 0, h: {} }; // h: the html paint last wrote to each region
 
   const el = document.createElement("aside");
   el.className = "stage";
@@ -270,7 +270,16 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
   let nameOf = () => "";
 
+  // the page stack's marks on the panel: which page shows, and the head's Files and Shell pressed with it
+  function reflect() {
+    if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
+    const fb = el.querySelector("[data-open-files]");
+    if (fb) { const on = S.page?.name === "files"; fb.setAttribute("aria-pressed", String(on)); fb.classList.toggle("is-on", on); }
+    const b = el.querySelector("[data-stg-shell]");
+    if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel"; }
+  }
   function paint() {
+    reflect();
     if (!S.open) return;
     const v = view();
     const ag = map.agents(v);
@@ -454,10 +463,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (!on) { el.classList.remove("is-covered"); return; }
     if (S.page) el.classList.add("is-covered");
   }
-  function mark() {
-    if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
-    el.classList.toggle("is-shell", S.page?.name === "shell");
-  }
   function shut(t, shown) { const sp = PAGES.get(t.name); if (shown) sp.onHide?.(t.key); sp.close?.(t.key); }
 
   function show(name, key = name, { focus = false } = {}) {
@@ -471,7 +476,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     for (const t of [prev, S.under]) if (t && t !== keep) shut(t, t === prev);
     if (keep) PAGES.get(keep.name).onHide?.(keep.key);
     S.under = keep; S.page = next;
-    mark();
     const box = boxFor(name), old = prev ? BOXES.get(prev.name) : null;
     box.hidden = false;
     if (!box._m) { box._m = true; sp.mount?.(box, next.key); }
@@ -489,7 +493,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const had = el.contains(document.activeElement);
     shut(t, true);
     S.page = under; S.under = null;
-    mark();
     if (under) { BOXES.get(under.name).hidden = false; PAGES.get(under.name).onShow?.(under.key, { focus: had }); } else cover(false);
     box.style.zIndex = "1";
     const gone = () => { box.style.zIndex = ""; if (S.page?.name !== t.name) box.hidden = true; };
@@ -503,7 +506,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     shut(t, true); if (under) shut(under, false);
     for (const b of BOXES.values()) { b.getAnimations().forEach((x) => x.cancel()); b.hidden = true; b.style.zIndex = ""; }
     S.page = null; S.under = null;
-    mark(); cover(false);
+    cover(false);
     pageChanged();
   }
   function closePage(name) {
@@ -522,14 +525,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     return true;
   }
   const sectionsNeed = () => { const tg = threads ? threads(view()) : null; return !!tg && tg.some((g) => g.k === "needs" && g.rows.length); };
-  function pageChanged() {
-    const fb = el.querySelector("[data-open-files]");
-    if (fb) { const on = S.page?.name === "files"; fb.setAttribute("aria-pressed", String(on)); fb.classList.toggle("is-on", on); }
-    const b = el.querySelector("[data-stg-shell]");
-    if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel"; }
-    delete S.h.head; paint(); // "" is a head too (the sections draw none), so unknown is absent, never ""
-    onChange && onChange();
-  }
+  function pageChanged() { paint(); onChange && onChange(); }
   // over a thread the shell opens in its worktree
   if (shell) page("shell", {
     title: (k) => `Shell · ${S.under ? pageTitle(S.under) : nameOf(k || view())}`,
