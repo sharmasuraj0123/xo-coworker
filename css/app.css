@@ -91,17 +91,6 @@ button:disabled{cursor:default}
 .gear-ic{display:grid;place-items:center;width:16px;height:16px;color:var(--ink-3)}
 .gear:hover .gear-ic,.gear.is-on .gear-ic{color:var(--ink)}
 .gear-ic svg{width:var(--ic);height:var(--ic)}
-/* the project filter (hub #16) */
-.side-find{display:flex;align-items:center;gap:8px;height:34px;margin:var(--ring-room) 12px calc(8px - var(--ring-room));padding:0 10px;border-radius:11px;background:var(--sb-g17);border:1px solid var(--sb-g26);transition:border-color var(--d-hover),background var(--d-hover)}
-.side-find:focus-within{border-color:var(--sb-line-hover);background:var(--sb-g1A)}
-.sf-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
-.sf-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
-#pf-in{flex:1;min-width:0;height:100%;border:0;background:none;outline:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
-#pf-in::placeholder{color:var(--ink-4)}
-#pf-in::-webkit-search-cancel-button{display:none}
-.sf-n{flex:none;font:var(--fw-regular) var(--fs-meta)/1 var(--mono);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.prow.is-cur{border-color:var(--sb-line-hover);background:var(--row-bg-hover)}
-.pf-none{padding:10px 6px;font-size:var(--fs-ui);color:var(--ink-4)}
 
 .nav{display:flex;flex-direction:column;gap:2px;padding:4px 10px 0}
 .nrow,.prow{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;width:100%;--nest-r:var(--r-lg);--nest-in:calc((var(--h-row) - var(--tile-sm)) / 2);min-height:var(--h-row);padding:calc(var(--nest-in) - 1px) 10px calc(var(--nest-in) - 1px) calc(var(--nest-in) - 1px);border-radius:var(--nest-r);text-align:left;color:var(--ink-2);border:1px solid transparent;transition:background-color var(--d-hover),border-color var(--d-hover),transform var(--dur-fast) var(--ease)}
@@ -130,9 +119,6 @@ button:disabled{cursor:default}
 /* a scroll box keeps the ring's room inside it (it clips what's past its padding): 2 px above the first project cut its
    focused ring's top (the controls grader on 22046ec, C008); the label above gives the 4 px back, so the rows sit where
    they did */
-/* 8 px between Projects and Find a project, and between Find and the first row, as Files has between its title and
-   its Find: the label's 2 px and Find's own 6 above it, Find's 2 and the list's 6 of ring room below it (it was 2 above
-   and 14 below: the owner, 11 Nov 08:02Z). Find hidden, the label's 2 and the list's 6 are 8 too */
 .projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:4px;padding:var(--ring-room) 12px 14px;scrollbar-width:thin;scrollbar-color:var(--sb-g2A) transparent}
 .pr-ic svg{width:var(--ic);height:var(--ic)}
 .prow.is-on .pr-ic{color:var(--ink);background:var(--sb-g26)}

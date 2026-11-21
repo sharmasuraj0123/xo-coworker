@@ -142,7 +142,6 @@ LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") apply
 // ── state ───────────────────────────────────────────────────────────────────
 const S = {
   view: "home",            // home | ws | p:<project> | t:<thread>
-  pfind: "", pfCur: 0,     // the sidebar's project filter (hub #16) and its highlighted row
   parent: {}, opener: {}, scroll: {},
   dockFold: {},
   lref: {},                // beside a file: the lines a message will be about, per conversation {path, a, b, name}
@@ -546,18 +545,8 @@ function sideRender(needs) {
   // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
   for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   const now = Date.now();
-  // the project filter (hub #16): shown once the list is long; matches keep the ones needing you first
-  const all = projects();
-  const find = $("#side-find");
-  find.hidden = all.length <= FIND_AT && !S.pfind;
-  const q = (S.pfind || "").trim().toLowerCase();
-  const needN = (p) => mine.filter((x) => x.t.project === p.id).length;
-  const shown = q ? all.filter((p) => String(p.name || p.id).toLowerCase().includes(q)).sort((a, b) => (needN(b) > 0) - (needN(a) > 0)) : all;
-  if (S.pfCur >= shown.length) S.pfCur = shown.length - 1;
-  const pfn = q ? (shown.length ? `${shown.length} of ${all.length}` : "None") : "";
-  if ($("#pf-n").textContent !== pfn) $("#pf-n").textContent = pfn;
-  sideRender.shown = shown;
-  const items = shown.map((p, pi) => {
+  const shown = projects();
+  const items = shown.map((p) => {
     const on = S.view === "p:" + p.id || convThread(S.view)?.project === p.id;
     const asks = mine.filter((x) => x.t.project === p.id);
     const lead = asks.find((x) => x.group !== "stopped" && x.risk !== "destructive") || asks[0];
@@ -579,41 +568,15 @@ function sideRender(needs) {
     const w = S.wash.get(p.id);
     const washing = w && w.until > now;
     return { key: p.id, html:
-      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}${q && pi === S.pfCur ? " is-cur" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${SIDE.folded ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
+      `<button type="button" class="prow${needsMe ? ` needs k-${kind}` : working ? " busy" : ""}${on ? " is-on" : ""}${washing ? " wash" : ""}" data-go="p:${esc(p.id)}" data-w="${washing ? w.n : 0}"${on ? ' aria-current="page"' : ""} aria-label="${esc(p.name)}${needsMe ? `. ${asks.length} need${asks.length === 1 ? "s" : ""} you: ${esc(label)}` : busy ? ". Working" : held ? `. ${esc(heldWords(held))}` : ""}"${SIDE.folded ? ` title="${esc(p.name)}${needsMe ? ` · ${asks.length} need${asks.length === 1 ? "s" : ""} you` : busy ? " · Working" : ""}"` : ""}>` +
       `<span class="pr-ic" aria-hidden="true">${projectIcon(p.id)}${busy && needsMe ? `<i class="pr-busy"></i>` : ""}</span>` +
       `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
       (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>` };
   });
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
-  if (q && !items.length) items.push({ key: "pf-none", html: `<p class="pf-none">No project called “${esc(S.pfind.trim())}”.</p>` });
   // a row that changes (where you are, a count) is updated in place: its lines stay, so nothing replays its entrance
   reconcile($("#projects"), items, { quiet: !sideRender.ready, inPlace: true });
   sideRender.ready = true;
-}
-const FIND_AT = 8;
-{
-  const inp = $("#pf-in");
-  const set = (v) => { S.pfind = v; S.pfCur = 0; sideRender(D.needItems()); };
-  inp.addEventListener("input", () => set(inp.value));
-  inp.addEventListener("keydown", (e) => {
-    const list = sideRender.shown || [];
-    // Escape: a typed filter clears and stays; an empty one goes back to where you are, never to the page (a blur
-    // left focus on BODY: the create-project grader on c8f4c45, C007): a phone's drawer closes (focus to what opened
-    // it), else the place's own region
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (inp.value) { inp.value = ""; set(""); } else if (PHONE.matches && $("#app").classList.contains("drawer")) setDrawer(false); else placeRegion().focus({ preventScroll: true }); return; }
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      e.preventDefault();
-      if (!list.length || !S.pfind) return;
-      S.pfCur = (Math.max(0, S.pfCur) + (e.key === "ArrowDown" ? 1 : list.length - 1)) % list.length;
-      sideRender(D.needItems());
-      $("#projects .prow.is-cur")?.scrollIntoView({ block: "nearest" });
-      return;
-    }
-    if (e.key === "Enter") {
-      const p = S.pfind ? list[Math.max(0, S.pfCur)] : null;
-      if (p) { e.preventDefault(); inp.value = ""; S.pfind = ""; S.pfCur = 0; go("p:" + p.id); }
-    }
-  });
 }
 
 // ── Home ────────────────────────────────────────────────────────────────────
@@ -4089,8 +4052,13 @@ function threadIc(t) {
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
   const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
-  for (const p of projects()) {
-    all.push({ v: "p:" + p.id, name: p.name, sub: "Project", icon: projectIcon(p.id) });
+  const needN = new Map();
+  for (const x of D.needItems()) if (x.admitted && !x.later) needN.set(x.t.project, (needN.get(x.t.project) || 0) + 1);
+  // typed for, the projects that need you come first
+  const ps = q ? projects().sort((a, b) => needN.has(b.id) - needN.has(a.id)) : projects();
+  for (const p of ps) {
+    const n = needN.get(p.id) || 0;
+    all.push({ v: "p:" + p.id, name: p.name, sub: n ? `Project · ${n} need${n === 1 ? "s" : ""} you` : "Project", icon: projectIcon(p.id) });
     for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
   }
   // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
@@ -4916,7 +4884,6 @@ $("#set-side-ic").innerHTML = ICON.gear;
   const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
   for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
 }
-$("#sf-ic").innerHTML = ICON.search;
 $("#set-phone").innerHTML = ICON.gear;
 $("#sound-tog .th-knob").innerHTML = ICON.sound;
 for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;

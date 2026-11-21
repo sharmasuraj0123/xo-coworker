@@ -7,7 +7,7 @@
    Corners, measured (they were 13, 9, 11, 11, 16 and 8): Plan F's scale, nested ones computed.
    · Rows (Home…Artifacts, projects; 42 tall) are cards: --r-lg (12).
    · Their 28px tiles sit 7px in (1px line + 6px padding): 12 − 7 = 5.
-   · Controls (Find a project 34, Shells and Settings 32, the + 28): --r (8). The +'s hover tile sits
+   · Controls (Shells and Settings 32, the + 28): --r (8). The +'s hover tile sits
      2px in: 8 − 2 = 6. Round things (the theme switch) stay round.
    · Focus follows the shape it's on (it used to flatten every corner to 6).
    Edges: every row, the find field and the foot start 12px in (the nav rows were 10).
@@ -21,9 +21,9 @@
    Weights 400–600; motion --d-move on --ease. */
 
 .nav{padding:4px 12px 0}
-.side-find,.side .gear,.side-plus{border-radius:var(--r)}
+.side .gear,.side-plus{border-radius:var(--r)}
 .side :is(.nrow,.prow):focus-visible{border-radius:var(--nest-r)}
-.side :is(.side-find,.gear,.side-plus):focus-visible{border-radius:var(--r)}
+.side :is(.gear,.side-plus):focus-visible{border-radius:var(--r)}
 
 .prow:not(.busy):not(.needs):not(.is-on){background:transparent;border-color:transparent;box-shadow:none}
 .prow:not(.busy):not(.needs):not(.is-on):hover{background:var(--row-hover)}
@@ -102,7 +102,7 @@
 @media (min-width:761px){
   .app.side-folded{--side-w:var(--side-rail-w)}
   .side-folded .side-top{flex-direction:column;justify-content:center;height:auto;gap:var(--s-1);padding:var(--s-3) 0 var(--s-2)}
-  .side-folded :is(.brand,.side-label,.side-find,.nr-name,.nr-q,.pr-main,.sh-n,.gear-t){display:none}
+  .side-folded :is(.brand,.side-label,.nr-name,.nr-q,.pr-main,.sh-n,.gear-t){display:none}
   .side-folded :is(.nrow,.prow){width:var(--h-row);padding:0;justify-content:center;gap:0}
   /* Home's count rides on its tile's corner */
   .side-folded .nr-n:not(:empty){position:absolute;top:0;right:0;padding:0 var(--s-1);border-radius:var(--r-pill);background:var(--sb-side)}
