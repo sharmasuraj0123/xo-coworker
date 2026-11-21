@@ -4,8 +4,8 @@ import { esc } from "./world.js";
 import { redraw, pressedNode } from "./redraw.js";
 import { usable } from "./focusview.js";
 
-import { xi } from "./icon.js";
-export { xi };
+import { xi, stateMark } from "./icon.js";
+export { xi, stateMark };
 
 // Every icon is the owner's (assets/icons/xo, 19 Nov), drawn on its 24 grid with its own pen (1.75, round ends),
 // cleaned for the page by tools/xoicons/build.mjs into js/xoicons.js: the one source (js/icon.js draws one).

@@ -27,7 +27,7 @@ t("a row's time: the clock for today and yesterday, the weekday this week, else 
 });
 t("a row: the agent's mark on a tile, its state as a badge (none when idle), title, second line, time", () => {
   const src = read("js/chats.js");
-  assert.match(src, /<span class="chl-tile">\$\{rtMark\(s\.agent\) \|\| ICON\.thread\}\$\{state \? `<i class="g g-\$\{state\}" aria-hidden="true"><\/i>` : ""\}<\/span>/);
+  assert.match(src, /<span class="chl-tile">\$\{rtMark\(s\.agent\) \|\| ICON\.thread\}\$\{state \? stateMark\(state\) : ""\}<\/span>/);
   assert.match(src, /const state = wait \? "needs_approval" : busy \? "working" : held \? "paused" : "";/);
   assert.match(src, /<section class="chl-g" aria-labelledby="chl-g\$\{i\}"><h2 class="chl-h"/);
   // the second line: model (else the agent), effort, and the mode or folder only when not the default

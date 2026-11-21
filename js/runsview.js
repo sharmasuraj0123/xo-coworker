@@ -4,7 +4,7 @@
 // Pure HTML builders: the data comes from storm (runs, ancestry, transcript items).
 
 import { esc } from "./world.js";
-import { ICON, stepMark } from "./ui.js";
+import { ICON, stepMark, stateMark } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 
 const LIVE = new Set(["running", "waiting"]);
@@ -25,10 +25,10 @@ export function runsStripHtml(live, total) {
     // a phone's checklist row has no room for the chips: there, one count opens the list (css/phone.css)
     const n = live.length, wait = live.filter((r) => r.state === "waiting").length;
     const word = `${n} sub-agent${n === 1 ? "" : "s"} working${wait ? `, ${wait} waiting on you` : ""}`;
-    const count = `<button type="button" class="rn-live" data-runs title="${word}" aria-label="${word}"><i class="g g-${wait ? "needs_reply" : "working"}" aria-hidden="true"></i><b class="rn-n">${n}</b></button>`;
+    const count = `<button type="button" class="rn-live" data-runs title="${word}" aria-label="${word}">${stateMark(wait ? "needs_reply" : "working")}<b class="rn-n">${n}</b></button>`;
     return count + `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
       // each chip is a button in its own list item: role=listitem on the button itself took its button role away (Astra C047)
-      `<div class="rn-it" role="listitem"><button type="button" class="rn-chip st-${esc(r.state)}" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i><span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button></div>`).join("")}</div>`;
+      `<div class="rn-it" role="listitem"><button type="button" class="rn-chip st-${esc(r.state)}" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}">${stateMark(glyph(r.state))}<span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button></div>`).join("")}</div>`;
   }
   return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.list}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
 }
@@ -41,7 +41,7 @@ function rowHtml(r, { canStop, depth = 0, saidFor = null, out = [] }) {
   const stop = canStop && LIVE.has(r.state) && r.can_stop !== false
     ? `<button type="button" class="rn-stop" data-run-stop="${esc(r.id)}" title="${busy ? "Sending the stop…" : "Stop this sub-agent (Undo for 3 s)"}"${busy ? ' aria-busy="true" aria-disabled="true"' : ""}>${ICON.stop}<span>${busy ? "Stopping…" : "Stop"}</span></button>` : "";
   return `<li class="rn-row st-${esc(r.state)}${depth ? " is-child" : ""}" style="--d:${depth}">` +
-    `<button type="button" class="rn-open" data-run="${esc(r.id)}"><i class="g g-${glyph(r.state)}" aria-hidden="true"></i>` +
+    `<button type="button" class="rn-open" data-run="${esc(r.id)}">${stateMark(glyph(r.state))}` +
     `<span class="rn-main"><span class="rn-t">${esc(r.title)}</span><span class="rn-m">${esc(STATE_WORD[r.state] || r.state)}${meta ? ` · ${esc(meta)}` : ""}</span>` +
     (r.summary && !LIVE.has(r.state) ? `<span class="rn-s">${esc(r.summary)}</span>` : "") + `</span>${ICON.right}</button>${stop}</li>` +
     (saidFor && saidFor.key === `run:${r.id}` ? `<li class="rn-said-row" style="--d:${depth}">${saidHtml(saidFor, `run:${r.id}`)}</li>` : "") +
@@ -125,7 +125,7 @@ export function runViewHtml(run, { anc, items, children = [], canStop, gone = nu
   const live = LIVE.has(run.state);
   const head = `<header class="rn-h is-run"><button type="button" class="rn-back" data-runs-back title="Back to the list">${ICON.back}<span>Sub-agents</span></button>` +
     `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-top">${pathHtml(anc, run)}<div class="rn-st"><span class="badge st-${esc(glyph(run.state))}"><i class="g g-${glyph(run.state)}" aria-hidden="true"></i>${esc(STATE_WORD[run.state] || run.state)}</span>` +
+    `<div class="rn-top">${pathHtml(anc, run)}<div class="rn-st"><span class="badge st-${esc(glyph(run.state))}">${stateMark(glyph(run.state))}${esc(STATE_WORD[run.state] || run.state)}</span>` +
     (canStop && live && run.can_stop !== false ? (out.includes(`run:${run.id}`) ? `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Sending the stop…" aria-busy="true" aria-disabled="true">${ICON.stop}<span>Stopping…</span></button>` : `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Stop this sub-agent (Undo for 3 s)">${ICON.stop}<span>Stop</span></button>`) : "") + `</div></div>`;
   let body;
   if (gone) body = `<p class="rn-none">Its transcript is gone. ${esc(gone)}</p>`;

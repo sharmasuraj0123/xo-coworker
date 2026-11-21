@@ -22,4 +22,9 @@ t("a step's mark comes from the pack: check, step-doing, state-idle", () => {
   assert.match(ui, /todo: xi\("state-idle"\)/);
   assert.match(ui, /export const stepMark = \(s\) => \(s === "done" \? ICON\.check : s === "doing" \? ICON\.doing : ICON\.todo\);/);
 });
+t("a state mark is the pack's state-* icon, never a CSS-drawn box, ring or diamond", () => {
+  for (const [f, s] of src) assert.doesNotMatch(s, /<i class="g /, f);
+  const css = ["app.css", "links.css", "phone.css"].map((c) => readFileSync(new URL(`../css/${c}`, import.meta.url), "utf8")).join("\n");
+  assert.doesNotMatch(css, /(^|\n|\})\.g(-[a-z_]+)?(,\.g-[a-z_]+)*\{[^}]*(border|background|rotate)/);
+});
 console.log(`\n${passed} passed`);
