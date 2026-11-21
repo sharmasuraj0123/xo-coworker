@@ -72,11 +72,54 @@ for (const [id, mode, props] of palettes) {
 
 // boundaries: a flavour's lines and raised surfaces stand off its canvas at least about as well as Stone's (the owner,
 // 22:58Z: Onyx was too black to see where things end)
-const EDGES = [["--line", "--canvas"], ["--line", "--surface"], ["--surface", "--canvas"], ["--float", "--canvas"], ["--line-soft", "--surface"], ["--fill-2", "--surface"], ["--sunken", "--canvas"]];
+const EDGES = [["--bubble", "--canvas"], ["--bubble-top", "--canvas"], ["--field-line", "--surface"], ["--track", "--surface"], ["--line", "--canvas"], ["--line", "--surface"], ["--surface", "--canvas"], ["--float", "--canvas"], ["--line-soft", "--surface"], ["--fill-2", "--surface"], ["--sunken", "--canvas"]];
 const stoneEdge = Object.fromEntries(palettes.filter(([id]) => id === "stone").map(([, mode, p]) => [mode, EDGES.map(([a, b]) => ratio(color(`var(${a})`, p), color(`var(${b})`, p)))]));
 for (const [id, mode, props] of palettes.filter(([id]) => id !== "stone")) {
   t(`${id} in ${mode}: lines and surfaces keep at least 85% of Stone's step from what they sit on`, () => {
     const low = EDGES.map(([a, b], i) => [a, b, ratio(color(`var(${a})`, props), color(`var(${b})`, props)), stoneEdge[mode][i]]).filter(([, , r, st]) => r - 1 < 0.85 * (st - 1)).map(([a, b, r, st]) => `${a} on ${b} ${r.toFixed(3)} (Stone ${st.toFixed(3)})`);
+    assert.deepEqual(low, []);
+  });
+}
+
+// what sits on a tint: a translucent fill (color-mix with transparent, or rgba) laid over the surface under it
+const layer = (v, under, props) => {
+  const x = v.trim(), r = /^var\((--[\w-]+)\)$/.exec(x);
+  if (r) return layer(props[r[1]], under, props);
+  let m = /^color-mix\(\s*in\s+srgb\s*,\s*(.+?)\s+([\d.]+)%\s*,\s*transparent\s*\)$/.exec(x);
+  if (m) { const c = color(m[1], props), p = +m[2] / 100; return c.map((v, i) => v * p + under[i] * (1 - p)); }
+  m = /^rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/.exec(x);
+  if (m) { const a = +m[4]; return [m[1], m[2], m[3]].map((v, i) => +v * a + under[i] * (1 - a)); }
+  return color(x, props);
+};
+const oklchRgb = (L, C, H) => {
+  const a = C * Math.cos((H * Math.PI) / 180), b = C * Math.sin((H * Math.PI) / 180);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3, m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3, s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  const g = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s, -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s, -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s].map((c) => Math.round(255 * Math.min(1, Math.max(0, g(c)))));
+};
+const live = (props, d) => oklchRgb(+props["--live-l"], +props["--live-c"], +props["--live-h"] + d);
+// words on a fill: [words, fill, what the fill sits on]
+const FILLED = [
+  ["--ink", "--btn-fill", "--surface"], ["--ink", "--btn-fill-press", "--surface"], ["--accent", "--ok-fill", "--surface"], ["--ink", "--ok-fill-press", "--surface"],
+  ["--danger-ink", "--danger-fill", "--surface"], ["--danger-ink", "--danger-tint", "--surface"], ["--danger-text", "--danger-tint", "--surface"], ["--del-text", "--danger-wash", "--surface"],
+  ["--warn-text", "--need-tint-2", "--surface"], ["--warn-text", "--need-tint", "--canvas"], ["--coord", "--coord-tint", "--surface", 3],
+  ["--info", "--hover-fill", "--surface"], ["--ink", "--bubble", "--canvas"], ["--ink", "--bubble-top", "--canvas"], ["--ink", "--bubble-foot", "--canvas"],
+  ["--ink", "--field-bg", "--surface"], ["--ink-5", "--field-bg", "--surface", 3],
+];
+for (const [id, mode, props] of palettes) {
+  t(`${id} in ${mode}: the working dots, the running blue, badges and every filled control read`, () => {
+    const low = [];
+    for (const [fg, fill, on, min = 4.5] of FILLED) {
+      const bg = layer(`var(${fill})`, color(`var(${on})`, props), props), r = ratio(color(`var(${fg})`, props), bg);
+      if (r < min) low.push(`${fg} on ${fill} over ${on} ${r.toFixed(2)} < ${min}`);
+    }
+    for (const [st, words] of [["--warn", "--warn-text"], ["--info", "--info"], ["--accent", "--ok-text"], ["--err-ink", "--danger-ink"], ["--ink-4", "--ink-3"]]) for (const on of ["--surface", "--canvas"]) {
+      const under = color(`var(${on})`, props), bg = layer(`color-mix(in srgb,var(${st}) 12%,transparent)`, under, props), r = ratio(color(`var(${words})`, props), bg);
+      if (r < 4.5) low.push(`badge ${words} on ${st} over ${on} ${r.toFixed(2)} < 4.5`);
+    }
+    for (const d of [-30, 0, 30]) for (const on of ["--canvas", "--surface", "--float"]) { const r = ratio(live(props, d), color(`var(${on})`, props)); if (r < 3) low.push(`working dot ${d} on ${on} ${r.toFixed(2)} < 3`); }
+    const rail = ratio(color("var(--sb-side)", props), color("var(--warn)", props));
+    if (rail < 4.5) low.push(`the rail's amber count ${rail.toFixed(2)} < 4.5`);
     assert.deepEqual(low, []);
   });
 }

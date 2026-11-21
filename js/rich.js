@@ -23,20 +23,21 @@ const QUIET = 600; // ms without input before anything loads or draws
 const SLICE = 8; // ms of drawing before yielding to the page
 const MAX_TEX = 4000, MAX_DIAGRAM = 20000;
 const root = document.documentElement;
-const theme = () => (root.dataset.theme === "light" ? "light" : "dark");
+const theme = () => `${root.dataset.theme === "light" ? "light" : "dark"}:${root.dataset.flavour || "stone"}`;
 
 // ── caches the renderer reads synchronously ─────────────────────────────────
 const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
 const DIAGRAMS = new Map(); // theme + "\n" + src → {html, theme}
+const LATEST = new Map(); // src → its latest drawing in any look
 const FAILED = new Map(); // src → why it couldn't be drawn (any theme)
 const cap = (m, n = 600) => { if (m.size > n) m.delete(m.keys().next().value); };
 /** A formula's drawing if it's been drawn (KaTeX's HTML), else null. Synchronous: markdown.js asks it as it writes. */
 export function cachedMath(tex, display = false) { return MATH.get((display ? "D" : "I") + tex) ?? null; }
-/** A diagram's drawing if it's been drawn: {html, theme, w} for this theme (else the other theme's, until this one is
+/** A diagram's drawing if it's been drawn: {html, theme, w} for this theme (else another look's, until this one is
  *  drawn), {error} if Mermaid couldn't read it, else null. Synchronous. */
 export function cachedDiagram(src) {
   if (FAILED.has(src)) return { error: FAILED.get(src) };
-  return DIAGRAMS.get(theme() + "\n" + src) || DIAGRAMS.get((theme() === "dark" ? "light" : "dark") + "\n" + src) || null;
+  return DIAGRAMS.get(theme() + "\n" + src) || LATEST.get(src) || null;
 }
 setRich({ math: cachedMath, diagram: cachedDiagram });
 
@@ -152,7 +153,7 @@ async function mermaidFor(th) {
     const ink = v("--ink", "#eee"), ink2 = v("--ink-2", "#ccc"), ink3 = v("--ink-3", "#999"), line = v("--line-strong", "#555");
     const node = v("--fill-2", "#2a2a2a"), canvas = v("--canvas", "#141414"), soft = v("--fill-1", "#1d1d1d");
     mermaid.initialize({
-      startOnLoad: false, securityLevel: "strict", theme: "base", darkMode: th === "dark",
+      startOnLoad: false, securityLevel: "strict", theme: "base", darkMode: th.startsWith("dark"),
       fontFamily: getComputedStyle(document.body).fontFamily, fontSize: 14,
       flowchart: { curve: "basis", padding: 12, nodeSpacing: 40, rankSpacing: 48, htmlLabels: true },
       themeVariables: {
@@ -191,7 +192,7 @@ function diagramFor(src, th = theme()) {
       // phone a wide diagram scrolls sideways in its card rather than shrinking to words no one can read
       const vb = /viewBox="[-\d.]+[ ,]+[-\d.]+[ ,]+([\d.]+)/.exec(svg);
       const got = { html: svg, theme: th, w: vb ? Math.round(+vb[1]) : null };
-      DIAGRAMS.set(key, got); cap(DIAGRAMS, 200);
+      DIAGRAMS.set(key, got); cap(DIAGRAMS, 200); LATEST.set(src, got); cap(LATEST, 200);
       return got;
     } catch (e) {
       FAILED.set(src, String((e && e.message) || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));

@@ -39,7 +39,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .fl-q svg,.md-pane .md-tools .all-q svg{width:var(--ic);height:var(--ic)}
 .fl-q input,.md-pane .md-tools .all-q input{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
-:root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:#fff;border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:var(--surface);border-color:rgba(0,0,0,.12)}
 
 /* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
    folder's chevron or a file's icon; every name starts on the name column ──────────────────────────── */
@@ -98,7 +98,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-new-say{box-sizing:border-box;height:28px;margin:0;padding:6px 6px 0 calc(6px + var(--d) * 16px + 18px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .fl-new-say.is-err{color:var(--err-ink)}
 .fl-new-say[hidden]{display:none}
-:root[data-theme="light"] .fl-new-r input{background:#fff}
+:root[data-theme="light"] .fl-new-r input{background:var(--surface)}
 @media (prefers-reduced-motion:reduce){.fl-menu{animation:none}}
 
 /* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
@@ -156,7 +156,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 @container flpv (max-width:520px){.vw-seg button:where(:has(svg)){width:var(--h-sm);padding:0;justify-content:center}.vw-seg button svg{display:block}.vw-seg button:where(:has(svg)) span{display:none}.vw-seg .vw-wide{display:none}.vw-seg .vw-narrow{display:inline}}
 /* (a narrow pane no longer hides the file's switch: a narrow head folds it into ⋯ instead, below) */
 .fl-pv{container:flpv / inline-size}
-:root[data-theme="light"] .vw-seg{background:#f4f4f4;border-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .vw-seg{background:var(--fill-1);border-color:rgba(0,0,0,.08)}
 
 /* code in the viewer: one row per line with its number; a long line wraps under itself (a hanging indent)
    instead of running off the edge */
@@ -210,7 +210,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
   .md-pane .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:28px;height:28px;margin-right:4px;border-radius:var(--r-sm);background:none}
   .md-pane .md-pin:hover{background:var(--fill-2)}
   :root[data-theme="light"] .md-pane .md-it:hover{background:rgba(0,0,0,.04)}
-  :root[data-theme="light"] .md-pane .md-th{background:#fafafa;border-color:rgba(0,0,0,.08)}
+  :root[data-theme="light"] .md-pane .md-th{background:var(--canvas);border-color:rgba(0,0,0,.08)}
 }
 
 /* ── the Map in the panel: the same scope line, then one surface edge to edge ─────────────────────── */
@@ -234,7 +234,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .dg-n::before{content:"";position:absolute;inset:clamp(-5px, calc(12px * (1 - 1 / var(--dg-s, 1))), 0px)}
 .dg-ic svg,.dg-ic svg.fi{width:var(--ic);height:var(--ic)}
 .gn.k-file .gn-d{background:var(--fc,var(--fill-4))}
-:root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,#B9B9B6)}
+:root[data-theme="light"] .gn.k-file .gn-d{background:var(--fc,var(--map-dot))}
 .dg-tag{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 /* the cursor is its arrow; its words show on hover (they are already in the line or chip above) */
 .map-host .dg-tag{opacity:0;pointer-events:none;transition:opacity var(--d-hover) var(--ease)}
@@ -357,7 +357,7 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 .fv-b{flex:1;min-height:0;display:flex}
 .fv-b>.fl{flex:1;min-width:0}
 .fv .fl.is-wide .fl-tree{width:var(--tw,280px);border-right:0;background:var(--fill-1)}
-:root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:#FBFBFA}
+:root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:var(--canvas)}
 .fv .fl-crumb:not(:has(.fl-up)){display:none}
 .fl-split{display:none}
 /* its 9 px grab area reaches over the file beside it: raised above it, so the pointer can take it at its line (C034) */
@@ -372,7 +372,7 @@ body.fv-sizing{cursor:col-resize;user-select:none}
 /* the tree, folded: Changed (a dot when this place changed something), All files, Find */
 .fl-rail{display:none}
 .fv .fl.is-wide.is-folded .fl-rail{display:flex;flex:none;flex-direction:column;align-items:center;gap:4px;width:var(--rail-w);padding:6px 0;background:var(--fill-1);box-shadow:inset -1px 0 var(--line-faint)}
-:root[data-theme="light"] .fv .fl.is-wide.is-folded .fl-rail{background:#FBFBFA;box-shadow:inset -1px 0 rgba(0,0,0,.06)}
+:root[data-theme="light"] .fv .fl.is-wide.is-folded .fl-rail{background:var(--canvas);box-shadow:inset -1px 0 rgba(0,0,0,.06)}
 .fv .fl.is-wide.is-folded :is(.fl-tree,.fl-split){display:none}
 .fl-rb{position:relative;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-rb:hover{background:var(--fill-2);color:var(--ink)}
@@ -506,7 +506,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .map-host .gn.m-edited .gn-d{background:var(--violet)}
 .stage .map-host .gn.is-here .gn-d{background:var(--c)}
 .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:var(--ink-3)} /* the root is neutral until an agent is there */
-:root[data-theme="light"] .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:#B9B9B6} /* the pale map grey, not a black blob */
+:root[data-theme="light"] .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:var(--map-dot)} /* the pale map grey, not a black blob */
 /* light: a pale agent colour (the yellow) keeps an edge of its own hue on the pale canvas, on its dot and its arrow */
 :root[data-theme="light"] .stage .map-host .gn.is-here .gn-d{--gn-in:inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,#000);--gn-halo:0 0 0 5px color-mix(in srgb,var(--c) 30%,transparent)}
 :root[data-theme="light"] .stage .map-host .dg-cur:not(.is-idle) .dg-arrow path{stroke:color-mix(in srgb,var(--c) 62%,#000);stroke-width:1}
