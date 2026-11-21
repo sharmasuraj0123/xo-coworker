@@ -34,7 +34,7 @@ diffs-container{
 }
 
 /* ── counts: "+5 −8", tabular so they never shift, the code tokens' green and red ── */
-.xd-n{flex:none;display:inline-flex;gap:6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--ink-4)}
+.xd-n{flex:none;display:inline-flex;gap:4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0;color:var(--ink-4)}
 .xd-n b{font-weight:var(--fw-medium)}
 .xd-a{color:var(--code-add)}
 .xd-d{color:var(--code-del)}
@@ -101,13 +101,14 @@ diffs-container{
 @keyframes cx-pill{from{opacity:0;transform:translate(-50%,-4px)}}
 /* the frame's head: the total beside the count, and Follow */
 .stage [data-fr="changes"] .fr-n{display:inline-flex;align-items:baseline;gap:8px}
-.stage .xd-follow{display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0 8px;border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stage .xd-follow{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-1);min-width:var(--h-sm);height:var(--h-sm);padding:0 var(--s-1);border-radius:var(--r-pill);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .xd-follow[hidden]{display:none}
 .stage .xd-follow:hover{background:var(--panel-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
 .stage .xd-follow.is-on:hover{background:color-mix(in srgb,var(--info) 22%,transparent)}
 .stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-more:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .xd-arc{position:relative;width:10px;height:10px}
+.stage .xd-follow .xi{width:var(--ic-sm);height:var(--ic-sm)}
 .xd-arc::before{content:"";position:absolute;inset:0;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){.xd-arc::before,.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
 
@@ -124,7 +125,7 @@ diffs-container{
 .vw-file diffs-container{--code-bg:var(--canvas)}
 
 /* "Ask about lines 36–43 ⌘L": under the selection's last line, at the code's right edge */
-.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
+.xd-ask{position:absolute;z-index:3;right:16px;display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px 0 8px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink);white-space:nowrap;animation:xd-in var(--d-in) var(--ease)}
 .xd-ask:hover{border-color:var(--line-hover)}
 .xd-ask svg{width:14px;height:14px;color:var(--ink-3)}
 .xd-ask kbd{all:unset;margin-left:var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
@@ -136,7 +137,7 @@ diffs-container{
    14 + 8 = 22. Send never shrinks: a long thread name is cut instead (Astra F3). */
 .xd-q{box-sizing:border-box;max-width:600px;margin:8px 16px 12px;padding:5px 5px 5px 15px;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font-family:var(--sans);white-space:normal;animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-q{background:var(--surface)}
-.xd-q .xd-ref{display:flex;align-items:center;gap:6px;margin:4px 0 4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.xd-q .xd-ref{display:flex;align-items:center;gap:4px;margin:4px 0 4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .xd-q .xd-ref svg{width:14px;height:14px}
 .xd-q .xd-in{display:block;box-sizing:border-box;width:100%;min-height:var(--h-lg);margin:0;padding:0;border:0;outline:none;resize:none;background:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .xd-q .xd-in::placeholder{color:var(--ink-4)}
@@ -161,11 +162,11 @@ diffs-container{
 @container flpv (max-width:360px){.vw-seg.is-words{display:flex}.vw-seg.is-words button{padding:0 6px}}
 
 /* ── Files (js/viewer.js): the file's state in its head, read-only places, files that run code ── */
-.xd-state{display:inline-flex;align-items:center;gap:6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-state{display:inline-flex;align-items:center;gap:4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-state i{flex:none;width:6px;height:6px;mask:var(--mask-dot);background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
-.xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.xd-btn{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .xd-btn:hover{border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
 .xd-btn.is-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn.is-pri:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
@@ -175,9 +176,9 @@ diffs-container{
 .xd-btn[aria-disabled="true"]:hover{border-color:var(--line);color:var(--ink-2)}
 .xd-btn.is-pri[aria-disabled="true"]:hover{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
 .xd-btn kbd{all:unset;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);opacity:.6}
-.xd-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);white-space:nowrap}
+.xd-ro{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 8px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);white-space:nowrap}
 .xd-ro svg{width:14px;height:14px}
-.xd-runs{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-sm);padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
+.xd-runs{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
 .xd-runs svg{width:14px;height:14px}
 /* the run-code question, under Save */
 .vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
@@ -208,7 +209,7 @@ diffs-container{
 /* the head's ⋯ (js/viewer.js moreHtml): Copy, Copy path and Download in a menu. While a copy or a download
    lasts, the ⋯ says so in words ("Copied", "Downloading…"): the menu has closed by then */
 .vw-mw{position:relative;display:flex}
-.vw-more:is(.is-done,.is-busy){width:auto;padding:0 10px 0 8px;gap:6px}
+.vw-more:is(.is-done,.is-busy){width:auto;padding:0 10px 0 8px;gap:4px}
 .vw-more:is(.is-done,.is-busy) span{display:inline;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .vw-more.is-done{color:var(--go)}
 .vw-more.is-busy{color:var(--ink-2)} /* its spinner in the second ink: 9.9:1 on the dark head, 10:1 on the light (C092 at 320) */

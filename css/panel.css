@@ -78,7 +78,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 /* New file (js/files.js): beside Find for the place itself, in a folder's ⋯ for that folder. One ⋯ for the
    tree, on the folder under the pointer or with focus; the new file's name takes a row at the top of its
    folder's rows, and what that name would do is said in the row under it (both 28 px: whole rows still) */
-.fl-find{display:flex;gap:6px;min-width:0}
+.fl-find{display:flex;gap:4px;min-width:0}
 .fl-find .fl-q{flex:1;min-width:0}
 .fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-add:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
@@ -299,7 +299,7 @@ button .spin,.btn .spin{color:inherit}
 .fr-h{flex:none;box-sizing:border-box;height:var(--h-ctl);display:flex;align-items:stretch;padding:0 6px 0 4px;border-bottom:1px solid var(--line-faint)}
 .fr.is-folded .fr-h{border-bottom:0}
 .fr-tabs{display:flex;align-items:stretch;min-width:0}
-.fr-t{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border:0;background:none;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4);white-space:nowrap}
+.fr-t{position:relative;display:flex;align-items:center;gap:4px;padding:0 8px;border:0;background:none;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4);white-space:nowrap}
 button.fr-t:hover{color:var(--ink-2)}
 .fr-t.is-on{color:var(--ink)}
 .fr-t.is-on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px 2px 0 0;background:var(--ink-2)}

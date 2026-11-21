@@ -13,7 +13,7 @@
 .vw-doc .cm-content{padding-bottom:var(--h-bar)}
 .vw-doc .cm-xo-fold{display:inline-block;width:12px;color:var(--ink-5);cursor:pointer}
 .vw-doc .cm-panels-top{border-bottom:1px solid var(--line-soft)}
-.vw-doc .cm-panel.cm-search{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-search{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:8px 12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-panel.cm-search input,.vw-doc .cm-panel.cm-search button{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-panel.cm-search input[type=checkbox]{height:auto}
 .vw-doc .cm-panel.cm-search button[name=close]{border:none;background:none;color:var(--ink-3)}
@@ -47,7 +47,7 @@
 .vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,transparent)}
 .vw-doc .cm-changedLine,.vw-doc .cm-inlineChangedLine{background:var(--code-add-bg) !important}
 .vw-doc .cm-deletedChunk{background:var(--code-del-bg) !important;padding-left:8px}
-.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:6px;margin:4px 0}
+.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:4px;margin:4px 0}
 .vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 10px;font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-changeGutter{width:3px;padding:0}
 .vw-doc .cm-changedLineGutter{background:var(--code-add)}
@@ -72,7 +72,7 @@
 .vw-tab:not(.is-on):hover{background:var(--hover-fill)}
 .vw-tab-b:hover{color:var(--ink-2)}
 .vw-tab.is-on .vw-tab-b:hover{color:var(--ink)}
-.vw-tab-b{display:inline-flex;align-items:center;gap:6px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);cursor:pointer}
+.vw-tab-b{display:inline-flex;align-items:center;gap:4px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);cursor:pointer}
 .vw-tab-b .vw-ic svg{width:14px;height:14px}
 .vw-tab.is-preview .vw-tn{font-style:italic}
 .vw-tn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

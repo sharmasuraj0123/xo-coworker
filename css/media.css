@@ -106,7 +106,7 @@ a.lbx-btn{text-decoration:none}
 .lbx-by:empty{display:none}
 .lbx-meta{flex:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--lbx-ink-4);font-variant-numeric:tabular-nums}
 .lbx-acts{flex:none;display:flex;align-items:center;gap:8px}
-.lbx-btn{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
+.lbx-btn{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
   font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background-color var(--d-hover) var(--ease)}
 .lbx-btn:hover{background:var(--lbx-fill-hover)}
 .lbx-btn svg{flex:none;width:16px;height:16px}
