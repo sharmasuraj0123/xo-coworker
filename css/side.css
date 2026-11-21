@@ -88,6 +88,7 @@
 .side-ib:hover,.side-ib:focus-visible{color:var(--ink)}
 .side-ib svg{width:var(--s-4);height:var(--s-4)}
 .gear.is-ic{width:var(--h-ctl);padding:0;justify-content:center}
+.gear.sh-tog:has(.sh-n:not(:empty)){width:auto;padding-inline:var(--s-2)}
 .nv-pins{display:contents}
 .side-pop{position:fixed;z-index:var(--z-popover);left:calc(var(--pop-x) + var(--s-2));top:calc(var(--pop-y) - var(--s-2));display:flex;flex-direction:column;min-width:calc(6 * var(--h-row));padding:var(--s-2);border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:msg-in var(--d-pop) var(--ease)}
 .side-pop[hidden]{display:none}

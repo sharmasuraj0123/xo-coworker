@@ -405,7 +405,9 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage{background:var(--sunken);--panel-lift:var(--lift-2)}
 .stage .stg-name{font-weight:var(--fw-strong)}
 .stage .fr-h{height:var(--h-lg);padding:0 12px;border-bottom:0;align-items:center;gap:8px}
-.stage .fr-title{display:flex;align-items:baseline;gap:8px;margin:0;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.stage .fr-title{display:flex;align-items:center;gap:var(--gap-icon);margin:0;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.stage .fr-title>.fr-ic{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
+.stage .fr-t>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .stage .fr-views{display:flex;align-items:center;gap:0;padding:4px;border-radius:var(--r-lg);background:var(--panel-hover)}
 .stage .fr-t{height:var(--h-sm);padding:0 8px;gap:8px;border-radius:calc(var(--r-lg) - 4px);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stage .fr-t.is-on{color:var(--ink)}
