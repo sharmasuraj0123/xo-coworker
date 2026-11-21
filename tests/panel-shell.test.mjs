@@ -29,7 +29,7 @@ assert.match(show, /if \(keep\) PAGES\.get\(keep\.name\)\.onHide\?\.\(keep\.key\
 const back = stage.slice(stage.indexOf("  function back("), stage.indexOf("  /** Every page goes at once"));
 assert.match(back, /S\.page = under; S\.under = null;/);
 assert.match(back, /if \(under\) \{ BOXES\.get\(under\.name\)\.hidden = false; PAGES\.get\(under\.name\)\.onShow\?\.\(under\.key, \{ focus: had \}\); \}/);
-assert.match(stage, /el\.classList\.toggle\("is-shell", S\.page\?\.name === "shell"\);/, "the shell's own CSS keeps its class");
+assert.match(stage, /if \(S\.page\) el\.dataset\.stgPage = S\.page\.name; else delete el\.dataset\.stgPage;/, "the shell page is marked as every page is");
 assert.match(stage, /b\.setAttribute\("aria-pressed", String\(on\)\)/);
 const close = stage.slice(stage.indexOf("function close("), stage.indexOf("function close(") + 200);
 assert.match(close, /if \(S\.page\) dropPages\(\);/, "the panel closing puts its pages away (the shell goes back under the page)");
