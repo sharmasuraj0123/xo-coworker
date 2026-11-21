@@ -192,7 +192,6 @@ button:disabled{cursor:default}
 
 /* the next move: Home's decision card, the same parts and corner as the panel's and the dock's */
 .next{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);overflow:hidden;outline:none}
-.next:focus-visible{border-color:var(--line-hover)}
 /* the next decision arrives in place: a fade, no rise, so its buttons never travel under a waiting pointer */
 .next.in-next{animation:in-next var(--d-long) var(--ease) both}
 .next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
@@ -975,8 +974,6 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the card: a stable frame whose contents change; its height eases, contents cross-fade */
 .card{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);outline:none;overflow:hidden;transition:border-color var(--d-in) var(--ease),background-color var(--d-in) var(--ease)}
-.card:focus-visible{border-color:var(--line-hover)}
-:is(.card,.next).r-destructive:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
 .card.r-done{background:transparent;box-shadow:none}
 .card.r-vig{background:var(--surface);box-shadow:none}
 .card-in{display:flex;flex-direction:column;min-height:0;flex:1}
