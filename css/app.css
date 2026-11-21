@@ -724,7 +724,7 @@ button.hr:active{transform:scale(.97)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
 .target svg{flex:none;width:var(--ic);height:var(--ic)}
 .target .tg-t svg{color:var(--info)}
-.target .muted{overflow:hidden;text-overflow:ellipsis}
+.target .muted,.target>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
 /* a narrow composer (the panel's Thread page) gives up words, never wraps: the note first, then "Reply in" */
 @container (max-width:600px){.target .muted{display:none}}
 @container (max-width:520px){.target .tg-w{display:none}}
@@ -774,6 +774,9 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq{flex:none;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
+.is-fixed:is(.target,.iq),.is-fixed:is(.target,.iq):is(:hover,:active){cursor:default;background:none}
+.is-fixed.target:hover{color:var(--ink-4)}
+.is-fixed.iq:hover{color:var(--ink-3)}
 .iq-l{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .iq-t{color:var(--ink-2)}
 .iq-a{color:var(--ink-4)}
@@ -2068,7 +2071,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
 .main:has(.dock.is-top){--dock-h:0px}
 /* the greeting is Chats' title: no bar over it (a phone keeps its menu button) */
-@media (min-width:761px){.app[data-conv="chats"] .top{display:none}}
+@media (min-width:761px){.app:is([data-conv="chats"],[data-conv^="c:"]) .top{display:none}}
 .app[data-conv="chats"] .scroller{display:flex;flex-direction:column}
 .app[data-conv="chats"] .scroller>*{flex:none}
 /* at rest the greeting and composer stand in the middle, the few latest hanging under them; all of them flow from the top */
@@ -2109,6 +2112,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* a new chat's folder and permission: two chips side by side, the second taking the line's slack */
 .target:has(+ .cs-perm:not([hidden])){margin-right:0}
 .cs-perm{flex:none;margin-left:0}
+.target[hidden]{display:none}
 .target>span:not(.tg-t):not(.tg-warn):not(.tg-end){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Phone: every target at least 36 px tall. Kept last so it wins over the base sizes above. */
 @media (max-width:760px){

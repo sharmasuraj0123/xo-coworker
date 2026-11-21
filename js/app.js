@@ -2046,9 +2046,9 @@ function undoRecord(id) {
 function chipRender(fade = false, K = MK) {
   const chip = K.iq;
   if (!chip) return;
-  // a new chat's agent, model and thinking are its own (js/chats.js), not the router's; a chat names them in its header
+  // a chat's agent, model and thinking are its own (js/chats.js), not the router's: a new chat's to choose, an open chat's fixed
   const s = sessionOf(K.view);
-  const chat = K.view === "chats" && K === MK;
+  const chat = CH.isChats(K.view) && K === MK, fixed = chat && K.view !== "chats";
   chip.hidden = chat ? !CH.chipHtml(K.view) : CH.isChats(K.view) || !IQ.kindOf(s);
   if (chip.hidden) return;
   const html = chat ? CH.chipHtml(K.view) : IQ.chipHtml(s, PHONE.matches);
@@ -2056,6 +2056,7 @@ function chipRender(fade = false, K = MK) {
   chip.title = title;
   chip.setAttribute("aria-label", `Intelligence: ${title.replace(/ \([^)]*\)$/, "")}`);
   chip.setAttribute("aria-controls", chat ? "cs-pop" : "iq-pop");
+  fixChip(chip, fixed);
   chip.classList.toggle("is-pinned", !chat && IQ.current(s).pinned);
   if (chip._h === html) return;
   const swap = () => { redraw(chip, html); chip._h = html; }; // in place: the chip's insides stay the nodes a press is on
@@ -2253,16 +2254,25 @@ function sendRender(K = MK) {
   btn.setAttribute("aria-label", run ? (run.kind === "coord" ? "Stop the reply" : "Stop this run") : wait ? `Send · ${wait}` : "Send");
   btn.title = run ? (run.kind === "coord" ? "Stop the coordinator" : "Stop the agent (it keeps what's done)") : wait || "Send (Enter)";
 }
+/** A chip that only says (an open chat's model or mode): no popup to promise, nothing to press. */
+function fixChip(el, on) {
+  el.classList.toggle("is-fixed", on);
+  if (on) { el.setAttribute("aria-disabled", "true"); el.removeAttribute("aria-haspopup"); }
+  else { el.removeAttribute("aria-disabled"); el.setAttribute("aria-haspopup", "dialog"); }
+}
 /** A chat's line above the composer and its Send now toggle, which follow the chat's own state. */
 function chatTargetRender() {
   sendNowRender();
-  const perm = $("#cs-perm"), ph = S.view === "chats" && !liveBlock() ? CH.permHtml(S.view) : "";
+  const perm = $("#cs-perm"), ph = CH.isChats(S.view) && !liveBlock() ? CH.permHtml(S.view) : "";
   perm.hidden = !ph;
+  perm.title = CH.permTitle(S.view);
+  fixChip(perm, S.view !== "chats");
   if (perm._h !== ph) { perm.innerHTML = ph; perm._h = ph; }
-  if (!CH.isChats(S.view)) return false;
+  if (!CH.isChats(S.view)) { $("#target").hidden = false; return false; }
   // an ended chat says so in its own words; "paused" would promise it comes back
   const html = CH.blocked(S.view) ? CH.targetHtml(S.view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(S.view);
   if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
+  $("#target").hidden = !html;
   $("#target").title = S.view === "chats" ? "The folder a new chat works in" : "";
   return true;
 }
@@ -2431,10 +2441,11 @@ function sendNowRender() {
   b.hidden = !st;
   if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
 }
-$("#cs-perm").addEventListener("click", () => { CH.toggleSetup($("#cs-perm"), "mode"); updateComposer(); });
+$("#cs-perm").addEventListener("click", () => { if (S.view !== "chats") return; CH.toggleSetup($("#cs-perm"), "mode"); updateComposer(); });
 $("#send-now").addEventListener("click", () => { CH.toggleNow(S.view); updateComposer(); say.focus(); });
 $("#iq").addEventListener("click", () => {
   if (S.view === "chats") { CH.toggleSetup($("#iq"), "model"); updateComposer(); return; }
+  if (CH.isChats(S.view)) return;
   if (IQ.isOpen) IQ.close(); else IQ.open(sessionOf(S.view), $("#iq"));
 });
 
