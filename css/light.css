@@ -13,9 +13,6 @@
 :root[data-theme="light"] .nrow.is-on{background:var(--surface);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),var(--sb-lift-1)}
 :root[data-theme="light"] .prow.is-on{box-shadow:var(--sb-lift-1)}
 :root[data-theme="light"] .prow.is-on .pr-busy{background:var(--surface)}
-:root[data-theme="light"] .gear{background:var(--surface);border-color:rgba(0,0,0,.08);box-shadow:var(--sb-lift-1)}
-:root[data-theme="light"] .gear:hover{background:var(--surface);border-color:rgba(0,0,0,.14)}
-:root[data-theme="light"] .gear.is-on{background:var(--surface);border-color:rgba(0,0,0,.18)}
 :root[data-theme="light"] .side-find:not(:focus-within){background:var(--surface);border-color:rgba(0,0,0,.07)}
 
 /* switches: a white knob on a grey track, green when on (no dark puck on paper) */
@@ -52,8 +49,6 @@
 :root[data-theme="light"] .hr{border-color:rgba(0,0,0,.08);box-shadow:var(--lift-2)}
 :root[data-theme="light"] .hr-calm{box-shadow:none}
 /* the plain button is a white key; its variants keep their own fills */
-:root[data-theme="light"] .b:not(.b-allow,.b-back,.b-reply,.b-done,.b-opt,.b-ghost,.b-go,.b-hold){box-shadow:var(--lift-1)}
-:root[data-theme="light"] .b:not(.b-allow,.b-back,.b-reply,.b-done,.b-opt,.b-ghost,.b-go,.b-hold):hover{background:var(--fill-1)}
 
 /* ── floating surfaces: panels, docks, dialogs, popovers ── */
 :root[data-theme="light"] :is(.panel,.stage,.map,.viewer){border-color:rgba(0,0,0,.08);box-shadow:var(--lift-3)}
