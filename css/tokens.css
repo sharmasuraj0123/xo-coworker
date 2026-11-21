@@ -45,7 +45,7 @@
   --row-bg:rgba(255,255,255,.022); --row-bg-hover:rgba(255,255,255,.045); --row-on:rgba(255,255,255,.06);
   --row-line:rgba(255,255,255,.05); --row-line-hover:rgba(255,255,255,.09); --row-hi:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.035);
   /* frosted bars and toasts */
-  --herald-bg:rgba(27,27,27,.9); --herald-bg-hi:rgba(32,32,32,.94); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
+  --herald-bg:rgba(27,27,27,.9); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
   --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.35); --comp-hi:rgba(255,255,255,.04);
 
   /* Depth. Three elevations: 0 the canvas, 1 a raised surface (a step and a line, no shadow),
@@ -215,7 +215,7 @@
   --term-bg:var(--fill-1);
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
   --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
-  --herald-bg:rgba(255,255,255,.92); --herald-bg-hi:#FFFFFF; --toast-bg:rgba(28,28,28,.96); --stamp-bg:rgba(255,255,255,.95);
+  --herald-bg:rgba(255,255,255,.92); --toast-bg:rgba(28,28,28,.96); --stamp-bg:rgba(255,255,255,.95);
   --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.05); --comp-hi:transparent;
   --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
   --lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02);

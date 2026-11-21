@@ -31,9 +31,9 @@ t("no hover rule draws a ring: border, outline or ring shadow", () => {
   }
   assert.deepEqual(bad, [], `hover rings:\n  ${bad.join("\n  ")}`);
 });
-t("the herald's hover is its fill alone", () => {
+t("the herald's hover is its fill alone: the lines' hover over its glass", () => {
   const app = sheets.find(([f]) => f === "app.css")[1];
-  assert.match(app, /\nbutton\.hr:hover\{background:var\(--herald-bg-hi\)\}/);
+  assert.match(app, /\nbutton\.hr:hover\{background:linear-gradient\(var\(--hover-fill\),var\(--hover-fill\)\),var\(--glass\)\}/);
 });
 t("keyboard focus keeps the soft ring, on :focus-visible", () => {
   assert.match(sheets.find(([f]) => f === "base.css")[1], /:focus-visible\{outline:3px solid var\(--focus\);outline-offset:1px\}/);
