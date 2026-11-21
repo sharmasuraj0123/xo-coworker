@@ -34,7 +34,7 @@ const SCROLLERS = {
   ".mp-legend": ["room", "the Map's agents (none above the first row cut its ring)"],
   ".c-body": ["room", "a decision card's body"], ".all-list": ["room", "All threads"], ".jump-list": ["room", "Jump's list"],
   ".keys-cols": ["room", "Settings › Keyboard"], ".set-body": ["room", "Settings' page"], ".set-page": ["room", "a Settings page on a phone"],
-  ".rn-body": ["room", "Runs' sheet"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"], ".at-list": ["room", "the composer's @ projects"],
+  ".rn-body": ["room", "the Sub-agents page"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"], ".at-list": ["room", "the composer's @ projects"],
   ".cs-pop": ["room:.iq-pop", "the new chat's settings (an .iq-pop)"],
 ".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
   ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
@@ -52,7 +52,7 @@ const SCROLLERS = {
   ".tb-out": ["text", "a step's output"], ":root:root .ckbar.is-open .ck-b>ol": ["text", "a phone's checklist: its steps are words"],
 };
 const padOf = (sel) => { const m = all.match(new RegExp(`(?:^|[}\\n])\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{[^}]*?(?:^|;)padding:([^;}]+)`)); return m ? m[1].trim() : null; };
-const px4 = (v) => { const p = v.split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : x === "var(--menu-pad)" ? +tokens.match(/--s-1:(\d+)px/)[1] : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
+const px4 = (v) => { const p = v.split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : x === "var(--menu-pad)" ? +tokens.match(/--s-1:(\d+)px/)[1] : /^var\(--s-\d+\)$/.test(x) ? +tokens.match(new RegExp(`--s-${x.slice(8, -1)}:(\\d+)px`))[1] : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
 
 t("the ring's room covers the ring (2 px, 2 px out)", () => assert.ok(room >= ext, `${room} ≥ ${ext}`));
 t("every scroll box is placed, either axis: padded with the ring's room, its controls' ring inset, its content padded, or text only", () => {
@@ -97,7 +97,7 @@ const CLIPPERS = {
   ".fr[data-fr=\"map\"] .fr-b": ["inner", "the Map's frame: its host pads"], ".stage .fr[data-fr=\"changes\"] .fr-b": ["inner", "the changes frame: its list and pane are placed"],
   ".stg-t": ["text", "a tab's words"], ".ag-t": ["text", "an agent's name"], ".stage .ag-t": ["text", "an agent's name"], ".stage .cx-t": ["text", "a change's name"], ".stage .ch-copy": ["text", "a change's name and path"],
   ".stage .cx-pane": ["bars", "a change's pane: its head's controls and the diff (.cx-pd, panel.css) draw their ring inside"], ".ximg-c": ["decor", "a picture compared"],
-  ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".stage :is([data-fr=\"agents\"]>.fr-b,.ch-old).is-fade": ["fade", "a panel list at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
+  ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".stage :is([data-fr=\"agents\"]>.fr-b,.ch-old).is-fade": ["fade", "a panel list at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"], ".rt-in.is-clamp .prose": ["fade", "a sub-agent's long task, 4 lines until Show all"],
   ".mx-album": ["decor", "a message's pictures"], ".lbx-frame": ["decor", "the lightbox's picture"], ".mx-wt": ["text", "the working line"],
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
   ".pj-s": ["margin", "a project's count line: \"Coordinator needs you\" leads it (S005)"], ":root:root .top .pj-s": ["margin", "the same line in a phone's bar"],

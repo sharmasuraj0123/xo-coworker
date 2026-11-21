@@ -23,12 +23,12 @@ assert.match(set, /if \(on\) show\("shell", S\.page\?\.name === "thread" \? `t:\
 assert.match(stage, /onShow: \(k\) => shell\(true, boxFor\("shell"\), k\), onHide: \(\) => shell\(false\),/);
 // a shell over a page keeps that page under it (hidden, not closed); any other page takes the place of both
 const show = stage.slice(stage.indexOf("  function show("), stage.indexOf("  /** ‹ and Esc"));
-assert.match(show, /const prev = S\.page, keep = name === "shell" && prev && !S\.under \? prev : null;/);
+assert.match(show, /const prev = S\.page, keep = \(name === "shell" \|\| sp\.over\) && prev && !S\.under \? prev : null;/);
 assert.match(show, /for \(const t of \[prev, S\.under\]\) if \(t && t !== keep\) shut\(t, t === prev\);/);
 assert.match(show, /if \(keep\) PAGES\.get\(keep\.name\)\.onHide\?\.\(keep\.key\);/);
 const back = stage.slice(stage.indexOf("  function back("), stage.indexOf("  /** Every page goes at once"));
 assert.match(back, /S\.page = under; S\.under = null;/);
-assert.match(back, /if \(under\) \{ BOXES\.get\(under\.name\)\.hidden = false; PAGES\.get\(under\.name\)\.onShow\?\.\(under\.key, \{ focus: had \}\); \}/);
+assert.match(back, /if \(under\) PAGES\.get\(under\.name\)\.onShow\?\.\(under\.key, \{ focus: keep \}\); else cover\(false\);/);
 assert.match(stage, /if \(S\.page\) el\.dataset\.stgPage = S\.page\.name; else delete el\.dataset\.stgPage;/, "the shell page is marked as every page is");
 assert.match(stage, /b\.setAttribute\("aria-pressed", String\(on\)\)/);
 const close = stage.slice(stage.indexOf("function close("), stage.indexOf("function close(") + 200);

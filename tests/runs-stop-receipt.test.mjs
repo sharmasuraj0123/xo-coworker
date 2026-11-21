@@ -15,7 +15,7 @@ const view = readFileSync(new URL("../js/runsview.js", import.meta.url), "utf8")
 const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const i = app.indexOf("function stopRunsUndo("), body = app.slice(i, app.indexOf("\nrunsEl.addEventListener(\"click\"", i));
+const i = app.indexOf("function stopRunsUndo("), body = app.slice(i, app.indexOf("\nrunsCard.addEventListener(\"click\"", i));
 
 t("the answer is read for what it confirms: sent, ended (one run), none sent (all), or unconfirmed", () => {
   assert.match(body, /const said = stopReceipt\(r, what, key\.startsWith\("all:"\)\);/);
@@ -26,15 +26,15 @@ t("the answer is read for what it confirms: sent, ended (one run), none sent (al
   assert.doesNotMatch(f.slice(f.indexOf("Array.isArray(r.stopping) && !r.stopping.length")), /^[^\n]*already finished/m, "[] never claims they finished");
   assert.match(f, /didn't confirm/, "anything else: not confirmed");
 });
-t("it's said in the sheet, where you acted, as well as in the notice", () => {
+t("it's said in the page, where you acted, as well as in the notice", () => {
   assert.match(body, /RS\.said = \{ key, \.\.\.said \};/);
   assert.match(app, /saidFor: RS\.said/, "the sheet is drawn with it");
   assert.match(view, /export function saidHtml\(said, key\)/);
   assert.match(view, /role="\$\{said\.kind === "halt" \? "status" : "alert"\}"/);
-  assert.match(view, /saidHtml\(saidFor, `run:\$\{r\.id\}`\)/, "a run's own Stop: under its row");
+  assert.match(view, /saidHtml\(o\.saidFor, `run:\$\{r\.id\}`\)/, "a run's own Stop: under its row");
   assert.match(view, /saidHtml\(saidFor, `all:/, "Stop all: at the top of the list");
 });
-t("a redraw keeps focus on the same control, found by its hook's name and value; the sheet only if it's gone", () => {
+t("a redraw keeps focus on the same control, found by its hook's name and value; the page only if it's gone", () => {
   const r = app.slice(app.indexOf("function runsRender()"), app.indexOf("\n}\n", app.indexOf("function runsRender()")));
   assert.match(r, /const hook = runsHook\(document\.activeElement\);/);
   assert.match(r, /const same = hook && runsCard\.querySelector\(hook\);/);
