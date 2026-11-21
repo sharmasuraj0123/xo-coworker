@@ -2858,15 +2858,6 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .stg-btn{position:relative;flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);align-self:center;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .top[data-kind="project"] .stg-btn{align-self:flex-end}
 .stg-btn svg{width:var(--ic);height:var(--ic)}
-/* a thread carried from the panel into the main chat: its frame snaps across, the panel's picture gives way at once */
-.is-moving{view-transition-name:thread-move}
-.is-left{visibility:hidden}
-::view-transition-group(thread-move){animation-duration:var(--d-long);animation-timing-function:var(--ease-snap);overflow:clip;border-radius:var(--r-lg)}
-::view-transition-old(thread-move),::view-transition-new(thread-move){animation-timing-function:var(--ease)}
-::view-transition-old(thread-move){animation-duration:var(--d-out)}
-::view-transition-new(thread-move){animation-duration:var(--d-in)}
-::view-transition-old(root){animation-duration:var(--d-out);animation-timing-function:var(--ease)}
-::view-transition-new(root){animation:none}
 .stg-btn:hover{background:var(--btn-fill-hover);color:var(--ink)}
 .stg-btn:active{transform:scale(.95)}
 .stg-btn.is-on{background:var(--btn-fill-press);color:var(--ink)}

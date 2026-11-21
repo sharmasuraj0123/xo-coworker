@@ -2810,12 +2810,7 @@ function drawThreadPage(needs) {
 // the thread moves from the panel into the main chat: its frame snaps across while the panel steps back without its copy
 function toMain(id) {
   closeThreadMenu({ focus: false });
-  const move = (still) => { STAGE.closePage("thread"); go("t:" + id, { still, panel: true }); };
-  if (RM.matches || !document.startViewTransition) { move(false); return; }
-  TP.box.classList.add("is-moving");
-  const box = TP.box;
-  const vt = document.startViewTransition(() => { box.classList.remove("is-moving"); box.classList.add("is-left"); move(true); $("#column").classList.add("is-moving"); });
-  vt.finished.finally(() => { $("#column").classList.remove("is-moving"); box.classList.remove("is-left"); });
+  STAGE.closePage("thread"); go("t:" + id, { panel: true });
 }
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-main]"); if (b) toMain(b.dataset.tpMain); });
 /**
