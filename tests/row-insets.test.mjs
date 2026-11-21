@@ -15,11 +15,11 @@ t("glyph margins are tokens, read off the pack's 24 grid", () => {
   assert.match(tokens, /--ic-ink:\.15; --ic-ink-chev:\.21; --mark-ink:calc\(2 \/ 24\);/);
 });
 t("the folded ask and the done line are one bar: same height, inset and button, from the same tokens", () => {
-  assert.match(app, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-lg\);--nest-in:calc\(\(var\(--dock-bar\) - var\(--dock-btn\)\) \/ 2 \+ 1px\);border-radius:var\(--nest-r\)\}/);
+  assert.match(app, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-card\);--nest-in:calc\(\(var\(--dock-bar\) - var\(--dock-btn\)\) \/ 2 \+ 1px\);border-radius:var\(--nest-r\)\}/);
   assert.match(rule(".tp-done"), /min-height:var\(--dock-bar\)/);
   assert.match(rule(".dock-fold"), /min-height:calc\(var\(--dock-bar\) \+ 2px\)/);
   for (const b of [".tp-done-u", ".df-go"]) assert.match(rule(b), /height:var\(--dock-btn\);[^}]*border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\)/, b);
-  assert.match(phone, /:root\{--dock-bar:var\(--h-hit\);--dock-btn:var\(--h-touch\)\}/);
+  assert.match(phone, /:root\{--dock-bar:var\(--h-hit\);--dock-btn:var\(--h-touch\);/);
   assert.doesNotMatch(app, /\.tp-done[^{]*\{[^}]*white-space:normal/);
   assert.match(rule(".tp-done>span:not(.tp-done-ic)"), /white-space:nowrap/, "one line, so the bar never grows past the one it replaced");
 });

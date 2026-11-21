@@ -53,7 +53,7 @@
 @media (hover:none){.mx-acts{display:none}}
 
 /* a reply on its way: the quote waits above what you type */
-.mx-reply{display:flex;align-items:center;gap:8px;height:var(--h-touch);margin:-3px 0 10px;padding:0 6px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
+.mx-reply{--nest-r:var(--r-card);--nest-in:var(--comp-in);display:flex;align-items:center;gap:8px;height:var(--comp-ctl);margin:calc(-1 * var(--s-1)) 0 10px;padding:0 calc((var(--comp-ctl) - var(--h-sm)) / 2) 0 12px;border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--hover-fill);box-shadow:var(--hairline)}
 .mx-reply[hidden]{display:none}
 .mx-reply.is-in{animation:mx-up var(--d-in) var(--ease)}
 @keyframes mx-up{from{opacity:0;transform:translateY(6px)}}

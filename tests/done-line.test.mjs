@@ -15,9 +15,8 @@ t("the done line is a 32 px row: the pack's bare check at --ic, Undo a quiet 24 
   assert.doesNotMatch(css, /\.tp-done-u\{[^}]*text-decoration:underline/);
   assert.match(css, /\n\.ck-tog\{[^}]*height:var\(--h-ctl\)/);
 });
-t("the done line's frame has the checklist bar's corner, not the dock card's", () => {
-  assert.match(css, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-lg\);[^}]*border-radius:var\(--nest-r\)\}/);
-  assert.match(css, /\n\.ckbar\{border-radius:var\(--r-lg\)/);
+t("the done line's frame has the dock card's corner: one family (its inset: tests/card-family.test.mjs)", () => {
+  assert.match(css, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-card\);[^}]*border-radius:var\(--nest-r\)\}/);
   assert.ok(css.indexOf(".card.is-dock.r-done{") > css.indexOf(".card.is-dock{"), "comes after the dock card's radius");
 });
 t("the done line has no rim: the done state is the ok tint over the surface, a step back the gray fill", () => {
