@@ -189,7 +189,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     if (!d || d.state === "readonly") return "";
     if (d.state === "conflict") { const n = d.merge ? d.merge.left : 0; return `<span class="xd-state is-need" role="status"><i></i>${n} ${n === 1 ? "place" : "places"} to choose</span>`; }
     if (d.state === "saving") return `<span class="xd-state is-quiet" role="status">Saving…</span>`;
-    if (d.state === "dirty") return `<span class="xd-state is-unsaved" role="status" title="${MODK}S saves it"><i></i>Unsaved · ${MODK}S</span>`;
+    if (d.state === "dirty") return `<span class="xd-state is-unsaved" role="status" title="${MODK}S saves it"><i></i>Unsaved · ${K.keyHtml(`${MODK}S`)}</span>`;
     if (d.state === "deleted") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Deleted on disk</span>`;
     if (d.state === "error") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Not saved</span>`;
     return V.savedFlash === d ? `<span class="xd-state is-quiet is-done" role="status">Saved</span>` : "";

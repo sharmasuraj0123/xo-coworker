@@ -131,7 +131,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 @container vwtop (max-width:360px){
   .vw-top .vw-more:is(.is-done,.is-busy) span{display:none}
   .vw-top .vw-more:is(.is-done,.is-busy){width:var(--h-touch);padding:0}
-  .vw-top .vw-more.is-busy .spin{width:16px;height:16px;border-width:2px} /* alone, it says the state: the icons' 16 px */
+  .vw-top .vw-more.is-busy .spin{width:16px;height:16px} /* alone, it says the state: the icons' 16 px */
 }
 .vw-ic{width:16px;height:20px;border-radius:0;background:none;color:var(--ink-3);display:grid;place-items:center}
 .vw-ic svg,.vw-ic svg.fi{width:16px;height:16px}
@@ -260,9 +260,9 @@ svg.fi-line{color:inherit}
 /* one working-arc system, in the app's blue (--info), like .g-working in css/app.css: the avatar's corner arc and the
    generic spinner share its colour, 22% track and 1.6s turn. A spinner inside a button keeps the button's ink. */
 .arc{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--canvas);color:var(--info)}
-.arc::before{content:"";position:absolute;inset:2px;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+.arc::before{content:"";position:absolute;inset:1px;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
 @keyframes arc-turn{to{transform:rotate(360deg)}}
-.spin{color:var(--info);border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation-duration:1.6s}
+.spin{color:var(--info);animation-duration:1.6s}
 button .spin,.btn .spin{color:inherit}
 /* a time is never its own font: it takes its line's, with steady (tabular) digits */
 .elapsed{font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;font-variant-numeric:tabular-nums;letter-spacing:0}
@@ -378,7 +378,7 @@ body.fv-sizing{cursor:col-resize;user-select:none}
 .fl-rb{position:relative;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fl-rb:hover{background:var(--fill-2);color:var(--ink)}
 .fl-rb svg{width:16px;height:16px}
-.fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
+.fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;mask:var(--mask-dot);background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
 .fl-rb:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.fl-rb{transition:none}}
 .fv{container:fv / inline-size}

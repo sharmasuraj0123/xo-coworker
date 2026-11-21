@@ -86,7 +86,7 @@
    Truthful: only on a block that is running (.is-live); waiting for you (.is-waiting) or stopped, nothing moves. It's
    a pseudo-element of the line, so the line's text updates in place and nothing is rebuilt for it. With reduced
    motion it holds still. */
-:root:not([data-msgx]) .turn .tb.is-live:not(.is-waiting):not(:has(.tb.is-live))>.tb-h::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;margin:0 2px;border:1.5px solid color-mix(in srgb,var(--info) 22%,transparent);border-top-color:var(--info);border-radius:50%;animation:arc-turn 1.6s linear infinite}
+:root:not([data-msgx]) .turn .tb.is-live:not(.is-waiting):not(:has(.tb.is-live))>.tb-h::before{content:"";flex:none;box-sizing:border-box;width:12px;height:12px;margin:0 2px;color:var(--info);background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){:root:not([data-msgx]) .turn .tb.is-live>.tb-h::before{animation:none}}
 /* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */
 :root:not([data-msgx]) :is(:is(#typing,#ttyping),:is(#msgs,#tmsgs)) .shimmer{font-weight:var(--fw-regular)}

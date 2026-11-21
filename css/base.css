@@ -16,6 +16,7 @@ input,textarea{font:inherit;color:inherit}
    cut). Layout, not a smaller ring; zero specificity, and on controls only (a snapping list snaps its rows) */
 :where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.kb-ic{width:1em;height:1em;vertical-align:calc(var(--cap-mid) - .5em)}
 kbd{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
 /* ── Plan F · every control answers (design-research/2026-11-vision/direction) ──────────────────────
    One curve. A hover engages in 120 ms and releases in 200 ms; a press goes down in 60 ms. Transitions
