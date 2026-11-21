@@ -61,9 +61,15 @@ t("Home's next card is the same card: the 24 corner, controls --card-in in, no r
   assert.doesNotMatch(app, /nx-orbit|--nx-a|\.nx-(?:btns|opts|foot|meta|where|cmd|est|h)\b/);
   assert.match(app, /\n:is\(\.card-in,\.next\)\.noting :is\(\.c-btns,\.c-opts,\.c-rule,\.teach-body\)\{display:none\}/);
 });
+t("a card takes focus only so its keys work: it draws no ring or rim for it; its buttons show their own focus", () => {
+  assert.doesNotMatch(app, /(?:^|[\s,(}])(?:\.card|\.next|:is\(\.card,\.next\))(?:\.[\w-]+)*:focus(?:-visible)?\b/m);
+});
 t("a card's row: a yes and a no share it at equal width; a lone answer (Home's Decide) and Later keep their words' width", () => {
   assert.equal(rule(app, ".c-btns>.b"), "flex:none");
-  assert.equal(rule(app, ".c-btns:has(>.b:not(.b-later)~.b:not(.b-later))>.b:not(.b-later)"), "flex:1 1 0;min-width:0");
+  assert.equal(rule(app, ".c-btns:has(>.b:not(.b-later)~.b:not(.b-later))>.b:not(.b-later)"), "flex:1 1 0;min-width:max-content", "equal shares, never narrower than their words");
+  assert.equal(rule(app, ".c-btns"), "display:flex;flex-wrap:wrap;gap:var(--s-2)", "the row wraps before it cuts a button");
+  assert.equal(rule(app, ".hold-txt"), "display:inline-grid;white-space:nowrap", "the hold's two labels share one line's slot, so the visible one stays beside its icon");
+  assert.equal(rule(app, ".c-ev .ev-w"), "display:inline-block;max-width:100%", "code wraps after a slash or a space, never at a hyphen it fits past");
 });
 t("the card's corner control (Read the thread first) sits --card-in from the corner, the same nest", () => {
   const r = rule(app, ".dock-hide");

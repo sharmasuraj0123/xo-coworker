@@ -18,7 +18,7 @@ const node = (it, over = {}) => ({ key: "k", t: thread, risk: it.risk || "notabl
 t("the headline is words: a long command in the title becomes 'a command', closed or clipped open", () => {
   const closed = node(item({ title: "Run `grep -rn proxy services/ | head -40`", detail: { command: "grep -rn proxy services/ | head -40" } }));
   assert.deepEqual(headOf(closed), { verb: "", text: "Run a command", md: true });
-  const open = node(item({ title: "A sub-agent ('Check') wants to run `cd /home/coder/xo-space && grep -rn \"risk_reasons\" --include=*.py servi" }));
+  const open = node(item({ title: "A sub-agent ('Check') wants to run `cd /home/coder/xo-space && grep -rn \"risk_reasons\" --include=*.py servi…", detail: { command: "cd /home/coder/xo-space && grep -rn \"risk_reasons\" --include=*.py services | head" } }));
   assert.equal(headOf(open).text, "A sub-agent ('Check') wants to run a command");
   assert.ok(!headOf(open).text.includes("`"));
   assert.equal(headOf(node(item({ title: "Run `npm test`", detail: { command: "npm test" } }))).text, "Run a command", "any command with a space is the strip's");
@@ -27,6 +27,19 @@ t("the headline is words: a long command in the title becomes 'a command', close
   assert.deepEqual(headOf(bare), { verb: "Run", text: "a command", md: false }, "a title that is the command itself");
   const words = node(item({ title: "List the files changed on this branch", detail: { command: "git diff --stat main...HEAD" } }));
   assert.equal(headOf(words).text, "List the files changed on this branch", "Space's words stay as they are");
+});
+t("a file the agent reads or changes: the headline names the file, the strip holds its whole path", () => {
+  const P = "/home/coder/.quirq/deploy-backups/2026-11-21-14c2ede/run-live-20261121-211553/status.json";
+  const read = node(item({ risk: "destructive", title: `A sub-agent ('Verify') wants to read \`${P}\``, detail: { tool: "Read", kind: "read", command: null, paths: [P] } }));
+  assert.equal(kindOf(read), "file");
+  assert.deepEqual(headOf(read), { verb: "", text: "A sub-agent ('Verify') wants to read `status.json`", md: true });
+  assert.deepEqual(stripOf(read), { type: "files", items: [P], more: 0 });
+  assert.equal(commandOf(read.ask), "", "a path is never a command");
+  const clipped = node(item({ title: `Read \`${P.slice(0, 40)}…`, detail: { kind: "read", paths: [P] } }));
+  assert.equal(headOf(clipped).text, "Read `status.json`", "a title clipped inside the path still names the file");
+  const many = node(item({ title: "Search the logs", detail: { kind: "search", paths: ["/a", "/b", "/c", "/d", "/e", "/f"] } }));
+  assert.deepEqual(stripOf(many), { type: "files", items: ["/a", "/b", "/c", "/d"], more: 2 });
+  assert.equal(kindOf(node(item({ title: "Do it", detail: { kind: "read", paths: [] } }))), "approval", "no path, nothing to show");
 });
 t("the headline of an old Run: ask, a stopped thread and a destructive legacy ask", () => {
   assert.deepEqual(headOf({ t: thread, risk: "notable", ask: { kind: "permission", title: "Run: npm test -- --watch" } }), { verb: "Run", text: "a command", md: false });
@@ -40,6 +53,7 @@ t("the command: detail.command first, then the title's code (closed or clipped),
   assert.equal(commandOf({ title: "Run: npm test" }), "npm test");
   assert.equal(commandOf({ title: "Use `pnpm`" }), "", "a short word in code isn't a command");
   assert.equal(commandOf({ title: "Answer the question" }), "");
+  assert.equal(commandOf({ title: "Run `ls -la /tmp/x`", item: { detail: {} } }), "", "an item's command is its detail's, never its title's");
 });
 t("the why line is the agent's own reason, capitalised; a stopped thread says why it stopped", () => {
   assert.equal(whyOf(node(item({ why: "needs the package to build" }))), "Needs the package to build");
@@ -59,11 +73,14 @@ t("one strip of evidence per kind: the command, a web or tool tag, two diff line
   assert.deepEqual(files, { type: "paths", items: [{ path: "a.js", add: 2, del: 1 }, { path: "b.js", add: 0, del: 0 }], more: 3 });
   assert.equal(stripOf(node(item({ kind: "question", title: "Which?", detail: { questions: [] } }))), null);
 });
-t("chips: Space's risk_groups when sent; otherwise the same reason for several paths is one chip with its count", () => {
-  const plain = chipsOf(node(item({ risk_reasons: ["it reads outside this session's folder (/a)", "it reads outside this session's folder (/b)", "it fetches from example.com"] })));
+t("chips: an item's risk_groups at their own tier (an old group takes the item's); a live ask's same reason for several paths is one chip", () => {
+  const plain = chipsOf({ t: thread, risk: "notable", ask: { kind: "permission", title: "Run it", riskReasons: ["it reads outside this session's folder (/a)", "it reads outside this session's folder (/b)", "it fetches from example.com"] } });
   assert.deepEqual(plain, [{ tone: "warn", text: "It reads outside this session's folder", count: 2 }, { tone: "warn", text: "It fetches from example.com", count: 1 }]);
   const grouped = chipsOf(node(item({ risk: "destructive", risk_reasons: ["it deletes a protected path: 6 paths"], risk_groups: [{ kind: "destructive", text: "it deletes a protected path", count: 6, paths: [] }] })));
   assert.deepEqual(grouped, [{ tone: "err", text: "It deletes a protected path", count: 6 }]);
+  const tiers = chipsOf(node(item({ risk: "destructive", risk_groups: [{ kind: null, text: "it reads credentials or private state", count: 1, paths: [] }, { kind: "notable", text: "it reads outside this session's folder", count: 2, paths: [] }, { kind: "routine", text: "it lists files", count: 1, paths: [] }] })));
+  assert.deepEqual(tiers.map((c) => c.tone), ["err", "warn", ""]);
+  assert.deepEqual(chipsOf(node(item({ risk_reasons: ["it fetches from example.com"], risk_groups: [] }))), [], "an item's chips are its groups, not its reason lines");
   const job = chipsOf(node(item({ kind: "create_job", title: "Schedule a job", detail: { schedule: "every Monday 19:00", job: { agent: "claude", model: "opus" } } })));
   assert.deepEqual(job.map((c) => c.text), ["every Monday 19:00", "claude · opus"]);
 });
@@ -87,10 +104,10 @@ t("number keys follow the order shown and skip the recommended answer; the card 
   assert.doesNotMatch(src, /c-sug|suggestFor/, "the old suggestion line is gone");
 });
 t("every kind has a strip and buttons, and every ask maps to a kind", () => {
-  const STRIPS = new Set(["command", "url", "tool", "diff", "plan", "paths", "error", "none"]), ACTS = new Set(["binary", "answer", "words", "stopped"]);
+  const STRIPS = new Set(["command", "url", "tool", "diff", "plan", "paths", "files", "error", "none"]), ACTS = new Set(["binary", "answer", "words", "stopped"]);
   for (const [k, v] of Object.entries(KINDS)) { assert.ok(STRIPS.has(v.strip), `${k}: strip`); assert.ok(ACTS.has(v.acts), `${k}: acts`); }
   const asks = [
-    node(item({ detail: { command: "ls" } })), node(item({ detail: { url: "https://x" } })), node(item({ detail: { mcp: "a/b" } })),
+    node(item({ detail: { command: "ls" } })), node(item({ detail: { url: "https://x" } })), node(item({ detail: { mcp: "a/b" } })), node(item({ detail: { kind: "read", paths: ["/a"] } })),
     node(item({ kind: "approval", detail: { diff: "+a" } })), node(item({ kind: "approval", detail: { plan: "1. a" } })), node(item({ kind: "action", detail: { command: "open the app" } })),
     node(item({ kind: "question", detail: { questions: [{ question: "Which?", options: [{ label: "A" }] }] } })),
     node(item({ kind: "question", detail: { questions: [{ question: "Key?", secret: true }] } })),
@@ -100,7 +117,7 @@ t("every kind has a strip and buttons, and every ask maps to a kind", () => {
     { t: thread, risk: "stopped", group: "stopped", ask: { kind: "stopped", title: "Fix" } },
   ];
   const kinds = asks.map(kindOf);
-  assert.deepEqual(kinds, ["command", "web", "tool", "change", "plan", "action", "question", "secret", "create_project", "create_job", "integrity", "usage", "suggestion", "approval", "reply", "stopped"]);
+  assert.deepEqual(kinds, ["command", "web", "tool", "file", "change", "plan", "action", "question", "secret", "create_project", "create_job", "integrity", "usage", "suggestion", "approval", "reply", "stopped"]);
   assert.deepEqual([...new Set(kinds)].sort(), Object.keys(KINDS).sort(), "every kind in the table is reachable");
   for (const n of asks) { assert.ok(actsOf(n, { canResolve: true }).some((b) => b.role === "primary") || isOnePress(n), `${kindOf(n)}: a way to answer`); stripOf(n); chipsOf(n); headOf(n); }
 });
