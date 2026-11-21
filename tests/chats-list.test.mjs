@@ -67,7 +67,7 @@ t("the New chat picker is the shared picker's look: the chip opens it, agents as
   assert.match(src, /<div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">/);
   assert.match(src, /toggleSetup\(anchor, part\) \{ if \(C\.pop\.open && C\.pop\.part === part\) closeSetup\(\); else openSetup\(anchor, part\); \}/, "each chip opens its own list");
   assert.match(src, /const x = part === "model" \? r\.right - w \+ gap : r\.left - gap;/, "the model list by the chip's right edge, folder and permission by their left");
-  assert.match(app, /\$\("#cs-perm"\)\.addEventListener\("click", \(\) => \{ CH\.toggleSetup\(\$\("#cs-perm"\), "mode"\);/);
+  assert.match(app, /\$\("#cs-perm"\)\.addEventListener\("click", \(\) => \{ if \(S\.view !== "chats"\) return; CH\.toggleSetup\(\$\("#cs-perm"\), "mode"\);/);
   assert.match(read("index.html"), /<button type="button" class="target cs-perm" id="cs-perm" aria-haspopup="dialog" aria-expanded="false" aria-controls="cs-pop" hidden><\/button>/);
   assert.match(src, /role="radio" aria-checked="\$\{on\}"\$\{rovingTab\(on, i === 0 && !modes\.includes\(st\.mode\)\)\} data-csmode=/, "what it may do: rows, one choice");
   assert.match(src, /import \{ EFFORT_WORD, EFFORT_HINT \} from "\.\/intel\.js";/, "one set of thinking words");
@@ -106,8 +106,8 @@ t("Recent: the three latest under the composer, all of them a click away with a 
 });
 t("Chats has no bar over its greeting: the greeting is the title, a phone keeps its menu", () => {
   const css = read("css/app.css"), ph = read("css/phone.css"), src = read("js/chats.js");
-  assert.match(css, /@media \(min-width:761px\)\{\.app\[data-conv="chats"\] \.top\{display:none\}\}/);
-  assert.match(ph, /\.app\[data-conv="chats"\] \.top-who\{display:none\}/);
+  assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
+  assert.match(ph, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/);
   assert.match(src, /v === "chats" \? "Ask anything to start a chat…"/);
 });
 t("what it may do on its own reads as a choice you make about trust: a question, each mode its mark and sentence, careful first", () => {
@@ -124,5 +124,18 @@ t("switching to All keeps the greeting where it stood: no recentring, no scroll"
   assert.match(h, /setProperty\("--cs-lead", getComputedStyle\(\$\("#cs-hi"\)\)\.marginTop\)/);
   assert.ok(!/scrollIntoView|scrollTo\(/.test(h), "the click never scrolls the page");
   assert.match(css, /\.cs-hi\{[^}]*margin:var\(--cs-lead,auto\) /);
+});
+t("an open chat has no bar: its model and mode are fixed chips in its composer, its state in the composer's line", () => {
+  const app = read("js/app.js"), src = read("js/chats.js"), css = read("css/app.css"), phone = read("css/phone.css");
+  assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
+  assert.match(phone, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/, "a phone keeps only its way back");
+  assert.match(src, /const st = own \|\| setup\(\);/, "the chips read the chat's own model and mode");
+  assert.match(app, /const chat = CH\.isChats\(K\.view\) && K === MK, fixed = chat && K\.view !== "chats";/);
+  assert.match(app, /fixChip\(perm, S\.view !== "chats"\)/);
+  assert.match(app, /if \(CH\.isChats\(S\.view\)\) return;/, "a fixed chip opens nothing");
+  assert.match(src, /return ""; \/\/ the box's own "Reply in this chat…" says it/, "an idle chat's line says nothing the box doesn't");
+  assert.match(app, /\$\("#target"\)\.hidden = !html;/);
+  assert.match(app, /if \(!CH\.isChats\(S\.view\)\) \{ \$\("#target"\)\.hidden = false; return false; \}/, "every other place keeps its line");
+  assert.match(css, /\.is-fixed:is\(\.target,\.iq\),\.is-fixed:is\(\.target,\.iq\):is\(:hover,:active\)\{cursor:default;background:none\}/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

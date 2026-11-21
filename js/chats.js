@@ -282,27 +282,39 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     }
     // held back by a gate: a reply waits with what's already waiting, and runs with it
     if (heldOf(s)) return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b> · it runs with the waiting message</span>`;
-    return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b></span>`;
+    return ""; // the box's own "Reply in this chat…" says it
   }
 
   const folderName = (cwd) => (cwd ? (world.project(cwd) || {}).name || cwd : "your projects folder");
   const modelDesc = (m) => (m.description || "").replace(/\.$/, "");
   /** The new chat's chip, as every composer's: the agent's mark, its model (Default until one is picked) and its thinking. */
+  /** An open chat's own agent, model, thinking and mode, as the new chat's chips show them (fixed: set when it started). */
+  const ownOf = (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.agent ? { agent: s.agent, model: s.model || null, effort: s.effort || null, mode: s.permission_mode || null, cwd: s.cwd } : null; };
   function chipHtml(v) {
-    if (v !== "chats") return "";
-    const st = setup();
+    const own = ownOf(v);
+    if (v !== "chats" && !own) return "";
+    const st = own || setup();
     if (!st.agent) return "";
     const sep = `<span class="iq-sep" aria-hidden="true">·</span>`;
-    const effort = st.effort && effortsFor(st).includes(st.effort) ? st.effort : null;
+    const effort = own ? st.effort : st.effort && effortsFor(st).includes(st.effort) ? st.effort : null;
     return `<span class="iq-l">${rtMark(st.agent, { lead: true }) || ""}${st.model ? `<span class="iq-t">${esc(modelWord(st.agent, st.model))}</span>` : `<span class="iq-a">Default</span>`}${effort ? `${sep}<span class="iq-e">${esc(EFFORT_WORD[effort] || effort)}</span>` : ""}</span>`;
   }
   /** The new chat's permission chip: what it may do on its own. */
   function permHtml(v) {
-    if (v !== "chats") return "";
-    const st = setup();
+    const own = ownOf(v);
+    if (v !== "chats" && !own) return "";
+    const st = own || setup();
     return st.agent && st.mode ? `${xi(MODE_WORDS[st.mode]?.[2] || "lock")}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
   }
+  /** The mode chip's title: a new chat's choice, or an open chat's fixed mode and folder. */
+  function permTitle(v) {
+    const own = ownOf(v);
+    if (!own) return "What a new chat may do on its own";
+    return `${(MODE_WORDS[own.mode] || [own.mode || ""])[0]}${isHome(own.cwd) ? "" : ` · in ${folderWord(own.cwd)}`}, set when it started`;
+  }
   function chipTitle(v) {
+    const own = ownOf(v);
+    if (own) return `This chat runs ${rtName(own.agent)} · ${own.model ? modelWord(own.agent, own.model) : "its default model"}${own.effort ? ` · ${EFFORT_WORD[own.effort] || own.effort}` : ""}, set when it started`;
     if (v !== "chats") return "";
     const st = setup();
     if (!st.agent) return "";
@@ -481,7 +493,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     isChats: (v) => v === "chats" || (v && v.startsWith("c:")),
     open(v) { if (v === "chats") loadList(); else if (v.startsWith("c:")) loadChat(v.slice(2)); },
     items: (v) => (v === "chats" ? listItems() : chatItems(v.slice(2))),
-    headHtml, targetHtml, confirmHtml, resolveConfirm, nowState,
+    headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm, nowState,
     placeholder: (v) => (v === "chats" ? "Ask anything to start a chat…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
     session: (v) => (v && v.startsWith("c:") ? session(v.slice(2)) : null),
     busy: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s)); },

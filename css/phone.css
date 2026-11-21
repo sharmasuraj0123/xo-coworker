@@ -55,8 +55,8 @@
   :root:root .top-back[hidden]{display:none}
   :root:root .top-back:not([hidden]) ~ .top-menu{display:none}
   :root:root .top-menu{order:-2}
-  :root:root .app[data-conv="chats"] .top{border-bottom:0}
-  :root:root .app[data-conv="chats"] .top-who{display:none}
+  :root:root .app:is([data-conv="chats"],[data-conv^="c:"]) .top{border-bottom:0}
+  :root:root .app:is([data-conv="chats"],[data-conv^="c:"]) #top-who{display:none}
   :root:root .top-back{order:-1}
   :root:root :is(.top-menu,.top-back) svg{width:var(--ic-lg);height:var(--ic-lg)}
   :root:root .top-back span{display:none}
