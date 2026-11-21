@@ -88,13 +88,13 @@ diffs-container{
 .stage .cx-pd diffs-container{--diffs-font-size:var(--fs-meta);--diffs-line-height:var(--lh-meta)}
 .stage .cx-note,.stage .cx-none{margin:0;padding:12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .stage .cx-none{padding:4px 20px 12px}
-.stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:var(--gap-icon);border-radius:50%;vertical-align:calc(var(--cap-mid) - 5px)}
+.stage .cx-none .spin{display:inline-block;width:10px;height:10px;margin-right:var(--gap-icon);vertical-align:calc(var(--cap-mid) - 5px)}
 /* paused: an edit you aren't looking at, said quietly over the diff, never a jump */
 .stage .cx-pill{position:absolute;z-index:2;top:calc(var(--h-lg) + var(--s-1));left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);max-width:calc(100% - 48px);padding:0 12px;border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--panel-line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);white-space:nowrap;animation:cx-pill var(--d-in) var(--ease)}
 .stage .cx-pill[hidden]{display:none}
 .stage .cx-pill>span:first-of-type{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .stage .cx-pill b{font-weight:var(--fw-medium);color:var(--ink)}
-.stage .cx-pill i{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.stage .cx-pill i{width:6px;height:6px;mask:var(--mask-dot);background:var(--ink-3)}
 .stage .cx-pill .cx-show{font-weight:var(--fw-medium);color:var(--ink)}
 .stage .cx-pill .cx-show::before{content:"·";margin-right:8px;font-weight:var(--fw-regular);color:var(--ink-4)}
 .stage .cx-pill:hover{border-color:var(--line-hover)}
@@ -108,7 +108,7 @@ diffs-container{
 .stage .xd-follow.is-on:hover{background:color-mix(in srgb,var(--info) 22%,transparent)}
 .stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-more:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .xd-arc{position:relative;width:10px;height:10px}
-.xd-arc::before{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 25%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+.xd-arc::before{content:"";position:absolute;inset:0;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){.xd-arc::before,.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
 
 /* ── Files › a changed file, on its diff (js/viewer.js): the page's own ground, side by side when there's room ── */
@@ -162,7 +162,7 @@ diffs-container{
 
 /* ── Files (js/viewer.js): the file's state in its head, read-only places, files that run code ── */
 .xd-state{display:inline-flex;align-items:center;gap:6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);white-space:nowrap}
-.xd-state i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.xd-state i{flex:none;width:6px;height:6px;mask:var(--mask-dot);background:var(--warn)}
 .xd-errline{color:var(--err-ink)}
 .xd-vsep{flex:none;width:1px;height:16px;margin:0 4px;background:var(--fill-3)}
 .xd-btn{flex:none;display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);white-space:nowrap;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}

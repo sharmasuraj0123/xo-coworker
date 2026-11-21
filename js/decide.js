@@ -17,7 +17,7 @@ import { esc, WAITING } from "./world.js";
 import * as Kit from "./kit.js";
 import * as K from "./keys.js";
 import { EFFORT, effortOf, rank, evidenceFor, leverageOf, suggestFor, whyLine, estLine } from "./content.js";
-import { ICON, stepMark, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
+import { ICON, stepMark, xi, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
@@ -1009,7 +1009,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     toast.className = `toast t-${deny ? "back" : "allow"}`;
     toast.hidden = false;
     toast.innerHTML = `<span class="t-ic">${deny ? ICON.rewind : ICON.check}</span><span class="t-m"><b>${esc(it.meta.verb)}</b> <span>${esc(it.meta.label)}</span></span>` +
-      `<button type="button" class="t-undo" title="Undo"><svg class="t-ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" style="animation-duration:${left}ms"/></svg>Undo</button>`;
+      `<button type="button" class="t-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
     toast.querySelector(".t-undo").addEventListener("click", () => queue.undo(it.id));
   }
 

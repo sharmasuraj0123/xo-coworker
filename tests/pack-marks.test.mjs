@@ -27,4 +27,24 @@ t("a state mark is the pack's state-* icon, never a CSS-drawn box, ring or diamo
   const css = ["app.css", "links.css", "phone.css"].map((c) => readFileSync(new URL(`../css/${c}`, import.meta.url), "utf8")).join("\n");
   assert.doesNotMatch(css, /(^|\n|\})\.g(-[a-z_]+)?(,\.g-[a-z_]+)*\{[^}]*(border|background|rotate)/);
 });
+t("spinners, needs-you marks and status dots draw from the pack's files, not CSS borders, rotations or rounded boxes", () => {
+  const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
+  const tok = css("tokens.css");
+  for (const [k, f] of [["working", "e-state-marks/state-working.svg"], ["needs", "e-state-marks/state-needs-you.svg"], ["dot", "d-things-and-kinds/step-dot.svg"], ["stop", "c-actions/stop.svg"], ["warn", "d-things-and-kinds/warning.svg"], ["next", "b-arrows-and-chevrons/arrow-right.svg"]])
+    assert.match(tok, new RegExp(`--mask-${k}:url\\(\\.\\./assets/icons/xo/${f.replace(/\./g, "\\.")}\\)`), k);
+  const all = ["app.css", "panel.css", "launchpad.css", "diffs.css", "rich.css", "dropdown.css", "docs.css"].map(css).join("\n");
+  const rule = (sel) => { const i = all.indexOf(sel + "{"); assert.ok(i >= 0, sel); return all.slice(i, all.indexOf("}", i)); };
+  for (const sel of [".spin", ".tb-live", ".arc::before", ".lp-arc::before", ".xd-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
+  for (const sel of [".nv-dot", ".pr-d", ".hr-dot", ".tb-m.is-wait"]) { assert.match(rule(sel), /mask:var\(--mask-needs\)/, sel); assert.doesNotMatch(rule(sel), /rotate/, sel); }
+  for (const sel of [".dd-dot", ".shd-dot", ".dg-dot", ".fl-who i", ".stage .cx-pill i", ".xd-state i", ".fl-rb em", ".lp-st>i:not(.lp-arc)", ".lpv-light", ".syl-gh i,.syl-chip i"]) assert.match(rule(sel), /mask:var\(--mask-dot\)/, sel);
+  assert.doesNotMatch(all, /content:"→/);
+});
+t("the Undo ring is the pack's undo-countdown; key caps show the pack's key icons", () => {
+  const read = (f) => readFileSync(new URL(f, dir), "utf8");
+  assert.match(read("decide.js"), /xi\("undo-countdown", "t-ring"\)/);
+  assert.doesNotMatch(read("decide.js"), /<circle cx="10"/);
+  const keys = read("keys.js");
+  for (const k of ["key-command", "key-option", "key-shift", "key-control", "key-return"]) assert.ok(keys.includes(`"${k}"`), k);
+  assert.match(read("app.js"), /<kbd>\$\{K\.keyHtml\(K\.label\(a\.id\)\)\}<\/kbd>/);
+});
 console.log(`\n${passed} passed`);

@@ -37,14 +37,14 @@
 .lp-ha{display:flex;align-items:center;gap:4px}
 .lp-ha:empty{display:none}
 .lp-st{flex:none;display:inline-flex;align-items:center;gap:6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.lp-st>i:not(.lp-arc){flex:none;width:6px;height:6px;border-radius:50%;background:currentColor}
+.lp-st>i:not(.lp-arc){flex:none;width:6px;height:6px;background:currentColor;mask:var(--mask-dot)}
 .lp-st.t->i:not(.lp-arc){display:none}
 .lp-st.t-go{color:var(--go)}
 .lp-st.t-work{color:var(--work)}
 .lp-st.t-stop{color:var(--err-ink)}
-.lp-st.t-stop>i:not(.lp-arc){border-radius:1px}
+.lp-st.t-stop>i:not(.lp-arc){mask:var(--mask-stop)}
 .lp-st.t-need{color:var(--need)}
-.lp-st.t-need>i:not(.lp-arc){width:0;height:0;border-radius:0;background:none;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid currentColor}
+.lp-st.t-need>i:not(.lp-arc){width:var(--ic-sm);height:var(--ic-sm);mask:var(--mask-warn)}
 .lp-tm{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .lp-hh{min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4);text-decoration:none}
 .lp-hh:hover{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
@@ -54,7 +54,7 @@
 
 /* the small working arc, inline (the panel's .arc is a corner badge) */
 .lp-arc{flex:none;position:relative;display:inline-block;width:12px;height:12px;color:var(--work)}
-.lp-arc::before{content:"";position:absolute;inset:1px;border-radius:50%;border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;animation:arc-turn 1.6s linear infinite}
+.lp-arc::before{content:"";position:absolute;inset:0;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
 
 /* ── the body ──────────────────────────────────────────────────────────────────────────────── */
 .lp{padding:0 0 16px}
@@ -322,9 +322,9 @@ a.lp-b svg{width:14px;height:14px;color:var(--ink-4)}
 .lpv-st.ready{color:var(--accent)}
 .lpv-st.starting{color:var(--work)}
 .lpv-st.failing{color:var(--err-ink)}
-.lpv-light{flex:none;width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--line-strong)}
-.lpv-light.ready{background:var(--go);box-shadow:0 0 8px color-mix(in srgb,var(--go) 70%,transparent)}
-.lpv-light.failing{border-radius:2px;background:var(--danger)}
+.lpv-light{flex:none;width:8px;height:8px;background:var(--line-strong);mask:var(--mask-dot)}
+.lpv-light.ready{background:var(--go)}
+.lpv-light.failing{background:var(--danger);mask:var(--mask-stop)}
 .lpv-facts,.lpv-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;min-width:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .lpv-meta code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);background:none;padding:0}
 .lpv-meta .lpv-need{color:var(--need)}

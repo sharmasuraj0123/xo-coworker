@@ -31,7 +31,7 @@ xo-select>option{display:none}
 .dd-row[aria-selected="true"]{color:var(--ink)}
 .dd-row[aria-disabled="true"]{opacity:.45;cursor:default}
 .dd-mk{flex:none;align-self:center;display:grid;place-items:center;width:12px;height:20px}
-.dd-dot{display:block;width:5px;height:5px;border-radius:50%;background:var(--ink-2)}
+.dd-dot{display:block;width:5px;height:5px;mask:var(--mask-dot);background:var(--ink-2)}
 .dd-t{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 

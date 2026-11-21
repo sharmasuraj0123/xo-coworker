@@ -79,7 +79,7 @@
 .vw-tab-x{position:relative;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:4px;border:none;border-radius:var(--r-xs);background:none;color:var(--ink-4);cursor:pointer}
 .vw-tab-x svg{width:12px;height:12px}
 .vw-tab-x>i{display:none}
-.vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;mask:var(--mask-dot);background:var(--ink-3)}
 .vw-tab-x.is-dirty svg{visibility:hidden}
 .vw-tab-x:hover{background:var(--hover-fill);color:var(--ink)}
 .vw-tab-x.is-dirty:hover>i{display:none}

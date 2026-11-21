@@ -4345,7 +4345,7 @@ document.addEventListener("click", (e) => { const b = e.target.closest("[data-se
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
 function keysSheetRender() {
   const col = (ids) => `<dl class="keys">${ids.map((g) => `<dt class="kh">${esc(K.GROUPS.find((x) => x.id === g).name)}</dt><dd></dd>` +
-    K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${esc(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
+    K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${K.keyHtml(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
   $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
 /** The Keyboard page, drawn in place: the key under the keyboard stays the same node as it records, cancels or changes. */
@@ -4356,8 +4356,8 @@ function keysPageRender() {
     K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
       K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
         const key = a.fixed
-          ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${esc(a.fixed)}</kbd></span>`
-          : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${esc(K.label(a.id))}</kbd>`}</button>`;
+          ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${K.keyHtml(a.fixed)}</kbd></span>`
+          : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${K.keyHtml(K.label(a.id))}</kbd>`}</button>`;
         const reset = !a.fixed && K.changed(a.id) ? `<button type="button" class="kr-r" data-kreset="${a.id}" title="Back to ${esc(K.show(a.def))}" aria-label="Reset ${esc(a.label)} to ${esc(K.show(a.def))}">${ICON.retry}</button>` : `<span class="kr-r" aria-hidden="true"></span>`;
         return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
           (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");

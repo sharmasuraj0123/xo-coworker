@@ -7,6 +7,8 @@
 //  · decision keys only work on a focused decision card, so single letters are fine there;
 //  · no two actions that can fire in the same place share a key; the browser's own keys are left alone.
 
+import { xi } from "./icon.js";
+
 const STORE = "cv-keys";
 const IS_MAC = /Mac|iPhone|iPad/.test(navigator.userAgentData?.platform || navigator.platform || "");
 
@@ -143,6 +145,10 @@ export function show(s) {
   if (c.shift) bits.push("⇧");
   return bits.join("") + key;
 }
+const KEY_IC = { "⌘": "key-command", "⌥": "key-option", "⇧": "key-shift", "⌃": "key-control", "↵": "key-return", "↑": "key-up", "↓": "key-down", "←": "key-left", "→": "key-right" };
+const escK = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+/** A key's label for a key cap: its symbols as the pack's key icons (tooltips keep the text). */
+export const keyHtml = (s) => escK(s).replace(/[⌘⌥⇧⌃↵↑↓←→]/g, (g) => xi(KEY_IC[g], "kb-ic"));
 export const label = (id) => { const a = BY.get(id); return a?.fixed || show(binding(id)); };
 /** For tooltips: " (A)", or nothing when the action has no key. */
 export const hint = (id) => (binding(id) || BY.get(id)?.fixed ? ` (${label(id)})` : "");
