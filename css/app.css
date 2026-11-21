@@ -1278,11 +1278,11 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 button.tp-done-u{padding:0 4px;border-radius:var(--r-sm);color:var(--ink-3);text-decoration:underline;text-underline-offset:3px}
 button.tp-done-u:hover{color:var(--ink)}
 .card.is-dock.r-done{background:var(--surface);border-color:var(--line-soft)}
-.tp-done{display:flex;align-items:center;gap:10px;padding:14px 18px;font-size:var(--fs-ui);color:var(--ink-3)}
+.tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--h-lg);margin:0;padding:0 var(--s-2) 0 var(--s-3);font-size:var(--fs-ui);color:var(--ink-3)}
 .tp-done b{color:var(--ink);font-weight:var(--fw-strong)}
-.tp-done-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(var(--accent-rgb),.14);color:var(--accent)}
+.tp-done-ic{flex:none;display:grid;place-items:center;width:var(--ic-lg);height:var(--ic-lg);border-radius:50%;background:rgba(var(--accent-rgb),.14);color:var(--accent)}
 .tp-done.is-back .tp-done-ic{background:var(--fill-3);color:var(--ink-2)}
-.tp-done-ic svg{width:12px;height:12px}
+.tp-done-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
 .tp-done-u{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4)}
 
 /* records of intelligence changes, in the conversation */
