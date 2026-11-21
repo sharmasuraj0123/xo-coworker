@@ -26,7 +26,7 @@ t("the target's icon is the icon size and sits the icon gap from its words", () 
 });
 t("the target gives way before the model chip at every width, the panel's 40% included", () => {
   const iq = rule(app, ".iq");
-  assert.match(iq, /^flex:0 0\.01 auto;/, "it gives way only once the target has, so Send is never pushed out");
+  assert.match(iq, /^flex:0 1 auto;/, "it gives way only once the target has, so Send is never pushed out");
   assert.match(iq, /max-width:min\(320px,100% - var\(--h-ctl\) - var\(--h-lg\) - 3 \* var\(--s-2\)\)/);
   assert.match(rule(app, ".composer-row"), /gap:var\(--s-2\)/);
   assert.doesNotMatch(rule(phone, "  :root:root .iq"), /max-width|flex/);

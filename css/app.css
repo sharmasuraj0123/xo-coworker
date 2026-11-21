@@ -681,7 +681,7 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .composer-row{display:flex;align-items:center;gap:var(--s-2);margin-top:6px}
 /* the composer row's settings speak at the meta step, their icons and marks one step smaller with them */
 :is(.target,.iq){--ic:var(--ic-sm);font-size:var(--fs-meta);line-height:var(--lh-meta)}
-.target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-pill);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.target{display:inline-flex;align-items:center;gap:var(--gap-icon);min-width:0;flex-shrink:999;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));margin-right:auto;border-radius:var(--r-pill);color:var(--ink-4);white-space:nowrap;overflow:hidden;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .target:hover{background:var(--fill-2);color:var(--ink-3)}
 .target b{color:var(--ink-2);font-weight:var(--fw-strong)}
 .target svg{flex:none;width:var(--ic);height:var(--ic)}
@@ -730,8 +730,8 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
    Geometry: a 12 px float whose rows sit 6 px in (its 1 px line and 5 px of padding), so their 6 px corners
    are concentric with it (12 − 6); the phone sheet: 22, rows 16 in, 6. */
 /* the model chip never shrinks for the target, only to leave Attach and Send their room */
-/* the chip gives way only once the target has: a nearly rigid share, so Send is never pushed out */
-.iq{flex:0 0.01 auto;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* the chip gives way only once the target has (its shrink outweighs the chip's), so Send is never pushed out */
+.iq{flex:0 1 auto;display:inline-flex;align-items:center;min-width:0;max-width:min(320px,100% - var(--h-ctl) - var(--h-lg) - 3 * var(--s-2));height:var(--h-ctl);padding:0 10px;border-radius:var(--r-pill);color:var(--ink-3);font-family:var(--sans);font-weight:var(--fw-medium);white-space:nowrap;font-variant-numeric:tabular-nums}
 .iq:hover,.iq[aria-expanded="true"]{background:var(--hover-fill);color:var(--ink-2)}
 .iq:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 .is-fixed:is(.target,.iq),.is-fixed:is(.target,.iq):is(:hover,:active){cursor:default;background:none}

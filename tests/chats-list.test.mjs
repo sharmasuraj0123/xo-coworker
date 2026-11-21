@@ -144,7 +144,7 @@ t("an open chat has no bar: its model and mode are fixed chips in its composer, 
 });
 t("a phone's composer row never pushes Send out: the model chip gives way, Send now is a filled capsule", () => {
   const css = read("css/app.css");
-  assert.match(css, /\.iq\{flex:0 0\.01 auto;/, "the model chip gives way last, ending in an ellipsis");
+  assert.match(css, /\.iq\{flex:0 1 auto;/, "the model chip gives way last, ending in an ellipsis");
   assert.match(css, /\.tg-now\{[^}]*border-radius:var\(--r-pill\);background:var\(--btn-fill\);/);
   assert.doesNotMatch(css.match(/\.tg-now\{[^}]*\}/)[0], /border:/, "no rim of its own");
   assert.match(css, /@media \(max-width:760px\)\{\n  \.tg-now\{height:var\(--h-touch\)\}\n[^}]*\n  \.iq \.iq-sep,\.iq \.iq-e\{display:none\}\n  \.target:not\(\.cs-perm\):has\(~ \.tg-now:not\(\[hidden\]\)\)\{display:none\}\n\}/);
