@@ -124,3 +124,11 @@ console.log("stage-pages head control size: ok");
   assert.match(tokens, /--badge-dot:calc\(var\(--ic\) \* 3 \/ 8\);/);
   assert.match(css, /\.stage \.pg-dot\{position:absolute;top:calc\(\(var\(--h-ctl\) - var\(--ic\)\) \/ 2\);right:calc\(\(var\(--h-ctl\) - var\(--ic\)\) \/ 2\);width:var\(--badge-dot\);height:var\(--badge-dot\);/); }
 console.log("stage-pages back dot: ok");
+// Follow is its icon only: the agent at work shows once, as the live file's badge, never a second mark in the head
+{ const diffs = readFileSync(new URL("../css/diffs.css", import.meta.url), "utf8");
+  assert.match(stage, /class="xd-follow" data-follow hidden>\$\{ICON\.follow\}<\/button>/);
+  assert.doesNotMatch(stage + diffs, /xd-arc/);
+  // a head's controls never shrink: the panel head's group, a frame head's group
+  assert.match(css, /\.stg-acts\{flex:none;/);
+  assert.match(css, /\.fr-a\{flex:none;margin-left:auto;/); }
+console.log("stage-pages follow: ok");

@@ -307,7 +307,7 @@ button.fr-t:hover{color:var(--ink-2)}
 .fr.is-folded .fr-t.is-on::after{display:none}
 .fr-n{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .fr-n:empty{display:none}
-.fr-a{margin-left:auto;display:flex;align-items:center;gap:4px}
+.fr-a{flex:none;margin-left:auto;display:flex;align-items:center;gap:4px}
 .fr-ib{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .fr-ib:hover{background:var(--fill-2);color:var(--ink)}
 .fr-ib svg{width:16px;height:16px;transition:transform var(--d-out) var(--ease)}

@@ -56,7 +56,7 @@ await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
 });
 await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
   assert.equal((src("recordview.js").match(/if \(box\._h !== html\) \{ redraw\(box, html\);/g) || []).length, 2);
-  assert.match(src("stage.js"), /if \(fw\._h !== fh\) \{ redraw\(fw, fh\);/);
+  assert.doesNotMatch(src("stage.js"), /redraw\(fw|fw\.innerHTML/, "Follow is drawn once (its icon) and never redrawn under a press");
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
   const lp = src("launchpad.js");
   assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.ha, ha\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
