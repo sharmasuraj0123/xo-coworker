@@ -163,6 +163,7 @@
   :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
   /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */
   :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:var(--h-hit)}
+  :root:root .side-pop[role=menu] .nrow{min-height:var(--h-hit)}
   :root:root .fl-more{width:var(--h-ctl);height:28px;margin-top:0}
 }
 
@@ -278,6 +279,7 @@
      the desktop's 48 (their own 44 is gone). Chats' rows are the desktop's 56: their 58 floor drew 66, 1 + 10 + 20 + 4 +
      20 + 10 + 1 (the controls grader on 8aa58d3, C048, by the standard S052 was fixed to) */
   .nrow,.prow{min-height:var(--h-lg);padding-top:5px;padding-bottom:5px}
+  .side-pop[role=menu] .nrow{min-height:var(--menu-row)}
   .hd-r{min-height:var(--h-lg)}
   :is(.ar,.ar-fold,.ar-undo){min-height:var(--h-lg)}
   .syl-ln{min-height:48px;padding-top:7px;padding-bottom:7px}

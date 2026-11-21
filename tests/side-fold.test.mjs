@@ -39,7 +39,7 @@ assert.match(block, /\.side-folded \.prow\{border-color:transparent;box-shadow:n
 assert.match(block, /\.side-folded \.prow \.pr-ic\{box-shadow:none;animation:none\}/);
 assert.doesNotMatch(side.slice(0, side.indexOf("── The top that scales")), /side-folded/, "nothing else knows the fold");
 
-// More's popover is concentric with its rows: 20 = 12 + 8
+// the sidebar editor's popover is concentric with its rows: 20 = 12 + 8; More is a menu
 assert.match(block, /\.side-pop\{[^}]*padding:var\(--s-2\);border-radius:var\(--r-xl\)/);
 
 console.log("side-fold: ok");

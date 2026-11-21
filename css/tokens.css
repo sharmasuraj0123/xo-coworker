@@ -110,8 +110,10 @@
        6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
   /* a rounded box says its corner and its content's inset as --nest-r and --nest-in; what sits in its corner takes calc(var(--nest-r) - var(--nest-in)) */
-  --r-pop-row:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl popover's --s-2 padding and 1 px line */
+  --r-menu:var(--r-lg); --menu-pad:var(--s-1); --menu-row:var(--h-ctl); --menu-w:calc(6 * var(--h-ctl));
+  --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
   --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
+  --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl box's --s-2 padding and 1 px line */
   /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
      focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
      fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */

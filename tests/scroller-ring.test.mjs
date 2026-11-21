@@ -52,7 +52,7 @@ const SCROLLERS = {
   ".tb-out": ["text", "a step's output"], ":root:root .ckbar.is-open .ck-b>ol": ["text", "a phone's checklist: its steps are words"],
 };
 const padOf = (sel) => { const m = all.match(new RegExp(`(?:^|[}\\n])\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{[^}]*?(?:^|;)padding:([^;}]+)`)); return m ? m[1].trim() : null; };
-const px4 = (v) => { const p = v.split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
+const px4 = (v) => { const p = v.split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : x === "var(--menu-pad)" ? +tokens.match(/--s-1:(\d+)px/)[1] : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
 
 t("the ring's room covers the ring (2 px, 2 px out)", () => assert.ok(room >= ext, `${room} ≥ ${ext}`));
 t("every scroll box is placed, either axis: padded with the ring's room, its controls' ring inset, its content padded, or text only", () => {

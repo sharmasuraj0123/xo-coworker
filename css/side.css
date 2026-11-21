@@ -74,7 +74,7 @@
 /* ── The top that scales, More, and folding to a rail (the owner, 19 Nov) ─────────────────────────────────────
    Top row: fold (where the eye starts) · the brand · search / jump. Its controls sit on the rows' 12 px edge.
    More: every further place arrives there, so the list never outgrows a screen; a place you pin joins the rows.
-   Its popover is the sidebar's own rows in a float: 20 = the rows' 12 + its 8 inset, so they're concentric.
+   Its popover is a menu like every other (the --menu-* tokens); the sidebar editor keeps the rows' own 40 at --r-xl.
    Folded (desktop only; a phone's sidebar is a drawer): the same rows with their words hidden, 64 wide
    (--side-rail-w); and no border or ring round a working or waiting project there (the owner, 19 Nov 11:54:
    only when it's minimised; the open sidebar keeps them). */
@@ -90,7 +90,11 @@
 .side-pop[hidden]{display:none}
 .sm-row{position:relative}
 .side-pop .nrow{--nest-r:var(--r-pop-row)}
-.sm-row .nrow{padding-right:calc(var(--h-sm) + var(--s-3))}
+.side-pop[role=menu]{min-width:var(--menu-w);padding:var(--menu-pad);border-radius:var(--r-menu)}
+.side-pop[role=menu] .nrow{gap:var(--s-2);min-height:var(--menu-row);padding:0 var(--s-2)}
+.side-pop[role=menu] .nr-ic{width:var(--ic);height:var(--ic);background:none;border:0}
+.side-pop[role=dialog] .nrow{--nest-r:var(--r-xl-in)}
+.sm-row .nrow{padding-right:calc(var(--h-sm) + var(--s-2))}
 .sm-pin{position:absolute;right:var(--s-2);top:50%;translate:0 -50%;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);opacity:0;transition:opacity var(--d-hover) var(--ease)}
 .sm-pin svg{width:var(--s-3);height:var(--s-3)}
 .sm-row:hover .sm-pin,.sm-row:focus-within .sm-pin,.sm-pin[aria-pressed="true"]{opacity:1}
@@ -118,7 +122,7 @@
    ends with "Edit the sidebar…"; editing, the same popover lists every place in its order: a grip (drag it, or
    ↑ ↓ on it), the place's own icon and name, and a switch: on, it's a row of the bar; off, it waits in More.
    Rows are the sidebar's own (40, r 12) inside the popover's 8, so 20 = 12 + 8 still holds. */
-.sm-sep{margin:var(--s-1) var(--s-3);border-top:1px solid var(--line-soft)}
+.sm-sep{margin:var(--s-1) var(--s-2);border-top:1px solid var(--line-soft)}
 .side-pop[role="dialog"]{min-width:calc(7 * var(--h-row))}
 .se-h{display:flex;flex-direction:column;gap:var(--s-1);padding:var(--s-2) var(--s-3) var(--s-3)}
 .se-h b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}

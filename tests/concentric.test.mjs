@@ -17,10 +17,24 @@ t("a sidebar row's tile sits the same inset from its top, bottom and left, deriv
   assert.doesNotMatch(side, /\.nr-ic,\.pr-ic\{border-radius:calc\(var\(--r-lg\) - 7px\)\}/);
   assert.match(side, /\.side :is\(\.nrow,\.prow\):focus-visible\{border-radius:var\(--nest-r\)\}/);
 });
-t("More's rows sit in its popover's corner: --r-xl − its padding and line; their tiles follow", () => {
-  assert.match(tok, /--r-pop-row:calc\(var\(--r-xl\) - var\(--s-2\) - 1px\);/);
+t("a menu's rows sit in its corner: --r-menu − its padding and line; More is a menu, the sidebar editor keeps --r-xl", () => {
+  assert.match(tok, /--r-menu:var\(--r-lg\); --menu-pad:var\(--s-1\); --menu-row:var\(--h-ctl\);/);
+  assert.match(tok, /--r-pop-row:calc\(var\(--r-menu\) - var\(--menu-pad\) - 1px\);/);
+  assert.match(tok, /--r-xl-in:calc\(var\(--r-xl\) - var\(--s-2\) - 1px\);/);
   assert.match(side, /\.side-pop\{[^}]*padding:var\(--s-2\);border-radius:var\(--r-xl\)/);
   assert.match(side, /\.side-pop \.nrow\{--nest-r:var\(--r-pop-row\)\}/);
+  assert.match(side, /\.side-pop\[role=menu\]\{min-width:var\(--menu-w\);padding:var\(--menu-pad\);border-radius:var\(--r-menu\)\}/);
+  assert.match(side, /\.side-pop\[role=dialog\] \.nrow\{--nest-r:var\(--r-xl-in\)\}/);
+});
+t("every menu reads the menu tokens: its padding and corner, its rows' height and corner", () => {
+  const css = ["app", "diffs", "dropdown", "launchpad", "panel", "side"].map((f) => readFileSync(new URL(`../css/${f}.css`, import.meta.url), "utf8")).join("\n");
+  for (const [box, row] of [[".tw-menu", ".tw-menu button"], [".vw-menu", ".vw-menu :is([role=menuitem],[role=menuitemradio])"], [".dd-menu", ".dd-row"], [".lp-mn", ".lp-mn button"], [".fl-menu", ".fl-menu button"]]) {
+    const q = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    assert.match(css, new RegExp(`(^|\\n)${q(box)}\\{[^}]*padding:var\\(--menu-pad\\);border-radius:var\\(--r-menu\\)`), box);
+    assert.match(css, new RegExp(`(^|\\n)${q(row)}\\{[^}]*height:var\\(--menu-row\\);[^}]*border-radius:var\\(--r-pop-row\\)`), row);
+  }
+  assert.match(css, /\.side-pop\[role=menu\] \.nrow\{gap:var\(--s-2\);min-height:var\(--menu-row\);padding:0 var\(--s-2\)\}/);
+  assert.match(css, /\.side-pop\[role=menu\] \.nr-ic\{width:var\(--ic\);height:var\(--ic\);background:none;border:0\}/);
 });
 t("an Artifacts card's well and pin, the @ list's rows, the Next and dock cards' corner buttons take the nest", () => {
   assert.match(art, new RegExp(`\\.md-well\\{[^}]*border-radius:${NEST} ${NEST} 0 0`));
