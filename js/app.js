@@ -3550,6 +3550,19 @@ $("#top").addEventListener("keydown", (e) => {
   if (e.key === "Escape" && S.tMenu) { e.preventDefault(); e.stopPropagation(); closeThreadMenu(); }
 });
 $("#msgs").addEventListener("input", (e) => { if (e.target.matches?.("[data-chl-q]")) CH.search(e.target.value); });
+$("#msgs").addEventListener("click", (e) => {
+  const b = e.target.closest?.("[data-chl-all]");
+  if (!b) return;
+  const all = b.dataset.chlAll === "1";
+  CH.showAll(all);
+  // once drawn: all of them opens at its search (a phone keeps its keyboard down), Recent returns to the composer
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const top = $("#msgs .chl-top");
+    if (!top) return;
+    if (all) { top.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); (matchMedia("(max-width: 760px)").matches ? top.querySelector("[data-chl-all]") : top.querySelector("[data-chl-q]"))?.focus({ preventScroll: true }); }
+    else { $("#scroller").scrollTo({ top: 0 }); top.querySelector("[data-chl-all]")?.focus({ preventScroll: true }); }
+  }));
+});
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
 // leaving the field saves it, unless it's what was just refused (Enter retries that; leaving keeps it, as typed)
 $("#top").addEventListener("focusout", (e) => {
@@ -4062,7 +4075,7 @@ function threadIc(t) {
 }
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
-  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "One agent, one folder", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
+  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
   const needN = new Map();
   for (const x of D.needItems()) if (x.admitted && !x.later) needN.set(x.t.project, (needN.get(x.t.project) || 0) + 1);
   // typed for, the projects that need you come first

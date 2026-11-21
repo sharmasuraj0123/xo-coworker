@@ -2056,13 +2056,23 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
 .app[data-conv="chats"] .main{--dock-h:0px}
-.cs-hi{width:var(--col-w);margin:clamp(var(--s-8),8vh,calc(2 * var(--s-8))) 0 var(--s-6) var(--col-x);text-align:center;font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans);letter-spacing:var(--tr-28);color:var(--ink);text-wrap:balance}
+.app[data-conv="chats"] .scroller{display:flex;flex-direction:column}
+.app[data-conv="chats"] .scroller>*{flex:none}
+/* at rest the greeting and composer stand in the middle, the few latest hanging under them; all of them flow from the top */
+.app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column{height:0;margin-bottom:auto}
+.cs-hi{width:var(--col-w);margin:auto 0 var(--s-6) var(--col-x);text-align:center;font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans);letter-spacing:var(--tr-28);color:var(--ink);text-wrap:balance}
 .scroller>.dock{position:relative;right:auto;bottom:auto;margin-bottom:var(--s-10)}
 .scroller>.dock>.cbar{padding:0;background:none}
-.chl-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:0 0 var(--s-2) var(--s-3)}
+.chl-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:0 0 var(--s-2) var(--s-3);scroll-margin-top:var(--s-4)}
 .chl-k{margin:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
-.chl-top>.chl-q{flex:0 1 50%}
-.chl{display:flex;flex-direction:column;gap:var(--s-5);margin:var(--s-2) 0 var(--s-6)}
+.chl-top>.chl-q{flex:0 1 50%;margin-left:auto}
+.chl-all{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--h-sm);padding:0 var(--s-2) 0 var(--s-3);border-radius:var(--r-pill);color:var(--ink-3);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.chl-all:not(:has(svg)){padding:0 var(--s-3)}
+.chl-all svg{width:var(--ic-sm);height:var(--ic-sm)}
+@media (hover:hover){.chl-all:hover{background:var(--fill-2);color:var(--ink)}}
+.chl{display:flex;flex-direction:column;gap:var(--s-5);margin:0 0 var(--s-6)}
+:root #msgs>div.chl-top:not(#_){margin-bottom:0}
+:root #msgs>div.chl-top+div.chl:not(#_){margin-top:0}
 .chl-h{margin:0 0 var(--s-1);padding:0 var(--s-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .chl-list{list-style:none;display:flex;flex-direction:column;margin:0;padding:0}
 .chl-list>li+li{border-top:1px solid var(--line-faint)}
