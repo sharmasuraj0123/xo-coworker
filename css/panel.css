@@ -351,7 +351,6 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 .fr[data-fr="map"] .mp-head,.fr[data-fr="map"] .dg-mode,.fr[data-fr="map"] .dg-sep{display:none}
 .fr[data-fr="map"] .dg{border-top:0}
 
-
 /* ══ Files, a page of the panel (js/filespage.js): the tree at a width you drag (or its rail), the file in the rest ══ */
 .fv{flex:1;min-height:0;display:flex;flex-direction:column;min-width:0;background:var(--canvas);outline:none;--pe:12px;--pn:36px}
 .fv[hidden]{display:none}
@@ -490,7 +489,7 @@ body.viewer-open .fv~.dock{display:none}
 :is(.vw-body,.cx-pd).has-ring:focus-visible{outline:none}
 .stage .map-host .dg-n,.stage .map-host .dg-n.k-dir{border-radius:var(--r);border-color:transparent;background:transparent}
 .stage .map-host .dg-n.k-root{background:var(--panel-surface);border-color:var(--panel-line);box-shadow:var(--panel-lift)}
-.stage .map-host button.dg-n:hover{border-color:var(--panel-line);background:var(--panel-hover)}
+.stage .map-host button.dg-n:hover{background:var(--panel-hover)}
 .stage .map-host .dg-n.k-more{background:transparent;border-style:dashed;border-color:var(--panel-line)}
 .stage .map-host .dg-n.k-note{background:transparent;border-color:transparent}
 .stage .map-host .dg-n.is-here{background:var(--panel-surface);border-color:color-mix(in srgb,var(--c) 65%,var(--panel-line));box-shadow:var(--panel-lift)}

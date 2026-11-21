@@ -127,7 +127,7 @@
 :root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);box-shadow:none}
 :root:not([data-msgx]) .tcard.st-needs{--st:var(--warn)}
 :root:not([data-msgx]) .tcard:is(.st-needs,.st-failed){border-color:var(--line)}
-:root:not([data-msgx]) .tcard:hover{border-color:var(--line-strong);background:var(--fill-1)}
+:root:not([data-msgx]) .tcard:hover{background:var(--fill-1)}
 :root:not([data-msgx]) .tc-open{gap:4px;padding:0 16px 12px;border-radius:var(--r-lg-in)}
 /* the band: full width, flush with the card's top, its progress 16 px in on each side (the text column) */
 :root:not([data-msgx]) .tc-segs{order:-1;width:calc(100% + 32px);margin:0 -16px 8px;padding:12px 16px;gap:4px;border-radius:var(--r-lg-in) var(--r-lg-in) 0 0;background:color-mix(in srgb,var(--st) 10%,transparent);transition:background var(--d-hover) var(--ease)}

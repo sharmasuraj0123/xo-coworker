@@ -13,7 +13,7 @@ xo-select>option{display:none}
 .dd-btn{display:flex;align-items:center;gap:8px;width:100%;min-width:0;height:var(--h-ctl);padding:0 8px 0 12px;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);text-align:left;cursor:pointer;transition:border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .dd-v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dd-btn svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
-.dd-btn:hover,xo-select.is-open .dd-btn{border-color:var(--line-strong);color:var(--ink)}
+.dd-btn:hover,xo-select.is-open .dd-btn{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .dd-btn:hover svg,xo-select.is-open .dd-btn svg{color:var(--ink-3)}
 .dd-btn:disabled{opacity:.5;cursor:default}
 .dd-btn:disabled:hover{border-color:var(--line-soft);color:var(--ink-2)}
@@ -36,7 +36,7 @@ xo-select>option{display:none}
 .dd-d{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 
 :root[data-theme="light"] .dd-btn{background:var(--surface);border-color:rgba(0,0,0,.12)}
-:root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{border-color:rgba(0,0,0,.2)}
+:root[data-theme="light"] .dd-btn:hover,:root[data-theme="light"] xo-select.is-open .dd-btn{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root[data-theme="light"] .dd-btn:disabled:hover{border-color:rgba(0,0,0,.12)}
 :root[data-theme="light"] .dd-menu{box-shadow:var(--lift-3)}
 

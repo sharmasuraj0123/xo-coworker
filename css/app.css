@@ -68,14 +68,14 @@ button:disabled{cursor:default}
 .theme[aria-checked="true"] .th-knob{transform:translateX(18px);background:var(--knob);color:var(--warn)}
 .theme[aria-checked="true"] .th-knob svg:first-child{opacity:1}
 .theme[aria-checked="true"] .th-knob svg:last-child{opacity:0}
-.theme:hover .th-track{box-shadow:inset 0 0 0 1px var(--sb-line-hover)}
+
 .brand{flex:1;display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0}
 .brand-mark .xo-mark{display:block;width:30px;height:13px}
 .brand b{font:var(--fw-strong) var(--fs-title)/1 var(--sans);letter-spacing:var(--tr-20)}
 .xo-mark .x{stroke:var(--mark-x)}.xo-mark .o{stroke:var(--mark-o)}
 .side-x{display:none}
 .help{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.help:hover{color:var(--ink);border-color:var(--line-hover)}
+.help:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .help:active{transform:scale(.92)}
 .side-foot{flex:none;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:9px 12px 10px;border-top:1px solid var(--sb-g1C)}
 /* the shells toggle: a tool, not a place, so it sits in the foot beside Settings; the count is what runs */
@@ -96,7 +96,7 @@ button:disabled{cursor:default}
 .nrow,.prow{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;width:100%;--nest-r:var(--r-lg);--nest-in:calc((var(--h-row) - var(--tile-sm)) / 2);min-height:var(--h-row);padding:calc(var(--nest-in) - 1px) 10px calc(var(--nest-in) - 1px) calc(var(--nest-in) - 1px);border-radius:var(--nest-r);text-align:left;color:var(--ink-2);border:1px solid transparent;transition:background-color var(--d-hover),border-color var(--d-hover),transform var(--dur-fast) var(--ease)}
 .nrow:not([role=menuitem]):hover{background:var(--row-hover)}
 .prow{background:var(--row-bg);border-color:var(--row-line);box-shadow:0 1px 0 var(--row-hi) inset}
-.prow:hover{background:var(--row-bg-hover);border-color:var(--row-line-hover)}
+.prow:hover{background:var(--row-bg-hover)}
 .nrow:active,.prow:active{transform:scale(.985)}
 .nrow.is-on{background:var(--row-bg-hover);box-shadow:inset 0 0 0 1px var(--row-line)}
 .prow.is-on{background:var(--row-on);border-color:var(--row-line-hover)}
@@ -270,7 +270,7 @@ button:disabled{cursor:default}
 .then-foot{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:var(--s-3)}
 .then-foot.solo{margin-top:var(--s-6)}
 .hm-quiet{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3);border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-2);font-size:var(--fs-ui);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.hm-quiet:hover{background:var(--surface);border-color:var(--line)}
+.hm-quiet:hover{background:var(--surface)}
 .hm-quiet:active{transform:scale(.97)}
 .hm-quiet span{color:var(--ink-4)}
 .hm-quiet svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
@@ -324,7 +324,7 @@ button:disabled{cursor:default}
 .wsh-home:hover{color:var(--ink);text-decoration-color:currentColor}
 .all-btn{flex:none;align-self:flex-end;display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 6px 0 12px;border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .all-btn span{display:grid;place-items:center;min-width:22px;height:20px;padding:0 6px;border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-3);font-size:var(--fs-meta);font-variant-numeric:tabular-nums}
-.all-btn:hover{background:var(--hover-fill);border-color:var(--line-strong);color:var(--ink)}
+.all-btn:hover{background:var(--hover-fill);color:var(--ink)}
 .all-btn:active{transform:scale(.97)}
 .tw-h{flex:1;min-width:0;font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);letter-spacing:var(--tr-15);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ck-br{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-meta);color:var(--ink-4)}
@@ -441,7 +441,7 @@ button:disabled{cursor:default}
 .wsh-stats dd.is-amber{color:var(--warn)}
 .wsh-stats dd.is-green{color:var(--accent)}
 .wsh-next{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;margin-top:16px;padding:0 14px;border-radius:var(--r-lg);background:var(--fill-1);border:1px solid var(--line-soft);text-align:left;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.wsh-next:hover{background:var(--surface);border-color:var(--line)}
+.wsh-next:hover{background:var(--surface)}
 .wsh-next:active{transform:scale(.99)}
 .wn-k{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
 .wn-t{flex:1;min-width:0;font-size:var(--fs-ui);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -480,7 +480,7 @@ button:disabled{cursor:default}
 /* hovered, it answers as the other quiet bordered buttons do (Pick back up, .ev-undo): the next fill, the hover line,
    the first ink. Its words are the second ink already, so the shared lift of the meta inks had nothing to change
    (the controls grader on f93345a: Interrupt, Retry and Edit looked the same hovered, S037, S039, S040) */
-.meta-btn:not(:disabled):hover{background:var(--fill-2);border-color:var(--line-hover);color:var(--ink);transition-duration:var(--d-hover-in)}
+.meta-btn:not(:disabled):hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
 .meta-btn svg{width:var(--ic-xs);height:var(--ic-xs)}
 .route-row{display:flex;align-items:center;gap:8px;margin-top:6px;padding-right:4px;font-size:var(--fs-meta);color:var(--ink-3);animation:msg-in var(--d-in) var(--ease)}
 .route-row b{color:var(--ink-2);font-weight:var(--fw-strong)}
@@ -572,7 +572,7 @@ code.hl{color:var(--code-ink)}
 
 /* threads inline in the project chat: the chronological record */
 .tcard{position:relative;isolation:isolate;display:flex;align-items:stretch;margin-top:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
-.tcard:hover{border-color:var(--line-strong);background:var(--surface)}
+.tcard:hover{background:var(--surface)}
 .tcard.st-needs{background:color-mix(in srgb,var(--warn) 5%,var(--surface))}
 .tcard.st-failed{background:color-mix(in srgb,var(--err) 5%,var(--surface))}
 .tc-open{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding:13px 16px 12px;border-radius:var(--r-lg);text-align:left;transition:transform var(--dur-fast) var(--ease)}
@@ -648,7 +648,6 @@ code.hl{color:var(--code-ink)}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
 @keyframes breathe{0%,100%{opacity:.15;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}
 
-
 /* ── the dock: one calm labelled line + (in a thread) its decision + the hero composer ── */
 .dock{position:absolute;left:0;bottom:0;z-index:5;pointer-events:none}
 /* #25 the composer sits on a full-width glass bar with a soft horizontal shadow */
@@ -669,7 +668,7 @@ body:not(.stage-covers) .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-g
 .dock.is-stacked>.cbar{padding-top:0}
 .hr{pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 14px 0 12px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
 button.hr{transition:border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
-button.hr:hover{border-color:var(--line-strong);background:var(--herald-bg-hi)}
+button.hr:hover{background:var(--herald-bg-hi)}
 button.hr:active{transform:scale(.97)}
 .hr.is-in{animation:float-in var(--d-move) var(--ease)}
 .hr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
@@ -695,7 +694,7 @@ button.hr:active{transform:scale(.97)}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
 .composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:12px 9px 9px 9px;border:1px solid var(--line);border-radius:var(--r-3xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
-.composer:hover{border-color:var(--line-strong)}
+
 /* the lines a message is about, above the composer's field (Ask about this, from a file) */
 .cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
 .cref[hidden]{display:none}
@@ -889,11 +888,10 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .sl-p{height:var(--h-sm);padding:0 8px 0 0;color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .sl-p:hover{color:var(--accent)}
 
-
 /* return to where you were: a quiet pill at the top of the conversation, pointing up to the message you left from */
 .mx-return{position:absolute;z-index:var(--z-sticky);left:0;right:0;width:max-content;margin:0 auto;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--float);box-shadow:var(--e2);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);animation:float-in-down var(--d-pop) var(--ease)}
 .mx-return svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(-90deg);color:var(--ink-3)}
-.mx-return:hover{color:var(--ink);border-color:var(--line-strong)}
+.mx-return:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .mx-return[hidden]{display:none}
 
 /* ── buttons ─────────────────────────────────────────────────────────────── */
@@ -1228,7 +1226,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hd-row0{display:flex;align-items:stretch;gap:var(--s-2)}
 .hd-row0>div:first-child{flex:1;min-width:0}
 .hd{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:var(--h-row-act);padding:0 var(--s-4) 0 var(--s-3);border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);text-align:left;color:var(--ink-3);font-size:var(--fs-ui);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-.hd:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));border-color:var(--line-soft)}
+.hd:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface))}
 .hd-ic{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:rgba(var(--accent-rgb),.12);color:var(--accent)}
 .hd-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
 .hd-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1394,7 +1392,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .all-f{display:flex;flex-wrap:wrap;gap:4px}
 .all-f button{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 11px;border-radius:999px;border:1px solid var(--line);color:var(--ink-3);font-size:var(--fs-ui);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .all-f button span{color:var(--ink-4);font-variant-numeric:tabular-nums}
-.all-f button:hover:not(:disabled){color:var(--ink);border-color:var(--line-strong)}
+.all-f button:hover:not(:disabled){background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .all-f button[aria-checked="true"]{background:var(--fill-3);border-color:var(--line-strong);color:var(--ink)}
 .all-f button[aria-checked="true"] span{color:var(--ink-3)}
 .all-f button:disabled{opacity:.4}
@@ -1497,7 +1495,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .kr-l{min-width:0;font-size:var(--fs-ui);color:var(--ink-2)}
 .kr.is-fixed .kr-l{color:var(--ink-3)}
 .kr-k{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--fill-1);transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-button.kr-k:hover{border-color:var(--line-hover);background:var(--fill-2)}
+button.kr-k:hover{background:var(--fill-2)}
 button.kr-k:active{transform:scale(.97)}
 .kr-k kbd{border:0;padding:0;min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .kr-k.is-fixed{border-style:dashed;background:transparent}
@@ -1517,7 +1515,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 .switch .th-knob svg{opacity:1;width:var(--ic-xs);height:var(--ic-xs)}
 .switch[aria-checked="true"] .th-track{background:var(--switch-on)}
 .switch[aria-checked="true"] .th-knob{transform:translateX(18px);background:var(--knob);color:var(--knob-go)}
-.switch:hover .th-track{box-shadow:inset 0 0 0 1px var(--sb-line-hover)}
 
 @media (max-height:820px) and (min-width:761px){
   .hm{padding-top:var(--s-6)}
@@ -1686,7 +1683,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .day.hist{min-height:26px}
 .day.hist span{display:inline-flex;align-items:center;gap:8px}
 .hist-more{height:var(--h-sm);padding:0 12px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-meta);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-.hist-more:hover{color:var(--ink);border-color:var(--line-strong)}
+.hist-more:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 @media (max-width:760px){.day.hist{min-height:var(--h-touch)}.hist-more{height:var(--h-touch);padding:0 16px}}
 /* older messages loading: three rows shaped like the conversation's own (js/app.js HIST_SKEL), where the
    page will land, in the house's loading look (a grey bar where words will be, an empty frame where a mark
@@ -1807,7 +1804,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 [data-density="compact"] .m-turn{--tb-line:var(--h-ctl)}
 .m-turn>.av:not(.av-gap){margin-top:calc((var(--tb-line) - var(--av-h)) / 2)}
 .tb-cf{display:inline-flex;align-items:center;gap:4px;max-width:260px;height:var(--h-ctl);padding:0 10px 0 8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.tb-cf:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));border-color:var(--line-strong);color:var(--ink)}
+.tb-cf:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink)}
 .tb-cf:active{transform:scale(.97)}
 .tb-cfi{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .tb-cfi svg{width:var(--ic-sm);height:var(--ic-sm)}
@@ -1923,7 +1920,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .rn-back svg{width:var(--ic-sm);height:var(--ic-sm)}
 .rn-back:hover{color:var(--ink)}
 .rn-stopall{flex:none;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2)}
-.rn-stopall:where(:not([aria-disabled="true"])):hover{border-color:var(--line-hover);color:var(--ink)}
+.rn-stopall:where(:not([aria-disabled="true"])):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .rn-body{flex:1;min-height:0;overflow-y:auto;padding:4px 14px 18px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .rn-k{margin:14px 8px 6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .rn-list{list-style:none;display:flex;flex-direction:column;gap:2px}
@@ -1986,7 +1983,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .set-err{padding:10px 12px;border-radius:var(--r-lg);background:rgb(215 55 63 / .1);color:var(--err-ink);font-size:var(--fs-ui)}
 .set-choices{display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .set-choice{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
-.set-choice:not(:disabled,[aria-disabled="true"]):hover{border-color:var(--line-hover)}
+.set-choice:not(:disabled,[aria-disabled="true"]):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 .set-choice:disabled{opacity:.55;cursor:default}
 .set-choice.is-on{border-color:transparent;background:color-mix(in srgb,var(--accent-fill) 10%,var(--surface))}
 .sc-dot{flex:none;--ic:16px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);border-radius:50%;border:1.5px solid var(--sb-g45)}
@@ -2116,7 +2113,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 }
 /* Send now: its own toggle beside a running chat's line; pressed, it reads as a choice you made */
 .tg-now{flex:none;display:inline-flex;align-items:center;height:var(--h-ctl);padding:0 12px;margin-right:6px;border-radius:999px;border:1px solid var(--line-soft);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-.tg-now:hover{color:var(--ink);border-color:var(--line-strong)}
+.tg-now:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .tg-now.is-on{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
 .tg-now-on{color:var(--ink)}
 @media (max-width:760px){.tg-now{height:var(--h-touch)}}
@@ -2124,7 +2121,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
    the conversation, like a canvas. Same slot as the Needs you panel, wider; on phones, the screen. */
 .tb-file{display:block;height:auto;padding:0;background:none;border:0;border-radius:0;min-width:0;max-width:100%}
 .tb-fb{display:flex;align-items:center;gap:12px;min-width:min(260px,100%);max-width:100%;height:56px;padding:0 12px 0 10px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--hairline);text-align:left;cursor:pointer;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.tb-fb:hover{background:var(--fill-2);border-color:var(--line-strong)}
+.tb-fb:hover{background:var(--fill-2)}
 .tb-fb:active{transform:scale(.985)}
 .tb-fb .tb-fi{width:var(--tile-lg);height:var(--tile-lg);border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-2)}
 .tb-fb .tb-fi svg{width:var(--ic-lg);height:var(--ic-lg)}
@@ -2152,7 +2149,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .vw-sub span::before{content:"·";margin-right:8px;color:var(--ink-4)}
 .vw-acts{flex:none;display:flex;align-items:center;gap:4px}
 .vw-btn{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 11px 0 9px;border-radius:var(--r-sm);border:1px solid var(--line);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.vw-btn:hover{background:var(--fill-2);border-color:var(--line-hover);color:var(--ink)}
+.vw-btn:hover{background:var(--fill-2);color:var(--ink)}
 .vw-btn svg{width:var(--ic-sm);height:var(--ic-sm)}
 .vw-x{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .vw-x:hover{background:var(--fill-2);color:var(--ink)}
@@ -2468,7 +2465,7 @@ a.vw-btn{text-decoration:none}
 .ar-undo b{color:var(--ink);font-weight:var(--fw-strong)}
 .ar-undo button{flex:none;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font-weight:var(--fw-strong);color:var(--ink);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
 /* its Undo answers the pointer (grader B on ba93c9b, S024: a button with no class of its own, the hover census couldn't name it) */
-.ar-undo button:hover{background:var(--hover-fill);border-color:var(--line-hover)}
+.ar-undo button:hover{background:var(--hover-fill)}
 /* waiting on Space (the spinner in the line's own ink), and refused: the mark in the error ink, never the accent */
 .ar-undo[aria-busy="true"] b{color:var(--ink-2)}
 .ar-undo .spin{flex:none;width:12px;height:12px}
@@ -2502,7 +2499,7 @@ a.vw-btn{text-decoration:none}
 .syl-t{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink)}
 .syl-t em{font-style:normal;color:var(--ink-3)}
 .syl-got{flex:none;height:var(--h-ctl);padding:0 13px;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.syl-got:hover{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
+.syl-got:hover{background:var(--fill-2);color:var(--ink)}
 .syl-got:active{transform:scale(.96)}
 .syl-b{max-height:min(46vh,420px);overflow-y:auto;padding:0 10px 8px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
 .syl-gh{display:flex;align-items:center;gap:8px;padding:10px 10px 5px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
@@ -2547,7 +2544,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 /* the whole card answers, not only its border (Plan F: a hover is ≥ 1.15:1 against rest) */
 .md-it:has(.md-open:hover){background:color-mix(in srgb,var(--ink) 7%,var(--fill-1))}
 .md-open{cursor:pointer}
-.md-it:hover{border-color:var(--line-strong)}
+.md-it:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 /* the card draws the ring for its open control, above everything in it: drawn by the control as an inset outline,
    the ring lay under the picture, which is positioned and so paints over it (the controls grader on b340841, C013:
    the top two-thirds of the ring hidden in all four cells). Inside the card's edge, so no scroller or list clips it */
@@ -2606,7 +2603,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 :root[data-theme="light"] .hm-sk .sk-card{border-color:var(--line-soft)}
 :root[data-theme="light"] .handled.hm-sk .hd-ic{background:var(--fill-2)}
 :root[data-theme="light"] .md-pin{background:color-mix(in srgb,var(--surface) 85%,transparent)}
-:root[data-theme="light"] .md-pin:hover{background:var(--surface);box-shadow:0 0 0 1px var(--line)}
+:root[data-theme="light"] .md-pin:hover{background:var(--surface)}
 /* (light's --accent-hover is a fill's hover, paler: as ink on white it fell to 2.2:1; a pinned pin's glyph goes a step firmer instead) */
 :root[data-theme="light"] .md-it.is-pin .md-pin:hover{color:color-mix(in srgb,var(--accent) 75%,var(--ink))}
 @media (hover:none){.md-pin{opacity:1}}
@@ -2634,7 +2631,7 @@ i.t-amber{background:var(--warn)}i.t-blue{background:var(--info)}i.t-red{backgro
 .map-btn{position:relative;flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 11px 0 9px;border-radius:var(--r-sm);border:1px solid var(--line-soft);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .top[data-kind="project"] .map-btn{height:var(--h-ctl);border-radius:var(--r-sm);align-self:flex-end}
 .map-btn svg{width:var(--ic);height:var(--ic)}
-.map-btn:hover{background:var(--surface);border-color:var(--line-strong);color:var(--ink)}
+.map-btn:hover{background:var(--surface);color:var(--ink)}
 .map-btn:active{transform:scale(.97)}
 .map-btn.is-on{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
 
@@ -2697,7 +2694,7 @@ body.map-full .dock,body.map-full .tdock{visibility:hidden}
 /* the diagram's boxes: flat, one hairline, the name first */
 .dg-n{position:absolute;display:flex;align-items:center;gap:8px;width:172px;height:34px;padding:0 10px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line);text-align:left;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),box-shadow var(--d-move) var(--ease)}
 button.dg-n{cursor:pointer}
-button.dg-n:hover{border-color:var(--line-strong);color:var(--ink)}
+button.dg-n:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .dg-n:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .dg-ic{flex:none;display:grid;place-items:center;width:15px;color:var(--ink-4)}
 .dg-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
@@ -3024,7 +3021,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-seg.is-paid button{padding:0 10px;white-space:nowrap}
 .rt-checks{display:flex;flex-wrap:wrap;gap:8px}
 .rt-check{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:var(--fs-ui);color:var(--ink-2);cursor:pointer}
-.rt-check:hover,.rt-check:has(input:checked):hover{border-color:var(--line-hover);transition-duration:var(--d-hover-in)}
+.rt-check:hover,.rt-check:has(input:checked):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));transition-duration:var(--d-hover-in)}
 .rt-check:has(input:checked){border-color:transparent;background:color-mix(in srgb,var(--accent-fill) 10%,transparent);color:var(--ink)}
 .rt-check input{accent-color:var(--accent-fill)}
 .rt-check:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}

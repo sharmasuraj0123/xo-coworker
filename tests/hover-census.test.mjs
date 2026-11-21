@@ -49,7 +49,7 @@ t("a button with no class of its own, styled by its parent (.ar-undo button), an
   const silent = [...new Set(boxed)].filter((sel) => !hovered.has(sel) && !/\.lp-menu button|\.vw-seg button|\.dg-mode button|\.dg-tools button|\.rt-seg button|\.cp-mode button|\.iq-route button|\.all-f button|\.ar-kinds button|\.teach-scope button|\.set-nav button/.test(sel));
   assert.deepEqual(silent, [], `classless buttons with a box and no hover:\n  ${silent.join("\n  ")}`);
 });
-t("Interrupt, Retry and Edit: the next fill, the hover line, the first ink", () => {
-  assert.match(css, /\.meta-btn:not\(:disabled\):hover\{background:var\(--fill-2\);border-color:var\(--line-hover\);color:var\(--ink\)/);
+t("Interrupt, Retry and Edit: the next fill and the first ink, no hover line", () => {
+  assert.match(css, /\.meta-btn:not\(:disabled\):hover\{background:var\(--fill-2\);color:var\(--ink\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
