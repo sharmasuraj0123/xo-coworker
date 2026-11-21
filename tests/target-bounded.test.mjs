@@ -19,7 +19,7 @@ t("the target shrinks first, to nothing if it must, and cuts its words short; th
   assert.match(m[1], /overflow:hidden/, "its words cut, not spilling");
   assert.ok(!/:root:root \.target\{flex:none\}/.test(phone), "never rigid on a phone");
   const iq = /\n\.iq\{([^}]*)\}/.exec(app)[1];
-  assert.match(iq, /flex:none/, "the chip never shrinks for the target");
+  assert.match(iq, /flex:0 0\.01 auto/, "the chip shrinks only once the target has");
   assert.match(iq, /max-width:min\(320px,100% - var\(--h-ctl\) - var\(--h-lg\) - 3 \* var\(--s-2\)\)/, "bounded by the row less Attach, Send and the gaps");
   assert.ok(/\.target>span:not\(\.tg-t\):not\(\.tg-warn\):not\(\.tg-end\)\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/.test(app), "its words end in an ellipsis");
   assert.ok(/\.send\{flex:none;/.test(app), "Send keeps its size");
