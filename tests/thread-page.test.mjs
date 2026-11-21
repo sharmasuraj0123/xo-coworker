@@ -147,7 +147,7 @@ console.log("thread-page files and model: ok");
   assert.doesNotMatch(ap, /function tpUnmount\(/, "the page is never torn down and rebuilt");
   console.log("thread-page teardown: ok"); }
 // Open in main chat, left of the state badge (the owner, 21 Nov): the header's filled control, the owner's icon from the pack;
-// the thread's column morphs from the panel into the main chat on the motion tokens, at once under reduced motion
+// the thread's frame snaps from the panel into the main chat, its old picture gone at once; at once under reduced motion
 { const ui = readFileSync(new URL("../js/ui.js", import.meta.url), "utf8");
   const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
   assert.match(ui, /toMain: xi\("open-in-main"\),/);
@@ -155,6 +155,10 @@ console.log("thread-page files and model: ok");
   assert.match(app, /if \(RM\.matches \|\| !document\.startViewTransition\) \{ move\(false\); return; \}/);
   assert.match(app, /if \(!still\) el\.classList\.add\(/);
   assert.match(appCss, /\.is-moving\{view-transition-name:thread-move\}/);
-  assert.match(appCss, /::view-transition-group\(thread-move\),::view-transition-old\(root\),::view-transition-new\(root\)\{animation-duration:var\(--d-sheet\);animation-timing-function:var\(--ease\)\}/);
+  assert.match(appCss, /::view-transition-group\(thread-move\)\{animation-duration:var\(--d-long\);animation-timing-function:var\(--ease-snap\);overflow:clip/);
+  assert.match(appCss, /::view-transition-old\(thread-move\)\{animation-duration:var\(--d-out\)\}/, "the panel's picture gives way at once, so two sizes of the thread never show together");
+  assert.match(appCss, /::view-transition-new\(root\)\{animation:none\}/);
+  assert.match(app, /box\.classList\.add\("is-left"\); move\(true\);/, "the panel steps back without its copy of the thread");
+  assert.match(app, /box\.classList\.remove\("is-left"\); \}\);/);
   assert.doesNotMatch(app, /data-tp-full/); }
 console.log("thread-page open in main: ok");

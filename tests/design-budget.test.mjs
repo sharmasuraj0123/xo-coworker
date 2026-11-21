@@ -74,6 +74,12 @@ t("one motion curve (and nothing overshoots)", () => {
     const [, y1, , y2] = m[1].split(",").map(Number);
     assert.ok(y1 <= 1 && y2 <= 1, `an overshooting curve in tokens.css: ${m[0]}`);
   }
+  // the one sanctioned overshoot: --ease-snap, a small settle, only for a thing carried to a new place
+  const lin = [...tokens.matchAll(/--([\w-]+):linear\(([^)]+)\)/g)];
+  assert.deepEqual(lin.map((m) => m[1]), ["ease-snap"]);
+  assert.ok(Math.max(...lin[0][2].split(",").map((x) => parseFloat(x))) <= 1.03, "the snap settles, it doesn't bounce");
+  const uses = D.filter((d) => /var\(--ease-snap\)/.test(d.value)).map((d) => d.sel);
+  assert.deepEqual(uses, ["::view-transition-group(thread-move)"]);
 });
 
 t("no heavy shadows: floating things use var(--e2)", () => {
