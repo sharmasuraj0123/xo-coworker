@@ -646,16 +646,17 @@ code.hl{color:var(--code-ink)}
 .av-t.av-w::after{border-color:color-mix(in srgb,var(--info) 45%,transparent)}
 .ty-b{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);min-width:0}
 .shimmer{background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shimmer 2.4s linear infinite;font-weight:var(--fw-medium);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* working: three flavour hues (--live-*), each on its own path and period, breathing together on the one clock (ui.js keepTurning) */
-.dots{display:inline-flex;align-items:center;gap:var(--s-1);flex:none;height:var(--lh-ui)}
-.dots i{width:5px;height:5px;border-radius:50%;background:var(--live-1);animation:dot-a var(--d-loop) var(--ease-loop) infinite,dot-glow var(--d-loop) var(--ease-loop) infinite}
-.dots i:nth-child(2){background:var(--live-2);animation-name:dot-b,dot-glow;animation-duration:calc(var(--d-loop) * 4 / 3),var(--d-loop);animation-delay:0s,calc(var(--d-loop) / -3)}
-.dots i:nth-child(3){background:var(--live-3);animation-name:dot-c,dot-glow;animation-duration:calc(var(--d-loop) * 5 / 3),var(--d-loop);animation-delay:0s,calc(var(--d-loop) / -1.5)}
-@keyframes dot-a{0%,30%,70%,100%{translate:0 0}15%{translate:0 calc(-1 * var(--s-1))}50%{translate:0 -1.5px}}
-@keyframes dot-b{0%,100%{translate:0 0}25%{translate:1px -2px}50%{translate:0 calc(-1 * var(--s-1))}75%{translate:-1px -2px}}
-@keyframes dot-c{0%,24%,48%,100%{translate:0 0}12%{translate:0 -3px}36%{translate:0 -2px}74%{translate:0 1px}}
+/* working: three flavour hues breathing together; over eight loops they wave, gather and orbit, wave, merge and burst, then sway (ui.js keepTurning) */
+.dots{display:inline-flex;align-items:center;gap:var(--s-1);flex:none;height:var(--lh-ui);animation:dot-turn calc(var(--d-loop) * 8) var(--ease-loop) infinite}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--live-1);animation:dot-a calc(var(--d-loop) * 8) var(--ease-loop) infinite,dot-glow var(--d-loop) var(--ease-loop) infinite}
+.dots i:nth-child(2){background:var(--live-2);animation-name:dot-b,dot-glow;animation-delay:0s,calc(var(--d-loop) / -3)}
+.dots i:nth-child(3){background:var(--live-3);animation-name:dot-c,dot-glow;animation-delay:0s,calc(var(--d-loop) / -1.5)}
+@keyframes dot-a{0%,3.12%,6.25%,9.38%,12.5%,35.42%,38.54%,41.67%,44.79%,47.92%,62.5%,65.62%,75%,91.67%,92.71%,95.83%,100%{translate:0 0}1.56%,7.81%,36.98%,43.23%,64.06%,94.27%{translate:0 -4px}16.67%,31.25%{translate:4.67px 2.5px}52.08%,58.33%{translate:9px 0}60.94%{translate:-2px 0}}
+@keyframes dot-b{0%,1.04%,4.17%,7.29%,10.42%,12.5%,35.42%,36.46%,39.58%,42.71%,45.83%,47.92%,52.08%,58.33%,62.5%,63.54%,66.67%,75%,91.67%,93.75%,96.88%,100%{translate:0 0}2.6%,8.85%,38.02%,44.27%,65.1%,95.31%{translate:0 -4px}16.67%,31.25%{translate:0 -5px}60.94%{translate:0 -2px}}
+@keyframes dot-c{0%,2.08%,5.21%,8.33%,11.46%,12.5%,35.42%,37.5%,40.62%,43.75%,46.88%,47.92%,62.5%,64.58%,67.71%,75%,91.67%,94.79%,97.92%,100%{translate:0 0}3.65%,9.9%,39.06%,45.31%,66.15%,96.35%{translate:0 -4px}16.67%,31.25%{translate:-4.67px 2.5px}52.08%,58.33%{translate:-9px 0}60.94%{translate:2px 0}}
+@keyframes dot-turn{0%,16.67%{rotate:0deg}31.25%,75%,91.67%,100%{rotate:360deg}79.17%{rotate:346deg}83.33%{rotate:374deg}87.5%{rotate:352deg}}
 @keyframes dot-glow{0%,100%{scale:.72;opacity:.5}50%{scale:1;opacity:1}}
-@media (prefers-reduced-motion:reduce){.dots i{animation:none;opacity:.6}.dots i:nth-child(2){opacity:.8}.dots i:nth-child(3){opacity:1}}
+@media (prefers-reduced-motion:reduce){.dots{animation:none}.dots i{animation:none;opacity:.6}.dots i:nth-child(2){opacity:.8}.dots i:nth-child(3){opacity:1}}
 .elapsed{flex:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
 @keyframes breathe{0%,100%{opacity:.15;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}

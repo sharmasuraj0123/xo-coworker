@@ -379,7 +379,7 @@ export const sound = {
 
 export { esc };
 
-/** The working cue: three dots, each on its own path and period, breathing together (css/app.css .dots). */
+/** The working cue: three dots that move through formations together (css/app.css .dots). */
 export const DOTS = `<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i>`;
 
 /**
