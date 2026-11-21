@@ -34,7 +34,8 @@ t("spinners, needs-you marks and status dots draw from the pack's files, not CSS
     assert.match(tok, new RegExp(`--mask-${k}:url\\(\\.\\./assets/icons/xo/${f.replace(/\./g, "\\.")}\\)`), k);
   const all = ["app.css", "panel.css", "launchpad.css", "diffs.css", "rich.css", "dropdown.css", "docs.css"].map(css).join("\n");
   const rule = (sel) => { const i = all.indexOf(sel + "{"); assert.ok(i >= 0, sel); return all.slice(i, all.indexOf("}", i)); };
-  for (const sel of [".spin", ".tb-live", ".arc::before", ".lp-arc::before", ".xd-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
+  for (const sel of [".spin", ".tb-live", ".lp-arc::before", ".xd-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
+  assert.doesNotMatch(all, /\.arc::before/, "the corner badge is the pack's badge mark (icon.js ARC), not a mask");
   for (const sel of [".nv-dot", ".pr-d", ".hr-dot", ".tb-m.is-wait"]) { assert.match(rule(sel), /mask:var\(--mask-needs\)/, sel); assert.doesNotMatch(rule(sel), /rotate/, sel); }
   for (const sel of [".dd-dot", ".shd-dot", ".dg-dot", ".fl-who i", ".stage .cx-pill i", ".xd-state i", ".fl-rb em", ".lp-st>i:not(.lp-arc)", ".lpv-light", ".syl-gh i,.syl-chip i"]) assert.match(rule(sel), /mask:var\(--mask-dot\)/, sel);
   assert.doesNotMatch(all, /content:"→/);
@@ -46,5 +47,12 @@ t("the Undo ring is the pack's undo-countdown; key caps show the pack's key icon
   const keys = read("keys.js");
   for (const k of ["key-command", "key-option", "key-shift", "key-control", "key-return"]) assert.ok(keys.includes(`"${k}"`), k);
   assert.match(read("app.js"), /<kbd>\$\{K\.keyHtml\(K\.label\(a\.id\)\)\}<\/kbd>/);
+});
+t("something at work on an icon wears the pack's badge-working mark, one helper everywhere", () => {
+  assert.match(new Map(src).get("icon.js"), /export const ARC = `<i class="arc" aria-hidden="true">\$\{xi\("badge-working"\)\}<\/i>`/);
+  for (const [f, s] of src) if (f !== "icon.js") assert.doesNotMatch(s, /<i class="arc"/, f);
+  const panel = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+  assert.match(panel, /\.arc\{[^}]*width:var\(--ic-sm\);height:var\(--ic-sm\)/);
+  assert.match(panel, /\.arc>svg>g:first-child>circle\{fill:none\}/);
 });
 console.log(`\n${passed} passed`);

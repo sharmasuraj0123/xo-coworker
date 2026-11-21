@@ -259,8 +259,9 @@ svg.fi-line{color:inherit}
 /* the arc: the text colour on a 22% track of the same colour (the chat capsule's working glyph), never blue */
 /* one working-arc system, in the app's blue (--info), like .g-working in css/app.css: the avatar's corner arc and the
    generic spinner share its colour, 22% track and 1.6s turn. A spinner inside a button keeps the button's ink. */
-.arc{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--canvas);color:var(--info)}
-.arc::before{content:"";position:absolute;inset:1px;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
+.arc{position:absolute;right:-4px;bottom:-4px;width:var(--ic-sm);height:var(--ic-sm);border-radius:50%;background:var(--canvas);color:var(--info)}
+.arc>svg{display:block;width:100%;height:100%;animation:arc-turn 1.6s linear infinite}
+.arc>svg>g:first-child>circle{fill:none}
 @keyframes arc-turn{to{transform:rotate(360deg)}}
 .spin{color:var(--info);animation-duration:1.6s}
 button .spin,.btn .spin{color:inherit}
@@ -279,7 +280,7 @@ button .spin,.btn .spin{color:inherit}
 .dots{display:none}
 /* the thread's working line at the top of the window sweeps again (the owner, 4 Nov: "I liked the blue accent on
    top that used to move"): it is the one loop that says an agent works right now (app.css, sl-sweep) */
-@media (prefers-reduced-motion:reduce){.arc::before{animation:none}.spin{animation:none}}
+@media (prefers-reduced-motion:reduce){.arc>svg,.spin{animation:none}}
 
 /* no blue dots: "being edited now" and a folder an agent is in read in the text's own colour */
 .fl-who.w-live{color:var(--ink-2)}
@@ -455,7 +456,8 @@ body.viewer-open .fv~.dock{display:none}
 .stage .ag-r.is-on .ag-t b{font-weight:var(--fw-medium)}
 .stage .ag-activity{display:flex;align-items:center;gap:4px;min-width:0;height:16px}
 .stage .ag-t .ag-doing,.stage .ch-path{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-.stage .ag-ic .arc,.stage .ag-wait{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--sunken)}
+.stage .ag-ic .arc{background:var(--sunken)}
+.stage .ag-wait{position:absolute;right:-4px;bottom:-4px;width:12px;height:12px;border-radius:50%;background:var(--sunken)}
 .stage .ag-r:hover :is(.arc,.ag-wait){background:linear-gradient(var(--panel-hover),var(--panel-hover)),var(--sunken)}
 .stage .ag-r.is-on :is(.arc,.ag-wait){background:color-mix(in srgb,var(--ink) 8%,var(--sunken))}
 :root[data-theme="light"] .stage .ag-r.is-on :is(.arc,.ag-wait){background:var(--surface)}
