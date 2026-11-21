@@ -105,7 +105,7 @@ button:disabled{cursor:default}
 
 .nav{display:flex;flex-direction:column;gap:2px;padding:4px 10px 0}
 .nrow,.prow{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;width:100%;min-height:var(--h-row);padding:5px 10px 5px 7px;border-radius:13px;text-align:left;color:var(--ink-2);border:1px solid transparent;transition:background-color var(--d-hover),border-color var(--d-hover),transform var(--dur-fast) var(--ease)}
-.nrow:hover{background:var(--row-hover)}
+.nrow:not([role=menuitem]):hover{background:var(--row-hover)}
 .prow{background:var(--row-bg);border-color:var(--row-line);box-shadow:0 1px 0 var(--row-hi) inset}
 .prow:hover{background:var(--row-bg-hover);border-color:var(--row-line-hover)}
 .nrow:active,.prow:active{transform:scale(.985)}
