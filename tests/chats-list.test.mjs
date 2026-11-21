@@ -54,7 +54,7 @@ t("the agent is its mark, its name only on hover and for screen readers: the hea
   const src = read("js/chats.js");
   assert.match(src, /const agentMark = \(agent, lead = true\) => rtMark\(agent, \{ lead \}\) \|\| /);
   assert.match(src, /<span class="pj-s">\$\{metaHtml\(s\)\}<\/span>/);
-  assert.match(src, /<\/b> · \$\{agentMark\(st\.agent\)\}\$\{esc\(st\.model \?/, "the composer's line: the mark beside the model");
+  assert.match(src, /<\/b> · (?:<\/span>)?\$\{agentMark\(st\.agent\)\}\$\{esc\(st\.model \?/, "the composer's line: the mark beside the model");
   assert.match(src, /`<div class="av av-t">\$\{rtMark\(s\.agent\) \|\| ICON\.thread\}<\/div>`/);
   assert.doesNotMatch(src, /\$\{esc\(cliName\(st\.agent\)\)\} · /);
 });
@@ -70,5 +70,9 @@ t("the New chat picker: one grid at the head's inset, the agents as one choice w
   assert.match(css, /:is\(\.set-choice,\.cs-mode\)\.is-on \.sc-dot\{/, "one chosen dot");
   assert.match(read("css/tokens.css"), /--pop-x:10px;/);
   assert.match(read("js/app.js"), /const ag = e\.target\.closest\("\[data-cs-agent\]"\);/);
+});
+t("Chats' header line runs the row's width: the project cap only shares a row with something in .top-end; a phone's line drops the words, not the folder alone", () => {
+  assert.match(read("css/app.css"), /\.top\[data-kind="project"\]:has\(> \.top-end:empty\) \.top-who\{flex:1;max-width:none\}/);
+  assert.match(read("js/chats.js"), /<span class="tg-w">New chat in <b>[^`]*<\/b> · <\/span>\$\{agentMark/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

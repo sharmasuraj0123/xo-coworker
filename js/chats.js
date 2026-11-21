@@ -256,7 +256,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${agentMark(st.agent)}${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
+      return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · </span>${agentMark(st.agent)}${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
