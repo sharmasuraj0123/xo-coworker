@@ -277,6 +277,11 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  */
 /** Where focus can land in a row: its controls, in order. */
 const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
+// a row that moves keeps its animations and focus where the browser can move it whole
+function move(box, el, at) {
+  if (el.isConnected && typeof box.moveBefore === "function") try { box.moveBefore(el, at); return; } catch {}
+  box.insertBefore(el, at);
+}
 export function reconcile(box, items, { quiet = false, fallback = null, inPlace: always = false } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
@@ -319,7 +324,7 @@ export function reconcile(box, items, { quiet = false, fallback = null, inPlace:
     }
     old.delete(it.key);
     const at = box.children[i];
-    if (at !== el) box.insertBefore(el, at || null);
+    if (at !== el) move(box, el, at || null);
   });
   if (going) {
     near = near && [...box.children].find((el) => el.dataset.k === near);

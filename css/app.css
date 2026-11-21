@@ -121,6 +121,7 @@ button:disabled{cursor:default}
    they did */
 .projects{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:4px;padding:var(--ring-room) 12px 14px;scrollbar-width:thin;scrollbar-color:var(--sb-g2A) transparent}
 .pr-ic svg{width:var(--ic);height:var(--ic)}
+.pr-sep{flex:none;height:1px;margin:var(--s-1) var(--s-2);background:var(--sb-line)}
 .prow.is-on .pr-ic{color:var(--ink);background:var(--sb-g26)}
 .pr-busy{position:absolute;right:-3px;bottom:-3px;width:9px;height:9px;border-radius:50%;background:var(--sb-side)}
 .pr-busy::after{content:"";position:absolute;inset:2px;mask:var(--mask-dot);background:var(--info);opacity:.85}

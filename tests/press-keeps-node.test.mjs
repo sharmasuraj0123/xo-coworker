@@ -153,7 +153,7 @@ if (!existsSync(LD)) {
     assert.ok(a.querySelector(".pr-ic") === ic, "nor restarts its tile's orbit");
     assert.ok(!a.classList.contains("is-on") && box.lastElementChild.classList.contains("is-on"), "where you are moved");
     // the sidebar asks for it
-    assert.match(src("app.js"), /reconcile\(\$\("#projects"\), items, \{ quiet: !sideRender\.ready, inPlace: true \}\);/);
+    assert.match(src("app.js"), /const box = \$\("#projects"\)[^]*?reconcile\(box, items, \{ quiet: !sideRender\.ready, inPlace: true \}\);/);
   });
 
   // Files: js/files.js on its real redraw, with its other imports stood in for (a folder of copies, as the app has them)
