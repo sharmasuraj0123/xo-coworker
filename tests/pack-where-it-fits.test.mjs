@@ -60,4 +60,7 @@ await t("Launchpad's Live and failed marks are the threads' state-done and state
   assert.match(lp, /\.lp-st:is\(\.t-go,\.t-stop\)>i:not\(\.lp-arc\)\{width:var\(--ic-sm\);height:var\(--ic-sm\);mask:var\(--mask-done\)\}/);
   assert.match(lp, /\.lp-st\.t-stop>i:not\(\.lp-arc\)\{mask:var\(--mask-failed\)\}/);
 });
+await t("the sidebar's More is the pack's dashboard", () => {
+  assert.match(read("js/app.js"), /\$\("#ic-more"\)\.innerHTML = xi\("dashboard"\);/);
+});
 console.log(`\n${passed} passed`);

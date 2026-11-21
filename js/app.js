@@ -4881,7 +4881,7 @@ $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 applyTheme(THEME.get());
 $("#side-fold").innerHTML = ICON.sidebar;
 $("#side-jump").innerHTML = ICON.search;
-$("#ic-more").innerHTML = ICON.more;
+$("#ic-more").innerHTML = xi("dashboard");
 SIDE.fold(SIDE.folded, { quiet: true });
 soundRender();
 PHONE.addEventListener("change", () => { setDrawer(false); render(); });
