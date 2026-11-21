@@ -55,4 +55,16 @@ t("the chat's words, the composer's text and tables read in the read role", () =
     assert.match(r, /font-size:var\(--fs-read\)/, sel); assert.match(r, /font-weight:var\(--fw-read\)/, sel);
   }
 });
+t("menus and the model picker read the ui and meta roles only; the picker's rows read the composer row's meta, as its chip", () => {
+  const all = sheets.map(([, c]) => c).join("\n");
+  const MENU = /^(?:\.iq-|\.tw-menu|\.vw-menu|\.dd-(?:menu|row)|\.lp-mn|\.fl-menu|\.side-pop)/;
+  for (const m of all.matchAll(/(^|\n)([^{}@\n]+)\{([^}]*)\}/g)) {
+    const sel = m[2].trim(); if (!MENU.test(sel)) continue;
+    for (const v of m[3].matchAll(/(?:font-size:|font:[^;]*?)(var\(--fs-[\w-]+\)|\d+(?:\.\d+)?px)/g)) assert.match(v[1], /^var\(--fs-(ui|meta)\)$/, `${sel}: ${v[1]}`);
+  }
+  const app = sheets.find(([f]) => f === "app.css")[1];
+  assert.match(app, /:is\(\.target,\.iq\)\{[^}]*font-size:var\(--fs-meta\)/);
+  for (const sel of [".iq-n{", ".iq-more{"]) { const r = app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel))); assert.match(r, /var\(--fs-meta\)\/var\(--lh-meta\)/, sel); }
+  for (const sel of [".iq-row{", ".iq-more{"]) { const r = app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel))); assert.match(r, /height:var\(--menu-row\)/, sel); }
+});
 console.log(`\n${passed} passed`);
