@@ -910,7 +910,7 @@ function messagesOf(conv) {
       if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
     } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom });
     else if (t && m.who === "agent" && /^✓\s/.test(m.text)) out.push({ key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
-    else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", threads: on.get(m.id) || null });
+    else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", fwd: conv !== "ws" && m.fwd ? m.fwd : null, threads: on.get(m.id) || null });
   }
   if (conv.startsWith("p:")) {
     const pid = conv.slice(2);
@@ -1191,7 +1191,7 @@ function msgItemsOf(conv, needs) {
   for (const m of list) {
     const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
     if (d !== day) { items.push({ key: "day|" + d, html: `<div class="day" role="separator"><span>${esc(d)}</span></div>` }); day = d; prev = null; above = null; spoke = null; }
-    const cont = prev && prev.who === m.who && prev.name === m.name && m.at - prev.at < 5 * 60000 && (m.who === "you" || m.who === "coord" || m.who === "agent");
+    const cont = prev && prev.who === m.who && prev.name === m.name && m.at - prev.at < 5 * 60000 && (prev.fwd?.chatId || null) === (m.fwd?.chatId || null) && (m.who === "you" || m.who === "coord" || m.who === "agent");
     let html = "";
     if (m.who === "you") {
       spoke = "you";
@@ -1227,7 +1227,12 @@ function msgItemsOf(conv, needs) {
       const files = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: "You", at: m.at })), { side: "you" }) : "";
       html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.wrote ?? m.at))}">${youText(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
     } else if (m.who === "coord" || m.who === "agent") {
-      const [name, role] = m.name ? [m.name, m.role || ""] : nameOf(conv, m.who);
+      // a copy from another chat is that chat's speaker, named for it, and closed by a ruled line saying so
+      const word = m.who === "coord" ? "coordinator" : "agent", src = m.fwd ? fwdSource(m.fwd) : null;
+      const [name, role] = m.name ? [m.name, m.role || ""] : src ? [`${PROJ(src)} ${word}`, ""] : nameOf(conv, m.who);
+      const copy = !m.fwd ? "" : `<div class="route-row is-copy">${ICON.arrow}<span>Copied from ${src
+        ? `<button type="button" class="rt-go" data-go="p:${esc(src)}" data-go-msg="${esc(m.fwd.id)}" title="Where it was written"><b>${esc(PROJ(src))}</b></button>'s ${word}<span class="via"> · via the Workspace</span>`
+        : `the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(m.fwd.id)}" title="Where it was written"><b>Workspace</b></button>`}</span></div>`;
       const av = m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
       // the coordinator's violet (.m-coord) sets it apart only where it steps into a thread, beside the thread's own
       // agent, as bubbles always did; in its own chat it is the one speaking and stays neutral (the owner, 19 Nov 14:46Z)
@@ -1242,7 +1247,7 @@ function msgItemsOf(conv, needs) {
       if (under) items[items.length - 1].html = items[items.length - 1].html.replace(/^<div class="ev /, '<div class="ev is-lead ');
       html = `<div class="m m-them${(m.who === "coord" || m.coord) && convThread(conv) ? " m-coord" : ""}${cont ? " cont" : ""}${anon ? " m-anon" : ""}${under ? " m-under" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
         (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
-        `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
+        `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${copy}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
     } else if (m.who === "turn") {
       const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
       if (!inner) { prev = m; continue; }
