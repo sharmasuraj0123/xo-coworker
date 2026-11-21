@@ -27,7 +27,7 @@ t("a real failure shows wherever you are, a thread's reply too", () => {
   assert.match(T.connLine(w(AGENT, null, { runtimes: [{ name: "claude_code", cli: { logged_in: false } }] }), { thread: true }).text, /isn't connected/);
 });
 t("the app draws the line for the composer's destination (the gate's), not this place's chat", () => {
-  assert.match(app, /connLine\(world\.state, connDest\(\)\)/, "the line asks about connDest()");
+  assert.match(app, /connLine\(world\.state, box === \$\("#herald"\) \? connDest\(\) : \{ thread: true \}\)/, "the chat's line asks about connDest(); the panel's thread page's is a thread's reply");
   assert.match(app, /function connDest\(\) \{[^}]*composerDest\(\)/, "which is composerDest(), the gate's");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

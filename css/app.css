@@ -664,7 +664,7 @@ code.hl{color:var(--code-ink)}
    is-stacked) it sits on the stack's top, clear of its ring's room, so nothing docked there lies under it (S007, and
    the decision card's foot under "Can't reach XO" at 390 on 86b3f9b) */
 .herald{position:absolute;z-index:1;left:var(--col-x);right:var(--col-x);bottom:calc(100% - var(--cbar-fade) + var(--dock-gap));display:flex;justify-content:center;pointer-events:none}
-body:not(.stage-covers) .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
+body:not(.stage-covers) .dock.is-stacked>.herald,.tp .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
 /* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
 .dock.is-stacked>.cbar{padding-top:0}
 .hr{--nest-r:calc(var(--h-ctl) / 2);--nest-in:calc(var(--edge-text) + 1px);--ctl-in:calc((var(--h-ctl) - var(--ic-lg)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 calc(var(--end-in, var(--nest-in)) - 1px - var(--trail-ink, 0px)) 0 calc(var(--start-in, var(--nest-in)) - 1px);border-radius:var(--nest-r);background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
@@ -2171,7 +2171,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
   .m-turn{--tb-line:36px;--av-h:26px}
   .hr.hr-need{min-height:var(--h-touch)}
   .rn-chip,.rn-log,.rn-stopall{height:var(--h-touch)}
-  #say{min-height:var(--h-touch)}
+  .composer-field>textarea{min-height:var(--h-touch)}
   .kr-k{min-height:var(--h-touch)}
 }
 /* phone: a failure keeps its reason whole, on a second row, with its own button ("Put my message back", "Retry") or

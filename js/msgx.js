@@ -30,7 +30,8 @@ const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON
  * One conversation's decoration (P1 of a thread beside the coordinator's chat: two conversations on screen, each
  * decorated by its own call). E: { conv (the box the back-to-latest button sits in), msgs, scroller, typing,
  * composer, say, send, atList, dock, tdock, herald, host (where its docked-card classes go), follow
- * ({toLatest, fromLatest}), isThread() (its rows are a thread's: their agent's name is the thread's), main }.
+ * ({toLatest, fromLatest}), isThread() (its rows are a thread's: their agent's name is the thread's), project() (its
+ * place's project, when it isn't the sidebar's), main }.
  * The main chat's is called once at the end of this file, over the page's own elements.
  */
 export function decorateConversation(E) {
@@ -314,7 +315,7 @@ function cardSteps() {
 /** A project's coordinator wears the project's own icon (the one in the sidebar); XO's mark stays with the
  *  Workspace coordinator. In a thread, its violet ring still says "coordinator". */
 function projectMarks() {
-  const row = document.querySelector('#projects .prow.is-on[data-go^="p:"]');
+  const pid = E.project?.(), row = document.querySelector(pid ? `#projects .prow[data-go="p:${CSS.escape(pid)}"]` : '#projects .prow.is-on[data-go^="p:"]');
   const view = E.isThread() ? "thread" : document.getElementById("app").dataset.view;
   const ic = (view === "project" || view === "thread") && row && row.querySelector(".pr-ic svg");
   if (!ic) return;
