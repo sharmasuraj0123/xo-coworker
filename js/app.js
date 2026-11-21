@@ -1541,7 +1541,7 @@ function runsRender() {
 function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false; runsRender(); } else closeRuns(); }
 async function openRuns(t, runId = null) {
   if (!t || !t.sessionId) return;
-  if (!RS.open) RS.returnTo = document.activeElement;
+  if (!RS.open) { RS.returnTo = document.activeElement; RS.head = (convAt(RS.returnTo) === MAIN ? $("#thead") : $("#tpthead")); }
   // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
   if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; RS.said = null; }
   // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
@@ -1628,9 +1628,9 @@ function closeRuns() {
   // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
   // (the page itself is never a place to go back to: opened from nowhere in particular, the conversation)
   const was = RS.returnTo;
-  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? $("#thead [data-runs]") : null; };
+  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? RS.head?.querySelector("[data-runs]") : null; };
   RS.returnTo = null;
-  [was, like(was), $("#thead [data-runs]"), placeRegion()].find(usable)?.focus({ preventScroll: true }); // the place's own region (Home, Artifacts, the conversation)
+  [was, like(was), RS.head?.querySelector("[data-runs]"), RS.head === $("#tpthead") ? TP.C?.scroller : placeRegion()].find(usable)?.focus({ preventScroll: true }); // the place's own region (Home, Artifacts, the conversation)
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
@@ -3659,9 +3659,9 @@ document.addEventListener("click", (e) => {
   // sub-agents: the strip under the checklist, the log, a sub-agent's row in a turn
   const rc = t.closest("[data-run-call]");
   if (rc) { const th = convThread(convAt(rc).view); const r = [...(world.state.runs?.values() || [])].find((x) => x.spawn === rc.dataset.runCall); openRuns(th, r ? r.id : null); return; }
-  const ro = t.closest("#thead [data-run]");
+  const ro = t.closest(".thead [data-run]");
   if (ro) { openRuns(convThread(convAt(ro).view), ro.dataset.run); return; }
-  if (t.closest(":is(#thead,#tpthead) [data-runs]")) { openRuns(convThread(convAt(t).view)); return; }
+  if (t.closest(".thead [data-runs]")) { openRuns(convThread(convAt(t).view)); return; }
   // storm blocks: open or fold a block or a row (thinking steps, an activity group, a command's output)
   const tb = t.closest("[data-tb]");
   if (tb) {
