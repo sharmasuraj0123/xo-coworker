@@ -139,6 +139,7 @@
   --mask-dot:url(../assets/icons/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(../assets/icons/xo/c-actions/stop.svg) center/200% no-repeat;
   --mask-warn:url(../assets/icons/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(../assets/icons/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
   --ic-xs:12px; --ic-sm:14px; --ic:var(--s-4); --ic-lg:var(--s-5);
+  --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
   /* The space between an icon and its label, said once for every place one sits beside words: a state glyph and
