@@ -1461,6 +1461,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .keys dd:empty{display:none}
 
 /* ── settings: a page over the main area (General, Appearance, Night mode, Sounds, Keyboard) ── */
+.help.gear{padding:0;justify-content:center}
 .help.gear svg{width:var(--ic);height:var(--ic)}
 .help.is-on{color:var(--ink);border-color:var(--line-hover);background:var(--fill-2)}
 .settings{position:absolute;inset:0;z-index:calc(var(--z-panel) + 20);display:flex;flex-direction:column;background:var(--canvas);outline:none;animation:fade var(--dur-base) var(--ease)}
@@ -1586,8 +1587,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .top[data-kind="project"]{flex-wrap:wrap;gap:8px 12px;padding:14px 16px 12px}
   .top[data-kind="project"] .top-who{flex:1;max-width:none}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-title)}
-  .top[data-kind="project"] .tw-ic{align-self:flex-start;width:30px;height:30px;border-radius:var(--r-sm)}
-  .top[data-kind="project"] .tw-ic svg{width:var(--ic);height:var(--ic)}
   .all-btn{align-self:center;margin-top:0;padding:0 4px 0 10px}
   .pj-s{white-space:normal}
   .thead{padding-left:var(--hg);padding-right:var(--hg)}

@@ -19,7 +19,6 @@ export const ICON = {
   branch: xi("branch"),
   back: xi("chevron-left"),
   arrow: xi("arrow-right"),
-  down: xi("arrow-down"),
   close: xi("close"),
   search: xi("search"),
   // the tick draws itself in where it lands (.tk, css/app.css): its length is 24 to the animation
@@ -102,6 +101,9 @@ export const ICON = {
   link: xi("link"),
   split: xi("split-view"),
   code: xi("code"),
+  table: xi("table"),
+  undo: xi("undo"),
+  download: xi("download"),
   good: xi("thumbs-up"),
   bad: xi("thumbs-down"),
   del: xi("delete"),

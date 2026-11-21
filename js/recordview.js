@@ -38,7 +38,7 @@ const TREES_MS = 60000;     // worktrees read at most this often per chat
 const LINES = 6;            // a card's lines before "+N more"
 const RECENT = 6;           // Recently made on Home
 
-const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit, link: ICON.arrow, branch: ICON.branch };
+const KIND_IC = { image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.table, code: ICON.code, link: ICON.link, branch: ICON.branch };
 /**
  * How a made thing is named (a card, ⌘K). label: its own title, else its name. html: the card's name, a
  * title cut at its end, a file name in its middle (its extension stays; a link's words and a branch at

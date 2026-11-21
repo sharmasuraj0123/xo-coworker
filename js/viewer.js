@@ -148,9 +148,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       canSave() && `<button type="button" role="menuitem" data-vw-copy-path>${ICON.copy}<span>Copy path</span></button>`,
       // an attachment opens in its own tab too; text has no inline view there, so it downloads
       f.att ? (kindOf(f.type || "") === "text"
-        ? `<a role="menuitem" href="${url}" download="${esc(f.name || "file")}">${ICON.down}<span>Download</span></a>`
-        : `<a role="menuitem" href="${url}" target="_blank" rel="noopener noreferrer">${ICON.arrow}<span>Open in a new tab</span></a>`)
-        : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.down}<span>Download</span></button>`,
+        ? `<a role="menuitem" href="${url}" download="${esc(f.name || "file")}">${ICON.download}<span>Download</span></a>`
+        : `<a role="menuitem" href="${url}" target="_blank" rel="noopener noreferrer">${ICON.out}<span>Open in a new tab</span></a>`)
+        : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.download}<span>Download</span></button>`,
     ].filter(Boolean);
     if (!items.length && !folds.length) return "";
     // what's on its way says so before what's done: the newest action's state (a Download right after Copy said
