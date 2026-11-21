@@ -429,9 +429,6 @@ button:disabled{cursor:default}
    follow.js keeps the row you're reading where it was; a moving padding stops the browser's own anchoring) */
 .scroller:focus{outline:none}
 .column{width:var(--col-w);margin-left:var(--col-x)}
-/* text that scrolls under the header dissolves over 24 px instead of being sliced mid-glyph (audit I2);
-   at rest the column's own 28 px top padding sits under the fade, so nothing is dimmed */
-.scroller{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24px);mask-image:linear-gradient(to bottom,transparent 0,#000 24px)}
 .column.enter{animation:rise-in var(--d-sheet) var(--ease)}
 .column.enter-r{animation:col-r var(--d-in) var(--ease)}
 .column.enter-l{animation:col-l var(--d-in) var(--ease)}
@@ -1290,7 +1287,7 @@ button.tp-done-u:hover{color:var(--ink)}
 .card.is-dock.r-done{background:var(--surface);border-color:var(--line-soft)}
 .tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--h-ctl);margin:0;padding:0 var(--s-2) 0 var(--s-3);font-size:var(--fs-ui);color:var(--ink-3)}
 .tp-done b{color:var(--ink);font-weight:var(--fw-strong)}
-.tp-done-ic{flex:none;display:grid;place-items:center;width:var(--ic-lg);height:var(--ic-lg);border-radius:50%;background:rgba(var(--accent-rgb),.14);color:var(--accent)}
+.tp-done-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);border-radius:50%;background:rgba(var(--accent-rgb),.14);color:var(--accent)}
 .tp-done.is-back .tp-done-ic{background:var(--fill-3);color:var(--ink-2)}
 .tp-done-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
 .tp-done-u{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4)}
