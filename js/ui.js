@@ -377,7 +377,7 @@ export const sound = {
 
 export { esc };
 
-/** The working cue: three dots that hop in turn (css/app.css .dots). */
+/** The working cue: three dots, each on its own path and period, breathing together (css/app.css .dots). */
 export const DOTS = `<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i>`;
 
 /**
@@ -389,7 +389,7 @@ export function keepTurning() {
   if (typeof document === "undefined" || !document.getAnimations) return;
   const sync = () => {
     for (const a of document.getAnimations()) {
-      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer" || a.animationName === "dot-hop") { if (a.startTime !== 0) a.startTime = 0; }
+      if (a.animationName === "spin" || a.animationName === "arc-turn" || a.animationName === "shimmer" || String(a.animationName).startsWith("dot-")) { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
   // only when something added holds an arc, a spinner or a shimmer (a scan of every animation on the page

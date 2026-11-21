@@ -268,7 +268,7 @@ button .spin,.btn .spin{color:inherit}
 /* a time is never its own font: it takes its line's, with steady (tabular) digits */
 .elapsed{font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;font-variant-numeric:tabular-nums;letter-spacing:0}
 .tb-ht .elapsed{color:inherit}
-.tb-wh .tb-ht,.tb-wh .tb-wn{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums}
+.tb-wh .tb-ht,.tb-wh .tb-wn{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums}
 .tb-wn{color:var(--ink-4)}
 .tb-wn::before{margin-right:8px}
 .ty-b{align-items:baseline}
