@@ -702,7 +702,7 @@ button.hr:active{transform:scale(.97)}
 .hr-ev.k-ping{background:color-mix(in srgb,var(--accent-fill) 5%,var(--surface))}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
-.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);border:1px solid var(--line);border-radius:var(--r-card);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 
 /* the lines a message is about, above the composer's field (Ask about this, from a file) */
 .cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
@@ -1016,14 +1016,11 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .pn-tip{flex:1;text-align:center;font-size:var(--fs-meta);color:var(--ink-4)}
 
 /* the card: a stable frame whose contents change; its height eases, contents cross-fade */
-.card{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--nest-r);background:var(--float);border:1px solid var(--line);outline:none;overflow:hidden;transition:border-color var(--d-in) var(--ease),background-color var(--d-in) var(--ease)}
+.card{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);outline:none;overflow:hidden;transition:border-color var(--d-in) var(--ease),background-color var(--d-in) var(--ease)}
 .card:focus-visible{border-color:var(--line-hover)}
-/* a destructive card is tinted over its own opaque surface (the tint used to fade from transparent red, so
-   the top of the card showed the conversation through it: the "glass" the owner rejected, 4 Nov) */
-.card.r-destructive{background:linear-gradient(180deg,var(--danger-wash),transparent 200px) var(--float)}
 .card.r-destructive:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
-.card.r-done{border-color:transparent;background:transparent}
-.card.r-vig{background:var(--surface)}
+.card.r-done{background:transparent;box-shadow:none}
+.card.r-vig{background:var(--surface);box-shadow:none}
 .card-in{display:flex;flex-direction:column;min-height:0;flex:1}
 .c-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:calc(var(--card-in) - 1px) var(--card-pad) var(--s-2);scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
 .c-top{display:flex;align-items:center;gap:8px;min-width:0;min-height:var(--h-ctl)}
@@ -1119,9 +1116,10 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 @keyframes hint{0%{opacity:0}8%,80%{opacity:1}100%{opacity:0}}
 
 /* the thread's own card: Today's wide layout (#20) */
-.card.is-dock{max-height:min(58vh,520px);background:var(--surface);border-color:var(--line);box-shadow:var(--e2)}
+.card.is-dock{max-height:min(58vh,520px);background:var(--surface)}
 :is(.dock-fold,.card.is-dock.r-done){--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
-.card.is-dock.r-destructive{background:linear-gradient(180deg,var(--danger-wash),transparent 200px) var(--surface)}
+/* the folded and done lines are glass: the composer's fill, tinted by the line's state */
+:is(.dock-fold,.card.is-dock.r-done){--glass:color-mix(in srgb,var(--state,transparent) 12%,color-mix(in srgb,var(--comp-bg) 80%,transparent))}
 .card.is-dock .c-h{font-size:var(--fs-heading)}
 .card.is-dock .c-where{display:none}
 /* QA 2026-11-05: answers with a description start at the top, so their titles share one line whatever
@@ -1271,17 +1269,16 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .dock-hide svg{width:var(--ic-sm);height:var(--ic-sm)}
 .dock-hide:hover{background:var(--fill-2);color:var(--ink)}
 .dock-hide:active{transform:scale(.96)}
-.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink));background:var(--surface);border:1px solid transparent;box-shadow:var(--e2);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.dock-fold.r-stopped,.dock-fold.r-destructive{background:color-mix(in srgb,var(--err) 6%,var(--surface))}
-.dock-fold:hover{background:var(--fill-2)}
+.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink));background:var(--glass);border:1px solid transparent;box-shadow:var(--lift-3);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-fold:hover{background:linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)}
 .dock-fold:active{transform:scale(.99)}
 .df-t{flex:1;min-width:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .df-e{flex:none;font-size:var(--fs-meta);color:var(--ink-4);white-space:nowrap}
 .df-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--dock-btn);padding:0 var(--s-2) 0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--warn-subtle);color:var(--warn);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .df-go svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(180deg)}
 .dock-fold.r-stopped .df-go,.dock-fold.r-destructive .df-go{background:var(--err-subtle);color:var(--err-ink)}
-.card.is-dock.r-done{border-color:transparent;background:linear-gradient(var(--ok-fill),var(--ok-fill)),var(--surface)}
-.card.is-dock.r-done:has(.is-back){background:linear-gradient(var(--btn-fill),var(--btn-fill)),var(--surface)}
+.card.is-dock.r-done{--state:var(--accent);background:var(--glass);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.card.is-dock.r-done:has(.is-back){--state:var(--ink-4)}
 .tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--dock-bar);margin:0;padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic) * var(--ic-ink));font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .tp-done>span:not(.tp-done-ic){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tp-done b{color:var(--ink);font-weight:var(--fw-medium)}
@@ -2281,11 +2278,13 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 }
 .settings{background:var(--canvas)}
 
-/* the state line: a decision card says "needs you" (amber) or "destructive / stopped" (red) */
-.card::before{content:"";position:absolute;z-index:2;left:22px;right:22px;top:0;height:2px;border-radius:0 0 2px 2px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--sl,var(--warn)) 16%,var(--sl,var(--warn)) 84%,transparent);opacity:.75}
-.card.r-destructive,.card.r-stopped{--sl:var(--err-ink)}
-.card.r-done::before,.card.r-vig::before{display:none}
+/* a decision's state is one colour, --state: amber needs a read, red is destructive or stopped, a routine one has none */
+:is(.card,.dock-fold).r-notable{--state:var(--warn)}
+:is(.card,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
+/* the card's edge light: a hairline of its state across the top, and its glow under the content */
+.card:is(.r-notable,.r-destructive,.r-stopped)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent 10%,color-mix(in srgb,var(--state) 85%,transparent),transparent 90%) top/100% 1px no-repeat,
+    radial-gradient(60% var(--s-12) at 50% 0,color-mix(in srgb,var(--state) 10%,transparent),transparent)}
 
 /* …and a thread's header: amber needs you, blue working (one slow sweep), green done, red stopped */
 .top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:2px;border-radius:0 0 2px 2px;pointer-events:none;opacity:0;transition:opacity var(--dur-slow) var(--ease)}

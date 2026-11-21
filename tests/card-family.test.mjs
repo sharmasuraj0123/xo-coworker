@@ -107,6 +107,29 @@ t("in the composer: a file and the reply quote take the corner left inside it (2
     assert.equal(qr - (qh - xh) / 2, xh / 2, `${name}: its × concentric (${qr} − ${(qh - xh) / 2})`);
   }
 });
+t("no rims: a card and the composer draw their 1 px line transparent at rest (forced colours still show it), depth from the shadow", () => {
+  const card = rule(app, ".card");
+  assert.equal(prop(card, "border"), "1px solid transparent"); assert.equal(prop(card, "box-shadow"), "var(--lift-3)");
+  assert.equal(prop(rule(app, ".composer"), "border"), "1px solid transparent");
+  assert.doesNotMatch(app, /\.card\.is-dock\{[^}]*border-color/);
+  assert.doesNotMatch(app, /\.card(?:\.is-dock)?\.r-destructive\{background/, "the state is the edge light, not a wash");
+});
+t("the edge light: one --state per risk (amber notable, red destructive or stopped), drawn only on a card that has one", () => {
+  assert.match(app, /\n:is\(\.card,\.dock-fold\)\.r-notable\{--state:var\(--warn\)\}/);
+  assert.match(app, /\n:is\(\.card,\.dock-fold\):is\(\.r-destructive,\.r-stopped\)\{--state:var\(--err-ink\)\}/);
+  const m = /\n\.card:is\(\.r-notable,\.r-destructive,\.r-stopped\)::before\{([^}]*)\}/.exec(app);
+  assert.ok(m, "only those states light the edge");
+  assert.match(m[1], /z-index:-1/, "under the card's content, over its fill");
+  assert.match(m[1], /top\/100% 1px no-repeat/, "a 1 px hairline");
+  assert.doesNotMatch(app, /\n\.card::before\{/, "a plain card has none");
+});
+t("the lines are glass: the composer's fill tinted by --state, blurred, no edge light", () => {
+  assert.match(tokensCss, /--glass-blur:blur\(\d+px\) saturate\([\d.]+\);/);
+  assert.match(prop(rule(app, ".dock-fold"), "background"), /^var\(--glass\)$/);
+  assert.equal(prop(rule(app, ".dock-fold"), "backdrop-filter"), "var(--glass-blur)");
+  assert.match(app, /--glass:color-mix\(in srgb,var\(--state,transparent\) 12%,color-mix\(in srgb,var\(--comp-bg\) 80%,transparent\)\)/);
+  assert.doesNotMatch(app, /\.dock-fold[^{]*::before\{/);
+});
 t("the other surfaces keep their own family: dialogs, sheets and the stage stay --r-2xl", () => {
   assert.match(tokensCss, /--r-2xl:22px/);
   assert.doesNotMatch(app, /\.(?:dlg|sheet|stage)\{[^}]*border-radius:var\(--r-card\)/);
