@@ -9,7 +9,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("the done line is a 32 px row with the shared padding, its disc and mark on the icon scale", () => {
   assert.match(css, /\n\.tp-done\{display:flex;align-items:center;gap:var\(--gap-icon\);min-height:var\(--h-ctl\);margin:0;padding:0 var\(--s-2\) 0 var\(--s-3\);/);
-  assert.match(css, /\n\.tp-done-ic\{flex:none;display:grid;place-items:center;width:var\(--ic-lg\);height:var\(--ic-lg\);/);
+  assert.match(css, /\n\.tp-done-ic\{flex:none;display:grid;place-items:center;width:var\(--ic\);height:var\(--ic\);/);
   assert.match(css, /\n\.tp-done-ic svg\{width:var\(--ic-xs\);height:var\(--ic-xs\)\}/);
   assert.match(css, /\n\.ck-tog\{[^}]*height:var\(--h-ctl\)/);
 });
