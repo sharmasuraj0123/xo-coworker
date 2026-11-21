@@ -627,9 +627,9 @@ code.hl{color:var(--code-ink)}
 body:not(.stage-covers) .dock.is-stacked>.herald,.tp .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
 /* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
 .dock.is-stacked>.cbar{padding-top:0}
-.hr{--nest-r:calc(var(--h-ctl) / 2);--nest-in:calc(var(--edge-text) + 1px);--ctl-in:calc((var(--h-ctl) - var(--ic-lg)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 calc(var(--end-in, var(--nest-in)) - 1px - var(--trail-ink, 0px)) 0 calc(var(--start-in, var(--nest-in)) - 1px);border-radius:var(--nest-r);background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
+.hr{--ctl-in:calc((var(--dock-bar) - var(--ic-lg)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:var(--gap-icon);max-width:100%;height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--end-in, var(--edge-text)) - 1px) 0 calc(var(--start-in, var(--edge-text)) - 1px);border-radius:var(--nest-r);background:var(--glass);border:1px solid transparent;color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--lift-3)}
 button.hr{transition:border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
-button.hr:hover{background:var(--herald-bg-hi)}
+button.hr:hover{background:linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)}
 button.hr:active{transform:scale(.97)}
 .hr.is-in{animation:float-in var(--d-move) var(--ease)}
 .hr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
@@ -637,10 +637,13 @@ button.hr:active{transform:scale(.97)}
 .hr-s{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
 .hr>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .hr-dot{flex:none;width:var(--ic-sm);height:var(--ic-sm);background:var(--warn);mask:var(--mask-needs)}
-/* a filled disc or button at an end sits concentric in the pill (--ctl-in); words or a bare glyph keep the text inset (--nest-in) */
+/* a disc or a button at an end sits concentric in the line; words keep the text inset */
 .hr:has(>.hr-ic){--start-in:var(--ctl-in)}
-.hr:has(>.hr-undo){--end-in:var(--ctl-in)}
-.hr:has(>.hr-go){--trail-ink:calc(var(--ic-sm) * var(--ic-ink))}
+.hr:has(>:is(.hr-go,.hr-undo)){--end-in:var(--nest-in)}
+/* its state tints the glass, read from its disc: green for done or a reply, red for a stop or no connection, amber while it waits */
+.hr:has(>.hr-ic:is(.k-ok,.k-ping)){--state:var(--accent)}
+.hr:has(>.hr-ic.k-stopped){--state:var(--err-ink)}
+.hr-conn.k-wait{--state:var(--warn)}
 .hr-ic{flex:none;display:grid;place-items:center;width:var(--ic-lg);height:var(--ic-lg);border-radius:50%}
 .hr-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
 .hr-ic.k-ok{background:rgba(var(--accent-rgb),.14);color:var(--accent)}
@@ -648,14 +651,13 @@ button.hr:active{transform:scale(.97)}
 .hr-ic.k-ping{background:rgba(var(--accent-rgb),.12);color:var(--accent)}
 .hr-ic.k-calm{background:var(--fill-3);color:var(--ink-3)}
 .hr-ic.k-found{background:var(--coord-tint);color:var(--coord)}
-.hr-go{display:inline-flex;align-items:center;gap:4px;margin-left:var(--s-1);color:var(--ink-3)}
+.hr-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--dock-btn);margin-left:var(--s-1);padding:0 var(--s-2) 0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--btn-fill);color:var(--ink);font-weight:var(--fw-medium)}
+button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .hr-go svg{width:var(--ic-sm);height:var(--ic-sm)}
-.hr-calm{box-shadow:none;background:transparent;border-color:var(--line-faint)}
+.hr-calm{box-shadow:none}
 .hr-calm .hr-t{color:var(--ink-3)}
 .hr-ev .hr-t{flex:none;color:var(--ink)}
 .hr-ev .hr-ic .tk{animation-delay:var(--dur-fast)}
-.hr-ev.k-stopped{background:color-mix(in srgb,var(--err) 5%,var(--surface))}
-.hr-ev.k-ping{background:color-mix(in srgb,var(--accent-fill) 5%,var(--surface))}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
 .composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
@@ -1099,9 +1101,9 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the thread's own card: Today's wide layout (#20) */
 .card.is-dock{max-height:min(58vh,520px);background:var(--surface)}
-:is(.dock-fold,.card.is-dock.r-done){--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
+:is(.dock-fold,.card.is-dock.r-done,.hr){--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
 /* the folded and done lines are glass: the composer's fill, tinted by the line's state */
-:is(.dock-fold,.card.is-dock.r-done){--glass:color-mix(in srgb,var(--state,transparent) 12%,color-mix(in srgb,var(--comp-bg) 80%,transparent))}
+:is(.dock-fold,.card.is-dock.r-done,.hr){--glass:color-mix(in srgb,var(--state,transparent) 12%,color-mix(in srgb,var(--comp-bg) 80%,transparent))}
 .card.is-dock .c-h{font-size:var(--fs-heading)}
 .card.is-dock .c-where{display:none}
 /* QA 2026-11-05: answers with a description start at the top, so their titles share one line whatever
@@ -1273,8 +1275,8 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .ev-undo:hover{background:var(--fill-2);color:var(--ink)}
 .m-iq{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tc-cw{color:var(--ink-4)}
-.hr-undo{--nest-in:var(--ctl-in);margin-left:4px;height:var(--h-sm);padding:0 9px;border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--fill-3);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
-.hr-undo:hover{background:var(--fill-4);transition-duration:var(--d-hover-in)}
+.hr-undo{flex:none;margin-left:var(--s-1);height:var(--dock-btn);padding:0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease)}
+.hr-undo:hover{background:var(--btn-fill-hover);transition-duration:var(--d-hover-in)}
 
 /* ── intelligence: the chip (quietest thing in the composer) and its popover ── */
 
@@ -1689,7 +1691,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .target .tg-end{display:inline-flex}
 .target .tg-end svg{color:var(--ink-4)}
 .hr-conn .hr-t{color:var(--ink)}
-.hr-conn.k-down{background:color-mix(in srgb,var(--err) 6%,var(--surface))}
 
 /* ── storm's turns: the server's blocks, laid out quietly (ch 09 §2) ─────────
    Work folds by default; a running turn shows its current row. Blue = working,
