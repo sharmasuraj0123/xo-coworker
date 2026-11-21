@@ -2489,8 +2489,10 @@ $("#send-now").addEventListener("click", () => { CH.toggleNow(S.view); updateCom
 $("#iq").addEventListener("click", () => {
   if (S.view === "chats") { CH.toggleSetup($("#iq"), "model"); updateComposer(); return; }
   if (CH.isChats(S.view)) return;
-  if (IQ.isOpen) IQ.close(); else IQ.open(sessionOf(S.view), $("#iq"));
+  toggleIq(sessionOf(S.view), $("#iq"));
 });
+// one picker for every composer: its chip opens it and closes it, in the main chat or a thread in the panel
+function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip); }
 
 /**
  * Live Stop: nothing is sent for 3 s (Undo), then the session's turn and its sub-agents stop at once
@@ -2794,7 +2796,7 @@ function tpMount(box) {
   box.addEventListener("dragover", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "copy"; } });
   box.addEventListener("drop", (e) => { if (![...(e.dataTransfer?.types || [])].includes("Files")) return; e.preventDefault(); e.stopPropagation(); addFiles(e.dataTransfer.files, TP.K); });
   // its model and effort: the thread's own session, the chat's picker
-  TP.K.iq.addEventListener("click", () => { const sid = sessionOf(tpView()); if (IQ.isOpen) IQ.close(); else IQ.open(sid, TP.K.iq); });
+  TP.K.iq.addEventListener("click", () => toggleIq(sessionOf(tpView()), TP.K.iq));
   TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
     dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
   // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
@@ -4715,7 +4717,7 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-
 const GLOBAL = {
   shells: () => SH.toggle(),
   jump: () => (jump.hidden ? openJump() : closeJump()),
-  intel: () => (IQ.isOpen ? IQ.close() : IQ.open(sessionOf(S.view), $("#iq"))),
+  intel: () => toggleIq(sessionOf(S.view), $("#iq")),
   write: () => say.focus(),
   keys: () => openKeys(),
   map: () => STAGE.toggle(),
