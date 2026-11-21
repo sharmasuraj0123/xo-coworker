@@ -649,13 +649,15 @@ code.hl{color:var(--code-ink)}
 .av-t.av-w::after{border-color:color-mix(in srgb,var(--info) 45%,transparent)}
 .ty-b{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);min-width:0}
 .shimmer{background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shimmer 2.4s linear infinite;font-weight:var(--fw-medium);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* working: three dots in three hues around the flavour's (tokens.css --live-*) rise one after another, a wave that
-   travels across and rests a beat before the next, on the page's one clock (ui.js keepTurning) */
+/* working: three flavour hues (--live-*), each on its own path and period, breathing together on the one clock (ui.js keepTurning) */
 .dots{display:inline-flex;align-items:center;gap:var(--s-1);flex:none;height:var(--lh-ui)}
-.dots i{width:5px;height:5px;border-radius:50%;background:var(--live-1);animation:dot-hop calc(var(--d-loop) / 2) var(--ease-loop) infinite}
-.dots i:nth-child(2){background:var(--live-2);animation-delay:calc(var(--d-loop) / 12)}
-.dots i:nth-child(3){background:var(--live-3);animation-delay:calc(var(--d-loop) / 6)}
-@keyframes dot-hop{0%,40%,100%{transform:translateY(0) scale(.72);opacity:.5}20%{transform:translateY(calc(-1 * var(--s-1))) scale(1);opacity:1}}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--live-1);animation:dot-a var(--d-loop) var(--ease-loop) infinite,dot-glow var(--d-loop) var(--ease-loop) infinite}
+.dots i:nth-child(2){background:var(--live-2);animation-name:dot-b,dot-glow;animation-duration:calc(var(--d-loop) * 4 / 3),var(--d-loop);animation-delay:0s,calc(var(--d-loop) / -3)}
+.dots i:nth-child(3){background:var(--live-3);animation-name:dot-c,dot-glow;animation-duration:calc(var(--d-loop) * 5 / 3),var(--d-loop);animation-delay:0s,calc(var(--d-loop) / -1.5)}
+@keyframes dot-a{0%,30%,70%,100%{translate:0 0}15%{translate:0 calc(-1 * var(--s-1))}50%{translate:0 -1.5px}}
+@keyframes dot-b{0%,100%{translate:0 0}25%{translate:1px -2px}50%{translate:0 calc(-1 * var(--s-1))}75%{translate:-1px -2px}}
+@keyframes dot-c{0%,24%,48%,100%{translate:0 0}12%{translate:0 -3px}36%{translate:0 -2px}74%{translate:0 1px}}
+@keyframes dot-glow{0%,100%{scale:.72;opacity:.5}50%{scale:1;opacity:1}}
 @media (prefers-reduced-motion:reduce){.dots i{animation:none;opacity:.6}.dots i:nth-child(2){opacity:.8}.dots i:nth-child(3){opacity:1}}
 .elapsed{flex:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
 @keyframes shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
@@ -1741,7 +1743,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tb-hi{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
 .tb-hi svg{width:var(--ic);height:var(--ic)}
 .tb-ht{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tb-ht code,.tb-rl code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);letter-spacing:var(--tr-20);color:var(--ink-2)}
+.tb-ht code,.tb-rl code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);letter-spacing:var(--tr-20);color:inherit}
 /* the count (hub #21): a small mono chip, centred on the label's line, never a loose digit */
 .tb-n{flex:none;display:inline-grid;place-items:center;min-width:20px;height:18px;padding:0 5px;border-radius:var(--r-sm);background:var(--fill-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .tb-chev{flex:none;display:grid;place-items:center;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
@@ -1753,7 +1755,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tb-steps{margin:var(--s-1) 0 var(--s-2) var(--s-6);padding-left:12px;border-left:1px solid var(--line-soft);list-style:none;display:flex;flex-direction:column;gap:4px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .tb-rows{list-style:none;margin:var(--s-1) 0 var(--s-1) var(--s-6);display:flex;flex-direction:column;gap:1px}
 .tb-rows.is-cur{margin-top:0}
-.tb-rh{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
+.tb-rh{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 .tb-rh.is-btn:hover{background:var(--hover-fill)}
 .tb-ri{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
 .tb-ri svg{width:var(--ic);height:var(--ic)}
@@ -1768,7 +1770,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* a failed step reads in ink; only its small ✕ is red (red is for what you need to know) */
 .tb-row.s-error .tb-rl{color:var(--ink-2)}
 .tb-row.is-waiting .tb-rl{color:var(--warn)}
-.tb-row.is-pending .tb-rl{color:var(--ink-3)}
+.tb-row.is-pending .tb-rl{color:var(--ink-4)}
 .tb-rb{margin:var(--s-1) 0 var(--s-2) var(--s-6);display:flex;flex-direction:column;gap:4px}
 .tb-cmd{display:block;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);overflow-wrap:anywhere}
 .tb-out{margin:0;max-height:240px;overflow:auto;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-faint);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
