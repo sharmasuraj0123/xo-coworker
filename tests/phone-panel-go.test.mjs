@@ -27,7 +27,7 @@ t("only a place opened from the panel: Launchpad, the Map and the panel's own li
     // (the panel's own rows open a thread as its Thread page beside a chat, else navigate as the panel: openFromPanel)
     assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v(, e)?\) => (go\(v, \{ panel: true \}\)|openFromPanel\(v, e\))/, `${m} navigates as the panel`);
   }
-  assert.match(app, /function go\(v, \{ from, focus = false, carry = false, panel = false \} = \{\}\) \{/);
+  assert.match(app, /function go\(v, \{ from, focus = false, carry = false, panel = false, still = false \} = \{\}\) \{/);
 });
 t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wait of its own for the conversation", () => {
   assert.match(lp, /case "thread": go && go\(el\.dataset\.go\); return;/);

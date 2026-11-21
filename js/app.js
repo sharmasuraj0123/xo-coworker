@@ -2817,7 +2817,7 @@ STAGE.page("thread", {
 function tpHead(t) {
   const head = $("#tphead"), acts = $("#tpacts");
   const open = S.tMenu === t.id && S.tMenuIn === "page";
-  const html = `<span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
+  const html = `<button type="button" class="stg-btn tp-main" data-tp-main="${esc(t.id)}" title="Open in main chat" aria-label="Open in main chat">${ICON.toMain}</button><span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
     `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
   const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
   if (head._h !== html + menu) { redraw(head, html); redraw(acts, menu); head._h = html + menu; }
@@ -2831,7 +2831,16 @@ function drawThreadPage(needs) {
   TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
   if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
 }
-document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-full]"); if (b) { const id = b.dataset.tpFull; closeThreadMenu({ focus: false }); STAGE.closePage("thread"); go("t:" + id); } });
+// the thread moves from the panel into the main chat: one view transition carries its column there
+function toMain(id) {
+  closeThreadMenu({ focus: false });
+  const move = (still) => { STAGE.closePage("thread"); go("t:" + id, { still, panel: true }); };
+  if (RM.matches || !document.startViewTransition) { move(false); return; }
+  TP.box.classList.add("is-moving");
+  const vt = document.startViewTransition(() => { TP.box.classList.remove("is-moving"); move(true); $("#column").classList.add("is-moving"); });
+  vt.finished.finally(() => $("#column").classList.remove("is-moving"));
+}
+document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-main]"); if (b) toMain(b.dataset.tpMain); });
 /**
  * A thread asked for from the panel (its Threads rows): beside a chat (a project's or the Workspace's) it opens as
  * the panel's Thread page; ⌘/Ctrl-click, anywhere else (Home, Artifacts, another thread's page), or the thread
@@ -3123,10 +3132,10 @@ function saveScroll() {
   else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-function go(v, { from, focus = false, carry = false, panel = false } = {}) {
+function go(v, { from, focus = false, carry = false, panel = false, still = false } = {}) {
   if (!v) return;
   // a file with unsaved edits asks first (Files › Edit, its head): Discard, then on
-  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry, panel })); return; }
+  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry, panel, still })); return; }
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
@@ -3158,7 +3167,7 @@ function go(v, { from, focus = false, carry = false, panel = false } = {}) {
   const el = v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : $("#column");
   el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
   void el.offsetWidth;
-  el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
+  if (!still) el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
   loadDraft();
   render();
   if (v === "home") $("#home").scrollTop = S.scroll.home || 0;
@@ -3882,7 +3891,7 @@ function threadMenuHtml(t, where = "main") {
   const sep = '<span class="tw-sep" role="separator"></span>';
   const groups = [
     [item(`data-tgo="${esc(sib.prev || "")}"`, "Previous thread", !sib.prev), item(`data-tgo="${esc(sib.next || "")}"`, "Next thread", !sib.next),
-      where === "page" ? item(`data-tp-full="${esc(t.id)}"`, "Open as its own page") : item(`data-tside="${esc(t.id)}"`, "Open beside its project's chat")],
+      where === "page" ? item(`data-tp-main="${esc(t.id)}"`, "Open in main chat") : item(`data-tside="${esc(t.id)}"`, "Open beside its project's chat")],
     [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "",
       t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : ""],
     [item('data-tfield="title"', "Rename"), item('data-tfield="label"', t.label ? "Change label" : "Add a label"), t.label ? item('data-tfield="clear-label"', "Remove the label") : "",

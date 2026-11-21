@@ -2869,6 +2869,9 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .stg-btn{position:relative;flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);align-self:center;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .top[data-kind="project"] .stg-btn{align-self:flex-end}
 .stg-btn svg{width:var(--ic);height:var(--ic)}
+/* a thread carried from the panel into the main chat: its column morphs from one place to the other */
+.is-moving{view-transition-name:thread-move}
+::view-transition-group(thread-move),::view-transition-old(root),::view-transition-new(root){animation-duration:var(--d-sheet);animation-timing-function:var(--ease)}
 .stg-btn:hover{background:var(--btn-fill-hover);color:var(--ink)}
 .stg-btn:active{transform:scale(.95)}
 .stg-btn.is-on{background:var(--btn-fill-press);color:var(--ink)}
