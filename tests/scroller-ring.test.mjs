@@ -13,6 +13,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { rules as cascade, decls } from "./lib/cascade.mjs";
+import { tokens as TOK, resolveTokens } from "./lib/tokens.mjs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -52,7 +53,7 @@ const SCROLLERS = {
   ".tb-out": ["text", "a step's output"], ":root:root .ckbar.is-open .ck-b>ol": ["text", "a phone's checklist: its steps are words"],
 };
 const padOf = (sel) => { const m = all.match(new RegExp(`(?:^|[}\\n])\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{[^}]*?(?:^|;)padding:([^;}]+)`)); return m ? m[1].trim() : null; };
-const px4 = (v) => { const p = v.split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : x === "var(--menu-pad)" ? +tokens.match(/--s-1:(\d+)px/)[1] : /^var\(--s-\d+\)$/.test(x) ? +tokens.match(new RegExp(`--s-${x.slice(8, -1)}:(\\d+)px`))[1] : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
+const px4 = (v) => { const p = resolveTokens(v, Object.keys(TOK).filter((k) => k !== "--ring-room" && k !== "--menu-pad")).split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : x === "var(--menu-pad)" ? +tokens.match(/--s-1:(\d+)px/)[1] : /^var\(--s-\d+\)$/.test(x) ? +tokens.match(new RegExp(`--s-${x.slice(8, -1)}:(\\d+)px`))[1] : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
 
 t("the ring's room covers the ring (2 px, 2 px out)", () => assert.ok(room >= ext, `${room} ≥ ${ext}`));
 t("every scroll box is placed, either axis: padded with the ring's room, its controls' ring inset, its content padded, or text only", () => {
@@ -81,9 +82,10 @@ t("each holds the ring as listed: a padded one by at least the ring on every sid
 const CLIPPERS = {
   "html": ["page", "the page"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
   ".sr-only": ["decor", "words for a screen reader"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".nv-dot": ["decor", "a mark from the pack, a mask in the ink"], ".pr-d": ["decor", "a mark from the pack, a mask in the ink"], ".spin": ["decor", "a mark from the pack, a mask in the ink"], ".spin.is-load": ["decor", "a mark from the pack, a mask in the ink"], ".hr-dot": ["decor", "a mark from the pack, a mask in the ink"], ".tb-m.is-wait": ["decor", "a mark from the pack, a mask in the ink"], ".shd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".syl-gh i": ["decor", "a mark from the pack, a mask in the ink"], ".syl-chip i": ["decor", "a mark from the pack, a mask in the ink"], ".dg-dot": ["decor", "a mark from the pack, a mask in the ink"], ".tb-live": ["decor", "a mark from the pack, a mask in the ink"], ".fl-who i": ["decor", "a mark from the pack, a mask in the ink"], ".fl-rb em": ["decor", "a mark from the pack, a mask in the ink"], ".stage .cx-pill i": ["decor", "a mark from the pack, a mask in the ink"], ".xd-state i": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st:is(.t-go,.t-stop)>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-stop>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-need>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lpv-light": ["decor", "a mark from the pack, a mask in the ink"], ".lpv-light.failing": ["decor", "a mark from the pack, a mask in the ink"], ".dd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".rn-stop span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
+  ".c-ev.is-plan.is-more .ev-plan": ["text", "a plan's first lines on a decision card, plain words"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
   ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
-  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
+  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".next": ["inner", "Home's decision card: the same body and action row as a card"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
   ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
   ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".lpv-link": ["decor", "a dashed line"], ".lpm-l": ["decor", "a dashed line"], ".hm-sk": ["decor", "a loading shape"],
   ".sheet-card": ["inner", "a sheet (All, Jump, Keys, Runs): its head and body pad their controls; Jump's field, its whole head, draws its ring inside (C020)"], ".ar-di": ["inset:.ar", "All threads' done fold: its rows"],

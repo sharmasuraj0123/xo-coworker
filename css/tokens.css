@@ -109,8 +109,12 @@
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.
-       6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 28 composer */
+       6 controls and chips · 8 rows and large controls · 12 cards, media, menus · 20 bubbles · 22 sheets · 24 the dock family · 28 Home's tiles */
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
+  /* the dock family (every decision card, its folded and done lines, the composer) shares one corner; its controls sit --card-in from the edge */
+  --r-card:24px; --card-in:var(--s-3); --card-pad:var(--s-5);
+  --comp-ctl:var(--h-ctl); --comp-in:calc(var(--r-card) - var(--comp-ctl) / 2); /* the composer's corner circles, and the inset that makes them concentric */
+  --glass-blur:blur(18px) saturate(1.4); /* the dock's folded and done lines are glass over the conversation */
   /* a rounded box says its corner and its content's inset as --nest-r and --nest-in; what sits in its corner takes calc(var(--nest-r) - var(--nest-in)) */
   --r-menu:var(--r-lg); --menu-pad:var(--s-1); --menu-row:var(--h-ctl); --menu-w:calc(6 * var(--h-ctl));
   --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
@@ -131,7 +135,7 @@
      density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
      fields and a screen's primary action. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
-  --dock-bar:var(--h-lg); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
+  --dock-bar:var(--h-row-act); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
   --pop-x:10px;   /* a popover's inner inset inside its 5 px frame: where its head, labels and rows start */
   --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
   /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool

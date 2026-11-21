@@ -56,8 +56,6 @@ export function rank(items) {
     x.since - y.since);
 }
 
-/** A suggested answer, or null. Only the server's own words appear on a card, so none yet. */
-export function suggestFor() { return null; }
 
 /** The one line under the headline. Short, never a paragraph. */
 export function whyLine(n) {

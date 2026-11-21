@@ -62,7 +62,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the census reads the controls (the graders' ten among them)", () => {
-  for (const k of [".nx-link", ".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".chl-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
+  for (const k of [".ev-undo", ".dt-more", ".vw-seg", ".vw-btn", ".xd-btn", ".vw-tab-b", ".pn-nav", ".pn-all", ".nrow", ".prow", ".chl-row", ".hd", ".tb-h", ".lp-b", ".lbx-btn"]) assert.ok(ctl.has(k) || k === ".vw-seg", `${k} is a control`);
   assert.ok(ctl.size > 150, `${ctl.size} control classes`);
 });
 t("no desktop control is off the 24/32/40 scale, nor a row off its 40/48/56, but those listed for the next sweep", () => {
@@ -164,8 +164,10 @@ t("a button drawn as a link, standing on its own, has the desktop's 24 floor; on
   assert.deepEqual([...floor, ...words].sort(), [...links].sort(), "every link-like button is placed: the floor, or words in a sentence");
   assert.match(readFileSync(new URL("js/app.js", ROOT), "utf8"), /<p class="wsh-p">[^<]*<button type="button" class="wsh-home"/, "Home is a word in the Workspace's sentence");
 });
-t("the composer's circles in compact density sit on its corner: no comfortable margin moves them", () => {
-  assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /\[data-density="compact"\] :is\(\.attach,\.send\)\{width:var\(--h-row\);height:var\(--h-row\);margin:0\}/);
+t("the composer's circles in compact density are the comfortable ones: --comp-ctl is set at the root, compact only moves the column's tokens", () => {
+  const shape = readCss(new URL("css/shape.css", ROOT), "utf8");
+  assert.doesNotMatch(shape, /\[data-density="compact"\][^{]*:is\(\.attach,\.send\)\{[^}]*(?:width|height|margin)/);
+  assert.doesNotMatch(shape, /--comp-ctl:/);
 });
 t("a segment's buttons are 24 inside its 32 (1 + 3 of inset, their corners 6 − 4), folded to a 24 square", () => {
   for (const f of ["app.css", "panel.css"]) {

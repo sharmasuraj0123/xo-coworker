@@ -55,11 +55,6 @@ export function asksOf(t) {
   }];
 }
 
-/** "Run: npm test -- x" → "npm test -- x"; null when the ask is not a command. */
-export function commandOf(ask) {
-  const m = /^run:\s*(.+)$/i.exec((ask && ask.title) || "");
-  return m ? m[1].trim() : null;
-}
 
 /** Normalised command prefix used for "you've allowed this 3 of 3 times". */
 export function prefixOf(cmd) {

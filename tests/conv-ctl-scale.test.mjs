@@ -38,14 +38,11 @@ t("under pictures, the row holds the buttons' height plus its 6 and 20 (it held 
   assert.match(body(msgx, ".mx-nobub .mx-acts.is-foot"), /top:calc\(100% \+ 6px\)/);
 });
 
-t("the reply quote's ×: --h-sm (it was 28), 6 px in on every side of the quote's 36, so concentric with its 18 corner", () => {
+t("the reply quote's ×: --h-sm (it was 28), as far in on the right as above and below (its corner: tests/card-family.test.mjs)", () => {
   const x = body(msgx, ".mx-r-x"), q = body(msgx, ".mx-reply");
   assert.equal(px(x, "width"), "var(--h-sm)"); assert.equal(px(x, "height"), "var(--h-sm)");
-  assert.equal(px(x, "border-radius"), "50%");
-  assert.equal(px(q, "height"), "36px");
-  assert.equal(px(q, "padding"), "0 6px 0 12px", "(36 − 24) / 2 = 6 on the right as above and below");
-  assert.equal(px(q, "border-radius"), "calc(var(--r-3xl) - 10px)", "28 − 10 = 18; 18 − 6 = 12, the ×'s radius");
-  assert.match(tokens, /--r-3xl:28px/);
+  assert.equal(px(q, "height"), "var(--comp-ctl)");
+  assert.equal(px(q, "padding"), "0 calc((var(--comp-ctl) - var(--h-sm)) / 2) 0 12px");
 });
 
 t("no button in the conversation's stylesheet takes a literal size off the scale", () => {

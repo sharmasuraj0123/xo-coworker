@@ -8,7 +8,6 @@
 :root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
 /* The theme (both palettes, every surface, line and ink) lives in css/tokens.css; this file only uses it. */
 :root[data-theme="light"] body{background:var(--sunken)}
-:root[data-theme="light"] .next.r-destructive{animation:none}
 :root[data-theme="light"] .prow.needs .pr-name{color:var(--need-text)}
 
 ::selection{background:rgba(var(--accent-rgb),.28)}
@@ -46,11 +45,6 @@ button:disabled{cursor:default}
 .risk.r-stopped{background:transparent;color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
 
 /* the coordinator's suggestion (Breakpoints): one quiet line, never pre-selected */
-.c-sug{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:var(--fs-ui);color:var(--ink-3)}
-.c-sug svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--coord)}
-.c-sug b{color:var(--ink);font-weight:var(--fw-strong)}
-.c-sug em{font-style:normal;color:var(--ink-4)}
-.c-sug em::before{content:"· ";color:var(--ink-5)}
 
 /* ── shell ───────────────────────────────────────────────────────────────── */
 .app{position:fixed;inset:0;display:grid;grid-template-columns:var(--side-w) minmax(0,1fr)}
@@ -196,63 +190,22 @@ button:disabled{cursor:default}
 .nx-glyph{display:inline-grid;place-items:center;color:var(--accent)}
 .nx-glyph .nx-g{width:12px;height:12px}
 
-/* the next move */
-/* Your next move: the green corner glow stays, and a green arc travels slowly round the border, so the one thing that needs you
-   reads as waiting for action. It holds still under the pointer or focus (you're already there),
-   for destructive asks (moving red would push the ask the design says is never forced first),
-   and with reduced motion. */
-@property --nx-a{syntax:"<angle>";inherits:false;initial-value:300deg}
-@keyframes nx-orbit{to{--nx-a:660deg}}
-/* concentric: its 6 px buttons sit 22 px from every edge (21 + the 1 px edge), so its corner is 28 (22 + 6).
-   It used to be 22 with buttons 19 px up and 25 px in: unequal, so no corner could have matched. */
-.next{--nest-r:var(--r-3xl);--nest-pad:21px;--nest-in:calc(var(--nest-pad) + 1px);position:relative;isolation:isolate;border-radius:var(--nest-r);border:1px solid transparent;padding:var(--nest-pad);
-  --nx-arc:rgba(var(--accent-rgb),.8);
-  background:linear-gradient(var(--surface),var(--surface)) padding-box,conic-gradient(from var(--nx-a),transparent 0deg,var(--nx-arc) 50deg,transparent 110deg) border-box,linear-gradient(170deg,rgba(var(--accent-rgb),.45),var(--fill-3) 34%,var(--fill-2)) border-box;
-  box-shadow:var(--e2);
-  animation:nx-orbit 7s linear infinite}
-.next:hover,.next:focus-within{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.next{animation:none}}
-.next::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:radial-gradient(90% 60% at 0% 0%,rgba(var(--accent-rgb),.05),transparent 60%);pointer-events:none}
-.next.r-destructive{animation:none;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(170deg,color-mix(in srgb,var(--err-ink) 70%,transparent),color-mix(in srgb,var(--err) 35%,transparent) 40%,var(--fill-3)) border-box}
-.next.in-next{animation:in-next var(--d-long) var(--ease) both,nx-orbit 7s linear infinite}
-.next.in-undo{animation:in-undo var(--d-long) var(--ease) both,nx-orbit 7s linear infinite}
-.next.r-destructive.in-next{animation:in-next var(--d-long) var(--ease) both}
-.next.r-destructive.in-undo{animation:in-undo var(--d-long) var(--ease) both}
+/* the next move: Home's decision card, the same parts and corner as the panel's and the dock's */
+.next{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);overflow:hidden;outline:none}
+.next:focus-visible{border-color:var(--line-hover)}
 /* the next decision arrives in place: a fade, no rise, so its buttons never travel under a waiting pointer */
+.next.in-next{animation:in-next var(--d-long) var(--ease) both}
+.next.in-undo{animation:in-undo var(--d-long) var(--ease) both}
 @keyframes in-next{from{opacity:0}}
 @keyframes in-undo{from{opacity:0;transform:translateX(-24px)}}
 .next.st-allow .nx-in{animation:nx-out var(--d-in) var(--ease) forwards}
 .next.st-back .nx-in{animation:nx-back var(--d-sheet) var(--ease) forwards}
 @keyframes nx-out{0%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
-@keyframes nx-back{to{opacity:0;transform:translateX(-18px)}}   /* sent back: it leaves the way it goes, with no wind-up */
+@keyframes nx-back{to{opacity:0;transform:translateX(-18px)}}
 .next .stamp{position:absolute;left:50%;top:50%;width:84px;height:84px;translate:-50% -50%;opacity:0;pointer-events:none}
 .next.st-allow .stamp{animation:stamp var(--d-long) var(--ease) forwards}
 .next.st-allow .stamp .sk{animation:draw var(--d-in) var(--ease) var(--d-press) forwards}
-.nx-meta{display:flex;align-items:center;gap:var(--s-3);min-width:0;margin-bottom:var(--s-3)}
-.nx-where{min-width:0;margin-left:auto;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-sm);padding:0 var(--halo);margin-right:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-meta);color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-/* where it was asked: a text link in the card's corner (it hangs 8 px into the margin to align its words),
-   so its hover is the ink brightening, not a fill that would sit off the corner's curve */
-.nx-where:hover{color:var(--ink-2)}
-.nx-where span{color:var(--ink-5)}
-.nx-h{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
-/* the exact command under the headline: mono at reading size, two lines at most (audit A6) */
-.nx-cmd{margin-top:8px}
-.nx-cmd code{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-width:100%;padding:var(--s-1) var(--s-2);border-radius:var(--r-sm);background:var(--hover-fill);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);color:var(--ink-2);overflow-wrap:anywhere;width:fit-content}
 .h-verb{color:var(--ink-3);font-weight:var(--fw-medium)}
-.h-cmd{font:var(--fw-medium) .84em/var(--lh-ui) var(--mono);letter-spacing:var(--tr-20);padding:.08em .38em;border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line)}
-.nx-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s-2);margin-top:var(--s-5)}
-.nx-btns{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3);margin-top:var(--s-5)}
-.nx-btns.one{display:flex;gap:var(--s-2)}
-.nx-btns.one .b{flex:none;padding:0 var(--s-5)}
-.next .nx-btns .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
-.nx-foot{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin-top:var(--s-3)}
-.nx-link{display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);font-size:var(--fs-ui);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-/* a text link: its hover is the ink brightening, no fill (a fill would stick out of the card's corner,
-   since the link hangs 8 px into the margin to align its glyph) */
-.nx-link:hover{color:var(--ink)}
-.nx-link svg{width:var(--ic);height:var(--ic)}
-.next.noting .nx-opts,.next.noting .nx-btns,.next.noting .nx-foot{display:none}
-.nx-note{margin-top:var(--s-4)}
 
 /* then… */
 .then ol{list-style:none;display:flex;flex-direction:column}
@@ -282,7 +235,6 @@ button:disabled{cursor:default}
 .calm h2{margin-top:var(--s-3);font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20)}
 .calm p{max-width:44ch;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .calm-act{display:flex;align-items:center;gap:var(--s-5);margin-top:var(--s-3)}
-.calm-act .nx-link{margin-left:0}
 .calm .b svg{width:var(--ic);height:var(--ic)}
 
 /* ── conversation ────────────────────────────────────────────────────────── */
@@ -706,7 +658,7 @@ button.hr:active{transform:scale(.97)}
 .hr-ev.k-ping{background:color-mix(in srgb,var(--accent-fill) 5%,var(--surface))}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
-.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:12px 9px 9px 9px;border:1px solid var(--line);border-radius:var(--r-3xl);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
 
 /* the lines a message is about, above the composer's field (Ask about this, from a file) */
 .cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
@@ -717,10 +669,8 @@ button.hr:active{transform:scale(.97)}
 .cref-x svg{width:var(--ic-sm);height:var(--ic-sm)}
 .cref-x:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .composer:focus-within{border-color:var(--line-strong);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
-/* the composer's corners hold two circles, attach and Send, 36 px and 10 px in from its edge, so the
-   composer's 28 px corner is concentric with them (18 + 10). The text starts on the paperclip's glyph. */
-/* its chips are capsules: 32 high, 12 in from the edge, so 16 + 12 is the 28 corner */
-.composer-field{position:relative;padding-left:10px}
+/* attach and Send are --comp-ctl circles --comp-in from the edge (concentric with --r-card); the text starts on the paperclip's glyph */
+.composer-field{position:relative;padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}
 /* #14: no scrollbar; it grows with what you write */
 .composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-size:var(--fs-read);font-weight:var(--fw-read);color:var(--ink-read);line-height:var(--lh-read);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
 .composer textarea.is-capped{overflow-y:auto}
@@ -739,16 +689,13 @@ button.hr:active{transform:scale(.97)}
 /* a narrow composer (the panel's Thread page) gives up words, never wraps: the note first, then "Reply in" */
 @container (max-width:600px){.target .muted{display:none}}
 @container (max-width:520px){.target .tg-w{display:none}}
-.send{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);margin:-2px -2px -2px 0;border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
+.send{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
 .send svg{width:var(--ic);height:var(--ic)}
 .send:hover{background:var(--accent-hover)}
 .send:active{transform:scale(var(--press-scale))}
 .send:disabled{background:var(--fill-3);color:var(--ink-5);cursor:default}
 /* Stop: while the coordinator or this thread's agent is working (and the field is empty) */
-/* It was a white disc (the ink) with a 6 px square of 1 px corners, and the owner wanted no harsh corners and nothing
-   glaring (19 Nov 08:57Z). Now a quiet stone disc in Send's own place, 40 px and round, so its edge is concentric with
-   the composer's 28 px corner (8 px in: 28 − 8 = 20, its radius); in it a 14 px square with 4 px corners, the ink's
-   own colour. Hover and press only deepen the stone */
+/* Stop: a quiet stone disc in Send's place, its square the ink's own colour; hover and press only deepen the stone */
 .send.is-stop{--stop:var(--fill-4);--ring-in:var(--focus);background:var(--stop);color:var(--ink)}
 :root[data-theme="light"] .send.is-stop{--stop:var(--fill-3)}
 .send.is-stop:hover{background:color-mix(in srgb,var(--ink) 9%,var(--stop))}
@@ -1025,36 +972,61 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .pn-tip{flex:1;text-align:center;font-size:var(--fs-meta);color:var(--ink-4)}
 
 /* the card: a stable frame whose contents change; its height eases, contents cross-fade */
-.card{position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line);outline:none;overflow:hidden;transition:border-color var(--d-in) var(--ease),background-color var(--d-in) var(--ease)}
+.card{--nest-r:var(--r-card);--nest-in:var(--card-in);position:relative;isolation:isolate;flex:0 1 auto;display:flex;flex-direction:column;min-height:0;max-height:100%;border-radius:var(--nest-r);background:var(--float);border:1px solid transparent;box-shadow:var(--lift-3);outline:none;overflow:hidden;transition:border-color var(--d-in) var(--ease),background-color var(--d-in) var(--ease)}
 .card:focus-visible{border-color:var(--line-hover)}
-/* a destructive card is tinted over its own opaque surface (the tint used to fade from transparent red, so
-   the top of the card showed the conversation through it: the "glass" the owner rejected, 4 Nov) */
-.card.r-destructive{background:linear-gradient(180deg,var(--danger-wash),transparent 200px) var(--float)}
-.card.r-destructive:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
-.card.r-done{border-color:transparent;background:transparent}
-.card.r-vig{background:var(--surface)}
+:is(.card,.next).r-destructive:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+.card.r-done{background:transparent;box-shadow:none}
+.card.r-vig{background:var(--surface);box-shadow:none}
 .card-in{display:flex;flex-direction:column;min-height:0;flex:1}
-.c-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 20px 8px;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
-.c-top{display:flex;align-items:center;gap:8px;min-width:0}
+.c-body{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:calc(var(--card-in) - 1px) var(--card-pad) var(--s-2);scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.c-top{display:flex;align-items:center;gap:8px;min-width:0;min-height:var(--h-ctl)}
 .c-where{display:flex;align-items:center;gap:4px;min-width:0;height:var(--h-sm);white-space:nowrap;margin-left:calc(-1 * var(--halo));padding:0 var(--halo);border-radius:var(--r-sm);font-size:var(--fs-meta);color:var(--ink-4);text-align:left;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .c-where:hover{background:var(--fill-2);color:var(--ink-2)}
 .c-where span{color:var(--ink-5)}
 .c-where b{font-weight:var(--fw-medium);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .c-top .c-where{margin-left:auto;margin-right:calc(-1 * var(--halo));min-width:0}
-.c-h{margin-top:8px;font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
-.c-line{margin-top:6px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);text-wrap:pretty}
-.c-facts{display:flex;gap:8px;margin-top:8px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--danger-text)}
-.c-facts svg{flex:none;--ic:14px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--err-ink)}
-.facts{list-style:none;display:flex;flex-wrap:wrap;gap:4px;margin-top:12px}
-.facts li{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:var(--r-sm);background:var(--fill-3);color:var(--ink-2);font-size:var(--fs-meta)}
-.facts.is-d li{background:var(--danger-tint);color:var(--danger-text)}
+.c-h{margin-top:var(--s-1);font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
+/* one line of why, two at most; the rest is under Details */
+.c-line{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin-top:var(--s-1);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);text-wrap:pretty}
+.c-park{display:flex;align-items:flex-start;gap:var(--gap-icon);margin-top:var(--s-2);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--warn-text)}
+.c-park svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);margin-top:calc((1lh - var(--ic-sm)) / 2)}
+/* the one strip of evidence: a command, an address or a tool in mono, two lines of a change, a plan's start, the files */
+.c-ev{margin-top:var(--s-3);padding:var(--s-2) var(--s-3);border-radius:var(--r);background:var(--code-bg);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);color:var(--ink-2)}
+.c-ev code{font:inherit;overflow-wrap:anywhere}
+.c-ev.is-mono code{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.c-ev.is-diff{display:grid}
+.c-ev.is-diff code{overflow:hidden;text-overflow:ellipsis;white-space:pre}
+.c-ev .dl-add{color:var(--add-text)}
+.c-ev .dl-del{color:var(--del-text)}
+.c-ev.is-plan{font-family:var(--sans);font-size:var(--fs-ui)}
+.ev-plan{white-space:pre-line}
+.c-ev.is-plan.is-more .ev-plan{-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent);mask-image:linear-gradient(180deg,#000 60%,transparent)}
+.c-ev.is-paths{list-style:none;display:grid;gap:2px}
+.c-ev.is-paths li{display:flex;align-items:baseline;gap:var(--s-2);min-width:0}
+.c-ev.is-paths code{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-ev .ev-more{font-family:var(--sans);font-size:var(--fs-meta);color:var(--ink-4)}
+.c-ev.is-error{font-family:var(--sans);font-size:var(--fs-ui);color:var(--danger-text);background:var(--danger-tint)}
+.ev-tag{float:right;margin-left:var(--s-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+/* the facts as chips, Details at the row's end */
+.c-chips{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-3)}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-1);flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:var(--s-1);max-width:100%;height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-2);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip b{font-weight:var(--fw-medium);color:var(--ink)}
+.chip svg{flex:none;width:var(--ic-xs);height:var(--ic-xs);color:var(--ink-4)}
+.chip.t-warn{background:var(--warn-subtle);color:var(--warn-text)}
+.chip.t-err{background:var(--danger-tint);color:var(--danger-text)}
+:is(.chip.t-warn,.chip.t-err) b{color:inherit}
+.chip.is-est{background:transparent;padding-left:0;color:var(--ink-3)}
 
 /* details: a continuous height change (WAAPI, ~320 ms) with a cross-fade, never a jump (ui.js expand) */
 .dis{margin-top:14px;border-top:1px solid var(--line-soft)}
+.card .dis{margin-top:0;border-top:0}
 .dis-h{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:0 2px;text-align:left;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.c-chips .dis-h{flex:none;width:auto;margin-right:calc(-1 * var(--halo));padding:0 var(--halo);border-radius:var(--r-sm)}
+.c-chips .dis-h:hover{background:var(--fill-2)}
 .dis-h:hover{color:var(--ink)}
 .dis-h>svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-4);transform:rotate(-90deg);transition:transform var(--d-move) var(--ease)}
-.dis.is-open>.dis-h>svg{transform:none}
+.dis.is-open :is(>.dis-h,>.c-chips>.dis-h)>svg{transform:none}
 .dis-in{padding-bottom:12px}
 .dis-sub{margin-top:10px;border-top:1px solid var(--line-soft)}
 .dt{display:grid;gap:12px;padding-top:2px}
@@ -1097,18 +1069,16 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .fm-w time{font-weight:var(--fw-regular);color:var(--ink-4)}
 .fm-t{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);overflow-wrap:anywhere}
 
-/* nested corners are concentric (inner = outer − inset, measured from the card's outer edge): the panel's
-   card is 20 with a 1 px edge, so its 6 px controls sit 14 in: 13 of padding. The docked card (22) sets 15. */
-.c-act{flex:none;padding:12px 13px 13px;border-top:1px solid var(--line-soft);background:inherit}
-.c-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* the card's controls sit --card-in from its edge (its 1 px line included), so their corners are concentric with it */
+.c-act{flex:none;padding:var(--s-3) calc(var(--card-in) - 1px) calc(var(--card-in) - 1px);border-top:1px solid var(--line-soft);background:inherit}
+/* a yes and a no share the row at equal width; a lone answer and Later keep their words' width */
+.c-btns{display:flex;gap:var(--s-2)}
+.c-btns>.b{flex:none}
+.c-btns:has(>.b:not(.b-later)~.b:not(.b-later))>.b:not(.b-later){flex:1 1 0;min-width:0}
+:is(.card,.next) :is(.c-btns,.c-opts) .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .c-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
-.card-in.noting .c-btns,.card-in.noting .c-opts,.card-in.noting .c-low,.card-in.noting .teach-body{display:none}
-.c-low{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-top:10px;font-size:var(--fs-meta);color:var(--ink-4)}
-.c-low-t{color:var(--ink-4)}
-.b-later{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);color:var(--ink-2);font-size:var(--fs-ui);font-weight:var(--fw-medium);transition:background var(--d-hover) var(--ease)}
-.b-later:hover{background:var(--fill-2);color:var(--ink)}
-.b-later svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
-.b-open:hover svg{color:var(--ink)}
+:is(.card-in,.next).noting :is(.c-btns,.c-opts,.c-rule,.teach-body){display:none}
+.c-rule{margin-bottom:var(--s-2)}
 .teach-tog{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 8px 0 2px;border-radius:var(--r-sm);color:var(--ink-3);font-size:var(--fs-ui)}
 .teach-tog:hover{color:var(--ink)}
 .sw{position:relative;width:26px;height:15px;border-radius:var(--r-sm);background:var(--fill-3);transition:background var(--d-hover) var(--ease)}
@@ -1128,11 +1098,11 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 @keyframes hint{0%{opacity:0}8%,80%{opacity:1}100%{opacity:0}}
 
 /* the thread's own card: Today's wide layout (#20) */
-.card.is-dock{--nest-r:var(--r-2xl);max-height:min(58vh,520px);border-radius:var(--nest-r);background:var(--surface);border-color:var(--line);box-shadow:var(--e2)}
-:is(.dock-fold,.card.is-dock.r-done){--nest-r:var(--r-lg);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
-.card.is-dock.r-destructive{background:linear-gradient(180deg,var(--danger-wash),transparent 200px) var(--surface)}
-.card.is-dock .c-body{padding:var(--s-4) var(--s-5) var(--s-1)}
-.card.is-dock .c-h{font-size:var(--fs-heading);margin-top:6px}
+.card.is-dock{max-height:min(58vh,520px);background:var(--surface)}
+:is(.dock-fold,.card.is-dock.r-done){--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
+/* the folded and done lines are glass: the composer's fill, tinted by the line's state */
+:is(.dock-fold,.card.is-dock.r-done){--glass:color-mix(in srgb,var(--state,transparent) 12%,color-mix(in srgb,var(--comp-bg) 80%,transparent))}
+.card.is-dock .c-h{font-size:var(--fs-heading)}
 .card.is-dock .c-where{display:none}
 /* QA 2026-11-05: answers with a description start at the top, so their titles share one line whatever
    each description's length (the centred column put the shorter one 8 px lower) */
@@ -1152,10 +1122,6 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .dm-p{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px 0 12px;border-radius:var(--r-pill);background:var(--fill-2);border:1px solid var(--line-strong);color:var(--ink-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .dm-p svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-3)}
 .dock-more:hover .dm-p{background:var(--fill-3);color:var(--ink)}
-/* concentric with the card's r22: "Read the chat first" sits 13 in, so r9 */
-.card.is-dock .dock-hide{border-radius:calc(var(--r-2xl) - 13px)}
-.card.is-dock .c-act{--nest-pad:15px;--nest-in:calc(var(--nest-pad) + 1px);padding:12px var(--nest-pad) var(--nest-pad)}
-.card.is-dock .c-act:not(:has(.c-low)) .c-btns .b{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .card.is-dock .c-opts{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
 .card.is-dock .dt{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
 .card.is-dock .dis{margin-top:12px}
@@ -1241,10 +1207,6 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .hm-body{position:relative}
 /* each block holds its own margins, so its height is its whole place on the page (js/skeleton.js remembers it) */
 #hm-body>div{display:flow-root}
-.nx-est{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-2);font-size:var(--fs-ui);color:var(--ink-3)}
-.nx-est svg,.c-est svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
-.c-est{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:var(--fs-ui);color:var(--ink-3)}
-.next .c-sug{margin-top:var(--s-3)}
 .in-panel{display:flex;align-items:center;gap:var(--s-3);min-height:58px;padding:0 var(--s-5);border-radius:var(--r-xl);border:1px dashed var(--line);color:var(--ink-3);font-size:var(--fs-ui)}
 .in-panel svg{width:var(--ic);height:var(--ic);color:var(--ink-4)}
 .handled{margin-top:var(--s-8)}
@@ -1281,26 +1243,25 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 
 /* the thread's own card: after a decision, one calm line, then it folds away */
 /* Read the thread first: the docked ask folds into one slim line; the conversation isn't dimmed */
-.dock-hide{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);margin:-6px -12px -6px auto;padding:0 10px 0 8px;border-radius:calc(var(--r-2xl) - 11px);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-hide{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);margin:0 calc(var(--card-in) - var(--card-pad)) 0 auto;padding:0 10px 0 8px;border-radius:calc(var(--nest-r) - var(--nest-in));color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .dock-hide svg{width:var(--ic-sm);height:var(--ic-sm)}
 .dock-hide:hover{background:var(--fill-2);color:var(--ink)}
 .dock-hide:active{transform:scale(.96)}
-.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink));background:var(--surface);border:1px solid transparent;box-shadow:var(--e2);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.dock-fold.r-stopped,.dock-fold.r-destructive{background:color-mix(in srgb,var(--err) 6%,var(--surface))}
-.dock-fold:hover{background:var(--fill-2)}
+.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink));background:var(--glass);border:1px solid transparent;box-shadow:var(--lift-3);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-fold:hover{background:linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)}
 .dock-fold:active{transform:scale(.99)}
 .df-t{flex:1;min-width:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .df-e{flex:none;font-size:var(--fs-meta);color:var(--ink-4);white-space:nowrap}
 .df-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--dock-btn);padding:0 var(--s-2) 0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--warn-subtle);color:var(--warn);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .df-go svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(180deg)}
 .dock-fold.r-stopped .df-go,.dock-fold.r-destructive .df-go{background:var(--err-subtle);color:var(--err-ink)}
-.card.is-dock.r-done{border-color:transparent;background:linear-gradient(var(--ok-fill),var(--ok-fill)),var(--surface)}
-.card.is-dock.r-done:has(.is-back){background:linear-gradient(var(--btn-fill),var(--btn-fill)),var(--surface)}
+.card.is-dock.r-done{--state:var(--accent);background:var(--glass);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+.card.is-dock.r-done:has(.is-back,.is-gone){--state:var(--ink-4)}
 .tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--dock-bar);margin:0;padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic) * var(--ic-ink));font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .tp-done>span:not(.tp-done-ic){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tp-done b{color:var(--ink);font-weight:var(--fw-medium)}
 .tp-done-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--accent)}
-.tp-done.is-back .tp-done-ic{color:var(--ink-3)}
+.tp-done:is(.is-back,.is-gone) .tp-done-ic{color:var(--ink-3)}
 .tp-done-ic svg{width:var(--ic);height:var(--ic)}
 .tp-done-u{flex:none;height:var(--dock-btn);padding:0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease)}
 .tp-done-u:hover{background:var(--btn-fill-hover)}
@@ -1544,7 +1505,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
 @media (max-height:820px) and (min-width:761px){
   .hm{padding-top:var(--s-6)}
   .hm-lbl{margin-top:var(--s-6)}
-  .next{--nest-pad:var(--s-5)}
 }
 
 /* ── laptop ──────────────────────────────────────────────────────────────── */
@@ -1584,11 +1544,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .create{grid-column:2;grid-row:1}
   .hm-lbl{margin-top:var(--s-6)}
   .hm-lbl-s{display:none}
-  .next{--nest-pad:var(--s-4);--nest-r:var(--r-2xl)}
-  .nx-meta{flex-wrap:wrap;row-gap:var(--s-2)}
-  .nx-where{margin-left:calc(-1 * var(--halo));order:3;flex-basis:100%}
-  .nx-h{font-size:var(--fs-heading)}
-  .nx-opts{grid-template-columns:1fr}
   .then-i{grid-template-columns:minmax(0,1fr) auto 16px;grid-template-rows:auto auto;row-gap:var(--s-1);padding:var(--s-3) var(--s-3)}
   .then-i .eff{grid-row:1;grid-column:1}
   .then-i .ti-t{grid-row:2;grid-column:1 / 3}
@@ -1622,17 +1577,12 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   /* the thread's decision keeps the column's edges on a phone too, the composer's (it sat at the screen's edge, 16 px
      left of them, and the screen cut its ring there: the create-project grader on 22046ec, S240 at 390) */
   .dock>.herald{margin-left:0;margin-right:0}
-  .composer{padding:12px 9px 9px 9px;border-radius:var(--r-3xl)}
   .target .muted{display:none}
   .bubble{max-width:86%}
   .av{width:26px;height:26px;border-radius:var(--r-sm)}
   .hr-s{display:none}
   .card.is-dock{max-height:52vh}
   .dock-hide span,.df-e{display:none}
-  .card.is-dock .c-body{padding:14px 16px 6px}
-  .card.is-dock .c-act{--nest-pad:12px;padding:10px var(--nest-pad) var(--nest-pad)}
-  /* the fold chevron 11 down and 11 in, concentric with the card's r22 (r11) */
-  .card.is-dock .dock-hide{margin-right:-6px;border-radius:calc(var(--r-2xl) - 11px)}
   .card.is-dock .dt,.dt{grid-template-columns:1fr}
   .conv{--hg:16px}
   body.panel-open .main::after,body:has(#iq-pop.is-sheet:not([hidden])) .main::after,body:has(#cs-pop.is-sheet:not([hidden])) .main::after{content:"";position:absolute;inset:0;z-index:calc(var(--z-panel) - 5);background:rgb(0 0 0 / calc(.45 * var(--sha)));-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);animation:fade var(--dur-base)}
@@ -1645,8 +1595,6 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .pn-top{padding:14px 10px 4px 18px}
   .pn-rail{padding:0 18px}
   .pn-stage{padding:0 8px}
-  .c-body{padding:14px 16px 6px}
-  .c-act{padding:12px 14px}
   .b{height:48px;white-space:nowrap;font-size:var(--fs-ui)}
   .b.b-opt{height:auto;white-space:normal}
   .tcard{flex-direction:column}
@@ -1668,11 +1616,10 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .ar .mini{display:none}
   /* touch targets: 36 px minimum at 390 */
   .help,.x,.pn-x{width:var(--h-touch);height:var(--h-touch)}
-  .nx-where,.nx-link,.c-where,.b-later,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
+  .c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
   .iq{padding:0 12px}
   .b-opt.has-pv{flex-direction:row;align-items:center;gap:12px;padding:8px 12px}
-  .nx-opts,.c-opts{gap:4px}
-  .nx-where{height:auto}
+  .c-opts{gap:4px}
   .hd-row0{flex-wrap:wrap}
 }
 
@@ -1894,13 +1841,22 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .c-q legend{padding:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .c-q-q{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
 .c-q-opts{display:flex;flex-direction:column;gap:4px}
-.c-q-o{display:flex;align-items:flex-start;gap:8px;min-height:var(--h-lg);padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--line);cursor:pointer;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.c-q-o{display:flex;align-items:flex-start;gap:8px;min-height:var(--h-lg);padding:var(--s-2) var(--s-3);border-radius:var(--r-sm);background:var(--fill-1);cursor:pointer;transition:background var(--d-hover) var(--ease)}
+.card .c-q-o{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .c-q-o:hover{background:var(--fill-2)}
-.c-q-o:has(input:checked){border-color:transparent;background:color-mix(in srgb,var(--accent-fill) 10%,transparent)}
+.c-q-o:has(input:checked){background:var(--ok-fill)}
 .c-q-o input{--ic:13px;margin-top:calc((1lh - var(--ic)) / 2);accent-color:var(--accent-fill)}
 .c-q-o span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .c-q-o b{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .c-q-o em{font-style:normal;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3)}
+/* answers one per row: the label, its grey line under it; the one the agent recommends first, on a soft green tile */
+.c-opts.is-list{display:flex;flex-direction:column;gap:var(--s-1)}
+.c-opts.is-list .b-opt{justify-content:center;align-items:flex-start;text-align:left;padding:var(--s-2) var(--s-3);border-color:transparent;background:var(--fill-1)}
+.c-opts.is-list .b-opt:hover{background:var(--fill-2)}
+:is(.c-opts.is-list .b-opt,.c-q-o).is-rec{background:var(--accent-subtle)}
+:is(.c-opts.is-list .b-opt,.c-q-o).is-rec:hover{background:color-mix(in srgb,var(--accent-fill) 22%,var(--fill-1))}
+.o-rec{font-weight:var(--fw-medium);color:var(--ok-text)}
+.o-cost{color:var(--warn-text)}
 .c-q-in,.c-name-in{height:var(--h-lg);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .c-q-in:focus,.c-name-in:focus{outline:2px solid var(--focus);outline-offset:1px}
 .c-q-s{font-size:var(--fs-meta);color:var(--ink-4)}
@@ -2170,6 +2126,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
   .target{height:var(--h-touch)}
   .tc-dec{height:var(--h-touch)}
   .dock-hide{height:var(--h-touch);min-width:var(--h-touch)}
+  .c-top{min-height:var(--h-touch)}
   .dis-h{min-height:var(--h-touch)}
   .tb-h{min-height:var(--h-touch)}
   .m-turn{--tb-line:36px;--av-h:26px}
@@ -2301,11 +2258,13 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 }
 .settings{background:var(--canvas)}
 
-/* the state line: a decision card says "needs you" (amber) or "destructive / stopped" (red) */
-.card::before{content:"";position:absolute;z-index:2;left:22px;right:22px;top:0;height:2px;border-radius:0 0 2px 2px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--sl,var(--warn)) 16%,var(--sl,var(--warn)) 84%,transparent);opacity:.75}
-.card.r-destructive,.card.r-stopped{--sl:var(--err-ink)}
-.card.r-done::before,.card.r-vig::before{display:none}
+/* a decision's state is one colour, --state: amber needs a read, red is destructive or stopped, a routine one has none */
+:is(.card,.next,.dock-fold).r-notable{--state:var(--warn)}
+:is(.card,.next,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
+/* the card's edge light: a hairline of its state across the top, and its glow under the content */
+:is(.card,.next):is(.r-notable,.r-destructive,.r-stopped)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent 10%,color-mix(in srgb,var(--state) 85%,transparent),transparent 90%) top/100% 1px no-repeat,
+    radial-gradient(60% var(--s-12) at 50% 0,color-mix(in srgb,var(--state) 10%,transparent),transparent)}
 
 /* …and a thread's header: amber needs you, blue working (one slow sweep), green done, red stopped */
 .top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:2px;border-radius:0 0 2px 2px;pointer-events:none;opacity:0;transition:opacity var(--dur-slow) var(--ease)}
@@ -2325,7 +2284,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 
 /* ── files on a message (hub #30): the paperclip, the chips on the unsent message, the drop veil,
    and the cards under a sent message (the shared-file card, with a thumbnail for an image) ── */
-.attach{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);margin-left:2px;border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.attach{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .attach:hover{background:var(--hover-fill);color:var(--ink-2)}
 .attach svg{width:var(--ic);height:var(--ic)}
 .attach:not([hidden])+.target{margin-left:0}
@@ -2357,24 +2316,16 @@ button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil
 .att.st-failed .att-ic{color:var(--err-ink)}
 .att-note{margin:8px 0 0 -6px;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
 .att-note code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3)}
-/* The composer's files and their note, measured against the composer (the owner: "the bottom text in the
-   chatbar looks hideously aligned"; from the message-styles thread, folded in here). The composer is 28 px
-   round with its controls 10 px in (1 border + 9 padding) and its text 20 px in.
-   · A file sits in the corner 10 px in on both sides (the tray is pulled up 3 px from the 12 px top
-     padding), so its corner is 28 − 10 = 18. Inside it, the 32 px picture sits 7 px in and the 24 px × 11 px in,
-     each the same on both sides: 11 and 7 (on the 24/32 scale: the controls grader's S016).
-   · The note about where files are kept belongs to the files: right under them, on the 20 px text edge. */
-.composer>.att-tray{order:-2;margin:-3px 0 8px 0}
-.composer>.att-note{order:-1;margin:0 0 10px;padding-left:10px}
-.att{padding:0 10px 0 6px;border-radius:calc(var(--r-3xl) - 10px)}
-.att-ic{border-radius:calc(var(--r-3xl) - 17px)}
-.att-b{border-radius:calc(var(--r-3xl) - 21px)}
+/* a file sits in the composer's corner, --comp-in from its edge; the picture 7 px and the × 11 px inside it, so each stays concentric */
+.composer>.att-tray{order:-2;margin:calc(-1 * var(--s-1)) 0 var(--s-2) 0}
+.composer>.att-note{order:-1;margin:0 0 10px;padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}
+.att{--nest-r:calc(var(--r-card) - var(--comp-in));--nest-in:7px;padding:0 10px 0 6px;border-radius:var(--nest-r)}
+.att-ic{border-radius:calc(var(--nest-r) - var(--nest-in))}
+.att-b{--nest-in:11px;border-radius:calc(var(--nest-r) - var(--nest-in))}
 @media (max-width:760px){
-  /* Add files at a phone's 36 sits 10 px in, as Send's 18-px circle did (28 − 10 = 18) */
-  .attach{margin-left:0}
-  /* the × grows to 36 for a finger, so it sits 5 px in: 18 − 5 = 13 */
+  /* the × grows to 36 for a finger, 5 px in */
   .att{padding-right:4px}
-  .att-b{border-radius:calc(var(--r-3xl) - 15px)}
+  .att-b{--nest-in:5px}
 }
 /* the line under the text ("Reply in this thread"): its icon sat on the baseline, 2.5 px above the row's
    centre line; every glyph in the row centres on it */
@@ -3113,7 +3064,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .lim{display:flex;flex-direction:column;gap:8px;margin:var(--s-1) 0 var(--s-1)}
 .lim-when{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);color:var(--warn)}
 .lim-when svg{width:var(--ic-sm);height:var(--ic-sm)}
-.next .lim,.c-body .lim{margin:10px 0 12px}
+.c-body .lim{margin:10px 0 12px}
 .lim-acct{font-size:var(--fs-ui);font-weight:var(--fw-strong);color:var(--ink)}
 .lim-credits{font-size:var(--fs-ui);color:var(--ink-3);font-variant-numeric:tabular-nums}
 .lim-ts{display:flex;flex-direction:column;gap:2px;padding-left:20px;list-style:disc}

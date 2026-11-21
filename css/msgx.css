@@ -3,7 +3,7 @@
    chat look (owner, 5 Nov: XO's green for yours, glass for theirs, tails on, every reply in a bubble), not
    an experiment: removing this file breaks the conversation. Every value comes from css/tokens.css.
    Corners nest: an inner radius is the outer one minus the inset between them (the composer's reply
-   28 → 18 at 10 in, a quote in a bubble 20 → 14 at 6 in, a card's progress band 20 → 4 at 16 in). */
+   quote 24 → 16 at 8 in, a quote in a bubble 20 → 14 at 6 in, a card's progress band 20 → 4 at 16 in). */
 
 /* ── back to the latest ──────────────────────────────────────────────────────
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real
@@ -53,7 +53,7 @@
 @media (hover:none){.mx-acts{display:none}}
 
 /* a reply on its way: the quote waits above what you type */
-.mx-reply{display:flex;align-items:center;gap:8px;height:var(--h-touch);margin:-3px 0 10px;padding:0 6px 0 12px;border-radius:calc(var(--r-3xl) - 10px);background:var(--hover-fill);box-shadow:var(--hairline)}
+.mx-reply{--nest-r:var(--r-card);--nest-in:var(--comp-in);display:flex;align-items:center;gap:8px;height:var(--comp-ctl);margin:calc(-1 * var(--s-1)) 0 10px;padding:0 calc((var(--comp-ctl) - var(--h-sm)) / 2) 0 12px;border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--hover-fill);box-shadow:var(--hairline)}
 .mx-reply[hidden]{display:none}
 .mx-reply.is-in{animation:mx-up var(--d-in) var(--ease)}
 @keyframes mx-up{from{opacity:0;transform:translateY(6px)}}
