@@ -1755,7 +1755,8 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tb-chev{flex:none;display:grid;place-items:center;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .tb-chev svg{width:var(--ic-sm);height:var(--ic-sm)}
 .tb-h[aria-expanded="true"] .tb-chev{transform:rotate(180deg)}
-.tb.is-live>.tb-h .tb-hi,.tb-spin{color:var(--info)}
+/* blue while it runs, grey once it has finished: a live line and the step running in it alike */
+.tb.is-live>.tb-h .tb-hi,:is(.tb-row,.rt-call).s-running:not(.is-waiting) .tb-ri,.tb-spin{color:var(--info)}
 .tb-spin{width:10px;height:10px}
 .tb-act.is-waiting .tb-h{color:var(--warn)}
 .tb-steps{margin:var(--s-1) 0 var(--s-2) var(--s-6);padding-left:12px;border-left:1px solid var(--line-soft);list-style:none;display:flex;flex-direction:column;gap:4px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}

@@ -309,7 +309,7 @@
 :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-rail{gap:0;margin:0;padding:0 8px;border:0}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h{width:100%;min-height:var(--h-ctl);margin:0;padding:6px 8px;border-radius:calc(var(--r-xl) - 8px);font-size:var(--fs-meta);color:var(--ink-3)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h:hover{background-color:var(--hover-fill)!important}
-:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid;color:var(--ink-4)}
+:root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi{display:grid}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-hi svg{width:var(--ic);height:var(--ic)}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>:not(.tb-h){margin-left:32px}
 :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows{margin:0 0 4px 32px}
