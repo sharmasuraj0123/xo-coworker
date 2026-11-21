@@ -835,7 +835,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-row.is-sel .iq-ck{opacity:1;transform:none}
 /* a choice that needs its sentence: the mark, the name over what it means */
 .iq-pop .cs-mrow{height:auto;min-height:var(--menu-row);align-items:flex-start;padding:var(--s-2)}
-.iq-pop.is-sheet .cs-mrow{height:auto;min-height:var(--h-hit)}
+.iq-pop.is-sheet .iq-row.cs-mrow{height:auto;min-height:var(--h-hit)}
 .cs-mi{flex:none;width:var(--ic);height:var(--ic);margin-top:calc((var(--lh-ui) - var(--ic)) / 2);color:var(--ink-3)}
 .cs-mrow.is-sel .cs-mi{color:var(--ink)}
 .cs-mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
