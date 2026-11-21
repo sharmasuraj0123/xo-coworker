@@ -525,7 +525,10 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       `<div class="teach-body"${scope ? "" : " hidden"}><div class="teach-in"><div class="teach-scope" role="radiogroup" aria-label="Rule scope"><button type="button" role="radio" data-scope="exact" aria-checked="${scope !== "prefix"}">Exactly this command</button><button type="button" role="radio" data-scope="prefix" aria-checked="${scope === "prefix"}">Any “${esc(Kit.prefixOf(cmd))}”</button></div><p class="teach-q"><span>Added to your rules, word for word:</span><q>${esc(Kit.teachSentence(PROJ(n.t.project), scope === "prefix" ? Kit.prefixOf(cmd) : cmd))}</q></p></div></div>`;
   }
 
-  /** The card's one strip of evidence (cardparts stripOf), drawn: mono for a command, an address or a tool. */
+  // code wraps only after a slash or a space; a piece breaks inside itself only when it is wider than the strip
+  const codeHtml = (text) => String(text).replace(/[^\s/]*\/+|[^\s/]+|\s+/g, (m) => (/^\s/.test(m) ? m : `<span class="ev-w">${esc(m)}</span>`));
+
+  /** The card's one strip of evidence (cardparts stripOf), drawn: mono for a command, an address, a tool or files. */
   function stripHtml(s) {
     if (!s) return "";
     const tag = s.tag ? `<span class="ev-tag">${esc(s.tag)}</span>` : "";
@@ -533,7 +536,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     if (s.type === "plan") return `<div class="c-ev is-plan${s.more ? " is-more" : ""}">${tag}<p class="ev-plan">${esc(s.text.replace(/^#+\s*/gm, ""))}</p></div>`;
     if (s.type === "paths") return `<ul class="c-ev is-paths">${s.items.map((p) => `<li><code>${esc(p.path)}</code>${p.add ? `<span class="dl-add">+${p.add}</span>` : ""}${p.del ? `<span class="dl-del">−${p.del}</span>` : ""}</li>`).join("")}${s.more ? `<li class="ev-more">${s.more} more</li>` : ""}</ul>`;
     if (s.type === "error") return `<p class="c-ev is-error">${esc(s.text)}</p>`;
-    return `<p class="c-ev is-mono">${tag}<code>${esc(s.text)}</code></p>`;
+    if (s.type === "files") return `<ul class="c-ev is-files">${s.items.map((p) => `<li><code>${codeHtml(p)}</code></li>`).join("")}${s.more ? `<li class="ev-more">${s.more} more</li>` : ""}</ul>`;
+    return `<p class="c-ev is-mono">${tag}<code>${codeHtml(s.text)}</code></p>`;
   }
 
   /** The top row's first two: how long it takes, and a tag only when it is destructive or stopped. */

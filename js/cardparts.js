@@ -13,15 +13,20 @@ const detailOf = (n) => (n.ask.item && n.ask.item.detail) || {};
 const mcpText = (m) => (typeof m === "string" ? m : Array.isArray(m) ? m.filter(Boolean).join("/") : m ? [m.server, m.tool].filter(Boolean).join("/") : "");
 // code that reads as a command rather than a word: long, or with a space, a path or a shell operator in it
 const commandLike = (s) => s.length >= 16 || /[\s/|;&]/.test(s);
+// Space's action kinds that are about files, named by detail.paths
+const FILE_ACTS = new Set(["read", "search", "list", "edit_file", "create_file", "delete_file"]);
+const filesOf = (d) => (FILE_ACTS.has(d.kind) && Array.isArray(d.paths) ? d.paths.map(String).filter(Boolean) : []);
+const baseName = (p) => p.replace(/\/+$/, "").split("/").pop() || p;
 
 /**
  * Every kind of card, with where its evidence comes from and which buttons it has. kindOf names one of these for
  * every ask; a new kind is added here or the test fails.
- *  strip: command · url · tool · diff · plan · paths · error · none
+ *  strip: command · url · tool · diff · plan · paths · files · error · none
  *  acts:  binary (the item's yes and no) · answer (a question's own answers) · words (a reply in words) · stopped
  */
 export const KINDS = {
   command: { strip: "command", acts: "binary" },
+  file: { strip: "files", acts: "binary" },
   web: { strip: "url", acts: "binary" },
   tool: { strip: "tool", acts: "binary" },
   change: { strip: "diff", acts: "binary" },
@@ -56,18 +61,18 @@ export function kindOf(n) {
     if (d.command) return "command";
     if (d.url) return "web";
     if (d.mcp) return "tool";
-    return it.kind === "permission" && commandOf(a) ? "command" : "approval";
+    if (filesOf(d).length) return "file";
+    return "approval";
   }
   return it.kind in KINDS ? it.kind : "approval";
 }
 
 /**
- * The exact command an ask is about, or "": the item's detail.command first, then the title's code (a closed
- * `…`, or one the title's clipping left open), then an old "Run: …" title.
+ * The exact command an ask is about, or "": an item's detail.command; a live ask's title code (a closed `…`, or one
+ * the title's clipping left open), or its "Run: …" title.
  */
 export function commandOf(ask) {
-  const d = (ask && ask.item && ask.item.detail) || {};
-  if (d.command) return String(d.command).trim();
+  if (ask && ask.item) { const c = (ask.item.detail || {}).command; return c ? String(c).trim() : ""; }
   const title = String((ask && ask.title) || "");
   const closed = /`([^`]+)`/.exec(title);
   if (closed && commandLike(closed[1])) return closed[1].trim();
@@ -89,9 +94,10 @@ export function headOf(n) {
   }
   const title = String(a.title || "").trim();
   if (!a.item && /^run:/i.test(title)) return { verb: "Run", text: "a command", md: false };
-  const cmd = commandOf(a);
+  const cmd = commandOf(a), files = a.item ? filesOf(a.item.detail || {}) : [];
   let text = title;
-  if (cmd) {
+  if (files.length) text = text.replace(/`([^`]+)(`|$)/g, (m, c) => { const f = files.find((p) => p === c || (c.endsWith("…") && p.startsWith(c.slice(0, -1)))); return f ? "`" + baseName(f) + "`" : m; });
+  else if (cmd) {
     text = text.replace(/`([^`]+)`/g, (m, c) => (commandLike(c) ? "a command" : m)).replace(/`[^`]+$/, (m) => (commandLike(m.slice(1)) ? "a command" : m));
     if (text === cmd) text = "";
   }
@@ -136,10 +142,13 @@ export function stripOf(n) {
       const items = ch.slice(0, 4).map((c) => ({ path: c.path || "a changed file", add: count(c.diff, "+"), del: count(c.diff, "-") }));
       return { type: "paths", items, more: Math.max(0, ch.length - items.length) + (+d.more || 0) };
     }
+    case "files": { const fs = filesOf(d); return fs.length ? { type: "files", items: fs.slice(0, 4), more: fs.length - Math.min(4, fs.length) } : null; }
     case "error": { const w = String(t.error || t.happened || "").replace(/^Stopped:\s*/i, "").trim(); return w ? { type: "error", text: w } : null; }
     default: return null;
   }
 }
+
+const TONE = { destructive: "err", notable: "warn" };
 
 /** A risk reason as one fact: its words without the path it names, and that path. */
 const reasonParts = (r) => {
@@ -149,17 +158,17 @@ const reasonParts = (r) => {
 
 /**
  * The card's facts, as chips: [{ tone: "err" | "warn" | "", text, count }].
- * Space's risk_groups when it sends them; otherwise its risk_reasons, the same reason for several paths counted once.
- * Then what the kind adds: how many files, when a job runs and with what, when a limit opens.
+ * An item's risk_groups (a group kept before tiers were stored takes the item's own); a live ask's risk reasons, the
+ * same reason for several paths counted once. Then what the kind adds: how many files, when a job runs and with what.
  */
 export function chipsOf(n) {
   const it = n.ask.item, d = detailOf(n), out = [];
-  const tone = n.risk === "destructive" ? "err" : n.risk === "notable" ? "warn" : "";
-  if (it && Array.isArray(it.risk_groups) && it.risk_groups.length) {
-    for (const g of it.risk_groups) out.push({ tone: g.kind === "destructive" ? "err" : "warn", text: cap(g.text), count: Math.max(1, +g.count || (g.paths || []).length || 1) });
+  const tone = TONE[n.risk] || "";
+  if (it) {
+    for (const g of it.risk_groups || []) out.push({ tone: g.kind == null ? tone : TONE[g.kind] || "", text: cap(g.text), count: Math.max(1, +g.count || 1) });
   } else {
     const seen = new Map();
-    for (const r of (it ? it.risk_reasons : n.ask.riskReasons) || []) {
+    for (const r of n.ask.riskReasons || []) {
       const { text } = reasonParts(r), key = text.toLowerCase();
       if (seen.has(key)) seen.get(key).count++;
       else { const c = { tone, text: cap(text), count: 1 }; seen.set(key, c); out.push(c); }
