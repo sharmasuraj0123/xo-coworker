@@ -19,24 +19,14 @@ code{font-family:var(--mono)}
 button{-webkit-tap-highlight-color:transparent}
 button:disabled{cursor:default}
 
-/* state glyphs: shape + colour */
-.g{display:inline-block;flex:none;width:8px;height:8px}
-/* working, anywhere a state glyph shows (task cards, link capsules, Now chips, the thread header's badge,
-   runs, All threads, Chats): a small arc in the app's blue (--info: #75ADF1 dark, #1F63C7 light) turns on
-   a 22% track of the same blue, the agent mark's own 1.6s arc-turn (css/panel.css .arc), kept in step by
-   js/ui.js keepTurning. Still when motion is reduced. The owner wants this arc blue; "no blue dots" is
-   about dots, not this arc. (The left sidebar draws its own marks and is not touched.) */
-.g-working{border:1.5px solid color-mix(in srgb,currentColor 22%,transparent);border-top-color:currentColor;border-radius:50%;color:var(--info);animation:arc-turn 1.6s linear infinite}
+/* state marks: the pack's state-* icons (js/icon.js stateMark), each in its state's colour; working turns */
+.g{display:inline-block;flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
+.g-working{color:var(--info);animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){.g-working{animation:none}}
-.g-idle{border:1.6px solid var(--ink-4);border-radius:50%}
-.g-needs_reply,.g-needs_approval{background:var(--warn);border-radius:1.5px;transform:rotate(45deg) scale(.86)}
-.g-done{width:9px;height:5px;border:solid var(--accent);border-width:0 0 2px 2px;transform:rotate(-45deg) translate(1px,-1px)}
-.g-failed{background:var(--err-ink);border-radius:2px}
-/* stopped on purpose (the owner's Stop, or the coordinator's on the owner's word: timeline.js stopOf): the same square, in the
-   quiet ink, never the red of a failure */
-.g-stopped{background:var(--ink-4);border-radius:2px}
-.g-resolved{border:1.5px dashed var(--ink-4);border-radius:50%}
-.g-held{border:1.5px solid var(--ink-4);border-radius:1.5px;transform:rotate(45deg) scale(.8)}
+.g-needs_reply,.g-needs_approval,.g-paused{color:var(--warn)}
+.g-done{color:var(--accent)}
+.g-failed{color:var(--err-ink)}
+.g-stopped,.g-resolved,.g-held,.g-idle{color:var(--ink-4)}
 /* the thread header's Working badge stays a neutral pill; its arc is the blue one above */
 .badge.st-working{--st:var(--ink-2)}
 .badge.st-working .g-working{color:var(--info)}
@@ -407,9 +397,9 @@ button:disabled{cursor:default}
 .ck-n{flex:none;font-weight:var(--fw-strong);color:var(--ink-2);font-variant-numeric:tabular-nums}
 .ck-now{flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--ink-2);animation:rise-in var(--d-in) var(--ease)}
 .ck-now>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ck-m{flex:none;display:inline-grid;place-items:center;width:14px;font-weight:var(--fw-strong)}
-.ck-m svg{width:14px;height:14px}
-.ck-m.is-ok{color:var(--accent)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn);font-size:var(--fs-meta)}.ck-m.is-red{color:var(--err-ink);font-size:var(--fs-meta)}
+.ck-m{flex:none;display:grid;place-items:center;width:var(--ic-sm);height:1lh}
+.ck-m svg{width:var(--ic-sm);height:var(--ic-sm)}
+.ck-m.is-ok{color:var(--accent)}.ck-m.is-blue{color:var(--info)}.ck-m.is-amber{color:var(--warn)}.ck-m.is-red{color:var(--err-ink)}
 .ck-now[data-mode="fresh"]{color:var(--ink)}
 .ck-now[data-mode="fresh"] .tk{stroke-dasharray:24;stroke-dashoffset:24;animation:draw var(--d-move) var(--ease) var(--d-press) forwards}
 /* the chevron centres on the row (as an inline glyph it sat on the text baseline, 3 px high) */
@@ -428,10 +418,10 @@ button:disabled{cursor:default}
 .ck-list>li:first-child{margin-top:4px}
 .ck-list>li:last-child{margin-bottom:12px}
 .ckbar.is-open .ck-list{opacity:1}
-.ck{display:flex;align-items:baseline;gap:10px;font-size:var(--fs-ui);color:var(--ink-2)}
+.ck{display:flex;align-items:flex-start;gap:10px;font-size:var(--fs-ui);color:var(--ink-2)}
 .ck-done{color:var(--ink-3)}.ck-done .ck-m{color:var(--accent)}
 .ck-doing{color:var(--ink)}.ck-doing .ck-m{color:var(--info)}
-.ck-todo .ck-m{color:var(--ink-4);font-weight:var(--fw-regular)}
+.ck-todo .ck-m{color:var(--ink-4)}
 
 .scroller{position:relative;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:28px 0 calc(var(--dock-h) + 48px);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 /* (no transition on its padding: a panel taking room re-wraps the conversation once, not a step a frame, and
@@ -611,6 +601,8 @@ code.hl{color:var(--code-ink)}
 .tc-segs{display:flex;gap:3px;width:100%}
 .tc-segs .sg{flex:1;width:auto;max-width:64px}
 .tc-now{max-width:100%;font-size:var(--fs-ui);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tc-now>svg{width:var(--ic-sm);height:var(--ic-sm);margin-right:6px;vertical-align:calc(var(--cap-mid) - var(--ic-sm) / 2)}
+.st-needs .tc-now>svg{color:var(--warn)}.st-working .tc-now>svg{color:var(--info)}
 .tc-now code{font:var(--fw-medium) .92em/1 var(--mono)}
 .st-needs .tc-now{color:color-mix(in srgb,var(--warn) 60%,var(--ink-2))}
 .tc-foot{display:flex;align-items:center;gap:10px;width:100%;font-size:var(--fs-meta);color:var(--ink-4)}
@@ -818,7 +810,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-h h2 span{font-weight:var(--fw-regular);color:var(--ink-3)}
 .iq-truth{margin:0 0 4px;padding:0 10px 10px;border-bottom:1px solid var(--line-soft);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-wrap:pretty}
 .iq-truth b{font-weight:var(--fw-medium);color:var(--ink)}
-.iq-truth .g{display:inline-block;width:10px;height:10px;margin-right:var(--gap-icon);vertical-align:calc(var(--cap-mid) - 5px)}
+.iq-truth .g{margin-right:var(--gap-icon);vertical-align:calc(var(--cap-mid) - var(--ic-sm) / 2)}
 .iq-now{padding:0 10px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .iq-now b{color:var(--ink-2);font-weight:var(--fw-medium)}
 .iq-lab{padding:10px 10px 4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
@@ -1827,7 +1819,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .tb-cf.is-more{padding:0 10px;color:var(--ink-4)}
 
 /* paused: it waits on you (shape: an outlined diamond, amber) */
-.g-paused{border:1.6px solid var(--warn);border-radius:1.5px;transform:rotate(45deg) scale(.8)}
 .st-paused{--st:var(--warn)}
 
 /* a thread's own header: its label, Resolve / Reopen (R1), rename and label */
@@ -2080,8 +2071,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .chl-tile{position:relative;flex:none;display:grid;place-items:center;width:var(--tile);height:var(--tile);border-radius:var(--r);background:var(--row-bg);border:1px solid var(--row-line);color:var(--ink-3)}
 .chl-tile>.agm{width:var(--ic-lg);height:var(--ic-lg);vertical-align:0}
 /* its state sits on the tile's corner, cut out of the surface behind it */
-.chl-tile>.g{position:absolute;right:calc(-1 * var(--s-1));bottom:calc(-1 * var(--s-1));box-shadow:0 0 0 calc(var(--s-1) / 2) var(--surface);background-color:var(--surface)}
-.chl-tile>.g-needs_approval{background-color:var(--warn)}
+.chl-tile>.g{position:absolute;right:calc(-1 * var(--s-1));bottom:calc(-1 * var(--s-1));border-radius:50%;box-shadow:0 0 0 calc(var(--s-1) / 2) var(--surface);background-color:var(--surface)}
 .chl-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .chl-t{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chl-m{font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

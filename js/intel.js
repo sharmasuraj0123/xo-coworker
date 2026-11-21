@@ -16,7 +16,7 @@ import { esc } from "./world.js";
 import { space } from "./util.js";
 import { redraw } from "./redraw.js";
 import { once } from "./pending.js";
-import { ICON, RM, xi } from "./ui.js";
+import { ICON, RM, xi, stateMark } from "./ui.js";
 import { api } from "./api.js";
 import { mainRuntime } from "./timeline.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "./runtimes.js";
@@ -320,7 +320,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     let truth;
     if (kind === "thread") {
       const rtw = esc(rtName(runtimeOf(s)) || "");
-      const verb = r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs";
+      const verb = r && r.working ? `${stateMark("working")}Running` : "Runs";
       truth = r && r.model ? `${verb} ${nowWords(r.model, r.effort)}${rtw ? ` on ${rtw}` : ""}.` : `${verb}${rtw ? ` on ${rtw}` : ""}; its session hasn't said which model yet.`;
       const p = pendingOf(s);
       if (p) truth += ` Next turn: <b>${esc(p.words)}</b>.`;

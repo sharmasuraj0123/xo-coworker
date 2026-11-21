@@ -46,11 +46,11 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   try {
     const live = renderInline("[the panel](#cmsg_live)");
     assert.match(live, /class="lk lk-in lk-thread"/);
-    assert.match(live, /<i class="g g-working"/);
+    assert.match(live, /<svg class="xi g g-working"[^>]*data-xi="state-working"/);
     assert.match(live, /title="Working · thread"/);
     const gone = renderInline("[other](#cmsg_gone)");
     assert.match(gone, /is-unknown/);
-    assert.ok(!gone.includes('class="g '), gone);
+    assert.ok(!gone.includes(' g g-'), gone);
     // the app's word can never inject a class
     setThreadInfo(() => ({ state: 'x" onclick="1', word: "<b>", title: "t" }));
     const odd = renderInline("[t](#cmsg_odd)");

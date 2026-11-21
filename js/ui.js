@@ -4,8 +4,8 @@ import { esc } from "./world.js";
 import { redraw, pressedNode } from "./redraw.js";
 import { usable } from "./focusview.js";
 
-import { xi } from "./icon.js";
-export { xi };
+import { xi, stateMark } from "./icon.js";
+export { xi, stateMark };
 
 // Every icon is the owner's (assets/icons/xo, 19 Nov), drawn on its 24 grid with its own pen (1.75, round ends),
 // cleaned for the page by tools/xoicons/build.mjs into js/xoicons.js: the one source (js/icon.js draws one).
@@ -33,6 +33,9 @@ export const ICON = {
   list: xi("list"),
   lock: xi("lock"),
   stop: xi("stop"),
+  needs: xi("state-needs-you"),
+  doing: xi("step-doing"),
+  todo: xi("state-idle"),
   sound: xi("sound"),
   plus: xi("plus"),
   home: xi("home"),
@@ -394,3 +397,6 @@ export function keepTurning() {
   }).observe(document.body, { childList: true, subtree: true });
   sync();
 }
+
+/** A checklist step's mark, from the pack: done, doing, to do. */
+export const stepMark = (s) => (s === "done" ? ICON.check : s === "doing" ? ICON.doing : ICON.todo);

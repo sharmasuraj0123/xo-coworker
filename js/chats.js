@@ -8,7 +8,7 @@
 import { api, clientId, NEWEST } from "./api.js";
 import { esc } from "./world.js";
 import { space } from "./util.js";
-import { ICON } from "./ui.js";
+import { ICON, stateMark } from "./ui.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
@@ -105,7 +105,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const held = !wait && !busy ? heldOf(s) : null;
       const state = wait ? "needs_approval" : busy ? "working" : held ? "paused" : "";
       return `<li><button type="button" class="chl-row" data-go="c:${esc(s.id)}">` +
-        `<span class="chl-tile">${rtMark(s.agent) || ICON.thread}${state ? `<i class="g g-${state}" aria-hidden="true"></i>` : ""}</span>` +
+        `<span class="chl-tile">${rtMark(s.agent) || ICON.thread}${state ? stateMark(state) : ""}</span>` +
         `<span class="chl-main"><span class="chl-t">${esc(titleFor(s))}</span><span class="chl-m">${esc(rowLine(s))}</span></span>` +
         `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at))}</span></button></li>`;
     };
@@ -204,7 +204,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
     const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Waiting"];
     return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${metaHtml(s)}</span></span>` +
-      `<span class="badge st-${st[0]}"><i class="g g-${st[1]}" aria-hidden="true"></i>${st[2]}</span>`;
+      `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
   }
 
   // ── the composer's line and the new chat's setup ─────────────────────────

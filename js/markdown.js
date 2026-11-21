@@ -29,7 +29,7 @@
 // image's alt as its words, never a stray "!"). Without the app's renderer (node, or "Show pictures from
 // the web" off on this device) the same lines are outbound links, so nothing is lost.
 
-import { xi } from "./icon.js";
+import { xi, stateMark } from "./icon.js";
 import { esc } from "./util.js";
 import { highlight } from "./highlight.js";
 import { fileIcon } from "./fileicons.js";
@@ -115,7 +115,7 @@ function linkHtml(href, label) {
     const id = t[1];
     const info = (threadInfo && threadInfo(id)) || null;
     const st = info && STATES.has(info.state) ? info.state : "";
-    const g = st ? `<i class="g g-${st}" aria-hidden="true"></i>` : THREAD_G;
+    const g = st ? stateMark(st) : THREAD_G;
     const tip = info ? [info.word, "thread"].filter(Boolean).join(" · ") : "Thread";
     // a short title stays one capsule; a long one may wrap (each line keeps its capsule)
     const text = label != null ? label.replace(/<[^>]*>/g, "") : String(info?.title || "");

@@ -22,3 +22,7 @@ export function xi(name, cls = "", size = "") {
 
 /** Whether the pack has an icon by this name. */
 export const hasIcon = (name) => Object.prototype.hasOwnProperty.call(XI, name);
+
+const STATE = { working: "state-working", idle: "state-idle", needs_reply: "state-needs-you", needs_approval: "state-needs-you", done: "state-done", failed: "state-failed", stopped: "state-stopped", resolved: "state-resolved", held: "state-held", paused: "state-paused" };
+/** A thread's or a run's state mark, from the pack's state marks; its colour is its state's (css .g-*). */
+export const stateMark = (st) => xi(STATE[st] || "state-idle", `g g-${st}`);

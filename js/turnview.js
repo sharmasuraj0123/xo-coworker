@@ -7,7 +7,7 @@
 
 import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
-import { ICON, elapsed } from "./ui.js";
+import { ICON, stepMark, elapsed } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "./comms.js";
@@ -27,7 +27,7 @@ function rowMark(r) {
   if (commsBusy(r)) return `<span class="tb-m is-den" title="In use">${ICON.clock}</span>`;
   if (r.status === "error") return `<span class="tb-m is-err" title="Failed">${ICON.close}</span>`;
   if (r.status === "denied") return `<span class="tb-m is-den" title="Denied">${ICON.lock}</span>`;
-  if (r.status === "cancelled") return `<span class="tb-m is-den" title="Cancelled">■</span>`;
+  if (r.status === "cancelled") return `<span class="tb-m is-den" title="Cancelled">${ICON.stop}</span>`;
   return `<span class="tb-m is-ok" title="Done">${ICON.check}</span>`;
 }
 function rowHtml(r, open) {
@@ -77,10 +77,9 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
     }
     case "plan": {
       const items = b.items || [];
-      const mark = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
       return `<div class="tb tb-plan${isOpen ? " is-unfolded" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
         `<span class="tb-hi">${ICON.list}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
-        (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${mark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
+        (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
     }
     case "shared_files": {
       // what an agent hands you is shown, not attached (js/media.js): its pictures in the conversation,
@@ -264,7 +263,7 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
   const html = parts.filter(Boolean);
   const end = turn.end || {};
   let foot = "";
-  if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">■ ${stoppedAt(turn.stopped && turn.stopped.last_step)}</p>`;
+  if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">${ICON.stop}<span>${stoppedAt(turn.stopped && turn.stopped.last_step)}</span></p>`;
   else if (turn.status === "failed") foot = `<p class="tb-end is-err">${ICON.close}<span>This turn failed${end.error ? `: ${esc(String(end.error).slice(0, 240))}` : ""}</span></p>`;
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
   // it ended its own turn to wait for something (a wake it set): said, so the end isn't a mystery
