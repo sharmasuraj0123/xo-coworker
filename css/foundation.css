@@ -137,7 +137,6 @@ body.stage-full .stg-grip{display:none}
 /* its state and runtime are the same 32 px and 13 px text as the buttons beside them (they were 24 px
    with 12 px text and looked an afterthought; the runtime is a button too). What tells them apart is
    their surface, not their size: the state is a tinted pill, the runtime borderless, actions outlined. */
-.top .badge{height:var(--h-ctl);gap:8px;padding:0 12px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .top .tw-rt{height:var(--h-ctl);margin-left:0;padding:0 10px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 @media (max-width:760px){.top .badge,.top .tw-rt{height:var(--h-touch)}}
 /* the title bar: the cube sits on the title's own line, a 28 px tile on the 28 px line, so its centre

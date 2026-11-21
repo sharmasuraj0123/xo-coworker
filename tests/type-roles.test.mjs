@@ -24,6 +24,10 @@ t("reading is lighter and softer on dark, regular on light", () => {
   assert.match(tokens, /:root\[data-theme="light"\]\{[^}]*--fw-read:var\(--fw-regular\)/);
   assert.match(tokens, /--ink-read:color-mix\(/);
 });
+t("a thread's page title is the title role, as every top bar's", () => {
+  const app = sheets.find(([f]) => f === "app.css")[1];
+  for (const sel of [".tw-h{", ".tw-t h1{", ".tw-in{"]) assert.match(app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel))), /var\(--fs-title\)\/var\(--lh-title\)/, sel);
+});
 t("no stylesheet uses a size, line height or weight outside the roles", () => {
   const bad = [];
   for (const [f, css] of sheets) {
