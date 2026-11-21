@@ -487,6 +487,10 @@ button:disabled{cursor:default}
 .meta-btn svg{width:var(--ic-xs);height:var(--ic-xs)}
 .route-row{display:flex;align-items:center;gap:8px;margin-top:6px;padding-right:4px;font-size:var(--fs-meta);color:var(--ink-3);animation:msg-in var(--d-in) var(--ease)}
 .route-row b{color:var(--ink-2);font-weight:var(--fw-strong)}
+.route-row.is-copy{margin-top:var(--s-3)}
+.route-row.is-copy::after{content:"";flex:1;height:1px;margin-left:var(--s-1);background:var(--fill-2)}
+.route-row.is-copy>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){.route-row.is-copy .via{display:none}}
 /* your words passed on into a thread (if1 #7): the same bubble, set slightly apart as a copy */
 .m-you.is-relay .bubble{background:transparent;border:1px dashed var(--line-strong)}
 .m.is-flash .bubble{animation:msg-flash 1.6s var(--ease)}
