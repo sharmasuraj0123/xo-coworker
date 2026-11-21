@@ -102,9 +102,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const few = !C.all && rows.length > RECENT;
     const q = C.all ? C.q.trim().toLowerCase() : "";
     const shown = few ? rows.slice(0, RECENT) : q ? rows.filter((s) => `${titleFor(s)} ${rowLine(s)}`.toLowerCase().includes(q)) : rows;
-    const head = { key: `chats-head-${C.all ? "all" : "few"}`, html: C.all
-      ? `<div class="chl-top"><h2 class="chl-k">All chats</h2><label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label><button type="button" class="chl-all" data-chl-all="0">Recent</button></div>`
-      : `<div class="chl-top"><h2 class="chl-k">Recent</h2>${few ? `<button type="button" class="chl-all" data-chl-all="1">All ${rows.length}${ICON.right}</button>` : ""}</div>` };
+    const seg = rows.length > RECENT ? `<div class="rt-seg chl-seg" role="group" aria-label="Which chats"><button type="button" data-chl-all="0" aria-pressed="${!C.all}">Recent</button><button type="button" data-chl-all="1" aria-pressed="${C.all}">All <span class="chl-n">${rows.length}</span></button></div>` : `<h2 class="chl-k">Recent</h2>`;
+    const head = { key: `chats-head-${C.all ? "all" : "few"}`, html: `<div class="chl-top">${seg}${C.all ? `<label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label>` : ""}</div>` };
     if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">No chats match “${esc(C.q.trim())}”.</p>` }];
     const groups = new Map();
     for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(s); }

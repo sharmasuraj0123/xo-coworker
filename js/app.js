@@ -3587,15 +3587,15 @@ $("#top").addEventListener("keydown", (e) => {
 $("#msgs").addEventListener("input", (e) => { if (e.target.matches?.("[data-chl-q]")) CH.search(e.target.value); });
 $("#msgs").addEventListener("click", (e) => {
   const b = e.target.closest?.("[data-chl-all]");
-  if (!b) return;
+  if (!b || b.getAttribute("aria-pressed") === "true") return;
   const all = b.dataset.chlAll === "1";
   CH.showAll(all);
   // once drawn: all of them opens at its search (a phone keeps its keyboard down), Recent returns to the composer
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const top = $("#msgs .chl-top");
     if (!top) return;
-    if (all) { top.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); (matchMedia("(max-width: 760px)").matches ? top.querySelector("[data-chl-all]") : top.querySelector("[data-chl-q]"))?.focus({ preventScroll: true }); }
-    else { $("#scroller").scrollTo({ top: 0 }); top.querySelector("[data-chl-all]")?.focus({ preventScroll: true }); }
+    if (all) { top.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); (matchMedia("(max-width: 760px)").matches ? top.querySelector('[aria-pressed="true"]') : top.querySelector("[data-chl-q]"))?.focus({ preventScroll: true }); }
+    else { $("#scroller").scrollTo({ top: 0 }); top.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true }); }
   }));
 });
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });

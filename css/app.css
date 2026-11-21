@@ -2077,11 +2077,9 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .scroller>.dock>.cbar{padding:0;background:none}
 .chl-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:0 0 var(--s-2) var(--s-3);scroll-margin-top:var(--s-4)}
 .chl-k{margin:0;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
-.chl-top>.chl-q{flex:0 1 50%;margin-left:auto}
-.chl-all{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--h-sm);padding:0 var(--s-2) 0 var(--s-3);border-radius:var(--r-pill);color:var(--ink-3);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.chl-all:not(:has(svg)){padding:0 var(--s-3)}
-.chl-all svg{width:var(--ic-sm);height:var(--ic-sm)}
-@media (hover:hover){.chl-all:hover{background:var(--fill-2);color:var(--ink)}}
+/* the field beside the segment is its height and corner (40, 12) */
+.chl-top>.chl-q{flex:0 1 50%;margin-left:auto;height:var(--h-lg);border-radius:var(--r-lg)}
+.chl-n{color:var(--ink-4);font-variant-numeric:tabular-nums}
 .chl{display:flex;flex-direction:column;gap:var(--s-5);margin:0 0 var(--s-6)}
 :root #msgs>div.chl-top:not(#_){margin-bottom:0}
 :root #msgs>div.chl-top+div.chl:not(#_){margin-top:0}
@@ -3032,7 +3030,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--r-lg);background:var(--fill-1);border:1px solid var(--line-soft)}
 .rt-seg button{height:var(--h-ctl);padding:0 12px;border-radius:var(--r);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .rt-seg button:hover{color:var(--ink)}
-.rt-seg button[aria-checked="true"]{background:var(--fill-3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.rt-seg button:is([aria-checked="true"],[aria-pressed="true"]){background:var(--fill-3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .rt-seg.is-paid{flex:none;flex-wrap:nowrap;align-self:center} /* the choices stay on one line; the words give way */
 .rt-seg.is-paid button{padding:0 10px;white-space:nowrap}
 .rt-checks{display:flex;flex-wrap:wrap;gap:8px}

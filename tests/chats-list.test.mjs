@@ -92,8 +92,9 @@ t("Chats starts with its composer: under the greeting at the top, the dock back 
 });
 t("Recent: the three latest under the composer, all of them a click away with a search over titles and lines, second lines only for what isn't the default", () => {
   const src = read("js/chats.js"), app = read("js/app.js");
-  assert.match(src, /<h2 class="chl-k">All chats<\/h2><label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
-  assert.match(src, /<h2 class="chl-k">Recent<\/h2>\$\{few \? `<button type="button" class="chl-all" data-chl-all="1">All \$\{rows\.length\}/);
+  assert.match(src, /<div class="rt-seg chl-seg" role="group" aria-label="Which chats"><button type="button" data-chl-all="0" aria-pressed="\$\{!C\.all\}">Recent<\/button><button type="button" data-chl-all="1" aria-pressed="\$\{C\.all\}">All/);
+  assert.match(src, /\$\{C\.all \? `<label class="tg-qf chl-q">\$\{ICON\.search\}<input type="search" data-chl-q/);
+  assert.match(read("css/app.css"), /\.chl-top>\.chl-q\{[^}]*height:var\(--h-lg\);border-radius:var\(--r-lg\)\}/, "the field matches the segment beside it");
   assert.match(src, /const RECENT = 3;/);
   assert.match(src, /few \? rows\.slice\(0, RECENT\) : q \? rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
   assert.match(read("css/app.css"), /\.scroller:has\(\.chl-few,\.chl-calm\)>\.column\{height:0;margin-bottom:auto\}/, "at rest the composer stands in the middle");
