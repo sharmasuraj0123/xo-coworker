@@ -34,7 +34,7 @@ t("spinners, needs-you marks and status dots draw from the pack's files, not CSS
     assert.match(tok, new RegExp(`--mask-${k}:url\\(\\.\\./assets/icons/xo/${f.replace(/\./g, "\\.")}\\)`), k);
   const all = ["app.css", "panel.css", "launchpad.css", "diffs.css", "rich.css", "dropdown.css", "docs.css"].map(css).join("\n");
   const rule = (sel) => { const i = all.indexOf(sel + "{"); assert.ok(i >= 0, sel); return all.slice(i, all.indexOf("}", i)); };
-  for (const sel of [".spin", ".tb-live", ".lp-arc::before", ".xd-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
+  for (const sel of [".spin", ".tb-live", ".lp-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
   assert.doesNotMatch(all, /\.arc::before/, "the corner badge is the pack's badge mark (icon.js ARC), not a mask");
   for (const sel of [".nv-dot", ".pr-d", ".hr-dot", ".tb-m.is-wait"]) { assert.match(rule(sel), /mask:var\(--mask-needs\)/, sel); assert.doesNotMatch(rule(sel), /rotate/, sel); }
   for (const sel of [".dd-dot", ".shd-dot", ".dg-dot", ".fl-who i", ".stage .cx-pill i", ".xd-state i", ".fl-rb em", ".lp-st>i:not(.lp-arc)", ".lpv-light", ".syl-gh i,.syl-chip i"]) assert.match(rule(sel), /mask:var\(--mask-dot\)/, sel);

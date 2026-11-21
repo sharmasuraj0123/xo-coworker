@@ -83,7 +83,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">${xi(FRAME_IC.launch, "fr-ic")}Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
-    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden></button>`) + gutter("changes", "map") +
+    frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden>${ICON.follow}</button>`) + gutter("changes", "map") +
     frame("map", "Map", `<div class="fr-views" role="tablist" aria-label="Map view"><button type="button" class="fr-t" role="tab" id="stage-map-tree" aria-controls="fr-body-map" data-map-mode="tree" title="Diagram" aria-label="Diagram">${ICON.map}</button><button type="button" class="fr-t" role="tab" id="stage-map-graph" aria-controls="fr-body-map" data-map-mode="graph" title="Graph" aria-label="Graph">${ICON.graph}</button></div>`) +
     `</div><div class="stg-page"></div></div>`;
   $("#main").appendChild(el);
@@ -319,8 +319,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const fw = el.querySelector("[data-follow]");
     fw.hidden = !hd || !hd.count;
     if (hd) {
-      const fh = `${hd.follow && hd.busy ? '<i class="xd-arc" aria-hidden="true"></i>' : ""}${ICON.follow}`;
-      if (fw._h !== fh) { redraw(fw, fh); fw._h = fh; } // in place: its label stays the node a press is on
       fw.classList.toggle("is-on", hd.follow);
       fw.setAttribute("aria-pressed", String(hd.follow));
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";

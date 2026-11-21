@@ -107,10 +107,8 @@ diffs-container{
 .stage .xd-follow.is-on{background:color-mix(in srgb,var(--info) 14%,transparent);color:color-mix(in srgb,var(--info) 75%,var(--ink))}
 .stage .xd-follow.is-on:hover{background:color-mix(in srgb,var(--info) 22%,transparent)}
 .stage .xd-follow:focus-visible,.stage .cx-r:focus-visible,.stage .cx-more:focus-visible,.stage .cx-ofi:focus-visible,.stage .cx-pill:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
-.xd-arc{position:relative;width:10px;height:10px}
 .stage .xd-follow .xi{width:var(--ic-sm);height:var(--ic-sm)}
-.xd-arc::before{content:"";position:absolute;inset:0;background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
-@media (prefers-reduced-motion:reduce){.xd-arc::before,.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
+@media (prefers-reduced-motion:reduce){.stage .cx-pill{animation:none}.stage :is(.cx-r,.cx-ofi,.xd-follow){transition:none}}
 
 /* ── Files › a changed file, on its diff (js/viewer.js): the page's own ground, side by side when there's room ── */
 .vw-diff{background:var(--canvas)}
