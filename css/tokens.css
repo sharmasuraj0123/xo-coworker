@@ -37,7 +37,8 @@
   --live-h:254; --live-l:.74; --live-c:.115;   /* the working dots: three hues around the flavour's own (css/flavours.css); Stone's is the info blue's */
   --live-1:oklch(var(--live-l) var(--live-c) calc(var(--live-h) - 30)); --live-2:oklch(var(--live-l) var(--live-c) var(--live-h)); --live-3:oklch(var(--live-l) var(--live-c) calc(var(--live-h) + 30));
   --mark-x:#E1E1E1; --mark-o:#83D63A;
-  --bubble:#232323; --bubble-line:#303030;
+  --bubble:#232323; --bubble-line:#303030; --bubble-top:#262626; --bubble-foot:#1F1F1F;   /* theirs in the bubble view: lit from above */
+  --lbx-scrim:rgba(12,12,12,.94); --checker:rgb(128 128 128 / .2);   /* behind a picture: the lightbox, a transparency grid */
   --term-bg:#111111;
   --code-bg:var(--fill-1);   /* code reads in a well, one step under the surface it sits on */
   /* the sidebar's plates (rgba, so they sit on the sunken plane) */
@@ -80,6 +81,7 @@
   /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
   --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
   --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
+  --ok-text:var(--accent); --danger-ink:color-mix(in srgb,var(--err-ink) 85%,var(--ink));   /* words on a green or a red tint */
 
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
   /* the coordinator's speaker colour, as the bubbles first set it, for every view: its name in violet over the
@@ -204,7 +206,8 @@
   --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
   --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:#A3A3A3;
   --warn-text:#8A4B0B; --need-text:#5E3507; --add-text:#2F5A12; --del-text:#9B1C22; --danger-text:#9B1C22;
-  --bubble:#EFEFEF; --bubble-line:#EFEFEF;
+  --ok-text:color-mix(in srgb,var(--accent) 80%,var(--ink)); --danger-ink:var(--err-ink);
+  --bubble:#EFEFEF; --bubble-line:#EFEFEF; --bubble-top:#FFFFFF; --bubble-foot:#F7F7F7;
   --term-bg:var(--fill-1);
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
   --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
@@ -271,6 +274,8 @@
   --need-tint-2:color-mix(in srgb,var(--warn) 20%,transparent);
   --danger-line:color-mix(in srgb,var(--err-ink) 26%,transparent);
   --danger-tint:color-mix(in srgb,var(--err) 14%,transparent);
+  --danger-wash:color-mix(in srgb,var(--err) 10%,transparent);
+  --coord-tint:color-mix(in srgb,var(--coord) 14%,transparent);
 }
 /* a phone's one-line rows stay at its 36 px floor (Settings' and the picker's rows); its taller rows keep their own
    heights in css/phone.css */
