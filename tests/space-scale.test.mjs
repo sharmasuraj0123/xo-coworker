@@ -19,7 +19,9 @@ t("every gap is on the spacing scale", () => {
   }
   assert.deepEqual(bad, []);
 });
-t("one-line buttons and bars are --h-ctl: the shared button, the checklist bar, the done line, Details", () => {
+t("one-line buttons and bars are --h-ctl: the shared button, the checklist bar, the done line, Details, the state badge", () => {
+  assert.match(rule(".badge"), /;align-self:center;gap:8px;height:var\(--h-ctl\)/);
+  assert.doesNotMatch(app, /\.rn-st \.badge\{[^}]*height:/, "the run's badge is the shared one, beside its 32 px Stop");
   assert.match(rule(".b"), /;height:var\(--h-ctl\)/);
   assert.match(rule(".ck-tog"), /;height:var\(--h-ctl\)/);
   assert.match(rule(".tp-done"), /;min-height:var\(--h-ctl\)/);
