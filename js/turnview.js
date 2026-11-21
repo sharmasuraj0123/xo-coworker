@@ -121,7 +121,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       const cur = running ? rows.filter((r) => r.status === "running") : [];
       const waiting = rows.some((r) => r.waiting);
       return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}${isOpen ? " is-unfolded" : ""}${isOpen || cur.length ? " has-rows" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
-        `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${commsHeader(rows) ? esc(commsHeader(rows)) : renderInline(commsText(b.header) || "Working", true)}</span>` +
+        `<span class="tb-hi">${cur.length ? xi(stepIcon(cur[0])) : ICON.list}</span><span class="tb-ht">${commsHeader(rows) ? esc(commsHeader(rows)) : renderInline(commsText(b.header) || "Working", true)}</span>` +
         `<span class="tb-n">${rows.length}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + tail + `</div>`;
     }

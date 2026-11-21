@@ -118,4 +118,8 @@ await t("a thinking step leads with the brain, in a turn and in a sub-agent's wo
   for (const f of ["js/turnview.js", "js/runsview.js"]) assert.match(read(f), /<span class="tb-hi">\$\{ICON\.brain\}<\/span><span class="tb-ht/, f);
   assert.match(read("css/foundation.css"), /\.turn>\.tb:not\(\.tb-think\)>\.tb-h \.tb-hi\{display:none\}/);
 });
+await t("a running tool group leads with its running step's own icon (blue while live), never an empty arc slot", () => {
+  assert.match(read("js/turnview.js"), /<span class="tb-hi">\$\{cur\.length \? xi\(stepIcon\(cur\[0\]\)\) : ICON\.list\}<\/span>/);
+  assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,\.tb-spin\{color:var\(--info\)\}/);
+});
 console.log(`\n${passed} passed`);
