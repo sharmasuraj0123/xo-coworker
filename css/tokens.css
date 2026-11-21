@@ -105,7 +105,7 @@
   --fw-regular:400; --fw-read:var(--fw-regular); --fw-medium:500; --fw-strong:600;
   --ink-read:var(--ink);
   --ok-fill:color-mix(in srgb,var(--accent-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--accent-fill) 22%,transparent); --ok-fill-press:color-mix(in srgb,var(--accent-fill) 28%,transparent);
-  --measure:max(calc(100% - var(--s-12)), min(100%, 480px));   /* outside a view's column: its own box */
+  --measure-min:480px; --measure:max(calc(100% - var(--s-12)), min(100%, var(--measure-min)));   /* outside a view's column: its own box */
 
   /* Geometry. The chrome is crisp; the conversation and the work are soft. Nested corners are computed,
      never chosen: inner = outer − inset.
