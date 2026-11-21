@@ -87,7 +87,8 @@ t("Chats starts with its composer: under the greeting at the top, the dock back 
   assert.match(app, /dockAtTop\(v === "chats"\);/);
   assert.match(app, /if \(top\) \$\("#cs-sub"\)\.after\(dock\); else \$\("#drop-veil"\)\.after\(dock\);/);
   assert.match(app, /had\?\.focus\(\{ preventScroll: true \}\)/, "focus in the composer survives the move");
-  assert.match(css, /\.app\[data-conv="chats"\] \.main\{--dock-h:0px\}/, "nothing reserves the foot's room on Chats");
+  assert.match(css, /\.dock\.is-top>\.herald\{top:calc\(100% \+ \(var\(--s-10\) - var\(--h-ctl\)\) \/ 2\);bottom:auto\}/, "a notice drops under the composer, never over the greeting or the box");
+  assert.match(css, /\.main:has\(\.dock\.is-top\)\{--dock-h:0px\}/, "nothing reserves the foot's room on Chats");
   assert.match(css, /\.cs-hi\{[^}]*var\(--fs-display\)\/var\(--lh-display\)/, "the greeting is Home's display role");
 });
 t("Recent: the three latest under the composer, all of them a click away with a search over titles and lines, second lines only for what isn't the default", () => {
@@ -116,5 +117,12 @@ t("what it may do on its own reads as a choice you make about trust: a question,
   assert.match(src, /\$\{xi\(ic, "cs-mi"\)\}<span class="cs-mt"><span class="iq-n">/);
   assert.match(src, /xi\(MODE_WORDS\[st\.mode\]\?\.\[2\] \|\| "lock"\)/, "the chip wears the chosen mode's mark");
   assert.match(css, /\.cs-md\{font:var\(--fw-regular\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-3\);text-wrap:pretty\}/);
+});
+t("switching to All keeps the greeting where it stood: no recentring, no scroll", () => {
+  const app = read("js/app.js"), css = read("css/app.css");
+  const h = app.slice(app.indexOf('closest?.("[data-chl-all]")'), app.indexOf('$("#top").addEventListener("input"'));
+  assert.match(h, /setProperty\("--cs-lead", getComputedStyle\(\$\("#cs-hi"\)\)\.marginTop\)/);
+  assert.ok(!/scrollIntoView|scrollTo\(/.test(h), "the click never scrolls the page");
+  assert.match(css, /\.cs-hi\{[^}]*margin:var\(--cs-lead,auto\) /);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

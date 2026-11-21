@@ -3144,6 +3144,8 @@ function dockAtTop(top) {
   const had = dock.contains(document.activeElement) ? document.activeElement : null;
   if (top) $("#cs-sub").after(dock); else $("#drop-veil").after(dock);
   $("#cs-hi").hidden = $("#cs-sub").hidden = !top;
+  if (!top) sc.style.removeProperty("--cs-lead");
+  dock.classList.toggle("is-top", top);
   had?.focus({ preventScroll: true });
 }
 initFollow();
@@ -3589,13 +3591,14 @@ $("#msgs").addEventListener("click", (e) => {
   const b = e.target.closest?.("[data-chl-all]");
   if (!b || b.getAttribute("aria-pressed") === "true") return;
   const all = b.dataset.chlAll === "1";
+  // the greeting keeps its place: the list grows under it instead of the page recentring
+  const sc = $("#scroller");
+  if (all) sc.style.setProperty("--cs-lead", getComputedStyle($("#cs-hi")).marginTop); else sc.style.removeProperty("--cs-lead");
   CH.showAll(all);
-  // once drawn: all of them opens at its search (a phone keeps its keyboard down), Recent returns to the composer
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const top = $("#msgs .chl-top");
     if (!top) return;
-    if (all) { top.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); (matchMedia("(max-width: 760px)").matches ? top.querySelector('[aria-pressed="true"]') : top.querySelector("[data-chl-q]"))?.focus({ preventScroll: true }); }
-    else { $("#scroller").scrollTo({ top: 0 }); top.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true }); }
+    (all && !matchMedia("(max-width: 760px)").matches ? top.querySelector("[data-chl-q]") : top.querySelector('[aria-pressed="true"]'))?.focus({ preventScroll: true });
   }));
 });
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
