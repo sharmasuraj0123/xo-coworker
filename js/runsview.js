@@ -1,7 +1,4 @@
-// Sub-agents (ch 14 §11): what a thread's agent handed off, shown the way Claude Code shows it. While a
-// sub-agent works it is listed; opened, it reads like a thread of its own, built from its transcript;
-// when it finishes it leaves a log row. Messaging a sub-agent isn't offered (no route, §0.82).
-// Pure HTML builders: the data comes from storm (runs, ancestry, transcript items).
+// Sub-agents as a page in the right panel: pure HTML builders over storm's runs and transcripts.
 
 import { esc } from "./world.js";
 import { ICON, xi, stepMark, stateMark } from "./ui.js";
@@ -34,43 +31,77 @@ export function runsStripHtml(live, total) {
   return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.agent}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
 }
 
-/** One row of the list (recursive for children). */
-function rowHtml(r, { canStop, depth = 0, saidFor = null, out = [] }) {
-  const meta = [KIND_WORD[r.kind] || "", r.tool_calls ? `${r.tool_calls} step${r.tool_calls === 1 ? "" : "s"}` : "", r.tokens ? `${num(r.tokens)} tokens` : "", dur(r.started_at, LIVE.has(r.state) ? null : r.ended_at)].filter(Boolean).join(" · ");
-  // a stop on its way: busy, taking no repeat, until its answer is said
+const CMD = new Set(["background_command", "monitor"]);
+const isCmd = (r) => CMD.has(r.kind);
+const failedOf = (r) => r.state === "failed" || r.state === "lost";
+const end = (r) => (LIVE.has(r.state) ? null : r.ended_at || r.last_activity_at);
+const newest = (a, b) => (LIVE.has(b.state) - LIVE.has(a.state)) || (Date.parse(b.started_at || 0) || 0) - (Date.parse(a.started_at || 0) || 0);
+const flat = (nodes, out = []) => { for (const n of nodes || []) { out.push(n); flat(n.children, out); } return out; };
+const looksCmd = (t) => /&&|\|\s|;\s|^\s*(?:cd|git|node|python3?|npm|npx|curl|bash|rm|ls|grep|sed|cat|timeout|export)\b|\/[\w.-]+\//.test(t || "");
+const toolWord = (t) => String(t || "").replace(/^mcp__\w+__/, "").replace(/_/g, " ");
+const cmdIcon = (r) => stepIcon({ kind: "command", target: r.title, line: r.title });
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+/** A live run's Stop: busy, taking no repeat, while its stop is on its way. */
+function stopHtml(r, canStop, out) {
+  if (!canStop || !LIVE.has(r.state) || r.can_stop === false) return "";
   const busy = out.includes(`run:${r.id}`);
-  const stop = canStop && LIVE.has(r.state) && r.can_stop !== false
-    ? `<button type="button" class="rn-stop" data-run-stop="${esc(r.id)}" title="${busy ? "Sending the stop…" : "Stop this sub-agent (Undo for 3 s)"}"${busy ? ' aria-busy="true" aria-disabled="true"' : ""}>${ICON.stop}<span>${busy ? "Stopping…" : "Stop"}</span></button>` : "";
-  return `<li class="rn-row st-${esc(r.state)}${depth ? " is-child" : ""}" style="--d:${depth}">` +
-    `<button type="button" class="rn-open" data-run="${esc(r.id)}">${stateMark(glyph(r.state))}` +
-    `<span class="rn-main"><span class="rn-t">${esc(r.title)}</span><span class="rn-m">${esc(STATE_WORD[r.state] || r.state)}${meta ? ` · ${esc(meta)}` : ""}</span>` +
-    (r.summary && !LIVE.has(r.state) ? `<span class="rn-s">${esc(r.summary)}</span>` : "") + `</span>${ICON.right}</button>${stop}</li>` +
-    (saidFor && saidFor.key === `run:${r.id}` ? `<li class="rn-said-row" style="--d:${depth}">${saidHtml(saidFor, `run:${r.id}`)}</li>` : "") +
-    (r.children || []).map((c) => rowHtml(c, { canStop, depth: depth + 1, saidFor, out })).join("");
+  return `<button type="button" class="rn-stop" data-run-stop="${esc(r.id)}" title="${busy ? "Sending the stop…" : "Stop this sub-agent (Undo for 3 s)"}"${busy ? ' aria-busy="true" aria-disabled="true"' : ""}>${ICON.stop}<span>${busy ? "Stopping…" : "Stop"}</span></button>`;
 }
 
-/** The list: working now first, then the log. */
-/** stops: stops of this thread's runs still in their Undo window [{key, what}] (the sheet's own Undo, since the
- *  page behind the sheet can't be reached while it's open); state: "loading" | "error" | "ok". */
-export function runsListHtml(tree, counts, { canStop, title, stops = [], state = "ok", error = "", saidFor = null, session = "", out = [] }) {
-  tree = tree || [];
-  const live = tree.filter((r) => LIVE.has(r.state));
-  const done = tree.filter((r) => !LIVE.has(r.state));
-  const c = counts || {};
-  const sum = [c.running && `${c.running} working`, c.waiting && `${c.waiting} waiting on you`, c.done && `${c.done} done`, c.failed && `${c.failed} failed`, c.stopped && `${c.stopped} stopped`].filter(Boolean).join(" · ");
-  // "none" only when a read said so: while it reads, it says so; a failed read says what failed, with a retry.
-  // Rows already shown from before stay, and say the same above them: reading again, or that the read failed
-  // (Astra SRC-MAIN-RUN-2: cached rows hid the reading, the refusal and Try again)
-  const said = state === "loading" ? `<p class="rn-none" role="status">${tree.length ? "Reading its sub-agents again…" : "Reading its sub-agents…"}</p>`
-    : state === "error" ? `<p class="rn-none" role="alert">Couldn't read its sub-agents${tree.length ? " again" : ""}: ${esc(error)} <button type="button" class="fl-link" data-runs-retry>Try again</button></p>`
-    : !tree.length ? `<p class="rn-none">No sub-agents yet.</p>` : "";
-  return `<header class="rn-h"><div><h2 id="runs-h">Sub-agents</h2><p>${esc(title)}${sum ? ` · ${esc(sum)}` : ""}</p></div>` +
-    (canStop && live.length > 1 ? (out.includes(`all:${session}`) ? `<button type="button" class="rn-stopall" data-runs-stop title="Sending the stop…" aria-busy="true" aria-disabled="true">Stopping…</button>` : `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${live.length}</button>` ) : "") +
-    `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-body">` + stopsHtml(stops) + saidHtml(saidFor, `all:${session}`) + (tree.length ? said : "") +
-    (live.length ? `<h3 class="rn-k">Working now</h3><ul class="rn-list">${live.map((r) => rowHtml(r, { canStop, saidFor, out })).join("")}</ul>` : "") +
-    (done.length ? `<h3 class="rn-k">${live.length ? "Earlier" : "What they did"}</h3><ul class="rn-list">${done.map((r) => rowHtml(r, { canStop, saidFor, out })).join("")}</ul>` : "") +
-    (!tree.length ? said : "") + `</div>`;
+/** An agent's row: its mark, title, what it is and took, what it does now or what it said; its own agents under it. */
+function agentHtml(r, o, depth = 0) {
+  const live = LIVE.has(r.state);
+  const meta = [r.agent_type && r.agent_type !== "general-purpose" ? r.agent_type : KIND_WORD[r.kind] !== "Sub-agent" ? KIND_WORD[r.kind] : "", live ? STATE_WORD[r.state] : failedOf(r) || r.state === "stopped" ? STATE_WORD[r.state] : "",
+    r.tool_calls ? plural(r.tool_calls, "step") : "", r.tokens ? `${num(r.tokens)} tokens` : "", dur(r.started_at, end(r))].filter(Boolean).join(" · ");
+  const kids = (r.children || []).filter((c) => !isCmd(c)).sort(newest);
+  const cmds = flat(r.children).filter(isCmd).length;
+  const now = live && r.last_tool ? `<span class="rn-now">${xi("step-doing")}<span>${esc(toolWord(r.last_tool))}</span></span>` : "";
+  const sum = !live && r.summary && r.summary !== r.title ? `<span class="rn-s">${esc(r.summary)}</span>` : "";
+  return `<li class="rn-row st-${esc(r.state)}"><div class="rn-line"><button type="button" class="rn-open" data-run="${esc(r.id)}">` +
+    `<span class="rn-tile">${xi("agent")}<i class="rn-dot">${stateMark(glyph(r.state))}</i></span>` +
+    `<span class="rn-main"><span class="rn-t">${esc(r.title || "Sub-agent")}</span>${meta ? `<span class="rn-m">${esc(meta)}</span>` : ""}${now}${sum}</span>` +
+    (cmds ? `<span class="rn-kids" title="${plural(cmds, "command")}">${xi("terminal")}${cmds}</span>` : "") + `<span class="rn-chev">${ICON.right}</span></button>${stopHtml(r, o.canStop, o.out)}</div>` +
+    saidHtml(o.saidFor, `run:${r.id}`) +
+    (kids.length ? `<ul class="rn-list is-sub">${kids.map((c) => agentHtml(c, o, depth + 1)).join("")}</ul>` : "") + `</li>`;
+}
+function cmdHtml(r, o) {
+  const t = r.title || "A command";
+  return `<li class="rn-cmd st-${esc(r.state)}"><div class="rn-line"><button type="button" class="rn-cmd-b" data-run="${esc(r.id)}">${stateMark(glyph(r.state))}<span class="rn-ci">${xi(cmdIcon(r))}</span>` +
+    `<span class="rn-ct${looksCmd(t) ? " is-mono" : ""}">${esc(t)}</span><span class="rn-cd">${esc(dur(r.started_at, end(r)) || "")}</span></button>${stopHtml(r, o.canStop, o.out)}</div>${saidHtml(o.saidFor, `run:${r.id}`)}</li>`;
+}
+/** Commands, folded into one group: how many run, ended and failed; the first 8, then the rest on asking. */
+function cmdsHtml(cmds, o) {
+  if (!cmds.length) return "";
+  const f = cmds.filter(failedOf).length, l = cmds.filter((r) => LIVE.has(r.state)).length;
+  const sub = [l && `${l} running`, cmds.length - f - l && `${cmds.length - f - l} done`, f && `${f} failed`].filter(Boolean).join(" · ");
+  const open = o.cmdsOpen !== false, max = o.cmdsAll ? cmds.length : 8;
+  return `<section class="rn-sec"><button type="button" class="rn-grp" data-runs-cmds aria-expanded="${open}">${xi("terminal")}<span class="rn-gt">Commands</span><span class="rn-gs">${esc(sub)}</span><span class="rn-chev">${ICON.chevron}</span></button>` +
+    (open ? `<ul class="rn-cmds">${cmds.slice(0, max).map((r) => cmdHtml(r, o)).join("")}</ul>${cmds.length > max ? `<button type="button" class="rn-more" data-runs-more>Show ${cmds.length - max} more</button>` : ""}` : "") + `</section>`;
+}
+/** Agents first, live then newest; every command, at any depth, in one group under them. */
+function splitRuns(nodes) {
+  const all = flat(nodes);
+  return { all, agents: (nodes || []).filter((r) => !isCmd(r)).sort(newest), cmds: all.filter(isCmd).sort(newest) };
+}
+
+/** The Sub-agents page: what works and what it cost, the agents, the commands; state is loading, error or ok. */
+export function runsListHtml(tree, counts, { canStop, stops = [], state = "ok", error = "", saidFor = null, session = "", out = [], cmdsOpen = true, cmdsAll = false }) {
+  const { all, agents, cmds } = splitRuns(tree || []);
+  const o = { canStop, saidFor, out, cmdsOpen, cmdsAll };
+  const live = all.filter((r) => LIVE.has(r.state)), failed = all.filter(failedOf).length, tokens = all.reduce((s, r) => s + (r.tokens || 0), 0);
+  const top = (tree || []).filter((r) => LIVE.has(r.state));
+  const nAgents = all.length - cmds.length;
+  const said = state === "loading" ? `<p class="rn-none" role="status">${all.length ? "Reading its sub-agents again…" : "Reading its sub-agents…"}</p>`
+    : state === "error" ? `<p class="rn-none" role="alert">Couldn't read its sub-agents${all.length ? " again" : ""}: ${esc(error)} <button type="button" class="fl-link" data-runs-retry>Try again</button></p>`
+    : !all.length ? `<p class="rn-none">No sub-agents yet.</p>` : "";
+  const stopAll = canStop && top.length > 1 ? (out.includes(`all:${session}`)
+    ? `<button type="button" class="rn-stopall" data-runs-stop title="Sending the stop…" aria-busy="true" aria-disabled="true">Stopping…</button>`
+    : `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${top.length}</button>`) : "";
+  const pills = all.length ? `<div class="rn-stats">${[live.length && `<span class="is-live"><b>${live.length}</b> working</span>`, `<span><b>${nAgents}</b> agent${nAgents === 1 ? "" : "s"}</span>`,
+    cmds.length && `<span><b>${cmds.length}</b> command${cmds.length === 1 ? "" : "s"}</span>`, tokens && `<span><b>${num(tokens)}</b> tokens</span>`, failed && `<span class="is-err"><b>${failed}</b> failed</span>`].filter(Boolean).join("")}${stopAll}</div>` : "";
+  return `<div class="rn-body">` + stopsHtml(stops) + saidHtml(saidFor, `all:${session}`) + pills + said +
+    (agents.length ? `<h3 class="rn-k">Agents</h3><ul class="rn-list">${agents.map((r) => agentHtml(r, o)).join("")}</ul>` : "") + cmdsHtml(cmds, o) + `</div>`;
 }
 /** What a stop's answer said, in the sheet where you acted (under the run's row, or at the top for Stop all), as well
  *  as in the notice behind the sheet (the create-project grader on 2a8d278: a refusal was said only there, unseen).
@@ -85,21 +116,16 @@ export function stopsHtml(stops) {
   return `<ul class="rn-stops" aria-label="Stopping">${stops.map((s) => `<li class="rn-stopping" data-key="stop:${esc(s.key)}"><span>Stopping ${esc(s.what)}</span><button type="button" class="t-undo" data-runs-undo="${esc(s.key)}">Undo</button></li>`).join("")}</ul>`;
 }
 
-/** Workspace › Project › Thread › Sub-agent, from the run's ancestry. */
-export function pathHtml(anc, run) {
-  const parts = [];
-  if (anc && anc.chat) parts.push(anc.chat.kind === "workspace" ? "Workspace" : anc.chat.name || anc.chat.project_pid || "Project");
-  if (anc && anc.thread) parts.push(anc.thread.title || "Thread");
-  for (const r of (anc && anc.runs) || []) if (r.id !== run.id) parts.push(r.title || "Sub-agent");
-  return `<p class="rn-path">${parts.map((p) => `<span>${esc(p)}</span>`).join(`<i aria-hidden="true">›</i>`)}${parts.length ? `<i aria-hidden="true">›</i>` : ""}<b>${esc(run.title || "Sub-agent")}</b></p>`;
-}
-
 /** A run's transcript as a conversation (input, text, thinking, tool calls with their results, errors). */
 export function transcriptHtml(items, { open = {} } = {}) {
   const results = new Map(items.filter((i) => i.type === "tool_result").map((i) => [i.call_id, i]));
   const out = [];
   for (const it of items) {
-    if (it.type === "input") out.push(`<div class="rt-in"><span class="rt-k">Its task</span><div class="prose">${renderMarkdown(it.text || "")}</div></div>`);
+    if (it.type === "input") {
+      const key = `rt:${it.id}`, long = (it.text || "").length > 360 || (it.text || "").split("\n").length > 5;
+      out.push(`<div class="rt-in${long && !open[key] ? " is-clamp" : ""}"><span class="rt-k">Its task</span><div class="prose">${renderMarkdown(it.text || "")}</div>` +
+        (long ? `<button type="button" class="rt-all" data-tb="${esc(key)}" aria-expanded="${!!open[key]}">${open[key] ? "Show less" : "Show all"}</button>` : "") + `</div>`);
+    }
     else if (it.type === "text") out.push(`<div class="prose rt-text">${renderMarkdown(it.text || "")}</div>`);
     else if (it.type === "thinking") {
       const key = `rt:${it.id}`;
@@ -121,19 +147,22 @@ export function transcriptHtml(items, { open = {} } = {}) {
   return out.join("");
 }
 
-/** The whole run view: path, state, Stop, its transcript, its own sub-agents. */
-export function runViewHtml(run, { anc, items, children = [], canStop, gone = null, error = null, loading = false, open = {}, stops = [], saidFor = null, out = [] }) {
-  const live = LIVE.has(run.state);
-  const head = `<header class="rn-h is-run"><button type="button" class="rn-back" data-runs-back title="Back to the list">${ICON.back}<span>Sub-agents</span></button>` +
-    `<button type="button" class="x" data-close aria-label="Close"></button></header>` +
-    `<div class="rn-top">${pathHtml(anc, run)}<div class="rn-st"><span class="badge st-${esc(glyph(run.state))}">${stateMark(glyph(run.state))}${esc(STATE_WORD[run.state] || run.state)}</span>` +
-    (canStop && live && run.can_stop !== false ? (out.includes(`run:${run.id}`) ? `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Sending the stop…" aria-busy="true" aria-disabled="true">${ICON.stop}<span>Stopping…</span></button>` : `<button type="button" class="rn-stop" data-run-stop="${esc(run.id)}" title="Stop this sub-agent (Undo for 3 s)">${ICON.stop}<span>Stop</span></button>`) : "") + `</div></div>`;
+/** A run's page: what it is, its state and cost in tiles, its result, its own agents and commands, its transcript. */
+export function runViewHtml(run, { items, children = [], canStop, gone = null, error = null, loading = false, open = {}, stops = [], saidFor = null, out = [], cmdsOpen = true, cmdsAll = false, anc = null }) {
+  const live = LIVE.has(run.state), cmd = isCmd(run), t = run.title || (cmd ? "A command" : "Sub-agent");
+  const parent = ((anc && anc.runs) || []).filter((r) => r.id !== run.id).pop();
+  const kind = [cmd ? KIND_WORD[run.kind] : "Sub-agent", !cmd && run.agent_type && run.agent_type !== "general-purpose" ? run.agent_type : "", parent ? `in ${parent.title || "a sub-agent"}` : ""].filter(Boolean).join(" · ");
+  const tiles = [["State", `<span class="rn-sv st-${esc(run.state)}">${stateMark(glyph(run.state))}${esc(STATE_WORD[run.state] || run.state)}</span>`], !cmd && ["Steps", esc(String(run.tool_calls ?? "–"))], !cmd && ["Tokens", esc(num(run.tokens) || "–")], ["Time", esc(dur(run.started_at, end(run)) || "–")]].filter(Boolean);
+  const hero = `<div class="rn-hero"><span class="rn-tile is-lg">${xi(cmd ? cmdIcon(run) : "agent")}</span><div class="rn-main"><span class="rn-kind">${esc(kind)}</span><h3 class="rn-ht${looksCmd(t) ? " is-mono" : ""}">${esc(t)}</h3></div>${stopHtml(run, canStop, out)}</div>` +
+    `<dl class="rn-tiles">${tiles.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>`;
+  const result = run.summary && !live && run.summary !== t ? `<div class="rn-result"><span class="rn-kind">Result</span><p>${esc(run.summary)}</p></div>` : "";
+  const { agents, cmds } = splitRuns(children);
+  const o = { canStop, saidFor, out, cmdsOpen, cmdsAll };
+  const kids = (agents.length ? `<h3 class="rn-k">Its sub-agents</h3><ul class="rn-list">${agents.map((r) => agentHtml(r, o)).join("")}</ul>` : "") + cmdsHtml(cmds, o);
   let body;
-  if (gone) body = `<p class="rn-none">Its transcript is gone. ${esc(gone)}</p>`;
-  else if (error) body = `<p class="rn-none">Couldn't read its work: ${esc(error)}</p>`;
-  else if (loading && !items.length) body = `<p class="rn-none"><i class="spin" aria-hidden="true"></i> Reading its work…</p>`;
+  if (gone) body = `<p class="rn-note">${xi("history")}<span>Its step-by-step record is no longer kept${result ? "; the result above is what's left" : ""}.</span></p>`;
+  else if (error) body = `<p class="rn-none" role="alert">Couldn't read its work: ${esc(error)}</p>`;
+  else if (loading && !items.length) body = `<p class="rn-none" role="status"><i class="spin" aria-hidden="true"></i> Reading its work…</p>`;
   else body = transcriptHtml(items, { open }) || `<p class="rn-none">Nothing recorded yet.</p>`;
-  const kids = children.length ? `<h3 class="rn-k">Its sub-agents</h3><ul class="rn-list">${children.map((c) => rowHtml(c, { canStop })).join("")}</ul>` : "";
-  const summary = run.summary && !live ? `<p class="rn-sum">${esc(run.summary)}</p>` : "";
-  return `${head}<div class="rn-body rn-run">${stopsHtml(stops)}${saidHtml(saidFor, `run:${run.id}`)}${summary}${body}${kids}<p class="rn-foot">Messaging a sub-agent isn't possible; talk to its thread instead.</p></div>`;
+  return `<div class="rn-body rn-run">${hero}${stopsHtml(stops)}${saidHtml(saidFor, `run:${run.id}`)}<div class="rn-work">${result}${kids}${body}</div></div>`;
 }

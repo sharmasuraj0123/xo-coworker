@@ -1510,35 +1510,54 @@ function runsStrip(t) {
   if (!SHAPE.on("xo:thread/subagents")) return runsStripHtml(live.filter((r) => r.state === "waiting"), 0);
   return runsStripHtml(live, total);
 }
-const runsEl = $("#runs"), runsCard = $("#runs-card");
-const RS = { said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
+// Sub-agents: a page in the right panel, over the thread page it was opened from
+const runsCard = document.createElement("div");
+Object.assign(runsCard, { id: "runs-card", className: "runs-pg", tabIndex: -1 });
+runsCard.setAttribute("role", "region");
+runsCard.setAttribute("aria-label", "Sub-agents");
+const RS = { cmdsOpen: true, cmdsAll: false, said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
-// this sheet's own stops still in their Undo: the page behind it is inert while it's open (Astra: Stop's only
-// Undo was out of reach)
+// this page's own stops still in their Undo, where you acted
 const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
-/** A control in the Runs sheet as a selector, by its first data- hook's name and value ([data-run-stop="a1"]). */
+/** A control in the Sub-agents page as a selector, by its first data- hook's name and value ([data-run-stop="a1"]). */
 const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !e.attributes) return ""; const a = [...e.attributes].find((x) => x.name.startsWith("data-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
 function runsRender() {
   if (!RS.open) return;
   const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), title: RS.title, stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session, out: [...stopsOut] })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen });
+    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session, out: [...stopsOut], cmdsOpen: RS.cmdsOpen, cmdsAll: RS.cmdsAll })
+    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen, cmdsOpen: RS.runCmds, cmdsAll: RS.cmdsAll });
   if (runsCard._h !== html) {
+    const had = runsCard.contains(document.activeElement);
     const body = runsCard.querySelector(".rn-body");
     const keep = body ? body.scrollTop : 0;
-    // the control with focus, by its hook's name and value: found again if the redraw replaced it (a Stop after its
-    // answer: the create-project grader on 2a8d278, S100, focus went to the sheet with its Stop still there)
+    // the control with focus, found again by its hook if the redraw replaced it
     const hook = runsHook(document.activeElement);
     // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
     redraw(runsCard, html); runsCard._h = html;
-    for (const x of runsCard.querySelectorAll("[data-close]")) if (!x.firstChild) x.innerHTML = ICON.close;
     const nb = runsCard.querySelector(".rn-body");
     if (nb && RS.keepScroll) nb.scrollTop = keep;
-    // a re-render must not drop focus out of the sheet (Escape, Tab stay inside it): the same control, else the sheet
-    if (!runsEl.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usable(same) ? same : runsCard).focus({ preventScroll: true }); }
+    if (had && !runsCard.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usable(same) ? same : runsCard).focus({ preventScroll: true }); }
   }
 }
-function runsEscape() { if (RS.view === "run") { RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false; runsRender(); } else closeRuns(); }
+/** ‹ and Esc: from a run to the list, its row in focus; from the list, back to the thread. */
+function runsEscape() {
+  if (RS.view !== "run") { closeRuns(); return; }
+  const id = RS.runId;
+  RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false;
+  runsRender(); STAGE.repaint();
+  runsLand(`[data-run="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+}
+const runsTitle = () => (RS.view === "run" ? (RS.run && /^(background_command|monitor)$/.test(RS.run.kind) ? "Command" : "Sub-agent") : "Sub-agents");
+STAGE.page("runs", {
+  over: true,
+  title: runsTitle,
+  backTo: () => (RS.view === "run" ? "Sub-agents" : RS.panelWas || STAGE.pageShown?.name !== "runs" ? "" : "the thread"),
+  mount: (box) => box.append(runsCard),
+  onShow: (_k, { focus } = {}) => { runsRender(); if (focus) runsCard.focus({ preventScroll: true }); },
+  close: () => runsGone(),
+  up: () => { runsEscape(); return true; },
+  escape: () => { runsEscape(); return true; },
+});
 async function openRuns(t, runId = null) {
   if (!t || !t.sessionId) return;
   if (!RS.open) { RS.returnTo = document.activeElement; RS.head = (convAt(RS.returnTo) === MAIN ? $("#thead") : $("#tpthead")); }
@@ -1547,19 +1566,17 @@ async function openRuns(t, runId = null) {
   // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
   // same thread never lands in this one (Astra SRC-MAIN-RUN-1: close, reopen, and the old answer won)
   const my = ++RS.opening;
+  if (!RS.open) Object.assign(RS, { panelWas: STAGE.isOpen, cmdsOpen: true, cmdsAll: false });
   Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false, listState: "loading", listErr: "" });
-  runsEl.hidden = false;
-  runsRender();
+  if (!STAGE.show("runs", t.sessionId)) { RS.open = false; return; }
   await readRunsList(t.sessionId, my);
   if (!RS.open || RS.session !== t.sessionId || RS.opening !== my) return;
   if (runId) openRun(runId); else { runsRender(); runsLand()?.focus(); }
 }
-/** Where focus lands in Runs once its list is drawn: Try again after a refusal, else the first run, else Close, in
- *  that order. (One comma selector matches in document order, and Close comes first in it: after a second refused
- *  read focus went to × instead of staying on Try again: Astra S238.) */
+/** Where focus lands in Sub-agents once its list is drawn: Try again after a refusal, else the first run, else the page. */
 function runsLand(...first) {
-  const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", "[data-runs-retry]", "[data-close]"];
-  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || null;
+  const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", ".rn-cmd-b", "[data-runs-retry]"];
+  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || runsCard;
 }
 /** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
  *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
@@ -1578,8 +1595,8 @@ async function readRunsList(sid, my = RS.opening) {
 async function openRun(id) {
   clearTimeout(RS.pollT);
   const gen = ++RS.gen; // a read for another run (or a closed sheet) never writes into this one
-  Object.assign(RS, { view: "run", runId: id, run: world.state.runs.get(id) || null, anc: null, items: [], cursor: null, children: [], loading: true, error: null, gone: null, keepScroll: false });
-  runsRender();
+  Object.assign(RS, { runCmds: false, view: "run", runId: id, run: world.state.runs.get(id) || null, anc: null, items: [], cursor: null, children: [], loading: true, error: null, gone: null, keepScroll: false });
+  runsRender(); STAGE.repaint();
   try {
     const r = await world.act.run(id);
     if (gen !== RS.gen) return;
@@ -1588,8 +1605,8 @@ async function openRun(id) {
     const findKids = (nodes) => { for (const n of nodes || []) { if (n.id === id) return n.children || []; const k = findKids(n.children); if (k) return k; } return null; };
     RS.children = findKids(RS.tree) || [];
   } catch (err) { if (gen !== RS.gen) return; RS.error = err.message; }
+  STAGE.repaint();
   await readTranscript(id, gen);
-  if (gen === RS.gen) runsCard.querySelector(".rn-back")?.focus();
 }
 /** Read the transcript; while the run works, read again from the last cursor and add only new items. */
 async function readTranscript(id, gen) {
@@ -1619,18 +1636,27 @@ async function readTranscript(id, gen) {
   const live = world.state.runs.get(id);
   if (mine() && (!live || LIVE_RUN(live)) && !RS.gone && !RS.error) RS.pollT = setTimeout(() => readTranscript(id, gen), 2500);
 }
+/** Back to the thread: the page steps back, or the panel closes if it opened for it. */
 function closeRuns() {
   if (!RS.open) return;
+  if (!RS.panelWas && STAGE.pageShown?.name === "runs") STAGE.close({ restore: false }); else STAGE.closePage("runs");
+  // a phone's panel covers the chat: what opened it takes focus once the panel is gone
+  const a = document.activeElement;
+  if (!a || a === document.body) RS.refocus?.();
+  RS.refocus = null;
+}
+// the page is gone (back, another place, the panel closed): focus, if it was here, goes back to what opened it
+function runsGone() {
+  if (!RS.open) return;
+  const here = runsCard.contains(document.activeElement) || STAGE.owns(document.activeElement);
   clearTimeout(RS.pollT);
-  RS.gen++; RS.open = false; runsEl.hidden = true; runsCard.innerHTML = ""; runsCard._h = "";
-  syncInert();
-  // back to what opened it; if that was redrawn while Runs was open (the thread's head redraws as its checklist
-  // moves), to the same control drawn now, else the conversation: never the page (Astra RUN-7/S102)
-  // (the page itself is never a place to go back to: opened from nowhere in particular, the conversation)
+  RS.gen++; RS.open = false; runsCard.replaceChildren(); runsCard._h = "";
   const was = RS.returnTo;
   const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? RS.head?.querySelector("[data-runs]") : null; };
   RS.returnTo = null;
-  [was, like(was), RS.head?.querySelector("[data-runs]"), RS.head === $("#tpthead") ? TP.C?.scroller : placeRegion()].find(usable)?.focus({ preventScroll: true }); // the place's own region (Home, Artifacts, the conversation)
+  const head = RS.head, to = () => [was, like(was), head?.querySelector("[data-runs]"), head === $("#tpthead") ? TP.C?.scroller : placeRegion()].find(usable)?.focus({ preventScroll: true });
+  RS.refocus = here ? to : null;
+  if (here) to();
 }
 /** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
@@ -1688,11 +1714,11 @@ function stopRunsUndo(what, fn, key = what, session = RS.session) {
     if (RS.open && RS.session === session) { await readRunsList(session); runsRender(); }
   }, Kit.COMMIT_MS);
 }
-runsEl.addEventListener("click", (e) => {
-  if (e.target === runsEl || e.target.closest("[data-close]")) { closeRuns(); return; }
+runsCard.addEventListener("click", (e) => {
+  if (e.target.closest("[data-runs-cmds]")) { if (RS.view === "run") RS.runCmds = !RS.runCmds; else RS.cmdsOpen = !RS.cmdsOpen; RS.keepScroll = true; runsRender(); return; }
+  if (e.target.closest("[data-runs-more]")) { RS.cmdsAll = true; RS.keepScroll = true; runsRender(); runsCard.querySelector(".rn-cmds li:nth-child(9) button")?.focus({ preventScroll: true }); return; }
   const tb = e.target.closest("[data-tb]");
   if (tb) { S.tbOpen[tb.dataset.tb] = !S.tbOpen[tb.dataset.tb]; RS.keepScroll = true; runsRender(); return; }
-  if (e.target.closest("[data-runs-back]")) { RS.gen++; clearTimeout(RS.pollT); RS.view = "list"; RS.runId = null; RS.keepScroll = false; runsRender(); return; }
   const st = e.target.closest("[data-run-stop]");
   if (st) { const r = world.state.runs.get(st.dataset.runStop) || { title: "this sub-agent" }; stopRunsUndo(r.title, () => world.act.stopRun(st.dataset.runStop), `run:${st.dataset.runStop}`); return; }
   if (e.target.closest("[data-runs-stop]")) { const sid = RS.session; stopRunsUndo("every sub-agent of this thread", () => world.act.stopRuns(sid), `all:${sid}`); return; }
@@ -1710,7 +1736,6 @@ runsEl.addEventListener("click", (e) => {
   const op = e.target.closest("[data-run]");
   if (op) openRun(op.dataset.run);
 });
-runsEl.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); runsEscape(); } });
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
@@ -4172,7 +4197,7 @@ jump.addEventListener("mousedown", (e) => { if (e.target === jump) closeJump(); 
 function syncInert() {
   // only what this set inert is released here: Files keeps its own inert parts (a railed or folded chat)
   const hold = (el, on) => { if (on && !el.inert) { el.inert = true; el.dataset.layerInert = ""; } else if (!on && "layerInert" in el.dataset) { el.inert = false; delete el.dataset.layerInert; } };
-  hold($("#app"), [jump, keys, allEl, runsEl, QO.el].some((el) => !el.hidden));
+  hold($("#app"), [jump, keys, allEl, QO.el].some((el) => !el.hidden));
   const settings = !setEl.hidden;
   for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) hold(el, settings);
   // a phone: the sidebar is a drawer; closed, it is off screen and out of reach; open, it covers the main area
@@ -4180,11 +4205,11 @@ function syncInert() {
   hold($("#side"), PHONE.matches && !drawer);
   hold($("#main"), PHONE.matches && drawer);
 }
-queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, runsEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
+queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
 /** The layer that holds the keyboard, the page behind it inert (syncInert): a sheet; on a phone, Settings (it covers
  *  the whole screen there), else the open drawer (the sidebar, over the main area). Null when the page itself does. */
 function keyLayer() {
-  return [runsEl, keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null)
+  return [keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null)
     || (PHONE.matches && $("#app").classList.contains("drawer") ? $("#side") : null);
 }
 // Tab and Shift+Tab go round the open layer: past its last control is its first, never the page behind it (inert,
@@ -4812,11 +4837,10 @@ wireGestures({
   settingsOpen: () => !setEl.hidden, closeSettings: () => closeSettings(),
   viewerOpen: () => VW.isOpen, closeViewer: () => VW.close(),
   panelOpen: () => D.isOpen(),
-  runsDeep: () => RS.open && RS.view === "run", runsBack: () => runsEscape(),
+  runsDeep: () => RS.open && RS.view === "run", runsBack: () => runsEscape(), runsCard,
   sheets: [
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: allEl, card: () => allEl.querySelector(".sheet-card"), open: () => !allEl.hidden, close: closeAll },
-    { host: runsEl, card: () => runsCard, open: () => RS.open, close: closeRuns },
     { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: closeJump },
     { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
     { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },

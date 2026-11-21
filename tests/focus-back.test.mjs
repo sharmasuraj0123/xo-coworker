@@ -50,6 +50,6 @@ await t("Runs' close takes the shared test (its own copy is gone)", () => {
   const app = read("js/app.js");
   const runs = app.slice(app.indexOf("function closeRuns()"), app.indexOf("/** Stop one sub-agent"));
   assert.doesNotMatch(runs, /usable = \(/);
-  assert.match(runs, /\[was, like\(was\), RS\.head\?\.querySelector\("\[data-runs\]"\), RS\.head === \$\("#tpthead"\) \? TP\.C\?\.scroller : placeRegion\(\)\]\.find\(usable\)/);
+  assert.match(runs, /\[was, like\(was\), head\?\.querySelector\("\[data-runs\]"\), head === \$\("#tpthead"\) \? TP\.C\?\.scroller : placeRegion\(\)\]\.find\(usable\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

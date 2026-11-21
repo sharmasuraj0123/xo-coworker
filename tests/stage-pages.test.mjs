@@ -63,7 +63,7 @@ assert.doesNotMatch(appCss, /body\.viewer-open \.tdock\{display:none\}/);
 
 // one head: ‹ (one level back, named), the page's lead control, its title; the page's controls then the panel's
 const th = stage.slice(stage.indexOf("  function titleHtml("), stage.indexOf("  let nameOf"));
-assert.match(th, /const to = S\.under \? pageTitle\(S\.under\) : "Threads, Changes and Map"/);
+assert.match(th, /const to = sp\.backTo\?\.\(S\.page\.key\) \|\| \(S\.under \? pageTitle\(S\.under\) : "Threads, Changes and Map"\)/);
 assert.match(th, /return `\$\{back\}\$\{lead\}<b class="stg-name" title="\$\{esc\(title\)\}">\$\{esc\(title\)\}<\/b>`;/);
 assert.match(stage, /<div class="stg-acts"><span class="stg-pa"><\/span>/);
 assert.match(stage, /get slot\(\) \{ return el\.querySelector\("\.stg-pa"\); \},/);

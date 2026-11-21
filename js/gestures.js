@@ -123,7 +123,7 @@ const OWN = "input, textarea, select, xo-select, [contenteditable], .b-hold, pre
  * The app's gestures. `A` is what app.js lets them do:
  *   phone() · overlay() (anything over the page) · view() · back() · drawer(open?) · isDrawer()
  *   closeSettings() · settingsOpen() · viewerOpen() · closeViewer()
- *   sheets: [{host, card?(), open(), close()}] · panelOpen() · runsDeep() · runsBack()
+ *   sheets: [{host, card?(), open(), close()}] · panelOpen() · runsDeep() · runsBack() · runsCard
  *   say (the composer's field) · canResolve() · resolve(tid, resolved, li) · threadOf(id)
  */
 /** A docked decision card (the chat's, or a thread page's in the panel): drag it down to fold it ("Read the thread
@@ -338,8 +338,8 @@ export function wireGestures(A) {
     cancel: () => { unstyle(row); row?.parentElement?.classList.remove("is-swiping", "is-armed"); },
   });
 
-  // ── a sub-agent opened in its sheet: swipe right goes back to the list ──
-  const runsCard = $("#runs-card");
+  // ── a sub-agent opened in its page: swipe right goes back to the list ──
+  const runsCard = A.runsCard;
   drag(runsCard, {
     axis: "x",
     start: ({ x, target }) => A.runsDeep() && !edgeIsSafari(x) && !target.closest(OWN) && !scrollsX(target, runsCard),

@@ -270,7 +270,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   function titleHtml() {
     if (!S.page) return ""; // the sections name no place: the chat beside them already does
     const sp = PAGES.get(S.page.name), title = pageTitle(S.page);
-    const to = S.under ? pageTitle(S.under) : "Threads, Changes and Map", need = !S.under && sectionsNeed();
+    const to = sp.backTo?.(S.page.key) || (S.under ? pageTitle(S.under) : "Threads, Changes and Map"), need = !S.under && sectionsNeed();
     const back = `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to ${esc(to)} (Esc)" aria-label="Back to ${esc(to)}${need ? ", something needs you" : ""}">${ICON.back}${need ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>`;
     const lead = sp.lead ? sp.lead(S.page.key) || "" : "";
     return `${back}${lead}<b class="stg-name" title="${esc(title)}">${esc(title)}</b>`;
@@ -443,7 +443,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   }
 
   function toggle() { if (S.open) close(); else open(); }
-  // ── Pages: one over the sections; a shell keeps the page under it; another place or closing drops them
+  // ── Pages: one over the sections; a shell, or a page marked over, keeps the page under it; another place or closing drops them
   const PAGES = new Map(), BOXES = new Map();
   Object.assign(S, { page: null, under: null });
   const same = (a, b) => !!a && !!b && a.name === b.name && a.key === b.key;
@@ -480,7 +480,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (fresh) open({ focus: false });
     // same kind, another subject: the box stays
     if (S.page && S.page.name === name) { S.page = next; sp.onShow?.(next.key, { focus }); pageChanged(); return true; }
-    const prev = S.page, keep = name === "shell" && prev && !S.under ? prev : null;
+    const prev = S.page, keep = (name === "shell" || sp.over) && prev && !S.under ? prev : null;
     for (const t of [prev, S.under]) if (t && t !== keep) shut(t, t === prev);
     if (keep) PAGES.get(keep.name).onHide?.(keep.key);
     S.under = keep; S.page = next;
@@ -498,15 +498,17 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   function back() {
     if (!S.page) return;
     const t = S.page, under = S.under, box = BOXES.get(t.name);
-    const had = el.contains(document.activeElement);
+    const from = document.activeElement, had = el.contains(from);
+    if (under) BOXES.get(under.name).hidden = false; // shown before this one closes, so it can take focus back there
     shut(t, true);
+    const keep = had && document.activeElement === from; // a page that put focus back itself keeps it there
     S.page = under; S.under = null;
-    if (under) { BOXES.get(under.name).hidden = false; PAGES.get(under.name).onShow?.(under.key, { focus: had }); } else cover(false);
+    if (under) PAGES.get(under.name).onShow?.(under.key, { focus: keep }); else cover(false);
     box.style.zIndex = "1";
     const gone = () => { box.style.zIndex = ""; if (S.page?.name !== t.name) box.hidden = true; };
     if (RM.matches) gone(); else slide(box, "out", gone);
     pageChanged();
-    if (had && !under && S.open) el.focus({ preventScroll: true });
+    if (keep && !under && S.open) el.focus({ preventScroll: true });
   }
   function dropPages() {
     if (!S.page) return;
@@ -562,7 +564,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (t.closest("[data-stg-close]")) { requestClose(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
-    if (t.closest("[data-stg-sections]")) { back(); return; }
+    if (t.closest("[data-stg-sections]")) { if (!(S.page && PAGES.get(S.page.name).up?.(S.page.key) === true)) back(); return; }
     const pa = t.closest("[data-stg-act]");
     if (pa && S.page) { PAGES.get(S.page.name).act?.(pa.dataset.stgAct, pa); return; }
     const fo = t.closest("[data-fr-fold]");
@@ -798,6 +800,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     leave: () => dropPages(),
     get slot() { return el.querySelector(".stg-pa"); },
     get pageShown() { return S.page ? { ...S.page } : null; },
+    /** A page's title or back label changed: its head is drawn again. */
+    repaint: () => paint(),
     /** The header's Deploy. */
     launch() {
       if (!(S.open && S.lp)) { openLaunch(); return; }
