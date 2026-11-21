@@ -89,7 +89,13 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   $("#main").appendChild(el);
   // the stack's height, as laid out (the panel opening, the window resizing): Agents' cap is worked out from it
   // when it changes, in the observer, after layout, instead of a read forcing layout in the middle of a change
-  if (typeof ResizeObserver === "function") new ResizeObserver(([e]) => { const h = Math.round(e.contentRect.height); if (h !== S.stackH) { S.stackH = h; if (S.open) capAgents(); } }).observe(el.querySelector(".stg-frames"));
+  if (typeof ResizeObserver === "function") new ResizeObserver(([e]) => { const h = Math.round(e.contentRect.height); if (h !== S.stackH) { S.stackH = h; if (S.open) { capAgents(); edges(); } } }).observe(el.querySelector(".stg-frames"));
+  // a list fills its frame to the foot, which fades while more of it is below
+  const LISTS = '[data-fr="agents"] > .fr-b, .ch-old';
+  const edge = (b) => b.classList.toggle("is-fade", b.scrollTop + b.clientHeight < b.scrollHeight - 1);
+  let edgeF = 0;
+  const edges = () => { if (!edgeF) edgeF = requestAnimationFrame(() => { edgeF = 0; for (const b of el.querySelectorAll(LISTS)) edge(b); }); };
+  el.addEventListener("scroll", (e) => { if (e.target.matches?.(LISTS)) edge(e.target); }, { capture: true, passive: true });
   const body = (id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
   // Threads' body: the filter field (kept, never redrawn under your typing) over the list (drawn in place)
   body("agents").innerHTML = `<div class="tg-q" hidden><label class="tg-qf">${ICON.search}<input type="search" data-tg-q placeholder="Filter threads" aria-label="Filter threads by title, summary or branch" aria-keyshortcuts="/" autocomplete="off" spellcheck="false"></label><kbd class="tg-k" aria-hidden="true">/</kbd></div><div class="tg-box"></div>`;
@@ -306,6 +312,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const [cxHost, old] = body("changes").children;
     cxHost.hidden = !hd; old.hidden = !!hd;
     if (!hd && !S.lp && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    edges();
     const empty = hd ? !hd.count : !files.changes(v).length;
     if (S.chEmpty !== empty) {
       // files arriving open Changes under Threads (the owner, 19 Nov 13:42Z); a fold you made since stays
