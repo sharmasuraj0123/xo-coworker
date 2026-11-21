@@ -19,12 +19,14 @@ import { rovingTab } from "./keynav.js";
 import { once } from "./pending.js";
 
 const MODE_WORDS = {
-  auto: ["Auto", "Its own safety check decides"],
-  ask: ["Ask first", "Asks you before each action"],
-  accept_edits: ["Edits", "Edits files freely, asks for the rest"],
-  plan: ["Plan only", "Plans and changes nothing"],
-  deny_unasked: ["Rules only", "Only what your rules allow"],
+  plan: ["Plan only", "Looks around and suggests a plan. Changes nothing.", "lightbulb"],
+  ask: ["Ask first", "Checks with you before every step.", "question"],
+  accept_edits: ["Edits", "Edits files on its own, checks with you for the rest.", "edit"],
+  auto: ["Auto", "Works on its own; a safety check holds back anything risky.", "shield-check"],
+  deny_unasked: ["Rules only", "Does only what your saved rules allow.", "rules"],
 };
+// most careful first, the way you'd hand over the keys
+const MODE_ORDER = Object.keys(MODE_WORDS);
 // a turn in progress: waiting on your decision is still mid-turn (storm's session.py), so a message
 // joins it and Stop can end it. "queued" is no turn: a gate holds its message back with no process
 // (timeline.js heldOf), so nothing joins it and there is nothing to stop.
@@ -208,7 +210,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return items;
   }
   function headHtml(v) {
-    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">Quick questions, big ideas, anything at all.</span></span>`;
+    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1></span>`;
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
@@ -298,7 +300,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   function permHtml(v) {
     if (v !== "chats") return "";
     const st = setup();
-    return st.agent && st.mode ? `${ICON.lock}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
+    return st.agent && st.mode ? `${xi(MODE_WORDS[st.mode]?.[2] || "lock")}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
   }
   function chipTitle(v) {
     if (v !== "chats") return "";
@@ -357,8 +359,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
     const lists = {
       cwd: () => `<header class="iq-h"><h2 id="cs-hh">Folder <span>a new chat works in</span></h2></header><div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${folders.map((f, i) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div>`,
-      mode: () => `<header class="iq-h"><h2 id="cs-hh">What it may do <span>on its own</span></h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
-        : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${modes.map((m, i) => row("data-csmode", m, (MODE_WORDS[m] || [m])[0], (MODE_WORDS[m] || ["", ""])[1], m === st.mode, i === 0 && !modes.includes(st.mode))).join("")}</div>`),
+      mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
+        : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${[...modes].sort((a, b) => (MODE_ORDER.indexOf(a) + 1 || 99) - (MODE_ORDER.indexOf(b) + 1 || 99)).map((m, i) => {
+          const [name, desc, ic] = MODE_WORDS[m] || [m, "", "lock"], on = m === st.mode;
+          return `<div class="iq-row cs-mrow${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}">${xi(ic, "cs-mi")}<span class="cs-mt"><span class="iq-n">${esc(name)}</span>${desc ? `<span class="cs-md">${esc(desc)}</span>` : ""}</span>${CHECK}</div>`;
+        }).join("")}</div><footer class="iq-f"><span>Used for your next new chat.</span></footer>`),
       model: () => `<header class="iq-h"><h2 id="cs-hh">New chat <span>agent, model and thinking</span></h2></header>${agents}${models}${thinking}<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`,
     };
     const part = lists[C.pop.part] ? C.pop.part : "model";

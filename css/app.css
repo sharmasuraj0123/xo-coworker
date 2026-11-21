@@ -833,6 +833,15 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 .iq-ck{flex:none;width:14px;height:14px;margin-left:auto;color:var(--accent);opacity:0;transform:scale(.6);transition:opacity var(--d-hover) var(--ease),transform var(--d-hover) var(--ease)}
 .iq-row.is-sel .iq-n{color:var(--ink)}
 .iq-row.is-sel .iq-ck{opacity:1;transform:none}
+/* a choice that needs its sentence: the mark, the name over what it means */
+.iq-pop .cs-mrow{height:auto;min-height:var(--menu-row);align-items:flex-start;padding:var(--s-2)}
+.iq-pop.is-sheet .cs-mrow{height:auto;min-height:var(--h-hit)}
+.cs-mi{flex:none;width:var(--ic);height:var(--ic);margin-top:calc((var(--lh-ui) - var(--ic)) / 2);color:var(--ink-3)}
+.cs-mrow.is-sel .cs-mi{color:var(--ink)}
+.cs-mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cs-mrow .iq-n{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.cs-md{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-wrap:pretty}
+.cs-mrow .iq-ck{align-self:center}
 /* a segmented choice (thinking, runtime, routing): an 8 px track, its 6 px segments 2 px in (8 − 2) */
 .iq-route{display:flex;gap:2px;margin:0 4px;padding:4px;border-radius:var(--r);background:var(--fill-2)}
 /* each choice is at least as wide as its mark and name, so a long one never spills into the next */
@@ -2068,11 +2077,14 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 
 /* ── Chats: plain chats with one agent (U1) ───────────────────────────────── */
 .app[data-conv="chats"] .main{--dock-h:0px}
+/* the greeting is Chats' title: no bar over it (a phone keeps its menu button) */
+@media (min-width:761px){.app[data-conv="chats"] .top{display:none}}
 .app[data-conv="chats"] .scroller{display:flex;flex-direction:column}
 .app[data-conv="chats"] .scroller>*{flex:none}
 /* at rest the greeting and composer stand in the middle, the few latest hanging under them; all of them flow from the top */
 .app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column{height:0;margin-bottom:auto}
-.cs-hi{width:var(--col-w);margin:auto 0 var(--s-6) var(--col-x);text-align:center;font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans);letter-spacing:var(--tr-28);color:var(--ink);text-wrap:balance}
+.cs-hi{width:var(--col-w);margin:auto 0 var(--s-2) var(--col-x);text-align:center;font:var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans);letter-spacing:var(--tr-28);color:var(--ink);text-wrap:balance}
+.cs-sub{width:var(--col-w);margin:0 0 var(--s-6) var(--col-x);text-align:center;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-3);text-wrap:balance}
 .scroller>.dock{position:relative;right:auto;bottom:auto;margin-bottom:var(--s-10)}
 .scroller>.dock>.cbar{padding:0;background:none}
 .chl-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);padding:0 0 var(--s-2) var(--s-3);scroll-margin-top:var(--s-4)}

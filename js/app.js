@@ -3142,8 +3142,8 @@ function dockAtTop(top) {
   const dock = $("#dock"), sc = $("#scroller");
   if (top === (dock.parentElement === sc)) return;
   const had = dock.contains(document.activeElement) ? document.activeElement : null;
-  if (top) $("#cs-hi").after(dock); else $("#drop-veil").after(dock);
-  $("#cs-hi").hidden = !top;
+  if (top) $("#cs-sub").after(dock); else $("#drop-veil").after(dock);
+  $("#cs-hi").hidden = $("#cs-sub").hidden = !top;
   had?.focus({ preventScroll: true });
 }
 initFollow();
