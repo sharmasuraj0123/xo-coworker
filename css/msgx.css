@@ -146,7 +146,7 @@
    message then ends 24 px above the card instead.) */
 /* --herald-room: the notices' line over the conversation's foot, while it shows there (app.js heraldRoom) */
 :root[data-msgx] .scroller{padding-bottom:calc(var(--dock-h) - 18px + var(--herald-room, 0px))}
-:root[data-msgx] .app.has-tdock .scroller{padding-bottom:calc(var(--dock-h) + 4px + var(--herald-room, 0px))}
+:root[data-msgx] :is(.app.has-tdock .scroller:not(.tp .scroller),.tp.has-tdock .scroller){padding-bottom:calc(var(--dock-h) + 4px + var(--herald-room, 0px))}
 :root[data-msgx] :is(#msgs,#tmsgs)>.m:is(.mx-next-cont,:has(+.m.cont)){margin-bottom:var(--s-1)}   /* within a run: 4 (was 20 then −16) */
 
 /* the working words keep the app's soft shimmer (the owner's ask, 21:37): a slow light passing through the

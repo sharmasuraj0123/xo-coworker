@@ -11,7 +11,7 @@ const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
-for (const [list, cls, el] of [["the @ recipients", ".at-list", "atList"], ["Jump", ".jump-list", "jl"]]) {
+for (const [list, cls, el] of [["the @ recipients", ".at-list", "at"], ["Jump", ".jump-list", "jl"]]) {
   t(`${list}: :hover doesn't paint a row as active, and a moving mouse makes its row the active one`, () => {
     // a rule that names the list only to leave it out (the chosen state's shared hover layer, foundation.css) paints nothing on it
     const rules = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].map((m) => m[1]).filter((s) => s.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").includes(cls));

@@ -17,10 +17,10 @@ t("one token for both lists: a height and their own scroll", () => {
 });
 t("the @ list never reaches past the top bar", () => {
   assert.match(rule(".at-list"), /^max-height:min\(var\(--pop-list-h\),var\(--at-room,100dvh\) - var\(--h-bar\) - var\(--s-3\)\);/);
-  assert.match(js, /atList\.style\.setProperty\("--at-room", `\$\{Math\.round\(\$\("#composer"\)\.getBoundingClientRect\(\)\.top\)\}px`\)/);
+  assert.match(js, /at\.style\.setProperty\("--at-room", `\$\{Math\.round\(K\.form\.getBoundingClientRect\(\)\.top\)\}px`\)/, "its own composer's top (the main chat's or the panel's)");
 });
 t("the keyboard's row is kept in view by the list's own scroll, never scrollIntoView", () => {
-  assert.match(js, /if \(li\.offsetTop < atList\.scrollTop\) atList\.scrollTop = li\.offsetTop;/);
-  assert.doesNotMatch(js.slice(js.indexOf("const li = atList.children[atList._sel]"), js.indexOf("function syncPlaceholder")), /scrollIntoView\(/);
+  assert.match(js, /if \(li\.offsetTop < at\.scrollTop\) at\.scrollTop = li\.offsetTop;/);
+  assert.doesNotMatch(js.slice(js.indexOf("const li = at.children[at._sel]"), js.indexOf("function syncPlaceholder")), /scrollIntoView\(/);
 });
 console.log(`\n${passed} passed`);

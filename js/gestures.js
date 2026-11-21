@@ -353,19 +353,21 @@ export function wireGestures(A) {
     cancel: () => unstyle(runsCard),
   });
 
-  // ── while typing, a drag down over the conversation lowers the keyboard (the draft is kept) ──
-  {
-    const sc = $("#scroller");
-    let y0 = null, x0 = 0;
-    sc.addEventListener("touchstart", (e) => { y0 = document.activeElement === A.say && e.touches.length === 1 ? e.touches[0].clientY : null; x0 = e.touches[0]?.clientX || 0; }, { passive: true });
-    sc.addEventListener("touchmove", (e) => {
-      if (y0 == null) return;
-      const p = e.touches[0], dy = p.clientY - y0;
-      if (dy > 28 && dy > Math.abs(p.clientX - x0)) { A.say.blur(); y0 = null; }
-    }, { passive: true });
-  }
+  conversationGestures({ scroller: $("#scroller"), msgs: document.getElementById("msgs"), say: A.say, toast: A.toast });
+}
 
-  longPress(A);
+/** A conversation's own touch moves (the main chat's, a thread page's in the panel): C { scroller, msgs, say, toast }. */
+export function conversationGestures(C) {
+  // ── while typing, a drag down over the conversation lowers the keyboard (the draft is kept) ──
+  const sc = C.scroller;
+  let y0 = null, x0 = 0;
+  sc.addEventListener("touchstart", (e) => { y0 = document.activeElement === C.say && e.touches.length === 1 ? e.touches[0].clientY : null; x0 = e.touches[0]?.clientX || 0; }, { passive: true });
+  sc.addEventListener("touchmove", (e) => {
+    if (y0 == null) return;
+    const p = e.touches[0], dy = p.clientY - y0;
+    if (dy > 28 && dy > Math.abs(p.clientX - x0)) { C.say.blur(); y0 = null; }
+  }, { passive: true });
+  longPress(C);
 }
 
 // ── long-press a message: Copy, Select text ─────────────────────────────────
@@ -374,7 +376,7 @@ export function wireGestures(A) {
 // the Tab order), never the page. A touch elsewhere goes on to whatever it lands on.
 const HOLD = 480;
 function longPress(A) {
-  const msgs = document.getElementById("msgs");
+  const msgs = A.msgs;
   let timer = 0, at = null, menu = null, from = null, fired = false;
   const WHAT = ".m-you .bubble, .m-them:not(.m-turn):not(.m-card) > .mb > .prose, .m-turn .tb-answer";
   const shut = () => {
@@ -411,7 +413,7 @@ function longPress(A) {
   msgs.addEventListener("touchcancel", stop);
   // Android opens its own menu on a long-press: ours is the one shown
   msgs.addEventListener("contextmenu", (e) => { if (fired || (matchMedia("(pointer: coarse)").matches && e.target.closest(WHAT) && !e.target.closest(".is-selecting"))) e.preventDefault(); });
-  document.getElementById("scroller").addEventListener("scroll", shut, { passive: true });
+  A.scroller.addEventListener("scroll", shut, { passive: true });
 
   function open(el, p) {
     shut();

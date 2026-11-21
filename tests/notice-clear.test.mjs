@@ -41,6 +41,7 @@ t("census: the line is placed by the stack alone, never against one thing docked
   assert.deepEqual(where, [
     "app.css: .herald { bottom: calc(100% - var(--cbar-fade) + var(--dock-gap)) }",
     "app.css: body:not(.stage-covers) .dock.is-stacked>.herald { bottom: calc(100% + var(--dock-gap)) }",
+    "app.css: .tp .dock.is-stacked>.herald { bottom: calc(100% + var(--dock-gap)) }",
     "app.css: .dock.is-top>.herald { bottom: auto }",
   ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked; under the stack when the dock leads its page");
   // the line was once placed 20 px into a bar whose fade room was 30 and 22 on a phone: 10 and 8 px over the box
@@ -57,7 +58,8 @@ t("census: the line is placed by the stack alone, never against one thing docked
   assert.match(app, /\.herald\{position:absolute;z-index:1;/, "drawn over the bar's fade it rides above the bar, a later sibling");
 });
 t("anything docked is measured, in the dock's own observer, before the frame is painted", () => {
-  assert.match(js, /const dock = \$\("#dock"\), bar = dock\.querySelector\("\.cbar"\);\s*new ResizeObserver\(\(\) => \{\s*\$\("#app"\)\.style\.setProperty\("--dock-h", `\$\{dock\.offsetHeight\}px`\);\s*const on = bar\.getBoundingClientRect\(\)\.top - dock\.getBoundingClientRect\(\)\.top > 0\.5;\s*if \(dock\.classList\.contains\("is-stacked"\) !== on\) dock\.classList\.toggle\("is-stacked", on\);\s*heraldRoom\(\);[^\n]*\s*\}\)\.observe\(dock\);/);
+  assert.match(js, /watchDock\(\$\("#dock"\), \$\("#app"\)\);/, "the main chat's dock, and the panel's thread page's, the same way");
+  assert.match(js, /function watchDock\(dock, host\) \{\s*const bar = dock\.querySelector\("\.cbar"\);\s*const ro = new ResizeObserver\(\(\) => \{\s*host\.style\.setProperty\("--dock-h", `\$\{dock\.offsetHeight\}px`\);\s*const on = bar\.getBoundingClientRect\(\)\.top - dock\.getBoundingClientRect\(\)\.top > 0\.5;\s*if \(dock\.classList\.contains\("is-stacked"\) !== on\) dock\.classList\.toggle\("is-stacked", on\);\s*heraldRoom\(\);[^\n]*\s*\}\);\s*ro\.observe\(dock\);/);
 });
 t("the conversation keeps room for the notices' line while it shows over its foot (it never covers the last bubble)", () => {
   // measured where it stands (the dock's observer, and each time the line is drawn); none while it's hidden

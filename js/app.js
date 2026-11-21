@@ -57,7 +57,7 @@ import { createRecord } from "./recordview.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { createCalmOrder } from "./sideorder.js";
-import { wireGestures, dockGestures } from "./gestures.js";
+import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "./runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (js/shape.js)
 import { createShapeStore } from "./shape.js";
@@ -192,7 +192,7 @@ const D = createDecisions({
   onNotSent: (title, why) => { setTimeout(() => heraldShow({ kind: "stopped", text: "Not sent", sub: `${String(title).replace(/`/g, "").replace(/[.?!]$/, "")} · ${why}`, force: true }, 7000), RM.matches ? 0 : 950); },
   onAllClear: (summary) => { setTimeout(() => heraldShow({ kind: "clear", text: "All clear", sub: summary }, 4600), RM.matches ? 0 : 900); },
   // a docked decision's own line ("Allowed. Undo") ends the moment its decision is undone, by its Undo or a key
-  onUndone: (key) => { if (S.view === "home") { S.pin = key; S.pinAnim = "undo"; } if (TD.undone && TD.undone.key === key) TD.undone.end(); },
+  onUndone: (key) => { if (S.view === "home") { S.pin = key; S.pinAnim = "undo"; } for (const d of [TD, TP.dock?.TD]) if (d?.undone && d.undone.key === key) d.undone.end(); },
   onBreak: (left) => heraldShow({ kind: "calm", text: "Taking a break", sub: `${left} wait safely` }, 5200),
   onSent: (part) => {
     // "Stop here" after you stopped a thread: it ends there, honestly
@@ -203,7 +203,7 @@ const IQ = createIntel({
   world, PROJ,
   // the shape's xo:composer/intel: "simple" opens Auto · Deep first, today's picker behind More options
   simple: () => SHAPE.opts("xo:composer/intel").mode === "simple",
-  onChange: (o) => { chipRender(o && o.fade); },
+  onChange: (o) => { for (const K of composers()) chipRender(o && o.fade, K); },
   record: (session, rec) => recordLine(session, rec),
   onMoved: (next, agent) => { announce(`Continuing on ${rtName(agent)}. This thread is frozen; write in it to pick it back up.`); if (next) go(`t:${next.id}`, { focus: true }); },
 });
@@ -1995,14 +1995,18 @@ function HER() { return S._her || (S._her = createHerald({ state: S, schedule: (
 regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
 keepFocusInView(); // focus a script hands on is never left out of sight (js/focusview.js)
 function heraldShow(h, ms) { return HER().show(h, ms); }
+function toastLine(text) { announce(text); heraldShow({ kind: "done", text }, 1600); }
 /** A message's own notice, set in place (on screen, or still waiting): see js/herald.js */
 function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
 function heraldPut(h, ms) { return HER().put(h, ms); }
 function heraldNext() { return HER().next(); }
 /** A subject's notice that's no longer true goes, on screen or waiting (js/herald.js drop). */
 function heraldDrop(mid) { return HER().drop(mid); }
+/** The notices' line of the conversation in use (the panel's thread page has its own); the other one is empty. */
+const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
 function heraldRender(needs) {
-  const box = $("#herald");
+  const box = heraldBox();
+  for (const o of [$("#herald"), $("#tpherald")]) if (o && o !== box && o.firstChild) { if (o.contains(document.activeElement)) heraldBack(o._line)?.focus({ preventScroll: true }); patch(o, ""); o._line = null; o._h = null; }
   const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
   let html;
   if (h) {
@@ -2012,10 +2016,10 @@ function heraldRender(needs) {
       : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
       : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
       : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
-  } else if (connLine(world.state, connDest())) {
+  } else if (connLine(world.state, box === $("#herald") ? connDest() : { thread: true })) {
     // an honest, persistent line when XO can't be reached, can't run, or waits on a limit (P0-8); routing Off only
     // for where the composer's draft goes, the send gate's own destination: never beside a thread's reply
-    const c = connLine(world.state, connDest());
+    const c = connLine(world.state, box === $("#herald") ? connDest() : { thread: true });
     html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
   } else if (S.view === "home" || convThread(S.view)) html = "";
   else {
@@ -2043,16 +2047,20 @@ function heraldRender(needs) {
  * the room changes (it watches the scroller's box).
  */
 function heraldRoom() {
-  const box = $("#herald"), dock = $("#dock");
-  const line = box.firstElementChild;
-  const shown = line && line.getClientRects().length > 0;
-  const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
-  const v = px ? `${px + 8}px` : "0px";
-  if ($("#app").style.getPropertyValue("--herald-room") !== v) $("#app").style.setProperty("--herald-room", v);
+  for (const [box, dock, host] of [[$("#herald"), $("#dock"), $("#app")], [$("#tpherald"), $("#tpdock"), TP.box]]) {
+    if (!box) continue;
+    const line = box.firstElementChild;
+    const shown = line && line.getClientRects().length > 0;
+    const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
+    const v = px ? `${px + 8}px` : "0px";
+    if (host.style.getPropertyValue("--herald-room") !== v) host.style.setProperty("--herald-room", v);
+  }
 }
 /** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
  *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
-function heraldBack(h) { return [...((h && h.back) || []).map((sel) => $(sel)), $("#say")].find(usable) || placeRegion(); }
+function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof sel === "function" ? sel() : $(sel))), composerNow().say].find(usable) || placeRegion(); }
+/** A notice's control in the conversation in use: its Send, or one in its own page. */
+const inUse = (sel) => () => { const K = composerNow(); return sel === "#send" ? K.send : K.main ? $(sel) : TP.box.querySelector(sel); };
 
 // ── intelligence: the record line and the chip ─────────────────────────────
 function recordLine(session, rec) {
@@ -2116,16 +2124,20 @@ const say = $("#say"), atList = $("#at-list");
  * conversation's; sendLive, send, sendRender, the target line, the placeholder, the draft and Stop take it.
  */
 const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
-  tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq") };
+  tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: atList };
 /** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
 function wireComposer(K) {
-  K.say.addEventListener("input", () => { updateComposer(K); saveDraft(K); });
+  K.say.addEventListener("input", () => { K.at._sel = 0; updateComposer(K); saveDraft(K); });
+  K.say.addEventListener("click", () => updateComposer(K));
   K.say.addEventListener("keydown", (e) => {
     if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
+    if (atKeys(e, K)) return;
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(K); }
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); K.say.blur(); }
   });
   K.form.addEventListener("submit", (e) => { e.preventDefault(); if (K.send.dataset.mode === "stop") stopRun(K.view); else send(K); });
+  wireAt(K);
+  K.target.addEventListener("click", () => aimAt(K));
 }
 
 // ── files on the unsent message (hub #30): the paperclip, a drop or a paste adds them; each uploads
@@ -2254,11 +2266,11 @@ wireTray(MK);
   const hide = () => { depth = 0; veil.hidden = true; };
   // only where the message being written can take it: on screen and in reach, under no open layer (Settings,
   // a sheet, a dialog, the phone's drawer make it inert): never into a composer that's hidden (Astra H29)
-  const takes = () => { const say = $("#say"); return canAttach(S.view) && !!say && say.getClientRects().length > 0 && !say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]"); };
-  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes()) { depth++; veil.hidden = false; } });
+  const takes = (K) => canAttach(K.view) && K.say.getClientRects().length > 0 && !K.say.closest("[inert]") && !document.querySelector(".sheet:not([hidden]), dialog[open]");
+  addEventListener("dragenter", (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (takes(composerAt(e.target))) { depth++; veil.hidden = false; } });
   addEventListener("dragover", (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = veil.hidden ? "none" : "copy"; });
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
-  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden; hide(); if (on && takes()) addFiles(e.dataTransfer.files); });
+  addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden, K = composerAt(e.target); hide(); if (on && takes(K)) addFiles(e.dataTransfer.files, K); });
   addEventListener("dragend", hide);
 }
 function growSay(K = MK) {
@@ -2337,7 +2349,7 @@ function targetLineRender(K = MK) {
   else if (K.view === "ws" || K.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
   else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(K.view)))}</b><span class="tg-w"> coordinator</span></span>`;
   if (K.target._h !== html) { K.target.innerHTML = html; K.target._h = html; }
-  if (K.main) K.target.title = "Aim at a project (@)";
+  K.target.title = "Aim at a project (@)";
 }
 function updateComposer(K = MK) {
   if (!K.main) {
@@ -2345,6 +2357,7 @@ function updateComposer(K = MK) {
     targetLineRender(K); syncPlaceholder(K);
     K.form.classList.toggle("has-text", !!K.say.value);
     sendRender(K); growSay(K);
+    if (document.activeElement === K.say) atRender(K); else atClose(K);
     return;
   }
   trayRender();
@@ -2363,27 +2376,31 @@ function updateComposer(K = MK) {
   $("#composer").classList.toggle("has-text", !!say.value);
   sendRender();
   growSay();
-  const before = say.value.slice(0, say.selectionStart);
+  atRender(MK);
+}
+/** A composer's @ list: the projects matching the @word at its caret. */
+function atRender(K) {
+  const at = K.at, pre = K.main ? "at" : "tat", before = K.say.value.slice(0, K.say.selectionStart);
   const m = before.match(/(^|\s)@([\w.-]*)$/);
   // no @ at the caret, or the list was shut here with Escape (until the text or the caret moves): closed
-  if (!m || atList._shut === before) { atClose(); return; }
-  atList._shut = null;
+  if (!m || at._shut === before) { atClose(K); return; }
+  at._shut = null;
   const q = m[2].toLowerCase();
   const opts = projects().filter((p) => p.id.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
-  if (!opts.length) { atClose(); return; }
-  atList._sel = Math.min(atList._sel || 0, opts.length - 1);
-  atList.innerHTML = opts.map((p, i) => {
+  if (!opts.length) { atClose(K); return; }
+  at._sel = Math.min(at._sel || 0, opts.length - 1);
+  at.innerHTML = opts.map((p, i) => {
     const w = world.state.threads.filter((x) => x.project === p.id && isBusy(x)).length;
-    return `<li role="option" id="at-${i}" data-pid="${esc(p.id)}" aria-selected="${i === atList._sel}"><span class="at-ic" aria-hidden="true">${projectIcon(p.id)}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
+    return `<li role="option" id="${pre}-${i}" data-pid="${esc(p.id)}" aria-selected="${i === at._sel}"><span class="at-ic" aria-hidden="true">${projectIcon(p.id)}</span>@${esc(p.id)}<span class="at-s">${w ? `${w} working` : "quiet"}</span></li>`;
   }).join("");
-  if (atList.hidden) atList.style.setProperty("--at-room", `${Math.round($("#composer").getBoundingClientRect().top)}px`);
-  atList.hidden = false;
-  const li = atList.children[atList._sel];
+  if (at.hidden) at.style.setProperty("--at-room", `${Math.round(K.form.getBoundingClientRect().top)}px`);
+  at.hidden = false;
+  const li = at.children[at._sel];
   // the keyboard's row stays in view inside the list's own scroll (never scrollIntoView: it would move the chat too)
-  if (li.offsetTop < atList.scrollTop) atList.scrollTop = li.offsetTop;
-  else if (li.offsetTop + li.offsetHeight > atList.scrollTop + atList.clientHeight) atList.scrollTop = li.offsetTop + li.offsetHeight - atList.clientHeight;
-  say.setAttribute("aria-expanded", "true");
-  say.setAttribute("aria-activedescendant", `at-${atList._sel}`);
+  if (li.offsetTop < at.scrollTop) at.scrollTop = li.offsetTop;
+  else if (li.offsetTop + li.offsetHeight > at.scrollTop + at.clientHeight) at.scrollTop = li.offsetTop + li.offsetHeight - at.clientHeight;
+  K.say.setAttribute("aria-expanded", "true");
+  K.say.setAttribute("aria-activedescendant", `${pre}-${at._sel}`);
 }
 /** The composer's placeholder follows the view, and a resolved thread says a reply reopens it. */
 function syncPlaceholder(K = MK) {
@@ -2395,28 +2412,28 @@ function syncPlaceholder(K = MK) {
 }
 /** The @ list closed, and the field's accessible state with it (no longer expanded, no active option): one
  *  operation, so what's seen and what's announced always agree (Astra H24). */
-function atClose() {
-  atList.hidden = true;
-  if (say.getAttribute("aria-expanded") !== "false") say.setAttribute("aria-expanded", "false");
-  say.removeAttribute("aria-activedescendant");
+function atClose(K = MK) {
+  K.at.hidden = true;
+  if (K.say.getAttribute("aria-expanded") !== "false") K.say.setAttribute("aria-expanded", "false");
+  K.say.removeAttribute("aria-activedescendant");
 }
 /**
  * The recipient chosen from the @ list: the whole @token at the caret (the part after it too) becomes @pid, one
  * space after it, and the draft is saved at once: who it goes to is part of the draft, so a reload keeps it
  * (Astra H27: it fell back to the Workspace).
  */
-function pickAt(pid) {
-  const pos = say.selectionStart;
-  const before = say.value.slice(0, pos).replace(/(^|\s)@([\w.-]*)$/, `$1@${pid}`);
-  const after = say.value.slice(pos).replace(/^[\w.-]*/, "");
-  say.value = before + (/^\s/.test(after) ? "" : " ") + after;
-  say.setSelectionRange(before.length + 1, before.length + 1);
-  atList._sel = 0; atList._shut = null;
-  saveDraft();
-  updateComposer(); say.focus();
+function pickAt(pid, K = MK) {
+  const f = K.say, pos = f.selectionStart;
+  const before = f.value.slice(0, pos).replace(/(^|\s)@([\w.-]*)$/, `$1@${pid}`);
+  const after = f.value.slice(pos).replace(/^[\w.-]*/, "");
+  f.value = before + (/^\s/.test(after) ? "" : " ") + after;
+  f.setSelectionRange(before.length + 1, before.length + 1);
+  K.at._sel = 0; K.at._shut = null;
+  saveDraft(K);
+  updateComposer(K); f.focus();
 }
 function saveDraft(K = MK) { const v = K.view; if (K.say.value) S.drafts[v] = K.say.value; else delete S.drafts[v]; store.set(DRAFTS, S.drafts); }
-function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; if (K.main) atList._sel = 0; updateComposer(K); }
+function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; K.at._sel = 0; updateComposer(K); }
 
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
 say.addEventListener("click", () => updateComposer());
@@ -2425,27 +2442,37 @@ say.addEventListener("keydown", (e) => {
   // every key: neither the @ list, nor Send, nor the page's own keys take them (Astra H25: a composing Enter chose
   // a recipient; a composing Escape would have left the thread)
   if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
-  if (!atList.hidden) {
-    const n = atList.children.length;
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); atList._sel = (atList._sel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; updateComposer(); return; }
-    // the open list owns Enter and Tab: they choose (never send); Shift+Enter is still a new line
-    if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); pickAt(atList.children[atList._sel].dataset.pid); return; }
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); atList._shut = say.value.slice(0, say.selectionStart); atClose(); return; }
-  }
+  if (atKeys(e, MK)) return;
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); say.blur(); }
 });
-atList.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickAt(li.dataset.pid); } });
-// the row under a moving mouse is the active one, as the arrows make it (Jump's model): one row looks active, Enter
-// picks it and the arrows go on from it (Astra C058 on 517af1c: hover painted a second row; Enter took the first)
-atList.addEventListener("pointermove", (e) => {
-  if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
-  const li = e.target.closest("li[role=option]"), i = li ? [...atList.children].indexOf(li) : -1;
-  if (i < 0 || i === atList._sel) return;
-  atList.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
-  atList._sel = i; li.setAttribute("aria-selected", "true");
-  say.setAttribute("aria-activedescendant", li.id);
-});
+/** The open @ list owns the arrows, Enter and Tab (they choose, never send; Shift+Enter is still a new line) and Escape. */
+function atKeys(e, K) {
+  const at = K.at;
+  if (at.hidden) return false;
+  const n = at.children.length;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); at._sel = (at._sel + (e.key === "ArrowDown" ? 1 : n - 1)) % n; updateComposer(K); return true; }
+  if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") { e.preventDefault(); pickAt(at.children[at._sel].dataset.pid, K); return true; }
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); atShut(K); return true; }
+  return false;
+}
+/** Escape on an open @ list: it stays shut there until the text or the caret moves. */
+function atShut(K) { K.at._shut = K.say.value.slice(0, K.say.selectionStart); atClose(K); }
+function wireAt(K) {
+  const at = K.at;
+  at.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); pickAt(li.dataset.pid, K); } });
+  // the row under a moving mouse is the active one, as the arrows make it (Jump's model): one row looks active, Enter
+  // picks it and the arrows go on from it (Astra C058 on 517af1c: hover painted a second row; Enter took the first)
+  at.addEventListener("pointermove", (e) => {
+    if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
+    const li = e.target.closest("li[role=option]"), i = li ? [...at.children].indexOf(li) : -1;
+    if (i < 0 || i === at._sel) return;
+    at.querySelector('[aria-selected="true"]')?.setAttribute("aria-selected", "false");
+    at._sel = i; li.setAttribute("aria-selected", "true");
+    K.say.setAttribute("aria-activedescendant", li.id);
+  });
+}
+wireAt(MK);
 // On Home an empty composer shrinks when it loses focus, which drops the dock (and the herald just above it)
 // 45 px under the pointer, so the click lands on nothing. Keep its shape from the press until the click.
 {
@@ -2466,17 +2493,20 @@ $("#composer").addEventListener("submit", (e) => { e.preventDefault(); if ($("#s
 $("#target").addEventListener("click", () => {
   if (S.view === "chats") { CH.toggleSetup($("#target"), "cwd"); updateComposer(); return; }
   if (S.view.startsWith("c:")) { say.focus(); return; }
-  // the chooser opens on the recipient the draft already names, wherever it is, with every project listed and
-  // that one active (Astra H26); with none, on a new @ at the start. Either way the draft is saved as it now reads
-  const tok = /(^|\s)@([\w.-]*)/.exec(say.value);
+  aimAt(MK);
+});
+/** The target line pressed: the chooser opens on the recipient the draft already names, wherever it is, with every
+ *  project listed and that one active (Astra H26); with none, on a new @ at the start. The draft is saved as it reads. */
+function aimAt(K) {
+  const f = K.say, tok = /(^|\s)@([\w.-]*)/.exec(f.value);
   let at = 1;
   if (tok) {
     at = tok.index + tok[1].length + 1;
-    atList._sel = Math.max(0, projects().findIndex((p) => p.id.toLowerCase() === tok[2].toLowerCase()));
-  } else { say.value = "@" + (say.value ? " " + say.value : ""); atList._sel = 0; saveDraft(); }
-  atList._shut = null;
-  say.focus(); say.setSelectionRange(at, at); updateComposer();
-});
+    K.at._sel = Math.max(0, projects().findIndex((p) => p.id.toLowerCase() === tok[2].toLowerCase()));
+  } else { f.value = "@" + (f.value ? " " + f.value : ""); K.at._sel = 0; saveDraft(K); }
+  K.at._shut = null;
+  f.focus(); f.setSelectionRange(at, at); updateComposer(K);
+}
 /** "Send now": its own toggle, shown in a chat whose turn is running where the agent can be interrupted. */
 function sendNowRender() {
   const b = $("#send-now");
@@ -2539,7 +2569,7 @@ function stopLive(run, { interrupt = false, runs = 0 } = {}) {
       }
     } catch (err) {
       // Retry stops the same session, wherever you are when you press it
-      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry", back: interrupt ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"] }, 7000);
+      heraldShow({ kind: "stopped", text: interrupt ? "Couldn't interrupt it" : "Couldn't stop it", sub: `${what} · ${err.message}`, undo: () => stopLive(run, { interrupt, runs }), undoLabel: "Retry", back: interrupt ? [inUse("[data-interrupt]"), inUse("#send")] : [inUse("[data-chat-stop]"), inUse("#send")] }, 7000);
     } finally {
       if (S.stops.get(token.session) === token) S.stops.delete(token.session);
       schedule();
@@ -2556,7 +2586,7 @@ function stopsHerald() {
   const all = [...turns, ...runs];
   if (!all.length) { if (S.herald && S.herald.tag === "stops") { S.herald.until = 0; heraldNext(); } return; }
   const last = Math.max(...all.map((x) => x.until));
-  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), back: all.every((x) => x.interrupt) ? ["[data-interrupt]", "#send"] : ["[data-chat-stop]", "#send"], undo: () => {
+  heraldShow({ kind: "halt", tag: "stops", text: all.every((x) => x.interrupt) ? "Interrupting" : "Stopping", sub: all.map((x) => x.what).join(", "), back: all.every((x) => x.interrupt) ? [inUse("[data-interrupt]"), inUse("#send")] : [inUse("[data-chat-stop]"), inUse("#send")], undo: () => {
     for (const x of turns) { x.cancelled = true; if (S.stops.get(x.session) === x) S.stops.delete(x.session); }
     for (const j of runs) { j.cancelled = true; const i = pendingStops.indexOf(j); if (i >= 0) pendingStops.splice(i, 1); }
     announce(all.length > 1 ? "Not stopped. They keep working." : "Not stopped. It keeps working.");
@@ -2726,10 +2756,10 @@ function retry(id) {
       // the message's own destination, never the composer's newer draft: its chat, or its thread
       const block = blockFor(m.target ? { pid: m.target } : { thread: true });
       if (block) { refuse(block, "the message stays, to retry"); return; }
-      const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`);
+      const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`), K = composerAt(document.activeElement);
       deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
       schedule();
-      if (had) say.focus({ preventScroll: true });
+      if (had) K.say.focus({ preventScroll: true });
       return;
     }
   }
@@ -2770,18 +2800,18 @@ function tpMount(box) {
   box.innerHTML = `<header class="tp-head" id="tphead"></header><div class="thead tp-thead" id="tpthead" hidden></div>` +
     `<div class="scroller tp-scroller" id="tscroller" tabindex="-1" data-own-scroll><div class="column" id="tcolumn">` +
     `<div class="msgs" id="tmsgs" role="log" aria-live="off" aria-label="The thread's messages"></div><div class="typing-slot" id="ttyping"></div></div></div>` +
-    `<div class="dock tp-dock" id="tpdock"><div class="tdock" id="tptdock"></div><div class="cbar"><form class="composer" id="tpcomposer" autocomplete="off">` +
+    `<div class="dock tp-dock" id="tpdock"><div class="herald" id="tpherald" aria-live="polite"></div><div class="tdock" id="tptdock"></div><div class="cbar"><form class="composer" id="tpcomposer" autocomplete="off">` +
     `<label class="sr-only" for="tsay" id="tsay-label">Reply</label><ul class="att-tray" id="tatt-tray" aria-label="Files on this reply" hidden></ul>` +
-    `<div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" spellcheck="true"></textarea></div>` +
+    `<div class="composer-field"><textarea id="tsay" rows="1" placeholder="Reply to the agent…" aria-autocomplete="list" aria-controls="tat-list" aria-expanded="false" spellcheck="true"></textarea><ul id="tat-list" class="at-list" role="listbox" aria-label="Projects" hidden></ul></div>` +
     `<div class="composer-row"><button type="button" class="attach" id="tattach" aria-label="Add files" title="Add files: text, images or PDFs, up to 25 MB each">${ICON.clip}</button><input type="file" id="tatt-input" multiple hidden tabindex="-1" accept="${esc($("#att-input").accept)}">` +
-    `<span class="target" id="ttarget"></span><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
+    `<button type="button" class="target" id="ttarget" title="Aim at a project (@)"></button><button type="button" class="iq" id="tiq" aria-haspopup="dialog" aria-expanded="false"></button><button type="submit" class="send" id="tsend" aria-label="Send" title="Send (Enter)" disabled></button></div>` +
     `<p class="att-note" id="tatt-note" hidden>Files are kept in the project's <code>.xo/</code> folder. Unlike chat text, they aren't scrubbed for secrets.</p></form></div></div>`;
   const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
   TP.follow = createFollow(els);
   TP.follow.init();
   TP.C = createConv({ view: tpView, msgs: els.msgs, scroller: els.scroller, column: els.column, typing: $("#ttyping"), follow: TP.follow });
   TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
-    tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq") };
+    tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
   wireComposer(TP.K);
   wireTray(TP.K);
   TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
@@ -2790,18 +2820,16 @@ function tpMount(box) {
   acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
   STAGE.slot.append(acts);
   menuKeys(acts, { close: () => closeThreadMenu() });
-  // its files: the paperclip, and a drop on the page (not the chat's: it stops here)
+  // its files: the paperclip; a drop on the page is the app's one drop, into this composer
   TP.K.attach.addEventListener("click", () => TP.K.input.click());
   TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
-  box.addEventListener("dragover", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "copy"; } });
-  box.addEventListener("drop", (e) => { if (![...(e.dataTransfer?.types || [])].includes("Files")) return; e.preventDefault(); e.stopPropagation(); addFiles(e.dataTransfer.files, TP.K); });
   // its model and effort: the thread's own session, the chat's picker
   TP.K.iq.addEventListener("click", () => toggleIq(sessionOf(tpView()), TP.K.iq));
-  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: null,
-    dock: els.dock, tdock: $("#tptdock"), herald: null, host: box, follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
+  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: TP.K.at,
+    dock: els.dock, tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
   // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
-  TP.dockRO = new ResizeObserver(() => box.style.setProperty("--dock-h", `${Math.round(els.dock.offsetHeight)}px`));
-  TP.dockRO.observe(els.dock);
+  TP.dockRO = watchDock(els.dock, box);
+  conversationGestures({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) });
   els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(TP.C); }); }, { passive: true });
 }
 function tpShow(key, { focus = false } = {}) {
@@ -2843,6 +2871,7 @@ STAGE.page("thread", {
   close: () => tpClose(),
   // Esc in its composer leaves the field first (the draft stays); the next Esc goes back to the sections
   escape: () => { if (S.tMenu && S.tMenuIn === "page") { closeThreadMenu(); return true; }
+    if (TP.K && document.activeElement === TP.K.say && !TP.K.at.hidden) { atShut(TP.K); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
 // its facts under the panel's head, its ⋯ in it
@@ -2875,9 +2904,10 @@ document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-
  * already in the main chat, it goes there as today.
  */
 function openFromPanel(v, e) {
-  const besideChat = S.view === "ws" || S.view.startsWith("p:");
-  if (v && v.startsWith("t:") && besideChat && !(e && (e.metaKey || e.ctrlKey)) && world.thread(v.slice(2))) { STAGE.show("thread", v.slice(2), { focus: true }); return; }
+  const besideChat = S.view === "ws" || S.view.startsWith("p:"), msg = e?.target?.closest?.("[data-go]")?.dataset.goMsg;
+  if (v && v.startsWith("t:") && besideChat && !(e && (e.metaKey || e.ctrlKey)) && world.thread(v.slice(2))) { STAGE.show("thread", v.slice(2), { focus: true }); if (msg) showMsg(msg, TP.C); return; }
   go(v, { panel: true });
+  if (msg) showMsg(msg);
 }
 
 // ── render ──────────────────────────────────────────────────────────────────
@@ -3144,15 +3174,18 @@ scroller.addEventListener("scroll", () => {
 // anything is docked there is measured, not inferred from what's in the dock (the bar's top below the dock's top: a
 // chip shown only on a phone, a decision hidden while a panel covers it, one gliding in or out), in the observer's
 // step, before the frame is painted, so the line never lies on a docked control for a frame (css/app.css .herald)
-{
-  const dock = $("#dock"), bar = dock.querySelector(".cbar");
-  new ResizeObserver(() => {
-    $("#app").style.setProperty("--dock-h", `${dock.offsetHeight}px`);
+function watchDock(dock, host) {
+  const bar = dock.querySelector(".cbar");
+  const ro = new ResizeObserver(() => {
+    host.style.setProperty("--dock-h", `${dock.offsetHeight}px`);
     const on = bar.getBoundingClientRect().top - dock.getBoundingClientRect().top > 0.5;
     if (dock.classList.contains("is-stacked") !== on) dock.classList.toggle("is-stacked", on);
     heraldRoom(); // the line stands higher over what's docked (is-stacked)
-  }).observe(dock);
+  });
+  ro.observe(dock);
+  return ro;
 }
+watchDock($("#dock"), $("#app"));
 /** Chats starts with its composer: the dock leads its scroller there, under the greeting, and sits at the foot elsewhere. */
 function dockAtTop(top) {
   const dock = $("#dock"), sc = $("#scroller");
@@ -3324,12 +3357,12 @@ function decideKey(key, opts) {
 }
 
 /** After going to a conversation, bring one message into view and mark it for a moment (if it's loaded). */
-function showMsg(id) {
+function showMsg(id, C = MAIN) {
   let tries = 0;
   const look = () => {
-    const el = msgsEl.querySelector(`[data-k="${CSS.escape(S.alias.get(id) || id)}"]`);
+    const el = C.msgs.querySelector(`[data-k="${CSS.escape(S.alias.get(id) || id)}"]`);
     if (!el) { if (++tries < 20) setTimeout(look, 100); return; }
-    toRow(el, true); // through follow.js: following stops, then the row is centred (never scrollIntoView)
+    C.follow.toRow(el, true); // through follow.js: following stops, then the row is centred (never scrollIntoView)
     el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash");
     setTimeout(() => el.classList.remove("is-flash"), 1800);
   };
@@ -3414,7 +3447,7 @@ function youText(text) {
 }
 /** A question's capsule: Files, at those lines of the file in this conversation's place, selected. */
 function openLineRef(a) {
-  const s = CHG.scope(S.view), path = a.dataset.ref;
+  const s = CHG.scope(convAt(a).view), path = a.dataset.ref;
   if (!s) return;
   const lines = a.dataset.refA ? [+a.dataset.refA, +a.dataset.refB] : null;
   VW.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, ...(lines ? { lines } : {}) }, a);
@@ -3628,6 +3661,18 @@ $("#top").addEventListener("focusout", (e) => {
 /** The conversation a control is in (P1 step 8): the panel's thread page, else the main chat. */
 const convAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.C : MAIN);
 const composerAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.K : MK);
+/** The conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat. */
+function composerNow() {
+  if (!TP.K || STAGE.pageShown?.name !== "thread") return MK;
+  if (document.body.classList.contains("stage-full") || PHONE.matches) return TP.K;
+  const a = document.activeElement;
+  // focus dropped with the control it was on (a pressed Interrupt redrawn away): the one you were in
+  if (!a || a === document.body) return S.kNow || MK;
+  return TP.box.contains(a) ? TP.K : MK;
+}
+const composers = () => (TP.K ? [MK, TP.K] : [MK]);
+// the notices' line follows you between the chat and the panel's thread page
+document.addEventListener("focusin", () => { const K = composerNow(); if (K !== S.kNow) { S.kNow = K; schedule(); } });
 document.addEventListener("click", (e) => {
   const t = e.target;
   if (t.closest("#iq-pop")) return;
@@ -3635,7 +3680,7 @@ document.addEventListener("click", (e) => {
   // (the panel's own links are the panel's: it opens a thread as its page beside a chat, else goes as the panel)
   if (g && !t.closest("#all") && !t.closest("#stage")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
   const tl = t.closest("a[data-thread]");
-  if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) go("t:" + tl.dataset.thread); else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
+  if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) { if (t.closest("#stage")) openFromPanel("t:" + tl.dataset.thread, e); else go("t:" + tl.dataset.thread); } else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
   if (t.closest("[data-older]")) { loadOlderNow(convAt(t)); return; }
   const so = t.closest("[data-start]");
   if (so) { startDraft(+so.dataset.start); return; }
@@ -3665,7 +3710,7 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-herald-undo]")) {
     const h = S.herald, u = h?.undo;
     // a notice whose Undo names its own destination (Launchpad's) is left to it (lpshell LP21/LP36)
-    if (!h?.ownFocus) { heraldBack(h)?.focus({ preventScroll: true }); S.focusNext = [...((h && h.back) || []), "#say"]; }
+    if (!h?.ownFocus) { heraldBack(h)?.focus({ preventScroll: true }); const K = composerNow(); S.focusNext = [...((h && h.back) || []), () => K.say]; }
     if (typeof u === "function") { if (h.undoUntil && Date.now() > h.undoUntil) return; h.until = 0; u(); heraldNext(); } else if (u) undoRecord(u); // past its deadline an Undo undoes nothing: it does nothing
     return;
   }
@@ -3765,7 +3810,7 @@ document.addEventListener("click", (e) => {
   const r = t.closest("[data-retry]");
   if (r) { retry(r.dataset.retry); return; }
   // Interrupt goes as its turn stops: focus lands on its Undo (3 s), drawn in the same step (Astra RUN-5)
-  if (t.closest("[data-interrupt]")) { S.focusNext = ["#herald [data-herald-undo]"]; interruptRun(convAt(t).view); return; }
+  if (t.closest("[data-interrupt]")) { S.focusNext = [() => heraldBox()?.querySelector("[data-herald-undo]")]; interruptRun(convAt(t).view); return; }
   const ed = t.closest("[data-edit]");
   if (ed) { editFailed(ed.dataset.edit, composerAt(ed)); return; }
   const mx = t.closest("[data-mx]");
@@ -4381,7 +4426,7 @@ async function unfreeze(tid, btn) {
   if (btn) { btn.setAttribute("aria-disabled", "true"); btn.setAttribute("aria-busy", "true"); }
   try {
     await world.act.editThread(th.id, { paused: false });
-    if (btn && btn.isConnected && btn === document.activeElement) S.focusNext = ["#say", "#scroller"];
+    if (btn && btn.isConnected && btn === document.activeElement) { const K = composerAt(btn); S.focusNext = [() => K.say, () => K.conv.scroller]; }
     announce("Picked back up. Its agent can carry on here.");
     schedule();
   } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
@@ -4717,8 +4762,8 @@ document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-
 const GLOBAL = {
   shells: () => SH.toggle(),
   jump: () => (jump.hidden ? openJump() : closeJump()),
-  intel: () => toggleIq(sessionOf(S.view), $("#iq")),
-  write: () => say.focus(),
+  intel: () => { const K = composerNow(); toggleIq(sessionOf(K.view), K.iq); },
+  write: () => composerNow().say.focus(),
   keys: () => openKeys(),
   map: () => STAGE.toggle(),
   sideFold: () => SIDE.fold(!SIDE.folded),
@@ -4852,7 +4897,7 @@ wireGestures({
   canResolve: () => !!world.act.storm,
   threadOf: (id) => world.thread(id),
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
-  toast: (text) => { announce(text); heraldShow({ kind: "done", text }, 1600); },
+  toast: (text) => toastLine(text),
 });
 /** fn, once the world shows what test() looks for: an act's answer reaches the world on its next commit. */
 function whenWorld(test, fn) {

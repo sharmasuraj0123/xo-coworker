@@ -520,13 +520,14 @@ body.viewer-open .fv~.dock{display:none}
 @media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}
 
 /* while the panel covers the page (a phone, or full size), a notice (a Stop's Undo, Launchpad's own) is drawn above
-   it, at the foot, where its Undo can be seen and pressed (js/stage.js coverSync keeps it out of the inert part) */
+   it, at the foot, where its Undo can be seen and pressed (js/stage.js coverSync keeps it out of the inert part); the
+   panel's thread page has its own line, over its own composer */
 body.stage-covers .dock{z-index:auto} /* no stacking context of its own, so the notice can rise above the panel */
-body.stage-covers .herald{position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
+body.stage-covers .herald:not(.tp .herald){position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
 /* away from the composer (over a covering panel), only notices come: the composer's own
    line (Off, can't reach XO) says where a draft can't go and stays with it. Over the panel it hid the map's zoom
    buttons on a phone (the phone floor's browser pass, 320 and 390) */
-body.stage-covers .herald .hr-conn{display:none}
+body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 
 /* ── Threads (the frame that was Agents): groups in one vocabulary (the owner, 19 Nov) ──────────────────────────
    A group's head is a 32 control: its word starts on the tiles' left edge (the list's 12 + the row's 8), its

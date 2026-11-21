@@ -33,9 +33,9 @@ assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
 assert.match(storm, /watchSideThread: \(ts\) => \{ watched\.side = ts \|\| null;/);
 // opening: beside a chat, from the panel's rows; ⌘/Ctrl-click or elsewhere: today's full page
 const ofp = app.slice(app.indexOf("function openFromPanel("), app.indexOf("\n}\n", app.indexOf("function openFromPanel(")));
-assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\);/);
+assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\),/);
 assert.match(ofp, /!\(e && \(e\.metaKey \|\| e\.ctrlKey\)\)/);
-assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); return;/);
+assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); if \(msg\) showMsg\(msg, TP\.C\); return;/);
 assert.match(app, /const STAGE = createStage\(\{[^\n]*go: \(v, e\) => openFromPanel\(v, e\)/);
 assert.match(app, /if \(g && !t\.closest\("#all"\) && !t\.closest\("#stage"\)\)/, "the panel's own links are the panel's");
 // Open full width: its own page, as today
@@ -122,7 +122,7 @@ console.log("thread-page menu: ok");
 for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(app, new RegExp(`id="${id}"`), id);
 assert.match(app, /wireTray\(TP\.K\);/);
 assert.match(app, /wireTray\(MK\);/);
-assert.match(app, /addFiles\(e\.dataTransfer\.files, TP\.K\)/);
+assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/, "a drop on the page: the app's one drop, into its composer");
 assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
 assert.match(app, /toggleIq\(sessionOf\(tpView\(\)\), TP\.K\.iq\)/);
 console.log("thread-page files and model: ok");
@@ -145,7 +145,7 @@ console.log("thread-page files and model: ok");
   assert.match(body, /document\.body\.append\(qpop\); gone\.push\(\(\) => qpop\.remove\(\)\);/);
   assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) gone\.pop\(\)\(\); \} \};/);
   assert.match(ap, /TP\.deco = decorateConversation\(/);
-  assert.match(ap, /TP\.dockRO = new ResizeObserver\(/);
+  assert.match(ap, /TP\.dockRO = watchDock\(els\.dock, box\);/);
   assert.match(ap, /function tpClose\(\) \{/);
   assert.doesNotMatch(ap, /function tpUnmount\(/, "the page is never torn down and rebuilt");
   console.log("thread-page teardown: ok"); }
