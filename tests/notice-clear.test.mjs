@@ -41,7 +41,8 @@ t("census: the line is placed by the stack alone, never against one thing docked
   assert.deepEqual(where, [
     "app.css: .herald { bottom: calc(100% - var(--cbar-fade) + var(--dock-gap)) }",
     "app.css: body:not(.stage-covers) .dock.is-stacked>.herald { bottom: calc(100% + var(--dock-gap)) }",
-  ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked");
+    "app.css: .dock.is-top>.herald { bottom: auto }",
+  ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked; under the stack when the dock leads its page");
   // the line was once placed 20 px into a bar whose fade room was 30 and 22 on a phone: 10 and 8 px over the box
   // (the owner, 19 Nov). Every bar's top room is the one token the line is placed from.
   const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
