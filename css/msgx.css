@@ -136,7 +136,7 @@
    app.css's old 32 + 12 grid, 8 px off on a desktop and 28 on a phone (QA #16). As the last row, it leaves
    the same space above the composer as a message does (QA #25). */
 :root[data-msgx] :is(#msgs,#tmsgs)>.ev{gap:24px}
-:root[data-msgx] :is(#msgs,#tmsgs)>.ev>.ev-ic{width:22px;margin:0 3px}
+:root[data-msgx] :is(#msgs,#tmsgs)>.ev>.ev-ic{width:var(--ic);margin:0 6px}
 :root[data-msgx] :is(#msgs,#tmsgs)>.ev:last-child{margin-bottom:20px}
 /* The space under the last message (owner, 5 Nov: "why this much gap?"). It was 99 px on a desktop (82 on a
    phone): the 20 px after a message, 48 (40) the app added under the conversation, and the composer bar's
