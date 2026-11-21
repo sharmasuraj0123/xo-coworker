@@ -367,7 +367,7 @@ button:disabled{cursor:default}
 .ck-row:has(.ck-tog:hover){background:var(--hover-fill)}
 /* the toggle fills its bar edge to edge, and the bar clips to its corners (its row's hover fill), so its ring is drawn
    inside it, on the bar's inner corners (the controls grader on 414de0f, C045: only the ring's right edge showed) */
-.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-ctl);padding:0 calc(var(--s-3) - var(--ic) * var(--ic-ink-chev)) 0 var(--s-3);border-radius:var(--r-lg-in);text-align:left;font-size:var(--fs-ui);color:var(--ink-3)}
+.ck-tog{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var(--h-ctl);padding:0 calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev)) 0 var(--edge-text);border-radius:var(--r-lg-in);text-align:left;font-size:var(--fs-ui);color:var(--ink-3)}
 .ck-tog:hover{color:var(--ink-2)}
 .ck-segs{flex:none;display:flex;gap:2px}
 .sg{display:block;width:16px;height:4px;border-radius:2px;background:var(--fill-3);transition:background var(--d-in) var(--ease)}
@@ -667,7 +667,7 @@ code.hl{color:var(--code-ink)}
 body:not(.stage-covers) .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
 /* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
 .dock.is-stacked>.cbar{padding-top:0}
-.hr{--nest-r:calc(var(--h-ctl) / 2);--nest-in:calc(var(--s-3) + 1px);--ctl-in:calc((var(--h-ctl) - var(--ic-lg)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 calc(var(--end-in, var(--nest-in)) - 1px - var(--trail-ink, 0px)) 0 calc(var(--start-in, var(--nest-in)) - 1px);border-radius:var(--nest-r);background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
+.hr{--nest-r:calc(var(--h-ctl) / 2);--nest-in:calc(var(--edge-text) + 1px);--ctl-in:calc((var(--h-ctl) - var(--ic-lg)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:8px;max-width:100%;height:var(--h-ctl);padding:0 calc(var(--end-in, var(--nest-in)) - 1px - var(--trail-ink, 0px)) 0 calc(var(--start-in, var(--nest-in)) - 1px);border-radius:var(--nest-r);background:var(--herald-bg);border:1px solid var(--line-soft);color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 28px rgb(0 0 0 / calc(.3 * var(--sha)))}
 button.hr{transition:border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
 button.hr:hover{background:var(--herald-bg-hi)}
 button.hr:active{transform:scale(.97)}
@@ -1277,7 +1277,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .dock-hide svg{width:var(--ic-sm);height:var(--ic-sm)}
 .dock-hide:hover{background:var(--fill-2);color:var(--ink)}
 .dock-hide:active{transform:scale(.96)}
-.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--nest-in) - 1px - var(--ic-sm) * var(--mark-ink));background:var(--surface);border:1px solid transparent;box-shadow:var(--e2);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.dock-fold{pointer-events:auto;display:flex;align-items:center;gap:var(--gap-icon);width:100%;min-height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink));background:var(--surface);border:1px solid transparent;box-shadow:var(--e2);text-align:left;transition:border-color var(--d-hover) var(--ease),background var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .dock-fold.r-stopped,.dock-fold.r-destructive{background:color-mix(in srgb,var(--err) 6%,var(--surface))}
 .dock-fold:hover{background:var(--fill-2)}
 .dock-fold:active{transform:scale(.99)}
@@ -1288,7 +1288,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .dock-fold.r-stopped .df-go,.dock-fold.r-destructive .df-go{background:var(--err-subtle);color:var(--err-ink)}
 .card.is-dock.r-done{border-color:transparent;background:linear-gradient(var(--ok-fill),var(--ok-fill)),var(--surface)}
 .card.is-dock.r-done:has(.is-back){background:linear-gradient(var(--btn-fill),var(--btn-fill)),var(--surface)}
-.tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--dock-bar);margin:0;padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--nest-in) - 1px - var(--ic) * var(--ic-ink));font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
+.tp-done{display:flex;align-items:center;gap:var(--gap-icon);min-height:var(--dock-bar);margin:0;padding:0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic) * var(--ic-ink));font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .tp-done>span:not(.tp-done-ic){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tp-done b{color:var(--ink);font-weight:var(--fw-medium)}
 .tp-done-ic{flex:none;display:grid;place-items:center;width:var(--ic);height:var(--ic);color:var(--accent)}
