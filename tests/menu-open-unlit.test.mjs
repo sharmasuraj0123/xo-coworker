@@ -27,4 +27,9 @@ t("the sidebar's More and the thread menu open through it; More's hover moves it
   assert.match(app, /if \(S\.tMenu\) focusOpened\(tm\.parentElement\.querySelector\("\.tw-menu"\), e\);/);
   assert.doesNotMatch(app, /openMore\(\) \{[\s\S]{0,400}querySelector\('\[role="menuitem"\]'\)\?\.focus/);
 });
+t("a sidebar row in a menu is lit by focus only: its row hover stays off, so the pointer and a key never light two", () => {
+  const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
+  assert.match(css("app.css"), /\n\.nrow:not\(\[role=menuitem\]\):hover\{background:var\(--row-hover\)\}/);
+  assert.match(css("side.css"), /:root:root \.side :is\(\.nrow,\.prow\):not\(\[role=menuitem\]\):hover\{/);
+});
 console.log(`\n${passed} passed`);
