@@ -3600,7 +3600,7 @@ $("#top").addEventListener("keydown", (e) => {
 $("#msgs").addEventListener("input", (e) => { if (e.target.matches?.("[data-chl-q]")) CH.search(e.target.value); });
 $("#msgs").addEventListener("click", (e) => {
   const b = e.target.closest?.("[data-chl-all]");
-  if (!b || b.getAttribute("aria-pressed") === "true") return;
+  if (!b) return;
   const all = b.dataset.chlAll === "1";
   // the greeting keeps its place: the list grows under it instead of the page recentring
   const sc = $("#scroller");
@@ -3609,7 +3609,7 @@ $("#msgs").addEventListener("click", (e) => {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const top = $("#msgs .chl-top");
     if (!top) return;
-    (all && !matchMedia("(max-width: 760px)").matches ? top.querySelector("[data-chl-q]") : top.querySelector('[aria-pressed="true"]'))?.focus({ preventScroll: true });
+    (all && !matchMedia("(max-width: 760px)").matches ? top.querySelector("[data-chl-q]") : top.querySelector("[data-chl-all]"))?.focus({ preventScroll: true });
   }));
 });
 $("#top").addEventListener("input", (e) => { if (e.target.closest?.("[data-tedit]") && S.tEdit) S.tEdit.value = e.target.value; });
