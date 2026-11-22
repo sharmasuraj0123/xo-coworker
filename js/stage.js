@@ -305,7 +305,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const covered = !!S.page;
     if (!S.lp && !covered) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
     // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
-    el.querySelector('[data-fr-n="agents"]').textContent = tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || "");
+    const fn = el.querySelector('[data-fr-n="agents"]'), cnt = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));
+    if (fn.textContent !== cnt) fn.textContent = cnt;
     // Changes: Space's list and diff where it has /changes, else today's list
     if (!fr.changes.folded && !S.lp && !covered) CX.paint();
     const hd = CX.head();
