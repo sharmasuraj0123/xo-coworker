@@ -453,7 +453,7 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     }
     // − folds the dock to its bar, and minimised a chevron points up, the way it comes back; ↓ puts it away
     html += `<button type="button" class="shd-act shd-ic${R.min ? " is-up" : ""}" data-sh-min aria-label="${R.min ? "Show shells" : "Minimise shells"}" title="${R.min ? "Show" : "Minimise"} (${esc(K.label("shells"))})">${R.min ? ICON.chevron : ICON.minimize}</button>` +
-      `<button type="button" class="shd-act shd-ic" data-sh-hide aria-label="Hide shells" title="Hide (they keep running)">${ICON.down}</button>`;
+      `<button type="button" class="shd-act shd-ic" data-sh-hide aria-label="Hide shells" title="Hide (they keep running)">${ICON.hide}</button>`;
     if (actsEl._h !== html) { redraw(actsEl, html); actsEl._h = html; }
   }
 
