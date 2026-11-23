@@ -7,16 +7,18 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { sheet } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
 const src = [read("index.html"), ...sourcePaths(".js").map(readSource)].join("\n");
 const css = sourcePaths(".css").map((f) => read(f).replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+const app = sheet(new URL("css/app.css", ROOT));
 // each button by the first class the templates give it
 const buttons = new Set();
 for (const m of src.matchAll(/<button\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c) { const k = c[1].trim().split(/\s+/)[0]; if (k && !/^(is|st|k|m|t|r|e)-/.test(k)) buttons.add(k); } }
 const hovers = [...css.matchAll(/([^{}]+)\{[^{}]*\}/g)].map((m) => m[1]).filter((s) => /:hover/.test(s)).join("\n");
-const restInk = (k) => { const m = new RegExp(`(^|[},\\n])\\s*\\.${k}\\{([^}]*)\\}`).exec(css); const c = m && /(?:^|;)color:var\((--ink-\d)\)/.exec(m[2]); return c ? c[1] : null; };
+const restInk = (k) => { const re = new RegExp(`(^|[},\\n])\\s*\\.${k}\\{([^}]*)\\}`); const m = re.exec(app) || re.exec(css); const c = m && /(?:^|;)color:var\((--ink-\d)\)/.exec(m[2]); return c ? c[1] : null; };
 const answers = (k) => new RegExp(`\\.${k}(?![\\w-])[^,{]*:hover|:hover[^,{]*\\.${k}(?![\\w-])|\\.${k}(?![\\w-])[^{]*\\)[^{]*:hover`).test(hovers) || ["--ink-3", "--ink-4"].includes(restInk(k));
 // those that answer another way, each with how
 const OTHER = {
