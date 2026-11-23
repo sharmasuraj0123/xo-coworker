@@ -90,31 +90,31 @@
 .lp-ro{color:var(--ink)}
 .lp-new{display:inline-block;margin-left:var(--s-1);padding:0 var(--s-1);border-radius:var(--r-xs);background:var(--ok-fill);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--accent)}
 
-/* a field is its row: borderless, its text on the same edge as the hint under it; the row lights as you touch it */
-.lq-in{display:block;width:100%;max-width:40ch;height:var(--lh-ui);margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);outline:0;caret-color:var(--go)}
-.lq-in::placeholder{color:var(--ink-4)}
-.lq-in::selection{background:color-mix(in srgb,var(--go) 30%,transparent)}
-.lq-in:is(.is-short,.lp-mono){max-width:12ch;font-family:var(--mono);font-size:var(--fs-code)}
-.lq-row:has(.lq-in){cursor:text;transition:background var(--d-hover) var(--ease)}
-.lq-row:has(.lq-in):hover,.lq-row:has(.lq-in:focus){background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-.lq-ed{display:grid;place-items:center;color:var(--ink-4)}
-.lq-ed svg{width:var(--ic-sm);height:var(--ic-sm)}
-.lq-row:has(.lq-in:focus) .lq-ed{color:var(--ink)}
+button.lq-row{transition:background var(--d-hover) var(--ease)}
+button.lq-row:not(:disabled):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
+
+/* a field is the app's boxed field; its label sits level with the box, its hint under it */
+.lq-in{display:block;max-width:40ch;margin:0;color:var(--ink);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.lq-in.is-short{max-width:calc(12ch + 2 * var(--field-px))}
+.lq-in.lp-mono{font-family:var(--mono);font-size:var(--fs-code)}
+.lq-in+.lp-hint{margin-top:var(--s-1)}
+.lq-row:has(.lq-in){align-items:start}
+.lq-row:has(.lq-in)>.lq-k{padding-top:calc((var(--h-lg) - var(--lh-ui)) / 2)}
 .lp-f.is-bad{background:color-mix(in srgb,var(--danger) 6%,transparent)}
 .lp-f.is-bad .lp-hint,.lp-f.is-bad .lq-k{color:var(--err-ink)}
+.lp-f.is-bad :is(.lq-in,.dd-btn),.lp-f.is-bad .dd-btn:hover{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
 .lp-f.is-bad .lq-in{caret-color:var(--danger)}
 .lp-b.lp-fix{height:var(--h-ctl);margin-top:var(--s-2);padding:0 var(--s-3)}
 .lp-pair{display:flex;align-items:center;gap:var(--s-2);min-width:0;width:100%}
 .lp-pair .lq-in{flex:1 1 auto;min-width:0;width:auto}
-.lp-pair .lq-in.is-gb{flex:none;width:6ch;text-align:right;font-variant-numeric:tabular-nums}
+.lp-pair .lq-in.is-gb{flex:none;width:calc(6ch + 2 * var(--field-px));text-align:right;font-variant-numeric:tabular-nums}
 .lp-u{flex:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .lp-u.lp-at{flex:1 1 0;min-width:0;overflow-wrap:anywhere}
 .lp-u code{font-family:var(--mono)}
 .lq-v>xo-select{display:flex;width:100%;max-width:40ch;margin-bottom:var(--s-1)}
-.lp-f.is-bad .dd-btn,.lp-f.is-bad .dd-btn:hover{border-color:color-mix(in srgb,var(--danger) 70%,transparent)}
 .lp-ev .lq-k{font-family:var(--mono);font-size:var(--fs-meta)}
 .lq-more{display:flex;justify-content:flex-start;gap:var(--s-1);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
-.lq-more:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.lq-more:hover{color:var(--ink)}
 .lq-more svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lp-lock{display:flex;align-items:center;gap:var(--s-1);margin:var(--s-2) 0 0 var(--s-4);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .lp-lock svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
@@ -122,8 +122,6 @@
 
 /* a row with a tile: an asked thread, an app to link, what Launchpad looks for */
 .lq-row:has(>.lp-t){grid-template-columns:var(--tile-sm) minmax(0,1fr) auto}
-.lp-agr,.lp-appr{transition:background var(--d-hover) var(--ease)}
-.lp-agr:hover,.lp-appr:not(:disabled):hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 .lp-appr:disabled{cursor:default}
 .lp-appr:disabled :is(b,.lp-t){color:var(--ink-4)}
 .lp-t{position:relative;display:grid;place-items:center;width:var(--tile-sm);height:var(--tile-sm);border-radius:var(--r);background:var(--sb-g1C);box-shadow:inset 0 0 0 1px var(--sb-g26);color:var(--ink-2)}
@@ -239,7 +237,7 @@
   .lq-note{flex-direction:column;align-items:stretch}
   .lq-note .lq-acts{flex-wrap:wrap}
   .lq-foot.lp-foot{position:sticky;bottom:calc(-1 * var(--s-6));margin:var(--s-6) calc(-1 * var(--s-4)) calc(-1 * var(--s-6));padding:var(--s-3) var(--s-4) var(--s-6);background:var(--canvas);box-shadow:0 -1px 0 var(--line-faint)}
-  .lq-in{height:var(--h-lg);font-size:var(--fs-input)}
+  .lq-in{font-size:var(--fs-input)}
 }
 
 /* ── the page: every project's app ────────────────────────────────────────────────────────── */

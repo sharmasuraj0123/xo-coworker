@@ -84,7 +84,7 @@
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
   /* a form field: its well, its edge, its edge while typed in */
-  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8);
+  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8); --field-px:var(--s-3);
   /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
   --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
   --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;

@@ -406,7 +406,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       (e.repo || f.repoChosen ? field("repo", "Repository", f.repo, { hint: e.repo || hintFor("repo", p), bad: !!e.repo }) : "") +
       `</div>` +
       (env.length ? `<p class="lq-h" id="lq-env">Environment${from ? ` <span>from ${esc(from)}</span>` : ""}</p><fieldset class="lq-group lp-env" aria-labelledby="lq-env">` +
-        mine.map((x) => `<label class="lq-row lp-f lp-ev"><span class="lq-k lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><span class="lq-v lp-v"><input class="lq-in lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(editing && x.set ? "Set · leave to keep" : x.default || "Not set")}" aria-label="${esc(x.name)}"></span><span class="lq-ed" aria-hidden="true">${ICON.edit}</span></label>`).join("") +
+        mine.map((x) => `<label class="lq-row lp-f lp-ev"><span class="lq-k lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><span class="lq-v lp-v"><input class="lq-in lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(editing && x.set ? "Set · leave to keep" : x.default || "Not set")}" aria-label="${esc(x.name)}"></span></label>`).join("") +
         (rest ? `<button type="button" class="lq-row lq-more lp-a lp-more" data-lp="env-all"><span>${rest} more with example values</span>${ICON.chevron || ""}</button>` : "") +
         `</fieldset><p class="lp-lock">${ICON.lock}<span>Straight to Launchpad; XO never keeps them.</span></p>` : "") +
       (scope ? "" : `<p class="lp-note t-need lp-gh-why">${ghWhy(c.github)}</p>`) +
@@ -421,7 +421,6 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     : !g.connected ? "Launchpad deploys from your repository on GitHub. Connect it to go on." : "GitHub needs the workflow permission before Launchpad can deploy. Reconnect it to grant it.");
   /** A row of the Setup group: its label, the value or field with its hint under it, and what changes it. */
   const row = (label, inner, bad = false, tag = "div", end = "") => `<${tag} class="lq-row lp-f${bad ? " is-bad" : ""}"><span class="lq-k lp-l">${label}</span>${inner}${end}</${tag}>`;
-  const PEN = `<span class="lq-ed" aria-hidden="true">${ICON.edit}</span>`;
   /** The machine: for a new app, its size (only what the template allows, its default chosen) and an optional disk;
    *  in a linked app's settings, the size it was made with (fixed) and its disk, which can grow but never shrink. */
   function machineRows(s, c, f, e, editing) {
@@ -431,7 +430,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       const a = c.app;
       return (a.size || a.sizeLabel ? row("Size", `<span class="lq-v lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
         (a.storage === undefined ? "" : a.storage
-          ? row("Disk", `<span class="lq-v lp-v"><span class="lp-pair"><input class="lq-in lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label", PEN)
+          ? row("Disk", `<span class="lq-v lp-v"><span class="lp-pair"><input class="lq-in lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label")
           : row("Disk", `<span class="lq-v lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
     }
     // a Space that offers sizes (xo-space 3886701 on): folded to one row until you change it; an older one, nothing
@@ -466,7 +465,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");
   function field(id, label, value, { hint = "", bad = false, mode = "text", short = false, fix = "" } = {}) {
     // the field sits on its row, borderless, its hint under it on the same edge; Launchpad's free name is a button under the hint
-    return row(label, `<span class="lq-v lp-v"><input class="lq-in lp-in${short ? " is-short" : ""}" data-lp-f="${id}" value="${esc(value || "")}" inputmode="${mode}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lp-h-${id}"${bad ? ' aria-invalid="true"' : ""}><small class="lp-hint" id="lp-h-${id}">${hint}</small>${fix ? `<button type="button" class="btn lp-b lp-fix" data-lp="use-name" data-v="${esc(fix)}">Use ${esc(fix)}</button>` : ""}</span>`, bad, "label", PEN);
+    return row(label, `<span class="lq-v lp-v"><input class="lq-in lp-in${short ? " is-short" : ""}" data-lp-f="${id}" value="${esc(value || "")}" inputmode="${mode}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lp-h-${id}"${bad ? ' aria-invalid="true"' : ""}><small class="lp-hint" id="lp-h-${id}">${hint}</small>${fix ? `<button type="button" class="btn lp-b lp-fix" data-lp="use-name" data-v="${esc(fix)}">Use ${esc(fix)}</button>` : ""}</span>`, bad, "label");
   }
 
   /** What Space warned of on the way (uncommitted changes left out, env names with no value): worth reading, not fatal. */
