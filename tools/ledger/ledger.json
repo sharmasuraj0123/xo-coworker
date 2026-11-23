@@ -1561,7 +1561,8 @@
   },
   "css/app.css": {
    "status": "split",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)"
+   "home": ["core/ui/app-controls.css", "shell/frame.css", "modules/home/home.css", "css/app.css"],
+   "note": "The compatibility entry loads the moved regions in their original order."
   },
   "css/artifacts.css": {
    "status": "moved",

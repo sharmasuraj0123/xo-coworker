@@ -73,7 +73,7 @@ console.log("thread-page: ok");
 // the page's one reading column: its messages and its dock (asks line, composer) share their edges
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\);--measure:max\(calc\(var\(--col-w\) - var\(--s-12\)\), min\(100%, var\(--measure-min\)\)\)\}/, "the main chat's own column rule");
-  const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  const a2 = readFileSync(new URL("../shell/frame.css", import.meta.url), "utf8");
   assert.match(a2, /:is\(\.home,\.conv,\.arts,\.lpp,\.dock\)\{container-type:inline-size;--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\);--measure:max\(calc\(var\(--col-w\) - var\(--s-12\)\), min\(100%, var\(--measure-min\)\)\)\}/);
   assert.match(a2, /\n\.main\{--rp:0px;--gut-min:28px;--col-max:calc\(24 \* var\(--h-ctl\)\)\}/);
   const st2 = readFileSync(new URL("../shell/panel/width.js", import.meta.url), "utf8");

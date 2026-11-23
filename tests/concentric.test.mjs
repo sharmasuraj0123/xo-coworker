@@ -7,9 +7,10 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("a sidebar row's tile sits the same inset from its top, bottom and left, derived from the row and the tile", () => {
+  const frame = readSource("shell/frame.css");
   assert.match(tok, /--tile-sm:28px;/);
-  assert.match(app, /\.nrow,\.prow\{[^}]*--nest-r:var\(--r-lg\);--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);border-radius:var\(--nest-r\)/);
-  assert.match(app, new RegExp(`\\.nr-ic,\\.pr-ic\\{[^}]*width:var\\(--tile-sm\\);height:var\\(--tile-sm\\);border-radius:${NEST}`));
+  assert.match(frame, /\.nrow,\.prow\{[^}]*--nest-r:var\(--r-lg\);--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);border-radius:var\(--nest-r\)/);
+  assert.match(frame, new RegExp(`\\.nr-ic,\\.pr-ic\\{[^}]*width:var\\(--tile-sm\\);height:var\\(--tile-sm\\);border-radius:${NEST}`));
   assert.doesNotMatch(side, /\.nr-ic,\.pr-ic\{border-radius:calc\(var\(--r-lg\) - 7px\)\}/);
   assert.match(side, /\.side :is\(\.nrow,\.prow\):focus-visible\{border-radius:var\(--nest-r\)\}/);
 });

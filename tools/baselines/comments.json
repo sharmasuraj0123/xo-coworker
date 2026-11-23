@@ -15,12 +15,8 @@
   "extra": 17,
   "refs": 0
  },
- "js/ui.js": {
-  "extra": 10,
-  "refs": 0
- },
  "css/app.css": {
-  "extra": 154,
+  "extra": 144,
   "refs": 0
  },
  "css/diffs.css": {
@@ -145,10 +141,6 @@
  },
  "tests/conv-herald-resolve.test.mjs": {
   "extra": 4,
-  "refs": 0
- },
- "tests/conv-sound.test.mjs": {
-  "extra": 7,
   "refs": 0
  },
  "tests/coord-colour.test.mjs": {

@@ -9,6 +9,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { stopOf, stopWords } from "../js/timeline.js";
+import { sheet } from "./lib/cascade.mjs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
@@ -129,7 +130,7 @@ await t("Decide: a stop someone meant asks nothing; a crash and an older backend
 
 // ── the thread says it quietly ────────────────────────────────────────────
 await t("the header, the sidebar row, the badge and the checklist line: quiet ink, who and why; the red only for a failure", () => {
-  const app = read("js/app.js"), css = read("css/app.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  const app = read("js/app.js"), css = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(app, /const glyphOf = \(t\) => \([^\n]*t\.stop \? "stopped" : t\.state\);/);
   assert.match(app, /const stOf = \(t\) => \([^\n]*t\.stop \? "stopped" : t\.state\);/);
   // (the chat's own head beside a file, and its badge, went with the docked chat: Files is a panel page now)

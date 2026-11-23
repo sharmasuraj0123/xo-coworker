@@ -120,7 +120,7 @@ Items inside first-party files: 2488 (moved 1467, planned 634, kept 135, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `css/app.css` | 3148 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
+| `css/app.css` | 3148 | split | core/ui/app-controls.css, shell/frame.css, modules/home/home.css, css/app.css · next: The compatibility entry loads the moved regions in their original order. |
 | `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css |
 | `css/base.css` | 58 | moved | core/ui/foundation.css |
 | `css/diffs.css` | 243 | planned | modules/changes/diffs.css |

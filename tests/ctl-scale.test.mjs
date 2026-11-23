@@ -80,13 +80,13 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px;/);
   // and its controls on the scale: 24, not 28 (C106, the Compact switch 46×28; the owner, 11 Nov 05:42Z)
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
-  const app = readCss(new URL("css/app.css", ROOT), "utf8");
-  assert.match(app, /\.nrow,\.prow\{[^}]*--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);/, "the sidebar's rows 40: 1 + 5 + its 28 px tile + 5 + 1, the same inset on its left");
+  const app = readCss(new URL("css/app.css", ROOT), "utf8"), frame = readCss(new URL("shell/frame.css", ROOT), "utf8");
+  assert.match(frame, /\.nrow,\.prow\{[^}]*--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);/, "the sidebar's rows 40: 1 + 5 + its 28 px tile + 5 + 1, the same inset on its left");
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
   // 16.9 at line heights of 1.3 and 1.35)
   assert.match(app, /\.chl-row\{[^}]*height:var\(--h-row-act\);/, "Chats' rows 48: one line of titles");
-  assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:400 var\(--fs-ui\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
+  assert.match(frame, /\.pr-main\{[^}]*gap:0\}/); assert.match(frame, /\.pr-name\{[^}]*font:400 var\(--fs-ui\)\/20px/); assert.match(frame, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
   const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");

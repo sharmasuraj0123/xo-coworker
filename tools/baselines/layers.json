@@ -1,7 +1,4 @@
 {
- "shell/panel/panel.js -> js/ui.js": 1,
- "shell/phone.js -> js/ui.js": 1,
- "shell/rail/side.js -> js/ui.js": 1,
  "modules/create-project/create.js -> js/world.js": 1,
  "modules/create-project/create.js -> js/ui.js": 1,
  "modules/create-project/create.js -> js/attach.js": 1,
