@@ -7133,8 +7133,8 @@
    "home": "modules/changes; modules/files (viewer) (app.js l.233)"
   },
   "js/app.js::functions::projectIcon": {
-   "status": "planned",
-   "home": "modules/projects (icon service, public API `projectIcon`) (app.js l.277)"
+   "status": "moved",
+   "home": "modules/projects/icon-choice.js"
   },
   "js/app.js::functions::pickIcon": {
    "status": "planned",

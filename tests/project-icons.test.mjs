@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TOPICS, glyph } from "../modules/projects/projicons.js";
+import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
@@ -13,18 +14,27 @@ assert.equal(TOPICS.length, 31);
 for (const k of TOPICS) assert.ok(hasIcon(`project-${k}`), k);
 assert.match(glyph("project"), /data-xi="project"/);
 
-// the choice, checked as written: only a topic or the cube counts
-const own = /const ownIcon = (\(pid\) => \{[^\n]*\});/.exec(app);
-assert.ok(own);
-const make = (icons) => new Function("SHAPE", "TOPICS", `return ${own[1]};`)({ get: (k) => (k === "layout" ? { icons } : undefined) }, TOPICS);
-assert.equal(make({ a: "research" })("a"), "research");
-assert.equal(make({ a: "project" })("a"), "project");
-assert.equal(make({ a: "nonsense" })("a"), null, "an unknown choice: its own guess");
-assert.equal(make({})("a"), null);
-
-// it wins over the guess, and a change of it draws again (the memo knows it)
-assert.match(app, /const icon = own \|\| classify\(/);
-assert.match(app, /if \(memo && memo\.n === ts\.length && memo\.own === own\) return memo\.svg;/);
+const icons = {};
+const world = { state: { threads: [] }, project: () => null };
+const SHAPE = { get: (key) => key === "layout" ? { icons } : undefined };
+const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice({ world, SHAPE });
+assert.equal(ownIcon("a"), null);
+assert.equal(projectIcon("a"), glyph("project"));
+world.state.threads.push({ project: "a", title: "research" });
+assert.equal(projectIcon("a"), glyph("research"), "a new thread can change the automatic icon");
+icons.a = "project";
+assert.equal(ownIcon("a"), "project");
+assert.equal(projectIcon("a"), glyph("project"), "the selected cube overrides the cached guess");
+icons.a = "mobile";
+assert.equal(ownIcon("a"), "mobile");
+assert.equal(projectIcon("a"), glyph("mobile"), "a new choice overrides the cached choice");
+icons.a = "nonsense";
+assert.equal(ownIcon("a"), null, "an unknown choice falls back to the guess");
+assert.equal(projectIcon("a"), glyph("research"));
+world.state.threads[0].title = "finance";
+assert.equal(projectIcon("a"), glyph("research"), "the automatic icon is cached while the thread count holds");
+forgetIcon("a");
+assert.equal(projectIcon("a"), glyph("finance"), "forgetting a choice clears the cached icon");
 // kept in your shape; Automatic removes it
 assert.match(app, /SHAPE\.patchMine\(\{ layout: \{ icons: \{ \[pid\]: k \|\| null \} \} \}\);/);
 // the header tile opens it, a dialog of radios with one Tab stop; arrows walk the grid, Esc closes back to the tile

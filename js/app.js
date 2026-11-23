@@ -62,6 +62,7 @@ import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText,
 import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
+import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createShells } from "../modules/shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { drawSections } from "../modules/home/sections.js";
@@ -266,23 +267,7 @@ REC.view = () => S.view;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
-// Each project its own icon (modules/projects/projicons.js): from its name, and its threads' titles when the name says
-// nothing. Offline and instant; worked out again only when the project's thread count changes. A project
-// it can't place keeps the cube.
-const projIcons = new Map();
-// A project can wear the icon you chose for it (the owner, 19 Nov 14:44Z: "per project icons are fine"): one of the
-// owner's topics or the cube, kept in your shape (layout.icons), so every device shows it; otherwise its own guess.
-const ownIcon = (pid) => { const v = SHAPE.get("layout")?.icons?.[pid]; return typeof v === "string" && (v === "project" || TOPICS.includes(v)) ? v : null; };
-function projectIcon(pid) {
-  const ts = world.state.threads.filter((t) => t.project === pid);
-  const own = ownIcon(pid);
-  const memo = projIcons.get(pid);
-  if (memo && memo.n === ts.length && memo.own === own) return memo.svg;
-  const icon = own || classify((world.project(pid) || {}).name || pid, ts.map((t) => t.title || "")).icon;
-  const svg = glyph(icon);
-  projIcons.set(pid, { n: ts.length, own, svg });
-  return svg;
-}
+const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice({ world, SHAPE });
 /** The project icon picker: its header tile opens it; a grid of the owner's topics and the cube, "Automatic" first
  *  (its own guess, from its name and threads); arrows walk it, Enter or a click chooses, Esc closes. */
 const PICK = { el: null, pid: null, from: null };
@@ -327,7 +312,7 @@ function closePick({ focus = false } = {}) {
 }
 function chooseIcon(pid, k) {
   SHAPE.patchMine({ layout: { icons: { [pid]: k || null } } });
-  projIcons.delete(pid);
+  forgetIcon(pid);
   closePick({ focus: true });
   announce(k ? `${PROJ(pid)} wears ${topicName(k)}` : `${PROJ(pid)}'s icon is automatic again`);
   render();
