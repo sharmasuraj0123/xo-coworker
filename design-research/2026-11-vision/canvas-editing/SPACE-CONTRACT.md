@@ -169,7 +169,7 @@ Query parameters:
 - **Errors:** 409 `exists`, 400 `invalid_path`, 403 / 428.
 - **New files** stay `PUT /file` with `base_version: null`, as today.
 
-### 4.6 `GET /api/xo-projects/{id}/paths` (⌘P, and the tree's find)
+### 4.6 `GET /api/coworker/xo-projects/{id}/paths` (⌘P, and the tree's find)
 
 - **Query:** `worktree` (a worktree's name; the project's checkout when absent), `stamp`.
 - **How:** `git ls-files -co --exclude-standard -z` in that root (tracked plus untracked, minus what's ignored). Outside git, a walk using §2's ignore set.
@@ -178,7 +178,7 @@ Query parameters:
   - `dirs` holds every folder that has a path, so the tree can show folders without listing each one.
 - **With a matching `stamp`:** `{"unchanged": true, "stamp": "…"}`.
 
-### 4.7 `GET /api/xo-projects/{id}/search` (⌘⇧F)
+### 4.7 `GET /api/coworker/xo-projects/{id}/search` (⌘⇧F)
 
 **Query:**
 

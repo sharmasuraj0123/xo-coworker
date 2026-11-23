@@ -1,6 +1,6 @@
 // Go to a file (⌘P) or find text in the place's files (⌘⇧F), as VS Code's Quick Open and Search do, in the sheet ⌘K
 // uses (#qo, the same card). Files: a few letters of a path (js/fuzzy.js over js/paths.js: every file in the place,
-// open ones first), and `:120` to land on a line. Text: Space's GET /search (git grep, SPACE-CONTRACT.md §4.7),
+// open ones first), and `:120` to land on a line. Text: Space's GET /coworker/xo-projects/{id}/search (git grep, SPACE-CONTRACT.md §4.7),
 // results by file, a line each; Enter opens the file at that line. Where Space has no /search yet, it says so.
 //
 // createQuickOpen({paths, api, place, openFile, openFiles, announce, layer}) → {open(mode), close, isOpen}.

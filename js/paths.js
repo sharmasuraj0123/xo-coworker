@@ -1,4 +1,4 @@
-// Every file in a place, as a flat list of paths (⌘P, the tree's Find): Space's GET /xo-projects/{id}/paths
+// Every file in a place, as a flat list of paths (⌘P, the tree's Find): Space's GET /coworker/xo-projects/{id}/paths
 // (git ls-files -co --exclude-standard, worktree-aware; SPACE-CONTRACT.md §4.6) when it has it, otherwise walked
 // from /tree a folder at a time in the background, skipping what nobody searches (.git, node_modules…). Kept per
 // place and refreshed when files come and go (Space's file.version create/delete/rename), never on a keystroke.
