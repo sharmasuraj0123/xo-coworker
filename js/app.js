@@ -73,12 +73,11 @@ import { wireGestures, dockGestures, conversationGestures } from "./gestures.js"
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
-import { createSettingsFrame, createSettingsSections, createKeysPage, createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/index.js";
+import { createSettingsFrame, createSettingsSections, createKeysPage, keysSheetRender, createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/index.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { createCalmOrder } from "../shell/sideorder.js";
-import { keyHtml } from "../core/ui/a11y/keycap.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance } from "../modules/settings/appearance.js";
 import { wireSound } from "../modules/settings/sound.js";
@@ -3950,11 +3949,6 @@ function openSettings() { SETF.open(); }
 function closeSettings(o) { SETF.close(o); }
 
 // ── shortcuts: one list (keys.js) drives the handlers, the tooltips, the sheet and this page ──
-function keysSheetRender() {
-  const col = (ids) => `<dl class="keys">${ids.map((g) => `<dt class="kh">${esc(K.GROUPS.find((x) => x.id === g).name)}</dt><dd></dd>` +
-    K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${keyHtml(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
-  $("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
-}
 const KP = createKeysPage({ box: $("#set-keys-list"), state: S, announce, resetIcon: ICON.retry });
 K.onChange(() => { KP.render(); if (!keys.hidden) keysSheetRender(); schedule(); });
 KP.render();

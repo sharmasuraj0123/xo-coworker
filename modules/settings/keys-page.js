@@ -3,6 +3,7 @@
 // Settings › Keyboard: every shortcut and its key, changed by recording a new one; drawn in place.
 
 import { esc } from "../../js/world.js";
+import { $ as select } from "../../core/platform/dom.js";
 import { redraw } from "../../core/ui/redraw.js";
 import * as K from "../../core/platform/keys.js";
 import { keyHtml } from "../../core/ui/a11y/keycap.js";
@@ -52,4 +53,11 @@ export function createKeysPage({ box, state: S, announce, resetIcon }) {
     if (r.ok) announce(`${/** @type {{ label: string }} */ (K.ACTIONS.find((a) => a.id === id)).label}: ${K.label(id)}`);
   }, true);
   return { render };
+}
+
+export function keysSheetRender() {
+  /** @param {string[]} ids */
+  const col = (ids) => `<dl class="keys">${ids.map((g) => `<dt class="kh">${esc((/** @type {{ name: string }} */ (K.GROUPS.find((x) => x.id === g))).name)}</dt><dd></dd>` +
+    K.ACTIONS.filter((a) => a.scope === g).map((a) => `<dt><kbd>${keyHtml(K.label(a.id))}</kbd></dt><dd>${esc(a.label)}</dd>`).join("")).join("")}</dl>`;
+  select("#keys-cols").innerHTML = col(["global", "picture"]) + col(["decision", "intel"]);
 }
