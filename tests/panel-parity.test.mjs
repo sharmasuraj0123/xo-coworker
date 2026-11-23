@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createConversationFiles } from "../modules/files/conversation-files.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("js/app.js"), msgx = read("modules/conversation/decoration.js"), gest = read("shell/gestures.js"), mcss = read("css/msgx.css"), acss = read("css/app.css"), pcss = read("css/panel.css");
@@ -33,7 +34,15 @@ t("3 · a decision's Undo in the panel's dock ends its done line at once, as the
   assert.match(app, /onUndone: \(key\) => \{[^\n]*for \(const d of \[TD, TP\.dock\?\.TD\]\) if \(d\?\.undone && d\.undone\.key === key\) d\.undone\.end\(\); \},/);
 });
 t("4 · a line capsule opens the file in its own conversation's place", () => {
-  assert.match(fn(app, "function openLineRef("), /const s = CHG\.scope\(convAt\(a\)\.view\), path = a\.dataset\.ref;/);
+  const opened = [];
+  const { openLineRef } = createConversationFiles({ currentView: () => "p:other", convThread: () => null,
+    convAt: () => ({ view: "t:fixture" }), CHG: { scope: (view) => view === "t:fixture" ? { project: "p", worktree: "fixture" } : null },
+    VW: { open: (file, from) => opened.push([file, from]) },
+  });
+  const link = { dataset: { ref: "src/a.js", refA: "3", refB: "5" } };
+  openLineRef(link);
+  assert.deepEqual(opened[0][0], { path: "src/a.js", name: "a.js", project: "p", rel: ".xo/worktrees/fixture/src/a.js", lines: [3, 5] });
+  assert.ok(opened[0][1] === link);
 });
 t("5 · / and the model shortcut act on the conversation in use", () => {
   assert.match(app, /intel: \(\) => \{ const K = composerNow\(\); toggleIq\(sessionOf\(K\.view\), K\.iq\); \},/);

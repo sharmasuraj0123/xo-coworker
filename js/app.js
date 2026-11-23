@@ -11,7 +11,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stepMark, stateMark, XO, $, $$, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
@@ -46,6 +46,7 @@ import { startShell } from "../shell/start.js";
 import { createLaunchpad } from "../modules/launchpad/launchpad.js";
 import { createLpApi } from "../modules/launchpad/client.js";
 import { createFiles } from "../modules/files/files.js";
+import { createConversationFiles } from "../modules/files/conversation-files.js";
 import { fileScope, localIn, scopeOf as filesScopeOf } from "../modules/files/scope.js";
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
@@ -2796,27 +2797,8 @@ function openMedia(el, e) {
   else VW.open(viewerFile(it), el);
 }
 
-// ── shared files: open in the viewer beside the conversation (if1 #2) ──
-/**
- * Where an agent's path is served from: a thread's file is in its own folder; in a project's conversation
- * (its coordinator's words) a relative path is the project folder's; a plain chat's files have no route yet.
- */
-// the conversation a file belongs to: the one being drawn (a thread page draws its own), else the main chat's
 let drawing = null;
-function fileRoute(path, conv = drawing || S.view) {
-  const t = convThread(conv);
-  const pid = !t && conv.startsWith("p:") ? conv.slice(2) : null;
-  const rel = String(path || "").replace(/^\.\//, "");
-  return pid && rel && !rel.startsWith("/") && !rel.split("/").some((x) => x === ".." || x === "") ? { project: pid, rel } : sharedFileRoute(t, path);
-}
-function openSharedFile(btn) {
-  // a size only when the entry says one: an entry without data-file-bytes has none (Astra S224: "NaN MB")
-  const raw = btn.dataset.fileBytes, n = raw == null || raw === "" ? NaN : Number(raw);
-  const f = { path: btn.dataset.file, name: btn.dataset.fileName, type: btn.dataset.fileType, bytes: Number.isFinite(n) ? n : null };
-  // the chip's own conversation decides where its file is (a thread page's chip: that thread's worktree), not the
-  // main chat's view: at a click nothing is being drawn, so fileRoute would fall back to S.view
-  VW.open({ ...f, ...fileRoute(f.path, convAt(btn).view) }, btn);
-}
+const { fileRoute, openSharedFile, openLineRef } = createConversationFiles({ currentView: () => drawing || S.view, convThread, convAt, CHG, VW });
 
 // ── "Ask about these lines" (Files, js/viewer.js): to the file's own thread, else its project's coordinator ──
 /** Your words; a question about lines leads with them as an in-app capsule that opens Files there. */
@@ -2830,13 +2812,6 @@ function youText(text) {
   }
   const name = r.path.split("/").pop(), lines = r.a === r.b ? `${r.a}` : `${r.a}–${r.b}`;
   return `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${lines}`)}"><span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${esc(name)} · ${lines}</span></a>\n${esc(r.rest)}`;
-}
-/** A question's capsule: Files, at those lines of the file in this conversation's place, selected. */
-function openLineRef(a) {
-  const s = CHG.scope(convAt(a).view), path = a.dataset.ref;
-  if (!s) return;
-  const lines = a.dataset.refA ? [+a.dataset.refA, +a.dataset.refB] : null;
-  VW.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, ...(lines ? { lines } : {}) }, a);
 }
 /** Where a question about a project file goes: {conv, thread, chat, name, path (in its place)}, or null. */
 function askPlace(f) {

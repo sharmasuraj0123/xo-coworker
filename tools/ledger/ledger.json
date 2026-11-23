@@ -7693,20 +7693,20 @@
    "home": "modules/conversation (app.js l.3285)"
   },
   "js/app.js::functions::fileRoute": {
-   "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3303)"
+   "status": "moved",
+   "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::openSharedFile": {
-   "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3309)"
+   "status": "moved",
+   "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::youText": {
    "status": "planned",
    "home": "modules/files (route resolution), called from conversation (app.js l.3320)"
   },
   "js/app.js::functions::openLineRef": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3332)"
+   "status": "moved",
+   "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::askPlace": {
    "status": "planned",

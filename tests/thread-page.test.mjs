@@ -1,6 +1,7 @@
 // A thread beside the coordinator's chat (the owner chose the proper build, 19 Nov 15:20Z): the panel's Thread page.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createConversationFiles } from "../modules/files/conversation-files.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
@@ -82,15 +83,20 @@ console.log("thread-page: ok");
   console.log("thread-page column and width: ok"); }
 
 // a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
-assert.match(app, /VW\.open\(\{ \.\.\.f, \.\.\.fileRoute\(f\.path, convAt\(btn\)\.view\) \}, btn\);/);
 assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
-{ // fileRoute, run as written: a thread's path goes through its thread; a project chat's through the project
-  const src = app.slice(app.indexOf("function fileRoute("), app.indexOf("\n}\n", app.indexOf("function fileRoute(")) + 2);
-  const fr = new Function("convThread", "sharedFileRoute", "S", "drawing", `${src}; return fileRoute;`)(
-    (v) => (v === "t:x" ? { id: "x", project: "p" } : null), (t, p) => ({ via: t ? "thread:" + t.id : "none", p }), { view: "p:p" }, null);
-  assert.deepEqual(fr("a.md", "t:x"), { via: "thread:x", p: "a.md" }, "the thread page's chip: its thread's worktree");
-  assert.deepEqual(fr("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
-  assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
+{
+  const opened = [];
+  const { fileRoute, openSharedFile } = createConversationFiles({
+    currentView: () => "p:p", convAt: () => ({ view: "t:x" }),
+    convThread: (view) => view === "t:x" ? { project: "p", worktree: "/srv/p/.xo/worktrees/x" } : null,
+    CHG: { scope: () => null }, VW: { open: (file, from) => opened.push([file, from]) },
+  });
+  const chip = { dataset: { file: "a.md", fileName: "a.md", fileType: "text/markdown" } };
+  openSharedFile(chip);
+  assert.deepEqual(opened[0][0], { path: "a.md", name: "a.md", type: "text/markdown", bytes: null, project: "p", rel: ".xo/worktrees/x/a.md" });
+  assert.ok(opened[0][1] === chip);
+  assert.deepEqual(fileRoute("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
+  assert.deepEqual(fileRoute("a.md"), { project: "p", rel: "a.md" }, "the main chat when a conversation wasn't supplied");
   console.log("thread-page file chips: ok"); }
 
 // its ⋯ is THE thread menu (the owner, 19 Nov 18:59Z): the full header's, opened in the page; its hover and keys
