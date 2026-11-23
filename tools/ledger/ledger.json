@@ -10765,92 +10765,48 @@
    "home": "modules/files/markdown-page.js"
   },
   "js/media.js::exports::LIMITS": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::TINY": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::LONG": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::BANNER": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::GAP": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::MAX_TILES": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::FRAME": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::dim": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::safeTint": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::fitImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::albumLayout": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::madeIds": {
    "status": "split-region",
@@ -11077,44 +11033,24 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/media.js::functions::dim": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::safeTint": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::fitImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::share": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::albumLayout": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::madeIds": {
    "status": "split-region",
