@@ -13259,28 +13259,12 @@
    "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::exports::$": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/dom.js"
   },
   "js/ui.js::exports::$$": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/dom.js"
   },
   "js/ui.js::exports::RM": {
    "status": "moved",
@@ -13312,16 +13296,8 @@
    "home": "core/platform/time.js"
   },
   "js/ui.js::exports::plain": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/markdown/plain.js"
   },
   "js/ui.js::exports::reconcile": {
    "status": "moved",

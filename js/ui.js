@@ -4,11 +4,10 @@ export { morph, EASE, EXPAND_MS, expand, RM, wait, hold, keepTurning } from "../
 export { xi, stateMark, ARC } from "../core/ui/icons/icon.js";
 export { ICON, NEXT_GLYPH, DOTS, stepMark, dial, XO } from "../core/ui/icons/names.js";
 
-export const $ = (s, el = document) => el.querySelector(s);
-export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+export { $, $$ } from "../core/platform/dom.js";
 
 export { clock, dayOf, short, elapsed } from "../core/platform/index.js";
-export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]").replace(/[*_`#>]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\s+/g, " ").trim();
+export { plain } from "../core/ui/markdown/plain.js";
 
 export { sound } from "../core/services/sound.js";
 

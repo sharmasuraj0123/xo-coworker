@@ -2,7 +2,7 @@
 
 // The panel: one right-hand column of stacked frames (Threads, Changes, Map) or one page in their place.
 
-import { $ } from "../../js/ui.js";
+import { $ } from "../../core/platform/dom.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
