@@ -29,7 +29,7 @@ const send = (method, path, body, query) => request(path, { method, body, query 
 /** The largest seq: "the newest page" is the page just before it. */
 export const NEWEST = 9007199254740991;
 
-/** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {Record<string, (...args: any[]) => any>} */
+/** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
   status: () => get("/chat/status"),
   runtimes: () => get("/chat/runtimes"),

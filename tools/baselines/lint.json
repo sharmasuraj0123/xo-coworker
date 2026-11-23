@@ -10,5 +10,5 @@
  "js/map.js::eslint(no-unused-vars)": 1,
  "js/intel.js::eslint(no-unused-vars)": 2,
  "js/msgx.js::eslint(no-unused-vars)": 1,
- "js/app.js::eslint(no-unused-vars)": 11
+ "js/app.js::eslint(no-unused-vars)": 10
 }
