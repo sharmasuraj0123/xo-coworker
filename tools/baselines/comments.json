@@ -1,14 +1,10 @@
 {
  "js/app.js": {
-  "extra": 209,
+  "extra": 168,
   "refs": 2
  },
  "js/decide.js": {
   "extra": 19,
-  "refs": 0
- },
- "js/map.js": {
-  "extra": 89,
   "refs": 0
  },
  "js/skeleton.js": {
@@ -28,7 +24,7 @@
   "refs": 0
  },
  "css/foundation.css": {
-  "extra": 84,
+  "extra": 71,
   "refs": 0
  },
  "css/light.css": {
@@ -36,19 +32,19 @@
   "refs": 0
  },
  "css/links.css": {
-  "extra": 29,
+  "extra": 21,
   "refs": 0
  },
  "css/msgx.css": {
-  "extra": 97,
+  "extra": 92,
   "refs": 0
  },
  "css/panel.css": {
-  "extra": 54,
+  "extra": 47,
   "refs": 0
  },
  "css/phone.css": {
-  "extra": 74,
+  "extra": 36,
   "refs": 0
  },
  "tests/agent-marks.test.mjs": {
@@ -516,7 +512,7 @@
   "refs": 0
  },
  "tests/runs-stop-receipt.test.mjs": {
-  "extra": 11,
+  "extra": 7,
   "refs": 0
  },
  "tests/runtimes.test.mjs": {
@@ -615,10 +611,6 @@
   "extra": 4,
   "refs": 0
  },
- "tests/thread-menu.test.mjs": {
-  "extra": 3,
-  "refs": 0
- },
  "tests/thread-page.test.mjs": {
   "extra": 8,
   "refs": 0
@@ -676,11 +668,11 @@
   "refs": 0
  },
  "core/ui/markdown/rich.css": {
-  "extra": 49,
+  "extra": 35,
   "refs": 0
  },
  "core/ui/tokens.css": {
-  "extra": 56,
+  "extra": 46,
   "refs": 0
  }
 }

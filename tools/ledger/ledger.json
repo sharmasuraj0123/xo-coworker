@@ -1641,7 +1641,8 @@
    "home": [
     "shell/phone.css",
     "modules/* (phone blocks)"
-   ]
+   ],
+   "note": "The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css."
   },
   "css/rich.css": {
    "status": "moved",
@@ -6044,12 +6045,8 @@
    "home": "modules/conversation/msgx.css"
   },
   "css/phone.css::ids::top": {
-   "status": "split-region",
-   "home": [
-    "shell/phone.css",
-    "modules/* (phone blocks)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/phone.css"
   },
   "css/rich.css::ids::msgs": {
    "status": "moved",
@@ -15487,8 +15484,8 @@
    "home": "css/app.css"
   },
   "css/phone.css::ids::top-who": {
-   "status": "kept",
-   "home": "css/phone.css"
+   "status": "moved",
+   "home": "shell/phone.css"
   },
   "index.html::ids::nv-lp": {
    "status": "kept",

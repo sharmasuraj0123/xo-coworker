@@ -6,9 +6,10 @@
 //   node tests/ctl-heights.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { sheet } from "./lib/cascade.mjs";
 
 const app = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
-const phone = readFileSync(new URL("../css/phone.css", import.meta.url), "utf8");
+const phone = sheet(new URL("../css/phone.css", import.meta.url));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

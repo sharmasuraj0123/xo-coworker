@@ -166,7 +166,7 @@ t("Recent: the three latest under the composer, all of them a click away with a 
   assert.doesNotMatch(read("css/panel.css"), /\.stage \.tg-qf/, "the search field is one shared look");
 });
 t("Chats has no bar over its greeting: the greeting is the title, a phone keeps its menu", () => {
-  const css = read("css/app.css"), ph = read("css/phone.css"), src = read("modules/chats/chats.js");
+  const css = read("css/app.css"), ph = read("shell/phone.css"), src = read("modules/chats/chats.js");
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(ph, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/);
   assert.match(src, /v === "chats" \? "Ask anything to start a chat…"/);
@@ -187,7 +187,7 @@ t("switching to All keeps the greeting where it stood: no recentring, no scroll"
   assert.match(css, /\.cs-hi\{[^}]*margin:var\(--cs-lead,auto\) /);
 });
 t("an open chat has no bar: its model and mode are fixed chips in its composer, its state in the composer's line", () => {
-  const app = read("js/app.js"), src = read("modules/chats/chats.js"), css = read("css/app.css"), phone = read("css/phone.css");
+  const app = read("js/app.js"), src = read("modules/chats/chats.js"), css = read("css/app.css"), phone = read("shell/phone.css");
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(phone, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/, "a phone keeps only its way back");
   assert.match(src, /const st = own \|\| setup\(\);/, "the chips read the chat's own model and mode");
