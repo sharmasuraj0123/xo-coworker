@@ -1,5 +1,5 @@
 // @ts-check
-import { tasksOf } from "../../../../js/model.js";
+import { tasksOf } from "../../world/checklist.js";
 import { uiMsg } from "../../world/rows.js";
 import { stopOf, stormAsks, threadState, askingState } from "../../world/threads.js";
 import { isLimitItem, limitItem } from "../../runtimes.js";
