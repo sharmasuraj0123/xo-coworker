@@ -4029,7 +4029,6 @@ $("#webpics-tog").addEventListener("click", (e) => {
 const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
 const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
 $("#mode-seg").innerHTML = MODES.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-mode="${v}">${esc(n)}</button>`).join("");
-// each flavour a card with its own swatch (css/flavours.css paints .fl-sw in the mode that's on)
 $("#flavour-seg").innerHTML = LOOKS.map(([v, n]) => `<button type="button" class="set-choice fl-opt" role="radio" aria-checked="false" data-flavour="${v}"><span class="fl-sw" data-sw="${v}" aria-hidden="true"></span><span class="fl-n">${esc(n)}</span></button>`).join("");
 radioKeys($("#mode-seg")); radioKeys($("#flavour-seg"));
 function lookSync() {

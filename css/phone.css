@@ -34,8 +34,6 @@
   :root:root .tw-menu button{white-space:nowrap}
 
   /* ── three quick fixes ───────────────────────────────────────────────────────────────────────────── */
-  /* 16 px in every field: under 16, iPhone zooms the page when one takes focus, and it stays zoomed
-     (New project was 14, All threads 14, Jump 15, a decision's note 15) */
   :root:root :is(input:not([type="checkbox"],[type="radio"],[type="range"],[type="file"]),textarea,select){font-size:var(--fs-input)}
   /* the notch and the status bar: as a home-screen app the page runs under them (viewport-fit=cover),
      so the bars start below the top safe area (0 in a browser tab) */

@@ -284,7 +284,6 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go, e); }
   });
-  // Esc: a search clears first; then full size steps back, then the panel closes
   el.addEventListener("keydown", (/** @type {any} */ e) => {
     // inside the Shell page's terminal every key is the shell's, by the shells' own rule
     if (owns(e)) return;
@@ -299,7 +298,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       if (!S.page && !fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
     }
     if (e.key !== "Escape") return;
-    if (e.target.closest && e.target.closest("input") && e.target.value) return; // a search clears first; Launchpad's fields don't
+    if (e.target.closest && e.target.closest("input") && e.target.value) return;
     e.preventDefault(); e.stopPropagation();
     // the page first (its find bar, a question, an old version), then full size, then the sections, then closed
     if (S.page && PAGES.get(S.page.name)?.escape?.(S.page.key) === true) return;

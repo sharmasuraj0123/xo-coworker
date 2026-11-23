@@ -110,7 +110,6 @@ NEVER_FORWARD = [
 WRITER_ROUTES = [
     ("PUT", re.compile(r"^/api/xo-projects/[^/]+/file$")),
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/edits/[^/]+/undo$")),
-    # the file work in Files' tree (SPACE-CONTRACT.md §4.3–4.5): rename or move, delete into Space's trash, a new folder
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/files/(?:rename|delete|mkdir)$")),
     # deleting a thread and taking it back (xo-space asks for the key)
     ("DELETE", re.compile(r"^/api/chat/chats/[^/]+/threads/[^/]+$")),

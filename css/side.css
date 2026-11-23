@@ -1,24 +1,4 @@
 
-/* ── The left sidebar: one corner system, one left edge, and which project is open (thread-28ea9d).
-   The owner, 2026-11-04: idle projects shouldn't look like buttons, the open one should be obvious at a
-   glance ("Card + Tile", chosen from five variants), and
-   the sidebar's corners should be consistent.
-
-   Corners, measured (they were 13, 9, 11, 11, 16 and 8): Plan F's scale, nested ones computed.
-   · Rows (Home…Artifacts, projects; 42 tall) are cards: --r-lg (12).
-   · Their 28px tiles sit 7px in (1px line + 6px padding): 12 − 7 = 5.
-   · Controls (Shells and Settings 32, the + 28): --r (8). The +'s hover tile sits
-     2px in: 8 − 2 = 6. Round things (the theme switch) stay round.
-   · Focus follows the shape it's on (it used to flatten every corner to 6).
-   Edges: every row, the find field and the foot start 12px in (the nav rows were 10).
-
-   Projects:
-   · At rest, not a button: no fill, no line; a soft fill only under the pointer.
-   · At work (blue) or waiting on you (amber, red): keeps its tinted boundary and the blue orbit round
-     its tile. Those boundaries separate projects; the owner likes them.
-   · Open: the one raised card. Its tile turns solid with a short, close glow in the tile's own colour
-     (ink; blue while it works; amber or red when it needs you); in light, a small lift instead.
-   Weights 400–600; motion --d-move on --ease. */
 
 .nav{padding:4px 12px 0}
 .side .gear,.side-plus{border-radius:var(--r)}
@@ -71,13 +51,6 @@
 @keyframes glow-in{from{box-shadow:0 0 0 0 transparent}}
 @media (prefers-reduced-motion:reduce){.prow.is-on .pr-ic{animation:none}}
 
-/* ── The top that scales, More, and folding to a rail (the owner, 19 Nov) ─────────────────────────────────────
-   Top row: fold (where the eye starts) · the brand · search / jump. Its controls sit on the rows' 12 px edge.
-   More: every further place arrives there, so the list never outgrows a screen; a place you pin joins the rows.
-   Its popover is a menu like every other (the --menu-* tokens); the sidebar editor keeps the rows' own 40 at --r-xl.
-   Folded (desktop only; a phone's sidebar is a drawer): the same rows with their words hidden, 64 wide
-   (--side-rail-w); and no border or ring round a working or waiting project there (the owner, 19 Nov 11:54:
-   only when it's minimised; the open sidebar keeps them). */
 .app{transition:grid-template-columns var(--d-move) var(--ease)}
 .side-top{padding-left:var(--s-3);padding-right:var(--s-3)}
 .side-ib{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-3)}

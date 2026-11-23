@@ -11,15 +11,6 @@
    The capsule is drawn with the text's own colour mixed in, so it sits right on any
    surface in either theme. Loaded after panel.css; nothing else depends on it. */
 
-/* ── inside: a token ──
-
-   Geometry, from the face's own metrics (tokens.css --cap-mid, --asc, --desc):
-   - Every glyph and the capsule itself are centred on the middle of the capitals, --cap-mid
-     above the baseline: where the eye reads the middle of a line of text.
-   - The capsule is 1.47em tall (22px in 15px prose, whose line box is 24px), so it sits
-     inside the line with 1px to spare above and below. Its padding is inline padding:
-     it never moves the baseline or pushes lines apart.
-   - Thread and file capsules are the same inline element with the same box; only the glyph differs. */
 .lk-in{
   display:inline;
   padding:calc(var(--cap-mid) + .735em - var(--asc)) .6em calc(.735em - var(--cap-mid) - var(--desc)) .38em;

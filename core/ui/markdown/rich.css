@@ -41,19 +41,6 @@
 /* an agent's Reply and Copy are its action row; yours stay beside your bubble, on hover (no row under it) */
 :root:not([data-msgx]) :is(.m-them,.m-turn) .mx-acts{display:none!important}
 
-/* ── one rhythm for the conversation (the owner, 19 Nov: "the gaps ... inconsistent ... cluttered") ──────────
-   Four steps of the scale, each with one job, set here once:
-     4   inside a message: its words to its action row, a turn's work rows
-     8   a message's name line (a label, with the speaker's mark) to its words
-     12  between a reply's paragraphs, lists and headings (half its 24 px line)
-     16  around a block inside a reply (code, a table, a chart, a diagram, a formula, pictures, a thread's card), and
-         around a line between messages (an approval, a thread finished)
-     24  between messages: twice a paragraph's 12, so two messages never read as one (no name line marks them)
-     40  after a message with an action row: the row (32) floats in that gap, so nothing is reserved for it at rest
-   Messages are blocks in normal flow, so their margins collapse: every row asks for 16 above and below, a row that
-   starts a new speaker asks for 24 above, and the larger wins: no gap is ever a sum of two rules. (Before: 24 and
-   −16 for a run, 8 after an action row, −8 and 16 around a line, 6 in a turn, 12 or 16 around blocks; an approval
-   line sat 0 px under the action row above it.) */
 /* the rhythm is the conversation's: a project's empty page (.m-start, "What should get done in…?") isn't a message
    and keeps its own margin:auto, which centres it in the room (css/app.css) */
 :root:not([data-msgx]) :is(#msgs,#tmsgs)>:not(.m-start){margin-block:var(--s-4)}
@@ -85,8 +72,6 @@
 :root:not([data-msgx]) .turn{gap:4px}
 :root:not([data-msgx]) .turn>:is(.tb-text,.tb-answer,.tb-narr)+:is(.tb-text,.tb-answer,.tb-narr){margin-top:8px}
 
-/* ── a turn at work: one cue, the dots on its line (js/turnview.js workFold), with the wave on its words; the steps
-   under it carry no spinner of their own ── */
 :root:not([data-msgx]) .turn .tb-live{display:none}
 :root[data-msgx] :is(.tb-wh,.ty-b)>.dots{display:none}
 /* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */

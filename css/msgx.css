@@ -1,9 +1,3 @@
-/* The conversation's bubbles (with js/msgx.js): message bubbles and tails, replies and quotes, the working
-   bubble and opened work card, thread cards and their progress band, back-to-latest. This is the shipped
-   chat look (owner, 5 Nov: XO's green for yours, glass for theirs, tails on, every reply in a bubble), not
-   an experiment: removing this file breaks the conversation. Every value comes from core/ui/tokens.css.
-   Corners nest: an inner radius is the outer one minus the inset between them (the composer's reply
-   quote 24 → 16 at 8 in, a quote in a bubble 20 → 14 at 6 in, a card's progress band 20 → 4 at 16 in). */
 
 /* ── back to the latest ──────────────────────────────────────────────────────
    A 40 px glass circle 12 px above what's docked (the composer, or a decision card docked over it: its real

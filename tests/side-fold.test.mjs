@@ -27,8 +27,9 @@ assert.match(app, /sideFold: \(\) => SIDE\.fold\(!SIDE\.folded\)/, "the key fold
 assert.match(tokens, /--side-rail-w:calc\(var\(--h-row\) \+ 2 \* var\(--s-3\)\)/);
 
 // the new block: no literal px, rem, ms or hex (media queries' breakpoints aside)
-const block = side.slice(side.indexOf("── The top that scales"));
-assert.ok(block.length > 200, "the block is there");
+const fold = side.indexOf(".app{transition:grid-template-columns");
+assert.notEqual(fold, -1, "the desktop fold rules are present");
+const block = side.slice(fold);
 const body = block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/@media \([^)]*\)/g, "");
 // (a 1 px line is the system's one hairline, used as such everywhere)
 assert.doesNotMatch(body.replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "no literal sizes or durations");
@@ -37,7 +38,7 @@ assert.doesNotMatch(body, /#[0-9a-f]{3,8}\b/i, "no literal colours");
 // folded: no border or ring round a working or waiting project; the open sidebar keeps them (no such rule outside)
 assert.match(block, /\.side-folded \.prow\{border-color:transparent;box-shadow:none\}/);
 assert.match(block, /\.side-folded \.prow \.pr-ic\{box-shadow:none;animation:none\}/);
-assert.doesNotMatch(side.slice(0, side.indexOf("── The top that scales")), /side-folded/, "nothing else knows the fold");
+assert.doesNotMatch(side.slice(0, fold), /side-folded/, "nothing else knows the fold");
 
 // the sidebar editor's popover is concentric with its rows: 20 = 12 + 8; More is a menu
 assert.match(block, /\.side-pop\{[^}]*padding:var\(--s-2\);border-radius:var\(--r-xl\)/);

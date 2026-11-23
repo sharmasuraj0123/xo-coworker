@@ -84,7 +84,6 @@
   .arts:not(.is-pics) .ar-grid .md-pin:active::before{background:var(--press-fill)}
 }
 
-/* Home's Recently made wears the same (the owner, 19 Nov 14:57Z: "add colours to the home page as well") */
 :is(.ar-grid,.md-grid.is-strip) .md-th.has-well{display:block;place-items:normal;padding:var(--cell-in) var(--cell-in) 0;background:transparent}
 :is(.ar-grid,.md-grid.is-strip) .md-th.has-well>:is(.md-ic,.md-ext){display:none}
 .md-grid.is-strip .md-sheet{inset:var(--s-3) var(--s-3) calc(-1 * var(--s-2));padding:var(--s-2) var(--s-3)}
