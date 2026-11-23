@@ -89,7 +89,7 @@ export function createTray({ upload, onChange = () => {} }) {
     /** @param {string} conv @param {string} lid */
     retry(conv, lid) {
       const c = find(conv, lid);
-      if (c && c.state === "failed") start(c, c.chat);
+      if (c && c.state === "failed") start(c, /** @type {string} */ (c.chat));
     },
     /** {count, busy, failed}: Send waits while busy and stays off while one has failed. @param {string} conv */
     status(conv) {
