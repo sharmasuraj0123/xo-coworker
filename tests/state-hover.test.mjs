@@ -54,7 +54,7 @@ const hosted = (subject) => { const tags = [...subject.classes].flatMap((k) => [
 
 // those the shared layer names out, each with how it answers instead
 const OTHER = [
-  [/\.(prow|nrow)\b/, /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):hover\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 6%,transparent\)/, "css/side.css", "the sidebar's rows: their own layer over each state's wash (C008), the sidebar's frozen look"],
+  [/\.(prow|nrow)\b/, /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):hover\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 6%,transparent\)/, "shell/sidebar.css", "the sidebar's rows: their own layer over each state's wash (C008), the sidebar's frozen look"],
   [/\.dd-row\b/, /addEventListener\("pointermove", \(e\) => \{ const r = \/\*\* @type \{any\} \*\/ \(e\.target\)\.closest\?\.\("\.dd-row"\); if \(r && !r\.hasAttribute\("aria-disabled"\)\) this\._activate\(/, "core/ui/components/xo-select.js", "a dropdown's rows: the pointer moves its one active row (C058)"],
   [/\.at-list li\b/, /at\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "js/app.js", "the @ list's rows: the pointer moves the selection (C058)"],
   [/\.jump-list li\b/, /list\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "modules/search/jump.js", "Jump's rows: the pointer moves the selection"],

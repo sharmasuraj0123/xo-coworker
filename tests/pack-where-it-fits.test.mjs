@@ -64,7 +64,7 @@ await t("Shells is its icon and count, named for a screen reader", () => {
   const html = read("index.html");
   assert.match(html, /class="gear is-ic sh-tog" id="nv-shells"[^>]*aria-label="Shells"/);
   assert.doesNotMatch(html, /<span class="gear-t">Shells<\/span>/);
-  assert.match(read("css/side.css"), /\.gear\.sh-tog:has\(\.sh-n:not\(:empty\)\)\{width:auto;padding-inline:var\(--s-2\)\}/);
+  assert.match(read("shell/sidebar.css"), /\.gear\.sh-tog:has\(\.sh-n:not\(:empty\)\)\{width:auto;padding-inline:var\(--s-2\)\}/);
 });
 await t("panel heads lead with their place's icon; Map's switch is its two icons", () => {
   const st = panelSrc;
@@ -112,7 +112,7 @@ await t("the title bar's tile centres on the title's first line, from the line h
   const f = read("css/foundation.css");
   assert.match(f, /\.tw-ic\{width:var\(--tile-sm\);height:var\(--tile-sm\);/);
   assert.match(f, /\.top-who>\.tw-ic\{margin-block:calc\(\(var\(--lh-title\) - var\(--tile-sm\)\) \/ 2\)\}/);
-  assert.match(read("css/side.css"), /\.pj-pick\{[^}]*height:var\(--h-ctl\);margin:calc\(\(var\(--lh-title\) - var\(--h-ctl\)\) \/ 2\) /);
+  assert.match(read("shell/sidebar.css"), /\.pj-pick\{[^}]*height:var\(--h-ctl\);margin:calc\(\(var\(--lh-title\) - var\(--h-ctl\)\) \/ 2\) /);
   assert.doesNotMatch(read("css/app.css"), /\.tw-ic\{[^}]*width:30px/);
   assert.match(read("css/app.css"), /\.help\.gear\{padding:0;justify-content:center\}/, "the phone gear is icon-only, not squeezed by the sidebar gear's text padding");
 });
