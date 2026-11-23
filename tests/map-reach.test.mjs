@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createMapCamera } from "../modules/map/camera.js";
 
-const src = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../modules/map/map.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("Fit and the first look include measured edges and only measure visible drawings once", () => {

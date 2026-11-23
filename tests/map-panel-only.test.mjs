@@ -23,14 +23,22 @@ await t("no sheet styles the standalone Map, nor names its leftover #map at all"
 {
   const { document } = await dom(`<aside class="map" id="map" hidden></aside><div id="panel"></div>`);
   const keys = [];
+  let savedMode = null;
   Object.assign(globalThis, {
     cancelAnimationFrame: () => {},
-    localStorage: { getItem: (k) => { keys.push(k); return k === "cv-map" ? "1" : null; }, setItem: (k) => keys.push(k) },
+    localStorage: { getItem: (k) => { keys.push(k); return k === "cv-map-mode" ? savedMode : k === "cv-map" ? "1" : null; }, setItem: (k) => keys.push(k) },
   });
   globalThis.removeEventListener ??= () => {};
   const { createMap } = await import("../js/map.js");
   const world = { state: { threads: [], projects: [], turns: null }, thread: () => null, project: () => null };
-  const MAP = createMap({ world, go() {}, announce() {}, isBusy: () => false, openFile() {} });
+  const options = { world, go() {}, announce() {}, isBusy: () => false, openFile() {} };
+  const MAP = createMap(options);
+
+  await t("Graph is the default, and a saved Diagram is restored", () => {
+    assert.equal(MAP.mode, "graph");
+    savedMode = "tree";
+    assert.equal(createMap(options).mode, "tree");
+  });
 
   await t("its API is the panel's: mount, show, hide, render and the words the panel reads", () => {
     for (const k of ["isOpen", "toggle", "open", "close", "button", "tabs", "liveIn"]) assert.ok(!(k in MAP), `no standalone ${k}`);

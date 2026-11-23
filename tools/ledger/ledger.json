@@ -2708,7 +2708,7 @@
     "core/services/places.js",
     "core/services/agent-activity.js"
    ],
-   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map"
+   "note": "The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services."
   },
   "js/markdown.js": {
    "status": "split",
@@ -10200,13 +10200,8 @@
    "home": "modules/map/layout.js"
   },
   "js/map.js::exports::createMap": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/map.js::functions::colorOf": {
    "status": "moved",
@@ -10245,13 +10240,8 @@
    "home": "modules/map/after-pause.js"
   },
   "js/map.js::functions::createMap": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/map.js::ids::mp-h": {
    "status": "moved",
@@ -10262,26 +10252,16 @@
    "reason": "only the standalone #map read it (open last time); the Map lives in the panel, whose own state keeps its frame (tests/map-panel-only.test.mjs)"
   },
   "js/map.js::storage::cv-map-mode": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/map.js::keys::Escape": {
    "status": "deleted",
    "reason": "the standalone #map closed on Esc; in the panel the panel decides what Esc does (tests/map-panel-only.test.mjs)"
   },
   "js/map.js::custom_events::loadingdone": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/markdown.js::exports::setThreadInfo": {
    "status": "moved",

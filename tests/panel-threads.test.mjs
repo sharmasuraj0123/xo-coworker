@@ -9,7 +9,6 @@ import { panelSrc } from "./lib/panel-src.mjs";
 import { createThreadGroups } from "../modules/threads/groups.js";
 const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const map = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // the frame
@@ -23,8 +22,6 @@ assert.doesNotMatch(stage.replace(/\/\/[^\n]*/g, ""), /Agentic Control Pane/, "t
 // the Map: folded and Graph at first; a choice you made still wins
 assert.match(stage, /map: \{ h: MAP_H, folded: true \}/);
 assert.match(stage, /const FR_KEY = "xo-stage-frames-3"/, "fresh frame state, so the new defaults apply");
-assert.match(map, /mode: "graph",/);
-assert.match(map, /getItem\(MODE_KEY\) === "tree"\) M\.mode = "tree"/);
 
 // Launchpad: in its own window, never a frame of the panel
 assert.doesNotMatch(stage, /fr-lp|LPF/);

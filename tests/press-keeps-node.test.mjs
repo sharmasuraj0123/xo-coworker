@@ -40,12 +40,12 @@ await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new f
   assert.match(f, /el\.className = "fl-new"; el\.setAttribute\("data-own", ""\)/, "a new file's row");
 });
 await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
-  const m = src("map.js");
+  const m = ["map.js", "drawing.js", "diagram.js"].map((f) => readSource(`modules/map/${f}`)).join("\n");
   assert.doesNotMatch(m, /nodes\.innerHTML\s*=/);
   assert.match(m, /redraw\(nodes, html\)/, "the graph");
   assert.match(m, /redraw\(nodes, nodesHtml\)/, "the tree");
   assert.match(m, /redraw\(hd, h\); M\.head = h;/, "the head");
-  assert.match(m, /redraw\(c\.el\.querySelector\("\.dg-tag"\), tag\)/, "a cursor's tag");
+  assert.match(m, /redraw\(\/\*\* @type \{HTMLButtonElement\} \*\/ \(c\.el\.querySelector\("\.dg-tag"\)\), tag\)/, "a cursor's tag");
 });
 await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);

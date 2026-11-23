@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | kept | 57 |
 | split | 29 |
 
-Items inside first-party files: 2488 (moved 1514, planned 592, kept 132, deleted 128, split-region 121, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1518, planned 592, kept 132, deleted 128, split-region 117, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -72,7 +72,7 @@ Items inside first-party files: 2488 (moved 1514, planned 592, kept 132, deleted
 | `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
 | `js/lppage.js` | 48 | moved | modules/launchpad/page.js |
 | `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
+| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js · next: js/media.js re-exports the shared media modules |

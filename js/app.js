@@ -12,7 +12,7 @@ import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stepMark, stateMark, XO, $, $$, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
-import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
+import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
@@ -30,7 +30,7 @@ import { headOf, goneLine } from "./cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
-import { createMap } from "./map.js";
+import { createMap } from "../modules/map/map.js";
 import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
@@ -344,7 +344,7 @@ const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "st
 // a thread link in any message is a token led by that thread's live state (js/markdown.js)
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 // the Map (js/map.js): where your agents are working, drawn in the panel's Map frame
-const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBusy, openFile: (f, from) => VW.open(f, from) });
+const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBusy, openFile: (f, from) => VW.open(f, from), stepLineHtml });
 const { STATE_WORDS, threadState, panelThreads, threadCounts } = createThreadGroups({
   world, D, MAP, convProject, askShort, threadMark: (t) => threadMark(t), isBusy, isHeld,
 });

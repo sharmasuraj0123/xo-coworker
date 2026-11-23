@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { createMapDrawing } from "../modules/map/drawing.js";
 import { dom } from "./lib/dom.mjs";
 
-const src = ["../js/map.js", "../modules/map/camera.js"].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
+const src = readFileSync(new URL("../modules/map/camera.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const body = (name) => { const i = src.indexOf(`function ${name}(`); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n  }\n", i)); };
