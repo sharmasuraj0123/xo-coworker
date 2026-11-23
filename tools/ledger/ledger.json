@@ -7165,8 +7165,8 @@
    "home": "modules/decisions (app.js l.508)"
   },
   "js/app.js::functions::sideRender": {
-   "status": "planned",
-   "home": "shell (sidebar host and place rows) + modules/projects (project list section) (app.js l.521)"
+   "status": "moved",
+   "home": "shell/rail/rows.js"
   },
   "js/app.js::functions::landed": {
    "status": "moved",
