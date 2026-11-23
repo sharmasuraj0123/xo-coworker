@@ -16,10 +16,12 @@ export function createLpPage({ el, launch, projects, iconOf, open, press }) {
   const state = (a) => `<span class="lqp-s"><span class="lq-eye${a.tone ? ` t-${a.tone}` : ""}"><i aria-hidden="true"></i><span>${esc(a.words)}</span></span>${a.at ? `<small>${a.tone === "work" ? "Started " : ""}${ago(a.at)}</small>` : ""}</span>`;
 
   function html() {
-    const all = launch.overview(projects()), apps = all.filter((a) => a.kind === "app"), off = all.filter((a) => a.kind !== "app");
+    const all = launch.overview(projects());
+    if (all.pending) return `<div class="lqp"><header><h1 class="lqp-t" id="lpp-h">Launchpad</h1></header><div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"></i><span class="sr-only">Reading your projects…</span></div></div>`;
+    const apps = all.filter((a) => a.kind === "app"), off = all.filter((a) => a.kind !== "app");
     const live = apps.filter((a) => a.tone === "go").length, work = apps.filter((a) => a.tone === "work").length, need = apps.filter(needs);
     const parts = [live && `${live} ${live === 1 ? "is" : "are"} live`, work && `${work} ${work === 1 ? "is" : "are"} deploying`, need.length && `${need.length} ${need.length === 1 ? "needs" : "need"} you`].filter(Boolean);
-    const sum = !all.length ? "Reading your projects…" : !apps.length ? "None of your projects is on Launchpad yet." : `<b>${count(apps.length, "app")}</b> from your projects.${parts.length ? ` ${parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts[0]}.` : ""}`;
+    const sum = !apps.length ? "None of your projects is on Launchpad yet." : `<b>${count(apps.length, "app")}</b> from your projects.${parts.length ? ` ${parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : parts[0]}.` : ""}`;
     const shown = apps.filter((a) => S.f === "all" || (S.f === "live" ? a.tone === "go" : needs(a)));
     return `<div class="lqp"><header><h1 class="lqp-t" id="lpp-h">Launchpad</h1><p class="lqp-sum">${sum}</p></header>` +
       (need.length ? `<section class="lqp-need" aria-labelledby="lqp-need-h"><p class="lq-h" id="lqp-need-h">Needs you</p>${need.map((a) => `<div class="lq-note t-stop"><div class="lq-nc">${tile(a.p)}<div><b>${esc(lead(a.name, a.words))}</b>${a.need.why ? `<p>${esc(a.need.why)}</p>` : ""}</div></div>` +

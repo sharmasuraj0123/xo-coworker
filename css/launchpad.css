@@ -12,6 +12,8 @@
 .lq-me .lp-st{font-weight:var(--fw-regular)}
 .lq-gap{flex:1;min-height:var(--s-8)}
 .lq-main{position:relative;min-width:0;min-height:0;display:flex;flex-direction:column}
+.lq-body:has(>.lp>.m-load){display:grid}
+.lp:has(>.m-load){display:grid}
 .lq-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:var(--s-10) var(--s-12);outline:none;scrollbar-width:thin}
 .lq-x{position:absolute;top:var(--s-2);right:var(--s-2);display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-lg);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .lq-x:hover{background:var(--fill-2);color:var(--ink)}
@@ -67,9 +69,6 @@
 .lq-st>span{max-width:100%;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4);overflow-wrap:anywhere}
 .lq-st.is-bad>span{color:var(--err-ink)}
 .lq-st code{font:inherit;font-family:var(--mono)}
-.lq-track.is-skel .lq-st>:is(b,span){width:60%;height:var(--lh-meta);border-radius:var(--r-xs);background:var(--fill-2);animation:lp-skel 1.2s var(--ease-loop) infinite alternate}
-.lq-track.is-skel .lq-st>span{width:40%}
-@keyframes lp-skel{from{opacity:.55}to{opacity:1}}
 .lq-need{color:var(--need)}
 
 /* ── grouped rows: a label column, the value with its line under it, what changes it ─────────────── */
@@ -98,7 +97,6 @@
 .lq-in:is(.is-short,.lp-mono){max-width:12ch;font-family:var(--mono);font-size:var(--fs-code)}
 .lq-row:has(.lq-in){cursor:text;transition:background var(--d-hover) var(--ease)}
 .lq-row:has(.lq-in):hover,.lq-row:has(.lq-in:focus){background:var(--fill-1)}
-.lq-row:has(.lq-in:focus-visible){box-shadow:inset 2px 0 0 var(--focus)}
 .lq-ed{display:grid;place-items:center;color:var(--ink-4)}
 .lq-ed svg{width:var(--ic-sm);height:var(--ic-sm)}
 .lq-row:has(.lq-in:focus) .lq-ed{color:var(--ink)}
@@ -247,6 +245,7 @@
 /* ── the page: every project's app ────────────────────────────────────────────────────────── */
 .app[data-view="launchpad"] .dock{display:none}
 .lqp{width:var(--col-w);margin-left:var(--col-x);padding:var(--s-12) 0 var(--s-12)}
+.lqp:has(>.m-load){display:flex;flex-direction:column;min-height:100%}
 .lqp-t{margin:0;font:var(--fw-strong) var(--fs-hero)/var(--lh-hero) var(--sans);letter-spacing:var(--tr-40);color:var(--ink)}
 .lqp-sum{margin:var(--s-3) 0 0;font:var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans);color:var(--ink-3)}
 .lqp-sum b{font-weight:var(--fw-medium);color:var(--ink-2)}
