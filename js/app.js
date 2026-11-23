@@ -58,6 +58,7 @@ import { createSavedSoon } from "../modules/changes/saved.js";
 import { createRowResolve } from "../modules/threads/row-resolve.js";
 import { createThreadResolve } from "../modules/threads/resolve.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
+import { threadsCtl } from "../modules/threads/header.js";
 import { createAllThreads } from "../modules/threads/all.js";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
@@ -910,14 +911,6 @@ function wsHeadRender() {
  *  line breaks only at a dot, never inside "1 resolved". */
 const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
 const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
-function threadsCtl(n, by) {
-  if (!n) return ""; // a project with no threads yet: its empty page says what to start
-  const words = [`${n} ${n === 1 ? "thread" : "threads"}`, by.working && `${by.working} working`, by.needs && `${by.needs} ${by.needs === 1 ? "needs" : "need"} you`].filter(Boolean).join(", ");
-  const live = (by.working ? `<span class="th-seg is-work">${stateMark("working")}<span class="pj-k">${by.working}</span></span>` : "") +
-    (by.needs ? `<span class="th-seg is-need">${stateMark("needs_reply")}<span class="pj-k">${by.needs}</span></span>` : "");
-  return `<button type="button" class="tw-act th-ctl" data-stage-open aria-controls="stage" title="${esc(words)}: open them in the panel" aria-label="${esc(words)}. Open them in the panel">` +
-    `${ICON.threadOne}<span class="th-w">Threads</span><span class="th-n">${n}</span>${live}</button>`;
-}
 
 /** A chat whose own coordinator asks: "Needs you" leads its count line, and opens the card above the composer. */
 function hostNeedHtml(v, needs) {

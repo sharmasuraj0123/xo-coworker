@@ -6,7 +6,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import { panelSrc } from "./lib/panel-src.mjs";
+import { dom } from "./lib/dom.mjs";
 import { createThreadGroups } from "../modules/threads/groups.js";
+import { threadsCtl } from "../modules/threads/header.js";
 const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
@@ -55,10 +57,22 @@ assert.equal(threadState({ id: "e", state: "working", frozen: true }, needs), "d
 // the header: the same words, and the counts open the panel
 // the Threads control beside Deploy (the owner, 19 Nov 14:16Z / 14:20Z picked A): "Threads" and how many, the working
 // arc and its number, the needs-you mark and its number; one 32 control (.tw-act) among the actions; opens Threads
-assert.match(app, /class="tw-act th-ctl" data-stage-open aria-controls="stage" title="\$\{esc\(words\)\}: open them in the panel"/);
-assert.match(app, /\$\{ICON\.threadOne\}<span class="th-w">Threads<\/span><span class="th-n">\$\{n\}<\/span>\$\{live\}/);
-assert.match(app, /\$\{stateMark\("working"\)\}<span class="pj-k">\$\{by\.working\}/);
-assert.match(app, /\$\{stateMark\("needs_reply"\)\}<span class="pj-k">\$\{by\.needs\}/);
+const by = threadCounts("p", needs);
+const { document } = await dom(`<header>${threadsCtl(by.all, by)}</header>`);
+const control = document.querySelector("button.tw-act.th-ctl[data-stage-open]");
+assert.ok(control);
+assert.equal(control.getAttribute("aria-controls"), "stage");
+assert.equal(control.title, "4 threads, 1 needs you: open them in the panel");
+assert.equal(control.getAttribute("aria-label"), "4 threads, 1 needs you. Open them in the panel");
+assert.equal(control.querySelector(".th-w")?.textContent, "Threads");
+assert.equal(control.querySelector(".th-n")?.textContent, "4");
+assert.equal(control.querySelector(".is-need .pj-k")?.textContent, "1");
+assert.equal(control.querySelector(".is-work"), null);
+const running = threadCounts("p", []);
+document.querySelector("header").innerHTML = threadsCtl(running.all, running);
+assert.equal(document.querySelector(".is-work .pj-k")?.textContent, "1");
+assert.equal(document.querySelector(".is-need"), null);
+assert.equal(threadsCtl(0, running), "", "a project without threads has no control");
 assert.match(app, /\(pv \? S\.hdrCtl \+ headerActionsHtml\(kernel\.places, atOf\(v\)\) \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
 assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
 const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");

@@ -7273,8 +7273,8 @@
    "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::threadsCtl": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1330)"
+   "status": "moved",
+   "home": "modules/threads/header.js"
   },
   "js/app.js::functions::hostNeedHtml": {
    "status": "planned",
