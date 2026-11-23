@@ -183,6 +183,7 @@ t("vendored xterm files are the pinned ones", () => {
     await settle();
     assert.equal(shells.enabled, true);
     shells.showList();
+    assert.equal(shells.shown, true);
     const tab = document.querySelector(".shd-tab-list");
     same(document.activeElement, tab, "opening Shells focuses its list tab");
     await settle();
@@ -198,9 +199,12 @@ t("vendored xterm files are the pinned ones", () => {
     const terminal = document.querySelector(".shd-term .xterm");
     assert.ok(terminal, "opening a shell mounts the terminal");
     same(document.activeElement, terminal, "opening a shell focuses the terminal input");
+    assert.equal(shells.owns({ target: terminal }), true, "terminal shortcuts belong to the shell");
+    assert.equal(shells.owns({ target: tab }), false, "list shortcuts stay outside the terminal");
     shells.redraw();
     same(document.activeElement, terminal, "redraw leaves the terminal input focused");
     shells.hide();
+    assert.equal(shells.shown, false);
     same(document.activeElement, document.getElementById("scroller"), "closing a focused terminal returns to the conversation");
   } finally {
     globalThis.setTimeout = schedule;

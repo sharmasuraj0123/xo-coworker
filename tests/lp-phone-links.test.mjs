@@ -17,7 +17,7 @@ import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs"
 
 const ROOT = new URL("../", import.meta.url);
 const tokens = Object.fromEntries([...readFileSync(new URL("core/ui/tokens.css", ROOT), "utf8").matchAll(/(--[\w-]+):\s*(\d+(?:\.\d+)?)px/g)].map((m) => [m[1], +m[2]]));
-const FILES = [...sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")), "modules/create-project/create.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/intel.js", ...readdirSync(new URL("js/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `js/shells/${f}`)];
+const FILES = [...sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")), "modules/create-project/create.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/intel.js", ...readdirSync(new URL("modules/shells/", ROOT)).filter((f) => f.endsWith(".js")).map((f) => `modules/shells/${f}`)];
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 const at = (w) => all.map((r) => ({ r, c: context(r, w), s: spec(r.sel) })).filter((x) => x.c.active && !x.c.cond);
 const P = at(390), D = at(1440);

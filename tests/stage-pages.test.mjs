@@ -60,9 +60,7 @@ assert.match(css, /\.stage \.stg-t:has\(\.pg-back\)\{align-items:center;gap:var\
 
 // inside the Shell page's terminal Esc is the shell's (vim), not the panel's: the stage's keys ask the shells' one rule
 // first (owns: inside #shd .xterm), as the app's keys do
-{ const dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
-  assert.match(dock, /return !!\(el && el\.closest && el\.closest\("#shd \.xterm"\)\);/);
-  assert.match(app, /if \(SH\.owns\(e\)\) \{/); }
+assert.match(app, /if \(SH\.owns\(e\)\) \{/);
 console.log("stage-pages: ok");
 // the default width is 2/5 of the main area (the owner, 20 Nov: main and panel 3:2); the chat keeps 480; a drag is kept
 assert.match(stage, /const W_KEY = "xo-stage-w2", W_SHARE = 0\.4, W_MIN = 320, CHAT_MIN = 480;/);

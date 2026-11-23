@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 import { panelSrc } from "./lib/panel-src.mjs";
 const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
@@ -24,8 +23,6 @@ assert.match(ps, /SHD_HOME\.parent\.insertBefore\(d, SHD_HOME\.next\);\n\s*SH\.h
 assert.match(ps, /if \(!SH\.enabled\) \{ STAGE\.shellOff\(\);/, "no shells here: the panel says so and goes back");
 assert.match(app, /new MutationObserver\(\(\) => \{ if \(STAGE\.isShell && \$\("#shd"\)\.hidden\) STAGE\.shellOff\(\); \}\)/, "put away from inside, the panel goes back");
 assert.match(app, /shell: \(on, host, where\) => panelShell\(on, host, where\)/);
-assert.match(dock, /get shown\(\) \{ return R\.enabled && wanted\(\) && R\.open && !R\.min; \}/);
-assert.match(dock, /hide\(\) \{ if \(!R\.open\) return; R\.open = false; changed\(\); away\(\); \}/);
 
 // the left panel's Shells stay: its toggle and the dock under the page are untouched
 assert.match(html, /<button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"><\/span><span class="sh-n"><\/span><\/button>/);

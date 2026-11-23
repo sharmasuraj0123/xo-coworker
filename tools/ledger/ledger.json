@@ -2858,7 +2858,7 @@
    "note": "whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later"
   },
   "js/shells/dock.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/model.js": {
@@ -13235,48 +13235,48 @@
    "home": "modules/settings/shape-page.js"
   },
   "js/shells/dock.js::exports::createShells": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::functions::createShells": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::ids::shd": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::ids::nv-shells": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::ids::app": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-view.js"
   },
   "js/shells/dock.js::keys::Enter": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::Escape": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::Home": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::End": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::ArrowRight": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::ArrowUp": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/model.js::exports::busyWith": {
    "status": "moved",

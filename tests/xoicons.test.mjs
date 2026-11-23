@@ -106,7 +106,7 @@ t("the app icon is the owner's; the tab's working line sits on its foot", () => 
 t("every ICON name used by an importer exists in the icon catalogue", () => {
   const keys = new Set(Object.keys(ICON));
   const users = sourcePaths(".js").filter((f) => /import \{[^}]*\bICON\b[^}]*\} from "[^"]*(?:ui|icons\/names)\.js"/.test(read(f)));
-  assert.ok(users.includes("js/shells/dock.js"));
+  assert.ok(users.includes("modules/shells/dock-view.js"));
   const missing = users.flatMap((f) => [...read(f).matchAll(/(?<![\w.])ICON\.([A-Za-z0-9_]+)/g)].map((m) => m[1]).filter((k) => !keys.has(k)).map((k) => `${f}: ICON.${k}`));
   assert.deepEqual(missing, []);
 });
