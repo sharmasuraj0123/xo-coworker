@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 import { dom } from "./lib/dom.mjs";
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const fnd = read("foundation.css"), media = read("media.css");
+const fnd = read("foundation.css"), media = read("../modules/conversation/media/media.css");
 const all = sourcePaths(".css").map((f) => readSource(f).replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

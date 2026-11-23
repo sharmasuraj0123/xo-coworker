@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { resolveTokens } from "./tokens.mjs";
 
-export const ORDER = ["../core/ui/foundation.css", "app.css", "light.css", "foundation.css", "panel.css", "diffs.css", "launchpad.css", "links.css", "artifacts.css", "../core/ui/components/xo-select.css", "media.css", "shape.css", "../shell/sidebar.css", "msgx.css", "phone.css"];
+export const ORDER = ["../core/ui/foundation.css", "app.css", "light.css", "foundation.css", "panel.css", "diffs.css", "launchpad.css", "links.css", "artifacts.css", "../core/ui/components/xo-select.css", "../modules/conversation/media/media.css", "shape.css", "../shell/sidebar.css", "msgx.css", "phone.css"];
 
 /** every style rule: {f, sel (one selector of its list), d (declarations), at: [@-preludes], n (cascade order)} */
 export function rules(root) {

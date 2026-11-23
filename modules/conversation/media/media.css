@@ -1,9 +1,3 @@
-/* Pictures and files in the conversation (js/media.js) and the lightbox (js/lightbox.js).
-   Plan F tokens only (core/ui/tokens.css):
-   media take the cards' radius (--r-lg, 12) so a picture and a file are one family; nothing here casts a
-   shadow but the lightbox, which floats. A picture's box comes from js/media.js as three custom
-   properties on its element: --mx-w (its width at most), --mx-r (its shape, w/h) and --mx-tint (its
-   average colour, the fill while it loads). */
 
 /* ── where they sit: under an agent's words on its text column; above yours, on the right ───────── */
 .mx-stack{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;max-width:100%}
@@ -12,8 +6,6 @@
 .m-you>.mx-stack+.bubble{margin-top:4px}
 /* the cards never outgrow the column: a long name is cut (in its middle) instead of pushing the card past it */
 .mx-stack>.tb-fl{margin:0;min-width:0;max-width:100%}
-/* in a turn: a shared set sits 12 from the block above it (the turn's 6 + the block's 4 + 2); files alone keep
-   their "Shared 3 files" line 8 above them, as before */
 .tb-files>.mx-stack:first-child{margin-top:var(--s-1)}
 .tb-fh+.mx-stack{margin-top:8px}
 
@@ -27,14 +19,7 @@
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);transition:box-shadow var(--d-hover) var(--ease)}
 /* hover: nothing moves or scales; the edge darkens (120 ms in, 200 out) */
 .mx-one:hover::after,.mx-album:has(.mx-tile:hover)::after{background:var(--hover-fill)}
-/* the picture covers its button's own fill, so hover and press were all but invisible (an edge 10→16%, the press
-   layer under the image: the controls grader on 03e9b44, S090, 0.5–3.6% of pixels): a veil over the picture says
-   both, hover a light one, held a deeper one, in the ink of the theme (the edge still darkens) */
 .mx-one::before,.mx-tile::before{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;background:transparent;transition:background-color var(--d-hover) var(--ease)}
-/* the veil is chosen against the picture (js/media.js reads its tone as the pointer comes over it): a light one over a
-   dark picture, a dark one over a light one. In the theme's ink it vanished over a picture of the ink's own tone (the
-   controls grader on aba434f, S233: light, a black picture, hover and held identical to rest). Unread (a picture from
-   elsewhere, none yet), the ink's. Every control whose face is a picture takes it: an attachment's Preview too */
 :where(.mx-one,.mx-tile,button.att-ic.is-img){--veil:var(--ink)}
 :where(.mx-one,.mx-tile,button.att-ic.is-img)[data-tone="dark"]{--veil:#FFFFFF}
 :where(.mx-one,.mx-tile,button.att-ic.is-img)[data-tone="light"]{--veil:#000000}
@@ -58,8 +43,6 @@
 .mx-album{position:relative;display:flex;flex-direction:column;gap:2px;flex:none;width:min(100%,var(--mx-w));border-radius:var(--r-lg);overflow:hidden;isolation:isolate}
 .mx-row{display:flex;gap:2px;aspect-ratio:var(--mx-r)}
 .mx-tile{flex:var(--mx-g) 1 0;min-width:0}
-/* a tile's ring is drawn above its picture: an inset outline lay under the picture, which is positioned (the same
-   cause as an Artifacts card's, C013) */
 .mx-tile:focus-visible{z-index:3;outline:none}
 .mx-tile:focus-visible::after{content:"";position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px var(--focus)}
 .mx-more{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgb(0 0 0 / .48);color:#fff;
@@ -70,21 +53,16 @@
 /* an agent's words under a shared set, a step apart from the words after it */
 .mx-cap{max-width:66ch;margin-bottom:var(--s-2)}
 
-/* a picture from the web that couldn't show: the outbound link it would have been (css/links.css .lk-out), on a line
-   where the picture was; several wrap. The lightbox's "Open original ↗" is a lightbox button, its arrow the link's. */
 .mx-weblinks{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;max-width:100%;min-width:0}
 /* each link may shrink to the line, so a long title wraps at its words (its last word keeps the ↗) instead of overflowing */
 .mx-weblink{min-width:0}
 a.lbx-btn{text-decoration:none}
 .lbx-btn .lk-ar{width:10px;height:10px;margin:0;color:currentColor}
 
-/* a file name too long for its place cuts in its middle (js/media.js midNameHtml): its start gives way with an
-   ellipsis, the end of its stem and its extension stay whole (r3-dark…title.png). It takes its parent's type. */
 .mx-mid{display:flex;min-width:0;max-width:100%}
 .mx-mh{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre}
 .mx-mt{flex:none;white-space:pre}
 
-/* the phone: an agent's at most the column × 420, yours min(75 %, 280) square (proposal §1) */
 @media (max-width:760px){
   .mx-them>.mx-one{width:min(100%,var(--mx-w),calc(420px * var(--mx-r)))}
   .mx-you>.mx-one{width:min(75%,280px,var(--mx-w),calc(280px * var(--mx-r)))}

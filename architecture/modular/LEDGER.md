@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 474 |
+| moved | 475 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 171 |
+| planned | 170 |
 | kept | 56 |
 | split | 32 |
 
@@ -131,7 +131,7 @@ Items inside first-party files: 2488 (moved 1326, planned 659, split-region 243,
 | `css/launchpad.css` | 291 | split | modules/launchpad/launchpad.css, modules/launchpad/system.css, modules/launchpad/cover.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
 | `css/light.css` | 67 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
 | `css/links.css` | 97 | planned | modules/conversation/links.css |
-| `css/media.css` | 129 | planned | modules/conversation/media/media.css |
+| `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | planned | modules/conversation/msgx.css |
 | `css/panel.css` | 681 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
 | `css/phone.css` | 286 | split | shell/phone.css, modules/* (phone blocks) |
