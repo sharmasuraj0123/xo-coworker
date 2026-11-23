@@ -564,7 +564,7 @@ code.hl{color:var(--code-ink)}
 .tc-open:focus-visible{outline:none}
 .tcard:has(.tc-open:focus-visible){outline:3px solid var(--focus);outline-offset:1px}
 /* A finished thread's next step (the newest file it made, 0079e74): its own row at the card's foot, in both chat
-   looks. It was styled only for the bubbles (css/msgx.css), so in the document view the bare button became a second
+   looks. It was styled only for the bubbles (modules/conversation/msgx.css), so in the document view the bare button became a second
    column of the card's flex row (measured on 6690328 at 1440: Open's content 450 px, the button 224 px beside it,
    square). The card stacks; the row is 6 px in from the card's sides and foot, so its corner nests in the card's
    (12 − 6 = 6) and its icon lands on the card's 16 px text edge (6 + 10). It takes Open's place: one action. */

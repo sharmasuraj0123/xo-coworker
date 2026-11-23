@@ -1,5 +1,5 @@
 /* The conversation as a document (the default; owner, 19 Nov) and what a reply can hold: math, charts, diagrams.
-   Chat bubbles (Settings › General) are css/msgx.css under <html data-msgx="bubbles">; everything here that's about
+   Chat bubbles (Settings › General) are modules/conversation/msgx.css under <html data-msgx="bubbles">; everything here that's about
    the document look is scoped :root:not([data-msgx]), and the rich blocks below read well in both looks.
    Values come from core/ui/tokens.css; corners nest (a block's 12 px corner inside nothing; a tooltip 12). */
 
@@ -28,7 +28,7 @@
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
 /* a reply's text lines stop at --measure; code, tables, charts, pictures and cards keep the whole column */
 .prose>:is(p,ul,ol,blockquote,.md-h){max-width:min(var(--measure),42em)}
-/* your message is XO's green, the same token as in the bubbles (css/msgx.css --mx-you, 7.1:1 dark, 11.9:1 light) */
+/* your message is XO's green, the same token as in the bubbles (modules/conversation/msgx.css --mx-you, 7.1:1 dark, 11.9:1 light) */
 :root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
    names' edge (24 + 8) */
@@ -108,7 +108,7 @@
    it stands, what it's doing now, and a foot (branch, when, Open). Everything on the right ends on one edge, the
    card's 16 px text edge: the status, Open, Decide. It used to have two right edges (the caption's, and Decide's
    own column beside it), progress bars that stopped at 64 px each, a state glyph pushing the title off its edge,
-   an amber border, and spacing off the scale (13, 9, 10, 3). The bubbles' card (css/msgx.css) is untouched. */
+   an amber border, and spacing off the scale (13, 9, 10, 3). The bubbles' card (modules/conversation/msgx.css) is untouched. */
 :root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);box-shadow:none}
 :root:not([data-msgx]) .tcard.st-needs{--st:var(--warn)}
 :root:not([data-msgx]) .tcard:is(.st-needs,.st-failed){border-color:var(--line)}

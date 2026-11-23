@@ -62,7 +62,8 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - Group 1 leaves `js/skeleton.js` at the direct first-paint entry. Move the implementation unchanged and update the direct module script in `index.html` in the same commit. Check the existing app and record imports, the page test fixture and the first-paint path together. Coordinate this move with Group 3, which owns the record renderer and test during its package.
 - The direct media and sidebar stylesheet links now point to `modules/conversation/media/media.css` (`c21c8221`) and `shell/sidebar.css` (`af211a25`). The moves preserve CSS rules and their order and retain both links' positions. Only comments were removed from the stylesheets.
 - Runs opening is in `modules/runs/controller.js`. Pending stops and receipts run through `modules/runs/stop.js`, with the shared store and `stopsHerald` wired in `js/app.js`. The Group 2 selector import change was isolated in `7c014c48`.
-- Group 3 moved timeline, turn rendering, message decoration and Made from `10cc0c85`. The reviewed package head is `bdcc7389`. Keep the first-paint script and the message stylesheet in their direct slots when moving them. Group 4 takes the app wiring from the verified Group 3 checkpoint. Groups 5 and 6 follow serially.
+- Group 3 moved timeline, turn rendering, message decoration and Made from `10cc0c85`. The reviewed package head is `bdcc7389`. Group 4 takes the app wiring from the verified Group 3 checkpoint. Groups 5 and 6 follow serially.
+- The direct message stylesheet moved to `modules/conversation/msgx.css` in its original cascade slot. The move removes comments and transfers the existing seven-declaration priority ratchet with the file. Selectors, declarations and rule order are unchanged.
 
 ## Findings for the post-P4 fix phase
 

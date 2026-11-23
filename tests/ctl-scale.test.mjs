@@ -88,7 +88,7 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(app, /\.chl-row\{[^}]*height:var\(--h-row-act\);/, "Chats' rows 48: one line of titles");
   assert.match(app, /\.pr-main\{[^}]*gap:0\}/); assert.match(app, /\.pr-name\{[^}]*font:400 var\(--fs-ui\)\/20px/); assert.match(app, /\.pr-t\{[^}]*line-height:16px;/, "a project's row with its second line 48: 1 + 5 + 20 + 16 + 5 + 1");
   assert.match(app, /\.hd\{[^}]*min-height:var\(--h-row-act\);/, "Handled 48");
-  const mx = readCss(new URL("css/msgx.css", ROOT), "utf8");
+  const mx = readCss(new URL("modules/conversation/msgx.css", ROOT), "utf8");
   assert.equal((mx.match(/>\.tb-h\{width:100%;min-height:var\(--h-row\);/g) || []).length, 2, "an open tool disclosure 40 (it was 44)");
   // a phone's rows on the steps (the owner, 11 Nov 05:42Z)
   const phone = readCss(new URL("css/phone.css", ROOT), "utf8");

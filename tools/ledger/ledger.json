@@ -1622,7 +1622,7 @@
    "home": "modules/conversation/media/media.css"
   },
   "css/msgx.css": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/msgx.css"
   },
   "css/panel.css": {
@@ -6025,19 +6025,19 @@
    "home": "modules/launchpad/launchpad.css"
   },
   "css/msgx.css::ids::msgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/msgx.css"
   },
   "css/msgx.css::ids::tmsgs": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/msgx.css"
   },
   "css/msgx.css::ids::typing": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/msgx.css"
   },
   "css/msgx.css::ids::ttyping": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/msgx.css"
   },
   "css/phone.css::ids::top": {

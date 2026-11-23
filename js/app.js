@@ -3998,7 +3998,7 @@ $("#flavour-seg").addEventListener("click", (e) => {
 });
 lookSync();
 // Settings › Appearance › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
-// index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
+// index.html). Off (the default), the conversation reads as a document; on, in bubbles (modules/conversation/msgx.css keys off
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
 const chatBubbles = () => document.documentElement.dataset.msgx === "bubbles";
 function setChatBubbles(on) {

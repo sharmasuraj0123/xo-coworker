@@ -130,7 +130,7 @@ await t("the latest thinking under a closed work fold keeps its brain: no rule h
 });
 await t("a step's icon is blue while it runs and grey once finished, as a line's header or as a row, opened or not", () => {
   assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,:is\(\.tb-row,\.rt-call\)\.s-running:not\(\.is-waiting\) \.tb-ri,\.tb-spin\{color:var\(--info\)\}/);
-  assert.match(read("css/msgx.css"), /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-hi\{display:grid\}/);
+  assert.match(read("modules/conversation/msgx.css"), /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-hi\{display:grid\}/);
 });
 await t("a plan's line leads with the checklist, as its steps do", () => {
   assert.match(read("modules/conversation/blocks/turn.js"), /<span class="tb-hi">\$\{xi\("checklist"\)\}<\/span><span class="tb-ht">\$\{esc\(b\.header \|\| "Plan"\)\}/);

@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 478 |
+| moved | 479 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 169 |
+| planned | 168 |
 | kept | 57 |
 | split | 29 |
 
-Items inside first-party files: 2488 (moved 1459, planned 636, kept 135, split-region 130, deleted 127, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1463, planned 632, kept 135, split-region 130, deleted 127, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -132,7 +132,7 @@ Items inside first-party files: 2488 (moved 1459, planned 636, kept 135, split-r
 | `css/light.css` | 67 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
 | `css/links.css` | 97 | planned | modules/conversation/links.css |
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
-| `css/msgx.css` | 407 | planned | modules/conversation/msgx.css |
+| `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
 | `css/panel.css` | 681 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
 | `css/phone.css` | 286 | split | shell/phone.css, modules/* (phone blocks) |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |

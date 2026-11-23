@@ -10,7 +10,7 @@ t("the mark is bare, at --ic, in every look", () => {
   assert.match(css("app.css"), /\n\.ev-ic\{flex:none;display:grid;place-items:center;width:var\(--ic\);height:var\(--ic\);margin:0 4px;color:var\(--accent\)\}/);
   const evRules = [...css("app.css").matchAll(/[^}\n]*\.ev-ic\{[^}]*\}/g)].map((m) => m[0]);
   assert.equal(evRules.some((r) => /background|border-radius/.test(r)), false, evRules.join("\n"));
-  assert.match(css("msgx.css"), />\.ev>\.ev-ic\{width:var\(--ic\);margin:0 6px\}/);
+  assert.match(css("../modules/conversation/msgx.css"), />\.ev>\.ev-ic\{width:var\(--ic\);margin:0 6px\}/);
   assert.match(css("../core/ui/markdown/rich.css"), />\.ev>\.ev-ic\{margin:0 var\(--s-1\)\}/);
 });
 t("event lines in a row sit 8 px apart", () => {

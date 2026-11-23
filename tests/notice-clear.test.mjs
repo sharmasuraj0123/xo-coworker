@@ -13,7 +13,7 @@ import { rules, context, decls } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const app = read("css/app.css"), mx = read("css/msgx.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+const app = read("css/app.css"), mx = read("modules/conversation/msgx.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
 const js = readFileSync(new URL("js/app.js", ROOT), "utf8");
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 let passed = 0;

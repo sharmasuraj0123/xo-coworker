@@ -19,5 +19,5 @@ assert.match(js, /m\.load \? `<div class="m-load" role="status"><i class="spin i
 assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:var\(--s-4\)\}/);
 assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:first-child:not\(\.m-start\)\{margin-top:0\}/);
 // no other rule of the conversation sets a margin on every row of #msgs
-for (const css of [rich, read("css/msgx.css"), app]) assert.doesNotMatch(css, /:is\(#msgs,#tmsgs\) ?> ?(\*|:first-child)\{[^}]*margin/);
+for (const css of [rich, read("modules/conversation/msgx.css"), app]) assert.doesNotMatch(css, /:is\(#msgs,#tmsgs\) ?> ?(\*|:first-child)\{[^}]*margin/);
 console.log("start-centred: ok");
