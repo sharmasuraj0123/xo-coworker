@@ -74,6 +74,7 @@ import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { createCalmOrder } from "./sideorder.js";
 import { keyHtml } from "../core/ui/a11y/keycap.js";
+import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance } from "../modules/settings/appearance.js";
 import { createTheme } from "../core/ui/theme.js";
 import { regionRings } from "./ring.js";
@@ -150,9 +151,7 @@ const S = {
   n: 0,
 };
 const waitSince = new Map();
-const live = $("#live");
-// still(): asked again when the words go in, 40 ms later; false (a newer action answered meanwhile), nothing is said
-function announce(text, still = null) { live.textContent = ""; setTimeout(() => { if (!still || still()) live.textContent = text; }, 40); }
+const announce = createAnnouncer($("#live"));
 
 // ── the parts ───────────────────────────────────────────────────────────────
 const P = createPacing({ params });

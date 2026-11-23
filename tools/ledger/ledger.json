@@ -7125,8 +7125,8 @@
    "home": "core/ui/theme.js"
   },
   "js/app.js::functions::announce": {
-   "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.162)"
+   "status": "moved",
+   "home": "core/ui/a11y/announce.js"
   },
   "js/app.js::functions::savedSoon": {
    "status": "planned",
