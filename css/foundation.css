@@ -8,18 +8,22 @@
    Its numbers now come from Plan F in css/tokens.css (4 px steps; radii 6 · 12 · 20 · 22; controls 32;
    rows 36); this file never defines a scale of its own (tests/design-budget.test.mjs). */
 
-:root{--sw:360px;--edge:16px;--row-h:36px}
+:root{--sw:360px;--vw:var(--sw);--edge:16px;--row-h:36px}
 
 /* ── 7 · the side panels: flush to the window, one hairline, no float, no shadow ─────────────────── */
 .stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--line-faint);box-shadow:none;animation:none}
 /* a side panel arrives from the edge it lives on: 12 px and a fade, 240 ms; the conversation re-wraps once, at the start */
-@media (min-width:761px){.stage:not([hidden]),.panel:not([hidden]){animation:panel-in var(--d-sheet) var(--ease)}}
+@media (min-width:761px){
+  .viewer{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:1px solid var(--line-faint);box-shadow:none}
+  .stage:not([hidden]),.panel:not([hidden]),.viewer.is-in{animation:panel-in var(--d-sheet) var(--ease)}
+  body.viewer-open:not(.stage-open):not(.panel-open) .main{--rp:var(--vw)}
+}
 @keyframes panel-in{from{opacity:0;transform:translateX(12px)}}
-:root[data-theme="light"] :is(.stage,.panel){border-color:rgba(0,0,0,.08);box-shadow:none}
+:root[data-theme="light"] :is(.stage,.panel,.viewer){border-color:rgba(0,0,0,.08);box-shadow:none}
 .stage{width:var(--sw);z-index:var(--z-panel)}
 .panel{max-height:none;height:100%}
 body.stage-full .stage{left:0}
-body.stage-open{--mw:var(--sw);--vw:var(--sw)}
+body.stage-open{--mw:var(--sw)}
 /* its left edge is the handle; double-click for the default */
 .stg-grip{position:absolute;z-index:3;top:0;bottom:0;left:calc(var(--grip-w) / -2);width:var(--grip-w);cursor:col-resize;outline:none}
 .stg-grip::after{content:"";position:absolute;top:0;bottom:0;left:calc((var(--grip-w) - 2px) / 2);width:2px;background:transparent;transition:background var(--d-hover) var(--ease)}

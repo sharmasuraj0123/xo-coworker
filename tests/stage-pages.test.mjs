@@ -57,8 +57,11 @@ assert.match(fp, /close: \(\) => \{ if \(viewer\.hasFile\) viewer\.close\(\{ res
 assert.match(stage, /function apply\(\) \{\n\s*const v = clampW\(wSaved \|\| wDef\(\)\);/);
 assert.doesNotMatch(code, /pageSpecW|PAGE_MIN|clampP|\bWIDE\b|S\.wide|xo-stage-w:/);
 assert.doesNotMatch(fp.replace(/\/\/[^\n]*/g, ""), /\bwidth: /);
-// --rp has one source per side panel: the viewer and the Map live in the panel now, so neither reserves room of its own
-assert.doesNotMatch(appCss, /body\.viewer-open \.main\{--rp|body\.map-open[^{]*\.main\{--rp/);
+// --rp has one source per side panel: in a place the viewer and the Map live in the panel; outside one the viewer docks at the panel's width
+assert.doesNotMatch(appCss, /body\.viewer-open[^{]*\.main\{--rp|body\.map-open[^{]*\.main\{--rp/);
+assert.match(found, /body\.viewer-open:not\(\.stage-open\):not\(\.panel-open\) \.main\{--rp:var\(--vw\)\}/);
+assert.match(found, /:root\{--sw:360px;--vw:var\(--sw\);/);
+assert.doesNotMatch(appCss, /--vw:(?!var\(--sw\))/);
 assert.doesNotMatch(appCss, /body\.viewer-open \.tdock\{display:none\}/);
 
 // one head: ‹ (one level back, named), the page's lead control, its title; the page's controls then the panel's
