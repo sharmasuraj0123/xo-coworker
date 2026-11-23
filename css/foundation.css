@@ -223,6 +223,9 @@ body.stage-full .stg-grip{display:none}
    the message box, Find, All threads' search and the rest since C053/C007/C030). One rule for every such box, so none
    draws one: tests/field-ring.test.mjs */
 :is(.fl-q,.all-q,.ar-q,.composer,.jump-field,.xd-q,.tg-qf):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
+/* a text field never wears the ring: its accent caret says where typing goes, and a bordered field's edge glows */
+:is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit],[type=reset],[type=file],[type=color],[type=image]),textarea,[contenteditable]):focus-visible{outline:none}
+:is(input,textarea,[contenteditable]){caret-color:var(--accent)}
 /* a field with its own border (Create's repository, name and description, Settings' and Launchpad's fields, a select,
    the dropdown's button) shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders with
    the page between (the owner, 11 Nov 08:00Z: "like it has 2 borders"). At −1 px its 2 px cover the border and one inside */
@@ -234,11 +237,8 @@ body.stage-full .stg-grip{display:none}
 .stg-grip:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px;border-radius:3px}
 .fv .fl.is-wide .fl-split:focus-visible::after{box-shadow:inset 0 0 0 2px var(--focus);border-radius:3px}
 
-/* a boxed text field (a form's .field, Launchpad's, a shell's name, a note to the agent): the keyboard's focus is the base
-   ring every control has (base.css: 2 px of the focus colour, 2 px out; 3.24:1 on white, 6.07:1 on #171717), never
-   taken away and with no halo beside it; typed in, its edge darkens (an invalid one stays red). Each took its outline
-   away for a faint halo, which left a 2.4–2.5:1 edge (the create-project grader on 4d33649, C108, Shape's JSON) */
-:is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea):focus{border-color:var(--line-hover)}
+/* a boxed text field typed in: a thin accent edge and a soft accent glow outside it */
+:is(.field input,.field textarea,.lp-in,.shd-in,.c-note textarea,.tw-in,.c-q-in,.c-name-in):focus{border-color:var(--field-line-focus);box-shadow:0 0 0 3px var(--focus-halo)}
 
 /* a segment the keyboard is on draws its whole ring: it's stacked above its neighbours, 2 px away, so a selected
    segment's background after it never paints over the ring's outward 2 px (the controls grader on 2a8d278, S127: Changes

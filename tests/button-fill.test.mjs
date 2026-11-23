@@ -54,9 +54,9 @@ t("a destructive button is a red fill, deeper on hover and press, with no outlin
   assert.equal((tok.match(/--danger-fill:color-mix\(in srgb,var\(--err-ink\) \d+%,transparent\); --danger-fill-hover:[^;]+; --danger-fill-press:[^;]+;/g) || []).length, 3);
 });
 
-t("keyboard focus is Apple's soft glow: 3 px of the accent at 45%, 1 px out, following the corners", () => {
-  assert.match(read("base.css"), /(^|\n):focus-visible\{outline:3px solid var\(--focus\);outline-offset:1px\}/);
-  assert.equal((tok.match(/--focus:rgba\(var\(--accent-rgb\),\.45\)/g) || []).length, 2);
+t("keyboard focus is a soft accent ring hugging the control", () => {
+  assert.match(read("base.css"), /(^|\n):focus-visible\{outline:3px solid var\(--focus\);outline-offset:0\}/);
+  assert.equal((tok.match(/--focus:rgba\(var\(--accent-rgb\),\.4\); --focus-halo:rgba\(var\(--accent-rgb\),\.2\);/g) || []).length, 2);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

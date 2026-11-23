@@ -16,7 +16,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the ring's room is a token at least as wide as the ring takes outside a control", () => {
-  const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
+  const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)(?:px)?\}/);
   assert.ok(ring, "the one ring");
   const room = tokens.match(/--ring-room:(\d+)px/);
   assert.ok(room, "--ring-room");
@@ -50,7 +50,7 @@ t("on a phone the file's head stays 40, its buttons fill it, and their ring is d
 // rule. A rule drawn as a border took 1 of it, and where the bar meets a box that clips, a focused control's ring lost
 // half a pixel (the controls grader on f93345a and 0f51890, C092 at 1440: Copied's ring cut 0.5 by .viewer)
 t("a 40 px bar holds a 32 px control and its whole ring: 4 + 32 + 4, its rule drawn inside it, never a border", () => {
-  const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
+  const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)(?:px)?\}/);
   const ext = +ring[2] + +ring[3], ctl = +tokens.match(/--h-ctl:(\d+)px/)[1];
   assert.ok((40 - ctl) / 2 >= ext, `(40 − ${ctl}) / 2 ≥ the ring's ${ext}`);
   const css = ["app.css", "panel.css", "diffs.css", "launchpad.css", "media.css", "msgx.css", "artifacts.css", "shape.css", "side.css", "dropdown.css", "links.css", "foundation.css"].map((f) => [f, read(`css/${f}`)]);

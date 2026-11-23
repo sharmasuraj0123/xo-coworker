@@ -1294,7 +1294,6 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .field em{font-style:normal;font-weight:var(--fw-regular);color:var(--ink-4);margin-left:4px}
 .field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--field-line);border-radius:var(--r);background:var(--field-bg);font-size:var(--fs-ui);line-height:var(--lh-ui);resize:vertical;transition:border-color var(--d-hover) var(--ease)}
 .field input{height:var(--h-lg)}
-:root :is(.field input,.field textarea):focus{border-color:var(--field-line-focus)}
 .field input::placeholder,.field textarea::placeholder{color:var(--ink-5)}
 /* A note under a field: one icon, then one line of words (an action inside reads as a link) */
 .cp-note{display:flex;align-items:flex-start;gap:8px;min-height:16px;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
@@ -1815,7 +1814,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 /* the title being renamed: a field in the head, 32 like the head's controls (34: grader B on ba93c9b, S009) */
 .tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.tw-in:focus{outline:2px solid var(--focus);outline-offset:1px}
 .ar-l{flex:none;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 7px;height:20px;line-height:var(--lh-meta);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-meta);color:var(--ink-3)}
 .hr-conn.k-wait .hr-t{color:var(--warn)}
 @media (max-width:760px){
@@ -1857,7 +1855,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .o-rec{font-weight:var(--fw-medium);color:var(--ok-text)}
 .o-cost{color:var(--warn-text)}
 .c-q-in,.c-name-in{height:var(--h-lg);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
-.c-q-in:focus,.c-name-in:focus{outline:2px solid var(--focus);outline-offset:1px}
 .c-q-s{font-size:var(--fs-meta);color:var(--ink-4)}
 .c-name{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:var(--fs-meta);color:var(--ink-3)}
 .c-iwhy{display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3)}

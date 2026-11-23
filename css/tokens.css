@@ -69,8 +69,8 @@
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
   --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
-  /* The one focus ring: 2 px of the accent, following the element's own radius. */
-  --focus:rgba(var(--accent-rgb),.45);
+  /* The one focus ring: 3 px of soft accent hugging the control; a typed-in field's edge and the glow outside it */
+  --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
      scrolls a control into view (base.css) */
   --ring-room:6px;
@@ -84,7 +84,7 @@
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
   /* a form field: its well, its edge, its edge while typed in */
-  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:var(--line-hover);
+  --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8);
   /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
   --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
   --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
@@ -222,7 +222,7 @@
   --live-l:.53; --live-c:.15;
   --mark-x:#151515; --mark-o:#83D63A;
   --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
-  --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:#A3A3A3;
+  --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:rgba(var(--accent-rgb),.8);
   --warn-text:#8A4B0B; --need-text:#5E3507; --add-text:#2F5A12; --del-text:#9B1C22; --danger-text:#9B1C22;
   --ok-text:color-mix(in srgb,var(--accent) 80%,var(--ink)); --danger-ink:var(--err-ink);
   --bubble:#EFEFEF; --bubble-line:#EFEFEF; --bubble-top:#FFFFFF; --bubble-foot:#F7F7F7;
@@ -272,7 +272,7 @@
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
   --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
-  --focus:rgba(var(--accent-rgb),.45);
+  --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
 }
 
 /* High contrast, when the OS asks for it. */
