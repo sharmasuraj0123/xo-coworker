@@ -406,6 +406,7 @@ export const api = {
   cancelClone: (cloneId) => send("DELETE", `/xo-projects/clones/${enc(cloneId)}`),
   /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
   githubStatus: () => get("/connectors/github/status"),
+  githubIssues: (project, refresh = false) => get(`/xo-projects/${enc(project)}/github/issues`, refresh ? { refresh: "true" } : undefined),
   /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
   githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
   githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),

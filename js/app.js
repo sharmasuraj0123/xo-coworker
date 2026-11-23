@@ -48,6 +48,7 @@ import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./file
 import { createPaths } from "./paths.js";
 import { createQuickOpen } from "./quickopen.js";
 import { createFilesPage } from "./filespage.js";
+import { createGhPage } from "./ghpage.js";
 import { createChanges, lineRef, fileRef } from "./changes.js";
 import { fileIcon } from "./fileicons.js";
 import { countsHtml } from "./changesframe.js";
@@ -416,10 +417,11 @@ const PAGE_OF = { home: "#home", artifacts: "#arts", launchpad: "#lpp" };
 const pageEl = (v) => (PAGE_OF[v] ? $(PAGE_OF[v]) : null);
 // the panel is a project's: its chat, the Workspace's, and their threads; Home, Chats, Artifacts and the rest have none
 const panelPlace = (v) => /^(?:ws$|[pt]:)/.test(v || "");
-const STAGE = createStage({ place: panelPlace, map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
+const STAGE = createStage({ place: panelPlace, map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), github: { show: () => GH.show(), has: (v) => (lpProject(v) && lpProject(v) !== "workspace" ? GH.has(lpProject(v)) : Promise.resolve(false)) }, viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
+const GH = createGhPage({ stage: STAGE, api, view: () => S.view, projectOf: lpProject, go: (v) => go(v), announce });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;

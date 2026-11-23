@@ -55,7 +55,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, place = () => true }) {
+export function createStage({ map, files, changes, openFiles = null, github = null, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, place = () => true }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -75,7 +75,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${xi(FRAME_IC[id], "fr-ic")}${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
-    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
+    `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${github ? `<button type="button" class="stg-ic" data-open-gh aria-pressed="false" title="Issues and pull requests" aria-label="Issues and pull requests" hidden>${ICON.github}</button>` : ""}${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-body"><div class="stg-frames">` +
     // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
@@ -237,6 +237,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
     const fb = el.querySelector("[data-open-files]");
     if (fb) { const on = S.page?.name === "files"; fb.setAttribute("aria-pressed", String(on)); fb.classList.toggle("is-on", on); }
+    const gb = el.querySelector("[data-open-gh]");
+    if (gb) { const on = /^gh/.test(S.page?.name || "") || S.page?.name === "github"; gb.setAttribute("aria-pressed", String(on)); gb.classList.toggle("is-on", on); }
     const b = el.querySelector("[data-stg-shell]");
     if (b) { const on = S.page?.name === "shell"; b.setAttribute("aria-pressed", String(on)); b.classList.toggle("is-on", on); b.title = on ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel"; }
   }
@@ -244,6 +246,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     reflect();
     if (!S.open) return;
     const v = view();
+    if (github) { const gb = el.querySelector("[data-open-gh]"); github.has(v).then((ok) => { if (gb.hidden === ok) gb.hidden = !ok; }); }
     const ag = map.agents(v);
     // a clock's figures aren't a change (the app's ticker moves them each second): without this the Agents list was
     // rewritten every paint, and every rewrite re-added its arcs for ui.js to put back in step
@@ -504,6 +507,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
+    if (t.closest("[data-open-gh]")) { if (S.page?.name === "github" || S.page?.name === "ghitem") { dropPages(); pageChanged(); } else github.show(); return; }
     if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(); else openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = t.closest("[data-change]");
