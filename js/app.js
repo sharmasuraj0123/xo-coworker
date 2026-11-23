@@ -1,5 +1,4 @@
 import { createWorld, esc, WAITING } from "./world.js";
-import { whenWorld } from "../core/services/world/when.js";
 import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPending, busyAttrs } from "../core/platform/index.js";
 import { patch, redraw } from "../core/ui/redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
@@ -53,6 +52,7 @@ import { createJump } from "../modules/search/jump.js";
 import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { createSavedSoon } from "../modules/changes/saved.js";
+import { createRowResolve } from "../modules/threads/row-resolve.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
@@ -3842,6 +3842,7 @@ const placeOk = (v) => v === "ws" || v === "chats" || !!PAGE_OF[v] || (v.startsW
 const { canBack, stepBack } = createBackSteps({ S, LAYERS, placeOk, go, back });
 wireBack({ canBack, stepBack });
 
+const resolveFromRow = createRowResolve({ world, resolveThread, allEl, allRender });
 // ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
@@ -3868,53 +3869,6 @@ wireGestures({
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
   toast: (text) => toastLine(text),
 });
-function resolveFromRow(tid, resolved, li) {
-  const t = world.thread(tid);
-  const name = t ? t.title : "";
-  li.classList.remove("is-swiping", "is-armed");
-  li.innerHTML = `<p class="ar-undo"><span></span><button type="button" data-ar-undo hidden></button></p>`;
-  const box = li.firstElementChild, line = box.firstElementChild, btn = box.lastElementChild;
-  let next = null;
-  // the line says what's happening; the button (label undefined: as it is) stays one element throughout
-  const show = (html, label, err = false) => {
-    line.innerHTML = html;
-    box.classList.toggle("is-err", err);
-    if (label === undefined) return;
-    btn.hidden = !label;
-    if (label) btn.textContent = label;
-  };
-  const act = (to) => {
-    const busy = (on) => { if (on) { box.setAttribute("aria-busy", "true"); btn.setAttribute("aria-busy", "true"); btn.setAttribute("aria-disabled", "true"); } else { box.removeAttribute("aria-busy"); btn.removeAttribute("aria-busy"); btn.removeAttribute("aria-disabled"); } };
-    busy(true);
-    show(`<i class="spin" aria-hidden="true"></i><b>${to ? "Resolving" : "Reopening"}</b> ${esc(name)}`);
-    resolveThread(tid, to, { undo: false, sayFail: false }).then(({ ok, why }) => {
-      busy(false);
-      if (!li.isConnected) return;
-      line.title = ok ? "" : why || "";
-      if (ok && to === resolved) {
-        show(`${ICON.check}<b>${resolved ? "Resolved" : "Reopened"}</b> ${esc(name)}`, "Undo");
-        next = () => act(!resolved);
-        clearTimeout(li._redraw);
-        li._redraw = setTimeout(() => { if (li.isConnected && !li.contains(document.activeElement) && !allEl.hidden) allRender(); }, 5000);
-      } else if (ok) {
-        // undone: the thread's own row again, drawn once the world has it back as it was (Space's answer lands
-        // in the world on its next commit), with focus on it if it was on Undo
-        clearTimeout(li._redraw);
-        whenWorld(world, () => (world.thread(tid)?.state === "resolved") === to, () => {
-          if (!li.isConnected || allEl.hidden) return;
-          const had = li.contains(document.activeElement);
-          allRender();
-          if (had) allEl.querySelector(`#all-list [data-go="t:${CSS.escape(tid)}"]`)?.focus({ preventScroll: true });
-        });
-      } else {
-        show(`${ICON.close}<b>${to ? "Couldn't resolve" : "Couldn't reopen"}</b> ${esc(name)}`, "Retry", true);
-        next = () => act(to);
-      }
-    });
-  };
-  btn.addEventListener("click", () => { if (btn.getAttribute("aria-busy") !== "true" && next) next(); });
-  act(resolved);
-}
 $("#pb-t").addEventListener("click", () => {
   (S.view === "home" ? $("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
 });

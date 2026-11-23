@@ -7928,8 +7928,8 @@
    "home": "core/services/world/when.js"
   },
   "js/app.js::functions::resolveFromRow": {
-   "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
+   "status": "moved",
+   "home": "modules/threads/row-resolve.js"
   },
   "js/app.js::ids::nx-note-in": {
    "status": "moved",
