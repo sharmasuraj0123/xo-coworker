@@ -186,4 +186,36 @@ t("A hidden Files page ignores renders and shows its loaded rows when brought ba
   assert.ok(host.querySelector('[data-fl-file="other.html"]'));
 });
 
+const { createFilesPage } = await import("../modules/files/page.js");
+t("The Files page mounts once and keeps tree width and fold under their existing keys", () => {
+  storage.set("xo-files-tree", "260");
+  storage.set("xo-files-folds", JSON.stringify({ tree: "folded" }));
+  const paneHost = document.createElement("aside");
+  document.body.append(paneHost);
+  let page, mountCount = 0;
+  const folds = [];
+  const panelFiles = createFilesPage({
+    stage: { pageShown: { name: "files" }, page: (_, definition) => { page = definition; } },
+    files: {
+      mount: (body) => { mountCount++; body.innerHTML = '<div class="fl-split" role="separator"></div>'; },
+      fold: (folded) => folds.push(folded),
+      list: () => false,
+    },
+    viewer: { hasFile: true },
+    view: () => "p:p",
+  });
+  page.mount(paneHost);
+  page.mount(paneHost);
+  assert.equal(mountCount, 1);
+  assert.deepEqual(folds, [true]);
+  assert.equal(paneHost.firstElementChild.style.getPropertyValue("--tw"), "260px");
+  const resize = new window.Event("keydown", { bubbles: true, cancelable: true });
+  Object.assign(resize, { key: "ArrowRight" });
+  paneHost.querySelector('[role="separator"]').dispatchEvent(resize);
+  assert.equal(storage.get("xo-files-tree"), "276");
+  assert.equal(panelFiles.toggleTree(), true);
+  assert.deepEqual(folds, [true, false]);
+  assert.equal(storage.get("xo-files-folds"), JSON.stringify({ tree: "open" }));
+});
+
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);
