@@ -10171,13 +10171,8 @@
    "home": "modules/launchpad/client.js"
   },
   "js/map.js::exports::MAP_ICON": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/icons.js"
   },
   "js/map.js::exports::colorOf": {
    "status": "moved",
@@ -10249,13 +10244,8 @@
    "home": "modules/map/layout.js"
   },
   "js/map.js::functions::afterPause": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/after-pause.js"
   },
   "js/map.js::functions::createMap": {
    "status": "split-region",

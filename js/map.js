@@ -24,39 +24,18 @@ import { redraw } from "./redraw.js";
 import { folderOf } from "../core/services/places.js";
 import { activityOf } from "../core/services/agent-activity.js";
 import { NW, NH, PAD, colorOf, layoutOf, edgePath } from "../modules/map/layout.js";
+import { MAP_ICON, ARROW, TOOL } from "../modules/map/icons.js";
+import { afterPause } from "../modules/map/after-pause.js";
 
 const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
 const COORD_COLOR = "#7ED957";
 
-export const MAP_ICON = ICON.map;
-// the pointer: the pack's agent cursor, its tip at (1, 1) of an 18 box (css/app.css .dg-arrow), coloured per agent
-const ARROW = ICON.cursor;
+export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
-const TOOL = {
-  out: ICON.minimize, in: ICON.plus, fit: ICON.fit, follow: ICON.follow,
-  tree: ICON.map, graph: ICON.graph,
-};
 
 const base = (p) => String(p || "").replace(/\/+$/, "").split("/").pop();
 const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
-/**
- * Run fn once the frame in hand has painted and input has paused (no key, press, wheel or touch for PAUSE_MS), and at
- * the latest after MAX_MS: work that can wait never shares the frame of the click that brought it (the page is never
- * idle here, so requestIdleCallback won't do: memory "page-never-idle").
- */
-const PAUSE_MS = 120, MAX_MS = 700;
-function afterPause(fn) {
-  let last = performance.now();
-  const start = last, seen = () => { last = performance.now(); };
-  const evs = ["keydown", "pointerdown", "wheel", "touchstart"];
-  for (const ev of evs) addEventListener(ev, seen, { capture: true, passive: true });
-  const go = () => { for (const ev of evs) removeEventListener(ev, seen, { capture: true }); fn(); };
-  const check = () => { const now = performance.now(); if (now - last >= PAUSE_MS || now - start >= MAX_MS) go(); else setTimeout(check, PAUSE_MS - (now - last)); };
-  // after this frame paints: a frame callback, then a task
-  requestAnimationFrame(() => setTimeout(check, 0));
-}
 
 /** The Map, in the right panel (js/stage.js): mount(host) once, show(view) / hide() with its frame, render(view) on every app render. */
 export function createMap({ world, go, announce, isBusy, openFile }) {
