@@ -1,7 +1,7 @@
 // Settings › Accounts: GitHub's row says Space's state in words and offers the actions that state allows.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { createAccounts, ghView, missingScopes, rtView, deviceCode, SIGN_IN } from "../js/accounts.js";
+import { createAccounts, ghView, missingScopes, rtView, deviceCode, SIGN_IN } from "../modules/settings/accounts.js";
 import { dom, settle } from "./lib/dom.mjs";
 
 const html = readFileSync(new URL("../shell/overlays.js", import.meta.url), "utf8");

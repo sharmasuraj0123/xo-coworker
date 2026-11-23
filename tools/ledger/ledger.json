@@ -2468,8 +2468,9 @@
    "note": "the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint"
   },
   "js/accounts.js": {
-   "status": "planned",
-   "home": "modules/settings/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js",
+   "note": "js/accounts.js re-exports the Accounts entry points"
   },
   "js/api.js": {
    "status": "split",

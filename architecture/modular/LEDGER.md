@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 479 |
+| moved | 480 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 168 |
+| planned | 167 |
 | kept | 57 |
 | split | 29 |
 
@@ -29,7 +29,7 @@ Items inside first-party files: 2488 (moved 1465, planned 636, kept 135, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/accounts.js` | 134 | planned | modules/settings/accounts.js |
+| `js/accounts.js` | 134 | moved | modules/settings/accounts.js · next: js/accounts.js re-exports the Accounts entry points |
 | `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
 | `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: js/attach.js re-exports the attachment rules, tray and shared row helpers |

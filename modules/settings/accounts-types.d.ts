@@ -1,0 +1,74 @@
+export interface Action {
+  id: string;
+  label: string;
+  pri?: boolean;
+  busy?: boolean;
+}
+
+export interface View {
+  key: string;
+  tone: string;
+  line: string;
+  actions: Action[];
+}
+
+export interface GitHubStatus {
+  status: string;
+  username?: string;
+  name?: string;
+  scopes?: string;
+  error?: string;
+  gh_login?: { usable?: boolean, username?: string };
+}
+
+export interface GitHubFlow {
+  starting?: boolean;
+  code?: string;
+  uri?: string;
+  id?: string;
+  until?: number;
+}
+
+export interface Agent {
+  name: string;
+  health?: { installed?: boolean, logged_in?: boolean };
+  default?: boolean;
+}
+
+export interface AgentFlow {
+  phase: string;
+  ctl: AbortController;
+  abortable: boolean;
+  url?: string;
+  code?: string;
+  log?: string;
+  opened?: boolean;
+  session?: string;
+}
+
+export interface SignInEvent {
+  type: string;
+  session_id?: string;
+  url?: string;
+  line?: string;
+  returncode?: number;
+  error?: string;
+}
+
+export type SignIn =
+  | { route: "claude-code", kind: "paste", cancel: true }
+  | { route: "antigravity", kind: "paste", cancel?: false }
+  | { route: "codex", kind: "device", cancel?: false };
+
+export interface AccountsState {
+  gh: GitHubStatus | null;
+  flow: GitHubFlow | null;
+  err: string;
+  confirm: boolean;
+  timer: ReturnType<typeof setTimeout> | undefined | null;
+  rts: Agent[] | null;
+  rtErr: string;
+  f: Record<string, AgentFlow>;
+  e: Record<string, string>;
+  missing: Record<string, boolean>;
+}
