@@ -187,6 +187,30 @@ t("A hidden Files page ignores renders and shows its loaded rows when brought ba
   assert.ok(host.querySelector('[data-fl-file="other.html"]'));
 });
 
+const createdFile = deferred();
+api.saveProjectFile = (...args) => { saves.push(args); return createdFile.promise; };
+api.projectTree = async () => ({ files: [{ name: "new.html", relative_path: "new.html" }] });
+click("[data-fl-new]");
+const naming = host.querySelector("[data-fl-name]");
+naming.value = "new.html";
+const enter = new window.Event("keydown", { bubbles: true, cancelable: true });
+enter.key = "Enter";
+naming.dispatchEvent(enter);
+t("New file uses the guarded write and keeps its naming row while the write is pending", () => {
+  same(document.activeElement, naming);
+  assert.equal(naming.readOnly, true);
+  assert.deepEqual(saves.at(-1), ["q", "new.html", "", null, null]);
+});
+createdFile.resolve({ edit_id: "created" });
+await settle();
+t("The new file opens from the refreshed folder when its write completes", () => {
+  assert.equal(host.querySelector("[data-fl-name]"), null);
+  assert.ok(host.querySelector('[data-fl-file="new.html"]'));
+  assert.equal(viewer.file?.created, "created");
+  assert.equal(viewer.file?.rel, "new.html");
+  viewer.close({ restore: false });
+});
+
 const { createFilesPage } = await import("../modules/files/page.js");
 t("The Files page mounts once and keeps tree width and fold under their existing keys", () => {
   storage.set("xo-files-tree", "260");
