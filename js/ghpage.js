@@ -95,7 +95,7 @@ export function createGhPage({ stage, api, view, projectOf, go, announce = () =>
     if (!d.issues.repo) return `<p class="fr-none">This project isn't on GitHub.</p>`;
     const nOpen = (d.issues.issues || []).filter((i) => i.state === "open").length, nPr = d.prs.filter((p) => p.state === "open").length;
     const tab = (k, word, n) => `<button type="button" class="fr-t${G.tab === k ? " is-on" : ""}" role="tab" aria-selected="${G.tab === k}" data-gh-tab="${k}">${k === "prs" ? IC.pr : IC.open}${word}<span class="fr-n">${n || ""}</span></button>`;
-    return `<header class="fr-h gh-h"><div class="fr-tabs" role="tablist" aria-label="Issues or pull requests">${tab("issues", "Issues", nOpen)}${tab("prs", "Pull requests", nPr)}</div>` +
+    return `<header class="fr-h gh-h"><div class="fr-views" role="tablist" aria-label="Issues or pull requests">${tab("issues", "Issues", nOpen)}${tab("prs", "Pull requests", nPr)}</div>` +
       `<div class="fr-a"><a class="fr-ib" href="https://github.com/${esc(d.issues.repo)}/${G.tab === "prs" ? "pulls" : "issues"}" target="_blank" rel="noopener" title="Open on GitHub" aria-label="Open on GitHub">${IC.ext}</a><button type="button" class="fr-ib" data-gh-refresh title="Read GitHub again" aria-label="Read GitHub again">${IC.sync}</button></div></header>` +
       notice(d) + `<div class="fr-b gh-b"><ul class="ag-list tg-list">${G.tab === "issues" ? issueRows(d) : prRows(d)}</ul></div>`;
   }
@@ -111,7 +111,7 @@ export function createGhPage({ stage, api, view, projectOf, go, announce = () =>
     const worked = isPr ? !!it.thread : list.indexOf(it) === 0 && it.state === "open";
     const fact = (svg, cls, main, sub, right = "") => `<li><span class="ch-r gh-ckr"><span class="ch-i gh-i ${cls}">${svg}</span><span class="ch-copy"><span class="ch-n">${main}</span>${sub ? `<span class="ch-path">${sub}</span>` : ""}</span>${right ? `<span class="ch-m">${right}</span>` : ""}</span></li>`;
     const c = CHECK[it.checks];
-    const prFacts = isPr && state === "open" ? `<section class="gh-sec"><ul class="ch-list">` +
+    const prFacts = isPr && state === "open" ? `<section class="gh-sec"><h3 class="gh-k">Status</h3><ul class="ch-list">` +
       (it.mergeable === "conflicting" ? fact(IC.conflict, "is-err", `Conflicts with <code>${esc(it.base)}</code>`, "2 files: js/stage.js, css/panel.css") : fact(IC.ok, "is-ok", `Merges cleanly into <code>${esc(it.base)}</code>`, "")) +
       fact(c[0], c[1], c[2], it.checks === "fail" ? `${esc(it.failing)} failed · 2 passed` : it.checks === "run" ? "1 of 3 still running" : "3 passed") +
       (it.review ? fact(REVIEW_IC[it.review][0], REVIEW_IC[it.review][1], esc(REVIEW[it.review]), it.review === "changes" ? `${avatar("sharmasuraj0123", "gh-av is-in")}sharmasuraj0123` : "") : "") +
