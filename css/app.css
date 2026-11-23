@@ -155,7 +155,7 @@ button:disabled{cursor:default}
    focus) scrolled the page's main area 262 px up and the file out of sight on a phone (the controls grader on 65e84b7,
    S138: MAIN#main scrollTop 262, every other ancestor 0). A clipped box isn't a scroll container: nothing scrolls it */
 /* one column for every view (Home, the conversation, Artifacts, the dock), placed from its own width; --rp keeps the side panel clear */
-.main{--rp:0px;--gut-min:28px;--col-max:calc(28 * var(--h-ctl))}
+.main{--rp:0px;--gut-min:28px;--col-max:calc(24 * var(--h-ctl))}
 :is(.home,.conv,.arts,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
 .main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
 @media (min-width:761px){

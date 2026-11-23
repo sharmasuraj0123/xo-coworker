@@ -80,7 +80,7 @@ console.log("thread-page: ok");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\);--measure:max\(calc\(var\(--col-w\) - var\(--s-12\)\), min\(100%, var\(--measure-min\)\)\)\}/, "the main chat's own column rule");
   const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
   assert.match(a2, /:is\(\.home,\.conv,\.arts,\.dock\)\{container-type:inline-size;--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\);--measure:max\(calc\(var\(--col-w\) - var\(--s-12\)\), min\(100%, var\(--measure-min\)\)\)\}/);
-  assert.match(a2, /\n\.main\{--rp:0px;--gut-min:28px;--col-max:calc\(28 \* var\(--h-ctl\)\)\}/);
+  assert.match(a2, /\n\.main\{--rp:0px;--gut-min:28px;--col-max:calc\(24 \* var\(--h-ctl\)\)\}/);
   const st2 = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
   assert.match(st2, /function apply\(\) \{\n\s*const v = clampW\(wSaved \|\| wDef\(\)\);/, "one width for everything the panel shows");
   assert.doesNotMatch(st2, /pageSpecW|PAGE_MIN|WIDE/);
