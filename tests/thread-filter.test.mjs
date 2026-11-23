@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { panelSrc } from "./lib/panel-src.mjs";
+import { createThreadGroups } from "../modules/threads/groups.js";
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const stage = panelSrc, app = read("js/app.js"), panel = read("css/panel.css"), found = read("css/foundation.css");
 
@@ -34,7 +35,21 @@ assert.match(stage, /if \(!S\.page && !fr\.agents\.folded && el\.querySelector\(
 assert.match(stage, /if \(e\.key === "Escape" && inp\.value\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); inp\.value = ""; S\.tq = ""; paint\(\); return; \}/);
 assert.match(stage, /aria-keyshortcuts="\/"/);
 // the rows carry what it matches
-assert.match(app, /mark: threadMark\(t\), summary: t\.summary \|\| "", branch: t\.branch \|\| "",/);
+const { panelThreads } = createThreadGroups({
+  world: { state: { threads: [{ ...row, id: "thread", project: "p", state: "working", lastAt: 0 }] } },
+  D: { needItems: () => [] },
+  MAP: { agents: () => [] },
+  convProject: () => "p",
+  askShort: () => "",
+  threadMark: () => "Runtime mark",
+  isBusy: () => true,
+  isHeld: () => false,
+});
+const panelRow = panelThreads("p:p")[0].rows[0];
+assert.equal(panelRow.mark, "Runtime mark");
+assert.equal(panelRow.summary, row.summary);
+assert.equal(panelRow.branch, row.branch);
+assert.ok(matchesQ(panelRow, "rail 305201"), "the grouped row carries its summary and branch into search");
 
 // All threads: the same match, the same keys
 assert.match(app, /const s = `\$\{t\.title\} \$\{t\.summary \|\| ""\} \$\{t\.branch \|\| ""\}`\.toLowerCase\(\); return q\.split\(\/\\s\+\/\)\.every\(\(w\) => s\.includes\(w\)\);/);

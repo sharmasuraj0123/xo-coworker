@@ -7269,8 +7269,8 @@
    "home": "modules/conversation (workspace) (app.js l.1303)"
   },
   "js/app.js::functions::threadCounts": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1320)"
+   "status": "moved",
+   "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::threadsCtl": {
    "status": "planned",
@@ -7757,12 +7757,12 @@
    "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3736)"
   },
   "js/app.js::functions::threadState": {
-   "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3746)"
+   "status": "moved",
+   "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::panelThreads": {
-   "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3755)"
+   "status": "moved",
+   "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::allRender": {
    "status": "planned",

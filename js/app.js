@@ -53,6 +53,7 @@ import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { createSavedSoon } from "../modules/changes/saved.js";
 import { createRowResolve } from "../modules/threads/row-resolve.js";
+import { createThreadGroups } from "../modules/threads/groups.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
@@ -342,6 +343,9 @@ const stOf = (t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "st
 setThreadInfo((id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
 // the Map (js/map.js): where your agents are working, drawn in the panel's Map frame
 const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBusy, openFile: (f, from) => VW.open(f, from) });
+const { STATE_WORDS, threadState, panelThreads, threadCounts } = createThreadGroups({
+  world, D, MAP, convProject, askShort, threadMark: (t) => threadMark(t), isBusy, isHeld,
+});
 // the panel: one card on the right with tabs (Map, Made, File; later apps), one header button, ⌘\
 // Files: the project's files, and the one place a file opens (js/files.js)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
@@ -1025,12 +1029,6 @@ function wsHeadRender() {
  *  line breaks only at a dot, never inside "1 resolved". */
 const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
 const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
-function threadCounts(pid, needs) {
-  const c = { all: 0, needs: 0, working: 0, waiting: 0, done: 0 };
-  for (const t of world.state.threads) if (t.project === pid) { c.all++; c[threadState(t, needs)]++; }
-  return c;
-}
-
 function threadsCtl(n, by) {
   if (!n) return ""; // a project with no threads yet: its empty page says what to start
   const words = [`${n} ${n === 1 ? "thread" : "threads"}`, by.working && `${by.working} working`, by.needs && `${by.needs} ${by.needs === 1 ? "needs" : "need"} you`].filter(Boolean).join(", ");
@@ -3314,44 +3312,6 @@ function openNext() {
   const P0 = homeParts();
   if (!P0.next) { heraldShow({ kind: "calm", text: "Nothing needs you right now" }, 2400); return; }
   decideKey(P0.next.key);
-}
-
-// ── One state per thread, in one vocabulary ─────────────────────────────────
-/** Needs you · Working · Waiting · Done, from what XO knows: an open ask on it, its agent at work right now,
- *  finished (done, resolved, stopped, frozen), else waiting (idle, paused, held). */
-const STATE_WORDS = { needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" };
-function threadState(t, needs) {
-  if (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped")) return "needs";
-  if (t.frozen || t.state === "done" || t.state === "resolved" || t.state === "failed" || t.state === "stopped") return "done";
-  if (isBusy(t)) return "working";
-  return "waiting";
-}
-/** The panel's Threads: the place's threads (a thread's view: its project's), grouped in that order, the
- *  coordinator first when it asks or works. A working row says what it's doing now (the Map's own line), the
- *  rest what they did (Space's one-line summary) or their state. */
-function panelThreads(v) {
-  const pid = convProject(v);
-  if (!pid) return [];
-  const needs = D.needItems();
-  const doing = new Map(MAP.agents(pid === "workspace" ? "ws" : "p:" + pid).map((a) => [a.go, a]));
-  const groups = { needs: [], working: [], waiting: [], done: [] };
-  // the coordinator: not a thread, but what it asks counts in "need you" everywhere, so it's here too
-  const coordAsks = needs.filter((n) => n.t.host && n.t.project === pid && n.admitted);
-  const coordGo = pid === "workspace" ? "ws" : "p:" + pid, coordAg = doing.get(coordGo);
-  if (coordAsks.length || coordAg) {
-    const st = coordAsks.length ? "needs" : "working";
-    groups[st].push({ go: coordGo, coord: true, title: pid === "workspace" ? "Workspace coordinator" : "Coordinator", state: st, word: STATE_WORDS[st],
-      sub: coordAsks.length ? askShort(coordAsks[0]) : coordAg.doing, since: st === "working" ? coordAg.since : null, color: coordAg?.color, on: v === coordGo });
-  }
-  const ts = world.state.threads.filter((t) => t.project === pid).sort((a, b) => b.lastAt - a.lastAt);
-  for (const t of ts) {
-    const st = threadState(t, needs), ag = doing.get("t:" + t.id);
-    const ask = st === "needs" ? needs.find((n) => n.t.id === t.id) : null;
-    groups[st].push({ go: "t:" + t.id, title: t.title, state: st, word: STATE_WORDS[st], mark: threadMark(t), summary: t.summary || "", branch: t.branch || "",
-      sub: st === "working" && ag ? ag.doing : ask ? askShort(ask) : t.stop ? stopWords(t.stop) : t.summary || (t.state === "failed" ? "Stopped" : t.state === "resolved" ? "Resolved" : isHeld(t) ? heldWords(t.held) : STATE_WORDS[st]),
-      since: st === "working" && ag ? ag.since : null, at: st === "working" ? "" : short(t.lastAt), color: ag?.color, on: v === "t:" + t.id });
-  }
-  return ["needs", "working", "waiting", "done"].filter((k) => groups[k].length).map((k) => ({ k, word: STATE_WORDS[k], rows: groups[k] }));
 }
 
 // ── All threads: searchable, filtered; finished ones fold into one line ────

@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import { panelSrc } from "./lib/panel-src.mjs";
+import { createThreadGroups } from "../modules/threads/groups.js";
 const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const map = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
@@ -29,10 +30,25 @@ assert.match(map, /getItem\(MODE_KEY\) === "tree"\) M\.mode = "tree"/);
 assert.doesNotMatch(stage, /fr-lp|LPF/);
 
 // one vocabulary: the four words, and how a thread gets one
-assert.match(app, /const STATE_WORDS = \{ needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" \}/);
-const fn = app.slice(app.indexOf("function threadState("), app.indexOf("function panelThreads("));
-const threadState = new Function("isBusy", `${fn}; return threadState;`)((t) => !!t.busy);
 const needs = [{ t: { id: "a" }, admitted: true, group: "now" }];
+const threads = [
+  { id: "a", project: "p", state: "working", busy: true },
+  { id: "b", project: "p", state: "done" },
+  { id: "c", project: "p", state: "done" },
+  { id: "d", project: "q", state: "working" },
+  { id: "e", project: "p", state: "working" },
+].map((thread, i) => ({ ...thread, title: thread.id, lastAt: Date.UTC(2026, 9, i + 1) }));
+const { STATE_WORDS, threadState, threadCounts, panelThreads } = createThreadGroups({
+  world: { state: { threads } },
+  D: { needItems: () => needs },
+  MAP: { agents: () => [{ go: "p:p", doing: "Coordinating", since: null }] },
+  convProject: () => "p",
+  askShort: () => "Review",
+  threadMark: () => "",
+  isBusy: (thread) => !!thread.busy,
+  isHeld: (thread) => !!thread.held,
+});
+assert.deepEqual(STATE_WORDS, { needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" });
 assert.equal(threadState({ id: "a", state: "working" }, needs), "needs");
 assert.equal(threadState({ id: "b", state: "working", busy: true }, needs), "working");
 assert.equal(threadState({ id: "c", state: "working" }, needs), "waiting", "an open thread whose agent is idle waits");
@@ -65,15 +81,16 @@ assert.match(thFn, /f\.classList\.add\("is-flash"\)/);
 
 // one count (the owner, 19 Nov 14:50Z: 35 in the header, 73 in the panel): every thread of the project, by state;
 // the header and the panel's head both say it; the coordinator's row isn't a thread
-const cf = app.slice(app.indexOf("function threadCounts("), app.indexOf("\n}\n", app.indexOf("function threadCounts(")) + 2);
-const threadCounts = new Function("world", "threadState", `${cf}; return threadCounts;`)(
-  { state: { threads: [{ project: "p", s: "working" }, { project: "p", s: "done" }, { project: "p", s: "done" }, { project: "q", s: "waiting" }, { project: "p", s: "waiting" }] } },
-  (t) => t.s);
 assert.deepEqual(threadCounts("p", []), { all: 4, needs: 0, working: 1, waiting: 1, done: 2 });
 assert.match(app, /const by = threadCounts\(pid, needs\);/);
 assert.match(app, /S\.hdrCtl = threadsCtl\(by\.all, by\);/);
 assert.match(stg, /tg\.reduce\(\(n, x\) => n \+ x\.rows\.filter\(\(r\) => !r\.coord\)\.length, 0\)/, "the panel's head counts threads, not the coordinator");
-assert.match(app, /const ts = world\.state\.threads\.filter\(\(t\) => t\.project === pid\)\.sort/, "the panel lists every thread of the project");
+assert.deepEqual(panelThreads("p:p").map(({ k, rows }) => [k, rows.map(({ go }) => go)]), [
+  ["needs", ["t:a"]],
+  ["working", ["p:p"]],
+  ["waiting", ["t:e"]],
+  ["done", ["t:c", "t:b"]],
+], "the panel groups every thread from this project and shows its coordinator separately");
 assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button moved into the panel");
 
 // the group heads: tokens only (a 1 px line aside)
