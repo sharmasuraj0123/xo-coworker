@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const app = readFileSync(new URL("../shell/rail/side.js", import.meta.url), "utf8");
-const side = readFileSync(new URL("../css/side.css", import.meta.url), "utf8");
+const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 // the model, run as written: SIDE's bar part with a stand-in for the device's storage
@@ -74,7 +74,7 @@ assert.match(app, /addEventListener\("drop"/);
 assert.doesNotMatch(html, /id="nv-pins"/, "kept places sit in the bar itself, in your order");
 
 // CSS: tokens only (the 1 px hairline is the system's)
-const block = side.slice(side.indexOf("── The bar, yours to edit"));
+const block = side.slice(side.search(/^\.sm-sep\{/m));
 assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 console.log("side-bar: ok");

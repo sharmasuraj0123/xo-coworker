@@ -54,7 +54,7 @@ const hosted = (subject) => { const tags = [...subject.classes].flatMap((k) => [
 
 // those the shared layer names out, each with how it answers instead
 const OTHER = [
-  [/\.(prow|nrow)\b/, /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):hover\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 6%,transparent\)/, "css/side.css", "the sidebar's rows: their own layer over each state's wash (C008), the sidebar's frozen look"],
+  [/\.(prow|nrow)\b/, /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):hover\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 6%,transparent\)/, "shell/sidebar.css", "the sidebar's rows: their own layer over each state's wash (C008), the sidebar's frozen look"],
   [/\.dd-row\b/, /addEventListener\("pointermove", \(e\) => \{ const r = \/\*\* @type \{any\} \*\/ \(e\.target\)\.closest\?\.\("\.dd-row"\); if \(r && !r\.hasAttribute\("aria-disabled"\)\) this\._activate\(/, "core/ui/components/xo-select.js", "a dropdown's rows: the pointer moves its one active row (C058)"],
   [/\.at-list li\b/, /at\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "js/app.js", "the @ list's rows: the pointer moves the selection (C058)"],
   [/\.jump-list li\b/, /list\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "modules/search/jump.js", "Jump's rows: the pointer moves the selection"],
@@ -98,7 +98,7 @@ t("the census reads the states, the grader's chip and C008's rows among them", (
   const n = placed.layer.length + placed.other.length + placed.inert.length + placed.undrawn.length + placed.fails.length;
   assert.ok(n > 60, `${n} state rules`);
   assert.ok(placed.layer.includes('app.css: .all-f button[aria-checked="true"]'), "S020's chip reached by the layer");
-  assert.ok(placed.other.some((x) => /side\.css: \.prow\.is-on/.test(x)), "C008's rows placed with their own layer");
+  assert.ok(placed.other.some((x) => /sidebar\.css: \.prow\.is-on/.test(x)), "C008's rows placed with their own layer");
 });
 t("every state the CSS styles on a control is a state the layer lists: a new one can't silence hover", () => {
   const missing = [...placed.tokens].filter((k) => !states.includes(k)).sort();

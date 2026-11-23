@@ -75,10 +75,6 @@
   "extra": 74,
   "refs": 0
  },
- "css/side.css": {
-  "extra": 36,
-  "refs": 0
- },
  "tests/agent-marks.test.mjs": {
   "extra": 3,
   "refs": 0

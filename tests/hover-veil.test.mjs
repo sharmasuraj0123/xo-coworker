@@ -19,7 +19,7 @@ t("Launchpad's row hover is the veil", () => {
 t("More shows a chevron, hidden on the folded rail", () => {
   assert.match(read("index.html"), /id="nv-more"[^>]*>.*<span class="nr-name">More<\/span><span class="nr-chev" aria-hidden="true"><\/span><\/button>/);
   assert.match(read("js/app.js"), /\$\("#nv-more \.nr-chev"\)\.innerHTML = ICON\.right;/);
-  assert.match(read("css/side.css"), /\.side-folded :is\([^)]*\.nr-chev[^)]*\)\{display:none\}/);
+  assert.match(read("shell/sidebar.css"), /\.side-folded :is\([^)]*\.nr-chev[^)]*\)\{display:none\}/);
 });
 t("More lists places, not Settings' pages; the editor still lists every place", () => {
   const app = read("shell/rail/side.js");

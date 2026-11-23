@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 473 |
+| moved | 474 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 172 |
+| planned | 171 |
 | kept | 56 |
 | split | 32 |
 
@@ -137,7 +137,7 @@ Items inside first-party files: 2488 (moved 1326, planned 659, split-region 243,
 | `css/phone.css` | 286 | split | shell/phone.css, modules/* (phone blocks) |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
 | `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
-| `css/side.css` | 158 | planned | shell/sidebar.css |
+| `css/side.css` | 158 | moved | shell/sidebar.css |
 | `css/tokens.css` | 301 | moved | core/ui/tokens.css |
 
 ## tests-unit (214)
