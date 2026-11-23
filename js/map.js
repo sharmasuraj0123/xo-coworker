@@ -26,6 +26,7 @@ import { activityOf } from "../core/services/agent-activity.js";
 import { NW, NH, PAD, colorOf, layoutOf, edgePath } from "../modules/map/layout.js";
 import { MAP_ICON, ARROW, TOOL } from "../modules/map/icons.js";
 import { afterPause } from "../modules/map/after-pause.js";
+import { apiRel, createMapFolders } from "../modules/map/folders.js";
 
 const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
 const COORD_COLOR = "#7ED957";
@@ -42,7 +43,6 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
   let el = null;
   const M = {
     open: false, view: "home",
-    dirs: new Map(),     // "<project>|<api rel>" → {state: "loading"|"ok"|"error", dirs, files, error}
     opened: new Map(),   // scope key → folders you unfolded
     closed: new Map(),   // scope key → folders you folded (even with an agent inside)
     more: new Map(),     // scope key → folders showing every box
@@ -128,23 +128,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
   const ingOf = (row) => { const w = String((row && row.line) || "").replace(/[`*_]/g, "").trim().split(/[\s…·.]+/)[0] || ""; return /^[A-Za-z]{3,}ing$/.test(w) ? w.toLowerCase() : ""; };
   const since = (ms) => (Number.isFinite(ms) ? `<span class="elapsed" data-since="${ms}"></span>` : "");
 
-  // ── folders, read a level at a time ──────────────────────────────────────────
-  const apiRel = (fold, local) => (fold.base ? (local ? `${fold.base}/${local}` : fold.base) : local);
-  const dirKey = (fold, local) => `${fold.project}|${apiRel(fold, local)}`;
-  async function load(fold, local, { again = false } = {}) {
-    const k = dirKey(fold, local);
-    const had = M.dirs.get(k);
-    if (had && (had.state === "loading" || ((had.state === "ok" || had.state === "error") && !again))) return;
-    M.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading" });
-    try {
-      const d = await api.projectTree(fold.project, apiRel(fold, local));
-      const strip = (e) => { let p = String(e.relative_path || e.name); if (fold.base && p.startsWith(fold.base + "/")) p = p.slice(fold.base.length + 1); return { name: e.name, path: p }; };
-      M.dirs.set(k, { state: "ok", dirs: (d.dirs || []).map(strip), files: (d.files || []).map(strip) });
-    } catch (err) {
-      M.dirs.set(k, { state: "error", error: err.status === 404 ? "Not there any more" : "Couldn't read it" });
-    }
-    paint();
-  }
+  const { load, get: folderAt } = createMapFolders(api, paint);
 
   // ── the diagram's boxes ─────────────────────────────────────────────────────
   /** A folder as boxes: the folders and files it holds, those with agents (or changes) first. */
@@ -162,7 +146,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
     const isOpen = (p) => { if (opened.has(p)) return true; if (closed.has(p)) return false; if (roomy && (autoSet.has(p) || inside(hot, p) || (unfoldMarks && inside(marked, p)))) { autoSet.add(p); return true; } return false; };
     const kids = (local) => {
       load(fold, local);
-      const d = M.dirs.get(dirKey(fold, local));
+      const d = folderAt(fold, local);
       if (!d || (d.state === "loading" && !d.dirs)) return [{ id: local + "/…", kind: "note", name: "Reading…" }];
       if (d.state === "error") { M.refs.set(local + "/!", { retry: local, fold }); return [{ id: local + "/!", kind: "note", name: `${d.error} · Try again`, btn: true }]; }
       const all = more.has(local);
