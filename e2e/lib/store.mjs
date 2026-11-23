@@ -20,6 +20,7 @@ function quiet(now) {
     "/api/terminal/status": { enabled: false, reason: "off in tests", max_sessions: 0, detached_ttl_seconds: 0, running: 0, attached: 0 },
     "/api/terminal/sessions": { terminals: [] },
     "/api/chat/sessions": { sessions: [], next_after_seq: null },
+    "/api/chat/active": { turns: [] },
     "/api/chat/review": { items: [], next_after_seq: null },
     "/api/chat/events": { events: [], next_before_seq: null, next_after_seq: null },
     "/api/chat/runtimes": { runtimes: [{ name: "claude_code", default: true, health: { agent: "claude_code", usable: true, why_not: null, installed: true, logged_in: true, account: "acct-test", cli_version: "1.0", pool: "claude_code:acct-test", limit: "open", resets_at: null, windows: {}, error: null, checked_at: now }, cli: { version: "1.0", logged_in: true, account: "acct-test", limits: {} }, features: { agent: "claude_code", cli_version: "1.0", contract_version: "1.0", features: { model: { support: "native", values: [] }, effort: { support: "native", values: [] } } } }] },

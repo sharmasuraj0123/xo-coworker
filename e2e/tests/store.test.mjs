@@ -74,6 +74,13 @@ await test("a seed's own route wins over everything", () => {
   assert.deepEqual(ask(st, "GET", "/api/chat/status").answer.body, { pools: ["mine"] });
 });
 
+await test("a quiet Space has no active turns and demo has no linked GitHub repository", () => {
+  const st = createStore(basic);
+  assert.deepEqual(ask(st, "GET", "/api/chat/active").answer, { status: 200, body: { turns: [] } });
+  assert.deepEqual(ask(st, "GET", "/api/xo-projects/demo/github/issues").answer, { status: 200, body: { repo: null, issues: [] } });
+  assert.deepEqual(st.misses, []);
+});
+
 await test("files: the tree lists one level, sorted; a file reads with a version", () => {
   const files = basic.files.demo;
   assert.deepEqual(treeOf(files, ""), { dirs: [{ name: "src", relative_path: "src" }], files: [{ name: "README.md", relative_path: "README.md", size_bytes: Buffer.byteLength(files["README.md"]) }, { name: "notes.txt", relative_path: "notes.txt", size_bytes: 14 }] });
