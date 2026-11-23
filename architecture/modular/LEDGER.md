@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | kept | 56 |
 | split | 35 |
 
-Items inside first-party files: 2488 (moved 1072, planned 758, split-region 367, kept 168, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1096, planned 758, split-region 343, kept 168, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -32,7 +32,7 @@ Items inside first-party files: 2488 (moved 1072, planned 758, split-region 367,
 | `js/accounts.js` | 134 | planned | modules/settings/accounts.js |
 | `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
 | `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
-| `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/rows.js + sessions.js + threads.js, core/platform/util.js · next: attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here |
+| `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: js/attach.js re-exports the attachment rules, tray and shared row helpers |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | planned | modules/decisions/cardparts.js |
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |

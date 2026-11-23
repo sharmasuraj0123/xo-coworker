@@ -2487,11 +2487,11 @@
   "js/attach.js": {
    "status": "split",
    "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
+    "core/services/media/attachment-rules.js",
+    "core/services/media/attachment-tray.js",
+    "core/services/world/rows.js"
    ],
-   "note": "attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here"
+   "note": "js/attach.js re-exports the attachment rules, tray and shared row helpers"
   },
   "js/blocks.js": {
    "status": "moved",
@@ -8199,112 +8199,52 @@
    "home": "core/platform/gestures.js"
   },
   "js/attach.js::exports::MAX_BYTES": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::MAX_FILES": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::PASTE_CHARS": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::PASTE_LINES": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::extOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::fmtSize": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::refusal": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::sortFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::isLargePaste": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::pasteExt": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::pasteName": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::pasteLabel": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::attachmentsOf": {
    "status": "moved",
@@ -8319,85 +8259,40 @@
    "home": "core/services/world/rows.js"
   },
   "js/attach.js::exports::kindOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::typeWord": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::uploadErrorText": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::FINAL": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::createTray": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-tray.js"
   },
   "js/attach.js::functions::refusal": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::sortFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::pasteExt": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::pasteLabel": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::attachmentsOf": {
    "status": "moved",
@@ -8408,31 +8303,16 @@
    "home": "core/services/world/rows.js"
   },
   "js/attach.js::functions::typeWord": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::uploadErrorText": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::createTray": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-tray.js"
   },
   "js/blocks.js::exports::createTurns": {
    "status": "moved",
