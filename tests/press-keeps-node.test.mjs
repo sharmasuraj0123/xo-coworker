@@ -252,7 +252,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     await t("Files: an open folder that nothing has read starts its read where it's drawn, so Reading… always has a read", () => {
       const f = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
       const i = f.indexOf("function sync(s, local, g, ctx) {"), body = f.slice(i, f.indexOf("\n  }\n", i));
-      assert.match(body, /if \(!F\.dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
+      assert.match(body, /if \(!dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
       assert.doesNotMatch(f, /F\.scope !== s\b/, "a place is the same place by its key, never by the object");
     });
   } finally { rmSync(dir, { recursive: true, force: true }); }

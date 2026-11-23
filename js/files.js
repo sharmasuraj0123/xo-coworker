@@ -23,6 +23,8 @@ import { redraw } from "./redraw.js";
 import { api } from "../core/platform/api.js";
 import { scopeOf, fileScope, localIn, newFileSay, RUNS_SAY, parentOf } from "../modules/files/scope.js";
 import { dot, marksOf, touched } from "../modules/files/marks.js";
+import { apiRel, dkey, createFolderReads } from "../modules/files/folder-reads.js";
+import { createSectionFolds } from "../modules/files/section-folds.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "../core/ui/components/counts.js";
 import { pointerFollows } from "./keynav.js";
@@ -46,7 +48,6 @@ const base = (p) => String(p || "").split("/").pop();
 export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null, paths = null }) {
   const F = {
     host: null, view: "home", scope: { key: "all" }, pick: null, shown: false,
-    dirs: new Map(),     // "<project>|<api path>" → {state, dirs, files, error, v (new with every change)}
     open: new Map(),     // scope key → Set of open folders (paths inside the scope)
     sel: null,           // the file shown, inside the scope (null: none, or one from elsewhere)
     fileView: false,     // narrow: the file is in front of the tree
@@ -57,27 +58,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     folded: false,       // beside a file, the tree folded to its rail (its fold button, ⌘B; modules/files/page.js keeps it)
   };
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return F.open.get(k); };
-  const apiRel = (s, local) => (s.base ? (local ? `${s.base}/${local}` : s.base) : local);
-  const dkey = (s, local) => `${s.project}|${apiRel(s, local)}`;
-  let VER = 0;
-
-  // ── reading a folder ──────────────────────────────────────────────────────
-  async function load(s, local, { again = false } = {}) {
-    const k = dkey(s, local);
-    const had = F.dirs.get(k);
-    if (had && (had.state === "loading" || (had.state === "ok" && !again))) return had;
-    // a Try again reads with its note still there, saying it's reading again (its button stays, busy)
-    F.dirs.set(k, { ...(had || {}), state: had && had.state === "ok" ? "ok" : "loading", retry: !!(had && had.state === "error"), v: ++VER });
-    try {
-      const d = await api.projectTree(s.project, apiRel(s, local));
-      const strip = (e) => { let p = String(e.relative_path || e.name); if (s.base && p.startsWith(s.base + "/")) p = p.slice(s.base.length + 1); return { name: e.name, path: p, bytes: e.size_bytes ?? null, at: Date.parse(e.modified_at) || 0 }; };
-      F.dirs.set(k, { state: "ok", dirs: (d.dirs || []).map(strip), files: (d.files || []).map(strip), v: ++VER });
-    } catch (err) {
-      F.dirs.set(k, { state: "error", error: err.status === 404 ? "Not there any more" : "Couldn't read it", v: ++VER });
-    }
-    paint();
-    return F.dirs.get(k);
-  }
+  const { dirs, load } = createFolderReads(paint);
 
   // ── drawing ───────────────────────────────────────────────────────────────
   // The tree is drawn a folder at a time. Each open folder's rows sit in their own group (div.fl-g) right
@@ -145,7 +126,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const root = T.groups.get("").el, made = new Map();
     const a = document.activeElement, had = a && root.contains(a) ? a : null;
     const inner = (p) => {
-      const d = F.dirs.get(dkey(s, p)), g = { el: null, sig: sigOf(d, p, ctx), open: new Set() };
+      const d = dirs.get(dkey(s, p)), g = { el: null, sig: sigOf(d, p, ctx), open: new Set() };
       made.set(p, g);
       return rowsHtml(s, p, d, ctx.marks, ctx.q, (c) => { g.open.add(c); return inner(c); });
     };
@@ -180,7 +161,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
 
   /** Bring a folder's group up to date, then the open folders inside it. */
   function sync(s, local, g, ctx) {
-    const d = F.dirs.get(dkey(s, local));
+    const d = dirs.get(dkey(s, local));
     const sig = sigOf(d, local, ctx);
     if (g.sig !== sig) {
       // its own rows, in place: a row that stays is the same node (a press on it still clicks, focus stays), only what
@@ -200,7 +181,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (at.nextElementSibling !== c.el) at.after(c.el);
       // an open folder is read: one opened by any path (a click, a file revealed in it, a rename into it) and never read
       // starts its read here, so "Reading…" always has a read under way
-      if (!F.dirs.has(dkey(s, p))) load(s, p);
+      if (!dirs.has(dkey(s, p))) load(s, p);
       open.add(p);
     }
     for (const p of g.open) if (!open.has(p)) { flip(g.el, p, false); T.groups.get(p)?.el.remove(); }
@@ -231,17 +212,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (!top.length) return "";
     return secHead(s, "changed", "Touched by agents", top.length) + (folded(s, "changed") ? "" : top.map((x) => `<button type="button" class="fl-r is-touch" style="--d:0" data-fl-touch="${esc(x.rel)}" title="${esc(`${x.path} · ${x.who}`)}"><span class="fl-c fl-i">${fileIcon(x.path)}</span><span class="fl-n">${esc(x.path)}</span>${dot(x, true)}</button>`).join("")) + secHead(s, "all", "All files");
   }
-  // ── sections that fold (the owner, 19 Nov 13:03Z: "all files and changed files should be minimizable"): a section's
-  // head is its disclosure, as a panel frame's is; folded or open is kept per project in this browser ──
-  const SECS_KEY = "xo-files-secs";
-  const secState = (() => { try { return JSON.parse(localStorage.getItem(SECS_KEY) || "{}") || {}; } catch { return {}; } })();
-  const folded = (s, part) => !!(secState[s.project] && secState[s.project][part]);
-  function setFolded(s, part, on) {
-    const p = secState[s.project] || (secState[s.project] = {});
-    if (on) p[part] = true; else delete p[part];
-    if (!Object.keys(p).length) delete secState[s.project];
-    try { localStorage.setItem(SECS_KEY, JSON.stringify(secState)); } catch { /* kept for this visit only */ }
-  }
+  const { folded, setFolded } = createSectionFolds();
   const secHead = (s, part, words, n = null) => {
     const open = !folded(s, part);
     return `<button type="button" class="fl-sec" data-fl-sec="${part}" aria-expanded="${open}" title="${open ? "Fold" : "Show"} ${esc(words.toLowerCase())}"><span class="fl-c" aria-hidden="true">${CH}</span><span class="fl-sec-t">${esc(words)}</span>${!open && n != null ? `<span class="fl-sec-n">${n}</span>` : ""}</button>`;
@@ -529,7 +500,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   }
   /** What the name in the row would do, said under it; null when there's nothing to say. */
   function nameSay(s, dir, n) {
-    const d = F.dirs.get(dkey(s, dir));
+    const d = dirs.get(dkey(s, dir));
     return newFileSay(n, dir, d && d.state === "ok" ? d : null, NW.confirm);
   }
   function sayNew(say) {

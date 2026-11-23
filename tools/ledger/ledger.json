@@ -9103,14 +9103,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/files.js::storage::xo-files-secs": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/section-folds.js"
   },
   "js/files.js::keys::all": {
    "status": "split-region",

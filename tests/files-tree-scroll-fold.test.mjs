@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 const src = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
+const folds = readFileSync(new URL("../modules/files/section-folds.js", import.meta.url), "utf8");
 const css = ["panel.css", "foundation.css"].map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 
 // the old rule, kept here as the evidence: every scroll that ended was settled to the nearest multiple of 28 px, but
@@ -36,8 +37,8 @@ t("Changed and All files fold from their heads, remembered per project", () => {
   assert.match(src, /<button type="button" class="fl-sec" data-fl-sec="\$\{part\}" aria-expanded="\$\{open\}"/, "a head is a button that says whether it's open");
   assert.match(src, /secHead\(s, "changed", `Changed \$\{s\.base \? "in this thread" : "here"\}`/);
   assert.match(src, /secHead\(s, "all", "All files"\)/);
-  assert.match(src, /const SECS_KEY = "xo-files-secs"/, "kept in this browser");
-  assert.match(src, /const p = secState\[s\.project\]/, "by project");
+  assert.match(folds, /const SECS_KEY = "xo-files-secs"/, "kept in this browser");
+  assert.match(folds, /const p = secState\[s\.project\]/, "by project");
   assert.match(src, /if \(rootG && rootG\.hidden !== allFolded\) rootG\.hidden = allFolded;/, "All files folded hides the tree, kept as it was");
   assert.match(src, /if \(folded\(s, "changed"\)\) return secHead/, "Changed folded leaves its rows out");
   assert.match(src, /if \(sec\) \{ const part = sec\.dataset\.flSec; setFolded\(F\.scope, part, !folded\(F\.scope, part\)\); paint\(\); host\.querySelector\(`\[data-fl-sec="\$\{part\}"\]`\)\?\.focus/, "a press folds or opens it, and focus stays on its head");
