@@ -407,8 +407,11 @@ export const api = {
   /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
   githubStatus: () => get("/connectors/github/status"),
   /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
-  githubConnect: () => send("POST", "/connectors/github/cli/start"),
+  githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
   githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
+  githubConnectCancel: (sessionId) => send("POST", "/connectors/github/cli/cancel", { session_id: sessionId }),
+  /** Drops the saved connection; this machine's own gh login stays. */
+  githubDisconnect: () => send("POST", "/connectors/github/disconnect", {}),
 
   // ── shells (/api/terminal/*): T = {id, name, scope, project, path, cwd, status, foreground, viewers, …} ──
   terminalStatus: () => get("/terminal/status"),

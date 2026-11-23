@@ -116,6 +116,7 @@ export const ICON = {
   dot: xi("step-dot"),
   deploy: xi("deploy"),
   github: xi("github"),
+  person: xi("person"),
   container: xi("container"),
   server: xi("server"),
 };

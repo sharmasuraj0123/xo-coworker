@@ -33,6 +33,7 @@ import { headOf, goneLine } from "./cardparts.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "./rtsettings.js";
+import { createAccounts } from "./accounts.js";
 import { createChats } from "./chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "./follow.js";
 import { decorateConversation } from "./msgx.js";
@@ -4411,6 +4412,7 @@ const setEl = $("#settings");
 let setReturn = null;
 const SETS = createSettings({ world, announce, PROJ, onChange: () => schedule() });
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
+const ACCTS = createAccounts({ announce });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
 const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
 /** The shape changed (only ever by the person's choice): everything that reads it is drawn again, now. */
@@ -4457,6 +4459,7 @@ function setPage(id) {
   for (const p of setEl.querySelectorAll("[data-page]")) p.hidden = p.dataset.page !== id;
   SETS.open(id);
   if (id === "runtimes") RTSET.open();
+  if (id === "accounts") ACCTS.open();
   if (id === "shape") SV.open();
 }
 function openSettings() {
@@ -4600,6 +4603,7 @@ const SIDE = {
   PLACES: [
     { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
     { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
+    { set: true, id: "accounts", name: "Accounts", ic: () => ICON.person },
     { set: true, id: "routing", name: "Routing", ic: () => ICON.router },
     { set: true, id: "rules", name: "Rules", ic: () => ICON.rule },
     { set: true, id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
@@ -5025,7 +5029,7 @@ $("#set-x").innerHTML = ICON.close;
 $("#set-side-ic").innerHTML = ICON.gear;
 // Settings' rail: each section with its icon (hub #18/#19)
 {
-  const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
+  const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, accounts: ICON.person, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
   for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
 }
 $("#set-phone").innerHTML = ICON.gear;
