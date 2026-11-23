@@ -23,10 +23,13 @@ import { redraw } from "./redraw.js";
 import { api } from "../core/platform/api.js";
 import { activityOf } from "../core/services/agent-activity.js";
 import { folderOf } from "../core/services/places.js";
+import { scopeOf, fileScope, localIn } from "../modules/files/scope.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "../core/ui/components/counts.js";
 import { RUNS } from "./viewer.js";
 import { pointerFollows } from "./keynav.js";
+
+export { scopeOf, fileScope, localIn } from "../modules/files/scope.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -43,35 +46,6 @@ const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Mat
 const base = (p) => String(p || "").split("/").pop();
 const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 const MARK_WORD = { new: "new", edited: "edited", deleted: "deleted" };
-
-/** The folder a view shows: {key, project, base (the API path of its root), label, sub} or {key: "all"}. */
-export function scopeOf(view, { thread, project }) {
-  if (view && view.startsWith("t:")) {
-    const t = thread(view.slice(2));
-    const f = t && folderOf(t);
-    if (f) return { key: `${f.project}|${f.base}`, project: f.project, base: f.base, label: project(f.project), sub: f.base ? t.branch || "its worktree" : "", tid: t.id };
-    if (t && t.project && t.project !== "workspace") return { key: `${t.project}|`, project: t.project, base: "", label: project(t.project), sub: "" };
-  }
-  if (view && view.startsWith("p:")) return { key: `${view.slice(2)}|`, project: view.slice(2), base: "", label: project(view.slice(2)), sub: "" };
-  return { key: "all" };
-}
-
-/** The folder a file lives in, as a scope: its thread's worktree when it's in one, else its project. */
-export function fileScope(f, { threads, project }) {
-  if (!f || !f.project || !f.rel) return null;
-  const m = /^(\.xo\/worktrees\/[^/]+)\//.exec(String(f.rel));
-  if (!m) return { key: `${f.project}|`, project: f.project, base: "", label: project(f.project), sub: "" };
-  const t = (threads || []).find((x) => x && x.project === f.project && String(x.worktree || "").replace(/\/+$/, "").endsWith(`/${m[1]}`));
-  return { key: `${f.project}|${m[1]}`, project: f.project, base: m[1], label: project(f.project), sub: (t && t.branch) || "its worktree", tid: t ? t.id : undefined };
-}
-
-/** Where a file the viewer opened sits in a scope: its path inside it, or null when it's elsewhere. */
-export function localIn(scope, f) {
-  if (!scope || !scope.project || !f || f.project !== scope.project || !f.rel) return null;
-  const rel = String(f.rel);
-  if (scope.base) return rel.startsWith(scope.base + "/") ? rel.slice(scope.base.length + 1) : null;
-  return rel.startsWith(".xo/") ? null : rel;
-}
 
 const RUNS_SAY = { runs: true, words: "Runs code: Enter makes it anyway", why: "Git or an agent runs what a file here says" };
 /**

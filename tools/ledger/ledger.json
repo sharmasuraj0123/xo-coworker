@@ -9156,34 +9156,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/files.js::exports::scopeOf": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::fileScope": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::localIn": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::newFileSay": {
    "status": "split-region",
@@ -9206,34 +9188,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/files.js::functions::scopeOf": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::fileScope": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::localIn": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::newFileSay": {
    "status": "split-region",
