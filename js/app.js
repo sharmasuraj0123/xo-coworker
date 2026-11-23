@@ -1737,7 +1737,7 @@ const tdock = $("#tdock");
  * or drag it down) to one slim line that still says a decision waits (tap it, or drag it up, to open it again), its
  * Undo, its fit. o: { el, view() (its conversation), region() (where focus goes when its card goes), TD }.
  */
-function createDock({ el: tdock, view, region, TD = { key: null, item: null, busy: false, undone: null } }) {
+function createDock({ el: tdock, view, region, TD = { key: null, item: null, busy: false, undone: null, gen: 0 } }) {
   const placeRegion = region;
 /**
  * The dock's contents change under the keyboard: when focus was on what goes, it goes to what takes its place (the
@@ -1751,6 +1751,13 @@ function dockSwap(fill, to = null, opts = null) {
     if (had && !tdock.contains(document.activeElement)) (to && usable(to) ? to : placeRegion()).focus({ preventScroll: true });
   };
   if (opts) morph(tdock, run, opts); else run();
+}
+/** Another conversation in this dock: what it showed goes with the state that drew it, and work still running for it stops. */
+function reset() {
+  Object.assign(TD, { key: null, item: null, busy: false, undone: null, gen: TD.gen + 1 });
+  tdock._ch = "";
+  dockRO.disconnect();
+  dockSwap(() => tdock.replaceChildren());
 }
   const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
 /**
@@ -1850,7 +1857,8 @@ function dockRender(needs) {
     onStep: keepBottom,
     after: async (how) => {
       TD.busy = true;
-      if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380); }
+      const gen = TD.gen;
+      if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380); if (TD.gen !== gen) return; }
       if (how !== "later") {
         // one calm line in place of the card, then it folds away
         const e = D.decisions()[0];
@@ -1866,6 +1874,7 @@ function dockRender(needs) {
         // the card is back at once, and focus with it if it was on the Undo
         let undone = false;
         await new Promise((end) => { TD.undone = { key: n.key, end: () => { undone = true; end(); } }; hold(RM.matches ? 3000 : 2700).then(end); });
+        if (TD.gen !== gen) return;
         TD.undone = null;
         if (undone) { TD.busy = false; TD.key = null; dockRender(D.needItems()); schedule(); return; }
       }
@@ -1885,7 +1894,9 @@ async function goneRender(g) {
   line.innerHTML = `<p class="tp-done is-gone" role="status"><span class="tp-done-ic">${ICON.clock}</span><span title="${esc(`${L.head}. ${L.text}`)}"><b>${esc(L.head)}.</b> ${esc(L.text)}</span></p>`;
   TD.busy = true;
   dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(line); }, null, { duration: 300 });
+  const gen = TD.gen;
   await hold(3000);
+  if (TD.gen !== gen) return;
   TD.busy = false;
   TD.key = "__settling";
   dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 320 });
@@ -1907,9 +1918,9 @@ tdock.addEventListener("keydown", (e) => {
   D.cardKeys(e, card, {});
 });
   dockGestures(tdock);
-  return { render: dockRender, TD, el: tdock };
+  return { render: dockRender, reset, TD, el: tdock };
 }
-const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, item: null, busy: false, undone: null } });
+const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, item: null, busy: false, undone: null, gen: 0 } });
 const TD = MDOCK.TD;
 const dockRender = (needs) => MDOCK.render(needs);
 
@@ -2844,7 +2855,7 @@ function tpShow(key, { focus = false } = {}) {
     TP.tid = key;
     TP.C.rendered = null; TP.C.filled = null;
     TP.C.msgs.replaceChildren(); $("#tpthead").hidden = true;
-    Object.assign(TP.dock.TD, { key: null, busy: false });
+    TP.dock.reset();
     world.act.watchSideThread?.(key);
     loadDraft(TP.K);
     TP.viewSubs.forEach((fn) => fn());
