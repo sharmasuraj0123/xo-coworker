@@ -41,6 +41,9 @@ export function localIn(scope, f) {
 export const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/i;
 
 export const RUNS_SAY = { runs: true, words: "Runs code: Enter makes it anyway", why: "Git or an agent runs what a file here says" };
+
+/** @param {string} p */
+export const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 /** @param {string} n @param {string} dir @param {{files: {name: string}[], dirs: {name: string}[]} | null | undefined} d */
 export function newFileSay(n, dir, d, confirm = false) {
   if (!n) return null;

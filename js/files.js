@@ -21,9 +21,8 @@ import { esc, copyText, COPY_REFUSED, space, rank, marked } from "../core/platfo
 import { ICON } from "./ui.js";
 import { redraw } from "./redraw.js";
 import { api } from "../core/platform/api.js";
-import { activityOf } from "../core/services/agent-activity.js";
-import { folderOf } from "../core/services/places.js";
-import { scopeOf, fileScope, localIn, newFileSay, RUNS_SAY } from "../modules/files/scope.js";
+import { scopeOf, fileScope, localIn, newFileSay, RUNS_SAY, parentOf } from "../modules/files/scope.js";
+import { dot, marksOf, touched } from "../modules/files/marks.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "../core/ui/components/counts.js";
 import { pointerFollows } from "./keynav.js";
@@ -43,8 +42,6 @@ const FOLDER_IC = ICON.folder;
 
 const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const base = (p) => String(p || "").split("/").pop();
-const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
-const MARK_WORD = { new: "new", edited: "edited", deleted: "deleted" };
 
 export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null, paths = null }) {
   const F = {
@@ -82,30 +79,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     return F.dirs.get(k);
   }
 
-  // ── what agents touched, in this scope ────────────────────────────────────
-  function touched(s) {
-    if (!s.project) return [];
-    const turns = world.state.turns;
-    const ts = world.state.threads.filter((t) => t.project === s.project && (!s.tid || t.id === s.tid));
-    const out = new Map();
-    for (const t of ts) {
-      const f = folderOf(t);
-      if (!f || !t.sessionId) continue;
-      const a = activityOf(turns, t.sessionId, f.root);
-      for (const x of a.files.values()) {
-        if (x.mark === "read" && !x.live) continue;
-        // in a project, a thread's file is its worktree's: opening it reads that copy
-        const local = s.base === f.base ? x.path : null;
-        const at = { path: x.path, local, project: s.project, rel: f.base ? `${f.base}/${x.path}` : x.path, mark: x.mark, live: x.live, seq: x.seq, who: t.title, tid: t.id, busy: isBusy(t) };
-        const prev = out.get(x.path);
-        if (!prev || (at.live && !prev.live) || (at.busy && !prev.busy)) out.set(x.path, at);
-      }
-    }
-    return [...out.values()].sort((a, b) => (b.live - a.live) || (b.busy - a.busy) || b.seq - a.seq);
-  }
-  const markOf = (x) => (x.live ? "live" : x.mark);
-  const dot = (x, words = false) => `<span class="fl-who w-${markOf(x)}"${words ? "" : ` title="${esc(`${x.live ? "Being edited now" : MARK_WORD[x.mark] || x.mark} by ${x.who}`)}"`}><i></i>${words ? esc(x.live ? "editing now" : MARK_WORD[x.mark] || "") : ""}</span>`;
-
   // ── drawing ───────────────────────────────────────────────────────────────
   // The tree is drawn a folder at a time. Each open folder's rows sit in their own group (div.fl-g) right
   // after its row, and a group is redrawn only when what it shows changes: the folder was read again, or an
@@ -117,21 +90,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
   // row are the tree's own nodes (data-own), placed by sync, never drawn from HTML. A new place or a new
   // search changes every folder's rows, so those draw the whole tree in one go.
   const T = { key: null, groups: new Map(), on: null, q: null, changed: 0 }; // groups: folder → {el, sig, open (child groups drawn)}
-
-  /** What agents touched, as marks: by file, by folder (the newest, or one being edited), and per folder a
-   *  signature of the marks on its own rows. */
-  function marksOf(tl) {
-    const files = new Map(), dirs = new Map(), sig = new Map();
-    for (const x of tl) {
-      if (x.local == null) continue;
-      files.set(x.local, x);
-      for (let p = parentOf(x.local); p; p = parentOf(p)) if (!dirs.has(p) || x.live) dirs.set(p, markOf(x));
-    }
-    const add = (p, v) => sig.set(p, (sig.get(p) || "") + v + "\n");
-    for (const [p, x] of files) add(parentOf(p), `${p}:${markOf(x)}:${x.who}`);
-    for (const [p, m] of dirs) add(parentOf(p), `${p}/:${m}`);
-    return { files, dirs, sig };
-  }
 
   /** One folder's own rows (those the search finds, and open folders). An open folder inside it gets a
    *  group: empty, for sync to fill, or with inner(path)'s rows when the whole tree is drawn at once. */
@@ -308,7 +266,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (put(head, headHtml(s)) && typing) { const q2 = head.querySelector("[data-fl-q]"); q2.value = F.q; q2.focus(); q2.setSelectionRange(...typing); }
     const q = head.querySelector("[data-fl-q]");
     if (q.value !== F.q) q.value = F.q;
-    const tl = touched(s);
+    const tl = touched(s, world, isBusy);
     const cs = changes && s.key === F.viewKey ? changes.of(F.view) : null;
     T.changed = cs && cs.state === "ok" ? cs.files.size : tl.length;
     // in place: the Changed or Touched row you opened (it gains is-on as its file opens) stays the same node and
@@ -880,7 +838,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     /** What agents changed in a view's scope (newest first): {path, rel, project, mark, live, who, tid}. */
     changes(view) {
       const s = scopeOf(view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) });
-      return s.project ? touched(s) : [];
+      return s.project ? touched(s, world, isBusy) : [];
     },
     /** Beside a file: fold the tree to its rail, or open it (mine: you did, so it's kept). */
     fold,

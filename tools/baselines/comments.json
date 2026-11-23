@@ -12,7 +12,7 @@
   "refs": 0
  },
  "js/files.js": {
-  "extra": 66,
+  "extra": 60,
   "refs": 0
  },
  "js/gestures.js": {
@@ -28,7 +28,7 @@
   "refs": 0
  },
  "js/media.js": {
-  "extra": 75,
+  "extra": 57,
   "refs": 0
  },
  "js/model.js": {
@@ -76,7 +76,7 @@
   "refs": 0
  },
  "js/viewer.js": {
-  "extra": 74,
+  "extra": 72,
   "refs": 1
  },
  "css/app.css": {
