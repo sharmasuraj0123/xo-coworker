@@ -34,3 +34,6 @@ export interface SectionsDeps {
   places: { entries(place: string, at?: object): any[]; watch(place: string, fn: () => void): () => void };
   nav: HTMLElement; pages: HTMLElement; at: () => { project?: string }; pick: (id: string) => void; isOpen: () => boolean; onTabs?: () => void;
 }
+export type AppearanceDeps = ReturnType<typeof import("../../core/ui/theme.js").createTheme> & {
+  deviceSaid: (control: HTMLElement, result: { kept: boolean }, message: string) => void;
+};

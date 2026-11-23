@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
+import { STONE, FLAVOURS } from "../core/ui/flavours.js";
 import { dom } from "./lib/dom.mjs";
 
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
@@ -57,6 +58,12 @@ press("#set-side");
 assert.equal(document.querySelector("#settings").hidden, false, "sidebar opens Settings");
 press('#settings [data-set="appearance"]');
 assert.equal(document.querySelector('#settings [data-page="appearance"]').hidden, false, "Appearance is the visible Settings page");
+assert.deepEqual([...document.querySelectorAll('#mode-seg [role="radio"]')].map((b) => [b.dataset.mode, b.textContent]), [["dark", "Dark"], ["light", "Light"], ["system", "System"]]);
+assert.deepEqual([...document.querySelectorAll('#flavour-seg [role="radio"]')].map((b) => [b.dataset.flavour, b.textContent]), [STONE, ...FLAVOURS].map(({ id, name }) => [id, name]));
 press('#mode-seg [data-mode="dark"]');
 assert.equal(document.documentElement.dataset.theme, "dark", "choosing Dark applies it immediately");
 assert.equal(storage.get("cv-theme"), "dark", "choosing Dark persists it");
+assert.equal(document.querySelector('#mode-seg [data-mode="dark"]').getAttribute("aria-checked"), "true");
+press('#flavour-seg [data-flavour="stone"]');
+assert.equal(document.documentElement.dataset.flavour, undefined, "Stone removes the flavour override");
+assert.equal(storage.get("cv-flavour"), "stone", "choosing Stone persists it");

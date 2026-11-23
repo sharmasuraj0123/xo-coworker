@@ -15709,12 +15709,12 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::lookSync": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::lookSet": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::ids::tpherald": {
    "status": "kept",
@@ -15725,8 +15725,8 @@
    "home": "js/app.js"
   },
   "js/app.js::storage::cv-flavour": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": ["core/ui/theme.js", "modules/settings/appearance.js"]
   },
   "js/app.js::storage::<key>": {
    "status": "kept",
