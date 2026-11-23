@@ -9,7 +9,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { keepTurning, ICON, stepMark, stateMark, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, stepMark, stateMark, XO, NEXT_GLYPH, $, $$, RM, reconcile, wait, hold, dial, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -41,6 +41,7 @@ import { wireBack } from "../shell/back.js";
 import { createNavigation } from "../shell/navigation.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
+import { drawPlaceIcons, drawFrameIcons, drawSidebarControls } from "../shell/frame-icons.js";
 import { createLaunchpad } from "../modules/launchpad/launchpad.js";
 import { createLpApi } from "../modules/launchpad/client.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
@@ -4185,14 +4186,7 @@ $("#pb-t").addEventListener("click", () => {
 });
 
 // ── boot ────────────────────────────────────────────────────────────────────
-$("#brand-mark").innerHTML = XO;
-$("#sc-ic").innerHTML = ICON.plus;
-$("#ic-home").innerHTML = ICON.home;
-$("#ic-ws").innerHTML = XO;
-$("#ic-chats").innerHTML = ICON.thread;
-$("#ic-arts").innerHTML = ICON.stack;
-$("#ic-lp").innerHTML = ICON.deploy;
-$("#ic-shells").innerHTML = ICON.shell;
+drawPlaceIcons();
 // a new chat's setup: folder, agent, model, effort, what it may do (all from the runtime's feature list)
 {
   const cs = $("#cs-pop");
@@ -4214,28 +4208,10 @@ $("#ic-shells").innerHTML = ICON.shell;
   cs.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); CH.closeSetup(); } });
   document.addEventListener("pointerdown", (e) => { if (CH.setupOpen && !cs.contains(e.target) && !e.target.closest("#target, #iq, #cs-perm")) CH.closeSetup(); });
 }
-$("#pb-menu").innerHTML = ICON.menu;
-$("#top-menu").innerHTML = ICON.menu;
-$("#side-x").innerHTML = ICON.close;
-$("#pn-x").innerHTML = ICON.close;
-$("#set-x").innerHTML = ICON.close;
-$("#set-side-ic").innerHTML = ICON.gear;
-// Settings' rail: each section with its icon (hub #18/#19)
-{
-  const IC = { general: ICON.sliders, appearance: ICON.contrast, shape: SHAPE_IC, routing: ICON.router, runtimes: ICON.runtime, accounts: ICON.person, rules: ICON.rule, worktrees: ICON.branch, night: ICON.moon, sounds: ICON.sound, keys: ICON.key };
-  for (const b of $$("[data-set]")) b.innerHTML = `<span class="sn-ic" aria-hidden="true">${IC[b.dataset.set] || ""}</span><span class="sn-t">${esc(b.textContent)}</span>`;
-}
-$("#set-phone").innerHTML = ICON.gear;
-$("#sound-tog .th-knob").innerHTML = ICON.sound;
-for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;
-$("#jump-ic").innerHTML = ICON.search;
-$("#all-ic").innerHTML = ICON.search;
+drawFrameIcons(SHAPE_IC);
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 applyTheme(THEME.get());
-$("#side-fold").innerHTML = ICON.sidebar;
-$("#side-jump").innerHTML = ICON.search;
-$("#ic-more").innerHTML = xi("dashboard");
-$("#nv-more .nr-chev").innerHTML = ICON.right;
+drawSidebarControls();
 SIDE.fold(SIDE.folded, { quiet: true });
 soundRender();
 PHONE.addEventListener("change", () => { setDrawer(false); render(); });

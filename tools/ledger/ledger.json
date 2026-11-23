@@ -2484,7 +2484,7 @@
   "js/app.js": {
    "status": "split",
    "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)",
-   "note": "moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js"
+   "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance."
   },
   "js/attach.js": {
    "status": "split",
