@@ -112,7 +112,7 @@ t("Chats opens at its top, the newest first; a chat still opens at its latest", 
   assert.match(app, /follow: \{ toLatest, toTop, unpin/, "the main chat's follower has it too");
 });
 t("the agent is its mark, its name only on hover and for screen readers: the header, the composer's line, replies", () => {
-  const src = read("js/chats.js");
+  const src = read("modules/chats/chats.js").replace(/\/\*\* @type \{string\} \*\/ \((agent|s\.agent)\)/g, "$1");
   assert.match(src, /const agentMark = \(agent, lead = true\) => rtMark\(agent, \{ lead \}\) \|\| /);
   assert.match(src, /<span class="pj-s">\$\{metaHtml\(s\)\}<\/span>/);
   assert.match(src, /return `<span class="iq-l">\$\{rtMark\(st\.agent, \{ lead: true \}\) \|\| ""\}/, "the chip: the mark beside the model");
@@ -137,7 +137,7 @@ t("the New chat picker is the shared picker's look: the chip opens it, agents as
 });
 t("Chats' header line runs the row's width: the project cap only shares a row with something in .top-end; the folder chip is the folder's name alone", () => {
   assert.match(read("css/app.css"), /\.top\[data-kind="project"\]:has\(> \.top-end:empty\) \.top-who\{flex:1;max-width:none\}/);
-  assert.match(read("js/chats.js"), /return `\$\{ICON\.folder\}<span>\$\{esc\(capFirst\(folderName\(st\.cwd\)\.replace\(\/\^your \/, ""\)\)\)\}<\/span>`;/);
+  assert.match(read("modules/chats/chats.js"), /return `\$\{ICON\.folder\}<span>\$\{esc\(capFirst\(folderName\(st\.cwd\)\.replace\(\/\^your \/, ""\)\)\)\}<\/span>`;/);
 });
 
 t("Chats starts with its composer: under the greeting at the top, the dock back at the foot in a chat", () => {
@@ -160,13 +160,13 @@ t("Recent: the three latest under the composer, all of them a click away with a 
   assert.match(src, /few \? rows\.slice\(0, RECENT\) : q \? rows\.filter\(\(s\) => `\$\{titleFor\(s\)\} \$\{rowLine\(s\)\}`\.toLowerCase\(\)\.includes\(q\)\)/);
   assert.match(read("css/app.css"), /\.scroller:has\(\.chl-few,\.chl-calm\)>\.column\{height:0;margin-bottom:auto\}/, "at rest the composer stands in the middle");
   assert.match(src, /No chats match/);
-  const chats = read("js/chats.js");
+  const chats = read("modules/chats/chats.js");
   assert.doesNotMatch(chats.slice(chats.indexOf("const rowLine"), chats.indexOf("const waiting")), /Default model/);
   assert.match(app, /e\.target\.matches\?\.\("\[data-chl-q\]"\)\) CH\.search\(e\.target\.value\)/);
   assert.doesNotMatch(read("css/panel.css"), /\.stage \.tg-qf/, "the search field is one shared look");
 });
 t("Chats has no bar over its greeting: the greeting is the title, a phone keeps its menu", () => {
-  const css = read("css/app.css"), ph = read("css/phone.css"), src = read("js/chats.js");
+  const css = read("css/app.css"), ph = read("css/phone.css"), src = read("modules/chats/chats.js");
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(ph, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/);
   assert.match(src, /v === "chats" \? "Ask anything to start a chat…"/);
@@ -176,7 +176,7 @@ t("what it may do on its own reads as a choice you make about trust: a question,
   assert.match(src, /How much should it do on its own\?/);
   assert.match(src, /plan: \["Plan only", "[^"]+", "lightbulb"\],\n  ask: \["Ask first", "[^"]+", "question"\],\n  accept_edits: \["Edits", "[^"]+", "edit"\],\n  auto: \["Auto", "[^"]+", "shield-check"\]/);
   assert.match(src, /\$\{xi\(ic, "cs-mi"\)\}<span class="cs-mt"><span class="iq-n">/);
-  assert.match(read("js/chats.js"), /xi\(MODE_WORDS\[st\.mode\]\?\.\[2\] \|\| "lock"\)/, "the chip wears the chosen mode's mark");
+  assert.match(read("modules/chats/chats.js"), /xi\(MODE_WORDS\[st\.mode\]\?\.\[2\] \|\| "lock"\)/, "the chip wears the chosen mode's mark");
   assert.match(css, /\.cs-md\{font:var\(--fw-regular\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-3\);text-wrap:pretty\}/);
 });
 t("switching to All keeps the greeting where it stood: no recentring, no scroll", () => {
@@ -187,7 +187,7 @@ t("switching to All keeps the greeting where it stood: no recentring, no scroll"
   assert.match(css, /\.cs-hi\{[^}]*margin:var\(--cs-lead,auto\) /);
 });
 t("an open chat has no bar: its model and mode are fixed chips in its composer, its state in the composer's line", () => {
-  const app = read("js/app.js"), src = read("js/chats.js"), css = read("css/app.css"), phone = read("css/phone.css");
+  const app = read("js/app.js"), src = read("modules/chats/chats.js"), css = read("css/app.css"), phone = read("css/phone.css");
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(phone, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/, "a phone keeps only its way back");
   assert.match(src, /const st = own \|\| setup\(\);/, "the chips read the chat's own model and mode");

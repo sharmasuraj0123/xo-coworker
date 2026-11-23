@@ -4,7 +4,6 @@
  "tests/layout-reads.test.mjs::eslint(no-unused-vars)": 1,
  "tests/browser/flows.test.cjs::eslint(no-unused-vars)": 3,
  "js/media.js::eslint(no-unused-vars)": 1,
- "js/chats.js::eslint(no-unused-vars)": 1,
  "js/viewer.js::eslint(no-unused-vars)": 1,
  "js/files.js::eslint(no-unused-vars)": 1,
  "js/intel.js::eslint(no-unused-vars)": 2,

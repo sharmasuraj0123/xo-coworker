@@ -2518,8 +2518,8 @@
    "note": "js/chart.js re-exports it until the shims go"
   },
   "js/chats.js": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/comms.js": {
    "status": "moved",
@@ -8575,40 +8575,40 @@
    "home": "core/ui/markdown/chart.js"
   },
   "js/chats.js::exports::createChats": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::functions::createChats": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::ids::conv-title": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::ids::cs-pop": {
    "status": "moved",
    "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::chc-h": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::storage::cv-chat-prefs": {
    "status": "moved",
    "home": "modules/chats/setup.js"
   },
   "js/chats.js::keys::would_stop_runs": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::keys::auth_required": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::keys::timeout": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/comms.js::exports::nameWith": {
    "status": "moved",

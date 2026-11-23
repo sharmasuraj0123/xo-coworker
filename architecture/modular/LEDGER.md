@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 467 |
+| moved | 468 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 175 |
+| planned | 174 |
 | kept | 56 |
 | split | 35 |
 
-Items inside first-party files: 2488 (moved 1133, planned 704, split-region 389, kept 135, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1140, planned 697, split-region 389, kept 135, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -38,7 +38,7 @@ Items inside first-party files: 2488 (moved 1133, planned 704, split-region 389,
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |
 | `js/changesframe.js` | 323 | moved | modules/changes/frame.js · next: countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
-| `js/chats.js` | 523 | planned | modules/chats/ |
+| `js/chats.js` | 523 | moved | modules/chats/chats.js |
 | `js/comms.js` | 173 | moved | core/services/comms.js |
 | `js/content.js` | 70 | moved | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
