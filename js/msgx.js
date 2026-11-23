@@ -5,7 +5,6 @@ import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "../modul
 export { decorateConversation };
 
 const $ = (/** @type {string} */ s) => /** @type {HTMLElement & HTMLTextAreaElement} */ (document.querySelector(s));
-const root = document.documentElement;
 
 decorateConversation({
   conv: $("#conv"), msgs: $("#msgs"), scroller: $("#scroller"), typing: $("#typing"),
