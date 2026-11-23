@@ -4445,10 +4445,12 @@
   "js/viewer.js": {
    "status": "split",
    "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ]
+    "modules/files/scope.js",
+    "modules/files/version-time.js",
+    "modules/files/viewer-diff.js",
+    "js/viewer.js"
+   ],
+   "note": "The legacy viewer entry supplies the Changes renderer to the Files diff component."
   },
   "js/words.js": {
    "status": "moved",

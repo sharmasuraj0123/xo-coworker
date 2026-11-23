@@ -11,18 +11,21 @@
 //   node tests/diff-redraw-focus.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { deferred, dom } from "./lib/dom.mjs";
+import { createViewerDiff } from "../modules/files/viewer-diff.js";
 
 const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const diff = readFileSync(new URL("../modules/files/viewer-diff.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const dd = (() => { const i = src.indexOf("async function drawDiff("); assert.ok(i > 0, "drawDiff"); return src.slice(i, src.indexOf("\n  }\n", i)); })();
+const dd = (() => { const i = diff.indexOf("async function drawDiff("); assert.ok(i > 0, "drawDiff"); return diff.slice(i, diff.indexOf("\n  }\n", i)); })();
 
 t("the renderer's Try again has a first hook of its own, before the action it shares with the head's Changes", () => {
   assert.match(dd, /<button type="button" class="vw-cut-dl" data-vw-diff-redraw data-vw-show="changes">Try again<\/button>/);
-  assert.doesNotMatch(src, /class="vw-cut-dl" data-vw-show="changes"/, "never Changes' hook first");
+  assert.doesNotMatch(src + diff, /class="vw-cut-dl" data-vw-show="changes"/, "never Changes' hook first");
 });
 t("the failure is remembered for its change, so only that change's notice is drawn busy", () => {
-  assert.match(src, /const DF = \{[^}]*failed: null[^}]*\};/);
+  assert.match(diff, /const DF = \{[^}]*failed: null[^}]*\};/);
   assert.match(dd, /dropDiff\(\); \/\/ \(clears pend: Try again draws afresh\)\s*DF\.failed = at;/);
 });
 t("drawing again after the renderer failed: the notice says so in place and its Try again is busy, focus kept on it", () => {
@@ -39,5 +42,41 @@ t("the busy notice stays until the drawing is in, then goes; a second press does
   assert.match(dd, /DF\.handle = h;\s*inRegion\(host, \(\) => \{ for \(const x of host\.querySelectorAll\(":scope > \.vw-empty"\)\) x\.remove\(\); \}\);/);
   const i = src.indexOf('const sh = e.target.closest("[data-vw-show]");');
   assert.ok(src.slice(i - 200, i).includes(`if (e.target.closest('[data-vw-diff-redraw][aria-busy="true"]')) return;`), "the busy Try again takes no press, before Show");
+});
+const { document } = await dom("");
+const retry = deferred();
+const change = { scope: { key: "p|" }, path: "notes.txt", file: {}, base: "commit" };
+let draws = 0;
+const { diffBody, drawDiff } = createViewerDiff({
+  V: { file: { project: "p", rel: "notes.txt" }, split: false },
+  currentChange: () => change,
+  changes: { patchAt: async () => "patch" },
+  diff: async (host) => {
+    if (++draws === 1) throw new Error("renderer failed");
+    await retry.promise;
+    host.append(document.createElement("section"));
+    return { destroy() {}, split() {}, update() {} };
+  },
+  isImageChange: () => false,
+  drawImageChange: () => assert.fail("text changes use the text renderer"),
+  canSave: () => false,
+  inRegion: (_, replace) => replace(),
+});
+await drawDiff(change);
+const host = diffBody();
+const button = host.querySelector("[data-vw-diff-redraw]");
+const pending = drawDiff(change);
+await Promise.resolve();
+t("retry keeps the existing failure control busy until the renderer completes", () => {
+  assert.ok(host.querySelector("[data-vw-diff-redraw]") === button);
+  assert.equal(button.getAttribute("aria-busy"), "true");
+  assert.equal(button.getAttribute("aria-disabled"), "true");
+  assert.equal(button.textContent, "Trying again…");
+});
+retry.resolve();
+await pending;
+t("a successful retry replaces the failure notice with the drawing", () => {
+  assert.ok(host.querySelector("section"));
+  assert.equal(host.querySelector("[data-vw-diff-redraw]"), null);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

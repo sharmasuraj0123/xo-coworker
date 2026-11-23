@@ -16,6 +16,7 @@ import { mount as mountEditor, prefetch as prefetchEditor } from "../modules/fil
 import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
 import { RUNS } from "../modules/files/scope.js";
 import { whenWords } from "../modules/files/version-time.js";
+import { createViewerDiff } from "../modules/files/viewer-diff.js";
 
 export { RUNS } from "../modules/files/scope.js";
 export { whenWords } from "../modules/files/version-time.js";
@@ -56,10 +57,6 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   // a copy still on its way after this long says so ("Copying…"): quicker, and it only says Copied
   const COPY_SAYS_MS = 150;
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", textMode: "page", imgMode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, menu: false, tabs: [], showChanges: false };
-  // the diff, kept across redraws of the head (Pierre's element moves with its body): {el, handle, img (an image
-  // change's drawing, modules/changes/imagechange.js), key, gen, failed (the change the renderer last failed to draw: its notice
-  // turns busy when it's drawn again)}
-  const DF = { el: null, handle: null, img: null, key: null, gen: 0, ask: 0, reading: null, failed: null };
   /** This file in its place's changes ({scope, path, file, base}), or null. */
   const chg = () => (changes && V.file && V.file.project && V.file.rel ? changes.at(V.file.project, V.file.rel) : null);
   const showsDiff = () => V.show === "changes" && !!chg();
@@ -377,100 +374,10 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
     return `<p class="vw-cut">${ICON.clock}<span>Showing the first ${esc(size(bytes(d.content)))} of ${esc(size(d.size_bytes))}. The rest isn't shown.</span>${canSave() ? `<button type="button" class="vw-cut-dl" data-vw-download${V.busy ? ` aria-disabled="true"${V.busy.kind === "download" ? ' aria-busy="true"' : ""}` : ""}>Download the whole file</button>` : ""}</p>`;
   }
 
-  /** The diff body: one element, kept (with Pierre's drawing in it) while the head around it redraws. */
-  function diffBody() {
-    if (!DF.el) { DF.el = document.createElement("div"); DF.el.className = "vw-body vw-diff"; DF.el.tabIndex = 0; }
-    return DF.el;
-  }
-  function dropDiff() { DF.gen++; if (DF.handle) { DF.handle.destroy(); DF.handle = null; } if (DF.img) { DF.img.drop(); DF.img = null; } DF.key = null; DF.pend = null; DF.reading = null; }
-  /** Both whole versions, for "N unmodified lines" (read only when you unfold them). */
-  async function bothSides(c, fd) {
-    const f = V.file, oldRel = (c.scope.base ? `${c.scope.base}/` : "") + (c.file.old_path || c.path);
-    const [o, n] = await Promise.all([
-      c.file.status === "added" ? null : api.projectFile(f.project, oldRel, { commit: c.base, path: c.file.old_path || c.path }),
-      c.file.status === "deleted" ? null : api.projectFile(f.project, f.rel),
-    ]);
-    if ((o && o.truncated) || (n && n.truncated)) throw new Error("too large to unfold");
-    return { oldFile: o ? { name: fd.prevName || fd.name, contents: o.content } : null, newFile: n ? { name: fd.name, contents: n.content } : null };
-  }
-  async function drawDiff(c, { again = false } = {}) {
-    const host = diffBody(), at = `${c.scope.key}|${c.path}|`, ask = ++DF.ask;
-    const ours = (k) => !!k && k.startsWith(at);
-    // a read that failed stays said until you ask again (Try again), rather than being read again on every redraw
-    if (!again && DF.key === `${at}none:error:${c.file.version || ""}`) return; // (a newer version is read afresh)
-    // while this change is read, its body says so: never blank, never the last change's drawing or words (Files/Map
-    // grader on 44e429d: a held read left them showing)
-    if ((again || (!ours(DF.key) && !ours(DF.pend))) && DF.reading !== at) {
-      if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
-      if (DF.img) { DF.img.drop(); DF.img = null; }
-      DF.key = null; DF.pend = null;
-      // drawing again after the renderer failed on this change says so in its notice, in place, its Try again busy (a
-      // second press does nothing more), so focus on it stays on it, as the file's does (S139). Its words were replaced
-      // by "Reading the change…" before render looked for the focused Try again, and the head took focus (the controls
-      // grader on 70375ad, Image-renderer-retry-v2). Otherwise the body says it's reading.
-      const redo = DF.failed === at && host.querySelector(":scope > .vw-empty [data-vw-diff-redraw]");
-      DF.failed = null;
-      if (redo) {
-        const box = redo.closest(".vw-empty"), words = box.querySelector("p");
-        box.setAttribute("role", "status");
-        if (words) words.textContent = "Drawing this diff…";
-        redo.setAttribute("aria-busy", "true"); redo.setAttribute("aria-disabled", "true"); redo.textContent = "Trying again…";
-      } else inRegion(host, () => { host.innerHTML = `<p class="vw-empty" role="status"><i class="spin" aria-hidden="true"></i> Reading the change…</p>`; });
-      DF.reading = at;
-    }
-    // a read that failed is said as a failure, never as "too large" (Astra: a failed fetch read "Too large to show")
-    let readErr = null;
-    const patch = await changes.patchAt(c).catch((err) => { readErr = err; return null; });
-    // only the newest read, and only while it's still the change on show: an answer for the file you left, or an
-    // older read of this one, never draws over what's there now
-    const now = V.open && showsDiff() ? chg() : null;
-    if (ask !== DF.ask || !now || `${now.scope.key}|${now.path}|` !== at) return;
-    const key = `${at}${patch ? patch.length + ":" + patch.slice(-64) : `none:${readErr ? `error:${c.file.version || ""}` : c.file.version || ""}`}`;
-    if (DF.key === key || DF.pend === key) return; // drawn (a drawing, or its words), or on its way
-    DF.pend = key; DF.reading = null;
-    const my = ++DF.gen;
-    if (!patch) {
-      dropDiff();
-      // an image: itself (modules/changes/imagechange.js), Before beside Now when it changed, in place of "Binary file"
-      if (isImageChange(c.file) && V.file.project && V.file.rel) {
-        DF.img = drawImageChange(host, { project: V.file.project, rel: V.file.rel, file: c.file, read: changes.read, at: c.base || null });
-        DF.key = key;
-        return;
-      }
-      if (readErr) {
-        inRegion(host, () => { host.innerHTML = `<div class="vw-empty" role="alert"><p>Couldn't read this change${readErr.message ? `: ${esc(readErr.message)}` : ""}.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-retry>Try again</button></p></div>`; });
-        DF.key = key;
-        return;
-      }
-      const why = c.file.binary || c.file.patch_omitted === "binary" ? "Binary file" : c.file.patch_omitted === "submodule" ? "A submodule" : "Too large to show here";
-      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>${esc(why)}.</p>${canSave() ? `<p><button type="button" class="vw-cut-dl" data-vw-download>Download</button></p>` : ""}</div>`; });
-      DF.key = key;
-      return;
-    }
-    if (DF.img) { DF.img.drop(); DF.img = null; }
-    try {
-      if (DF.handle && DF.key && DF.key.startsWith(`${c.scope.key}|${c.path}|`)) DF.handle.update(patch);
-      else {
-        if (DF.handle) { DF.handle.destroy(); DF.handle = null; }
-        // (the busy notice of a draw after a failure stays until the drawing is in, then goes; focus on its Try again
-        // goes to the diff's body)
-        if (!host.querySelector(':scope > .vw-empty [data-vw-diff-redraw][aria-busy="true"]')) inRegion(host, () => host.replaceChildren());
-        const h = await DV.diff(host, patch, { path: c.path, wrap: true, split: V.split, loadFiles: (fd) => bothSides(c, fd) });
-        if (my !== DF.gen) { h.destroy(); return; }
-        DF.handle = h;
-        inRegion(host, () => { for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove(); });
-      }
-      DF.key = key;
-    } catch {
-      if (my !== DF.gen) return;
-      dropDiff(); // (clears pend: Try again draws afresh)
-      DF.failed = at;
-      // its Try again shows the changes again, behind a hook of its own: render finds the focused control again by its
-      // first hook across the whole viewer, and data-vw-show="changes" first found the head's Changes (the controls
-      // grader on 70375ad, Image-renderer-retry-v2)
-      inRegion(host, () => { host.innerHTML = `<div class="vw-empty"><p>Couldn't draw this diff.</p><p><button type="button" class="vw-cut-dl" data-vw-diff-redraw data-vw-show="changes">Try again</button></p></div>`; });
-    }
-  }
+  const { DF, diffBody, dropDiff, drawDiff } = createViewerDiff({
+    V, currentChange: () => V.open && showsDiff() ? chg() : null, changes, diff: DV.diff,
+    isImageChange, drawImageChange, canSave, inRegion,
+  });
 
   /** A file's or a change's region drawn anew (its notice gone, its words replaced, the drawing in): focus that was
    *  on something in it stays in it, on the same control drawn again (by its hook), else on the region itself, never
