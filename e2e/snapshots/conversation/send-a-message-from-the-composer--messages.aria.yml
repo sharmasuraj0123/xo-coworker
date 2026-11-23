@@ -4,7 +4,7 @@
   - text: Can you tidy the README?
   - button "Reply"
   - button "Copy"
-  - text: 11:40 demo coordinator
+  - text: 11:40
   - paragraph: "Started a thread for it: Tidy the README."
   - button "Copy"
   - button "Reply"
@@ -13,7 +13,6 @@
   - time: 11:40
   - text: 11:40 Tidy the README finished
   - time: 11:51
-  - text: demo coordinator
   - paragraph: Done. The README now has a short intro and a usage section.
   - button "Copy"
   - button "Reply"

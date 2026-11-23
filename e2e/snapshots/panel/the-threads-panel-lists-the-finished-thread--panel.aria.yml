@@ -1,6 +1,6 @@
 - 'complementary "Panel: threads, changes and map"':
   - separator "Resize the panel"
-  - text: demo
+  - button "All files"
   - button "Shell in the panel"
   - button "Full size"
   - button "Close the panel"
@@ -16,7 +16,6 @@
   - separator "Resize agents and changes"
   - region "Changes":
     - heading "Changes" [level=2]
-    - button "All files"
     - button "Fold" [expanded]
     - paragraph: Nothing changed here yet.
   - separator "Resize changes and map"

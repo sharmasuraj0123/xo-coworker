@@ -13,5 +13,7 @@
   - textbox "What should get done?"
   - button "Add files"
   - button "Aim at a project (@)"
-  - 'button "Intelligence: Auto: its coordinator runs its default model; the coordinator routes new messages. Change it"': Auto
+  - 'button "Intelligence: Auto: its coordinator runs its default model; the coordinator routes new messages. Change it"':
+    - img "Claude Code"
+    - text: Auto
   - button "Send" [disabled]
