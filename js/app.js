@@ -67,6 +67,7 @@ import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createShells } from "../modules/shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { drawSections } from "../modules/home/sections.js";
+import { createHomeParts } from "../modules/home/parts.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, landed, still, EASE, MOVE } from "../core/ui/motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
@@ -555,14 +556,7 @@ function sideRender(needs) {
   side.addEventListener("focusout", (e) => { if (!side.contains(e.relatedTarget)) settle(); });
 }
 
-function homeParts(needs = D.needItems()) {
-  const adm = needs.filter((n) => n.admitted);
-  const active = adm.filter((n) => !n.later);
-  const next = active.find((n) => n.key === S.pin) || active[0] || null;
-  S.pin = next ? next.key : null;
-  const rest = active.filter((n) => n !== next);
-  return { needs, adm, active, next, then: rest.slice(0, 2), more: rest.slice(2), later: adm.filter((n) => n.later), held: needs.filter((n) => n.held), glances: active.filter((n) => n.effort === "glance" && Kit.isBinary(n.ask) && n.group === "routine") };
-}
+const homeParts = createHomeParts(S, D, Kit);
 
 /** An answer button; a preview, when there is one, sits in a small swatch so the button never looks disabled. */
 function optHtml(o, i, ev) {

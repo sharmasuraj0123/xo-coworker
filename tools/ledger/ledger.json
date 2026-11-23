@@ -7177,8 +7177,8 @@
    "home": "core/ui/redraw.js"
   },
   "js/app.js::functions::homeParts": {
-   "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.642)"
+   "status": "moved",
+   "home": "modules/home/parts.js"
   },
   "js/app.js::functions::optHtml": {
    "status": "planned",
