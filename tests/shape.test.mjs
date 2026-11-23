@@ -14,7 +14,7 @@ const t = (name, fn) => {
   const fail = (e) => { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; };
   try { const r = fn(); if (r && r.then) pending.push(r.then(done, fail)); else done(); } catch (e) { fail(e); }
 };
-const preset = (id) => JSON.parse(readFileSync(new URL(`../presets/${id}.json`, import.meta.url), "utf8"));
+const preset = (id) => JSON.parse(readFileSync(new URL(`../core/services/shape/presets/${id}.json`, import.meta.url), "utf8"));
 const P = (id) => ({ from: "preset", doc: preset(id) });
 const mem = (init = {}) => { const m = new Map(Object.entries(init)); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }; };
 

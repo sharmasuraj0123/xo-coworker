@@ -145,7 +145,7 @@ Outside the app:
 | `e2e/` | The fast UI lane: the real app in headless Chromium against a fake Space on a seeded store, asserted with accessibility-text snapshots. |
 | `tests/browser/` | The older Playwright suites, run only when the owner asks. |
 | `tools/` | `check.mjs` and its baselines, the file ledger, the places catalogue's generator, the OpenAPI snapshot, and the scripts that vendor CodeMirror and Pierre's diffs and build the icon set from `core/ui/icons/source/`. |
-| `presets/` | The presets (Build software, Make content and campaigns), served as static files until Storm serves them. |
+| `core/services/shape/presets/` | The presets (Build software, Make content and campaigns), served as static files until Storm serves them. |
 | `fonts/` | The Geist faces. |
 
 ## Checks and tests

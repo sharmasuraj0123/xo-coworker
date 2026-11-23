@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 456 |
+| moved | 458 |
 | vendor | 367 |
 | deleted | 272 |
-| planned | 180 |
+| planned | 178 |
 | split | 34 |
 | kept | 4 |
 
@@ -335,8 +335,8 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `presets/engineering.json` | 40 | planned | core/services/shape/presets/engineering.json |
-| `presets/marketing.json` | 43 | planned | core/services/shape/presets/marketing.json |
+| `presets/engineering.json` | 40 | moved | core/services/shape/presets/engineering.json · next: served beside the shape store that reads it |
+| `presets/marketing.json` | 43 | moved | core/services/shape/presets/marketing.json · next: served beside the shape store that reads it |
 
 ## fonts (3)
 

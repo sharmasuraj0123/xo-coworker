@@ -15,7 +15,7 @@ const memory = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ?
 const defaultStorage = () => { try { return globalThis.localStorage || memory(); } catch { return memory(); } };
 /** A preset file, served next to the UI (GET only). @param {string} id */
 const fetchPreset = async (id) => {
-  const r = await fetch(new URL(`../../../presets/${id}.json`, import.meta.url), { cache: "no-cache" });
+  const r = await fetch(new URL(`./presets/${id}.json`, import.meta.url), { cache: "no-cache" });
   if (!r.ok) throw new Error(r.status === 404 ? "there's no such preset" : `HTTP ${r.status}`);
   return r.json();
 };
