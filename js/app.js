@@ -52,6 +52,7 @@ import { fileScope, localIn, scopeOf as filesScopeOf } from "../modules/files/sc
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
+import { createJumpItems } from "../modules/search/jump-items.js";
 import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { createSavedSoon } from "../modules/changes/saved.js";
@@ -3161,23 +3162,7 @@ $("#side-add").addEventListener("click", CREATE.open);
 
 // ── jump (⌘K) ───────────────────────────────────────────────────────────────
 const jump = $("#jump");
-/** A thread's icon in ⌘K: its state glyph, the one every list uses (amber when it needs you). */
-function threadIc(t) {
-  const n = D.needItems().some((x) => x.t.id === t.id && x.admitted);
-  return `<span class="j-th">${stateMark(n ? "needs_reply" : glyphOf(t))}</span>`;
-}
-function jumpPlaces(q) {
-  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }, { v: "launchpad", name: "Launchpad", sub: "Every project's app on the web", icon: ICON.deploy }];
-  const needN = new Map();
-  for (const x of D.needItems()) if (x.admitted && !x.later) needN.set(x.t.project, (needN.get(x.t.project) || 0) + 1);
-  const shown = q ? projects().sort((a, b) => Number(needN.has(b.id)) - Number(needN.has(a.id))) : projects();
-  for (const p of shown) {
-    const n = needN.get(p.id) || 0;
-    all.push({ v: "p:" + p.id, name: p.name, sub: n ? `Project · ${n} need${n === 1 ? "s" : ""} you` : "Project", icon: projectIcon(p.id) });
-    for (const t of threadsOf(p.id)) all.push({ v: "t:" + t.id, name: t.title, sub: `${p.name} · ${wordOf(t).toLowerCase()}`, icon: threadIc(t), t: true });
-  }
-  return all;
-}
+const jumpPlaces = createJumpItems({ D, projects, threadsOf, projectIcon, glyphOf, wordOf });
 function jumpActions() {
   const light = document.documentElement.dataset.theme === "light";
   return [
