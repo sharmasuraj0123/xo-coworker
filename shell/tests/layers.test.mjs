@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { createKernel } from "../../core/kernel/index.js";
 import { stackLayers } from "../layers.js";
 
-const ids = ["settings", "panel-sheet", "files-page", "viewer", "runs", "chat-setup", "quickopen", "shells", "decisions", "lightbox"];
+const backOrder = ["create", "jump", "intel", "chat-setup", "runs", "keys", "all", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"];
+const escapeOrder = ["jump", "intel", "quickopen", "runs", "keys", "all", "settings", "files-page", "drawer", "decisions", "chat-setup"];
+const ids = [...new Set([...backOrder, ...escapeOrder])].sort();
 const kernel = createKernel({ warn() {}, log() {} });
 const open = new Set();
 const closed = [];
@@ -46,7 +48,14 @@ compete("back", ["decisions", "shells"], ["decisions"]);
 assert.equal(open.has("shells"), true);
 canLower = true;
 compete("back", ["decisions", "shells"], ["shells", "decisions"]);
+compete("back", ids, backOrder);
+compete("escape", ids, escapeOrder);
 
+const undoUnordered = kernel.layers.push({ id: "unordered", back: () => true });
+assert.throws(() => layers.back(), /unordered.*back order/);
+undoUnordered();
+
+open.clear();
 open.add("lightbox");
 open.add("viewer");
 assert.equal(layers.open(), true);

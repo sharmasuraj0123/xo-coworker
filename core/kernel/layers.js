@@ -11,7 +11,13 @@ export function createLayers(warn = console.error) {
   const changed = () => { for (const fn of [...watchers]) { try { fn(); } catch (e) { warn("layers: a watcher threw:", e); } } };
   /** @param {"escape" | "back"} what @param {readonly string[]} [order] */
   const offer = (what, order) => {
-    const candidates = order ? stack.slice().sort((a, b) => order.indexOf(b.id) - order.indexOf(a.id)) : stack;
+    const candidates = order ? stack.filter((layer) => layer[what]) : stack;
+    if (order) {
+      for (const layer of candidates) {
+        if (!order.includes(layer.id)) throw new Error(`layer "${layer.id}" has no place in the ${what} order`);
+      }
+      candidates.sort((a, b) => order.indexOf(b.id) - order.indexOf(a.id));
+    }
     for (let i = candidates.length - 1; i >= 0; i--) {
       const layer = candidates[i];
       const fn = layer[what];
