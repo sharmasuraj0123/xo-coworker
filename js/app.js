@@ -2644,7 +2644,7 @@ function saveScroll() {
   if (pageEl(S.view)) S.scroll[S.view] = pageEl(S.view).scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-const navigate = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render, returnPill });
+const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render, returnPill, convThread });
 function go(v, options) { return navigate(v, options); }
 /** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's
     rule), and when the message you left from is above, a quiet pill offers the way back to it, deliberately. */
@@ -2722,13 +2722,6 @@ function ensureRoot(view = S.view) {
   if ((world.state.timeline[t.project] || []).some((r) => r.id === t.id) || world.state.found?.[t.project]?.has(t.id)) return;
   const first = t.messages.find((m) => m.seq != null);
   world.act.findRows(t.project, [t.id], first ? first.seq : null);
-}
-function back() {
-  const v = S.view;
-  S.retrace = true;
-  if (v.startsWith("c:")) go("chats", { from: "t:" });
-  else if (v.startsWith("t:")) go(S.parent[v] || "p:" + convThread(v)?.project, { from: v });
-  S.retrace = false;
 }
 $("#top-back").addEventListener("click", back);
 

@@ -7665,8 +7665,8 @@
    "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3217)"
+   "status": "moved",
+   "home": "shell/navigation.js"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",

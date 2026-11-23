@@ -3,7 +3,7 @@
 import { $ } from "../core/platform/dom.js";
 
 /** @param {import("./navigation-types").NavigationDeps} deps */
-export function createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer, saveScroll, saveDraft, follow, pageEl, loadDraft, render, returnPill }) {
+export function createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer, saveScroll, saveDraft, follow, pageEl, loadDraft, render, returnPill, convThread }) {
   /** @param {string} v @param {import("./navigation-types").NavigationOptions} options */
   function go(v, { from, row = null, focus = false, carry = false, panel = false, still = false } = {}) {
     if (!v) return;
@@ -41,5 +41,12 @@ export function createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say,
     else if (!$("#panel").contains(document.activeElement)) (pageEl(v) || scroller).focus({ preventScroll: true });
     returnPill(back && target && !focus ? target : null);
   }
-  return go;
+  function back() {
+    const v = S.view;
+    S.retrace = true;
+    if (v.startsWith("c:")) go("chats", { from: "t:" });
+    else if (v.startsWith("t:")) go(S.parent[v] || "p:" + convThread(v)?.project, { from: v });
+    S.retrace = false;
+  }
+  return { go, back };
 }

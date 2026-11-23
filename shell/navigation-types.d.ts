@@ -42,4 +42,5 @@ export interface NavigationDeps {
   loadDraft: () => void;
   render: () => void;
   returnPill: (target: HTMLElement | null) => void;
+  convThread: (view: string) => { project: string } | null | undefined;
 }

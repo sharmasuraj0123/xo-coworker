@@ -24,20 +24,32 @@ for (const focus of [true, false]) {
     const target = focus ? say : scroller;
     const onFocus = () => calls.push("focus");
     target.addEventListener("focus", onFocus, { once: true });
-    const go = createNavigation({
+    const { go } = createNavigation({
       S: { view: "home", tEdit: null, tMenu: null, retrace: false, trail: [], parent: {}, backTo: {}, scroll: {} },
       VW: { editing: false, leave() {} },
       STAGE: { isOpen: true, leave() {}, close(options) { calls.push(options); } },
       IQ: { close() {} }, PHONE: { matches: true }, REC: { leave() {} },
       TD: { key: null }, tdock: document.querySelector("#tdock"), say, scroller,
       closeSettings() {}, setDrawer() {}, saveScroll() {}, saveDraft() {}, follow() {},
-      pageEl: () => null, loadDraft() {}, render() {}, returnPill() {},
+      pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => null,
     });
     go("ws", { panel: true, focus });
     assert.deepEqual(calls, [{ restore: false, quiet: true }, "focus"]);
     assert.ok(document.activeElement === target, "focus reaches the requested destination");
   });
 }
+t("Back uses a thread’s recorded parent and leaves the place trail untouched", () => {
+  const S = { view: "t:thread", tEdit: null, tMenu: null, retrace: false, trail: ["home"], parent: { "t:thread": "ws" }, backTo: {}, scroll: {} };
+  const { back } = createNavigation({ S, VW: { editing: false, leave() {} }, STAGE: { isOpen: false, leave() {}, close() {} },
+    IQ: { close() {} }, PHONE: { matches: false }, REC: { leave() {} }, TD: { key: null }, tdock: document.querySelector("#tdock"),
+    say: document.querySelector("#say"), scroller: document.querySelector("#scroller"), closeSettings() {}, setDrawer() {}, saveScroll() {},
+    saveDraft() {}, follow() {}, pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => ({ project: "project" }),
+  });
+  back();
+  assert.equal(S.view, "ws");
+  assert.deepEqual(S.trail, ["home"]);
+  assert.equal(S.retrace, false);
+});
 t("only a place opened from the panel: the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
   for (const m of ["const MAP = createMap(", "const STAGE = createStage("]) {
     const i = app.indexOf(m); assert.ok(i >= 0, m);
