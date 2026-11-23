@@ -19,11 +19,11 @@
 
 import { esc, copyText, COPY_REFUSED, space } from "../core/platform/index.js";
 import { ICON } from "./ui.js";
-import { api } from "../core/platform/api.js";
-import { scopeOf, fileScope, localIn, newFileSay, RUNS_SAY, parentOf } from "../modules/files/scope.js";
+import { scopeOf, fileScope, localIn, parentOf } from "../modules/files/scope.js";
 import { touched } from "../modules/files/marks.js";
 import { createFilesTree } from "../modules/files/tree.js";
-import { apiRel, dkey, createFolderReads } from "../modules/files/folder-reads.js";
+import { apiRel, createFolderReads } from "../modules/files/folder-reads.js";
+import { createFileOperations } from "../modules/files/operations.js";
 import { createSectionFolds } from "../modules/files/section-folds.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { pointerFollows } from "./keynav.js";
@@ -240,181 +240,13 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     document.addEventListener("pointerdown", (e) => { if (!m.hidden && !m.contains(e.target) && e.target !== M.from && !M.from?.contains(e.target)) closeMenu(); }, true);
   }
 
-  // ── a new file ────────────────────────────────────────────────────────────
-  // A row at the top of its folder's rows takes the name: Enter makes it, Esc (or leaving it empty) lets it
-  // go. Space's save with no version makes the file, empty, only if nothing has that name yet (409
-  // file_exists); it can't make folders (404 folder_not_found), so a name is just a name. A path that runs
-  // code (.git/…, .claude/…) says so first; Enter then makes it anyway (Space's confirm: "runs_code").
-  // mode: "file" (New file), "folder" (New folder), "rename" (Rename or move: from is the old path; a name with "/"
-  // moves it, folders made as needed)
   const NW = { key: null, dir: null, el: null, busy: false, confirm: false, mode: "file", from: null };
   const { T, paintTree, rowOf } = createFilesTree({
-    F, M, NW, dirs, load, paths, folded, setOf, ops, world, viewer, changes, isBusy, placeNew, moreAt, base,
+    F, M, NW, dirs, load, paths, folded, setOf, ops, world, viewer, changes, isBusy, placeNew: () => placeNew(), moreAt, base,
   });
-  function startNew(dir, mode = "file", from = null) {
-    const s = F.scope;
-    if (!canMake(s, dir)) return;
-    endNew();
-    if (dir) { setOf(s.key).add(dir); load(s, dir); }
-    const depth = dir ? dir.split("/").length : 0;
-    const el = document.createElement("div");
-    el.className = "fl-new"; el.setAttribute("data-own", ""); // the tree's own: a redraw of its folder leaves it first
-    const what = mode === "rename" ? `New name or path for ${esc(base(from))}` : mode === "folder" ? `Name of the new folder in ${esc(dir ? base(dir) : s.label || "this folder")}` : `Name of the new file in ${esc(dir ? base(dir) : s.label || "this folder")}`;
-    el.innerHTML = `<div class="fl-new-r" style="--d:${depth}"><span class="fl-c fl-i">${mode === "folder" ? FOLDER_IC : fileIcon(mode === "rename" ? base(from) : "")}</span><input data-fl-name aria-label="${what}" placeholder="${mode === "folder" ? "Folder name" : mode === "rename" ? "New name, or a path to move it" : "Name, e.g. notes.md"}" autocomplete="off" spellcheck="false" maxlength="1024"></div>` +
-      `<p class="fl-new-say" style="--d:${depth}" role="status" hidden></p>`;
-    Object.assign(NW, { key: s.key, dir, el, busy: false, confirm: false, mode, from });
-    F.q = ""; // a search could hide the folder it goes in
-    paint();
-    const inp = el.querySelector("input");
-    if (mode === "rename") inp.value = base(from);
-    inp.focus({ preventScroll: true });
-    if (mode === "rename") { const dot = inp.value.lastIndexOf("."); inp.setSelectionRange(0, dot > 0 ? dot : inp.value.length); }
-    el.scrollIntoView({ block: "nearest" });
-  }
-  function endNew({ focus = false } = {}) {
-    if (!NW.el) return;
-    const dir = NW.dir;
-    NW.el.remove();
-    Object.assign(NW, { key: null, dir: null, el: null, busy: false, confirm: false, mode: "file", from: null });
-    if (focus) (dir ? rowOf(dir) : F.host.querySelector("[data-fl-new]"))?.focus({ preventScroll: true });
-  }
-  /** The new file's row stays first in its folder's rows (a redraw of the folder puts it back); a folder
-   *  closed, or another place, lets it go. */
-  function placeNew() {
-    if (!NW.el) return;
-    const g = NW.key === F.scope.key ? T.groups.get(NW.dir) : null;
-    if (!g || !g.el.isConnected) { endNew(); return; }
-    if (g.el.firstElementChild !== NW.el) g.el.prepend(NW.el);
-  }
-  /** What the name in the row would do, said under it; null when there's nothing to say. */
-  function nameSay(s, dir, n) {
-    const d = dirs.get(dkey(s, dir));
-    return newFileSay(n, dir, d && d.state === "ok" ? d : null, NW.confirm);
-  }
-  function sayNew(say) {
-    const p = NW.el.querySelector(".fl-new-say"), inp = NW.el.querySelector("input");
-    p.hidden = !say;
-    p.className = `fl-new-say${say && say.err ? " is-err" : ""}`;
-    p.textContent = say ? say.words : "";
-    p.title = say ? say.why || say.words : "";
-    inp.setAttribute("aria-invalid", String(!!(say && say.err)));
-  }
-  const makeWords = (err, n) => {
-    const c = err.code, st = err.status;
-    if (st === 409 && c === "file_exists") return `${n} is already here`;
-    if (st === 404 && c === "folder_not_found") return "This folder isn't there any more";
-    if (st === 403 && c === "read_only_place") return "XO keeps this folder";
-    if (st === 403 && c === "outside_project") return "A link leads out of the project";
-    if (st === 403) return "Making files isn't allowed here";
-    if (st === 503 && c === "writer_key_missing") return "XO Space hasn't enabled saving yet";
-    if (st === 400) return "A file can't be called that";
-    return err.message || "Couldn't make the file";
-  };
-  async function makeNew() {
-    if (!NW.el || NW.busy) return;
-    if (NW.mode !== "file") return makeOther();
-    const s = F.scope, dir = NW.dir, inp = NW.el.querySelector("input"), n = inp.value.trim();
-    const say = n ? nameSay(s, dir, n) : { err: true, words: "Give it a name" };
-    if (say && say.err) { sayNew(say); return; }
-    const local = dir ? `${dir}/${n}` : n, rel = apiRel(s, local);
-    NW.busy = true; inp.readOnly = true; sayNew({ words: "Making it…" });
-    // this row's own result: if another New file was started while this one was made, the newer row (and what's
-    // typed in it) stays; this one's file is made and listed, without taking the newer row away (Astra C031)
-    const mine = NW.el;
-    try {
-      const r = await api.saveProjectFile(s.project, rel, "", null, say && say.runs ? "runs_code" : null);
-      if (F.scope.key !== s.key) return;
-      if (NW.el !== mine) { if (changes && changes.saved) changes.saved(s.project, rel); await load(s, dir, { again: true }); paint(); return; }
-      // the row you typed in goes now: focus waits on its folder (or New file) while the folder is read again, then
-      // goes to the file (the browser run: it fell to the page in between)
-      endNew({ focus: true });
-      if (changes && changes.saved) changes.saved(s.project, rel);
-      await load(s, dir, { again: true });
-      if (F.scope.key !== s.key) return;
-      // a newer New file started while the folder was read again: that row, and what's typed in it, stay; this
-      // file is made and listed, not opened over it (Files/Map grader: the guard sat before this await)
-      if (NW.el) { paint(); return; }
-      F.sel = local; F.fileView = true; F.auto = false;
-      paint();
-      viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));
-    } catch (err) {
-      if (!NW.el || NW.el !== mine || F.scope.key !== s.key) return;
-      NW.busy = false; inp.readOnly = false;
-      if (err.status === 428) { NW.confirm = true; sayNew(RUNS_SAY); }
-      else { sayNew({ err: true, words: makeWords(err, n) }); if (err.status === 409) load(s, dir, { again: true }); }
-      inp.focus({ preventScroll: true });
-    }
-  }
-
-  /** A new folder, or a rename or move (Space's /files/mkdir, /files/rename): the folders read again, an open file follows. */
-  async function makeOther() {
-    const s = F.scope, dir = NW.dir, inp = NW.el.querySelector("input"), n = inp.value.trim().replace(/^\/+|\/+$/g, "");
-    if (!n || n.split("/").some((x) => !x || x === "." || x === "..")) { sayNew({ err: true, words: n ? "A name can't be that" : "Give it a name" }); return; }
-    const local = NW.mode === "rename" && n.includes("/") ? n : dir ? `${dir}/${n}` : n;
-    if (NW.mode === "rename" && local === NW.from) { endNew({ focus: true }); return; }
-    const mine = NW.el, mode = NW.mode, from = NW.from;
-    NW.busy = true; inp.readOnly = true; sayNew({ words: mode === "folder" ? "Making it…" : "Moving it…" });
-    try {
-      if (mode === "folder") await api.mkdirProject(s.project, apiRel(s, local));
-      else await api.renameProjectFile(s.project, apiRel(s, from), apiRel(s, local), NW.confirm ? "runs_code" : null);
-      if (NW.el !== mine) return;
-      endNew();
-      if (changes && changes.saved) changes.saved(s.project, apiRel(s, local));
-      if (mode === "rename") { const was = parentOf(from); if (was !== dir) await load(s, was, { again: true }); paths.changed({ project: s.project, base: s.base || "" }, { kind: "rename", path: local, old_path: from }); }
-      for (let p = parentOf(local); ; p = parentOf(p)) { if (p) setOf(s.key).add(p); if (!p) break; }
-      await load(s, parentOf(local), { again: true });
-      await load(s, dir, { again: true });
-      paint();
-      rowOf(local)?.focus({ preventScroll: true }) || F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`)?.focus({ preventScroll: true });
-    } catch (err) {
-      if (NW.el !== mine) return;
-      NW.busy = false; inp.readOnly = false;
-      if (err.status === 428) { NW.confirm = true; sayNew(RUNS_SAY); }
-      else sayNew({ err: true, words: err.status === 409 ? `${base(local)} is already there` : err.status === 404 ? "It isn't there any more" : makeWords(err, n) });
-      inp.focus({ preventScroll: true });
-    }
-  }
-  /** Move a file or folder (a drag onto a folder): Space's /files/rename; the folders read again; a clash said in words. */
-  async function moveTo(from, local) {
-    const s = F.scope;
-    try {
-      await api.renameProjectFile(s.project, apiRel(s, from), apiRel(s, local));
-      paths.changed({ project: s.project, base: s.base || "" }, { kind: "rename", path: local, old_path: from });
-      if (parentOf(local)) setOf(s.key).add(parentOf(local));
-      await load(s, parentOf(from), { again: true });
-      await load(s, parentOf(local), { again: true });
-      F.undo = null;
-      paint();
-    } catch (err) {
-      F.undo = { err: err.status === 409 ? `${base(local)} is already there` : err.status === 428 ? "Git or an agent runs what's there: move it from a shell, or ask the agent" : err.status === 403 ? "XO keeps that folder: nothing moves into it" : err.message || "Couldn't move it", name: base(from) };
-      paint();
-    }
-  }
-  /** Delete: into XO Space's trash (never the project), with Undo here until the next one. */
-  async function remove(local, kind) {
-    const s = F.scope;
-    try {
-      const r = await api.deleteProjectFile(s.project, apiRel(s, local));
-      F.undo = { editId: r.edit_id, name: base(local), local, s };
-      if (kind === "dir") setOf(s.key).delete(local);
-      paths.changed({ project: s.project, base: s.base || "" }, { kind: "delete", path: local });
-      await load(s, parentOf(local), { again: true });
-      paint();
-      F.host.querySelector("[data-fl-undo]")?.focus({ preventScroll: true });
-    } catch (err) {
-      F.undo = { err: err.status === 428 ? "Git or an agent runs what's in it: delete it from a shell, or ask the agent" : err.status === 403 ? "XO keeps this: it can't be deleted here" : err.message || "Couldn't delete it", name: base(local) };
-      paint();
-    }
-  }
-  async function undoRemove() {
-    const u = F.undo;
-    if (!u || !u.editId) { F.undo = null; paint(); return; }
-    F.undo = null;
-    try { await api.undoProjectEdit(u.s.project, u.editId); } catch (err) { F.undo = { err: err.status === 409 ? `Something called ${u.name} is there now` : err.message || "Couldn't bring it back", name: u.name }; }
-    paths.changed({ project: u.s.project, base: u.s.base || "" }, { kind: "create", path: u.local });
-    await load(u.s, parentOf(u.local), { again: true });
-    paint();
-  }
+  const { startNew, endNew, placeNew, nameSay, sayNew, makeNew, moveTo, remove, undoRemove } = createFileOperations({
+    F, NW, dirs, load, paths, changes, viewer, setOf, paint, groups: () => T.groups, rowOf, base, canMake, folderIcon: FOLDER_IC,
+  });
 
   // ── input ─────────────────────────────────────────────────────────────────
   function wire(host) {

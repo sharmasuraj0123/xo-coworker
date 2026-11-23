@@ -36,7 +36,7 @@ await t("Back is written through patch(): only when its name changes, in place",
   assert.equal((app.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
 await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new file's row are the tree's own", () => {
-  const f = src("files.js") + readFileSync(new URL("../modules/files/tree.js", import.meta.url), "utf8");
+  const f = src("files.js") + ["tree.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
   const i = f.indexOf("function sync(s, local, g, ctx) {");
   const body = f.slice(i, f.indexOf("\n  }\n", i));
   assert.match(body, /redraw\(g\.el, rowsHtml\(/);
