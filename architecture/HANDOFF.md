@@ -10,7 +10,7 @@
 
 - Code is efficient and readable, with small cohesive modules and clear boundaries.
 - Comments and docstrings are one line at most. Each P3 package records each file's size against its target and checks for comment blocks, dead code and duplicate helpers.
-- Before P5, an independent audit covers the whole codebase and lists remaining patches, workarounds, oversized files, docstrings and duplicates by file and line.
+- After P4 and the fix phase, an independent audit covers the whole codebase and lists remaining patches, workarounds, oversized files, docstrings and duplicates by file and line before P5.
 - Send any audit finding that would change looks or behaviour to the coordinator as a proposal for the owner. Make verified behaviour-preserving cleanups in their own checked commits.
 
 ## P1 integration, resumed 23 November 2026
@@ -50,7 +50,6 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - Commit `13cd882a` removed all stale and multiline comments identified in the P2 review. The sidebar fold test now anchors its existing assertions to a rule rather than a comment.
 - The release catch-up passed the full check on the exact commit tree, including all 265 unit files by exit code, and all 16 fast-lane browser cases. The route contract matches Claude Code and Codex to OpenAPI. Only Antigravity's POST start and callback are optional, with separate DOM tests for their 404 paths. Launchpad and Accounts use the same platform reader for JSON events.
 - The catch-up also matched release `d639012b` byte for byte in 20 paired Chromium screenshots through each build's production server. The pairs cover Home, conversation, the right panel, Settings, and Accounts in light and dark on Stone desktop and Onyx phone. The pinned ledger remains at 1,328 open items.
-- Before P5, resolve mask asset caching with the coordinator. The release `--mask-*` URLs resolve under `/v/<hash>/assets/` and are immutable. The modular tokens in `core/ui/tokens.css` use root-relative URLs and revalidate. Chromium resolves a relative URL from the consuming stylesheet, and the modular consumers sit at different depths. A direct switch to a stylesheet-relative path returned 404 from `css/app.css`.
 - The short review restored three release comments in `css/app.css`. The rules, their order and the file length match the browser-verified merge.
 - [The six P3 packages](P3-WORK-PACKAGES.md) contain the launch order, file and ledger boundaries, and gate checks. Start the first two in parallel from the pinned integration commit after the short review. The integrator reviews and merges each package.
 
@@ -59,11 +58,22 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - Groups 1 and 2 started in parallel from `90c903a9`. Use the `modular-full-check` lease for each full run. Review and merge Group 1 first, then Group 2.
 - When a test reads legacy source, each worker updates only the assertions affected by its move, in the same commit. Review both groups' hunks and retain both sets of assertions where a test file overlaps.
 - Group 1 leaves `js/skeleton.js` at the direct first-paint entry. After its merge, move the implementation unchanged and update the direct module script in `index.html` in the same commit. Check the existing app and record imports, the page test fixture and the first-paint path together.
+- Group 1 leaves `css/media.css` at its direct stylesheet entry. The integrator moves it unchanged after the merge and updates its link in `index.html` in the same commit. Preserve the link's position in the stylesheet order.
 - Group 2 leaves `openRuns` and `stopRunsUndo` in `js/app.js`. Move them after its merge to the targets named in its handoff. The group may re-point the `tasksOf` import in `core/services/storm/selectors/threads.js` in its own commit.
 
-## Perf notes
+## Findings for the post-P4 fix phase
 
-During P3 and P4, record observed hotspots with a file, line and trigger. Look for full re-renders, broad style invalidation, eager loads, recurring timers and listeners that outlive their surfaces. Keep performance changes for after P5.
+P3 and P4 preserve release behavior. Bring findings from every package handoff here with file, line and evidence. The references below identify the trees where the evidence was recorded. Recheck the paths and reproduce the findings on the P4 gate before assigning fixes.
+
+| Finding | Evidence |
+|---|---|
+| Files drag-and-drop rejects the drop | Release `d639012b`, `js/files.js:822,841–843`. The drop handler saves the dragged item locally, clears `dragging`, then calls `fits`, which still reads `dragging`. The guard returns before `moveTo`. Reproduce with a valid file and target directory through the Files DOM. |
+| Media item registry and scroll observers retain entries | Group 1 checkpoint `0e2c4685`, `js/media.js:112,162–171`. Each render adds items to a registry without eviction. The watcher map holds scroll roots strongly and has no removal path. Verify retention across project and conversation changes. |
+| Files host resize observer has no disposal path | Group 1 checkpoint `0e2c4685`, `js/files.js:782–785`. Mount observes the host without retaining a disconnect handle. The callback repaints when the host crosses the layout threshold. Verify the host lifecycle before changing it. |
+| Chats reads titles eagerly | Group 2 checkpoint `f940a4f1`, `modules/chats/chats.js:39–54`. After a session-list fetch, up to 24 history reads run concurrently before loading clears and the final draw is scheduled. Record request counts and initial render timing with a large list. |
+| GitHub replaces each page's DOM on redraw | Group 2 `8bf12571`, `modules/github/page.js:222–244,259–266`. List refreshes and fold changes replace the whole list pane. A late item response replaces the entire detail pane. Check focus and node identity during these updates. |
+| Chat permission radios miss the Tab stop | Group 2 `d3b34ff0`, `modules/chats/setup.js:115` and `core/ui/a11y/keynav.js:33`. The permission rows are radio-role `div`s. The roving helper returns no `tabindex` for the selected or first row and `-1` for the others. `role="radio"` alone gives a `div` no Tab stop. Verify Tab entry and arrow navigation through the rendered picker. |
+| Mask SVG requests lose immutable caching | P2 and catch-up, `core/ui/tokens.css:159–162` and `serve.py:447–456`. Release requests use `/v/<hash>/assets/` and get immutable caching. Modular requests from the root-relative mask URLs revalidate. Chromium resolved a trial relative URL from the consuming stylesheet, returning 404 from `css/app.css`. Review the serving fix with the coordinator and verify headers, SVG bytes and rendering. |
 
 ## Previous handoff from 19 November 2026
 

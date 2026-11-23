@@ -459,6 +459,17 @@ dsh has no scaffolding command at all. This is where XO can be the easier platfo
   - the ledger is updated in the same commit as the move.
 - **Extract, then wire.** Legacy files may only shrink (the size ratchet refuses growth, which already stopped one attempt to wire the kernel into `stage.js` in place). So a piece moves out to its new home first, and only then do the old call sites connect to it. Who does what: `architecture/WAVES.md`.
 
+### Post-P4 fix phase in the current release sequence
+
+This updates the 23 November integration plan (`git show 539ddcd8:architecture/2026-11-23-modular-phases.md`), which numbers P4 as keyboard and shim work and P5 as shipment. In that sequence the order is **P4 → fix phase → independent quality audit → P5**. Finish the move-only work first so fixes are developed and reviewed through the final module boundaries. Audit after the fixes so the review includes their code and tests.
+
+- **Entry gate.** P4 has passed its full check and independent review, the final ledger reports zero open items, and the P4 tag is available for rollback. Use the consolidated [handoff findings](HANDOFF.md#findings-for-the-post-p4-fix-phase) to scope work on the modular branch.
+- **Scope.** Reproduce the recorded bugs and accessibility findings and confirm the impact of the performance findings. Give each fix a named commit with the root cause and a regression through the public API or DOM that fails before the fix. For performance fixes, record comparable measurements before and after. Review each change for readable code, module boundaries and token use. Bring any visual or behavior decision beyond the reported repair to the coordinator.
+- **Exit gate.** Each finding has a verified repair or a disposition agreed with the coordinator. The clean-export full check and final ledger pass, and an independent reviewer checks the fixes. Then audit the whole codebase before P5. Revert an individual fix or return to the P4 tag if the phase cannot pass.
+- **P5.** Bring release changes forward and check parity against current release, accounting for the recorded fixes. Deployment still requires the owner's approval.
+
+### Original architecture milestones
+
 | Phase | Scope | Exit criteria | Size | Main risks |
 |---|---|---|---|---|
 | **P0 Safety net** | AGENTS.md, `tools/check.mjs` (first lint, the tests, design budget), pre-commit hook, ratchets, route-contract test, ledger checker. Fast UI lane seeded: seeded store, settle barrier, text snapshots. | the check is green on today's code; all 174 tests run by one command | 3–4 days | none user-visible |

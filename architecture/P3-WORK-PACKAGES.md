@@ -10,9 +10,9 @@ Groups 1 and 2 work in parallel on disjoint source, each owning its prerequisite
 
 For test and fixture moves, the worker claims named files before editing. Broad suites and shared test utilities remain with the integrator until a single owner is assigned. Keep the checks runnable at the repository's normal entry points. Files and ledger entries outside every package are reconciled by the integrator at P3 exit, including tests, vendor assets, compatibility paths and retained tooling.
 
-Report observed performance hotspots in the handoff, with file, line and the trigger you saw. Include full re-renders, broad style invalidation, eager loads, recurring timers and listeners that outlive their surface when relevant. The integrator records them in HANDOFF for the post-P5 performance work. P3 and P4 preserve behavior.
+Report bugs, performance hotspots and accessibility findings in the handoff, with file, line and the evidence or trigger you saw. Include full re-renders, broad style invalidation, eager loads, recurring timers and listeners that outlive their surface when relevant. The integrator records them in HANDOFF for the post-P4 fix phase. P3 and P4 preserve behavior.
 
-Before P5, an independent reviewer audits the whole codebase for remaining patches, workarounds, oversized files, docstrings and duplicates, with file and line for every finding. Only proven move-only cleanups go directly into isolated checked commits. Take any behaviour or visual proposal to the coordinator for owner approval.
+After the post-P4 fix phase and before P5, an independent reviewer audits the whole codebase for remaining patches, workarounds, oversized files, docstrings and duplicates, with file and line for every finding. Only proven behaviour-preserving cleanups go directly into isolated checked commits. Take any behaviour or visual proposal to the coordinator for owner approval.
 
 ## 1. Media, viewer and Files
 
