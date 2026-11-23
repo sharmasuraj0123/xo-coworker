@@ -128,9 +128,11 @@
   --glass-blur:blur(18px) saturate(1.4); /* the dock's folded and done lines are glass over the conversation */
   /* a rounded box says its corner and its content's inset as --nest-r and --nest-in; what sits in its corner takes calc(var(--nest-r) - var(--nest-in)) */
   --r-menu:var(--r-lg); --menu-pad:var(--s-1); --menu-row:var(--h-ctl); --menu-w:calc(6 * var(--h-ctl));
+  --win-w:calc(32 * var(--h-ctl)); --win-h:calc(20 * var(--h-ctl)); --win-side:calc(7 * var(--h-ctl)); --row-k:calc(5 * var(--h-ctl));
   --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
   --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
   --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl box's --s-2 padding and 1 px line */
+  --r-note:calc(var(--r) + var(--s-2));
   /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
      focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
      fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */

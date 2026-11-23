@@ -17,7 +17,7 @@ const run = (q, needs) => {
     projects: () => ["alpha", "beta", "gamma"].map((id) => ({ id, name: id })), threadsOf: () => [],
     projectIcon: () => "", threadIc: () => "", wordOf: () => "", esc: (s) => s,
     document: { documentElement: { dataset: {} } }, IQ: { kindOf: () => null }, sessionOf: () => null, S: { view: "home" },
-    REC: { jumpItems: () => [] }, CREATE: {}, STAGE: {}, openSettings() {}, openKeys() {}, $: () => ({}),
+    REC: { jumpItems: () => [] }, CREATE: {}, STAGE: {}, openSettings() {}, openKeys() {}, $: () => ({}), pageEl: () => null,
   };
   const fn = new Function(...Object.keys(env), `let jsel = 0, jitems = [];\n${body}\njumpRender();\nreturn jitems;`);
   return fn(...Object.values(env));

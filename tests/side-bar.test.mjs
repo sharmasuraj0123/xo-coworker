@@ -19,8 +19,8 @@ let mine = {};
 const SHAPE = { get: (k) => mine[k], patchMine: (p) => { for (const [k, v] of Object.entries(p.layout || {})) { mine.layout = { ...(mine.layout || {}) }; if (v === null) delete mine.layout[k]; else mine.layout[k] = v; } return { ok: true }; } };
 const SIDE = new Function("SHAPE", `const ICON = {}; const SIDE = { PINS: "xo-side-pins", ${part} apply() {} }; return SIDE;`)(SHAPE);
 
-const ids = ["home", "ws", "chats", "arts", "runtimes", "routing", "rules", "worktrees", "keys"];
-assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Settings' pages in More");
+const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "routing", "rules", "worktrees", "keys"];
+assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
 
 // More's pins from before carry over

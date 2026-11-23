@@ -156,7 +156,7 @@ button:disabled{cursor:default}
    S138: MAIN#main scrollTop 262, every other ancestor 0). A clipped box isn't a scroll container: nothing scrolls it */
 /* one column for every view (Home, the conversation, Artifacts, the dock), placed from its own width; --rp keeps the side panel clear */
 .main{--rp:0px;--gut-min:28px;--col-max:calc(24 * var(--h-ctl))}
-:is(.home,.conv,.arts,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
+:is(.home,.conv,.arts,.lpp,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
 .main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
 @media (min-width:761px){
   body.panel-open .main{--rp:var(--pw)}
@@ -1343,7 +1343,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 @media (prefers-reduced-motion:reduce){.cp-bar i{width:100%;animation:none;opacity:.5}}
 .dlg-err{padding:10px 12px;border-radius:var(--r-sm);background:var(--err-subtle);color:var(--err-ink);font-size:var(--fs-ui);line-height:var(--lh-ui)}
 .dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:var(--s-1)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:var(--h-ctl);padding:0 14px;border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap}
+.btn{display:inline-flex;text-decoration:none;align-items:center;justify-content:center;gap:8px;height:var(--h-ctl);padding:0 14px;border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap}
 /* hover and press only for a button that can act now: not disabled, not aria-disabled, not busy (Settings & Home:
    a disabled .btn still painted hover and press, a busy one its press fill); in :where, so the specificity is as
    before and a variant's own hover (.btn-danger …) still wins */

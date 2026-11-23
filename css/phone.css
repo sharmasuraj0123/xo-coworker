@@ -259,7 +259,7 @@
   /* a link drawn as a control is a control too: every link with a class of its own, but a link in text (a message's
      file or web link, Launchpad's host line and its links in a sentence, Create's) (grader B on 05d76ca, S267: Open in
      Launchpad was 161×32 at 390; the lightbox's Open the original 36×28) */
-  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-hh,.lp-ln,.cp-link)){min-height:var(--h-touch);min-width:var(--h-touch)}
+  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-ln,.cp-link)){min-height:var(--h-touch);min-width:var(--h-touch)}
   /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
      left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
      the box, which takes it; Files' new-name row grows with its field */

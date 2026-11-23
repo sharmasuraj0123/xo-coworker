@@ -12,9 +12,6 @@
 //     A working thread says what it's doing now (js/map.js agents()); Done is folded (the owner, 19 Nov).
 //   · Map: where they are, as a Diagram or a Graph (js/map.js, mounted here; its tabs are the frame's).
 //
-//   · Launchpad, above them all (js/launchpad.js): folded to its head, it says where the project's deploy
-//     stands; the header's Deploy opens it, and while it's open it has the stack and the others keep their
-//     heads (their own folds are kept for when it closes).
 //
 // Over the sections it shows one page at a time. The panel owns its frame: its head, its width (2/5 of the main area, or dragged and kept),
 // whether it's open (kept),
@@ -58,7 +55,7 @@ const AG_ROWS = 6, ROW = 48; // Threads shows six rows at first (a list to read,
 // Agents never takes the room Changes needs: its 40 px head, one 32 px file row and the list's 8 px foot,
 // the diff's 120 px and its 12 px margin (css/diffs.css). In a short window Agents shows fewer rows
 const CH_MIN = 212, HEAD = 40;
-export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, launch = null, threads = null, shell = null, owns = () => false, place = () => true }) {
+export function createStage({ map, files, changes, openFiles = null, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, place = () => true }) {
   const saved = sget(KEY);
   // the Map starts folded, in its Graph (the owner, 19 Nov): Threads and Changes have the room
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
@@ -74,13 +71,12 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
   el.hidden = true;
   el.tabIndex = -1;
   el.setAttribute("aria-label", "Panel: threads, changes and map");
-  const FRAME_IC = { launch: "deploy", agents: "threads", changes: "changes", map: "map" };
+  const FRAME_IC = { agents: "threads", changes: "changes", map: "map" };
   const frame = (id, title, acts = "") => `<section class="fr" data-fr="${id}" aria-labelledby="fr-title-${id}"><header class="fr-h"><h2 class="fr-title" id="fr-title-${id}">${xi(FRAME_IC[id], "fr-ic")}${title}${id !== "map" ? `<span class="fr-n" data-fr-n="${id}"></span>` : ""}</h2><div class="fr-a">${acts}<button type="button" class="fr-ib fr-fold" data-fr-fold="${id}" aria-expanded="true" title="Fold">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-${id}"${id === "map" ? ' role="tabpanel"' : ""}></div></section>`;
   const gutter = (a, b) => `<div class="fr-gut" role="separator" aria-orientation="horizontal" aria-label="Resize ${a} and ${b}" data-gut="${a}|${b}" tabindex="0"></div>`;
   el.innerHTML = `<div class="stg-grip" role="separator" aria-orientation="vertical" aria-label="Resize the panel" title="Drag to resize · double-click for the default" tabindex="0"></div>` +
     `<header class="stg-bar"><div class="stg-t"></div><div class="stg-acts"><span class="stg-pa"></span>${openFiles ? `<button type="button" class="stg-ic" data-open-files aria-pressed="false" title="All files" aria-label="All files">${FILES_IC}</button>` : ""}${shell ? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false" title="A shell here, in the panel" aria-label="Shell in the panel">${ICON.shell}</button>` : ""}<button type="button" class="stg-ic" data-stg-full></button><button type="button" class="stg-ic" data-stg-close aria-label="Close the panel" title="Close (Esc)">${ICON.close}</button></div></header>` +
     `<div class="stg-body"><div class="stg-frames">` +
-    `<section class="fr fr-lp is-folded" data-fr="launch" aria-labelledby="fr-title-launch" hidden><header class="fr-h"><h2 class="fr-title" id="fr-title-launch">${xi(FRAME_IC.launch, "fr-ic")}Launchpad</h2><span class="lp-hs"></span><div class="fr-a"><span class="lp-ha"></span><button type="button" class="fr-ib fr-fold" data-fr-fold="launch" aria-expanded="false" title="Open">${FOLD_IC}</button></div></header><div class="fr-b" id="fr-body-launch" tabindex="-1"></div><div class="fr-ghosts" role="group" aria-label="Under Launchpad"></div></section><div class="fr-line" data-lp-line hidden></div>` +
     // its search filters the list here, in place (the owner, 19 Nov 15:04Z: "can't it search within?"), not a sheet
     frame("agents", "Threads", `<button type="button" class="fr-ib" data-tg-find aria-controls="fr-body-agents" title="Filter threads (/)" aria-label="Filter threads" aria-keyshortcuts="/">${ICON.search}</button>`) + gutter("agents", "changes") +
     frame("changes", "Changes", `<button type="button" class="xd-follow" data-follow hidden>${ICON.follow}</button>`) + gutter("changes", "map") +
@@ -110,8 +106,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     });
   }
   map.mount(body("map"));
-  const LPF = el.querySelector('[data-fr="launch"]');
-  if (launch) launch.mount(LPF, { open: () => openLaunch(), hide: () => { S.lp = false; layout(); paint(); } });
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
   body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
   const CX = createChangesFrame({
@@ -133,28 +127,10 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     for (const id of ORDER) {
       el.querySelector(`[data-fr="${id}"]`).hidden = !on(id);
     }
-    // Launchpad: there for a project that can deploy; open, it has the stack and the others show their heads
-    // (only while it's open: folded, it isn't a standing row; the header's Deploy opens it, the owner 19 Nov)
-    const lpCan = !!(launch && launch.has(view()));
-    if (!lpCan) S.lp = false;
-    const lpOn = lpCan && S.lp;
-    LPF.hidden = !lpOn;
-    el.querySelector("[data-lp-line]").hidden = !lpOn;
-    LPF.classList.toggle("is-folded", !S.lp);
-    LPF.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(S.lp));
-    LPF.querySelector("[data-fr-fold]").title = S.lp ? "Fold" : "Open";
-    // classes on the frames themselves, never on the panel: a class on the panel with rules below it restyled every
-    // element in it (6,900 with a diff open) on each fold
-    LPF.classList.toggle("is-open", S.lp);
-    pressDeploy();
     el.querySelector('[data-gut="agents|changes"]').hidden = !(on("agents") && (on("changes") || on("map")));
     el.querySelector('[data-gut="changes|map"]').hidden = !(on("changes") && on("map"));
     for (const id of ORDER) {
       const f = el.querySelector(`[data-fr="${id}"]`), folded = !!fr[id].folded;
-      // covered by an open Launchpad: out of the accessibility tree (an attribute no style reads, so nothing restyles;
-      // `inert` restyled the whole diff, 7,400 elements, on every fold and unfold), and focus that wanders in goes back
-      if (S.lp) f.setAttribute("aria-hidden", "true"); else f.removeAttribute("aria-hidden");
-      untab(f, S.lp);
       f.classList.toggle("is-folded", folded);
       f.querySelector("[data-fr-fold]").setAttribute("aria-expanded", String(!folded));
       f.querySelector("[data-fr-fold]").title = folded ? "Open" : "Fold";
@@ -169,7 +145,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       f.style.height = fr[id].folded || grow === id || !h ? "" : `${h}px`;
     }
     capAgents();
-    if (fr.map.folded || S.lp || !on("map") || !S.open) map.hide(); else map.show(view());
+    if (fr.map.folded || !on("map") || !S.open) map.hide(); else map.show(view());
   }
 
   /** Agents is as tall as its rows, up to its count of them (3, or what you dragged to), and never more than
@@ -179,9 +155,8 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const keep = new Set(frames()), on = (id) => keep.has(id) || (!keep.size && id === "agents");
     const ag = el.querySelector('[data-fr="agents"]');
     let rows = fr.agents.rows || AG_ROWS, cap = 8;
-    // with Launchpad open Agents is only a head: nothing to size. The stack's height comes from its resize
-    // observer, never a read here, which forced the page's layout mid-change (17–35 ms at 4×)
-    const room = S.lp ? 0 : S.stackH - (LPF.hidden ? 0 : HEAD + 1);
+    // the stack's height comes from its resize observer, never a read here (a read forced layout mid-change)
+    const room = S.stackH;
     if (room > 0 && on("agents") && !fr.agents.folded && !ag.classList.contains("is-grow")) {
       const grows = (id) => el.querySelector(`[data-fr="${id}"]`).classList.contains("is-grow");
       const changes = !on("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
@@ -192,26 +167,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     }
     S.agRows = rows; S.agCap = cap;
     ag.style.setProperty("--ag-rows", rows);
-  }
-
-  /** Launchpad open is drawn over the frames below its head, which stay laid out at their own sizes beneath it
-   *  (css/launchpad.css: content-visibility hidden keeps their rendering), so folding it shows them again without
-   *  laying out a whole diff (Changes with a file open, 4× CPU: ~250 → ~95 ms). Their heads show at its foot as
-   *  they would folded: copies of the real ones, kept current here; a click on one folds Launchpad and opens it. */
-  function ghosts() {
-    const g = LPF.querySelector(".fr-ghosts");
-    // each a real button, named "Open Changes, 47 +514 −78": the copy inside is only its look (its controls turned
-    // to spans, their hooks dropped), so Tab goes Launchpad → these → out of the panel and a click opens that frame
-    const NAME = { changes: "Changes", agents: "Threads", map: "Map" };
-    const html = !S.lp ? "" : ORDER.filter((id) => !el.querySelector(`[data-fr="${id}"]`).hidden).map((id) => {
-      const f = el.querySelector(`[data-fr="${id}"]`), n = f.querySelector(`[data-fr-n="${id}"]`)?.textContent.trim();
-      const look = f.querySelector(":scope > .fr-h").innerHTML
-        .replace(/<(\/?)(button|h2)\b/g, "<$1span").replace(/ (id|aria-[a-z]+|title|role|tabindex|type|data-[a-z-]+)="[^"]*"/g, "");
-      return `<button type="button" class="fr-ghost" data-ghost="${id}" aria-label="Open ${NAME[id]}${n ? `, ${esc(n)}` : ""}"><span class="fr-ghost-v" aria-hidden="true">${look}</span></button>`;
-    }).join("");
-    // drawn in place (js/redraw.js): a frame's head button you're on stays the same button as its count moves (a live
-    // agent 1 → 2 → 3 replaced it, and focus fell to the page: the controls grader on 9d1f71b, C072–C074)
-    if (g._h !== html) { redraw(g, html); g._h = html; LPF.style.setProperty("--ghosts", `${g.children.length * HEAD}px`); }
   }
 
   // ── what the frames say ─────────────────────────────────────────────────────
@@ -295,24 +250,22 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     // drawn in place (js/redraw.js), so the row you're on in Agents or Changes stays itself as the list moves live
     const set = (k, node, html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { redraw(node, html); S.h[k] = same; } };
     set("head", el.querySelector(".stg-t"), titleHtml());
-    if (launch && !LPF.hidden) launch.paint(v, S.lp);
-    // under Launchpad Threads is a head: its list waits
     const tg = threads ? threads(v) : null;
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
     const qBox = body("agents").querySelector(".tg-q");
     qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
     // covered sections wait: back() paints them
     const covered = !!S.page;
-    if (!S.lp && !covered) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
+    if (!covered) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq) : agentsHtml(ag));
     // the threads, not the coordinator's row: the same count as the header's Threads (app.js threadCounts)
     const fn = el.querySelector('[data-fr-n="agents"]'), cnt = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));
     if (fn.textContent !== cnt) fn.textContent = cnt;
     // Changes: Space's list and diff where it has /changes, else today's list
-    if (!fr.changes.folded && !S.lp && !covered) CX.paint();
+    if (!fr.changes.folded && !covered) CX.paint();
     const hd = CX.head();
     const [cxHost, old] = body("changes").children;
     cxHost.hidden = !hd; old.hidden = !!hd;
-    if (!hd && !S.lp && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
+    if (!hd && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch)); }
     edges();
     const empty = hd ? !hd.count : !files.changes(v).length;
     if (S.chEmpty !== empty) {
@@ -338,7 +291,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const fh = S.full ? UNFULL_IC : FULL_IC;
     if (fb._h !== fh) { fb.innerHTML = fh; fb._h = fh; }
     fb.setAttribute("aria-label", S.full ? "Back beside the conversation" : "Full size");
-    ghosts(); // last: the heads it copies are current by now
     fb.title = S.full ? "Back beside the conversation" : "Full size";
   }
 
@@ -396,13 +348,10 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (S.page) dropPages();
     if (!S.open) return;
     S.open = false;
-    if (!quiet) S.lp = false; // closed by you: Launchpad is a head again next time; stepping aside (quiet) keeps it as it was
     if (S.full) setFull(false);
     el.hidden = true;
     coverSync(); // what it covered is in reach again before focus goes back to it
     document.body.classList.remove("stage-open");
-    launch && launch.away && launch.away(); // typed secrets don't stay behind in a closed panel (Astra)
-    pressDeploy();
     map.hide();
     persist();
     // back to what opened it, or, if that was redrawn meanwhile (the head's toggle is), to the toggle on screen now:
@@ -414,26 +363,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (restore) requestAnimationFrame(() => requestAnimationFrame(() => { const a = document.activeElement; if (!a || a === document.body || !a.isConnected) [...document.querySelectorAll("[data-stage-toggle]")].find(usable)?.focus({ preventScroll: true }); }));
     if (!quiet) announce("Panel closed.");
     onChange && onChange();
-  }
-
-  /** The header's Deploy: the panel opens (if it isn't) with Launchpad open on top. */
-  function openLaunch() {
-    S.lp = true;
-    S.lpOpened = !S.open; // pressed again, Deploy puts things back as they were: the panel closed, or Launchpad folded
-    if (!S.open) open({ focus: false }); else { layout(); paint(); }
-    // focus goes into the section, so Esc closes the panel rather than leaving the thread (Astra on 761119f); in
-    // the same step the panel opens, since on a phone it covers Deploy and puts it out of reach (the browser run:
-    // a frame later, focus had already fallen to the page); once more next frame if it wasn't drawn yet
-    const into = () => LPF.querySelector(".fr-b")?.focus?.({ preventScroll: true });
-    into();
-    if (!LPF.contains(document.activeElement)) requestAnimationFrame(into);
-  }
-
-  /** The header's Deploy shows Launchpad open as pressed. Set here, where it changes, rather than by redrawing the
-   *  app: the header's next draw writes the same state (app.js asks launchOpen), so the two never disagree. */
-  function pressDeploy() {
-    const on = S.open && S.lp;
-    for (const b of document.querySelectorAll("[data-lp-open]")) { b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", String(on)); }
   }
 
   function setFull(on) {
@@ -555,7 +484,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     if (S.open || document.querySelector("[data-stage-inert]")) coverSync();
     if (!S.open) return;
     apply();
-    if (LPF.hidden === !!(launch && launch.has(view()) && S.lp)) layout();
     paint();
   }
 
@@ -571,15 +499,9 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const fo = t.closest("[data-fr-fold]");
     if (fo) {
       const id = fo.dataset.frFold;
-      if (id === "launch") S.lp = !S.lp;
-      else if (S.lp) { S.lp = false; fr[id].folded = false; } // a head under an open Launchpad opens its frame
-      else fr[id].folded = !fr[id].folded;
+      fr[id].folded = !fr[id].folded;
       layout(); paint(); persist(); return;
     }
-    const gh = t.closest("[data-ghost]");
-    if (gh) { const id = gh.dataset.ghost; S.lp = false; fr[id].folded = false; layout(); paint(); persist(); el.querySelector(`[data-fr="${id}"] [data-fr-fold]`)?.focus({ preventScroll: true }); return; }
-    // Launchpad's head, folded: anywhere on it opens it (its links and buttons do their own thing)
-    if (t.closest('[data-fr="launch"] .fr-h') && !S.lp && !t.closest("a,button")) { S.lp = true; layout(); paint(); return; }
     const mm = t.closest("[data-map-mode]");
     if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
     if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(); else openFiles && openFiles(); return; }
@@ -595,34 +517,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     const g = t.closest("[data-go]");
     if (g) { go(g.dataset.go, e); }
   });
-  // focus that lands in a frame Launchpad covers moves on: forward (from Launchpad or its heads) out of the panel,
-  // backward (from beyond the panel) to the last of its heads. No loop: Tab always gets out.
-  el.addEventListener("focusin", (e) => {
-    if (!S.lp || LPF.contains(e.target) || !e.target.closest?.(".stg-frames")) return;
-    if (e.relatedTarget && el.contains(e.relatedTarget)) {
-      // the panel is last on the page: past it, Tab comes round to the page's first control, as it would
-      const next = focusAfter(el) || focusAfter(document.body.firstElementChild, true);
-      if (next) next.focus({ preventScroll: true }); else e.target.blur();
-    } else (LPF.querySelector(".fr-ghost:last-child") || LPF.querySelector(".fr-b"))?.focus({ preventScroll: true });
-  });
-  /** A covered frame's controls out of the tab order while Launchpad covers it, and back as they were after: just
-   *  those controls, so nothing restyles (inert restyled the whole diff). Controls in a shadow root (the diff's)
-   *  aren't reached here; the focus guard above moves on from them. */
-  const TABBABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
-  function untab(frame, off) {
-    if (off) {
-      for (const x of frame.querySelectorAll(TABBABLE)) if (!x.hasAttribute("data-lp-tab")) { x.setAttribute("data-lp-tab", x.getAttribute("tabindex") ?? ""); x.tabIndex = -1; }
-    } else {
-      for (const x of frame.querySelectorAll("[data-lp-tab]")) { const was = x.getAttribute("data-lp-tab"); if (was === "") x.removeAttribute("tabindex"); else x.setAttribute("tabindex", was); x.removeAttribute("data-lp-tab"); }
-    }
-  }
-
-  /** The first control after `node` in the page's order (Tab's next stop past it), or from it when `from`; or null. */
-  function focusAfter(node, from = false) {
-    const FOCUS = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
-    return [...document.querySelectorAll(FOCUS)].find((x) => (from ? node.contains(x) || (node.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING) : !node.contains(x) && (node.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING))
-      && !el.contains(x) && x.getClientRects().length && !x.closest("[inert],[hidden],[aria-hidden='true']")) || null;
-  }
   // Esc: a search clears first; then the page's own Esc, then one level back, then full size, then the panel closes
   el.addEventListener("keydown", (e) => {
     // inside the Shell page's terminal every key is the shell's (Esc for vim, / for less): the panel's Esc, tabs and /
@@ -639,7 +533,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
       if (!S.page && !fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
     }
     if (e.key !== "Escape") return;
-    if (e.target.closest && e.target.closest("input:not(.lp-in)") && e.target.value) return; // a search clears first; Launchpad's fields don't
+    if (e.target.closest && e.target.closest("input") && e.target.value) return; // a search clears first
     e.preventDefault(); e.stopPropagation();
     // the page first (its find bar, a question, an old version), then full size, then the sections, then closed
     if (S.page && PAGES.get(S.page.name).escape?.(S.page.key) === true) return;
@@ -662,7 +556,7 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     // phone, three agents). Capped there, the drag comes to a stop instead
     const mapTop = () => {
       const shown = (id) => !el.querySelector(`[data-fr="${id}"]`).hidden;
-      const room = S.stackH - (LPF.hidden ? 0 : HEAD + 1), lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
+      const room = S.stackH, lines = [...el.querySelectorAll(".fr-gut")].filter((g) => !g.hidden).length;
       const changes = !shown("changes") ? 0 : fr.changes.folded ? HEAD : CH_MIN;
       // Agents' rows as they are on screen: its cap (3) when it has fewer agents would keep room for rows that
       // aren't there (Astra, on 47d871e: one agent, the line stopped 96 px short)
@@ -782,11 +676,11 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,
     /** The header's Threads (the owner, 19 Nov 14:50Z: with the panel open it did nothing): the panel open on its
-     *  Threads whatever it showed. Shell mode and Launchpad give way, Threads unfolds, its list comes to its top,
+     *  Threads whatever it showed. Shell mode gives way, Threads unfolds, its list comes to its top,
      *  focus lands on its first thread and its head glows once, so the press always answers. */
     threads() {
       if (S.page) dropPages();
-      S.lp = false; fr.agents.folded = false;
+      fr.agents.folded = false;
       open({ focus: false });
       persist(); layout(); paint();
       const f = el.querySelector('[data-fr="agents"]'), b = body("agents");
@@ -803,13 +697,6 @@ export function createStage({ map, files, changes, openFiles = null, viewer, vie
     get pageShown() { return S.page ? { ...S.page } : null; },
     /** A page's title or back label changed: its head is drawn again. */
     repaint: () => paint(),
-    /** The header's Deploy. */
-    launch() {
-      if (!(S.open && S.lp)) { openLaunch(); return; }
-      if (S.lpOpened) close(); else { S.lp = false; layout(); paint(); }
-    },
-    /** Is Launchpad open in the panel (the header's Deploy reads as pressed)? */
-    get launchOpen() { return S.open && S.lp; },
     /** The shape changed: the frames it keeps, at once. */
     reshape() { layout(); paint(); },
     /** A changed file's chip: the panel opens (if closed) on that file's diff; false when it can't. */

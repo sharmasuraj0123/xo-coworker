@@ -8,8 +8,8 @@
 
 /* the page: a library, so no composer under it */
 .app[data-view="artifacts"] .dock{display:none}
-.arts{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;outline:none;background:var(--canvas);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-.arts[hidden]{display:none}
+.arts,.lpp{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;outline:none;background:var(--canvas);scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.arts[hidden],.lpp[hidden]{display:none}
 /* its header is every place's header (Workspace, Chats, a project): the place's icon, a 20 px title on the
    28 px edge, one quiet line under it, one seam below; the library under it shares that edge */
 .ar-head{position:sticky;top:0;z-index:var(--z-sticky);display:flex;align-items:center;gap:12px;min-height:66px;padding:14px 28px;border-bottom:1px solid var(--line-faint);background:var(--canvas)}
@@ -17,7 +17,7 @@
 .ar-sub{margin:0}
 /* a phone has one header, its bar (it names the place): the page keeps only its count line */
 @media (max-width:760px){
-  .arts{top:var(--h-phonebar)}
+  .arts,.lpp{top:var(--h-phonebar)}
   .ar-head{position:static;min-height:0;padding:12px 16px 0;border:0;background:none}
   .ar-head .tw-ic,.ar-head h1{display:none}
   .ar-wrap{padding:8px 16px 48px}

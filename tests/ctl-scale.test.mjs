@@ -30,7 +30,7 @@ const add = (cls, skip) => { for (const k of cls.trim().split(/\s+/)) if (k && !
 for (const m of src.matchAll(/<(button|summary|select)\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) add(c[1], /^(is|st|k|m|t|r|e)-/); }
 for (const m of src.matchAll(/<(div|span|li|a)\b([^>]*role="(button|tab|option|menuitem|menuitemradio|switch)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) add(c[1], /^is-/); }
 // a link drawn as a control (a link in text, .lk and the rest, is words in a sentence)
-for (const m of src.matchAll(/<a\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c && !/\b(lk|lp-hh|lp-ln|cp-link)\b/.test(c[1])) add(c[1], /^is-/); }
+for (const m of src.matchAll(/<a\b([^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[1]); if (c && !/\b(lk|lp-ln|cp-link)\b/.test(c[1])) add(c[1], /^is-/); }
 
 const SCALE = new Set([24, 32, 40, 48, 56]);
 const all = rules(new URL("tests/lib/x.mjs", ROOT));

@@ -42,9 +42,7 @@ const tall = (live, B) => {
   const min = own ? px(own.v, tokens) || 0 : live === P && floored(B) ? 36 : 0;
   return Math.max(px(win(live, B, "height")?.v ?? "", tokens) || 0, min);
 };
-// where a link borrows another part's class, the place it's drawn into: the section head's Open it is the stage
-// frame's icon button (.fr-ib), drawn into Launchpad's .lp-ha (checked below)
-const PLACE = { "fr-ib": ".lp-ha>" };
+const PLACE = {};
 
 const links = new Map();
 for (const f of FILES) {
@@ -62,11 +60,8 @@ for (const f of FILES) {
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("the census finds Launchpad's boxed links (Open in Launchpad, Logs on GitHub, both Open it, the address, Open GitHub)", () => {
-  for (const B of ["a.lp-b", "a.lp-ib", ".lp-ha>a.fr-ib", "a.lpm-host", "a.lp-go", "a.lp-go.lp-wide"]) assert.ok(links.has(B), `${B} in the census`);
-  const lp = readFileSync(new URL("js/launchpad.js", ROOT), "utf8");
-  assert.match(lp, /const ha = [^\n]*<a class="fr-ib"/, "the head's Open it is the .fr-ib link");
-  assert.match(lp, /redraw\(S\.ha, ha\)/, "drawn into .lp-ha, directly (in place)");
+t("the census finds Launchpad's boxed links (Open in Launchpad and Logs on GitHub, Open, the address)", () => {
+  for (const B of ["a.btn.lp-b", "a.btn.btn-pri.lp-go", "a.lq-host"]) assert.ok(links.has(B), `${B} in the census`);
 });
 
 t("on a phone (390) every boxed link is at least 36 px tall (S267: Open in Launchpad was 32)", () => {
@@ -80,11 +75,10 @@ t("on a phone (390) every boxed link is at least 36 px tall (S267: Open in Launc
   assert.deepEqual(bad, [], `boxed links under the phone's 36:\n  ${bad.join("\n  ")}`);
 });
 
-t("the desktop keeps its sizes: Open in Launchpad 32, Open it 32 and 24", () => {
-  assert.equal(tall(D, "a.lp-b"), 32);
-  assert.equal(tall(D, "a.lp-ib"), 32);
-  assert.equal(tall(D, ".lp-ha>a.fr-ib"), 24);
-  assert.equal(win(D, "a.lp-b", "min-height"), null, "no min-height on the desktop");
+t("the desktop keeps its sizes: a link button is a button, 40 in the window", () => {
+  assert.equal(tall(D, ".dlg a.btn.lp-b"), 40);
+  assert.equal(tall(D, ".dlg a.btn.btn-pri.lp-go"), 40);
+  assert.equal(win(D, "a.btn.lp-b", "min-height"), null, "no min-height on the desktop");
 });
 
 console.log(`${passed} passed${process.exitCode ? ", some failed" : ""}`);
