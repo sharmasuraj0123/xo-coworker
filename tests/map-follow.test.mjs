@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
+const src = ["../js/map.js", "../modules/map/camera.js"].map((path) => readFileSync(new URL(path, import.meta.url), "utf8")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const body = (name) => { const i = src.indexOf(`function ${name}(`); assert.ok(i >= 0, `function ${name}`); return src.slice(i, src.indexOf("\n  }\n", i)); };

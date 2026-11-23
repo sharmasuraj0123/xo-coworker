@@ -7,25 +7,35 @@
 //   node tests/map-reach.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createMapCamera } from "../modules/map/camera.js";
 
 const src = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const body = (name) => { const i = src.indexOf(`function ${name}(`); assert.ok(i >= 0, `function ${name}`); return src.slice(i, src.indexOf("\n  }\n", i)); };
-
-t("the extent reaches the drawn boxes' far edges", () => {
-  const b = body("bounds");
-  assert.match(b, /querySelectorAll\("\.dg-nodes > \.dg-n"\)/, "every box as drawn");
-  assert.match(b, /b\.offsetLeft \+ b\.offsetWidth/, "its right edge, in the drawing's units (no transform)");
-  assert.match(b, /b\.offsetTop \+ b\.offsetHeight/, "its foot");
-  assert.match(b, /if \(!v \|\| !v\.clientWidth\) return B;/, "hidden, nothing to measure: not cached as zero");
-  assert.match(b, /M\.reachKey = M\.layoutKey/, "once per drawing");
-});
-t("Fit and the first look read it, never the layout's extent alone", () => {
-  assert.match(body("fit"), /B = bounds\(\)/, "Fit");
-  assert.match(body("frame"), /const B = bounds\(\), F = c\.fitB/, "the first look and its 'drawing grew' check");
-  const raw = [...src.matchAll(/(?:const|let)[^;\n]*=\s*M\.bounds\b/g)].map((m) => m[0]);
-  assert.deepEqual(raw, ["const B = M.bounds"], "only bounds() itself reads the layout's extent");
+t("Fit and the first look include measured edges and only measure visible drawings once", () => {
+  const viewport = { clientWidth: 0, clientHeight: 200 };
+  const box = { offsetLeft: 60, offsetWidth: 180, offsetTop: 30, offsetHeight: 45 };
+  const bounds = { x0: 0, y0: 0, x1: 148, y1: 32 };
+  const M = { cams: new Map(), mode: "tree", bounds, reach: null, reachKey: "", layoutKey: "one", alpha: 0 };
+  let scans = 0;
+  const camera = createMapCamera({ M, view: () => viewport, world$: () => null, tagW: () => 22,
+    clamp: (value, low, high) => Math.max(low, Math.min(high, value)),
+    host: () => ({ querySelectorAll(selector) { assert.equal(selector, ".dg-nodes > .dg-n"); scans++; return [box]; } }),
+  });
+  const c = camera.camOf({ kind: "thread", key: "t:one" });
+  camera.fit(c, false, true);
+  assert.equal(scans, 0, "a hidden drawing is not measured");
+  viewport.clientWidth = 200;
+  camera.frame(c);
+  assert.deepEqual(c.fitB, { x0: 0, y0: 0, x1: 268, y1: 103 });
+  assert.equal(c.s, 176 / 268);
+  camera.fit(c, false, true);
+  assert.equal(scans, 1, "fit and first look share the measurement");
+  M.layoutKey = "two";
+  box.offsetWidth = 200;
+  camera.fit(c, false, true);
+  assert.equal(scans, 2);
+  assert.equal(c.fitB.x1, 288);
 });
 t("the font arriving measures again", () => {
   assert.match(src, /document\.fonts\.addEventListener\("loadingdone", \(\) => \{ M\.reachKey = ""; \}\)/);

@@ -28,6 +28,7 @@ import { createMapFolders } from "../modules/map/folders.js";
 import { createMapAgents } from "../modules/map/agents.js";
 import { gstep, RAD } from "../modules/map/graph-physics.js";
 import { createMapTree, parentOf, setOf } from "../modules/map/tree.js";
+import { createMapCamera, READABLE } from "../modules/map/camera.js";
 
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
@@ -99,22 +100,8 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
   }
   const world$ = () => el.querySelector(".dg-world");
 
-  function camOf(scope) {
-    const k = scope.key + "|" + M.mode;
-    if (!M.cams.has(k)) M.cams.set(k, { x: 24, y: 24, s: 1, user: false, follow: scope.kind === "thread" && M.mode === "tree", target: null });
-    return M.cams.get(k);
-  }
-  function applyCam(c, glide) {
-    const w = world$();
-    if (!w) return;
-    w.classList.toggle("is-glide", !!glide);
-    w.style.transform = `translate(${c.x}px,${c.y}px) scale(${c.s})`;
-    w.style.setProperty("--dg-s", String(c.s));
-    w.classList.toggle("is-near", c.s >= 1.15); // close enough to read every name
-    const f = el.querySelector('[data-dg="follow"]');
-    if (f) f.setAttribute("aria-pressed", String(!!c.follow));
-  }
-  const READABLE = 0.8; // the smallest scale for a partial view (all = false): labels stay readable (≈10px)
+  const { applyCam, camOf, centerOn, fit, frame, holdStill, keepInView, reframe, zoomAt } =
+    createMapCamera({ M, host: () => el, view, world$, tagW, clamp });
   // the smallest a press target may be on screen and still be pressed surely. Below the readable scale, a pointer
   // press on a box whose target is smaller than this brings the map in to the box instead of acting on it (the
   // keyboard acts at any size) (Files/Map grader on b153247). Each box by its own target, never one scale for
@@ -146,61 +133,6 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
     let tx = 0, ty = 0;
     try { if (nb.style.transform) { const m = new DOMMatrixReadOnly(nb.style.transform); tx = m.e; ty = m.f; } } catch { /* no move */ }
     return { x: tx + nb.offsetLeft + nb.offsetWidth / 2, y: ty + nb.offsetTop + nb.offsetHeight / 2 };
-  }
-  /** The drawing's extent, for Fit and the first look: the layout's, out to the edges of the boxes as drawn. A note
-   *  ("Couldn't read it · Try again") or "N more" is as wide as its words, not the 148 the layout gives a box, so the
-   *  layout's extent alone left Try again 4–6 px outside the view after Fit (Astra S207/S082). Measured once per
-   *  drawing, while the view is on screen (hidden, a box has no size); the Graph keeps its own. */
-  function bounds() {
-    const B = M.bounds;
-    if (!B || M.mode !== "tree") return B;
-    if (M.reachKey !== M.layoutKey) {
-      const v = view();
-      if (!v || !v.clientWidth) return B;
-      let rx = 0, ry = 0;
-      for (const b of el.querySelectorAll(".dg-nodes > .dg-n")) { rx = Math.max(rx, b.offsetLeft + b.offsetWidth); ry = Math.max(ry, b.offsetTop + b.offsetHeight); }
-      M.reach = { x: rx + PAD, y: ry + PAD }; M.reachKey = M.layoutKey;
-    }
-    const R = M.reach;
-    return R.x > B.x1 || R.y > B.y1 ? { ...B, x1: Math.max(B.x1, R.x), y1: Math.max(B.y1, R.y) } : B;
-  }
-  /** Frame the drawing. The Map shows it all, fitted to whatever size its frame is (the owner, 4 Nov:
-   *  "I asked for the map to fit it all"), by itself and with Fit; all = false is the old readable
-   *  partial view, kept for callers that want it. */
-  function fit(c, glide, all = false) {
-    const v = view(), B = bounds();
-    if (!v || !B || !v.clientWidth) return;
-    const W = B.x1 - B.x0, H = B.y1 - B.y0, vh = v.clientHeight - 44, cw = v.clientWidth - 24, ch = vh - 24;
-    const s = Math.min(cw / W, ch / H);
-    // Fit shows it all, whatever it takes (S207: a 0.3 floor left 16 of 32 folders outside); a small scale keeps
-    // the controls' hit areas (css: .dg-n::before, from --dg-s)
-    c.s = clamp(s, all ? 0.05 : READABLE, 1.1);
-    if (!all && s < READABLE) {
-      // too tall to read whole: as wide as reads (all of it across), starting at the top box
-      c.s = clamp(cw / W, READABLE, 1.1);
-      const r = M.rootPt || { x: (B.x0 + B.x1) / 2, y: (B.y0 + B.y1) / 2 };
-      c.x = W * c.s <= cw ? 12 + (cw - W * c.s) / 2 - B.x0 * c.s : 12 - B.x0 * c.s;
-      c.y = vh / 2 - r.y * c.s;
-    } else {
-      c.x = (v.clientWidth - W * c.s) / 2 - B.x0 * c.s;
-      c.y = Math.max(0, (vh - H * c.s) / 2) - B.y0 * c.s;
-    }
-    c.fitB = { x0: B.x0, y0: B.y0, x1: B.x1, y1: B.y1 };
-    applyCam(c, glide);
-  }
-  function centerOn(c, pt, glide, s) {
-    const v = view();
-    if (!v || !v.clientWidth) return;
-    if (s) c.s = s;
-    c.x = v.clientWidth / 2 - (pt.x + tagW() / 2) * c.s; // the cursor and its name, not just the box
-    c.y = (v.clientHeight - 44) / 2 - pt.y * c.s;
-    applyCam(c, glide);
-  }
-  function zoomAt(c, f, px, py) {
-    const s = clamp(c.s * f, 0.25, 2.4);
-    c.x = px - (px - c.x) * (s / c.s); c.y = py - (py - c.y) * (s / c.s); c.s = s;
-    c.user = true; c.fitAll = false;
-    applyCam(c, false);
   }
 
   /** Keyboard focus on something in the drawing that's out of the frame: the camera brings it in, 12 px inside (and
@@ -321,96 +253,6 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
     }
   }
 
-  /**
-   * Where the camera goes by itself. For its first moment on screen it frames the drawing (or the
-   * followed agent) as it loads; after that it holds still: the cursor moves, the drawing doesn't.
-   * Follow only nudges the view, gently, when the cursor would leave it.
-   */
-  const SETTLE_MS = 1600;
-  function frame(c) {
-    if (!M.bounds) return;
-    // hidden (a closed panel, a background tab) or not laid out yet: framing now would frame nothing
-    const v = view();
-    if (!v || !v.clientWidth || !v.clientHeight) return;
-    const now = Date.now(), lead = M.lead;
-    if (!c.user && !c.done) {
-      // the first look lasts until the folder has loaded (and the graph has calmed), then a moment more
-      if (!c.settleUntil) c.settleUntil = now + (M.mode === "graph" ? SETTLE_MS + 1200 : SETTLE_MS);
-      if (M.loading || (M.mode === "graph" && M.alpha > 0.06)) c.settleUntil = Math.max(c.settleUntil, now + 500);
-      if (now < c.settleUntil) {
-        fit(c, false, true); // the first look shows the whole drawing, fitted; Follow takes over after it
-        c.target = lead ? lead.key : null;
-        return;
-      }
-      c.done = true;
-    }
-    // the drawing grew or shrank (a folder loaded, a box unfolded, the graph moved): still all of it,
-    // unless you've moved the view yourself since your last Fit
-    // (a change of 8 px or less is the graph breathing: the view holds still for it, unless the drawing
-    // would cross the frame's edge, which it never may)
-    const B = bounds(), F = c.fitB;
-    const moved = !F || Math.max(Math.abs(B.x0 - F.x0), Math.abs(B.y0 - F.y0), Math.abs(B.x1 - F.x1), Math.abs(B.y1 - F.y1)) > 8;
-    const over = B.x0 * c.s + c.x < 0 || B.x1 * c.s + c.x > v.clientWidth || B.y0 * c.s + c.y < 0 || B.y1 * c.s + c.y > v.clientHeight - 44;
-    // Fit all, which you asked for, keeps the diagram whole as it grows or shrinks; the graph, which keeps settling, only
-    // when it would cross the frame's edge: its zoom (and every name's size on screen) holds still while it breathes.
-    // It had refitted each time the settling graph moved: after Fit, the agent's tag measured 24.41 px, then 23.84 once
-    // the graph moved on, under the 24 floor (the controls grader on 06b997b, S083 status-graph, once in three)
-    const refit = !c.user ? moved || over : c.fitAll && (over || (moved && M.mode !== "graph"));
-    if (refit) { fit(c, true, true); return; }
-    if (c.follow && lead && c.target !== lead.key) { c.target = lead.key; keepInView(c, lead); }
-  }
-  /** A fresh first look for this view's camera, unless you've moved it yourself. */
-  function reframe(scope) {
-    const c = camOf(scope);
-    if (!c.user) { c.done = false; c.settleUntil = 0; c.target = null; }
-  }
-  /** Pan just enough that `pt` (and its name) is comfortably inside the view; never zoom. */
-  /** Follow nudges the view only when the followed cursor would leave it: its arrow, and its name beside it where
-   *  there's room, inside the view's margins, by the least move (and a little more, so it isn't on the edge). The arrow
-   *  comes first when both can't fit. All in the drawing's units, scaled by the camera (the controls grader's
-   *  S208-moving-follow on 70375ad: the box's middle was kept in view, its arrow at the box's edge was not). */
-  function keepInView(c, lead) {
-    const v = view();
-    if (!v || !v.clientWidth || !lead.at) return;
-    const W = v.clientWidth, H = v.clientHeight - 44, m = 48;
-    const a = lead.at, tw = lead.tw || 0;
-    // the arrow's box (an 18 px glyph at its tip), and its name's: right of it, left of it, or below
-    const arrow = [a.x - 2, a.x + 16], name = lead.side === "left" ? [a.x - tw - 4, a.x - 4] : lead.side === "below" ? [a.x + 10 - tw, a.x + 10] : [a.x + 15, a.x + 15 + tw];
-    const top = a.y - 2, bottom = lead.side === "below" ? a.y + 31 + 22 : a.y + 20;
-    const sx = (x) => c.x + x * c.s, sy = (y) => c.y + y * c.s;
-    let l = Math.min(arrow[0], name[0]), r = Math.max(arrow[1], name[1]);
-    if (!tw || (r - l) * c.s > W - 2 * m) { l = arrow[0]; r = arrow[1]; } // no room for both: the arrow
-    const ease = W * 0.12;
-    let dx = 0, dy = 0;
-    if (sx(l) < m) dx = Math.min(m + ease - sx(l), W - m - sx(r)); else if (sx(r) > W - m) dx = Math.max(W - m - ease - sx(r), m - sx(l));
-    if (sy(top) < m) dy = m + H * 0.12 - sy(top); else if (sy(bottom) > H - m) dy = H - m - H * 0.12 - sy(bottom);
-    if (dx || dy) { c.x += dx; c.y += dy; applyCam(c, true); }
-  }
-
-
-  /** The drawing changed shape: shift the camera so the box you were looking at doesn't move on screen. */
-  function holdStill(scope, old, L) {
-    const c = camOf(scope), v = view();
-    if (!v || !v.clientWidth || (!c.user && !c.done)) { M.anchorId = null; return; }
-    const was = new Map(old.nodes.map((n) => [n.id, n]));
-    let pair = null;
-    for (const id of [M.anchorId, M.leadNode]) {
-      if (pair || id == null) continue;
-      const o = was.get(id), n = L.nodes.find((x) => x.id === id);
-      if (o && n) pair = [o, n];
-    }
-    if (!pair) {
-      const cx = (v.clientWidth / 2 - c.x) / c.s - PAD, cy = ((v.clientHeight - 44) / 2 - c.y) / c.s - PAD;
-      let best = Infinity;
-      for (const n of L.nodes) { const o = was.get(n.id); if (!o) continue; const d = (o.x - cx) ** 2 + (o.y - cy) ** 2; if (d < best) { best = d; pair = [o, n]; } }
-    }
-    M.anchorId = null;
-    if (!pair) return;
-    const [o, n] = pair;
-    if (o.x === n.x && o.y === n.y) return;
-    c.x -= (n.x - o.x) * c.s; c.y -= (n.y - o.y) * c.s;
-    applyCam(c, false);
-  }
 
   // ── cursors ─────────────────────────────────────────────────────────────────
   /** Where an agent is, as a box: the file it's on, else a file or folder its command names, else the last file it was on. */
