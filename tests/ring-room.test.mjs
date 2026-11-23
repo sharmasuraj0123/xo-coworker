@@ -54,7 +54,7 @@ t("a 40 px bar holds a 32 px control and its whole ring: 4 + 32 + 4, its rule dr
   const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)(?:px)?\}/);
   const ext = +ring[2] + +ring[3], ctl = +tokens.match(/--h-ctl:(\d+)px/)[1];
   assert.ok((40 - ctl) / 2 >= ext, `(40 − ${ctl}) / 2 ≥ the ring's ${ext}`);
-  const css = ["app.css", "panel.css", "diffs.css", "launchpad.css", "media.css", "msgx.css", "artifacts.css", "shape.css", "../shell/sidebar.css", "../core/ui/components/xo-select.css", "links.css", "foundation.css"].map((f) => [f, read(`css/${f}`)]);
+  const css = ["app.css", "panel.css", "diffs.css", "launchpad.css", "media.css", "msgx.css", "artifacts.css", "shape.css", "side.css", "../core/ui/components/xo-select.css", "links.css", "foundation.css"].map((f) => [f, read(`css/${f}`)]);
   const bars = [];
   // a row that is itself the control (the stage's agent rows, buttons 40 tall) holds no control: its ring is its own
   const ROWS = new Set([".ag-r"]);

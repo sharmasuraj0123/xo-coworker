@@ -1655,7 +1655,7 @@
    "note": "Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
   },
   "css/side.css": {
-   "status": "moved",
+   "status": "planned",
    "home": "shell/sidebar.css"
   },
   "css/tokens.css": {

@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { TOPICS, glyph } from "../modules/projects/projicons.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
+const side = readFileSync(new URL("../css/side.css", import.meta.url), "utf8");
 
 assert.equal(TOPICS.length, 31);
 for (const k of TOPICS) assert.ok(hasIcon(`project-${k}`), k);
@@ -34,7 +34,7 @@ assert.match(app, /\{ ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -c
 assert.match(app, /if \(e\.key === "Escape"\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); closePick\(\{ focus: true \}\); return; \}/);
 
 // CSS: tokens only
-const block = side.slice(side.indexOf(".pj-pick{"));
+const block = side.slice(side.indexOf("── A project's icon, yours to choose"));
 assert.ok(block.length > 300);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
 console.log("project-icons: ok");
