@@ -4,8 +4,9 @@ The real app runs in headless Chromium against a fake Space on a seeded store. E
 barrier and asserts with ARIA text snapshots. The target is under 3 minutes for the whole lane.
 
 ```
-node e2e/run.mjs              every case
+node e2e/run.mjs              the fast lane
 node e2e/run.mjs send         only the cases whose "file › name" contains "send"
+node e2e/run.mjs apps         the two deferred cases at the Apps gate
 UPDATE=1 node e2e/run.mjs     write the goldens instead of comparing (review the diff before committing)
 node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit tests (no browser)
 ```

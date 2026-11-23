@@ -29,6 +29,10 @@ async function collect() {
   const out = [];
   for (const f of readdirSync(join(DIR, "specs")).filter((x) => x.endsWith(".spec.mjs")).sort()) {
     const mod = await import(pathToFileURL(join(DIR, "specs", f)).href);
+    if (mod.deferUntilAppsGate && filter !== "apps") {
+      if (!filter) console.log(`Deferred ${mod.cases.length} Apps cases: ${mod.deferUntilAppsGate}`);
+      continue;
+    }
     for (const c of mod.cases || []) {
       const file = f.replace(/\.spec\.mjs$/, "");
       if (`${file} › ${c.name}`.includes(filter)) out.push({ file, ...c });

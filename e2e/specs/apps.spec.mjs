@@ -3,7 +3,7 @@
 /** @import { Case } from "../lib/types.d.ts" */
 import { readFileSync } from "node:fs";
 
-// An app from its own folder: installed from Settings › Apps after the owner's OK, turned on in a project, and its panel answers.
+export const deferUntilAppsGate = "Apps not registered at boot in release or P1; returns at the Apps gate";
 
 const basic = JSON.parse(readFileSync(new URL("../seeds/basic.json", import.meta.url), "utf8"));
 const HELLO = "/home/me/xo-apps/hello";
