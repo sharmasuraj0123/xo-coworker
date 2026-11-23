@@ -2729,9 +2729,11 @@
   "js/media.js": {
    "status": "split",
    "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ]
+    "core/services/media/items.js",
+    "core/services/media/layout.js",
+    "js/media.js"
+   ],
+   "note": "Media item normalization and layout moved. The legacy entry still renders and hydrates media."
   },
   "js/merge.js": {
    "status": "moved",
@@ -10677,68 +10679,36 @@
    "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::madeIds": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::dedupeByMade": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::TAIL": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::splitExt": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::midName": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::midNameHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::labelOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::isPicture": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::mediaItemOf": {
    "status": "split-region",
@@ -10749,20 +10719,12 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/media.js::exports::mediaItem": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::fromWebImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::webLinkHtml": {
    "status": "split-region",
@@ -10797,28 +10759,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/media.js::exports::fromAttachment": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::fromSharedFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::viewerFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::mediaHtml": {
    "status": "split-region",
@@ -10921,60 +10871,32 @@
    "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::madeIds": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::dedupeByMade": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::splitExt": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::midName": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::midNameHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::mediaItem": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::fromWebImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::webLinkHtml": {
    "status": "split-region",
@@ -11001,28 +10923,16 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/media.js::functions::fromAttachment": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::fromSharedFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::viewerFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::imgHtml": {
    "status": "split-region",

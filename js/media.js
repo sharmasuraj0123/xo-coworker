@@ -1,106 +1,23 @@
 // Pictures and files in the conversation.
 
-import { esc, isImagePath } from "../core/platform/index.js";
+import { esc } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
 import { ICON } from "./ui.js";
-import { api, attachmentUrl } from "../core/platform/api.js";
-import { fmtSize, typeWord, titleOf } from "./attach.js";
+import { api } from "../core/platform/api.js";
+import { fmtSize, typeWord } from "../core/services/media/attachment-rules.js";
 import { fadeImage, EASE, MOVE, still } from "./motion.js";
 import { ARROW_OUT, outText } from "./markdown.js";
 
-import { LIMITS, MAX_TILES, dim, safeTint, fitImage, albumLayout } from "../core/services/media/layout.js";
+import { LIMITS, MAX_TILES, fitImage, albumLayout } from "../core/services/media/layout.js";
+import { labelOf, midNameHtml, fromWebImage } from "../core/services/media/items.js";
+
+export { madeIds, dedupeByMade, TAIL, splitExt, midName, midNameHtml, labelOf, isPicture, mediaItem, fromWebImage, fromAttachment, fromSharedFile, viewerFile } from "../core/services/media/items.js";
 
 export { LIMITS, TINY, LONG, BANNER, GAP, MAX_TILES, FRAME, dim, safeTint, fitImage, albumLayout } from "../core/services/media/layout.js";
-
-/** The made ids a list of files carries. */
-export function madeIds(files) {
-  return new Set((files || []).map((f) => f && f.made_id).filter(Boolean).map(String));
-}
-
-/** A turn's shared files less the ones a message already carries (same made_id): never the same picture twice. */
-export function dedupeByMade(files, carried) {
-  const c = carried instanceof Set ? carried : madeIds(carried);
-  return (files || []).filter((f) => !(f && f.made_id && c.has(String(f.made_id))));
-}
-
-// ── names: a title, else the file name, cut in the middle ──────────────────────
-/** How much of a stem's end a cut name keeps: enough for "-v2", "final", "320". */
-export const TAIL = 5;
-/** A file name's stem and its extension (".png"; "" for none, a dotfile, or a dot that ends no extension). */
-export function splitExt(name) {
-  const s = String(name ?? "");
-  const m = /^(.+?)(\.[A-Za-z0-9]{1,10})$/.exec(s);
-  return m ? { stem: m[1], ext: m[2] } : { stem: s, ext: "" };
-}
-/**
- * A file name in at most `max` characters, cut in its middle: the start, "…", the stem's last TAIL
- * characters and the extension (r3-dark…title.png). Short enough already: as it is.
- */
-export function midName(name, max = 32) {
-  const s = String(name ?? "");
-  if (s.length <= max) return s;
-  const { stem, ext } = splitExt(s);
-  let tail = Math.min(TAIL, stem.length - 1);
-  let head = max - 1 - tail - ext.length;
-  if (head < 1) { tail = Math.max(0, tail + head - 1); head = 1; }
-  if (head + 1 + tail + ext.length > max) return s.slice(0, Math.max(1, max - 1)) + "…"; // no room for the extension
-  return stem.slice(0, head) + "…" + (tail ? stem.slice(-tail) : "") + ext;
-}
-/**
- * A file name as HTML that cuts in its middle to fit its box, however wide (css/media.css .mx-mid): the
- * start gives way with an ellipsis, the stem's end and the extension stay whole. `after` rides with the
- * kept end (a card's " · Markdown · 2 KB"), so only the name ever gives way. Short names are text.
- */
-export function midNameHtml(name, after = "") {
-  const s = String(name ?? "");
-  const { stem, ext } = splitExt(s);
-  const tail = Math.min(TAIL, stem.length - 1);
-  if (s.length <= 12 || tail < 1) return esc(s + after);
-  return `<span class="mx-mid"><span class="mx-mh">${esc(stem.slice(0, -tail))}</span><span class="mx-mt">${esc(stem.slice(-tail) + ext + after)}</span></span>`;
-}
-/** What names an item: its title, else its file name. */
-export const labelOf = (it) => (it && (it.title || it.name)) || "";
-
-// ── items: every source in one shape ─────────────────────────────────────────
-// {key, kind: image|file, name, title (null when none), type, bytes, w, h, tint, made, by, at, and how it's read:
-//  src (a URL an <img> loads directly), att {chat, id} (an upload of yours), project + rel (a project file,
-//  fetched with the Coder header as a blob), path, or why (no route: the viewer says so)}
-
-const IMAGE_TYPE = /^image\/(png|jpe?g|gif|webp|avif|svg\+xml|bmp|x-icon|vnd\.microsoft\.icon)$/i;
-/** A picture the conversation shows, from the server's type, else the name. */
-export const isPicture = (type, name) => (type ? IMAGE_TYPE.test(String(type)) : isImagePath(name));
 
 const REG = new Map(); // key → item: the lightbox and the click handler read what was drawn
 /** The item drawn under `key` (the lightbox's list, a click). */
 export const mediaItemOf = (key) => REG.get(key) || null;
-
-/** A plain item (the demo builds its own; the adapters below build theirs). */
-export function mediaItem(raw) {
-  const name = String(raw.name || String(raw.path || "").split("/").pop() || "file");
-  const type = String(raw.type || "");
-  const it = {
-    key: String(raw.key || (raw.src ? `src:${raw.src}` : `name:${name}`)),
-    name, title: titleOf(raw.title) || null, type, bytes: raw.bytes ?? null,
-    w: dim(raw.w), h: dim(raw.h), tint: safeTint(raw.tint),
-    made: raw.made_id ? String(raw.made_id) : raw.made || null,
-    by: raw.by || "", at: raw.at ?? null,
-    src: raw.src || null, att: raw.att || null, project: raw.project || null, rel: raw.rel || null,
-    path: raw.path || null, why: raw.why || null, web: raw.web || null,
-  };
-  const readable = !!(it.src || it.att || (it.project && it.rel));
-  it.kind = it.web || (readable && isPicture(type, name)) ? "image" : "file";
-  return it;
-}
-
-/**
- * A picture from the web ({alt, url}, from markdown). Its name is the address's last part (else its host);
- * its alt, when it has one, is its title. by: its host, which the lightbox names.
- */
-export function fromWebImage({ alt = "", url }, { at = null } = {}) {
-  let host = "", file = "";
-  try { const u = new URL(url); host = u.host.replace(/^www\./i, ""); file = decodeURIComponent(u.pathname.split("/").pop() || ""); } catch { /* checked by markdown.js */ }
-  return mediaItem({ key: `web:${url}`, name: file || host || "picture", title: alt, src: url, web: { url, host }, by: host, at });
-}
 
 // ── pictures from the web that couldn't show ────────────────────────────────
 const gone = new Set(); // addresses that failed in this page: drawn as their links from then on, not tried again
@@ -124,40 +41,6 @@ export function webImagesHtml(list) {
   const show = items.filter((it) => !gone.has(it.web.url)), links = items.filter((it) => gone.has(it.web.url));
   const linkP = links.length ? `<p class="mx-weblinks">${links.map(webLinkHtml).join("")}</p>` : "";
   return show.length ? mediaHtml(show, { side: "them" }).replace(/<\/div>$/, `${linkP}</div>`) : `<div class="mx-stack mx-them">${linkP}</div>`;
-}
-
-// a project file's picture is the version that was shared: an overwrite shared again is a new picture
-const prjKey = (project, rel, mtime) => `prj:${project}:${rel}${mtime ? `@${mtime}` : ""}`;
-
-/**
- * A file on a message: an upload of yours ({id}, read through its chat) or a file an agent shared
- * ({project_id, relative_path}, read from its project). by: who made it, for the lightbox's caption.
- */
-export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
-  const c = f.chat || chat;
-  const base = { name: f.name, title: f.title, type: f.type, bytes: f.bytes ?? f.size, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, by, at };
-  if (f.id && c) return mediaItem({ ...base, key: `att:${c}:${f.id}`, att: { chat: c, id: String(f.id) }, src: attachmentUrl(c, f.id) });
-  if (f.project_id && f.relative_path) return mediaItem({ ...base, key: prjKey(f.project_id, f.relative_path, f.mtime), project: String(f.project_id), rel: String(f.relative_path), path: f.path || f.relative_path });
-  return mediaItem({ ...base, key: `none:${f.name || ""}` }); // not uploaded yet: a card that can't open
-}
-
-/**
- * A file in a turn's shared_files block. Newer servers send its project route; older blocks only have
- * the agent's path, which `route(path)` resolves ({project, rel} or {why}; timeline.js sharedFileRoute).
- */
-export function fromSharedFile(f, { route = null, by = "", at = null } = {}) {
-  const base = { name: f.name || f.path, title: f.title, type: f.type, bytes: f.bytes, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, path: f.path || f.name, by, at };
-  const r = f.project_id && f.relative_path ? { project: String(f.project_id), rel: String(f.relative_path) } : route ? route(f.path || f.name) : null;
-  if (r && r.project && r.rel) return mediaItem({ ...base, key: prjKey(r.project, r.rel, f.mtime), project: r.project, rel: r.rel });
-  return mediaItem({ ...base, key: `path:${f.path || f.name}`, why: (r && r.why) || "This file is in a folder XO doesn't serve to the UI yet." });
-}
-
-/** What the side viewer (js/viewer.js) opens for an item. */
-export function viewerFile(it) {
-  const base = { name: it.name, type: it.type, bytes: it.bytes };
-  if (it.att) return { ...base, att: it.att };
-  if (it.project && it.rel) return { ...base, path: it.path || it.rel, project: it.project, rel: it.rel };
-  return { ...base, path: it.path || it.name, why: it.why || "This file can't be opened here." };
 }
 
 // ── HTML ─────────────────────────────────────────────────────────────────────
