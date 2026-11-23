@@ -13328,28 +13328,12 @@
    "home": "core/ui/redraw.js"
   },
   "js/ui.js::exports::sound": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/sound.js"
   },
   "js/ui.js::exports::esc": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/ui.js::exports::keepTurning": {
    "status": "moved",
@@ -13400,16 +13384,8 @@
    "home": "core/ui/motion.js"
   },
   "js/ui.js::storage::cv-sound": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/sound.js"
   },
   "js/ui.js::custom_events::redrawn": {
    "status": "moved",

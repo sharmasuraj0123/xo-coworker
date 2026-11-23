@@ -1,19 +1,9 @@
-// Soft sounds (C117, the create-project grader on 7e0db5b): the Sounds switch says what is so.
-//   - a storage that refuses to keep "on" leaves sounds off, and says why; once it keeps choices again, one press turns
-//     them on; turning off always works on the page, and says when it won't be remembered
-//   - a browser that won't play (no AudioContext, or it refuses) leaves sounds off, and that's said
-//   - a suspended context is woken by the press that turns sounds on; play() never queues notes into a sleeping one
-// No browser: js/ui.js's sound engine, run against stand-ins for localStorage and AudioContext; and the app's switch
-// handler, read from js/app.js.
-//   node tests/conv-sound.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e.message)); process.exitCode = 1; } };
 
-// what ui.js needs to load in Node
-globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
 const store = { data: {}, refuse: false };
 globalThis.localStorage = {
   getItem: (k) => (k in store.data ? store.data[k] : null),
@@ -29,7 +19,7 @@ globalThis.AudioContext = class {
 };
 // each case gets a fresh module (its choice and its audio context are module state)
 let n = 0;
-const fresh = async () => (await import(new URL(`../js/ui.js?case=${++n}`, import.meta.url))).sound;
+const fresh = async () => (await import(new URL(`../core/services/sound.js?case=${++n}`, import.meta.url))).sound;
 const reset = () => { store.data = {}; store.refuse = false; Object.assign(audio, { start: "running", resumeOk: true, refuseNew: false, made: 0, notes: 0 }); };
 
 await t("a storage that won't keep \"on\" leaves sounds off (nothing played, nothing saved); once it keeps choices, one press turns them on", async () => {

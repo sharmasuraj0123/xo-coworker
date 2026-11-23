@@ -1,4 +1,3 @@
-// 17 · Converged. The final candidate of the round-4 research.
 import { createWorld, esc, WAITING } from "./world.js";
 import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPending, busyAttrs } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
@@ -10,7 +9,8 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "./intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { keepTurning, ICON, stepMark, stateMark, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
+import { keepTurning, ICON, stepMark, stateMark, xi, XO, NEXT_GLYPH, $, $$, RM, reconcile, wait, hold, dial, morph, expand } from "./ui.js";
+import { sound } from "../core/services/sound.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
