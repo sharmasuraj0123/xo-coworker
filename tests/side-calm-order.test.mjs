@@ -83,7 +83,7 @@ else {
     const c = box.children[2], line = c.querySelector(".pr-t");
     const moved = [];
     box.moveBefore = function (el, at) { moved.push(el.dataset.k); return this.insertBefore(el, at); };
-    reconcile(box, ["c", "a", "b"].map(it), { quiet: true, inPlace: true });
+    reconcile(box, ["c", "a", "b"].map(it), { quiet: true });
     assert.deepEqual([...box.children].map((x) => x.dataset.k), ["c", "a", "b"]);
     assert.deepEqual(moved, ["c"], "only the row that moved, moved whole");
     assert.ok(box.children[0] === c && c.querySelector(".pr-t") === line, "the same row and line");

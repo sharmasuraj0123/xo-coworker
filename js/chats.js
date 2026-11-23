@@ -11,7 +11,7 @@ import { space } from "./util.js";
 import { ICON, stateMark, xi } from "./ui.js";
 import { EFFORT_WORD, EFFORT_HINT } from "./intel.js";
 import { renderMarkdown } from "./markdown.js";
-import { turnHtml, turnAv, turnItem } from "./turnview.js";
+import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
 import { rtMark, rtName } from "./runtimes.js";
 import { redraw } from "./redraw.js";
@@ -204,7 +204,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, world.state.turns.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
-        if (inner) items.push(turnItem(`turn:${x.t.id}`, `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${rtMark(s.agent) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>`));
+        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${rtMark(s.agent) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
     if (!all.length && !h.loading && !h.error) items.push({ key: "chat-empty", html: `<p class="m-note">Nothing here yet.</p>` });

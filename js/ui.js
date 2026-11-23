@@ -1,7 +1,7 @@
 // Converged · small shared helpers: icons, a keyed DOM reconciler, time words, smooth disclosure,
 // reduced motion and the optional soft sounds (off by default).
 import { esc } from "./world.js";
-import { redraw, pressedNode } from "./redraw.js";
+import { redraw } from "./redraw.js";
 import { usable } from "./focusview.js";
 
 import { xi, stateMark, ARC } from "./icon.js";
@@ -270,12 +270,10 @@ export const plain = (md) => String(md || "").replace(/```[\s\S]*?```/g, "[code]
  * keep their element (so animations, focus and selection survive a tick);
  * new ones get `is-new` unless `quiet`. Returns the list of new elements.
  *
- * A changed item is drawn anew, except the one you're in: a row holding focus is brought to its new HTML in
- * place (js/redraw.js), so the control you're on stays (Astra DET-1: a tool's output arriving took focus from
- * its disclosure). Its own attributes come from the new HTML; once the list is in order it hears "redrawn"
- * (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same task. Every other row
- * is replaced as before, unless `inPlace` (for the list, or for the item): then it is updated in place, so what stays keeps its node
- * and nothing in it replays (an agent's turn redrawn as its steps land).
+ * A changed item is brought to its new HTML in place (js/redraw.js): what stays keeps its node, so nothing in it
+ * replays and the control you're on or pressing stays. Its own attributes come from the new HTML; once the list is in
+ * order it hears "redrawn" (bubbling), so whatever decorates rows (js/msgx.js) puts its additions back in the same
+ * task. Only a row whose own tag changes is drawn anew.
  */
 /** Where focus can land in a row: its controls, in order. */
 const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
@@ -284,15 +282,12 @@ function move(box, el, at) {
   if (el.isConnected && typeof box.moveBefore === "function") try { box.moveBefore(el, at); return; } catch {}
   box.insertBefore(el, at);
 }
-export function reconcile(box, items, { quiet = false, fallback = null, inPlace: always = false } = {}) {
+export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   const old = new Map();
   for (const el of box.children) if (el.dataset.k) old.set(el.dataset.k, el);
   const added = [];
   const parse = (html) => { const tpl = document.createElement("template"); tpl.innerHTML = html.trim(); return tpl.content.firstElementChild; };
   const active = document.activeElement, inPlace = [];
-  // the node under a press: a row holding it is updated in place, as one holding focus is, so the press still clicks
-  // (a row drawn anew mid-press took the pressed node with it, and the browser drops that click: the owner, 19 Nov)
-  const pressed = pressedNode();
   // a row that's going while it holds focus hands it on first, never to BODY (the create-project/Launchpad grader on
   // f70ca6b, C050/C121: the working mini, dropped with no finished blocks, took focus with it): the nearest row that
   // stays, before it, else after it (found now, before anything moves), or the list's fallback
@@ -307,7 +302,7 @@ export function reconcile(box, items, { quiet = false, fallback = null, inPlace:
     let el = old.get(it.key);
     if (el && el._h !== it.html) {
       const fresh = parse(it.html);
-      if ((always || it.inPlace || (active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
+      if (fresh && fresh.tagName === el.tagName) {
         for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
         for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
         redraw(el, fresh.innerHTML);

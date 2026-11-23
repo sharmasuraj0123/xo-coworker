@@ -297,9 +297,6 @@ function stoppedAt(step) {
   return `Stopped after “${renderInline(said, true)}”`;
 }
 
-/** A turn as a row of a conversation's list: updated in place as its steps land, so nothing in it replays. */
-export const turnItem = (key, html) => ({ key, html, inPlace: true });
-
 /**
  * A turn's blocks as HTML. opts: {open, hideAnswer, now, carried, route, by}. A turn that ended with no
  * blocks (the CLI said nothing) renders nothing; a stopped or failed turn says so in one quiet line.
