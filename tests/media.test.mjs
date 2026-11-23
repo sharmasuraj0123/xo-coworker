@@ -125,6 +125,17 @@ t("updateMessage: files shared after the last reply land on it; reactions and th
 });
 
 // ── items and HTML ────────────────────────────────────────────────────────
+t("items: a project picture is keyed by the version shared, so an overwrite shared again loads fresh", () => {
+  const f = { name: "c.png", type: "image/png", project_id: "billing", relative_path: "out/c.png" };
+  const v1 = M.fromSharedFile({ ...f, mtime: "2026-11-23T10:00:00Z" }), v2 = M.fromSharedFile({ ...f, mtime: "2026-11-23T10:05:00Z" });
+  assert.equal(v1.key, "prj:billing:out/c.png@2026-11-23T10:00:00Z");
+  assert.ok(v1.key !== v2.key);
+  assert.equal(M.fromAttachment({ ...f, mtime: "2026-11-23T10:05:00Z" }).key, v2.key);
+  assert.equal(M.fromSharedFile(f).key, "prj:billing:out/c.png");
+  const row = { id: "m1", extra: { attachments: [{ ...f, mtime: "2026-11-23T10:05:00Z" }] } };
+  assert.equal(M.fromAttachment(attachmentsOf(row)[0]).key, v2.key);
+});
+
 t("items: an upload reads through its chat, an agent's file through its project; no route → a card that says why", () => {
   const up = M.fromAttachment({ id: "att_9", name: "me.png", type: "image/png", bytes: 10 }, { chat: "chat_p", by: "You" });
   assert.equal(up.kind, "image"); assert.equal(up.key, "att:chat_p:att_9"); assert.match(up.src, /chat\/chats\/chat_p\/attachments\/att_9$/);

@@ -246,6 +246,9 @@ export function webImagesHtml(list) {
   return show.length ? mediaHtml(show, { side: "them" }).replace(/<\/div>$/, `${linkP}</div>`) : `<div class="mx-stack mx-them">${linkP}</div>`;
 }
 
+// a project file's picture is the version that was shared: an overwrite shared again is a new picture
+const prjKey = (project, rel, mtime) => `prj:${project}:${rel}${mtime ? `@${mtime}` : ""}`;
+
 /**
  * A file on a message: an upload of yours ({id}, read through its chat) or a file an agent shared
  * ({project_id, relative_path}, read from its project). by: who made it, for the lightbox's caption.
@@ -254,7 +257,7 @@ export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
   const c = f.chat || chat;
   const base = { name: f.name, title: f.title, type: f.type, bytes: f.bytes ?? f.size, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, by, at };
   if (f.id && c) return mediaItem({ ...base, key: `att:${c}:${f.id}`, att: { chat: c, id: String(f.id) }, src: attachmentUrl(c, f.id) });
-  if (f.project_id && f.relative_path) return mediaItem({ ...base, key: `prj:${f.project_id}:${f.relative_path}`, project: String(f.project_id), rel: String(f.relative_path), path: f.path || f.relative_path });
+  if (f.project_id && f.relative_path) return mediaItem({ ...base, key: prjKey(f.project_id, f.relative_path, f.mtime), project: String(f.project_id), rel: String(f.relative_path), path: f.path || f.relative_path });
   return mediaItem({ ...base, key: `none:${f.name || ""}` }); // not uploaded yet: a card that can't open
 }
 
@@ -265,7 +268,7 @@ export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
 export function fromSharedFile(f, { route = null, by = "", at = null } = {}) {
   const base = { name: f.name || f.path, title: f.title, type: f.type, bytes: f.bytes, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, path: f.path || f.name, by, at };
   const r = f.project_id && f.relative_path ? { project: String(f.project_id), rel: String(f.relative_path) } : route ? route(f.path || f.name) : null;
-  if (r && r.project && r.rel) return mediaItem({ ...base, key: `prj:${r.project}:${r.rel}`, project: r.project, rel: r.rel });
+  if (r && r.project && r.rel) return mediaItem({ ...base, key: prjKey(r.project, r.rel, f.mtime), project: r.project, rel: r.rel });
   return mediaItem({ ...base, key: `path:${f.path || f.name}`, why: (r && r.why) || "This file is in a folder XO doesn't serve to the UI yet." });
 }
 
