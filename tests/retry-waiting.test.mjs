@@ -28,7 +28,7 @@ t("a draw over a failure notice paints the waiting state before the editor answe
   has(d, /Couldn't show this file\.[\s\S]*data-vw-retry>Try again</, "failed again: said again, Try again ready");
 });
 t("a press while it's trying does nothing more", () => {
-  const i = src.indexOf(`if (e.target.closest('[data-vw-retry][aria-busy="true"]')) return;`), j = src.indexOf(`if (e.target.closest("[data-vw-retry]")) {`);
+  const i = src.indexOf(`if (target.closest('[data-vw-retry][aria-busy="true"]')) return;`), j = src.indexOf(`if (target.closest("[data-vw-retry]")) {`);
   assert.ok(i > 0 && j > i, "the busy Try again is passed over before the press acts");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

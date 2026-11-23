@@ -352,7 +352,7 @@ export function createDocs(/** @type {DocsDeps} */ { api, store = null, clock = 
   }
 
   /** Make an older version's text the file's again: a save, so it's a new version (and undoable). */
-  function restore(/** @type {any} */ d, /** @type {any} */ text, { id = null } = {}) {
+  function restore(/** @type {any} */ d, /** @type {any} */ text, /** @type {{id?: string | null}} */ { id = null } = {}) {
     d.viewing = null;
     d.restoreOf = id || null; d.restoring = true;
     const now = textOf(d);

@@ -1,3 +1,5 @@
+// @ts-check
+
 import { esc } from "../../core/platform/index.js";
 import { api } from "../../core/platform/api.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -5,6 +7,9 @@ import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { byWords } from "./documents.js";
 import { mount as mountEditor } from "./editor.js";
 
+/** @import { ViewerFile, ViewerTextDependencies } from "./viewer-types.d.ts" */
+
+/** @param {ViewerTextDependencies} deps */
 export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, announce, threadTitle, paintHead }) {
   function textBody() {
     if (!TX.el) { TX.el = document.createElement("div"); TX.el.className = "vw-body vw-file vw-doc"; TX.el.tabIndex = -1; }
@@ -27,9 +32,9 @@ export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, an
     if (!again) dropText();
     else { TX.gen++; if (TX.h) { TX.h.destroy(); TX.h = null; } }
     TX.key = key;
-    const my = TX.gen, host = textBody(), f = V.file;
+    const my = TX.gen, host = textBody(), f = /** @type {ViewerFile} */ (V.file);
     if (again) {
-      const box = again.closest(".vw-empty"), words = box.querySelector("p");
+      const box = /** @type {HTMLElement} */ (again.closest(".vw-empty")), words = box.querySelector("p");
       box.setAttribute("role", "status");
       if (words) words.textContent = "Drawing this file…";
       again.setAttribute("aria-busy", "true"); again.setAttribute("aria-disabled", "true"); again.textContent = "Trying again…";
@@ -47,7 +52,7 @@ export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, an
       TX.h = h;
       inRegion(host, () => { for (const x of host.querySelectorAll(":scope > .vw-empty")) x.remove(); });
       if (D.state === "conflict") h.showMerge();
-      if (D.viewing) h.showVersion(D.viewing.text);
+      if (D.viewing) h.showVersion(/** @type {string | null} */ (D.viewing.text));
       else if (V.showChanges) showChangesNow();
       if (f.lines) { const [a, b] = f.lines; h.select(a, b); }
       if (el.contains(document.activeElement) || document.activeElement === document.body || V.focusText) { V.focusText = false; h.focus(); }
@@ -64,6 +69,7 @@ export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, an
     const n = D.versions.length, prev = n > 1 ? D.versions[n - 2] : null;
     TX.h.showChanges(V.showChanges && prev && prev.text != null ? prev.text : null);
   }
+  /** @param {number} dir */
   async function stepVersion(dir) {
     const D = doc();
     if (!D || !TX.h) return;
@@ -91,14 +97,15 @@ export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, an
     paintHead();
   }
 
+  /** @param {{a: number, b: number} | null} l */
   function openAsk(l) {
-    const f = V.file;
+    const f = /** @type {ViewerFile} */ (V.file);
     if (!l || !ask) return;
     const to = ask.target(f);
     if (!to) return;
     if (ask.compose && ask.compose(f, l.a, l.b)) return;
     TX.asking = { a: l.a, b: l.b };
-    let q = el.querySelector(":scope > .xd-q");
+    let q = /** @type {HTMLFormElement | null} */ (el.querySelector(":scope > .xd-q"));
     if (!q) {
       q = document.createElement("form");
       q.className = "xd-q";
@@ -109,11 +116,13 @@ export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, an
         if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); }
         if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(); }
       });
-      (el.querySelector(":scope > .vw-verbar") || el.querySelector(":scope > .vw-top")).after(q);
+      /** @type {Element} */ (el.querySelector(":scope > .vw-verbar") || el.querySelector(":scope > .vw-top")).after(q);
     }
-    q.querySelector(".xd-ref").innerHTML = `${fileIcon(f.name || f.path)}<span>${esc(f.name || f.path)} · ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span>`;
-    q.querySelector(".xd-to").innerHTML = `To <b>${esc(to)}</b>`;
-    q.querySelector(".xd-in").focus({ preventScroll: true });
+    const ref = /** @type {HTMLElement} */ (q.querySelector(".xd-ref"));
+    ref.innerHTML = `${fileIcon(/** @type {string} */ (f.name || f.path))}<span>${esc(f.name || f.path)} · ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span>`;
+    const toLabel = /** @type {HTMLElement} */ (q.querySelector(".xd-to"));
+    toLabel.innerHTML = `To <b>${esc(to)}</b>`;
+    /** @type {HTMLTextAreaElement} */ (q.querySelector(".xd-in")).focus({ preventScroll: true });
   }
   function closeAsk(quiet = false) {
     const q = el.querySelector(":scope > .xd-q");
@@ -123,9 +132,9 @@ export function createViewerText({ el, V, TX, docs, doc, isMd, ask, inRegion, an
     if (had && !quiet && TX.h) TX.h.focus();
   }
   function sendAsk() {
-    const q = el.querySelector(":scope > .xd-q"), t = q && q.querySelector(".xd-in").value.trim();
+    const q = el.querySelector(":scope > .xd-q"), t = q && /** @type {HTMLTextAreaElement} */ (q.querySelector(".xd-in")).value.trim();
     if (!t || !TX.asking) return;
-    if (ask.send(V.file, TX.asking.a, TX.asking.b, t)) { closeAsk(); if (TX.h) TX.h.clearSelection(); }
+    if (/** @type {NonNullable<typeof ask>} */ (ask).send(/** @type {ViewerFile} */ (V.file), TX.asking.a, TX.asking.b, t)) { closeAsk(); if (TX.h) TX.h.clearSelection(); }
   }
 
 

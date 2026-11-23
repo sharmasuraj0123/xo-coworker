@@ -12,9 +12,9 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("a mode chosen on an image is never the documents' mode", () => {
-  const i = src.indexOf("const mode = m.dataset.vwMode;"), h = src.slice(i, i + 900);
+  const i = src.indexOf("const mode = /** @type {string} */ (m.dataset.vwMode);"), h = src.slice(i, i + 900);
   assert.ok(i > 0, "the mode handler");
-  const img = h.indexOf('if (V.file.image || (V.data && V.data.kind === "image")) { V.imgMode = mode; render(); return; }');
+  const img = h.indexOf('if (/** @type {OpenFile} */ (V.file).image || (V.data && V.data.kind === "image")) { V.imgMode = mode; render(); return; }');
   const md = h.indexOf("V.textMode = mode;"), html = h.indexOf("V.mode = mode;");
   assert.ok(img > 0 && md > img && html > img, "an image's choice is taken first, and stops there");
   assert.doesNotMatch(src, /if \(V\.mode !== "actual"\) V\.textMode = V\.mode;/, "not by the value, which an image's Fit shares with Preview");

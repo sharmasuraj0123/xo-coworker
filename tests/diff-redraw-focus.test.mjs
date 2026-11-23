@@ -40,8 +40,8 @@ t("drawing again after the renderer failed: the notice says so in place and its 
 t("the busy notice stays until the drawing is in, then goes; a second press does nothing more", () => {
   assert.match(dd, /if \(!host\.querySelector\(':scope > \.vw-empty \[data-vw-diff-redraw\]\[aria-busy="true"\]'\)\) inRegion\(host, \(\) => host\.replaceChildren\(\)\);/);
   assert.match(dd, /DF\.handle = h;\s*inRegion\(host, \(\) => \{ for \(const x of host\.querySelectorAll\(":scope > \.vw-empty"\)\) x\.remove\(\); \}\);/);
-  const i = src.indexOf('const sh = e.target.closest("[data-vw-show]");');
-  assert.ok(src.slice(i - 200, i).includes(`if (e.target.closest('[data-vw-diff-redraw][aria-busy="true"]')) return;`), "the busy Try again takes no press, before Show");
+  const i = src.indexOf('target.closest("[data-vw-show]")');
+  assert.ok(src.slice(i - 200, i).includes(`if (target.closest('[data-vw-diff-redraw][aria-busy="true"]')) return;`), "the busy Try again takes no press, before Show");
 });
 const { document } = await dom("");
 const retry = deferred();
