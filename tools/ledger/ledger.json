@@ -7181,20 +7181,20 @@
    "home": "modules/home/parts.js"
   },
   "js/app.js::functions::optHtml": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.652)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::nextActHtml": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.656)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::nextHead": {
    "status": "planned",
    "home": "modules/home (consumes the decisions API) (app.js l.685)"
   },
   "js/app.js::functions::nextCardHtml": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.699)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::homeRender": {
    "status": "planned",

@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | kept | 57 |
 | split | 29 |
 
-Items inside first-party files: 2488 (moved 1481, planned 625, kept 132, deleted 127, split-region 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1484, planned 622, kept 132, deleted 127, split-region 122, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
