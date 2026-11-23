@@ -82,7 +82,7 @@ import { keyHtml } from "../core/ui/a11y/keycap.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance } from "../modules/settings/appearance.js";
 import { wireSound } from "../modules/settings/sound.js";
-import { createTheme } from "../core/ui/theme.js";
+import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable } from "./focusview.js";
 
@@ -3959,14 +3959,7 @@ const KP = createKeysPage({ box: $("#set-keys-list"), state: S, announce, resetI
 K.onChange(() => { KP.render(); if (!keys.hidden) keysSheetRender(); schedule(); });
 KP.render();
 
-// ── theme toggle ────────────────────────────────────────────────────────────
-$("#theme").addEventListener("click", () => {
-  const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-  try { localStorage.setItem("cv-theme", t); } catch { /* private */ }
-  applyTheme(t);
-  lookSync();
-  announce(t === "light" ? "Light mode" : "Dark mode");
-});
+wireThemeToggle(applyTheme, lookSync, announce);
 
 // ── the sidebar: folds to its rail; More holds every further place ─────────────
 const SIDE = createSide({ shape: SHAPE, keys: K, announce, render, toggleJump: () => (jump.hidden ? JUMP.open() : JUMP.close()) });

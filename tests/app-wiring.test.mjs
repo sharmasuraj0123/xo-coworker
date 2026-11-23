@@ -75,3 +75,9 @@ assert.equal(document.querySelector('#mode-seg [data-mode="dark"]').getAttribute
 press('#flavour-seg [data-flavour="stone"]');
 assert.equal(document.documentElement.dataset.flavour, undefined, "Stone removes the flavour override");
 assert.equal(storage.get("cv-flavour"), "stone", "choosing Stone persists it");
+
+press("#theme");
+assert.equal(document.documentElement.dataset.theme, "light", "the theme switch applies Light");
+assert.equal(storage.get("cv-theme"), "light", "the theme switch persists Light");
+assert.equal(document.querySelector("#theme").getAttribute("aria-checked"), "true");
+assert.equal(document.querySelector('#mode-seg [data-mode="light"]').getAttribute("aria-checked"), "true", "the theme switch syncs Appearance");

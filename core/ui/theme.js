@@ -31,3 +31,14 @@ export function createTheme(setDiffTheme) {
   LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") applyTheme(THEME.get()); });
   return { THEME, applyTheme };
 }
+
+/** @param {ReturnType<typeof createTheme>["applyTheme"]} applyTheme @param {() => void} lookSync @param {(message: string) => void} announce */
+export function wireThemeToggle(applyTheme, lookSync, announce) {
+  $("#theme").addEventListener("click", () => {
+    const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    try { localStorage.setItem("cv-theme", t); } catch { /* private */ }
+    applyTheme(t);
+    lookSync();
+    announce(t === "light" ? "Light mode" : "Dark mode");
+  });
+}

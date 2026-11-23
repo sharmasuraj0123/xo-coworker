@@ -8088,8 +8088,7 @@
   },
   "js/app.js::storage::cv-theme": {
    "status": "moved",
-   "home": ["core/ui/theme.js", "js/app.js"],
-   "note": "Core UI reads the preference; the app still writes it."
+   "home": ["core/ui/theme.js", "modules/settings/appearance.js"]
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
