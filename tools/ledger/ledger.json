@@ -7189,8 +7189,8 @@
    "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::nextHead": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.685)"
+   "status": "deleted",
+   "reason": "Removed in 156711d0 when Home switched to the shared decision card's lead markup."
   },
   "js/app.js::functions::nextCardHtml": {
    "status": "moved",
