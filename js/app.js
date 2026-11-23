@@ -74,6 +74,7 @@ import { createHerald, noticeFor, refusedNotice } from "../core/services/notices
 import { createCalmOrder } from "./sideorder.js";
 import { keyHtml } from "../core/ui/a11y/keycap.js";
 import { STONE, FLAVOURS } from "../core/ui/flavours.js";
+import { createTheme } from "../core/ui/theme.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable } from "./focusview.js";
 
@@ -120,32 +121,7 @@ const DRAFTS = "cv-drafts:live";
 // Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
 const STOP_ICON = ICON.stop;
 
-// ── theme: a mode (dark by default, light, or the system's) and a flavour of the palette (css/flavours.css) ──
-const LIGHT_OS = matchMedia("(prefers-color-scheme: light)");
-const THEME = {
-  pref() { try { const t = localStorage.getItem("cv-theme"); return t === "light" || t === "system" ? t : "dark"; } catch { return "dark"; } },
-  get() { const p = THEME.pref(); return p === "system" ? (LIGHT_OS.matches ? "light" : "dark") : p; },
-  flavour() { try { const f = localStorage.getItem("cv-flavour"); return f && /^[a-z-]+$/.test(f) ? f : "stone"; } catch { return "stone"; } },
-};
-function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
-  const f = THEME.flavour();
-  if (f === "stone") delete document.documentElement.dataset.flavour; else document.documentElement.dataset.flavour = f;
-  setDiffTheme(t); // a drawn diff follows at once (js/diffview.js)
-  document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
-  // the browser's own chrome (Safari's bars, Android's status bar) takes the canvas's colour
-  const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
-  if (canvas) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvas);
-  const b = $("#theme");
-  if (b) {
-    b.setAttribute("aria-checked", String(t === "light")); b.title = t === "light" ? "Light mode is on. Switch to dark" : "Switch to light mode";
-    // an icon of the mode a press gives (the owner, 19 Nov: icons, no words, in the foot)
-    const ic = `<span class="gear-ic" aria-hidden="true">${t === "light" ? ICON.moon : ICON.sun}</span>`;
-    if (b._ic !== ic) { b.innerHTML = ic; b._ic = ic; }
-  }
-}
-applyTheme(THEME.get());
-LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") applyTheme(THEME.get()); });
+const { THEME, applyTheme } = createTheme(setDiffTheme);
 
 // ── state ───────────────────────────────────────────────────────────────────
 const S = {

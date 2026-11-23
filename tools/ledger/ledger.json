@@ -7120,8 +7120,8 @@
    "home": "core/platform/http.js"
   },
   "js/app.js::functions::applyTheme": {
-   "status": "planned",
-   "home": "core/ui theme service (diffview subscribes) (app.js l.116)"
+   "status": "moved",
+   "home": "core/ui/theme.js"
   },
   "js/app.js::functions::announce": {
    "status": "planned",
@@ -8086,8 +8086,9 @@
    "home": "modules/threads (app.js l.3814)"
   },
   "js/app.js::storage::cv-theme": {
-   "status": "planned",
-   "home": "core/ui theme service (diffview subscribes) (app.js l.115)"
+   "status": "moved",
+   "home": ["core/ui/theme.js", "js/app.js"],
+   "note": "Core UI reads the preference; the app still writes it."
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "planned",
