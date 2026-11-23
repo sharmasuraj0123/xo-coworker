@@ -38,6 +38,7 @@ import { kernel } from "../shell/kernel.js";
 import { headerActionsHtml, wireHeaderActions } from "../shell/header.js";
 import { stackLayers } from "../shell/layers.js";
 import { wireBack } from "../shell/back.js";
+import { createNavigation } from "../shell/navigation.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
 import { createLaunchpad } from "../modules/launchpad/launchpad.js";
@@ -2908,50 +2909,8 @@ function saveScroll() {
   if (pageEl(S.view)) S.scroll[S.view] = pageEl(S.view).scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-function go(v, { from, row = null, focus = false, carry = false, panel = false, still = false } = {}) {
-  if (!v) return;
-  // a file with unsaved edits asks first (Files › Edit, its head): Discard, then on
-  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, row, focus, carry, panel, still })); return; }
-  // an edit or menu in a thread's header belongs to that visit
-  S.tEdit = null; S.tMenu = null;
-  // the file viewer belongs to the conversation it was opened from
-  // a page in the panel belongs to its place
-  if (v !== S.view) STAGE.leave();
-  closeSettings({ restore: false });
-  setDrawer(false);
-  IQ.close({ restore: false });
-  if (panel && v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });
-  if (v === S.view) { if (focus) say.focus(); return; }
-  saveScroll(); saveDraft();
-  // the phone's Back retraces the places you went; a thread's parent already knows its own way back
-  if (!S.retrace && !v.startsWith("t:") && !v.startsWith("c:")) { S.trail = S.trail.filter((x) => x !== v); S.trail.push(S.view); if (S.trail.length > 30) S.trail.shift(); }
-  const deeper = v.startsWith("t:") && !S.view.startsWith("t:");
-  if (v.startsWith("t:")) S.parent[v] = from || (S.view.startsWith("t:") ? S.parent[S.view] : S.view);
-  // each visit to a thread keeps the message it was opened from, and only that visit's Back reads it
-  if (v.startsWith("t:")) S.backTo[v] = row ? { view: S.view, k: row } : null;
-  const back = from && from.startsWith("t:");
-  REC.leave(S.view, v);
-  S.view = v;
-  follow();
-  TD.key = null; tdock.innerHTML = ""; tdock._ch = "";
-  const el = pageEl(v) || $("#column");
-  el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
-  void el.offsetWidth;
-  if (!still) el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
-  loadDraft();
-  render();
-  if (pageEl(v)) pageEl(v).scrollTop = S.scroll[v] || 0;
-  const was = back ? S.backTo[from] : null;
-  if (back) delete S.backTo[from];
-  const left = was && was.view === v ? $("#msgs").querySelector(`:scope > [data-k="${CSS.escape(was.k)}"]`) : null;
-  const target = left ? left.querySelector(`[data-go="${CSS.escape(from)}"]`) || left.querySelector("[data-go]") : null;
-  if (focus) say.focus({ preventScroll: true });
-  else if (back && target) target.focus({ preventScroll: true });
-  // the place's own reading region: a page's own section (the conversation's scroller is hidden there), else the
-  // conversation; never a hidden one (Astra H8: Jump → Artifacts landed on the page)
-  else if (!$("#panel").contains(document.activeElement)) (pageEl(v) || scroller).focus({ preventScroll: true });
-  returnPill(back && target && !focus ? target : null);
-}
+const navigate = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render, returnPill });
+function go(v, options) { return navigate(v, options); }
 /** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's
     rule), and when the message you left from is above, a quiet pill offers the way back to it, deliberately. */
 function returnPill(target) {

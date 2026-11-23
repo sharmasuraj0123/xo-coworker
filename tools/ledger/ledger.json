@@ -7641,8 +7641,8 @@
    "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
-   "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3092)"
+   "status": "moved",
+   "home": "shell/navigation.js"
   },
   "js/app.js::functions::returnPill": {
    "status": "planned",

@@ -153,7 +153,7 @@ console.log("thread-page files and model: ok");
   const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
   assert.match(ui, /toMain: xi\("open-in-main"\),/);
   assert.match(app, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
-  assert.match(app, /if \(!still\) el\.classList\.add\(/);
+  assert.match(readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8"), /if \(!still\) el\.classList\.add\(/);
   assert.match(app, /function toMain\(id\) \{\n  closeThreadMenu\(\{ focus: false \}\);\n  STAGE\.closePage\("thread"\); go\("t:" \+ id, \{ panel: true \}\);\n\}/);
   assert.doesNotMatch(app, /startViewTransition/, "no pictures of the thread are morphed: nothing zooms or seems to scroll");
   assert.doesNotMatch(appCss, /view-transition/);

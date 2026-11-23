@@ -8,27 +8,43 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { dom } from "./lib/dom.mjs";
+import { createNavigation } from "../shell/navigation.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("js/app.js"), lp = sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("go(): on a phone, the panel steps aside for the place opened, before anything is focused", () => {
-  const g = app.slice(app.indexOf("function go(v, {"), app.indexOf("function returnPill("));
-  const close = g.indexOf("if (panel && v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });");
-  assert.ok(close > 0, "the panel's close in go()");
-  for (const later of ["if (v === S.view) { if (focus) say.focus(); return; }", "say.focus({ preventScroll: true })", "scroller).focus({ preventScroll: true })"]) {
-    const i = g.indexOf(later); assert.ok(i > close, `before: ${later}`);
-  }
-});
+const { document } = await dom('<div id="panel"></div><div id="column"><div id="scroller" tabindex="-1"></div><textarea id="say"></textarea></div><div id="tdock"></div>');
+for (const focus of [true, false]) {
+  t(`navigation closes the phone panel before focusing the ${focus ? "composer" : "scroller"}`, () => {
+    const say = document.querySelector("#say"), scroller = document.querySelector("#scroller");
+    const calls = [];
+    const target = focus ? say : scroller;
+    const onFocus = () => calls.push("focus");
+    target.addEventListener("focus", onFocus, { once: true });
+    const go = createNavigation({
+      S: { view: "home", tEdit: null, tMenu: null, retrace: false, trail: [], parent: {}, backTo: {}, scroll: {} },
+      VW: { editing: false, leave() {} },
+      STAGE: { isOpen: true, leave() {}, close(options) { calls.push(options); } },
+      IQ: { close() {} }, PHONE: { matches: true }, REC: { leave() {} },
+      TD: { key: null }, tdock: document.querySelector("#tdock"), say, scroller,
+      closeSettings() {}, setDrawer() {}, saveScroll() {}, saveDraft() {}, follow() {},
+      pageEl: () => null, loadDraft() {}, render() {}, returnPill() {},
+    });
+    go("ws", { panel: true, focus });
+    assert.deepEqual(calls, [{ restore: false, quiet: true }, "focus"]);
+    assert.ok(document.activeElement === target, "focus reaches the requested destination");
+  });
+}
 t("only a place opened from the panel: the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
   for (const m of ["const MAP = createMap(", "const STAGE = createStage("]) {
     const i = app.indexOf(m); assert.ok(i >= 0, m);
     // (the panel's own rows open a thread as its Thread page beside a chat, else navigate as the panel: openFromPanel)
     assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v(, e)?\) => (go\(v, \{ panel: true \}\)|openFromPanel\(v, e\))/, `${m} navigates as the panel`);
   }
-  assert.match(app, /function go\(v, \{ from, row = null, focus = false, carry = false, panel = false, still = false \} = \{\}\) \{/);
+  assert.match(read("shell/navigation.js"), /function go\(v, \{ from, row = null, focus = false, carry = false, panel = false, still = false \} = \{\}\) \{/);
 });
 t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wait of its own for the conversation", () => {
   assert.match(lp, /case "thread": go && go\(el\.dataset\.go\); return;/);

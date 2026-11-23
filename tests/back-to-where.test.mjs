@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const go = app.slice(app.indexOf("function go(v, {"), app.indexOf("function returnPill("));
+const go = readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8");
 assert.doesNotMatch(app, /S\.opener|opener: \{\}/, "no store guessed from focus");
 assert.doesNotMatch(go, /activeElement[^;]*closest\?\.\("\[data-k\]"\)/, "where you left from is never read from focus");
 assert.match(app, /const rowIn = \(el\) => el\.closest\("#msgs > \[data-k\]"\)\?\.dataset\.k \|\| null;/);
 assert.match(app, /go\(g\.dataset\.go, \{ row: rowIn\(g\) \}\)/, "a card or link in the chat sends its message");
 assert.match(app, /go\("t:" \+ tl\.dataset\.thread, \{ row: rowIn\(tl\) \}\)/);
 assert.match(go, /if \(v\.startsWith\("t:"\)\) S\.backTo\[v\] = row \? \{ view: S\.view, k: row \} : null;/, "every visit replaces the last one's");
-assert.match(go, /const was = back \? S\.backTo\[from\] : null;\n  if \(back\) delete S\.backTo\[from\];/, "read once, by that visit's Back");
+assert.match(go, /const was = back \? S\.backTo\[from\] : null;\n    if \(back\) delete S\.backTo\[from\];/, "read once, by that visit's Back");
 assert.match(go, /was && was\.view === v \?/, "only in the chat it was opened from");
 const tp = app.slice(app.indexOf("function tpShow("), app.indexOf("function tpShow(") + 200);
 assert.match(tp, /if \(TP\.tid !== key\) \{\n    returnPill\(null\);/, "another thread in the panel ends the offer");
