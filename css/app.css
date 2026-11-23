@@ -634,7 +634,8 @@ button.hr:active{transform:scale(.97)}
 .hr.is-in{animation:float-in var(--d-move) var(--ease)}
 .hr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
 .hr-t b{color:var(--warn-text);font-weight:var(--fw-strong);font-variant-numeric:tabular-nums}
-.hr-s{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
+/* the subline gives way first, then the title ellipses; the buttons never shrink */
+.hr-s{flex-shrink:1000;color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
 .hr>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .hr-dot{flex:none;width:var(--ic-sm);height:var(--ic-sm);background:var(--warn);mask:var(--mask-needs)}
 .hr:has(>:is(.hr-go,.hr-undo)){padding-right:calc(var(--note-in) - 1px)}
@@ -653,7 +654,7 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .hr-go svg{width:var(--ic-sm);height:var(--ic-sm)}
 .hr-calm{box-shadow:none}
 .hr-calm .hr-t{color:var(--ink-3)}
-.hr-ev .hr-t{flex:none;color:var(--ink)}
+.hr-ev .hr-t{color:var(--ink)}
 .hr-ev .hr-ic .tk{animation-delay:var(--dur-fast)}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
@@ -2138,7 +2139,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 @media (max-width:760px){
   .hr-ev.k-stopped{flex-wrap:wrap;row-gap:0;height:auto;min-height:calc(var(--note-h) + 2px);padding:calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--edge-text) - 1px);border-radius:var(--r-xl)}
   .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
-  .hr-ev.k-stopped.has-undo .hr-undo{margin-left:auto}
+  .hr-ev.k-stopped .hr-t{flex:1 1 0}
   /* Undo keeps a finger's height, and its pill grows round it by the same inset */
   .hr:has(>.hr-undo){--note-btn:var(--h-touch);--note-h:calc(var(--note-btn) + 2 * var(--s-1))}
 }

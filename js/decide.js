@@ -32,7 +32,7 @@ import { redraw } from "./redraw.js";
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
 const BIG_CHECK = ICON.stampAllow;
 const BIG_BACK = ICON.stampBack;
-export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent }) {
+export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent, onShown, onGone }) {
   const panel = $("#panel"), stage = $("#pn-stage");
   const firstSeen = new Map();
   let seq = 0;
@@ -184,7 +184,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   });
 
   // ── panel state ───────────────────────────────────────────────────────────
-  const F = { open: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };
+  const F = { open: false, parked: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };
   /** The words of the newest try on this ask that failed to send, kept for the next try: a Send back's note, or
    *  (mode "reply") an answer you typed; "" once something newer happened to it. */
   function failedWords(key, mode = "back") {
@@ -199,7 +199,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     notSent: () => log.filter((d) => d.status === "gone"),
     /** The note of the newest decision on this ask that failed to send (its words are kept for the retry). */
     failedNote: (key, mode) => failedWords(key, mode), // only while that failure is the latest word on it
-    isOpen: () => F.open,
+    isOpen: () => F.open && !F.parked,
+    park, unpark,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),
     open, close, sync, undo, decide, decideNow, laterNow, bringIn,
     cardHtml, wireCard,
@@ -225,8 +226,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     F.cur = startKey && F.order.includes(startKey) ? startKey : (needs.find((n) => !n.later) || needs[0]).key;
     if (teachScope && startKey) teach.set(startKey, teachScope);
     F.done = false; F.vig = false;
-    const was = F.open;
-    F.open = true;
+    const was = F.open && !F.parked;
+    F.open = true; F.parked = false;
     P.reviewStart();
     panel.hidden = false;
     document.body.classList.add("panel-open");
@@ -235,14 +236,30 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     show(F.cur, was ? "skip-fwd" : "enter");
     announce(`${$("#pn-h").textContent}: ${F.order.length}.`);
     render();
+    onShown && onShown();
     return true;
+  }
+  /** Steps aside, kept as it was, while another card has the edge; unpark brings it back with focus. */
+  function park() {
+    if (!F.open || F.parked) return;
+    F.parked = true; panel.hidden = true;
+    document.body.classList.remove("panel-open");
+    render();
+  }
+  function unpark() {
+    if (!F.open || !F.parked) return;
+    F.parked = false; panel.hidden = false;
+    document.body.classList.add("panel-open");
+    render();
+    ($("#card") || panel).focus({ preventScroll: true });
   }
 
   function close({ restore = true } = {}) {
     if (!F.open) return;
     F.hold && F.hold.cancel();
     clearTimeout(F.autoT);
-    F.open = false;
+    const was = !F.parked;
+    F.open = false; F.parked = false;
     P.reviewStop();
     panel.classList.remove("is-in");
     panel.classList.add("is-out");
@@ -254,9 +271,10 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     // controls grader on 05d76ca, S142: BODY at 450 ms, for Enter, Space and a press, four cells)
     const r = F.returnTo;
     F.returnTo = null;
-    if (restore) { if (usable(r)) r.focus({ preventScroll: true }); else back && back([hookOf(r)].filter(Boolean)); }
+    if (restore && was) { if (usable(r)) r.focus({ preventScroll: true }); else back && back([hookOf(r)].filter(Boolean)); }
     toastRender();
     render();
+    onGone && onGone();
   }
 
   /** On every app render: fold newly admitted asks in, mark vanished ones. Held asks never join by themselves. */

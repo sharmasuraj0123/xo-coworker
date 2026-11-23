@@ -43,4 +43,12 @@ t("the notice is a pill a control tall: its icon bare, Open and Undo pills neste
   assert.match(app, /\.hr:has\(>\.hr-undo\)\{--note-btn:var\(--h-touch\);--note-h:calc\(var\(--note-btn\) \+ 2 \* var\(--s-1\)\)\}/, "on a phone Undo keeps a finger's height");
   assert.doesNotMatch(app, /\.hr(?:-ev)?[^{]*\{[^}]*(?:min-height:38px|padding:5px)/, "no fixed sizes");
 });
+t("a long notice ellipses its words, never its buttons: the subline gives way first, then the title", () => {
+  assert.match(rule(".hr"), /max-width:100%;/);
+  assert.match(rule(".hr-t"), /^min-width:0;overflow:hidden;text-overflow:ellipsis;/);
+  assert.match(rule(".hr-s"), /^flex-shrink:1000;[^}]*overflow:hidden;text-overflow:ellipsis/);
+  assert.doesNotMatch(app, /\.hr-t\{[^}]*flex:none/, "a title that can't shrink pushes Open out of the pill");
+  for (const sel of [".hr-go", ".hr-undo"]) assert.match(rule(sel), /^flex:none;/, sel);
+  assert.match(app, /\n  \.hr-ev\.k-stopped \.hr-t\{flex:1 1 0\}/, "on a phone a stopped title keeps the icon's line instead of wrapping under it");
+});
 console.log(`\n${passed} passed`);
