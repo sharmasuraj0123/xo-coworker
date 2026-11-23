@@ -1,10 +1,10 @@
 // @ts-check
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { dom } from "./lib/dom.mjs";
-import { pageHtml } from "./lib/page.mjs";
 
-const { window, document } = await dom(pageHtml());
+const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const storage = new Map([["cv-theme", "light"], ["cv-flavour", "onyx"]]);
 /** @type {FrameRequestCallback[]} */
 const frames = [];
@@ -34,7 +34,7 @@ Object.assign(globalThis, {
   EventSource: class { addEventListener() {} close() {} },
 });
 
-await import("../js/app.js");
+await import("../boot.js");
 await new Promise((resolve) => setImmediate(resolve));
 for (const frame of frames.splice(0)) frame(performance.now());
 
