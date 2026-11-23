@@ -2139,7 +2139,7 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 @media (max-width:760px){
   .hr-ev.k-stopped{flex-wrap:wrap;row-gap:0;height:auto;min-height:calc(var(--note-h) + 2px);padding:calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--edge-text) - 1px);border-radius:var(--r-xl)}
   .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
-  .hr-ev.k-stopped.has-undo .hr-undo{margin-left:auto}
+  .hr-ev.k-stopped .hr-t{flex:1 1 0}
   /* Undo keeps a finger's height, and its pill grows round it by the same inset */
   .hr:has(>.hr-undo){--note-btn:var(--h-touch);--note-h:calc(var(--note-btn) + 2 * var(--s-1))}
 }

@@ -49,5 +49,6 @@ t("a long notice ellipses its words, never its buttons: the subline gives way fi
   assert.match(rule(".hr-s"), /^flex-shrink:1000;[^}]*overflow:hidden;text-overflow:ellipsis/);
   assert.doesNotMatch(app, /\.hr-t\{[^}]*flex:none/, "a title that can't shrink pushes Open out of the pill");
   for (const sel of [".hr-go", ".hr-undo"]) assert.match(rule(sel), /^flex:none;/, sel);
+  assert.match(app, /\n  \.hr-ev\.k-stopped \.hr-t\{flex:1 1 0\}/, "on a phone a stopped title keeps the icon's line instead of wrapping under it");
 });
 console.log(`\n${passed} passed`);
