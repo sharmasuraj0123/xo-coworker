@@ -2,9 +2,9 @@
 
 ## P1 integration, resumed 23 November 2026
 
-The integration branch is `modular/integration-bc5bb3`, based on `coworker/modular` at `7b94496e`. The full check passed from an archived copy of that baseline and again after merging route types at `82155c9d`. The icon move at `e546c9b1) passed the same check and dropped the final ledger from 1,719 to 1,334 problems. Git reports 385 byte-identical icon renames. The shape presets from services-2 came across separately at `5caa28f2`. The store's loader test failed on the old path before the move.
+The integration branch is `modular/integration-bc5bb3`, based on `coworker/modular` at `7b94496e`. The full check passed from an archived copy of that baseline and again after merging route types at `82155c9d`. The icon move at `e546c9b1` passed the same check and dropped the final ledger from 1,719 to 1,334 problems. Git reports 385 byte-identical icon renames. The shape presets from services-2 came across separately at `5caa28f2` and reduced the count to 1,332. The store's loader test failed on the old path before the move.
 
-The release branch is the source of the P2 forward merge. Before beginning P2, finish P1 review, full verification and tagging. Take the release head from git just before merging. The owner controls browser runs and deployment.
+The P1 candidate at `43e65c75` passed the clean-export full check with `JOBS=1`. The independent Sol review found no blocking issues, verified the 387 byte-identical renames and confirmed the ledger and baseline changes. The P1 rollback point is the local `modular-gate-P1` tag. Take the release head from git just before the P2 forward merge. The owner controls browser runs and deployment.
 
 ### Branch review and carryover
 
@@ -19,7 +19,7 @@ The release branch is the source of the P2 forward merge. Before beginning P2, f
 | `modular/threads` | Parked for the panels and lists group. The new chat and run modules introduce untyped dependencies and records. Keep the existing stop and undo timing covered while extracting the runs sheet. |
 | `modular/services-2` | Shape presets integrated independently. The remaining timeline move and test relocation stay parked for the timeline group. Type the new world module contracts and check that the public timeline exports and their behavior are preserved. |
 | `modular/finish` | Icon source integrated independently. The DOM and sound move mixes an application selector fix with extraction. The test-kit move and shim deletion remain available as separate slices. |
-| `xo/thread-7ea52a` | Parked for the conversation group. A thread entered by touch must focus a landmark without raising the phone keyboard. Desktop must still focus the input. |
+| `xo/thread-7ea52a` | Parked for the conversation group. The branch also contains the attachment tray extraction, platform file helpers and Thread-page composer e2e coverage. A thread entered by touch must focus a landmark without raising the phone keyboard. Desktop must still focus the input. |
 
 ## Previous handoff from 19 November 2026
 
