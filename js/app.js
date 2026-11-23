@@ -421,7 +421,11 @@ const STAGE = createStage({ place: panelPlace, map: MAP, files: FILES, changes: 
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
-const GH = createGhPage({ stage: STAGE, api, view: () => S.view, projectOf: lpProject, go: (v) => go(v), announce });
+const GH = createGhPage({ stage: STAGE, api, view: () => S.view, projectOf: lpProject, announce, work: (p, it) => {
+  if (S.view !== `p:${p}`) go(`p:${p}`);
+  const what = it.kind === "pr" ? `Review pull request #${it.number}` : `Work on issue #${it.number}`;
+  requestAnimationFrame(() => { insertText(`${what}, “${it.title}”: ${it.url}`, MK); announce("The ask is in the message box. Send it to start a thread."); });
+} });
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
 STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
