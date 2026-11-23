@@ -7201,20 +7201,20 @@
    "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
   },
   "js/app.js::functions::endRender": {
-   "status": "planned",
-   "home": "modules/home (app.js l.803)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::functions::handledListHtml": {
-   "status": "planned",
-   "home": "modules/home (app.js l.815)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::functions::nextDecide": {
    "status": "planned",
    "home": "modules/home (app.js l.829)"
   },
   "js/app.js::functions::setHandled": {
-   "status": "planned",
-   "home": "modules/home (app.js l.844)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::functions::convHost": {
    "status": "planned",

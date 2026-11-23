@@ -68,6 +68,7 @@ import { createRecord } from "./recordview.js";
 import { drawSections } from "../modules/home/sections.js";
 import { createHomeParts } from "../modules/home/parts.js";
 import { createNextCard } from "../modules/home/next-card.js";
+import { createHandled } from "../modules/home/handled.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, landed, still, EASE, MOVE } from "../core/ui/motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
@@ -123,7 +124,6 @@ const store = {
 const PHONE = matchMedia("(max-width: 760px)");
 const NUM = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
 const num = (n) => NUM[n] || String(n);
-const low = (n) => num(n).toLowerCase();
 const plural = (n, w) => `${w}${n === 1 ? "" : "s"}`;
 const DRAFTS = "cv-drafts:live";
 // Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
@@ -557,6 +557,7 @@ function sideRender(needs) {
 }
 
 const homeParts = createHomeParts(S, D, Kit);
+const { endRender, setHandled } = createHandled({ S, world, homeParts, isBusy, num, PROJ, threadMark, askTitle });
 
 const NEXT_SEEN = new Map(); // Home's next ask → when it last became the current card (its re-arm runs from then)
 
@@ -644,28 +645,6 @@ function homeRender(needs) {
   SV.homeOrder($("#hm-body")); // the shape's order for Home (xo:home/*)
 }
 
-/** The last line: Handled (with what can wait). Its height never jumps. */
-function endRender(P0, working) {
-  const end = $("#hm-end");
-  if (!end._built) {
-    end.innerHTML = `<section class="handled" id="handled" aria-label="Handled"><div class="hd-row0"><div id="hd-head"></div></div><div class="hd-b" id="hd-b" hidden><div class="hd-in" id="hd-in"></div></div></section>`;
-    end._built = true;
-  }
-  const w = working.length, held = P0.held;
-  const bits = [w ? `${low(w)} working` : "nothing running", held.length ? `${low(held.length)} can wait` : ""].filter(Boolean);
-  patch($("#hd-head"), `<button type="button" class="hd" data-fid="hd" data-handled aria-expanded="${S.handledOpen}" aria-controls="hd-b"><span class="hd-ic">${ICON.check}</span><span class="hd-t"><b>Handled</b> · ${bits.join(" · ")}</span>${w || held.length ? ICON.chevron : ""}</button>`);
-  landed(end, [...$("#hd-head .hd").children]); // its frame was already there: what's in it arrives
-  if (S.handledOpen) patch($("#hd-in"), handledListHtml(P0, working));
-}
-function handledListHtml(P0, working) {
-  const rows = working.slice().sort((a, b) => a.project.localeCompare(b.project)).map((t) => {
-    const c = t.checklist, cur = c.items.find((i) => i.state === "doing");
-    return `<li><button type="button" class="hd-r" data-go="t:${esc(t.id)}"><span class="hd-p">${esc(PROJ(t.project))}</span><span class="hd-tt">${threadMark(t, { lead: true })}${esc(t.title)}</span><span class="hd-now">${cur ? esc(cur.text) : ""}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span></button></li>`;
-  }).join("");
-  const wait = P0.held.map((n) => `<li class="cw"><span class="cw-main"><span class="cw-t">${askTitle(n)}</span><span class="cw-why">${esc(PROJ(n.t.project))} · ${esc(n.heldWhy)}</span></span><button type="button" class="cw-in" data-bring-in="${esc(n.key)}">Bring in</button></li>`).join("");
-  return (rows ? `<ul class="hd-ul">${rows}</ul>` : "") + (wait ? `<h3 class="hd-k">Can wait</h3><ul class="cw-ul">${wait}</ul>` : "");
-}
-
 async function nextDecide(choice, note) {
   const card = $("#hm-next .next");
   if (!card || card._busy) return;
@@ -681,12 +660,6 @@ async function nextDecide(choice, note) {
   requestAnimationFrame(() => requestAnimationFrame(() => { const nc = $("#hm-next .next"); if (nc && S.view === "home" && !D.isOpen()) nc.focus({ preventScroll: true }); }));
 }
 
-function setHandled(open) {
-  S.handledOpen = open;
-  if (open) patch($("#hd-in"), handledListHtml(homeParts(), world.state.threads.filter(isBusy)));
-  $("[data-handled]")?.setAttribute("aria-expanded", String(open));
-  expand($("#handled"), $("#hd-b"), open);
-}
 // ── conversations ───────────────────────────────────────────────────────────
 /** The chat behind a conversation: "ws" → workspace, "p:x" → x (threads use their project). */
 const chatOf = (conv) => (conv === "ws" || conv === "home" ? "workspace" : conv.startsWith("p:") ? conv.slice(2) : convThread(conv)?.project || null);
