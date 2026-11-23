@@ -52,7 +52,8 @@ assert.equal(panelRow.branch, row.branch);
 assert.ok(matchesQ(panelRow, "rail 305201"), "the grouped row carries its summary and branch into search");
 
 // All threads: the same match, the same keys
-assert.match(app, /const s = `\$\{t\.title\} \$\{t\.summary \|\| ""\} \$\{t\.branch \|\| ""\}`\.toLowerCase\(\); return q\.split\(\/\\s\+\/\)\.every\(\(w\) => s\.includes\(w\)\);/);
+const allSource = readFileSync(new URL("../modules/threads/all.js", import.meta.url), "utf8");
+assert.match(allSource, /const s = `\$\{t\.title\} \$\{t\.summary \|\| ""\} \$\{t\.branch \|\| ""\}`\.toLowerCase\(\); return q\.split\(\/\\s\+\/\)\.every\(\(w\) => s\.includes\(w\)\);/);
 assert.match(app, /if \(e\.key === "Escape" && inSearch && \$\("#all-q"\)\.value\)/);
 assert.match(app, /if \(e\.key === "\/" && !inSearch/);
 
