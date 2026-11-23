@@ -134,14 +134,14 @@ console.log("thread-page files and model: ok");
 
 // msgx can take down what it hung on the page (its document listeners, its timer, its quote button and sheets); the
 // Thread page is built once and kept, so nothing is hung twice
-{ const mx = readFileSync(new URL("../js/msgx.js", import.meta.url), "utf8"), ap = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-  const code = mx.replace(/\/\/[^\n]*/g, "");
+{ const mx = ["decoration", "working-turn", "message-reply"].map((name) => readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url), "utf8")).join("\n"), ap = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+  const code = mx.replace(/\/\*\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
   const body = code.slice(code.indexOf("export function decorateConversation(E) {"));
   assert.doesNotMatch(body.replace(/const onDoc = [^\n]*/, ""), /document\.addEventListener\(/, "every document listener goes through onDoc, so destroy() removes it");
   assert.equal((body.match(/\bonDoc\("/g) || []).length, 5);
   assert.match(body, /const tk = setInterval\(tick, 1000\); gone\.push\(\(\) => clearInterval\(tk\)\);/);
   assert.match(body, /document\.body\.append\(qpop\); gone\.push\(\(\) => qpop\.remove\(\)\);/);
-  assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) gone\.pop\(\)\(\); \} \};/);
+  assert.match(body, /return \{ decorate, conv, msgs, destroy: \(\) => \{ while \(gone\.length\) \(\s*\(gone\.pop\(\)\)\)\(\); \} \};/);
   assert.match(ap, /TP\.deco = decorateConversation\(/);
   assert.match(ap, /TP\.dockRO = watchDock\(els\.dock, box\);/);
   assert.match(ap, /function tpClose\(\) \{/);

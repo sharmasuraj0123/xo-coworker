@@ -2744,15 +2744,8 @@
    "note": "js/motion.js re-exports core/ui/motion.js until the shims go"
   },
   "js/msgx.js": {
-   "status": "split",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ]
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/pacing.js": {
    "status": "moved",
@@ -10917,508 +10910,172 @@
    "home": "core/ui/motion.js"
   },
   "js/msgx.js::exports::decorateConversation": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::decorateConversation": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::agentName": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::nameIn": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::timeIn": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::bubbleOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::quoteCard": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::decorate": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::rowFor": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::actionRows": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::runText": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::rate": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::cardSteps": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::projectMarks": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::functions::naturalHeight": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::holdRules": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::keepEnded": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::nowText": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::working": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::wave": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::settle": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::fitLine": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::sizeWork": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::tick": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/working-turn.js"
   },
   "js/msgx.js::functions::showReply": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::functions::startReply": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::functions::endReply": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::functions::withQuote": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::functions::onSelect": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::functions::gMove": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-swipes.js"
   },
   "js/msgx.js::functions::gEnd": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-swipes.js"
   },
   "js/msgx.js::functions::gStart": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-swipes.js"
   },
   "js/msgx.js::functions::dockTop": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/latest-button.js"
   },
   "js/msgx.js::functions::downSync": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/latest-button.js"
   },
   "js/msgx.js::ids::app": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::ids::live": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::ids::projects": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::storage::xo-msg-rating": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/msgx.js::routes::/api/chat/chats/{}/messages/{}/rating": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "The rating route was hypothetical. Ratings use device storage."
   },
   "js/msgx.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/message-reply.js"
   },
   "js/msgx.js::custom_events::redrawn": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/decorate.js",
-    "modules/conversation/working.js",
-    "modules/conversation/actions.js",
-    "modules/conversation/gestures.js",
-    "modules/conversation/latest-button.js",
-    "modules/composer (reply chip, quote)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/decoration.js"
   },
   "js/pacing.js::exports::SMALL_MIN": {
    "status": "moved",
