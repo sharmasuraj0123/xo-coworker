@@ -1,27 +1,16 @@
 import { api, clientId, NEWEST } from "../core/platform/api.js";
 import { esc } from "./world.js";
-import { space, once } from "../core/platform/index.js";
+import { once } from "../core/platform/index.js";
 import { ICON, stateMark, xi } from "./ui.js";
-import { EFFORT_WORD, EFFORT_HINT } from "./intel.js";
+import { EFFORT_WORD } from "../modules/chats/effort.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
 import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
 import { rtMark, rtName } from "../core/services/runtimes.js";
-import { redraw } from "./redraw.js";
-import { rovingTab } from "./keynav.js";
+import { createSetup, MODE_WORDS, store } from "../modules/chats/setup.js";
 import { chatListItems } from "../modules/chats/list.js";
 
-const MODE_WORDS = {
-  plan: ["Plan only", "Looks around and suggests a plan. Changes nothing.", "lightbulb"],
-  ask: ["Ask first", "Checks with you before every step.", "question"],
-  accept_edits: ["Edits", "Edits files on its own, checks with you for the rest.", "edit"],
-  auto: ["Auto", "Works on its own; a safety check holds back anything risky.", "shield-check"],
-  deny_unasked: ["Rules only", "Does only what your saved rules allow.", "rules"],
-};
-const MODE_ORDER = Object.keys(MODE_WORDS);
 const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
-const PREFS = "cv-chat-prefs";
-const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
   const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
@@ -31,6 +20,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? mainRuntime(world.state.runtimes) : null) || null;
   const feature = (rt, key) => (rt && rt.features && rt.features.features && rt.features.features[key]) || null;
   const offers = (rt, key) => { const f = feature(rt, key); return !!f && (f.support === "native" || f.support === "emulated"); };
+
+  const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName });
 
   async function loadList() {
     if (C.loading) return;
@@ -166,40 +157,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
   }
 
-  /** The modes a runtime offers (never "bypass": plain chat refuses it). */
-  const modesOf = (rt) => ((feature(rt, "permissions.mode") || {}).values || []).filter((m) => m !== "bypass");
-  /** The new chat's setup: your last choices, kept only where the chosen runtime still offers them. */
-  function setup() {
-    const p = C.prefs;
-    const rt = runtime(p.agent) || runtime(null);
-    const agent = rt ? rt.name : null;
-    const modes = modesOf(rt);
-    const mode = modes.includes(p.mode) ? p.mode : modes.includes("auto") ? "auto" : modes[0] || null;
-    let model = p.model || null, gone = null, unsure = null;
-    if (model && !(C.read.has(agent) && offered(agent).some((m) => m.id === model))) {
-      if (C.read.has(agent)) gone = model; else unsure = { model, failed: C.failed.has(agent) };
-      model = null;
-    }
-    return { rt, agent, model, gone, unsure, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
-  }
-  const offered = (agent) => (C.models.get(agent) || []).filter((m) => !m.is_default && (m.family_default || !m.family));
-  /** The efforts for a model (or the agent's default model): its own list, else the runtime's (§2.7). */
-  function effortsFor(st) {
-    const list = C.models.get(st.agent) || [];
-    const m = list.find((x) => x.id === st.model) || list.find((x) => x.is_default) || null;
-    if (m && !m.takes_effort) return [];
-    if (m && m.efforts && m.efforts.length) return m.efforts;
-    const f = feature(st.rt, "effort");
-    return f && f.support !== "unsupported" ? f.values || [] : [];
-  }
-  async function ensureModels(agent, { again = false } = {}) {
-    if (!agent) return;
-    if (again && C.failed.has(agent)) { C.failed.delete(agent); C.models.delete(agent); }
-    if (C.models.has(agent)) return;
-    C.models.set(agent, []);
-    try { C.models.set(agent, (await api.models(agent)).models || []); C.read.add(agent); } catch (err) { C.failed.set(agent, err.message || "no answer"); /* the agent's default only, said so */ }
-    renderSetup(); schedule();
-  }
   function targetHtml(v) {
     if (v === "chats") {
       const st = setup();
@@ -223,7 +180,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   }
 
   const folderName = (cwd) => (cwd ? (world.project(cwd) || {}).name || cwd : "your projects folder");
-  const modelDesc = (m) => (m.description || "").replace(/\.$/, "");
   /** The new chat's chip, as every composer's: the agent's mark, its model (Default until one is picked) and its thinking. */
   /** An open chat's own agent, model, thinking and mode, as the new chat's chips show them (fixed: set when it started). */
   const ownOf = (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.agent ? { agent: s.agent, model: s.model || null, effort: s.effort || null, mode: s.permission_mode || null, cwd: s.cwd } : null; };
@@ -264,80 +220,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return { on: C.now === s.id };
   }
 
-  async function openSetup(anchor, part = "model") {
-    const pop = document.getElementById("cs-pop");
-    if (C.pop.open) C.pop.anchor?.setAttribute("aria-expanded", "false");
-    C.pop = { open: true, anchor, part };
-    anchor?.setAttribute("aria-expanded", "true");
-    // shown (unseen) before it is measured, so it opens where it belongs the first time
-    pop.style.visibility = "hidden";
-    pop.hidden = false;
-    renderSetup();
-    pop.style.visibility = "";
-    pop.focus({ preventScroll: true });
-    const st = setup();
-    if (st.agent) await ensureModels(st.agent, { again: true });
-  }
-  const CHECK = xi("check", "iq-ck");
-  function renderSetup() {
-    const pop = document.getElementById("cs-pop");
-    if (!C.pop.open) return;
-    const st = setup();
-    const rts = world.state.runtimes || [];
-    const list = C.models.get(st.agent) || [];
-    const def = list.find((m) => m.is_default) || null;
-    const efforts = effortsFor(st);
-    const effort = efforts.includes(st.effort) ? st.effort : null;
-    const modes = st.modes;
-    const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
-    // one choice per group (keynav.js's radio keys): only the chosen row, else the first, is in the Tab order
-    const row = (attr, id, name, desc, on, first) => `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, first)} ${attr}="${esc(id)}"${desc ? ` title="${esc(desc)}"` : ""}><span class="iq-n">${esc(name)}</span>${desc ? `<span class="iq-tr">${esc(desc)}</span>` : ""}${CHECK}</div>`;
-    const agents = rts.length > 1 ? `<div class="iq-sec"><p class="iq-lab" id="cs-agent-l">Agent</p><div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
-      const on = r.name === st.agent;
-      return `<button type="button" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !rts.some((x) => x.name === st.agent))} data-cs-agent="${esc(r.name)}">${rtMark(r.name, { withName: true }) || esc(cliName(r.name))}</button>`;
-    }).join("")}</div></div>` : "";
-    // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
-    const why = st.gone ? `“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.`
-      : C.failed.has(st.agent) ? `Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.`
-      : st.unsure ? `Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.` : "";
-    const models = `<div class="iq-sec"><p class="iq-lab" id="cs-model-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="cs-model-l">` +
-      row("data-cs-model", "", "Default", def ? modelDesc(def) || def.name : "The agent's own choice", !st.model, false) +
-      offered(st.agent).map((m) => row("data-cs-model", m.id, m.name, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
-    const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
-      `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
-    const lists = {
-      cwd: () => `<header class="iq-h"><h2 id="cs-hh">Folder <span>a new chat works in</span></h2></header><div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${folders.map((f, i) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div>`,
-      mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
-        : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${[...modes].sort((a, b) => (MODE_ORDER.indexOf(a) + 1 || 99) - (MODE_ORDER.indexOf(b) + 1 || 99)).map((m, i) => {
-          const [name, desc, ic] = MODE_WORDS[m] || [m, "", "lock"], on = m === st.mode;
-          return `<div class="iq-row cs-mrow${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}">${xi(ic, "cs-mi")}<span class="cs-mt"><span class="iq-n">${esc(name)}</span>${desc ? `<span class="cs-md">${esc(desc)}</span>` : ""}</span>${CHECK}</div>`;
-        }).join("")}</div><footer class="iq-f"><span>Used for your next new chat.</span></footer>`),
-      model: () => `<header class="iq-h"><h2 id="cs-hh">New chat <span>agent, model and thinking</span></h2></header>${agents}${models}${thinking}<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`,
-    };
-    const part = lists[C.pop.part] ? C.pop.part : "model";
-    const html = lists[part]();
-    // in place (js/redraw.js): a choice made, a catalog arriving, keep the row you're on
-    redraw(pop, html);
-    const a = C.pop.anchor;
-    if (a && !matchMedia("(max-width: 760px)").matches) {
-      // on the chip's outer edge, opening to the side of it with more room, never past the screen
-      pop.classList.remove("is-sheet");
-      const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(360, innerWidth - 2 * edge);
-      const x = part === "model" ? r.right - w + gap : r.left - gap;
-      pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(x, innerWidth - w - edge))}px`;
-      const up = r.top - edge - gap, down = innerHeight - r.bottom - edge - gap;
-      if (down > up) { pop.style.bottom = ""; pop.style.top = `${r.bottom + gap}px`; pop.style.maxHeight = `${Math.max(240, down)}px`; }
-      else { pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, up)}px`; }
-    } else { pop.style.left = pop.style.top = pop.style.bottom = pop.style.width = pop.style.maxHeight = ""; pop.classList.add("is-sheet"); }
-  }
-  function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.setAttribute("aria-expanded", "false"); C.pop.anchor?.focus?.({ preventScroll: true }); }
-  const setPref = (k, v) => {
-    C.prefs = { ...C.prefs, [k]: v || null };
-    // another agent has its own models, efforts and modes: read them, and start from its defaults
-    if (k === "agent") { C.prefs.model = null; C.prefs.effort = null; C.prefs.mode = null; ensureModels(C.prefs.agent); }
-    if (k === "model") C.prefs.effort = null;
-    store.set(C.prefs);
-  };
 
   async function send(v, text) {
     const sid = v.startsWith("c:") ? v.slice(2) : null;
@@ -433,7 +315,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     showAll(on) { C.all = on; if (!on) C.q = ""; schedule(); },
     send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
     permHtml,
-    toggleSetup(anchor, part) { if (C.pop.open && C.pop.part === part) closeSetup(); else openSetup(anchor, part); },
+    toggleSetup,
     toggleNow: (v) => { const sid = v.slice(2); const s = session(sid); if (!s || !offers(runtime(s.agent), "interrupt")) return; C.now = C.now === sid ? null : sid; schedule(); },
     retry(id) { for (const [sid, list] of C.local) { const l = list.find((x) => x.id === id); if (l) { deliver(l, sid); return; } } },
     /** A failed message taken back to edit: it leaves the chat and its text is returned. */

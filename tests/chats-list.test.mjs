@@ -61,7 +61,10 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   globalThis.fetch = async () => Response.json({ models: [] });
   const makeChats = () => createChats({
     world: {
-      state: { runtimes: [], projects: [{ id: "demo", name: "Demo project", kind: "project" }] },
+      state: {
+        runtimes: [{ name: "codex", features: { features: { "permissions.mode": { values: ["plan", "auto"] } } } }],
+        projects: [{ id: "demo", name: "Demo project", kind: "project" }],
+      },
       act: {},
       onEvent() {},
     },
@@ -85,6 +88,11 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   same(document.activeElement, anchor, "closing returns focus to the folder chip");
   await makeChats().openSetup(anchor, "cwd");
   assert.equal(pop.querySelector('[data-cs-cwd="demo"]').getAttribute("aria-checked"), "true");
+  await chats.openSetup(anchor, "mode");
+  const modes = [...pop.querySelectorAll("[data-csmode]")];
+  assert.deepEqual(modes.map((row) => row.dataset.csmode), ["plan", "auto"]);
+  assert.deepEqual(modes.map((row) => row.getAttribute("aria-checked")), ["false", "true"]);
+  assert.deepEqual(modes.map((row) => row.getAttribute("tabindex")), ["-1", null]);
 }
 t("its look: tokens only, a list of titles with no tiles, rims or dividers, rows 48 whose hover reaches --halo-row past the words", () => {
   const css = read("css/app.css");
@@ -112,7 +120,7 @@ t("the agent is its mark, its name only on hover and for screen readers: the hea
   assert.doesNotMatch(src, /\$\{esc\(cliName\(st\.agent\)\)\} · /);
 });
 t("the New chat picker is the shared picker's look: the chip opens it, agents as a segment with their marks, models and folders as rows, thinking as the depth segment", () => {
-  const src = read("js/chats.js"), app = read("js/app.js"), css = read("css/app.css");
+  const src = read("modules/chats/setup.js"), app = read("js/app.js"), css = read("css/app.css");
   assert.match(src, /<div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">/);
   assert.match(src, /data-cs-agent="\$\{esc\(r\.name\)\}">\$\{rtMark\(r\.name, \{ withName: true \}\)/);
   assert.match(src, /<div class="iq-list" role="radiogroup" aria-labelledby="cs-model-l">/);
@@ -121,8 +129,7 @@ t("the New chat picker is the shared picker's look: the chip opens it, agents as
   assert.match(src, /const x = part === "model" \? r\.right - w \+ gap : r\.left - gap;/, "the model list by the chip's right edge, folder and permission by their left");
   assert.match(app, /\$\("#cs-perm"\)\.addEventListener\("click", \(\) => \{ if \(S\.view !== "chats"\) return; CH\.toggleSetup\(\$\("#cs-perm"\), "mode"\);/);
   assert.match(read("index.html"), /<button type="button" class="target cs-perm" id="cs-perm" aria-haspopup="dialog" aria-expanded="false" aria-controls="cs-pop" hidden><\/button>/);
-  assert.match(src, /role="radio" aria-checked="\$\{on\}"\$\{rovingTab\(on, i === 0 && !modes\.includes\(st\.mode\)\)\} data-csmode=/, "what it may do: rows, one choice");
-  assert.match(src, /import \{ EFFORT_WORD, EFFORT_HINT \} from "\.\/intel\.js";/, "one set of thinking words");
+  assert.match(src, /import \{ EFFORT_WORD, EFFORT_HINT \} from "\.\/effort\.js";/, "one set of thinking words");
   assert.match(app, /if \(S\.view === "chats"\) \{ CH\.toggleSetup\(\$\("#iq"\), "model"\);/);
   assert.match(app, /const html = chat \? CH\.chipHtml\(K\.view\) : IQ\.chipHtml/);
   assert.doesNotMatch(src + css, /cs-grid|class="cs-mode|xo-select data-cs|tg-ch/, "the form of dropdowns is gone");
@@ -165,11 +172,11 @@ t("Chats has no bar over its greeting: the greeting is the title, a phone keeps 
   assert.match(src, /v === "chats" \? "Ask anything to start a chat…"/);
 });
 t("what it may do on its own reads as a choice you make about trust: a question, each mode its mark and sentence, careful first", () => {
-  const src = read("js/chats.js"), css = read("css/app.css");
+  const src = read("modules/chats/setup.js"), css = read("css/app.css");
   assert.match(src, /How much should it do on its own\?/);
   assert.match(src, /plan: \["Plan only", "[^"]+", "lightbulb"\],\n  ask: \["Ask first", "[^"]+", "question"\],\n  accept_edits: \["Edits", "[^"]+", "edit"\],\n  auto: \["Auto", "[^"]+", "shield-check"\]/);
   assert.match(src, /\$\{xi\(ic, "cs-mi"\)\}<span class="cs-mt"><span class="iq-n">/);
-  assert.match(src, /xi\(MODE_WORDS\[st\.mode\]\?\.\[2\] \|\| "lock"\)/, "the chip wears the chosen mode's mark");
+  assert.match(read("js/chats.js"), /xi\(MODE_WORDS\[st\.mode\]\?\.\[2\] \|\| "lock"\)/, "the chip wears the chosen mode's mark");
   assert.match(css, /\.cs-md\{font:var\(--fw-regular\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-3\);text-wrap:pretty\}/);
 });
 t("switching to All keeps the greeting where it stood: no recentring, no scroll", () => {

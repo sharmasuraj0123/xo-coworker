@@ -8587,16 +8587,16 @@
    "home": "modules/chats/"
   },
   "js/chats.js::ids::cs-pop": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::chc-h": {
    "status": "planned",
    "home": "modules/chats/"
   },
   "js/chats.js::storage::cv-chat-prefs": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::keys::would_stop_runs": {
    "status": "planned",
@@ -17298,20 +17298,20 @@
    "home": "js/cardparts.js"
   },
   "js/chats.js::ids::cs-agent-l": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::cs-model-l": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::cs-e-l": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::cs-hh": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/flavours.js::exports::STONE": {
    "status": "kept",
