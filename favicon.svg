@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <!-- the owner's app icon (assets/icons/xo/g-app-icon/favicon.svg, 19 Nov) -->
+  <!-- the owner's app icon (core/ui/icons/source/xo/g-app-icon/favicon.svg, 19 Nov) -->
   <rect width="48" height="48" rx="11" fill="#151515"/>
   <path d="M10.4 18.8l5.2 5.2-5.2 5.2M23.2 18.8L18 24l5.2 5.2" fill="none" stroke-width="3" stroke="#E1E1E1"/>
   <path d="M32 18.8L26.8 24l5.2 5.2M34.4 18.8l5.2 5.2-5.2 5.2" fill="none" stroke-width="3" stroke="#83D63A"/>

@@ -144,9 +144,9 @@ Outside the app:
 | `tests/` | Unit tests that have not moved beside their code yet, and their helpers in `tests/lib/`. Moved tests live in `core/*/tests/`, `shell/tests/`, `modules/*/tests/` and `apps-host/tests/`. |
 | `e2e/` | The fast UI lane: the real app in headless Chromium against a fake Space on a seeded store, asserted with accessibility-text snapshots. |
 | `tests/browser/` | The older Playwright suites, run only when the owner asks. |
-| `tools/` | `check.mjs` and its baselines, the file ledger, the places catalogue's generator, the OpenAPI snapshot, and the scripts that vendor CodeMirror and Pierre's diffs and build the icon set. |
+| `tools/` | `check.mjs` and its baselines, the file ledger, the places catalogue's generator, the OpenAPI snapshot, and the scripts that vendor CodeMirror and Pierre's diffs and build the icon set from `core/ui/icons/source/`. |
 | `presets/` | The presets (Build software, Make content and campaigns), served as static files until Storm serves them. |
-| `assets/`, `fonts/` | Icons and the Geist faces. |
+| `fonts/` | The Geist faces. |
 
 ## Checks and tests
 

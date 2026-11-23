@@ -16,7 +16,7 @@ export function faviconRender(t, need = false) {
   if (!link) return;
   if (FAVICON.plain == null) FAVICON.plain = link.getAttribute("href");
   if (!t && !need) { link.setAttribute("href", /** @type {string} */ (FAVICON.plain)); return; }
-  // the mark raised 5, the line on its foot, on a 48 grid (assets/icons/xo/g-app-icon)
+  // the mark raised 5, the line on its foot, on a 48 grid (core/ui/icons/source/xo/g-app-icon)
   const W = 28.5, X = 9.75, GAP = 1.5, k = n || 1, w = (W - GAP * (k - 1)) / k;
   const fill = (/** @type {number} */ i) => (need ? "#F5A623" : !n ? "#75ADF1" : i < done ? "#83D63A" : i === done ? "#75ADF1" : "#4A4A4A");
   const seg = Array.from({ length: k }, (_, i) => `<rect x="${(X + i * (w + GAP)).toFixed(2)}" y="35" width="${w.toFixed(2)}" height="2.5" rx="1.25" fill="${fill(i)}"/>`).join("");

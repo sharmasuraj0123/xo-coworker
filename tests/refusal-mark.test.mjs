@@ -11,7 +11,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("the icon set has the mark: the pack's warning", () => {
-  // the owner's warning (assets/icons/xo/d-things-and-kinds/warning.svg), not the clock
+  // the owner's warning (core/ui/icons/source/xo/d-things-and-kinds/warning.svg), not the clock
   assert.match(ui, /warn: xi\("warning"\)/);
 });
 t("the viewer's refusal line (a refused Copy path, a save refused) and the editor's error line draw it", () => {

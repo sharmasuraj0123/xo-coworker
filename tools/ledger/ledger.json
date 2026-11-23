@@ -16,1543 +16,1543 @@
    "note": "rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane"
   },
   "assets/icons/xo/a-places-and-the-frame/artifacts.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/artifacts.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/changes.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/changes.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/chat.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/chat.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/exit-full-size.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/exit-full-size.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/fold-to-rail.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/fold-to-rail.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/full-size.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/full-size.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/gear.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/gear.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/graph.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/graph.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/home.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/home.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/map.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/map.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/menu.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/menu.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/moon.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/moon.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/more.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/more.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/panel-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/panel-right.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/plus.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/plus.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/project.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/project.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/search.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/search.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/sidebar-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/sidebar-left.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/sun.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/sun.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/terminal.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/terminal.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/threads.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/threads.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/xo-mark.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/xo-mark.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/arrow-down.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/arrow-down.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/arrow-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/arrow-left.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/arrow-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/arrow-right.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/chevron-down.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/chevron-down.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/chevron-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/chevron-left.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/chevron-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/chevron-right.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/external-link.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/external-link.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/next-move.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/next-move.svg"
   },
   "assets/icons/xo/b-arrows-and-chevrons/send.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/b-arrows-and-chevrons/send.svg"
   },
   "assets/icons/xo/c-actions/attach.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/attach.svg"
   },
   "assets/icons/xo/c-actions/check.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/check.svg"
   },
   "assets/icons/xo/c-actions/close.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/close.svg"
   },
   "assets/icons/xo/c-actions/code.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/code.svg"
   },
   "assets/icons/xo/c-actions/copy.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/copy.svg"
   },
   "assets/icons/xo/c-actions/delete.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/delete.svg"
   },
   "assets/icons/xo/c-actions/edit.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/edit.svg"
   },
   "assets/icons/xo/c-actions/eye.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/eye.svg"
   },
   "assets/icons/xo/c-actions/file-new.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/file-new.svg"
   },
   "assets/icons/xo/c-actions/fit.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/fit.svg"
   },
   "assets/icons/xo/c-actions/follow.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/follow.svg"
   },
   "assets/icons/xo/c-actions/interrupt.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/interrupt.svg"
   },
   "assets/icons/xo/c-actions/key.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/key.svg"
   },
   "assets/icons/xo/c-actions/link.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/link.svg"
   },
   "assets/icons/xo/c-actions/lock.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/lock.svg"
   },
   "assets/icons/xo/c-actions/minimize.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/minimize.svg"
   },
   "assets/icons/xo/c-actions/pin.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/pin.svg"
   },
   "assets/icons/xo/c-actions/reply.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/reply.svg"
   },
   "assets/icons/xo/c-actions/retry.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/retry.svg"
   },
   "assets/icons/xo/c-actions/runs-code.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/runs-code.svg"
   },
   "assets/icons/xo/c-actions/send-back.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/send-back.svg"
   },
   "assets/icons/xo/c-actions/split-view.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/split-view.svg"
   },
   "assets/icons/xo/c-actions/stop.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/stop.svg"
   },
   "assets/icons/xo/c-actions/thumbs-down.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/thumbs-down.svg"
   },
   "assets/icons/xo/c-actions/thumbs-up.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/c-actions/thumbs-up.svg"
   },
   "assets/icons/xo/d-things-and-kinds/agent-cursor.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/agent-cursor.svg"
   },
   "assets/icons/xo/d-things-and-kinds/agent.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/agent.svg"
   },
   "assets/icons/xo/d-things-and-kinds/branch.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/branch.svg"
   },
   "assets/icons/xo/d-things-and-kinds/clock.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/clock.svg"
   },
   "assets/icons/xo/d-things-and-kinds/container.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/container.svg"
   },
   "assets/icons/xo/d-things-and-kinds/deploy.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/deploy.svg"
   },
   "assets/icons/xo/d-things-and-kinds/doc.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/doc.svg"
   },
   "assets/icons/xo/d-things-and-kinds/folder-open.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/folder-open.svg"
   },
   "assets/icons/xo/d-things-and-kinds/folder.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/folder.svg"
   },
   "assets/icons/xo/d-things-and-kinds/github.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/github.svg"
   },
   "assets/icons/xo/d-things-and-kinds/hourglass.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/hourglass.svg"
   },
   "assets/icons/xo/d-things-and-kinds/image.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/image.svg"
   },
   "assets/icons/xo/d-things-and-kinds/list.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/list.svg"
   },
   "assets/icons/xo/d-things-and-kinds/pause.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/pause.svg"
   },
   "assets/icons/xo/d-things-and-kinds/plug.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/plug.svg"
   },
   "assets/icons/xo/d-things-and-kinds/question.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/question.svg"
   },
   "assets/icons/xo/d-things-and-kinds/routing.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/routing.svg"
   },
   "assets/icons/xo/d-things-and-kinds/rules.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/rules.svg"
   },
   "assets/icons/xo/d-things-and-kinds/runtime.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/runtime.svg"
   },
   "assets/icons/xo/d-things-and-kinds/server.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/server.svg"
   },
   "assets/icons/xo/d-things-and-kinds/settings-general.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/settings-general.svg"
   },
   "assets/icons/xo/d-things-and-kinds/shape.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/shape.svg"
   },
   "assets/icons/xo/d-things-and-kinds/sound.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/sound.svg"
   },
   "assets/icons/xo/d-things-and-kinds/step-dot.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/step-dot.svg"
   },
   "assets/icons/xo/d-things-and-kinds/suggestion.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/suggestion.svg"
   },
   "assets/icons/xo/d-things-and-kinds/thread.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/thread.svg"
   },
   "assets/icons/xo/d-things-and-kinds/warning.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/warning.svg"
   },
   "assets/icons/xo/d-things-and-kinds/web.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/d-things-and-kinds/web.svg"
   },
   "assets/icons/xo/e-state-marks/alert.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/alert.svg"
   },
   "assets/icons/xo/e-state-marks/badge-working.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/badge-working.svg"
   },
   "assets/icons/xo/e-state-marks/effort-decide.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/effort-decide.svg"
   },
   "assets/icons/xo/e-state-marks/effort-glance.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/effort-glance.svg"
   },
   "assets/icons/xo/e-state-marks/effort-think.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/effort-think.svg"
   },
   "assets/icons/xo/e-state-marks/stamp-allowed.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/stamp-allowed.svg"
   },
   "assets/icons/xo/e-state-marks/stamp-sent-back.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/stamp-sent-back.svg"
   },
   "assets/icons/xo/e-state-marks/state-done.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-done.svg"
   },
   "assets/icons/xo/e-state-marks/state-failed.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-failed.svg"
   },
   "assets/icons/xo/e-state-marks/state-held.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-held.svg"
   },
   "assets/icons/xo/e-state-marks/state-idle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-idle.svg"
   },
   "assets/icons/xo/e-state-marks/state-needs-you.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-needs-you.svg"
   },
   "assets/icons/xo/e-state-marks/state-paused.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-paused.svg"
   },
   "assets/icons/xo/e-state-marks/state-resolved.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-resolved.svg"
   },
   "assets/icons/xo/e-state-marks/state-stopped.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-stopped.svg"
   },
   "assets/icons/xo/e-state-marks/state-working.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/state-working.svg"
   },
   "assets/icons/xo/e-state-marks/step-doing.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/step-doing.svg"
   },
   "assets/icons/xo/e-state-marks/undo-countdown.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/e-state-marks/undo-countdown.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-command.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-command.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-delete.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-delete.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-down.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-down.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-left.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-option.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-option.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-return.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-return.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-right.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-shift.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-shift.svg"
   },
   "assets/icons/xo/f-keyboard-keys/key-up.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/f-keyboard-keys/key-up.svg"
   },
   "assets/icons/xo/g-app-icon/favicon-progress.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/g-app-icon/favicon-progress.svg"
   },
   "assets/icons/xo/g-app-icon/favicon.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/g-app-icon/favicon.svg"
   },
   "assets/icons/xo/h-project-topics/project-agents.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-agents.svg"
   },
   "assets/icons/xo/h-project-topics/project-automation.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-automation.svg"
   },
   "assets/icons/xo/h-project-topics/project-backend.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-backend.svg"
   },
   "assets/icons/xo/h-project-topics/project-code.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-code.svg"
   },
   "assets/icons/xo/h-project-topics/project-data.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-data.svg"
   },
   "assets/icons/xo/h-project-topics/project-deploy.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-deploy.svg"
   },
   "assets/icons/xo/h-project-topics/project-design.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-design.svg"
   },
   "assets/icons/xo/h-project-topics/project-finance.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-finance.svg"
   },
   "assets/icons/xo/h-project-topics/project-games.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-games.svg"
   },
   "assets/icons/xo/h-project-topics/project-hardware.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-hardware.svg"
   },
   "assets/icons/xo/h-project-topics/project-health.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-health.svg"
   },
   "assets/icons/xo/h-project-topics/project-interface.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-interface.svg"
   },
   "assets/icons/xo/h-project-topics/project-learning.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-learning.svg"
   },
   "assets/icons/xo/h-project-topics/project-legal.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-legal.svg"
   },
   "assets/icons/xo/h-project-topics/project-marketing.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-marketing.svg"
   },
   "assets/icons/xo/h-project-topics/project-media.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-media.svg"
   },
   "assets/icons/xo/h-project-topics/project-messaging.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-messaging.svg"
   },
   "assets/icons/xo/h-project-topics/project-mobile.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-mobile.svg"
   },
   "assets/icons/xo/h-project-topics/project-music.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-music.svg"
   },
   "assets/icons/xo/h-project-topics/project-people.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-people.svg"
   },
   "assets/icons/xo/h-project-topics/project-pitch.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-pitch.svg"
   },
   "assets/icons/xo/h-project-topics/project-research.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-research.svg"
   },
   "assets/icons/xo/h-project-topics/project-security.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-security.svg"
   },
   "assets/icons/xo/h-project-topics/project-shopping.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-shopping.svg"
   },
   "assets/icons/xo/h-project-topics/project-space.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-space.svg"
   },
   "assets/icons/xo/h-project-topics/project-swarm.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-swarm.svg"
   },
   "assets/icons/xo/h-project-topics/project-travel.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-travel.svg"
   },
   "assets/icons/xo/h-project-topics/project-video.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-video.svg"
   },
   "assets/icons/xo/h-project-topics/project-web.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-web.svg"
   },
   "assets/icons/xo/h-project-topics/project-work.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-work.svg"
   },
   "assets/icons/xo/h-project-topics/project-writing.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/h-project-topics/project-writing.svg"
   },
   "assets/icons/xo/i-file-types/file-archive.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-archive.svg"
   },
   "assets/icons/xo/i-file-types/file-code-html.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-code-html.svg"
   },
   "assets/icons/xo/i-file-types/file-database.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-database.svg"
   },
   "assets/icons/xo/i-file-types/file-default.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-default.svg"
   },
   "assets/icons/xo/i-file-types/file-font.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-font.svg"
   },
   "assets/icons/xo/i-file-types/file-image.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-image.svg"
   },
   "assets/icons/xo/i-file-types/file-json.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-json.svg"
   },
   "assets/icons/xo/i-file-types/file-shell.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-shell.svg"
   },
   "assets/icons/xo/i-file-types/file-svg.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-svg.svg"
   },
   "assets/icons/xo/i-file-types/file-table.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-table.svg"
   },
   "assets/icons/xo/i-file-types/file-text.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-text.svg"
   },
   "assets/icons/xo/i-file-types/file-yaml.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/i-file-types/file-yaml.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/bell.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/bell.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/bookmark.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/bookmark.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/calendar.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/calendar.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/chat-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/chat-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/cloud.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/cloud.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/doc-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/doc-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/download.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/download.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/eye-off.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/eye-off.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/filter.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/filter.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/flag.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/flag.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/folder-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/folder-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/gear-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/gear-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/heart.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/heart.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/home-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/home-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/inbox.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/inbox.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/keyboard.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/keyboard.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/lightbulb.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/lightbulb.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/lock-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/lock-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/mic.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/mic.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/person.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/person.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/project-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/project-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/share.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/share.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/sparkles.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/sparkles.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/star.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/star.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/tag.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/tag.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/thread-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/thread-fill.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/upload.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/upload.svg"
   },
   "assets/icons/xo/j-new-in-the-pack/wand.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/j-new-in-the-pack/wand.svg"
   },
   "assets/icons/xo/k-more-icons/archive.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/archive.svg"
   },
   "assets/icons/xo/k-more-icons/arrow-up-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/arrow-up-right.svg"
   },
   "assets/icons/xo/k-more-icons/at.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/at.svg"
   },
   "assets/icons/xo/k-more-icons/bolt-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/bolt-fill.svg"
   },
   "assets/icons/xo/k-more-icons/bookmark-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/bookmark-fill.svg"
   },
   "assets/icons/xo/k-more-icons/chart-bar.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/chart-bar.svg"
   },
   "assets/icons/xo/k-more-icons/chat-ai.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/chat-ai.svg"
   },
   "assets/icons/xo/k-more-icons/check-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/check-circle.svg"
   },
   "assets/icons/xo/k-more-icons/checklist.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/checklist.svg"
   },
   "assets/icons/xo/k-more-icons/chevron-up-down.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/chevron-up-down.svg"
   },
   "assets/icons/xo/k-more-icons/compose.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/compose.svg"
   },
   "assets/icons/xo/k-more-icons/delete-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/delete-fill.svg"
   },
   "assets/icons/xo/k-more-icons/grid.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/grid.svg"
   },
   "assets/icons/xo/k-more-icons/hash.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/hash.svg"
   },
   "assets/icons/xo/k-more-icons/heart-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/heart-fill.svg"
   },
   "assets/icons/xo/k-more-icons/history.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/history.svg"
   },
   "assets/icons/xo/k-more-icons/info.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/info.svg"
   },
   "assets/icons/xo/k-more-icons/more-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/more-circle.svg"
   },
   "assets/icons/xo/k-more-icons/paperplane.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/paperplane.svg"
   },
   "assets/icons/xo/k-more-icons/play.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/play.svg"
   },
   "assets/icons/xo/k-more-icons/plus-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/plus-circle.svg"
   },
   "assets/icons/xo/k-more-icons/power.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/power.svg"
   },
   "assets/icons/xo/k-more-icons/quote.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/quote.svg"
   },
   "assets/icons/xo/k-more-icons/rows.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/rows.svg"
   },
   "assets/icons/xo/k-more-icons/sort.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/sort.svg"
   },
   "assets/icons/xo/k-more-icons/star-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/star-fill.svg"
   },
   "assets/icons/xo/k-more-icons/stop-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/stop-circle.svg"
   },
   "assets/icons/xo/k-more-icons/timer.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/timer.svg"
   },
   "assets/icons/xo/k-more-icons/wifi.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/wifi.svg"
   },
   "assets/icons/xo/k-more-icons/x-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/k-more-icons/x-circle.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/arrow-down-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/arrow-down-left.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/arrow-down-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/arrow-down-right.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/arrow-right-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/arrow-right-circle.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/arrow-up-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/arrow-up-left.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/arrow-up.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/arrow-up.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/back-to-top.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/back-to-top.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/checkbox.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/checkbox.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/chevron-up.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/chevron-up.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/chevrons-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/chevrons-left.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/chevrons-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/chevrons-right.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/collapse-vertical.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/collapse-vertical.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/compass.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/compass.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/cut.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/cut.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/dashboard.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/dashboard.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/drag-handle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/drag-handle.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/duplicate.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/duplicate.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/expand-vertical.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/expand-vertical.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/forward.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/forward.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/layout-columns.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/layout-columns.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/more-vertical.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/more-vertical.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/move.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/move.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/paste.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/paste.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/redo.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/redo.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/restore.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/restore.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/sidebar-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/sidebar-right.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/swap.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/swap.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/sync.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/sync.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/tabs.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/tabs.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/undo.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/undo.svg"
   },
   "assets/icons/xo/l-navigation-and-arrows/window.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/l-navigation-and-arrows/window.svg"
   },
   "assets/icons/xo/m-editing-and-text/align-center.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/align-center.svg"
   },
   "assets/icons/xo/m-editing-and-text/align-left.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/align-left.svg"
   },
   "assets/icons/xo/m-editing-and-text/align-right.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/align-right.svg"
   },
   "assets/icons/xo/m-editing-and-text/bold.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/bold.svg"
   },
   "assets/icons/xo/m-editing-and-text/book.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/book.svg"
   },
   "assets/icons/xo/m-editing-and-text/clipboard.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/clipboard.svg"
   },
   "assets/icons/xo/m-editing-and-text/emoji.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/emoji.svg"
   },
   "assets/icons/xo/m-editing-and-text/file-audio.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/file-audio.svg"
   },
   "assets/icons/xo/m-editing-and-text/file-markdown.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/file-markdown.svg"
   },
   "assets/icons/xo/m-editing-and-text/file-pdf.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/file-pdf.svg"
   },
   "assets/icons/xo/m-editing-and-text/file-video.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/file-video.svg"
   },
   "assets/icons/xo/m-editing-and-text/heading.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/heading.svg"
   },
   "assets/icons/xo/m-editing-and-text/highlighter.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/highlighter.svg"
   },
   "assets/icons/xo/m-editing-and-text/indent.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/indent.svg"
   },
   "assets/icons/xo/m-editing-and-text/italic.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/italic.svg"
   },
   "assets/icons/xo/m-editing-and-text/library.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/library.svg"
   },
   "assets/icons/xo/m-editing-and-text/list-numbered.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/list-numbered.svg"
   },
   "assets/icons/xo/m-editing-and-text/lock-open.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/lock-open.svg"
   },
   "assets/icons/xo/m-editing-and-text/minus-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/minus-circle.svg"
   },
   "assets/icons/xo/m-editing-and-text/note.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/note.svg"
   },
   "assets/icons/xo/m-editing-and-text/outdent.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/outdent.svg"
   },
   "assets/icons/xo/m-editing-and-text/play-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/play-circle.svg"
   },
   "assets/icons/xo/m-editing-and-text/plus-square.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/plus-square.svg"
   },
   "assets/icons/xo/m-editing-and-text/print.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/print.svg"
   },
   "assets/icons/xo/m-editing-and-text/save.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/save.svg"
   },
   "assets/icons/xo/m-editing-and-text/strikethrough.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/strikethrough.svg"
   },
   "assets/icons/xo/m-editing-and-text/text-size.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/text-size.svg"
   },
   "assets/icons/xo/m-editing-and-text/underline.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/underline.svg"
   },
   "assets/icons/xo/m-editing-and-text/unlink.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/unlink.svg"
   },
   "assets/icons/xo/m-editing-and-text/unpin.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/m-editing-and-text/unpin.svg"
   },
   "assets/icons/xo/manifest.json": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/manifest.json"
   },
   "assets/icons/xo/n-people-status-and-time/alarm.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/alarm.svg"
   },
   "assets/icons/xo/n-people-status-and-time/app-badge.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/app-badge.svg"
   },
   "assets/icons/xo/n-people-status-and-time/battery.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/battery.svg"
   },
   "assets/icons/xo/n-people-status-and-time/bell-badge.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/bell-badge.svg"
   },
   "assets/icons/xo/n-people-status-and-time/bell-off.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/bell-off.svg"
   },
   "assets/icons/xo/n-people-status-and-time/calendar-add.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/calendar-add.svg"
   },
   "assets/icons/xo/n-people-status-and-time/calendar-check.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/calendar-check.svg"
   },
   "assets/icons/xo/n-people-status-and-time/chart-pie.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/chart-pie.svg"
   },
   "assets/icons/xo/n-people-status-and-time/cloud-off.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/cloud-off.svg"
   },
   "assets/icons/xo/n-people-status-and-time/comment.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/comment.svg"
   },
   "assets/icons/xo/n-people-status-and-time/folder-add.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/folder-add.svg"
   },
   "assets/icons/xo/n-people-status-and-time/folder-shared.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/folder-shared.svg"
   },
   "assets/icons/xo/n-people-status-and-time/loading-dots.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/loading-dots.svg"
   },
   "assets/icons/xo/n-people-status-and-time/location-arrow.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/location-arrow.svg"
   },
   "assets/icons/xo/n-people-status-and-time/mail.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/mail.svg"
   },
   "assets/icons/xo/n-people-status-and-time/mic-off.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/mic-off.svg"
   },
   "assets/icons/xo/n-people-status-and-time/person-2.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/person-2.svg"
   },
   "assets/icons/xo/n-people-status-and-time/person-add.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/person-add.svg"
   },
   "assets/icons/xo/n-people-status-and-time/person-circle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/person-circle.svg"
   },
   "assets/icons/xo/n-people-status-and-time/person-remove.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/person-remove.svg"
   },
   "assets/icons/xo/n-people-status-and-time/phone.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/phone.svg"
   },
   "assets/icons/xo/n-people-status-and-time/photo-stack.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/photo-stack.svg"
   },
   "assets/icons/xo/n-people-status-and-time/schedule-send.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/schedule-send.svg"
   },
   "assets/icons/xo/n-people-status-and-time/shield-check.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/shield-check.svg"
   },
   "assets/icons/xo/n-people-status-and-time/snooze.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/snooze.svg"
   },
   "assets/icons/xo/n-people-status-and-time/spinner.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/spinner.svg"
   },
   "assets/icons/xo/n-people-status-and-time/video-call.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/video-call.svg"
   },
   "assets/icons/xo/n-people-status-and-time/wifi-off.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/wifi-off.svg"
   },
   "assets/icons/xo/n-people-status-and-time/zoom-in.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/zoom-in.svg"
   },
   "assets/icons/xo/n-people-status-and-time/zoom-out.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/n-people-status-and-time/zoom-out.svg"
   },
   "assets/icons/xo/o-media-data-and-system/accessibility.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/accessibility.svg"
   },
   "assets/icons/xo/o-media-data-and-system/bug.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/bug.svg"
   },
   "assets/icons/xo/o-media-data-and-system/camera.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/camera.svg"
   },
   "assets/icons/xo/o-media-data-and-system/captions.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/captions.svg"
   },
   "assets/icons/xo/o-media-data-and-system/chart-area.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/chart-area.svg"
   },
   "assets/icons/xo/o-media-data-and-system/contrast.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/contrast.svg"
   },
   "assets/icons/xo/o-media-data-and-system/database.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/database.svg"
   },
   "assets/icons/xo/o-media-data-and-system/fast-forward.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/fast-forward.svg"
   },
   "assets/icons/xo/o-media-data-and-system/film.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/film.svg"
   },
   "assets/icons/xo/o-media-data-and-system/fingerprint.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/fingerprint.svg"
   },
   "assets/icons/xo/o-media-data-and-system/gauge.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/gauge.svg"
   },
   "assets/icons/xo/o-media-data-and-system/kanban.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/kanban.svg"
   },
   "assets/icons/xo/o-media-data-and-system/memory.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/memory.svg"
   },
   "assets/icons/xo/o-media-data-and-system/percent.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/percent.svg"
   },
   "assets/icons/xo/o-media-data-and-system/picture-in-picture.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/picture-in-picture.svg"
   },
   "assets/icons/xo/o-media-data-and-system/qr-code.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/qr-code.svg"
   },
   "assets/icons/xo/o-media-data-and-system/repeat.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/repeat.svg"
   },
   "assets/icons/xo/o-media-data-and-system/rewind.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/rewind.svg"
   },
   "assets/icons/xo/o-media-data-and-system/screen-share.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/screen-share.svg"
   },
   "assets/icons/xo/o-media-data-and-system/shuffle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/shuffle.svg"
   },
   "assets/icons/xo/o-media-data-and-system/skip-back.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/skip-back.svg"
   },
   "assets/icons/xo/o-media-data-and-system/skip-forward.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/skip-forward.svg"
   },
   "assets/icons/xo/o-media-data-and-system/sliders-vertical.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/sliders-vertical.svg"
   },
   "assets/icons/xo/o-media-data-and-system/table.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/table.svg"
   },
   "assets/icons/xo/o-media-data-and-system/toggle.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/toggle.svg"
   },
   "assets/icons/xo/o-media-data-and-system/translate.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/translate.svg"
   },
   "assets/icons/xo/o-media-data-and-system/trend-down.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/trend-down.svg"
   },
   "assets/icons/xo/o-media-data-and-system/trend-up.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/trend-up.svg"
   },
   "assets/icons/xo/o-media-data-and-system/volume-low.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/volume-low.svg"
   },
   "assets/icons/xo/o-media-data-and-system/volume-mute.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/o-media-data-and-system/volume-mute.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/agent-add.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/agent-add.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/api.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/api.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/award.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/award.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/brain.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/brain.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/cart.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/cart.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/cloud-upload.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/cloud-upload.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/coffee.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/coffee.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/commit.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/commit.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/credit-card.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/credit-card.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/diff.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/diff.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/display.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/display.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/fork.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/fork.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/gift.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/gift.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/git-compare.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/git-compare.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/globe-lock.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/globe-lock.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/laptop.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/laptop.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/layers.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/layers.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/leaf.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/leaf.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/location-pin.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/location-pin.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/logs.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/logs.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/merge.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/merge.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/milestone.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/milestone.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/pull-request.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/pull-request.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/receipt.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/receipt.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/secret.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/secret.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/tablet.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/tablet.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/test-flask.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/test-flask.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/trophy.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/trophy.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/webhook.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/webhook.svg"
   },
   "assets/icons/xo/p-devices-development-and-everyday/wrench.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/p-devices-development-and-everyday/wrench.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/bell-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/bell-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/calendar-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/calendar-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/check-circle-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/check-circle-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/cloud-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/cloud-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/eye-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/eye-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/flag-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/flag-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/inbox-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/inbox-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/key-capslock.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/key-capslock.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/key-control.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/key-control.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/key-escape.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/key-escape.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/key-forward-delete.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/key-forward-delete.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/key-space.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/key-space.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/key-tab.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/key-tab.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/message-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/message-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/mic-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/mic-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/person-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/person-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/pin-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/pin-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/search-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/search-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/tag-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/tag-fill.svg"
   },
   "assets/icons/xo/q-keys-and-filled-variants/x-circle-fill.svg": {
-   "status": "planned",
+   "status": "moved",
    "home": "core/ui/icons/source/xo/q-keys-and-filled-variants/x-circle-fill.svg"
   },
   "css/app.css": {

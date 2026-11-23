@@ -1164,7 +1164,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* stamps + choreography (within a stable frame; nothing jumps) */
 .stamp{position:absolute;left:50%;top:42%;z-index:3;width:88px;height:88px;margin:-44px 0 0 -44px;opacity:0;pointer-events:none}
-/* the owner's stamps (assets/icons/xo/e-state-marks): two soft discs and the mark, in the stamp's colour, on the
+/* the owner's stamps (core/ui/icons/source/xo/e-state-marks): two soft discs and the mark, in the stamp's colour, on the
    stamp's own ground so the card under it doesn't show through; the mark draws itself in */
 .stamp svg{width:100%;height:100%;border-radius:50%;background:var(--stamp-bg)}
 .stamp-svg .sk{stroke-dasharray:60;stroke-dashoffset:60}

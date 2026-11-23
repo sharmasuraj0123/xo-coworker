@@ -12,7 +12,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("Stop: a stone disc with the owner's stop square, its radius concentric with the composer's", () => {
   const app = nc(read("css/app.css")), js = read("js/app.js"), tok = read("core/ui/tokens.css");
-  // the owner's stop (assets/icons/xo/c-actions/stop.svg: a 12 square, 3.5 corners, on the 24 grid), at --ic-lg
+  // the owner's stop (core/ui/icons/source/xo/c-actions/stop.svg: a 12 square, 3.5 corners, on the 24 grid), at --ic-lg
   assert.match(js, /const STOP_ICON = ICON\.stop;/);
   assert.match(app, /\.send\.is-stop\{--stop:var\(--fill-4\);--ring-in:var\(--focus\);background:var\(--stop\);color:var\(--ink\)\}/);
   assert.match(app, /\.send\.is-stop svg\{width:var\(--ic-lg\);height:var\(--ic-lg\)\}/);

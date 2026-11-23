@@ -1,4 +1,4 @@
-// The owner's icon pack (assets/icons/xo, 19 Nov) is the one source of the app's icons: core/ui/icons/xoicons.js is what
+// The owner's icon pack (core/ui/icons/source/xo, 19 Nov) is the one source of the app's icons: core/ui/icons/xoicons.js is what
 // tools/xoicons/build.mjs makes of it (each file passed an allowlist; ink is currentColor; no Figma ids), and every
 // icon set (ICON, the panel, Map, Files, viewer, chat, steps, Launchpad, links, file types, project topics) draws
 // from it, so no module keeps a hand-drawn <svg> of its own.
@@ -18,7 +18,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 t("core/ui/icons/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
   assert.equal(read("core/ui/icons/xoicons.js"), build());
-  const man = JSON.parse(read("assets/icons/xo/manifest.json"));
+  const man = JSON.parse(read("core/ui/icons/source/xo/manifest.json"));
   assert.equal(Object.keys(XI).length, man.icons.length);
 });
 
