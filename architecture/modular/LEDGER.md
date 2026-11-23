@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 462 |
+| moved | 463 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 180 |
+| planned | 179 |
 | kept | 56 |
 | split | 35 |
 
-Items inside first-party files: 2488 (moved 1057, planned 758, split-region 389, kept 161, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1061, planned 754, split-region 389, kept 161, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -77,7 +77,7 @@ Items inside first-party files: 2488 (moved 1057, planned 758, split-region 389,
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 612 | split | modules/conversation/media/, core/ui/media (layout) |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
-| `js/model.js` | 34 | planned | modules/threads/checklist.js |
+| `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
 | `js/msgx.js` | 918 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
 | `js/pacing.js` | 67 | moved | modules/decisions/pacing.js |

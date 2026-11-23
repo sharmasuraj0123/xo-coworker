@@ -2739,8 +2739,8 @@
    "note": "every importer points at core/platform/diff.js, so it leaves with no re-export"
   },
   "js/model.js": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/motion.js": {
    "status": "moved",
@@ -11461,20 +11461,20 @@
    "home": "core/platform/diff.js"
   },
   "js/model.js::exports::parseChecklist": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/model.js::exports::tasksOf": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/model.js::functions::parseChecklist": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/model.js::functions::tasksOf": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/motion.js::exports::EASE": {
    "status": "moved",
