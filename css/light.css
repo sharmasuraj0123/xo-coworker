@@ -41,7 +41,6 @@
 :root[data-theme="light"] .tcard{border-color:var(--line-soft);box-shadow:var(--lift-1)}
 :root[data-theme="light"] .tcard:hover{background:var(--surface)}
 :root[data-theme="light"] .ckbar{background:var(--surface);border-color:var(--line-soft)}
-:root[data-theme="light"] .hr{border-color:rgba(0,0,0,.08);box-shadow:var(--lift-2)}
 /* the plain button is a white key; its variants keep their own fills */
 
 /* ── floating surfaces: panels, docks, dialogs, popovers ── */

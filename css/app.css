@@ -626,7 +626,8 @@ code.hl{color:var(--code-ink)}
 body:not(.stage-covers) .dock.is-stacked>.herald,.tp .dock.is-stacked>.herald{bottom:calc(100% + var(--dock-gap))}
 /* with anything docked, the gap over the box is the docked thing's own (--dock-gap), not the bar's fade room */
 .dock.is-stacked>.cbar{padding-top:0}
-.hr{--ctl-in:calc((var(--dock-bar) - var(--ic-lg)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:var(--gap-icon);max-width:100%;height:calc(var(--dock-bar) + 2px);padding:0 calc(var(--end-in, var(--edge-text)) - 1px) 0 calc(var(--start-in, var(--edge-text)) - 1px);border-radius:var(--nest-r);background:var(--glass);border:1px solid transparent;color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--lift-3)}
+/* a pill a control tall: its icon bare, its button nested --note-in from the end */
+.hr{--note-in:calc((var(--note-h) - var(--note-btn)) / 2);pointer-events:auto;position:relative;display:inline-flex;align-items:center;gap:var(--gap-icon);max-width:100%;height:calc(var(--note-h) + 2px);padding:0 calc(var(--edge-text) - 1px) 0 calc(var(--edge-text) - 1px);border-radius:var(--r-pill);background:var(--glass);border:1px solid transparent;color:var(--ink-3);font-size:var(--fs-ui);white-space:nowrap;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--lift-2)}
 button.hr{transition:border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease),background var(--d-hover) var(--ease)}
 button.hr:hover{background:linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)}
 button.hr:active{transform:scale(.97)}
@@ -636,21 +637,18 @@ button.hr:active{transform:scale(.97)}
 .hr-s{color:var(--ink-4);overflow:hidden;text-overflow:ellipsis}
 .hr>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .hr-dot{flex:none;width:var(--ic-sm);height:var(--ic-sm);background:var(--warn);mask:var(--mask-needs)}
-/* a disc or a button at an end sits concentric in the line; words keep the text inset */
-.hr:has(>.hr-ic){--start-in:var(--ctl-in)}
-.hr:has(>:is(.hr-go,.hr-undo)){--end-in:var(--nest-in)}
-/* its state tints the glass, read from its disc: green for done or a reply, red for a stop or no connection, amber while it waits */
+.hr:has(>:is(.hr-go,.hr-undo)){padding-right:calc(var(--note-in) - 1px)}
+/* its state tints the glass, read from its icon: green for done or a reply, red for a stop or no connection, amber while it waits */
 .hr:has(>.hr-ic:is(.k-ok,.k-ping)){--state:var(--accent)}
 .hr:has(>.hr-ic.k-stopped){--state:var(--err-ink)}
 .hr-conn.k-wait{--state:var(--warn)}
-.hr-ic{flex:none;display:grid;place-items:center;width:var(--ic-lg);height:var(--ic-lg);border-radius:50%}
-.hr-ic svg{width:var(--ic-xs);height:var(--ic-xs)}
-.hr-ic.k-ok{background:rgba(var(--accent-rgb),.14);color:var(--accent)}
-.hr-ic.k-stopped{background:var(--danger-tint);color:var(--err-ink)}
-.hr-ic.k-ping{background:rgba(var(--accent-rgb),.12);color:var(--accent)}
-.hr-ic.k-calm{background:var(--fill-3);color:var(--ink-3)}
-.hr-ic.k-found{background:var(--coord-tint);color:var(--coord)}
-.hr-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--dock-btn);margin-left:var(--s-1);padding:0 var(--s-2) 0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--btn-fill);color:var(--ink);font-weight:var(--fw-medium)}
+.hr-ic{flex:none;display:grid;place-items:center}
+.hr-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
+.hr-ic:is(.k-ok,.k-ping){color:var(--accent)}
+.hr-ic.k-stopped{color:var(--err-ink)}
+.hr-ic.k-calm{color:var(--ink-3)}
+.hr-ic.k-found{color:var(--coord)}
+.hr-go{flex:none;display:inline-flex;align-items:center;gap:var(--s-1);height:var(--note-btn);margin-left:var(--s-1);padding:0 var(--s-2) 0 var(--s-3);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .hr-go svg{width:var(--ic-sm);height:var(--ic-sm)}
 .hr-calm{box-shadow:none}
@@ -1100,7 +1098,7 @@ body.panel-open .app.has-tdock-card .main::before{display:none}
 
 /* the thread's own card: Today's wide layout (#20) */
 .card.is-dock{max-height:min(58vh,520px);background:var(--surface)}
-:is(.dock-fold,.card.is-dock.r-done,.hr){--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
+:is(.dock-fold,.card.is-dock.r-done){--nest-r:var(--r-card);--nest-in:calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px);border-radius:var(--nest-r)}
 /* the folded and done lines are glass: the composer's fill, tinted by the line's state */
 :is(.dock-fold,.card.is-dock.r-done,.hr){--glass:color-mix(in srgb,var(--state,transparent) 12%,color-mix(in srgb,var(--comp-bg) 80%,transparent))}
 .card.is-dock .c-h{font-size:var(--fs-heading)}
@@ -1274,7 +1272,7 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .ev-undo:hover{background:var(--fill-2);color:var(--ink)}
 .m-iq{margin-left:auto;font-size:var(--fs-meta);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tc-cw{color:var(--ink-4)}
-.hr-undo{flex:none;margin-left:var(--s-1);height:var(--dock-btn);padding:0 var(--s-3);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease)}
+.hr-undo{flex:none;margin-left:var(--s-1);height:var(--note-btn);padding:0 var(--s-3);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease)}
 .hr-undo:hover{background:var(--btn-fill-hover);transition-duration:var(--d-hover-in)}
 
 /* ── intelligence: the chip (quietest thing in the composer) and its popover ── */
@@ -1617,7 +1615,7 @@ button.kr-r:hover{background:var(--fill-2);color:var(--ink)}
   .ar .mini{display:none}
   /* touch targets: 36 px minimum at 390 */
   .help,.x,.pn-x{width:var(--h-touch);height:var(--h-touch)}
-  .c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.hr-undo,.top-back{min-height:var(--h-touch)}
+  .c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.top-back{min-height:var(--h-touch)}
   .iq{padding:0 12px}
   .b-opt.has-pv{flex-direction:row;align-items:center;gap:12px;padding:8px 12px}
   .c-opts{gap:4px}
@@ -2130,7 +2128,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
   .dis-h{min-height:var(--h-touch)}
   .tb-h{min-height:var(--h-touch)}
   .m-turn{--tb-line:36px;--av-h:26px}
-  .hr.hr-need{min-height:var(--h-touch)}
   .rn-chip,.rn-log,.rn-stopall{height:var(--h-touch)}
   .composer-field>textarea{min-height:var(--h-touch)}
   .kr-k{min-height:var(--h-touch)}
@@ -2139,11 +2136,11 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
    without: cut to "XO shows everyt…", a notice hid what it meant (the create-project grader on 366e72d, S117's
    preset that couldn't be read; the whole of it was only in the live region) */
 @media (max-width:760px){
-  .hr-ev.k-stopped{--nest-r:var(--r-xl);flex-wrap:wrap;row-gap:2px;height:auto;min-height:var(--h-touch);padding:5px calc(var(--end-in, var(--nest-in)) - 1px) 6px calc(var(--start-in, var(--nest-in)) - 1px);border-radius:var(--nest-r)}
+  .hr-ev.k-stopped{flex-wrap:wrap;row-gap:0;height:auto;min-height:calc(var(--note-h) + 2px);padding:calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--edge-text) - 1px);border-radius:var(--r-xl)}
   .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
   .hr-ev.k-stopped.has-undo .hr-undo{margin-left:auto}
-  /* a 36 px button sits inside its line, never past its edge */
-  .hr-ev.has-undo{height:auto;min-height:38px;padding-top:1px;padding-bottom:1px}
+  /* Undo keeps a finger's height, and its pill grows round it by the same inset */
+  .hr:has(>.hr-undo){--note-btn:var(--h-touch);--note-h:calc(var(--note-btn) + 2 * var(--s-1))}
 }
 /* Send now: its own toggle beside a running chat's line; pressed, it reads as a choice you made */
 .tg-now{flex:none;display:inline-flex;align-items:center;height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r-pill);background:var(--btn-fill);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}

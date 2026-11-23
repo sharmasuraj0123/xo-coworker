@@ -15,7 +15,7 @@ t("glyph margins are tokens, read off the pack's 24 grid", () => {
   assert.match(tokens, /--ic-ink:\.15; --ic-ink-chev:\.21; --mark-ink:calc\(2 \/ 24\);/);
 });
 t("the folded ask and the done line are one bar: same height, inset and button, from the same tokens", () => {
-  assert.match(app, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done,\.hr\)\{--nest-r:var\(--r-card\);--nest-in:calc\(\(var\(--dock-bar\) - var\(--dock-btn\)\) \/ 2 \+ 1px\);border-radius:var\(--nest-r\)\}/);
+  assert.match(app, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-card\);--nest-in:calc\(\(var\(--dock-bar\) - var\(--dock-btn\)\) \/ 2 \+ 1px\);border-radius:var\(--nest-r\)\}/);
   assert.match(rule(".tp-done"), /min-height:var\(--dock-bar\)/);
   assert.match(rule(".dock-fold"), /min-height:calc\(var\(--dock-bar\) \+ 2px\)/);
   for (const b of [".tp-done-u", ".df-go"]) assert.match(rule(b), /height:var\(--dock-btn\);[^}]*border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\)/, b);
@@ -28,17 +28,19 @@ t("a filled control at an end nests concentric; words or a bare glyph (less its 
   const cases = [
     [".tp-done", "calc(var(--nest-in) - 1px)", "calc(var(--edge-text) - var(--ic) * var(--ic-ink))"],
     [".dock-fold", "calc(var(--nest-in) - 1px)", "calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))"],
-    [".hr", "calc(var(--end-in, var(--edge-text)) - 1px)", "calc(var(--start-in, var(--edge-text)) - 1px)"],
+    [".hr", "calc(var(--edge-text) - 1px)", "calc(var(--edge-text) - 1px)"],
     [".ck-tog", "calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev))", "var(--edge-text)"],
   ];
   for (const [sel, end, start] of cases) assert.deepEqual(pad(rule(sel)), { end, start }, sel);
 });
-t("the notice is one of the lines: its disc concentric in it, Open and Undo the line's own button in its corner", () => {
-  assert.match(rule(".hr"), /^--ctl-in:calc\(\(var\(--dock-bar\) - var\(--ic-lg\)\) \/ 2\);[^}]*height:calc\(var\(--dock-bar\) \+ 2px\);[^}]*border-radius:var\(--nest-r\);background:var\(--glass\);border:1px solid transparent;/);
-  assert.match(app, /\n\.hr:has\(>\.hr-ic\)\{--start-in:var\(--ctl-in\)\}/);
-  assert.match(app, /\n\.hr:has\(>:is\(\.hr-go,\.hr-undo\)\)\{--end-in:var\(--nest-in\)\}/, "a button at the end nests in the corner; words keep the text inset");
-  assert.match(rule(".hr-ic"), /width:var\(--ic-lg\);height:var\(--ic-lg\)/);
-  for (const sel of [".hr-go", ".hr-undo"]) assert.match(rule(sel), /height:var\(--dock-btn\);[^}]*border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\)/, sel);
-  assert.doesNotMatch(app, /\.hr-ev\.k-stopped\.has-undo\{padding-right/);
+t("the notice is a pill a control tall: its icon bare, Open and Undo pills nested --note-in from its end", () => {
+  assert.match(tokens, /--note-h:var\(--h-ctl\); --note-btn:var\(--h-sm\);/);
+  assert.match(phone, /:root\{[^}]*--note-h:var\(--h-touch\);/);
+  assert.match(rule(".hr"), /^--note-in:calc\(\(var\(--note-h\) - var\(--note-btn\)\) \/ 2\);[^}]*height:calc\(var\(--note-h\) \+ 2px\);[^}]*border-radius:var\(--r-pill\);background:var\(--glass\);border:1px solid transparent;/);
+  assert.match(app, /\n\.hr:has\(>:is\(\.hr-go,\.hr-undo\)\)\{padding-right:calc\(var\(--note-in\) - 1px\)\}/, "a button at the end nests by the same inset top and side");
+  assert.doesNotMatch(rule(".hr-ic"), /background|border-radius|width/, "no disc");
+  for (const sel of [".hr-go", ".hr-undo"]) assert.match(rule(sel), /height:var\(--note-btn\);[^}]*border-radius:var\(--r-pill\)/, sel);
+  assert.match(app, /\.hr:has\(>\.hr-undo\)\{--note-btn:var\(--h-touch\);--note-h:calc\(var\(--note-btn\) \+ 2 \* var\(--s-1\)\)\}/, "on a phone Undo keeps a finger's height");
+  assert.doesNotMatch(app, /\.hr(?:-ev)?[^{]*\{[^}]*(?:min-height:38px|padding:5px)/, "no fixed sizes");
 });
 console.log(`\n${passed} passed`);

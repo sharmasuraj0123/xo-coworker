@@ -16,7 +16,7 @@ t("the done line is a 32 px row: the pack's bare check at --ic, Undo a quiet 24 
   assert.match(css, /\n\.ck-tog\{[^}]*height:var\(--h-ctl\)/);
 });
 t("the done line's frame has the dock card's corner: one family (its inset: tests/card-family.test.mjs)", () => {
-  assert.match(css, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done,\.hr\)\{--nest-r:var\(--r-card\);[^}]*border-radius:var\(--nest-r\)\}/);
+  assert.match(css, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-card\);[^}]*border-radius:var\(--nest-r\)\}/);
   assert.ok(css.indexOf(".card.is-dock.r-done{") > css.indexOf(".card.is-dock{"), "comes after the dock card's radius");
 });
 t("the done line has no rim: glass tinted by its state, the accent when done, a step back the quiet ink", () => {
