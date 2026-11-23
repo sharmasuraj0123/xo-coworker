@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { registerHooks } from "node:module";
 import { dom, same, settle } from "./lib/dom.mjs";
 import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../js/shells/model.js";
 
@@ -126,13 +127,52 @@ t("vendored xterm files are the pinned ones", () => {
 {
   const { document, window } = await dom('<main id="scroller" tabindex="-1"></main><button id="nv-shells"><span class="sh-n"></span></button><section id="shd"></section>');
   globalThis.localStorage = globalThis.sessionStorage = { getItem: () => null, setItem() {} };
-  globalThis.fetch = async (url) => {
+  globalThis.getComputedStyle = () => ({ getPropertyValue: () => "" });
+  globalThis.location = new URL("http://local/");
+  globalThis.MutationObserver = globalThis.ResizeObserver = class {
+    observe() {}
+    disconnect() {}
+  };
+  globalThis.WebSocket = class { close() {} };
+  globalThis.fetch = async (url, options) => {
     const path = new URL(String(url), "http://local/").pathname;
     if (path === "/api/terminal/status") return Response.json({ enabled: true });
     assert.equal(path, "/api/terminal/sessions");
+    if (options?.method === "POST") return Response.json({
+      terminal: { id: "demo", project: "demo", name: "Demo", status: "running" },
+      ticket: "attach-ticket",
+    });
     return Response.json({ terminals: [] });
   };
-  const { createShells } = await import("../js/shells/dock.js");
+  const hooks = registerHooks({
+    load(url, context, next) {
+      if (url.endsWith("/vendor/xterm/addon-fit.mjs")) {
+        return { format: "module", shortCircuit: true, source: "export class FitAddon { fit() {} }" };
+      }
+      if (url.endsWith("/vendor/xterm/xterm.mjs")) {
+        return {
+          format: "module",
+          shortCircuit: true,
+          source: `export class Terminal {
+            loadAddon() {}
+            attachCustomKeyEventHandler() {}
+            onData() {}
+            onBinary() {}
+            onTitleChange() {}
+            onBell() {}
+            open(host) {
+              this.input = document.createElement("textarea");
+              this.input.className = "xterm";
+              host.append(this.input);
+            }
+            focus() { this.input.focus(); }
+          }`,
+        };
+      }
+      return next(url, context);
+    },
+  });
+  const { createShells } = await import("../js/shells/dock.js").finally(() => hooks.deregister());
   const schedule = globalThis.setTimeout;
   globalThis.setTimeout = (callback, delay, ...args) => {
     const timer = schedule(callback, delay, ...args);
@@ -154,6 +194,14 @@ t("vendored xterm files are the pinned ones", () => {
     same(document.activeElement, hide, "the minimized dock keeps focus on its button");
     shells.hide();
     same(document.activeElement, document.getElementById("scroller"), "closing returns focus to the conversation");
+    await shells.openProject("demo");
+    const terminal = document.querySelector(".shd-term .xterm");
+    assert.ok(terminal, "opening a shell mounts the terminal");
+    same(document.activeElement, terminal, "opening a shell focuses the terminal input");
+    shells.redraw();
+    same(document.activeElement, terminal, "redraw leaves the terminal input focused");
+    shells.hide();
+    same(document.activeElement, document.getElementById("scroller"), "closing a focused terminal returns to the conversation");
   } finally {
     globalThis.setTimeout = schedule;
   }
