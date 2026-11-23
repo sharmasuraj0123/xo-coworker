@@ -2796,12 +2796,9 @@
    "note": "every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go"
   },
   "js/recordview.js": {
-   "status": "split",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the Artifacts page in modules/artifacts/page.js; the dead Since card is deleted; the Made tab, Home's strip and ⌘K wait for modules/artifacts"
+   "status": "kept",
+   "home": "js/recordview.js",
+   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
   },
   "js/redraw.js": {
    "status": "moved",
@@ -11780,84 +11777,46 @@
    "home": "modules/since/model.js"
   },
   "js/recordview.js::exports::madeNaming": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::exports::createRecord": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/recordview.js",
+   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
   },
   "js/recordview.js::functions::madeNaming": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::functions::createRecord": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "js/recordview.js",
+   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
   },
   "js/recordview.js::ids::made-h": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::ids::made-sub": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::ids::made-q": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::ids::made-f": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::ids::made-body": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::ids::md-recent-h": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/recordview.js::ids::arts-body": {
    "status": "moved",
@@ -11892,12 +11851,8 @@
    "home": "modules/artifacts/store.js"
   },
   "js/recordview.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/artifacts",
-    "modules/since"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/artifacts/made.js"
   },
   "js/redraw.js::exports::redraw": {
    "status": "moved",
