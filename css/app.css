@@ -2038,6 +2038,10 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .acct-s.t-bad{color:var(--danger-text)}
 .acct-code{display:flex;align-items:center;gap:var(--s-4);flex-wrap:wrap}
 .acct-code .cp-code{padding:var(--s-1) var(--s-3);font-size:var(--fs-title);line-height:var(--lh-title);letter-spacing:var(--tr-code)}
+.acct-rec{height:auto;padding:var(--s-1) var(--s-3)}
+.acct-paste{display:flex;align-items:flex-end;gap:var(--s-3);flex-wrap:wrap}
+.acct-paste .field{flex:1 1 16rem;min-width:0}
+.acct-log{overflow-wrap:anywhere}
 .acct-q{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
 @media (max-width:760px){.acct-top{flex-direction:column;align-items:stretch}.acct-top .set-fa{justify-content:flex-start}}
 .set-confirm,.wt-confirm{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--err) 9%,var(--surface));border:1px solid transparent;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}

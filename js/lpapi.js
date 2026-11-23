@@ -13,7 +13,7 @@
 // rows' worth of events (repo, build, release, live) out of Space's eleven steps. Secrets travel once, in
 // the POST's body; nothing here keeps, logs or puts them in a URL.
 
-import { request, coderHeaders, ApiError } from "./api.js";
+import { request, coderHeaders, ApiError, sse } from "./api.js";
 
 const enc = encodeURIComponent;
 
@@ -153,22 +153,6 @@ export function rows(on) {
   };
 }
 
-/** A Server-Sent Events body, read as it arrives: each event's JSON to `on`. */
-async function sse(res, on, signal) {
-  const rd = res.body.getReader(), dec = new TextDecoder();
-  let buf = "";
-  for (;;) {
-    const { value, done } = await rd.read();
-    if (done || signal.aborted) return;
-    buf += dec.decode(value, { stream: true });
-    let i;
-    while ((i = buf.indexOf("\n\n")) >= 0) {
-      const block = buf.slice(0, i); buf = buf.slice(i + 2);
-      const data = block.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trimStart()).join("\n");
-      if (data) { try { on(JSON.parse(data)); } catch { /* a ping or a line that isn't JSON */ } }
-    }
-  }
-}
 const END = new Set(["done", "error", "needs", "replaced"]);
 /** How long a dropped stream waits before picking up again: Space's `retry: 3000` (a test may shorten it). */
 export const RETRY = { ms: 3000 };

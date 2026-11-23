@@ -130,6 +130,15 @@ def clean_path(path: str) -> str:
     return re.sub(r"/+", "/", p).rstrip("/") or "/"
 
 
+# Space's runtime sign-in routes, which it serves outside /api: forwarded only in this exact spelling.
+SIGN_IN = re.compile(r"^/connect/(claude-code|codex|antigravity)(/callback)?$")
+
+
+def sign_in_route(method: str, path: str) -> bool:
+    """True for a runtime sign-in: POST to start one or send its code, DELETE to cancel it."""
+    return method in ("POST", "DELETE") and bool(SIGN_IN.match(path.split("?", 1)[0]))
+
+
 def writer_route(method: str, path: str) -> bool:
     """True for a request that carries the writer key upstream: a file save or an undo, in any spelling."""
     p = clean_path(path)
@@ -500,7 +509,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def _is_api(self) -> bool:
         path = self.path.split("?", 1)[0]
-        return path == "/api" or path.startswith("/api/")
+        return path == "/api" or path.startswith("/api/") or sign_in_route(self.command, self.path)
 
     def end_headers(self):
         if not self._is_api():
@@ -575,7 +584,8 @@ class Handler(SimpleHTTPRequestHandler):
         if body is not None:
             headers["Content-Length"] = str(len(body))
         target = (_UP.path.rstrip("/") or "") + strip_token(self.path)
-        is_stream = "/stream" in self.path.split("?", 1)[0]
+        p = self.path.split("?", 1)[0]
+        is_stream = "/stream" in p or (sign_in_route(method, p) and not p.endswith("/callback"))
 
         conn_cls = http.client.HTTPSConnection if _UP.scheme == "https" else http.client.HTTPConnection
         conn = conn_cls(_UP.hostname, _UP.port, timeout=None if is_stream else 120)

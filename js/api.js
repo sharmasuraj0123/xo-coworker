@@ -35,6 +35,22 @@ const coderToken = (() => {
 /** Headers that keep Coder's app proxy signing requests in. */
 export const coderHeaders = () => (coderToken ? { "Coder-Session-Token": coderToken } : {});
 
+/** A Server-Sent Events body, read as it arrives: each event's JSON to `on`. */
+export async function sse(res, on, signal) {
+  const rd = res.body.getReader(), dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await rd.read();
+    if (done || signal.aborted) return;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const block = buf.slice(0, i); buf = buf.slice(i + 2);
+      const data = block.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trimStart()).join("\n");
+      if (data) { try { on(JSON.parse(data)); } catch { /* a ping or a line that isn't JSON */ } }
+    }
+  }
+}
 export class ApiError extends Error {
   constructor(status, code, message, extra = {}) {
     super(message);
@@ -416,6 +432,16 @@ export const api = {
   githubConnectCancel: (sessionId) => send("POST", "/connectors/github/cli/cancel", { session_id: sessionId }),
   /** Drops the saved connection; this machine's own gh login stays. */
   githubDisconnect: () => send("POST", "/connectors/github/disconnect", {}),
+  /** A runtime's sign-in (Space serves these outside /api): its events go to `on` until the stream ends. */
+  signInStream: async (route, { force = false, signal, on }) => {
+    let res;
+    try { res = await fetch(`connect/${route}${force ? "?force=1" : ""}`, { method: "POST", signal, headers: { Accept: "text/event-stream", ...coderHeaders() }, cache: "no-store", redirect: "manual" }); }
+    catch (err) { if (err.name === "AbortError") throw err; throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?"); }
+    if (!res.ok) throw new ApiError(res.status, `http_${res.status}`, `Space answered ${res.status}.`);
+    await sse(res, on, signal);
+  },
+  signInCode: (route, sessionId, code) => exchange(`connect/${route}/callback`, "POST", { session_id: sessionId, code }),
+  signInCancel: (route) => exchange(`connect/${route}`, "DELETE"),
 
   // ── shells (/api/terminal/*): T = {id, name, scope, project, path, cwd, status, foreground, viewers, …} ──
   terminalStatus: () => get("/terminal/status"),

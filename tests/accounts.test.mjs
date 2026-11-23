@@ -2,7 +2,7 @@
 //   node tests/accounts.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { ghView, missingScopes } from "../js/accounts.js";
+import { ghView, missingScopes, rtView, deviceCode, SIGN_IN } from "../js/accounts.js";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
@@ -57,6 +57,46 @@ t("a sign-in under way: the code's actions; starting: the button says so and wai
   assert.equal(s.actions[0].label, "Signing in…");
   assert.ok(s.actions[0].busy);
   assert.equal(ghView(null).key, "checking");
+});
+
+const rt = (name, health, extra = {}) => ({ name, health, ...extra });
+
+t("agents: signed in offers Sign in again; signed out leads with Sign in", () => {
+  const a = rtView(rt("codex", { installed: true, logged_in: true }));
+  assert.equal(a.key, "in"); assert.equal(ids(a), "again");
+  const b = rtView(rt("claude_code", { installed: true, logged_in: false }));
+  assert.equal(b.key, "out"); assert.equal(ids(b), "in"); assert.ok(b.actions[0].pri);
+  assert.match(b.line, /can't run Claude Code/);
+});
+
+t("agents: not installed and a missing route say so, with nothing to press", () => {
+  assert.equal(ids(rtView(rt("codex", { installed: false }))), "");
+  const v = rtView(rt("antigravity", { installed: true, logged_in: true }), null, { missing: true });
+  assert.equal(v.key, "unavailable"); assert.equal(v.tone, "bad");
+  assert.match(v.line, /^Signed in\. .*answers 404/);
+  assert.equal(ids(v), "");
+});
+
+t("agents: each phase of a sign-in has its own line and actions", () => {
+  const c = rt("claude_code", { logged_in: true });
+  assert.equal(ids(rtView(c, { phase: "starting" })), "in,cancel");
+  assert.equal(ids(rtView(c, { phase: "paste", url: "https://x" })), "open,cancel");
+  assert.ok(!rtView(c, { phase: "paste", opened: true }).actions[0].pri, "opened: the paste field leads");
+  assert.equal(rtView(rt("codex", {}), { phase: "code", code: "AB12-CD345" }).key, "code");
+  assert.equal(rtView(rt("codex", {}), { phase: "installing" }).key, "installing");
+  assert.equal(rtView(null).key, "checking");
+});
+
+t("agents: the route and shape each signs in with", () => {
+  assert.deepEqual(Object.keys(SIGN_IN), ["claude_code", "codex", "antigravity"]);
+  assert.equal(SIGN_IN.codex.kind, "device");
+  assert.ok(SIGN_IN.claude_code.cancel && !SIGN_IN.codex.cancel);
+});
+
+t("codex's device code is read from its terminal text, colours and all", () => {
+  const out = ["\x1b[1mWelcome to Codex\x1b[0m", "1. Open this link in your browser and sign in", "   \x1b[94mhttps://auth.openai.com/codex/device\x1b[0m", "2. Enter this one-time code (expires in 15 minutes)", "   \x1b[94mFZ8Q-7KD2M\x1b[0m"];
+  assert.equal(deviceCode(out.slice(0, 3)), null, "no code yet");
+  assert.deepEqual(deviceCode(out), { url: "https://auth.openai.com/codex/device", code: "FZ8Q-7KD2M" });
 });
 
 t("the page is wired: a tab, its panel, opened by setPage, in More's places", () => {
