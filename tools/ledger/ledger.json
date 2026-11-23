@@ -7781,8 +7781,8 @@
    "home": "modules/threads/menu.js"
   },
   "js/app.js::functions::tdelRender": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3863)"
+   "status": "moved",
+   "home": "modules/threads/delete-view.js"
   },
   "js/app.js::functions::deleteThread": {
    "status": "planned",
@@ -8072,8 +8072,8 @@
    "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2718)"
   },
   "js/app.js::ids::tdel-q": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3869)"
+   "status": "moved",
+   "home": "modules/threads/delete-view.js"
   },
   "js/app.js::ids::keys-reset-all": {
    "status": "moved",

@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { dom } from "./lib/dom.mjs";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
+import { createThreadDeleteView } from "../modules/threads/delete-view.js";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
@@ -20,7 +21,7 @@ const { panelThreads } = createThreadGroups({ world, isBusy, isHeld: () => false
   askShort: () => "", threadMark: () => "",
 });
 const menu = createThreadMenu({ panelThreads, SH: { enabled: true }, isBusy, movable: (thread) => thread.id === earlier.id });
-const { document } = await dom('<section id="main"></section><section id="page"></section>');
+const { document } = await dom('<section id="main"></section><section id="page"></section><div id="tdel" hidden></div>');
 const main = document.getElementById("main");
 const page = document.getElementById("page");
 assert.ok(main && page);
@@ -52,8 +53,27 @@ assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no k
   await api.restoreThread("c/1", "t 1");
   assert.deepEqual(sent, [["DELETE", "api/chat/chats/c%2F1/threads/t%201", '{"keep_branch":true}'], ["POST", "api/chat/chats/c%2F1/threads/t%201/restore", "{}"]]);
 }
-const del = app.slice(app.indexOf("function tdelRender("), app.indexOf("/** A Shell button: \"ws\""));
-assert.ok(del.indexOf("data-tdel-no>Keep it") < del.indexOf("data-tdel-yes"), "Keep it comes first");
+const del = app.slice(app.indexOf("async function deleteThread("), app.indexOf("/** A Shell button: \"ws\""));
+/** @type {{ tDel: string | null, tDelLose: { summary: string } | null }} */
+const decision = { tDel: null, tDelLose: null };
+const renderDelete = createThreadDeleteView(decision);
+const dialog = document.getElementById("tdel");
+assert.ok(dialog);
+renderDelete(earlier);
+assert.equal(dialog.hidden, true);
+decision.tDel = earlier.id;
+renderDelete(earlier);
+assert.equal(dialog.hidden, false);
+assert.equal(dialog.querySelector("button")?.textContent, "Keep it", "Keep it comes first");
+assert.match(dialog.textContent, /Its branch branch&name is kept/);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete thread");
+decision.tDelLose = { summary: "One unpublished commit" };
+renderDelete(earlier);
+assert.match(dialog.textContent, /One unpublished commit/);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
+renderDelete(later);
+assert.equal(dialog.hidden, true);
+assert.equal(dialog.children.length, 0);
 assert.match(del, /keepBranch: true/, "its branch is kept");
 assert.match(del, /undo: \(\) => world\.act\.restoreThread\(tid, res\.row\)/);
 assert.match(del, /err\.code === "would_lose_work"/, "work kept nowhere else is named and asked again");
