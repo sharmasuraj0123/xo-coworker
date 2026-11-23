@@ -36,7 +36,8 @@ export function touched(s, world, isBusy) {
       if (!prev || (at.live && !prev.live) || (at.busy && !prev.busy)) out.set(x.path, at);
     }
   }
-  return [...out.values()].sort((a, b) => (Number(b.live) - Number(a.live)) || (Number(b.busy) - Number(a.busy)) || b.seq - a.seq);
+  return [...out.values()].sort((a, b) => (/** @type {number} */ (/** @type {unknown} */ (b.live)) - /** @type {number} */ (/** @type {unknown} */ (a.live))) ||
+    (/** @type {number} */ (/** @type {unknown} */ (b.busy)) - /** @type {number} */ (/** @type {unknown} */ (a.busy))) || b.seq - a.seq);
 }
 const markOf = (/** @type {Touch} */ x) => (x.live ? "live" : x.mark);
 

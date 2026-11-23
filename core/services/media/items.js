@@ -5,7 +5,7 @@ import { attachmentUrl } from "../../platform/api.js";
 import { titleOf } from "../world/rows.js";
 import { dim, safeTint } from "./layout.js";
 
-/** @import { MadeRef, MediaDate, FileRoute, MediaInput, SharedFile } from "./types.d.ts" */
+/** @import { MadeRef, MediaDate, FileRoute, MediaInput, MediaItem, SharedFile } from "./types.d.ts" */
 
 /** The made ids a list of files carries. @param {readonly (MadeRef | null | undefined)[] | null | undefined} files */
 export function madeIds(files) {
@@ -57,7 +57,7 @@ export const isPicture = (type, name) => (type ? IMAGE_TYPE.test(String(type)) :
 export function mediaItem(raw) {
   const name = String(raw.name || String(raw.path || "").split("/").pop() || "file");
   const type = String(raw.type || "");
-  const it = {
+  const it = /** @type {MediaItem} */ ({
     key: String(raw.key || (raw.src ? `src:${raw.src}` : `name:${name}`)),
     name, title: titleOf(raw.title) || null, type, bytes: raw.bytes ?? null,
     w: dim(raw.w), h: dim(raw.h), tint: safeTint(raw.tint),
@@ -65,9 +65,10 @@ export function mediaItem(raw) {
     by: raw.by || "", at: raw.at ?? null,
     src: raw.src || null, att: raw.att || null, project: raw.project || null, rel: raw.rel || null,
     path: raw.path || null, why: raw.why || null, web: raw.web || null,
-  };
+  });
   const readable = !!(it.src || it.att || (it.project && it.rel));
-  return { ...it, kind: it.web || (readable && isPicture(type, name)) ? "image" : "file" };
+  it.kind = it.web || (readable && isPicture(type, name)) ? "image" : "file";
+  return it;
 }
 
 /** @param {{alt?: string, url: string}} source @param {{at?: MediaDate}} [options] */

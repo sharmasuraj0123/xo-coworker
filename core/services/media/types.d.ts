@@ -39,3 +39,25 @@ export interface SharedFile extends FileDetails {
   relative_path?: string | null;
   mtime?: string | number | null;
 }
+
+export interface MediaItem {
+  key: string;
+  name: string;
+  title: string | null;
+  type: string;
+  bytes: number | null;
+  w: number | null;
+  h: number | null;
+  tint: string | null;
+  made: string | null;
+  by: string;
+  at: MediaDate;
+  src: string | null;
+  att: NonNullable<MediaInput["att"]> | null;
+  project: string | null;
+  rel: string | null;
+  path: string | null;
+  why: string | null;
+  web: NonNullable<MediaInput["web"]> | null;
+  kind: "image" | "file";
+}

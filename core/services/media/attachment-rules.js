@@ -18,11 +18,8 @@ const REFUSED_TYPE = /^(audio|video|font)\/|^application\/(zip|x-zip|gzip|x-gzip
 /** @param {unknown} name */
 export const extOf = (name) => ((/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "").toLowerCase();
 
-/** @param {unknown} value */
-export const fmtSize = (value) => {
-  const n = /** @type {number | null | undefined} */ (value);
-  return n == null || !Number.isFinite(+n) ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1).replace(/\.0$/, "")} MB`;
-};
+/** @param {unknown} n */
+export const fmtSize = (n) => (n == null || !Number.isFinite(+/** @type {number} */ (n)) ? "" : /** @type {number} */ (n) < 1024 ? `${n} B` : /** @type {number} */ (n) < 1048576 ? `${Math.round(/** @type {number} */ (n) / 1024)} KB` : `${(/** @type {number} */ (n) / 1048576).toFixed(1).replace(/\.0$/, "")} MB`);
 
 /** Why this file can't be sent, from what the browser knows, or "" to let the server decide. @param {Pick<File, "name" | "size" | "type"> | null | undefined} file */
 export function refusal(file) {
