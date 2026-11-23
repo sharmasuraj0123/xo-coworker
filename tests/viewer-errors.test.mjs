@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../modules/files/viewer.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const i = src.indexOf("function renderNow()"), body = src.slice(i, src.indexOf("\n  }\n", i));

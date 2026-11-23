@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 const sheet = (f) => resolveTokens(readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""), [...NEW_SIZES, "--h-ctl", "--h-sm", "--h-lg"]);
 // app.css, then phone.css, which loads last (a phone rule in app.css's own phone block lost to the base rule after it)
 const css = sheet("app.css") + "\n" + sheet("phone.css"), phoneCss = sheet("phone.css");
-const files = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
+const files = readFileSync(new URL("../modules/files/tree.js", import.meta.url), "utf8");
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // every block declaring exactly this selector, top level or inside an @media block
 const rules = (sel) => [...css.matchAll(new RegExp(`(?:^|[}{;])\\s*${esc(sel)}\\s*\\{([^}]*)\\}`, "g"))].map((m) => m[1]);

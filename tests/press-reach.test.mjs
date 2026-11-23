@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { dom } from "./lib/dom.mjs";
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const fnd = read("foundation.css"), media = read("media.css");
 const all = sourcePaths(".css").map((f) => readSource(f).replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
@@ -40,14 +41,26 @@ t("every button whose face is a picture has a veil over it for hover and press, 
 });
 // the veil is chosen against the picture: in the theme's ink it vanished over a picture of the ink's tone (the
 // controls grader on aba434f, S233: light, a black picture, hover and held identical to rest)
-t("a picture's veil is chosen against the picture: light over a dark one, dark over a light one, read before the hover draws", () => {
+const { document, window } = await dom('<button class="mx-tile"><img src="dark.png"></button><button class="mx-one"><img src="light.png"></button><button class="att-ic is-img"><img src="attachment.png"></button>');
+const make = document.createElement.bind(document);
+document.createElement = (name, options) => name === "canvas" ? {
+  getContext: () => {
+    let image;
+    return {
+      drawImage: (source) => { image = source; },
+      getImageData: () => ({ data: new Uint8ClampedArray(image.src === "light.png" ? [127, 128, 128, 255] : [126, 128, 128, 255]) }),
+    };
+  },
+} : make(name, options);
+for (const img of document.querySelectorAll("img")) Object.defineProperties(img, { complete: { value: true }, naturalWidth: { value: 8 } });
+await import("../js/media.js");
+t("a picture's veil is chosen by the sum of its RGB channels before hover draws", () => {
   assert.match(media, /:where\(\.mx-one,\.mx-tile,button\.att-ic\.is-img\)\[data-tone="dark"\]\{--veil:#FFFFFF\}/);
   assert.match(media, /:where\(\.mx-one,\.mx-tile,button\.att-ic\.is-img\)\[data-tone="light"\]\{--veil:#000000\}/);
-  const mjs = readFileSync(new URL("../js/media.js", import.meta.url), "utf8");
-  assert.match(mjs, /export const PICTURE_FACE = "\.mx-one, \.mx-tile, button\.att-ic\.is-img";/);
-  assert.match(mjs, /document\.addEventListener\("pointerover", \(e\) => \{\s*const face = e\.target && e\.target\.closest && e\.target\.closest\(PICTURE_FACE\);/);
-  assert.match(mjs, /sum \+= d\[i\] \+ d\[i \+ 1\] \+ d\[i \+ 2\]; n\+\+;/, "by the mean of R+G+B, the graders' measure");
-  assert.match(mjs, /if \(n\) t = sum \/ n < 382\.5 \? "dark" : "light";/);
+  for (const img of document.querySelectorAll("img")) {
+    img.dispatchEvent(new window.Event("pointerover", { bubbles: true }));
+    assert.equal(img.parentElement.dataset.tone, img.src === "light.png" ? "light" : "dark");
+  }
   // at least 12% hovered: 12% of 382 is 46 RGB-sum for a pixel of the mean's colour, past the bar of 30 with room
   const hv = /\.mx-one:hover::before,\.mx-tile:hover::before\{background-color:color-mix\(in srgb,var\(--veil\) (\d+)%/.exec(media);
   assert.ok(hv && +hv[1] >= 12, `hover veil ${hv && hv[1]}%`);

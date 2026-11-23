@@ -213,7 +213,7 @@ export async function mount(/** @type {HTMLElement} */ host, /** @type {EditorMo
 
   const handle = {
     view,
-    /** Focus the text, at a line when given ("first-visible" keeps where it is). */
+    /** Focus the text, at a line when given. @param {{line?: number | null}} options */
     focus({ line = null } = {}) {
       view.focus();
       if (line && Number.isFinite(line)) { const l = view.state.doc.line(Math.min(Math.max(1, line), view.state.doc.lines)); view.dispatch({ selection: { anchor: l.from }, effects: EditorView.scrollIntoView(l.from, { y: "center" }) }); }
@@ -233,7 +233,7 @@ export async function mount(/** @type {HTMLElement} */ host, /** @type {EditorMo
     },
     get isMarkdown() { return isMd; },
     /** Show an older version's text, read only (null: back to the file as it is). */
-    showVersion(/** @type {any} */ text) {
+    showVersion(/** @type {string | null} */ text) {
       if (text == null) { if (live) { view.setState(live); live = null; viewing = null; } return; }
       if (!live) live = view.state;
       viewing = text;

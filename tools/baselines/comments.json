@@ -3,24 +3,12 @@
   "extra": 215,
   "refs": 2
  },
- "js/attach.js": {
-  "extra": 21,
-  "refs": 0
- },
  "js/decide.js": {
   "extra": 19,
   "refs": 0
  },
- "js/files.js": {
-  "extra": 66,
-  "refs": 0
- },
  "js/map.js": {
   "extra": 93,
-  "refs": 0
- },
- "js/media.js": {
-  "extra": 75,
   "refs": 0
  },
  "js/msgx.js": {
@@ -46,10 +34,6 @@
  "js/ui.js": {
   "extra": 10,
   "refs": 0
- },
- "js/viewer.js": {
-  "extra": 74,
-  "refs": 1
  },
  "css/app.css": {
   "extra": 154,

@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = ["../modules/files/viewer.js", "../modules/files/viewer-head.js", "../modules/files/viewer-events.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const body = (name) => { const i = src.indexOf(`async function ${name}(`); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n  }\n", i)); };
@@ -27,9 +27,9 @@ t("a copy on its way takes no repeat, says so past a moment, and ends on success
 t("the download is the same state, and More stays shut while either is on its way", () => {
   assert.match(body("download"), /if \(V\.busy\) return;/);
   assert.match(body("download"), /V\.busy = \{ kind: "download", shown: true \};/);
-  const i = src.indexOf('if (e.target.closest("[data-vw-more]")) {'), a = src.slice(i, i + 600);
+  const i = src.indexOf('if (target.closest("[data-vw-more]")) {'), a = src.slice(i, i + 600);
   assert.match(a, /if \(V\.busy\) return;/, "More: one guard, for both");
-  assert.match(src, /const busy = !!\(V\.busy && V\.busy\.shown\), done = !busy && V\.copied, word = busy \? \(V\.busy\.kind === "copy" \? "Copying…" : "Downloading…"\) : done \? "Copied" : "";/, "the ⋯ says which: what's on its way before what's done (S126 / V52)");
+  assert.match(src, /const busy = !!\(V\.busy && V\.busy\.shown\), done = !busy && V\.copied, word = busy \? \(\/\*\* @type \{BusyState\} \*\/ \(V\.busy\)\.kind === "copy" \? "Copying…" : "Downloading…"\) : done \? "Copied" : "";/, "the ⋯ says which: what's on its way before what's done (S126 / V52)");
   assert.match(body("download"), /V\.busy = \{ kind: "download", shown: true \}; V\.copied = false;/, "a download ends the last Copied");
   assert.match(body("copy"), /V\.copied = false; \/\/ a new copy/, "and so does a new copy");
 });

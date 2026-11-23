@@ -7,14 +7,14 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = ["viewer.js", "viewer-head.js", "viewer-events.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
 const body = (name) => { const i = src.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0; const j = src.indexOf("{", i); for (let k = j; k < src.length; k++) { if (src[k] === "{") d++; else if (src[k] === "}" && --d === 0) return src.slice(j, k + 1); } return null; };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const has = (s, re, msg) => assert.ok(re.test(s || ""), `${msg} (${re})`);
 
 t("one finder for a control that shows (a folded control is drawn twice: hidden in the head, and in the menu)", () => {
-  has(src, /const shown = \(root, sel\) => \[\.\.\.root\.querySelectorAll\(sel\)\]\.find\(\(x\) => x\.getClientRects\(\)\.length > 0\) \|\| null;/, "shown(root, sel)");
+  has(src, /const shown = \(root, sel\) => \[\.\.\.\/\*\* @type \{NodeListOf<HTMLElement>\} \*\/ \(root\.querySelectorAll\(sel\)\)\]\.find\(\(x\) => x\.getClientRects\(\)\.length > 0\) \|\| null;/, "shown(root, sel)");
 });
 t("a redraw puts focus back on a control that shows; one chosen from the menu, on the ⋯", () => {
   const r = body("render");
@@ -26,7 +26,7 @@ t("a redraw puts focus back on a control that shows; one chosen from the menu, o
   assert.ok(!/now\.querySelector\(`\[\$\{had\}\]`\)/.test(p), "paintHead never takes the first match");
 });
 t("every choice from the menu ends with the menu gone and focus on something drawn", () => {
-  has(src, /const fromMenu = V\.menu && !!e\.target\.closest\("\.vw-menu"\) && !e\.target\.closest\("\.vw-menu a"\);\s*act\(e\);/, "the click acts, knowing it came from the menu");
+  has(src, /const fromMenu = V\.menu && !!target\.closest\("\.vw-menu"\) && !target\.closest\("\.vw-menu a"\);\s*act\(e\);/, "the click acts, knowing it came from the menu");
   has(src, /if \(el\.querySelector\("\.vw-menu"\) && !V\.menu\) paintHead\(\);/, "the menu goes when nothing redrew the head");
   has(src, /if \(!a \|\| a === document\.body \|\| \(el\.contains\(a\) && !a\.getClientRects\(\)\.length\)\) \(shown\(el, "\[data-vw-more\]"\) \|\| headFocus\(false\)\)\.focus/, "focus that fell, or sits on nothing drawn, goes to the ⋯ (else the head)");
 });

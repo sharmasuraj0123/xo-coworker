@@ -1,6 +1,7 @@
 // Files (js/files.js): which folder a view shows, and where a file the viewer opened sits in it. No network.
 //   node tests/files.test.mjs
 import assert from "node:assert/strict";
+import { deferred, dom, same, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { scopeOf, localIn, fileScope, newFileSay } = await import("../js/files.js");
@@ -63,4 +64,183 @@ t("a new file's name: said under it before Enter (a folder in it, one that's the
   assert.equal(newFileSay("hook", "x", d, true).runs, true, "Space said it runs code (428)");
   assert.equal(newFileSay("settings.json", "docs/.claude", d), null, "only at the top of the place");
 });
+const { window, document } = await dom('<main id="home"></main><aside id="files"></aside><section id="viewer" tabindex="-1" hidden></section>');
+const storage = new Map([
+  ["xo-home-shape", JSON.stringify({ w: 0, parts: [{ id: "hm-made", n: 2 }] })],
+  ["xo-files-secs", JSON.stringify({ p: { all: true } })],
+  ["xo-draft:p|docs/index.html", JSON.stringify({ text: "<p>draft</p>", base: "<p>saved</p>", version: "v1" })],
+  ["xo-drafts", JSON.stringify({ "p|docs/index.html": 1 })],
+]);
+globalThis.localStorage = {
+  getItem: (key) => storage.get(key) ?? null,
+  setItem: (key, value) => storage.set(key, value),
+  removeItem: (key) => storage.delete(key),
+};
+
+await import("../js/skeleton.js");
+t("Home paints on entry using the stored shape before the app starts", () => {
+  assert.ok(document.querySelector("#home h1")?.textContent.trim());
+  assert.ok(document.querySelector("#home .hm-date")?.textContent.trim());
+  assert.equal(document.querySelectorAll("#hm-made .md-it.is-sk").length, 2);
+});
+
+const { api } = await import("../core/platform/api.js");
+const { createFiles } = await import("../js/files.js");
+const { createViewer, whenWords } = await import("../js/viewer.js");
+t("The viewer describes recent versions relative to now", () => {
+  const at = "2026-11-23T20:00:00.000Z", time = Date.parse(at);
+  assert.equal(whenWords("", time), "");
+  assert.equal(whenWords(at, time + 44_000), "just now");
+  assert.equal(whenWords(at, time + 45_000), "1 min ago");
+});
+const reads = [], saves = [], versionReads = [];
+api.projectTree = async (project, path) => {
+  reads.push([project, path]);
+  return path === "docs"
+    ? { files: [{ name: "index.html", relative_path: "docs/index.html" }] }
+    : { dirs: [{ name: "docs", relative_path: "docs" }] };
+};
+api.projectFile = async () => ({ kind: "html", content: "<p>saved</p>", version: "v1", editable: true });
+api.projectVersions = async (project, path) => { versionReads.push([project, path]); return { versions: [] }; };
+api.saveProjectFile = async (...args) => { saves.push(args); return { version: "v2" }; };
+const viewer = createViewer({ announce() {}, onChange() {} });
+const files = createFiles({
+  world: { state: { turns: [], threads: [], projects: [] }, thread: () => null },
+  changes: {
+    of: () => ({ state: "ok", files: new Map([["notes.md", { path: "notes.md", binary: true }]]) }),
+    activity: () => ({ live: new Set() }),
+  },
+  viewer, isBusy: () => false, PROJ: (id) => id.toUpperCase(), go() {},
+});
+const host = document.getElementById("files");
+const viewerEl = document.getElementById("viewer");
+host.getBoundingClientRect = () => ({ width: 400 });
+files.mount(host);
+t("Files mounts the existing viewer into its preview", () => {
+  same(host.querySelector(".fl-view #viewer"), viewerEl);
+});
+files.show("p:p");
+await settle();
+const click = (selector) => host.querySelector(selector).dispatchEvent(new window.Event("click", { bubbles: true }));
+t("Files reads the saved project fold and writes the same key when opened", () => {
+  assert.equal(host.querySelector('[data-fl-sec="all"]')?.getAttribute("aria-expanded"), "false");
+  click('[data-fl-sec="all"]');
+  assert.equal(host.querySelector('[data-fl-sec="all"]').getAttribute("aria-expanded"), "true");
+  same(document.activeElement, host.querySelector('[data-fl-sec="all"]'));
+  assert.deepEqual(JSON.parse(storage.get("xo-files-secs")), {});
+});
+const folder = '[data-fl-dir="docs"]';
+click(folder);
+await settle();
+t("Files opens the selected folder and asks for its children", () => {
+  assert.equal(host.querySelector(folder).getAttribute("aria-expanded"), "true");
+  assert.deepEqual(reads, [["p", ""], ["p", "docs"]]);
+});
+const fileSelector = '[data-fl-file="docs/index.html"]';
+const opener = host.querySelector(fileSelector);
+click(fileSelector);
+await settle();
+t("Picking a file opens the viewer and focuses it", () => {
+  assert.equal(viewer.file?.rel, "docs/index.html");
+  assert.equal(viewerEl.hidden, false);
+  same(document.activeElement, viewerEl);
+});
+const save = new window.Event("keydown", { bubbles: true, cancelable: true });
+Object.assign(save, { key: "s", metaKey: true });
+t("A stored draft stays unsaved until Cmd+S saves it against its original version", () => {
+  assert.deepEqual(saves, []);
+  viewerEl.dispatchEvent(save);
+  assert.equal(save.defaultPrevented, true);
+  assert.deepEqual(saves.map((args) => args.slice(0, 4)), [["p", "docs/index.html", "<p>draft</p>", "v1"]]);
+});
+await settle();
+t("Closing the viewer returns focus to the row that opened it", () => {
+  viewer.close();
+  assert.equal(viewerEl.hidden, true);
+  same(document.activeElement, opener);
+});
+
+const pendingFile = deferred();
+api.projectFile = () => pendingFile.promise;
+click(fileSelector);
+viewer.close({ restore: false });
+pendingFile.resolve({ kind: "html", content: "<p>late result</p>", version: "v3" });
+await settle();
+t("Closing while a read is pending leaves the viewer empty after the response", () => {
+  assert.equal(viewer.hasFile, false);
+  assert.equal(viewerEl.hidden, true);
+  assert.equal(viewerEl.childElementCount, 0);
+  assert.deepEqual(versionReads, [["p", "docs/index.html"]], "closed files do not start a late version read");
+});
+
+const pendingTree = deferred();
+api.projectTree = () => pendingTree.promise;
+files.show("p:q");
+const treeBefore = host.querySelector(".fl-tree").innerHTML;
+files.hide();
+files.render("p:p");
+pendingTree.resolve({ files: [{ name: "other.html", relative_path: "other.html" }] });
+await settle();
+t("A hidden Files page ignores renders and shows its loaded rows when brought back", () => {
+  assert.equal(host.querySelector(".fl-tree").innerHTML, treeBefore);
+  files.show("p:q");
+  assert.ok(host.querySelector('[data-fl-file="other.html"]'));
+});
+
+const createdFile = deferred();
+api.saveProjectFile = (...args) => { saves.push(args); return createdFile.promise; };
+api.projectTree = async () => ({ files: [{ name: "new.html", relative_path: "new.html" }] });
+click("[data-fl-new]");
+const naming = host.querySelector("[data-fl-name]");
+naming.value = "new.html";
+const enter = new window.Event("keydown", { bubbles: true, cancelable: true });
+enter.key = "Enter";
+naming.dispatchEvent(enter);
+t("New file uses the guarded write and keeps its naming row while the write is pending", () => {
+  same(document.activeElement, naming);
+  assert.equal(naming.readOnly, true);
+  assert.deepEqual(saves.at(-1), ["q", "new.html", "", null, null]);
+});
+createdFile.resolve({ edit_id: "created" });
+await settle();
+t("The new file opens from the refreshed folder when its write completes", () => {
+  assert.equal(host.querySelector("[data-fl-name]"), null);
+  assert.ok(host.querySelector('[data-fl-file="new.html"]'));
+  assert.equal(viewer.file?.created, "created");
+  assert.equal(viewer.file?.rel, "new.html");
+  viewer.close({ restore: false });
+});
+
+const { createFilesPage } = await import("../modules/files/page.js");
+t("The Files page mounts once and keeps tree width and fold under their existing keys", () => {
+  storage.set("xo-files-tree", "260");
+  storage.set("xo-files-folds", JSON.stringify({ tree: "folded" }));
+  const paneHost = document.createElement("aside");
+  document.body.append(paneHost);
+  let page, mountCount = 0;
+  const folds = [];
+  const panelFiles = createFilesPage({
+    stage: { pageShown: { name: "files" }, page: (_, definition) => { page = definition; } },
+    files: {
+      mount: (body) => { mountCount++; body.innerHTML = '<div class="fl-split" role="separator"></div>'; },
+      fold: (folded) => folds.push(folded),
+      list: () => false,
+    },
+    viewer: { hasFile: true },
+    view: () => "p:p",
+  });
+  page.mount(paneHost);
+  page.mount(paneHost);
+  assert.equal(mountCount, 1);
+  assert.deepEqual(folds, [true]);
+  assert.equal(paneHost.firstElementChild.style.getPropertyValue("--tw"), "260px");
+  const resize = new window.Event("keydown", { bubbles: true, cancelable: true });
+  Object.assign(resize, { key: "ArrowRight" });
+  paneHost.querySelector('[role="separator"]').dispatchEvent(resize);
+  assert.equal(storage.get("xo-files-tree"), "276");
+  assert.equal(panelFiles.toggleTree(), true);
+  assert.deepEqual(folds, [true, false]);
+  assert.equal(storage.get("xo-files-folds"), JSON.stringify({ tree: "open" }));
+});
+
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);

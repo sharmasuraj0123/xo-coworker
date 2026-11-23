@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 471 |
+| moved | 473 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 172 |
 | kept | 56 |
-| split | 34 |
+| split | 32 |
 
-Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1326, planned 659, split-region 243, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -32,7 +32,7 @@ Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389,
 | `js/accounts.js` | 134 | planned | modules/settings/accounts.js |
 | `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
 | `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
-| `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/rows.js + sessions.js + threads.js, core/platform/util.js · next: attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here |
+| `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: js/attach.js re-exports the attachment rules, tray and shared row helpers |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | planned | modules/decisions/cardparts.js |
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |
@@ -50,7 +50,7 @@ Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389,
 | `js/drafts.js` | 61 | moved | modules/files/drafts.js |
 | `js/dropdown.js` | 321 | moved | core/ui/components/xo-select.js · next: js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets |
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
-| `js/files.js` | 940 | split | modules/files/tree, modules/files/ops, core/services/places.js, core/services/activity.js |
+| `js/files.js` | 940 | moved | modules/files/files.js · next: The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/. |
 | `js/filespage.js` | 134 | moved | modules/files/page.js |
 | `js/flavours.js` | 20 | planned | core/ui/flavours.js |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
@@ -75,7 +75,7 @@ Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389,
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
-| `js/media.js` | 612 | split | modules/conversation/media/, core/ui/media (layout) |
+| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js · next: js/media.js re-exports the shared media modules |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
@@ -111,7 +111,7 @@ Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389,
 | `js/turnview.js` | 395 | planned | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
-| `js/viewer.js` | 1158 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
+| `js/viewer.js` | 1158 | moved | modules/files/viewer.js · next: The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |
 | `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) · next: js/world.js re-exports the store and the platform's esc until the shims go |
 | `js/xoicons.js` | 391 | moved | core/ui/icons/xoicons.js · next: generated by tools/xoicons/build.mjs; js/xoicons.js re-exports it until the shims go |

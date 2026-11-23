@@ -5,6 +5,8 @@
 - Move code as it is. Don't hard-code any value, and don't change any CSS value, look or behaviour while modularizing.
 - Never rebuild or redesign anything on your own. If something seems to need a rebuild or a behaviour change (including a "fix"), stop and ask me first, with the evidence. I take it to the owner.
 - In P2, resolve conflicts by keeping release's look and behaviour exactly, and modular's structure. Anything that can't be both, ask me.
+- Run only one full check or browser run across the project at a time. Use `modular-full-check` for a full check and `headless-browser-suite` for a browser run. Before starting, confirm neither kind of run is active elsewhere. Use `JOBS=1` and a memory `ulimit` for each run.
+- Before a full check, read `free -m` and wait if available memory is below about 1.5 GB. Use no helper sub-agents. Run at most one TypeScript checker or Node test process of your own at a time, and only stop processes you started.
 
 ## Exit criteria
 
@@ -55,11 +57,12 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 
 ## P3 integration follow-ups
 
-- Groups 1 and 2 started in parallel from `90c903a9`. Use the `modular-full-check` lease for each full run. Review and merge Group 1 first, then Group 2.
+- Groups 1 and 2 started in parallel from `90c903a9`. Panels and lists at `28f61f23` merged first, followed by media, viewer and Files at `bfbce027`. The merge keeps both packages' coverage in the shared icon tests and retains both sets of ledger and baseline reductions. Group 3 starts after the combined clean-export gate.
 - When a test reads legacy source, each worker updates only the assertions affected by its move, in the same commit. Review both groups' hunks and retain both sets of assertions where a test file overlaps.
-- Group 1 leaves `js/skeleton.js` at the direct first-paint entry. After its merge, move the implementation unchanged and update the direct module script in `index.html` in the same commit. Check the existing app and record imports, the page test fixture and the first-paint path together.
+- Group 1 leaves `js/skeleton.js` at the direct first-paint entry. Move the implementation unchanged and update the direct module script in `index.html` in the same commit. Check the existing app and record imports, the page test fixture and the first-paint path together. Coordinate this move with Group 3, which owns the record renderer and test during its package.
 - Group 1 leaves `css/media.css` at its direct stylesheet entry. The integrator moves it unchanged after the merge and updates its link in `index.html` in the same commit. Preserve the link's position in the stylesheet order.
-- Group 2 leaves `openRuns` and `stopRunsUndo` in `js/app.js`. Move them after its merge to the targets named in its handoff. The group may re-point the `tasksOf` import in `core/services/storm/selectors/threads.js` in its own commit.
+- Group 2 leaves `css/side.css` at its direct stylesheet entry as well. Move it to `shell/sidebar.css` and update the direct link and ledger in the same integrator slice. Preserve rule order and the link's cascade position.
+- Group 2 leaves `openRuns` and `stopRunsUndo` in `js/app.js`. After its merge, move them to `modules/runs/controller.js` and `modules/runs/stop.js` respectively. Keep the shared `stopsHerald` in app wiring. The group may re-point the `tasksOf` import in `core/services/storm/selectors/threads.js` in its own commit.
 
 ## Findings for the post-P4 fix phase
 
@@ -70,9 +73,12 @@ P3 and P4 preserve release behavior. Bring findings from every package handoff h
 | Files drag-and-drop rejects the drop | Release `d639012b`, `js/files.js:822,841–843`. The drop handler saves the dragged item locally, clears `dragging`, then calls `fits`, which still reads `dragging`. The guard returns before `moveTo`. Reproduce with a valid file and target directory through the Files DOM. |
 | Media item registry and scroll observers retain entries | Group 1 checkpoint `0e2c4685`, `js/media.js:112,162–171`. Each render adds items to a registry without eviction. The watcher map holds scroll roots strongly and has no removal path. Verify retention across project and conversation changes. |
 | Files host resize observer has no disposal path | Group 1 checkpoint `0e2c4685`, `js/files.js:782–785`. Mount observes the host without retaining a disconnect handle. The callback repaints when the host crosses the layout threshold. Verify the host lifecycle before changing it. |
-| Chats reads titles eagerly | Group 2 checkpoint `f940a4f1`, `modules/chats/chats.js:39–54`. After a session-list fetch, up to 24 history reads run concurrently before loading clears and the final draw is scheduled. Record request counts and initial render timing with a large list. |
+| Chats reads titles eagerly | Group 2 handoff `d7b083f2`, `modules/chats/chats.js:41–56,125–136`. After a session-list fetch, up to 24 history reads run concurrently before loading clears and the final draw is scheduled. In the active chat, each observed turn-count increase also schedules another history read. Record request counts and initial render timing with a large list. |
 | GitHub replaces each page's DOM on redraw | Group 2 `8bf12571`, `modules/github/page.js:222–244,259–266`. List refreshes and fold changes replace the whole list pane. A late item response replaces the entire detail pane. Check focus and node identity during these updates. |
 | Chat permission radios miss the Tab stop | Group 2 `d3b34ff0`, `modules/chats/setup.js:115` and `core/ui/a11y/keynav.js:33`. The permission rows are radio-role `div`s. The roving helper returns no `tabindex` for the selected or first row and `-1` for the others. `role="radio"` alone gives a `div` no Tab stop. Verify Tab entry and arrow navigation through the rendered picker. |
+| Shells schedules polling and installs page-level listeners | Group 2 handoff `d7b083f2`, `modules/shells/dock.js:81–106` and `modules/shells/dock-input.js:130–135`. The dock schedules another refresh after every read, watches document visibility, and registers window unload and media-query listeners. Verify request cadence while closed and the lifetime of each subscription. |
+| Intelligence warms catalogs during render and leaves a fallback timer pending | Group 2 handoff `d7b083f2`, `modules/chats/intel-catalog.js:52–56` and `modules/chats/intel.js:142–146`. Chip rendering can start a model catalog read, and the continue picker races its catalog against a 20-second timer with no cancellation after success. Measure the requests and confirm timer lifetime. |
+| The Shells sidebar count drives a relational selector | Group 2 handoff `d7b083f2`, `shell/sidebar.css:54`. A scoped `:has()` selector changes toggle width and padding when the count becomes nonempty. Measure style recalculation before deciding whether it needs a fix. |
 | Mask SVG requests lose immutable caching | P2 and catch-up, `core/ui/tokens.css:159–162` and `serve.py:447–456`. Release requests use `/v/<hash>/assets/` and get immutable caching. Modular requests from the root-relative mask URLs revalidate. Chromium resolved a trial relative URL from the consuming stylesheet, returning 404 from `css/app.css`. Review the serving fix with the coordinator and verify headers, SVG bytes and rendering. |
 
 ## Previous handoff from 19 November 2026

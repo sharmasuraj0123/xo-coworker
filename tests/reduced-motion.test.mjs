@@ -8,7 +8,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const base = readFileSync(new URL("../core/ui/foundation.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const js = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("under reduced motion, transitions are none: no duration, no delay", () => {
@@ -19,7 +18,7 @@ t("under reduced motion, transitions are none: no duration, no delay", () => {
   assert.doesNotMatch(m[1], /transition-duration:\.01ms/, "never a tiny transition on everything");
 });
 t("the waits on a transition's or an animation's end have their own time-outs", () => {
-  assert.match(js("media.js"), /addEventListener\("transitionend"[^\n]*\n\s*setTimeout\(done, MOVE \+ 80\)/);
+  assert.match(readFileSync(new URL("../core/services/media/hydrate.js", import.meta.url), "utf8"), /addEventListener\("transitionend"[^\n]*\n\s*setTimeout\(done, MOVE \+ 80\)/);
   assert.match(readFileSync(new URL("../core/ui/components/xo-select.js", import.meta.url), "utf8"), /addEventListener\("animationend", done, \{ once: true \}\); setTimeout\(done, \d+\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

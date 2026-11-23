@@ -2487,11 +2487,11 @@
   "js/attach.js": {
    "status": "split",
    "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
+    "core/services/media/attachment-rules.js",
+    "core/services/media/attachment-tray.js",
+    "core/services/world/rows.js"
    ],
-   "note": "attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here"
+   "note": "js/attach.js re-exports the attachment rules, tray and shared row helpers"
   },
   "js/blocks.js": {
    "status": "moved",
@@ -2576,13 +2576,9 @@
    "note": "js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go"
   },
   "js/files.js": {
-   "status": "split",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ]
+   "status": "moved",
+   "home": "modules/files/files.js",
+   "note": "The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/."
   },
   "js/filespage.js": {
    "status": "moved",
@@ -2726,9 +2722,12 @@
   "js/media.js": {
    "status": "split",
    "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ]
+    "core/services/media/items.js",
+    "core/services/media/layout.js",
+    "core/services/media/render.js",
+    "core/services/media/hydrate.js"
+   ],
+   "note": "js/media.js re-exports the shared media modules"
   },
   "js/merge.js": {
    "status": "moved",
@@ -4437,12 +4436,9 @@
    "home": "vendor/xterm/xterm.mjs"
   },
   "js/viewer.js": {
-   "status": "split",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ]
+   "status": "moved",
+   "home": "modules/files/viewer.js",
+   "note": "The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle."
   },
   "js/words.js": {
    "status": "moved",
@@ -8196,112 +8192,52 @@
    "home": "core/platform/gestures.js"
   },
   "js/attach.js::exports::MAX_BYTES": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::MAX_FILES": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::PASTE_CHARS": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::PASTE_LINES": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::extOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::fmtSize": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::refusal": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::sortFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::isLargePaste": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::pasteExt": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::pasteName": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::pasteLabel": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::attachmentsOf": {
    "status": "moved",
@@ -8316,85 +8252,40 @@
    "home": "core/services/world/rows.js"
   },
   "js/attach.js::exports::kindOf": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::typeWord": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::uploadErrorText": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::FINAL": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::exports::createTray": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-tray.js"
   },
   "js/attach.js::functions::refusal": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::sortFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::pasteExt": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::pasteLabel": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::attachmentsOf": {
    "status": "moved",
@@ -8405,31 +8296,16 @@
    "home": "core/services/world/rows.js"
   },
   "js/attach.js::functions::typeWord": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::uploadErrorText": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-rules.js"
   },
   "js/attach.js::functions::createTray": {
-   "status": "split-region",
-   "home": [
-    "modules/composer/attachments.js",
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "core/platform/util.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/attachment-tray.js"
   },
   "js/blocks.js::exports::createTurns": {
    "status": "moved",
@@ -9143,264 +9019,108 @@
    "home": "core/ui/icons/fileicons.js"
   },
   "js/files.js::exports::FILES_ICON": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::exports::scopeOf": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::fileScope": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::localIn": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::newFileSay": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::createFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::functions::scopeOf": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::fileScope": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::localIn": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::newFileSay": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::createFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::ids::viewer": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::storage::xo-files-secs": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/section-folds.js"
   },
   "js/files.js::keys::all": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Tab": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::ArrowDown": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::ArrowUp": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Home": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::End": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::ContextMenu": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::F10": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::F2": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Delete": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Backspace": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/filespage.js::exports::createFilesPage": {
    "status": "moved",
@@ -10798,644 +10518,324 @@
    "home": "modules/files/markdown-page.js"
   },
   "js/media.js::exports::LIMITS": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::TINY": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::LONG": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::BANNER": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::GAP": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::MAX_TILES": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::FRAME": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::dim": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::safeTint": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::fitImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::albumLayout": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::exports::madeIds": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::dedupeByMade": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::TAIL": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::splitExt": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::midName": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::midNameHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::labelOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::isPicture": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::mediaItemOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::mediaItem": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::fromWebImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::webLinkHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::webGone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::markWebGone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::webImagesHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::fromAttachment": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::fromSharedFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::viewerFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::exports::mediaHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::cachedSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::loadSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::PICTURE_FACE": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::pictureTone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::hydrateMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::retryMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::galleryOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::slotOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::wireDragOut": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::dim": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::safeTint": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::fitImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::share": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::albumLayout": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/layout.js"
   },
   "js/media.js::functions::madeIds": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::dedupeByMade": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::splitExt": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::midName": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::midNameHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::mediaItem": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::fromWebImage": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::webLinkHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::markWebGone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::webImagesHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::fromAttachment": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::fromSharedFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::viewerFile": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/items.js"
   },
   "js/media.js::functions::imgHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::oneHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::albumHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::cardHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::mediaHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::touch": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::evict": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::cachedSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::loadSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::watcherFor": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::stateOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::landed": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::settle": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::failed": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::webFailed": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::pictureTone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::watch": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::start": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::hydrateMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::retryMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::galleryOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::slotOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::wireDragOut": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/merge.js::exports::linesOf": {
    "status": "moved",
@@ -14869,148 +14269,68 @@
    "home": "core/platform/clipboard.js"
   },
   "js/viewer.js::exports::RUNS": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/viewer.js::exports::whenWords": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/version-time.js"
   },
   "js/viewer.js::exports::createViewer": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer.js"
   },
   "js/viewer.js::functions::whenWords": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/version-time.js"
   },
   "js/viewer.js::functions::createViewer": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer.js"
   },
   "js/viewer.js::ids::vw-h": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-head.js"
   },
   "js/viewer.js::routes::/api/xo-projects/<project>/file": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-reads.js"
   },
   "js/viewer.js::routes::/api/files/*": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-reads.js"
   },
   "js/viewer.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-text.js"
   },
   "js/viewer.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::outside_project": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-reads.js"
   },
   "js/viewer.js::keys::Tab": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::ArrowDown": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::ArrowUp": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::Home": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::End": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/words.js::exports::wordsOf": {
    "status": "moved",

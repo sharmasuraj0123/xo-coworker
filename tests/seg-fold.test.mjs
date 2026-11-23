@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const panel = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../modules/files/viewer-head.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fold = (() => { const m = /@container flpv \(max-width:520px\)\{([\s\S]*?\})\}/.exec(panel); assert.ok(m, "the narrow pane's fold"); return m[1]; })();

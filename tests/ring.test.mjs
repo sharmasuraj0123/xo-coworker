@@ -18,7 +18,7 @@ t("one list of regions: the file and the diff, each the element made to take the
   assert.ok(ring.REGIONS, "core/ui/a11y/ring.js REGIONS");
   const list = ring.REGIONS.split(",").map((s) => s.trim()).sort();
   assert.deepEqual(list, [".cx-pd", ".vw-body"]);
-  const viewer = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+  const viewer = ["../modules/files/viewer.js", "../modules/files/viewer-text.js", "../modules/files/viewer-diff.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
   const frame = readFileSync(new URL("../modules/changes/frame.js", import.meta.url), "utf8");
   // a text file's keys go to its editor (its text is the tab stop); its body holds focus only when what was in it goes
   has(viewer, /className = "vw-body vw-file vw-doc"; TX\.el\.tabIndex = -1;/, "the file's region can hold focus");

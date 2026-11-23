@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = ["../modules/files/viewer-text.js", "../modules/files/viewer-events.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
 const body = (name) => { const i = src.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0; const j = src.indexOf("{", i); for (let k = j; k < src.length; k++) { if (src[k] === "{") d++; else if (src[k] === "}" && --d === 0) return src.slice(j, k + 1); } return null; };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -28,7 +28,7 @@ t("a draw over a failure notice paints the waiting state before the editor answe
   has(d, /Couldn't show this file\.[\s\S]*data-vw-retry>Try again</, "failed again: said again, Try again ready");
 });
 t("a press while it's trying does nothing more", () => {
-  const i = src.indexOf(`if (e.target.closest('[data-vw-retry][aria-busy="true"]')) return;`), j = src.indexOf(`if (e.target.closest("[data-vw-retry]")) {`);
+  const i = src.indexOf(`if (target.closest('[data-vw-retry][aria-busy="true"]')) return;`), j = src.indexOf(`if (target.closest("[data-vw-retry]")) {`);
   assert.ok(i > 0 && j > i, "the busy Try again is passed over before the press acts");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
