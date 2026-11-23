@@ -1,19 +1,18 @@
 {
  "lines": {
-  "js/app.js": 4395,
+  "js/app.js": 4394,
   "js/decide.js": 1101,
   "js/map.js": 1102,
   "js/msgx.js": 905,
-  "js/timeline.js": 454,
   "css/app.css": 3051,
-  "css/msgx.css": 407,
-  "css/panel.css": 642
+  "css/msgx.css": 401,
+  "css/panel.css": 632
  },
  "important": {
   "css/app.css": 7,
   "modules/artifacts/artifacts.css": 1,
   "css/docs.css": 7,
-  "css/foundation.css": 13,
+  "css/foundation.css": 12,
   "css/msgx.css": 7,
   "css/panel.css": 11,
   "css/phone.css": 1,

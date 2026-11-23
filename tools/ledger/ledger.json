@@ -2917,14 +2917,8 @@
    "note": "every importer points at core/services/storm, so it leaves with no re-export"
   },
   "js/timeline.js": {
-   "status": "split",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "its normalisers are in core/services/world (rows, sessions, threads), re-exported here; the rest is the views'"
+   "status": "moved",
+   "home": "core/services/world/timeline.js"
   },
   "js/turnview.js": {
    "status": "planned",
@@ -13115,14 +13109,8 @@
    "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::reactionGroups": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::mergeRows": {
    "status": "moved",
@@ -13137,48 +13125,24 @@
    "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::pageFloor": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::inPage": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::framesShort": {
    "status": "moved",
    "home": "core/services/world/rows.js"
   },
   "js/timeline.js::exports::waitsForTurn": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::echoes": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::plainText": {
    "status": "moved",
@@ -13233,54 +13197,24 @@
    "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::heldClock": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::exports::heldWords": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::exports::heldBadge": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::exports::heldShort": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::exports::soonestHeld": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::exports::askingState": {
    "status": "moved",
@@ -13291,170 +13225,80 @@
    "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::threadAnchors": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::parseTarget": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::stripTarget": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::cliName": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::exports::mainRuntime": {
    "status": "moved",
    "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::sendErrorTitle": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::exports::currentPools": {
    "status": "moved",
    "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::exports::routingOf": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::exports::connLine": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::exports::sendBlock": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::exports::chatOrder": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::exports::mapLimit": {
    "status": "moved",
    "home": "core/services/storm/load.js"
   },
   "js/timeline.js::exports::hopLine": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::exports::sharedFileRoute": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::exports::hopNotes": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::exports::forwardOrigin": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::exports::relayedInto": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::exports::stopOf": {
    "status": "moved",
    "home": "core/services/world/threads.js"
   },
   "js/timeline.js::exports::stopWords": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::uiMsg": {
    "status": "moved",
@@ -13469,14 +13313,8 @@
    "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::reactionGroups": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::mergeRows": {
    "status": "moved",
@@ -13491,44 +13329,20 @@
    "home": "core/services/world/rows.js"
   },
   "js/timeline.js::functions::pageFloor": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::inPage": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::waitsForTurn": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::echoes": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::plainText": {
    "status": "moved",
@@ -13567,64 +13381,28 @@
    "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::whenParts": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::functions::heldClock": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::functions::whenWords": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::functions::heldWords": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::functions::heldShort": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::functions::soonestHeld": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/held.js"
   },
   "js/timeline.js::functions::askingState": {
    "status": "moved",
@@ -13635,256 +13413,112 @@
    "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::threadAnchors": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::parseTarget": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::stripTarget": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::sendErrorTitle": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::functions::currentPools": {
    "status": "moved",
    "home": "core/services/world/sessions.js"
   },
   "js/timeline.js::functions::routingOf": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::functions::offLine": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::functions::connLine": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::functions::sendBlock": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::functions::chatOrder": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::mapLimit": {
    "status": "moved",
    "home": "core/services/storm/load.js"
   },
   "js/timeline.js::functions::hopLine": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::functions::sharedFileRoute": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::functions::hopNotes": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::functions::forwardOrigin": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::functions::relayedInto": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::functions::stopOf": {
    "status": "moved",
    "home": "core/services/world/threads.js"
   },
   "js/timeline.js::functions::stopWords": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/threads.js"
   },
   "js/timeline.js::routes::/api/xo-projects/<project>/file": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/relay.js"
   },
   "js/timeline.js::keys::router_off": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::chat_retired": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::auth_required": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::no_runtime": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::coordinator_busy": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::thread_not_found": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::session_retired": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/timeline.js::keys::timeout": {
-   "status": "split-region",
-   "home": [
-    "core/services/world/rows.js + sessions.js + threads.js",
-    "modules/conversation/model.js",
-    "modules/threads",
-    "modules/decisions"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/world/conn.js"
   },
   "js/turnview.js::exports::setWorkMode": {
    "status": "planned",

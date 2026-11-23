@@ -23,10 +23,6 @@
   "extra": 17,
   "refs": 0
  },
- "js/timeline.js": {
-  "extra": 74,
-  "refs": 0
- },
  "js/turnview.js": {
   "extra": 60,
   "refs": 0
@@ -48,7 +44,7 @@
   "refs": 0
  },
  "css/foundation.css": {
-  "extra": 84,
+  "extra": 71,
   "refs": 0
  },
  "css/light.css": {
@@ -56,7 +52,7 @@
   "refs": 0
  },
  "css/links.css": {
-  "extra": 29,
+  "extra": 21,
   "refs": 0
  },
  "css/media.css": {
@@ -64,19 +60,19 @@
   "refs": 0
  },
  "css/msgx.css": {
-  "extra": 97,
+  "extra": 92,
   "refs": 0
  },
  "css/panel.css": {
-  "extra": 54,
+  "extra": 47,
   "refs": 0
  },
  "css/phone.css": {
-  "extra": 74,
+  "extra": 72,
   "refs": 0
  },
  "css/side.css": {
-  "extra": 36,
+  "extra": 11,
   "refs": 0
  },
  "tests/agent-marks.test.mjs": {
@@ -712,11 +708,11 @@
   "refs": 0
  },
  "core/ui/markdown/rich.css": {
-  "extra": 49,
+  "extra": 35,
   "refs": 0
  },
  "core/ui/tokens.css": {
-  "extra": 56,
+  "extra": 46,
   "refs": 0
  }
 }
