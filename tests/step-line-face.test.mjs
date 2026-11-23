@@ -1,6 +1,6 @@
 // A step's line reads in the row's face: a sub-agent's title is words, not code; a file target stays code.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { createMapAgents } from "../modules/map/agents.js";
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { stepLineHtml, turnHtml } = await import("../js/turnview.js");
 const sub = stepLineHtml("Sub-agent: `Read-only regression review`", "subagent");
@@ -13,6 +13,9 @@ const block = { id: "work", done: true, type: "activity", rows: [step] };
 const expanded = turnHtml(turn, [block], { open: { work: true } });
 assert.match(expanded, /<span class="tb-rl">Sub-agent: Read-only regression review<\/span>/);
 assert.match(expanded, /data-run-call="agent-call"/);
-const map = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
-assert.match(map, /stepLineHtml\(commsText\(ag\.now\.line\) \|\| ag\.now\.tool \|\| "Working", ag\.now\.kind\)/);
+const current = { ...turn, session: "worker", status: "running" };
+const turns = { list: (select) => [current].filter(select), blocksOf: () => [{ ...block, rows: [{ ...step, status: "running" }] }] };
+const agents = createMapAgents({ world: { state: { turns, threads: [], projects: [] }, act: {} }, isBusy: () => true, stepLineHtml });
+const agent = agents.agentOf({ id: "thread", title: "Worker", project: "project", state: "working", sessionId: "worker" });
+assert.equal(agents.doingLine(agent), sub);
 console.log("step-line-face: ok");

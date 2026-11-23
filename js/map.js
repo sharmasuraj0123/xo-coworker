@@ -16,20 +16,18 @@ import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { api } from "../core/platform/api.js";
 import { elapsed } from "../core/platform/index.js";
-import { commsLine, commsText } from "../core/services/comms.js";
 import { stepLineHtml } from "./turnview.js";
-import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";
 import { folderOf } from "../core/services/places.js";
-import { activityOf } from "../core/services/agent-activity.js";
-import { NW, NH, PAD, colorOf, layoutOf, edgePath } from "../modules/map/layout.js";
+import { heldWords } from "../core/services/world/held.js";
+import { NW, NH, PAD, layoutOf, edgePath } from "../modules/map/layout.js";
 import { MAP_ICON, ARROW, TOOL } from "../modules/map/icons.js";
 import { afterPause } from "../modules/map/after-pause.js";
 import { apiRel, createMapFolders } from "../modules/map/folders.js";
+import { createMapAgents } from "../modules/map/agents.js";
 
 const FILE_CAP = 8, DIR_CAP = 14; // boxes a folder shows before "N more"
-const COORD_COLOR = "#7ED957";
 
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
@@ -72,60 +70,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
     if (v.startsWith("p:")) return { kind: "project", pid: v.slice(2), key: v, fold: { project: v.slice(2), base: "" } };
     return { kind: "all", key: "all" };
   }
-  const turns = () => world.state.turns || null;
-
-  /** One agent: a thread, or a project's coordinator. → {id, title, go, project, fold, act, now, path, live, waiting, since, color} */
-  function agentOf(t) {
-    const fold = folderOf(t);
-    const a = activityOf(turns(), t.sessionId, fold && fold.root);
-    const now = a.now && a.now.row;
-    const liveFile = [...a.files.values()].filter((f) => f.live).sort((x, y) => y.seq - x.seq)[0] || null;
-    const lastFile = [...a.files.values()].sort((x, y) => y.seq - x.seq)[0] || null;
-    const busy = isBusy(t);
-    // held back by a gate (the usage limit…): not at work, so not among the agents, but its own view says what it waits for
-    const held = !busy && t.held && t.state === "working" ? t.held : null;
-    return { held, id: t.id, title: t.title, go: "t:" + t.id, project: t.project, fold, act: a, now, liveFile, path: (liveFile || (!busy && lastFile) || null)?.path || null, spots: a.nowSpots, prev: a.lastFile, busy, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, color: colorOf(t.id) };
-  }
-  function coordinatorOf(pid) {
-    const sid = world.act.coordinatorBusy && world.act.coordinatorBusy(pid);
-    if (!sid) return null;
-    const anyT = world.state.threads.find((x) => x.project === pid && folderOf(x));
-    const root = anyT ? folderOf(anyT).projectRoot : null;
-    const a = activityOf(turns(), sid, root);
-    const now = a.now && a.now.row;
-    const liveFile = [...a.files.values()].filter((f) => f.live).sort((x, y) => y.seq - x.seq)[0] || null;
-    return { id: "coord:" + pid, title: "Coordinator", go: pid === "workspace" ? "ws" : "p:" + pid, project: pid, fold: root ? { root, base: "", project: pid } : null, act: a, now, liveFile, path: liveFile ? liveFile.path : null, spots: a.nowSpots, prev: a.lastFile, busy: true, waiting: !!(now && now.waiting), since: a.running ? Date.parse(a.running.at) : null, coord: true, color: COORD_COLOR };
-  }
-  function agentsIn(pid) {
-    const out = world.state.threads.filter((t) => (!pid || t.project === pid) && isBusy(t)).map(agentOf);
-    const pids = pid ? [pid] : [...new Set(world.state.projects.map((p) => p.id))];
-    for (const p of pids) { const c = coordinatorOf(p); if (c) out.unshift(c); }
-    return out;
-  }
-
-  // ── words ──────────────────────────────────────────────────────────────────
-  /** What an agent is doing, in one line: its running step, else what its turn is on. */
-  function doingLine(ag) {
-    if (ag.now) { const said = commsLine(ag.now, { project: ag.project }); return said ? esc(said) : stepLineHtml(commsText(ag.now.line) || ag.now.tool || "Working", ag.now.kind); }
-    if (ag.act.running) {
-      const bl = turns().blocksOf(ag.act.running);
-      const last = bl[bl.length - 1];
-      return esc(last ? (last.type === "thinking" ? "Thinking" : last.type === "text" || last.type === "answer" ? "Writing its reply" : String(commsText(last.header) || "Working").replace(/`/g, "")) : "Starting");
-    }
-    return ag.busy ? "Working" : ag.held ? esc(heldWords(ag.held)) : "Not working right now";
-  }
-  /** The cursor's short word: "editing", "reading", "running a command"… */
-  function verbOf(ag) {
-    if (ag.waiting) return "waiting for you";
-    if (!ag.busy) return ag.held ? "waiting" : "idle";
-    if (ag.liveFile) return (ag.liveFile.verb || "working").toLowerCase();
-    const k = ag.now && ag.now.kind;
-    const said = ag.now && commsLine(ag.now, { project: ag.project });
-    if (said) return said.replace(/…$/, "").replace(/^\w/, (c) => c.toLowerCase());
-    return k === "command" ? "running a command" : k === "search" || k === "list" ? "looking around" : k === "web_search" || k === "web_fetch" ? "on the web" : k === "subagent" ? "with a sub-agent" : ingOf(ag.now) || (ag.act.running ? "thinking" : "working");
-  }
-  /** A running step's own verb ("Writing… · 12 KB" → "writing"), when its line starts with one. */
-  const ingOf = (row) => { const w = String((row && row.line) || "").replace(/[`*_]/g, "").trim().split(/[\s…·.]+/)[0] || ""; return /^[A-Za-z]{3,}ing$/.test(w) ? w.toLowerCase() : ""; };
+  const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
   const since = (ms) => (Number.isFinite(ms) ? `<span class="elapsed" data-since="${ms}"></span>` : "");
 
   const { load, get: folderAt } = createMapFolders(api, paint);
