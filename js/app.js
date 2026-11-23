@@ -22,7 +22,7 @@ import { EFFORT, evidenceFor } from "./content.js";
 import { keepTurning, DOTS, ARC, ICON, stepMark, stateMark, xi, XO, NEXT_GLYPH, $, $$, RM, clock, dayOf, short, elapsed, reconcile, sound, wait, hold, dial, morph, expand } from "./ui.js";
 import { paidHtml } from "./paidview.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
-import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
+import { turnHtml, turnAv, turnItem, turnSegments, segmentTurn } from "./turnview.js";
 import { nameWith } from "./comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
@@ -1287,7 +1287,7 @@ function msgItemsOf(conv, needs) {
       const canUndo = m.undo && Date.now() < m.until;
       html = `<div class="ev ev-rec${m.refused ? " is-refused" : ""}"><span class="ev-ic">${m.refused ? ICON.close : ICON.router}</span><span class="ev-t">${esc(m.text)}</span>${canUndo ? `<button type="button" class="ev-undo" data-rec-undo="${esc(m.id)}">Undo</button>` : ""}<time>${clock(m.at)}</time></div>`;
     }
-    items.push(m.who === "turn" ? { key: m.key, html, inPlace: true } : { key: m.key, html });
+    items.push(m.who === "turn" ? turnItem(m.key, html) : { key: m.key, html });
     prev = above = m;
   }
   return items;
