@@ -1,12 +1,12 @@
 # P3 work packages
 
-Groups 1 and 2 share the pre-P3 integration tree at `f55c62551dcbfab45d7ad26d0644893ec18d0f52`. Start after the coordinator confirms its short independent review. For later groups, the integrator records the exact commit from git after the listed dependencies pass their gates.
+Groups 1 and 2 share the application tree at `f55c62551dcbfab45d7ad26d0644893ec18d0f52`. Start after the coordinator confirms its short independent review. The integrator supplies a branch base with that same application tree and this package file. For later groups, the integrator records the exact commit from git after the listed dependencies pass their gates.
 
 Run at most two Codex Sol threads at medium effort. The integrator assigns files before launch, reviews every change, merges group gates in order and applies one locally verified gate tag per group. Run one full check at a time on a clean `git archive` of the commit with `JOBS=1`, offline dev dependencies and a bounded process memory limit. Check each test file's exit code. Run `python3 tools/ledger/check_ledger.py --final` separately and record the lower count. Regenerate `architecture/modular/LEDGER.md` with `python3 tools/ledger/ledger_md.py .`. No browser run at these gates. Keep compatibility shims until P4, and keep all work local.
 
 A ledger claim on a source path covers its file record if open and its open `<path>::` item records. Keep resolved items intact except to correct a destination changed by your move. Group 4 owns the complement of group 6's named `js/app.js` and `css/app.css` keys. The integrator records any boundary adjustment before a group starts. Each slice targets about 400 changed lines. New source files have a 400-line ceiling, and existing files can only shrink. See the phase plan for rollback and deployment.
 
-Groups 1 and 2 may work in parallel on their disjoint source. Group 3 may start alongside group 2 once group 1 and the shared step-icon prerequisite described below are integrated. Keep legacy entry paths stable, so cross-group imports do not require simultaneous edits. Compare changed paths before starting a second thread. Groups 4, 5 and 6 run in series because wiring and markup ownership follow the source moved in earlier groups. Shared bookkeeping is the exception to source independence. Both workers keep their own ledger keys and refresh the generated view and ratchets in their own worktree. Only the integrator merges, regenerates the view from the combined ledger and reconciles baselines downward. Two workers never edit the same ledger key or the same application source file. Page wiring outside a worker's claim belongs to the integrator in a separate slice.
+Groups 1 and 2 work in parallel on disjoint source, each owning its prerequisites. Group 3 starts after both land, since the timeline uses media and shares the turn step icon with Runs. Groups 4, 5 and 6 follow in order because their wiring and markup ownership depends on the earlier moves. Each worker keeps legacy entry paths stable, updates only its ledger keys and refreshes the generated view and ratchets locally. The integrator reviews each diff, merges in order, regenerates the ledger view and reconciles baselines downward. Work outside an assigned boundary goes to a worker in a separately claimed slice.
 
 For test and fixture moves, the worker claims named files before editing. Broad suites and shared test utilities remain with the integrator until a single owner is assigned. Keep the checks runnable at the repository's normal entry points. Files and ledger entries outside every package are reconciled by the integrator at P3 exit, including tests, vendor assets, compatibility paths and retained tooling.
 
@@ -16,11 +16,11 @@ Before P5, an independent reviewer audits the whole codebase for remaining patch
 
 ## 1. Media, viewer and Files
 
-**Base** · `f55c62551dcbfab45d7ad26d0644893ec18d0f52`. Launch in parallel with group 2.
+**Branch** · `modular/p3-01-media-files`. Launch in parallel with group 2.
 
 **Files and ledger** · `js/media.js` (80 open items), `js/attach.js` (24), `js/viewer.js` (16), `js/files.js` (26), `js/skeleton.js` (23) and `css/media.css`. Own `modules/files/`, `modules/home/skeleton.js` and the new shared media and attachment code under `core/services/media/`. Own `tests/{attach,media,files,files-stop-look,files-tree-scroll-fold,viewer-busy,viewer-errors,viewer-head-focus,viewer-hooks}.test.mjs`. Read the parked `modular/files` and `xo/thread-7ea52a` branches for prior work. Keep the attachment tray and platform helpers distinct from conversation wiring.
 
-**Keep outside the package** · `js/app.js`, `css/app.css`, `index.html`, `shell/panel/`, `modules/changes/`, `modules/conversation/` and all other packages' files. The viewer's imports of the Changes renderer and image-change code need an integrator-owned wiring slice before the viewer moves across the module boundary. Preserve the first paint for `js/skeleton.js` through its legacy entry until the integrator verifies any index link change.
+**Keep outside the package** · `js/app.js`, `css/app.css`, `index.html`, `shell/panel/`, `modules/changes/`, `modules/conversation/` and all other packages' files. Keep the existing viewer entry as a compatibility adapter that supplies the relocated viewer with the existing Changes rendering functions. Preserve the first paint through the legacy `js/skeleton.js` entry.
 
 **Entry and exit** · Confirm mount, folder/file selection, viewer close and focus return, save on ⌘S, media, attachment tray and actual storage keys on the base. Exercise those surfaces after each slice. Keep the route contract in `modules/files/tests/` strict against the snapshot. Record imports and lifecycle coverage. Four to six slices. Parallel with group 2 when test claims are disjoint.
 
@@ -41,13 +41,13 @@ At exit, list every touched source file's line count and target. Check that the 
 
 ## 2. Panels and lists
 
-**Base** · `f55c62551dcbfab45d7ad26d0644893ec18d0f52`. Launch in parallel with group 1.
+**Branch** · `modular/p3-02-panels-lists`. Launch in parallel with group 1.
 
-**Files and ledger** · `js/runsview.js` (17), `js/intel.js` (20), `js/chats.js` (9), `js/shells/{dock,model,term}.js` (40 combined), `js/model.js` (4), `js/gestures.js` (9), `js/ghpage.js`, `js/sideorder.js` and `css/side.css`. Own `modules/{chats,runs,shells,github}/`, `shell/gestures.js`, `shell/sideorder.js` and `tests/{chats-list,ghpage,intel-chip-toggle,runs-page,runs-stop-receipt,shells,side-calm-order}.test.mjs`. Use the parked `modular/threads` branch to find reusable slices. The integrator extracts the shared `stepIcon` and its private helpers from `js/turnview.js` to a lower layer in a standalone prerequisite before Runs needs it. Intel can import `mainRuntime` from its existing home in `core/services/world/sessions.js`.
+**Files and ledger** · `js/runsview.js` (17), `js/intel.js` (20), `js/chats.js` (9), `js/shells/{dock,model,term}.js` (40 combined), `js/model.js` (4), `js/gestures.js` (9), `js/ghpage.js`, `js/sideorder.js` and `css/side.css`. Own `modules/{chats,runs,shells,github}/`, `shell/gestures.js`, `shell/sideorder.js` and `tests/{chats-list,ghpage,intel-chip-toggle,runs-page,runs-stop-receipt,shells,side-calm-order}.test.mjs`. Use the parked `modular/threads` branch to find reusable slices. Own only the `stepIcon` and `cmdIcon` definitions and their private lookup helpers in `js/turnview.js`, plus `tests/pack-where-it-fits.test.mjs`. Move those definitions to a shared lower layer before the Runs slice, retaining the turnview exports. Leave all other turnview code and ledger entries for group 3. Intel can import `mainRuntime` from its existing home in `core/services/world/sessions.js`.
 
-**Keep outside the package** · `js/app.js`, `css/app.css`, `index.html`, Files and timeline sources, shell panel page transitions and kernel layer behaviour. Send common panel, rail or bootstrap wiring to the integrator, including the existing `wordsOf` dependency of the touch gestures.
+**Keep outside the package** · `js/app.js`, `css/app.css`, `index.html`, Files and the rest of Timeline, shell panel transitions and the kernel layer stack. Keep the existing gesture entry as the compatibility adapter that supplies `wordsOf`. Leave the conversation implementation in place.
 
-**Entry and exit** · Characterize chat setup and ordering, Runs retrieval/stop/undo, Intel selection, terminal focus and gesture Back. Cover the optional GitHub routes' 404 behavior and keep the rest of the module route contract strict. Keep stop receipts and the active element through in-place redraw. Five to seven slices. Parallel with group 1 and then group 3 within the declared file claims.
+**Entry and exit** · Characterize chat setup and ordering, Runs retrieval/stop/undo, Intel selection, terminal focus and gesture Back. Cover the optional GitHub routes' 404 behavior and keep the rest of the module route contract strict. Keep stop receipts and the active element through in-place redraw. Five to seven slices. Parallel with group 1.
 
 #### Engineering and quality checks
 
@@ -66,13 +66,13 @@ At exit, list every touched source file's line count and target. Check that the 
 
 ## 3. Timeline and records
 
-**Base** · The latest integration commit containing the verified group 1 gate and the shared step-icon prerequisite, or the verified group 2 gate if group 2 has finished. The existing compatibility surfaces must still match P2 at entry.
+**Base** · Verified group 2 gate, after group 1 also passes. Confirm the existing compatibility surfaces still match P2 at entry.
 
 **Files and ledger** · `js/timeline.js` (60), `js/msgx.js` (42), `js/recordview.js` (11), the remaining `js/turnview.js` keys (20 before the shared step-icon prerequisite), `css/msgx.css` (4), `js/record.js`, `modules/since/` and `modules/artifacts/` for Made. Own the new timeline and record renderers under `modules/conversation/`, plus `tests/{record,turnview,since-card-gone}.test.mjs`. Read `modular/services-2` and `modular/map-home` for pending slices. The quiet Since line and live Made entry points run through the release behavior verified in P2.
 
 **Keep outside the package** · `js/app.js`, `css/app.css`, `index.html`, Files, Runs, composer and decision controllers. Keep the renderer public interfaces stable while those callers are still on legacy paths.
 
-**Entry and exit** · Exercise ordering, redaction, text streaming, folded runs, focus during redraw, Made cards and Since through Home, panel or quick open as applicable. Check that conversation scroll remains owned by `follow.js`. Four to six slices. Parallel only with group 2 when the claimed paths are disjoint.
+**Entry and exit** · Exercise ordering, redaction, text streaming, folded runs, focus during redraw, Made cards and Since through Home, panel or quick open as applicable. Check that conversation scroll remains owned by `follow.js`. Four to six slices. Run after group 2.
 
 #### Engineering and quality checks
 
@@ -95,7 +95,7 @@ At exit, list every touched source file's line count and target. Check that the 
 
 **Files and ledger** · Own remaining `js/app.js` keys (244 open before this group), `css/app.css` keys `hm-body`, `iq-pop` and `cs-pop`, `css/phone.css::ids::top`, `js/ui.js`, `js/accounts.js`, `js/flavours.js` and remaining shell and module boot wiring. Move CSS regions to their owning layer only after checking the winning declarations. Include unresolved `js/map.js` exports in the existing Map module if still open at entry. Hand off the exact remaining composer/conversation/decisions keys in `js/app.js` and `css/app.css`, including `composer` and `say`, to group 6.
 
-**Keep outside the package** · `index.html` except any link-only changes assigned to the integrator, `js/decide.js`, `js/cardparts.js` and conversation/composer/decision internals. Leave the Escape, inert and Tab behavior moves and shim deletion to P4.
+**Keep outside the package** · `index.html`, `js/decide.js`, `js/cardparts.js` and conversation/composer/decision internals. Leave the Escape, inert and Tab behavior moves and shim deletion to P4.
 
 **Entry and exit** · Freeze carried-over groups' public interfaces and take a stylesheet order baseline before moves. Exercise normal boot, navigation, theming and Settings. Test stylesheet winners, including menu focus and inverse surfaces. Finish with boot and the explicit conversation holdback in `js/app.js`. Six or more slices. Run serially.
 
@@ -120,7 +120,7 @@ At exit, list every touched source file's line count and target. Check that the 
 
 **Files and ledger** · `index.html` and its open region and ID keys (79 open after P2). It keeps the visible frame. Move owning markup to the existing shell and module mount points, claiming each destination before editing. Record duplicate IDs, moved IDs and call-site imports in each slice.
 
-**Keep outside the package** · `js/app.js` and `css/app.css` except integrator-owned wiring, layer behavior, tokens, and feature controllers. Conversation and composer logic remains group 6.
+**Keep outside the package** · `js/app.js`, `css/app.css`, layer behavior, tokens and feature controllers. Flag any required wiring for a separately assigned worker slice. Conversation and composer logic remains group 6.
 
 **Entry and exit** · Verify first stylesheet, import map and versioned asset paths, boot ordering, landmark and accessible labels, toolbar focus and one live node per moved region. Check that a module can access its markup by normal boot without extra global mounts. Four to six slices. Run serially.
 
