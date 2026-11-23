@@ -2585,8 +2585,9 @@
    "home": "modules/files/page.js"
   },
   "js/flavours.js": {
-   "status": "planned",
-   "home": "core/ui/flavours.js"
+   "status": "moved",
+   "home": "core/ui/flavours.js",
+   "note": "js/flavours.js re-exports the palette"
   },
   "js/focusview.js": {
    "status": "moved",

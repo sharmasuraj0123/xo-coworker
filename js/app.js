@@ -73,7 +73,7 @@ import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { createCalmOrder } from "./sideorder.js";
 import { keyHtml } from "../core/ui/a11y/keycap.js";
-import { STONE, FLAVOURS } from "./flavours.js";
+import { STONE, FLAVOURS } from "../core/ui/flavours.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable } from "./focusview.js";
 

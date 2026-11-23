@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 478 |
+| moved | 479 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 169 |
+| planned | 168 |
 | kept | 57 |
 | split | 29 |
 
@@ -52,7 +52,7 @@ Items inside first-party files: 2488 (moved 1459, planned 636, kept 135, split-r
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
 | `js/files.js` | 940 | moved | modules/files/files.js · next: The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/. |
 | `js/filespage.js` | 134 | moved | modules/files/page.js |
-| `js/flavours.js` | 20 | planned | core/ui/flavours.js |
+| `js/flavours.js` | 20 | moved | core/ui/flavours.js · next: js/flavours.js re-exports the palette |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
