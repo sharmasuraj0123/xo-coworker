@@ -7733,8 +7733,8 @@
    "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3392)"
   },
   "js/app.js::functions::resolveThread": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3415)"
+   "status": "moved",
+   "home": "modules/threads/resolve.js"
   },
   "js/app.js::functions::closeThreadMenu": {
    "status": "planned",
