@@ -14,7 +14,7 @@ t("the renderer's levels are unchanged: # to #### draw h3 to h6, each .md-h", ()
   for (const [n, x] of [[3, "a"], [4, "b"], [5, "c"], [6, "d"]]) assert.ok(html.includes(`<h${n} class="md-h">${x}</h${n}>`), `h${n}`);
 });
 t("one rule sizes them: the message's own size and line, strong, in ink", () => {
-  assert.match(app, /\n\.prose :is\(h3,h4,h5,h6\)\.md-h\{font-size:inherit;line-height:inherit;font-weight:var\(--fw-strong\);letter-spacing:0;color:var\(--ink\)\}/);
+  assert.match(app, /\n\.prose :is\(h3,h4,h5,h6\)\.md-h\{font-family:var\(--sans\);--cap-mid:var\(--cap-mid-ui\);--asc:var\(--asc-ui\);--desc:var\(--desc-ui\);font-size:inherit;line-height:inherit;font-weight:var\(--fw-strong\);letter-spacing:0;color:var\(--ink\)\}/);
 });
 t("nothing else sizes a message heading", () => {
   const bad = [];
