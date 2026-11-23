@@ -88,6 +88,14 @@ t("a 404 with a code is the route's own answer, not a Space without the route", 
   assert.equal(P.routeMissing, false);
 });
 
+t("/paths and /search are Space's coworker routes", async () => {
+  const { readFileSync } = await import("node:fs");
+  const api = readFileSync(new URL("../js/api.js", import.meta.url), "utf8");
+  assert.match(api, /get\(`\/coworker\/xo-projects\/\$\{enc\(project\)\}\/paths`/);
+  assert.match(api, /get\(`\/coworker\/xo-projects\/\$\{enc\(project\)\}\/search`/);
+  assert.doesNotMatch(api, /`\/xo-projects\/\$\{enc\(project\)\}\/(paths|search)`/);
+});
+
 for (const [name, fn] of queue) {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
