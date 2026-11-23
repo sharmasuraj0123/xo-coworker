@@ -58,12 +58,7 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
   term.open(host);
 
   const flow = createFlow();
-  /** @type {WebSocket | null} */
-  let ws = null;
-
-  /** @type {TerminalState} */
-  let state = "connecting";
-  let tries = 0, timer = 0, gone = false, fresh = ticket, lastSize = "";
+  let ws = /** @type {WebSocket | null} */ (null), state = /** @type {TerminalState} */ ("connecting"), tries = 0, timer = 0, gone = false, fresh = ticket, lastSize = "";
   let gen = 0; // which connection a write callback belongs to: an old one's never counts against the new
 
   /** @param {TerminalState} s @param {TerminalDetail} [detail] */
@@ -111,13 +106,12 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
     fresh = null; // a ticket is good for one attach
     if (!tk) {
       try { tk = (await api.attachTerminal(id)).ticket; }
-      catch (failure) {
-        const err = /** @type {import('../../core/platform/http.js').ApiError} */ (failure);
+      catch (err) {
         if (gone) return;
-        if (err.code === "terminal_not_found") return end("ended", { reason: "This shell was closed." });
-        if (err.code === "terminal_disabled") return end("off", { reason: err.message });
-        if (err.code === "signed_out" || err.code === "not_local") return end("error", { reason: err.message });
-        return retry(err.message);
+        if ((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "terminal_not_found") return end("ended", { reason: "This shell was closed." });
+        if ((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "terminal_disabled") return end("off", { reason: (/** @type {import("../../core/platform/http.js").ApiError} */ (err)).message });
+        if ((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "signed_out" || (/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "not_local") return end("error", { reason: (/** @type {import("../../core/platform/http.js").ApiError} */ (err)).message });
+        return retry((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).message);
       }
     }
     if (gone) return;

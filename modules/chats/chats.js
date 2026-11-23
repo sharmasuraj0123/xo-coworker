@@ -10,6 +10,8 @@ import { EFFORT_WORD } from "./effort.js";
 import { createSetup, MODE_WORDS, store } from "./setup.js";
 import { chatListItems } from "./list.js";
 
+/** @typedef {import("../../core/platform/http.js").ApiError & { count?: number }} ChatSendError */
+
 /** @typedef {import("./types").ChatState} ChatState @typedef {import("./types").ChatDeps} ChatDeps @typedef {import("./types").Conversation} Conversation @typedef {import("./types").Session} Session @typedef {import("./types").LocalPrompt} LocalPrompt @typedef {import("./types").Observed} Observed @typedef {import("./types").Runtime} Runtime */
 
 const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
@@ -156,9 +158,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
           : m.added ? `<div class="meta"><span>Added to the turn in progress, not sent now</span>${inTurn(s) ? `<button type="button" class="meta-btn" data-chat-stop>${ICON.stop}Stop the turn</button>` : ""}</div>` : "";
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
-        const turnStore = /** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns);
-        const inner = turnHtml(x.t, turnStore.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
-        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, turnStore.blocksOf(x.t)) : `<div class="av av-t">${rtMark(/** @type {string} */ (s.agent)) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
+        const inner = turnHtml(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
+        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t)) : `<div class="av av-t">${rtMark(/** @type {string} */ (s.agent)) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
     if (!all.length && !h.loading && !h.error) items.push({ key: "chat-empty", html: `<p class="m-note">Nothing here yet.</p>` });
@@ -283,20 +284,19 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       }
       if (local.body.delivery === "now") C.now = null;
       announce("Sent.");
-    } catch (failure) {
-      const err = /** @type {import('../../core/platform/http.js').ApiError & { count?: number }} */ (failure);
-      if (err.code === "would_stop_runs") {
+    } catch (err) {
+      if ((/** @type {ChatSendError} */ (err)).code === "would_stop_runs") {
         // say what "now" would stop; resend the same request (same client_id) only if the person agrees
-        const count = Number(err.count);
+        const count = Number((/** @type {ChatSendError} */ (err)).count);
         C.confirm.set(sid, { local, sid, count: Number.isInteger(count) && count >= 0 ? count : 0 });
         local.status = "held";
       } else {
-        local.status = "failed"; local.errTitle = err.code === "auth_required" ? "The agent isn't connected" : err.code === "timeout" ? "No answer from XO" : err.status === 501 ? "This agent can't chat yet" : err.status === 0 || err.status === 502 ? "Can't reach XO" : "Not sent"; local.err = err.message;
+        local.status = "failed"; local.errTitle = (/** @type {ChatSendError} */ (err)).code === "auth_required" ? "The agent isn't connected" : (/** @type {ChatSendError} */ (err)).code === "timeout" ? "No answer from XO" : (/** @type {ChatSendError} */ (err)).status === 501 ? "This agent can't chat yet" : (/** @type {ChatSendError} */ (err)).status === 0 || (/** @type {ChatSendError} */ (err)).status === 502 ? "Can't reach XO" : "Not sent"; local.err = (/** @type {ChatSendError} */ (err)).message;
         // a new chat has nowhere to show a failed message: your words go back into the composer
         if (!sid) {
           const back = restore ? restore(local.body.text) : false;
-          if (back) heraldShow({ kind: "stopped", text: local.errTitle, sub: `${err.message} Your message is back in the box.` }, 7000);
-          else heraldShow({ kind: "stopped", text: local.errTitle, sub: err.message, undo: () => restore && restore(local.body.text, { force: true }), undoLabel: "Put my message back" }, 12000);
+          if (back) heraldShow({ kind: "stopped", text: local.errTitle, sub: `${(/** @type {ChatSendError} */ (err)).message} Your message is back in the box.` }, 7000);
+          else heraldShow({ kind: "stopped", text: local.errTitle, sub: (/** @type {ChatSendError} */ (err)).message, undo: () => restore && restore(local.body.text, { force: true }), undoLabel: "Put my message back" }, 12000);
         }
       }
     }

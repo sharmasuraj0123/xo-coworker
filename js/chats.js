@@ -6,6 +6,5 @@ import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "./t
 
 /** @param {Parameters<typeof createChatsModule>[0]} deps */
 export function createChats(deps) {
-  const order = /** @type {Parameters<typeof createChatsModule>[1]["chatOrder"]} */ (chatOrder);
-  return createChatsModule(deps, { turnHtml, turnAv, cliName, chatOrder: order, heldShort, heldBadge, dayGroup, rowTime });
+  return createChatsModule(deps, { turnHtml, turnAv, cliName, chatOrder: /** @type {Parameters<typeof createChatsModule>[1]["chatOrder"]} */ (chatOrder), heldShort, heldBadge, dayGroup, rowTime });
 }
