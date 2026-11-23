@@ -95,7 +95,7 @@ At exit, list every touched source file's line count and target. Check that the 
 
 **Base** · Verified group 3 gate.
 
-**Files and ledger** · Own remaining `js/app.js` keys (244 open before this group), `css/app.css` keys `hm-body`, `iq-pop` and `cs-pop`, `css/phone.css::ids::top`, `js/ui.js`, `js/accounts.js`, `js/flavours.js` and remaining shell and module boot wiring. Move CSS regions to their owning layer only after checking the winning declarations. Include unresolved `js/map.js` exports in the existing Map module if still open at entry. Hand off the exact remaining composer/conversation/decisions keys in `js/app.js` and `css/app.css`, including `composer` and `say`, to group 6.
+**Files and ledger** · Own remaining `js/app.js` keys (244 open before this group), `css/phone.css::ids::top`, `js/ui.js`, `js/accounts.js`, `js/flavours.js` and remaining shell and module boot wiring. Move CSS regions to their owning layer only after checking the winning declarations. Include unresolved `js/map.js` exports in the existing Map module if still open at entry. Hand off the exact remaining composer, conversation and decision keys in `js/app.js` and `css/app.css` to Group 6. Leave interleaved CSS in place, and include its ledger keys in the handoff.
 
 **Keep outside the package** · `index.html`, `js/decide.js`, `js/cardparts.js` and conversation/composer/decision internals. Leave the Escape, inert and Tab behavior moves and shim deletion to P4.
 
@@ -149,9 +149,11 @@ At exit, list every touched source file's line count and target. Check that the 
 
 The shared-source ledger keys owned by group 6 are listed below. In each list, append the named final component to the indicated key prefix.
 
-- `css/app.css::ids::` · `composer`, `say`.
+- `css/app.css::ids::` · `composer`, `say`, `hm-body`, `iq-pop`, `cs-pop`.
 - `js/app.js::functions::` · `convHost`, `messagesOf`, `proseHtml`, `threadCardHtml`, `queuedMeta`, `nameOf`, `moveBannerHtml`, `passedTo`, `startHtml`, `startDraft`, `msgItems`, `msgItemsOf`, `hostNeedHtml`, `checklistRender`, `createDock`, `dockSwap`, `fitDock`, `dockEdges`, `dockRender`, `openAsk`, `HER`, `heraldShow`, `heraldFor`, `heraldPut`, `heraldNext`, `heraldDrop`, `heraldRender`, `heraldRoom`, `heraldBack`, `chipRender`, `wireComposer`, `chipHtml`, `trayRender`, `addFiles`, `insertText`, `wireTray`, `growSay`, `running`, `sendRender`, `chatTargetRender`, `targetLineRender`, `updateComposer`, `syncPlaceholder`, `atClose`, `pickAt`, `saveDraft`, `loadDraft`, `sendNowRender`, `stopLive`, `stopsHerald`, `stopRun`, `interruptRun`, `lift`, `liveBlock`, `blockFor`, `refuse`, `connDest`, `composerDest`, `sendLive`, `deliverLive`, `postLive`, `postWithFiles`, `send`, `retry`, `putBack`, `editFailed`, `tpMount`, `tpShow`, `tpUnmount`, `tpHead`, `drawThreadPage`, `createConv`, `loadAhead`, `loadOlderNow`, `drawConv`, `readingPlace`, `holdPlace`, `stirred`, `foldsBefore`, `workMotion`, `saveScroll`, `liveReady`, `follow`, `loadChatHops`, `ensureRoot`, `decideKey`, `showMsg`, `fwdSource`, `reactionsHtml`, `reactorName`, `youText`, `askPlace`, `askAboutLines`, `composeAbout`, `askAboutFile`, `lrefRender`, `sendAbout`, `decideLimit`.
 - `js/app.js::ids::` · `conv-title`, `tphead`, `tpthead`, `tscroller`, `tcolumn`, `tmsgs`, `ttyping`, `tpdock`, `tptdock`, `tpcomposer`, `tsay-label`, `tatt-tray`, `tsay`, `tattach`, `tatt-input`, `ttarget`, `tiq`, `tsend`, `tatt-note`.
+
+Group 6 also owns any other `css/app.css` rules interleaved with its conversation and composer regions. Group 4 leaves them in place and names the affected regions and ledger keys at handoff. This includes `#hm-body > div` and the shared mobile rule covering `#iq-pop` and `#cs-pop`. Move the interleaved rules with their respective regions, preserving exact source order and checking the cascade winners. Keep each shared rule intact.
 
 **Keep outside the package** · `index.html`, tokens, Files, timeline renderer and shell layer behavior. Route new cross-module needs through existing contracts and propose any missing contract to the coordinator.
 
