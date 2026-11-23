@@ -118,6 +118,23 @@ assert.ok(!chip.hidden);
 const esc = key(say, "Escape");
 assert.ok(chip.hidden && esc.defaultPrevented, "Escape removes the quote");
 
+const touch = (/** @type {string} */ type, /** @type {number} */ clientX) => {
+  const event = new window.Event(type, { bubbles: true });
+  Object.assign(event, { pointerType: "touch", clientX, clientY: 100 });
+  fresh.dispatchEvent(event);
+};
+touch("pointerdown", 100);
+touch("pointermove", 165);
+assert.ok(fresh.classList.contains("mx-armed"));
+touch("pointercancel", 165);
+assert.ok(chip.hidden, "a cancelled swipe leaves the reply untouched");
+touch("pointerdown", 100);
+touch("pointermove", 165);
+touch("pointerup", 165);
+assert.ok(!chip.hidden, "an armed swipe starts the reply");
+assert.equal(document.activeElement, say);
+key(say, "Escape");
+
 // teardown: what it put on the page goes, and its document keys stop
 const heads = () => [...document.head.querySelectorAll("style")].map((s) => s.id);
 assert.ok(heads().includes("mx-hold-tmsgs") && heads().includes("mx-order-tmsgs"));

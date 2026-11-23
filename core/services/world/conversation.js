@@ -52,6 +52,14 @@ export function echoes(locals, rows, taken = new Set()) {
   return out;
 }
 
+
+/** @param {{ by?: string, reason?: string } | null | undefined} stop */
+export function stopWords(stop) {
+  if (!stop) return "";
+  const who = stop.by === "you" ? "Stopped by you" : stop.by === "workspace" ? "Stopped by the workspace coordinator" : stop.by === "coordinator" ? "Stopped by the coordinator" : "Stopped";
+  return stop.reason ? `${who} · ${stop.reason}` : who;
+}
+
 /** @param {readonly {id: string, who: string}[]} msgs @param {Iterable<string>} threadIds */
 export function threadAnchors(msgs, threadIds) {
   const ids = new Set(threadIds);

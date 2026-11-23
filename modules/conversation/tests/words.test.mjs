@@ -39,12 +39,12 @@ await t("a code block's label and Copy aren't its words: the long-press Copy and
 });
 await t("the phone's long-press Copy reads the message through the same extraction, never its innerText", () => {
   const adapter = readFileSync(new URL("../../../js/gestures.js", import.meta.url), "utf8");
-  const g = readFileSync(new URL("../../../shell/gestures.js", import.meta.url), "utf8"), m = readFileSync(new URL("../../../js/msgx.js", import.meta.url), "utf8");
+  const g = readFileSync(new URL("../../../shell/gestures.js", import.meta.url), "utf8"), m = readFileSync(new URL("../decoration.js", import.meta.url), "utf8");
   assert.match(adapter, /import \{ wordsOf \} from "\.\.\/modules\/conversation\/words\.js"/, "the gesture adapter imports the shared extraction");
   assert.match(adapter, /bindShell\(A, wordsOf\)/, "the main gestures receive the shared extractor");
   assert.match(adapter, /bindConversation\(C, wordsOf\)/, "thread gestures receive the shared extractor");
   assert.match(g, /dataset\.lp === "copy"\) \{ copyText\(wordsOf\(el\)\)/, "its Copy copies wordsOf(el)");
   assert.doesNotMatch(g, /copyText\(\(el\.innerText/, "not innerText");
-  assert.match(m, /import \{ wordsOf \} from "\.\.\/modules\/conversation\/words\.js"/, "msgx.js (the desktop's Copy) imports the same");
+  assert.match(m, /import \{ wordsOf \} from "\.\/words\.js"/, "desktop Copy imports the same extractor");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

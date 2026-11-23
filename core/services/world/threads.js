@@ -79,10 +79,3 @@ export function stopOf(activity, waitReason, controls = []) {
   const by = !c ? null : c.by === "workspace-coordinator" ? "workspace" : "coordinator";
   return { by, reason: c && c.reason ? String(c.reason).replace(/\s+/g, " ").trim() : null };
 }
-
-/** @param {{ by?: string, reason?: string } | null | undefined} stop */
-export function stopWords(stop) {
-  if (!stop) return "";
-  const who = stop.by === "you" ? "Stopped by you" : stop.by === "workspace" ? "Stopped by the workspace coordinator" : stop.by === "coordinator" ? "Stopped by the coordinator" : "Stopped";
-  return stop.reason ? `${who} · ${stop.reason}` : who;
-}

@@ -12910,7 +12910,7 @@
   },
   "js/timeline.js::exports::stopWords": {
    "status": "moved",
-   "home": "core/services/world/threads.js"
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::functions::uiMsg": {
    "status": "moved",
@@ -13094,7 +13094,7 @@
   },
   "js/timeline.js::functions::stopWords": {
    "status": "moved",
-   "home": "core/services/world/threads.js"
+   "home": "core/services/world/conversation.js"
   },
   "js/timeline.js::routes::/api/xo-projects/<project>/file": {
    "status": "moved",
