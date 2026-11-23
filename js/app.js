@@ -20,6 +20,7 @@ import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
 import { itemParts } from "../core/services/review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
+import { createRunsOpener } from "../modules/runs/controller.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
@@ -1485,21 +1486,10 @@ STAGE.page("runs", {
   up: () => { runsEscape(); return true; },
   escape: () => { runsEscape(); return true; },
 });
-async function openRuns(t, runId = null) {
-  if (!t || !t.sessionId) return;
-  if (!RS.open) { RS.returnTo = document.activeElement; RS.head = (convAt(RS.returnTo) === MAIN ? $("#thead") : $("#tpthead")); }
-  // a new thread's list starts empty and reading: never the last thread's rows, never "none" before a read says so
-  if (RS.session !== t.sessionId) { RS.tree = []; RS.counts = null; RS.said = null; }
-  // each opening (and each Try again) is its own: a list, or a run to open, asked for by an earlier opening of the
-  // same thread never lands in this one (Astra SRC-MAIN-RUN-1: close, reopen, and the old answer won)
-  const my = ++RS.opening;
-  if (!RS.open) Object.assign(RS, { panelWas: STAGE.isOpen, cmdsOpen: true, cmdsAll: false });
-  Object.assign(RS, { open: true, session: t.sessionId, title: t.title, view: runId ? "run" : "list", runId, keepScroll: false, listState: "loading", listErr: "" });
-  if (!STAGE.show("runs", t.sessionId)) { RS.open = false; return; }
-  await readRunsList(t.sessionId, my);
-  if (!RS.open || RS.session !== t.sessionId || RS.opening !== my) return;
-  if (runId) openRun(runId); else { runsRender(); runsLand()?.focus(); }
-}
+const openRuns = createRunsOpener(RS, {
+  STAGE, readRunsList, openRun, runsRender, runsLand,
+  headFor: (el) => (convAt(el) === MAIN ? $("#thead") : $("#tpthead")),
+});
 /** Where focus lands in Sub-agents once its list is drawn: Try again after a refusal, else the first run, else the page. */
 function runsLand(...first) {
   const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", ".rn-cmd-b", "[data-runs-retry]"];

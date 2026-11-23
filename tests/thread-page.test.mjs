@@ -49,7 +49,7 @@ console.log("thread-page: ok");
     /t\.closest\(\"\.thead \[data-runs\]\"\)/, /t\.closest\(\"\.thead \[data-run\]\"\)/, /const convAt = \(el\) => \(TP\.box && el && TP\.box\.contains\(el\) \? TP\.C : MAIN\);/]) assert.match(a, re, String(re));
   // sub-agents open from either head, and closing goes back to the head that opened them
   assert.doesNotMatch(a, /#thead \[data-runs?\]/);
-  assert.match(a, /RS\.head = \(convAt\(RS\.returnTo\) === MAIN \? \$\("#thead"\) : \$\("#tpthead"\)\);/);
+  assert.match(a, /headFor: \(el\) => \(convAt\(el\) === MAIN \? \$\("#thead"\) : \$\("#tpthead"\)\)/);
   // what it asks you: decided in place, the chat's own card docked over its composer, with its Undo
   // what it asks you: the chat's own dock over the page's element (one code path, the owner 19 Nov 17:52Z): its
   // card, its fold to a slim line and back (⌄, a drag), its Undo

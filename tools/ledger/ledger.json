@@ -7318,8 +7318,8 @@
    "home": "modules/runs (app.js l.1536)"
   },
   "js/app.js::functions::openRuns": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1537)"
+   "status": "moved",
+   "home": "modules/runs/controller.js"
   },
   "js/app.js::functions::runsLand": {
    "status": "planned",

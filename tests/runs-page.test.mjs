@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { dom } from "./lib/dom.mjs";
+import { deferred, dom, same } from "./lib/dom.mjs";
 import { readFileSync } from "node:fs";
+import { createRunsOpener } from "../modules/runs/controller.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("js/app.js"), view = read("modules/runs/view.js"), html = read("index.html"), css = read("css/app.css");
@@ -64,11 +65,60 @@ t("it opens over the page under it, and ‹ and Esc go up one level the page's o
   assert.match(esc, /runsLand\(`\[data-run="\$\{CSS\.escape\(id\)\}"\]`\)/, "a run: back to the list, on its row");
 });
 t("from the main chat the panel opens for it and closes with it; from the panel it steps back to the thread page", () => {
-  assert.match(fn(app, "async function openRuns("), /if \(!RS\.open\) Object\.assign\(RS, \{ panelWas: STAGE\.isOpen,/);
-  assert.match(fn(app, "async function openRuns("), /if \(!STAGE\.show\("runs", t\.sessionId\)\) \{ RS\.open = false; return; \}/);
   assert.match(fn(app, "function closeRuns()"), /if \(!RS\.panelWas && STAGE\.pageShown\?\.name === "runs"\) STAGE\.close\(\{ restore: false \}\); else STAGE\.closePage\("runs"\);/);
   assert.match(app, /backTo: \(\) => \(RS\.view === "run" \? "Sub-agents" : RS\.panelWas \|\| STAGE\.pageShown\?\.name !== "runs" \? "" : "the thread"\),/);
 });
+{
+  const { document } = await dom('<header><button id="open">Sub-agents</button></header><div id="runs" hidden><button id="row">Run</button></div>');
+  const opener = document.getElementById("open"), panel = document.getElementById("runs"), row = document.getElementById("row");
+  opener.focus();
+  const state = { open: false, opening: 0, session: "previous", tree: [{ id: "old" }], counts: { running: 1 }, said: { key: "old" }, returnTo: null };
+  const first = deferred(), second = deferred(), reads = [], opened = [], shown = [];
+  const answers = [first.promise, second.promise];
+  let acceptsPage = false, stageWasOpen = true, nextRead = 0;
+  const openRuns = createRunsOpener(state, {
+    STAGE: { get isOpen() { return stageWasOpen; }, show(name, key) { shown.push([name, key]); return acceptsPage; } },
+    headFor: (el) => el.closest("header"),
+    readRunsList: (key, opening) => {
+      reads.push([key, opening]);
+      return acceptsPage ? answers[nextRead++] : Promise.resolve(false);
+    },
+    openRun: async (id) => { opened.push(id); },
+    runsRender: () => { panel.hidden = false; },
+    runsLand: () => row,
+  });
+  const thread = { sessionId: "session", title: "Team" };
+  await openRuns(thread);
+  t("a refused Runs page does not start a read", () => {
+    assert.equal(state.open, false);
+    assert.deepEqual(reads, []);
+    same(document.activeElement, opener);
+  });
+  acceptsPage = true;
+  const former = openRuns(thread, "old");
+  stageWasOpen = false;
+  const current = openRuns(thread);
+  first.resolve(true);
+  await former;
+  t("a superseded opening cannot show its run or move focus", () => {
+    assert.deepEqual(opened, []);
+    assert.equal(panel.hidden, true);
+    same(document.activeElement, opener);
+  });
+  second.resolve(true);
+  await current;
+  t("the current opening focuses its Runs row and remembers the panel under it", () => {
+    assert.deepEqual(shown, Array(3).fill(["runs", "session"]));
+    assert.deepEqual(reads, [["session", 2], ["session", 3]]);
+    assert.equal(state.panelWas, true);
+    assert.deepEqual(state.tree, []);
+    assert.equal(state.counts, null);
+    assert.equal(state.said, null);
+    same(state.returnTo, opener);
+    same(state.head, opener.closest("header"));
+    same(document.activeElement, row);
+  });
+}
 t("focus goes back to what opened it only when it was in the page; a page that moved focus keeps it there", () => {
   const g = fn(app, "function runsGone()");
   assert.match(g, /const here = runsCard\.contains\(document\.activeElement\) \|\| STAGE\.owns\(document\.activeElement\);/);
