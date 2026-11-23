@@ -1,4 +1,4 @@
-/* Shared base for every ux-test: XO tokens + Geist, a reset, and the
+/* Shared base for every ux-test: XO tokens and type, a reset, and the
    reduced-motion contract. Each concept's own style.css is only its idea. */
 @import url("./tokens.css");
 @import url("./flavours.css");

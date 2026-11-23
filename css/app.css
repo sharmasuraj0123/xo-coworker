@@ -412,7 +412,7 @@ button:disabled{cursor:default}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px)}}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}
 .m-you.is-new{animation:none}
-.bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink-read);font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
+.bubble{max-width:min(80%,540px);padding:10px 16px;border-radius:var(--r-xl);background:var(--float);border:1px solid var(--line);color:var(--ink-read);font-family:var(--sans-read);--cap-mid:var(--cap-mid-read);--asc:var(--asc-read);--desc:var(--desc-read);font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);white-space:pre-wrap;overflow-wrap:anywhere;will-change:transform}
 .m-you.is-pending .bubble{animation:pend var(--d-in) var(--ease) var(--d-wait) forwards}
 @keyframes pend{to{opacity:.72}}
 .meta.is-sending{animation:fade var(--d-in) var(--ease) var(--d-wait) both}   /* said only when sending is slow; its line is kept meanwhile */
@@ -459,7 +459,7 @@ button:disabled{cursor:default}
 .mh{display:flex;align-items:baseline;gap:8px;min-height:var(--h-ctl);padding-top:5px;font-size:var(--fs-meta);color:var(--ink-4)}
 .mh b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .mh time{font-variant-numeric:tabular-nums}
-.prose{max-width:none;font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);color:var(--ink-read);overflow-wrap:anywhere}
+.prose{max-width:none;font-family:var(--sans-read);--cap-mid:var(--cap-mid-read);--asc:var(--asc-read);--desc:var(--desc-read);font-size:var(--fs-read);font-weight:var(--fw-read);line-height:var(--lh-read);color:var(--ink-read);overflow-wrap:anywhere}
 .prose>*+*{margin-top:calc(var(--lh-read) * .6)}
 .prose ul,.prose ol{padding-left:1.3em}
 .prose li+li{margin-top:calc(var(--lh-read) * .25)}
@@ -468,7 +468,7 @@ button:disabled{cursor:default}
 .prose em{color:var(--ink-2)}
 .prose code{font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);background:var(--fill-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:.1em .4em}
 /* a message's headings (markdown.js draws # to #### as h3 to h6) read at its own size, never under it; weight marks them */
-.prose :is(h3,h4,h5,h6).md-h{font-size:inherit;line-height:inherit;font-weight:var(--fw-strong);letter-spacing:0;color:var(--ink)}
+.prose :is(h3,h4,h5,h6).md-h{font-family:var(--sans);--cap-mid:var(--cap-mid-ui);--asc:var(--asc-ui);--desc:var(--desc-ui);font-size:inherit;line-height:inherit;font-weight:var(--fw-strong);letter-spacing:0;color:var(--ink)}
 /* links in prose: css/links.css */
 /* the block clips nothing: only its text needs its corners, and the text clips itself (it scrolls sideways), so the
    head's Copy keeps its whole ring at every width (the controls grader's sweep on 06b997b, S089: on a phone Copy is
@@ -673,7 +673,7 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 /* attach and Send are --comp-ctl circles --comp-in from the edge (concentric with --r-card); the text starts on the paperclip's glyph */
 .composer-field{position:relative;padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}
 /* #14: no scrollbar; it grows with what you write */
-.composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-size:var(--fs-read);font-weight:var(--fw-read);color:var(--ink-read);line-height:var(--lh-read);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
+.composer textarea{display:block;width:100%;min-height:28px;max-height:200px;padding:2px 8px 6px 0;resize:none;border:0;outline:0;background:transparent;font-family:var(--sans-read);font-size:var(--fs-read);font-weight:var(--fw-read);color:var(--ink-read);line-height:var(--lh-read);letter-spacing:0;caret-color:var(--accent);overflow:hidden;scrollbar-width:none}
 .composer textarea.is-capped{overflow-y:auto}
 .composer textarea::-webkit-scrollbar{display:none;width:0;height:0}
 .composer textarea::placeholder{color:var(--ink-5)}
