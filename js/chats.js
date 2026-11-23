@@ -1,39 +1,30 @@
-// Chats: plain chats with one agent, outside the coordinators (UI-reference §2.1, §4.4). A new chat
-// is set up from the runtime's own feature list (folder, agent, model, effort, permission mode,
-// never "bypass"); the conversation is your prompts (observation's /api/messages, where a plain
-// chat's history lives) and the agent's work as storm's turn blocks, the same look as a thread.
-// While a turn runs, a message joins it (the runtime's send_while_running) or, by choice, interrupts
-// it ("send now"), which first says how many background tasks it would stop (409 would_stop_runs).
-
 import { api, clientId, NEWEST } from "../core/platform/api.js";
 import { esc } from "./world.js";
 import { space, once } from "../core/platform/index.js";
-import { ICON } from "./ui.js";
+import { ICON, stateMark, xi } from "./ui.js";
+import { EFFORT_WORD, EFFORT_HINT } from "./intel.js";
 import { renderMarkdown } from "./markdown.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge } from "./timeline.js";
+import { cliName, mainRuntime, chatOrder, BUSY_STATES, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
+import { rtMark, rtName } from "../core/services/runtimes.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
+import { chatListItems } from "../modules/chats/list.js";
 
 const MODE_WORDS = {
-  auto: ["Auto", "Its own safety check decides; most actions run unasked."],
-  ask: ["Ask first", "It asks you before each action."],
-  accept_edits: ["Edits", "It edits files freely and asks for the rest."],
-  plan: ["Plan only", "It plans and changes nothing."],
-  deny_unasked: ["Rules only", "Only what your rules allow; the rest is refused."],
+  plan: ["Plan only", "Looks around and suggests a plan. Changes nothing.", "lightbulb"],
+  ask: ["Ask first", "Checks with you before every step.", "question"],
+  accept_edits: ["Edits", "Edits files on its own, checks with you for the rest.", "edit"],
+  auto: ["Auto", "Works on its own; a safety check holds back anything risky.", "shield-check"],
+  deny_unasked: ["Rules only", "Does only what your saved rules allow.", "rules"],
 };
-// a turn in progress: waiting on your decision is still mid-turn (storm's session.py), so a message
-// joins it and Stop can end it. "queued" is no turn: a gate holds its message back with no process
-// (timeline.js heldOf), so nothing joins it and there is nothing to stop.
+const MODE_ORDER = Object.keys(MODE_WORDS);
 const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
-const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PREFS = "cv-chat-prefs";
 const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
-const ago = (iso) => { const s = (Date.now() - Date.parse(iso)) / 1000; if (!Number.isFinite(s)) return ""; return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
-
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore }) {
   // confirm: one "send now" question per chat (session id → {local, count}), shown only in that chat
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map() };
+  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   const session = (sid) => (world.state.sessions || {})[sid] || null;
@@ -41,7 +32,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const feature = (rt, key) => (rt && rt.features && rt.features.features && rt.features.features[key]) || null;
   const offers = (rt, key) => { const f = feature(rt, key); return !!f && (f.support === "native" || f.support === "emulated"); };
 
-  // ── the list ────────────────────────────────────────────────────────────
   async function loadList() {
     if (C.loading) return;
     C.loading = true;
@@ -51,7 +41,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const d = await api.sessions({ role: "plain", before_seq: NEWEST, limit: 100 });
       for (const s of d.sessions || []) world.act.noteSession(s, sent);
       C.list = true; C.err = null;
-      // the list names models as their agent's catalog does
       for (const a of new Set(sessions().map((x) => x.agent).filter(Boolean))) ensureModels(a);
       // titles: the first thing you asked, read from the chat's own history (a few at a time)
       const todo = sessions().filter((s) => s.native_id && !C.titles.has(s.id)).slice(0, 24);
@@ -74,33 +63,23 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
   const capFirst = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const modelWord = (agent, id) => { const m = (C.models.get(agent) || []).find((x) => x.id === id); return m ? m.name : id; };
-  const metaLine = (s) => capFirst([folderWord(s.cwd), cliName(s.agent), s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "", (MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]].filter(Boolean).join(" · "));
+  const agentMark = (agent, lead = true) => rtMark(agent, { lead }) || `${esc(cliName(agent))}${lead ? " " : ""}`;
+  /** A chat's header line: folder · the agent's mark beside its model · effort · mode. */
+  const isHome = (cwd) => !cwd || /^\/home\/[^/]+\/?$/.test(cwd);
+  const metaHtml = (s) => [`${agentMark(s.agent)}${esc(s.model ? modelWord(s.agent, s.model) : "Default model")}`, s.effort ? esc(EFFORT_WORD[s.effort] || s.effort) : "",
+    esc((MODE_WORDS[s.permission_mode] || [s.permission_mode || ""])[0]), isHome(s.cwd) ? "" : `in ${esc(folderWord(s.cwd))}`].filter(Boolean).join(" · ");
+  /** What search matches besides the title: only what isn't a new chat's default (model, effort, mode, folder). */
+  const rowLine = (s) => {
+    const home = isHome(s.cwd);
+    return [s.model ? modelWord(s.agent, s.model) : "", s.effort ? EFFORT_WORD[s.effort] || s.effort : "",
+      s.permission_mode && s.permission_mode !== "auto" ? (MODE_WORDS[s.permission_mode] || [s.permission_mode])[0] : "", home ? "" : `in ${folderWord(s.cwd)}`].filter(Boolean).join(" · ");
+  };
   const waiting = (s) => s.state === "waiting_on_person";
   /** What a gate holds this chat for (the usage limit…), or null: it waits, nothing runs. */
   const heldOf = (s) => (s && s.state === "queued" && world.act.sessionHeld ? world.act.sessionHeld(s.id) : null);
   /** A turn in progress: its status says so, or it says queued and the stream has seen it work since. */
   const inTurn = (s) => !!s && (BUSY.has(s.state) || (s.state === "queued" && !!(world.act.onTurn && world.act.onTurn(s.id))));
 
-  function listItems() {
-    const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
-    if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
-    if (!rows.length) return [{ key: "chats-none", html: `<div class="calm ch-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Ask anything below. A chat is one agent in one folder, outside your projects' coordinators.</p></div>` }];
-    return [{ key: "chats-list", html: `<ul class="ch-list" aria-label="Your chats">${rows.map((s) => {
-      // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
-      const wait = waiting(s), busy = inTurn(s) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
-      const held = !wait && !busy ? heldOf(s) : null;
-      return `<li><button type="button" class="ch-row" data-go="c:${esc(s.id)}"><i class="g g-${wait ? "needs_approval" : busy ? "working" : held ? "paused" : "idle"}" aria-hidden="true"></i>` +
-        `<span class="ch-main"><span class="ch-t">${esc(titleFor(s))}</span><span class="ch-m">${esc(metaLine(s))}</span></span>` +
-        `<span class="ch-a${wait ? " is-need" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(ago(s.updated_at || s.created_at))}</span></button></li>`;
-    }).join("")}</ul>` }];
-  }
-
-  // ── one chat ────────────────────────────────────────────────────────────
-  /**
-   * Read a chat: its session (when we only know part of it), your prompts (observation's history, where
-   * a plain chat's prompts live) and its turns (storm's blocks). Read again on every open, so prompts sent
-   * from the CLI or another tab show; a history is "loaded" only once it was really read.
-   */
   async function loadChat(sid) {
     const h = C.hist.get(sid) || { loading: false, loaded: false, user: [], error: null, turns: false };
     C.hist.set(sid, h);
@@ -145,8 +124,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const before = turnCount.get(sid);
     turnCount.set(sid, n);
     if (before != null && n > before) setTimeout(() => loadChat(sid), 1500);
-    // the CLI attached after the chat opened: its history can be read now (once per native id; an error
-    // waits for the next open, so a struggling server is never asked again and again)
     const s = session(sid), h = C.hist.get(sid);
     if (s && s.native_id && h && !h.loaded && !h.loading && h.tried !== s.native_id) loadChat(sid);
   });
@@ -173,23 +150,22 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
         const inner = turnHtml(x.t, world.state.turns.blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
-        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
+        if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, world.state.turns.blocksOf(x.t)) : `<div class="av av-t">${rtMark(s.agent) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
     if (!all.length && !h.loading && !h.error) items.push({ key: "chat-empty", html: `<p class="m-note">Nothing here yet.</p>` });
     return items;
   }
   function headHtml(v) {
-    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1><span class="pj-s">One agent, one folder, outside your projects' coordinators</span></span>`;
+    if (v === "chats") return `<span class="tw-ic" aria-hidden="true">${ICON.thread}</span><span class="tw-t"><h1 id="conv-title">Chats</h1></span>`;
     const s = session(v.slice(2));
     if (!s) return `<span class="tw-t"><h1 id="conv-title">Chat</h1></span>`;
     const busy = inTurn(s), wait = waiting(s), held = !busy && !wait ? heldOf(s) : null;
     const st = s.retired_at ? ["resolved", "done", "Ended"] : wait ? ["needs_approval", "needs_approval", "Needs you"] : busy ? ["working", "working", "Working"] : held ? ["paused", "paused", heldBadge(held)] : ["resolved", "idle", "Waiting"];
-    return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${esc(metaLine(s))}</span></span>` +
-      `<span class="badge st-${st[0]}"><i class="g g-${st[1]}" aria-hidden="true"></i>${st[2]}</span>`;
+    return `<span class="tw-t"><h1 id="conv-title">${esc(titleFor(s))}</h1><span class="pj-s">${metaHtml(s)}</span></span>` +
+      `<span class="badge st-${st[0]}">${stateMark(st[1])}${st[2]}</span>`;
   }
 
-  // ── the composer's line and the new chat's setup ─────────────────────────
   /** The modes a runtime offers (never "bypass": plain chat refuses it). */
   const modesOf = (rt) => ((feature(rt, "permissions.mode") || {}).values || []).filter((m) => m !== "bypass");
   /** The new chat's setup: your last choices, kept only where the chosen runtime still offers them. */
@@ -199,10 +175,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const agent = rt ? rt.name : null;
     const modes = modesOf(rt);
     const mode = modes.includes(p.mode) ? p.mode : modes.includes("auto") ? "auto" : modes[0] || null;
-    // One model, everywhere: what the picker shows, what the line above the composer names and what Send sends
-    // all come from here, and a saved model counts only once the agent's catalog confirms it (Astra S153/H19).
-    // Not offered any more: gone, said so, never sent. Not confirmed yet (the catalog on its way, or unread):
-    // the agent's default meanwhile, said so, never the unchecked one.
     let model = p.model || null, gone = null, unsure = null;
     if (model && !(C.read.has(agent) && offered(agent).some((m) => m.id === model))) {
       if (C.read.has(agent)) gone = model; else unsure = { model, failed: C.failed.has(agent) };
@@ -210,7 +182,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     }
     return { rt, agent, model, gone, unsure, effort: p.effort || null, mode, modes, cwd: p.cwd || "" };
   }
-  /** The models the picker offers for an agent: its catalog's families (each family's default) and loose models. */
   const offered = (agent) => (C.models.get(agent) || []).filter((m) => !m.is_default && (m.family_default || !m.family));
   /** The efforts for a model (or the agent's default model): its own list, else the runtime's (§2.7). */
   function effortsFor(st) {
@@ -221,10 +192,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const f = feature(st.rt, "effort");
     return f && f.support !== "unsupported" ? f.values || [] : [];
   }
-  /**
-   * An agent's catalog, read once. A read that failed is remembered as failed (so the many redraws don't ask again
-   * and again) until the setup opens again, which tries it afresh (again: true; Astra: a failure was kept for good).
-   */
   async function ensureModels(agent, { again = false } = {}) {
     if (!agent) return;
     if (again && C.failed.has(agent)) { C.failed.delete(agent); C.models.delete(agent); }
@@ -238,7 +205,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const st = setup();
       if (!st.agent) return `<span class="tg-warn">${ICON.pause}</span><span>No agent can chat here yet</span>`;
       ensureModels(st.agent);
-      return `<span class="tg-t">${ICON.thread}</span><span>New chat in <b>${esc(st.cwd ? (world.project(st.cwd) || {}).name || st.cwd : "your projects folder")}</b> · ${esc(cliName(st.agent))} · ${esc(st.model ? modelWord(st.agent, st.model) : st.gone ? `its default model (${st.gone} is gone)` : st.unsure ? `its default model (${st.unsure.model} ${st.unsure.failed ? "unconfirmed" : "being checked"})` : "its default model")}${st.mode ? ` · ${esc(MODE_WORDS[st.mode] ? MODE_WORDS[st.mode][0] : st.mode)}` : ""}</span><span class="tg-ch">Change</span>`;
+      return `${ICON.folder}<span>${esc(capFirst(folderName(st.cwd).replace(/^your /, "")))}</span>`;
     }
     const s = session(v.slice(2));
     if (!s) return "";
@@ -252,7 +219,42 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     }
     // held back by a gate: a reply waits with what's already waiting, and runs with it
     if (heldOf(s)) return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b> · it runs with the waiting message</span>`;
-    return `<span class="tg-t">${ICON.thread}</span><span>Reply in <b>this chat</b></span>`;
+    return ""; // the box's own "Reply in this chat…" says it
+  }
+
+  const folderName = (cwd) => (cwd ? (world.project(cwd) || {}).name || cwd : "your projects folder");
+  const modelDesc = (m) => (m.description || "").replace(/\.$/, "");
+  /** The new chat's chip, as every composer's: the agent's mark, its model (Default until one is picked) and its thinking. */
+  /** An open chat's own agent, model, thinking and mode, as the new chat's chips show them (fixed: set when it started). */
+  const ownOf = (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.agent ? { agent: s.agent, model: s.model || null, effort: s.effort || null, mode: s.permission_mode || null, cwd: s.cwd } : null; };
+  function chipHtml(v) {
+    const own = ownOf(v);
+    if (v !== "chats" && !own) return "";
+    const st = own || setup();
+    if (!st.agent) return "";
+    const sep = `<span class="iq-sep" aria-hidden="true">·</span>`;
+    const effort = own ? st.effort : st.effort && effortsFor(st).includes(st.effort) ? st.effort : null;
+    return `<span class="iq-l">${rtMark(st.agent, { lead: true }) || ""}${st.model ? `<span class="iq-t">${esc(modelWord(st.agent, st.model))}</span>` : `<span class="iq-a">Default</span>`}${effort ? `${sep}<span class="iq-e">${esc(EFFORT_WORD[effort] || effort)}</span>` : ""}</span>`;
+  }
+  function permHtml(v) {
+    const own = ownOf(v);
+    if (v !== "chats" && !own) return "";
+    const st = own || setup();
+    return st.agent && st.mode ? `${xi(MODE_WORDS[st.mode]?.[2] || "lock")}<span>${esc((MODE_WORDS[st.mode] || [st.mode])[0])}</span>` : "";
+  }
+  /** The mode chip's title: a new chat's choice, or an open chat's fixed mode and folder. */
+  function permTitle(v) {
+    const own = ownOf(v);
+    if (!own) return "What a new chat may do on its own";
+    return `${(MODE_WORDS[own.mode] || [own.mode || ""])[0]}${isHome(own.cwd) ? "" : ` · in ${folderWord(own.cwd)}`}, set when it started`;
+  }
+  function chipTitle(v) {
+    const own = ownOf(v);
+    if (own) return `This chat runs ${rtName(own.agent)} · ${own.model ? modelWord(own.agent, own.model) : "its default model"}${own.effort ? ` · ${EFFORT_WORD[own.effort] || own.effort}` : ""}, set when it started`;
+    if (v !== "chats") return "";
+    const st = setup();
+    if (!st.agent) return "";
+    return `A new chat runs ${rtName(st.agent)} · ${st.model ? modelWord(st.agent, st.model) : "its default model"}${st.effort ? ` · ${EFFORT_WORD[st.effort] || st.effort}` : ""}. Change it`;
   }
 
   /** "Send now" is its own toggle beside the line, only where the runtime can interrupt a turn. */
@@ -262,9 +264,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     return { on: C.now === s.id };
   }
 
-  async function openSetup(anchor) {
+  async function openSetup(anchor, part = "model") {
     const pop = document.getElementById("cs-pop");
-    C.pop = { open: true, anchor };
+    if (C.pop.open) C.pop.anchor?.setAttribute("aria-expanded", "false");
+    C.pop = { open: true, anchor, part };
+    anchor?.setAttribute("aria-expanded", "true");
     // shown (unseen) before it is measured, so it opens where it belongs the first time
     pop.style.visibility = "hidden";
     pop.hidden = false;
@@ -274,59 +278,59 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     const st = setup();
     if (st.agent) await ensureModels(st.agent, { again: true });
   }
+  const CHECK = xi("check", "iq-ck");
   function renderSetup() {
     const pop = document.getElementById("cs-pop");
     if (!C.pop.open) return;
     const st = setup();
     const rts = world.state.runtimes || [];
-    const models = offered(st.agent);
-
+    const list = C.models.get(st.agent) || [];
+    const def = list.find((m) => m.is_default) || null;
     const efforts = effortsFor(st);
+    const effort = efforts.includes(st.effort) ? st.effort : null;
     const modes = st.modes;
     const folders = [{ id: "", name: "Your projects folder" }, ...world.state.projects.filter((p) => p.kind === "project").map((p) => ({ id: p.id, name: p.name }))];
-    // each picker's options, by its field: a picker draws its own insides (redraw.js leaves them to it), so new
-    // options (another agent's catalog arriving) are handed to it below, through its own re-render path
-    const opts = {
-      cwd: folders.map((f) => `<option value="${esc(f.id)}"${f.id === st.cwd ? " selected" : ""}>${esc(f.name)}</option>`).join(""),
-      agent: rts.length > 1 ? rts.map((r) => `<option value="${esc(r.name)}"${r.name === st.agent ? " selected" : ""}>${esc(cliName(r.name))}</option>`).join("") : null,
-      model: `<option value="">The agent's default</option>${models.map((m) => `<option value="${esc(m.id)}"${m.id === st.model ? " selected" : ""}${m.description ? ` data-desc="${esc(m.description)}"` : ""}>${esc(m.name)}</option>`).join("")}`,
-      effort: efforts.length ? `<option value="">Default</option>${efforts.map((e) => `<option value="${esc(e)}"${e === st.effort ? " selected" : ""}>${esc(EFFORT_WORD[e] || e)}</option>`).join("")}` : null,
+    // one choice per group (keynav.js's radio keys): only the chosen row, else the first, is in the Tab order
+    const row = (attr, id, name, desc, on, first) => `<div class="iq-row${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, first)} ${attr}="${esc(id)}"${desc ? ` title="${esc(desc)}"` : ""}><span class="iq-n">${esc(name)}</span>${desc ? `<span class="iq-tr">${esc(desc)}</span>` : ""}${CHECK}</div>`;
+    const agents = rts.length > 1 ? `<div class="iq-sec"><p class="iq-lab" id="cs-agent-l">Agent</p><div class="iq-route" role="radiogroup" aria-labelledby="cs-agent-l">${rts.map((r, i) => {
+      const on = r.name === st.agent;
+      return `<button type="button" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !rts.some((x) => x.name === st.agent))} data-cs-agent="${esc(r.name)}">${rtMark(r.name, { withName: true }) || esc(cliName(r.name))}</button>`;
+    }).join("")}</div></div>` : "";
+    // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
+    const why = st.gone ? `“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.`
+      : C.failed.has(st.agent) ? `Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.`
+      : st.unsure ? `Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.` : "";
+    const models = `<div class="iq-sec"><p class="iq-lab" id="cs-model-l">Model</p><div class="iq-list" role="radiogroup" aria-labelledby="cs-model-l">` +
+      row("data-cs-model", "", "Default", def ? modelDesc(def) || def.name : "The agent's own choice", !st.model, false) +
+      offered(st.agent).map((m) => row("data-cs-model", m.id, m.name, modelDesc(m), m.id === st.model, false)).join("") + `</div>${why ? `<p class="iq-rl" role="status">${why}</p>` : ""}</div>`;
+    const thinking = efforts.length ? `<div class="iq-sec"><p class="iq-lab" id="cs-e-l">Thinking</p><div class="iq-route iq-depth" role="radiogroup" aria-labelledby="cs-e-l">${efforts.map((e, i) =>
+      `<button type="button" role="radio" aria-checked="${e === effort}"${rovingTab(e === effort, i === 0 && !effort)} data-cs-effort="${esc(e)}">${esc(EFFORT_WORD[e] || e)}</button>`).join("")}</div><p class="iq-rl">${esc(effort ? EFFORT_HINT[effort] || "" : "The model's own default until you pick one.")}</p></div>` : "";
+    const lists = {
+      cwd: () => `<header class="iq-h"><h2 id="cs-hh">Folder <span>a new chat works in</span></h2></header><div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${folders.map((f, i) => row("data-cs-cwd", f.id, f.name, "", f.id === st.cwd, false)).join("")}</div>`,
+      mode: () => `<header class="iq-h"><h2 id="cs-hh">How much should it do on its own?</h2></header>` + (!modes.length ? `<p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p>`
+        : `<div class="iq-list" role="radiogroup" aria-labelledby="cs-hh">${[...modes].sort((a, b) => (MODE_ORDER.indexOf(a) + 1 || 99) - (MODE_ORDER.indexOf(b) + 1 || 99)).map((m, i) => {
+          const [name, desc, ic] = MODE_WORDS[m] || [m, "", "lock"], on = m === st.mode;
+          return `<div class="iq-row cs-mrow${on ? " is-sel" : ""}" role="radio" aria-checked="${on}"${rovingTab(on, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}">${xi(ic, "cs-mi")}<span class="cs-mt"><span class="iq-n">${esc(name)}</span>${desc ? `<span class="cs-md">${esc(desc)}</span>` : ""}</span>${CHECK}</div>`;
+        }).join("")}</div><footer class="iq-f"><span>Used for your next new chat.</span></footer>`),
+      model: () => `<header class="iq-h"><h2 id="cs-hh">New chat <span>agent, model and thinking</span></h2></header>${agents}${models}${thinking}<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`,
     };
-    const field = (k, word) => (opts[k] == null ? "" : `<label class="cs-f"><span>${word}</span><xo-select data-cs="${k}">${opts[k]}</xo-select></label>`);
-    // What it may do: a radio group (keynav.js's keys); only the chosen mode is in the Tab order
-    const html = `<header class="iq-h"><h2>New chat</h2></header>` +
-      `<div class="iq-sec">${field("cwd", "Folder")}${field("agent", "Agent")}${field("model", "Model")}` +
-      // why the list holds only the default, whenever it does: gone, unread (with the reason), or still checking
-      (st.gone ? `<p class="iq-rl" role="status">“${esc(st.gone)}” isn't offered by ${esc(cliName(st.agent))} any more, so a new chat uses its default model.</p>`
-        : C.failed.has(st.agent) ? `<p class="iq-rl" role="status">Couldn't read ${esc(cliName(st.agent))}'s models: ${esc(C.failed.get(st.agent).replace(/[.\s]+$/, ""))}. ${st.unsure ? `“${esc(st.unsure.model)}” isn't confirmed, so a` : "A"} new chat uses its default model. Open this again to try again.</p>`
-        : st.unsure ? `<p class="iq-rl" role="status">Checking that “${esc(st.unsure.model)}” is still offered… until then a new chat uses its default.</p>` : "") +
-      `${field("effort", "Effort")}</div>` +
-      (!modes.length ? `<div class="iq-sec"><p class="iq-rl">This agent doesn't say what it may do on its own; it uses its default.</p></div>` : `<div class="iq-sec"><p class="iq-lab">What it may do</p><div class="cs-modes" role="radiogroup" aria-label="What it may do">${modes.map((m, i) => `<button type="button" role="radio" class="set-choice${m === st.mode ? " is-on" : ""}" aria-checked="${m === st.mode}"${rovingTab(m === st.mode, i === 0 && !modes.includes(st.mode))} data-csmode="${esc(m)}"><span class="sc-dot" aria-hidden="true"></span><span class="sc-b"><b>${esc((MODE_WORDS[m] || [m])[0])}</b><span>${esc((MODE_WORDS[m] || ["", ""])[1])}</span></span></button>`).join("")}</div></div>`) +
-      `<footer class="iq-f"><span>Used for your next new chat.</span><button type="button" class="iq-back" data-cs-done>Done</button></footer>`;
-    // in place (js/redraw.js): a mode chosen, a catalog arriving, keep the control you're on
+    const part = lists[C.pop.part] ? C.pop.part : "model";
+    const html = lists[part]();
+    // in place (js/redraw.js): a choice made, a catalog arriving, keep the row you're on
     redraw(pop, html);
-    for (const x of pop.querySelectorAll("xo-select[data-cs]")) {
-      const want = opts[x.dataset.cs];
-      if (x._opts === undefined) x._opts = want; // drawn just now, with these options
-      else if (want != null && x._opts !== want) {
-        // only its <option>s change: its button (focused or not) and list stay, so focus never leaves it (S152)
-        x._opts = want;
-        const t = document.createElement("template"); t.innerHTML = want;
-        for (const o of [...x.children]) if (o.tagName === "OPTION") o.remove();
-        x.append(t.content);
-      }
-    }
     const a = C.pop.anchor;
     if (a && !matchMedia("(max-width: 760px)").matches) {
-      // anchored by its bottom edge just above the line: it grows upwards and never leaves the screen
+      // on the chip's outer edge, opening to the side of it with more room, never past the screen
       pop.classList.remove("is-sheet");
-      // a window's edge keeps --s-3, the button --s-2 (they were 12 and 10 written here)
-      const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(400, innerWidth - 2 * edge);
-      pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(r.left, innerWidth - w - edge))}px`;
-      pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, r.top - edge - gap)}px`;
+      const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(360, innerWidth - 2 * edge);
+      const x = part === "model" ? r.right - w + gap : r.left - gap;
+      pop.style.width = `${w}px`; pop.style.left = `${Math.max(edge, Math.min(x, innerWidth - w - edge))}px`;
+      const up = r.top - edge - gap, down = innerHeight - r.bottom - edge - gap;
+      if (down > up) { pop.style.bottom = ""; pop.style.top = `${r.bottom + gap}px`; pop.style.maxHeight = `${Math.max(240, down)}px`; }
+      else { pop.style.top = ""; pop.style.bottom = `${Math.max(edge, innerHeight - r.top + gap)}px`; pop.style.maxHeight = `${Math.max(240, up)}px`; }
     } else { pop.style.left = pop.style.top = pop.style.bottom = pop.style.width = pop.style.maxHeight = ""; pop.classList.add("is-sheet"); }
   }
-  function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.focus?.({ preventScroll: true }); }
+  function closeSetup() { C.pop.open = false; const pop = document.getElementById("cs-pop"); pop.hidden = true; C.pop.anchor?.setAttribute("aria-expanded", "false"); C.pop.anchor?.focus?.({ preventScroll: true }); }
   const setPref = (k, v) => {
     C.prefs = { ...C.prefs, [k]: v || null };
     // another agent has its own models, efforts and modes: read them, and start from its defaults
@@ -335,7 +339,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     store.set(C.prefs);
   };
 
-  // ── sending ─────────────────────────────────────────────────────────────
   async function send(v, text) {
     const sid = v.startsWith("c:") ? v.slice(2) : null;
     const local = { id: `lc${Date.now().toString(36)}`, at: Date.now(), text, status: "sending", cid: clientId() };
@@ -346,8 +349,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     } else {
       const s = session(sid);
       const rt = s ? runtime(s.agent) : null;
-      // while a turn runs: "now" when chosen (and offered), else "add" where the runtime steers a
-      // running turn; a runtime that queues takes the message for its next turn (no delivery)
       const steer = (feature(rt, "send_while_running") || {}).behaviour === "steered";
       const delivery = s && inTurn(s) ? (C.now === sid && offers(rt, "interrupt") ? "now" : steer ? "add" : null) : null;
       local.body = { text, client_id: local.cid, session_id: sid, ...(delivery ? { delivery } : {}) };
@@ -356,8 +357,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     }
     await deliver(local, sid);
   }
-  /** One request at a time per message (its client_id): a Retry pressed again, or the would-stop question answered
-   *  twice, joins the one that's out (core/platform/pending.js). */
   function deliver(local, sid) { return once(`chat-send:${local.cid}`, () => post(local, sid)); }
   async function post(local, sid) {
     local.status = "sending";
@@ -365,9 +364,6 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       const r = await api.prompt(local.body);
       local.status = "sent";
       if (!sid) {
-        // what we know until the stream says more (never over a newer state it already sent): held back when
-        // its agent's pool holds new work now (the usage limit, the paid gate), as storm will queue it; else
-        // starting, as the server admits it. Either way its own frames correct it.
         const old = world.state.sessions[r.session_id];
         const agent = local.body.agent || (mainRuntime(world.state.runtimes) || {}).name || null;
         const heldNow = !!(world.act.agentHeld && world.act.agentHeld(agent));
@@ -424,8 +420,8 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   return {
     isChats: (v) => v === "chats" || (v && v.startsWith("c:")),
     open(v) { if (v === "chats") loadList(); else if (v.startsWith("c:")) loadChat(v.slice(2)); },
-    items: (v) => (v === "chats" ? listItems() : chatItems(v.slice(2))),
-    headHtml, targetHtml, confirmHtml, resolveConfirm, nowState,
+    items: (v) => (v === "chats" ? chatListItems(C, { sessions, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime }) : chatItems(v.slice(2))),
+    headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm, nowState,
     placeholder: (v) => (v === "chats" ? "Ask anything to start a chat…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
     session: (v) => (v && v.startsWith("c:") ? session(v.slice(2)) : null),
     busy: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s)); },
@@ -433,7 +429,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     working: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return !!(s && inTurn(s) && !waiting(s)); },
     /** Why this chat can't take a message, if it can't. */
     blocked: (v) => { const s = v && v.startsWith("c:") ? session(v.slice(2)) : null; return s && s.retired_at ? "This chat has ended" : ""; },
-    send, openSetup, closeSetup, setPref, renderSetup,
+    search(q) { if (C.q !== q) { C.q = q; schedule(); } },
+    showAll(on) { C.all = on; if (!on) C.q = ""; schedule(); },
+    send, openSetup, closeSetup, setPref, renderSetup, chipHtml, chipTitle,
+    permHtml,
+    toggleSetup(anchor, part) { if (C.pop.open && C.pop.part === part) closeSetup(); else openSetup(anchor, part); },
     toggleNow: (v) => { const sid = v.slice(2); const s = session(sid); if (!s || !offers(runtime(s.agent), "interrupt")) return; C.now = C.now === sid ? null : sid; schedule(); },
     retry(id) { for (const [sid, list] of C.local) { const l = list.find((x) => x.id === id); if (l) { deliver(l, sid); return; } } },
     /** A failed message taken back to edit: it leaves the chat and its text is returned. */

@@ -2,6 +2,8 @@
 
 // The one editor for every text file in Files: CodeMirror 6, vendored (js/vendor/codemirror, loaded the first time a file opens).
 
+import { xi } from "../../core/ui/icons/icon.js";
+
 /** @import { EditorMountOptions } from "./types.d.ts" */
 const CM_URL = new URL("../../js/vendor/codemirror/cm.js", import.meta.url).href;
 const MERGE_URL = new URL("../../js/vendor/codemirror/merge.js", import.meta.url).href;
@@ -87,7 +89,7 @@ function askTip(/** @type {any} */ CM, /** @type {Pick<EditorMountOptions, "onLi
           dom.className = "cm-xo-asktip";
           const b = document.createElement("button");
           b.type = "button"; b.className = "xd-ask";
-          b.innerHTML = `<span>Ask about ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span><kbd>${MAC ? "⌘" : "Ctrl "}L</kbd>`;
+          b.innerHTML = `<span>Ask about ${l.a === l.b ? `line ${l.a}` : `lines ${l.a}–${l.b}`}</span><kbd>${MAC ? xi("key-command", "kb-ic") : "Ctrl "}L</kbd>`;
           b.addEventListener("mousedown", (e) => e.preventDefault()); // the selection stays
           b.addEventListener("click", () => onAsk({ a: l.a, b: l.b }));
           dom.appendChild(b);
@@ -122,7 +124,7 @@ export async function mount(/** @type {HTMLElement} */ host, /** @type {EditorMo
   if (isMd) { try { pageExt = (await import("./markdown-page.js")).pageView(CM); } catch (e) { console.error(e); } }
 
   const theme = EditorView.theme({
-    "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-base)" },
+    "&": { height: "100%", color: "var(--code-ink)", backgroundColor: "transparent", fontSize: "var(--fs-code)" },
     ".cm-scroller": { fontFamily: "var(--mono)", lineHeight: "var(--lh-ui)", overflow: "auto" },
     ".cm-content": { caretColor: "var(--ink)", padding: "var(--cell-in) 0" },
     ".cm-gutters": { backgroundColor: "transparent", color: "var(--ink-5)", border: "none" },

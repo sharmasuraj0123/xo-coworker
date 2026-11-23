@@ -9,6 +9,7 @@ import { sourcePaths } from "./lib/sources.mjs";
 import { build, clean } from "../tools/xoicons/build.mjs";
 import { XI } from "../core/ui/icons/xoicons.js";
 import { xi, hasIcon } from "../core/ui/icons/icon.js";
+import { ICON } from "../core/ui/icons/names.js";
 import { classify, glyph } from "../modules/projects/projicons.js";
 import { fileIcon, iconKey, FOLDER_ICON } from "../core/ui/icons/fileicons.js";
 
@@ -100,6 +101,14 @@ t("the app icon is the owner's; the tab's working line sits on its foot", () => 
   const app = read("shell/favicon.js");
   assert.match(app, /const W = 28\.5, X = 9\.75, GAP = 1\.5/);
   assert.match(app, /y="35" width="\$\{w\.toFixed\(2\)\}" height="2\.5" rx="1\.25"/);
+});
+
+t("every ICON name used by an importer exists in the icon catalogue", () => {
+  const keys = new Set(Object.keys(ICON));
+  const users = sourcePaths(".js").filter((f) => /import \{[^}]*\bICON\b[^}]*\} from "[^"]*(?:ui|icons\/names)\.js"/.test(read(f)));
+  assert.ok(users.includes("js/shells/dock.js"));
+  const missing = users.flatMap((f) => [...read(f).matchAll(/(?<![\w.])ICON\.([A-Za-z0-9_]+)/g)].map((m) => m[1]).filter((k) => !keys.has(k)).map((k) => `${f}: ICON.${k}`));
+  assert.deepEqual(missing, []);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -111,7 +111,13 @@ function syncNode(node, want, focus, hold) {
 
 /** Where focus can land in a row: its controls, in order. */
 const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
-/** Keyed rows → box's children: a changed row is drawn anew unless it holds focus or a press (then in place, and it hears "redrawn"); returns the new rows. @param {HTMLElement} box @param {{ key: string, html: string }[]} items @param {{ quiet?: boolean, fallback?: (() => any) | null }} [opts] */
+/** @param {HTMLElement} box @param {HTMLElement} row @param {Element | null} before */
+function moveRow(box, row, before) {
+  if (row.isConnected && typeof box.moveBefore === "function") try { box.moveBefore(row, before); return; } catch { /* Fall back when the move is unsupported for this row. */ }
+  box.insertBefore(row, before);
+}
+
+/** Keyed rows update in place when the row tag matches; returns the new rows. @param {HTMLElement} box @param {{ key: string, html: string }[]} items @param {{ quiet?: boolean, fallback?: (() => any) | null }} [opts] */
 export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   /** @type {Map<string, any>} */
   const old = new Map();
@@ -122,7 +128,6 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
   /** @type {any[]} */
   const inPlace = [];
   const active = document.activeElement;
-  const pressed = pressedNode();
   // a row that's going while it holds focus hands it to the nearest row that stays, before it, else after it, else the fallback
   const keep = new Set(items.map((it) => it.key));
   const rows = /** @type {HTMLElement[]} */ ([...box.children]);
@@ -138,7 +143,7 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
     if (el && el._h !== it.html) {
       tpl.innerHTML = it.html.trim();
       const fresh = /** @type {any} */ (tpl.content.firstElementChild);
-      if (((active && active !== el && el.contains(active)) || (pressed && el.contains(pressed))) && fresh && fresh.tagName === el.tagName) {
+      if (fresh && fresh.tagName === el.tagName) {
         for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
         for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
         redraw(el, fresh.innerHTML);
@@ -158,7 +163,7 @@ export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
     }
     old.delete(it.key);
     const at = box.children[i];
-    if (at !== el) box.insertBefore(el, at || null);
+    if (at !== el) moveRow(box, el, at || null);
   });
   if (going) {
     near = near && /** @type {HTMLElement[]} */ ([...box.children]).find((el) => el.dataset.k === near);

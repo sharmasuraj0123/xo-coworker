@@ -9,33 +9,33 @@
 /* no ring around a file you type in, its box's or the editor's (the owner, 19 Nov 10:59Z): the caret is the mark */
 .vw-body.vw-doc:focus-visible{outline:none}
 .vw-doc .cm-gutters{padding-left:var(--cell-in)}
-.vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 12px 0 8px;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--mono)}
+.vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 12px 0 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono)}
 .vw-doc .cm-content{padding-bottom:var(--h-bar)}
 .vw-doc .cm-xo-fold{display:inline-block;width:12px;color:var(--ink-5);cursor:pointer}
 .vw-doc .cm-panels-top{border-bottom:1px solid var(--line-soft)}
-.vw-doc .cm-panel.cm-search{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans)}
-.vw-doc .cm-panel.cm-search input,.vw-doc .cm-panel.cm-search button{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-search{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:8px 12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-search input,.vw-doc .cm-panel.cm-search button{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-panel.cm-search input[type=checkbox]{height:auto}
 .vw-doc .cm-panel.cm-search button[name=close]{border:none;background:none;color:var(--ink-3)}
-.vw-doc .cm-panel.cm-search button:hover{border-color:var(--line-hover);color:var(--ink)}
-.vw-doc .cm-panel.cm-gotoLine{padding:8px 12px;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-panel.cm-search button:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.vw-doc .cm-panel.cm-gotoLine{padding:8px 12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-panel.cm-gotoLine input{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 
 /* ── Markdown as a page: the app's one reading style (core/ui/tokens.css: read 16/24, the heads on the scale), a page's
    column, the marks only where the caret is ── */
 .vw-doc.is-page{background:var(--surface)}
-.vw-doc .cm-xo-page .cm-scroller{font-family:var(--sans);font-size:var(--fs-read);line-height:var(--lh-read)}
+.vw-doc .cm-xo-page .cm-scroller{font-family:var(--sans);font-size:var(--fs-ui);line-height:var(--lh-ui)}
 .vw-doc .cm-xo-page .cm-content{box-sizing:border-box;max-width:760px;margin:0 auto;padding:32px 40px var(--h-bar)}
 .vw-doc .cm-xo-page .cm-activeLine{background:transparent}
 .vw-doc .cm-xo-page .cm-line{padding:0}
 .cm-md-h,.cm-md-h *{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--ink)}
-.cm-md-h1{font-size:var(--fs-3xl);line-height:var(--lh-28);letter-spacing:var(--tr-28);padding-top:16px !important}
-.cm-md-h2{font-size:var(--fs-2xl);line-height:var(--lh-20);letter-spacing:var(--tr-20);padding-top:12px !important}
-.cm-md-h3,.cm-md-h4{font-size:var(--fs-lg);line-height:var(--lh-15);padding-top:8px !important}
-.cm-md-h5,.cm-md-h6{font-size:var(--fs-md);line-height:var(--lh-14);color:var(--ink-2)}
+.cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);padding-top:16px !important}
+.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);padding-top:12px !important}
+.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);padding-top:8px !important}
+.cm-md-h5,.cm-md-h6{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
 .cm-md-quote{border-left:2px solid var(--line-strong);padding-left:16px !important;color:var(--ink-2)}
-.cm-md-fence{font-family:var(--mono);font-size:var(--fs-base);line-height:var(--lh-ui);background:var(--code-bg);padding:0 12px !important}
-.cm-md-code{font-family:var(--mono);font-size:var(--fs-base);background:var(--code-bg);border-radius:var(--r-xs);padding:1px 4px}
+.cm-md-fence{font-family:var(--mono);font-size:var(--fs-code);line-height:var(--lh-ui);background:var(--code-bg);padding:0 12px !important}
+.cm-md-code{font-family:var(--mono);font-size:var(--fs-code);background:var(--code-bg);border-radius:var(--r-xs);padding:1px 4px}
 .cm-md-link{color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,transparent);text-underline-offset:3px}
 .cm-md-bullet{display:inline-block;width:12px;color:var(--ink-3)}
 .cm-md-block{margin:8px 0;padding:4px 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
@@ -47,8 +47,8 @@
 .vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,transparent)}
 .vw-doc .cm-changedLine,.vw-doc .cm-inlineChangedLine{background:var(--code-add-bg) !important}
 .vw-doc .cm-deletedChunk{background:var(--code-del-bg) !important;padding-left:8px}
-.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:6px;margin:4px 0}
-.vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 10px;font:var(--fw-medium) var(--fs-sm)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:4px;margin:4px 0}
+.vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 10px;font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-changeGutter{width:3px;padding:0}
 .vw-doc .cm-changedLineGutter{background:var(--code-add)}
 .vw-doc .cm-deletedLineGutter{background:var(--code-del)}
@@ -72,14 +72,14 @@
 .vw-tab:not(.is-on):hover{background:var(--hover-fill)}
 .vw-tab-b:hover{color:var(--ink-2)}
 .vw-tab.is-on .vw-tab-b:hover{color:var(--ink)}
-.vw-tab-b{display:inline-flex;align-items:center;gap:6px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans);cursor:pointer}
-.vw-tab-b .vw-ic svg{width:14px;height:14px}
+.vw-tab-b{display:inline-flex;align-items:center;gap:4px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);cursor:pointer}
+.vw-tab-b .vw-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
 .vw-tab.is-preview .vw-tn{font-style:italic}
 .vw-tn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vw-tab-x{position:relative;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:4px;border:none;border-radius:var(--r-xs);background:none;color:var(--ink-4);cursor:pointer}
-.vw-tab-x svg{width:12px;height:12px}
+.vw-tab-x svg{width:var(--ic-xs);height:var(--ic-xs)}
 .vw-tab-x>i{display:none}
-.vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;mask:var(--mask-dot);background:var(--ink-3)}
 .vw-tab-x.is-dirty svg{visibility:hidden}
 .vw-tab-x:hover{background:var(--hover-fill);color:var(--ink)}
 .vw-tab-x.is-dirty:hover>i{display:none}
@@ -87,7 +87,7 @@
 .vw-tab-b:focus-visible,.vw-tab-x:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
 
 /* ── the file's versions: ‹ n of m ›, who made it and when, Show changes; an older one, Restore and Latest ── */
-.vw-verbar{display:flex;align-items:center;gap:8px;min-height:var(--h-lg);padding:0 12px;border-bottom:1px solid var(--line-faint);font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.vw-verbar{display:flex;align-items:center;gap:8px;min-height:var(--h-lg);padding:0 12px;border-bottom:1px solid var(--line-faint);font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 .vw-verbar.is-old{background:var(--warn-subtle);color:var(--ink-2)}
 .vw-vers{display:inline-flex;align-items:center;gap:2px}
 .vw-vers .vw-btn{width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-xs)}
@@ -95,7 +95,7 @@
 .vw-vn{min-width:48px;text-align:center;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .vw-vn b{font-weight:var(--fw-strong);color:var(--ink)}
 .vw-who{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vw-verbar .xd-btn{height:var(--h-sm);padding:0 10px;font-size:var(--fs-sm)}
+.vw-verbar .xd-btn{height:var(--h-sm);padding:0 10px;font-size:var(--fs-meta)}
 .vw-verbar .xd-btn.is-on{background:var(--fill-2);color:var(--ink)}
 
 @media (prefers-reduced-motion:reduce){.xd-state.is-done{animation:none}.vw-doc .cm-xo-tint{transition:none}}
@@ -106,24 +106,24 @@
 
 /* ── ⌘P go to a file, ⌘⇧F find in files (modules/search/quickopen.js): the ⌘K sheet's card, a row per file or match ── */
 .qo-card{width:min(680px,calc(100vw - 32px))}
-.qo-where{flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-where{flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .qo-opts{display:flex;gap:4px;padding:6px 16px;border-bottom:1px solid var(--line-soft)}
-.qo-opt{height:var(--h-sm);min-width:var(--h-sm);padding:0 6px;border:1px solid var(--line);border-radius:var(--r-xs);background:none;color:var(--ink-3);font:var(--fw-medium) var(--fs-sm)/var(--lh-ui) var(--mono);cursor:pointer}
-.qo-opt:hover{border-color:var(--line-hover);color:var(--ink)}
+.qo-opt{height:var(--h-sm);min-width:var(--h-sm);padding:0 6px;border:1px solid var(--line);border-radius:var(--r-xs);background:none;color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--mono);cursor:pointer}
+.qo-opt:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .qo-opt[aria-pressed="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
-.qo-list li{gap:8px;min-height:var(--h-ctl);font:var(--fw-regular) var(--fs-base)/var(--lh-ui) var(--sans)}
+.qo-list li{gap:8px;min-height:var(--h-ctl);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .qo-list li b{font-weight:var(--fw-strong);color:var(--ink)}
 .qo-fi{flex:none;display:grid;place-items:center;width:16px}
-.qo-fi svg{width:16px;height:16px}
+.qo-fi svg{width:var(--ic);height:var(--ic)}
 .qo-n{flex:none;color:var(--ink-2);white-space:nowrap}
-.qo-d{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-4);font-size:var(--fs-sm)}
-.qo-tag{flex:none;margin-left:auto;font:var(--fw-medium) var(--fs-xs)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-d{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-4);font-size:var(--fs-meta)}
+.qo-tag{flex:none;margin-left:auto;font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .qo-list li.qo-h{cursor:default;min-height:var(--h-sm);margin-top:4px}
 .qo-list li.qo-m{padding-left:34px}
-.qo-ln{flex:none;min-width:var(--h-ctl);text-align:right;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--mono);color:var(--ink-5)}
-.qo-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--mono);color:var(--ink-3)}
+.qo-ln{flex:none;min-width:var(--h-ctl);text-align:right;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);color:var(--ink-5)}
+.qo-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);color:var(--ink-3)}
 .qo-t b{background:color-mix(in srgb,var(--warn) 24%,transparent);border-radius:var(--r-xs);color:var(--ink)}
-.qo-foot{margin:0;padding:6px 16px 10px;font:var(--fw-regular) var(--fs-sm)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-foot{margin:0;padding:6px 16px 10px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}
 .qo-foot:empty{display:none}
 
 /* ── moving by dragging in the tree (js/files.js): the folder it would land in ── */
@@ -132,6 +132,8 @@
 /* ── unsaved: a file you've typed in waits for ⌘S (the owner, 19 Nov 11:42Z: no autosave) ── */
 .xd-state.is-unsaved{color:var(--ink-2)}
 .xd-state.is-unsaved i{background:var(--warn)}
+.xd-state>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
+.xd-state.is-unsaved>svg{color:var(--warn)}
 
 /* a table's, formula's or diagram's drawing under its source while the caret is in it */
 .cm-md-block.is-preview{margin-top:4px;padding-top:8px;border-top:1px dashed var(--line);opacity:.92}

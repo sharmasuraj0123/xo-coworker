@@ -125,10 +125,10 @@ export const api = {
   /** A file's versions, every writer's (Space's version store): {versions: [{id, n, version, at, by: {kind: ui|agent|disk, thread_ts?, message_id?}, kind, current}], head, more}. 404 on a Space without it. */
   projectVersions: (project, relativePath, { limit = 50, before = null } = {}) => get(`/xo-projects/${enc(project)}/versions`, { relative_path: relativePath, limit, ...(before ? { before } : {}) }),
   /** Every file in a place: {root, paths, dirs, truncated, stamp} or {unchanged} for the same stamp. */
-  projectPaths: (project, { worktree = null, stamp = null } = {}) => get(`/xo-projects/${enc(project)}/paths`, { ...(worktree ? { worktree } : {}), ...(stamp ? { stamp } : {}) }),
+  projectPaths: (project, { worktree = null, stamp = null } = {}) => get(`/coworker/xo-projects/${enc(project)}/paths`, { ...(worktree ? { worktree } : {}), ...(stamp ? { stamp } : {}) }),
   /** Text in a place's files: {root, matches: [{path, line, col, text, ranges}], files, truncated, took_ms}. */
   projectSearch: (project, { q, worktree = null, regex = false, case: cs = false, word = false, glob = null, limit = 500 } = {}) =>
-    get(`/xo-projects/${enc(project)}/search`, { q, ...(worktree ? { worktree } : {}), regex: String(!!regex), case: String(!!cs), word: String(!!word), ...(glob ? { glob } : {}), limit }),
+    get(`/coworker/xo-projects/${enc(project)}/search`, { q, ...(worktree ? { worktree } : {}), regex: String(!!regex), case: String(!!cs), word: String(!!word), ...(glob ? { glob } : {}), limit }),
   /** Rename or move a file or folder (the UI's writer key, serve.py): {relative_path, old_relative_path, kind, edit_id}. */
   renameProjectFile: (project, relativePath, newRelativePath, confirm) => send("POST", `/xo-projects/${enc(project)}/files/rename`, { relative_path: relativePath, new_relative_path: newRelativePath, ...(confirm ? { confirm } : {}) }),
   /** Delete a file or folder into Space's trash: {edit_id, kind, count}; undoProjectEdit brings it back. */
@@ -160,9 +160,15 @@ export const api = {
   cancelClone: (cloneId) => send("DELETE", `/xo-projects/clones/${enc(cloneId)}`),
   /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
   githubStatus: () => get("/connectors/github/status"),
+  githubIssues: (project, refresh = false) => get(`/xo-projects/${enc(project)}/github/issues`, refresh ? { refresh: "true" } : undefined),
+  githubIssue: (project, n) => get(`/xo-projects/${enc(project)}/github/issues/${enc(n)}`),
+  githubPulls: (project) => get(`/xo-projects/${enc(project)}/github/pulls`),
+  githubPull: (project, n) => get(`/xo-projects/${enc(project)}/github/pulls/${enc(n)}`),
   /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
-  githubConnect: () => send("POST", "/connectors/github/cli/start"),
+  githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
   githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
+  githubConnectCancel: (sessionId) => send("POST", "/connectors/github/cli/cancel", { session_id: sessionId }),
+  githubDisconnect: () => send("POST", "/connectors/github/disconnect", {}),
 
   terminalStatus: () => get("/terminal/status"),
   /** {project?, path?, workspace?: true} → {terminals: [T…]}, oldest first */

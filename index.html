@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#141414">
-  <script>try{document.documentElement.dataset.theme=localStorage.getItem("cv-theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}</script>
+  <script>try{var d=document.documentElement,t=localStorage.getItem("cv-theme"),f=localStorage.getItem("cv-flavour");if(t==="system")t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";d.dataset.theme=t==="light"?"light":"dark";if(f&&f!=="stone"&&/^[a-z-]+$/.test(f))d.dataset.flavour=f}catch(e){document.documentElement.dataset.theme="dark"}</script>
   <script>try{if(localStorage.getItem("cv-bubbles")==="on"){document.documentElement.dataset.msgx="bubbles";document.documentElement.dataset.msgxTails=""}}catch(e){}</script>
   <title>XO Space</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -43,14 +43,15 @@
         <button type="button" class="nrow" data-go="ws" id="nv-ws"><span class="nr-ic nr-xo" id="ic-ws"></span><span class="nr-name">Workspace</span><span class="nr-n" id="ws-n"></span></button>
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
         <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
-        <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span></button>
+        <button type="button" class="nrow" data-go="launchpad" id="nv-lp" hidden><span class="nr-ic" id="ic-lp"></span><span class="nr-name">Launchpad</span></button>
+        <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span><span class="nr-chev" aria-hidden="true"></span></button>
       </nav>
-      <div class="side-pop" id="side-more" role="menu" aria-label="More places" hidden></div>
+      <div class="side-pop" id="side-more" role="menu" aria-label="More places" tabindex="-1" hidden></div>
       <div class="side-label"><span id="projects-label">Projects</span><button type="button" class="side-plus" id="side-add" aria-label="New project" title="Create XO Project"><span class="sp-ic" id="sc-ic"></span><span class="sp-t">New</span></button></div>
-      <div class="side-find" id="side-find" hidden><span class="sf-ic" id="sf-ic" aria-hidden="true"></span><input id="pf-in" type="search" placeholder="Find a project" autocomplete="off" spellcheck="false" aria-label="Find a project" aria-controls="projects"><span class="sf-n" id="pf-n" aria-live="polite"></span></div>
       <nav class="projects" id="projects" aria-labelledby="projects-label"></nav>
       <div class="side-foot">
-        <button type="button" class="gear sh-tog" id="nv-shells" aria-pressed="false" hidden><span class="gear-ic" id="ic-shells"></span><span class="gear-t">Shells</span><span class="sh-n"></span></button>
+        <button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"></span><span class="sh-n"></span></button>
+
         <button type="button" class="gear is-ic" id="theme" role="switch" aria-checked="false" aria-label="Light mode"></button>
         <button type="button" class="gear is-ic" id="set-side" title="Settings" aria-label="Settings" aria-haspopup="true" aria-expanded="false"><span class="gear-ic" id="set-side-ic"></span></button>
       </div>
@@ -67,6 +68,7 @@
       <section class="home" id="home" aria-labelledby="home-h" tabindex="-1"></section>
 
       <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
+      <section class="lpp" id="lpp" aria-labelledby="lpp-h" tabindex="-1" hidden></section>
 
       <section class="conv" id="conv" hidden>
         <header class="top" id="top">
@@ -79,6 +81,8 @@
         <div class="tdel" id="tdel" hidden></div>
         <div class="since" id="since" hidden></div>
         <div class="scroller" id="scroller" tabindex="-1" data-own-scroll>
+          <h1 class="cs-hi" id="cs-hi" hidden>What can I help with?</h1>
+          <p class="cs-sub" id="cs-sub" hidden>For all your chat needs.</p>
           <div class="column" id="column">
             <div class="ws-head" id="ws-head" hidden></div>
             <div class="msgs" id="msgs" role="log" aria-live="off" aria-label="Messages"></div>
@@ -104,6 +108,7 @@
             <button type="button" class="attach" id="attach" aria-label="Add files" aria-describedby="att-note" title="Add files: text, images or PDFs, up to 25 MB each"></button>
             <input type="file" id="att-input" multiple hidden tabindex="-1" accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,text/*,.md,.markdown,.txt,.csv,.tsv,.json,.jsonl,.yaml,.yml,.toml,.ini,.xml,.html,.css,.js,.mjs,.ts,.tsx,.jsx,.py,.rb,.go,.rs,.java,.kt,.c,.h,.cpp,.hpp,.cs,.php,.sh,.sql,.log,.diff,.patch,.svg">
             <button type="button" class="target" id="target" title="Aim at a project (@)"></button>
+            <button type="button" class="target cs-perm" id="cs-perm" aria-haspopup="dialog" aria-expanded="false" aria-controls="cs-pop" hidden></button>
             <button type="button" class="tg-now" id="send-now" aria-pressed="false" title="Stop the turn in progress and send this now" hidden>Send now</button>
             <button type="button" class="iq" id="iq" aria-haspopup="dialog" aria-expanded="false" aria-controls="iq-pop"></button>
             <button type="submit" class="send" id="send" aria-label="Send" title="Send (Enter)" disabled></button>

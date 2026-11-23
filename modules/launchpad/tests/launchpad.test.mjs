@@ -166,7 +166,7 @@ t("model: check alone takes origin as usable and GitHub as able until preflight 
   assert.equal(m.port, 3000);
   assert.equal(m.repo.full, "o/p");
   assert.equal(m.repo.admin, true);
-  assert.deepEqual(m.github, { connected: true, workflow: true, login: "", source: null, fix: "" });
+  assert.deepEqual(m.github, { connected: true, workflow: true, login: "", source: null, fix: "", error: "" });
   assert.equal(m.pre, false);
   assert.deepEqual(m.env.map((x) => [x.name, x.sensitive, x.default]), [["KEY", true, ""], ["LOG", false, "info"]]);
 });
@@ -196,6 +196,10 @@ t("model: GitHub not connected (Space's preflight today) and Space's reasons as 
   const m = model(check({ state: "needs-agent", reasons: ["index.html sits beside server code (serve.py)"] }), { github: { connected: false }, repo: { mode: "new" }, launchpad: {} });
   assert.equal(m.github.connected, false);
   assert.deepEqual(m.missing, [{ what: "index.html sits beside server code (serve.py)", why: "", ok: false }]);
+});
+t("model: a GitHub token Space can no longer use says so (swarm-research, 23 Nov: Connect GitHub with no reason)", () => {
+  const m = model(check({ state: "linked" }), { github: { connected: false, source: "connections", error: "github_token_invalid", fix: "Reconnect GitHub in Connections." }, repo: {}, launchpad: {} });
+  assert.deepEqual([m.github.connected, m.github.error, m.github.fix], [false, "github_token_invalid", "Reconnect GitHub in Connections."]);
 });
 t("model: a gh login on this machine counts as connected; its missing workflow scope comes with Space's fix", () => {
   const fix = "Run `gh auth refresh -h github.com -s workflow`, or connect GitHub in Connections.";

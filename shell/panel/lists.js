@@ -3,6 +3,7 @@
 // What the panel's frames list: Threads in groups, the agents at work, today's Changes list.
 
 import { ICON } from "../../core/ui/icons/names.js";
+import { ARC } from "../../core/ui/icons/icon.js";
 import { esc, since } from "../../core/platform/index.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
 
@@ -25,7 +26,7 @@ export function threadsHtml(groups, q = "", { folds, more: shownMore }) {
   const g = q ? {} : folds || {}, more = q ? { needs: 1, working: 1, waiting: 1, done: 1 } : shownMore || {};
   /** @param {any} r */
   const row = (r) => {
-    const mark = r.state === "working" ? '<i class="arc"></i>' : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
+    const mark = r.state === "working" ? ARC : r.state === "needs" ? `<i class="ag-wait ag-need">${ICON.diamond}</i>` : r.state === "done" ? `<i class="ag-wait ag-done">${ICON.check}</i>` : "";
     return `<li><button type="button" class="ag-r${r.state === "working" || r.state === "needs" ? "" : " is-idle"}${r.on ? " is-on" : ""}"${r.on ? ' aria-current="page"' : ""} data-go="${esc(r.go)}" aria-label="${esc(`${r.title}. ${r.word}`)}">` +
       `<span class="ag-ic"${r.color ? ` style="--c:${esc(r.color)}"` : ""} aria-hidden="true">${r.coord ? ICON.project : ICON.threadOne}${mark}</span>` +
       `<span class="ag-t"><b>${esc(r.title)}</b><span class="ag-activity"><span class="ag-doing">${r.subHtml || esc(r.sub || r.word)}</span></span></span>` +
@@ -44,7 +45,7 @@ export function threadsHtml(groups, q = "", { folds, more: shownMore }) {
 export function agentsHtml(list, v) {
   if (!list.length) return `<p class="fr-none">No agent is working here right now.</p>`;
   return `<ul class="ag-list">${list.map((a) => `<li><button type="button" class="ag-r${a.busy ? "" : " is-idle"}${a.go === v ? " is-on" : ""}"${a.go === v ? ' aria-current="page"' : ""} data-go="${esc(a.go)}" title="Open ${esc(a.title)}">` +
-    `<span class="ag-ic" style="--c:${esc(a.color)}" aria-hidden="true">${ICON.threadOne}${a.waiting ? `<i class="ag-wait">${ICON.pause}</i>` : a.busy ? '<i class="arc"></i>' : ""}</span><span class="ag-t"><b>${esc(a.title)}</b><span class="ag-activity"><span class="ag-doing">${esc(a.doing)}</span></span></span>` +
+    `<span class="ag-ic" style="--c:${esc(a.color)}" aria-hidden="true">${ICON.threadOne}${a.waiting ? `<i class="ag-wait">${ICON.pause}</i>` : a.busy ? ARC : ""}</span><span class="ag-t"><b>${esc(a.title)}</b><span class="ag-activity"><span class="ag-doing">${esc(a.doing)}</span></span></span>` +
     `<span class="ag-tm">${a.busy && Number.isFinite(a.since) ? `<span class="elapsed" data-since="${a.since}">${since(a.since)}</span>` : ""}</span></button></li>`).join("")}</ul>`;
 }
 

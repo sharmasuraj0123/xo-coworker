@@ -12,7 +12,7 @@ import { KIND_WORD } from "./model.js";
 /** @typedef {boolean | "page"} Where */
 
 /** A kind's icon: links and branches, and ⌘K's made rows. */
-export const KIND_IC = /** @type {Record<string, string>} */ ({ image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.list, code: ICON.edit, link: ICON.arrow, branch: ICON.branch });
+export const KIND_IC = /** @type {Record<string, string>} */ ({ image: ICON.image, page: ICON.globe, doc: ICON.doc, data: ICON.table, code: ICON.code, link: ICON.link, branch: ICON.branch });
 
 /** @param {{ PV: any, PROJ: (pid: string) => string, naming: (m: any, max?: number) => any }} deps */
 export function createCards({ PV, PROJ, naming: madeNaming }) {

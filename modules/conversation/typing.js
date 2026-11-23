@@ -2,14 +2,15 @@
 
 // The line under a conversation: who is at work on it, or what it waits for and until when.
 
-import { ICON, XO } from "../../core/ui/icons/names.js";
+import { DOTS, ICON, XO } from "../../core/ui/icons/names.js";
+import { ARC } from "../../core/ui/icons/icon.js";
 
 /** @typedef {{ typing: HTMLElement & { _k?: string | null, _h?: string }, view: string }} TypingConv */
 
-/** @typedef {{ world: any, CH: any, PROJ: (p: string) => string, convThread: (v: string) => any, chatOf: (v: string) => string | null, isBusy: (t: any) => boolean, heldWords: (h: any) => string, openAsk: (chat: string) => any, schedule: () => void, tick: () => void }} TypingDeps */
+/** @typedef {{ world: any, CH: any, PROJ: (p: string) => string, convThread: (v: string) => any, chatOf: (v: string) => string | null, isBusy: (t: any) => boolean, heldWords: (h: any) => string, openAsk: (chat: string) => any, sendingTo: (chat: string) => {at: number} | null, schedule: () => void, tick: () => void }} TypingDeps */
 
 /** @param {TypingDeps} d */
-export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, schedule, tick }) {
+export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, sendingTo, schedule, tick }) {
   /** @type {WeakMap<TypingConv, { held?: ReturnType<typeof setTimeout>, ask?: ReturnType<typeof setTimeout> }>} */
   const timers = new WeakMap();
   /** @param {TypingConv} C */
@@ -31,11 +32,12 @@ export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, held
       clearTimeout(tm.held);
       const at = Date.parse(held.until || "");
       if (at > Date.now()) tm.held = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
-    } else if (chat && world.act.replying(chat)) {
+    } else if (chat && (world.act.replying(chat) || sendingTo(chat))) {
       const aw = world.state.awaiting[chat];
       const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
       const doing = world.act.doing ? world.act.doing(chat) : null;
-      spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${aw ? "replying" : "working"}`, since: aw ? aw.at : null };
+      const out = aw || sendingTo(chat);
+      spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${out ? "replying" : "working"}`, since: out ? out.at : null };
     } else if (chat && chat !== "workspace" && openAsk(chat)) {
       const ask = openAsk(chat);
       spec = { key: `ask:${ask.id}`, cls: "av-w", icon: XO, text: `${PROJ(chat)} coordinator · Waiting for the Workspace coordinator to reply`, since: null };
@@ -58,7 +60,7 @@ export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, held
     if (box._k !== spec.key) {
       box.innerHTML = spec.wait
         ? `<div class="typing is-held" role="status"><div class="av ${spec.cls}">${spec.icon}</div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`
-        : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}<i class="arc" aria-hidden="true"></i></div><div class="ty-b"><span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
+        : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}${ARC}</div><div class="ty-b">${DOTS}<span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
       box._k = spec.key; box._h = spec.key;
       changed = true;
     }

@@ -7,14 +7,15 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { esc } from "../../core/platform/index.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { focusOpened, pointerFollows } from "../../core/ui/a11y/keynav.js";
 
 /** @typedef {{ shape: any, keys: { hint: (id: string) => string }, announce: (text: string) => void, render: () => void, toggleJump: () => void }} SideDeps */
 
-/** @typedef {{ id: string, name: string, sel?: string, ic?: () => string }} Place */
+/** @typedef {{ id: string, name: string, sel?: string, ic?: () => string, set?: boolean }} Place */
 
 /** @typedef {{ order: string[], shown: string[] }} Bar */
 
-/** @typedef {{ KEY: string, PINS: string, BAR: string, folded: boolean, editing: boolean, CORE: Place[], PLACES: Place[], extras: Map<string, any>, fold(on: boolean, o?: { quiet?: boolean }): void, all(): Place[], byId(id: string): any, bar(): Bar, save(b: Bar): void, isDefault(b?: Bar): boolean, reset(): void, adopt(): void, pin(id: string, on: boolean): void, move(id: string, dir: number, before?: string | null): void, apply(): void, drawPins(): void, drawMore(): void, edit(on: boolean): void, openMore(): void, closeMore(o?: { focus?: boolean }): void }} Side */
+/** @typedef {{ KEY: string, PINS: string, BAR: string, folded: boolean, editing: boolean, CORE: Place[], PLACES: Place[], extras: Map<string, any>, fold(on: boolean, o?: { quiet?: boolean }): void, all(): Place[], byId(id: string): any, bar(): Bar, save(b: Bar): void, isDefault(b?: Bar): boolean, reset(): void, adopt(): void, pin(id: string, on: boolean): void, move(id: string, dir: number, before?: string | null): void, apply(): void, drawPins(): void, drawMore(): void, edit(on: boolean): void, openMore(e: MouseEvent): void, closeMore(o?: { focus?: boolean }): void }} Side */
 
 /** The sidebar's fold, bar and More, wired to its markup in index.html. @param {SideDeps} deps */
 export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump }) {
@@ -45,11 +46,13 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
       { id: "arts", name: "Artifacts", sel: "#nv-arts" },
     ],
     PLACES: [
+      { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
       { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
-      { id: "routing", name: "Routing", ic: () => ICON.router },
-      { id: "rules", name: "Rules", ic: () => ICON.rule },
-      { id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
-      { id: "keys", name: "Keyboard", ic: () => ICON.key },
+      { set: true, id: "accounts", name: "Accounts", ic: () => ICON.person },
+      { set: true, id: "routing", name: "Routing", ic: () => ICON.router },
+      { set: true, id: "rules", name: "Rules", ic: () => ICON.rule },
+      { set: true, id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
+      { set: true, id: "keys", name: "Keyboard", ic: () => ICON.key },
     ],
     all() { return [...SIDE.CORE, ...SIDE.PLACES]; },
     byId(id) { return SIDE.all().find((p) => p.id === id); },
@@ -130,7 +133,7 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
           `</ul><div class="se-f"><button type="button" class="btn" data-se-reset${SIDE.isDefault(b) ? " disabled" : ""}>Reset to default</button><button type="button" class="btn btn-pri" data-se-done>Done</button></div>`;
       } else {
         pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
-        const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id));
+        const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id)).filter((p) => !p.set);
         html = rest.map((p) => {
           const go = p.sel ? `data-go="${$(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
           return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
@@ -145,7 +148,7 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
       const pop = $("#side-more");
       (on ? pop.querySelector("[data-se-grip]") : pop.querySelector('[role="menuitem"]'))?.focus({ preventScroll: true });
     },
-    openMore() {
+    openMore(e) {
       const pop = $("#side-more"), row = $("#nv-more");
       SIDE.drawMore();
       pop.hidden = false;
@@ -153,7 +156,7 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
       // it springs from its row: beside it, level with it
       const r = row.getBoundingClientRect();
       pop.style.setProperty("--pop-x", `${Math.round(r.right)}px`); pop.style.setProperty("--pop-y", `${Math.round(r.top)}px`);
-      pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true });
+      focusOpened(pop, e);
     },
     closeMore({ focus = false } = {}) {
       const pop = $("#side-more"), row = $("#nv-more");
@@ -165,11 +168,12 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
   };
   $("#side-fold").addEventListener("click", () => SIDE.fold(!SIDE.folded));
   $("#side-jump").addEventListener("click", toggleJump);
-  $("#nv-more").addEventListener("click", () => ($("#side-more").hidden ? SIDE.openMore() : SIDE.closeMore({ focus: true })));
+  $("#nv-more").addEventListener("click", (/** @type {MouseEvent} */ e) => ($("#side-more").hidden ? SIDE.openMore(e) : SIDE.closeMore({ focus: true })));
+  pointerFollows($("#side-more"));
   $("#side-more").addEventListener("click", (/** @type {any} */ e) => {
     const t = e.target, pop = $("#side-more");
     const pin = t.closest("[data-side-pin]");
-    if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); pop.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }); return; }
+    if (pin) { const id = pin.dataset.sidePin; SIDE.pin(id, true); announce(`${SIDE.byId(id).name} is in the sidebar`); focusOpened(pop, e); return; }
     if (t.closest("[data-side-edit]")) { SIDE.edit(true); return; }
     const sw = t.closest("[data-se-sw]");
     if (sw) { const id = sw.dataset.seSw, on = sw.getAttribute("aria-checked") !== "true"; SIDE.pin(id, on); announce(`${SIDE.byId(id).name}: ${on ? "in the sidebar" : "in More"}`); pop.querySelector(`[data-se-sw="${id}"]`)?.focus({ preventScroll: true }); return; }
@@ -191,7 +195,7 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if (SIDE.editing) SIDE.edit(false); else SIDE.closeMore({ focus: true }); return; }
     if (SIDE.editing) return;
     const items = $$('#side-more [role="menuitem"]'), i = items.indexOf(document.activeElement);
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const j = i < 0 ? (e.key === "ArrowDown" ? 0 : items.length - 1) : (i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length; items[j]?.focus({ preventScroll: true }); }
   });
   // the editor's drag: a row dropped on another goes before it (after it, past its middle)
   $("#side-more").addEventListener("dragstart", (/** @type {any} */ e) => { const r = e.target.closest?.(".se-row"); if (!r) return; e.dataTransfer.setData("text/x-xo-place", r.dataset.se); e.dataTransfer.effectAllowed = "move"; r.classList.add("is-drag"); });

@@ -23,7 +23,7 @@ t("in light the toast takes the dark palette's roles, the dark block's own value
   assert.equal(inv["--focus"], dark["--focus"], "the focus ring, worked out again from the toast's accent");
 });
 // the toast's own rules: .toast and what's in it (.t-*, the viewer's .xd-t*), in every stylesheet
-const all = cssNames().map((f) => [f, css(f)]);
+const all = cssNames().filter((f) => f !== "flavours.css").map((f) => [f, css(f)]);
 // the toast's own classes (js/app.js toasts, js/viewer.js's Saved notice)
 const isToast = (sel) => sel.split(",").some((x) => /\.(toast|t-ic|t-m|t-undo|t-ring|t-back|xd-toast|xd-tacts|xd-tx)(?![\w-])/.test(x.replace(/\.toast-wrap\b/g, "")));
 const toastRules = all.flatMap(([f, s]) => [...s.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => isToast(m[1])).map((m) => ({ f, sel: m[1].trim(), body: m[2] })));

@@ -4,6 +4,16 @@
 
 const OPTION = '[role="radio"]';
 const ITEM = '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
+
+/** Focus the first usable item for keyboard activation, or the menu for pointer activation. @param {HTMLElement | null} menu @param {MouseEvent} [event] */
+export function focusOpened(menu, event) {
+  if (!menu) return;
+  const items = /** @type {NodeListOf<HTMLElement>} */ (menu.querySelectorAll(ITEM));
+  const first = event && event.detail > 0 ? null : [...items].find(usable);
+  if (first) { first.focus({ preventScroll: true }); return; }
+  if (!menu.hasAttribute("tabindex")) menu.tabIndex = -1;
+  menu.focus({ preventScroll: true });
+}
 /** @param {KeyboardEvent} e */
 const plain = (e) => !e.altKey && !e.ctrlKey && !e.metaKey;
 

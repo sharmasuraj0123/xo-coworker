@@ -1,7 +1,3 @@
-// A shell in the panel (the owner, 19 Nov): the panel's Shell button moves the shells' own dock (the same sessions
-// and tabs as under the page) into the panel in place of its frames, opening a shell for where you are; off, or the
-// panel closing, it goes back under the page, put away. The left panel's Shells stay as they are.
-//   node tests/panel-shell.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
@@ -12,36 +8,33 @@ const dock = readFileSync(new URL("../js/shells/dock.js", import.meta.url), "utf
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
-// the panel: a Shell button (only when the app gives it a shell), a host, the mode
+// the panel: a Shell button (only when the app gives it a shell), and one host for every page, over the frames
 assert.match(stage, /\$\{shell \? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false"/);
-assert.match(stage, /`<div class="stg-page stg-shell"><\/div>` \+\n\s*`<div class="stg-frames">`/, "its host (the panel's one page host) sits where the frames are");
-// Shell is the page "shell" (the panel's pages, 19 Nov): on shows it, off closes its tab; nothing else changed
+assert.match(stage, /`<div class="stg-body"><div class="stg-frames">`/);
+assert.match(stage, /`<\/div><div class="stg-page"><\/div><\/div>`;/, "the page host sits over the frames, in the same cell");
 assert.match(stage, /if \(t\.closest\("\[data-stg-shell\]"\)\) \{ setShell\(S\.page\?\.name !== "shell"\); return; \}/);
-assert.match(stage, /if \(shell\) page\("shell", \{ title: \(\) => "Shell", mount: \(\) => \{\}, onShow: \(\) => shell\(true, boxFor\(S\.page\)\), onHide: \(\) => shell\(false\), unmount: \(\) => \{\} \}\);/);
-const set = stage.slice(stage.indexOf("function setShell("), stage.indexOf("function setShell(") + 300);
-assert.match(set, /if \(on\) show\("shell"\); else closeTab\("shell"\);/);
-assert.match(stage, /el\.classList\.toggle\("is-shell", name === "shell"\);/, "the shell's own CSS keeps its class");
-assert.match(stage, /b\.setAttribute\("aria-pressed", String\(on\)\)/);
-const close = stage.slice(stage.indexOf("function close("), stage.indexOf("function close(") + 200);
-assert.match(close, /if \(S\.page\) sections\(\{ paint: false \}\);/, "the panel closing puts its page away (the shell goes back under the page)");
 
-// the app: the dock itself moves (no second terminal), a shell opens for where you are, and it goes back home
+// the app: the dock itself moves (no second terminal), a shell opens where it was asked for, and it goes back home
 const ps = app.slice(app.indexOf("function panelShell("), app.indexOf("/** A Shell button: \"ws\""));
+assert.match(ps, /function panelShell\(on, host, where\) \{/);
 assert.match(ps, /host\.append\(d\); d\.classList\.add\("in-panel"\);/);
-assert.match(ps, /openShell\(S\.view\.startsWith\("t:"\) \|\| S\.view\.startsWith\("p:"\) \? S\.view : "ws"\)/);
+assert.match(ps, /const at = where \|\| S\.view;/);
+assert.match(ps, /Promise\.resolve\(openShell\(at\.startsWith\("t:"\) \|\| at\.startsWith\("p:"\) \? at : "ws"\)\)\.then\(\(\) => \{ if \(STAGE\.isShell && d\.hidden\) STAGE\.shellOff\(\); \}/, "one that couldn't open goes back");
 assert.match(ps, /SHD_HOME\.parent\.insertBefore\(d, SHD_HOME\.next\);\n\s*SH\.hide\(\);/);
-assert.match(ps, /if \(!SH\.enabled\) \{ STAGE\.shellOff\(\);/, "no shells here: the panel says so and stays as it was");
+assert.match(ps, /if \(!SH\.enabled\) \{ STAGE\.shellOff\(\);/, "no shells here: the panel says so and goes back");
 assert.match(app, /new MutationObserver\(\(\) => \{ if \(STAGE\.isShell && \$\("#shd"\)\.hidden\) STAGE\.shellOff\(\); \}\)/, "put away from inside, the panel goes back");
+assert.match(app, /shell: \(on, host, where\) => panelShell\(on, host, where\)/);
 assert.match(dock, /get shown\(\) \{ return R\.enabled && wanted\(\) && R\.open && !R\.min; \}/);
 assert.match(dock, /hide\(\) \{ if \(!R\.open\) return; R\.open = false; changed\(\); away\(\); \}/);
 
 // the left panel's Shells stay: its toggle and the dock under the page are untouched
-assert.match(html, /<button type="button" class="gear sh-tog" id="nv-shells"/);
+assert.match(html, /<button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"><\/span><span class="sh-n"><\/span><\/button>/);
 assert.match(html, /<section class="shd" id="shd" aria-label="Shells" hidden><\/section>/);
 
-// CSS: tokens only; a phone keeps its own shells sheet
+// CSS: tokens only; the page over the frames in one cell; a phone keeps its own shells sheet
 const block = css.slice(css.indexOf("── Shell mode"), ((css.indexOf("/* ──", css.indexOf("── Shell mode") + 4) + 1) || css.length + 1) - 1);
-assert.match(block, /\.stage\[data-page\] \.stg-frames\{display:none\}/);
+assert.match(block, /\.stg-body>\*\{grid-area:1\/1;min-width:0;min-height:0\}/);
+assert.match(block, /\.stage\.is-covered \.stg-frames\{visibility:hidden;content-visibility:hidden\}/);
 assert.match(block, /@media \(max-width:760px\)\{\.stg-shell-b\{display:none\}\}/);
 assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/);
 

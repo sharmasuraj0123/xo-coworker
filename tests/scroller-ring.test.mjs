@@ -15,13 +15,14 @@ import { readFileSync } from "node:fs";
 import { rules as cascade, decls } from "./lib/cascade.mjs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 import { cssNames } from "./lib/sources.mjs";
+import { tokens as TOK, resolveTokens } from "./lib/tokens.mjs";
 
 const R = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const css = cssNames().map((f) => [f, read(`css/${f}`)]);
 const all = css.map((x) => x[1]).join("\n");
 const base = read("core/ui/foundation.css"), fnd = read("css/foundation.css"), tokens = read("core/ui/tokens.css");
-const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)px\}/);
+const ring = base.match(/(^|\n):focus-visible\{outline:(\d+)px solid var\(--focus\);outline-offset:(\d+)(?:px)?\}/);
 const ext = +ring[2] + +ring[3], room = +tokens.match(/--ring-room:(\d+)px/)[1];
 const inset = (fnd.match(/:is\(([^)]*)\):focus-visible\{outline-offset:-2px;outline-color:var\(--ring-in,var\(--focus\)\)\}/) || [])[1] || "";
 let passed = 0;
@@ -36,14 +37,14 @@ const SCROLLERS = {
   ".mp-legend": ["room", "the Map's agents (none above the first row cut its ring)"],
   ".c-body": ["room", "a decision card's body"], ".all-list": ["room", "All threads"], ".jump-list": ["room", "Jump's list"],
   ".keys-cols": ["room", "Settings › Keyboard"], ".set-body": ["room", "Settings' page"], ".set-page": ["room", "a Settings page on a phone"],
-  ".rn-body": ["room", "Runs' sheet"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"],
+  ".rn-body": ["room", "the Sub-agents page"], ".shd-list": ["room", "Shells' list"], ".dd-menu": ["room", "a dropdown's options"], ".at-list": ["room", "the composer's @ projects"],
   ".cs-pop": ["room:.iq-pop", "the new chat's settings (an .iq-pop)"],
-".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".stg-tabs": ["inset:.stg-tab", "the stage's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
+".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
   ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
   ".stage .cx-list": ["inset:.cx-r", "the changes list"],
   ".md-body": ["inset:.md-from", "Made's cards (their ring a layer inside them, C013; their from line and pin inset)"],
   ".fr-b": ["inset:.ag-r", "the stage's frames (agents and changes rows, inset)"], ".stage .ch-old": ["inset:.ch-r", "a change's older lines"],
-  ".home": ["inner", "Home: its .hm column carries the room"], ".arts": ["inner", "Artifacts: its column carries the room"],
+  ".home": ["inner", "Home: its .hm column carries the room"], ".arts,.lpp": ["inner", "Artifacts and Launchpad: their column carries the room"], ".lq-body": ["room", "Launchpad's window: its body"], ".lq-side.nav": ["room", "Launchpad's window: its sections"],
   ".scroller": ["inner", "the conversation: its column and the bubbles carry the room"], ".dlg": ["inner", "a dialog: its sections are padded"],
   ".card.is-dock.is-one .card-in": ["inner", "the docked decision: its body (16 px) and actions (12 px) are padded"],
   ".md-code pre": ["text", "a code block"], ".md-table": ["text", "a table in a message"],
@@ -54,7 +55,7 @@ const SCROLLERS = {
   ".tb-out": ["text", "a step's output"], ":root:root .ckbar.is-open .ck-b>ol": ["text", "a phone's checklist: its steps are words"],
 };
 const padOf = (sel) => { const m = all.match(new RegExp(`(?:^|[}\\n])\\s*${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{[^}]*?(?:^|;)padding:([^;}]+)`)); return m ? m[1].trim() : null; };
-const px4 = (v) => { const p = v.split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
+const px4 = (v) => { const p = resolveTokens(v, Object.keys(TOK).filter((k) => k !== "--ring-room" && k !== "--menu-pad")).split(/\s+(?![^(]*\))/).map((x) => (x === "var(--ring-room)" ? room : x === "var(--menu-pad)" ? +tokens.match(/--s-1:(\d+)px/)[1] : /^var\(--s-\d+\)$/.test(x) ? +tokens.match(new RegExp(`--s-${x.slice(8, -1)}:(\\d+)px`))[1] : /^(\d+)px$/.test(x) ? +x.slice(0, -2) : x === "0" ? 0 : NaN)); return [p[0], p[1] ?? p[0], p[2] ?? p[0], p[3] ?? p[1] ?? p[0]]; };
 
 t("the ring's room covers the ring (2 px, 2 px out)", () => assert.ok(room >= ext, `${room} ≥ ${ext}`));
 t("every scroll box is placed, either axis: padded with the ring's room, its controls' ring inset, its content padded, or text only", () => {
@@ -81,13 +82,14 @@ t("each holds the ring as listed: a padded one by at least the ring on every sid
 // "page": the page itself; "decor": it holds no control (a bar, a line, words for a screen reader); "fade": a mask
 // that fades a scroller's cut edge, over controls that draw their ring inside them or sit clear of it
 const CLIPPERS = {
-  "html": ["page", "the page"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
-  ".sr-only": ["decor", "words for a screen reader"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".rn-stop span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
+  "html": ["page", "the page"], ".dlg.lq": ["inner", "Launchpad's window: its sections and body are placed (.lq-side.nav, .lq-body)"], "body": ["page", "the page"], ".main": ["inner", "the main area: its views and header pad their controls"],
+  ".sr-only": ["decor", "words for a screen reader"], ".agm-openai": ["decor", "an agent's mark (OpenAI's, a mask in the ink)"], ".nv-dot": ["decor", "a mark from the pack, a mask in the ink"], ".pr-d": ["decor", "a mark from the pack, a mask in the ink"], ".spin": ["decor", "a mark from the pack, a mask in the ink"], ".spin.is-load": ["decor", "a mark from the pack, a mask in the ink"], ".hr-dot": ["decor", "a mark from the pack, a mask in the ink"], ".tb-m.is-wait": ["decor", "a mark from the pack, a mask in the ink"], ".shd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".dg-dot": ["decor", "a mark from the pack, a mask in the ink"], ".tb-live": ["decor", "a mark from the pack, a mask in the ink"], ".fl-who i": ["decor", "a mark from the pack, a mask in the ink"], ".fl-rb em": ["decor", "a mark from the pack, a mask in the ink"], ".stage .cx-pill i": ["decor", "a mark from the pack, a mask in the ink"], ".xd-state i": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st:is(.t-go,.t-stop)>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-stop>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".lp-st.t-need>i:not(.lp-arc)": ["decor", "a mark from the pack, a mask in the ink"], ".dd-dot": ["decor", "a mark from the pack, a mask in the ink"], ".rn-stop span": ["decor", "words for a screen reader"], ":root:root .thead .rn-log span": ["decor", "words for a screen reader"],
+  ".c-ev.is-plan.is-more .ev-plan": ["text", "a plan's first lines on a decision card, plain words"],
   ".ckbar": ["inset:.ck-tog", "a thread's checklist bar: its toggle fills it (C045)"],
   ".ck-b>ol": ["text", "the checklist's steps"], ".ck-b": ["text", "the checklist's steps, clipped as they open (words, no controls)"], ".sg.s-done.is-pop": ["decor", "a step's mark in the progress line"],
-  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
+  ".card": ["inner", "a decision card: its body pads 16, its actions 12"], ".next": ["inner", "Home's decision card: the same body and action row as a card"], ".chg": ["text", "a change's preview: its caption and text"], ".c-hint": ["text", "a card's hint"],
   ".card.is-dock :is(.c-body,.card-in).fade-b": ["fade", "the docked card's body at a cut edge: its answers sit below it"], ".card.is-dock :is(.c-body,.card-in).fade-t": ["fade", "the same, at its top"], ".card.is-dock :is(.c-body,.card-in).fade-t.fade-b": ["fade", "the same, both edges"],
-  ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".lpv-link": ["decor", "a dashed line"], ".lpm-l": ["decor", "a dashed line"], ".hm-sk": ["decor", "a loading shape"],
+  ".mini": ["decor", "a progress bar"], ".cp-bar": ["decor", "a progress bar"], ".rt-bar": ["decor", "a progress bar"], ".hm-sk": ["decor", "a loading shape"],
   ".sheet-card": ["inner", "a sheet (All, Jump, Keys, Runs): its head and body pad their controls; Jump's field, its whole head, draws its ring inside (C020)"], ".ar-di": ["inset:.ar", "All threads' done fold: its rows"],
   ".kl": ["text", "Settings › Keyboard's keys"], ".rl-list": ["inner", "Settings' rules: each row pads its buttons"], ".wt-list": ["inner", "Settings' checkouts: each row pads its buttons"],
   ".viewer": ["inner", "the file viewer: its head pads its controls, its body is text"], ".vw-body.is-frame": ["text", "a page in a frame"],
@@ -99,11 +101,12 @@ const CLIPPERS = {
   ".fr[data-fr=\"map\"] .fr-b": ["inner", "the Map's frame: its host pads"], ".stage .fr[data-fr=\"changes\"] .fr-b": ["inner", "the changes frame: its list and pane are placed"],
   ".stg-t": ["text", "a tab's words"], ".ag-t": ["text", "an agent's name"], ".stage .ag-t": ["text", "an agent's name"], ".stage .cx-t": ["text", "a change's name"], ".stage .ch-copy": ["text", "a change's name and path"],
   ".stage .cx-pane": ["bars", "a change's pane: its head's controls and the diff (.cx-pd, panel.css) draw their ring inside"], ".ximg-c": ["decor", "a picture compared"],
-  ".stage .fr-lp>.fr-b.is-fade": ["fade", "Launchpad's frame at its cut foot"], ".lp-hs": ["text", "Launchpad's head line"],
+  ".stage :is([data-fr=\"agents\"]>.fr-b,.ch-old).is-fade": ["fade", "a panel list at its cut foot"], ".rt-in.is-clamp .prose": ["fade", "a sub-agent's long task, 4 lines until Show all"],
   ".mx-album": ["decor", "a message's pictures"], ".lbx-frame": ["decor", "the lightbox's picture"], ".mx-wt": ["text", "the working line"],
   ":root[data-msgx] .m-them .tcard": ["inner", "a thread card in a message: its ring is drawn around the card itself (msgx.css), not inside it"],
   ".pj-s": ["margin", "a project's count line: \"Coordinator needs you\" leads it (S005)"], ":root:root .top .pj-s": ["margin", "the same line in a phone's bar"],
   ".ev-t": ["margin", "an event line's words: Passed to a project, Continued in a thread"],
+  ".target": ["text", "the composer's target line: the chat's is a button (its ring drawn outside it), the Thread page's only words"],
   ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-done": ["decor", "a step's mark"], ":root[data-msgx] .m-them .tc-segs .sg.mx-seg-next": ["decor", "a step's mark"],
 };
 const CLIPS = (d) => (/^overflow(-[xy])?$/.test(d.p) && /hidden|clip/.test(d.v)) || (d.p === "contain" && /paint|strict|content/.test(d.v)) || (d.p === "clip-path" && d.v !== "none") || (/^(-webkit-)?mask(-image)?$/.test(d.p) && d.v !== "none");
@@ -158,16 +161,16 @@ t("C076: every control in the panel's bars (its own, a frame's head, a change's 
 });
 t("C045: the checklist's toggle draws its ring inside it, on the bar's inner corners", () => {
   assert.ok(inset.split(",").includes(".ck-tog"));
-  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-lg\);padding:0 10px 0 12px;border-radius:calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.ck-tog\{flex:1;min-width:0;display:flex;align-items:center;gap:12px;height:var\(--h-ctl\);padding:0 calc\(var\(--edge-text\) - var\(--ic\) \* var\(--ic-ink-chev\)\) 0 var\(--edge-text\);border-radius:var\(--r-lg-in\);/);
   assert.match(all, /\.ckbar\{border-radius:var\(--r-lg\);[^}]*border:1px solid/);
 });
 t("S089: a code block clips nothing (its text clips itself and rounds its own corners), and its head holds its Copy", () => {
   const code = all.match(/(?:^|\n)\.md-code\{([^}]*)\}/)[1];
   assert.doesNotMatch(code, /overflow/, "the block itself doesn't clip");
-  assert.match(all, /\.md-code pre\{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 calc\(var\(--r-lg\) - 1px\) calc\(var\(--r-lg\) - 1px\);/);
+  assert.match(all, /\.md-code pre\{margin:0;padding:12px 16px;overflow-x:auto;border-radius:0 0 var\(--r-lg-in\) var\(--r-lg-in\);/);
   assert.match(all, /\.md-code-head\{display:flex;align-items:center;justify-content:space-between;min-height:34px;/, "a phone's 36 px Copy grows its head");
 });
 t("the runs strip gives the room back in its margin: its chips sit where they did (8 px under the head's line)", () => {
-  assert.match(all, /\.rn-strip\{display:flex;gap:6px;margin:calc\(8px - var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\);padding:var\(--ring-room\);overflow-x:auto;/);
+  assert.match(all, /\.rn-strip\{display:flex;gap:4px;margin:calc\(8px - var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\) calc\(-1 \* var\(--ring-room\)\);padding:var\(--ring-room\);overflow-x:auto;/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

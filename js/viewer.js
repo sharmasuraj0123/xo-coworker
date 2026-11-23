@@ -1,23 +1,3 @@
-// The file viewer (if1 #2), in Files: a file opens beside the conversation, like a canvas, ready to read and to
-// type in. Every text file is one editor (modules/files/editor.js, CodeMirror): code reads as code, Markdown as a page
-// (Page, or Source: the same editor), and what you type saves on ⌘S only (modules/files/documents.js, one document per open
-// file; unsaved text waits as a draft in this browser). There's no Edit button and no autosave. Someone else's change
-// (an agent, bash, git) comes in place as a new version, the lines it touched glowing for a moment; if you were
-// typing, it's merged into yours, and only lines you both changed ask (Keep yours · Take theirs). Each version is in
-// the head's ‹ n of m ›: who made it, an older one read only with Restore, and Show changes.
-// HTML shows in a sandboxed frame that runs the page's own scripts but has no same-origin (an opaque origin:
-// no reach into XO's window, cookies, storage or /api, which serve.py refuses a null origin; no popups,
-// forms or top navigation; Source shows its text), and an
-// image shows fitted to the panel (Actual size, or a click on it, shows it 1:1). It reads the
-// project-scoped `/api/xo-projects/<project>/file` and `/image` routes only, never `/api/files/*`.
-// A file attached to a message (hub #30) opens here too, read only: an image as itself, a PDF in a frame, text as
-// text (read with fetch, never rendered as HTML), all from the attachment route, which the server
-// guards with its own headers. A long paste not sent yet previews from the composer.
-// A project file also downloads whole from the project-scoped `/download` route. It is fetched with the Coder
-// header and saved as a blob, so the token never sits in a URL (or the browser's download history).
-// Several files stay open as tabs (a single click opens a preview tab the next one replaces; typing in it, or a
-// double click on its tab, keeps it). Esc puts the file away (or closes it); on phones it takes the whole screen.
-// Focus goes in, and back to what opened it.
 
 import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
@@ -27,6 +7,7 @@ import { api, attachmentUrl, attachmentText, missingRoute } from "../core/platfo
 import { kindOf, typeWord } from "./attach.js";
 import * as DV from "../modules/changes/diffview.js";
 import * as K from "../core/platform/keys.js";
+import { keyHtml } from "../core/ui/a11y/keycap.js";
 import { pointerFollows } from "./keynav.js";
 import { redrawNode } from "./redraw.js";
 import { countsHtml } from "../core/ui/components/counts.js";
@@ -81,7 +62,7 @@ export function whenWords(at, now = Date.now()) {
  * after each save (its place's changes are read again)}. threadTitle(ts) names who made a version. away() puts the
  * file away beside a chat (Esc); home() is where focus goes when what opened the file is gone.
  */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null, opened = null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null, opened = null, closed = null }) {
   const el = $("#viewer");
   // a copy still on its way after this long says so ("Copying…"): quicker, and it only says Copied
   const COPY_SAYS_MS = 150;
@@ -148,9 +129,9 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       canSave() && `<button type="button" role="menuitem" data-vw-copy-path>${ICON.copy}<span>Copy path</span></button>`,
       // an attachment opens in its own tab too; text has no inline view there, so it downloads
       f.att ? (kindOf(f.type || "") === "text"
-        ? `<a role="menuitem" href="${url}" download="${esc(f.name || "file")}">${ICON.down}<span>Download</span></a>`
-        : `<a role="menuitem" href="${url}" target="_blank" rel="noopener noreferrer">${ICON.arrow}<span>Open in a new tab</span></a>`)
-        : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.down}<span>Download</span></button>`,
+        ? `<a role="menuitem" href="${url}" download="${esc(f.name || "file")}">${ICON.download}<span>Download</span></a>`
+        : `<a role="menuitem" href="${url}" target="_blank" rel="noopener noreferrer">${ICON.out}<span>Open in a new tab</span></a>`)
+        : canSave() && `<button type="button" role="menuitem" data-vw-download>${ICON.download}<span>Download</span></button>`,
     ].filter(Boolean);
     if (!items.length && !folds.length) return "";
     // what's on its way says so before what's done: the newest action's state (a Download right after Copy said
@@ -187,11 +168,11 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
   function stateHtml(d) {
     if (!d || d.state === "readonly") return "";
     if (d.state === "conflict") { const n = d.merge ? d.merge.left : 0; return `<span class="xd-state is-need" role="status"><i></i>${n} ${n === 1 ? "place" : "places"} to choose</span>`; }
-    if (d.state === "saving") return `<span class="xd-state is-quiet" role="status">Saving…</span>`;
-    if (d.state === "dirty") return `<span class="xd-state is-unsaved" role="status" title="${MODK}S saves it"><i></i>Unsaved · ${MODK}S</span>`;
+    if (d.state === "saving") return `<span class="xd-state is-quiet" role="status" title="Saving…"><span class="spin" aria-hidden="true"></span><span class="sr-only">Saving…</span></span>`;
+    if (d.state === "dirty") return `<span class="xd-state is-unsaved" role="status" title="Unsaved · ${MODK}S saves it">${xi("save")}<span class="sr-only">Unsaved</span>${keyHtml(`${MODK}S`)}</span>`;
     if (d.state === "deleted") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Deleted on disk</span>`;
     if (d.state === "error") return `<span class="xd-state is-need" role="status" title="${esc(d.err || "")}"><i></i>Not saved</span>`;
-    return V.savedFlash === d ? `<span class="xd-state is-quiet is-done" role="status">Saved</span>` : "";
+    return V.savedFlash === d ? `<span class="xd-state is-quiet is-done" role="status" title="Saved">${ICON.check}<span class="sr-only">Saved</span></span>` : "";
   }
   /** ‹ n of m ›, who made the one shown and when, Show changes; on an older one, Restore and Latest. */
   function versionsHtml(d) {
@@ -906,6 +887,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       const to = [back, likeOf(back)].find(usable) || (lost && home ? home() : null);
       to?.focus({ preventScroll: true });
     }
+    closed && closed();
     onChange && onChange();
   }
   /** The control drawn in place of one that's gone: the same kind, saying the same thing (its file, change, box). */

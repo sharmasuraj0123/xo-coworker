@@ -1,5 +1,18 @@
 # Modularization handoff
 
+## Standing rules for every phase
+
+- Move code as it is. Don't hard-code any value, and don't change any CSS value, look or behaviour while modularizing.
+- Never rebuild or redesign anything on your own. If something seems to need a rebuild or a behaviour change (including a "fix"), stop and ask me first, with the evidence. I take it to the owner.
+- In P2, resolve conflicts by keeping release's look and behaviour exactly, and modular's structure. Anything that can't be both, ask me.
+
+## Exit criteria
+
+- Code is efficient and readable, with small cohesive modules and clear boundaries.
+- Comments and docstrings are one line at most. Each P3 package records each file's size against its target and checks for comment blocks, dead code and duplicate helpers.
+- Before P5, an independent audit covers the whole codebase and lists remaining patches, workarounds, oversized files, docstrings and duplicates by file and line.
+- Send any audit finding that would change looks or behaviour to the coordinator as a proposal for the owner. Make verified behaviour-preserving cleanups in their own checked commits.
+
 ## P1 integration, resumed 23 November 2026
 
 The integration branch is `modular/integration-bc5bb3`, based on `coworker/modular` at `7b94496e`. The full check passed from an archived copy of that baseline and again after merging route types at `82155c9d`. The icon move at `e546c9b1` passed the same check and dropped the final ledger from 1,719 to 1,334 problems. Git reports 385 byte-identical icon renames. The shape presets from services-2 came across separately at `5caa28f2` and reduced the count to 1,332. The store's loader test failed on the old path before the move.
@@ -20,6 +33,17 @@ The P1 candidate at `43e65c75` passed the clean-export full check with `JOBS=1`.
 | `modular/services-2` | Shape presets integrated independently. The remaining timeline move and test relocation stay parked for the timeline group. Type the new world module contracts and check that the public timeline exports and their behavior are preserved. |
 | `modular/finish` | Icon source integrated independently. The DOM and sound move mixes an application selector fix with extraction. The test-kit move and shim deletion remain available as separate slices. |
 | `xo/thread-7ea52a` | Parked for the conversation group. The branch also contains the attachment tray extraction, platform file helpers and Thread-page composer e2e coverage. A thread entered by touch must focus a landmark without raising the phone keyboard. Desktop must still focus the input. |
+
+## P2 forward merge in progress
+
+The active worktree has the single forward merge of release `f0144d5f` staged on `modular/integration-bc5bb3`. The P1 tag is the rollback point. Later release fixes, including button tokens and Accounts sign-in, belong in the pre-P5 forward merge.
+
+- The panel uses release's single visible page, one level of Back, shared width and Files close behavior, with page registration and mounting through the kernel.
+- Launchpad uses the release window and home implementation under `modules/launchpad/`. Since still renders the quiet one-line release summary. The grouped-card helpers had no live caller in the release pin.
+- The versioned static server includes the modular paths. The GitHub page retains the three optional release routes with 404 behavior checked by the route contract and page tests.
+- The ledger is pinned to the merged release tree. Its plan check passed and final obligations fell from 1,332 to 1,328.
+- Back and Escape use release's separate orders on one kernel stack. Phone Back asks before closing a standalone viewer with unsaved edits. Tests cover competing surfaces and fail when any of the three checked priorities is reversed.
+- The staged clean export passed the full check, including all 263 unit files by exit code. The approved browser lane, visual comparisons and independent review are pending. The six P3 package drafts get their base commits and launch handoff at the P2 gate.
 
 ## Previous handoff from 19 November 2026
 

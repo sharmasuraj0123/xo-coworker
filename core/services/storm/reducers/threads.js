@@ -10,7 +10,10 @@ export const threads = {
     if (!ts) return;
     const old = rawThreads.get(ts);
     if (!old && !d.chat_id) { ctx.refetchThread(env.chat_id, ts); return; }
-    rawThreads.set(ts, { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...ctx.sessRead(d, { at: Date.now(), seq: env.seq ?? state.lastSeq }), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) });
+    /** @type {import("../types").Row} */
+    const thread = { ...(old || {}), ...d, _at: Date.now(), ...("busy" in d ? { _readAt: Date.now() } : {}), ...ctx.sessRead(d, { at: Date.now(), seq: env.seq ?? state.lastSeq }), chat_id: d.chat_id || (old && old.chat_id) || env.chat_id, updated_at: d.updated_at || env.ts || (old && old.updated_at) };
+    rawThreads.set(ts, thread);
+    if (!thread.session) ctx.fillSession(thread.chat_id, ts);
     ctx.soon();
   },
   // the old thread froze and a linked new thread starts from its work

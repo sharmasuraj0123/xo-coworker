@@ -60,6 +60,12 @@ export function installLoad(ctx) {
       for (const [ts, r] of rawThreads) if (r.chat_id === p.chatId && !seen.has(ts) && (r._at || 0) < asked) rawThreads.delete(ts);
     } catch { /* keep the last good threads for this project */ }
   };
+  ctx.loadActive = async () => {
+    try {
+      const { turns } = await client.active();
+      for (const x of turns || []) if (x.turn_id && x.session_id && !state.turns.get(x.turn_id)) state.turns.apply({ type: "turn.started", envelope: { type: "turn.started", turn_id: x.turn_id, session_id: x.session_id, chat_id: x.chat_id || null, thread_ts: x.thread_ts || null, ts: x.started_at || null, data: { origin: x.origin || null } } });
+    } catch { /* a thread's own read fills it in */ }
+  };
   async function loadSessions() {
     // the coordinators (for "is replying") and the thread sessions' live state
     try {
@@ -102,7 +108,7 @@ export function installLoad(ctx) {
     if (!state.projects.length) return;
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads),
-      loadSessions(), loadReview(), loadRouted(), ctx.loadRuntimes(), ctx.loadPolicies(),
+      loadSessions(), loadReview(), loadRouted(), ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };
 
@@ -114,5 +120,16 @@ export function installLoad(ctx) {
     const sent = ctx.sentAt();
     try { const x = await client.thread(chatId, ts); rawThreads.set(ts, { ...x, _readAt: Date.now(), ...ctx.sessRead(x, sent) }); ctx.soon(); } catch { /* the next full frame fills it */ }
     refetchBusy.delete(ts);
+  };
+  /** @type {Set<string>} */
+  const sessionAsked = new Set();
+  ctx.fillSession = async (chatId, ts) => {
+    if (!chatId || sessionAsked.has(ts)) return;
+    sessionAsked.add(ts);
+    const sent = ctx.sentAt();
+    try {
+      const x = await client.thread(chatId, ts), r = rawThreads.get(ts);
+      if (r && x && !r.session) { rawThreads.set(ts, { ...r, session: x.session || null, pin: x.pin || r.pin || {}, ...ctx.sessRead(x, sent) }); ctx.soon(); }
+    } catch { sessionAsked.delete(ts); }
   };
 }

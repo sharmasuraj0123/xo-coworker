@@ -1,5 +1,5 @@
 {
- "commit": "5a2b0784aafcfa95a45431535482f5e2ae9ca3dd",
+ "commit": "f0144d5ff30b4582b0ed73193f8e9bcdfe9b413c",
  "files": [
   {
    "path": ".gitignore",
@@ -15,8 +15,8 @@
   {
    "path": "README.md",
    "group": "root",
-   "bytes": 23674,
-   "lines": 191
+   "bytes": 23858,
+   "lines": 192
   },
   {
    "path": "assets/icons/xo/a-places-and-the-frame/artifacts.svg",
@@ -94,6 +94,12 @@
    "path": "assets/icons/xo/a-places-and-the-frame/more.svg",
    "group": "assets",
    "bytes": 536,
+   "lines": 1
+  },
+  {
+   "path": "assets/icons/xo/a-places-and-the-frame/open-in-main.svg",
+   "group": "assets",
+   "bytes": 840,
    "lines": 1
   },
   {
@@ -1665,8 +1671,8 @@
   {
    "path": "assets/icons/xo/manifest.json",
    "group": "assets",
-   "bytes": 76583,
-   "lines": 3081
+   "bytes": 76804,
+   "lines": 3089
   },
   {
    "path": "assets/icons/xo/n-people-status-and-time/alarm.svg",
@@ -2331,25 +2337,24 @@
   {
    "path": "css/app.css",
    "group": "css",
-   "bytes": 279916,
-   "lines": 3154,
+   "bytes": 288041,
+   "lines": 3148,
    "items": {
-    "rule_blocks": 2596,
+    "rule_blocks": 2621,
     "ids": [
-     "pf-in",
      "hm-body",
      "iq-pop",
      "cs-pop",
      "composer",
-     "say"
+     "msgs"
     ],
     "custom_props_defined": [
      "--side-w",
      "--pw",
      "--dock-h",
-     "--nx-arc",
-     "--info",
      "--st",
+     "--nest-r",
+     "--nest-in",
      "--pr-a",
      "--rp",
      "--gut-min",
@@ -2359,8 +2364,11 @@
      "--measure",
      "--ink-3",
      "--ink-4",
-     "--nx-a",
      "--hg",
+     "--st-text",
+     "--cap-mid",
+     "--asc",
+     "--desc",
      "--tl",
      "--code-ink",
      "--code-com",
@@ -2378,13 +2386,16 @@
      "--code-del",
      "--code-del-bg",
      "--cbar-fade",
+     "--note-in",
+     "--state",
+     "--ic",
      "--stop",
      "--ring-in",
-     "--ic",
+     "--glass",
      "--tb-line",
      "--av-h",
-     "--vw",
-     "--sl",
+     "--note-btn",
+     "--note-h",
      "--shd-h",
      "--mw",
      "--gn-gap",
@@ -2396,12 +2407,11 @@
     ],
     "custom_props_used": [
      "--sunken",
-     "--nx-a",
-     "--nx-arc",
-     "--e2",
+     "--need-text",
      "--accent-rgb",
      "--mono",
      "--ink-4",
+     "--ic-sm",
      "--info",
      "--warn",
      "--accent",
@@ -2409,28 +2419,25 @@
      "--ink-2",
      "--line-strong",
      "--fw-medium",
-     "--fs-sm",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--sans",
      "--ink-3",
      "--fw-strong",
-     "--ic-sm",
      "--e-glance",
      "--e-decide",
      "--e-think",
      "--r-sm",
      "--tr-12",
+     "--ic-xs",
+     "--danger-tint",
      "--line",
-     "--fs-base",
-     "--coord",
-     "--ink",
-     "--ink-5",
      "--side-w",
      "--sb-side",
      "--sb-g1C",
      "--h-ctl",
      "--h-lg",
-     "--sb-bg-3",
+     "--track",
      "--sb-line",
      "--d-hover",
      "--d-in",
@@ -2438,90 +2445,122 @@
      "--d-press",
      "--dur-base",
      "--accent-fill",
-     "--sb-line-hover",
+     "--sb-bg-3",
+     "--knob",
+     "--fs-title",
+     "--tr-20",
      "--mark-x",
      "--mark-o",
      "--fill-1",
      "--dur-fast",
-     "--line-hover",
+     "--hover-fill",
+     "--ink",
+     "--mask-dot",
      "--cap-mid",
-     "--sb-g1A",
-     "--hairline",
-     "--sb-g22",
-     "--sb-g26",
-     "--ring-room",
-     "--sb-g17",
-     "--fw-regular",
-     "--lh-14",
-     "--fs-xs",
-     "--row-bg-hover",
+     "--btn-fill",
+     "--fs-ui",
+     "--btn-fill-hover",
+     "--btn-fill-press",
+     "--ic",
+     "--r-lg",
      "--h-row",
+     "--tile-sm",
+     "--nest-in",
+     "--nest-r",
      "--row-hover",
      "--row-bg",
      "--row-line",
      "--row-hi",
-     "--row-line-hover",
+     "--row-bg-hover",
      "--row-on",
-     "--fs-md",
+     "--row-line-hover",
+     "--sb-g26",
+     "--fw-regular",
+     "--lh-ui",
+     "--mask-needs",
+     "--ring-room",
      "--h-sm",
      "--r",
      "--sb-g2A",
+     "--s-1",
+     "--s-2",
      "--sb-g1F",
      "--d-move",
      "--pr-a",
      "--err",
+     "--need-tint-2",
      "--canvas",
      "--col-max",
      "--gut-min",
      "--col-w",
      "--s-12",
+     "--measure-min",
      "--rp",
      "--pw",
      "--sw",
-     "--vw",
-     "--mw",
      "--dock-h",
      "--col-x",
-     "--fs-3xl",
-     "--lh-28",
+     "--s-8",
+     "--s-6",
+     "--s-3",
+     "--fs-display",
+     "--lh-display",
      "--tr-28",
-     "--line-soft",
-     "--hover-fill",
-     "--press-fill",
      "--press-scale",
-     "--r-3xl",
-     "--surface",
-     "--fill-3",
-     "--fill-2",
+     "--coord",
+     "--r-card",
+     "--card-in",
+     "--float",
+     "--lift-3",
      "--d-long",
      "--d-sheet",
-     "--halo",
-     "--fs-2xl",
-     "--lh-20",
-     "--tr-20",
-     "--lh-13",
      "--line-faint",
+     "--s-4",
      "--h-row-act",
      "--halo-row",
-     "--r-lg",
+     "--ink-5",
+     "--line-soft",
+     "--surface",
      "--r-2xl",
-     "--fs-lg",
-     "--lh-15",
+     "--fs-heading",
+     "--lh-heading",
+     "--s-5",
+     "--h-bar",
      "--hg",
+     "--ic-lg",
+     "--lh-title",
+     "--tr-15",
+     "--fill-2",
+     "--warn-text",
      "--st",
-     "--s-2",
+     "--st-text",
+     "--ok-text",
+     "--danger-ink",
+     "--edge-text",
+     "--ic-ink-chev",
+     "--r-lg-in",
+     "--fill-3",
      "--d-land",
      "--r-xl",
+     "--e2",
      "--tile-lg",
-     "--fs-4xl",
-     "--lh-40",
+     "--fs-hero",
+     "--lh-hero",
      "--tr-40",
-     "--s-4",
-     "--float",
+     "--ink-read",
+     "--sans-read",
+     "--cap-mid-read",
+     "--asc-read",
+     "--desc-read",
      "--fs-read",
+     "--fw-read",
      "--lh-read",
+     "--d-wait",
+     "--mask-working",
+     "--mask-load",
      "--d-hover-in",
      "--tile",
+     "--fs-code",
      "--tl",
      "--violet",
      "--code-ink",
@@ -2539,72 +2578,122 @@
      "--code-add-bg",
      "--code-del",
      "--code-del-bg",
-     "--danger-tint",
+     "--need-tint",
+     "--focus",
+     "--press-fill",
      "--ease-loop",
-     "--d-out",
+     "--d-loop",
+     "--live-1",
+     "--live-2",
+     "--live-3",
      "--cbar-fade",
      "--dock-gap",
-     "--herald-bg",
-     "--sha",
-     "--herald-bg-hi",
-     "--s-1",
+     "--note-h",
+     "--note-btn",
+     "--gap-icon",
+     "--r-pill",
+     "--glass",
+     "--glass-blur",
+     "--lift-2",
+     "--note-in",
+     "--comp-in",
      "--comp-bg",
      "--comp-shadow",
      "--comp-hi",
      "--ring-in",
-     "--focus",
+     "--comp-ctl",
+     "--halo",
      "--accent-ink",
      "--accent-hover",
      "--fill-4",
      "--stop",
-     "--ic-lg",
+     "--pop-list-h",
+     "--at-room",
      "--shadow-lg",
+     "--d-out",
+     "--sha",
+     "--mask-next",
+     "--r-menu",
+     "--menu-pad",
      "--z-popover",
      "--d-pop",
      "--d-pop-out",
-     "--gap-icon",
+     "--menu-row",
+     "--r-pop-row",
+     "--h-hit",
      "--on-ink",
      "--ink-hi",
-     "--h-hit",
      "--z-sticky",
-     "--r-pill",
+     "--ok-fill",
+     "--ok-fill-hover",
+     "--ok-fill-press",
      "--p",
      "--z-panel",
      "--float-inset",
-     "--ic",
+     "--card-pad",
+     "--code-bg",
+     "--add-text",
+     "--del-text",
+     "--danger-text",
+     "--warn-subtle",
+     "--danger-wash",
      "--accent-subtle",
+     "--dock-bar",
+     "--dock-btn",
+     "--state",
      "--stamp-bg",
      "--tile-xl",
      "--toast-bg",
-     "--warn-subtle",
+     "--mark-ink",
      "--err-subtle",
+     "--ic-ink",
+     "--scrim",
+     "--field-px",
+     "--field-line",
+     "--field-bg",
      "--r-xs",
      "--tr-code",
+     "--line-hover",
      "--accent-press",
-     "--h-bar",
-     "--s-6",
+     "--hairline",
+     "--switch-on",
+     "--knob-go",
      "--z-overlay",
      "--h-phonebar",
      "--h-touch",
      "--tb-line",
      "--av-h",
-     "--menu-focus",
-     "--d",
+     "--menu-w",
      "--sb-g45",
-     "--s-3",
+     "--s-10",
+     "--sw-canvas",
+     "--sw-line",
+     "--sw-surface",
+     "--sw-ink",
+     "--sw-ink-3",
+     "--danger-fill",
+     "--danger-fill-hover",
+     "--danger-fill-press",
      "--go",
-     "--s-5",
-     "--h-row-list",
-     "--sl",
+     "--cs-lead",
+     "--vw",
+     "--checker",
      "--dur-slow",
      "--term-bg",
      "--veil",
+     "--herald-bg",
      "--shd-h",
      "--grab-h",
      "--grab-w",
      "--shadow-md",
+     "--fs-input",
      "--z-toast",
+     "--menu-focus",
+     "--cell-in",
+     "--r-3xl",
+     "--mw",
      "--c",
+     "--map-dot",
      "--gn-in",
      "--gn-gap",
      "--gn-focus",
@@ -2614,19 +2703,20 @@
      "--dy",
      "--dw",
      "--tr-caps",
+     "--d",
      "--u",
      "--mark-sm"
     ],
     "media": [
      "(prefers-reduced-motion:reduce)",
      "(min-width:761px)",
-     "(min-width:1041px)",
      "(max-width:760px)",
      "(max-width:359px)",
      "(pointer:coarse)",
      "(max-height:820px) and (min-width:761px)",
      "(max-width:1320px)",
      "(max-width:1180px) and (min-width:761px)",
+     "(hover:hover)",
      "(hover:none)"
     ]
    }
@@ -2634,7 +2724,7 @@
   {
    "path": "css/artifacts.css",
    "group": "css",
-   "bytes": 11207,
+   "bytes": 11476,
    "lines": 126,
    "items": {
     "rule_blocks": 90,
@@ -2645,8 +2735,8 @@
     ],
     "custom_props_used": [
      "--fw-medium",
-     "--fs-sm",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--mono",
      "--ink-4",
      "--ink-3",
@@ -2662,33 +2752,36 @@
      "--d-hover",
      "--ease",
      "--line-strong",
+     "--ic",
      "--ink",
      "--fw-regular",
-     "--fs-md",
-     "--lh-14",
+     "--fs-ui",
+     "--lh-ui",
      "--sans",
-     "--fs-base",
+     "--hover-fill",
      "--fill-2",
      "--ink-2",
      "--fw-strong",
      "--r-lg",
+     "--r-lg-in",
+     "--tile-sm",
      "--tile-lg",
      "--r",
+     "--ic-lg",
      "--h-hit",
      "--accent",
      "--cell-in",
      "--press-fill",
      "--s-3",
      "--s-2",
+     "--nest-r",
+     "--nest-in",
      "--wt",
      "--fill-1",
      "--s-4",
      "--r-xs",
      "--e2",
-     "--s-1",
-     "--lh-13",
-     "--serif",
-     "--fs-xs"
+     "--s-1"
     ],
     "media": [
      "(max-width:760px)",
@@ -2699,10 +2792,10 @@
   {
    "path": "css/base.css",
    "group": "css",
-   "bytes": 4949,
-   "lines": 52,
+   "bytes": 5432,
+   "lines": 58,
    "items": {
-    "rule_blocks": 22,
+    "rule_blocks": 26,
     "ids": [],
     "custom_props_defined": [
      "--d-hover"
@@ -2711,14 +2804,15 @@
      "--canvas",
      "--ink",
      "--fw-regular",
-     "--fs-md",
+     "--fs-ui",
      "--lh-ui",
      "--sans",
      "--focus",
      "--ring-room",
+     "--cap-mid",
      "--fw-medium",
-     "--fs-sm",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--line",
      "--r-sm",
      "--ink-3",
@@ -2726,6 +2820,8 @@
      "--ease",
      "--d-hover-in",
      "--d-press",
+     "--menu-focus",
+     "--d-out",
      "--accent-rgb",
      "--ic",
      "--ic-xs",
@@ -2740,10 +2836,10 @@
   {
    "path": "css/diffs.css",
    "group": "css",
-   "bytes": 23628,
-   "lines": 245,
+   "bytes": 23502,
+   "lines": 243,
    "items": {
-    "rule_blocks": 174,
+    "rule_blocks": 172,
     "ids": [],
     "custom_props_defined": [
      "--diffs-font-family",
@@ -2775,8 +2871,8 @@
     "custom_props_used": [
      "--mono",
      "--sans",
-     "--fs-base",
-     "--lh-13",
+     "--fs-code",
+     "--lh-ui",
      "--fill-1",
      "--accent-fill",
      "--err",
@@ -2786,8 +2882,8 @@
      "--ink-4",
      "--ink",
      "--fw-medium",
-     "--fs-sm",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--code-add",
      "--code-del",
      "--s-1",
@@ -2805,7 +2901,8 @@
      "--sunken",
      "--panel-lift",
      "--panel-line",
-     "--lh-14",
+     "--ic",
+     "--fs-ui",
      "--r-lg",
      "--gap-icon",
      "--cap-mid",
@@ -2813,31 +2910,37 @@
      "--r-pill",
      "--e2",
      "--d-in",
-     "--line-hover",
+     "--mask-dot",
+     "--hover-fill",
      "--h-sm",
      "--ring-in",
      "--focus",
+     "--ic-sm",
      "--canvas",
      "--fill-2",
      "--line",
      "--r-2xl",
-     "--fs-md",
      "--accent-ink",
      "--accent-hover",
      "--warn",
      "--fill-3",
      "--r-sm",
+     "--danger-fill",
+     "--danger-ink",
+     "--danger-fill-hover",
      "--z-panel",
      "--fw-strong",
      "--line-faint",
      "--go",
+     "--menu-pad",
+     "--r-menu",
      "--line-soft",
      "--float",
-     "--d-out",
-     "--menu-focus",
+     "--menu-row",
+     "--s-2",
+     "--r-pop-row",
      "--lift-3",
-     "--ck",
-     "--fs-xs"
+     "--ck"
     ],
     "media": [
      "(prefers-reduced-motion:reduce)",
@@ -2848,17 +2951,17 @@
   {
    "path": "css/docs.css",
    "group": "css",
-   "bytes": 11069,
-   "lines": 141,
+   "bytes": 11348,
+   "lines": 143,
    "items": {
-    "rule_blocks": 110,
+    "rule_blocks": 112,
     "ids": [],
     "custom_props_defined": [],
     "custom_props_used": [
      "--canvas",
      "--cell-in",
      "--fw-regular",
-     "--fs-sm",
+     "--fs-meta",
      "--lh-ui",
      "--mono",
      "--h-bar",
@@ -2871,23 +2974,20 @@
      "--surface",
      "--ink",
      "--ink-3",
-     "--line-hover",
-     "--fs-read",
-     "--lh-read",
+     "--hover-fill",
+     "--fs-ui",
      "--fw-strong",
-     "--fs-3xl",
-     "--lh-28",
+     "--fs-display",
+     "--lh-display",
      "--tr-28",
-     "--fs-2xl",
-     "--lh-20",
+     "--fs-heading",
+     "--lh-heading",
      "--tr-20",
-     "--fs-lg",
-     "--lh-15",
-     "--fs-md",
-     "--lh-14",
+     "--fs-title",
+     "--lh-title",
      "--ink-2",
      "--line-strong",
-     "--fs-base",
+     "--fs-code",
      "--code-bg",
      "--r-xs",
      "--code-fn",
@@ -2904,12 +3004,14 @@
      "--warn",
      "--h-ctl",
      "--line-faint",
-     "--hover-fill",
+     "--ic-sm",
+     "--ic-xs",
+     "--mask-dot",
      "--focus",
      "--h-lg",
      "--warn-subtle",
      "--fill-2",
-     "--fs-xs"
+     "--ic"
     ],
     "media": [
      "(prefers-reduced-motion:reduce)",
@@ -2920,10 +3022,10 @@
   {
    "path": "css/dropdown.css",
    "group": "css",
-   "bytes": 4088,
-   "lines": 52,
+   "bytes": 4178,
+   "lines": 51,
    "items": {
-    "rule_blocks": 33,
+    "rule_blocks": 32,
     "ids": [],
     "custom_props_defined": [],
     "custom_props_used": [
@@ -2933,27 +3035,32 @@
      "--surface",
      "--ink-2",
      "--fw-medium",
-     "--fs-base",
-     "--lh-14",
+     "--fs-ui",
+     "--lh-ui",
      "--sans",
      "--d-hover",
      "--ease",
+     "--ic",
      "--ink-4",
-     "--line-strong",
+     "--hover-fill",
      "--ink",
      "--ink-3",
      "--z-top",
-     "--r-lg",
+     "--menu-pad",
+     "--r-menu",
      "--float",
      "--e2",
      "--line",
      "--dur-base",
      "--d-out",
-     "--fs-md",
+     "--menu-row",
+     "--s-2",
+     "--r-pop-row",
      "--fill-2",
+     "--mask-dot",
      "--fw-regular",
-     "--fs-sm",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--lift-3",
      "--h-touch",
      "--h-lg"
@@ -2964,19 +3071,94 @@
    }
   },
   {
+   "path": "css/flavours.css",
+   "group": "css",
+   "bytes": 45098,
+   "lines": 477,
+   "items": {
+    "rule_blocks": 153,
+    "ids": [],
+    "custom_props_defined": [
+     "--sunken",
+     "--canvas",
+     "--surface",
+     "--float",
+     "--fill-1",
+     "--fill-2",
+     "--fill-3",
+     "--fill-4",
+     "--menu-focus",
+     "--line-faint",
+     "--line-soft",
+     "--line",
+     "--line-strong",
+     "--line-hover",
+     "--ink",
+     "--ink-2",
+     "--ink-3",
+     "--ink-4",
+     "--ink-5",
+     "--on-ink",
+     "--accent-ink",
+     "--bubble",
+     "--bubble-line",
+     "--bubble-top",
+     "--bubble-foot",
+     "--lbx-scrim",
+     "--term-bg",
+     "--herald-bg",
+     "--toast-bg",
+     "--stamp-bg",
+     "--e-decide",
+     "--sb-side",
+     "--sb-hair",
+     "--sb-line",
+     "--sb-line-hover",
+     "--sb-bg-3",
+     "--sb-g17",
+     "--sb-g1A",
+     "--sb-g1C",
+     "--sb-g1F",
+     "--sb-g22",
+     "--sb-g26",
+     "--sb-g2A",
+     "--sb-g45",
+     "--scrim",
+     "--track",
+     "--field-line",
+     "--live-h",
+     "--row-on",
+     "--knob",
+     "--sw-canvas",
+     "--sw-surface",
+     "--sw-line",
+     "--sw-ink",
+     "--sw-ink-3"
+    ],
+    "custom_props_used": [
+     "--line",
+     "--line-hover"
+    ],
+    "media": [
+     "(prefers-contrast: more)"
+    ]
+   }
+  },
+  {
    "path": "css/foundation.css",
    "group": "css",
-   "bytes": 26088,
-   "lines": 267,
+   "bytes": 24180,
+   "lines": 246,
    "items": {
-    "rule_blocks": 114,
+    "rule_blocks": 103,
     "ids": [],
     "custom_props_defined": [
      "--sw",
+     "--vw",
      "--edge",
      "--row-h",
+     "--rp",
      "--mw",
-     "--vw",
      "--ink-3",
      "--ink-4",
      "--ring-in",
@@ -2986,10 +3168,11 @@
      "--m-out"
     ],
     "custom_props_used": [
+     "--sw",
      "--line-faint",
      "--d-sheet",
      "--ease",
-     "--sw",
+     "--vw",
      "--z-panel",
      "--grip-w",
      "--d-hover",
@@ -3000,44 +3183,42 @@
      "--ink-2",
      "--halo",
      "--r",
-     "--r-lg",
-     "--cell-in",
      "--d-press",
      "--h-sm",
-     "--lh-20",
-     "--fs-3xl",
-     "--lh-28",
+     "--lh-title",
+     "--fs-display",
+     "--lh-display",
      "--h-ctl",
      "--fw-medium",
-     "--fs-base",
-     "--lh-13",
+     "--fs-ui",
+     "--lh-ui",
      "--sans",
      "--h-touch",
+     "--tile-sm",
      "--r-sm",
-     "--lh-14",
+     "--ic",
      "--ink-4",
-     "--fs-2xl",
+     "--fs-title",
      "--fw-strong",
-     "--tr-20",
-     "--fs-sm",
-     "--lh-12",
+     "--tr-15",
+     "--fs-meta",
+     "--lh-meta",
      "--accent-ink",
      "--accent-press",
      "--stop",
      "--ring-in",
      "--focus",
-     "--surface",
-     "--accent-fill",
-     "--line",
-     "--d-long",
+     "--r-lg-in",
      "--row-bg-hover",
      "--fw-regular",
-     "--fs-md",
      "--ink-3",
      "--d-in",
      "--d-move",
      "--d-out",
-     "--m-in"
+     "--m-in",
+     "--accent",
+     "--field-line-focus",
+     "--focus-halo"
     ],
     "media": [
      "(min-width:761px)",
@@ -3048,139 +3229,167 @@
   {
    "path": "css/launchpad.css",
    "group": "css",
-   "bytes": 41657,
-   "lines": 438,
+   "bytes": 25709,
+   "lines": 291,
    "items": {
-    "rule_blocks": 341,
+    "rule_blocks": 266,
     "ids": [
-     "fr-body-launch",
      "top-end"
     ],
     "custom_props_defined": [
-     "--tone",
-     "--ic",
-     "--lit",
-     "--lit-hover",
-     "--lit-press",
-     "--lit-edge",
-     "--halo"
+     "--dot",
+     "--at",
+     "--nest-r",
+     "--nest-in"
     ],
     "custom_props_used": [
+     "--win-w",
+     "--s-12",
+     "--win-h",
+     "--r-xl",
+     "--canvas",
+     "--win-side",
+     "--s-2",
+     "--surface",
+     "--line-faint",
+     "--s-4",
+     "--ink",
+     "--fw-strong",
+     "--fs-ui",
+     "--lh-ui",
+     "--sans",
+     "--fw-regular",
+     "--s-8",
+     "--s-10",
+     "--h-ctl",
+     "--r-lg",
+     "--ink-3",
+     "--d-hover",
+     "--ease",
+     "--hover-fill",
+     "--ic",
+     "--s-6",
+     "--e2",
+     "--d-in",
+     "--fw-medium",
+     "--ink-4",
      "--go",
      "--work",
+     "--err-ink",
      "--danger",
      "--need",
-     "--tone",
-     "--ease-loop",
-     "--ease",
-     "--panel-line",
-     "--s-4",
-     "--sunken",
-     "--tile",
-     "--d-hover",
-     "--fw-medium",
-     "--fs-sm",
-     "--lh-12",
-     "--sans",
-     "--ink-4",
-     "--err-ink",
-     "--fw-regular",
+     "--fs-display",
+     "--lh-display",
+     "--tr-28",
+     "--fs-read",
+     "--lh-read",
+     "--s-1",
+     "--r-xs",
+     "--fill-2",
+     "--fs-meta",
+     "--lh-meta",
      "--mono",
      "--ink-2",
      "--h-sm",
-     "--r",
-     "--line-soft",
-     "--panel-hover",
-     "--line-strong",
-     "--ink",
-     "--d-hover-in",
-     "--d-in",
-     "--fw-strong",
-     "--fs-2xl",
-     "--lh-20",
-     "--tr-20",
-     "--accent",
-     "--fs-base",
-     "--lh-14",
-     "--ink-3",
-     "--r-xs",
-     "--fill-2",
-     "--r-lg",
-     "--panel-surface",
-     "--h-hit",
-     "--surface",
-     "--d-move",
      "--r-sm",
-     "--ic",
-     "--h-ctl",
-     "--h-lg",
-     "--halo",
-     "--lit",
-     "--accent-ink",
-     "--lit-edge",
-     "--dur-fast",
-     "--lit-hover",
-     "--lit-press",
-     "--focus",
-     "--line-faint",
-     "--r-xl",
-     "--panel-lift",
-     "--s-1",
-     "--fill-1",
-     "--float",
-     "--e2",
-     "--d-pop",
-     "--ring-in",
-     "--h-row-act",
-     "--tr-code",
-     "--accent-fill",
-     "--accent-hover",
-     "--tile-xl",
+     "--ic-sm",
+     "--s-3",
+     "--dot",
+     "--fill-3",
+     "--at",
      "--fill-4",
-     "--r-pill",
-     "--fs-md",
-     "--fs-lg",
-     "--lh-15",
-     "--tile-lg",
-     "--ghosts"
+     "--ease-loop",
+     "--nest-r",
+     "--row-k",
+     "--h-row-list",
+     "--nest-in",
+     "--line-soft",
+     "--fs-code",
+     "--r",
+     "--ok-fill",
+     "--accent",
+     "--field-px",
+     "--h-lg",
+     "--tile-sm",
+     "--sb-g1C",
+     "--sb-g26",
+     "--s-5",
+     "--line-strong",
+     "--ic-xs",
+     "--r-note",
+     "--fs-title",
+     "--lh-title",
+     "--fill-1",
+     "--tr-code",
+     "--btn-fill",
+     "--btn-fill-hover",
+     "--menu-w",
+     "--menu-pad",
+     "--r-menu",
+     "--float",
+     "--d-pop",
+     "--menu-row",
+     "--r-pop-row",
+     "--d-hover-in",
+     "--ring-in",
+     "--focus",
+     "--mask-dot",
+     "--mask-done",
+     "--mask-failed",
+     "--mask-warn",
+     "--mask-working",
+     "--ok-fill-hover",
+     "--ok-fill-press",
+     "--fs-input",
+     "--col-w",
+     "--col-x",
+     "--fs-hero",
+     "--lh-hero",
+     "--tr-40",
+     "--tile-xl",
+     "--ic-lg"
     ],
     "media": [
-     "(max-width:760px)",
-     "(prefers-reduced-motion:reduce)"
+     "(max-width:640px)",
+     "(max-width:760px)"
     ]
    }
   },
   {
    "path": "css/light.css",
    "group": "css",
-   "bytes": 6886,
-   "lines": 85,
+   "bytes": 5170,
+   "lines": 67,
    "items": {
-    "rule_blocks": 60,
+    "rule_blocks": 45,
     "ids": [],
-    "custom_props_defined": [
-     "--gn-gap"
-    ],
+    "custom_props_defined": [],
     "custom_props_used": [
      "--sb-hair",
      "--line-soft",
      "--fill-1",
+     "--surface",
      "--sb-lift-1",
+     "--knob",
      "--ink-3",
+     "--track",
      "--warn",
-     "--accent",
-     "--nx-a",
-     "--nx-arc",
-     "--lift-3",
+     "--knob-go",
+     "--line-hover",
      "--lift-1",
      "--ink",
-     "--line",
-     "--surface",
-     "--line-strong",
+     "--hover-fill",
      "--lift-2",
      "--bubble",
      "--bubble-line",
-     "--scrim"
+     "--lift-3",
+     "--scrim",
+     "--canvas",
+     "--line",
+     "--fill-4",
+     "--fill-3",
+     "--ink-2",
+     "--fill-2"
     ],
     "media": []
    }
@@ -3188,20 +3397,22 @@
   {
    "path": "css/links.css",
    "group": "css",
-   "bytes": 6368,
-   "lines": 104,
+   "bytes": 5870,
+   "lines": 97,
    "items": {
-    "rule_blocks": 29,
+    "rule_blocks": 27,
     "ids": [],
     "custom_props_defined": [],
     "custom_props_used": [
+     "--cap-mid",
+     "--asc",
+     "--desc",
      "--r-pill",
      "--fw-medium",
      "--ink",
      "--d-hover",
      "--ease",
      "--focus",
-     "--cap-mid",
      "--ink-3",
      "--ink-2",
      "--accent",
@@ -3218,10 +3429,10 @@
   {
    "path": "css/media.css",
    "group": "css",
-   "bytes": 10956,
-   "lines": 127,
+   "bytes": 11176,
+   "lines": 129,
    "items": {
-    "rule_blocks": 76,
+    "rule_blocks": 77,
     "ids": [],
     "custom_props_defined": [
      "--veil",
@@ -3241,13 +3452,14 @@
      "--mx-r",
      "--r-lg",
      "--d-hover",
+     "--hover-fill",
      "--veil",
      "--mx-iw",
      "--mx-ih",
      "--r-sm",
      "--fw-medium",
-     "--fs-xs",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--sans",
      "--tr-12",
      "--fw-regular",
@@ -3256,23 +3468,23 @@
      "--mx-g",
      "--focus",
      "--fw-strong",
-     "--fs-2xl",
-     "--lh-20",
+     "--fs-heading",
+     "--lh-heading",
      "--tr-20",
-     "--fs-md",
-     "--lh-14",
-     "--ink-2",
+     "--s-2",
      "--z-toast",
+     "--lbx-scrim",
      "--r-xs",
      "--lbx-ink-3",
      "--lbx-ink",
-     "--fs-base",
-     "--lh-13",
+     "--fs-ui",
+     "--lh-ui",
      "--lbx-ink-4",
      "--h-ctl",
      "--r",
      "--lbx-fill",
      "--lbx-fill-hover",
+     "--ic",
      "--h-lg"
     ],
     "media": [
@@ -3284,10 +3496,10 @@
   {
    "path": "css/msgx.css",
    "group": "css",
-   "bytes": 41404,
-   "lines": 408,
+   "bytes": 41488,
+   "lines": 407,
    "items": {
-    "rule_blocks": 229,
+    "rule_blocks": 228,
     "ids": [
      "msgs",
      "tmsgs",
@@ -3295,6 +3507,8 @@
      "ttyping"
     ],
     "custom_props_defined": [
+     "--nest-r",
+     "--nest-in",
      "--mx-you",
      "--mx-you-ink",
      "--mx-you-hi",
@@ -3322,30 +3536,34 @@
      "--d-hover",
      "--d-in",
      "--ink",
+     "--ic-lg",
      "--r-pill",
      "--canvas",
-     "--fw-strong",
-     "--fs-xs",
-     "--lh-14",
+     "--fw-medium",
+     "--fs-meta",
+     "--lh-ui",
      "--sans",
      "--h-ctl",
      "--ink-4",
      "--hover-fill",
      "--d-hover-in",
+     "--ic",
      "--s-2",
-     "--h-touch",
-     "--r-3xl",
-     "--ink-3",
-     "--fs-md",
+     "--r-card",
+     "--comp-in",
+     "--comp-ctl",
+     "--s-1",
      "--h-sm",
+     "--nest-r",
+     "--nest-in",
+     "--ink-3",
+     "--fs-ui",
+     "--fw-strong",
      "--r-xl",
-     "--lh-12",
+     "--lh-meta",
      "--r-lg",
      "--z-overlay",
-     "--fw-medium",
-     "--fs-sm",
      "--fill-2",
-     "--line-strong",
      "--fill-3",
      "--d-move",
      "--mx-drag",
@@ -3354,12 +3572,14 @@
      "--fw-regular",
      "--mx-pull",
      "--mx-lift",
+     "--bubble-top",
+     "--bubble-foot",
      "--herald-room",
-     "--s-1",
      "--mx-you",
      "--mx-you-hi",
      "--mx-you-ink",
      "--r-sm",
+     "--line-strong",
      "--dur-base",
      "--coord-ink",
      "--mx-them",
@@ -3371,19 +3591,20 @@
      "--dur-slow",
      "--h-row",
      "--halo",
-     "--fs-4xl",
-     "--lh-40",
+     "--fs-hero",
+     "--lh-hero",
      "--mx-tail-mask",
      "--warn",
      "--mx-decide-w",
      "--st",
-     "--fs-lg",
-     "--lh-15",
+     "--fs-title",
+     "--lh-title",
      "--info",
      "--ease-loop",
      "--accent-fill",
      "--d-land",
-     "--focus"
+     "--focus",
+     "--h-touch"
     ],
     "media": [
      "(max-width:760px)",
@@ -3396,10 +3617,10 @@
   {
    "path": "css/panel.css",
    "group": "css",
-   "bytes": 56111,
-   "lines": 645,
+   "bytes": 59488,
+   "lines": 681,
    "items": {
-    "rule_blocks": 459,
+    "rule_blocks": 504,
     "ids": [],
     "custom_props_defined": [
      "--pe",
@@ -3418,45 +3639,54 @@
      "--col-w",
      "--col-x",
      "--measure",
-     "--hg"
+     "--hg",
+     "--st",
+     "--st-text"
     ],
     "custom_props_used": [
+     "--s-1",
      "--h-lg",
+     "--s-2",
+     "--pe",
+     "--panel-line",
      "--line-faint",
-     "--fw-medium",
-     "--fs-base",
-     "--lh-14",
-     "--sans",
-     "--ink-3",
-     "--d-hover",
-     "--ease",
-     "--ink-2",
-     "--ink",
-     "--fw-regular",
-     "--fs-sm",
-     "--lh-12",
-     "--ink-4",
      "--h-ctl",
      "--r-sm",
-     "--fill-2",
+     "--ink-4",
+     "--d-hover",
+     "--ease",
+     "--ic",
+     "--hover-fill",
+     "--ink",
      "--e2",
-     "--pe",
      "--h-sm",
      "--fw-strong",
+     "--fs-ui",
+     "--lh-ui",
+     "--sans",
+     "--fw-regular",
+     "--fs-meta",
+     "--lh-meta",
+     "--ic-sm",
      "--surface",
      "--line-soft",
+     "--fw-medium",
      "--tr-12",
+     "--ink-2",
      "--d-hover-in",
      "--ink-5",
      "--d",
+     "--fill-2",
+     "--ic-xs",
      "--pn",
-     "--s-1",
+     "--ink-3",
      "--fill-3",
      "--z-popover",
-     "--r-lg",
+     "--menu-pad",
+     "--r-menu",
      "--float",
-     "--d-out",
-     "--menu-focus",
+     "--menu-row",
+     "--r-pop-row",
      "--halo",
      "--line-strong",
      "--fill-1",
@@ -3468,55 +3698,66 @@
      "--tr-caps",
      "--tg",
      "--th",
+     "--ic-lg",
      "--r",
+     "--canvas",
      "--tile",
      "--tile-lg",
      "--dg-s",
      "--fc",
      "--fill-4",
+     "--map-dot",
      "--fi-d",
      "--fi-l",
      "--line",
      "--warn",
-     "--canvas",
      "--info",
+     "--d-out",
      "--line-hover",
      "--c",
      "--accent",
      "--tw",
      "--z-raised",
      "--rail-w",
+     "--mask-dot",
      "--ring-in",
      "--focus",
      "--sunken",
      "--row-hover",
      "--lift-2",
-     "--panel-line",
+     "--gap-icon",
+     "--r-lg",
      "--panel-hover",
      "--panel-surface",
      "--panel-lift",
      "--ring-room",
      "--h-row-act",
      "--ag-rows",
+     "--edge-fade",
      "--panel-canvas",
      "--violet",
-     "--s-2",
      "--s-4",
      "--s-8",
      "--need",
      "--go",
      "--mark-sm",
      "--s-3",
-     "--ic",
      "--accent-hover",
      "--d-long",
-     "--hover-fill",
-     "--ic-sm",
+     "--badge-dot",
      "--s-12",
-     "--s-5",
-     "--col-w",
      "--col-max",
-     "--ic-xs"
+     "--gut-min",
+     "--col-w",
+     "--measure-min",
+     "--r-pill",
+     "--add-text",
+     "--del-text",
+     "--warn-text",
+     "--s-6",
+     "--fs-heading",
+     "--lh-heading",
+     "--ok-text"
     ],
     "media": [
      "(prefers-reduced-motion:reduce)",
@@ -3527,32 +3768,41 @@
   {
    "path": "css/phone.css",
    "group": "css",
-   "bytes": 24951,
-   "lines": 293,
+   "bytes": 24379,
+   "lines": 286,
    "items": {
-    "rule_blocks": 128,
+    "rule_blocks": 127,
     "ids": [
+     "top-who",
      "top"
     ],
     "custom_props_defined": [
+     "--dock-bar",
+     "--dock-btn",
+     "--note-h",
+     "--comp-ctl",
+     "--card-pad",
      "--tb-line"
     ],
     "custom_props_used": [
+     "--h-hit",
+     "--h-touch",
+     "--s-4",
      "--r-lg",
-     "--fs-read",
+     "--fs-input",
      "--h-phonebar",
      "--line-faint",
      "--h-lg",
      "--ink-2",
+     "--ic-lg",
      "--fw-strong",
-     "--fs-lg",
-     "--lh-14",
+     "--fs-title",
+     "--lh-ui",
      "--sans",
-     "--fs-sm",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--ink-3",
      "--ring-room",
-     "--h-touch",
      "--s-1",
      "--warn",
      "--fw-medium",
@@ -3561,11 +3811,11 @@
      "--info",
      "--line-soft",
      "--canvas",
-     "--h-hit",
      "--h-ctl",
      "--r-sm",
      "--ring-in",
-     "--focus"
+     "--focus",
+     "--menu-row"
     ],
     "media": [
      "(max-width:760px)",
@@ -3578,10 +3828,10 @@
   {
    "path": "css/rich.css",
    "group": "css",
-   "bytes": 22557,
-   "lines": 232,
+   "bytes": 21757,
+   "lines": 229,
    "items": {
-    "rule_blocks": 135,
+    "rule_blocks": 142,
     "ids": [
      "msgs",
      "tmsgs",
@@ -3608,23 +3858,27 @@
     "custom_props_used": [
      "--h-sm",
      "--r-sm",
+     "--ic-sm",
      "--fw-medium",
-     "--fs-base",
-     "--lh-15",
+     "--fs-meta",
+     "--lh-title",
      "--sans",
      "--ink-3",
      "--coord-ink",
      "--coord-ring",
      "--fw-regular",
-     "--fs-sm",
      "--ink-4",
      "--measure",
      "--mx-you",
      "--mx-you-hi",
      "--mx-you-ink",
-     "--info",
-     "--h-ctl",
+     "--s-1",
+     "--s-4",
+     "--s-6",
+     "--s-2",
      "--mx-b",
+     "--h-ctl",
+     "--ic",
      "--d-out",
      "--ease",
      "--d-hover-in",
@@ -3634,26 +3888,28 @@
      "--ink",
      "--press-fill",
      "--ink-2",
-     "--fs-xs",
-     "--lh-12",
+     "--lh-meta",
      "--line",
      "--r-lg",
      "--fill-1",
      "--warn",
-     "--line-strong",
+     "--r-lg-in",
      "--st",
-     "--lh-14",
+     "--lh-ui",
+     "--fs-ui",
      "--s-3",
      "--dec-w",
      "--r-pill",
-     "--fw-strong",
      "--h-touch",
      "--mono",
      "--mc-bg",
-     "--fs-md",
+     "--fw-strong",
+     "--fs-read",
+     "--lh-read",
      "--c",
      "--yw",
      "--line-faint",
+     "--line-strong",
      "--n",
      "--k",
      "--w",
@@ -3662,10 +3918,10 @@
      "--at",
      "--float",
      "--e2",
-     "--dg-w"
+     "--dg-w",
+     "--fs-code"
     ],
     "media": [
-     "(prefers-reduced-motion:reduce)",
      "(max-width:760px)",
      "(hover:none)"
     ]
@@ -3674,39 +3930,36 @@
   {
    "path": "css/shape.css",
    "group": "css",
-   "bytes": 6541,
-   "lines": 74,
+   "bytes": 6105,
+   "lines": 68,
    "items": {
-    "rule_blocks": 44,
+    "rule_blocks": 41,
     "ids": [],
     "custom_props_defined": [
      "--h-row",
      "--h-ctl",
-     "--fs-lg",
-     "--fs-xl",
-     "--lh-15",
+     "--fs-title",
+     "--lh-title",
+     "--fs-read",
      "--lh-read",
-     "--fs-read"
+     "--fw-read"
     ],
     "custom_props_used": [
      "--h-sm",
-     "--fs-md",
-     "--lh-14",
-     "--lh-read",
+     "--fs-ui",
+     "--lh-ui",
+     "--fw-regular",
      "--h-ctl",
      "--h-row",
      "--fw-medium",
-     "--fs-xs",
-     "--lh-12",
+     "--fs-meta",
+     "--lh-meta",
      "--sans",
      "--tr-12",
      "--ink-4",
      "--r-lg",
      "--surface",
      "--line-soft",
-     "--fw-regular",
-     "--fs-base",
-     "--lh-13",
      "--ink-2",
      "--line-hover",
      "--fw-strong",
@@ -3720,8 +3973,10 @@
      "--d-hover-in",
      "--ring-in",
      "--focus",
+     "--ic",
      "--d-in",
      "--need",
+     "--fs-code",
      "--mono",
      "--ink-3"
     ],
@@ -3733,41 +3988,26 @@
   {
    "path": "css/side.css",
    "group": "css",
-   "bytes": 14985,
-   "lines": 164,
+   "bytes": 14319,
+   "lines": 158,
    "items": {
-    "rule_blocks": 100,
+    "rule_blocks": 101,
     "ids": [],
     "custom_props_defined": [
-     "--sb-side",
-     "--sb-hair",
-     "--sb-line",
-     "--sb-line-hover",
-     "--sb-bg-3",
-     "--sb-g17",
-     "--sb-g1A",
-     "--sb-g1C",
-     "--sb-g1F",
-     "--sb-g22",
-     "--sb-g26",
-     "--sb-g2A",
-     "--sb-g45",
-     "--sb-lift-1",
-     "--sb-lift-2",
+     "--nest-r",
      "--side-w"
     ],
     "custom_props_used": [
-     "--line",
-     "--line-hover",
-     "--r-lg",
      "--r",
+     "--nest-r",
      "--row-hover",
      "--ink-2",
      "--ink",
-     "--fw-strong",
+     "--fw-medium",
      "--sb-side",
      "--info",
      "--warn",
+     "--surface",
      "--sb-lift-2",
      "--hover-fill",
      "--press-fill",
@@ -3780,9 +4020,9 @@
      "--h-ctl",
      "--ink-3",
      "--s-4",
+     "--s-2",
      "--z-popover",
      "--pop-x",
-     "--s-2",
      "--pop-y",
      "--h-row",
      "--r-xl",
@@ -3790,6 +4030,13 @@
      "--line-soft",
      "--e2",
      "--d-pop",
+     "--r-pop-row",
+     "--menu-w",
+     "--menu-pad",
+     "--r-menu",
+     "--menu-row",
+     "--ic",
+     "--r-xl-in",
      "--h-sm",
      "--r-sm",
      "--ink-4",
@@ -3797,22 +4044,22 @@
      "--side-rail-w",
      "--s-1",
      "--r-pill",
+     "--fs-meta",
      "--sb-g1C",
-     "--fs-md",
-     "--lh-14",
+     "--fw-strong",
+     "--fs-ui",
+     "--lh-ui",
      "--sans",
      "--fw-regular",
-     "--fs-sm",
-     "--lh-12",
+     "--lh-meta",
+     "--r-lg",
      "--focus",
-     "--line-strong",
+     "--lh-title",
      "--tile",
-     "--fill-2",
-     "--ic",
-     "--fs-xs"
+     "--line-strong",
+     "--fill-2"
     ],
     "media": [
-     "(prefers-contrast: more)",
      "(prefers-reduced-motion:reduce)",
      "(min-width:761px)",
      "(max-width:760px)"
@@ -3822,10 +4069,10 @@
   {
    "path": "css/tokens.css",
    "group": "css",
-   "bytes": 18261,
-   "lines": 245,
+   "bytes": 27416,
+   "lines": 301,
    "items": {
-    "rule_blocks": 14,
+    "rule_blocks": 25,
     "ids": [],
     "custom_props_defined": [
      "--sunken",
@@ -3860,10 +4107,20 @@
      "--warn",
      "--info",
      "--violet",
+     "--live-h",
+     "--live-l",
+     "--live-c",
+     "--live-1",
+     "--live-2",
+     "--live-3",
      "--mark-x",
      "--mark-o",
      "--bubble",
      "--bubble-line",
+     "--bubble-top",
+     "--bubble-foot",
+     "--lbx-scrim",
+     "--checker",
      "--term-bg",
      "--code-bg",
      "--row-bg",
@@ -3874,7 +4131,6 @@
      "--row-hi",
      "--row-hover",
      "--herald-bg",
-     "--herald-bg-hi",
      "--toast-bg",
      "--stamp-bg",
      "--comp-bg",
@@ -3892,9 +4148,32 @@
      "--sha",
      "--hover-fill",
      "--press-fill",
+     "--btn-fill",
+     "--btn-fill-hover",
+     "--btn-fill-press",
+     "--danger-fill",
+     "--danger-fill-hover",
+     "--danger-fill-press",
      "--focus",
+     "--focus-halo",
      "--ring-room",
      "--on-agent",
+     "--knob",
+     "--knob-go",
+     "--track",
+     "--map-dot",
+     "--switch-on",
+     "--field-bg",
+     "--field-line",
+     "--field-line-focus",
+     "--field-px",
+     "--warn-text",
+     "--need-text",
+     "--add-text",
+     "--del-text",
+     "--danger-text",
+     "--ok-text",
+     "--danger-ink",
      "--e-glance",
      "--e-decide",
      "--e-think",
@@ -3906,41 +4185,51 @@
      "--need",
      "--danger",
      "--sans",
+     "--sans-read",
      "--mono",
-     "--serif",
-     "--fs-xs",
-     "--fs-sm",
-     "--fs-base",
-     "--fs-md",
-     "--fs-lg",
-     "--fs-xl",
-     "--fs-2xl",
-     "--fs-3xl",
-     "--fs-4xl",
-     "--lh-12",
-     "--lh-13",
-     "--lh-14",
-     "--lh-15",
-     "--lh-16",
-     "--lh-20",
-     "--lh-28",
-     "--lh-40",
+     "--fs-meta",
+     "--fs-ui",
+     "--fs-code",
+     "--fs-read",
+     "--fs-title",
+     "--fs-input",
+     "--fs-heading",
+     "--fs-display",
+     "--fs-hero",
+     "--lh-meta",
+     "--lh-ui",
+     "--lh-read",
+     "--lh-title",
+     "--lh-heading",
+     "--lh-display",
+     "--lh-hero",
      "--tr-12",
      "--tr-13",
      "--tr-15",
      "--tr-20",
      "--tr-28",
      "--tr-40",
+     "--cap-mid-ui",
+     "--asc-ui",
+     "--desc-ui",
+     "--cap-mid-read",
+     "--asc-read",
+     "--desc-read",
      "--cap-mid",
+     "--asc",
+     "--desc",
      "--tr-caps",
      "--tr-code",
-     "--lh-ui",
-     "--lh-read",
      "--fw-regular",
+     "--fw-read",
      "--fw-medium",
      "--fw-strong",
+     "--ink-read",
+     "--ok-fill",
+     "--ok-fill-hover",
+     "--ok-fill-press",
+     "--measure-min",
      "--measure",
-     "--fs-read",
      "--r-xs",
      "--r-sm",
      "--r",
@@ -3949,6 +4238,24 @@
      "--r-2xl",
      "--r-3xl",
      "--r-pill",
+     "--r-card",
+     "--card-in",
+     "--card-pad",
+     "--comp-ctl",
+     "--comp-in",
+     "--glass-blur",
+     "--r-menu",
+     "--menu-pad",
+     "--menu-row",
+     "--menu-w",
+     "--win-w",
+     "--win-h",
+     "--win-side",
+     "--row-k",
+     "--r-pop-row",
+     "--r-lg-in",
+     "--r-xl-in",
+     "--r-note",
      "--halo",
      "--cell-in",
      "--halo-row",
@@ -3963,19 +4270,40 @@
      "--h-ctl",
      "--h-lg",
      "--h-bar",
+     "--dock-bar",
+     "--dock-btn",
+     "--note-h",
+     "--note-btn",
+     "--pop-x",
+     "--pop-list-h",
      "--h-row",
      "--h-row-act",
      "--h-row-list",
      "--h-touch",
      "--h-hit",
+     "--tile-sm",
      "--tile",
      "--tile-lg",
      "--tile-xl",
      "--mark-sm",
+     "--mask-working",
+     "--mask-load",
+     "--mask-needs",
+     "--mask-done",
+     "--mask-failed",
+     "--mask-dot",
+     "--mask-stop",
+     "--mask-warn",
+     "--mask-next",
      "--ic-xs",
      "--ic-sm",
      "--ic",
      "--ic-lg",
+     "--edge-text",
+     "--ic-ink",
+     "--ic-ink-chev",
+     "--mark-ink",
+     "--badge-dot",
      "--s-1",
      "--s-2",
      "--s-3",
@@ -3988,6 +4316,7 @@
      "--gap-icon",
      "--dock-gap",
      "--cbar-fade",
+     "--edge-fade",
      "--z-raised",
      "--z-sticky",
      "--z-dock",
@@ -4014,7 +4343,23 @@
      "--d-out",
      "--d-land",
      "--d-loop",
+     "--d-wait",
      "--press-scale",
+     "--sb-side",
+     "--sb-hair",
+     "--sb-line",
+     "--sb-line-hover",
+     "--sb-bg-3",
+     "--sb-g17",
+     "--sb-g1A",
+     "--sb-g1C",
+     "--sb-g1F",
+     "--sb-g22",
+     "--sb-g26",
+     "--sb-g2A",
+     "--sb-g45",
+     "--sb-lift-1",
+     "--sb-lift-2",
      "--accent-subtle",
      "--warn-subtle",
      "--err-subtle",
@@ -4022,33 +4367,62 @@
      "--need-tint",
      "--need-tint-2",
      "--danger-line",
-     "--danger-tint"
+     "--danger-tint",
+     "--danger-wash",
+     "--coord-tint"
     ],
     "custom_props_used": [
+     "--live-l",
+     "--live-c",
+     "--live-h",
      "--fill-1",
      "--float",
      "--e2",
+     "--ink",
+     "--err-ink",
      "--accent-rgb",
+     "--sb-bg-3",
+     "--fill-4",
+     "--accent-fill",
+     "--line",
+     "--s-3",
+     "--warn",
      "--accent",
      "--violet",
      "--coord",
      "--ink-3",
-     "--line",
      "--info",
-     "--warn",
      "--err",
+     "--cap-mid-ui",
+     "--asc-ui",
+     "--desc-ui",
+     "--fw-regular",
      "--s-12",
-     "--s-3",
-     "--h-row",
-     "--s-4",
+     "--measure-min",
      "--s-5",
+     "--h-ctl",
+     "--r-card",
+     "--comp-ctl",
+     "--nest-r",
+     "--nest-in",
+     "--r-lg",
+     "--s-1",
+     "--r-menu",
+     "--menu-pad",
+     "--r-xl",
      "--s-2",
+     "--r",
+     "--h-row",
+     "--h-row-act",
+     "--h-sm",
+     "--s-4",
+     "--ic",
+     "--s-8",
      "--ease",
+     "--surface",
      "--lift-2",
      "--lift-3",
-     "--ink",
-     "--accent-fill",
-     "--err-ink"
+     "--line-hover"
     ],
     "media": [
      "(prefers-contrast: more)",
@@ -4623,6 +4997,303 @@
    "bytes": 63871
   },
   {
+   "path": "design-research/2026-11-20-flavours/README.md",
+   "group": "design-research",
+   "bytes": 14876,
+   "lines": 216
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/appearance-dark-ember.png",
+   "group": "design-research",
+   "bytes": 90575
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/appearance-dark-harbor.png",
+   "group": "design-research",
+   "bytes": 72270
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/appearance-dark-onyx.png",
+   "group": "design-research",
+   "bytes": 83833
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/appearance-light-ember.png",
+   "group": "design-research",
+   "bytes": 92362
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/appearance-light-slate.png",
+   "group": "design-research",
+   "bytes": 70520
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-deep-edges.png",
+   "group": "design-research",
+   "bytes": 59293
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-dusk.png",
+   "group": "design-research",
+   "bytes": 59420
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-harbor.png",
+   "group": "design-research",
+   "bytes": 61114
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-midnight-edges.png",
+   "group": "design-research",
+   "bytes": 59995
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-onyx-edges.png",
+   "group": "design-research",
+   "bytes": 52857
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-onyx.png",
+   "group": "design-research",
+   "bytes": 52330
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-plum.png",
+   "group": "design-research",
+   "bytes": 60496
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-sand.png",
+   "group": "design-research",
+   "bytes": 58504
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-slate.png",
+   "group": "design-research",
+   "bytes": 58552
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-dark-stone.png",
+   "group": "design-research",
+   "bytes": 51855
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-light-harbor.png",
+   "group": "design-research",
+   "bytes": 58093
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-light-plum.png",
+   "group": "design-research",
+   "bytes": 57867
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-light-sand.png",
+   "group": "design-research",
+   "bytes": 56775
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-light-slate.png",
+   "group": "design-research",
+   "bytes": 57079
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/home-light-stone.png",
+   "group": "design-research",
+   "bytes": 51868
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/settings-dark-sand.png",
+   "group": "design-research",
+   "bytes": 82111
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/sheet-dark.png",
+   "group": "design-research",
+   "bytes": 148375
+  },
+  {
+   "path": "design-research/2026-11-20-flavours/shots/sheet-light.png",
+   "group": "design-research",
+   "bytes": 145948
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/PROPOSAL.md",
+   "group": "design-research",
+   "bytes": 7214,
+   "lines": 68
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/dark-1-issues.png",
+   "group": "design-research",
+   "bytes": 199361
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/dark-2-prs.png",
+   "group": "design-research",
+   "bytes": 178166
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/dark-3-pr.png",
+   "group": "design-research",
+   "bytes": 191104
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/dark-4-issue.png",
+   "group": "design-research",
+   "bytes": 186781
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/light-1-issues.png",
+   "group": "design-research",
+   "bytes": 198742
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/light-2-prs.png",
+   "group": "design-research",
+   "bytes": 177290
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/light-3-pr.png",
+   "group": "design-research",
+   "bytes": 189979
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/light-4-issue.png",
+   "group": "design-research",
+   "bytes": 185769
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/real-dark-1-issues.png",
+   "group": "design-research",
+   "bytes": 197517
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/real-dark-4-issue.png",
+   "group": "design-research",
+   "bytes": 154217
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/real-dark-5-work.png",
+   "group": "design-research",
+   "bytes": 160902
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/real-light-1-issues.png",
+   "group": "design-research",
+   "bytes": 195942
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/real-light-4-issue.png",
+   "group": "design-research",
+   "bytes": 151836
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/real-light-5-work.png",
+   "group": "design-research",
+   "bytes": 159002
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-dark-0-panel.png",
+   "group": "design-research",
+   "bytes": 183226
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-dark-1-issues.png",
+   "group": "design-research",
+   "bytes": 211889
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-dark-2-prs.png",
+   "group": "design-research",
+   "bytes": 181019
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-dark-3-pr.png",
+   "group": "design-research",
+   "bytes": 200962
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-dark-4-issue.png",
+   "group": "design-research",
+   "bytes": 191433
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-light-0-panel.png",
+   "group": "design-research",
+   "bytes": 182223
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-light-1-issues.png",
+   "group": "design-research",
+   "bytes": 210946
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-light-2-prs.png",
+   "group": "design-research",
+   "bytes": 180132
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-light-3-pr.png",
+   "group": "design-research",
+   "bytes": 199916
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v2-light-4-issue.png",
+   "group": "design-research",
+   "bytes": 190506
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-dark-0-panel.png",
+   "group": "design-research",
+   "bytes": 183230
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-dark-1-issues.png",
+   "group": "design-research",
+   "bytes": 212126
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-dark-2-prs.png",
+   "group": "design-research",
+   "bytes": 181237
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-dark-3-pr.png",
+   "group": "design-research",
+   "bytes": 199815
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-dark-4-issue.png",
+   "group": "design-research",
+   "bytes": 191381
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-light-0-panel.png",
+   "group": "design-research",
+   "bytes": 182099
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-light-1-issues.png",
+   "group": "design-research",
+   "bytes": 211136
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-light-2-prs.png",
+   "group": "design-research",
+   "bytes": 180356
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-light-3-pr.png",
+   "group": "design-research",
+   "bytes": 199029
+  },
+  {
+   "path": "design-research/2026-11-23-github-page/shots/v3-light-4-issue.png",
+   "group": "design-research",
+   "bytes": 190361
+  },
+  {
    "path": "design-research/2026-11-chatview/hardcoded-positioning-audit.md",
    "group": "design-research",
    "bytes": 25094,
@@ -4669,7 +5340,7 @@
   {
    "path": "design-research/2026-11-lg/tools/controls-md.cjs",
    "group": "design-research",
-   "bytes": 63837,
+   "bytes": 63829,
    "lines": 761
   },
   {
@@ -4687,7 +5358,7 @@
   {
    "path": "design-research/2026-11-vision/canvas-editing/SPACE-CONTRACT.md",
    "group": "design-research",
-   "bytes": 13704,
+   "bytes": 13722,
    "lines": 244
   },
   {
@@ -4715,6 +5386,32 @@
    "lines": 6
   },
   {
+   "path": "fonts/dm-sans/OFL.txt",
+   "group": "fonts",
+   "bytes": 4502,
+   "lines": 93
+  },
+  {
+   "path": "fonts/dm-sans/dm-sans-latin-ext-wght-italic.woff2",
+   "group": "fonts",
+   "bytes": 20808
+  },
+  {
+   "path": "fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2",
+   "group": "fonts",
+   "bytes": 18228
+  },
+  {
+   "path": "fonts/dm-sans/dm-sans-latin-wght-italic.woff2",
+   "group": "fonts",
+   "bytes": 39712
+  },
+  {
+   "path": "fonts/dm-sans/dm-sans-latin-wght-normal.woff2",
+   "group": "fonts",
+   "bytes": 36932
+  },
+  {
    "path": "fonts/geist/Geist-Variable.woff2",
    "group": "fonts",
    "bytes": 56800
@@ -4731,10 +5428,36 @@
    "lines": 92
   },
   {
+   "path": "fonts/jetbrains-mono/OFL.txt",
+   "group": "fonts",
+   "bytes": 4524,
+   "lines": 93
+  },
+  {
+   "path": "fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2",
+   "group": "fonts",
+   "bytes": 16520
+  },
+  {
+   "path": "fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2",
+   "group": "fonts",
+   "bytes": 15196
+  },
+  {
+   "path": "fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2",
+   "group": "fonts",
+   "bytes": 42964
+  },
+  {
+   "path": "fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+   "group": "fonts",
+   "bytes": 40404
+  },
+  {
    "path": "index.html",
    "group": "root",
-   "bytes": 24255,
-   "lines": 293,
+   "bytes": 26009,
+   "lines": 299,
    "items": {
     "ids": [
      "app",
@@ -4754,16 +5477,14 @@
      "nv-arts",
      "ic-arts",
      "arts-n",
+     "nv-lp",
+     "ic-lp",
      "nv-more",
      "ic-more",
      "side-more",
      "projects-label",
      "side-add",
      "sc-ic",
-     "side-find",
-     "sf-ic",
-     "pf-in",
-     "pf-n",
      "projects",
      "nv-shells",
      "ic-shells",
@@ -4778,6 +5499,7 @@
      "set-phone",
      "home",
      "arts",
+     "lpp",
      "conv",
      "top",
      "top-menu",
@@ -4788,6 +5510,8 @@
      "tdel",
      "since",
      "scroller",
+     "cs-hi",
+     "cs-sub",
      "column",
      "ws-head",
      "msgs",
@@ -4806,6 +5530,7 @@
      "attach",
      "att-input",
      "target",
+     "cs-perm",
      "send-now",
      "iq",
      "send",
@@ -4824,23 +5549,31 @@
      "set-h",
      "set-x",
      "set-t-general",
+     "set-t-appearance",
      "set-t-shape",
      "set-t-routing",
      "set-t-runtimes",
+     "set-t-accounts",
      "set-t-rules",
      "set-t-worktrees",
      "set-t-sounds",
      "set-t-keys",
      "set-p-general",
-     "bubbles-l",
-     "bubbles-tog",
      "hops-l",
      "hops-tog",
      "webpics-l",
      "webpics-tog",
+     "set-p-appearance",
+     "mode-l",
+     "mode-seg",
+     "flavour-l",
+     "flavour-seg",
+     "bubbles-l",
+     "bubbles-tog",
      "set-p-shape",
      "set-p-routing",
      "set-p-runtimes",
+     "set-p-accounts",
      "set-p-rules",
      "set-p-worktrees",
      "set-p-sounds",
@@ -4879,8 +5612,6 @@
      "all-q",
      "all-f",
      "all-list",
-     "runs",
-     "runs-card",
      "cs-pop",
      "iq-pop",
      "jump",
@@ -4920,10 +5651,42 @@
    }
   },
   {
+   "path": "js/accounts.js",
+   "group": "js",
+   "bytes": 8354,
+   "lines": 134,
+   "items": {
+    "imports": [
+     "./api.js",
+     "./world.js",
+     "./icon.js",
+     "./redraw.js",
+     "./pending.js"
+    ],
+    "exports": [
+     "missingScopes",
+     "ghView",
+     "createAccounts"
+    ],
+    "functions": [
+     "missingScopes",
+     "ghView",
+     "createAccounts"
+    ],
+    "ids": [
+     "settings"
+    ],
+    "keys": [
+     "code",
+     "checking"
+    ]
+   }
+  },
+  {
    "path": "js/api.js",
    "group": "js",
-   "bytes": 27942,
-   "lines": 428,
+   "bytes": 28682,
+   "lines": 435,
    "items": {
     "exports": [
      "coderHeaders",
@@ -4993,13 +5756,17 @@
      "/schedules/{}/runs",
      "/xo-projects/{}/file",
      "/xo-projects/{}/versions",
-     "/xo-projects/{}/paths",
-     "/xo-projects/{}/search",
+     "/coworker/xo-projects/{}/paths",
+     "/coworker/xo-projects/{}/search",
      "/xo-projects/{}/changes",
      "/xo-projects/{}/tree",
      "/config/workspace",
      "/xo-projects/clones/{}",
      "/connectors/github/status",
+     "/xo-projects/{}/github/issues",
+     "/xo-projects/{}/github/issues/{}",
+     "/xo-projects/{}/github/pulls",
+     "/xo-projects/{}/github/pulls/{}",
      "/terminal/status",
      "/terminal/sessions",
      "/terminal/sessions/{}"
@@ -5012,8 +5779,8 @@
   {
    "path": "js/app.js",
    "group": "js",
-   "bytes": 342216,
-   "lines": 4840,
+   "bytes": 357882,
+   "lines": 5060,
    "items": {
     "imports": [
      "./world.js",
@@ -5036,9 +5803,11 @@
      "./rich.js",
      "./lightbox.js",
      "./review.js",
+     "./cardparts.js",
      "./runsview.js",
      "./settings.js",
      "./rtsettings.js",
+     "./accounts.js",
      "./chats.js",
      "./follow.js",
      "./msgx.js",
@@ -5046,11 +5815,14 @@
      "./map.js",
      "./stage.js",
      "./launchpad.js",
+     "./lpwindow.js",
+     "./lppage.js",
      "./lpapi.js",
      "./files.js",
      "./paths.js",
      "./quickopen.js",
      "./filespage.js",
+     "./ghpage.js",
      "./changes.js",
      "./fileicons.js",
      "./changesframe.js",
@@ -5063,12 +5835,14 @@
      "./recordview.js",
      "./skeleton.js",
      "./motion.js",
+     "./sideorder.js",
      "./gestures.js",
      "./runtimes.js",
      "./shape.js",
      "./shapeview.js",
      "./pending.js",
      "./keynav.js",
+     "./flavours.js",
      "./herald.js",
      "./ring.js",
      "./focusview.js"
@@ -5091,7 +5865,6 @@
      "homeParts",
      "optHtml",
      "nextActHtml",
-     "nextHead",
      "nextCardHtml",
      "homeRender",
      "endRender",
@@ -5126,18 +5899,22 @@
      "openRun",
      "readTranscript",
      "closeRuns",
+     "runsGone",
      "stopReceipt",
      "stopRunsUndo",
      "createDock",
      "dockSwap",
+     "reset",
      "fitDock",
      "dockEdges",
      "dockRender",
+     "goneRender",
      "openAsk",
      "typingRender",
      "tickElapsed",
      "HER",
      "heraldShow",
+     "toastLine",
      "heraldFor",
      "heraldPut",
      "heraldNext",
@@ -5158,20 +5935,26 @@
      "growSay",
      "running",
      "sendRender",
+     "fixChip",
      "chatTargetRender",
      "targetLineRender",
      "updateComposer",
+     "atRender",
      "syncPlaceholder",
      "atClose",
      "pickAt",
      "saveDraft",
      "loadDraft",
+     "atKeys",
+     "atShut",
+     "wireAt",
+     "aimAt",
      "sendNowRender",
+     "toggleIq",
      "stopLive",
      "stopsHerald",
      "stopRun",
      "interruptRun",
-     "lift",
      "liveBlock",
      "blockFor",
      "refuse",
@@ -5187,9 +5970,10 @@
      "editFailed",
      "tpMount",
      "tpShow",
-     "tpUnmount",
+     "tpClose",
      "tpHead",
      "drawThreadPage",
+     "toMain",
      "openFromPanel",
      "createConv",
      "schedule",
@@ -5203,6 +5987,8 @@
      "stirred",
      "foldsBefore",
      "workMotion",
+     "watchDock",
+     "dockAtTop",
      "saveScroll",
      "go",
      "returnPill",
@@ -5232,6 +6018,7 @@
      "startThreadEdit",
      "endThreadEdit",
      "saveThreadField",
+     "composerNow",
      "openNext",
      "threadState",
      "panelThreads",
@@ -5257,6 +6044,8 @@
      "hopsRender",
      "webpicsRender",
      "deviceSaid",
+     "lookSync",
+     "lookSet",
      "setChatBubbles",
      "bubblesRender",
      "openKeys",
@@ -5278,7 +6067,6 @@
     ],
     "ids": [
      "nx-note-in",
-     "nx-h",
      "hm-head",
      "hm-body",
      "hm-since",
@@ -5301,11 +6089,13 @@
      "tmsgs",
      "ttyping",
      "tpdock",
+     "tpherald",
      "tptdock",
      "tpcomposer",
      "tsay-label",
      "tatt-tray",
      "tsay",
+     "tat-list",
      "tattach",
      "tatt-input",
      "ttarget",
@@ -5318,9 +6108,11 @@
     ],
     "storage": [
      "cv-theme",
+     "cv-flavour",
      "cv-bubbles",
      "xo-side-folded",
      "${f.project}|${f.rel}",
+     "<key>",
      "<SIDE.KEY>",
      "<SIDE.BAR>",
      "<SIDE.PINS>"
@@ -5329,11 +6121,11 @@
      "all",
      "Escape",
      "usable",
-     "ArrowDown",
-     "ArrowUp",
-     "Enter",
      "transcript_gone",
      "run_not_live",
+     "Enter",
+     "ArrowDown",
+     "ArrowUp",
      "Tab",
      "would_lose_work",
      "/",
@@ -5391,8 +6183,8 @@
   {
    "path": "js/blocks.js",
    "group": "js",
-   "bytes": 11024,
-   "lines": 241,
+   "bytes": 11145,
+   "lines": 242,
    "items": {
     "exports": [
      "createTurns"
@@ -5400,6 +6192,42 @@
     "functions": [
      "patchRow",
      "createTurns"
+    ]
+   }
+  },
+  {
+   "path": "js/cardparts.js",
+   "group": "js",
+   "bytes": 14742,
+   "lines": 255,
+   "items": {
+    "imports": [
+     "./review.js"
+    ],
+    "exports": [
+     "cap",
+     "KINDS",
+     "kindOf",
+     "commandOf",
+     "headOf",
+     "whyOf",
+     "stripOf",
+     "chipsOf",
+     "optionsOf",
+     "pickKeys",
+     "isOnePress",
+     "actsOf",
+     "goneLine"
+    ],
+    "functions": [
+     "kindOf",
+     "commandOf",
+     "headOf",
+     "whyOf",
+     "stripOf",
+     "chipsOf",
+     "optionsOf",
+     "actsOf"
     ]
    }
   },
@@ -5439,7 +6267,7 @@
   {
    "path": "js/changesframe.js",
    "group": "js",
-   "bytes": 20081,
+   "bytes": 20068,
    "lines": 323,
    "items": {
     "imports": [
@@ -5495,17 +6323,19 @@
   {
    "path": "js/chats.js",
    "group": "js",
-   "bytes": 33631,
-   "lines": 452,
+   "bytes": 39455,
+   "lines": 523,
    "items": {
     "imports": [
      "./api.js",
      "./world.js",
      "./util.js",
      "./ui.js",
+     "./intel.js",
      "./markdown.js",
      "./turnview.js",
      "./timeline.js",
+     "./runtimes.js",
      "./redraw.js",
      "./keynav.js",
      "./pending.js"
@@ -5519,6 +6349,10 @@
     "ids": [
      "conv-title",
      "cs-pop",
+     "cs-agent-l",
+     "cs-model-l",
+     "cs-e-l",
+     "cs-hh",
      "chc-h"
     ],
     "storage": [
@@ -5561,8 +6395,8 @@
   {
    "path": "js/content.js",
    "group": "js",
-   "bytes": 3638,
-   "lines": 72,
+   "bytes": 3497,
+   "lines": 70,
    "items": {
     "imports": [
      "./kit.js"
@@ -5576,7 +6410,6 @@
      "fmtAgent",
      "bidOf",
      "rank",
-     "suggestFor",
      "whyLine",
      "evidenceFor"
     ],
@@ -5585,7 +6418,6 @@
      "leverageOf",
      "estLine",
      "rank",
-     "suggestFor",
      "whyLine",
      "evidenceFor"
     ]
@@ -5624,8 +6456,8 @@
   {
    "path": "js/decide.js",
    "group": "js",
-   "bytes": 74794,
-   "lines": 1104,
+   "bytes": 72915,
+   "lines": 1121,
    "items": {
     "imports": [
      "./world.js",
@@ -5637,6 +6469,7 @@
      "./markdown.js",
      "./highlight.js",
      "./review.js",
+     "./cardparts.js",
      "./api.js",
      "./keynav.js",
      "./runtimes.js",
@@ -5721,10 +6554,11 @@
   {
    "path": "js/doceditor.js",
    "group": "js",
-   "bytes": 17324,
-   "lines": 290,
+   "bytes": 17377,
+   "lines": 291,
    "items": {
     "imports": [
+     "./icon.js",
      "./mdlive.js"
     ],
     "exports": [
@@ -5888,11 +6722,10 @@
   {
    "path": "js/filespage.js",
    "group": "js",
-   "bytes": 8657,
-   "lines": 150,
+   "bytes": 7332,
+   "lines": 134,
    "items": {
     "imports": [
-     "./fileicons.js",
      "./ui.js"
     ],
     "exports": [
@@ -5911,6 +6744,18 @@
     ],
     "keys": [
      "ArrowRight"
+    ]
+   }
+  },
+  {
+   "path": "js/flavours.js",
+   "group": "js",
+   "bytes": 1796,
+   "lines": 20,
+   "items": {
+    "exports": [
+     "STONE",
+     "FLAVOURS"
     ]
    }
   },
@@ -5952,8 +6797,8 @@
   {
    "path": "js/follow.js",
    "group": "js",
-   "bytes": 9678,
-   "lines": 150,
+   "bytes": 9908,
+   "lines": 156,
    "items": {
     "exports": [
      "createFollow",
@@ -5961,6 +6806,7 @@
      "fromTop",
      "isPinned",
      "toLatest",
+     "toTop",
      "unpin",
      "toRow",
      "initFollow"
@@ -6003,8 +6849,8 @@
   {
    "path": "js/gestures.js",
    "group": "js",
-   "bytes": 22167,
-   "lines": 451,
+   "bytes": 22383,
+   "lines": 453,
    "items": {
     "imports": [
      "./util.js",
@@ -6023,6 +6869,7 @@
      "unstyle",
      "dockGestures",
      "wireGestures",
+     "conversationGestures",
      "copyText"
     ],
     "functions": [
@@ -6035,17 +6882,49 @@
      "unstyle",
      "dockGestures",
      "wireGestures",
+     "conversationGestures",
      "longPress"
     ],
     "ids": [
-     "msgs",
-     "scroller"
+     "msgs"
     ],
     "keys": [
      "Escape"
     ],
     "custom_events": [
      "xo:gesture"
+    ]
+   }
+  },
+  {
+   "path": "js/ghpage.js",
+   "group": "js",
+   "bytes": 19637,
+   "lines": 241,
+   "items": {
+    "imports": [
+     "./ui.js",
+     "./util.js",
+     "./markdown.js"
+    ],
+    "exports": [
+     "since",
+     "longAgo",
+     "issueOf",
+     "prOf",
+     "issueRow",
+     "prRow",
+     "createGhPage"
+    ],
+    "functions": [
+     "since",
+     "longAgo",
+     "person",
+     "issueOf",
+     "prOf",
+     "issueRow",
+     "prRow",
+     "createGhPage"
     ]
    }
   },
@@ -6108,15 +6987,17 @@
   {
    "path": "js/icon.js",
    "group": "js",
-   "bytes": 1459,
-   "lines": 24,
+   "bytes": 2146,
+   "lines": 30,
    "items": {
     "imports": [
      "./xoicons.js"
     ],
     "exports": [
      "xi",
-     "hasIcon"
+     "hasIcon",
+     "stateMark",
+     "ARC"
     ],
     "functions": [
      "xi"
@@ -6152,8 +7033,8 @@
   {
    "path": "js/intel.js",
    "group": "js",
-   "bytes": 54323,
-   "lines": 743,
+   "bytes": 54645,
+   "lines": 749,
    "items": {
     "imports": [
      "./keys.js",
@@ -6167,6 +7048,8 @@
      "./runtimes.js"
     ],
     "exports": [
+     "EFFORT_WORD",
+     "EFFORT_HINT",
      "sessionOrder",
      "createIntel"
     ],
@@ -6199,20 +7082,22 @@
   {
    "path": "js/keynav.js",
    "group": "js",
-   "bytes": 6201,
-   "lines": 109,
+   "bytes": 6718,
+   "lines": 118,
    "items": {
     "exports": [
      "usable",
      "step",
      "rovingTab",
      "radioKeys",
+     "focusOpened",
      "pointerFollows",
      "menuKeys"
     ],
     "functions": [
      "step",
      "radioKeys",
+     "focusOpened",
      "pointerFollows",
      "menuKeys"
     ],
@@ -6233,9 +7118,12 @@
   {
    "path": "js/keys.js",
    "group": "js",
-   "bytes": 10978,
-   "lines": 176,
+   "bytes": 11542,
+   "lines": 182,
    "items": {
+    "imports": [
+     "./icon.js"
+    ],
     "exports": [
      "GROUPS",
      "ACTIONS",
@@ -6247,6 +7135,7 @@
      "hasMod",
      "globalFor",
      "show",
+     "keyHtml",
      "label",
      "hint",
      "set",
@@ -6280,8 +7169,8 @@
   {
    "path": "js/kit.js",
    "group": "js",
-   "bytes": 13987,
-   "lines": 270,
+   "bytes": 13773,
+   "lines": 265,
    "items": {
     "imports": [
      "./world.js",
@@ -6298,7 +7187,6 @@
      "askKey",
      "groupOf",
      "asksOf",
-     "commandOf",
      "prefixOf",
      "teachSentence",
      "answer",
@@ -6311,7 +7199,6 @@
     "functions": [
      "groupOf",
      "asksOf",
-     "commandOf",
      "prefixOf",
      "answer",
      "createCommitQueue",
@@ -6328,11 +7215,12 @@
   {
    "path": "js/launchpad.js",
    "group": "js",
-   "bytes": 100587,
-   "lines": 1166,
+   "bytes": 96818,
+   "lines": 1144,
    "items": {
     "imports": [
      "./ui.js",
+     "./icon.js",
      "./lpapi.js",
      "./util.js",
      "./keynav.js",
@@ -6346,9 +7234,10 @@
      "createLaunchpad"
     ],
     "ids": [
+     "lq-title",
+     "lq-env",
      "lp-mn",
      "lp-h-size",
-     "stage",
      "lp-h-"
     ],
     "storage": [
@@ -6375,7 +7264,7 @@
   {
    "path": "js/lightbox.js",
    "group": "js",
-   "bytes": 21809,
+   "bytes": 21813,
    "lines": 384,
    "items": {
     "imports": [
@@ -6405,7 +7294,7 @@
   {
    "path": "js/lpapi.js",
    "group": "js",
-   "bytes": 18724,
+   "bytes": 18757,
    "lines": 239,
    "items": {
     "imports": [
@@ -6447,18 +7336,59 @@
    }
   },
   {
+   "path": "js/lppage.js",
+   "group": "js",
+   "bytes": 5223,
+   "lines": 48,
+   "items": {
+    "imports": [
+     "./ui.js",
+     "./util.js",
+     "./redraw.js"
+    ],
+    "exports": [
+     "createLpPage"
+    ],
+    "functions": [
+     "createLpPage"
+    ],
+    "ids": [
+     "lpp-h",
+     "lqp-need-h"
+    ]
+   }
+  },
+  {
+   "path": "js/lpwindow.js",
+   "group": "js",
+   "bytes": 2809,
+   "lines": 56,
+   "items": {
+    "imports": [
+     "./ui.js",
+     "./icon.js"
+    ],
+    "exports": [
+     "createLpWindow"
+    ],
+    "functions": [
+     "createLpWindow"
+    ]
+   }
+  },
+  {
    "path": "js/map.js",
    "group": "js",
-   "bytes": 83327,
+   "bytes": 83334,
    "lines": 1360,
    "items": {
     "imports": [
      "./world.js",
      "./ui.js",
      "./api.js",
-     "./markdown.js",
      "./util.js",
      "./comms.js",
+     "./turnview.js",
      "./timeline.js",
      "./fileicons.js",
      "./redraw.js"
@@ -6504,7 +7434,7 @@
   {
    "path": "js/markdown.js",
    "group": "js",
-   "bytes": 24795,
+   "bytes": 24773,
    "lines": 519,
    "items": {
     "imports": [
@@ -6592,8 +7522,8 @@
   {
    "path": "js/media.js",
    "group": "js",
-   "bytes": 34603,
-   "lines": 609,
+   "bytes": 34811,
+   "lines": 612,
    "items": {
     "imports": [
      "./util.js",
@@ -6751,8 +7681,8 @@
   {
    "path": "js/msgx.js",
    "group": "js",
-   "bytes": 57195,
-   "lines": 917,
+   "bytes": 57351,
+   "lines": 918,
    "items": {
     "imports": [
      "./ui.js",
@@ -6800,8 +7730,7 @@
     ],
     "ids": [
      "app",
-     "live",
-     "projects"
+     "live"
     ],
     "storage": [
      "xo-msg-rating"
@@ -6892,7 +7821,7 @@
   {
    "path": "js/paths.js",
    "group": "js",
-   "bytes": 4337,
+   "bytes": 4346,
    "lines": 83,
    "items": {
     "imports": [
@@ -6945,7 +7874,7 @@
   {
    "path": "js/quickopen.js",
    "group": "js",
-   "bytes": 10751,
+   "bytes": 10777,
    "lines": 179,
    "items": {
     "imports": [
@@ -6978,8 +7907,8 @@
   {
    "path": "js/record.js",
    "group": "js",
-   "bytes": 18581,
-   "lines": 340,
+   "bytes": 18697,
+   "lines": 342,
    "items": {
     "exports": [
      "AWAY_MS",
@@ -6998,6 +7927,7 @@
      "mergeMadeRows",
      "olderCursor",
      "gitState",
+     "GIT_ICON",
      "didLine",
      "firstSentence",
      "catchUp",
@@ -7032,8 +7962,8 @@
   {
    "path": "js/recordview.js",
    "group": "js",
-   "bytes": 56995,
-   "lines": 855,
+   "bytes": 57295,
+   "lines": 857,
    "items": {
     "imports": [
      "./motion.js",
@@ -7137,8 +8067,8 @@
   {
    "path": "js/rich.js",
    "group": "js",
-   "bytes": 17321,
-   "lines": 281,
+   "bytes": 17437,
+   "lines": 282,
    "items": {
     "imports": [
      "./markdown.js",
@@ -7230,12 +8160,13 @@
   {
    "path": "js/runsview.js",
    "group": "js",
-   "bytes": 14082,
-   "lines": 138,
+   "bytes": 16834,
+   "lines": 168,
    "items": {
     "imports": [
      "./world.js",
      "./ui.js",
+     "./turnview.js",
      "./markdown.js"
     ],
     "exports": [
@@ -7243,25 +8174,21 @@
      "runsListHtml",
      "saidHtml",
      "stopsHtml",
-     "pathHtml",
      "transcriptHtml",
      "runViewHtml"
     ],
     "functions": [
      "runsStripHtml",
-     "rowHtml",
+     "stopHtml",
+     "agentHtml",
+     "cmdHtml",
+     "cmdsHtml",
+     "splitRuns",
      "runsListHtml",
      "saidHtml",
      "stopsHtml",
-     "pathHtml",
      "transcriptHtml",
      "runViewHtml"
-    ],
-    "ids": [
-     "runs-h"
-    ],
-    "keys": [
-     "run:${r.id}"
     ]
    }
   },
@@ -7518,7 +8445,7 @@
   {
    "path": "js/shells/term.js",
    "group": "js",
-   "bytes": 9656,
+   "bytes": 9672,
    "lines": 205,
    "items": {
     "imports": [
@@ -7539,6 +8466,21 @@
     "keys": [
      "signed_out",
      "not_local"
+    ]
+   }
+  },
+  {
+   "path": "js/sideorder.js",
+   "group": "js",
+   "bytes": 1700,
+   "lines": 28,
+   "items": {
+    "exports": [
+     "JOIN_MS",
+     "createCalmOrder"
+    ],
+    "functions": [
+     "createCalmOrder"
     ]
    }
   },
@@ -7599,8 +8541,8 @@
   {
    "path": "js/stage.js",
    "group": "js",
-   "bytes": 63124,
-   "lines": 870,
+   "bytes": 50910,
+   "lines": 731,
    "items": {
     "imports": [
      "./ui.js",
@@ -7618,16 +8560,13 @@
      "createStage"
     ],
     "ids": [
-     "fr-title-launch",
-     "fr-body-launch",
      "stage-map-tree",
      "stage-map-graph",
      "herald"
     ],
     "storage": [
-     "${W_KEY}:${S.page.name}",
      "<k>",
-     "xo-stage-w"
+     "xo-stage-w2"
     ],
     "keys": [
      "Escape",
@@ -7644,8 +8583,8 @@
   {
    "path": "js/storm.js",
    "group": "js",
-   "bytes": 72903,
-   "lines": 1242,
+   "bytes": 75799,
+   "lines": 1283,
    "items": {
     "imports": [
      "./api.js",
@@ -7682,8 +8621,8 @@
   {
    "path": "js/timeline.js",
    "group": "js",
-   "bytes": 47391,
-   "lines": 816,
+   "bytes": 49035,
+   "lines": 840,
    "items": {
     "imports": [
      "./attach.js",
@@ -7740,7 +8679,9 @@
      "forwardOrigin",
      "relayedInto",
      "stopOf",
-     "stopWords"
+     "stopWords",
+     "dayGroup",
+     "rowTime"
     ],
     "functions": [
      "uiMsg",
@@ -7788,7 +8729,9 @@
      "forwardOrigin",
      "relayedInto",
      "stopOf",
-     "stopWords"
+     "stopWords",
+     "dayGroup",
+     "rowTime"
     ],
     "routes": [
      "/api/xo-projects/<project>/file"
@@ -7808,8 +8751,8 @@
   {
    "path": "js/turnview.js",
    "group": "js",
-   "bytes": 25046,
-   "lines": 331,
+   "bytes": 31076,
+   "lines": 395,
    "items": {
     "imports": [
      "./world.js",
@@ -7820,6 +8763,9 @@
      "./comms.js"
     ],
     "exports": [
+     "cmdIcon",
+     "stepIcon",
+     "stepLineHtml",
      "setWorkMode",
      "turnHtml",
      "turnSegments",
@@ -7827,6 +8773,8 @@
      "turnAv"
     ],
     "functions": [
+     "cmdIcon",
+     "stepIcon",
      "rowMark",
      "rowHtml",
      "blockHtml",
@@ -7848,8 +8796,8 @@
   {
    "path": "js/ui.js",
    "group": "js",
-   "bytes": 19719,
-   "lines": 397,
+   "bytes": 20230,
+   "lines": 412,
    "items": {
     "imports": [
      "./world.js",
@@ -7859,6 +8807,8 @@
     ],
     "exports": [
      "xi",
+     "stateMark",
+     "ARC",
      "ICON",
      "NEXT_GLYPH",
      "dial",
@@ -7882,7 +8832,9 @@
      "reconcile",
      "sound",
      "esc",
-     "keepTurning"
+     "DOTS",
+     "keepTurning",
+     "stepMark"
     ],
     "functions": [
      "dial",
@@ -7894,6 +8846,7 @@
      "dayOf",
      "short",
      "elapsed",
+     "move",
      "reconcile",
      "keepTurning"
     ],
@@ -10146,8 +11099,8 @@
   {
    "path": "js/viewer.js",
    "group": "js",
-   "bytes": 79625,
-   "lines": 1157,
+   "bytes": 79876,
+   "lines": 1158,
    "items": {
     "imports": [
      "./util.js",
@@ -10233,13 +11186,43 @@
   {
    "path": "js/xoicons.js",
    "group": "js",
-   "bytes": 134617,
-   "lines": 390,
+   "bytes": 135125,
+   "lines": 391,
    "items": {
     "exports": [
      "XI"
     ]
    }
+  },
+  {
+   "path": "perf-2026-11-20/FINDINGS.md",
+   "group": "other",
+   "bytes": 7077,
+   "lines": 97
+  },
+  {
+   "path": "perf-2026-11-20/out.json",
+   "group": "other",
+   "bytes": 48157,
+   "lines": 2916
+  },
+  {
+   "path": "perf-2026-11-20/out2.json",
+   "group": "other",
+   "bytes": 115408,
+   "lines": 6934
+  },
+  {
+   "path": "perf-2026-11-20/probe.mjs",
+   "group": "other",
+   "bytes": 8129,
+   "lines": 117
+  },
+  {
+   "path": "perf-2026-11-20/probe2.mjs",
+   "group": "other",
+   "bytes": 7930,
+   "lines": 113
   },
   {
    "path": "presets/engineering.json",
@@ -10256,8 +11239,8 @@
   {
    "path": "serve.py",
    "group": "root",
-   "bytes": 25903,
-   "lines": 540
+   "bytes": 33801,
+   "lines": 714
   },
   {
    "path": "start.sh",
@@ -10266,10 +11249,43 @@
    "lines": 29
   },
   {
+   "path": "tests/accounts.test.mjs",
+   "group": "tests-unit",
+   "bytes": 3360,
+   "lines": 69,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/accounts.js"
+    ],
+    "ids": [
+     "set-t-accounts"
+    ]
+   }
+  },
+  {
+   "path": "tests/active-turns.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2569,
+   "lines": 35,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/blocks.js",
+     "../js/map.js"
+    ],
+    "globals": [
+     "matchMedia"
+    ]
+   }
+  },
+  {
    "path": "tests/agent-marks.test.mjs",
    "group": "tests-unit",
-   "bytes": 2341,
-   "lines": 40,
+   "bytes": 2837,
+   "lines": 47,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -10293,8 +11309,8 @@
   {
    "path": "tests/app-ctl-scale.test.mjs",
    "group": "tests-unit",
-   "bytes": 3998,
-   "lines": 55,
+   "bytes": 3203,
+   "lines": 44,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -10306,7 +11322,7 @@
   {
    "path": "tests/artifacts-preview.test.mjs",
    "group": "tests-unit",
-   "bytes": 4897,
+   "bytes": 4961,
    "lines": 62,
    "items": {
     "imports": [
@@ -10336,9 +11352,45 @@
    }
   },
   {
+   "path": "tests/back-to-where.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2357,
+   "lines": 26,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/boot.test.mjs",
+   "group": "tests-unit",
+   "bytes": 5461,
+   "lines": 101,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "../js/world.js?a",
+     "../js/world.js?b",
+     "../js/world.js?c"
+    ],
+    "functions": [
+     "fakeBackend"
+    ],
+    "globals": [
+     "addEventListener",
+     "matchMedia",
+     "setInterval",
+     "setTimeout",
+     "fetch"
+    ]
+   }
+  },
+  {
    "path": "tests/browser/chat-read-order.test.cjs",
    "group": "tests-browser",
-   "bytes": 6596,
+   "bytes": 6600,
    "lines": 100,
    "items": {
     "imports": [
@@ -10353,7 +11405,7 @@
   {
    "path": "tests/browser/conversation.test.cjs",
    "group": "tests-browser",
-   "bytes": 98042,
+   "bytes": 98044,
    "lines": 1495,
    "items": {
     "imports": [
@@ -10450,8 +11502,8 @@
   {
    "path": "tests/browser/flows.test.cjs",
    "group": "tests-browser",
-   "bytes": 319428,
-   "lines": 4382,
+   "bytes": 318618,
+   "lines": 4372,
    "items": {
     "imports": [
      "http",
@@ -10527,6 +11579,7 @@
      "say",
      "typing",
      "t-sel",
+     "arts-q",
      "at-list",
      "send",
      "composer",
@@ -10776,14 +11829,63 @@
    }
   },
   {
+   "path": "tests/button-fill.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4414,
+   "lines": 62,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/captions.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1371,
+   "lines": 24,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/card-family.test.mjs",
+   "group": "tests-unit",
+   "bytes": 12474,
+   "lines": 158,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/card-ring.test.mjs",
    "group": "tests-unit",
-   "bytes": 2841,
+   "bytes": 2880,
    "lines": 33,
    "items": {
     "imports": [
      "node:assert/strict",
      "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/cardparts.test.mjs",
+   "group": "tests-unit",
+   "bytes": 16752,
+   "lines": 154,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/cardparts.js"
     ]
    }
   },
@@ -10809,6 +11911,25 @@
      "matchMedia",
      "requestIdleCallback",
      "fetch"
+    ]
+   }
+  },
+  {
+   "path": "tests/chats-list.test.mjs",
+   "group": "tests-unit",
+   "bytes": 14168,
+   "lines": 152,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/timeline.js"
+    ],
+    "ids": [
+     "cs-perm",
+     "scroller",
+     "cs-hi",
+     "cs-sub"
     ]
    }
   },
@@ -10840,9 +11961,45 @@
    }
   },
   {
+   "path": "tests/composer-popover-height.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1880,
+   "lines": 26,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/composer-row-size.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2274,
+   "lines": 34,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/concentric.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4703,
+   "lines": 53,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/conn-line.test.mjs",
    "group": "tests-unit",
-   "bytes": 2423,
+   "bytes": 2525,
    "lines": 33,
    "items": {
     "imports": [
@@ -10855,8 +12012,8 @@
   {
    "path": "tests/conv-ctl-scale.test.mjs",
    "group": "tests-unit",
-   "bytes": 5509,
-   "lines": 80,
+   "bytes": 5306,
+   "lines": 77,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -10868,8 +12025,8 @@
   {
    "path": "tests/conv-find-ring.test.mjs",
    "group": "tests-unit",
-   "bytes": 1776,
-   "lines": 21,
+   "bytes": 1098,
+   "lines": 14,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -10916,6 +12073,19 @@
     "imports": [
      "node:assert/strict",
      "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/copied-speaker.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1996,
+   "lines": 21,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/timeline.js"
     ]
    }
   },
@@ -10973,7 +12143,7 @@
   {
    "path": "tests/css-wellformed.test.mjs",
    "group": "tests-unit",
-   "bytes": 4307,
+   "bytes": 4315,
    "lines": 80,
    "items": {
     "imports": [
@@ -11000,8 +12170,8 @@
   {
    "path": "tests/ctl-scale.test.mjs",
    "group": "tests-unit",
-   "bytes": 16081,
-   "lines": 181,
+   "bytes": 15871,
+   "lines": 180,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11013,8 +12183,8 @@
   {
    "path": "tests/design-budget.test.mjs",
    "group": "tests-unit",
-   "bytes": 10214,
-   "lines": 159,
+   "bytes": 10422,
+   "lines": 160,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11022,6 +12192,18 @@
     ],
     "functions": [
      "declarations"
+    ]
+   }
+  },
+  {
+   "path": "tests/details-toggle.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1297,
+   "lines": 22,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
     ]
    }
   },
@@ -11055,15 +12237,39 @@
    }
   },
   {
+   "path": "tests/disclosure-corners.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1252,
+   "lines": 20,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/dock-focus.test.mjs",
    "group": "tests-unit",
-   "bytes": 6060,
+   "bytes": 6106,
    "lines": 62,
    "items": {
     "imports": [
      "node:assert/strict",
      "node:fs",
      "./lib/cascade.mjs"
+    ]
+   }
+  },
+  {
+   "path": "tests/dock-reset.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2580,
+   "lines": 34,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
     ]
    }
   },
@@ -11087,6 +12293,31 @@
    }
   },
   {
+   "path": "tests/done-line.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2320,
+   "lines": 27,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/dots-motion.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1293,
+   "lines": 21,
+   "items": {
+    "imports": [
+     "node:test",
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/drafts.test.mjs",
    "group": "tests-unit",
    "bytes": 4528,
@@ -11103,6 +12334,18 @@
    "group": "tests-unit",
    "bytes": 2258,
    "lines": 27,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/edge-card.test.mjs",
+   "group": "tests-unit",
+   "bytes": 3421,
+   "lines": 48,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11167,10 +12410,22 @@
    }
   },
   {
+   "path": "tests/event-lines.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1690,
+   "lines": 25,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/field-ring.test.mjs",
    "group": "tests-unit",
-   "bytes": 4225,
-   "lines": 42,
+   "bytes": 4065,
+   "lines": 41,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11193,8 +12448,8 @@
   {
    "path": "tests/files-stop-look.test.mjs",
    "group": "tests-unit",
-   "bytes": 2089,
-   "lines": 26,
+   "bytes": 1886,
+   "lines": 23,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11267,9 +12522,27 @@
    "lines": 307
   },
   {
+   "path": "tests/flavours.test.mjs",
+   "group": "tests-unit",
+   "bytes": 9401,
+   "lines": 128,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../tools/flavours/build.mjs",
+     "../tools/diffview/theme.mjs"
+    ],
+    "ids": [
+     "mode-seg",
+     "flavour-seg"
+    ]
+   }
+  },
+  {
    "path": "tests/focus-back.test.mjs",
    "group": "tests-unit",
-   "bytes": 4799,
+   "bytes": 4877,
    "lines": 55,
    "items": {
     "imports": [
@@ -11282,6 +12555,18 @@
     ],
     "globals": [
      "CSS"
+    ]
+   }
+  },
+  {
+   "path": "tests/focus-fields.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2328,
+   "lines": 33,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
     ]
    }
   },
@@ -11319,6 +12604,21 @@
    }
   },
   {
+   "path": "tests/ghpage.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4329,
+   "lines": 81,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "globals": [
+     "matchMedia"
+    ]
+   }
+  },
+  {
    "path": "tests/gone-thread-composer.test.mjs",
    "group": "tests-unit",
    "bytes": 2617,
@@ -11333,8 +12633,8 @@
   {
    "path": "tests/graph-focus.test.mjs",
    "group": "tests-unit",
-   "bytes": 3700,
-   "lines": 49,
+   "bytes": 3638,
+   "lines": 48,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11369,7 +12669,7 @@
   {
    "path": "tests/head-narrow.test.mjs",
    "group": "tests-unit",
-   "bytes": 2905,
+   "bytes": 2873,
    "lines": 33,
    "items": {
     "imports": [
@@ -11406,7 +12706,7 @@
   {
    "path": "tests/hover-census.test.mjs",
    "group": "tests-unit",
-   "bytes": 5381,
+   "bytes": 5404,
    "lines": 55,
    "items": {
     "imports": [
@@ -11424,6 +12724,33 @@
     "imports": [
      "node:assert/strict",
      "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/hover-rings.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2474,
+   "lines": 41,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/hover-veil.test.mjs",
+   "group": "tests-unit",
+   "bytes": 3015,
+   "lines": 42,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "ids": [
+     "nv-more"
     ]
    }
   },
@@ -11466,7 +12793,7 @@
   {
    "path": "tests/inverse-toast.test.mjs",
    "group": "tests-unit",
-   "bytes": 5472,
+   "bytes": 5496,
    "lines": 56,
    "items": {
     "imports": [
@@ -11476,9 +12803,36 @@
    }
   },
   {
+   "path": "tests/iq-one-path.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1449,
+   "lines": 22,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/jump-projects.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2955,
+   "lines": 47,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "ids": [
+     "side-jump"
+    ]
+   }
+  },
+  {
    "path": "tests/key-layer.test.mjs",
    "group": "tests-unit",
-   "bytes": 1571,
+   "bytes": 1563,
    "lines": 20,
    "items": {
     "imports": [
@@ -11530,8 +12884,8 @@
   {
    "path": "tests/launchpad.test.mjs",
    "group": "tests-unit",
-   "bytes": 26275,
-   "lines": 326,
+   "bytes": 26755,
+   "lines": 330,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11653,8 +13007,8 @@
   {
    "path": "tests/logic.test.mjs",
    "group": "tests-unit",
-   "bytes": 41651,
-   "lines": 549,
+   "bytes": 41847,
+   "lines": 550,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11729,8 +13083,8 @@
   {
    "path": "tests/lp-phone-links.test.mjs",
    "group": "tests-unit",
-   "bytes": 5385,
-   "lines": 90,
+   "bytes": 4857,
+   "lines": 84,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11853,6 +13207,19 @@
    }
   },
   {
+   "path": "tests/md-headings.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1687,
+   "lines": 30,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/markdown.js"
+    ]
+   }
+  },
+  {
    "path": "tests/mdlive.test.mjs",
    "group": "tests-unit",
    "bytes": 5709,
@@ -11874,8 +13241,8 @@
   {
    "path": "tests/media.test.mjs",
    "group": "tests-unit",
-   "bytes": 30360,
-   "lines": 358,
+   "bytes": 31132,
+   "lines": 369,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11893,8 +13260,8 @@
   {
    "path": "tests/menu-focus-fill.test.mjs",
    "group": "tests-unit",
-   "bytes": 2489,
-   "lines": 34,
+   "bytes": 2635,
+   "lines": 35,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11915,9 +13282,21 @@
    }
   },
   {
+   "path": "tests/menu-motion.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1377,
+   "lines": 20,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/menu-one-active.test.mjs",
    "group": "tests-unit",
-   "bytes": 3096,
+   "bytes": 3135,
    "lines": 45,
    "items": {
     "imports": [
@@ -11930,10 +13309,35 @@
    }
   },
   {
+   "path": "tests/menu-open-unlit.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2491,
+   "lines": 35,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/keynav.js"
+    ]
+   }
+  },
+  {
    "path": "tests/menu-successor.test.mjs",
    "group": "tests-unit",
    "bytes": 3080,
    "lines": 42,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/menu-type.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1823,
+   "lines": 32,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -11980,8 +13384,8 @@
   {
    "path": "tests/notice-clear.test.mjs",
    "group": "tests-unit",
-   "bytes": 6052,
-   "lines": 67,
+   "bytes": 6397,
+   "lines": 70,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12013,12 +13417,47 @@
   {
    "path": "tests/one-active.test.mjs",
    "group": "tests-unit",
-   "bytes": 1940,
+   "bytes": 1936,
    "lines": 23,
    "items": {
     "imports": [
      "node:assert/strict",
      "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/pack-marks.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4485,
+   "lines": 58,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "exports": [
+     "stepMark",
+     "ARC"
+    ]
+   }
+  },
+  {
+   "path": "tests/pack-where-it-fits.test.mjs",
+   "group": "tests-unit",
+   "bytes": 11671,
+   "lines": 135,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "exports": [
+     "stepIcon",
+     "GIT_ICON"
+    ],
+    "ids": [
+     "nv-shells"
     ]
    }
   },
@@ -12073,10 +13512,31 @@
    }
   },
   {
+   "path": "tests/panel-parity.test.mjs",
+   "group": "tests-unit",
+   "bytes": 9410,
+   "lines": 100,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "exports": [
+     "conversationGestures"
+    ],
+    "ids": [
+     "tpdock",
+     "tpherald",
+     "tat-list",
+     "ttarget"
+    ]
+   }
+  },
+  {
    "path": "tests/panel-shell.test.mjs",
    "group": "tests-unit",
-   "bytes": 4086,
-   "lines": 47,
+   "bytes": 5665,
+   "lines": 61,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12084,6 +13544,7 @@
     ],
     "ids": [
      "nv-shells",
+     "ic-shells",
      "shd"
     ]
    }
@@ -12091,8 +13552,8 @@
   {
    "path": "tests/panel-threads.test.mjs",
    "group": "tests-unit",
-   "bytes": 8232,
-   "lines": 97,
+   "bytes": 8840,
+   "lines": 103,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12106,7 +13567,7 @@
   {
    "path": "tests/path-copy-inline.test.mjs",
    "group": "tests-unit",
-   "bytes": 1924,
+   "bytes": 1944,
    "lines": 24,
    "items": {
     "imports": [
@@ -12143,7 +13604,7 @@
   {
    "path": "tests/phone-floor.test.mjs",
    "group": "tests-unit",
-   "bytes": 12058,
+   "bytes": 12016,
    "lines": 140,
    "items": {
     "imports": [
@@ -12169,7 +13630,7 @@
   {
    "path": "tests/phone-panel-go.test.mjs",
    "group": "tests-unit",
-   "bytes": 3246,
+   "bytes": 3231,
    "lines": 40,
    "items": {
     "imports": [
@@ -12209,8 +13670,8 @@
   {
    "path": "tests/press-inks.test.mjs",
    "group": "tests-unit",
-   "bytes": 4795,
-   "lines": 57,
+   "bytes": 4554,
+   "lines": 55,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12221,8 +13682,8 @@
   {
    "path": "tests/press-keeps-node.test.mjs",
    "group": "tests-unit",
-   "bytes": 18133,
-   "lines": 231,
+   "bytes": 19941,
+   "lines": 250,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12260,8 +13721,8 @@
   {
    "path": "tests/press-reach.test.mjs",
    "group": "tests-unit",
-   "bytes": 11726,
-   "lines": 114,
+   "bytes": 11614,
+   "lines": 113,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12269,21 +13730,6 @@
     ],
     "exports": [
      "PICTURE_FACE"
-    ]
-   }
-  },
-  {
-   "path": "tests/project-find-escape.test.mjs",
-   "group": "tests-unit",
-   "bytes": 1654,
-   "lines": 21,
-   "items": {
-    "imports": [
-     "node:assert/strict",
-     "node:fs"
-    ],
-    "keys": [
-     "Escape"
     ]
    }
   },
@@ -12307,13 +13753,26 @@
   {
    "path": "tests/quickopen.test.mjs",
    "group": "tests-unit",
-   "bytes": 5322,
-   "lines": 95,
+   "bytes": 5777,
+   "lines": 103,
    "items": {
     "imports": [
      "node:assert/strict",
      "../js/fuzzy.js",
-     "../js/paths.js"
+     "../js/paths.js",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/rail-badge.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1347,
+   "lines": 17,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
     ]
    }
   },
@@ -12477,7 +13936,7 @@
   {
    "path": "tests/ring-room.test.mjs",
    "group": "tests-unit",
-   "bytes": 6315,
+   "bytes": 6325,
    "lines": 67,
    "items": {
     "imports": [
@@ -12536,6 +13995,39 @@
    }
   },
   {
+   "path": "tests/row-insets.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4623,
+   "lines": 54,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/rows-in-place.test.mjs",
+   "group": "tests-unit",
+   "bytes": 3766,
+   "lines": 52,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "node:path",
+     "node:os",
+     "../js/ui.js"
+    ],
+    "exports": [
+     "reconcile"
+    ],
+    "ids": [
+     "box"
+    ]
+   }
+  },
+  {
    "path": "tests/rtsettings.test.mjs",
    "group": "tests-unit",
    "bytes": 4135,
@@ -12548,9 +14040,28 @@
    }
   },
   {
+   "path": "tests/runs-page.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4746,
+   "lines": 59,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ],
+    "exports": [
+     "runViewHtml"
+    ],
+    "ids": [
+     "runs",
+     "runs-card"
+    ]
+   }
+  },
+  {
    "path": "tests/runs-stop-receipt.test.mjs",
    "group": "tests-unit",
-   "bytes": 5805,
+   "bytes": 5808,
    "lines": 69,
    "items": {
     "imports": [
@@ -12596,13 +14107,14 @@
   {
    "path": "tests/scroller-ring.test.mjs",
    "group": "tests-unit",
-   "bytes": 18932,
-   "lines": 171,
+   "bytes": 21264,
+   "lines": 174,
    "items": {
     "imports": [
      "node:assert/strict",
      "node:fs",
-     "./lib/cascade.mjs"
+     "./lib/cascade.mjs",
+     "./lib/tokens.mjs"
     ]
    }
   },
@@ -12627,6 +14139,19 @@
     "imports": [
      "node:assert/strict",
      "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/send-calm.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2102,
+   "lines": 23,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/timeline.js"
     ]
    }
   },
@@ -12657,8 +14182,8 @@
   {
    "path": "tests/serve.test.py",
    "group": "tests-unit",
-   "bytes": 22291,
-   "lines": 489
+   "bytes": 27967,
+   "lines": 615
   },
   {
    "path": "tests/settings-css.test.mjs",
@@ -12742,7 +14267,7 @@
   {
    "path": "tests/side-bar.test.mjs",
    "group": "tests-unit",
-   "bytes": 5214,
+   "bytes": 5253,
    "lines": 80,
    "items": {
     "imports": [
@@ -12761,9 +14286,28 @@
    }
   },
   {
+   "path": "tests/side-calm-order.test.mjs",
+   "group": "tests-unit",
+   "bytes": 6593,
+   "lines": 100,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "node:os",
+     "node:path",
+     "../js/sideorder.js",
+     "../js/ui.js"
+    ],
+    "ids": [
+     "host"
+    ]
+   }
+  },
+  {
    "path": "tests/side-fold.test.mjs",
    "group": "tests-unit",
-   "bytes": 2985,
+   "bytes": 3015,
    "lines": 45,
    "items": {
     "imports": [
@@ -12779,8 +14323,8 @@
   {
    "path": "tests/side-spacing.test.mjs",
    "group": "tests-unit",
-   "bytes": 1516,
-   "lines": 17,
+   "bytes": 1011,
+   "lines": 14,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12801,10 +14345,59 @@
    }
   },
   {
+   "path": "tests/space-scale.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2640,
+   "lines": 38,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/speaker-names.test.mjs",
+   "group": "tests-unit",
+   "bytes": 5227,
+   "lines": 72,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/timeline.js"
+    ]
+   }
+  },
+  {
+   "path": "tests/stage-head-back.test.mjs",
+   "group": "tests-unit",
+   "bytes": 3140,
+   "lines": 51,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
    "path": "tests/stage-inplace.test.mjs",
    "group": "tests-unit",
-   "bytes": 1964,
-   "lines": 24,
+   "bytes": 1812,
+   "lines": 23,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/stage-list-edge.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1900,
+   "lines": 22,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12815,8 +14408,8 @@
   {
    "path": "tests/stage-pages.test.mjs",
    "group": "tests-unit",
-   "bytes": 5659,
-   "lines": 59,
+   "bytes": 11660,
+   "lines": 137,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12837,10 +14430,32 @@
    }
   },
   {
+   "path": "tests/stalled-own-message.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4889,
+   "lines": 77,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "../js/timeline.js",
+     "../js/world.js"
+    ],
+    "functions": [
+     "fakeBackend"
+    ],
+    "globals": [
+     "addEventListener",
+     "matchMedia",
+     "setInterval",
+     "fetch"
+    ]
+   }
+  },
+  {
    "path": "tests/start-centred.test.mjs",
    "group": "tests-unit",
-   "bytes": 1398,
-   "lines": 16,
+   "bytes": 2201,
+   "lines": 23,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12851,7 +14466,7 @@
   {
    "path": "tests/state-hover.test.mjs",
    "group": "tests-unit",
-   "bytes": 11274,
+   "bytes": 11226,
    "lines": 127,
    "items": {
     "imports": [
@@ -12862,9 +14477,25 @@
    }
   },
   {
+   "path": "tests/step-line-face.test.mjs",
+   "group": "tests-unit",
+   "bytes": 1132,
+   "lines": 15,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/turnview.js"
+    ],
+    "globals": [
+     "matchMedia"
+    ]
+   }
+  },
+  {
    "path": "tests/stopped-on-purpose.test.mjs",
    "group": "tests-unit",
-   "bytes": 11390,
+   "bytes": 11411,
    "lines": 145,
    "items": {
     "imports": [
@@ -12911,8 +14542,8 @@
   {
    "path": "tests/target-bounded.test.mjs",
    "group": "tests-unit",
-   "bytes": 2161,
-   "lines": 26,
+   "bytes": 2510,
+   "lines": 29,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12923,7 +14554,7 @@
   {
    "path": "tests/targets-css.test.mjs",
    "group": "tests-unit",
-   "bytes": 4904,
+   "bytes": 4894,
    "lines": 74,
    "items": {
     "imports": [
@@ -12938,7 +14569,7 @@
   {
    "path": "tests/thread-filter.test.mjs",
    "group": "tests-unit",
-   "bytes": 4702,
+   "bytes": 4714,
    "lines": 55,
    "items": {
     "imports": [
@@ -12972,8 +14603,8 @@
   {
    "path": "tests/thread-page.test.mjs",
    "group": "tests-unit",
-   "bytes": 11971,
-   "lines": 136,
+   "bytes": 14918,
+   "lines": 166,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12987,10 +14618,47 @@
    }
   },
   {
+   "path": "tests/thread-spawn-session.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4216,
+   "lines": 69,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "../js/world.js"
+    ],
+    "functions": [
+     "fakeBackend"
+    ],
+    "globals": [
+     "addEventListener",
+     "matchMedia",
+     "setInterval",
+     "fetch"
+    ]
+   }
+  },
+  {
+   "path": "tests/turn-split-notes.test.mjs",
+   "group": "tests-unit",
+   "bytes": 2023,
+   "lines": 30,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs",
+     "../js/turnview.js"
+    ],
+    "globals": [
+     "matchMedia"
+    ]
+   }
+  },
+  {
    "path": "tests/turnview.test.mjs",
    "group": "tests-unit",
-   "bytes": 19569,
-   "lines": 249,
+   "bytes": 23498,
+   "lines": 307,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -12999,6 +14667,30 @@
     ],
     "globals": [
      "matchMedia"
+    ]
+   }
+  },
+  {
+   "path": "tests/type-faces.test.mjs",
+   "group": "tests-unit",
+   "bytes": 3040,
+   "lines": 46,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
+    ]
+   }
+  },
+  {
+   "path": "tests/type-roles.test.mjs",
+   "group": "tests-unit",
+   "bytes": 4855,
+   "lines": 70,
+   "items": {
+    "imports": [
+     "node:assert/strict",
+     "node:fs"
     ]
    }
   },
@@ -13072,8 +14764,8 @@
   {
    "path": "tests/xoicons.test.mjs",
    "group": "tests-unit",
-   "bytes": 6642,
-   "lines": 104,
+   "bytes": 7618,
+   "lines": 114,
    "items": {
     "imports": [
      "node:assert/strict",
@@ -13441,8 +15133,8 @@
   {
    "path": "tools/diffview/theme.mjs",
    "group": "tools/diffview",
-   "bytes": 8881,
-   "lines": 155,
+   "bytes": 8996,
+   "lines": 156,
    "items": {
     "imports": [
      "node:fs",
@@ -13631,6 +15323,38 @@
     ],
     "ids": [
      "ours"
+    ]
+   }
+  },
+  {
+   "path": "tools/flavours/build.mjs",
+   "group": "tools/flavours",
+   "bytes": 10018,
+   "lines": 149,
+   "items": {
+    "imports": [
+     "node:fs",
+     "node:path",
+     "node:url",
+     "../../js/flavours.js"
+    ],
+    "exports": [
+     "FLAVOURS",
+     "tint",
+     "stone",
+     "looks",
+     "flavourBlocks",
+     "source"
+    ],
+    "functions": [
+     "toOklab",
+     "fromOklch",
+     "tint",
+     "greyOf",
+     "stone",
+     "flavourBlocks",
+     "swatches",
+     "source"
     ]
    }
   },

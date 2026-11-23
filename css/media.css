@@ -26,7 +26,7 @@
 .mx-one::after,.mx-album::after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 10%,transparent);transition:box-shadow var(--d-hover) var(--ease)}
 /* hover: nothing moves or scales; the edge darkens (120 ms in, 200 out) */
-.mx-one:hover::after,.mx-album:has(.mx-tile:hover)::after{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent)}
+.mx-one:hover::after,.mx-album:has(.mx-tile:hover)::after{background:var(--hover-fill)}
 /* the picture covers its button's own fill, so hover and press were all but invisible (an edge 10→16%, the press
    layer under the image: the controls grader on 03e9b44, S090, 0.5–3.6% of pixels): a veil over the picture says
    both, hover a light one, held a deeper one, in the ink of the theme (the edge still darkens) */
@@ -46,9 +46,9 @@
 .mx-one.is-frame .mx-img,.mx-one.is-banner .mx-img{object-fit:scale-down}
 .mx-one.is-tiny .mx-img{inset:0;width:var(--mx-iw);height:var(--mx-ih);margin:auto;object-fit:contain}
 .mx-tag{position:absolute;left:8px;bottom:8px;z-index:3;display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:var(--r-sm);
-  background:rgb(0 0 0 / .56);color:#fff;font:var(--fw-medium) var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);font-variant-numeric:tabular-nums;pointer-events:none}
+  background:rgb(0 0 0 / .56);color:#fff;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);font-variant-numeric:tabular-nums;pointer-events:none}
 /* Loading… after 3 s, and Couldn't load · Retry: said on the picture itself, quietly */
-.mx-state{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4);
+.mx-state{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;pointer-events:none}
 .mx-state:empty{display:none}
 .is-err>.mx-state{color:var(--ink-3)}
@@ -63,10 +63,12 @@
 .mx-tile:focus-visible{z-index:3;outline:none}
 .mx-tile:focus-visible::after{content:"";position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px var(--focus)}
 .mx-more{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgb(0 0 0 / .48);color:#fff;
-  font:var(--fw-strong) var(--fs-2xl)/var(--lh-20) var(--sans);letter-spacing:var(--tr-20);font-variant-numeric:tabular-nums;pointer-events:none}
+  font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);font-variant-numeric:tabular-nums;pointer-events:none}
 
-/* an agent's words under a shared set */
-.mx-cap{max-width:66ch;font:var(--fw-regular) var(--fs-md)/var(--lh-14) var(--sans);color:var(--ink-2)}
+/* a caption under a picture, a set or a diagram is small print: the meta role in a quieter ink, never the message's voice */
+:is(.mx-cap,.ximg-cap,.md-dg-why){font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+/* an agent's words under a shared set, a step apart from the words after it */
+.mx-cap{max-width:66ch;margin-bottom:var(--s-2)}
 
 /* a picture from the web that couldn't show: the outbound link it would have been (css/links.css .lk-out), on a line
    where the picture was; several wrap. The lightbox's "Open original ↗" is a lightbox button, its arrow the link's. */
@@ -92,24 +94,24 @@ a.lbx-btn{text-decoration:none}
 /* ── the lightbox: over everything, on a dark scrim in both themes (a picture reads best on dark) ── */
 .lbx{position:fixed;inset:0;z-index:var(--z-toast);color-scheme:dark;outline:none;overscroll-behavior:contain;touch-action:none;
   --lbx-ink:rgb(255 255 255 / .92);--lbx-ink-3:rgb(255 255 255 / .62);--lbx-ink-4:rgb(255 255 255 / .5);--lbx-fill:rgb(255 255 255 / .08);--lbx-fill-hover:rgb(255 255 255 / .14)}
-.lbx-scrim{position:absolute;inset:0;background:rgb(12 12 12 / .94);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+.lbx-scrim{position:absolute;inset:0;background:var(--lbx-scrim);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
 .lbx-stage{position:absolute;inset:0}
 .lbx-frame{position:fixed;overflow:hidden;border-radius:var(--r-xs);background:rgb(255 255 255 / .04)}
 .lbx-frame::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1);pointer-events:none}
 .lbx-img{display:block;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none}
-.lbx-frame.is-err::before{content:attr(data-err);position:absolute;inset:0;display:grid;place-items:center;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--lbx-ink-3)}
+.lbx-frame.is-err::before{content:attr(data-err);position:absolute;inset:0;display:grid;place-items:center;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--lbx-ink-3)}
 
 .lbx-bar{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:12px;height:48px;padding:0 8px 0 16px;color:var(--lbx-ink)}
 .lbx-t{flex:1;min-width:0;display:flex;flex-direction:column}
-.lbx-name{font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lbx-by{font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbx-name{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbx-by{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lbx-by:empty{display:none}
-.lbx-meta{flex:none;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);color:var(--lbx-ink-4);font-variant-numeric:tabular-nums}
+.lbx-meta{flex:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--lbx-ink-4);font-variant-numeric:tabular-nums}
 .lbx-acts{flex:none;display:flex;align-items:center;gap:8px}
-.lbx-btn{display:inline-flex;align-items:center;gap:6px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
-  font:var(--fw-medium) var(--fs-base)/var(--lh-13) var(--sans);transition:background-color var(--d-hover) var(--ease)}
+.lbx-btn{display:inline-flex;align-items:center;gap:4px;height:var(--h-ctl);padding:0 10px;border-radius:var(--r);background:var(--lbx-fill);color:var(--lbx-ink);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background-color var(--d-hover) var(--ease)}
 .lbx-btn:hover{background:var(--lbx-fill-hover)}
-.lbx-btn svg{flex:none;width:16px;height:16px}
+.lbx-btn svg{flex:none;width:var(--ic);height:var(--ic)}
 .lbx-x{width:28px;padding:0;justify-content:center}
 .lbx-arrow{position:absolute;top:calc(50% - var(--h-lg) / 2);display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);border-radius:var(--r-lg);background:var(--lbx-fill);color:var(--lbx-ink);
   transition:background-color var(--d-hover) var(--ease),opacity var(--d-hover) var(--ease)}
@@ -117,7 +119,7 @@ a.lbx-btn{text-decoration:none}
 .lbx-arrow[aria-disabled="true"]{opacity:.32;cursor:default}
 .lbx-arrow.is-prev{left:8px}
 .lbx-arrow.is-next{right:8px}
-.lbx-count{position:absolute;left:0;right:0;bottom:24px;text-align:center;font:var(--fw-regular) var(--fs-xs)/var(--lh-12) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);font-variant-numeric:tabular-nums;pointer-events:none}
+.lbx-count{position:absolute;left:0;right:0;bottom:24px;text-align:center;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--lbx-ink-3);font-variant-numeric:tabular-nums;pointer-events:none}
 .lbx :focus-visible{outline:2px solid rgb(255 255 255 / .8);outline-offset:2px}
 @media (max-width:760px){
   .lbx-meta,.lbx-btn>span{display:none}

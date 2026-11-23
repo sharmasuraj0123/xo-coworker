@@ -1,29 +1,17 @@
-// Intelligence per session (R6), on storm. The chip says what a conversation runs on; the
-// popover changes it. Everything comes from the server: the models and efforts from the runtime's
-// catalog (GET /api/chat/runtimes/{name}/models: family, description, takes_effort), the routing from
-// the Space setting and the chat's own override, the thread's model from its session. A change is a
-// PATCH (the chat: routing, model, effort; a thread: intelligence) applied from the next turn, said
-// back as one record line with a 3 s Undo. A thread never takes its chat's pin (§0.103).
-//
-//   Workspace, a project   the runtime it runs on (a project: Auto, or one runtime for its coordinator and
-//                          its new threads), the coordinator's model and effort, who routes a new message
-//   a thread               its runtime (fixed for life: another one continues it in a new thread, said
-//                          first), its agent's model and effort (the router chose them; you can pin)
-// One choice, in order: runtime, then model, then effort.
 
 import * as K from "../core/platform/keys.js";
 import { esc } from "./world.js";
 import { space, once } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
-import { ICON, RM, xi } from "./ui.js";
+import { ICON, RM, xi, stateMark } from "./ui.js";
 import { api } from "../core/platform/api.js";
 import { mainRuntime } from "./timeline.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "../core/services/runtimes.js";
 
-const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
+export const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
 const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
 // what each depth means, said once under the control (the words are the setting; there are no dot codes)
-const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
+export const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
 const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 
 /**
@@ -125,7 +113,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const c = current(s), r = running(s);
     // a thread says only what its session reports; when that's nothing, a waiting pin is said as what comes
     // next, never as what runs
-    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.pinned ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: null, next: false };
+    if (r) return r.model ? { model: r.model, effort: r.effort || null, next: false } : c.model ? { model: c.model, effort: c.effort, next: true } : { model: null, effort: r.effort || c.effort || null, next: false };
     return c.pinned ? { model: c.model, effort: c.effort, next: false } : { model: null, effort: null, next: false };
   }
   const live = (s) => !!kindOf(s) && (kindOf(s) !== "thread" || !!threadOf(s));
@@ -142,16 +130,17 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (!live(s)) return "";
     warm(s);
     const c = current(s);
-    if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l"><span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
+    const mark = rtMark(runtimeOf(s), { lead: true }) || "";
+    if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l">${mark}<span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
     const { model, effort, next } = shownSetting(s);
     const rtn = runtimeOf(s), main = (mainRuntime(world.state.runtimes) || {}).name;
-    const rt = manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
+    // a runtime without a mark is named only where it differs from the usual one
+    const rt = !mark && manyRuntimes(world.state.runtimes) && rtn && rtn !== main && !phone ? rtName(rtn) : null;
     const words = [];
-    // a runtime other than the usual one: its mark (its name on hover, and in the chip's title and the picker)
-    // (inside the chip's own text span, so it sits on the words' line by the one icon rule, css/app.css .agm)
-    if (rt) words.push(`<span class="iq-a">${rtMark(rtn) || esc(rt)}</span>`);
+    if (rt) words.push(`<span class="iq-a">${esc(rt)}</span>`);
     if (next) words.push(`<span class="iq-a">Next turn</span>`);
-    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : `<span class="iq-a">Auto</span>`);
+    // a thread never runs on Auto: a session that names no model runs its runtime's default
+    words.push(model ? `<span class="iq-t">${esc(nameOf(model))}</span>` : threadOf(s) ? `<span class="iq-a">Default</span>` : `<span class="iq-a">Auto</span>`);
     if (effort) words.push(`<span class="iq-e">${esc(effortWord(effort))}</span>`);
     // a change waiting for the next turn stays in sight until the session runs it (Astra I3: a durable receipt,
     // not only a 3-second Undo): "Opus 5.5 · Deep → Fable 5.1 · Deeper"
@@ -159,8 +148,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const now = words.join(`<span class="iq-sep" aria-hidden="true">·</span>`);
     // pending: the next setting has its own box that never gives way, so it's in sight at any width; on a phone it
     // takes the chip alone ("Next · …"), and the title, the name and the picker carry both
-    if (p) return `<span class="iq-l is-pending"><span class="iq-cur">${now}</span><span class="iq-next"><span class="iq-nk">Next</span><span class="iq-nw">${esc(p.words)}</span></span></span>`;
-    return `<span class="iq-l">${now}</span>`;
+    if (p) return `<span class="iq-l is-pending"><span class="iq-cur">${mark}${now}</span><span class="iq-next"><span class="iq-nk">Next</span><span class="iq-nw">${esc(p.words)}</span></span></span>`;
+    return `<span class="iq-l">${mark}${now}</span>`;
   }
   const AUTO = `<span class="iq-a">Auto</span>`;
   /** {dot: pinned, words: the label's parts (HTML), effort} */
@@ -178,7 +167,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       const r = running(s), { model, effort, next } = shownSetting(s);
       const what = `${model ? nameOf(model) : "its default model"}${effort ? ` · ${effortWord(effort)}` : ""}`;
       if (next) return `Its session hasn't reported which model it runs. From its next turn: ${what}. Change it${K.hint("intel")}`;
-      if (!r.model) return `Its session hasn't reported which model it runs. Change it${K.hint("intel")}`;
+      if (!r.model) return `Its session names no model, so it runs its runtime's default${effort ? ` · ${effortWord(effort)}` : ""}. Change it${K.hint("intel")}`;
       const p = pendingOf(s);
       return `${r.working ? "Running" : "Runs"} ${what}${p ? `; next turn: ${p.words}` : ""}. Change it${K.hint("intel")}`;
     }
@@ -189,7 +178,12 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
 
   // ── runtimes: the first of the three choices ───────────────────────────────
   const rts = () => world.state.runtimes || [];
-  const chatPolicy = (c) => (c && c.chatId && world.state.chatPolicy && world.state.chatPolicy[c.chatId]) || null;
+  const chatPolicy = (c) => {
+    if (!c || !c.chatId) return null;
+    const own = world.state.chatPolicy && world.state.chatPolicy[c.chatId];
+    if (!own) world.act.loadChatPolicy?.(c.chatId);
+    return own || null;
+  };
   const spaceEff = () => (world.state.policy && world.state.policy.effective) || null;
   /** The runtimes offered here, which one is on, and whether there is a choice at all. */
   function runtimeChoice(s) {
@@ -313,7 +307,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     let truth;
     if (kind === "thread") {
       const rtw = esc(rtName(runtimeOf(s)) || "");
-      const verb = r && r.working ? `<i class="g g-working" aria-hidden="true"></i>Running` : "Runs";
+      const verb = r && r.working ? `${stateMark("working")}Running` : "Runs";
       truth = r && r.model ? `${verb} ${nowWords(r.model, r.effort)}${rtw ? ` on ${rtw}` : ""}.` : `${verb}${rtw ? ` on ${rtw}` : ""}; its session hasn't said which model yet.`;
       const p = pendingOf(s);
       if (p) truth += ` Next turn: <b>${esc(p.words)}</b>.`;

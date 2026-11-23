@@ -1,7 +1,7 @@
 {
  "title": "XO Space API",
  "version": "1.0.0",
- "taken": "2026-11-19",
+ "taken": "2026-11-23",
  "paths": {
   "/": [
    "GET"
@@ -395,6 +395,12 @@
   "/api/connectors/vercel/token": [
    "POST"
   ],
+  "/api/coworker/xo-projects/{project_id}/paths": [
+   "GET"
+  ],
+  "/api/coworker/xo-projects/{project_id}/search": [
+   "GET"
+  ],
   "/api/coworker/xo-projects/{project_id}/version": [
    "GET"
   ],
@@ -746,9 +752,6 @@
   "/api/xo-projects/{project_id}/members": [
    "GET"
   ],
-  "/api/xo-projects/{project_id}/paths": [
-   "GET"
-  ],
   "/api/xo-projects/{project_id}/peers": [
    "GET",
    "POST"
@@ -763,9 +766,6 @@
   ],
   "/api/xo-projects/{project_id}/revoke": [
    "POST"
-  ],
-  "/api/xo-projects/{project_id}/search": [
-   "GET"
   ],
   "/api/xo-projects/{project_id}/share": [
    "POST"

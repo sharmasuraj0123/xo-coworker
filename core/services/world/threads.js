@@ -2,9 +2,10 @@
 
 /** @typedef {Record<string, any>} Row */
 
-/** The state a thread shows: Working while its agent works or input it holds waits behind a gate; else storm's word (an open item still wins, askingState). @param {string | null | undefined} state @param {Row | null | undefined} turn @param {boolean} [busy] @param {boolean} [held] */
-export function threadState(state, turn, busy = false, held = false) {
+/** @param {string | null | undefined} state @param {Row | null | undefined} turn @param {boolean} [busy] @param {boolean} [held] @param {boolean} [stalledOnYours] */
+export function threadState(state, turn, busy = false, held = false, stalledOnYours = false) {
   if (state === "needs_reply" && turn && turn.status === "running" && turn.origin === "person") return "working";
+  if (state === "needs_reply" && stalledOnYours) return "working";
   if ((busy || held) && (state === "done" || state === "failed")) return "working";
   if (held && state === "needs_reply") return "working";
   return state || "working";

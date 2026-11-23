@@ -20,6 +20,11 @@ globalThis.XMLHttpRequest = /** @type {any} */ (class { constructor() { this.upl
 const { api, attachmentUrl, attachmentText, uploadAttachment, terminalSocketUrl } = await import("../api.js");
 
 const ARGS = { pinMade: [["c", "m", true], ["c", "m", false]] };
+const OPTIONAL_GITHUB = new Map([
+  ["api.githubIssue", "/api/xo-projects/x/github/issues/y"],
+  ["api.githubPulls", "/api/xo-projects/x/github/pulls"],
+  ["api.githubPull", "/api/xo-projects/x/github/pulls/y"],
+]);
 const call = async (name, fn, args) => { from = name; try { await fn(...args); } catch { /* the answer is fake; the request is what counts */ } };
 for (const [name, fn] of Object.entries(api)) {
   if (name === "streamUrl") { from = `api.${name}`; record("GET", fn()); continue; }
@@ -38,9 +43,18 @@ t("the client was driven: every api route made a request", () => {
   for (const name of Object.keys(api)) assert.ok(seen.some((s) => s.from === `api.${name}`), `api.${name} made no request`);
   for (const name of ["attachmentText", "uploadAttachment", "attachmentUrl"]) assert.ok(seen.some((s) => s.from === name), `${name} made no request`);
 });
-t("each request's path and method are in xo-space's OpenAPI", () => {
-  const missing = [...new Set(seen.filter(({ method, path }) => !templates.some((x) => x.re.test(path) && x.methods.includes(method))).map(({ method, path, from: f }) => `${method} ${path} (${f})`))];
+t("each request matches OpenAPI or an optional GitHub GET with 404 coverage", () => {
+  const unlisted = seen.filter(({ method, path }) => !templates.some((x) => x.re.test(path) && x.methods.includes(method)));
+  const missing = [...new Set(unlisted
+    .filter(({ method, path, from }) => method !== "GET" || OPTIONAL_GITHUB.get(from) !== path)
+    .map(({ method, path, from }) => `${method} ${path} (${from})`))];
   assert.deepEqual(missing, [], `routes the client calls that xo-space doesn't define (snapshot ${SNAP.taken})`);
+});
+t("each optional entry refers to a route absent from this OpenAPI snapshot", () => {
+  for (const [from, path] of OPTIONAL_GITHUB) {
+    assert.ok(seen.some((request) => request.from === from && request.method === "GET" && request.path === path), from);
+    assert.ok(!templates.some((entry) => entry.re.test(path) && entry.methods.includes("GET")), `remove ${from} from the optional routes`);
+  }
 });
 t("a shell's socket hangs off a terminal session xo-space defines (OpenAPI lists no sockets)", () => {
   const session = wsPath.replace(/\/ws$/, "");

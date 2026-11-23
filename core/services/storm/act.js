@@ -24,6 +24,7 @@ export function createAct(ctx) {
       return (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
     },
     loadPolicies: ctx.loadPolicies,
+    loadChatPolicy: (/** @type {string} */ chat) => ctx.loadChatPolicy(chat),
     loadPaid: ctx.loadPaid,
     /** Read the runtimes again now (Settings › Runtimes asks every 30 s while it is open). */
     loadRuntimes: () => ctx.refreshRuntimes(),

@@ -2,7 +2,7 @@
 
 // Inline Markdown, safe by construction: every piece of text goes through esc(), links only to http(s), thread anchors and relative files.
 
-import { xi } from "../icons/icon.js";
+import { xi, stateMark } from "../icons/icon.js";
 import { fileIcon } from "../icons/fileicons.js";
 import { esc } from "../../platform/index.js";
 
@@ -83,7 +83,7 @@ export function linkHtml(href, label) {
     const id = t[1];
     const info = (threadInfo && threadInfo(id)) || null;
     const st = info && info.state && STATES.has(info.state) ? info.state : "";
-    const g = st ? `<i class="g g-${st}" aria-hidden="true"></i>` : THREAD_G;
+    const g = st ? stateMark(st) : THREAD_G;
     const tip = info ? [info.word, "thread"].filter(Boolean).join(" · ") : "Thread";
     // a short title stays one capsule; a long one may wrap (each line keeps its capsule)
     const text = label != null ? label.replace(/<[^>]*>/g, "") : String(info?.title || "");

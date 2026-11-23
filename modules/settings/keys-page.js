@@ -5,6 +5,7 @@
 import { esc } from "../../js/world.js";
 import { redraw } from "../../core/ui/redraw.js";
 import * as K from "../../core/platform/keys.js";
+import { keyHtml } from "../../core/ui/a11y/keycap.js";
 
 /** @param {import("./types").KeysPageDeps} deps */
 export function createKeysPage({ box, state: S, announce, resetIcon }) {
@@ -16,8 +17,8 @@ export function createKeysPage({ box, state: S, announce, resetIcon }) {
       K.GROUPS.map((g) => `<section class="kg" aria-labelledby="kg-${g.id}"><h3 id="kg-${g.id}">${esc(g.name)}</h3><div class="kl">` +
         K.ACTIONS.filter((a) => a.scope === g.id).map((a) => {
           const key = a.fixed
-            ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${esc(a.fixed)}</kbd></span>`
-            : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${esc(K.label(a.id))}</kbd>`}</button>`;
+            ? `<span class="kr-k is-fixed" title="This one is fixed"><kbd>${keyHtml(a.fixed)}</kbd></span>`
+            : `<button type="button" class="kr-k${rec === a.id ? " is-rec" : ""}" data-rebind="${a.id}" aria-label="${esc(a.label)}: ${esc(K.label(a.id))}. ${rec === a.id ? "Press the new key, or Esc to cancel" : "Change it"}">${rec === a.id ? `<span class="kr-rec">Press a key…</span>` : `<kbd>${keyHtml(K.label(a.id))}</kbd>`}</button>`;
           const reset = !a.fixed && K.changed(a.id) ? `<button type="button" class="kr-r" data-kreset="${a.id}" title="Back to ${esc(K.show(a.def))}" aria-label="Reset ${esc(a.label)} to ${esc(K.show(a.def))}">${resetIcon}</button>` : `<span class="kr-r" aria-hidden="true"></span>`;
           return `<div class="kr${K.changed(a.id) ? " is-changed" : ""}${a.fixed ? " is-fixed" : ""}"><span class="kr-l">${esc(a.label)}</span>${key}${reset}</div>` +
             (err && err.id === a.id ? `<p class="kr-err" role="alert">${esc(err.msg)}</p>` : "");

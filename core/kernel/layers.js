@@ -9,11 +9,13 @@ export function createLayers(warn = console.error) {
   /** @type {Set<() => void>} */
   const watchers = new Set();
   const changed = () => { for (const fn of [...watchers]) { try { fn(); } catch (e) { warn("layers: a watcher threw:", e); } } };
-  /** @param {"escape" | "back"} what */
-  const offer = (what) => {
-    for (let i = stack.length - 1; i >= 0; i--) {
-      const fn = stack[i][what];
-      try { if (fn && fn.call(stack[i]) === true) return true; } catch (e) { warn(`layers: ${what} of "${stack[i].id}" threw:`, e); return true; }
+  /** @param {"escape" | "back"} what @param {readonly string[]} [order] */
+  const offer = (what, order) => {
+    const candidates = order ? stack.slice().sort((a, b) => order.indexOf(b.id) - order.indexOf(a.id)) : stack;
+    for (let i = candidates.length - 1; i >= 0; i--) {
+      const layer = candidates[i];
+      const fn = layer[what];
+      try { if (fn && fn.call(layer) === true) return true; } catch (e) { warn(`layers: ${what} of "${layer.id}" threw:`, e); return true; }
     }
     return false;
   };
@@ -33,8 +35,8 @@ export function createLayers(warn = console.error) {
     },
     top: () => stack[stack.length - 1],
     list: () => stack.slice(),
-    escape: () => offer("escape"),
-    back: () => offer("back"),
+    escape: (order) => offer("escape", order),
+    back: (order) => offer("back", order),
     watch(fn) { watchers.add(fn); return () => { watchers.delete(fn); }; },
   };
 }

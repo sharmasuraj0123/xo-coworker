@@ -40,12 +40,6 @@ export function asksOf(t) {
   }];
 }
 
-/** @param {any} ask */
-export function commandOf(ask) {
-  const m = /^run:\s*(.+)$/i.exec((ask && ask.title) || "");
-  return m ? m[1].trim() : null;
-}
-
 /** @param {string | null | undefined} cmd */
 export function prefixOf(cmd) {
   const w = String(cmd || "").trim().split(/\s+/);

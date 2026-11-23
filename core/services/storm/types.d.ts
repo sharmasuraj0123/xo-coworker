@@ -4,6 +4,7 @@ export type StormEvent = Row & { kind: string };
 export type Sent = { at: number; seq: number | null };
 export type Session = Row & { id: string };
 export type Project = Row & { id: string; chatId: string };
+export type ClosedReview = { state: "withdrawn" | "expired"; reason: string | null; why: string; at: number };
 
 export interface StormState extends Row {
   projects: Project[];
@@ -12,6 +13,7 @@ export interface StormState extends Row {
   lastSeq: number;
   sessions: Record<string, Session>;
   review: Map<string, Row>;
+  gone: Map<string, ClosedReview>;
   runs: Map<string, Row>;
   hops: Map<string, Row>;
   turns: any;
@@ -71,9 +73,13 @@ export interface Ctx {
   refreshRuntimes: () => Promise<void> | null;
   loadRuntimes: () => Promise<void>;
   loadPaid: () => Promise<void>;
+  loadSpacePolicy: () => Promise<void>;
+  loadChatPolicy: (chat: string | null | undefined, fresh?: boolean) => Promise<void> | null;
   loadPolicies: () => Promise<void>;
+  loadActive: () => Promise<void>;
   loadAll: () => Promise<void>;
   refetchThread: (chatId: string | null | undefined, ts: string) => Promise<void>;
+  fillSession: (chatId: string | null | undefined, ts: string) => Promise<void>;
   scheduleRecover: (ms?: number) => void;
   recover: () => Promise<void>;
   stopTimers: () => void;

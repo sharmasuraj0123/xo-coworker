@@ -21,7 +21,7 @@ function sheets(root) {
   const html = readFileSync(join(root, "index.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
   const hrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\.\/((?!js\/vendor\/)[^"]+\.css)"/g)].map((m) => m[1]);
   const read = (rel) => readFileSync(join(root, rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/@import\s+url\(["']?\.\/([^"')]+)["']?\)\s*(?:layer\([\w.-]+\))?\s*;/g, (_, f) => read(join(dirname(rel), f)));
+    .replace(/@import\s+url\(["']?(\.{1,2}\/[^"')]+)["']?\)\s*(?:layer\([\w.-]+\))?\s*;/g, (_, f) => read(join(dirname(rel), f)));
   return hrefs.map(read).join("\n");
 }
 
@@ -47,6 +47,7 @@ function rootSel(sel) {
   const m = /^:root((?:\[[^\]]+\])*)$/.exec(sel.replace(/\s+/g, ""));
   if (!m) return null;
   const attrs = [...m[1].matchAll(/\[([^\]=]+)(?:=["']?([^"'\]]*)["']?)?\]/g)];
+  if (attrs.some((a) => a[1] === "data-flavour")) return null; // a flavour re-tints greys, never the code colours
   const theme = attrs.find((a) => a[1] === "data-theme");
   return { theme: theme ? theme[2] : null, spec: 1 + attrs.length };
 }

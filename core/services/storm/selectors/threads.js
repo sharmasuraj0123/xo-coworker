@@ -48,6 +48,13 @@ export function installThreads(ctx) {
     return by;
   };
 
+  /** @param {Row[] | undefined} rows */
+  function youWroteLast(rows) {
+    /** @type {Row | null} */
+    let last = null;
+    for (const m of rows || []) if (!last || (m.seq ?? -1) > (last.seq ?? -1)) last = m;
+    return !!last && last.author_kind === "owner";
+  }
   ctx.uiThread = (r, runsBy = ctx.runsBySession()) => {
     const project = ctx.projectOf(r.chat_id);
     const now = r.session_id ? ctx.sessionNow(r.session_id, r) : null;
@@ -62,7 +69,7 @@ export function installThreads(ctx) {
       id: r.ts, project, chatId: r.chat_id,
       title: plainText(r.title) || "Thread", label: plainText(r.label) || null,
       // held is one shown state: a done, stopped or needs-reply thread whose next input waits reads Waiting
-      state: threadState(r.state, turn, busy, !!held),
+      state: threadState(r.state, turn, busy, !!held, r.activity === "stalled" && youWroteLast(state.threadMsgs[r.ts])),
       headline: "", happened: card.happened || "", needsYou: "",
       branch: r.branch || null, worktree: r.worktree_path || null, cwd: r.cwd || null,
       createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),

@@ -150,10 +150,10 @@ export function keepTurning() {
   const sync = () => {
     for (const a of document.getAnimations()) {
       const name = /** @type {CSSAnimation} */ (a).animationName;
-      if (name === "spin" || name === "arc-turn" || name === "shimmer") { if (a.startTime !== 0) a.startTime = 0; }
+      if (name === "spin" || name === "arc-turn" || name === "shimmer" || String(name).startsWith("dot-")) { if (a.startTime !== 0) a.startTime = 0; }
     }
   };
-  const MOVING = ".arc, .spin, .shimmer, .tb-live";
+  const MOVING = ".arc, .g-working, .spin, .shimmer, .tb-live, .dots";
   const moving = (/** @type {Node} */ n) => n.nodeType === 1 && (/** @type {Element} */ (n).matches(MOVING) || !!(/** @type {Element} */ (n)).querySelector(MOVING));
   new MutationObserver((recs) => {
     for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { sync(); return; }

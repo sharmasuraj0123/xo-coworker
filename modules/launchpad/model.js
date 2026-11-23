@@ -74,7 +74,7 @@ export function model(c, pre = null) {
       // whether the repository is the person's own (Space's `own`): preflight's record wins; false (not true, not absent) is foreign
       own: typeof repo.own === "boolean" ? repo.own : typeof f.repo?.own === "boolean" ? f.repo.own : null,
     },
-    github: { connected: pre ? !!pre.github?.connected : !!c.prerequisites?.github_connected, workflow: pre ? pre.github?.workflow_scope !== false : true, login: pre?.github?.login || "", source: pre?.github?.source || c.prerequisites?.github_source || null, fix: pre?.github?.fix || "" },
+    github: { connected: pre ? !!pre.github?.connected : !!c.prerequisites?.github_connected, workflow: pre ? pre.github?.workflow_scope !== false : true, login: pre?.github?.login || "", source: pre?.github?.source || c.prerequisites?.github_source || null, fix: pre?.github?.fix || "", error: pre?.github?.error || "" },
     // the address is Launchpad's: preflight's live url (a custom domain once there is one), else launchpad.json's
     app: cfg?.app_id ? { id: cfg.app_id, name: cfg.name, url: app?.url || cfg.url, host: hostOf(app?.url || cfg.url), status: app?.status || "", release: app?.release || null, at: app?.last_deploy_at ? Date.parse(app.last_deploy_at) : null, ready: app?.ready, of: app?.desired, gone: app?.exists === false, commit: (c.git?.deployed_head || "").slice(0, 7),
       // its size and disk, fixed when it was created (the disk can grow): preflight's, else launchpad.json's

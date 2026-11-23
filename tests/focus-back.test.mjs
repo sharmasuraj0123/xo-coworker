@@ -32,7 +32,7 @@ await t("hookOf names a control so the redraw's copy is found: its id, else its 
   globalThis.CSS = { escape: (s) => String(s).replace(/["\\]/g, "\\$&") };
   const { hookOf } = await import(new URL("core/ui/a11y/focus.js", ROOT));
   const el = (tag, attrs, id = "") => ({ tagName: tag.toUpperCase(), id, attributes: Object.entries(attrs).map(([name, value]) => ({ name, value })), getAttribute: (n) => attrs[n] ?? null });
-  assert.equal(hookOf(el("button", { class: "nx-link", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
+  assert.equal(hookOf(el("button", { class: "b b-ghost b-later", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
   assert.equal(hookOf(el("button", { class: "x", "data-runs": "", "data-n": "45" })), "button[data-runs]", "a count isn't its identity");
   assert.equal(hookOf(el("button", { "data-x": "1" }, "pn-x")), "#pn-x", "an id first");
   assert.equal(hookOf(el("button", { class: "plain" })), null, "no identity: no selector");
@@ -42,7 +42,7 @@ await t("hookOf names a control so the redraw's copy is found: its id, else its 
 await t("the decisions panel's close: its opener now if it's here, else the same control in the next draw, else the place", () => {
   const d = read("js/decide.js");
   const close = d.slice(d.indexOf("function close({ restore = true } = {})"), d.indexOf("function sync()"));
-  assert.match(close, /if \(restore\) \{ if \(usable\(r\)\) r\.focus\(\{ preventScroll: true \}\); else back && back\(\[hookOf\(r\)\]\.filter\(Boolean\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
+  assert.match(close, /if \(restore && was\) \{ if \(usable\(r\)\) r\.focus\(\{ preventScroll: true \}\); else back && back\(\[hookOf\(r\)\]\.filter\(Boolean\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
   assert.doesNotMatch(close, /r\.isConnected && r !== document\.body\) r\.focus/, "not a node that may be gone");
   assert.match(d, /export function createDecisions\(\{[^}]*\bback\b/);
   const app = read("js/app.js");
@@ -54,6 +54,6 @@ await t("Runs' close takes the shared test (its own copy is gone)", () => {
   const app = read("js/app.js");
   const runs = app.slice(app.indexOf("function closeRuns()"), app.indexOf("/** Stop one sub-agent"));
   assert.doesNotMatch(runs, /usable = \(/);
-  assert.match(runs, /\[was, like\(was\), \$\("#thead \[data-runs\]"\), placeRegion\(\)\]\.find\(usable\)/);
+  assert.match(runs, /\[was, like\(was\), head\?\.querySelector\("\[data-runs\]"\), head === \$\("#tpthead"\) \? TP\.C\?\.scroller : placeRegion\(\)\]\.find\(usable\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

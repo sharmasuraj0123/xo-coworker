@@ -39,6 +39,7 @@ export function stormSource(state, emit, event) {
     failed: {},      // project id → {at, error}: the coordinator's turn for our message failed
     routed: {},      // workspace message id → [{chat: project id}]
     review: new Map(), // open review items by id
+    gone: new Map(),
     runs: new Map(),   // sub-agent runs seen on the stream (run_… → summary)
     hops: new Map(),   // hop id → hop: how a message travelled; shown only by choice
     liveRuns: {},      // session → {running, waiting, tokens, at} from the live `runs` frames

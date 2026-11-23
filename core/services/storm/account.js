@@ -66,12 +66,21 @@ export function installAccount(ctx) {
     return paidBusy;
   };
 
-  /** The runtime policy: the Space's, and each project's (a backend without them leaves both empty). */
+  ctx.loadSpacePolicy = async () => {
+    try { state.policy = await client.runtimePolicy(); } catch { /* none on this backend */ }
+  };
+  /** @type {Map<string, Promise<void>>} */
+  const policyReads = new Map();
+  ctx.loadChatPolicy = (chat, fresh = false) => {
+    if (!chat || (!fresh && policyReads.has(chat))) return chat ? policyReads.get(chat) || null : null;
+    const read = client.chatRuntimePolicy(chat).then((p) => { state.chatPolicy[chat] = p; ctx.soon(); }, () => { /* the Space's applies */ });
+    policyReads.set(chat, read);
+    return read;
+  };
   ctx.loadPolicies = async () => {
-    try { state.policy = await client.runtimePolicy(); } catch { return; }
-    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (/** @type {Row} */ p) => {
-      try { state.chatPolicy[p.chatId] = await client.chatRuntimePolicy(p.chatId); } catch { /* the Space's applies */ }
-    });
+    await ctx.loadSpacePolicy();
+    if (!state.policy) return;
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => ctx.loadChatPolicy(p.chatId, true));
     emit();
   };
 

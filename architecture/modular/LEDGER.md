@@ -1,17 +1,17 @@
-# Ledger: every file of xo-coworker at 5a2b078 and its new home
+# Ledger: every file of xo-coworker at f0144d5 and its new home
 
 Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not edit by hand. Statuses: **planned** (one home), **split** (several homes; the items inside carry their own), **vendor** (kept as-is), **decide** (waits for the owner), and once the move runs **moved**, **kept**, **deleted** (with a reason). `tools/ledger/check_ledger.py` fails if a file of the base commit is missing here or has no home; `--final` fails until nothing is planned or undecided.
 
 | Status | Files |
 |---|---:|
-| moved | 458 |
-| vendor | 367 |
-| deleted | 272 |
-| planned | 178 |
-| split | 34 |
-| kept | 4 |
+| moved | 461 |
+| vendor | 377 |
+| deleted | 336 |
+| planned | 181 |
+| kept | 56 |
+| split | 35 |
 
-Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394, deleted 116, kept 2, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1050, planned 758, split-region 389, kept 168, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -19,61 +19,67 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 |---|---:|---|---|
 | `.gitignore` |  | kept | .gitignore · next: ignores node_modules and the design work kept outside git |
 | `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
-| `README.md` | 191 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
+| `README.md` | 192 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
 | `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
-| `index.html` | 293 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) · next: the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint |
-| `serve.py` | 540 | planned | serve.py (kept; apps-host routes added in phase 7) · next: the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page |
+| `index.html` | 299 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) · next: the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint |
+| `serve.py` | 714 | kept | serve.py |
 | `start.sh` | 29 | kept | start.sh · next: unchanged |
 
-## js (79)
+## js (86)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/api.js` | 428 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
-| `js/app.js` | 4840 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
+| `js/accounts.js` | 134 | planned | modules/settings/accounts.js |
+| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
+| `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
 | `js/attach.js` | 270 | split | modules/composer/attachments.js, core/services/world/rows.js + sessions.js + threads.js, core/platform/util.js · next: attachmentsOf, titleOf and picDims are in core/services/world/rows.js, re-exported here |
-| `js/blocks.js` | 241 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
+| `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
+| `js/cardparts.js` | 255 | planned | modules/decisions/cardparts.js |
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |
 | `js/changesframe.js` | 323 | moved | modules/changes/frame.js · next: countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
-| `js/chats.js` | 452 | planned | modules/chats/ |
+| `js/chats.js` | 523 | planned | modules/chats/ |
 | `js/comms.js` | 173 | moved | core/services/comms.js |
-| `js/content.js` | 72 | moved | modules/decisions/rank.js |
+| `js/content.js` | 70 | moved | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
-| `js/decide.js` | 1104 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
+| `js/decide.js` | 1121 | split | modules/decisions/needs.js, modules/decisions/queue.js, modules/decisions/card.js, modules/decisions/panel.js, modules/decisions/toast.js |
 | `js/diffthemes.js` | 4 | moved | modules/changes/diffthemes.js · next: generated by tools/diffview/theme.mjs |
 | `js/diffview.js` | 421 | moved | modules/changes/diffview.js · next: js/diffview.js re-exports modules/changes/diffview.js until the shell renders panel.frame from places and the shims go |
-| `js/doceditor.js` | 290 | moved | modules/files/editor.js |
+| `js/doceditor.js` | 291 | moved | modules/files/editor.js |
 | `js/docs.js` | 420 | moved | modules/files/documents.js |
 | `js/drafts.js` | 61 | moved | modules/files/drafts.js |
 | `js/dropdown.js` | 321 | moved | core/ui/components/xo-select.js · next: js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets |
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
 | `js/files.js` | 940 | split | modules/files/tree, modules/files/ops, core/services/places.js, core/services/activity.js |
-| `js/filespage.js` | 150 | moved | modules/files/page.js |
+| `js/filespage.js` | 134 | moved | modules/files/page.js |
+| `js/flavours.js` | 20 | planned | core/ui/flavours.js |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
-| `js/follow.js` | 150 | moved | modules/conversation/follow.js |
+| `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
-| `js/gestures.js` | 451 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
+| `js/gestures.js` | 453 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
+| `js/ghpage.js` | 241 | planned | modules/github/page.js |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js · next: js/highlight.js re-exports it until the shims go |
 | `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: nothing imports the old path, so it leaves with no re-export |
-| `js/icon.js` | 24 | moved | core/ui/icons/icon.js · next: js/icon.js re-exports core/ui/icons/icon.js until the shims go |
+| `js/icon.js` | 30 | moved | core/ui/icons/icon.js · next: js/icon.js re-exports core/ui/icons/icon.js until the shims go |
 | `js/imagechange.js` | 120 | moved | modules/changes/imagechange.js · next: js/imagechange.js re-exports modules/changes/imagechange.js until the shell renders panel.frame from places and the shims go |
-| `js/intel.js` | 743 | planned | modules/intelligence/ |
-| `js/keynav.js` | 109 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
-| `js/keys.js` | 176 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
-| `js/kit.js` | 270 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
-| `js/launchpad.js` | 1166 | split | modules/launchpad/launchpad.js, modules/launchpad/store.js, modules/launchpad/views.js, modules/launchpad/system.js, modules/launchpad/actions.js, modules/launchpad/words.js · next: moved whole into modules/launchpad/, typed and split under 400 lines; app.js still calls createLaunchpad and hands the section to the panel until the shell hosts panel.frame and header.action |
+| `js/intel.js` | 749 | planned | modules/intelligence/ |
+| `js/keynav.js` | 118 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
+| `js/keys.js` | 182 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
+| `js/kit.js` | 265 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
+| `js/launchpad.js` | 1144 | split | modules/launchpad/launchpad.js, modules/launchpad/store.js, modules/launchpad/views.js, modules/launchpad/system.js, modules/launchpad/actions.js, modules/launchpad/words.js · next: moved whole into modules/launchpad/, typed and split under 400 lines; app.js still calls createLaunchpad and hands the section to the panel until the shell hosts panel.frame and header.action |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation (the pictures it lends the lightbox) · next: the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves |
 | `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
+| `js/lppage.js` | 48 | moved | modules/launchpad/page.js |
+| `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
-| `js/media.js` | 609 | split | modules/conversation/media/, core/ui/media (layout) |
+| `js/media.js` | 612 | split | modules/conversation/media/, core/ui/media (layout) |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | planned | modules/threads/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
-| `js/msgx.js` | 917 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
+| `js/msgx.js` | 918 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
 | `js/pacing.js` | 67 | moved | modules/decisions/pacing.js |
 | `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | moved | modules/decisions/cards/paid.js |
@@ -81,14 +87,14 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: every importer points at core/platform/pending.js, so it leaves with no re-export |
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
-| `js/record.js` | 340 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
-| `js/recordview.js` | 855 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the Artifacts page in modules/artifacts/page.js; the dead Since card is deleted; the Made tab, Home's strip and ⌘K wait for modules/artifacts |
+| `js/record.js` | 342 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
+| `js/recordview.js` | 857 | split | modules/artifacts, modules/since · next: Since you left (seen marks, the worktrees' git words, the line, Home's lines, Got it) is in modules/since/view.js; the preview queue and its device cache in modules/artifacts/previews.js; the cards in modules/artifacts/cards.js; what was made (the backend's pages, the fallback, pins) in modules/artifacts/store.js; the Artifacts page in modules/artifacts/page.js; the dead Since card is deleted; the Made tab, Home's strip and ⌘K wait for modules/artifacts |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js · next: js/redraw.js re-exports core/ui/redraw.js until the shims go |
 | `js/review.js` | 153 | moved | core/services/review.js |
-| `js/rich.js` | 281 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
+| `js/rich.js` | 282 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
-| `js/runsview.js` | 138 | planned | modules/threads/runs/ |
+| `js/runsview.js` | 168 | planned | modules/threads/runs/ |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
 | `js/shape.js` | 731 | moved | core/services/shape/ · next: every importer points at the new home, so it leaves with no re-export |
@@ -96,92 +102,117 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
+| `js/sideorder.js` | 28 | planned | shell/rail/order.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
-| `js/stage.js` | 870 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
-| `js/storm.js` | 1242 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |
-| `js/timeline.js` | 816 | split | core/services/world/rows.js + sessions.js + threads.js, modules/conversation/model.js, modules/threads, modules/decisions · next: its normalisers are in core/services/world (rows, sessions, threads), re-exported here; the rest is the views' |
-| `js/turnview.js` | 331 | planned | modules/conversation/blocks/turn.js |
-| `js/ui.js` | 397 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
+| `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
+| `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |
+| `js/timeline.js` | 840 | split | core/services/world/rows.js + sessions.js + threads.js, modules/conversation/model.js, modules/threads, modules/decisions · next: its normalisers are in core/services/world (rows, sessions, threads), re-exported here; the rest is the views' |
+| `js/turnview.js` | 395 | planned | modules/conversation/blocks/turn.js |
+| `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
-| `js/viewer.js` | 1157 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
+| `js/viewer.js` | 1158 | split | modules/files/viewer, modules/files/documents (external-change intake), modules/changes/file-diff |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |
 | `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) · next: js/world.js re-exports the store and the platform's esc until the shims go |
-| `js/xoicons.js` | 390 | moved | core/ui/icons/xoicons.js · next: generated by tools/xoicons/build.mjs; js/xoicons.js re-exports it until the shims go |
+| `js/xoicons.js` | 391 | moved | core/ui/icons/xoicons.js · next: generated by tools/xoicons/build.mjs; js/xoicons.js re-exports it until the shims go |
 
-## css (18)
-
-| File | Lines | Status | New home |
-|---|---:|---|---|
-| `css/app.css` | 3154 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
-| `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css · next: css/artifacts.css imports it, and keeps the phone pin's background-image !important until the sheet gets its @layer |
-| `css/base.css` | 52 | moved | core/ui/foundation.css |
-| `css/diffs.css` | 245 | planned | modules/changes/diffs.css |
-| `css/docs.css` | 141 | planned | modules/files/editor/docs.css |
-| `css/dropdown.css` | 52 | moved | core/ui/components/xo-select.css |
-| `css/foundation.css` | 267 | split | core/ui/foundation.css, modules/* (structure rules) |
-| `css/launchpad.css` | 438 | split | modules/launchpad/launchpad.css, modules/launchpad/system.css, modules/launchpad/cover.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
-| `css/light.css` | 85 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
-| `css/links.css` | 104 | planned | modules/conversation/links.css |
-| `css/media.css` | 127 | planned | modules/conversation/media/media.css |
-| `css/msgx.css` | 408 | planned | modules/conversation/msgx.css |
-| `css/panel.css` | 645 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
-| `css/phone.css` | 293 | split | shell/phone.css, modules/* (phone blocks) |
-| `css/rich.css` | 232 | moved | core/ui/markdown/rich.css |
-| `css/shape.css` | 74 | split | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
-| `css/side.css` | 164 | planned | shell/sidebar.css |
-| `css/tokens.css` | 245 | moved | core/ui/tokens.css |
-
-## tests-unit (165)
+## css (19)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/agent-marks.test.mjs` | 40 | planned | core/ui (agent marks)/tests/agent-marks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `css/app.css` | 3148 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
+| `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css |
+| `css/base.css` | 58 | moved | core/ui/foundation.css |
+| `css/diffs.css` | 243 | planned | modules/changes/diffs.css |
+| `css/docs.css` | 143 | planned | modules/files/editor/docs.css |
+| `css/dropdown.css` | 51 | moved | core/ui/components/xo-select.css |
+| `css/flavours.css` | 477 | split | css/flavours.css, css/flavour-swatches.css |
+| `css/foundation.css` | 246 | split | core/ui/foundation.css, modules/* (structure rules) |
+| `css/launchpad.css` | 291 | split | modules/launchpad/launchpad.css, modules/launchpad/system.css, modules/launchpad/cover.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
+| `css/light.css` | 67 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
+| `css/links.css` | 97 | planned | modules/conversation/links.css |
+| `css/media.css` | 129 | planned | modules/conversation/media/media.css |
+| `css/msgx.css` | 407 | planned | modules/conversation/msgx.css |
+| `css/panel.css` | 681 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
+| `css/phone.css` | 286 | split | shell/phone.css, modules/* (phone blocks) |
+| `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
+| `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
+| `css/side.css` | 158 | planned | shell/sidebar.css |
+| `css/tokens.css` | 301 | moved | core/ui/tokens.css |
+
+## tests-unit (214)
+
+| File | Lines | Status | New home |
+|---|---:|---|---|
+| `tests/accounts.test.mjs` | 69 | kept | tests/accounts.test.mjs |
+| `tests/active-turns.test.mjs` | 35 | kept | tests/active-turns.test.mjs |
+| `tests/agent-marks.test.mjs` | 47 | planned | core/ui (agent marks)/tests/agent-marks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/agent-tag.test.mjs` | 51 | planned | modules/map/tests/agent-tag.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/app-ctl-scale.test.mjs` | 55 | planned | core/ui (css guard)/tests/app-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/app-ctl-scale.test.mjs` | 44 | planned | core/ui (css guard)/tests/app-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/artifacts-preview.test.mjs` | 62 | planned | modules/artifacts/tests/artifacts-preview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/attach.test.mjs` | 208 | planned | modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/back-to-where.test.mjs` | 26 | kept | tests/back-to-where.test.mjs |
+| `tests/boot.test.mjs` | 101 | kept | tests/boot.test.mjs |
 | `tests/busy.test.mjs` | 471 | planned | core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/button-fill.test.mjs` | 62 | kept | tests/button-fill.test.mjs |
+| `tests/captions.test.mjs` | 24 | kept | tests/captions.test.mjs |
+| `tests/card-family.test.mjs` | 158 | kept | tests/card-family.test.mjs |
 | `tests/card-ring.test.mjs` | 33 | planned | core/ui (css guard)/tests/card-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/cardparts.test.mjs` | 154 | kept | tests/cardparts.test.mjs |
 | `tests/changes.test.mjs` | 215 | moved | modules/changes/tests/changes.test.mjs |
+| `tests/chats-list.test.mjs` | 152 | kept | tests/chats-list.test.mjs |
 | `tests/checklist-empty.test.mjs` | 27 | planned | modules/threads/tests/checklist-empty.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/codemirror-vendor.test.mjs` | 97 | planned | modules/vendor/tests/codemirror-vendor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/composer-popover-height.test.mjs` | 26 | kept | tests/composer-popover-height.test.mjs |
+| `tests/composer-row-size.test.mjs` | 34 | kept | tests/composer-row-size.test.mjs |
+| `tests/concentric.test.mjs` | 53 | kept | tests/concentric.test.mjs |
 | `tests/conn-line.test.mjs` | 33 | planned | modules/composer/tests/conn-line.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-ctl-scale.test.mjs` | 80 | planned | core/ui (css guard)/tests/conv-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-find-ring.test.mjs` | 21 | planned | core/ui (css guard)/tests/conv-find-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/conv-ctl-scale.test.mjs` | 77 | planned | core/ui (css guard)/tests/conv-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/conv-find-ring.test.mjs` | 14 | planned | core/ui (css guard)/tests/conv-find-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/conv-herald-resolve.test.mjs` | 73 | planned | modules/threads/tests/conv-herald-resolve.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/conv-sound.test.mjs` | 110 | planned | core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/copied-speaker.test.mjs` | 21 | kept | tests/copied-speaker.test.mjs |
 | `tests/copy-path-fail.test.mjs` | 57 | planned | modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/cover-inert.test.mjs` | 28 | planned | shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/create-busy-honest.test.mjs` | 33 | moved | modules/create-project/tests/create-busy-honest.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs); its two app-wide ARIA rules stay source checks |
 | `tests/create.test.mjs` | 51 | moved | modules/create-project/tests/create.test.mjs |
 | `tests/css-wellformed.test.mjs` | 80 | planned | core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ctl-heights.test.mjs` | 25 | planned | core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ctl-scale.test.mjs` | 181 | planned | core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/design-budget.test.mjs` | 159 | planned | core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/ctl-scale.test.mjs` | 180 | planned | core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/design-budget.test.mjs` | 160 | planned | core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/details-toggle.test.mjs` | 22 | kept | tests/details-toggle.test.mjs |
 | `tests/diff-redraw-focus.test.mjs` | 43 | planned | modules/files/tests/diff-redraw-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/diffview.test.mjs` | 82 | planned | modules/files/tests/diffview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/disclosure-corners.test.mjs` | 20 | kept | tests/disclosure-corners.test.mjs |
 | `tests/dock-focus.test.mjs` | 62 | planned | modules/decisions/tests/dock-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/dock-reset.test.mjs` | 34 | kept | tests/dock-reset.test.mjs |
 | `tests/docs.test.mjs` | 348 | planned | modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/done-line.test.mjs` | 27 | kept | tests/done-line.test.mjs |
+| `tests/dots-motion.test.mjs` | 21 | kept | tests/dots-motion.test.mjs |
 | `tests/drafts.test.mjs` | 77 | planned | core/services/tests/drafts.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/dropdown-held.test.mjs` | 27 | planned | core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/edge-card.test.mjs` | 48 | kept | tests/edge-card.test.mjs |
 | `tests/edge-ring.test.mjs` | 18 | planned | core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/editor-caret.test.mjs` | 28 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read the source of that editor's caret handling; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/editor-exit.test.mjs` | 52 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test tested diffview's exitKeys, which only that editor used; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/edits.test.mjs` | 50 | planned | modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/field-ring.test.mjs` | 42 | planned | core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/event-lines.test.mjs` | 25 | kept | tests/event-lines.test.mjs |
+| `tests/field-ring.test.mjs` | 41 | planned | core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/file-cache.test.mjs` | 25 | planned | modules/files/tests/file-cache.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/files-stop-look.test.mjs` | 26 | planned | modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/files-stop-look.test.mjs` | 23 | planned | modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files-tree-scroll-fold.test.mjs` | 54 | planned | modules/files/tests/files-tree-scroll-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files.test.mjs` | 66 | planned | modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/find-bar.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-bar stylesheet (FIND_CSS); tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/find-race.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-key handling and its vendored source; tests/diffview.test.mjs checks the adapter offers no editor |
+| `tests/flavours.test.mjs` | 128 | kept | tests/flavours.test.mjs |
 | `tests/focus-back.test.mjs` | 55 | planned | core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/focus-fields.test.mjs` | 33 | kept | tests/focus-fields.test.mjs |
 | `tests/focusview.test.mjs` | 151 | planned | core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/follow-instance.test.mjs` | 30 | moved | modules/conversation/tests/follow-instance.test.mjs |
+| `tests/ghpage.test.mjs` | 81 | kept | tests/ghpage.test.mjs |
 | `tests/gone-thread-composer.test.mjs` | 33 | planned | modules/composer/tests/gone-thread-composer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/graph-focus.test.mjs` | 49 | planned | core/ui (css guard)/tests/graph-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/graph-focus.test.mjs` | 48 | planned | core/ui (css guard)/tests/graph-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/grip-ring.test.mjs` | 23 | planned | core/ui (css guard)/tests/grip-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/head-focus.test.mjs` | 26 | planned | modules/files/tests/head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/head-narrow.test.mjs` | 33 | planned | modules/files/tests/head-narrow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -189,23 +220,27 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tests/herald.test.mjs` | 65 | planned | modules/conversation/tests/herald.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/hover-census.test.mjs` | 55 | planned | core/ui (css guard)/tests/hover-census.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/hover-inks.test.mjs` | 33 | planned | core/ui (css guard)/tests/hover-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/hover-rings.test.mjs` | 41 | kept | tests/hover-rings.test.mjs |
+| `tests/hover-veil.test.mjs` | 42 | kept | tests/hover-veil.test.mjs |
 | `tests/icon-gap.test.mjs` | 24 | planned | core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/image-text-mode.test.mjs` | 28 | planned | modules/files/tests/image-text-mode.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/imagechange.test.mjs` | 34 | moved | modules/changes/tests/imagechange.test.mjs |
 | `tests/inverse-toast.test.mjs` | 56 | planned | core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/iq-one-path.test.mjs` | 22 | kept | tests/iq-one-path.test.mjs |
+| `tests/jump-projects.test.mjs` | 47 | kept | tests/jump-projects.test.mjs |
 | `tests/key-layer.test.mjs` | 20 | planned | shell (phone drawer)/tests/key-layer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keys-dispatch.test.mjs` | 87 | planned | core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/keys.test.mjs` | 48 | moved | core/platform/tests/keys.test.mjs |
-| `tests/launchpad.test.mjs` | 326 | moved | modules/launchpad/tests/launchpad.test.mjs |
+| `tests/launchpad.test.mjs` | 330 | moved | modules/launchpad/tests/launchpad.test.mjs |
 | `tests/layout-reads.test.mjs` | 25 | planned | modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/links-css.test.mjs` | 44 | planned | modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/logic.test.mjs` | 549 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/logic.test.mjs` | 550 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs) |
 | `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs) |
 | `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-phone-links.test.mjs` | 90 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/lp-phone-links.test.mjs` | 84 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-stop-notice.test.mjs` | 171 | moved | modules/launchpad/tests/lp-stop-notice.test.mjs · next: still reads app.js's notice() source; its rewrite as a behaviour test is owed |
 | `tests/main-clip.test.mjs` | 19 | planned | core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-focus-reveal.test.mjs` | 38 | planned | modules/map/tests/map-focus-reveal.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -214,24 +249,31 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tests/map-reach.test.mjs` | 33 | planned | modules/map/tests/map-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-tag-press.test.mjs` | 22 | planned | core/ui (css guard)/tests/map-tag-press.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map.test.mjs` | 108 | planned | modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/md-headings.test.mjs` | 30 | kept | tests/md-headings.test.mjs |
 | `tests/mdlive.test.mjs` | 108 | planned | modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/media.test.mjs` | 358 | planned | modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/menu-focus-fill.test.mjs` | 34 | planned | core/ui (css guard)/tests/menu-focus-fill.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/media.test.mjs` | 369 | planned | modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-focus-fill.test.mjs` | 35 | planned | core/ui (css guard)/tests/menu-focus-fill.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/menu-focus.test.mjs` | 33 | planned | modules/files/tests/menu-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-motion.test.mjs` | 20 | kept | tests/menu-motion.test.mjs |
 | `tests/menu-one-active.test.mjs` | 45 | planned | core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-open-unlit.test.mjs` | 35 | kept | tests/menu-open-unlit.test.mjs |
 | `tests/menu-successor.test.mjs` | 42 | planned | core/ui (menus, all modules)/tests/menu-successor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-type.test.mjs` | 32 | kept | tests/menu-type.test.mjs |
 | `tests/merge.test.mjs` | 81 | planned | modules/files/tests/merge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/names.test.mjs` | 24 | planned | modules/repo/tests/names.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/no-offedge.test.mjs` | 33 | planned | core/ui (css guard)/tests/no-offedge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/notice-clear.test.mjs` | 67 | planned | shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/notice-clear.test.mjs` | 70 | planned | shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/notice-kind.test.mjs` | 65 | planned | modules/conversation/tests/notice-kind.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/one-active.test.mjs` | 23 | planned | core/ui (lists)/tests/one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/pack-marks.test.mjs` | 58 | kept | tests/pack-marks.test.mjs |
+| `tests/pack-where-it-fits.test.mjs` | 135 | kept | tests/pack-where-it-fits.test.mjs |
 | `tests/page-no-hover.test.mjs` | 28 | planned | core/ui (css guard)/tests/page-no-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/paging.test.mjs` | 94 | planned | modules/conversation/tests/paging.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/paid.test.mjs` | 86 | planned | modules/settings/tests/paid.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/paint-a11y.test.mjs` | 40 | planned | modules/files/tests/paint-a11y.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/panel-shell.test.mjs` | 47 | planned | shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/panel-threads.test.mjs` | 97 | planned | modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/panel-parity.test.mjs` | 100 | kept | tests/panel-parity.test.mjs |
+| `tests/panel-shell.test.mjs` | 61 | planned | shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/panel-threads.test.mjs` | 103 | planned | modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/path-copy-inline.test.mjs` | 24 | planned | modules/files/tests/path-copy-inline.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/pending.test.mjs` | 37 | planned | core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-cascade.test.mjs` | 27 | planned | core/ui (css guard)/tests/phone-cascade.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -240,12 +282,12 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tests/phone-panel-go.test.mjs` | 40 | planned | shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/picker-keys.test.mjs` | 34 | planned | modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/pierre-find-focus.test.mjs` | 36 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test checked the local patch to the vendored edit.js; tests/diffview.test.mjs checks the adapter offers no editor |
-| `tests/press-inks.test.mjs` | 57 | planned | core/ui (css guard)/tests/press-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/press-keeps-node.test.mjs` | 231 | planned | core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/press-reach.test.mjs` | 114 | planned | core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/project-find-escape.test.mjs` | 21 | planned | shell (sidebar)/tests/project-find-escape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/press-inks.test.mjs` | 55 | planned | core/ui (css guard)/tests/press-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/press-keeps-node.test.mjs` | 250 | planned | core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/press-reach.test.mjs` | 113 | planned | core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/project-icons.test.mjs` | 40 | planned | modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/quickopen.test.mjs` | 95 | planned | modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/quickopen.test.mjs` | 103 | planned | modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rail-badge.test.mjs` | 17 | kept | tests/rail-badge.test.mjs |
 | `tests/rail-order.test.mjs` | 49 | moved | modules/settings/tests/rail-order.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
 | `tests/rec-undo-focus.test.mjs` | 26 | planned | modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reconcile-focus.test.mjs` | 32 | planned | core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -262,16 +304,20 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/routing-truth.test.mjs` | 45 | planned | modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/routing-words.test.mjs` | 26 | moved | modules/routing/tests/routing-words.test.mjs · next: rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test |
+| `tests/row-insets.test.mjs` | 54 | kept | tests/row-insets.test.mjs |
+| `tests/rows-in-place.test.mjs` | 52 | kept | tests/rows-in-place.test.mjs |
 | `tests/rtsettings.test.mjs` | 81 | moved | modules/runtimes/tests/rtsettings.test.mjs |
+| `tests/runs-page.test.mjs` | 59 | kept | tests/runs-page.test.mjs |
 | `tests/runs-stop-receipt.test.mjs` | 69 | planned | modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/runtimes.test.mjs` | 126 | planned | modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/saved-truth.test.mjs` | 43 | moved | modules/runtimes/tests/saved-truth.test.mjs · next: rewritten as a behaviour test: Settings › Runtimes driven on a DOM (tests/lib/dom.mjs), its saves answered by the test |
-| `tests/scroller-ring.test.mjs` | 171 | planned | core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/scroller-ring.test.mjs` | 174 | planned | core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-fold.test.mjs` | 32 | planned | modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-ring.test.mjs` | 16 | planned | core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/send-calm.test.mjs` | 23 | kept | tests/send-calm.test.mjs |
 | `tests/send-gate.test.mjs` | 36 | planned | modules/composer/tests/send-gate.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/send-notice.test.mjs` | 36 | planned | modules/composer/tests/send-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/serve.test.py` | 489 | planned | modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/serve.test.py` | 615 | planned | modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/settings-css.test.mjs` | 20 | planned | core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shape-held.test.mjs` | 42 | moved | modules/settings/tests/shape-held.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
 | `tests/shape-unkept.test.mjs` | 29 | moved | modules/settings/tests/shape-unkept.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
@@ -279,28 +325,39 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tests/shell-grip.test.mjs` | 35 | planned | core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shells.test.mjs` | 125 | planned | shells/tests/shells.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/side-bar.test.mjs` | 80 | planned | shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/side-calm-order.test.mjs` | 100 | kept | tests/side-calm-order.test.mjs |
 | `tests/side-fold.test.mjs` | 45 | planned | shell (sidebar)/tests/side-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/side-spacing.test.mjs` | 17 | planned | core/ui (css guard)/tests/side-spacing.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/side-spacing.test.mjs` | 14 | planned | core/ui (css guard)/tests/side-spacing.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/sidebar-hover.test.mjs` | 27 | planned | core/ui (css guard)/tests/sidebar-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/stage-inplace.test.mjs` | 24 | planned | shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/stage-pages.test.mjs` | 59 | planned | shell (panel host)/tests/stage-pages.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/space-scale.test.mjs` | 38 | kept | tests/space-scale.test.mjs |
+| `tests/speaker-names.test.mjs` | 72 | kept | tests/speaker-names.test.mjs |
+| `tests/stage-head-back.test.mjs` | 51 | kept | tests/stage-head-back.test.mjs |
+| `tests/stage-inplace.test.mjs` | 23 | planned | shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/stage-list-edge.test.mjs` | 22 | kept | tests/stage-list-edge.test.mjs |
+| `tests/stage-pages.test.mjs` | 137 | planned | shell (panel host)/tests/stage-pages.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/stale-pass.test.mjs` | 47 | planned | core/ui (css guard)/tests/stale-pass.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/start-centred.test.mjs` | 16 | planned | core/ui (css guard)/tests/start-centred.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/stalled-own-message.test.mjs` | 77 | kept | tests/stalled-own-message.test.mjs |
+| `tests/start-centred.test.mjs` | 23 | planned | core/ui (css guard)/tests/start-centred.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/state-hover.test.mjs` | 127 | planned | core/ui (css guard, all modules)/tests/state-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/step-line-face.test.mjs` | 15 | kept | tests/step-line-face.test.mjs |
 | `tests/stopped-on-purpose.test.mjs` | 145 | planned | modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/storm.test.mjs` | 401 | planned | core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/target-bounded.test.mjs` | 26 | planned | core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/target-bounded.test.mjs` | 29 | planned | core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/targets-css.test.mjs` | 74 | planned | core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/thread-filter.test.mjs` | 55 | planned | modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/thread-menu.test.mjs` | 43 | planned | modules/threads/tests/thread-menu.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/thread-page.test.mjs` | 136 | planned | modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/turnview.test.mjs` | 249 | planned | modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/thread-page.test.mjs` | 166 | planned | modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/thread-spawn-session.test.mjs` | 69 | kept | tests/thread-spawn-session.test.mjs |
+| `tests/turn-split-notes.test.mjs` | 30 | kept | tests/turn-split-notes.test.mjs |
+| `tests/turnview.test.mjs` | 307 | planned | modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/type-faces.test.mjs` | 46 | kept | tests/type-faces.test.mjs |
+| `tests/type-roles.test.mjs` | 70 | kept | tests/type-roles.test.mjs |
 | `tests/viewer-busy.test.mjs` | 43 | planned | modules/files/tests/viewer-busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/viewer-errors.test.mjs` | 25 | planned | modules/files/tests/viewer-errors.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/viewer-head-focus.test.mjs` | 18 | planned | modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/viewer-hooks.test.mjs` | 37 | planned | modules/files/tests/viewer-hooks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/words.test.mjs` | 47 | moved | modules/conversation/tests/words.test.mjs · next: still reads the source for the two imports; its rewrite as a behaviour test is owed |
-| `tests/xoicons.test.mjs` | 104 | planned | core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/xoicons.test.mjs` | 114 | planned | core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 
 ## tests-browser (10)
 
@@ -309,7 +366,7 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/flows.test.cjs` | 4382 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/flows.test.cjs` | 4372 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs |
 | `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
@@ -338,13 +395,23 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `presets/engineering.json` | 40 | moved | core/services/shape/presets/engineering.json · next: served beside the shape store that reads it |
 | `presets/marketing.json` | 43 | moved | core/services/shape/presets/marketing.json · next: served beside the shape store that reads it |
 
-## fonts (3)
+## fonts (13)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
+| `fonts/dm-sans/OFL.txt` | 93 | vendor | fonts/dm-sans/OFL.txt |
+| `fonts/dm-sans/dm-sans-latin-ext-wght-italic.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-ext-wght-italic.woff2 |
+| `fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2 |
+| `fonts/dm-sans/dm-sans-latin-wght-italic.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-wght-italic.woff2 |
+| `fonts/dm-sans/dm-sans-latin-wght-normal.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-wght-normal.woff2 |
 | `fonts/geist/Geist-Variable.woff2` |  | planned | core/ui/fonts/geist/Geist-Variable.woff2 |
 | `fonts/geist/GeistMono-Variable.woff2` |  | planned | core/ui/fonts/geist/GeistMono-Variable.woff2 |
 | `fonts/geist/LICENSE.txt` | 92 | planned | core/ui/fonts/geist/LICENSE.txt |
+| `fonts/jetbrains-mono/OFL.txt` | 93 | vendor | fonts/jetbrains-mono/OFL.txt |
+| `fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2 |
+| `fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2 |
+| `fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2 |
+| `fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2 |
 
 ## vendor (371)
 
@@ -722,7 +789,7 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `js/vendor/xterm/xterm.css` | 285 | vendor | vendor/xterm/xterm.css |
 | `js/vendor/xterm/xterm.mjs` | 53 | vendor | vendor/xterm/xterm.mjs |
 
-## assets (385)
+## assets (386)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
@@ -739,6 +806,7 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `assets/icons/xo/a-places-and-the-frame/menu.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/menu.svg |
 | `assets/icons/xo/a-places-and-the-frame/moon.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/moon.svg |
 | `assets/icons/xo/a-places-and-the-frame/more.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/more.svg |
+| `assets/icons/xo/a-places-and-the-frame/open-in-main.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/open-in-main.svg |
 | `assets/icons/xo/a-places-and-the-frame/panel-right.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/panel-right.svg |
 | `assets/icons/xo/a-places-and-the-frame/plus.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/plus.svg |
 | `assets/icons/xo/a-places-and-the-frame/project.svg` | 1 | moved | core/ui/icons/source/xo/a-places-and-the-frame/project.svg |
@@ -1000,7 +1068,7 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `assets/icons/xo/m-editing-and-text/underline.svg` | 1 | moved | core/ui/icons/source/xo/m-editing-and-text/underline.svg |
 | `assets/icons/xo/m-editing-and-text/unlink.svg` | 1 | moved | core/ui/icons/source/xo/m-editing-and-text/unlink.svg |
 | `assets/icons/xo/m-editing-and-text/unpin.svg` | 1 | moved | core/ui/icons/source/xo/m-editing-and-text/unpin.svg |
-| `assets/icons/xo/manifest.json` | 3081 | moved | core/ui/icons/source/xo/manifest.json |
+| `assets/icons/xo/manifest.json` | 3089 | moved | core/ui/icons/source/xo/manifest.json |
 | `assets/icons/xo/n-people-status-and-time/alarm.svg` | 1 | moved | core/ui/icons/source/xo/n-people-status-and-time/alarm.svg |
 | `assets/icons/xo/n-people-status-and-time/app-badge.svg` | 1 | moved | core/ui/icons/source/xo/n-people-status-and-time/app-badge.svg |
 | `assets/icons/xo/n-people-status-and-time/battery.svg` | 1 | moved | core/ui/icons/source/xo/n-people-status-and-time/battery.svg |
@@ -1225,7 +1293,7 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `ui-mockups/create-project/tools/variants.cjs` | 63 | deleted | moved to the design archive (owner D4) |
 | `ui-mockups/create-project/tools/verify.cjs` | 33 | deleted | moved to the design archive (owner D4) |
 
-## design-research (127)
+## design-research (186)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
@@ -1341,6 +1409,65 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `design-research/2026-11-19-threads-panel/thread-page/focus-dark.png` |  | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-19-threads-panel/thread-page/mock.cjs` | 71 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-19-threads-panel/thread-page/phone-dark.png` |  | deleted | moved to the design archive (owner D4) |
+| `design-research/2026-11-20-flavours/README.md` | 216 | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/appearance-dark-ember.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/appearance-dark-harbor.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/appearance-dark-onyx.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/appearance-light-ember.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/appearance-light-slate.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-deep-edges.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-dusk.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-harbor.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-midnight-edges.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-onyx-edges.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-onyx.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-plum.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-sand.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-slate.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-dark-stone.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-light-harbor.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-light-plum.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-light-sand.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-light-slate.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/home-light-stone.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/settings-dark-sand.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/sheet-dark.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-20-flavours/shots/sheet-light.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/PROPOSAL.md` | 68 | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/dark-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/dark-2-prs.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/dark-3-pr.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/dark-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/light-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/light-2-prs.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/light-3-pr.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/light-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/real-dark-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/real-dark-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/real-dark-5-work.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/real-light-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/real-light-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/real-light-5-work.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-dark-0-panel.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-dark-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-dark-2-prs.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-dark-3-pr.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-dark-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-light-0-panel.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-light-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-light-2-prs.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-light-3-pr.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v2-light-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-dark-0-panel.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-dark-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-dark-2-prs.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-dark-3-pr.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-dark-4-issue.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-light-0-panel.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-light-1-issues.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-light-2-prs.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-light-3-pr.png` |  | deleted | Release research material outside the application tree |
+| `design-research/2026-11-23-github-page/shots/v3-light-4-issue.png` |  | deleted | Release research material outside the application tree |
 | `design-research/2026-11-chatview/hardcoded-positioning-audit.md` | 309 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-chatview/shots-gaps/composer-gap-before-after.png` |  | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-chatview/shots-gaps/coordinator-violet-before-after.png` |  | deleted | moved to the design archive (owner D4) |
@@ -1356,6 +1483,16 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `design-research/2026-11-vision/canvas-editing/files-as-editor.md` | 171 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/canvas-editing/vscode-behaviours.md` | 177 | deleted | moved to the design archive (owner D4) |
 | `design-research/2026-11-vision/launchpad/tools/mockspace.cjs` | 133 | moved | e2e/fixtures/mockspace-harness.cjs |
+
+## other (5)
+
+| File | Lines | Status | New home |
+|---|---:|---|---|
+| `perf-2026-11-20/FINDINGS.md` | 97 | deleted | Release research material outside the application tree |
+| `perf-2026-11-20/out.json` | 2916 | deleted | Release research material outside the application tree |
+| `perf-2026-11-20/out2.json` | 6934 | deleted | Release research material outside the application tree |
+| `perf-2026-11-20/probe.mjs` | 117 | deleted | Release research material outside the application tree |
+| `perf-2026-11-20/probe2.mjs` | 113 | deleted | Release research material outside the application tree |
 
 ## tools/codemirror (1)
 
@@ -1387,7 +1524,7 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tools/diffview/rows.cjs` | 50 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/sandbox-preview.cjs` | 61 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/sandbox.cjs` | 24 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
-| `tools/diffview/theme.mjs` | 155 | planned | tools/diffview/ (generates the diff themes) |
+| `tools/diffview/theme.mjs` | 156 | planned | tools/diffview/ (generates the diff themes) |
 | `tools/diffview/vendor.mjs` | 132 | planned | tools/diffview/vendor.mjs (vendor hash manifests) |
 
 ## tools/files (2)
@@ -1407,6 +1544,12 @@ Items inside first-party files: 2290 (moved 1017, planned 760, split-region 394,
 | `tools/filetree/lib.mjs` | 56 | deleted | a one-off probe with machine paths (owner D6) |
 | `tools/filetree/perf.mjs` | 51 | deleted | a one-off probe with machine paths (owner D6) |
 | `tools/filetree/same.mjs` | 59 | deleted | a one-off probe with machine paths (owner D6) |
+
+## tools/flavours (1)
+
+| File | Lines | Status | New home |
+|---|---:|---|---|
+| `tools/flavours/build.mjs` | 149 | kept | tools/flavours/build.mjs |
 
 ## tools/launchpad (2)
 

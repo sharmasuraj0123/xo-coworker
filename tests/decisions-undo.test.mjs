@@ -44,9 +44,12 @@ assert.equal(D.needItems().find((n) => n.t.id === "t2").group, "rope", "a destru
 
 // the card, as the conversation's dock draws it: the ask's words and its two answers
 const card = D.cardHtml(n1, "dock");
-assert.match(card, /<h3 class="c-h" id="card-h-\d+"><span class="h-verb">Run<\/span> a command<\/h3><p class="nx-cmd"><code>npm test<\/code><\/p>/);
+const cardView = document.createElement("div");
+cardView.innerHTML = card;
+assert.equal(cardView.querySelector(".c-h").textContent, "Run a command");
+assert.equal(cardView.querySelector(".c-ev code").textContent, "npm test");
 assert.match(card, /data-act="allow" title="Allow \(A\)"/); assert.match(card, /data-act="back" title="Send back with a note \(D\)"/);
-assert.match(card, /Standing rule for demo: you may run &quot;npm test&quot; without asking\./, "the rule it would teach, word for word");
+assert.match(cardView.querySelector(".teach-q").textContent, /Standing rule for demo: you may run "npm test" without asking\./);
 
 // a destructive ask is never allowed by a key or a click: only the hold
 assert.equal(D.decideNow("perm_2|Run: git push --force", "allow"), false);

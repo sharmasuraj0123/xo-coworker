@@ -2,12 +2,10 @@
 
 // Files, a page of the right panel: the tree and the open file beside the chat, the tree folding to a rail (⌘B).
 
-import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { ICON } from "../../core/ui/icons/names.js";
 
 const TW_KEY = "xo-files-tree", TW_DEF = 240, TW_MIN = 160, TW_MAX = 420;
 const FOLD_KEY = "xo-files-folds"; // {tree: "open" | "folded"}: what you chose, per browser
-const FILE_W = 640, RAIL_W = 44;   // the file's own width at first; the tree beside it, or its rail
 
 /** @param {{ stage: any, files: any, viewer: any, view: () => string, announce?: (s: string) => void }} deps */
 export function createFilesPage({ stage, files, viewer, view, announce = () => {} }) {
@@ -48,31 +46,27 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
       document.body.classList.add("fv-sizing");
       const left = body.getBoundingClientRect().left; // read once, at the press
       const move = (/** @type {PointerEvent} */ ev) => setTw(ev.clientX - left);
-      const up = () => { line.removeEventListener("pointermove", move); document.body.classList.remove("fv-sizing"); setTw(tw, true); stage.refit(); };
+      const up = () => { line.removeEventListener("pointermove", move); document.body.classList.remove("fv-sizing"); setTw(tw, true); };
       line.addEventListener("pointermove", move);
       line.addEventListener("pointerup", up, { once: true });
       line.addEventListener("pointercancel", up, { once: true });
     });
-    line.addEventListener("dblclick", () => { setTw(TW_DEF, true); stage.refit(); });
+    line.addEventListener("dblclick", () => { setTw(TW_DEF, true); });
     line.addEventListener("keydown", (e) => {
       if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
       e.preventDefault();
-      setTw(tw + (e.key === "ArrowRight" ? 16 : -16), true); stage.refit();
+      setTw(tw + (e.key === "ArrowRight" ? 16 : -16), true);
     });
   }
 
   const nameOf = (/** @type {any} */ f) => (f ? f.name || String(f.path || f.rel || "").split("/").pop() : "");
   // the tree follows the file the viewer shows: found and marked in its folder, and on a narrow panel (a phone) the file takes the tree's place.
-  let seen = /** @type {unknown} */ (null), had = false;
+  let seen = /** @type {unknown} */ (null);
   function follow() {
     const f = viewer.hasFile ? viewer.file : null;
     if (f !== seen) { seen = f; if (f && !files.auto) files.reveal(f); }
-    if (viewer.hasFile !== had) { had = viewer.hasFile; stage.refit(); }
   }
   stage.page("files", {
-    single: true,
-    // the file keeps 640 px, the tree its own width beside it (or its rail); never more than the room beside the chat's 560.
-    width: (/** @type {{ room: number }} */ { room }) => Math.max(480, Math.min(room, viewer.hasFile ? FILE_W + (treeOpen() ? tw + 1 : RAIL_W) : tw + 240)),
     title: () => (viewer.hasFile ? nameOf(viewer.file) : "Files"),
     // the one control that shows or hides the file list beside a file, first in the panel's head with the sidebar's own icon
     lead: () => {
@@ -81,7 +75,6 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
       return `<button type="button" class="stg-ic pg-lead" data-stg-act="tree" aria-pressed="${shown}" title="${shown ? "Hide" : "Show"} the files (⌘B)" aria-label="${shown ? "Hide" : "Show"} the files" aria-keyshortcuts="Meta+B Control+B">${ICON.sidebar}</button>`;
     },
     act: (/** @type {string} */ name) => { if (name === "tree") P.toggleTree({ focus: true }); },
-    icon: () => fileIcon(viewer.hasFile ? nameOf(viewer.file) : ""),
     mount: (/** @type {HTMLElement} */ host) => { host.append(pane); mountOnce(); },
     onShow: (/** @type {string} */ key, /** @type {{ focus?: boolean }} */ { focus } = {}) => {
       if (!pane.isConnected) return;
@@ -90,8 +83,8 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
       if (focus) (document.getElementById("viewer")?.hidden === false ? document.getElementById("viewer") : /** @type {HTMLElement | null} */ (body.querySelector(".fl-tree [data-fl-q]")))?.focus({ preventScroll: true });
     },
     onHide: () => files.hide(),
-    // the tab closes: the file goes (its unsaved text was saved or let go in canClose); the pane waits off the page
-    unmount: () => { if (viewer.hasFile) viewer.close({ restore: false }); files.hide(); pane.remove(); },
+    // the page closes: the file goes (unsaved text waits as a draft in this browser)
+    close: () => { if (viewer.hasFile) viewer.close({ restore: false }); files.hide(); },
     // unsaved files: Save, Don't save or Cancel (the viewer asks); nothing unsaved: yes at once
     canClose: () => viewer.confirmClose(),
     escape: () => viewer.escape(),
@@ -104,28 +97,21 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
   const P = {
     /** Show Files in the panel, on the file the viewer has (or the tree alone). focus: into the file. @param {{ focus?: boolean }} [o] */
     show({ focus = false } = {}) {
-      const f = viewer.hasFile ? viewer.file : null;
-      stage.show("files", f ? f.rel || f.path || nameOf(f) : "files", { focus });
+      stage.show("files", "files", { focus });
     },
     /** ⌘B or the head's control: the file list folds to its rail, or opens again (only while Files shows a file). @param {{ focus?: boolean }} [o] */
     toggleTree({ focus = false } = {}) {
       if (stage.pageShown?.name !== "files" || !viewer.hasFile) return false;
-      if (files.list(!files.listing)) { stage.refit(); refocus(focus); announce(files.listing ? "The files." : "The file."); return true; }
+      if (files.list(!files.listing)) { refocus(focus); announce(files.listing ? "The files." : "The file."); return true; }
       const open = !treeOpen();
       keepFold(open);
       files.fold(!open);
-      stage.refit();
       refocus(focus);
       announce(open ? "The files are beside the file." : "The files are folded: the file has the panel.");
       return true;
     },
-    /** The tree's own fold button (and its rail's icons) said so: kept, and the panel fits again. @param {boolean} folded */
-    treeFolded(folded) { keepFold(!folded); stage.refit(); },
-    /** Another place: the file closes (unsaved text waits as a draft), and so does the Files tab. */
-    reset() {
-      if (viewer.hasFile) viewer.close({ restore: false });
-      if (stage.pages().some((/** @type {{ name: string }} */ t) => t.name === "files")) stage.closeTab("files");
-    },
+    /** @param {boolean} folded */
+    treeFolded(folded) { keepFold(!folded); },
     get isOpen() { return stage.pageShown?.name === "files"; },
     /** Every app render: while Files shows, the tree follows the view (its marks, a new place) and the file. */
     sync() {

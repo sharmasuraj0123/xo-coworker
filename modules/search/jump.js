@@ -14,7 +14,7 @@ export function createJump({ host, field, list, places, actions, more, go, annou
 
   function render() {
     const q = field.value.trim().toLowerCase();
-    const all = places();
+    const all = places(q);
     // verbs, after the places and only when typed for: searching never runs one; Enter or a click does
     const verbs = q ? actions().filter((x) => x.name.toLowerCase().includes(q)) : [];
     jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, more(q));

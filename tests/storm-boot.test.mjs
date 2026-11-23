@@ -42,11 +42,11 @@ t("boot: frames during the load are held and applied after it, in order; the str
   assert.equal(events.filter((e) => e.kind === "spawn").length, 0, "no new-thread lines for what the load found");
 });
 
-t("boot: with no first frame the load starts after at most 4 s", async () => {
+t("boot: when the stream is unavailable the load starts without a first frame", async () => {
   const be = fakeBackend();
+  be.refuseStream(503, { message: "Stream temporarily unavailable" });
   const world = createWorld();
-  await until(() => be.conns.length === 1);
-  await until(() => world.state.loaded, 6000);
+  await until(() => world.state.loaded);
   assert.ok(be.count("GET", "/chat/chats") >= 1);
 });
 
@@ -129,7 +129,7 @@ t("an older backend: no runtime policy, intents or advisory; the rest still load
   const { world } = await boot(be);
   await settle(150);
   assert.equal(world.state.policy, null);
-  assert.equal(be.count("GET", "/chat/chats/chat_p/runtime-policy"), 0, "no project policy read without the Space's");
+  assert.equal(be.count("GET", "/chat/chats/chat_p/runtime-policy"), 1, "the project can have a policy of its own");
   assert.equal(world.state.paidOk, false);
   assert.deepEqual(world.state.paid, []);
   assert.equal(world.state.advisory, null);

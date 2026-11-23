@@ -1,6 +1,1 @@
 @import url("../modules/artifacts/artifacts.css");
-
-/* a phone's pin row: its press keeps no gradient */
-@media (max-width:760px){
-  .arts:not(.is-pics) .ar-grid .md-pin:active{background-image:none!important}
-}

@@ -8,7 +8,7 @@ const QUIET = 600; // ms without input before anything loads or draws
 const SLICE = 8; // ms of drawing before yielding to the page
 const MAX_TEX = 4000, MAX_DIAGRAM = 20000;
 const root = document.documentElement;
-const theme = () => (root.dataset.theme === "light" ? "light" : "dark");
+const theme = () => `${root.dataset.theme === "light" ? "light" : "dark"}:${root.dataset.flavour || "stone"}`;
 
 /** @type {Map<string, string>} */
 const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
@@ -16,6 +16,8 @@ const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
 
 /** @type {Map<string, Drawing>} */
 const DIAGRAMS = new Map(); // theme + "\n" + src → {html, theme}
+/** @type {Map<string, Drawing>} */
+const LATEST = new Map();
 /** @type {Map<string, string>} */
 const FAILED = new Map(); // src → why it couldn't be drawn (any theme)
 const cap = (/** @type {Map<string, unknown>} */ m, n = 600) => { if (m.size > n) m.delete(/** @type {string} */ (m.keys().next().value)); };
@@ -24,7 +26,7 @@ export function cachedMath(tex, display = false) { return MATH.get((display ? "D
 /** A diagram's drawing if drawn: {html, theme, w} for this theme (else the other's until redrawn), {error} if unreadable, else null. @param {string} src */
 export function cachedDiagram(src) {
   if (FAILED.has(src)) return { error: FAILED.get(src) };
-  return DIAGRAMS.get(theme() + "\n" + src) || DIAGRAMS.get((theme() === "dark" ? "light" : "dark") + "\n" + src) || null;
+  return DIAGRAMS.get(theme() + "\n" + src) || LATEST.get(src) || null;
 }
 setRich({ math: cachedMath, diagram: cachedDiagram });
 
@@ -140,7 +142,7 @@ async function mermaidFor(th) {
     const ink = v("--ink", "#eee"), ink2 = v("--ink-2", "#ccc"), ink3 = v("--ink-3", "#999"), line = v("--line-strong", "#555");
     const node = v("--fill-2", "#2a2a2a"), canvas = v("--canvas", "#141414"), soft = v("--fill-1", "#1d1d1d");
     mermaid.initialize({
-      startOnLoad: false, securityLevel: "strict", theme: "base", darkMode: th === "dark",
+      startOnLoad: false, securityLevel: "strict", theme: "base", darkMode: th.startsWith("dark"),
       fontFamily: getComputedStyle(document.body).fontFamily, fontSize: 14,
       flowchart: { curve: "basis", padding: 12, nodeSpacing: 40, rankSpacing: 48, htmlLabels: true },
       themeVariables: {
@@ -179,7 +181,7 @@ function diagramFor(src, th = theme()) {
       // drawn no wider than its viewBox and no narrower than 80 % of it: on a phone a wide diagram scrolls sideways
       const vb = /viewBox="[-\d.]+[ ,]+[-\d.]+[ ,]+([\d.]+)/.exec(svg);
       const got = { html: svg, theme: th, w: vb ? Math.round(+vb[1]) : null };
-      DIAGRAMS.set(key, got); cap(DIAGRAMS, 200);
+      DIAGRAMS.set(key, got); cap(DIAGRAMS, 200); LATEST.set(src, got); cap(LATEST, 200);
       return got;
     } catch (e) {
       FAILED.set(src, String((e && /** @type {any} */ (e).message) || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));
@@ -258,7 +260,7 @@ export function startRich() {
   let t = 0;
   new MutationObserver(() => { if (!t) t = setTimeout(() => { t = 0; if (document.querySelector(PENDING)) wake(); }, 50); })
     .observe(document.body, { childList: true, subtree: true });
-  new MutationObserver(() => { if (document.querySelector(".md-diagram.is-done")) wake(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  new MutationObserver(() => { if (document.querySelector(".md-diagram.is-done")) wake(); }).observe(root, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
   document.addEventListener("pointermove", chartHover, { passive: true });
   document.addEventListener("pointerout", chartLeave, { passive: true });
   if (document.querySelector(PENDING)) wake();

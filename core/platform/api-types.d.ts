@@ -91,8 +91,14 @@ export interface Api {
   cloneStatus(cloneId: Id): Json;
   cancelClone(cloneId: Id): Json;
   githubStatus(): Json;
-  githubConnect(): Json;
+  githubIssues(project: Id, refresh?: boolean): Json;
+  githubIssue(project: Id, number: Id | number): Json;
+  githubPulls(project: Id): Json;
+  githubPull(project: Id, number: Id | number): Json;
+  githubConnect(fresh?: boolean): Json;
   githubConnectPoll(sessionId: Id): Json;
+  githubConnectCancel(sessionId: Id): Json;
+  githubDisconnect(): Json;
 
   terminalStatus(): Json;
   terminals(query?: Query): Json;

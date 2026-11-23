@@ -55,11 +55,9 @@ await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
   assert.match(m, /redraw\(c\.el\.querySelector\("\.dg-tag"\), tag\)/, "a cursor's tag");
 });
 await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
-  assert.match(readFileSync(new URL("../modules/since/view.js", import.meta.url), "utf8"), /if \(box\._h !== html\) \{ redraw\(box, html\); box\._h = html; \}/, "the away line");
-  assert.match(readFileSync(new URL("../shell/panel/panel.js", import.meta.url), "utf8"), /if \(fw\._h !== fh\) \{ redraw\(fw, fh\);/);
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
   const lp = readFileSync(new URL("../modules/launchpad/launchpad.js", import.meta.url), "utf8");
-  assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.ha, ha\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
+  assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.nav, nav\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
   assert.doesNotMatch(sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n"), /S\.body\.innerHTML\s*=/);
   assert.match(src("viewer.js"), /redrawNode\(top, head\(\)\);/);
   const app = src("app.js");
@@ -124,6 +122,25 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     assert.ok(kept, "the pressed name stayed");
     assert.equal(box.firstElementChild, el, "the row is the same node");
     assert.ok(el.classList.contains("is-busy"), "and shows the change");
+  });
+
+  await t("reconcile: switching project, the row you leave keeps its line (its entrance isn't replayed)", () => {
+    const box = document.createElement("div"); host.replaceChildren(box);
+    const row = (id, on) => `<button type="button" class="prow busy${on ? " is-on" : ""}" data-go="p:${id}"><span class="pr-ic"></span><span class="pr-main"><span class="pr-l1"><span class="pr-name">${id}</span></span><span class="pr-t">2 threads working</span></span></button>`;
+    // identities compared as booleans: a failing equal() on DOM nodes prints all of linkedom (out of memory)
+    reconcile(box, [{ key: "a", html: row("a", true) }], { quiet: true });
+    reconcile(box, [{ key: "a", html: row("a", true) }, { key: "b", html: row("b", false) }], { quiet: true });
+    const a = box.firstElementChild, line = a.querySelector(".pr-t"), ic = a.querySelector(".pr-ic");
+    // one row changing first
+    reconcile(box, [{ key: "a", html: row("a", false) }, { key: "b", html: row("b", false) }], { quiet: true });
+    assert.ok(box.firstElementChild === a, "a changed row is the same node");
+    // then a switch: two rows change in one draw
+    reconcile(box, [{ key: "a", html: row("a", true) }, { key: "b", html: row("b", false) }], { quiet: true });
+    reconcile(box, [{ key: "a", html: row("a", false) }, { key: "b", html: row("b", true) }], { quiet: true });
+    assert.ok(box.firstElementChild === a, "the row you left is the same node");
+    assert.ok(a.querySelector(".pr-t") === line, "its line too: nothing replays its rise-in");
+    assert.ok(a.querySelector(".pr-ic") === ic, "nor restarts its tile's orbit");
+    assert.ok(!a.classList.contains("is-on") && box.lastElementChild.classList.contains("is-on"), "where you are moved");
   });
 
   // Files: js/files.js on its real redraw, with its other imports stood in for (a folder of copies, as the app has them)

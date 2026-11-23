@@ -1,7 +1,3 @@
+@import url("../modules/launchpad/window.css");
 @import url("../modules/launchpad/launchpad.css");
-@import url("../modules/launchpad/system.css");
-@import url("../modules/launchpad/cover.css");
-
-@media (prefers-reduced-motion:reduce){
-  .stage .fr-lp::before,.lpv-link::after,.lpm-l::after,.lp,.lp-arc::before,.lpv.is-skel *,.lpm.is-skel *,.lp-mn{animation:none!important}
-}
+@import url("../modules/launchpad/page.css");

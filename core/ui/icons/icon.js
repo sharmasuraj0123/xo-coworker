@@ -17,3 +17,9 @@ export function xi(name, cls = "", size = "") {
 
 /** Whether the pack has an icon by this name. @param {string} name */
 export const hasIcon = (name) => Object.prototype.hasOwnProperty.call(XI, name);
+
+/** @type {Record<string, string>} */
+const STATE = { working: "state-working", idle: "state-idle", needs_reply: "state-needs-you", needs_approval: "state-needs-you", done: "state-done", failed: "state-failed", stopped: "state-stopped", resolved: "state-resolved", held: "state-held", paused: "state-paused" };
+/** @param {string} state */
+export const stateMark = (state) => xi(STATE[state] || "state-idle", `g g-${state}`);
+export const ARC = `<i class="arc" aria-hidden="true">${xi("badge-working")}</i>`;

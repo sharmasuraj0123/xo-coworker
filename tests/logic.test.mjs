@@ -47,11 +47,11 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   try {
     const live = renderInline("[the panel](#cmsg_live)");
     assert.match(live, /class="lk lk-in lk-thread"/);
-    assert.match(live, /<i class="g g-working"/);
+    assert.match(live, /<svg class="xi g g-working"[^>]*data-xi="state-working"/);
     assert.match(live, /title="Working · thread"/);
     const gone = renderInline("[other](#cmsg_gone)");
     assert.match(gone, /is-unknown/);
-    assert.ok(!gone.includes('class="g '), gone);
+    assert.ok(!gone.includes(' g g-'), gone);
     // the app's word can never inject a class
     setThreadInfo(() => ({ state: 'x" onclick="1', word: "<b>", title: "t" }));
     const odd = renderInline("[t](#cmsg_odd)");
@@ -458,13 +458,14 @@ t("what a thread and its coordinators wrote each other shows in the thread", () 
     { id: "r", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 20, note: "A follow-up" },
     { id: "a", kind: "answer", from_role: "workspace-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 30, note: "Yes" },
     { id: "u", kind: "relay", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 40, note: "Which branch?" },
+    { id: "q", kind: "ask", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 45, note: "Is :3000 free?" },
     { id: "s", kind: "status", from_role: "thread", to_role: "project-coordinator", thread_ts: "cmsg_t", seq: 50, note: "Done" },
     { id: "k", kind: "ask", from_role: "project-coordinator", to_role: "workspace-coordinator", thread_ts: "cmsg_t", seq: 60, note: "On its behalf" },
     { id: "n", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_t", seq: 70 },
     { id: "o", kind: "relay", from_role: "project-coordinator", to_role: "thread", thread_ts: "cmsg_other", seq: 80, note: "Elsewhere" },
   ];
   const out = hopNotes(th, hops);
-  assert.deepEqual(out.map((x) => [x.id, x.dir, x.from, x.kind]), [["b", "down", "project", "brief"], ["r", "down", "project", "follow-up"], ["a", "down", "workspace", "answer"], ["u", "up", "thread", "relay"]]);
+  assert.deepEqual(out.map((x) => [x.id, x.dir, x.from, x.kind]), [["b", "down", "project", "brief"], ["r", "down", "project", "follow-up"], ["a", "down", "workspace", "answer"], ["u", "up", "thread", "relay"], ["q", "up", "thread", "ask"]]);
   assert.equal(out[0].text, "Build the UI.", "trimmed");
   assert.equal(out[0].at, Date.parse("2026-10-24T10:00:00Z"));
   assert.equal(out[0].seq, 10);

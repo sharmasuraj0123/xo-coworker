@@ -57,8 +57,6 @@ export function rank(items) {
     x.since - y.since);
 }
 
-/** @param {unknown} [_n] @returns {null} */
-export function suggestFor(_n) { return null; }
 
 /** @param {{ t: any, ask: any, group?: string }} n */
 export function whyLine(n) {

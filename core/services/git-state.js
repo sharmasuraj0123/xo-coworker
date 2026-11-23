@@ -1,5 +1,7 @@
 // @ts-check
 
+export const GIT_ICON = { unsaved: "edit", unpushed: "cloud-upload", unmerged: "pull-request", shipped: "merge" };
+
 // A thread's git state in words, from its worktree entry (`would_lose`, maybe `git`) or, on a newer backend, its branch's `git` state.
 
 /** @param {number} n @param {string} one @param {string} [many] */

@@ -1,16 +1,3 @@
-// The conversation's bubbles (with css/msgx.css): the shipped chat look and its behaviour, not an
-// experiment. It reads #msgs and decorates what app.js draws (it never changes the app's list), so the app
-// works without it, but the chat as designed needs it. Nothing here sends anything on its own: a reply
-// only adds a quote ("> …") to the message you send yourself.
-//
-//   The bubbles are a choice (owner, 19 Nov: Settings › General › Chat bubbles, off by default); when on, they're as
-//   finalised on 5 Nov: yours in XO's green, theirs on glass, a tail on the first bubble of each run.
-//   Replies:
-//     · hover a message: Reply and Copy on a small glass bar
-//     · select words in a message: "Reply to this" quotes exactly them
-//     · swipe a message right (trackpad or touch): reply, like WhatsApp
-//     · swipe left anywhere: every message's time slides in, like Messages
-//     · a sent reply shows its quote as a card in your bubble; press it to go back to the original
 
 import { ICON, xi } from "./ui.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "../modules/conversation/follow.js";
@@ -22,7 +9,7 @@ const root = document.documentElement;
 const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON.close, down: ICON.chevron, good: ICON.good, bad: ICON.bad };
 
 // The look keys off <html data-msgx="bubbles"> (and data-msgx-tails): set before the first paint (index.html) when
-// this device turned Chat bubbles on in Settings › General; without it the conversation reads as a document (core/ui/markdown/rich.css).
+// this device turned Chat bubbles on in Settings › Appearance; without it the conversation reads as a document.
 // The bubbles, when on, are as the owner finalised them on 5 Nov: XO's green for yours, tails on, every reply in a bubble.
 // Everything else here (Reply, Copy, swipes, back-to-latest, the working turn) works in both looks.
 // (the switch is app.js's chatBubbles/setChatBubbles: it writes the same two attributes and localStorage cv-bubbles)
@@ -30,7 +17,8 @@ const IC = { reply: ICON.reply, copy: ICON.copy, check: xi("check"), close: ICON
  * One conversation's decoration (P1 of a thread beside the coordinator's chat: two conversations on screen, each
  * decorated by its own call). E: { conv (the box the back-to-latest button sits in), msgs, scroller, typing,
  * composer, say, send, atList, dock, tdock, herald, host (where its docked-card classes go), follow
- * ({toLatest, fromLatest}), isThread() (its rows are a thread's: their agent's name is the thread's), main }.
+ * ({toLatest, fromLatest}), isThread() (its rows are a thread's: their agent's name is the thread's), project() (its
+ * place's project, when it isn't the sidebar's), main }.
  * The main chat's is called once at the end of this file, over the page's own elements.
  */
 export function decorateConversation(E) {
@@ -314,7 +302,7 @@ function cardSteps() {
 /** A project's coordinator wears the project's own icon (the one in the sidebar); XO's mark stays with the
  *  Workspace coordinator. In a thread, its violet ring still says "coordinator". */
 function projectMarks() {
-  const row = document.querySelector('#projects .prow.is-on[data-go^="p:"]');
+  const pid = E.project?.(), row = document.querySelector(pid ? `#projects .prow[data-go="p:${CSS.escape(pid)}"]` : '#projects .prow.is-on[data-go^="p:"]');
   const view = E.isThread() ? "thread" : document.getElementById("app").dataset.view;
   const ic = (view === "project" || view === "thread") && row && row.querySelector(".pr-ic svg");
   if (!ic) return;

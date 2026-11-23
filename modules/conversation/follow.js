@@ -8,7 +8,7 @@ import { RM } from "../../core/ui/motion.js";
 
 /** @typedef {{ scroller: ElOrGet, column: ElOrGet, msgs: ElOrGet, dock?: ElOrGet }} FollowEls */
 
-/** @typedef {{ fromLatest: () => number, fromTop: () => number, isPinned: () => boolean, toLatest: (smooth?: boolean) => void, unpin: (row?: Element | null) => void, toRow: (el: Element | null | undefined, smooth?: boolean) => void, init: () => void, destroy: () => void }} Follow */
+/** @typedef {{ fromLatest: () => number, fromTop: () => number, isPinned: () => boolean, toLatest: (smooth?: boolean) => void, toTop: () => void, unpin: (row?: Element | null) => void, toRow: (el: Element | null | undefined, smooth?: boolean) => void, init: () => void, destroy: () => void }} Follow */
 
 
 /** @param {FollowEls} els @returns {Follow} */
@@ -33,6 +33,10 @@ export function createFollow(els) {
     const s = sc();
     pinned = true;
     s.scrollTo({ top: s.scrollHeight, behavior: smooth && !RM.matches ? "smooth" : "auto" });
+  }
+  function toTop() {
+    pinned = false; held = false;
+    sc().scrollTop = 0; lastTop = 0;
   }
   /** @param {Element | null} [row] */
   function unpin(row) {
@@ -110,11 +114,12 @@ export function createFollow(els) {
     ro.observe(column); ro.observe(s);
   }
   function destroy() { ro?.disconnect(); ro = null; if (onScroll) sc()?.removeEventListener("scroll", onScroll); onScroll = null; }
-  return { fromLatest, fromTop, isPinned, toLatest, unpin, toRow, init, destroy };
+  return { fromLatest, fromTop, isPinned, toLatest, toTop, unpin, toRow, init, destroy };
 }
 
 const MAIN = createFollow({ scroller: () => document.getElementById("scroller"), column: () => document.getElementById("column"), msgs: () => document.getElementById("msgs"), dock: () => document.getElementById("dock") });
 export const fromLatest = () => MAIN.fromLatest();
+export const toTop = () => MAIN.toTop();
 export const fromTop = () => MAIN.fromTop();
 export const isPinned = () => MAIN.isPinned();
 export const toLatest = (smooth = false) => MAIN.toLatest(smooth);

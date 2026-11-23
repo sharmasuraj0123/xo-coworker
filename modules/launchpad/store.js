@@ -1,20 +1,17 @@
 // @ts-check
-
-// What Space says about each project, and its deploy stream, one event at a time; and the screen and head that follow from them.
 import { appState } from "./model.js";
 import { NODES, NEEDS_YOU, WORD, CACHE, AGAIN_MS, ERR_MS, AFTER, newRun, slug, failWords } from "./words.js";
 
-/** Adds the store to the section's shared state L. @param {any} L */
+/** @param {any} L */
 export function installStore(L) {
-  const { api, S, proj, changed, land, announce, endStop, nameOf, findThread, notify, cached } = L;
-
-  /** A read that will write the project's check takes a ticket; an older answer never overwrites a newer one. @param {any} s */
+  const { api, S, proj, changed, land, announce, endStop, nameOf, findThread, tell, cached } = L;
+  /** @param {{seq?: number}} s */
   const ticket = (s) => (s.seq = (s.seq || 0) + 1);
-  /** @param {any} s @param {number} n */
+  /** @param {{applied?: number}} s @param {number} n */
   const current = (s, n) => { if (n <= (s.applied || 0)) return false; s.applied = n; return true; };
-  /** A later read's answer has already applied: this one's outcome, success or refusal, changes nothing. @param {any} s @param {number} n */
+  /** @param {{applied?: number}} s @param {number} n */
   const stale = (s, n) => n <= (s.applied || 0);
-  /** A recheck asked for (loud) says what the project's current check says about GitHub, whichever read answered last. @param {any} s */
+  /** @param {{loud: boolean, ghErr: string | null, check: {github?: {workflow?: boolean}}}} s */
   const sayGitHub = (s) => { s.loud = false; s.ghErr = null; announce(s.check.github?.workflow ? "GitHub has the workflow permission now." : "GitHub still doesn't have the workflow permission."); };
   /** @param {string} p @param {boolean} [force] */
   async function load(p, force = false) {
@@ -23,7 +20,6 @@ export function installStore(L) {
     s.loading = true; s.err = null;
     const n = ticket(s);
     try {
-      // once preflight has answered, or while one is out, a refresh asks it again on the fresh check, so check's guesses never cover what GitHub and Launchpad said
       let c = await api.check(p);
       if (s.pre && api.preflight) c = await api.preflight(p, s.form?.name);
       if (!current(s, n)) { s.loading = false; return; } // a newer answer is already here
@@ -33,7 +29,6 @@ export function installStore(L) {
       cached[p] = c.state;
       try { localStorage.setItem(CACHE, JSON.stringify(cached)); } catch { /* private mode */ }
     } catch (e) {
-      // refused, but a newer read has answered since: that answer stands (an old refusal never flips a working screen to Couldn't check)
       if (stale(s, n)) { s.loading = false; changed(); return; }
       s.err = e; s.at = Date.now();
     }
@@ -41,7 +36,7 @@ export function installStore(L) {
     changed();
   }
 
-  /** One event off the deploy stream: its step's state and words; an error stops the run where it is. @param {string} p @param {any} e */
+  /** @param {string} p @param {any} e */
   function take(p, e) {
     const s = proj(p), r = s.run, at = e.at || Date.now(); // Space's own time, so a replayed run keeps its clocks
     if (!r) return;
@@ -56,10 +51,9 @@ export function installStore(L) {
     if (e.step === "live" && e.state === "done") {
       r.live = { host: e.host, url: e.url, release: e.release, commit: e.commit, at };
       const was = s.check?.app || {};
-      // the run keeps the app's id: a preflight that started before the deploy finished must not take the link away
       r.appId = e.app?.id || r.appId || was.id || "";
       // the names this deploy carried are set on Launchpad now (their values went with the request, never kept here)
-      const env = (s.check?.env || []).map((/** @type {any} */ x) => (r.sent?.includes(x.name) ? { ...x, set: true } : x));
+      const env = (s.check?.env || []).map((/** @type {{name: string}} */ x) => (r.sent?.includes(x.name) ? { ...x, set: true } : x));
       // its size and disk: what it had, else what this deploy made it with (preflight says Launchpad's own soon after)
       const made = r.made || {};
       s.check = { ...s.check, state: "linked", env, app: { id: e.app?.id || r.appId || was.id || "", name: e.app?.name || was.name, url: e.url, host: e.host, status: "live", release: e.release, at, commit: e.commit || was.commit,
@@ -67,7 +61,7 @@ export function installStore(L) {
     }
   }
 
-  /** Space's network answers, once the section is open; one at a time, and a recheck asked for meanwhile joins it (s.loud). @param {string} p */
+  /** @param {string} p */
   async function preflight(p) {
     const s = proj(p);
     if (!api.preflight || s.pre || !s.check || s.check.state === "not-deployable" || s.check.state === "needs-agent") return;
@@ -84,19 +78,19 @@ export function installStore(L) {
       // refused, but a newer read has answered since: the recheck's question has that answer, never this refusal
       if (stale(s, n)) { if (s.loud) sayGitHub(s); }
       // asked for: its failure is said, under the button that asked, and in the live region
-      else if (s.loud) { s.loud = false; s.ghErr = /** @type {any} */ (e)?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
+      else if (s.loud) { s.loud = false; s.ghErr = /** @type {Error | undefined} */ (e)?.message || "XO Space didn't answer"; announce(`Couldn't check GitHub: ${s.ghErr}.`); }
     }
     changed();
   }
 
-  /** A deploy already running (another tab, another visit): its stream again, from the start. @param {string} p */
+  /** @param {string} p */
   function watch(p) {
     const s = proj(p);
     s.run = newRun();
-    s.run.stop = api.watch(p, (/** @type {any} */ e) => event(p, e));
+    s.run.stop = api.watch(p, event.bind(null, p));
   }
 
-  /** The stream, one event at a time: a decision goes back to the form, the rest onto the card. @param {string} p @param {any} e */
+  /** @param {string} p @param {any} e */
   function event(p, e) {
     const s = proj(p), f = s.form;
     if (!s.run) return;
@@ -115,7 +109,7 @@ export function installStore(L) {
       else if (e.code === "port_missing") f.errs = { port: "Which port does it listen on?" };
       else if (e.code === "repo_name_taken") { f.repo = e.data.suggestion || f.repo; f.repoChosen = true; f.errs = { repo: "That name holds other code on your GitHub." }; }
       else if (e.code === "create_repo") s.check = { ...s.check, repo: { ...s.check.repo, admin: false, why: e.data.reason || s.check.repo.why } };
-      else { if (e.code === "confirm_repo") f.useRepo = ""; if (e.code === "other_apps") f.allowApps = null; s.needs = e; } // a decision, lit, above the form (a confirmed repo Space asks again about is no longer confirmed)
+      else { if (e.code === "confirm_repo") f.useRepo = ""; if (e.code === "other_apps") f.allowApps = null; s.needs = e; } // confirm_repo, link_existing, app_missing: a decision, lit, above the form (a confirmed repo Space asks again about is no longer confirmed)
       land(f.errs.name ? '[data-lp-f="name"]' : f.errs.port ? '[data-lp-f="port"]' : f.errs.repo ? '[data-lp-f="repo"]' : '.lp-ask .lp-go, [data-lp="deploy"], [data-lp="reconnect"]');
       S.key = ""; changed();
       if (f.errs.name || f.errs.port) requestAnimationFrame(() => S.body?.querySelector(`[data-lp-f="${f.errs.name ? "name" : "port"}"]`)?.focus());
@@ -137,8 +131,8 @@ export function installStore(L) {
     if (e.step === "live" && e.state === "done") land('[data-lp="again"]');
     if (e.state === "failed") land('.lp-rec .lp-go, .lp-acts .lp-go, [data-lp="retry"], [data-lp="recheck-gh"]');
     const name = f.name || nameOf(p);
-    if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!L.visible(p)) notify && notify(`${name} is live`); }
-    if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!L.visible(p)) notify && notify(`${name}: ${failWords(s.run.error).toLowerCase()}`, null, "err"); }
+    if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!L.visible(p)) tell(`${name} is live`); }
+    if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!L.visible(p)) tell(`${name}: ${failWords(s.run.error).toLowerCase()}`, null, "err"); }
     changed();
   }
 
@@ -159,7 +153,7 @@ export function installStore(L) {
     return "setup";
   }
 
-  /** The head's few words, its tone, and the light's. @param {string} p @returns {{ tone: string, words: string, cta?: boolean, at?: number, host?: string, url?: string }} */
+  /** @param {string} p @returns {{ tone: string, words: string, cta?: boolean, at?: number, host?: string, url?: string }} */
   function summary(p) {
     const s = proj(p), r = s.run;
     const sc = s.editing && screen(p) === "setup" ? "live" : screen(p); // its settings open: the app still runs as it was

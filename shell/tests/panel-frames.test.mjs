@@ -24,5 +24,5 @@ assert.equal(mounted.map, "fr-body-map", "the Map's entry mounts into the Map fr
 assert.deepEqual(mounted.changes, ["cx-host", "function", "function"], "Changes' entry mounts into its host, with the panel's openFile and view");
 S.theme("light");
 assert.deepEqual(themes, ["light"], "the theme goes to the Changes entry");
-assert.equal(document.querySelector('[data-fr="launch"]').hidden, true, "no Launchpad entry: its frame stays away");
+assert.equal(document.querySelector('[data-fr="launch"]'), null, "no Launchpad entry leaves no frame");
 console.log("ok panel frames: from the panel.frame place");

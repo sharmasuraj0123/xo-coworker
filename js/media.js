@@ -1,26 +1,4 @@
 // Pictures and files in the conversation.
-// One module draws every file a message or a turn carries, so a picture looks the same wherever it sits:
-//   · a picture is shown, not attached: bare, 12 px corners, a 1 px hairline drawn over it, no card and no
-//     shadow. An agent's are at most 560 × 480 (the prose measure), yours 320 × 320 (you've seen them);
-//     never upscaled;
-//   · two or more make one album: justified rows 2 px apart, at most four tiles, the fourth "+N";
-//   · anything else stays the compact file card it is today, with its Pierre icon;
-//   · the box is known before the pixels: the server sends w, h and the picture's average colour (tint),
-//     so the space is reserved and the conversation never jumps. Without them (older uploads, an SVG)
-//     the picture gets a fixed 16:10 frame at the side's width and is fitted inside it, so it still
-//     can't jump when it loads.
-// Pictures open in the lightbox (js/lightbox.js); documents open in the viewer beside the conversation.
-// A file an agent shared may have a title in plain words (xo-space 8c6bc03); it names the file wherever it's
-// shown (the picture's label, the lightbox, a card, Made), with the file name kept beside it or in a
-// tooltip, so nothing is lost. A file name too long for its place is cut in its middle, its extension and
-// the end of its stem kept (r3-dark…title.png): those tell files apart. A title is cut at its end.
-// Pictures from the web (markdown's `![alt](https://…)`, js/markdown.js) are drawn here too, read straight
-// from their host: no referrer, lazily, never with credentials. Their size is unknown until they load, so
-// they get the fixed 16:10 frame and keep it. One that can't show (hotlinking refused, gone) becomes the
-// outbound link it would have been, its alt or host as the words; never a broken-image icon.
-//
-// The layout math (fitImage, albumLayout, dedupeByMade) is pure and tested from Node
-// (tests/media.test.mjs). The DOM part (hydrateMedia) only runs in a browser.
 
 import { esc, isImagePath } from "../core/platform/index.js";
 import { fileIcon } from "./fileicons.js";
@@ -246,6 +224,9 @@ export function webImagesHtml(list) {
   return show.length ? mediaHtml(show, { side: "them" }).replace(/<\/div>$/, `${linkP}</div>`) : `<div class="mx-stack mx-them">${linkP}</div>`;
 }
 
+// a project file's picture is the version that was shared: an overwrite shared again is a new picture
+const prjKey = (project, rel, mtime) => `prj:${project}:${rel}${mtime ? `@${mtime}` : ""}`;
+
 /**
  * A file on a message: an upload of yours ({id}, read through its chat) or a file an agent shared
  * ({project_id, relative_path}, read from its project). by: who made it, for the lightbox's caption.
@@ -254,7 +235,7 @@ export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
   const c = f.chat || chat;
   const base = { name: f.name, title: f.title, type: f.type, bytes: f.bytes ?? f.size, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, by, at };
   if (f.id && c) return mediaItem({ ...base, key: `att:${c}:${f.id}`, att: { chat: c, id: String(f.id) }, src: attachmentUrl(c, f.id) });
-  if (f.project_id && f.relative_path) return mediaItem({ ...base, key: `prj:${f.project_id}:${f.relative_path}`, project: String(f.project_id), rel: String(f.relative_path), path: f.path || f.relative_path });
+  if (f.project_id && f.relative_path) return mediaItem({ ...base, key: prjKey(f.project_id, f.relative_path, f.mtime), project: String(f.project_id), rel: String(f.relative_path), path: f.path || f.relative_path });
   return mediaItem({ ...base, key: `none:${f.name || ""}` }); // not uploaded yet: a card that can't open
 }
 
@@ -265,7 +246,7 @@ export function fromAttachment(f, { chat = null, by = "", at = null } = {}) {
 export function fromSharedFile(f, { route = null, by = "", at = null } = {}) {
   const base = { name: f.name || f.path, title: f.title, type: f.type, bytes: f.bytes, w: f.w, h: f.h, tint: f.tint, made_id: f.made_id, path: f.path || f.name, by, at };
   const r = f.project_id && f.relative_path ? { project: String(f.project_id), rel: String(f.relative_path) } : route ? route(f.path || f.name) : null;
-  if (r && r.project && r.rel) return mediaItem({ ...base, key: `prj:${r.project}:${r.rel}`, project: r.project, rel: r.rel });
+  if (r && r.project && r.rel) return mediaItem({ ...base, key: prjKey(r.project, r.rel, f.mtime), project: r.project, rel: r.rel });
   return mediaItem({ ...base, key: `path:${f.path || f.name}`, why: (r && r.why) || "This file is in a folder XO doesn't serve to the UI yet." });
 }
 

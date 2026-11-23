@@ -15,9 +15,9 @@
 import { esc } from "./world.js";
 import { ICON } from "./ui.js";
 import { api } from "../core/platform/api.js";
-import { renderInline } from "./markdown.js";
-import { isImagePath, elapsed } from "../core/platform/index.js";
+import { elapsed } from "../core/platform/index.js";
 import { commsLine, commsText } from "../core/services/comms.js";
+import { stepLineHtml } from "./turnview.js";
 import { heldWords } from "./timeline.js";
 import { fileIcon, folderIcon, fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";
@@ -127,7 +127,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
   // ── words ──────────────────────────────────────────────────────────────────
   /** What an agent is doing, in one line: its running step, else what its turn is on. */
   function doingLine(ag) {
-    if (ag.now) { const said = commsLine(ag.now, { project: ag.project }); return said ? esc(said) : renderInline(commsText(ag.now.line) || ag.now.tool || "Working", true); }
+    if (ag.now) { const said = commsLine(ag.now, { project: ag.project }); return said ? esc(said) : stepLineHtml(commsText(ag.now.line) || ag.now.tool || "Working", ag.now.kind); }
     if (ag.act.running) {
       const bl = turns().blocksOf(ag.act.running);
       const last = bl[bl.length - 1];

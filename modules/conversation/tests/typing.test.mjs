@@ -22,6 +22,7 @@ const T = createTyping({
   convThread: (v) => (v.startsWith("t:") ? world.thread(v.slice(2)) : null),
   chatOf: (v) => (v.startsWith("p:") ? v.slice(2) : null),
   isBusy: (t) => t.busy === true, heldWords: (h) => `Waiting for its ${h.reason}`, openAsk: () => null,
+  sendingTo: () => null,
   schedule: () => { woke++; }, tick() {},
 });
 const A = { typing: /** @type {any} */ (document.getElementById("a")), view: "p:demo" };

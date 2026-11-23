@@ -8,19 +8,72 @@
 import { esc } from "./world.js";
 import { fileIcon } from "./fileicons.js";
 import { elapsed } from "../core/platform/index.js";
-import { ICON } from "./ui.js";
+import { ICON, xi, stepMark, DOTS, ARC } from "./ui.js";
 import { renderMarkdown, renderInline } from "./markdown.js";
 import { mediaHtml, fromSharedFile, dedupeByMade } from "./media.js";
 import { commsLine, commsHeader, commsText, commsTool, commsBusy, commsPause } from "../core/services/comms.js";
 
 const KIND_ICON = {
-  create_file: "doc", edit_file: "edit", delete_file: "close", read: "eye", search: "search", list: "search",
-  command: "terminal", web_fetch: "globe", web_search: "globe", mcp: "plug", subagent: "agent", ask: "ask",
-  other: "dot", notice: "dot", error: "close",
+  create_file: "file-new", edit_file: "edit", delete_file: "delete", read: "eye", search: "search", list: "folder-open",
+  command: "terminal", web_fetch: "web", web_search: "web", mcp: "plug", subagent: "agent", plan: "checklist", ask: "question",
+  other: "wrench", notice: "info", error: "alert",
 };
-const EXTRA = { terminal: ICON.shell, plug: ICON.plug, agent: ICON.agent, ask: ICON.ask, dot: ICON.dot };
-const icon = (k) => ICON[KIND_ICON[k]] || EXTRA[KIND_ICON[k]] || EXTRA.dot;
+// a command's stages, strongest first: what it changes outranks what it reads, and a fetch or a status before the work loses
+const CMD_ICON = [
+  [/^git\s+(?:-C\s+\S+\s+)?push\b/, "cloud-upload"], [/^git\s+(?:-C\s+\S+\s+)?commit\b/, "commit"], [/^gh\s+pr\b/, "pull-request"],
+  [/^git\s+(?:-C\s+\S+\s+)?(?:merge|rebase|cherry-pick)\b/, "merge"],
+  [/^(?:(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?test|pytest|vitest|jest|node\s+--test|go\s+test|cargo\s+test)\b|^node\s+\S*\.test\.m?[jt]s\b/, "test-flask"],
+  [/^(?:docker|docker-compose|podman)\b/, "container"], [/^(?:rm|rmdir|git\s+rm)\b/, "delete"], [/^(?:sed|perl)\s+(?:-\w+\s+)*-i/, "edit"],
+  [/^(?:cat|tee|printf|echo)\b[^>]*(?:^|[^2&>])>{1,2}\s*(?!&|\/dev\/)\S/, "file-new"],
+  [/^(?:curl|wget|http)\b/, "api"], [/^git\s+(?:-C\s+\S+\s+)?clone\b/, "download"],
+  [/^(?:grep|egrep|rg|ag|ack|git\s+grep)\b/, "search"],
+  [/^(?:cat|sed|head|tail|less|bat|nl|wc|jq|awk|xxd|od)\b/, "eye"],
+  [/^(?:ls|find|fd|tree|du)\b/, "folder-open"],
+  [/^git\s+(?:-C\s+\S+\s+)?(?:checkout|switch|branch|worktree)\b/, "branch"], [/^git\s+(?:-C\s+\S+\s+)?(?:diff|status|show)\b/, "diff"],
+  [/^git\s+(?:-C\s+\S+\s+)?log\b/, "history"], [/^git\s+(?:-C\s+\S+\s+)?(?:pull|fetch)\b/, "download"],
+];
+// each stage of a chain counts by the command that starts its pipe; the strongest stage names the step
+export function cmdIcon(cmd) {
+  let best = CMD_ICON.length;
+  for (const stage of String(cmd || "").replace(/<<-?\s*['"]?(\w+)['"]?([^\n]*)\n[\s\S]*?(?:\n\1\b|$)/g, "$2").split(/&&|\|\||;|\n/)) {
+    const c = stage.split("|")[0].trim().replace(/^(?:sudo\s+|timeout\s+\S+\s+|\w+=\S*\s+)+/, "").replace(/^\(\s*/, "");
+    const i = CMD_ICON.findIndex(([re]) => re.test(c));
+    if (i >= 0 && i < best) best = i;
+  }
+  return best < CMD_ICON.length ? CMD_ICON[best][1] : "terminal";
+}
+// a tool no kind covers, by its own name in any runtime
+const TOOL_ICON = [
+  [/todo|plan/i, "checklist"], [/worktree/i, "branch"], [/cron|schedule|wakeup|trigger|timer/i, "alarm"],
+  [/skill/i, "wand"], [/toolsearch|search|find|grep/i, "search"], [/image/i, "image"], [/monitor|output|logs?$/i, "logs"],
+  [/stop|kill/i, "stop"], [/agent|workflow|subagent/i, "agent"], [/message|send/i, "send"], [/permission/i, "lock"],
+  [/browser|url|web/i, "web"], [/read|view/i, "eye"], [/write|edit|patch/i, "edit"],
+];
+// XO's own comms tools, by what each one does
+const COMMS_ICON = {
+  message_thread: "send", message_coordinator: "send", message_coordinator_reply: "send", forward_to_project: "forward",
+  ask: "question", ask_owner: "question", ask_workspace: "question", withdraw_ask: "undo", post_message: "chat", reply: "chat", react: "emoji",
+  start_thread_session: "thread", continue_thread: "thread", stop_thread: "stop", report: "comment", handoff_note: "note", no_reply_needed: "minus-circle",
+  update_status: "checklist", add_todo: "checklist", update_todo: "checklist", list_todos: "checklist", submit_result: "check-circle", set_thread_resolved: "check-circle",
+  share_files: "share", wake_me: "alarm", cancel_wake: "bell-off", lease: "lock", release: "lock-open",
+  create_job: "calendar-add", list_jobs: "calendar", cancel_job: "x-circle", set_goal: "flag", create_task: "plus-circle", propose_project: "project",
+  rename_thread: "tag", set_thread_label: "tag", update_memory: "bookmark", read_memory: "eye", read_state: "eye", annotate_review: "highlighter", list_review: "list",
+};
+// a command that names no tool still says what it does in its own words: "Read the tokens", "Find where…"
+const VERB_ICON = [[/^(?:read|view|show|look at|inspect|open|check)\b/i, "eye"], [/^(?:search|find|grep|look for|locate)\b/i, "search"], [/^list\b/i, "folder-open"], [/^(?:run|rerun)\b.*\btests?\b/i, "test-flask"]];
+const nameIcon = (list, s) => (list.find(([re]) => re.test(s || "")) || [])[1];
+/** The pack's icon for one step of a turn or a sub-agent's run, from its kind, its tool's own name, its command and its line. */
+export function stepIcon({ kind, tool, target, line, pending } = {}) {
+  if (pending && !kind && !tool) return "compose"; // still being written out: its tool isn't known yet
+  const comms = commsTool({ tool, target });
+  if (comms) return COMMS_ICON[comms] || (/^(?:fetch|list)_/.test(comms) ? "eye" : "plug");
+  if (kind === "command") { const c = cmdIcon(target); return c !== "terminal" ? c : nameIcon(VERB_ICON, String(line || "").replace(/[`*_]/g, "").trim()) || c; }
+  if (kind === "other" || !KIND_ICON[kind]) return nameIcon(TOOL_ICON, tool) || "wrench";
+  return KIND_ICON[kind];
+}
 const secs = (ms) => { if (ms == null || !Number.isFinite(ms)) return ""; const t = Math.max(1, Math.round(ms / 1000)); return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${t % 60}s`; };
+// a step's line in the row's own face: only a file or search target is code, a sub-agent's title is its own words
+export const stepLineHtml = (s, kind) => (kind === "subagent" ? esc(String(s).replace(/`([^`]*)`/g, "$1")) : renderInline(s, true));
 
 function rowMark(r) {
   if (r.status === "running") return r.waiting ? `<i class="tb-m is-wait" title="Waiting for you"></i>` : `<i class="tb-live" aria-hidden="true"></i>`;
@@ -28,7 +81,7 @@ function rowMark(r) {
   if (commsBusy(r)) return `<span class="tb-m is-den" title="In use">${ICON.clock}</span>`;
   if (r.status === "error") return `<span class="tb-m is-err" title="Failed">${ICON.close}</span>`;
   if (r.status === "denied") return `<span class="tb-m is-den" title="Denied">${ICON.lock}</span>`;
-  if (r.status === "cancelled") return `<span class="tb-m is-den" title="Cancelled">■</span>`;
+  if (r.status === "cancelled") return `<span class="tb-m is-den" title="Cancelled">${ICON.stop}</span>`;
   return `<span class="tb-m is-ok" title="Done">${ICON.check}</span>`;
 }
 function rowHtml(r, open) {
@@ -37,7 +90,7 @@ function rowHtml(r, open) {
   const out = r.output != null && r.output !== "" ? r.output : null;
   const canOpen = !!(out || (r.kind === "command" && r.target));
   const said = commsLine(r);
-  const head = `<span class="tb-ri">${icon(said ? "ask" : r.kind || "other")}</span><span class="tb-rl">${said ? esc(said) : renderInline(commsText(r.line) || "", true)}</span>` +
+  const head = `<span class="tb-ri">${xi(stepIcon(r))}</span><span class="tb-rl">${said ? esc(said) : stepLineHtml(commsText(r.line) || "", r.kind)}</span>` +
     (prog ? `<span class="tb-rp">${esc(prog)}</span>` : "") + rowMark(r);
   // data-r: the row's own key, so a step that starts while you watch can arrive (js/app.js workMotion)
   // a step keeps its identity (data-call-id, which msgx reads) when its label, status, duration or output changes
@@ -63,7 +116,7 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       const head = running ? `${esc(b.header || "Thinking…")}${b.started_at ? ` · ${secs(now - Date.parse(b.started_at))}` : ""}` : esc(b.header || "Thought");
       const steps = (b.steps || []).filter(Boolean);
       return `<div class="tb tb-think${running ? " is-live" : ""}${isOpen ? " is-unfolded" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}"${steps.length ? "" : " disabled"}>` +
-        `<span class="tb-hi">${ICON.clock}</span><span class="tb-ht${running ? " shimmer" : ""}">${head}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
+        `<span class="tb-hi">${ICON.brain}</span><span class="tb-ht${running ? " shimmer" : ""}">${head}</span>${steps.length ? `<span class="tb-chev">${ICON.chevron}</span>` : ""}</button>` +
         (isOpen && steps.length ? `<ol class="tb-steps">${steps.map((s) => `<li>${renderInline(s, true)}</li>`).join("")}</ol>` : "") + `</div>`;
     }
     case "activity": {
@@ -72,16 +125,15 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       const cur = running ? rows.filter((r) => r.status === "running") : [];
       const waiting = rows.some((r) => r.waiting);
       return `<div class="tb tb-act${running ? " is-live" : ""}${waiting ? " is-waiting" : ""}${isOpen ? " is-unfolded" : ""}${isOpen || cur.length ? " has-rows" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${isOpen}">` +
-        `<span class="tb-hi">${running ? `<i class="tb-live" aria-hidden="true"></i>` : ICON.list}</span><span class="tb-ht">${commsHeader(rows) ? esc(commsHeader(rows)) : renderInline(commsText(b.header) || "Working", true)}</span>` +
+        `<span class="tb-hi">${cur.length ? xi(stepIcon(cur[0])) : ICON.list}</span><span class="tb-ht">${commsHeader(rows) ? esc(commsHeader(rows)) : renderInline(commsText(b.header) || "Working", true)}</span>` +
         `<span class="tb-n">${rows.length}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
         (isOpen ? `<ul class="tb-rows">${rows.map((r) => rowHtml(r, open)).join("")}</ul>` : cur.length ? `<ul class="tb-rows is-cur">${cur.map((r) => rowHtml(r, open)).join("")}</ul>` : "") + tail + `</div>`;
     }
     case "plan": {
       const items = b.items || [];
-      const mark = (s) => (s === "done" ? "✓" : s === "doing" ? "✱" : "○");
       return `<div class="tb tb-plan${isOpen ? " is-unfolded" : ""}" data-b="${esc(b.id)}"><button type="button" class="tb-h" data-tb="${esc(b.id)}" aria-expanded="${!isOpen ? "false" : "true"}">` +
-        `<span class="tb-hi">${ICON.list}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
-        (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${mark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
+        `<span class="tb-hi">${xi("checklist")}</span><span class="tb-ht">${esc(b.header || "Plan")}</span><span class="tb-chev">${ICON.chevron}</span></button>` +
+        (isOpen || (live && !b.done) ? `<ol class="tb-plan-l">${items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("")}</ol>` : "") + `</div>`;
     }
     case "shared_files": {
       // what an agent hands you is shown, not attached (js/media.js): its pictures in the conversation,
@@ -160,6 +212,12 @@ function changedChips(rows, blocks, more, carried = [], changed = null) {
     (rest > 0 ? `<li><button type="button" class="tb-cf is-more" data-tb="${esc(more)}">+${rest} more</button></li>` : "") + `</ul>`;
 }
 
+/** A finished thought with nothing to read ("Thought for 2s"): left out of the opened line. */
+const emptyThought = (b) => b.type === "thinking" && b.done && !(b.steps || []).some(Boolean);
+/** Work that only kept the books (wrote to you, updated its checklist, nothing to add): what it did is already on the page. */
+const BOOKS = new Set(["reply", "report", "update_status", "submit_result", "no_reply_needed"]);
+const bookkeeping = (work) => work.some((b) => b.type === "activity") && work.every((b) => emptyThought(b) || (b.type === "activity" && b.done && (b.rows || []).length && b.rows.every((r) => BOOKS.has(commsTool(r)) && r.status !== "error" && r.status !== "denied")));
+
 function workFold(turn, work, blocks, open, live, now, media = {}) {
   const key = `work:${turn.id}`;
   const isOpen = !!open[key];
@@ -173,17 +231,19 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     : took != null ? ` ${secs(took)}` : "";
   const waiting = live && rows.some((r) => r.waiting);
   const head = `<button type="button" class="tb-h tb-wh" data-tb="${esc(key)}" aria-expanded="${isOpen}">` +
-    // while it runs, the agent's glowing tile beside the turn says so (turnAv); the line needs no spinner
-    (live ? "" : `<span class="tb-hi">${ICON.list}</span>`) +
+    (live ? (waiting ? "" : DOTS) : `<span class="tb-hi">${ICON.list}</span>`) +
     `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? `${waiting ? "Waiting for you" : "Working"}${time}` : WORDS ? esc(plainWork(rows)) : `Worked${time}`}</span>` +
     (WORDS && !live ? (took != null ? `<span class="tb-wn">${secs(took)}</span>` : "") : steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
-  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
+  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.filter((b) => !emptyThought(b)).map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
   let under = "";
   if (live) {
     // the ticker: only the latest block, as it streams; older ones are in the count. A step that
     // waits on you shows wherever it is.
     const asks = rows.filter((r) => r.waiting);
-    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !work.length ? "" : blockHtml(work[work.length - 1], open, live, now);
+    const last = work[work.length - 1];
+    // a tool group shows only the step it's on: the working line above is its header (its own repeated the step's words)
+    const step = last && last.type === "activity" ? [(last.rows || []).filter((r) => r.status === "running").pop() || (last.rows || []).at(-1)].filter(Boolean) : null;
+    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !last ? "" : step ? (step.length ? `<ul class="tb-rows is-cur">${step.map((r) => rowHtml(r, open)).join("")}</ul>` : "") : blockHtml(last, open, live, now);
   } else {
     // a failed turn's own error is said in its last line already. A command that exited non-zero in a
     // turn that went on to finish is the agent feeling its way (`ls`, `which`): it stays in the fold,
@@ -246,13 +306,15 @@ function stoppedAt(step) {
 export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false, changed = null } = {}) {
   const media = { carried, route, by, at: Date.parse(turn.at) || null, changed };
   const live = turn.status === "running";
-  const shown = afterSilence(blocks).filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
+  const kept = afterSilence(blocks).filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean);
+  const quiet = !live && bookkeeping(kept.filter((b) => WORK.has(b.type)));
+  // work that is only empty thoughts has nothing to open: no line (opened, a line leaves them out too)
+  const bare = !live && kept.some(emptyThought) && kept.filter((b) => WORK.has(b.type)).every(emptyThought);
+  const shown = quiet || bare ? kept.filter((b) => !WORK.has(b.type)) : kept;
   const work = shown.filter((b) => WORK.has(b.type));
-  const fold = work.length >= 2 || (WORDS && work.some((b) => b.type === "activity"));
+  // while it runs, any work folds into the one line that carries the turn's cue
+  const fold = work.length >= 2 || (live && work.length > 0) || (WORDS && work.some((b) => b.type === "activity"));
   const parts = [];
-  // working: the turn's latest stretch, after a message of its own, before it has any work to show: its
-  // line says it's still at it ("Working · 12s"), under that message
-  if (live && working && !work.length) parts.push(workFold(turn, [], shown, open, live, now, media));
   for (const b of shown) {
     if (fold && WORK.has(b.type)) { if (b === work[0]) parts.push(workFold(turn, work, shown, open, live, now, media)); continue; }
     // a turn whose work is one tool group (codex often has no thinking or narration): its files show
@@ -260,10 +322,12 @@ export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Da
     const chips = b.type === "activity" && !live && b.done && !open[b.id] ? changedChips(b.rows || [], shown, b.id, carried, changed) : "";
     parts.push(blockHtml(b, open, live, now, media, chips));
   }
+  // a live stretch with no work yet (after a message of its own, or only words so far) still says it's at it, under them
+  if (live && !work.length && (working || shown.length)) parts.push(workFold(turn, [], shown, open, live, now, media));
   const html = parts.filter(Boolean);
   const end = turn.end || {};
   let foot = "";
-  if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">■ ${stoppedAt(turn.stopped && turn.stopped.last_step)}</p>`;
+  if (turn.status === "stopped" || turn.stopped) foot = `<p class="tb-end is-stop">${ICON.stop}<span>${stoppedAt(turn.stopped && turn.stopped.last_step)}</span></p>`;
   else if (turn.status === "failed") foot = `<p class="tb-end is-err">${ICON.close}<span>This turn failed${end.error ? `: ${esc(String(end.error).slice(0, 240))}` : ""}</span></p>`;
   else if (turn.status === "interrupted") foot = `<p class="tb-end">Interrupted${end.reason === "restart" ? " by a restart; it picks up again" : ""}</p>`;
   // it ended its own turn to wait for something (a wake it set): said, so the end isn't a mystery
@@ -326,5 +390,5 @@ export function segmentTurn(turn, seg) {
 export function turnAv(turn, blocks = []) {
   if (!turn || turn.status !== "running") return `<div class="av av-gap"></div>`;
   const waiting = blocks.some((b) => (b.rows || []).some((r) => r.status === "running" && r.waiting));
-  return `<div class="av av-live${waiting ? " is-wait" : ""}" role="img" aria-label="${waiting ? "Waiting for you" : "Working"}" title="${waiting ? "Waiting for you" : "Working"}">${ICON.thread}${waiting ? "" : `<i class="arc" aria-hidden="true"></i>`}</div>`;
+  return `<div class="av av-live${waiting ? " is-wait" : ""}" role="img" aria-label="${waiting ? "Waiting for you" : "Working"}" title="${waiting ? "Waiting for you" : "Working"}">${ICON.thread}${waiting ? "" : ARC}</div>`;
 }

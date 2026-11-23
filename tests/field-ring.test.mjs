@@ -14,9 +14,8 @@ const shared = /:is\(([^)]*)\):has\(:is\(input,textarea\):focus-visible\),\.fl-n
 t("one rule: no message or search box draws a ring while its field has focus", () => assert.ok(shared, "the shared rule"));
 t("every box whose field turns its own ring off is one that rule reaches, and nothing else draws one on a field's box", () => {
   const boxes = shared[1].split(",");
-  const ID_BOX = { "#pf-in": ".side-find" };
-  const off = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => /(^|;)outline:(none|0)(;|$)/.test(m[2]) && /(textarea|input|#pf-in)/.test(m[1].split(",").pop()) && !/:focus/.test(m[1]))
-    .map((m) => { const sel = m[1].trim(); const id = Object.keys(ID_BOX).find((k) => sel.endsWith(k)); return id ? ID_BOX[id] : sel.replace(/\s+(textarea|input)[^\s]*$/, "").split(/\s+/).pop(); });
+  const off = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => /(^|;)outline:(none|0)(;|$)/.test(m[2]) && /(textarea|input)/.test(m[1].split(",").pop()) && !/:focus/.test(m[1]))
+    .map((m) => m[1].trim().replace(/\s+(textarea|input)[^\s]*$/, "").split(/\s+/).pop());
   const missing = [...new Set(off)].filter((b) => !boxes.includes(b) && b !== ".fl-new-r");
   assert.deepEqual(missing, [], `boxes not in the rule: ${missing.join(", ")}`);
   const ringed = [...css.matchAll(/([^{}]*:has\(:is\(input,textarea\):focus-visible\)[^{}]*)\{([^}]*)\}/g)].filter((m) => /outline:\s*[0-9]|outline-color|box-shadow/.test(m[2])).map((m) => m[1].trim());

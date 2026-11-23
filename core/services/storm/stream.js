@@ -1,7 +1,8 @@
 // @ts-check
 import { client, coderHeaders, SSEStream } from "./client.js";
 import { createTurns } from "../world/turns.js";
-import { RUNS_KEEP } from "./config.js";
+import { LOAD_CAP, RUNS_KEEP } from "./config.js";
+import { mapLimit } from "./load.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Frame} Frame */
 
@@ -14,7 +15,7 @@ export function startStorm(ctx) {
   let stream = null;
   /** @type {(v?: unknown) => void} */
   let firstFrame = () => {};
-  const sawFrame = new Promise((r) => { firstFrame = r; });
+  const subscribed = new Promise((r) => { firstFrame = r; });
 
   /** @param {Frame} f */
   function onFrame(f) {
@@ -72,6 +73,7 @@ export function startStorm(ctx) {
       onFrame,
       onState: (/** @type {string} */ s, /** @type {any} */ info) => {
         state.conn = s; state.connInfo = info;
+        if (s !== "connecting") firstFrame();
         if (s === "live" && state.loaded) { ctx.loadStatus(); if (state.error || !state.projects.length) ctx.recover(); }
         emit();
       },
@@ -81,16 +83,15 @@ export function startStorm(ctx) {
 
   async function boot() {
     startStream();
-    /** The snapshot frame means the subscription is in place; later frames are held during the load. @type {ReturnType<typeof setTimeout> | undefined} */
-    let fallback;
-    await Promise.race([sawFrame, new Promise((r) => { fallback = setTimeout(r, 4000); })]).finally(() => clearTimeout(fallback));
-    await Promise.all([ctx.loadAll(), ctx.loadStatus()]);
+    await subscribed;
+    await Promise.all([ctx.loadAll(), ctx.loadStatus(), ctx.loadActive()]);
     ctx.commit();
     ctx.holding = false;
     for (const f of held.splice(0)) ctx.apply(f);
     ctx.commit();
     state.loaded = true;
     emit();
+    await mapLimit(state.projects.filter((p) => p.kind === "project" && p.chatId), LOAD_CAP, async (p) => ctx.loadChatPolicy(p.chatId));
   }
   boot();
   setInterval(() => {

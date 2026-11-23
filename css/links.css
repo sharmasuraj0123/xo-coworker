@@ -13,20 +13,16 @@
 
 /* ── inside: a token ──
 
-   Geometry, from Geist's own metrics (per em: capitals .719, ascent .92, descent .22):
-   - Every glyph and the capsule itself are centred on the middle of the capitals, .3595em
+   Geometry, from the face's own metrics (tokens.css --cap-mid, --asc, --desc):
+   - Every glyph and the capsule itself are centred on the middle of the capitals, --cap-mid
      above the baseline: where the eye reads the middle of a line of text.
    - The capsule is 1.47em tall (22px in 15px prose, whose line box is 24px), so it sits
      inside the line with 1px to spare above and below. Its padding is inline padding:
      it never moves the baseline or pushes lines apart.
-   - Above the capitals and below the baseline there is the same .3755em (5.6px at 15px).
-     Chrome rounds the font's ascent and descent to whole pixels (at 15px: 14 and 3, not 13.8
-     and 3.3), so .0163em moves from the top padding to the bottom to keep 15px exact; 13 and
-     14px stay within .3px.
    - Thread and file capsules are the same inline element with the same box; only the glyph differs. */
 .lk-in{
   display:inline;
-  padding:.158em .6em .172em .38em;
+  padding:calc(var(--cap-mid) + .735em - var(--asc)) .6em calc(.735em - var(--cap-mid) - var(--desc)) .38em;
   /* a true capsule (round ends), filled, with no ring: a thing that lives here, the way Mail and
      Messages draw someone you've addressed. The glyph sits as far from the left end as the words
      from the right (.38 + .2 ≈ .6em). */
@@ -57,10 +53,7 @@
    puts its middle on the middle of the capitals (the one rule for an icon beside words, tokens.css). */
 .lk-ic{position:relative;display:inline-block;width:1em;height:1em;margin-right:.2em;vertical-align:calc(var(--cap-mid) - .5em);color:var(--ink-3)}
 .lk-ic>*{position:absolute;inset:0;margin:auto}
-/* a thread's state, a little larger than in lists so it holds its own beside capitals */
-.lk-ic .g{width:.6em;height:.6em}
-.lk-ic .g-working,.lk-ic .g-idle{border-width:.1em}
-.lk-ic .g-done{width:.62em;height:.34em;border-width:0 0 .13em .13em;transform:translate(0,-.06em) rotate(-45deg)}
+.lk-ic .g{width:1em;height:1em}
 .lk-ic .lk-tg{width:.86em;height:.86em}
 /* a file's own icon (js/fileicons.js), whichever set it draws. Its drawing fills about 5/6 of the
    box, a state dot 3/5: the file capsule's padding and gap make up the difference, so the glyph

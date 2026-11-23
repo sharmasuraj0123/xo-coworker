@@ -1,5 +1,5 @@
 {
- "commit": "5a2b0784aafcfa95a45431535482f5e2ae9ca3dd",
+ "commit": "f0144d5ff30b4582b0ed73193f8e9bcdfe9b413c",
  "files": {
   ".gitignore": {
    "status": "kept",
@@ -66,6 +66,10 @@
   "assets/icons/xo/a-places-and-the-frame/more.svg": {
    "status": "moved",
    "home": "core/ui/icons/source/xo/a-places-and-the-frame/more.svg"
+  },
+  "assets/icons/xo/a-places-and-the-frame/open-in-main.svg": {
+   "status": "moved",
+   "home": "core/ui/icons/source/xo/a-places-and-the-frame/open-in-main.svg"
   },
   "assets/icons/xo/a-places-and-the-frame/panel-right.svg": {
    "status": "moved",
@@ -1561,8 +1565,7 @@
   },
   "css/artifacts.css": {
    "status": "moved",
-   "home": "modules/artifacts/artifacts.css",
-   "note": "css/artifacts.css imports it, and keeps the phone pin's background-image !important until the sheet gets its @layer"
+   "home": "modules/artifacts/artifacts.css"
   },
   "css/base.css": {
    "status": "moved",
@@ -1579,6 +1582,13 @@
   "css/dropdown.css": {
    "status": "moved",
    "home": "core/ui/components/xo-select.css"
+  },
+  "css/flavours.css": {
+   "status": "split",
+   "home": [
+    "css/flavours.css",
+    "css/flavour-swatches.css"
+   ]
   },
   "css/foundation.css": {
    "status": "split",
@@ -2100,6 +2110,242 @@
    "status": "deleted",
    "reason": "moved to the design archive (owner D4)"
   },
+  "design-research/2026-11-20-flavours/README.md": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/appearance-dark-ember.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/appearance-dark-harbor.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/appearance-dark-onyx.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/appearance-light-ember.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/appearance-light-slate.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-deep-edges.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-dusk.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-harbor.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-midnight-edges.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-onyx-edges.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-onyx.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-plum.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-sand.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-slate.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-dark-stone.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-light-harbor.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-light-plum.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-light-sand.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-light-slate.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/home-light-stone.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/settings-dark-sand.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/sheet-dark.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-20-flavours/shots/sheet-light.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/PROPOSAL.md": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/dark-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/dark-2-prs.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/dark-3-pr.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/dark-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/light-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/light-2-prs.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/light-3-pr.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/light-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/real-dark-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/real-dark-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/real-dark-5-work.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/real-light-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/real-light-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/real-light-5-work.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-dark-0-panel.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-dark-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-dark-2-prs.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-dark-3-pr.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-dark-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-light-0-panel.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-light-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-light-2-prs.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-light-3-pr.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v2-light-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-dark-0-panel.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-dark-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-dark-2-prs.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-dark-3-pr.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-dark-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-light-0-panel.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-light-1-issues.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-light-2-prs.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-light-3-pr.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "design-research/2026-11-23-github-page/shots/v3-light-4-issue.png": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
   "design-research/2026-11-chatview/hardcoded-positioning-audit.md": {
    "status": "deleted",
    "reason": "moved to the design archive (owner D4)"
@@ -2164,6 +2410,26 @@
    "status": "planned",
    "home": "core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs)"
   },
+  "fonts/dm-sans/OFL.txt": {
+   "status": "vendor",
+   "home": "fonts/dm-sans/OFL.txt"
+  },
+  "fonts/dm-sans/dm-sans-latin-ext-wght-italic.woff2": {
+   "status": "vendor",
+   "home": "fonts/dm-sans/dm-sans-latin-ext-wght-italic.woff2"
+  },
+  "fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2": {
+   "status": "vendor",
+   "home": "fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2"
+  },
+  "fonts/dm-sans/dm-sans-latin-wght-italic.woff2": {
+   "status": "vendor",
+   "home": "fonts/dm-sans/dm-sans-latin-wght-italic.woff2"
+  },
+  "fonts/dm-sans/dm-sans-latin-wght-normal.woff2": {
+   "status": "vendor",
+   "home": "fonts/dm-sans/dm-sans-latin-wght-normal.woff2"
+  },
   "fonts/geist/Geist-Variable.woff2": {
    "status": "planned",
    "home": "core/ui/fonts/geist/Geist-Variable.woff2"
@@ -2176,10 +2442,34 @@
    "status": "planned",
    "home": "core/ui/fonts/geist/LICENSE.txt"
   },
+  "fonts/jetbrains-mono/OFL.txt": {
+   "status": "vendor",
+   "home": "fonts/jetbrains-mono/OFL.txt"
+  },
+  "fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2": {
+   "status": "vendor",
+   "home": "fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2"
+  },
+  "fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2": {
+   "status": "vendor",
+   "home": "fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2"
+  },
+  "fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2": {
+   "status": "vendor",
+   "home": "fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2"
+  },
+  "fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2": {
+   "status": "vendor",
+   "home": "fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2"
+  },
   "index.html": {
    "status": "split",
    "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
    "note": "the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint"
+  },
+  "js/accounts.js": {
+   "status": "planned",
+   "home": "modules/settings/accounts.js"
   },
   "js/api.js": {
    "status": "split",
@@ -2207,6 +2497,10 @@
    "status": "moved",
    "home": "core/services/world/turns.js",
    "note": "nothing imports the old path, so it leaves with no re-export"
+  },
+  "js/cardparts.js": {
+   "status": "planned",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/changes.js": {
    "status": "moved",
@@ -2294,6 +2588,10 @@
    "status": "moved",
    "home": "modules/files/page.js"
   },
+  "js/flavours.js": {
+   "status": "planned",
+   "home": "core/ui/flavours.js"
+  },
   "js/focusview.js": {
    "status": "moved",
    "home": "core/ui/a11y/focus.js",
@@ -2315,6 +2613,10 @@
     "shell (the app's gestures: wireGestures, dockGestures, long press)"
    ],
    "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
+  },
+  "js/ghpage.js": {
+   "status": "planned",
+   "home": "modules/github/page.js"
   },
   "js/herald.js": {
    "status": "moved",
@@ -2394,6 +2696,14 @@
     "modules/launchpad/client.js"
    ],
    "note": "GitHub's device flow stays in client.js until core/services/github takes it with create-project's"
+  },
+  "js/lppage.js": {
+   "status": "moved",
+   "home": "modules/launchpad/page.js"
+  },
+  "js/lpwindow.js": {
+   "status": "moved",
+   "home": "modules/launchpad/window.js"
   },
   "js/map.js": {
    "status": "split",
@@ -2561,6 +2871,10 @@
   "js/shells/term.js": {
    "status": "planned",
    "home": "modules/shells/term.js"
+  },
+  "js/sideorder.js": {
+   "status": "planned",
+   "home": "shell/rail/order.js"
   },
   "js/skeleton.js": {
    "status": "split",
@@ -4150,6 +4464,26 @@
    "home": "core/ui/icons/xoicons.js",
    "note": "generated by tools/xoicons/build.mjs; js/xoicons.js re-exports it until the shims go"
   },
+  "perf-2026-11-20/FINDINGS.md": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "perf-2026-11-20/out.json": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "perf-2026-11-20/out2.json": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "perf-2026-11-20/probe.mjs": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
+  "perf-2026-11-20/probe2.mjs": {
+   "status": "deleted",
+   "reason": "Release research material outside the application tree"
+  },
   "presets/engineering.json": {
    "status": "moved",
    "home": "core/services/shape/presets/engineering.json",
@@ -4161,14 +4495,21 @@
    "note": "served beside the shape store that reads it"
   },
   "serve.py": {
-   "status": "planned",
-   "home": "serve.py (kept; apps-host routes added in phase 7)",
-   "note": "the writer key now also covers app management (/api/apps writes) and app views (/api/coworker/apps/*), only for XO's own page"
+   "status": "kept",
+   "home": "serve.py"
   },
   "start.sh": {
    "status": "kept",
    "home": "start.sh",
    "note": "unchanged"
+  },
+  "tests/accounts.test.mjs": {
+   "status": "kept",
+   "home": "tests/accounts.test.mjs"
+  },
+  "tests/active-turns.test.mjs": {
+   "status": "kept",
+   "home": "tests/active-turns.test.mjs"
   },
   "tests/agent-marks.test.mjs": {
    "status": "planned",
@@ -4189,6 +4530,14 @@
   "tests/attach.test.mjs": {
    "status": "planned",
    "home": "modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/back-to-where.test.mjs": {
+   "status": "kept",
+   "home": "tests/back-to-where.test.mjs"
+  },
+  "tests/boot.test.mjs": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
   },
   "tests/browser/chat-read-order.test.cjs": {
    "status": "planned",
@@ -4244,13 +4593,33 @@
    "status": "planned",
    "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/button-fill.test.mjs": {
+   "status": "kept",
+   "home": "tests/button-fill.test.mjs"
+  },
+  "tests/captions.test.mjs": {
+   "status": "kept",
+   "home": "tests/captions.test.mjs"
+  },
+  "tests/card-family.test.mjs": {
+   "status": "kept",
+   "home": "tests/card-family.test.mjs"
+  },
   "tests/card-ring.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/card-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/cardparts.test.mjs": {
+   "status": "kept",
+   "home": "tests/cardparts.test.mjs"
+  },
   "tests/changes.test.mjs": {
    "status": "moved",
    "home": "modules/changes/tests/changes.test.mjs"
+  },
+  "tests/chats-list.test.mjs": {
+   "status": "kept",
+   "home": "tests/chats-list.test.mjs"
   },
   "tests/checklist-empty.test.mjs": {
    "status": "planned",
@@ -4259,6 +4628,18 @@
   "tests/codemirror-vendor.test.mjs": {
    "status": "planned",
    "home": "modules/vendor/tests/codemirror-vendor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/composer-popover-height.test.mjs": {
+   "status": "kept",
+   "home": "tests/composer-popover-height.test.mjs"
+  },
+  "tests/composer-row-size.test.mjs": {
+   "status": "kept",
+   "home": "tests/composer-row-size.test.mjs"
+  },
+  "tests/concentric.test.mjs": {
+   "status": "kept",
+   "home": "tests/concentric.test.mjs"
   },
   "tests/conn-line.test.mjs": {
    "status": "planned",
@@ -4283,6 +4664,10 @@
   "tests/coord-colour.test.mjs": {
    "status": "planned",
    "home": "modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/copied-speaker.test.mjs": {
+   "status": "kept",
+   "home": "tests/copied-speaker.test.mjs"
   },
   "tests/copy-path-fail.test.mjs": {
    "status": "planned",
@@ -4317,6 +4702,10 @@
    "status": "planned",
    "home": "core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/details-toggle.test.mjs": {
+   "status": "kept",
+   "home": "tests/details-toggle.test.mjs"
+  },
   "tests/diff-redraw-focus.test.mjs": {
    "status": "planned",
    "home": "modules/files/tests/diff-redraw-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4325,13 +4714,29 @@
    "status": "planned",
    "home": "modules/files/tests/diffview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/disclosure-corners.test.mjs": {
+   "status": "kept",
+   "home": "tests/disclosure-corners.test.mjs"
+  },
   "tests/dock-focus.test.mjs": {
    "status": "planned",
    "home": "modules/decisions/tests/dock-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/dock-reset.test.mjs": {
+   "status": "kept",
+   "home": "tests/dock-reset.test.mjs"
+  },
   "tests/docs.test.mjs": {
    "status": "planned",
    "home": "modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/done-line.test.mjs": {
+   "status": "kept",
+   "home": "tests/done-line.test.mjs"
+  },
+  "tests/dots-motion.test.mjs": {
+   "status": "kept",
+   "home": "tests/dots-motion.test.mjs"
   },
   "tests/drafts.test.mjs": {
    "status": "planned",
@@ -4340,6 +4745,10 @@
   "tests/dropdown-held.test.mjs": {
    "status": "planned",
    "home": "core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/edge-card.test.mjs": {
+   "status": "kept",
+   "home": "tests/edge-card.test.mjs"
   },
   "tests/edge-ring.test.mjs": {
    "status": "planned",
@@ -4356,6 +4765,10 @@
   "tests/edits.test.mjs": {
    "status": "planned",
    "home": "modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/event-lines.test.mjs": {
+   "status": "kept",
+   "home": "tests/event-lines.test.mjs"
   },
   "tests/field-ring.test.mjs": {
    "status": "planned",
@@ -4393,9 +4806,17 @@
    "status": "planned",
    "home": "e2e/fixtures/storm-held-contract.json"
   },
+  "tests/flavours.test.mjs": {
+   "status": "kept",
+   "home": "tests/flavours.test.mjs"
+  },
   "tests/focus-back.test.mjs": {
    "status": "planned",
    "home": "core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/focus-fields.test.mjs": {
+   "status": "kept",
+   "home": "tests/focus-fields.test.mjs"
   },
   "tests/focusview.test.mjs": {
    "status": "planned",
@@ -4404,6 +4825,10 @@
   "tests/follow-instance.test.mjs": {
    "status": "moved",
    "home": "modules/conversation/tests/follow-instance.test.mjs"
+  },
+  "tests/ghpage.test.mjs": {
+   "status": "kept",
+   "home": "tests/ghpage.test.mjs"
   },
   "tests/gone-thread-composer.test.mjs": {
    "status": "planned",
@@ -4441,6 +4866,14 @@
    "status": "planned",
    "home": "core/ui (css guard)/tests/hover-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/hover-rings.test.mjs": {
+   "status": "kept",
+   "home": "tests/hover-rings.test.mjs"
+  },
+  "tests/hover-veil.test.mjs": {
+   "status": "kept",
+   "home": "tests/hover-veil.test.mjs"
+  },
   "tests/icon-gap.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4456,6 +4889,14 @@
   "tests/inverse-toast.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/iq-one-path.test.mjs": {
+   "status": "kept",
+   "home": "tests/iq-one-path.test.mjs"
+  },
+  "tests/jump-projects.test.mjs": {
+   "status": "kept",
+   "home": "tests/jump-projects.test.mjs"
   },
   "tests/key-layer.test.mjs": {
    "status": "planned",
@@ -4552,6 +4993,10 @@
    "status": "planned",
    "home": "modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/md-headings.test.mjs": {
+   "status": "kept",
+   "home": "tests/md-headings.test.mjs"
+  },
   "tests/mdlive.test.mjs": {
    "status": "planned",
    "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4568,13 +5013,25 @@
    "status": "planned",
    "home": "modules/files/tests/menu-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/menu-motion.test.mjs": {
+   "status": "kept",
+   "home": "tests/menu-motion.test.mjs"
+  },
   "tests/menu-one-active.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/menu-open-unlit.test.mjs": {
+   "status": "kept",
+   "home": "tests/menu-open-unlit.test.mjs"
+  },
   "tests/menu-successor.test.mjs": {
    "status": "planned",
    "home": "core/ui (menus, all modules)/tests/menu-successor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/menu-type.test.mjs": {
+   "status": "kept",
+   "home": "tests/menu-type.test.mjs"
   },
   "tests/merge.test.mjs": {
    "status": "planned",
@@ -4600,6 +5057,14 @@
    "status": "planned",
    "home": "core/ui (lists)/tests/one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/pack-marks.test.mjs": {
+   "status": "kept",
+   "home": "tests/pack-marks.test.mjs"
+  },
+  "tests/pack-where-it-fits.test.mjs": {
+   "status": "kept",
+   "home": "tests/pack-where-it-fits.test.mjs"
+  },
   "tests/page-no-hover.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/page-no-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4615,6 +5080,10 @@
   "tests/paint-a11y.test.mjs": {
    "status": "planned",
    "home": "modules/files/tests/paint-a11y.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/panel-parity.test.mjs": {
+   "status": "kept",
+   "home": "tests/panel-parity.test.mjs"
   },
   "tests/panel-shell.test.mjs": {
    "status": "planned",
@@ -4668,10 +5137,6 @@
    "status": "planned",
    "home": "core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
-  "tests/project-find-escape.test.mjs": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/project-find-escape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
-  },
   "tests/project-icons.test.mjs": {
    "status": "planned",
    "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4679,6 +5144,10 @@
   "tests/quickopen.test.mjs": {
    "status": "planned",
    "home": "modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/rail-badge.test.mjs": {
+   "status": "kept",
+   "home": "tests/rail-badge.test.mjs"
   },
   "tests/rail-order.test.mjs": {
    "status": "moved",
@@ -4746,9 +5215,21 @@
    "home": "modules/routing/tests/routing-words.test.mjs",
    "note": "rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test"
   },
+  "tests/row-insets.test.mjs": {
+   "status": "kept",
+   "home": "tests/row-insets.test.mjs"
+  },
+  "tests/rows-in-place.test.mjs": {
+   "status": "kept",
+   "home": "tests/rows-in-place.test.mjs"
+  },
   "tests/rtsettings.test.mjs": {
    "status": "moved",
    "home": "modules/runtimes/tests/rtsettings.test.mjs"
+  },
+  "tests/runs-page.test.mjs": {
+   "status": "kept",
+   "home": "tests/runs-page.test.mjs"
   },
   "tests/runs-stop-receipt.test.mjs": {
    "status": "planned",
@@ -4774,6 +5255,10 @@
   "tests/seg-ring.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/send-calm.test.mjs": {
+   "status": "kept",
+   "home": "tests/send-calm.test.mjs"
   },
   "tests/send-gate.test.mjs": {
    "status": "planned",
@@ -4817,6 +5302,10 @@
    "status": "planned",
    "home": "shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/side-calm-order.test.mjs": {
+   "status": "kept",
+   "home": "tests/side-calm-order.test.mjs"
+  },
   "tests/side-fold.test.mjs": {
    "status": "planned",
    "home": "shell (sidebar)/tests/side-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4829,9 +5318,25 @@
    "status": "planned",
    "home": "core/ui (css guard)/tests/sidebar-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/space-scale.test.mjs": {
+   "status": "kept",
+   "home": "tests/space-scale.test.mjs"
+  },
+  "tests/speaker-names.test.mjs": {
+   "status": "kept",
+   "home": "tests/speaker-names.test.mjs"
+  },
+  "tests/stage-head-back.test.mjs": {
+   "status": "kept",
+   "home": "tests/stage-head-back.test.mjs"
+  },
   "tests/stage-inplace.test.mjs": {
    "status": "planned",
    "home": "shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/stage-list-edge.test.mjs": {
+   "status": "kept",
+   "home": "tests/stage-list-edge.test.mjs"
   },
   "tests/stage-pages.test.mjs": {
    "status": "planned",
@@ -4841,6 +5346,10 @@
    "status": "planned",
    "home": "core/ui (css guard)/tests/stale-pass.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/stalled-own-message.test.mjs": {
+   "status": "kept",
+   "home": "tests/stalled-own-message.test.mjs"
+  },
   "tests/start-centred.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard)/tests/start-centred.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
@@ -4848,6 +5357,10 @@
   "tests/state-hover.test.mjs": {
    "status": "planned",
    "home": "core/ui (css guard, all modules)/tests/state-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/step-line-face.test.mjs": {
+   "status": "kept",
+   "home": "tests/step-line-face.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs": {
    "status": "planned",
@@ -4877,9 +5390,25 @@
    "status": "planned",
    "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
+  "tests/thread-spawn-session.test.mjs": {
+   "status": "kept",
+   "home": "tests/thread-spawn-session.test.mjs"
+  },
+  "tests/turn-split-notes.test.mjs": {
+   "status": "kept",
+   "home": "tests/turn-split-notes.test.mjs"
+  },
   "tests/turnview.test.mjs": {
    "status": "planned",
    "home": "modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+  },
+  "tests/type-faces.test.mjs": {
+   "status": "kept",
+   "home": "tests/type-faces.test.mjs"
+  },
+  "tests/type-roles.test.mjs": {
+   "status": "kept",
+   "home": "tests/type-roles.test.mjs"
   },
   "tests/viewer-busy.test.mjs": {
    "status": "planned",
@@ -5029,6 +5558,10 @@
   "tools/filetree/same.mjs": {
    "status": "deleted",
    "reason": "a one-off probe with machine paths (owner D6)"
+  },
+  "tools/flavours/build.mjs": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
   },
   "tools/launchpad/mockspace.cjs": {
    "status": "deleted",
@@ -5478,9 +6011,8 @@
  },
  "items": {
   "css/app.css::ids::pf-in": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "css/app.css::ids::hm-body": {
    "status": "split-region",
@@ -5671,24 +6203,20 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "index.html::ids::side-find": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "index.html::ids::sf-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "index.html::ids::pf-in": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "index.html::ids::pf-n": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "index.html::ids::projects": {
    "status": "split-region",
@@ -15870,8 +16398,8 @@
    "home": "core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/project-find-escape.test.mjs::keys::Escape": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/project-find-escape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "tests/project-icons.test.mjs::keys::Escape": {
    "status": "planned",
@@ -15882,8 +16410,8 @@
    "home": "modules/settings/tests/rail-order.test.mjs"
   },
   "tests/reconcile-focus.test.mjs::exports::reconcile": {
-   "status": "planned",
-   "home": "core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "tests/record.test.mjs::globals::matchMedia": {
    "status": "planned",
@@ -16472,7 +17000,798 @@
   "tools/xoicons/build.mjs::functions::build": {
    "status": "planned",
    "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+  },
+  "css/app.css::ids::msgs": {
+   "status": "kept",
+   "home": "css/app.css"
+  },
+  "css/phone.css::ids::top-who": {
+   "status": "kept",
+   "home": "css/phone.css"
+  },
+  "index.html::ids::nv-lp": {
+   "status": "kept",
+   "home": "index.html"
+  },
+  "index.html::ids::ic-lp": {
+   "status": "kept",
+   "home": "index.html"
+  },
+  "index.html::ids::lpp": {
+   "status": "kept",
+   "home": "index.html"
+  },
+  "index.html::ids::cs-hi": {
+   "status": "kept",
+   "home": "index.html"
+  },
+  "index.html::ids::cs-sub": {
+   "status": "kept",
+   "home": "index.html"
+  },
+  "index.html::ids::cs-perm": {
+   "status": "kept",
+   "home": "index.html"
+  },
+  "index.html::ids::set-t-appearance": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::set-t-accounts": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::set-p-appearance": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::mode-l": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::mode-seg": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::flavour-l": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::flavour-seg": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "index.html::ids::set-p-accounts": {
+   "status": "moved",
+   "home": "shell/overlays.js"
+  },
+  "js/accounts.js::exports::missingScopes": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::exports::ghView": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::exports::createAccounts": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::functions::missingScopes": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::functions::ghView": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::functions::createAccounts": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::ids::settings": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::keys::code": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/accounts.js::keys::checking": {
+   "status": "kept",
+   "home": "js/accounts.js"
+  },
+  "js/api.js::routes::/coworker/xo-projects/{}/paths": {
+   "status": "moved",
+   "home": "core/platform/api.js"
+  },
+  "js/api.js::routes::/coworker/xo-projects/{}/search": {
+   "status": "moved",
+   "home": "core/platform/api.js"
+  },
+  "js/api.js::routes::/xo-projects/{}/github/issues": {
+   "status": "moved",
+   "home": "core/platform/api.js"
+  },
+  "js/api.js::routes::/xo-projects/{}/github/issues/{}": {
+   "status": "moved",
+   "home": "core/platform/api.js"
+  },
+  "js/api.js::routes::/xo-projects/{}/github/pulls": {
+   "status": "moved",
+   "home": "core/platform/api.js"
+  },
+  "js/api.js::routes::/xo-projects/{}/github/pulls/{}": {
+   "status": "moved",
+   "home": "core/platform/api.js"
+  },
+  "js/app.js::functions::runsGone": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::reset": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::goneRender": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::toastLine": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::fixChip": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::atRender": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::atKeys": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::atShut": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::wireAt": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::aimAt": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::toggleIq": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::tpClose": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::toMain": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::watchDock": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::dockAtTop": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::composerNow": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::lookSync": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::functions::lookSet": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::ids::tpherald": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::ids::tat-list": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::storage::cv-flavour": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/app.js::storage::<key>": {
+   "status": "kept",
+   "home": "js/app.js"
+  },
+  "js/cardparts.js::exports::cap": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::KINDS": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::kindOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::commandOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::headOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::whyOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::stripOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::chipsOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::optionsOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::pickKeys": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::isOnePress": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::actsOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::exports::goneLine": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::kindOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::commandOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::headOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::whyOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::stripOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::chipsOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::optionsOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/cardparts.js::functions::actsOf": {
+   "status": "kept",
+   "home": "js/cardparts.js"
+  },
+  "js/chats.js::ids::cs-agent-l": {
+   "status": "kept",
+   "home": "js/chats.js"
+  },
+  "js/chats.js::ids::cs-model-l": {
+   "status": "kept",
+   "home": "js/chats.js"
+  },
+  "js/chats.js::ids::cs-e-l": {
+   "status": "kept",
+   "home": "js/chats.js"
+  },
+  "js/chats.js::ids::cs-hh": {
+   "status": "kept",
+   "home": "js/chats.js"
+  },
+  "js/flavours.js::exports::STONE": {
+   "status": "kept",
+   "home": "js/flavours.js"
+  },
+  "js/flavours.js::exports::FLAVOURS": {
+   "status": "kept",
+   "home": "js/flavours.js"
+  },
+  "js/follow.js::exports::toTop": {
+   "status": "moved",
+   "home": "modules/conversation/follow.js"
+  },
+  "js/gestures.js::exports::conversationGestures": {
+   "status": "kept",
+   "home": "js/gestures.js"
+  },
+  "js/gestures.js::functions::conversationGestures": {
+   "status": "kept",
+   "home": "js/gestures.js"
+  },
+  "js/ghpage.js::exports::since": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::exports::longAgo": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::exports::issueOf": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::exports::prOf": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::exports::issueRow": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::exports::prRow": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::exports::createGhPage": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::since": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::longAgo": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::person": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::issueOf": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::prOf": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::issueRow": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::prRow": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/ghpage.js::functions::createGhPage": {
+   "status": "kept",
+   "home": "js/ghpage.js"
+  },
+  "js/icon.js::exports::stateMark": {
+   "status": "moved",
+   "home": "core/ui/icons/icon.js"
+  },
+  "js/icon.js::exports::ARC": {
+   "status": "moved",
+   "home": "core/ui/icons/icon.js"
+  },
+  "js/intel.js::exports::EFFORT_WORD": {
+   "status": "kept",
+   "home": "js/intel.js"
+  },
+  "js/intel.js::exports::EFFORT_HINT": {
+   "status": "kept",
+   "home": "js/intel.js"
+  },
+  "js/keynav.js::exports::focusOpened": {
+   "status": "moved",
+   "home": "core/ui/a11y/keynav.js"
+  },
+  "js/keynav.js::functions::focusOpened": {
+   "status": "moved",
+   "home": "core/ui/a11y/keynav.js"
+  },
+  "js/keys.js::exports::keyHtml": {
+   "status": "moved",
+   "home": "core/ui/a11y/keycap.js"
+  },
+  "js/launchpad.js::ids::lq-title": {
+   "status": "moved",
+   "home": "modules/launchpad/views.js"
+  },
+  "js/launchpad.js::ids::lq-env": {
+   "status": "moved",
+   "home": "modules/launchpad/views.js"
+  },
+  "js/lppage.js::exports::createLpPage": {
+   "status": "moved",
+   "home": "modules/launchpad/page.js"
+  },
+  "js/lppage.js::functions::createLpPage": {
+   "status": "moved",
+   "home": "modules/launchpad/page.js"
+  },
+  "js/lppage.js::ids::lpp-h": {
+   "status": "moved",
+   "home": "modules/launchpad/page.js"
+  },
+  "js/lppage.js::ids::lqp-need-h": {
+   "status": "moved",
+   "home": "modules/launchpad/page.js"
+  },
+  "js/lpwindow.js::exports::createLpWindow": {
+   "status": "moved",
+   "home": "modules/launchpad/window.js"
+  },
+  "js/lpwindow.js::functions::createLpWindow": {
+   "status": "moved",
+   "home": "modules/launchpad/window.js"
+  },
+  "js/record.js::exports::GIT_ICON": {
+   "status": "moved",
+   "home": "core/services/git-state.js"
+  },
+  "js/runsview.js::functions::stopHtml": {
+   "status": "kept",
+   "home": "js/runsview.js"
+  },
+  "js/runsview.js::functions::agentHtml": {
+   "status": "kept",
+   "home": "js/runsview.js"
+  },
+  "js/runsview.js::functions::cmdHtml": {
+   "status": "kept",
+   "home": "js/runsview.js"
+  },
+  "js/runsview.js::functions::cmdsHtml": {
+   "status": "kept",
+   "home": "js/runsview.js"
+  },
+  "js/runsview.js::functions::splitRuns": {
+   "status": "kept",
+   "home": "js/runsview.js"
+  },
+  "js/sideorder.js::exports::JOIN_MS": {
+   "status": "kept",
+   "home": "js/sideorder.js"
+  },
+  "js/sideorder.js::exports::createCalmOrder": {
+   "status": "kept",
+   "home": "js/sideorder.js"
+  },
+  "js/sideorder.js::functions::createCalmOrder": {
+   "status": "kept",
+   "home": "js/sideorder.js"
+  },
+  "js/stage.js::storage::xo-stage-w2": {
+   "status": "moved",
+   "home": "shell/panel/width.js"
+  },
+  "js/timeline.js::exports::dayGroup": {
+   "status": "kept",
+   "home": "js/timeline.js"
+  },
+  "js/timeline.js::exports::rowTime": {
+   "status": "kept",
+   "home": "js/timeline.js"
+  },
+  "js/timeline.js::functions::dayGroup": {
+   "status": "kept",
+   "home": "js/timeline.js"
+  },
+  "js/timeline.js::functions::rowTime": {
+   "status": "kept",
+   "home": "js/timeline.js"
+  },
+  "js/turnview.js::exports::cmdIcon": {
+   "status": "kept",
+   "home": "js/turnview.js"
+  },
+  "js/turnview.js::exports::stepIcon": {
+   "status": "kept",
+   "home": "js/turnview.js"
+  },
+  "js/turnview.js::exports::stepLineHtml": {
+   "status": "kept",
+   "home": "js/turnview.js"
+  },
+  "js/turnview.js::functions::cmdIcon": {
+   "status": "kept",
+   "home": "js/turnview.js"
+  },
+  "js/turnview.js::functions::stepIcon": {
+   "status": "kept",
+   "home": "js/turnview.js"
+  },
+  "js/ui.js::exports::stateMark": {
+   "status": "kept",
+   "home": "js/ui.js"
+  },
+  "js/ui.js::exports::ARC": {
+   "status": "kept",
+   "home": "js/ui.js"
+  },
+  "js/ui.js::exports::DOTS": {
+   "status": "kept",
+   "home": "js/ui.js"
+  },
+  "js/ui.js::exports::stepMark": {
+   "status": "kept",
+   "home": "js/ui.js"
+  },
+  "js/ui.js::functions::move": {
+   "status": "moved",
+   "home": "core/ui/redraw.js"
+  },
+  "tests/accounts.test.mjs::ids::set-t-accounts": {
+   "status": "kept",
+   "home": "tests/accounts.test.mjs"
+  },
+  "tests/active-turns.test.mjs::globals::matchMedia": {
+   "status": "moved",
+   "home": "tests/storm-harness.mjs"
+  },
+  "tests/boot.test.mjs::functions::fakeBackend": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
+  },
+  "tests/boot.test.mjs::globals::addEventListener": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
+  },
+  "tests/boot.test.mjs::globals::matchMedia": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
+  },
+  "tests/boot.test.mjs::globals::setInterval": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
+  },
+  "tests/boot.test.mjs::globals::setTimeout": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
+  },
+  "tests/boot.test.mjs::globals::fetch": {
+   "status": "kept",
+   "home": "tests/boot.test.mjs"
+  },
+  "tests/browser/flows.test.cjs::ids::arts-q": {
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
+  },
+  "tests/chats-list.test.mjs::ids::cs-perm": {
+   "status": "kept",
+   "home": "tests/chats-list.test.mjs"
+  },
+  "tests/chats-list.test.mjs::ids::scroller": {
+   "status": "kept",
+   "home": "tests/chats-list.test.mjs"
+  },
+  "tests/chats-list.test.mjs::ids::cs-hi": {
+   "status": "kept",
+   "home": "tests/chats-list.test.mjs"
+  },
+  "tests/chats-list.test.mjs::ids::cs-sub": {
+   "status": "kept",
+   "home": "tests/chats-list.test.mjs"
+  },
+  "tests/flavours.test.mjs::ids::mode-seg": {
+   "status": "kept",
+   "home": "tests/flavours.test.mjs"
+  },
+  "tests/flavours.test.mjs::ids::flavour-seg": {
+   "status": "kept",
+   "home": "tests/flavours.test.mjs"
+  },
+  "tests/ghpage.test.mjs::globals::matchMedia": {
+   "status": "kept",
+   "home": "tests/ghpage.test.mjs"
+  },
+  "tests/hover-veil.test.mjs::ids::nv-more": {
+   "status": "kept",
+   "home": "tests/hover-veil.test.mjs"
+  },
+  "tests/jump-projects.test.mjs::ids::side-jump": {
+   "status": "kept",
+   "home": "tests/jump-projects.test.mjs"
+  },
+  "tests/pack-marks.test.mjs::exports::stepMark": {
+   "status": "kept",
+   "home": "tests/pack-marks.test.mjs"
+  },
+  "tests/pack-marks.test.mjs::exports::ARC": {
+   "status": "kept",
+   "home": "tests/pack-marks.test.mjs"
+  },
+  "tests/pack-where-it-fits.test.mjs::exports::stepIcon": {
+   "status": "kept",
+   "home": "tests/pack-where-it-fits.test.mjs"
+  },
+  "tests/pack-where-it-fits.test.mjs::exports::GIT_ICON": {
+   "status": "kept",
+   "home": "tests/pack-where-it-fits.test.mjs"
+  },
+  "tests/pack-where-it-fits.test.mjs::ids::nv-shells": {
+   "status": "kept",
+   "home": "tests/pack-where-it-fits.test.mjs"
+  },
+  "tests/panel-parity.test.mjs::exports::conversationGestures": {
+   "status": "kept",
+   "home": "tests/panel-parity.test.mjs"
+  },
+  "tests/panel-parity.test.mjs::ids::tpdock": {
+   "status": "kept",
+   "home": "tests/panel-parity.test.mjs"
+  },
+  "tests/panel-parity.test.mjs::ids::tpherald": {
+   "status": "kept",
+   "home": "tests/panel-parity.test.mjs"
+  },
+  "tests/panel-parity.test.mjs::ids::tat-list": {
+   "status": "kept",
+   "home": "tests/panel-parity.test.mjs"
+  },
+  "tests/panel-parity.test.mjs::ids::ttarget": {
+   "status": "kept",
+   "home": "tests/panel-parity.test.mjs"
+  },
+  "tests/panel-shell.test.mjs::ids::ic-shells": {
+   "status": "kept",
+   "home": "tests/panel-shell.test.mjs"
+  },
+  "tests/rows-in-place.test.mjs::exports::reconcile": {
+   "status": "kept",
+   "home": "tests/rows-in-place.test.mjs"
+  },
+  "tests/rows-in-place.test.mjs::ids::box": {
+   "status": "kept",
+   "home": "tests/rows-in-place.test.mjs"
+  },
+  "tests/runs-page.test.mjs::exports::runViewHtml": {
+   "status": "kept",
+   "home": "tests/runs-page.test.mjs"
+  },
+  "tests/runs-page.test.mjs::ids::runs": {
+   "status": "kept",
+   "home": "tests/runs-page.test.mjs"
+  },
+  "tests/runs-page.test.mjs::ids::runs-card": {
+   "status": "kept",
+   "home": "tests/runs-page.test.mjs"
+  },
+  "tests/side-calm-order.test.mjs::ids::host": {
+   "status": "kept",
+   "home": "tests/side-calm-order.test.mjs"
+  },
+  "tests/stalled-own-message.test.mjs::functions::fakeBackend": {
+   "status": "kept",
+   "home": "tests/stalled-own-message.test.mjs"
+  },
+  "tests/stalled-own-message.test.mjs::globals::addEventListener": {
+   "status": "kept",
+   "home": "tests/stalled-own-message.test.mjs"
+  },
+  "tests/stalled-own-message.test.mjs::globals::matchMedia": {
+   "status": "kept",
+   "home": "tests/stalled-own-message.test.mjs"
+  },
+  "tests/stalled-own-message.test.mjs::globals::setInterval": {
+   "status": "kept",
+   "home": "tests/stalled-own-message.test.mjs"
+  },
+  "tests/stalled-own-message.test.mjs::globals::fetch": {
+   "status": "kept",
+   "home": "tests/stalled-own-message.test.mjs"
+  },
+  "tests/step-line-face.test.mjs::globals::matchMedia": {
+   "status": "kept",
+   "home": "tests/step-line-face.test.mjs"
+  },
+  "tests/thread-spawn-session.test.mjs::functions::fakeBackend": {
+   "status": "kept",
+   "home": "tests/thread-spawn-session.test.mjs"
+  },
+  "tests/thread-spawn-session.test.mjs::globals::addEventListener": {
+   "status": "kept",
+   "home": "tests/thread-spawn-session.test.mjs"
+  },
+  "tests/thread-spawn-session.test.mjs::globals::matchMedia": {
+   "status": "kept",
+   "home": "tests/thread-spawn-session.test.mjs"
+  },
+  "tests/thread-spawn-session.test.mjs::globals::setInterval": {
+   "status": "kept",
+   "home": "tests/thread-spawn-session.test.mjs"
+  },
+  "tests/thread-spawn-session.test.mjs::globals::fetch": {
+   "status": "kept",
+   "home": "tests/thread-spawn-session.test.mjs"
+  },
+  "tests/turn-split-notes.test.mjs::globals::matchMedia": {
+   "status": "kept",
+   "home": "tests/turn-split-notes.test.mjs"
+  },
+  "tools/flavours/build.mjs::exports::FLAVOURS": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::exports::tint": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::exports::stone": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::exports::looks": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::exports::flavourBlocks": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::exports::source": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::toOklab": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::fromOklch": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::tint": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::greyOf": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::stone": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::flavourBlocks": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::swatches": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
+  },
+  "tools/flavours/build.mjs::functions::source": {
+   "status": "kept",
+   "home": "tools/flavours/build.mjs"
   }
- },
- "mode": "plan"
+ }
 }

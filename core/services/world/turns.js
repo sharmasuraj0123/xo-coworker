@@ -33,6 +33,7 @@ export function createTurns() {
         blocks: new Map(), lastSeq: env.seq ?? 0 };
       turns.set(id, t);
     }
+    if (t.seq == null && env.seq != null) t.seq = env.seq; // known first from /active, which has no place in the stream
     if (env.session_id && !t.session) t.session = env.session_id;
     if (env.chat_id && !t.chat) t.chat = env.chat_id;
     if (env.thread_ts && !t.thread) t.thread = env.thread_ts;

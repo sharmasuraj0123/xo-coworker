@@ -66,8 +66,8 @@ export interface Layers {
   push(layer: Layer, owner?: string): Undo;
   top(): Layer | undefined;
   list(): ReadonlyArray<Layer>;
-  escape(): boolean;
-  back(): boolean;
+  escape(order?: readonly string[]): boolean;
+  back(order?: readonly string[]): boolean;
   watch(fn: () => void): Undo;
 }
 

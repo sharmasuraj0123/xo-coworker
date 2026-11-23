@@ -1,6 +1,6 @@
 {
  "js/app.js": {
-  "extra": 395,
+  "extra": 215,
   "refs": 2
  },
  "js/attach.js": {
@@ -8,11 +8,11 @@
   "refs": 0
  },
  "js/chats.js": {
-  "extra": 25,
+  "extra": 1,
   "refs": 0
  },
  "js/decide.js": {
-  "extra": 42,
+  "extra": 19,
   "refs": 0
  },
  "js/files.js": {
@@ -24,7 +24,7 @@
   "refs": 0
  },
  "js/intel.js": {
-  "extra": 48,
+  "extra": 36,
   "refs": 0
  },
  "js/map.js": {
@@ -32,7 +32,7 @@
   "refs": 0
  },
  "js/media.js": {
-  "extra": 97,
+  "extra": 75,
   "refs": 0
  },
  "js/model.js": {
@@ -40,7 +40,7 @@
   "refs": 0
  },
  "js/msgx.js": {
-  "extra": 112,
+  "extra": 101,
   "refs": 0
  },
  "js/recordview.js": {
@@ -48,7 +48,7 @@
   "refs": 0
  },
  "js/runsview.js": {
-  "extra": 9,
+  "extra": 2,
   "refs": 0
  },
  "js/shells/dock.js": {
@@ -68,11 +68,11 @@
   "refs": 0
  },
  "js/timeline.js": {
-  "extra": 94,
+  "extra": 74,
   "refs": 0
  },
  "js/turnview.js": {
-  "extra": 61,
+  "extra": 60,
   "refs": 0
  },
  "js/ui.js": {
@@ -80,11 +80,11 @@
   "refs": 0
  },
  "js/viewer.js": {
-  "extra": 93,
+  "extra": 74,
   "refs": 1
  },
  "css/app.css": {
-  "extra": 192,
+  "extra": 154,
   "refs": 0
  },
  "css/diffs.css": {
@@ -96,15 +96,15 @@
   "refs": 0
  },
  "css/foundation.css": {
-  "extra": 92,
+  "extra": 84,
   "refs": 0
  },
  "css/light.css": {
-  "extra": 2,
+  "extra": 1,
   "refs": 0
  },
  "css/links.css": {
-  "extra": 33,
+  "extra": 29,
   "refs": 0
  },
  "css/media.css": {
@@ -116,15 +116,15 @@
   "refs": 0
  },
  "css/panel.css": {
-  "extra": 89,
+  "extra": 54,
   "refs": 0
  },
  "css/phone.css": {
-  "extra": 77,
+  "extra": 74,
   "refs": 0
  },
  "css/side.css": {
-  "extra": 39,
+  "extra": 36,
   "refs": 0
  },
  "tests/agent-marks.test.mjs": {
@@ -136,7 +136,7 @@
   "refs": 0
  },
  "tests/app-ctl-scale.test.mjs": {
-  "extra": 6,
+  "extra": 5,
   "refs": 0
  },
  "tests/artifacts-preview.test.mjs": {
@@ -212,7 +212,7 @@
   "refs": 0
  },
  "tests/conv-find-ring.test.mjs": {
-  "extra": 4,
+  "extra": 2,
   "refs": 0
  },
  "tests/conv-herald-resolve.test.mjs": {
@@ -244,7 +244,7 @@
   "refs": 0
  },
  "tests/ctl-scale.test.mjs": {
-  "extra": 23,
+  "extra": 22,
   "refs": 0
  },
  "tests/design-budget.test.mjs": {
@@ -400,7 +400,7 @@
   "refs": 0
  },
  "tests/lp-phone-links.test.mjs": {
-  "extra": 11,
+  "extra": 10,
   "refs": 0
  },
  "tests/main-clip.test.mjs": {
@@ -495,10 +495,6 @@
   "extra": 5,
   "refs": 0
  },
- "tests/panel-shell.test.mjs": {
-  "extra": 3,
-  "refs": 0
- },
  "tests/panel-threads.test.mjs": {
   "extra": 7,
   "refs": 0
@@ -541,10 +537,6 @@
  },
  "tests/press-reach.test.mjs": {
   "extra": 10,
-  "refs": 0
- },
- "tests/project-find-escape.test.mjs": {
-  "extra": 4,
   "refs": 0
  },
  "tests/project-icons.test.mjs": {
@@ -664,7 +656,7 @@
   "refs": 0
  },
  "tests/side-spacing.test.mjs": {
-  "extra": 3,
+  "extra": 1,
   "refs": 0
  },
  "tests/sidebar-hover.test.mjs": {
@@ -676,7 +668,7 @@
   "refs": 0
  },
  "tests/stage-pages.test.mjs": {
-  "extra": 8,
+  "extra": 5,
   "refs": 0
  },
  "tests/start-centred.test.mjs": {
@@ -712,7 +704,7 @@
   "refs": 0
  },
  "tests/thread-page.test.mjs": {
-  "extra": 9,
+  "extra": 8,
   "refs": 0
  },
  "tests/turnview.test.mjs": {
@@ -760,7 +752,7 @@
   "refs": 0
  },
  "core/ui/foundation.css": {
-  "extra": 17,
+  "extra": 13,
   "refs": 0
  },
  "core/ui/components/xo-select.css": {
@@ -768,11 +760,11 @@
   "refs": 0
  },
  "core/ui/markdown/rich.css": {
-  "extra": 62,
+  "extra": 49,
   "refs": 0
  },
  "core/ui/tokens.css": {
-  "extra": 68,
+  "extra": 56,
   "refs": 0
  }
 }

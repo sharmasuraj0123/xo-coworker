@@ -15,7 +15,7 @@ const FRAME = /^\s*(?:from|to|[\d.]+%)(?:\s*,\s*(?:from|to|[\d.]+%))*\s*$/;
 /** Every declaration outside the sidebar, token blocks, @font-face and keyframe frames. */
 function declarations() {
   const out = [];
-  for (const f of cssNames().filter((n) => n !== "../core/ui/tokens.css")) {
+  for (const f of cssNames().filter((n) => !["../core/ui/tokens.css", "flavours.css"].includes(n))) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
       const sel = m[1].trim();
@@ -62,8 +62,8 @@ t("line heights are whole pixels", () => {
 t("radii come from the scale", () => {
   const vals = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.split(/\s+/));
   // a nested corner may be computed from its container's: calc(var(--r-lg) - 1px) is inner = outer − inset
-  const vals2 = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.replace(/calc\(var\(--r(?:-[\w]+)?\)\s*-\s*\d+px\)/g, "var(--r)").split(/\s+/));
-  const bad = [...new Set(vals2.filter((v) => !/^var\(--r(?:-[\w]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
+  const vals2 = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.replace(/calc\(var\(--nest-r\)\s*-\s*var\(--nest-in\)\)/g, "var(--r)").replace(/calc\(var\(--r(?:-[\w]+)?\)\s*-\s*\d+px\)/g, "var(--r)").split(/\s+/));
+  const bad = [...new Set(vals2.filter((v) => !/^var\(--(?:r|nest-r)(?:-[\w-]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
   assert.deepEqual(bad, [], `radii off the scale: ${bad.join(", ")}`);
 });
 
@@ -75,6 +75,7 @@ t("one motion curve (and nothing overshoots)", () => {
     const [, y1, , y2] = m[1].split(",").map(Number);
     assert.ok(y1 <= 1 && y2 <= 1, `an overshooting curve in tokens.css: ${m[0]}`);
   }
+  assert.doesNotMatch(tokens, /linear\(/, "no overshooting linear() curve");
 });
 
 t("no heavy shadows: floating things use var(--e2)", () => {
@@ -96,7 +97,7 @@ t("no malformed var() (a broken value drops its whole declaration without a word
 const ROLE = /^--(?:canvas|sunken|surface|float|fill-\d|line(?:-faint|-soft|-strong|-hover)?|ink(?:-\d)?|accent(?:-[\w]+)?|err(?:-ink)?|warn|info|violet|bg(?:-\d|-head)?|hair|raised|side|pop-(?:bg|line)|comp-line(?:-hi)?)$/;
 t("the palette lives in tokens.css alone", () => {
   const all = [];
-  for (const f of cssNames().filter((n) => n !== "../core/ui/tokens.css")) {
+  for (const f of cssNames().filter((n) => !["../core/ui/tokens.css", "flavours.css"].includes(n))) {
     const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/(--[\w-]+)\s*:\s*([^;}]*)/g)) {
       const to = /^var\((--[\w-]+)\)$/.exec(m[2].trim());

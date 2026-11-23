@@ -180,7 +180,7 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
 
   // a theme switch recolours the terminal
   const mo = new MutationObserver(() => { term.options.theme = themeFromCss(); });
-  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
 
   connect();
 

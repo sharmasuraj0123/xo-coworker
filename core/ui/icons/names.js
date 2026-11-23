@@ -11,7 +11,6 @@ export const ICON = {
   branch: xi("branch"),
   back: xi("chevron-left"),
   arrow: xi("arrow-right"),
-  down: xi("arrow-down"),
   close: xi("close"),
   search: xi("search"),
   // the tick draws itself in where it lands (.tk, css/app.css): its length is 24 to the animation
@@ -25,11 +24,15 @@ export const ICON = {
   list: xi("list"),
   lock: xi("lock"),
   stop: xi("stop"),
+  needs: xi("state-needs-you"),
+  doing: xi("step-doing"),
+  todo: xi("state-idle"),
   sound: xi("sound"),
   plus: xi("plus"),
   home: xi("home"),
   right: xi("chevron-right"),
   clock: xi("clock"),
+  brain: xi("brain"),
   // a refusal or an error said in a line
   warn: xi("warning"),
   menu: xi("menu"),
@@ -50,6 +53,7 @@ export const ICON = {
   pause: xi("pause"),
   hourglass: xi("hourglass"),
   sun: xi("sun"),
+  contrast: xi("contrast"),
   rule: xi("rules"),
   key: xi("key"),
   // a thread: one agent's conversation with words in it (Chats keeps the empty bubble, `thread`)
@@ -71,6 +75,7 @@ export const ICON = {
   map: xi("map"),
   graph: xi("graph"),
   follow: xi("follow"),
+  toMain: xi("open-in-main"),
   fit: xi("fit"),
   // needs you: the mark the sidebar and the lists use
   diamond: xi("state-needs-you"),
@@ -90,6 +95,10 @@ export const ICON = {
   link: xi("link"),
   split: xi("split-view"),
   code: xi("code"),
+  table: xi("table"),
+  undo: xi("undo"),
+  download: xi("download"),
+  hide: xi("arrow-down"),
   good: xi("thumbs-up"),
   bad: xi("thumbs-down"),
   del: xi("delete"),
@@ -99,9 +108,14 @@ export const ICON = {
   dot: xi("step-dot"),
   deploy: xi("deploy"),
   github: xi("github"),
+  person: xi("person"),
   container: xi("container"),
   server: xi("server"),
 };
+
+export const DOTS = `<i class="dots" aria-hidden="true"><i></i><i></i><i></i></i>`;
+/** @param {string} state */
+export const stepMark = (state) => (state === "done" ? ICON.check : state === "doing" ? ICON.doing : ICON.todo);
 
 /** The "next" glyph: XO's own chevron, from the mark. */
 export const NEXT_GLYPH = xi("next-move", "nx-g");

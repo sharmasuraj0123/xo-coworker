@@ -1,5 +1,3 @@
-// Pure helpers between storm's rows (UI-reference §3) and the UI's message and ask
-// shapes. No DOM, no fetch: tested from Node (tests/logic.test.mjs).
 
 import { uiMsg } from "../core/services/world/rows.js";
 import { currentPools, mainRuntime } from "../core/services/world/sessions.js";
@@ -277,18 +275,6 @@ export function sendBlock(w, { timeline = true, pid = null } = {}) {
   return "";
 }
 
-/**
- * A plain chat in order: your prompts (from the CLI's own history, each at the time the CLI wrote it)
- * and storm's turns (each at its start, whole seconds), as [{kind: "you", m} | {kind: "turn", t}].
- * The CLI writes a prompt some time after its turn starts (claude at once, codex after its own context,
- * seconds on a cold start), so times alone can put a reply above its prompt. A turn is paired with the
- * prompts that woke it instead: as many as its `msg:prompt:` wakes (one for a turn you started), taken
- * between the start of the turn before it and the start of the next: those written once it began,
- * else the last one sent just before it (from this tab, not in the history yet). The first goes just
- * above the turn; any more (added while it ran) just below. A prompt no turn took (typed in the CLI
- * itself, say) keeps its time.
- * prompts: [{at: ms, …}]; turns: [{at: ISO, origin, wakes}] in the order they ran.
- */
 export function chatOrder(prompts, turns) {
   const mine = prompts.map((m, i) => ({ m, i })).sort((a, b) => a.m.at - b.m.at || a.i - b.i);
   const taken = new Set();
@@ -374,13 +360,15 @@ export function sharedFileRoute(thread, path) {
 
 const COORD_WORD = { "project-coordinator": "project", "workspace-coordinator": "workspace" };
 const DOWN_KINDS = { brief: "brief", relay: "follow-up", answer: "answer" };
+// a thread writing its coordinator: a relay until 11 Nov, an ask since (a status is a report, which wakes no one)
+const UP_KINDS = new Set(["relay", "ask"]);
 
 /**
  * What a thread and its coordinators said to each other. Storm keeps those words as hops, the text
  * in `note` (ch 11 §16), never as chat messages: a coordinator's brief, follow-up or answer to the
- * thread, and the thread's own message_coordinator. Returns [{id, seq, at, dir: "down"|"up", from,
+ * thread, and the thread's own message to it (a relay, or an ask). Returns [{id, seq, at, dir: "down"|"up", from,
  * kind, text}]: `down` is a coordinator writing to the thread (`from` "project" or "workspace", `kind`
- * brief | follow-up | answer), `up` the thread writing to its coordinator. A hop whose note hasn't
+ * brief | follow-up | answer), `up` the thread writing to its coordinator; `cause` the hop it answers. A hop whose note hasn't
  * been read yet (the stream's hop frame carries none) isn't here until it is.
  */
 export function hopNotes(thread, hops) {
@@ -388,9 +376,9 @@ export function hopNotes(thread, hops) {
   for (const hp of hops || []) {
     if (!hp || hp.thread_ts !== thread.id || !String(hp.note || "").trim()) continue;
     const at = Date.parse(hp.created_at || hp.at) || 0;
-    const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim() };
+    const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim(), cause: hp.cause || null };
     if (hp.to_role === "thread" && COORD_WORD[hp.from_role] && DOWN_KINDS[hp.kind]) out.push({ ...base, dir: "down", from: COORD_WORD[hp.from_role], kind: DOWN_KINDS[hp.kind] });
-    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && hp.kind === "relay") out.push({ ...base, dir: "up", from: "thread", kind: "relay" });
+    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && UP_KINDS.has(hp.kind)) out.push({ ...base, dir: "up", from: "thread", kind: hp.kind });
   }
   return out;
 }
@@ -419,15 +407,6 @@ export function forwardOrigin(fwd, find, max = 6) {
   return { ...cur, known: false };
 }
 
-/**
- * The messages relayed into a thread (if1 #7). Storm doesn't copy a relayed message into the thread:
- * the hop into it (a relay, a brief, an answer: any hop to the thread) names the message, which stays on the project's timeline. A hop
- * may cite any message of its scope: yours, the agent's it answered (a bare "yes" travels with its proposal), or XO's. Returns
- * {shown: [ui message, each with `hop` {id, seq, at}: when it was passed on], missing: [{ids, seq}]}: those found on the loaded
- * timeline, each as the row's own author says it (who: you | coord | agent | system; never one's words as another's), each
- * once and never one the thread already has, and per hop the ids not loaded yet, with the hop's seq as the upper bound to
- * page back from.
- */
 export function relayedInto(thread, hops, timeline, have = new Set(), found = null) {
   const shown = [], missing = [], seen = new Set(have);
   for (const hp of hops || []) {
@@ -452,4 +431,24 @@ export function stopWords(stop) {
   if (!stop) return "";
   const who = stop.by === "you" ? "Stopped by you" : stop.by === "workspace" ? "Stopped by the workspace coordinator" : stop.by === "coordinator" ? "Stopped by the coordinator" : "Stopped";
   return stop.reason ? `${who} · ${stop.reason}` : who;
+}
+
+const DAY = 86400000;
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+/** The list's day groups: Today, Yesterday, This week, then each month by name (with its year when not this one). */
+export function dayGroup(iso, now = new Date()) {
+  const t = new Date(Date.parse(iso)), ms = t.getTime(), day = startOfDay(now);
+  if (!Number.isFinite(ms)) return "Earlier";
+  if (ms >= day) return "Today";
+  if (ms >= day - DAY) return "Yesterday";
+  if (ms >= day - 6 * DAY) return "This week";
+  return t.toLocaleDateString(undefined, t.getFullYear() === now.getFullYear() ? { month: "long" } : { month: "long", year: "numeric" });
+}
+/** A row's time: the clock within the last two days (its group names the day), the weekday this week, else the date. */
+export function rowTime(iso, now = new Date()) {
+  const t = new Date(Date.parse(iso)), ms = t.getTime(), day = startOfDay(now);
+  if (!Number.isFinite(ms)) return "";
+  if (ms >= day - DAY) return t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  if (ms >= day - 6 * DAY) return t.toLocaleDateString(undefined, { weekday: "short" });
+  return t.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }

@@ -22,7 +22,7 @@ for (const m of src.matchAll(/<label\b([^>]*)>(?:\s|\$\{[^}]*\})*<input\b[^>]*ty
 for (const m of src.matchAll(/<(div|span|li|a)\b([^>]*role="(button|tab|option|menuitem|menuitemradio|switch)"[^>]*)>/g)) { const c = /class="([^"$]*)/.exec(m[2]); if (c) for (const k of c[1].trim().split(/\s+/)) if (k && !/^is-/.test(k)) ctl.add("." + k); }
 // a link drawn as a control is a control (grader B on 05d76ca, S267: Open in Launchpad was 161×32 at 390, the
 // lightbox's Open the original 36×28): every <a class=…>, but a link in text, which the floor leaves out by its class
-const TEXT_LINKS = [".lk", ".lp-hh", ".lp-ln", ".cp-link"];
+const TEXT_LINKS = [".lk", ".lp-ln", ".cp-link"];
 const links = new Set(), textLinks = new Set();
 for (const m of src.matchAll(/<a\b([^>]*)>/g)) {
   const c = /class="([^"$]*)/.exec(m[1]);
@@ -118,7 +118,7 @@ t("the floor reaches a link drawn as a control and leaves a link in text (S267):
     assert.ok(not.includes(k), `${k}, a link in text, is left out of the floor`);
     assert.ok(textLinks.has(k), `${k} is still a link the templates make (no stale exception)`);
   }
-  for (const k of [".lp-b", ".lp-ib", ".lpm-host", ".fr-ib", ".lp-go", ".lbx-btn"]) {
+  for (const k of [".lp-b", ".lq-host", ".lp-go", ".lbx-btn"]) {
     assert.ok(links.has(k), `the census finds the link ${k}`);
     assert.ok(!not.includes(k), `${k} is under the floor`);
   }
@@ -131,7 +131,7 @@ t("the floor reaches a link drawn as a control and leaves a link in text (S267):
 // fills its box leaves the floor to the box, which takes it; Files' new-name row grows with its field
 t("every text field is at least 36 px tall on a phone: the field itself, or the box it fills", () => {
   const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
-  const BOXES = ".fl-q,.ar-q,.all-q,.side-find,.jump-field";
+  const BOXES = ".fl-q,.ar-q,.all-q,.jump-field";
   assert.ok(phone.includes(`:where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(${BOXES}) input)){min-height:36px}`), "every text input, but one that fills its box");
   assert.ok(phone.includes(`:where(${BOXES.split(",").filter((b) => b !== ".jump-field").join(",")},.fl-new-r){min-height:36px}`), "the boxes (the jump field is 56), and Files' new-name row");
   // every input the templates make is covered: the box ones by their box, the rest by the rule
