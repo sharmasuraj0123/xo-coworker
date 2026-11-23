@@ -2,6 +2,7 @@ type Json = Promise<any>;
 type Query = Record<string, unknown>;
 type Id = string;
 interface BlobOptions { signal?: AbortSignal; ms?: number }
+type SignInRoute = "claude-code" | "codex" | "antigravity";
 
 export interface Api {
   status(): Json;
@@ -99,6 +100,9 @@ export interface Api {
   githubConnectPoll(sessionId: Id): Json;
   githubConnectCancel(sessionId: Id): Json;
   githubDisconnect(): Json;
+  signInStream(route: SignInRoute, options: { force?: boolean; signal: AbortSignal; on: (event: unknown) => void }): Promise<void>;
+  signInCode(route: Exclude<SignInRoute, "codex">, sessionId: Id, code: string): Json;
+  signInCancel(route: "claude-code"): Json;
 
   terminalStatus(): Json;
   terminals(query?: Query): Json;

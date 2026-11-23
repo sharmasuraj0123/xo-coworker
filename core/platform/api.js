@@ -2,7 +2,8 @@
 
 // XO Space's routes, as the UI calls them through serve.py; the server owns every decision, this client only carries it.
 
-import { request, blob, signedUrl, socketUrl, text, upload, urlOf } from "./http.js";
+import { request, blob, signedUrl, socketUrl, text, upload, urlOf, exchange, coderHeaders, ApiError } from "./http.js";
+import { readJsonEvents } from "./sse.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
 
 const enc = encodeURIComponent;
@@ -169,6 +170,15 @@ export const api = {
   githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
   githubConnectCancel: (sessionId) => send("POST", "/connectors/github/cli/cancel", { session_id: sessionId }),
   githubDisconnect: () => send("POST", "/connectors/github/disconnect", {}),
+  signInStream: async (route, { force = false, signal, on }) => {
+    let res;
+    try { res = await fetch(`connect/${route}${force ? "?force=1" : ""}`, { method: "POST", signal, headers: { Accept: "text/event-stream", ...coderHeaders() }, cache: "no-store", redirect: "manual" }); }
+    catch (err) { if (/** @type {Error} */ (err).name === "AbortError") throw err; throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?"); }
+    if (!res.ok) throw new ApiError(res.status, `http_${res.status}`, `Space answered ${res.status}.`);
+    await readJsonEvents(res, on, signal);
+  },
+  signInCode: (route, sessionId, code) => exchange(`connect/${route}/callback`, "POST", { session_id: sessionId, code }),
+  signInCancel: (route) => exchange(`connect/${route}`, "DELETE"),
 
   terminalStatus: () => get("/terminal/status"),
   /** {project?, path?, workspace?: true} → {terminals: [T…]}, oldest first */

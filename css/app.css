@@ -691,9 +691,9 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 /* a narrow composer (the panel's Thread page) gives up words, never wraps: the note first, then "Reply in" */
 @container (max-width:600px){.target .muted{display:none}}
 @container (max-width:520px){.target .tg-w{display:none}}
-.send{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;background:var(--accent-fill);color:var(--accent-ink);transition:transform var(--dur-fast) var(--ease)}
+.send{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;background:var(--pri-fill);color:var(--pri-ink);transition:transform var(--dur-fast) var(--ease)}
 .send svg{width:var(--ic);height:var(--ic)}
-.send:hover{background:var(--accent-hover)}
+.send:hover{background:var(--pri-fill-hover)}
 .send:active{transform:scale(var(--press-scale))}
 .send:disabled{background:var(--fill-3);color:var(--ink-5);cursor:default}
 /* Stop: while the coordinator or this thread's agent is working (and the field is empty) */
@@ -1349,9 +1349,9 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
    before and a variant's own hover (.btn-danger …) still wins */
 .btn:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--btn-fill-hover);color:var(--ink)}
 .btn:active:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--btn-fill-press);transform:scale(var(--press-scale));--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
-.btn-pri{background:var(--accent-fill);border-color:var(--accent-fill);color:var(--accent-ink)}
-.btn-pri:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--accent-hover);border-color:var(--accent-hover);color:var(--accent-ink)}
-.btn-pri:active:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--accent-press);border-color:var(--accent-press)}
+.btn-pri{background:var(--pri-fill);border-color:var(--pri-fill);color:var(--pri-ink)}
+.btn-pri:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--pri-fill-hover);border-color:var(--pri-fill-hover);color:var(--pri-ink)}
+.btn-pri:active:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--pri-fill-press);border-color:var(--pri-fill-press)}
 .btn:disabled,.btn[aria-disabled="true"]{opacity:.55;cursor:default;transform:none}
 .btn[aria-busy="true"]{cursor:progress}
 .dlg .btn{height:var(--h-lg);padding:0 18px;border-radius:var(--r);font-size:var(--fs-ui)}
@@ -2022,12 +2022,10 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .fl-n{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);text-align:left}
 .fl-opt.is-on .fl-n{color:var(--ink)}
 .set-row.dm.is-on{background:color-mix(in srgb,var(--accent-fill) 6%,var(--surface))}
-/* a link in a row's words (a model's "about it") is one short action: it stays on one line while the words around it wrap */
-.set-row a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong);white-space:nowrap}
-.set-row a:hover{color:var(--ink);text-decoration-color:currentColor}
+.set-row a:not([class]){color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong);white-space:nowrap}
+.set-row a:not([class]):hover{color:var(--ink);text-decoration-color:currentColor}
 .set-form{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
 .set-fa{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-/* Settings › Accounts: one control row per account, its state on the left and its actions on the right */
 .set-row.acct{flex-direction:column;align-items:stretch;gap:var(--s-3)}
 .acct-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-5);min-width:0}
 .acct-top .set-l b{display:inline-flex;align-items:center;gap:var(--gap-icon)}
@@ -2037,6 +2035,10 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .acct-s.t-bad{color:var(--danger-text)}
 .acct-code{display:flex;align-items:center;gap:var(--s-4);flex-wrap:wrap}
 .acct-code .cp-code{padding:var(--s-1) var(--s-3);font-size:var(--fs-title);line-height:var(--lh-title);letter-spacing:var(--tr-code)}
+.acct-rec{height:auto;padding:var(--s-1) var(--s-3)}
+.acct-paste{display:flex;align-items:flex-end;gap:var(--s-3);flex-wrap:wrap}
+.acct-paste .field{flex:1 1 16rem;min-width:0}
+.acct-log{overflow-wrap:anywhere}
 .acct-q{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
 @media (max-width:760px){.acct-top{flex-direction:column;align-items:stretch}.acct-top .set-fa{justify-content:flex-start}}
 .set-confirm,.wt-confirm{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--err) 9%,var(--surface));border:1px solid transparent;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
@@ -2970,9 +2972,8 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .mv-ban .ev-ic{color:var(--ink-3)}
 .mv-ban .ev-t{flex:1;white-space:normal;overflow:visible;text-overflow:clip;text-wrap:pretty}
 .mv-ban .ev-t b{color:var(--ink-2);font-weight:var(--fw-medium)}
-.mv-ban .ev-t a{color:var(--ink-2)}
+.mv-ban .ev-t a:not([class]){color:var(--ink-2)}
 
-/* ── a usage limit (mixed runtimes F5): on the card in Needs you, and at the end of each waiting thread ── */
 .lim{display:flex;flex-direction:column;gap:8px;margin:var(--s-1) 0 var(--s-1)}
 .lim-when{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);color:var(--warn)}
 .lim-when svg{width:var(--ic-sm);height:var(--ic-sm)}

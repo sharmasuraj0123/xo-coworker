@@ -407,6 +407,34 @@ class Tunnel(unittest.TestCase):
         self.refused(421, "bad_host", headers=rebinding(Origin=f"http://{REBIND_HOST}:{PORT}"))
 
 
+class SignIn(unittest.TestCase):
+    """Space's runtime sign-in routes live outside /api: forwarded only in their exact spelling, POST and DELETE."""
+
+    def page(self) -> dict:
+        return {**local(), "Origin": f"http://localhost:{PORT}", "Sec-Fetch-Site": "same-origin"}
+
+    def test_forwarded(self):
+        for method, path in [("POST", "/connect/claude-code?force=1"), ("POST", "/connect/claude-code/callback"),
+                             ("DELETE", "/connect/claude-code"), ("POST", "/connect/codex"), ("POST", "/connect/antigravity"),
+                             ("POST", "/connect/antigravity/callback")]:
+            SEEN.clear()
+            self.assertEqual(ask(method, path, self.page(), b"{}" if method == "POST" else None)[0], 200, path)
+            self.assertEqual(SEEN[-1]["path"], path)
+
+    def test_nothing_else(self):
+        for method, path in [("GET", "/connect/codex"), ("POST", "/connect/github"), ("POST", "/connect/codex/x"),
+                             ("POST", "/connect//codex"), ("POST", "/connect/%63odex"), ("PUT", "/connect/codex")]:
+            SEEN.clear()
+            self.assertNotEqual(ask(method, path, self.page(), b"{}" if method != "GET" else None)[0], 200, path)
+            self.assertEqual(SEEN, [], path)
+
+    def test_a_cross_origin_page_never_gets_there(self):
+        SEEN.clear()
+        status = ask("POST", "/connect/claude-code", {**local(), "Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, b"")[0]
+        self.assertEqual(status, 403)
+        self.assertEqual(SEEN, [])
+
+
 class WriterKey(unittest.TestCase):
     """Saving a project file and undoing a save carry the UI's writer key (serve.writer_key), added here
     after the same-origin check; no other request does, and a page can never send its own."""

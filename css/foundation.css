@@ -163,13 +163,11 @@ body.stage-full .stg-grip{display:none}
 /* a ring drawn inside a control lies on its fill: on the accent's green, the green ring vanished (the controls grader
    on 8aa58d3, S135: the viewer's Save, inset in its head on a phone, rgba(131,214,58,.75) on #83D63A). Every inset
    ring takes the colour its fill asks for (--ring-in), and a control on the accent asks for the accent's own ink */
-:where(.btn-pri,.send,.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.b-allow.pressed,.b-done.pressed){--ring-in:var(--accent-ink)}
-/* a control on the accent presses deeper, to the accent's own press (--accent-press), as Create and .btn-pri do: the
-   shared press fill is a veil of the theme's ink, and in dark it lightened the green, which reads as its hover (the
-   controls grader on ba93c9b, S135: the viewer's Save held as hovered in dark, both rgb(150,220,88)) */
-:where(.xd-btn.is-pri,.xd-send,.send:not(.is-stop),.btn-pri):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:var(--accent-press)!important;border-color:var(--accent-press)!important}
-/* a control filled with the ink (the picker's Done) presses to the ink a quarter of the way to the canvas:
-   its hover is the ink at its highest, and a veil of the ink over the ink shows nothing */
+:where(.tw-act.lp-btn,.b-allow.pressed,.b-done.pressed){--ring-in:var(--accent-ink)}
+:where(.send,.xd-send,.btn-pri,.xd-btn.is-pri){--ring-in:var(--pri-ink)}
+/* a main action presses to its own press fill: a veil over the accent or the ink reads as its hover or shows nothing */
+:where(.btn-pri,.xd-btn.is-pri,.xd-send,.send:not(.is-stop)):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:var(--pri-fill-press)!important;border-color:var(--pri-fill-press)!important}
+/* the picker's Done, filled with the ink, presses a quarter of the way to the canvas */
 :where(.iq-done):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 76%,var(--canvas))!important}
 /* Stop, a stone disc: it presses a step deeper than its hover (app.css, .send.is-stop) */
 :where(.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 18%,var(--stop))!important}

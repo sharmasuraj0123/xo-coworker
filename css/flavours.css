@@ -44,6 +44,9 @@
 :root[data-theme="light"][data-flavour="slate"]{
   --live-h:255
 }
+:root[data-flavour="slate"]{
+  --pri-fill:var(--ink); --pri-fill-hover:var(--ink-hi); --pri-fill-press:color-mix(in srgb,var(--ink) 76%,var(--canvas)); --pri-ink:var(--on-ink)
+}
 @media (prefers-contrast: more){
   :root:not([data-theme="light"])[data-flavour="slate"]{
     --sb-line:var(--line); --sb-line-hover:var(--line-hover); --ink-3:#C1C9D3; --ink-4:#C1C9D3; --line:#545B63; --line-hover:#888F98
@@ -71,6 +74,9 @@
 }
 :root[data-theme="light"][data-flavour="dusk"]{
   --live-h:265
+}
+:root[data-flavour="dusk"]{
+  --pri-fill:var(--ink); --pri-fill-hover:var(--ink-hi); --pri-fill-press:color-mix(in srgb,var(--ink) 76%,var(--canvas)); --pri-ink:var(--on-ink)
 }
 @media (prefers-contrast: more){
   :root:not([data-theme="light"])[data-flavour="dusk"]{
@@ -146,6 +152,9 @@
 }
 :root[data-theme="light"][data-flavour="onyx"] :is(.toast,.lbx){
   --fill-1:#090909; --fill-2:#1A1A1A; --fill-3:#242424; --fill-4:#333333; --menu-focus:#313131; --line-faint:#151515; --line-soft:#1D1D1D; --line:#292929; --line-strong:#353535; --line-hover:#4F4F4F; --on-ink:#050505
+}
+:root[data-flavour="onyx"]{
+  --pri-fill:var(--ink); --pri-fill-hover:var(--ink-hi); --pri-fill-press:color-mix(in srgb,var(--ink) 76%,var(--canvas)); --pri-ink:var(--on-ink)
 }
 @media (prefers-contrast: more){
   :root:not([data-theme="light"])[data-flavour="onyx"]{
@@ -315,6 +324,9 @@
 :root[data-theme="light"][data-flavour="deep"]{
   --live-h:80
 }
+:root[data-flavour="deep"]{
+  --pri-fill:var(--ink); --pri-fill-hover:var(--ink-hi); --pri-fill-press:color-mix(in srgb,var(--ink) 76%,var(--canvas)); --pri-ink:var(--on-ink)
+}
 @media (prefers-contrast: more){
   :root:not([data-theme="light"])[data-flavour="deep"]{
     --sb-line:var(--line); --sb-line-hover:var(--line-hover); --ink-3:#C4C9CE; --ink-4:#C4C9CE; --line:#4D5662; --line-hover:#8B8E94
@@ -342,6 +354,9 @@
 }
 :root[data-theme="light"][data-flavour="midnight"]{
   --live-h:245
+}
+:root[data-flavour="midnight"]{
+  --pri-fill:var(--ink); --pri-fill-hover:var(--ink-hi); --pri-fill-press:color-mix(in srgb,var(--ink) 76%,var(--canvas)); --pri-ink:var(--on-ink)
 }
 @media (prefers-contrast: more){
   :root:not([data-theme="light"])[data-flavour="midnight"]{

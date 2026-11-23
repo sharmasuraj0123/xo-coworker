@@ -2,22 +2,11 @@
 
 // XO Space's deploy API (services/launchpad/API.md); secrets travel once, in the POST's body, never kept, logged or put in a URL.
 import { request, coderHeaders } from "../../core/platform/http.js";
-import { createParser } from "../../core/platform/sse.js";
+import { readJsonEvents } from "../../core/platform/sse.js";
 import { model, rows, hostOf } from "./model.js";
 
 const enc = encodeURIComponent;
 
-/** A Server-Sent Events body, read as it arrives: each event's JSON to `on`. @param {Response} res @param {(ev: any) => void} on @param {AbortSignal} signal */
-async function sse(res, on, signal) {
-  const rd = /** @type {ReadableStream<Uint8Array>} */ (res.body).getReader(), dec = new TextDecoder(), parser = createParser();
-  for (;;) {
-    const { value, done } = await rd.read();
-    if (done || signal.aborted) return;
-    for (const f of parser.feed(dec.decode(value, { stream: true }))) {
-      if (f.data) { try { on(JSON.parse(f.data)); } catch { /* a ping or a line that isn't JSON */ } }
-    }
-  }
-}
 const END = new Set(["done", "error", "needs", "replaced"]);
 /** How long a dropped stream waits before picking up again: Space's `retry: 3000` (a test may shorten it). */
 export const RETRY = { ms: 3000 };
@@ -38,7 +27,7 @@ function stream(p, path, init, on) {
       // Space has no more for this viewer: the run ended, so the panel reads where the project stands instead of waiting
       if (res.status === 204) { ended = true; take({ type: "ended", run_id: run }); return; }
       if (!res.ok) { let d = null; try { d = (await res.json()).detail; } catch { /* not JSON */ } fail(d?.code || `http_${res.status}`, d?.message || `Space answered ${res.status}.`, d?.action || "retry"); return; }
-      await sse(res, seen, ctl.signal);
+      await readJsonEvents(res, seen, ctl.signal);
       again();
     })
     .catch((e) => { if (e.name !== "AbortError") again(e); });

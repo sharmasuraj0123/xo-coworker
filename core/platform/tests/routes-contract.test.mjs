@@ -13,17 +13,28 @@ let from = "";
 const record = (method, url) => { const u = new URL(String(url), "http://127.0.0.1:5180/"); seen.push({ method: method.toUpperCase(), path: u.pathname, from }); };
 globalThis.fetch = /** @type {any} */ (async (url, init = {}) => {
   record(init.method || "GET", url);
-  return { ok: false, status: 204, statusText: "", type: "basic", text: async () => "", json: async () => ({}), blob: async () => ({}) };
+  const status = String(url).startsWith("connect/antigravity") ? 404 : 204;
+  return { ok: false, status, statusText: "", type: "basic", text: async () => "", json: async () => ({}), blob: async () => ({}) };
 });
 globalThis.XMLHttpRequest = /** @type {any} */ (class { constructor() { this.upload = {}; } open(m, u) { record(m, u); } setRequestHeader() {} send() {} abort() {} });
 
 const { api, attachmentUrl, attachmentText, uploadAttachment, terminalSocketUrl } = await import("../api.js");
 
-const ARGS = { pinMade: [["c", "m", true], ["c", "m", false]] };
+const SIGN_IN_OPTIONS = { signal: new AbortController().signal, on() {} };
+const ARGS = {
+  pinMade: [["c", "m", true], ["c", "m", false]],
+  signInStream: ["claude-code", "codex", "antigravity"].map((route) => [route, SIGN_IN_OPTIONS]),
+  signInCode: ["claude-code", "antigravity"].map((route) => [route, "session", "code"]),
+  signInCancel: [["claude-code"]],
+};
 const OPTIONAL_GITHUB = new Map([
   ["api.githubIssue", "/api/xo-projects/x/github/issues/y"],
   ["api.githubPulls", "/api/xo-projects/x/github/pulls"],
   ["api.githubPull", "/api/xo-projects/x/github/pulls/y"],
+]);
+const OPTIONAL_SIGN_IN = new Map([
+  ["api.signInStream", "/connect/antigravity"],
+  ["api.signInCode", "/connect/antigravity/callback"],
 ]);
 const call = async (name, fn, args) => { from = name; try { await fn(...args); } catch { /* the answer is fake; the request is what counts */ } };
 for (const [name, fn] of Object.entries(api)) {
@@ -43,19 +54,26 @@ t("the client was driven: every api route made a request", () => {
   for (const name of Object.keys(api)) assert.ok(seen.some((s) => s.from === `api.${name}`), `api.${name} made no request`);
   for (const name of ["attachmentText", "uploadAttachment", "attachmentUrl"]) assert.ok(seen.some((s) => s.from === name), `${name} made no request`);
 });
-t("each request matches OpenAPI or an optional GitHub GET with 404 coverage", () => {
+const optional = ({ method, path, from }) =>
+  (method === "GET" && OPTIONAL_GITHUB.get(from) === path)
+  || (method === "POST" && OPTIONAL_SIGN_IN.get(from) === path);
+t("each request matches OpenAPI or an optional route with 404 coverage", () => {
   const unlisted = seen.filter(({ method, path }) => !templates.some((x) => x.re.test(path) && x.methods.includes(method)));
   const missing = [...new Set(unlisted
-    .filter(({ method, path, from }) => method !== "GET" || OPTIONAL_GITHUB.get(from) !== path)
+    .filter((request) => !optional(request))
     .map(({ method, path, from }) => `${method} ${path} (${from})`))];
   assert.deepEqual(missing, [], `routes the client calls that xo-space doesn't define (snapshot ${SNAP.taken})`);
 });
 t("each optional entry refers to a route absent from this OpenAPI snapshot", () => {
-  for (const [from, path] of OPTIONAL_GITHUB) {
-    assert.ok(seen.some((request) => request.from === from && request.method === "GET" && request.path === path), from);
-    assert.ok(!templates.some((entry) => entry.re.test(path) && entry.methods.includes("GET")), `remove ${from} from the optional routes`);
+  for (const [method, routes] of [["GET", OPTIONAL_GITHUB], ["POST", OPTIONAL_SIGN_IN]]) {
+    for (const [from, path] of routes) {
+      assert.ok(seen.some((request) => request.from === from && request.method === method && request.path === path), from);
+      assert.ok(!templates.some((entry) => entry.re.test(path) && entry.methods.includes(method)), `remove ${from} from the optional routes`);
+    }
   }
 });
+await assert.rejects(api.signInStream("antigravity", SIGN_IN_OPTIONS), { status: 404, code: "http_404" });
+await assert.rejects(api.signInCode("antigravity", "session", "code"), { status: 404, code: "http_404" });
 t("a shell's socket hangs off a terminal session xo-space defines (OpenAPI lists no sockets)", () => {
   const session = wsPath.replace(/\/ws$/, "");
   assert.notEqual(session, wsPath, "the socket is the session's /ws");

@@ -84,8 +84,8 @@ export async function request(path, { method = "GET", body, signal, query, timeo
   }
 }
 
-/** @param {string} url @param {string} method @param {unknown} body @param {AbortSignal} signal @param {Record<string, string> | null} [extra] */
-async function exchange(url, method, body, signal, extra = null) {
+/** @param {string} url @param {string} method @param {unknown} [body] @param {AbortSignal} [signal] @param {Record<string, string> | null} [extra] */
+export async function exchange(url, method, body, signal, extra = null) {
   let res;
   try {
     res = await fetch(url, {

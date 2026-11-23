@@ -45,7 +45,7 @@ t("text in a card's Details reads the ui role, as the card's line and its button
 
 t("no state draws a coloured rim: needs, failed, chosen, destructive and their boxes say it with a tint", () => {
   const rims = [...all.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, sel, body]) => /(^|;)border(-color)?:[^;]*(--warn|--err|--danger|--accent|accent-rgb|245 166 35|230 131 136)/.test(body)
-    && !/\.btn-pri|\.is-pri|\.lp-f\.is-bad|aria-invalid|\.av-w|\.drop-veil|\.dg-|\.sc-dot|\.m-you\.is-failed|\.pr-ic/.test(sel));
+    && !/\.btn-pri|\.is-pri|\.xd-send|\.lp-f\.is-bad|aria-invalid|\.av-w|\.drop-veil|\.dg-|\.sc-dot|\.m-you\.is-failed|\.pr-ic/.test(sel));
   assert.deepEqual(rims.map(([, sel]) => sel.trim()), []);
 });
 

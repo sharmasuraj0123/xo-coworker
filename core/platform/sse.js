@@ -52,6 +52,19 @@ export function createParser() {
   };
 }
 
+/** @param {Response} res @param {(event: unknown) => void} on @param {AbortSignal} signal */
+export async function readJsonEvents(res, on, signal) {
+  const reader = /** @type {ReadableStream<Uint8Array>} */ (res.body).getReader();
+  const decoder = new TextDecoder(), parser = createParser();
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done || signal.aborted) return;
+    for (const frame of parser.feed(decoder.decode(value, { stream: true }))) {
+      if (frame.data) { try { on(JSON.parse(frame.data)); } catch { /* a ping or a line that isn't JSON */ } }
+    }
+  }
+}
+
 const RETRY_MAX_MS = 15000;
 const WATCHDOG_MS = 45000; // the server sends a heartbeat after 15 s of silence
 const STALE_MS = 25000;    // after a sleep: no byte for this long means the connection is gone
