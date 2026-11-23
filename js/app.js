@@ -58,6 +58,7 @@ import { createRowResolve } from "../modules/threads/row-resolve.js";
 import { createThreadResolve } from "../modules/threads/resolve.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createAllThreads } from "../modules/threads/all.js";
+import { createThreadMenu } from "../modules/threads/menu.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
@@ -392,6 +393,7 @@ STAGE.names = (v) => {
 };
 REC.panel = STAGE;
 const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRuntime({ world, SHAPE, isHeld });
+const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 /** The composer's target line in a thread; while its agent works, where your words land. */
 function threadTargetHtml(t) {
   if (t.frozen) return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">Reply in </span><b>this ${noun("thread")}</b></span><span class="muted">· sending picks it back up</span>`;
@@ -3078,32 +3080,6 @@ const allEl = $("#all");
 let allReturn = null;
 const allRender = createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadMark, glyphOf, rtTag, STATE_WORDS });
 radioKeys($("#all-f"));
-/** The thread's ⋯ (the owner, 19 Nov): one menu for everything a thread can do, only what fits its state now.
- *  Previous / next go through the place's threads in the panel's order; Stop only while it works; Copy branch
- *  name only with a branch; Delete only where Space can delete a thread (t.canDelete), asked in place. */
-function threadSiblings(t) {
-  const list = panelThreads("t:" + t.id).flatMap((g) => g.rows).filter((r) => !r.coord).map((r) => r.go);
-  const i = list.indexOf("t:" + t.id);
-  return { prev: i > 0 ? list[i - 1] : null, next: i >= 0 && i < list.length - 1 ? list[i + 1] : null };
-}
-/** The thread's ⋯ menu: ONE menu, the full header's and the panel's Thread page's (the owner, 19 Nov 18:59Z: "why
- *  can't i have the same menu on the side thing?"): the same items, hover (pointerFollows), keys (menuKeys) and code.
- *  where: "main" or "page"; the one item that differs is the way to its other place. */
-function threadMenuHtml(t, where = "main") {
-  const sib = threadSiblings(t), item = (attrs, words, off = false) => `<button type="button" role="menuitem" ${attrs}${off ? ' aria-disabled="true"' : ""}>${words}</button>`;
-  const sep = '<span class="tw-sep" role="separator"></span>';
-  const groups = [
-    [item(`data-tgo="${esc(sib.prev || "")}"`, "Previous thread", !sib.prev), item(`data-tgo="${esc(sib.next || "")}"`, "Next thread", !sib.next),
-      where === "page" ? item(`data-tp-main="${esc(t.id)}"`, "Open in main chat") : item(`data-tside="${esc(t.id)}"`, "Open beside its project's chat")],
-    [SH.enabled ? item(`data-shell="t:${esc(t.id)}"`, "Open a shell in its worktree") : "",
-      t.branch ? item(`data-tcopy="${esc(t.branch)}"`, "Copy branch name") : ""],
-    [item('data-tfield="title"', "Rename"), item('data-tfield="label"', t.label ? "Change label" : "Add a label"), t.label ? item('data-tfield="clear-label"', "Remove the label") : "",
-      movable(t) ? item(`data-tmove="${esc(t.id)}"`, "Continue on another runtime…") : "",
-      isBusy(t) ? item("data-chat-stop", "Stop") : ""],
-    [t.canDelete ? item(`data-tdel="${esc(t.id)}" class="tw-danger"`, "Delete thread…") : ""],
-  ].map((g) => g.filter(Boolean).join("")).filter(Boolean);
-  return `<span class="tw-menu" role="menu" tabindex="-1">${groups.join(sep)}</span>`;
-}
 /** Delete, asked in place: what goes (its messages, its transcript, its worktree folder), what stays (its branch),
  *  for how long it can be undone; Keep it first. When Space says work would be lost, it names it and the button
  *  says so ("Delete anyway"). */

@@ -7773,12 +7773,12 @@
    "home": "modules/threads/all.js"
   },
   "js/app.js::functions::threadSiblings": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3837)"
+   "status": "moved",
+   "home": "modules/threads/menu.js"
   },
   "js/app.js::functions::threadMenuHtml": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3845)"
+   "status": "moved",
+   "home": "modules/threads/menu.js"
   },
   "js/app.js::functions::tdelRender": {
    "status": "planned",
