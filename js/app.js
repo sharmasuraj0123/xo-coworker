@@ -20,6 +20,7 @@ import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "../modules/runs/view.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
+import { LIVE_RUN, createRunsReads } from "../modules/runs/read.js";
 import { createRunsStop } from "../modules/runs/stop.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
@@ -1184,7 +1185,6 @@ function checklistRender(needs, th = $("#thead"), view = S.view, listId = "ck-li
 }
 
 // ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ──
-const LIVE_RUN = (r) => r.state === "running" || r.state === "waiting";
 const runsAsked = new Map(); // session → the working count its runs were last listed for
 /** How many of a thread's sub-agents work now, by the best count known (the stream's, or the thread's). */
 function workingRuns(t) {
@@ -1245,6 +1245,7 @@ function runsEscape() {
   runsLand(`[data-run="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
 }
 const runsTitle = () => (RS.view === "run" ? (RS.run && /^(background_command|monitor)$/.test(RS.run.kind) ? "Command" : "Sub-agent") : "Sub-agents");
+const { readRunsList, openRun } = createRunsReads({ RS, world, STAGE, runsRender });
 STAGE.page("runs", {
   over: true,
   title: runsTitle,
@@ -1263,64 +1264,6 @@ const openRuns = createRunsOpener(RS, {
 function runsLand(...first) {
   const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", ".rn-cmd-b", "[data-runs-retry]"];
   return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || runsCard;
-}
-/** The list for one thread, for one opening; an answer for a thread, or an opening, that isn't the one open any
- *  more is dropped (Astra: a late list for A showed under B; and under A opened again). true when it landed. */
-async function readRunsList(sid, my = RS.opening) {
-  const mine = () => RS.open && RS.session === sid && RS.opening === my;
-  try {
-    const d = await world.act.listRuns(sid);
-    if (!mine()) return false;
-    RS.tree = d.runs || []; RS.counts = d.counts || null; RS.listState = "ok"; RS.listErr = "";
-  } catch (err) {
-    if (!mine()) return false;
-    RS.listState = "error"; RS.listErr = err.message;
-  }
-  return true;
-}
-async function openRun(id) {
-  clearTimeout(RS.pollT);
-  const gen = ++RS.gen; // a read for another run (or a closed sheet) never writes into this one
-  Object.assign(RS, { runCmds: false, view: "run", runId: id, run: world.state.runs.get(id) || null, anc: null, items: [], cursor: null, children: [], loading: true, error: null, gone: null, keepScroll: false });
-  runsRender(); STAGE.repaint();
-  try {
-    const r = await world.act.run(id);
-    if (gen !== RS.gen) return;
-    RS.run = { ...(world.state.runs.get(id) || {}), ...r, title: r.title || r.agent_type || "Sub-agent" };
-    RS.anc = r.ancestry || null;
-    const findKids = (nodes) => { for (const n of nodes || []) { if (n.id === id) return n.children || []; const k = findKids(n.children); if (k) return k; } return null; };
-    RS.children = findKids(RS.tree) || [];
-  } catch (err) { if (gen !== RS.gen) return; RS.error = err.message; }
-  STAGE.repaint();
-  await readTranscript(id, gen);
-}
-/** Read the transcript; while the run works, read again from the last cursor and add only new items. */
-async function readTranscript(id, gen) {
-  const mine = () => RS.gen === gen && RS.runId === id && RS.open;
-  if (!mine()) return;
-  try {
-    let more = true, guard = 0;
-    while (more && guard++ < 20) {
-      const d = await world.act.transcript(id, RS.cursor);
-      if (!mine()) return;
-      const have = new Set(RS.items.map((i) => i.id));
-      RS.items.push(...(d.items || []).filter((i) => !have.has(i.id)));
-      if (d.next) RS.cursor = d.next;
-      more = !!d.next && (d.items || []).length > 0;
-      // a long transcript shows as each page arrives, not after the last one
-      if (more) { RS.loading = false; RS.keepScroll = true; runsRender(); }
-    }
-  } catch (err) {
-    if (!mine()) return;
-    if (err.code === "transcript_gone") RS.gone = err.summary || err.message;
-    else if (err.status === 501) RS.error = "This agent can't show a sub-agent's work.";
-    else RS.error = err.message;
-  }
-  RS.loading = false;
-  RS.keepScroll = true;
-  runsRender();
-  const live = world.state.runs.get(id);
-  if (mine() && (!live || LIVE_RUN(live)) && !RS.gone && !RS.error) RS.pollT = setTimeout(() => readTranscript(id, gen), 2500);
 }
 /** Back to the thread: the page steps back, or the panel closes if it opened for it. */
 function closeRuns() {
