@@ -1,3 +1,5 @@
+// @ts-check
+
 import { keepTurning } from "../core/ui/motion.js";
 import { drawSidebarControls } from "./frame-icons.js";
 

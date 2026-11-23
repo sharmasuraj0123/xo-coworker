@@ -79,6 +79,7 @@ import { createCalmOrder } from "../shell/sideorder.js";
 import { keyHtml } from "../core/ui/a11y/keycap.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance } from "../modules/settings/appearance.js";
+import { wireSound } from "../modules/settings/sound.js";
 import { createTheme } from "../core/ui/theme.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable } from "./focusview.js";
@@ -3861,32 +3862,7 @@ addEventListener("keydown", (e) => {
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
-/** The Sounds switch, and under it what its last press found: a browser that won't play, or won't remember. */
-function soundRender(said = null) {
-  const tog = $("#sound-tog");
-  tog.setAttribute("aria-checked", String(sound.on));
-  const row = tog.closest(".set-row");
-  let note = row && row.nextElementSibling && row.nextElementSibling.matches(".sound-note") ? row.nextElementSibling : null;
-  if (said == null) { note?.remove(); return; }
-  if (!note && row) { note = document.createElement("p"); note.className = "set-note sound-note"; note.setAttribute("role", "status"); row.after(note); }
-  if (note) note.textContent = said;
-}
-// a press turns them on or off, there and then; the switch says what is so, and why when it isn't what was asked
-$("#sound-tog").addEventListener("click", async () => {
-  const tog = $("#sound-tog");
-  if (tog.getAttribute("aria-busy") === "true") return;
-  tog.setAttribute("aria-busy", "true");
-  const want = !sound.on;
-  const r = await sound.turn(want);
-  tog.removeAttribute("aria-busy");
-  const said = r.refused ? "This browser won't play sound here, so sounds stay off."
-    : r.kept ? null
-    : want ? "This browser won't remember sounds here, so they stay off."
-    : "Sounds are off for now: this browser won't remember it after a reload.";
-  soundRender(said);
-  if (said) announce(said);
-  if (r.on) sound.play("allow");
-});
+const soundRender = wireSound({ sound, announce });
 // a switch says on or off; its label says what (no glyph in the knob)
 function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
 function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }

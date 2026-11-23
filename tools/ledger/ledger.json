@@ -7840,8 +7840,8 @@
    "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4107)"
   },
   "js/app.js::functions::soundRender": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4132)"
+   "status": "moved",
+   "home": "modules/settings/sound.js"
   },
   "js/app.js::functions::hopsRender": {
    "status": "planned",

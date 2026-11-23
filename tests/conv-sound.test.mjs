@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { wireSound } from "../modules/settings/sound.js";
+import { dom, settle } from "./lib/dom.mjs";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e.message)); process.exitCode = 1; } };
@@ -86,15 +87,42 @@ await t("turning them off: off, remembered when the browser keeps it", async () 
   assert.equal(store.data["cv-sound"], "off");
 });
 
-await t("the app's switch turns sounds through sound.turn and says what it found (refused, or not kept)", () => {
-  const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-  const h = /\$\("#sound-tog"\)\.addEventListener\("click", async \(\) => \{([\s\S]*?)\n\}\);/.exec(app);
-  assert.ok(h, "the switch's handler");
-  assert.match(h[1], /const want = !sound\.on;[\s\S]*await sound\.turn\(want\)/, "it asks the engine, and waits for its answer");
-  assert.match(h[1], /r\.refused \? "This browser won't play sound here, so sounds stay off\."/, "a refusal to play is said");
-  assert.match(h[1], /want \? "This browser won't remember sounds here, so they stay off\."/, "a storage that won't keep \"on\" is said");
-  assert.match(h[1], /"Sounds are off for now: this browser won't remember it after a reload\."/, "an off that won't last is said");
-  assert.doesNotMatch(app, /sound\.on = !sound\.on/, "never sets the choice without asking the engine");
+await t("the Settings switch shows and announces the sound engine's response", async () => {
+  const { document } = await dom('<div class="set-row"><button id="sound-tog" role="switch"></button></div>');
+  const toggle = document.querySelector("#sound-tog");
+  const notices = [];
+  reset(); audio.refuseNew = true;
+  const sound = await fresh();
+  wireSound({ sound, announce: (message) => notices.push(message) })();
+  const press = async () => {
+    toggle.click();
+    assert.equal(toggle.getAttribute("aria-busy"), "true");
+    await settle();
+    assert.equal(toggle.hasAttribute("aria-busy"), false);
+  };
+  const status = () => document.querySelector(".sound-note[role=status]")?.textContent;
+  assert.equal(toggle.getAttribute("aria-checked"), "false");
+  await press();
+  assert.equal(status(), "This browser won't play sound here, so sounds stay off.");
+  assert.equal(toggle.getAttribute("aria-checked"), "false");
+  audio.refuseNew = false; store.refuse = true;
+  await press();
+  assert.equal(status(), "This browser won't remember sounds here, so they stay off.");
+  assert.equal(toggle.getAttribute("aria-checked"), "false");
+  store.refuse = false;
+  await press();
+  assert.equal(toggle.getAttribute("aria-checked"), "true");
+  assert.equal(status(), undefined);
+  assert.equal(audio.notes, 2);
+  store.refuse = true;
+  await press();
+  assert.equal(status(), "Sounds are off for now: this browser won't remember it after a reload.");
+  assert.equal(toggle.getAttribute("aria-checked"), "false");
+  assert.deepEqual(notices, [
+    "This browser won't play sound here, so sounds stay off.",
+    "This browser won't remember sounds here, so they stay off.",
+    "Sounds are off for now: this browser won't remember it after a reload.",
+  ]);
 });
 
 console.log(`${passed} passed`);
