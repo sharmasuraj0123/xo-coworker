@@ -38,7 +38,7 @@ await t("hookOf names a control so the redraw's copy is found: its id, else its 
 await t("the decisions panel's close: its opener now if it's here, else the same control in the next draw, else the place", () => {
   const d = read("js/decide.js");
   const close = d.slice(d.indexOf("function close({ restore = true } = {})"), d.indexOf("function sync()"));
-  assert.match(close, /if \(restore\) \{ if \(usable\(r\)\) r\.focus\(\{ preventScroll: true \}\); else back && back\(\[hookOf\(r\)\]\.filter\(Boolean\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
+  assert.match(close, /if \(restore && was\) \{ if \(usable\(r\)\) r\.focus\(\{ preventScroll: true \}\); else back && back\(\[hookOf\(r\)\]\.filter\(Boolean\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
   assert.doesNotMatch(close, /r\.isConnected && r !== document\.body\) r\.focus/, "not a node that may be gone");
   assert.match(d, /export function createDecisions\(\{[^}]*\bback\b/);
   const app = read("js/app.js");

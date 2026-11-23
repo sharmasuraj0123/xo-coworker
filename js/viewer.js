@@ -81,7 +81,7 @@ export function whenWords(at, now = Date.now()) {
  * after each save (its place's changes are read again)}. threadTitle(ts) names who made a version. away() puts the
  * file away beside a chat (Esc); home() is where focus goes when what opened the file is gone.
  */
-export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null, opened = null }) {
+export function createViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null, opened = null, closed = null }) {
   const el = $("#viewer");
   // a copy still on its way after this long says so ("Copying…"): quicker, and it only says Copied
   const COPY_SAYS_MS = 150;
@@ -907,6 +907,7 @@ export function createViewer({ announce, onChange, tabs, changes = null, ask = n
       const to = [back, likeOf(back)].find(usable) || (lost && home ? home() : null);
       to?.focus({ preventScroll: true });
     }
+    closed && closed();
     onChange && onChange();
   }
   /** The control drawn in place of one that's gone: the same kind, saying the same thing (its file, change, box). */

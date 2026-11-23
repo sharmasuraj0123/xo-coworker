@@ -173,8 +173,15 @@ function announce(text, still = null) { live.textContent = ""; setTimeout(() => 
 
 // ── the parts ───────────────────────────────────────────────────────────────
 const P = createPacing({ params });
+// one card at the right edge: the newest shows, the one it covers steps aside and comes back when it closes
+const EDGE = { under: null };
+const edgeOver = (covered) => { if (covered.isOpen) { covered.park(); EDGE.under = covered; } };
+const edgeBack = (from) => { const u = EDGE.under; if (u === from) { EDGE.under = null; u.unpark(); } };
+const decisionsCard = { get isOpen() { return D.isOpen(); }, park: () => D.park(), unpark: () => D.unpark() };
 const D = createDecisions({
   world, P, PROJ, announce, waitSince,
+  onShown: () => edgeOver(VW),
+  onGone: () => edgeBack(VW),
   render: () => schedule(),
   // the panel closed and what opened it isn't here: focus goes to the place at once, before the panel goes (its end
   // card, "That's everything", held focus and was removed with it: the page had it until the next draw, the
@@ -234,7 +241,8 @@ const VW = createViewer({
   // Esc from a file: back to the panel's sections, the file kept as the Files tab (js/filespage.js)
   away: () => { if (!FP.isOpen) return false; STAGE.back(); return true; },
   // every way a file opens ends in the panel's Files page
-  opened: (f, o) => FP.show(o),
+  opened: (f, o) => { edgeOver(decisionsCard); FP.show(o); },
+  closed: () => edgeBack(decisionsCard),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
 }); // a file, in the panel's Files page (js/filespage.js)
@@ -4820,7 +4828,7 @@ function runGlobal(id) {
 const sheetsOpen = () => QO.isOpen || !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
 const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
-  return sheetsOpen() || LB.isOpen || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
+  return sheetsOpen() || LB.isOpen || FP.isOpen || VW.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
 /** One step back. False when there's nothing left in the app to go back to. */
 function stepBack() {
@@ -4833,6 +4841,7 @@ function stepBack() {
   if (!allEl.hidden) { closeAll(); return true; }
   if (LB.isOpen) { LB.close(); return true; }
   if (FP.isOpen) { STAGE.back(); return true; }
+  if (VW.isOpen) { VW.close({ ask: true }); return true; }
   if (STAGE.isOpen && PHONE.matches) { STAGE.close(); return true; }
   if (!setEl.hidden) { closeSettings(); return true; }
   if (SH.raised && SH.lower()) return true;
