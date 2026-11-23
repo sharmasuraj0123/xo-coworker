@@ -101,4 +101,14 @@ t("the app icon is the owner's; the tab's working line sits on its foot", () => 
   assert.match(app, /y="35" width="\$\{w\.toFixed\(2\)\}" height="2\.5" rx="1\.25"/);
 });
 
+t("every ICON.<name> a module uses is in ui.js's ICON (a renamed icon left the Shells Hide button saying undefined)", () => {
+  const ui = read("js/ui.js"), body = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));
+  const keys = new Set([...body.matchAll(/^\s*([A-Za-z0-9_]+):/gm)].map((m) => m[1]));
+  const walk = (d) => readdirSync(new URL(`../${d}`, import.meta.url), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? (e.name === "vendor" ? [] : walk(`${d}/${e.name}`)) : e.name.endsWith(".js") ? [`${d}/${e.name}`] : []));
+  const users = walk("js").filter((f) => /import \{[^}]*\bICON\b[^}]*\} from "\.{1,2}\/(?:\.\.\/)*ui\.js"/.test(read(f)));
+  assert.ok(users.includes("js/shells/dock.js"));
+  const missing = users.flatMap((f) => [...read(f).matchAll(/(?<![\w.])ICON\.([A-Za-z0-9_]+)/g)].map((m) => m[1]).filter((k) => !keys.has(k)).map((k) => `${f}: ICON.${k}`));
+  assert.deepEqual(missing, []);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

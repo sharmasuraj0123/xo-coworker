@@ -106,6 +106,7 @@ export const ICON = {
   table: xi("table"),
   undo: xi("undo"),
   download: xi("download"),
+  hide: xi("arrow-down"),
   good: xi("thumbs-up"),
   bad: xi("thumbs-down"),
   del: xi("delete"),
