@@ -542,6 +542,7 @@ function sideRender(needs) {
   { const n = REC.artifacts.count(); const t = n ? String(n) : ""; if ($("#arts-n").textContent !== t) $("#arts-n").textContent = t; $("#nv-arts").setAttribute("aria-label", n ? `Artifacts, ${n}` : "Artifacts"); }
   // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
   for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts"), $("#nv-lp")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  $("#nv-more").classList.toggle("is-on", !!$("#side .nav .nrow.is-on[hidden]")); // a place kept in More marks More
   const now = Date.now();
   const rows = projects().map((p) => {
     const on = S.view === "p:" + p.id || convThread(S.view)?.project === p.id;
