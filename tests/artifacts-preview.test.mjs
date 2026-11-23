@@ -24,7 +24,7 @@ assert.equal(previewOf("data.csv", "a,b\n1,2").lines[0], "a,b");
 assert.equal(previewOf("empty.js", "   \n "), null, "nothing to show: the icon stays");
 
 // the view: only near view, once, through the thread's folder; never a binary
-const view = ["../js/recordview.js", "../modules/artifacts/previews.js", "../modules/artifacts/cards.js", "../modules/artifacts/page.js"].map((f) => readFileSync(new URL(f, import.meta.url), "utf8")).join("\n").replace(/\bPV\./g, "");
+const view = ["../modules/artifacts/made.js", "../modules/artifacts/previews.js", "../modules/artifacts/cards.js", "../modules/artifacts/page.js"].map((f) => readFileSync(new URL(f, import.meta.url), "utf8")).join("\n").replace(/\bPV\./g, "");
 assert.match(view, /if \(m\) \{ nearY\.set\(m\.key, \{ y: e\.boundingClientRect\.top - e\.rootBounds\.top \+ A\.box\.scrollTop \}\); loadThumbs\(\[m\]\); loadTexts\(\[m\]\); \}/, "read when its card comes near view; where it is comes from the observer, no layout read");
 assert.match(view, /String\(\(await api\.projectFile\(r\.project, r\.rel\)\)\?\.content \|\| ""\)\.slice\(0, 4096\)/, "from its first bytes");
 assert.match(view, /!\/\\\.\(pdf\|docx\?\|xlsx\?\|pptx\?\|zip\|gz\)\$\/i\.test/);

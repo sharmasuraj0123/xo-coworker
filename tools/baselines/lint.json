@@ -1,7 +1,6 @@
 {
  "tests/browser/settings.test.cjs::eslint(no-unused-vars)": 1,
  "tests/design-budget.test.mjs::eslint(no-unused-vars)": 1,
- "tests/layout-reads.test.mjs::eslint(no-unused-vars)": 1,
  "tests/browser/flows.test.cjs::eslint(no-unused-vars)": 3,
  "js/msgx.js::eslint(no-unused-vars)": 1
 }

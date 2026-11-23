@@ -49,13 +49,13 @@ assert.ok("own" in row.dataset, "kept by an in-place redraw");
 assert.deepEqual([...row.querySelectorAll("button")].map((b) => b.getAttribute("aria-label")), ["Copy", "Reply", "Good response", "Bad response"]);
 assert.ok(row.querySelector("time"), "then its time");
 assert.ok(a1.classList.contains("mx-latest"), "the latest reply's row always shows");
-assert.equal(msgs.querySelector('[data-k="y1"] .mx-actrow'), null, "yours has no action row");
+assert.ok(msgs.querySelector('[data-k="y1"] .mx-actrow') === null, "yours has no action row");
 assert.ok(msgs.querySelector('[data-k="y1"] > .bubble > .mx-acts [data-mx-reply]'), "yours keeps Reply and Copy beside its bubble");
 
 // a turn at work has none; once it has ended, it has its own
 const turn = add(`<div class="m m-turn is-live" data-k="t1"><div class="mb"><div class="turn"><div class="tb-text">Working on it</div></div></div></div>`);
 await settle();
-assert.equal(turn.querySelector(".mx-actrow"), null, "nothing to copy or rate mid-reply");
+assert.ok(turn.querySelector(".mx-actrow") === null, "nothing to copy or rate mid-reply");
 assert.ok(a1.classList.contains("mx-latest"), "the latest settled reply stays the latest");
 const ended = add(`<div class="m m-turn" data-k="t1"><div class="mb"><div class="turn"><div class="tb-answer">Done.</div></div></div></div>`);
 turn.replaceWith(ended); await settle();
@@ -66,7 +66,7 @@ assert.ok(ended.classList.contains("mx-latest") && !a1.classList.contains("mx-la
 const a1b = document.createElement("template"); a1b.innerHTML = them("a1", "Started a thread for it: Tidy the README.");
 const fresh = /** @type {any} */ (a1b.content.firstElementChild);
 a1.replaceWith(fresh); await settle();
-assert.equal(fresh.querySelector(":scope > .mb > .mx-actrow"), row, "the same action row moves into the row drawn in its place");
+assert.ok(fresh.querySelector(":scope > .mb > .mx-actrow") === row, "the same action row moves into the row drawn in its place");
 
 // Good, Bad: pressed, kept on this device; pressed again, taken back
 const good = row.querySelector('[data-mx-rate="good"]'), bad = row.querySelector('[data-mx-rate="bad"]');
@@ -82,7 +82,7 @@ assert.deepEqual(JSON.parse(store.get("xo-msg-rating")), {}, "taken back");
 // Copy under a reply copies the whole run the speaker said, each message a paragraph
 const c1 = add(them("c1", "First part.")), c2 = add(them("c2", "Second part.", { cont: true }));
 await settle();
-assert.equal(c1.querySelector(".mx-actrow"), null, "a message the same speaker goes on from isn't a reply's end");
+assert.ok(c1.querySelector(".mx-actrow") === null, "a message the same speaker goes on from isn't a reply's end");
 click(c2.querySelector(".mx-actrow [data-mx-copy]")); await settle();
 assert.equal(copied.pop(), "First part.\n\nSecond part.");
 
@@ -90,9 +90,9 @@ assert.equal(copied.pop(), "First part.\n\nSecond part.");
 click(fresh.querySelector(".mx-actrow [data-mx-reply]"));
 const chip = /** @type {any} */ ($("#tcomposer > .mx-reply"));
 assert.ok(chip && !chip.hidden, "the reply chip shows above the field");
-assert.equal(chip.nextElementSibling, $("#tcomposer > .composer-field"), "just before the field");
+assert.ok(chip.nextElementSibling === $("#tcomposer > .composer-field"), "the reply chip sits just before the field");
 assert.equal(chip.querySelector("b").textContent, "Coordinator");
-assert.equal(document.activeElement, say, "the field takes focus");
+assert.ok(document.activeElement === say, "Reply focuses the composer field");
 say.value = "Thanks";
 key(say, "Enter");
 assert.equal(say.value, "> **Coordinator**\n> Started a thread for it: Tidy the README.\n\nThanks", "the quote goes first, read synchronously by send");
@@ -117,6 +117,24 @@ click(fresh.querySelector(".mx-actrow [data-mx-reply]"));
 assert.ok(!chip.hidden);
 const esc = key(say, "Escape");
 assert.ok(chip.hidden && esc.defaultPrevented, "Escape removes the quote");
+say.blur();
+
+const touch = (/** @type {string} */ type, /** @type {number} */ clientX) => {
+  const event = new window.Event(type, { bubbles: true });
+  Object.assign(event, { pointerType: "touch", clientX, clientY: 100 });
+  fresh.dispatchEvent(event);
+};
+touch("pointerdown", 100);
+touch("pointermove", 165);
+assert.ok(fresh.classList.contains("mx-armed"));
+touch("pointercancel", 165);
+assert.ok(chip.hidden, "a cancelled swipe leaves the reply untouched");
+touch("pointerdown", 100);
+touch("pointermove", 165);
+touch("pointerup", 165);
+assert.ok(!chip.hidden, "an armed swipe starts the reply");
+assert.ok(document.activeElement === say, "an armed swipe focuses the composer field");
+key(say, "Escape");
 
 // teardown: what it put on the page goes, and its document keys stop
 const heads = () => [...document.head.querySelectorAll("style")].map((s) => s.id);

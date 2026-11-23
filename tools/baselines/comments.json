@@ -11,24 +11,8 @@
   "extra": 93,
   "refs": 0
  },
- "js/msgx.js": {
-  "extra": 101,
-  "refs": 0
- },
- "js/recordview.js": {
-  "extra": 29,
-  "refs": 0
- },
  "js/skeleton.js": {
   "extra": 17,
-  "refs": 0
- },
- "js/timeline.js": {
-  "extra": 74,
-  "refs": 0
- },
- "js/turnview.js": {
-  "extra": 60,
   "refs": 0
  },
  "js/ui.js": {
@@ -313,10 +297,6 @@
  },
  "tests/keys-dispatch.test.mjs": {
   "extra": 5,
-  "refs": 0
- },
- "tests/layout-reads.test.mjs": {
-  "extra": 4,
   "refs": 0
  },
  "tests/lib/cascade.mjs": {
