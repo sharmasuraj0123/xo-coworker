@@ -7765,12 +7765,12 @@
    "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::allRender": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3783)"
+   "status": "moved",
+   "home": "modules/threads/all.js"
   },
   "js/app.js::functions::allFilterRender": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3822)"
+   "status": "moved",
+   "home": "modules/threads/all.js"
   },
   "js/app.js::functions::threadSiblings": {
    "status": "planned",

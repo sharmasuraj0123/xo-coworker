@@ -7,6 +7,7 @@ import { readFileSync, existsSync } from "node:fs";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const all = readFileSync(new URL("../modules/threads/all.js", import.meta.url), "utf8");
 
 // the menu: ⋯, not ✎; built from the thread's state
 assert.match(app, /class="tw-act tw-more" data-tmenu="\$\{esc\(t\.id\)\}"[^`]*aria-label="Thread actions">\$\{ICON\.more\}<\/button>/);
@@ -36,8 +37,8 @@ assert.match(html, /<div class="tdel" id="tdel" hidden><\/div>/);
 
 // one vocabulary
 assert.doesNotMatch(app.replace(/\/\/[^\n]*/g, "") + readFileSync(new URL("../js/chats.js", import.meta.url), "utf8"), /"Idle"/, "nothing reads Idle");
-assert.match(app, /const ALL_F = \[\["all", "All"\], \["needs", "Needs you"\], \["working", "Working"\], \["waiting", "Waiting"\], \["done", "Done"\]\];/);
-assert.match(app, /const cat = \(t\) => threadState\(t, needs\);/);
+assert.match(all, /const ALL_F = \[\["all", "All"\], \["needs", "Needs you"\], \["working", "Working"\], \["waiting", "Waiting"\], \["done", "Done"\]\];/);
+assert.match(all, /const cat = \(t\) => threadState\(t, needs\);/);
 
 // the Now strip is gone, with everything that was its own
 assert.doesNotMatch(app + html, /now-wrap|nowRender|nowEdges|fitChips/);

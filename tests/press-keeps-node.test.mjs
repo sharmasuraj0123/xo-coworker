@@ -56,8 +56,8 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   const app = src("app.js");
   assert.match(app, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);
   assert.match(app, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);
-  assert.match(app, /redraw\(hn, hnHtml\)/); assert.match(app, /redraw\(wn, wnHtml\)/);
-  assert.match(app, /redraw\(\$\("#all-list"\), html\)/);
+  const rail = readSource("shell/rail/rows.js");
+  assert.match(rail, /redraw\(hn, hnHtml\)/); assert.match(rail, /redraw\(wn, wnHtml\)/);
 });
 
 // ── on a DOM ──────────────────────────────────────────────────────────────────

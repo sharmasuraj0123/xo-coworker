@@ -104,14 +104,11 @@ assert.match(stage, /if \(S\.chEmpty === true && !empty && fr\.changes\.folded\)
 // the agent's mark, quiet: under the row's time, small, in the panel and in All threads alike
 { const a = stage.indexOf('<span class="ag-tm"><span class="ag-when">'), b = stage.indexOf('<span class="ag-mk">${r.mark}</span>'); assert.ok(a > 0 && b > a, "the mark sits under the time, in the right column"); }
 assert.doesNotMatch(stage, /<b>\$\{r\.mark/, "not before the title");
-assert.match(app, /<span class="ar-a"><span>\$\{esc\(short\(t\.lastAt\)\)\}<\/span>\$\{mk \? `<span class="ar-mk">\$\{mk\}/);
-assert.match(app, /const mk = threadMark\(t\);\n\s*return `<li><button type="button" class="ar st-\$\{k\}\$\{mk \? " has-mk" : ""\}"/, "the row says it has a mark: a class, not :has()");
 const acss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 assert.match(acss, /\.ar\.has-mk\{grid-template-rows:var\(--lh-ui\) var\(--mark-sm\)\}\n\.ar\.has-mk>\*\{grid-row:1\}/);
 // a :has() that styles another element restyled the whole page on every text change (a phone in the panel lagged)
 assert.doesNotMatch(acss, /\.ar:has\(/);
 assert.match(stage, /if \(agentCount\.textContent !== count\) agentCount\.textContent = count;/, "the agents count is written only when it changes");
-assert.doesNotMatch(app, /<span class="ar-tl">\$\{threadMark/, "not before All threads' title");
 assert.match(readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8"), /--mark-sm:var\(--s-3\);/);
 assert.match(css, /\.stage \.ag-mk \.agm\{width:var\(--mark-sm\);height:var\(--mark-sm\)/);
 

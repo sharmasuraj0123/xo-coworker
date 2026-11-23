@@ -57,6 +57,7 @@ import { createSavedSoon } from "../modules/changes/saved.js";
 import { createRowResolve } from "../modules/threads/row-resolve.js";
 import { createThreadResolve } from "../modules/threads/resolve.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
+import { createAllThreads } from "../modules/threads/all.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
@@ -3075,52 +3076,7 @@ function openNext() {
 // ── All threads: searchable, filtered; finished ones fold into one line ────
 const allEl = $("#all");
 let allReturn = null;
-function allRender() {
-  const pid = convProject(S.view);
-  const q = $("#all-q").value.trim().toLowerCase();
-  const needs = D.needItems();
-  const ts = world.state.threads.filter((t) => t.project === pid);
-  // "Working" means its agent is working right now (isBusy), nothing else: an open thread whose agent
-  // sits idle, or one paused or waiting, is "Waiting" (audit: a Working filter listed 6 idle threads)
-  // the panel's four states (threadState): one vocabulary everywhere
-  const cat = (t) => threadState(t, needs);
-  const counts = { all: ts.length, needs: 0, working: 0, waiting: 0, done: 0 };
-  for (const t of ts) { const c = cat(t); if (counts[c] != null) counts[c]++; }
-  allFilterRender(counts);
-  $("#all-h").textContent = `All ${SHAPE.word("threads")} · ${PROJ(pid)}`;
-  $("#all-h").title = SHAPE.word("threads") === "threads" ? "" : "XO's word: threads";
-  $("#all-q").placeholder = `Search ${SHAPE.word("threads")}`;
-  // title, summary and branch, every word (the panel's filter matches the same)
-  let list = ts.filter((t) => { if (!q) return true; const s = `${t.title} ${t.summary || ""} ${t.branch || ""}`.toLowerCase(); return q.split(/\s+/).every((w) => s.includes(w)); });
-  if (S.allFilter !== "all") list = list.filter((t) => cat(t) === S.allFilter);
-  const order = { needs: 0, working: 1, waiting: 2, done: 3 };
-  list.sort((a, b) => order[cat(a)] - order[cat(b)] || b.lastAt - a.lastAt);
-  const row = (t) => {
-    const c = t.checklist;
-    const k = cat(t);
-    const mk = threadMark(t);
-    return `<li><button type="button" class="ar st-${k}${mk ? " has-mk" : ""}" data-go="t:${esc(t.id)}">${stateMark(k === "needs" ? "needs_reply" : glyphOf(t))}<span class="ar-tl"><span class="ar-t">${esc(t.title)}</span>${t.label ? `<span class="ar-l">${esc(t.label)}</span>` : ""}</span><span class="ar-s">${rtTag(t, "ar")}${STATE_WORDS[k]}</span><span class="mini" aria-label="${c.done} of ${c.total}"><i style="--p:${c.total ? c.done / c.total : 0}"></i></span><span class="ar-a"><span>${esc(short(t.lastAt))}</span>${mk ? `<span class="ar-mk">${mk}</span>` : ""}</span></button></li>`;
-  };
-  const fold = S.allFilter === "all" && !q;
-  const liveL = fold ? list.filter((t) => cat(t) !== "done") : list;
-  const done = fold ? list.filter((t) => cat(t) === "done") : [];
-  let html = liveL.length ? `<ul class="ar-list">${liveL.map(row).join("")}</ul>` : "";
-  if (done.length) html += `<div class="ar-done${S.allDone ? " is-open" : ""}"><button type="button" class="ar-fold" data-all-done aria-expanded="${S.allDone}">${ICON.check}<span><b>${done.length} done</b>${done.some((t) => t.state === "resolved") ? " or resolved" : ""}</span>${ICON.chevron}</button><div class="ar-db"${S.allDone ? "" : " hidden"}><div class="ar-di"><ul class="ar-list">${done.map(row).join("")}</ul></div></div></div>`;
-  if (!html) html = `<p class="ar-none">Nothing matches “${esc(q)}”.</p>`;
-  redraw($("#all-list"), html); // in place: a row that stays is the same node
-}
-const ALL_F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"]];
-function allFilterRender(counts) {
-  const box = $("#all-f");
-  if (box.children.length !== ALL_F.length) box.innerHTML = ALL_F.map(([k, w]) => `<button type="button" role="radio" data-af="${k}">${w}<span></span></button>`).join("");
-  for (const b of box.children) {
-    const k = b.dataset.af, on = S.allFilter === k, n = String(counts[k]);
-    if (b.getAttribute("aria-checked") !== String(on)) b.setAttribute("aria-checked", String(on));
-    if (b.tabIndex !== (on ? 0 : -1)) b.tabIndex = on ? 0 : -1;
-    b.disabled = !on && k !== "all" && !counts[k];
-    if (b.lastChild.textContent !== n) b.lastChild.textContent = n;
-  }
-}
+const allRender = createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadMark, glyphOf, rtTag, STATE_WORDS });
 radioKeys($("#all-f"));
 /** The thread's ⋯ (the owner, 19 Nov): one menu for everything a thread can do, only what fits its state now.
  *  Previous / next go through the place's threads in the panel's order; Stop only while it works; Copy branch
