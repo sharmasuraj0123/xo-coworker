@@ -1,6 +1,7 @@
 // Files (js/files.js): which folder a view shows, and where a file the viewer opened sits in it. No network.
 //   node tests/files.test.mjs
 import assert from "node:assert/strict";
+import { dom, same, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { scopeOf, localIn, fileScope, newFileSay } = await import("../js/files.js");
@@ -63,4 +64,93 @@ t("a new file's name: said under it before Enter (a folder in it, one that's the
   assert.equal(newFileSay("hook", "x", d, true).runs, true, "Space said it runs code (428)");
   assert.equal(newFileSay("settings.json", "docs/.claude", d), null, "only at the top of the place");
 });
+const { window, document } = await dom('<main id="home"></main><aside id="files"></aside><section id="viewer" tabindex="-1" hidden></section>');
+const storage = new Map([
+  ["xo-home-shape", JSON.stringify({ w: 0, parts: [{ id: "hm-made", n: 2 }] })],
+  ["xo-files-secs", JSON.stringify({ p: { all: true } })],
+  ["xo-draft:p|docs/index.html", JSON.stringify({ text: "<p>draft</p>", base: "<p>saved</p>", version: "v1" })],
+  ["xo-drafts", JSON.stringify({ "p|docs/index.html": 1 })],
+]);
+globalThis.localStorage = {
+  getItem: (key) => storage.get(key) ?? null,
+  setItem: (key, value) => storage.set(key, value),
+  removeItem: (key) => storage.delete(key),
+};
+
+await import("../js/skeleton.js");
+t("Home paints on entry using the stored shape before the app starts", () => {
+  assert.ok(document.querySelector("#home h1")?.textContent.trim());
+  assert.ok(document.querySelector("#home .hm-date")?.textContent.trim());
+  assert.equal(document.querySelectorAll("#hm-made .md-it.is-sk").length, 2);
+});
+
+const { api } = await import("../core/platform/api.js");
+const { createFiles } = await import("../js/files.js");
+const { createViewer } = await import("../js/viewer.js");
+const reads = [], saves = [];
+api.projectTree = async (project, path) => {
+  reads.push([project, path]);
+  return path === "docs"
+    ? { files: [{ name: "index.html", relative_path: "docs/index.html" }] }
+    : { dirs: [{ name: "docs", relative_path: "docs" }] };
+};
+api.projectFile = async () => ({ kind: "html", content: "<p>saved</p>", version: "v1", editable: true });
+api.projectVersions = async () => ({ versions: [] });
+api.saveProjectFile = async (...args) => { saves.push(args); return { version: "v2" }; };
+const viewer = createViewer({ announce() {}, onChange() {} });
+const files = createFiles({
+  world: { state: { turns: [], threads: [], projects: [] }, thread: () => null },
+  changes: {
+    of: () => ({ state: "ok", files: new Map([["notes.md", { path: "notes.md", binary: true }]]) }),
+    activity: () => ({ live: new Set() }),
+  },
+  viewer, isBusy: () => false, PROJ: (id) => id.toUpperCase(), go() {},
+});
+const host = document.getElementById("files");
+const viewerEl = document.getElementById("viewer");
+host.getBoundingClientRect = () => ({ width: 400 });
+files.mount(host);
+t("Files mounts the existing viewer into its preview", () => {
+  same(host.querySelector(".fl-view #viewer"), viewerEl);
+});
+files.show("p:p");
+await settle();
+const click = (selector) => host.querySelector(selector).dispatchEvent(new window.Event("click", { bubbles: true }));
+t("Files reads the saved project fold and writes the same key when opened", () => {
+  assert.equal(host.querySelector('[data-fl-sec="all"]')?.getAttribute("aria-expanded"), "false");
+  click('[data-fl-sec="all"]');
+  assert.equal(host.querySelector('[data-fl-sec="all"]').getAttribute("aria-expanded"), "true");
+  assert.deepEqual(JSON.parse(storage.get("xo-files-secs")), {});
+});
+const folder = '[data-fl-dir="docs"]';
+click(folder);
+await settle();
+t("Files opens the selected folder and asks for its children", () => {
+  assert.equal(host.querySelector(folder).getAttribute("aria-expanded"), "true");
+  assert.deepEqual(reads, [["p", ""], ["p", "docs"]]);
+});
+const fileSelector = '[data-fl-file="docs/index.html"]';
+const opener = host.querySelector(fileSelector);
+click(fileSelector);
+await settle();
+t("Picking a file opens the viewer and focuses it", () => {
+  assert.equal(viewer.file?.rel, "docs/index.html");
+  assert.equal(viewerEl.hidden, false);
+  same(document.activeElement, viewerEl);
+});
+const save = new window.Event("keydown", { bubbles: true, cancelable: true });
+Object.assign(save, { key: "s", metaKey: true });
+t("A stored draft stays unsaved until Cmd+S saves it against its original version", () => {
+  assert.deepEqual(saves, []);
+  viewerEl.dispatchEvent(save);
+  assert.equal(save.defaultPrevented, true);
+  assert.deepEqual(saves.map((args) => args.slice(0, 4)), [["p", "docs/index.html", "<p>draft</p>", "v1"]]);
+});
+await settle();
+t("Closing the viewer returns focus to the row that opened it", () => {
+  viewer.close();
+  assert.equal(viewerEl.hidden, true);
+  same(document.activeElement, opener);
+});
+
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);
