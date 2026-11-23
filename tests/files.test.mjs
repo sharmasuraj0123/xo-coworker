@@ -1,7 +1,7 @@
 // Files (js/files.js): which folder a view shows, and where a file the viewer opened sits in it. No network.
 //   node tests/files.test.mjs
 import assert from "node:assert/strict";
-import { dom, same, settle } from "./lib/dom.mjs";
+import { deferred, dom, same, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { scopeOf, localIn, fileScope, newFileSay } = await import("../js/files.js");
@@ -87,7 +87,7 @@ t("Home paints on entry using the stored shape before the app starts", () => {
 const { api } = await import("../core/platform/api.js");
 const { createFiles } = await import("../js/files.js");
 const { createViewer } = await import("../js/viewer.js");
-const reads = [], saves = [];
+const reads = [], saves = [], versionReads = [];
 api.projectTree = async (project, path) => {
   reads.push([project, path]);
   return path === "docs"
@@ -95,7 +95,7 @@ api.projectTree = async (project, path) => {
     : { dirs: [{ name: "docs", relative_path: "docs" }] };
 };
 api.projectFile = async () => ({ kind: "html", content: "<p>saved</p>", version: "v1", editable: true });
-api.projectVersions = async () => ({ versions: [] });
+api.projectVersions = async (project, path) => { versionReads.push([project, path]); return { versions: [] }; };
 api.saveProjectFile = async (...args) => { saves.push(args); return { version: "v2" }; };
 const viewer = createViewer({ announce() {}, onChange() {} });
 const files = createFiles({
@@ -151,6 +151,33 @@ t("Closing the viewer returns focus to the row that opened it", () => {
   viewer.close();
   assert.equal(viewerEl.hidden, true);
   same(document.activeElement, opener);
+});
+
+const pendingFile = deferred();
+api.projectFile = () => pendingFile.promise;
+click(fileSelector);
+viewer.close({ restore: false });
+pendingFile.resolve({ kind: "html", content: "<p>late result</p>", version: "v3" });
+await settle();
+t("Closing while a read is pending leaves the viewer empty after the response", () => {
+  assert.equal(viewer.hasFile, false);
+  assert.equal(viewerEl.hidden, true);
+  assert.equal(viewerEl.childElementCount, 0);
+  assert.deepEqual(versionReads, [["p", "docs/index.html"]], "closed files do not start a late version read");
+});
+
+const pendingTree = deferred();
+api.projectTree = () => pendingTree.promise;
+files.show("p:q");
+const treeBefore = host.querySelector(".fl-tree").innerHTML;
+files.hide();
+files.render("p:p");
+pendingTree.resolve({ files: [{ name: "other.html", relative_path: "other.html" }] });
+await settle();
+t("A hidden Files page ignores renders and shows its loaded rows when brought back", () => {
+  assert.equal(host.querySelector(".fl-tree").innerHTML, treeBefore);
+  files.show("p:q");
+  assert.ok(host.querySelector('[data-fl-file="other.html"]'));
 });
 
 console.log(`${passed} passed${process.exitCode ? ", with failures" : ""}`);
