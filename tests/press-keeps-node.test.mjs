@@ -36,7 +36,7 @@ await t("Back is written through patch(): only when its name changes, in place",
   assert.equal((app.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
 await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new file's row are the tree's own", () => {
-  const f = src("files.js");
+  const f = src("files.js") + readFileSync(new URL("../modules/files/tree.js", import.meta.url), "utf8");
   const i = f.indexOf("function sync(s, local, g, ctx) {");
   const body = f.slice(i, f.indexOf("\n  }\n", i));
   assert.match(body, /redraw\(g\.el, rowsHtml\(/);
@@ -159,6 +159,8 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       "core/services/places.js": 'export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
       "fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
       "core/ui/components/counts.js": 'export const countsHtml = () => "";',
+      "core/ui/icons/names.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
+      "core/ui/icons/fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
       "viewer.js": "export const RUNS = /^(\\.git|\\.claude)\\//;",
       "keynav.js": "export const pointerFollows = () => {};",
     };
@@ -251,7 +253,8 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     });
     await t("Files: an open folder that nothing has read starts its read where it's drawn, so Reading… always has a read", () => {
       const f = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
-      const i = f.indexOf("function sync(s, local, g, ctx) {"), body = f.slice(i, f.indexOf("\n  }\n", i));
+      const tree = readFileSync(new URL("../modules/files/tree.js", import.meta.url), "utf8");
+      const i = tree.indexOf("function sync(s, local, g, ctx) {"), body = tree.slice(i, tree.indexOf("\n  }\n", i));
       assert.match(body, /if \(!dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
       assert.doesNotMatch(f, /F\.scope !== s\b/, "a place is the same place by its key, never by the object");
     });

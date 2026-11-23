@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
-const src = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
+const src = ["../js/files.js", "../modules/files/tree.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
 const folds = readFileSync(new URL("../modules/files/section-folds.js", import.meta.url), "utf8");
 const css = ["panel.css", "foundation.css"].map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 
