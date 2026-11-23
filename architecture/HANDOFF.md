@@ -34,9 +34,9 @@ The P1 candidate at `43e65c75` passed the clean-export full check with `JOBS=1`.
 | `modular/finish` | Icon source integrated independently. The DOM and sound move mixes an application selector fix with extraction. The test-kit move and shim deletion remain available as separate slices. |
 | `xo/thread-7ea52a` | Parked for the conversation group. The branch also contains the attachment tray extraction, platform file helpers and Thread-page composer e2e coverage. A thread entered by touch must focus a landmark without raising the phone keyboard. Desktop must still focus the input. |
 
-## P2 forward merge in progress
+## P2 gate and pre-P3 release catch-up
 
-The single forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `modular/integration-bc5bb3`. The P1 tag is the rollback point. Later release fixes, including button tokens and Accounts sign-in, belong in the pre-P5 forward merge.
+The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `modular/integration-bc5bb3`. Local tag `modular-gate-P2` points to `0a723c47`, which passed the independent re-review and all checks. The P1 tag is the rollback point for that merge. The coordinator requested a second forward merge before P3. Commit `f55c6255` brings in release through `d639012b`, including primary button tokens, card button ink and Accounts sign-in. Before P5, read the release head from Git and merge forward again if it has moved.
 
 - The panel uses release's single visible page, one level of Back, shared width and Files close behavior, with page registration and mounting through the kernel.
 - Launchpad uses the release window and home implementation under `modules/launchpad/`. Since still renders the quiet one-line release summary. The grouped-card helpers had no live caller in the release pin.
@@ -47,9 +47,15 @@ The single forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mo
 - The first browser lane exposed missing startup responses in the fake Space, six outdated accessibility snapshots, and two Apps cases for an entry point absent from both parent branches. Commit `5532a1a6` added and tested the fixture responses. The next run passed all 16 fast-lane cases against fresh accessibility captures from the pinned release served by its own `serve.py`. Run both deferred cases with `node e2e/run.mjs apps` at the Apps gate.
 - The independent P2 review found two lost release behaviors. The panel now reflects the visible page and its Shell tooltip on each paint, and Settings navigation queries only inside Settings. DOM regressions reproduced both failures on the merge before the fixes.
 - All 16 paired Chromium screenshots matched byte for byte. Both builds ran through their own `serve.py` with the same seed. The pairs cover Home, conversation, the right panel and Settings on desktop and phone in light and dark mode.
-- Carry the inherited multiline comments flagged by the independent P2 review into the pre-P5 quality audit.
+- Commit `13cd882a` removed all stale and multiline comments identified in the P2 review. The sidebar fold test now anchors its existing assertions to a rule rather than a comment.
+- The release catch-up passed the full check on the exact commit tree, including all 265 unit files by exit code, and all 16 fast-lane browser cases. The route contract matches Claude Code and Codex to OpenAPI. Only Antigravity's POST start and callback are optional, with separate DOM tests for their 404 paths. Launchpad and Accounts use the same platform reader for JSON events.
+- The catch-up also matched release `d639012b` byte for byte in 20 paired Chromium screenshots through each build's production server. The pairs cover Home, conversation, the right panel, Settings, and Accounts in light and dark on Stone desktop and Onyx phone. The pinned ledger remains at 1,328 open items.
 - Before P5, resolve mask asset caching with the coordinator. The release `--mask-*` URLs resolve under `/v/<hash>/assets/` and are immutable. The modular tokens in `core/ui/tokens.css` use root-relative URLs and revalidate. Chromium resolves a relative URL from the consuming stylesheet, and the modular consumers sit at different depths. A direct switch to a stylesheet-relative path returned 404 from `css/app.css`.
-- The six P3 package drafts get their base commits and launch handoff at the P2 gate.
+- [The six P3 packages](P3-WORK-PACKAGES.md) contain the launch order, file and ledger boundaries, and gate checks. Start the first two in parallel from `f55c6255` after its short independent review.
+
+## Perf notes
+
+During P3 and P4, record observed hotspots with a file, line and trigger. Look for full re-renders, broad style invalidation, eager loads, recurring timers and listeners that outlive their surfaces. Keep performance changes for after P5.
 
 ## Previous handoff from 19 November 2026
 
