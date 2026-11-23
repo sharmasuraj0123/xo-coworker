@@ -2865,11 +2865,11 @@
    "home": "modules/shells/dock.js"
   },
   "js/shells/model.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/term.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/sideorder.js": {
@@ -13282,119 +13282,119 @@
    "home": "modules/shells/dock.js"
   },
   "js/shells/model.js::exports::busyWith": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::isRunning": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::isDetached": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::span": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::whereOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::stateLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::dotOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::runningOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::listRows": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::cleanName": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::nameFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::HIGH": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::LOW": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::createFlow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::backoff": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::closeMeaning": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::span": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::whereOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::stateLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::listRows": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::cleanName": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::createFlow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::closeMeaning": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/term.js::exports::themeFromCss": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::exports::mountShell": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::functions::themeFromCss": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::functions::mountShell": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::keys::signed_out": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::keys::not_local": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/skeleton.js::exports::greeting": {
