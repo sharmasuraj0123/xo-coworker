@@ -14,7 +14,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 const i = ui.indexOf("export function reconcile("), body = ui.slice(i, ui.indexOf("\n}\n", i));
 
 t("the row that holds focus and is going is known before anything moves, with its nearest row that stays", () => {
-  assert.match(body, /export function reconcile\(box, items, \{ quiet = false, fallback = null, inPlace: always = false \} = \{\}\) \{/);
+  assert.match(body, /export function reconcile\(box, items, \{ quiet = false, fallback = null \} = \{\}\) \{/);
   assert.match(body, /const keep = new Set\(items\.map\(\(it\) => it\.key\)\);/);
   assert.match(body, /const going = \[\.\.\.box\.children\]\.find\(\(el\) => el\.dataset\.k && !keep\.has\(el\.dataset\.k\) && el\.contains\(active\)\);/);
   assert.match(body, /let near = null;/);

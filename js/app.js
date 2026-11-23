@@ -591,7 +591,7 @@ function sideRender(needs) {
   const from = sideRender.ready && sig !== sideRender.sig && !still() ? new Map([...box.children].map((el) => [el, el.getBoundingClientRect().top])) : null;
   sideRender.needs = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
   // a row that changes (where you are, a count) is updated in place: its lines stay, so nothing replays its entrance
-  reconcile(box, items, { quiet: !sideRender.ready, inPlace: true });
+  reconcile(box, items, { quiet: !sideRender.ready });
   sideRender.sig = sig;
   if (from) for (const [el, y] of from) { const dy = el.isConnected ? y - el.getBoundingClientRect().top : 0; if (Math.abs(dy) > 0.5) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: MOVE, easing: EASE }); }
   sideRender.ready = true;
@@ -1288,7 +1288,7 @@ function msgItemsOf(conv, needs) {
       const canUndo = m.undo && Date.now() < m.until;
       html = `<div class="ev ev-rec${m.refused ? " is-refused" : ""}"><span class="ev-ic">${m.refused ? ICON.close : ICON.router}</span><span class="ev-t">${esc(m.text)}</span>${canUndo ? `<button type="button" class="ev-undo" data-rec-undo="${esc(m.id)}">Undo</button>` : ""}<time>${clock(m.at)}</time></div>`;
     }
-    items.push(m.who === "turn" ? { key: m.key, html, inPlace: true } : { key: m.key, html });
+    items.push({ key: m.key, html });
     prev = above = m;
   }
   return items;
