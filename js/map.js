@@ -12,14 +12,11 @@
 // and GET /api/xo-projects/<project>/tree (one level per call; it serves a thread's worktree under
 // `.xo/worktrees/<name>` too). Nothing here writes.
 
-import { esc } from "./world.js";
-import { ICON } from "./ui.js";
 import { api } from "../core/platform/api.js";
 import { elapsed } from "../core/platform/index.js";
 import { stepLineHtml } from "./turnview.js";
 import { redraw } from "./redraw.js";
 import { folderOf } from "../core/services/places.js";
-import { heldWords } from "../core/services/world/held.js";
 import { PAD, layoutOf } from "../modules/map/layout.js";
 import { MAP_ICON, TOOL } from "../modules/map/icons.js";
 import { afterPause } from "../modules/map/after-pause.js";
@@ -29,6 +26,7 @@ import { createMapTree, setOf } from "../modules/map/tree.js";
 import { createMapCamera, READABLE } from "../modules/map/camera.js";
 import { createMapDrawing } from "../modules/map/drawing.js";
 import { createMapDiagram } from "../modules/map/diagram.js";
+import { createMapHead } from "../modules/map/head.js";
 
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
@@ -69,7 +67,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
     return { kind: "all", key: "all" };
   }
   const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
-  const since = (ms) => (Number.isFinite(ms) ? `<span class="elapsed" data-since="${ms}"></span>` : "");
+  const headHtml = createMapHead(world, doingLine, verbOf);
 
   const { load, get: folderAt } = createMapFolders(api, paint);
   const { folderTree, projectsTree, boxHtml } = createMapTree({ M, world, load, folderAt });
@@ -258,23 +256,6 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
 
 
   // ── the panel ────────────────────────────────────────────────────────────────
-  function headHtml(scope, ags) {
-    let title, sub, extra = "";
-    if (scope.kind === "thread") {
-      const t = scope.t, a = ags[0];
-      title = t.title;
-      sub = [t.branch && `<span class="mp-br">${ICON.branch}<code>${esc(t.branch)}</code></span>`, scope.fold ? (scope.fold.base ? "its own worktree" : "the project folder") : ""].filter(Boolean).join(`<span class="mp-sep">·</span>`);
-      const word = a.busy ? (a.waiting ? "Waiting for you" : doingLine(a)) : a.held ? esc(heldWords(a.held)) : t.state === "done" ? "Done" : t.state === "resolved" ? "Resolved" : t.state === "failed" ? "Stopped" : "Not working right now";
-      extra = `<div class="mp-now st-${a.busy ? (a.waiting ? "wait" : "busy") : a.held ? "wait" : "rest"}" style="--c:${a.color}"><p class="mp-nl">${word}</p>${a.busy ? since(a.since) : ""}</div>`;
-    } else {
-      if (scope.kind === "project") { title = (world.project(scope.pid) || {}).name || scope.pid; }
-      else title = "Working now";
-      const n = ags.length;
-      sub = n ? `${n} agent${n === 1 ? "" : "s"} at work` : scope.kind === "project" ? "No agent is working here right now" : "No agent is working right now";
-      if (n) extra = `<ul class="mp-legend" aria-label="Agents">${ags.map((a) => `<li><button type="button" class="mp-who" data-mp-focus="${esc(a.id)}" style="--c:${a.color}" title="Show where it is"><i aria-hidden="true"></i><b>${esc(a.title)}</b><span>${esc(verbOf(a))}</span></button></li>`).join("")}</ul>`;
-    }
-    return `<header class="mp-top"><div class="mp-t"><h2 id="mp-h">${esc(title)}</h2>${sub ? `<p class="mp-sub">${sub}</p>` : ""}</div></header>` + extra;
-  }
 
   /** Draw what changed: the head as words, the boxes when the drawing changes, the cursors always (they glide). */
   function paint() {

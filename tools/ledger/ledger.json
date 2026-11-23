@@ -10254,13 +10254,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/map.js::ids::mp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/head.js"
   },
   "js/map.js::storage::cv-map": {
    "status": "deleted",
