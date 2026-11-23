@@ -9842,16 +9842,16 @@
    "home": "modules/changes/imagechange.js"
   },
   "js/intel.js::exports::sessionOrder": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/session-order.js"
   },
   "js/intel.js::exports::createIntel": {
    "status": "planned",
    "home": "modules/intelligence/"
   },
   "js/intel.js::functions::sessionOrder": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/session-order.js"
   },
   "js/intel.js::functions::createIntel": {
    "status": "planned",
@@ -17402,12 +17402,12 @@
    "home": "core/ui/icons/icon.js"
   },
   "js/intel.js::exports::EFFORT_WORD": {
-   "status": "kept",
-   "home": "js/intel.js"
+   "status": "moved",
+   "home": "modules/chats/effort.js"
   },
   "js/intel.js::exports::EFFORT_HINT": {
-   "status": "kept",
-   "home": "js/intel.js"
+   "status": "moved",
+   "home": "modules/chats/effort.js"
   },
   "js/keynav.js::exports::focusOpened": {
    "status": "moved",

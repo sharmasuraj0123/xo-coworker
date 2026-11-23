@@ -5,31 +5,16 @@ import { space, once } from "../core/platform/index.js";
 import { redraw } from "./redraw.js";
 import { ICON, RM, xi, stateMark } from "./ui.js";
 import { api } from "../core/platform/api.js";
-import { mainRuntime } from "./timeline.js";
+import { mainRuntime } from "../core/services/world/sessions.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "../core/services/runtimes.js";
 
-export const EFFORT_WORD = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
-const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
-// what each depth means, said once under the control (the words are the setting; there are no dot codes)
-export const EFFORT_HINT = { low: "Answers fast. For quick, simple asks.", medium: "A sensible default for most work.", high: "Thinks longer before it acts. For hard problems.", xhigh: "Thinks much longer. Slower, for the hardest work.", max: "Thinks as long as it needs. The slowest and most thorough." };
-const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
+import { EFFORT_WORD, EFFORT_HINT } from "../modules/chats/effort.js";
+import { sessionOrder } from "../modules/chats/session-order.js";
 
-/**
- * Every write to one conversation's intelligence, in the order it was asked: a write starts once the one before it
- * for that conversation has settled (succeeded or refused), so the server applies them in that order. A model or
- * depth (save) and a runtime change (which clears the model) are both writes: neither can land after a newer one.
- * Conversations don't wait for each other.
- */
-export function sessionOrder() {
-  const last = new Map(); // conversation → its last write, settled either way
-  return (s, write) => {
-    const p = (last.get(s) || Promise.resolve()).then(() => write());
-    const settled = p.then(() => {}, () => {});
-    last.set(s, settled);
-    settled.then(() => { if (last.get(s) === settled) last.delete(s); });
-    return p;
-  };
-}
+export { EFFORT_WORD, EFFORT_HINT, sessionOrder };
+
+const PIPS = { low: 1, medium: 2, high: 3, xhigh: 4, max: 5 };
+const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 
 // simple(): the person's shape asks for the simple choice (xo:composer/intel "simple"): the chip opens
 // Auto · Deep first, and "More options" shows everything below, unchanged.
