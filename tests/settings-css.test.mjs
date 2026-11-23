@@ -11,8 +11,8 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
 t("C112: a link in a Settings row's words stays on one line (a phone wrapped \"about it\" into two)", () => {
-  const r = rule(".set-row a");
-  assert.ok(r, ".set-row a is declared");
+  const r = rule(".set-row a:not([class])");
+  assert.ok(r, ".set-row a:not([class]) is declared: a link drawn as a button keeps its button's look");
   assert.match(r, /white-space:\s*nowrap/);
   assert.match(r, /text-decoration:\s*underline/, "and keeps its underline (link style B)");
 });

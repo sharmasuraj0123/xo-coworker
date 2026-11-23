@@ -62,14 +62,13 @@ const pressOut = () => {
   for (const ch of m[1]) { if (ch === "(") depth++; if (ch === ")") depth--; if (ch === "," && depth === 0) { out.push(cur); cur = ""; } else cur += ch; }
   out.push(cur); return out.map((s) => s.trim()).filter((s) => s && s !== ":disabled" && s !== '[aria-disabled="true"]');
 };
-const ACCENT = /^:where\((.*?)\):where\(:active:not\([^{]*\)\)\{background-color:var\(--accent-press\)!important/m.exec(fnd)?.[1] || "";
-const INK = /^:where\((.*?)\):where\(:active:not\([^{]*\)\)\{background-color:color-mix\(in srgb,var\(--ink\) \d+%,var\(--canvas\)\)!important/m.exec(fnd)?.[1] || "";
+const INK = /^:where\((.*?)\):where\(:active:not\([^{]*\)\)\{background-color:var\(--pri-fill-press\)!important/m.exec(fnd)?.[1] || "";
 const DIM = /:is\(([^)]*)\):where\(:active:not\([^)]*\)\)\{opacity:\.7\}/.exec(fnd)?.[1] || "";
 const OWN = {
   // Stop is a stone disc (the owner, 19 Nov): it presses a step deeper than its hover, never to the ink
-  ".send": () => ACCENT.includes(".send:not(.is-stop)") && /:where\(\.send\.is-stop\):where\(:active:not\([^{]*\)\)\{background-color:color-mix\(in srgb,var\(--ink\) 18%,var\(--stop\)\)!important/.test(fnd) && !INK.includes(".send.is-stop"),
-  ".btn-pri": () => ACCENT.includes(".btn-pri"), ".xd-btn.is-pri": () => ACCENT.includes(".xd-btn.is-pri"), ".xd-send": () => ACCENT.includes(".xd-send"),
-  ".iq-done": () => INK.includes(".iq-done"),
+  ".send": () => INK.includes(".send:not(.is-stop)") && /:where\(\.send\.is-stop\):where\(:active:not\([^{]*\)\)\{background-color:color-mix\(in srgb,var\(--ink\) 18%,var\(--stop\)\)!important/.test(fnd) && !INK.includes(".send.is-stop"),
+  ".btn-pri": () => INK.includes(".btn-pri"), ".xd-btn.is-pri": () => INK.includes(".xd-btn.is-pri"), ".xd-send": () => INK.includes(".xd-send"),
+  ".iq-done": () => INK.includes(".iq-done"), ".b-go": () => INK.includes(".b-go"),
   // a hold: its own fill grows from the left as it's held, the whole press (no veil over it, no halo: the owner, 11 Nov 08:19Z)
   ".b-hold": () => /\.hold-fill\{[^}]*transform:scaleX\(var\(--p,0\)\)[^}]*background:color-mix\(in srgb,var\(--err\) 38%/.test(all) && !/\.b-hold\.(is-holding|tense)\{[^}]*box-shadow/.test(all),
   ".theme": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 28%/.test(fnd),

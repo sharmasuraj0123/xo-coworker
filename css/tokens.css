@@ -68,6 +68,8 @@
   /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
+  /* the main action's fill: XO's accent; a flavour may make it the ink (tools/flavours, primary) */
+  --pri-fill:var(--accent-fill); --pri-fill-hover:var(--accent-hover); --pri-fill-press:var(--accent-press); --pri-ink:var(--accent-ink);
   --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
   /* The one focus ring: 3 px of soft accent hugging the control; a typed-in field's edge and the glow outside it */
   --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
