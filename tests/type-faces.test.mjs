@@ -8,33 +8,33 @@ const tokens = read("css/tokens.css"), app = read("css/app.css"), html = read("i
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("three family tokens: the interface, what is read, code", () => {
-  assert.match(tokens, /\n  --sans:"Plus Jakarta Sans",system-ui,/);
+t("three family tokens: the interface (Geist), what is read, code", () => {
+  assert.match(tokens, /\n  --sans:"Geist",system-ui,/);
   assert.match(tokens, /\n  --sans-read:"DM Sans",system-ui,/);
   assert.match(tokens, /\n  --mono:"JetBrains Mono",ui-monospace,/);
 });
 t("every face is local, swaps in, and its file and licence are in fonts/", () => {
   const faces = [...tokens.matchAll(/@font-face\{([^}]*)\}/g)].map((m) => m[1]);
-  assert.equal(faces.length, 12);
+  assert.equal(faces.length, 9);
   for (const f of faces) {
     assert.match(f, /font-display:swap/);
     const url = f.match(/src:url\("\.\.\/(fonts\/[^"]+\.woff2)"\)/);
     assert.ok(url, f);
     assert.ok(existsSync(new URL(`../${url[1]}`, import.meta.url)), url[1]);
-    assert.ok(existsSync(new URL(`../${url[1].replace(/[^/]+$/, "OFL.txt")}`, import.meta.url)), url[1]);
+    assert.ok(["OFL.txt", "LICENSE.txt"].some((l) => existsSync(new URL(`../${url[1].replace(/[^/]+$/, l)}`, import.meta.url))), url[1]);
   }
   assert.doesNotMatch(tokens + app + html, /fonts\.(googleapis|gstatic)|@import url\("https?:/);
 });
 t("one face is preloaded: the body's, and it exists", () => {
   const pre = [...html.matchAll(/<link rel="preload" href="\.\/(fonts\/[^"]+)" as="font"/g)].map((m) => m[1]);
-  assert.deepEqual(pre, ["fonts/plus-jakarta-sans/plus-jakarta-sans-latin-wght-normal.woff2"]);
+  assert.deepEqual(pre, ["fonts/geist/Geist-Variable.woff2"]);
   assert.ok(existsSync(new URL(`../${pre[0]}`, import.meta.url)));
 });
-t("what is read takes the reading face and its metrics; a message's headings stay in the interface face", () => {
+t("what is read takes the reading face and its metrics, a message's headings too", () => {
   const sw = "font-family:var(--sans-read);--cap-mid:var(--cap-mid-read);--asc:var(--asc-read);--desc:var(--desc-read);";
   assert.match(app, /\n\.composer textarea\{[^}]*font-family:var\(--sans-read\);/);
   for (const sel of ["\\.bubble\\{", "\\.prose\\{max-width:none;"]) assert.match(app, new RegExp("\\n" + sel + "[^}]*" + sw.replace(/[()]/g, "\\$&")), sel);
-  assert.match(app, /\.md-h\{font-family:var\(--sans\);--cap-mid:var\(--cap-mid-ui\);/);
+  assert.doesNotMatch(app, /\.md-h\{[^}]*font-family/);
 });
 t("the type scale is untouched: sizes and line heights", () => {
   assert.match(tokens, /--fs-meta:12px; --fs-ui:14px; --fs-code:14px; --fs-read:16px; --fs-title:16px; --fs-input:16px; --fs-heading:20px; --fs-display:28px; --fs-hero:40px;/);
