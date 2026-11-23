@@ -50,7 +50,7 @@ export const labelOf = (it) => (it && (it.title || it.name)) || "";
 
 
 const IMAGE_TYPE = /^image\/(png|jpe?g|gif|webp|avif|svg\+xml|bmp|x-icon|vnd\.microsoft\.icon)$/i;
-/** A picture the conversation shows, from the server's type, else the name. @param {unknown} type @param {unknown} name */
+/** A picture the conversation shows, from the server's type, else the name. @param {unknown} type @param {string | null | undefined} name */
 export const isPicture = (type, name) => (type ? IMAGE_TYPE.test(String(type)) : isImagePath(name));
 
 /** A plain item (the demo builds its own; the adapters below build theirs). @param {MediaInput} raw */
