@@ -51,7 +51,8 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - The release catch-up passed the full check on the exact commit tree, including all 265 unit files by exit code, and all 16 fast-lane browser cases. The route contract matches Claude Code and Codex to OpenAPI. Only Antigravity's POST start and callback are optional, with separate DOM tests for their 404 paths. Launchpad and Accounts use the same platform reader for JSON events.
 - The catch-up also matched release `d639012b` byte for byte in 20 paired Chromium screenshots through each build's production server. The pairs cover Home, conversation, the right panel, Settings, and Accounts in light and dark on Stone desktop and Onyx phone. The pinned ledger remains at 1,328 open items.
 - Before P5, resolve mask asset caching with the coordinator. The release `--mask-*` URLs resolve under `/v/<hash>/assets/` and are immutable. The modular tokens in `core/ui/tokens.css` use root-relative URLs and revalidate. Chromium resolves a relative URL from the consuming stylesheet, and the modular consumers sit at different depths. A direct switch to a stylesheet-relative path returned 404 from `css/app.css`.
-- [The six P3 packages](P3-WORK-PACKAGES.md) contain the launch order, file and ledger boundaries, and gate checks. After the short review of `f55c6255`, start the first two in parallel from the integration commit that contains the handoff and has the same application tree. The integrator reviews and merges each package.
+- The short review restored three release comments in `css/app.css`. The rules, their order and the file length match the browser-verified merge.
+- [The six P3 packages](P3-WORK-PACKAGES.md) contain the launch order, file and ledger boundaries, and gate checks. Start the first two in parallel from the pinned integration commit after the short review. The integrator reviews and merges each package.
 
 ## Perf notes
 

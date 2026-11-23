@@ -1,6 +1,6 @@
 # P3 work packages
 
-Groups 1 and 2 share the application tree at `f55c62551dcbfab45d7ad26d0644893ec18d0f52`. Start after the coordinator confirms its short independent review. The integrator supplies a branch base with that same application tree and this package file. For later groups, the integrator records the exact commit from git after the listed dependencies pass their gates.
+Groups 1 and 2 share the verified release catch-up. Start after the coordinator confirms its short independent review. The integrator supplies the exact branch base with this package file and the review follow-ups. For later groups, the integrator records the exact commit from git after the listed dependencies pass their gates.
 
 Run at most two Codex Sol threads at medium effort. The integrator assigns files before launch, reviews every change, merges group gates in order and applies one locally verified gate tag per group. Run one full check at a time on a clean `git archive` of the commit with `JOBS=1`, offline dev dependencies and a bounded process memory limit. Check each test file's exit code. Run `python3 tools/ledger/check_ledger.py --final` separately and record the lower count. Regenerate `architecture/modular/LEDGER.md` with `python3 tools/ledger/ledger_md.py .`. No browser run at these gates. Keep compatibility shims until P4, and keep all work local.
 

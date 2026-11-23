@@ -1868,7 +1868,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .chg.is-md .chg-md{padding:10px 14px}
 .chg+.chg{margin-top:10px}
 .teach-scope.is-list button{border-radius:var(--r-sm)}
-
 /* ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ── */
 /* a scroller of controls keeps the ring's room inside it: overflow-x clips the other axis too, so a focused chip's ring
    (4 px outside it) was cut on three sides, only its right 2 px showing (the create-project grader on 427f41c, C047).
@@ -1988,7 +1987,6 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
   .rn-kids{display:none}
   .rn-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-
 /* ── Settings for storm (U2): routing, rules, worktrees ───────────────────── */
 .set-live{display:flex;flex-direction:column;gap:32px}
 .set-sec{display:flex;flex-direction:column;gap:8px}
@@ -2022,10 +2020,12 @@ body:has(#composer.has-text) .st-list{opacity:0;visibility:hidden;transition:opa
 .fl-n{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);text-align:left}
 .fl-opt.is-on .fl-n{color:var(--ink)}
 .set-row.dm.is-on{background:color-mix(in srgb,var(--accent-fill) 6%,var(--surface))}
+/* a link in a row's words (a model's "about it") is one short action: it stays on one line while the words around it wrap */
 .set-row a:not([class]){color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong);white-space:nowrap}
 .set-row a:not([class]):hover{color:var(--ink);text-decoration-color:currentColor}
 .set-form{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
 .set-fa{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+/* Settings › Accounts: one control row per account, its state on the left and its actions on the right */
 .set-row.acct{flex-direction:column;align-items:stretch;gap:var(--s-3)}
 .acct-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-5);min-width:0}
 .acct-top .set-l b{display:inline-flex;align-items:center;gap:var(--gap-icon)}
@@ -2973,7 +2973,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .mv-ban .ev-t{flex:1;white-space:normal;overflow:visible;text-overflow:clip;text-wrap:pretty}
 .mv-ban .ev-t b{color:var(--ink-2);font-weight:var(--fw-medium)}
 .mv-ban .ev-t a:not([class]){color:var(--ink-2)}
-
+/* ── a usage limit (mixed runtimes F5): on the card in Needs you, and at the end of each waiting thread ── */
 .lim{display:flex;flex-direction:column;gap:8px;margin:var(--s-1) 0 var(--s-1)}
 .lim-when{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);color:var(--warn)}
 .lim-when svg{width:var(--ic-sm);height:var(--ic-sm)}
