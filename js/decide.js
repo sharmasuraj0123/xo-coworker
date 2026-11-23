@@ -790,7 +790,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       if (isc) { teach.set(n.key, isc.dataset.iscope); paintItemScope(); return; }
       const b = e.target.closest("[data-act],[data-opt],[data-scope],.dis-h");
       if (!b) return;
-      if (b.classList.contains("dis-h")) { toggleDis(el, b.parentElement.dataset.dis, n, step); return; }
+      if (b.classList.contains("dis-h")) { toggleDis(el, b.closest("[data-dis]").dataset.dis, n, step); return; }
       if (b.dataset.opt != null) { b.classList.add("pressed"); go({ option: n.ask.options[+b.dataset.opt] }, "allow"); return; }
       if (b.dataset.scope) { teach.set(n.key, b.dataset.scope); paintTeach(); return; }
       const act = b.dataset.act;
