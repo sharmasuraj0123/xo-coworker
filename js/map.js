@@ -17,18 +17,17 @@ import { ICON } from "./ui.js";
 import { api } from "../core/platform/api.js";
 import { elapsed } from "../core/platform/index.js";
 import { stepLineHtml } from "./turnview.js";
-import { fileColor } from "./fileicons.js";
 import { redraw } from "./redraw.js";
 import { folderOf } from "../core/services/places.js";
 import { heldWords } from "../core/services/world/held.js";
 import { NW, NH, PAD, layoutOf, edgePath } from "../modules/map/layout.js";
-import { MAP_ICON, ARROW, TOOL } from "../modules/map/icons.js";
+import { MAP_ICON, TOOL } from "../modules/map/icons.js";
 import { afterPause } from "../modules/map/after-pause.js";
 import { createMapFolders } from "../modules/map/folders.js";
 import { createMapAgents } from "../modules/map/agents.js";
-import { gstep, RAD } from "../modules/map/graph-physics.js";
-import { createMapTree, parentOf, setOf } from "../modules/map/tree.js";
+import { createMapTree, setOf } from "../modules/map/tree.js";
 import { createMapCamera, READABLE } from "../modules/map/camera.js";
+import { createMapDrawing } from "../modules/map/drawing.js";
 
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
@@ -102,6 +101,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
 
   const { applyCam, camOf, centerOn, fit, frame, holdStill, keepInView, reframe, zoomAt } =
     createMapCamera({ M, host: () => el, view, world$, tagW, clamp });
+  const { spotOf, cursors, paintGraph } = createMapDrawing({ M, host: () => el, verbOf, tagW, focusNode, camOf, frame, clamp });
   // the smallest a press target may be on screen and still be pressed surely. Below the readable scale, a pointer
   // press on a box whose target is smaller than this brings the map in to the box instead of acting on it (the
   // keyboard acts at any size) (Files/Map grader on b153247). Each box by its own target, never one scale for
@@ -254,152 +254,6 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
   }
 
 
-  // ── cursors ─────────────────────────────────────────────────────────────────
-  /** Where an agent is, as a box: the file it's on, else a file or folder its command names, else the last file it was on. */
-  function spotOf(a, ids, rootId) {
-    if (M.scope.kind === "all") return ids.has(a.node) ? a.node : null;
-    const within = (p) => { let q = p; while (q) { if (ids.has(q)) return { id: q, exact: q === p }; q = parentOf(q); } return null; };
-    const tries = [a.path, ...[...(a.spots || [])].reverse(), a.busy ? a.prev : null].filter(Boolean);
-    let near = null;
-    for (const p of tries) { const r = within(p); if (r && r.exact) return r.id; if (r && !near) near = r; }
-    return near ? near.id : rootId;
-  }
-  /** Each agent's cursor, keyed, so it glides (CSS) from where it was to where it is. place(id) → {x, y, cx, cy}. */
-  function cursors(ags, place) {
-    const box = el.querySelector(".dg-curs");
-    if (!box) return;
-    const seen = new Set(), stack = new Map(), share = new Map();
-    for (const a of ags) if (a.nid != null) share.set(a.nid, (share.get(a.nid) || 0) + 1);
-    M.lead = null;
-    for (const a of ags) {
-      const p = a.nid != null ? place(a.nid) : null;
-      if (!p) continue;
-      const i = stack.get(a.nid) || 0; stack.set(a.nid, i + 1);
-      // a second agent on the same box sits beside the first, on the same row; on the graph's small dots
-      // they stack as a deck behind the first instead (a row there runs into the labels)
-      const x = p.deck ? p.x + i * 4 : p.x + (p.side === "left" ? -i : i) * 18, y = p.deck ? p.y + i * 4 : p.y;
-      seen.add(a.id);
-      let c = M.curs.get(a.id);
-      const more = i === 0 ? (share.get(a.nid) || 1) - 1 : 0;
-      const tag = `<span>${esc(verbOf(a))}</span>${more ? `<i class="dg-more">+${more}</i>` : ""}`;
-      if (!c || !c.el.isConnected) {
-        const d = document.createElement("div");
-        d.className = "dg-cur is-new";
-        d.dataset.k = a.id;
-        d.innerHTML = `${ARROW}<button type="button" class="dg-tag" data-mp-go="${esc(a.go)}" title="${esc(a.coord ? "Open the conversation" : "Open the thread")}"></button>`;
-        d.style.transform = `translate(${x}px,${y}px)`;
-        box.appendChild(d);
-        c = { el: d, node: null, tag: "" };
-        M.curs.set(a.id, c);
-        requestAnimationFrame(() => d.classList.remove("is-new"));
-      }
-      c.el.style.setProperty("--c", a.color);
-      c.el.classList.toggle("is-idle", !a.busy);
-      c.el.classList.toggle("is-wait", a.waiting);
-      c.el.classList.toggle("is-stacked", i > 0);
-      c.el.style.zIndex = p.deck ? String(9 - Math.min(i, 8)) : "";
-      c.el.classList.toggle("is-left", p.side === "left");
-      c.el.classList.toggle("is-below", p.side === "below"); // its name is in the first one's "+N" and in the chips above
-      const to = `translate(${x}px,${y}px)`;
-      if (c.node === a.nid && c.el.style.transform !== to) {
-        // same box, moved by the drawing: jump with it, no glide
-        c.el.style.transition = "none"; c.el.style.transform = to; void c.el.offsetWidth; c.el.style.transition = "";
-      } else c.el.style.transform = to;
-      if (c.tag !== tag) { redraw(c.el.querySelector(".dg-tag"), tag); c.tag = tag; }
-      if (c.node !== a.nid) {
-        // it landed somewhere new: the box answers once, in its colour
-        if (c.node != null) { const b = el.querySelector(`[data-node="${CSS.escape(a.nid)}"]`); if (b) { b.style.setProperty("--c", a.color); b.classList.remove("is-hit"); void b.offsetWidth; b.classList.add("is-hit"); } }
-        c.node = a.nid;
-      }
-      if (!M.lead && a.busy) M.leadNode = a.nid;
-      // pt: where centring aims (the box, its name taken in); at: the arrow's own point, its side and its name's width,
-      // which Follow keeps in view (S208: the box's middle in view left the arrow, at the box's edge, outside)
-      if (!M.lead && a.busy) M.lead = { key: `${a.id}@${a.nid}`, pt: { x: p.cx - (p.side === "left" ? tagW() : p.side === "below" ? tagW() / 2 : 0), y: p.cy }, at: { x, y }, side: p.side || "right", tw: c.el.querySelector(".dg-tag")?.offsetWidth || 0 };
-    }
-    for (const [k, c] of M.curs) if (!seen.has(k)) { c.el.classList.add("is-gone"); setTimeout(() => c.el.remove(), 320); M.curs.delete(k); }
-  }
-
-  // ── the graph: the same boxes as a living node graph that settles ───────────
-  function gnodeHtml(n, at) {
-    const here = at.get(n.id);
-    const cls = `gn k-${n.kind}${n.mark ? ` m-${n.mark}` : ""}${here ? " is-here" : ""}${n.open ? " is-open" : ""}`;
-    const clickable = M.refs.has(n.id);
-    const label = n.kind === "dir" ? `${n.name}, folder, ${n.open ? "open" : "folded"}` : n.title || n.name;
-    const fc = n.kind === "file" ? fileColor(n.name) : null; // a file's dot in its own colour
-    const inner = `<i class="gn-d" style="--r:${RAD[n.kind] || 4}px${fc ? `;--fc:${fc}` : ""}"></i><span class="gn-l">${esc(n.name)}</span>`;
-    return clickable ? `<button type="button" class="${cls}" data-node="${esc(n.id)}" aria-label="${esc(label)}" title="${esc(n.title || n.id || n.name)}"${here ? ` style="--c:${here}"` : ""}>${inner}</button>`
-      : `<div class="${cls}" data-node="${esc(n.id)}"${here ? ` style="--c:${here}"` : ""}>${inner}</div>`;
-  }
-  function paintGraph(scope, flat, ags, at) {
-    if (!M.gpos.has(scope.key)) M.gpos.set(scope.key, new Map());
-    const pos = M.gpos.get(scope.key);
-    const nodes = el.querySelector(".dg-nodes"), svg = el.querySelector(".dg-edges");
-    const html = flat.map((n) => gnodeHtml(n, at)).join("");
-    if (html !== M.layoutKey) {
-      const shape = flat.map((n) => `${n.id}<${n.parent}`).join("|");
-      const a = document.activeElement, fid = a && el.contains(a) ? a.dataset.node : null;
-      // new boxes start beside their parent, and the graph wakes up to make room
-      for (const n of flat) if (!pos.has(n.id)) {
-        const par = n.parent != null ? pos.get(n.parent) : null, ang = Math.random() * Math.PI * 2;
-        pos.set(n.id, { x: (par ? par.x : 0) + Math.cos(ang) * 24, y: (par ? par.y : 0) + Math.sin(ang) * 24, vx: 0, vy: 0 });
-      }
-      nodes.style.width = nodes.style.height = "0px";
-      redraw(nodes, html); // in place: a box that stays is the same node, so a press on it still clicks (the owner, 19 Nov)
-      svg.setAttribute("width", "1"); svg.setAttribute("height", "1"); svg.removeAttribute("viewBox");
-      const byEl = new Map([...nodes.children].map((e) => [e.dataset.node, e]));
-      M.gnodes = flat.map((n) => ({ n, p: pos.get(n.id), par: n.parent != null ? pos.get(n.parent) : null, el: byEl.get(n.id) }));
-      svg.innerHTML = M.gnodes.filter((g) => g.par).map(() => "<line/>").join("");
-      M.gedges = [...svg.children];
-      M.layoutKey = html;
-      // the first layout settles from scratch; later dots join gently without shaking the rest
-      if (shape !== M.gkey) { M.alpha = Math.max(M.alpha, M.gkey ? 0.25 : 0.9); M.gkey = shape; }
-      if (fid != null) focusNode(nodes, fid);
-    }
-    M.gags = ags;
-    gdraw();
-    if (M.alpha > 0.02) gkick();
-  }
-  function gdraw() {
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const g of M.gnodes) {
-      const { x, y } = g.p;
-      if (g.el) g.el.style.transform = `translate(${x}px,${y}px)`;
-      // a node is its dot and its name: measure the box once it's laid out (names don't change), so
-      // "fit it all" fits the names too, not only the dots
-      if (g.el && !g.ext && g.el.offsetWidth) { const cs = getComputedStyle(g.el); const ml = parseFloat(cs.marginLeft) || 0, mt = parseFloat(cs.marginTop) || 0; g.ext = { l: ml, t: mt, r: ml + g.el.offsetWidth, b: mt + g.el.offsetHeight }; }
-      const e = g.ext || { l: -8, t: -8, r: 8, b: 8 };
-      if (x + e.l < x0) x0 = x + e.l; if (y + e.t < y0) y0 = y + e.t; if (x + e.r > x1) x1 = x + e.r; if (y + e.b > y1) y1 = y + e.b;
-    }
-    let i = 0;
-    for (const g of M.gnodes) {
-      if (!g.par) continue;
-      const e = M.gedges[i++];
-      if (!e) continue;
-      e.setAttribute("x1", g.par.x); e.setAttribute("y1", g.par.y); e.setAttribute("x2", g.p.x); e.setAttribute("y2", g.p.y);
-      const lit = M.glit.get(g.n.id);
-      e.setAttribute("class", lit ? "is-lit" : g.n.kind === "file" ? "k-file" : "");
-      e.style.stroke = lit || "";
-    }
-    // a quiet margin all round; a cursor's name tag only when an agent is in the drawing
-    const tag = M.gags && M.gags.length ? tagW() * 0.6 : 0;
-    if (M.gnodes.length) { M.bounds = { x0: x0 - 12, y0: y0 - 12, x1: x1 + 12 + tag, y1: y1 + 12 }; M.rootPt = { x: 0, y: 0 }; }
-    const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
-    cursors(M.gags, (id) => { const g = at.get(id); if (!g) return null; const r = RAD[g.n.kind] || 4; return { x: g.p.x + r * 0.55, y: g.p.y + r * 0.55, cx: g.p.x, cy: g.p.y, deck: true }; });
-  }
-  function gkick() {
-    if (M.raf) return;
-    const loop = () => {
-      M.raf = 0;
-      if (!M.open || M.mode !== "graph" || !M.gnodes.length) return;
-      gstep(M, clamp); gstep(M, clamp);
-      M.alpha *= 0.975;
-      gdraw();
-      const c = M.scope && camOf(M.scope);
-      if (c) frame(c);
-      if (M.alpha > 0.02) M.raf = requestAnimationFrame(loop);
-    };
-    M.raf = requestAnimationFrame(loop);
-  }
 
   // ── the panel ────────────────────────────────────────────────────────────────
   function headHtml(scope, ags) {
