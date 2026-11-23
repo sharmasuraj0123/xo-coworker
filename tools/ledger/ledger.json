@@ -7129,8 +7129,8 @@
    "home": "core/ui/a11y/announce.js"
   },
   "js/app.js::functions::savedSoon": {
-   "status": "planned",
-   "home": "modules/changes; modules/files (viewer) (app.js l.233)"
+   "status": "moved",
+   "home": "modules/changes/saved.js"
   },
   "js/app.js::functions::projectIcon": {
    "status": "moved",

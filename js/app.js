@@ -52,6 +52,7 @@ import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
 import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
+import { createSavedSoon } from "../modules/changes/saved.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
@@ -228,13 +229,7 @@ const VW = createViewer({
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
 }); // a file, in the panel's Files page (modules/files/page.js)
-// saves (⌘S): the place's changes are read again once they settle, not per save
-const savedT = new Map();
-function savedSoon(f) {
-  const k = `${f.project}|${f.rel}`;
-  clearTimeout(savedT.get(k));
-  savedT.set(k, setTimeout(() => { savedT.delete(k); CHG.saved(f.project, f.rel); }, 2500));
-}
+const savedSoon = createSavedSoon(CHG);
 // a file changed on disk (Space's file.version): the open file takes it in, and the place's file list follows
 world.onEvent((e) => {
   if (e.kind !== "file") return;
