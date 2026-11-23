@@ -1,6 +1,8 @@
 // The pack's exact icon where a word or a generic mark stood: commands, git state, Shells, panel heads, the editor's state, Launchpad.
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
+import { cmdIcon, stepIcon } from "../core/services/step-icons.js";
+import { cmdIcon as legacyCmdIcon, stepIcon as legacyStepIcon } from "../js/turnview.js";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 import { panelSrc } from "./lib/panel-src.mjs";
@@ -11,9 +13,9 @@ let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
 const tv = read("js/turnview.js");
-const iconSrc = tv.slice(tv.indexOf("const KIND_ICON"), tv.indexOf("const secs ="));
-const commsTool = (r) => (/^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/.exec(String(r.tool || r.target || "")) || [])[1] || null;
-const [cmdIcon, stepIcon] = new Function("commsTool", `${iconSrc.replaceAll("export function", "function")}; return [cmdIcon, stepIcon];`)(commsTool);
+const iconSrc = read("core/services/step-icons.js");
+assert.equal(legacyCmdIcon, cmdIcon);
+assert.equal(legacyStepIcon, stepIcon);
 
 await t("a command row shows the icon of what it does; anything else stays a terminal", () => {
   const want = {
@@ -48,10 +50,10 @@ await t("a step's icon comes from its kind, its tool's own name in any runtime, 
   assert.match(read("js/runsview.js"), /<span class="tb-ri">\$\{xi\(stepIcon\(\{ kind: it\.kind, tool: it\.tool, target: it\.target, line: it\.title \}\)\)\}<\/span>/);
 });
 await t("every name the rows can draw is in the pack", () => {
-  const names = [...tv.slice(tv.indexOf("const KIND_ICON"), tv.indexOf("export function stepIcon")).matchAll(/"([a-z-]+)"\]?[,\s}]/g)].map((m) => m[1]);
+  const names = [...iconSrc.slice(iconSrc.indexOf("const KIND_ICON"), iconSrc.indexOf("export function stepIcon")).matchAll(/"([a-z-]+)"\]?[,\s}]/g)].map((m) => m[1]);
   assert.ok(names.length > 20);
   for (const n of names) assert.ok(has(n), n);
-  assert.match(tv, /delete_file: "delete"/); assert.match(tv, /error: "alert"/); assert.match(tv, /notice: "info"/); assert.match(tv, /list: "folder-open"/);
+  assert.match(iconSrc, /delete_file: "delete"/); assert.match(iconSrc, /error: "alert"/); assert.match(iconSrc, /notice: "info"/); assert.match(iconSrc, /list: "folder-open"/);
 });
 await t("the git states name icons present in the pack", async () => {
   const { GIT_ICON } = await import("../core/services/git-state.js");

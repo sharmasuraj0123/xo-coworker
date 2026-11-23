@@ -17510,24 +17510,24 @@
    "home": "js/timeline.js"
   },
   "js/turnview.js::exports::cmdIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/turnview.js::exports::stepIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/turnview.js::exports::stepLineHtml": {
    "status": "kept",
    "home": "js/turnview.js"
   },
   "js/turnview.js::functions::cmdIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/turnview.js::functions::stepIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/ui.js::exports::stateMark": {
    "status": "kept",
