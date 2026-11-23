@@ -11,7 +11,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stepMark, stateMark, XO, $, $$, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
@@ -77,7 +77,8 @@ import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "../core/ui/motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
-import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
+import { rtName, untilWords } from "../core/services/runtimes.js";
+import { createThreadRuntime } from "../modules/runtimes/thread.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
 import { createSettingsFrame, createSettingsSections, createKeysPage, keysSheetRender, createShapeView, SHAPE_IC } from "../modules/settings/index.js";
@@ -389,61 +390,7 @@ STAGE.names = (v) => {
   return p && p !== "workspace" ? PROJ(p) : p === "workspace" || v === "ws" ? "Workspace" : "Your projects";
 };
 REC.panel = STAGE;
-/** The runtime a thread runs on, fixed for its life (its session's agent). */
-const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
-/** A thread's agent as its company's mark (core/services/runtimes.js rtMark), wherever a thread is listed (the owner, 19 Nov:
- *  "show that this is a claude thread or a codex thread"), when there's more than one runtime to tell apart; its name
- *  on hover and to a screen reader; nothing for a runtime without a mark or a thread whose agent isn't known yet. */
-const threadMark = (t, opts) => { const a = agentOf(t); return a && manyRuntimes(world.state.runtimes) ? rtMark(a, opts) || "" : ""; };
-const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
-/** When the usage limit that holds a thread lets it start (ISO), or null. Only while the thread is held, and by the
- *  limit (or by a gate an older backend doesn't name): its session's word (timeline.js heldOf), else the open limit
- *  item that names it. Never for a thread at work, whatever an item still says. Only a time still ahead. */
-function waitingOn(t) {
-  if (!isHeld(t) || (t.held.for && t.held.for !== "limit")) return null;
-  const lim = (t.limits || [])[0];
-  const at = t.held.until || (lim && lim.limit && lim.limit.resetsAt) || null;
-  return at && Date.parse(at) > Date.now() ? at : null;
-}
-/** F1: which runtime a thread runs on, said only when there is more than one runtime to tell apart. */
-function rtTag(t, cls) {
-  const rts = world.state.runtimes;
-  const agent = agentOf(t);
-  if (!agent) return "";
-  const many = manyRuntimes(rts);
-  // F5: a thread held by its runtime's usage limit says until when, in the header: with one runtime too (it
-  // waits all the same; there the runtime needs no name)
-  const wait = cls !== "ar" && waitingOn(t);
-  if (wait) {
-    // beside the badge's "Waiting": what it waits for and when it starts ("Usage limit · starts 6:50 AM"), the verb
-    // the line under the conversation and the sidebar use too (timeline.js heldWords)
-    const who = many ? rtName(agent) : "";
-    const tip = `${who || "Your agent"} reached its usage limit. This thread starts on its own ${heldClock(wait)}${untilWords(wait) ? `, ${untilWords(wait)}` : ""}.`;
-    return `<button type="button" class="tw-rt is-warn" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(`${tip} Open Runtimes in Settings.`)}">${who ? `${esc(who)} limit` : "Usage limit"} · starts ${esc(heldClock(wait))}</button>`;
-  }
-  if (!many) return "";
-  const rt = findRt(rts, agent), h = healthOf(rt), se = t.session || {};
-  const ver = rt && rt.health && rt.health.cli_version;
-  const tip = [`Runs on ${rtName(agent)}${ver ? ` ${ver}` : ""}`, se.model || "its default model", se.effort ? RT_EFFORT[se.effort] || se.effort : ""].filter(Boolean).join(" · ") +
-    `. ${h.key === "usable" ? `${rtName(agent)} is usable.` : `${h.word}.${h.why ? ` ${h.why}` : ""}`}`;
-  const warn = h.tone === "bad" || h.tone === "warn" ? " is-warn" : "";
-  // a list names only the exceptions: a thread on the Space's usual runtime needs no word there
-  // a list row shows every thread's agent as a mark before its title (threadMark): here only a runtime in trouble is named
-  if (cls === "ar" && !warn) return "";
-  // a shape without runtime names (xo:thread/runtime) still says when the runtime is in trouble
-  if (!warn && !SHAPE.on("xo:thread/runtime")) return "";
-  // its company's mark (core/services/runtimes.js rtMark): alone in a list row, the name beside it in the header; a runtime
-  // without a mark keeps its name
-  return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${rtMark(agent) || esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
-    : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;
-}
-/** F7: what a runtime does with a message sent while its turn runs: "steered" (joins it) or "queued". */
-const sendWhileRunning = (t) => {
-  const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running;
-  return (f && f.behaviour) || null;
-};
-/** F4: a thread may continue elsewhere when another runtime its project allows can take work now, once. */
-const movable = (t) => !!(world.act.storm && world.act.policyFor && t && !t.movedTo && agentOf(t) && world.act.policyFor(t.project) && canMove(agentOf(t), world.act.policyFor(t.project), world.state.runtimes));
+const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRuntime({ world, SHAPE, isHeld });
 /** The composer's target line in a thread; while its agent works, where your words land. */
 function threadTargetHtml(t) {
   if (t.frozen) return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">Reply in </span><b>this ${noun("thread")}</b></span><span class="muted">· sending picks it back up</span>`;

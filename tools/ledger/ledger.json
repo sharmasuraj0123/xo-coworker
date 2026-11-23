@@ -7149,12 +7149,12 @@
    "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.329)"
   },
   "js/app.js::functions::waitingOn": {
-   "status": "planned",
-   "home": "modules/runtimes (`thread.badge` contribution) (app.js l.425)"
+   "status": "moved",
+   "home": "modules/runtimes/thread.js"
   },
   "js/app.js::functions::rtTag": {
-   "status": "planned",
-   "home": "modules/runtimes (`thread.badge` contribution) (app.js l.432)"
+   "status": "moved",
+   "home": "modules/runtimes/thread.js"
   },
   "js/app.js::functions::threadTargetHtml": {
    "status": "planned",
