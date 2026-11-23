@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { STONE, FLAVOURS } from "../core/ui/flavours.js";
+import { xi } from "../core/ui/icons/icon.js";
+import { ICON } from "../core/ui/icons/names.js";
 import { dom } from "./lib/dom.mjs";
 
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
@@ -40,6 +42,12 @@ await new Promise((resolve) => setImmediate(resolve));
 for (const frame of frames.splice(0)) frame(performance.now());
 
 assert.ok(document.querySelector("#brand-mark svg"), "boot installs the visible brand icon");
+assert.ok(document.querySelector("#side-fold svg"), "boot installs the sidebar fold icon");
+const expectedIcon = document.createElement("span");
+expectedIcon.innerHTML = xi("dashboard");
+assert.equal(document.querySelector("#ic-more").innerHTML, expectedIcon.innerHTML, "More uses the dashboard icon");
+expectedIcon.innerHTML = ICON.right;
+assert.equal(document.querySelector("#nv-more .nr-chev").innerHTML, expectedIcon.innerHTML, "More shows the right chevron");
 assert.equal(document.querySelector("#home").hidden, false, "boot starts on Home");
 assert.equal(document.documentElement.dataset.theme, "light", "boot restores the stored mode");
 assert.equal(document.documentElement.dataset.flavour, "onyx", "boot restores the stored flavour");

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
+import { sheet } from "./lib/cascade.mjs";
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
 let passed = 0;
@@ -8,7 +9,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 t("no hover paints a solid --fill-1 or --fill-2", () => {
   const bad = [];
   for (const f of readdirSync(new URL("css/", ROOT)).filter((x) => x.endsWith(".css"))) {
-    const css = read(`css/${f}`).replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = (f === "app.css" ? sheet(new URL("css/app.css", ROOT)) : read(`css/${f}`)).replace(/\/\*[\s\S]*?\*\//g, "");
     for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) if (m[1].includes(":hover") && /background(-color)?:var\(--fill-[12]\)/.test(m[2])) bad.push(`${f}: ${m[1].trim()}`);
   }
   assert.deepEqual(bad, []);
@@ -18,7 +19,6 @@ t("Launchpad's row hover is the veil", () => {
 });
 t("More shows a chevron, hidden on the folded rail", () => {
   assert.match(read("index.html"), /id="nv-more"[^>]*>.*<span class="nr-name">More<\/span><span class="nr-chev" aria-hidden="true"><\/span><\/button>/);
-  assert.match(read("js/app.js"), /\$\("#nv-more \.nr-chev"\)\.innerHTML = ICON\.right;/);
   assert.match(read("shell/sidebar.css"), /\.side-folded :is\([^)]*\.nr-chev[^)]*\)\{display:none\}/);
 });
 t("More lists places, not Settings' pages; the editor still lists every place", () => {

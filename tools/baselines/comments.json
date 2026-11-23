@@ -1,6 +1,6 @@
 {
  "js/app.js": {
-  "extra": 211,
+  "extra": 209,
   "refs": 2
  },
  "js/decide.js": {
@@ -8,7 +8,7 @@
   "refs": 0
  },
  "js/map.js": {
-  "extra": 93,
+  "extra": 89,
   "refs": 0
  },
  "js/skeleton.js": {

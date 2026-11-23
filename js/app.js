@@ -9,7 +9,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { keepTurning, ICON, stepMark, stateMark, XO, NEXT_GLYPH, $, $$, RM, reconcile, wait, hold, dial, morph, expand } from "./ui.js";
+import { ICON, stepMark, stateMark, XO, NEXT_GLYPH, $, $$, RM, reconcile, wait, hold, dial, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, sharedFileRoute, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldClock, heldBadge, soonestHeld } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn } from "./turnview.js";
@@ -41,7 +41,8 @@ import { wireBack } from "../shell/back.js";
 import { createNavigation } from "../shell/navigation.js";
 import { faviconRender } from "../shell/favicon.js";
 import { createDrawer } from "../shell/phone.js";
-import { drawPlaceIcons, drawFrameIcons, drawSidebarControls } from "../shell/frame-icons.js";
+import { drawPlaceIcons, drawFrameIcons } from "../shell/frame-icons.js";
+import { startShell } from "../shell/start.js";
 import { createLaunchpad } from "../modules/launchpad/launchpad.js";
 import { createLpApi } from "../modules/launchpad/client.js";
 import { createFiles } from "../modules/files/files.js";
@@ -4211,14 +4212,4 @@ drawPlaceIcons();
 }
 drawFrameIcons(SHAPE_IC);
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
-applyTheme(THEME.get());
-drawSidebarControls();
-SIDE.fold(SIDE.folded, { quiet: true });
-soundRender();
-PHONE.addEventListener("change", () => { setDrawer(false); render(); });
-
-world.subscribe(() => schedule());
-keepTurning(); // every arc on the page turns in step, however often it is redrawn
-follow();
-loadDraft();
-render();
+startShell({ THEME, applyTheme, SIDE, soundRender, PHONE, setDrawer, render, world, schedule, follow, loadDraft });
