@@ -1,4 +1,5 @@
 import { createWorld, esc, WAITING } from "./world.js";
+import { whenWorld } from "../core/services/world/when.js";
 import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPending, busyAttrs } from "../core/platform/index.js";
 import { patch, redraw } from "../core/ui/redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
@@ -3867,13 +3868,6 @@ wireGestures({
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
   toast: (text) => toastLine(text),
 });
-/** fn, once the world shows what test() looks for: an act's answer reaches the world on its next commit. */
-function whenWorld(test, fn) {
-  let off = null, met = false;
-  const check = () => { if (met || !test()) return; met = true; off?.(); fn(); };
-  off = world.subscribe(check);
-  if (met) off();
-}
 function resolveFromRow(tid, resolved, li) {
   const t = world.thread(tid);
   const name = t ? t.title : "";
@@ -3906,7 +3900,7 @@ function resolveFromRow(tid, resolved, li) {
         // undone: the thread's own row again, drawn once the world has it back as it was (Space's answer lands
         // in the world on its next commit), with focus on it if it was on Undo
         clearTimeout(li._redraw);
-        whenWorld(() => (world.thread(tid)?.state === "resolved") === to, () => {
+        whenWorld(world, () => (world.thread(tid)?.state === "resolved") === to, () => {
           if (!li.isConnected || allEl.hidden) return;
           const had = li.contains(document.activeElement);
           allRender();

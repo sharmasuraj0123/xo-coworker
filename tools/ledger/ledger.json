@@ -7924,8 +7924,8 @@
    "home": "shell/back.js"
   },
   "js/app.js::functions::whenWorld": {
-   "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4722)"
+   "status": "moved",
+   "home": "core/services/world/when.js"
   },
   "js/app.js::functions::resolveFromRow": {
    "status": "planned",
