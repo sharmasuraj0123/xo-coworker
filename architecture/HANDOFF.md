@@ -54,6 +54,13 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - The short review restored three release comments in `css/app.css`. The rules, their order and the file length match the browser-verified merge.
 - [The six P3 packages](P3-WORK-PACKAGES.md) contain the launch order, file and ledger boundaries, and gate checks. Start the first two in parallel from the pinned integration commit after the short review. The integrator reviews and merges each package.
 
+## P3 integration follow-ups
+
+- Groups 1 and 2 started in parallel from `90c903a9`. Use the `modular-full-check` lease for each full run. Review and merge Group 1 first, then Group 2.
+- When a test reads legacy source, each worker updates only the assertions affected by its move, in the same commit. Review both groups' hunks and retain both sets of assertions where a test file overlaps.
+- Group 1 leaves `js/skeleton.js` at the direct first-paint entry. After its merge, move the implementation unchanged and update the direct module script in `index.html` in the same commit. Check the existing app and record imports, the page test fixture and the first-paint path together.
+- Group 2 leaves `openRuns` and `stopRunsUndo` in `js/app.js`. Move them after its merge to the targets named in its handoff. The group may re-point the `tasksOf` import in `core/services/storm/selectors/threads.js` in its own commit.
+
 ## Perf notes
 
 During P3 and P4, record observed hotspots with a file, line and trigger. Look for full re-renders, broad style invalidation, eager loads, recurring timers and listeners that outlive their surfaces. Keep performance changes for after P5.
