@@ -20,16 +20,16 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
   /** @type {string | null | undefined} */
   let toHeader = null;
 
-  
+
 /** @type {Map<string | undefined, Working>} */
   const WORKING = new Map(); // turn key → { text, since, w }
-  
+
 /** @type {Map<string | undefined, WorkCard>} */
   const FINISHED_CARDS = new Map(); // only completed turns whose work card has been opened
-  
+
 /** @type {Set<string | undefined>} */
   const ENDED = new Set();
-  
+
 /** @type {Map<string | undefined, number>} */
   const HOLD = new Map();
   const holdSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: E.main ? "mx-hold" : `mx-hold-${msgs.id}` }));
