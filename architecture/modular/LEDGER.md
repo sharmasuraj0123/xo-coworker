@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 461 |
+| moved | 462 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 181 |
+| planned | 180 |
 | kept | 56 |
 | split | 35 |
 
-Items inside first-party files: 2488 (moved 1054, planned 758, split-region 389, kept 164, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1057, planned 758, split-region 389, kept 161, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -102,7 +102,7 @@ Items inside first-party files: 2488 (moved 1054, planned 758, split-region 389,
 | `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
 | `js/shells/model.js` | 128 | planned | modules/shells/model.js |
 | `js/shells/term.js` | 205 | planned | modules/shells/term.js |
-| `js/sideorder.js` | 28 | planned | shell/rail/order.js |
+| `js/sideorder.js` | 28 | moved | shell/sideorder.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
 | `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |

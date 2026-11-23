@@ -2873,8 +2873,8 @@
    "home": "modules/shells/term.js"
   },
   "js/sideorder.js": {
-   "status": "planned",
-   "home": "shell/rail/order.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/skeleton.js": {
    "status": "split",
@@ -17478,16 +17478,16 @@
    "home": "js/runsview.js"
   },
   "js/sideorder.js::exports::JOIN_MS": {
-   "status": "kept",
-   "home": "js/sideorder.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/sideorder.js::exports::createCalmOrder": {
-   "status": "kept",
-   "home": "js/sideorder.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/sideorder.js::functions::createCalmOrder": {
-   "status": "kept",
-   "home": "js/sideorder.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/stage.js::storage::xo-stage-w2": {
    "status": "moved",
