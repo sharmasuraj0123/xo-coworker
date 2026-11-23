@@ -20,7 +20,7 @@ import { stepLineHtml } from "./turnview.js";
 import { redraw } from "./redraw.js";
 import { folderOf } from "../core/services/places.js";
 import { heldWords } from "../core/services/world/held.js";
-import { NW, NH, PAD, layoutOf, edgePath } from "../modules/map/layout.js";
+import { PAD, layoutOf } from "../modules/map/layout.js";
 import { MAP_ICON, TOOL } from "../modules/map/icons.js";
 import { afterPause } from "../modules/map/after-pause.js";
 import { createMapFolders } from "../modules/map/folders.js";
@@ -28,6 +28,7 @@ import { createMapAgents } from "../modules/map/agents.js";
 import { createMapTree, setOf } from "../modules/map/tree.js";
 import { createMapCamera, READABLE } from "../modules/map/camera.js";
 import { createMapDrawing } from "../modules/map/drawing.js";
+import { createMapDiagram } from "../modules/map/diagram.js";
 
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
@@ -102,6 +103,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
   const { applyCam, camOf, centerOn, fit, frame, holdStill, keepInView, reframe, zoomAt } =
     createMapCamera({ M, host: () => el, view, world$, tagW, clamp });
   const { spotOf, cursors, paintGraph } = createMapDrawing({ M, host: () => el, verbOf, tagW, focusNode, camOf, frame, clamp });
+  const paintDiagram = createMapDiagram({ M, host: () => el, view, tagW, camOf, holdStill, focusNode, cursors, boxHtml });
   // the smallest a press target may be on screen and still be pressed surely. Below the readable scale, a pointer
   // press on a box whose target is smaller than this brings the map in to the box instead of acting on it (the
   // keyboard acts at any size) (Files/Map grader on b153247). Each box by its own target, never one scale for
@@ -331,65 +333,7 @@ export function createMap({ world, go, announce, isBusy, openFile }) {
     M.glit = lit;
     M.loading = flat.some((n) => n.kind === "note" && !n.btn && n.name === "Reading…");
     if (M.mode === "graph") paintGraph(scope, flat, ags, at);
-    else {
-      const L = layoutOf(tree), old = M.layout;
-      M.layout = L;
-      const byId = new Map(L.nodes.map((n) => [n.id, n]));
-      // a cursor's name goes where its box has room that nothing else uses:
-      //   · the right of a file or a folded folder (nothing else shares a leaf's row);
-      //   · under the top box (its column holds nothing else), so it never widens the drawing;
-      //   · the left of an open folder (its children are on the right, one on its row), unless its parent
-      //     sits on that same row.
-      const parentOfId = new Map(L.edges.map((e) => [e.to.id, e.from]));
-      const sideOf = (n) => {
-        if (!(n.children && n.children.length)) return "right";
-        const par = parentOfId.get(n.id);
-        if (!par) return "below";
-        return par.y === n.y ? "right" : "left";
-      };
-      let x0 = 0, x1 = L.w + PAD * 2, y1 = L.h + PAD * 2;
-      for (const a of ags) {
-        const n = a.nid != null && byId.get(a.nid);
-        if (!n) continue;
-        const side = sideOf(n);
-        if (side === "left") x0 = Math.min(x0, n.x + PAD - tagW());
-        else if (side === "right") x1 = Math.max(x1, n.x + PAD + NW + tagW());
-        else y1 = Math.max(y1, n.y + PAD + NH + 44);
-      }
-      M.bounds = { x0, y0: 0, x1, y1 };
-      const rn = byId.get(tree.id);
-      M.rootPt = rn ? { x: rn.x + PAD, y: rn.y + PAD + NH / 2 } : null;
-      const nodesHtml = L.nodes.map((n) => boxHtml(n, at)).join("");
-      const key = `${L.w}x${L.h}|${nodesHtml}|${[...lit].join()}`;
-      if (key !== M.layoutKey) {
-        const a = document.activeElement, fid = a && el.contains(a) ? a.dataset.node : null;
-        const W = L.w + PAD * 2, H = L.h + PAD * 2;
-        const svg = el.querySelector(".dg-edges");
-        svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-        svg.innerHTML = `<g transform="translate(${PAD} ${PAD})">${L.edges.map((e) => { const c = lit.get(e.to.id); return `<path d="${edgePath(e.from, e.to)}"${c ? ` class="is-lit" style="stroke:${c}"` : ""}/>`; }).join("")}</g>`;
-        const nodes = el.querySelector(".dg-nodes");
-        nodes.style.width = W + "px"; nodes.style.height = H + "px";
-        // in place, keyed by data-node: an agent moving file changes a box's class and colour, not the boxes, so a
-        // press on one still clicks (a box drawn anew mid-press took the pressed node with it: the owner, 19 Nov)
-        redraw(nodes, nodesHtml);
-        M.layoutKey = key;
-        if (old) holdStill(scope, old, L);
-        // the focused node again; if it's gone (a folder's "Try again" becomes the folder once it reads), the
-        // nearest node above it, else the drawing: never the page (Astra S082)
-        if (fid != null) focusNode(nodes, fid);
-      }
-      // read first, then write: the canvas is measured once, before the cursors are written (a read per cursor between
-      // their writes laid the page out again for each one)
-      const cam = camOf(scope), vw = view()?.clientWidth || 0, tw = tagW();
-      cursors(ags, (id) => {
-        const n = byId.get(id);
-        if (!n) return null;
-        let side = sideOf(n);
-        // a name that would run off the canvas's right edge goes on the box's left instead
-        if (side === "right" && vw && cam.x + (n.x + PAD + NW + 2 + tw) * cam.s > vw - 8) side = "left";
-        return { x: side === "left" ? n.x + PAD + 10 : n.x + PAD + NW + 2, y: n.y + PAD + 9, cx: n.x + PAD + NW / 2, cy: n.y + PAD + NH / 2, side };
-      });
-    }
+    else paintDiagram(scope, tree, ags, at, lit);
     // what the marks mean, when there are some
     const kd = el.querySelector("[data-dg-key]");
     const kinds = new Set([...marks.values()].map((m) => m.mark).filter((m) => m !== "read"));
