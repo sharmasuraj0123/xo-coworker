@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dayGroup, rowTime } from "../js/timeline.js";
-import { dom } from "./lib/dom.mjs";
+import { dom, same } from "./lib/dom.mjs";
 import { createChats } from "../js/chats.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
@@ -44,10 +44,48 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   assert.equal(idle.querySelector(".chl-t").textContent, "A chat in your projects folder");
   assert.equal(idle.querySelector(".chl-a").textContent, rowTime(plain.created_at));
   assert.ok(box.querySelector('[data-go="c:waiting"] .chl-tile [data-xi="state-needs-you"]'));
+  sessions.idle.updated_at = at(0, 11);
+  sessions.waiting.updated_at = at(0, 12);
+  paint();
+  assert.deepEqual([...box.querySelectorAll(".chl-row")].map((row) => row.dataset.go), ["c:waiting", "c:idle"]);
   chats.search("plan only");
   paint();
   assert.deepEqual([...box.querySelectorAll(".chl-row")].map((row) => row.dataset.go), ["c:idle"]);
 });
+
+{
+  const { document } = await dom('<button id="setup" aria-expanded="false">Folder</button><div id="cs-pop" tabindex="-1" hidden></div>');
+  const storage = new Map();
+  globalThis.localStorage = { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value) };
+  globalThis.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
+  globalThis.fetch = async () => Response.json({ models: [] });
+  const makeChats = () => createChats({
+    world: {
+      state: { runtimes: [], projects: [{ id: "demo", name: "Demo project", kind: "project" }] },
+      act: {},
+      onEvent() {},
+    },
+    schedule() {},
+  });
+  const anchor = document.getElementById("setup"), pop = document.getElementById("cs-pop");
+  const chats = makeChats();
+  await chats.openSetup(anchor, "cwd");
+  assert.equal(pop.hidden, false);
+  assert.equal(anchor.getAttribute("aria-expanded"), "true");
+  const option = pop.querySelector('[data-cs-cwd="demo"]');
+  assert.equal(option.getAttribute("aria-checked"), "false");
+  option.focus();
+  chats.setPref("cwd", "demo");
+  chats.renderSetup();
+  same(document.activeElement, option, "redraw keeps the active folder option");
+  assert.equal(option.getAttribute("aria-checked"), "true");
+  assert.equal(JSON.parse(storage.get("cv-chat-prefs")).cwd, "demo");
+  chats.closeSetup();
+  assert.equal(pop.hidden, true);
+  same(document.activeElement, anchor, "closing returns focus to the folder chip");
+  await makeChats().openSetup(anchor, "cwd");
+  assert.equal(pop.querySelector('[data-cs-cwd="demo"]').getAttribute("aria-checked"), "true");
+}
 t("its look: tokens only, a list of titles with no tiles, rims or dividers, rows 48 whose hover reaches --halo-row past the words", () => {
   const css = read("css/app.css");
   const block = css.slice(css.indexOf(".cs-hi{"), css.indexOf(".chl-calm{"));

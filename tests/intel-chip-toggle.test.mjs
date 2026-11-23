@@ -2,7 +2,7 @@
 
 // The Intelligence chip toggles its own popover: pressed again it closes, whichever composer's chip opened it.
 import assert from "node:assert/strict";
-import { dom, settle } from "./lib/dom.mjs";
+import { dom, same, settle } from "./lib/dom.mjs";
 
 
 const { window, document } = await dom(`<div id="iq-pop" tabindex="-1" hidden></div><button id="iq"></button><button id="tiq"></button><p id="elsewhere">x</p>`);
@@ -41,6 +41,25 @@ for (const [id, s] of [["#iq", "p:demo"], ["#tiq", "t:cmsg_1"]]) {
   press($("#elsewhere"));
   assert.equal(IQ.isOpen, false, `a press elsewhere closes what ${id} opened`);
 }
+
+world.state.runtimes = [{ name: "claude_code" }];
+g.fetch = async () => Response.json({
+  models: [
+    { id: "first", name: "First model", takes_effort: true, efforts: ["low", "high"] },
+    { id: "second", name: "Second model", takes_effort: true, efforts: ["low", "high"] },
+  ],
+});
+await IQ.open("t:cmsg_1", $("#tiq"));
+const row = $('[data-dmodel="second"]');
+assert.equal(row.getAttribute("aria-checked"), "false");
+tap(row);
+assert.equal(row.getAttribute("aria-checked"), "true");
+same(document.activeElement, row, "selecting a model keeps the original row");
+const effort = $('[data-deffort="high"]');
+tap(effort);
+assert.equal(effort.getAttribute("aria-checked"), "true");
+same(document.activeElement, effort, "selecting effort keeps the original button");
+IQ.close({ apply: false });
 
 console.log("intel-chip-toggle: ok");
 process.exit(0);

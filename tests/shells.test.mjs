@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { dom, same, settle } from "./lib/dom.mjs";
 import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../js/shells/model.js";
 
 let passed = 0;
@@ -121,5 +122,41 @@ t("vendored xterm files are the pinned ones", () => {
   assert.equal(sha("xterm.css"), "854a7c0fb70e8b1a083c16797ab827299fb18744f5ad34f227b48337e33293c6");
   assert.equal(sha("addon-fit.mjs"), "2d87e1bddc73be9111de8beee5370c3bb7aac9c94e18e6f245f02ca741ef1769");
 });
+
+{
+  const { document, window } = await dom('<main id="scroller" tabindex="-1"></main><button id="nv-shells"><span class="sh-n"></span></button><section id="shd"></section>');
+  globalThis.localStorage = globalThis.sessionStorage = { getItem: () => null, setItem() {} };
+  globalThis.fetch = async (url) => {
+    const path = new URL(String(url), "http://local/").pathname;
+    if (path === "/api/terminal/status") return Response.json({ enabled: true });
+    assert.equal(path, "/api/terminal/sessions");
+    return Response.json({ terminals: [] });
+  };
+  const { createShells } = await import("../js/shells/dock.js");
+  const schedule = globalThis.setTimeout;
+  globalThis.setTimeout = (callback, delay, ...args) => {
+    const timer = schedule(callback, delay, ...args);
+    return delay ? timer.unref() : timer;
+  };
+  try {
+    const shells = createShells();
+    await settle();
+    assert.equal(shells.enabled, true);
+    shells.showList();
+    const tab = document.querySelector(".shd-tab-list");
+    same(document.activeElement, tab, "opening Shells focuses its list tab");
+    await settle();
+    same(document.activeElement, tab, "a shell list response preserves the tab's focus");
+    const hide = document.querySelector("[data-sh-min]");
+    hide.focus();
+    hide.dispatchEvent(new window.Event("click", { bubbles: true }));
+    assert.equal(shells.shown, false);
+    same(document.activeElement, hide, "the minimized dock keeps focus on its button");
+    shells.hide();
+    same(document.activeElement, document.getElementById("scroller"), "closing returns focus to the conversation");
+  } finally {
+    globalThis.setTimeout = schedule;
+  }
+}
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
