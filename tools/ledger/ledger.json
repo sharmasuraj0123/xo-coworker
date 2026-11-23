@@ -7342,12 +7342,12 @@
    "home": "modules/runs (app.js l.1617)"
   },
   "js/app.js::functions::stopReceipt": {
-   "status": "planned",
-   "home": "modules/runs (shares the \"pending stops\" herald with composer stop: core/services stops) (app.js l.1640)"
+   "status": "moved",
+   "home": "modules/runs/stop.js"
   },
   "js/app.js::functions::stopRunsUndo": {
-   "status": "planned",
-   "home": "modules/runs (shares the \"pending stops\" herald with composer stop: core/services stops) (app.js l.1650)"
+   "status": "moved",
+   "home": "modules/runs/stop.js"
   },
   "js/app.js::functions::createDock": {
    "status": "planned",

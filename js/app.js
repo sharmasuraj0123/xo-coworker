@@ -21,6 +21,7 @@ import { createLightbox } from "./lightbox.js";
 import { itemParts } from "../core/services/review.js";
 import { runsStripHtml, runsListHtml, runViewHtml } from "./runsview.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
+import { createRunsStop } from "../modules/runs/stop.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
@@ -1575,56 +1576,10 @@ function runsGone() {
   RS.refocus = here ? to : null;
   if (here) to();
 }
-/** Stop one sub-agent, or all of a session's, after a 3 s Undo. */
 // Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
 const pendingStops = [];
 const stopsOut = new Set(); // stop requests sent and not yet answered, by key
-function stopReceipt(r, what, all) {
-  const sent = !!r && (all ? Array.isArray(r.stopping) && r.stopping.length > 0 : r.stopping === true);
-  if (sent) {
-    const n = Array.isArray(r.stopping) ? r.stopping.length : 1;
-    return { kind: "halt", text: "Stopping", sub: n > 1 ? `${n} sub-agents · what they did is kept` : `${what} · what it did is kept`, say: `Stopping ${what}. What it did is kept.` };
-  }
-  if (!all && r && r.stopping === false) return { kind: "halt", text: "It had already finished", sub: what, say: `${what} had already finished.` };
-  if (all && r && Array.isArray(r.stopping) && !r.stopping.length) return { kind: "stopped", text: "No stop went out", sub: `${what}: none of them is running in a live session, though XO's record may still say they're working`, say: `No stop went out for ${what}: none of them is running in a live session.` };
-  return { kind: "stopped", text: "Not confirmed", sub: `${what}: XO didn't confirm a stop was sent. Stop again if it keeps working.`, say: `XO didn't confirm the stop of ${what}.` };
-}
-function stopRunsUndo(what, fn, key = what, session = RS.session) {
-  // a second Stop for the same run(s) while the first waits or is out does nothing (Astra: duplicate stops)
-  if (pendingStops.some((j) => j.key === key && !j.cancelled) || stopsOut.has(key)) return;
-  const job = { what, key, session, until: Date.now() + Kit.COMMIT_MS, cancelled: false, sent: false };
-  if (RS.said && RS.said.key === key) RS.said = null; // a new stop of it: the last answer is over
-  pendingStops.push(job);
-  stopsHerald();
-  runsRender();
-  announce(`Stopping ${what} in 3 seconds. Undo to keep it.`);
-  setTimeout(async () => {
-    const i = pendingStops.indexOf(job);
-    if (i >= 0) pendingStops.splice(i, 1);
-    if (job.cancelled) return;
-    job.sent = true;
-    stopsHerald(); // its Undo is over: the line keeps only the stops still waiting
-    // on its way: the sheet says so and its Stop waits, busy, taking no repeat, until the answer is said in its place
-    // (the create-project grader on 8d8b244, request-visible: Stop stayed "Stop", enabled, and nothing was said)
-    stopsOut.add(key);
-    RS.said = { key, kind: "halt", text: "Sending the stop…", sub: what };
-    runsRender();
-    try {
-      const r = await fn();
-      // what the answer confirms, and only that (the create-project grader on 2a8d278, S100/S101)
-      const said = stopReceipt(r, what, key.startsWith("all:"));
-      heraldShow(said, said.kind === "halt" ? 3600 : 6000);
-      RS.said = { key, ...said };
-      announce(said.say);
-    } catch (err) {
-      // run_not_live: XO's record still says it's running, but nothing is running it that could be stopped. It
-      // didn't "finish": say what's true (Astra RUN-6, from storm/runs/operations.py)
-      if (err.code === "run_not_live") { RS.said = { key, kind: "stopped", text: "Couldn't stop it", sub: `${what}: nothing is running it any more, though XO's record still says it's running` }; heraldShow(RS.said, 6000); announce(`Couldn't stop ${what}: nothing is running it any more, though XO's record still says it's running.`); }
-      else { RS.said = { key, kind: "stopped", text: "Couldn't stop it", sub: err.status === 501 ? "this agent can't stop a sub-agent; stop the thread instead" : err.message }; heraldShow(RS.said, 6000); announce(`Couldn't stop ${what}: ${RS.said.sub}.`); }
-    } finally { stopsOut.delete(key); }
-    if (RS.open && RS.session === session) { await readRunsList(session); runsRender(); }
-  }, Kit.COMMIT_MS);
-}
+const stopRunsUndo = createRunsStop(RS, { pendingStops, stopsOut, stopsHerald, runsRender, announce, heraldShow, readRunsList, commitMs: Kit.COMMIT_MS });
 runsCard.addEventListener("click", (e) => {
   if (e.target.closest("[data-runs-cmds]")) { if (RS.view === "run") RS.runCmds = !RS.runCmds; else RS.cmdsOpen = !RS.cmdsOpen; RS.keepScroll = true; runsRender(); return; }
   if (e.target.closest("[data-runs-more]")) { RS.cmdsAll = true; RS.keepScroll = true; runsRender(); runsCard.querySelector(".rn-cmds li:nth-child(9) button")?.focus({ preventScroll: true }); return; }

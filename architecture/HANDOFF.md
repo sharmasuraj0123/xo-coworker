@@ -57,12 +57,11 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 
 ## P3 integration follow-ups
 
-- Groups 1 and 2 started in parallel from `90c903a9`. Panels and lists at `28f61f23` merged first, followed by media, viewer and Files at `bfbce027`. The merge keeps both packages' coverage in the shared icon tests and retains both sets of ledger and baseline reductions. Group 3 starts after the combined clean-export gate.
+- Groups 1 and 2 started in parallel from `90c903a9`. Panels and lists at `28f61f23` merged first, followed by media, viewer and Files at `bfbce027`. The merge keeps both packages' coverage in the shared icon tests and retains both sets of ledger and baseline reductions. Group 3 builds from the combined clean-export gate `modular-gate-P3-groups-01-02` at `10cc0c85`.
 - When a test reads legacy source, each worker updates only the assertions affected by its move, in the same commit. Review both groups' hunks and retain both sets of assertions where a test file overlaps.
 - Group 1 leaves `js/skeleton.js` at the direct first-paint entry. Move the implementation unchanged and update the direct module script in `index.html` in the same commit. Check the existing app and record imports, the page test fixture and the first-paint path together. Coordinate this move with Group 3, which owns the record renderer and test during its package.
-- Group 1 leaves `css/media.css` at its direct stylesheet entry. The integrator moves it unchanged after the merge and updates its link in `index.html` in the same commit. Preserve the link's position in the stylesheet order.
-- Group 2 leaves `css/side.css` at its direct stylesheet entry as well. Move it to `shell/sidebar.css` and update the direct link and ledger in the same integrator slice. Preserve rule order and the link's cascade position.
-- Group 2 leaves `openRuns` and `stopRunsUndo` in `js/app.js`. After its merge, move them to `modules/runs/controller.js` and `modules/runs/stop.js` respectively. Keep the shared `stopsHerald` in app wiring. The group may re-point the `tasksOf` import in `core/services/storm/selectors/threads.js` in its own commit.
+- The direct media and sidebar stylesheet links now point to `modules/conversation/media/media.css` (`c21c8221`) and `shell/sidebar.css` (`af211a25`). The moves preserve CSS rules and their order and retain both links' positions. Only comments were removed from the stylesheets.
+- Runs opening is in `modules/runs/controller.js`. Pending stops and receipts run through `modules/runs/stop.js`, with the shared store and `stopsHerald` wired in `js/app.js`. The Group 2 selector import change was isolated in `7c014c48`.
 
 ## Findings for the post-P4 fix phase
 
