@@ -7197,8 +7197,8 @@
    "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::homeRender": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::functions::endRender": {
    "status": "moved",
@@ -7209,8 +7209,8 @@
    "home": "modules/home/handled.js"
   },
   "js/app.js::functions::nextDecide": {
-   "status": "planned",
-   "home": "modules/home (app.js l.829)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::functions::setHandled": {
    "status": "moved",
@@ -7934,64 +7934,64 @@
    "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
   },
   "js/app.js::ids::nx-note-in": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.677)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::ids::nx-h": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.708)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::ids::hm-head": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-body": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-since": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-next": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-then": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-end": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-made": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::home-h": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.734)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::then-h": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.779)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::handled": {
-   "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.152)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::hd-head": {
-   "status": "planned",
-   "home": "modules/home (app.js l.806)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::hd-b": {
-   "status": "planned",
-   "home": "modules/home (app.js l.806)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::hd-in": {
-   "status": "planned",
-   "home": "modules/home (app.js l.806)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::conv-title": {
    "status": "planned",
