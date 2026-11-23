@@ -2921,7 +2921,7 @@
    "home": "core/services/world/timeline.js"
   },
   "js/turnview.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/ui.js": {
@@ -13521,83 +13521,83 @@
    "home": "core/services/world/conn.js"
   },
   "js/turnview.js::exports::setWorkMode": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::exports::turnHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::exports::turnSegments": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::exports::segmentTurn": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::exports::turnAv": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::rowMark": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::rowHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::blockHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::setWorkMode": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::plainWork": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::counts": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::changedChips": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::workFold": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::withoutWireNotices": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::afterSilence": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::stoppedAt": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::turnHtml": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::turnSegments": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::segmentTurn": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::turnAv": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/conversation/blocks/turn.js"
   },
   "js/ui.js::exports::xi": {

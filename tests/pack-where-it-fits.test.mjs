@@ -12,7 +12,7 @@ const has = (name) => PACK.some((f) => f.endsWith(`/${name}.svg`) && existsSync(
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
-const tv = read("js/turnview.js");
+const tv = read("modules/conversation/blocks/turn.js");
 const iconSrc = read("core/services/step-icons.js");
 assert.equal(legacyCmdIcon, cmdIcon);
 assert.equal(legacyStepIcon, stepIcon);
@@ -118,11 +118,11 @@ await t("the title bar's tile centres on the title's first line, from the line h
 });
 await t("a thinking step leads with the brain, in a turn and in a sub-agent's work, and its line shows it", () => {
   assert.match(read("core/ui/icons/names.js"), /  brain: xi\("brain"\),/);
-  for (const f of ["js/turnview.js", "modules/runs/view.js"]) assert.match(read(f), /<span class="tb-hi">\$\{ICON\.brain\}<\/span><span class="tb-ht/, f);
+  for (const f of ["modules/conversation/blocks/turn.js", "modules/runs/view.js"]) assert.match(read(f), /<span class="tb-hi">\$\{ICON\.brain\}<\/span><span class="tb-ht/, f);
   assert.match(read("css/foundation.css"), /\.turn>\.tb:not\(\.tb-think\)>\.tb-h \.tb-hi\{display:none\}/);
 });
 await t("a running tool group leads with its running step's own icon (blue while live), never an empty arc slot", () => {
-  assert.match(read("js/turnview.js"), /<span class="tb-hi">\$\{cur\.length \? xi\(stepIcon\(cur\[0\]\)\) : ICON\.list\}<\/span>/);
+  assert.match(read("modules/conversation/blocks/turn.js"), /<span class="tb-hi">\$\{cur\.length \? xi\(stepIcon\(cur\[0\]\)\) : ICON\.list\}<\/span>/);
   assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,[^{]*\{color:var\(--info\)\}/);
 });
 await t("the latest thinking under a closed work fold keeps its brain: no rule hides a line's icon there", () => {
@@ -133,6 +133,6 @@ await t("a step's icon is blue while it runs and grey once finished, as a line's
   assert.match(read("css/msgx.css"), /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-hi\{display:grid\}/);
 });
 await t("a plan's line leads with the checklist, as its steps do", () => {
-  assert.match(read("js/turnview.js"), /<span class="tb-hi">\$\{xi\("checklist"\)\}<\/span><span class="tb-ht">\$\{esc\(b\.header \|\| "Plan"\)\}/);
+  assert.match(read("modules/conversation/blocks/turn.js"), /<span class="tb-hi">\$\{xi\("checklist"\)\}<\/span><span class="tb-ht">\$\{esc\(b\.header \|\| "Plan"\)\}/);
 });
 console.log(`\n${passed} passed`);

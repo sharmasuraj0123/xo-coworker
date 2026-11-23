@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 474 |
+| moved | 475 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 172 |
+| planned | 171 |
 | kept | 56 |
 | split | 31 |
 
-Items inside first-party files: 2488 (moved 1386, planned 659, split-region 183, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1406, planned 639, split-region 183, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -108,7 +108,7 @@ Items inside first-party files: 2488 (moved 1386, planned 659, split-region 183,
 | `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
 | `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |
 | `js/timeline.js` | 840 | moved | core/services/world/timeline.js |
-| `js/turnview.js` | 395 | planned | modules/conversation/blocks/turn.js |
+| `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
 | `js/viewer.js` | 1158 | moved | modules/files/viewer.js · next: The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle. |
