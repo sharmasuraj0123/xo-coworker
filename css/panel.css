@@ -22,7 +22,7 @@
 .stg-pa{display:contents}
 .stg-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stg-ic svg{width:var(--ic);height:var(--ic)}
-.stg-ic:hover{background:var(--fill-2);color:var(--ink)}
+.stg-ic:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
 body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
@@ -81,7 +81,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-find{display:flex;gap:4px;min-width:0}
 .fl-find .fl-q{flex:1;min-width:0}
 .fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.fl-add:hover{background:var(--fill-2);color:var(--ink);transition-duration:var(--d-hover-in)}
+.fl-add:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink);transition-duration:var(--d-hover-in)}
 .fl-list{position:relative}
 .fl-more{position:absolute;right:8px;z-index:1;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-top:var(--s-1);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-more:hover,.fl-more[aria-expanded="true"]{background:var(--fill-3);color:var(--ink)}
@@ -143,7 +143,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .vw-btn{width:var(--h-ctl);height:var(--h-ctl);padding:0;justify-content:center;border-radius:var(--r-sm);border:0;color:var(--ink-3)}
 .vw-btn span{display:none}
 .vw-btn svg{width:var(--ic);height:var(--ic)}
-.vw-btn:hover{background:var(--fill-2);border:0;color:var(--ink)}
+.vw-btn:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));border:0;color:var(--ink)}
 .vw-seg{height:var(--h-ctl);padding:3px;gap:2px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
 .vw-seg button{height:var(--h-sm);padding:0 8px;border-radius:calc(var(--r-sm) - 4px);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .vw-x{width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm)}
@@ -208,7 +208,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
   .md-pane .md-from svg{display:none}
   .md-pane .md-from span::before{content:"from "}
   .md-pane .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:28px;height:28px;margin-right:4px;border-radius:var(--r-sm);background:none}
-  .md-pane .md-pin:hover{background:var(--fill-2)}
+  .md-pane .md-pin:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
   :root[data-theme="light"] .md-pane .md-it:hover{background:rgba(0,0,0,.04)}
   :root[data-theme="light"] .md-pane .md-th{background:var(--canvas);border-color:rgba(0,0,0,.08)}
 }
@@ -308,7 +308,7 @@ button.fr-t:hover{color:var(--ink-2)}
 .fr-n:empty{display:none}
 .fr-a{flex:none;margin-left:auto;display:flex;align-items:center;gap:4px}
 .fr-ib{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.fr-ib:hover{background:var(--fill-2);color:var(--ink)}
+.fr-ib:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .fr-ib svg{width:var(--ic);height:var(--ic);transition:transform var(--d-out) var(--ease)}
 .fr.is-folded .fr-fold svg{transform:rotate(-90deg)}
 .fr-b{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
@@ -375,7 +375,7 @@ body.fv-sizing{cursor:col-resize;user-select:none}
 :root[data-theme="light"] .fv .fl.is-wide.is-folded .fl-rail{background:var(--canvas);box-shadow:inset -1px 0 rgba(0,0,0,.06)}
 .fv .fl.is-wide.is-folded :is(.fl-tree,.fl-split){display:none}
 .fl-rb{position:relative;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.fl-rb:hover{background:var(--fill-2);color:var(--ink)}
+.fl-rb:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .fl-rb svg{width:var(--ic);height:var(--ic)}
 .fl-rb em{position:absolute;top:3px;right:1px;width:6px;height:6px;mask:var(--mask-dot);background:var(--ink-3)} /* a mark, not news: blue is the chat's new messages */
 .fl-rb:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}

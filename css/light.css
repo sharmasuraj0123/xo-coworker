@@ -61,7 +61,7 @@
 :root[data-theme="light"] .dg-cur.is-idle .dg-tag{background:var(--fill-3);color:var(--ink-2)}
 :root[data-theme="light"] .dg-tools,:root[data-theme="light"] .dg-key{background:var(--surface);border-color:var(--line)}
 :root[data-theme="light"] .dg-sep{background:var(--line-soft)}
-:root[data-theme="light"] .dg-tools button:hover,:root[data-theme="light"] .dg-mode button:hover{background:var(--fill-1)}
+:root[data-theme="light"] .dg-tools button:hover,:root[data-theme="light"] .dg-mode button:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root[data-theme="light"] .dg-mode button[aria-pressed="true"]{background:var(--fill-2)}
 
 /* thread and web links in prose: css/links.css */

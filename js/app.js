@@ -4589,10 +4589,10 @@ const SIDE = {
   PLACES: [
     { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
     { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
-    { id: "routing", name: "Routing", ic: () => ICON.router },
-    { id: "rules", name: "Rules", ic: () => ICON.rule },
-    { id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
-    { id: "keys", name: "Keyboard", ic: () => ICON.key },
+    { set: true, id: "routing", name: "Routing", ic: () => ICON.router },
+    { set: true, id: "rules", name: "Rules", ic: () => ICON.rule },
+    { set: true, id: "worktrees", name: "Worktrees", ic: () => ICON.branch },
+    { set: true, id: "keys", name: "Keyboard", ic: () => ICON.key },
   ],
   all() { return [...SIDE.CORE, ...SIDE.PLACES]; },
   byId(id) { return SIDE.all().find((p) => p.id === id); },
@@ -4675,7 +4675,7 @@ const SIDE = {
         `</ul><div class="se-f"><button type="button" class="btn" data-se-reset${SIDE.isDefault(b) ? " disabled" : ""}>Reset to default</button><button type="button" class="btn btn-pri" data-se-done>Done</button></div>`;
     } else {
       pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
-      const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id));
+      const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id)).filter((p) => !p.set); // Settings' pages stay in Settings and the editor
       html = rest.map((p) => {
         const go = p.sel ? `data-go="${$(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
         return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
@@ -5027,6 +5027,7 @@ applyTheme(THEME.get());
 $("#side-fold").innerHTML = ICON.sidebar;
 $("#side-jump").innerHTML = ICON.search;
 $("#ic-more").innerHTML = xi("dashboard");
+$("#nv-more .nr-chev").innerHTML = ICON.right;
 SIDE.fold(SIDE.folded, { quiet: true });
 soundRender();
 PHONE.addEventListener("change", () => { setDrawer(false); render(); });
