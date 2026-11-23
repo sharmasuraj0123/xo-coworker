@@ -23,7 +23,7 @@ const panel = createPages({
   el, S: state, places: K.places, at: () => location, view: () => location.view,
   threads: () => [{ k: "needs", rows: [{}] }], shell: (on) => log.push(["shell", on]),
   nameOf: () => () => "Project", placeless: () => placeless, open: () => { state.open = true; },
-  close: () => { panel.dropPages(); state.open = false; closed = true; }, paint() {},
+  close: () => { panel.dropPages(); state.open = false; closed = true; }, paint: () => panel.reflect(),
 });
 
 const filesButton = el.querySelector("[data-open-files]");

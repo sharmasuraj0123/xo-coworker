@@ -110,7 +110,6 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   let W = null;
   function apply() { W?.apply(); }
 
-  /** The search button and /: the Threads filter, shown and focused. */
   function findThreads() {
     if (fr.agents.folded) { fr.agents.folded = false; persist(); layout(); }
     S.tqOpen = true; paint();
@@ -118,6 +117,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   }
 
   function paint() {
+    PG.reflect();
     if (!S.open) return;
     const v = view();
     /** @type {any[]} */

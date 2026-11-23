@@ -28,6 +28,7 @@ let runsBack = 0;
 let threadControl;
 let runsControl;
 let runsReturnFocus = false;
+let filesTitle = "Files";
 const outside = document.getElementById("outside");
 const panel = createStage({
   files: { changes: () => [] }, viewer: {}, view: () => view,
@@ -39,7 +40,7 @@ panel.page("thread", {
   mount(host) { threadControl = document.createElement("button"); host.append(threadControl); },
   onShow(key, { focus }) { if (focus) threadControl.focus(); },
 });
-panel.page("files", { title: "Files", mount() {}, close: () => { filesClosed++; } });
+panel.page("files", { title: () => filesTitle, mount() {}, close: () => { filesClosed++; } });
 panel.page("runs", {
   title: "Runs", over: true,
   mount(host) { runsControl = document.createElement("button"); host.append(runsControl); },
@@ -105,8 +106,17 @@ assert.equal(title(), "Files");
 document.querySelector("[data-stg-shell]").click();
 assert.equal(title(), "Shell · Files");
 assert.equal(back().getAttribute("aria-label"), "Back to Files");
+const shellButton = stage.querySelector("[data-stg-shell]");
+const backButton = back();
+backButton.focus();
+filesTitle = "Project files";
+panel.repaint();
+assert.equal(title(), "Shell · Project files");
+assert.equal(shellButton.title, "Back to Project files");
+assert.equal(back().getAttribute("aria-label"), "Back to Project files");
+same(document.activeElement, backButton);
 back().click();
-assert.equal(title(), "Files");
+assert.equal(title(), "Project files");
 assert.equal(filesClosed, 0);
 assert.equal(width(), "592px");
 panel.leave();

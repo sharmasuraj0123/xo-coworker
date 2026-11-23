@@ -78,15 +78,14 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     animation.finished.then(done, () => {});
   }
 
-  function pageChanged() {
+  function reflect() {
     if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
     reflectButton("[data-open-files]", S.page?.name === "files");
     reflectButton("[data-open-gh]", /^gh/.test(S.page?.name || "") || S.page?.name === "github");
     const shellButton = reflectButton("[data-stg-shell]", S.page?.name === "shell");
     if (shellButton) shellButton.title = S.page?.name === "shell" ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel";
-    paint();
-    onChange?.();
   }
+  function pageChanged() { paint(); onChange?.(); }
 
   /** @param {string} selector @param {boolean} on */
   function reflectButton(selector, on) {
@@ -219,5 +218,5 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     return `${back}${lead}<b class="stg-name" title="${esc(title)}">${esc(title)}</b>`;
   }
 
-  return { PAGES, page, show, back, closePage, dropPages, requestClose, setShell, titleHtml };
+  return { PAGES, page, show, back, closePage, dropPages, requestClose, setShell, reflect, titleHtml };
 }
