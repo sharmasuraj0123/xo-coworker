@@ -34,6 +34,10 @@ for (const [id, s] of [["#iq", "p:demo"], ["#tiq", "t:cmsg_1"]]) {
   IQ.open(s, $(id)); await settle();
   assert.equal(IQ.isOpen, true, `${id} opens it`);
   assert.equal($(id).getAttribute("aria-expanded"), "true");
+  press($(id));
+  assert.equal(IQ.isOpen, true, "pointerdown on the anchor leaves the toggle to click");
+  press($("#iq-pop"));
+  assert.equal(IQ.isOpen, true, "pointerdown inside the picker keeps it open");
   tap($(id)); await settle();
   assert.equal(IQ.isOpen, false, `${id} pressed again closes it`);
   assert.equal($(id).getAttribute("aria-expanded"), "false");
@@ -43,6 +47,8 @@ for (const [id, s] of [["#iq", "p:demo"], ["#tiq", "t:cmsg_1"]]) {
 }
 
 world.state.runtimes = [{ name: "claude_code" }];
+assert.match(IQ.chipHtml("t:cmsg_1"), /Default/);
+assert.match(IQ.chipHtml("p:demo"), /Auto/);
 g.fetch = async () => Response.json({
   models: [
     { id: "first", name: "First model", takes_effort: true, efforts: ["low", "high"] },

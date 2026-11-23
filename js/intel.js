@@ -136,15 +136,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     if (p) return `<span class="iq-l is-pending"><span class="iq-cur">${mark}${now}</span><span class="iq-next"><span class="iq-nk">Next</span><span class="iq-nw">${esc(p.words)}</span></span></span>`;
     return `<span class="iq-l">${mark}${now}</span>`;
   }
-  const AUTO = `<span class="iq-a">Auto</span>`;
-  /** {dot: pinned, words: the label's parts (HTML), effort} */
-  function chipParts(s, c) {
-    if (kindOf(s) === "thread") return { dot: c.pinned, words: [...(c.pinned ? [] : [AUTO]), `<span class="iq-t">${esc(c.model ? nameOf(c.model) : "Default")}</span>`], effort: c.effort };
-    const who = c.routing && c.routing.mode === "decision" ? cap(c.routing.decision_model || "decision") : c.routing && c.routing.mode === "off" ? "Off" : "Router";
-    return c.pinned
-      ? { dot: true, words: [`<span class="iq-t">${esc(nameOf(c.model) || "Pinned")}</span>`], effort: c.effort }
-      : { dot: false, words: [AUTO, `<span class="iq-t">${esc(who)}</span>`], effort: null };
-  }
+
   function chipTitle(s) {
     if (!live(s)) return "";
     const c = current(s);
@@ -191,8 +183,6 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     }
     return { list, on: runtimeOf(s), multi: list.length > 1 };
   }
-  /** The runtime whose models the list shows: the one a thread would continue on, else the one it runs on. */
-  const listRuntime = (s) => (threadOf(s) && P.rt) || runtimeOf(s);
   const moving = (s) => !!(threadOf(s) && P.rt && P.rt !== runtimeChoice(s).on);
 
   function runtimeHtml(s) {
