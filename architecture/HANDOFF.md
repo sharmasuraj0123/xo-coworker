@@ -1,6 +1,27 @@
-# Handoff: the modular rebuild, paused on 19 Nov 2026 at 22:10Z
+# Modularization handoff
 
-The owner paused the work here. Nothing resumes until they ask.
+## P1 integration, resumed 23 November 2026
+
+The integration branch is `modular/integration-bc5bb3`, based on `coworker/modular` at `7b94496e`. The full check passed from an archived copy of that baseline and again after merging route types at `82155c9d`. The icon move at `e546c9b1) passed the same check and dropped the final ledger from 1,719 to 1,334 problems. Git reports 385 byte-identical icon renames. The shape presets from services-2 came across separately at `5caa28f2`. The store's loader test failed on the old path before the move.
+
+The release branch is the source of the P2 forward merge. Before beginning P2, finish P1 review, full verification and tagging. Take the release head from git just before merging. The owner controls browser runs and deployment.
+
+### Branch review and carryover
+
+| Source | P1 disposition and next action |
+|---|---|
+| `modular/route-types` | Integrated. The route argument types and narrower project chat ID change compile-time checks only. |
+| `modular/launchpad` | Parked at the reviewed trial `modular/trial-p1-launchpad-bc5bb3`. App boot still creates Launchpad directly, leaving the new kernel module unused. A pending focusout callback can outlive unmount and read a subsequent mount's state. Wire the module through the live panel, and separately test the unmount and remount paths through the public entry point. |
+| `modular/shell` | Parked. The frame watcher needs real frame contracts and coverage for removal across all supported frames. The in-place confirm still has open review items. App boot registration at `70096b01` remains held. |
+| `modular/apps-v0` | Parked. View open, heartbeat and close swallow lifecycle errors. An interval can queue heartbeats while open is pending. Cover open, close and rejection through the host and its client boundary before integration. Real install waits for the approved Space routes. |
+| `modular/map-home` | Parked for the timeline and record group. The Made move uses untyped dependencies and callbacks where the moved code already depends on specific record fields. Port against the release record and cover Home, the panel and quick open through their public entry points. |
+| `modular/files` | Parked for the media and viewer group. The scope and marks extraction introduces untyped thread and file contracts. The branch also changes how Changes receives its API. Carry the moves and wiring changes as separate slices. |
+| `modular/threads` | Parked for the panels and lists group. The new chat and run modules introduce untyped dependencies and records. Keep the existing stop and undo timing covered while extracting the runs sheet. |
+| `modular/services-2` | Shape presets integrated independently. The remaining timeline move and test relocation stay parked for the timeline group. Type the new world module contracts and check that the public timeline exports and their behavior are preserved. |
+| `modular/finish` | Icon source integrated independently. The DOM and sound move mixes an application selector fix with extraction. The test-kit move and shim deletion remain available as separate slices. |
+| `xo/thread-7ea52a` | Parked for the conversation group. A thread entered by touch must focus a landmark without raising the phone keyboard. Desktop must still focus the input. |
+
+## Previous handoff from 19 November 2026
 
 ## Where things stand
 
