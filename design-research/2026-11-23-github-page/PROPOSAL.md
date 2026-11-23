@@ -43,8 +43,8 @@ Everything is built from existing parts and tokens: `.ag-r` rows, `.tg-h` group 
 
 ## Space work it needs (smallest first)
 
-1. **Author and labels in the poll.** Two fields added to the existing query, at the same cost (1 point per poll).
-2. **Pull requests in the same mirror.** A `pullRequests` connection next to `issues`, in the same poll and the same mirror document: number, title, state, draft, author, head/base, `reviewDecision`, `statusCheckRollup.state`, +/−/files, comment count, updated time. Plus `GET /api/xo-projects/{id}/github/pulls`, shaped like `/issues`. Why the mirror and not a live call per open: the page then opens instantly, offline it shows the last read, and the budget stays one poll.
+1. **Author (login and avatarUrl), comment count and labels in the poll.** These are fields added to the existing query, so a poll still costs 1 point. Avatars load from GitHub's own image host, and only the URL is stored.
+2. **Pull requests in the same mirror.** A `pullRequests` connection next to `issues`, in the same poll and the same mirror document: number, title, state, draft, author with avatar, head/base, `reviewDecision`, `statusCheckRollup.state`, `additions`/`deletions`/`changedFiles`, `mergeable` (clean / conflicting / unknown: GitHub works this out lazily, so the first read can say unknown and the next poll settles it), comment count, updated time. Plus `GET /api/xo-projects/{id}/github/pulls`, shaped like `/issues`. Why the mirror and not a live call per open: the page then opens instantly, offline it shows the last read, and the budget stays one poll.
 3. **One item, on demand.** `GET …/github/issues/{n}` and `…/github/pulls/{n}` for the body, comments, labels and (for a PR) check runs. These are fetched when you open an item and never polled. It extends `fetch_issue`, which already exists.
 
 No Space work is needed for:
@@ -56,3 +56,13 @@ Not in v1: commenting, closing, merging and approving from the app. Space treats
 ## Prototype
 
 Branch `xo/thread-bd5376`: `js/ghpage.js`, plus wiring in `js/stage.js`, `js/app.js` and `js/api.js` (`githubIssues`), and styles at the end of `css/panel.css`. It ran on scratch :5193 against the real Space, with every write blocked in the page. The sample PRs, bodies and comments are hard-coded and would go when it's built for real.
+
+## v2, after the owner's notes (2026-11-23 16:17Z): icons, +/− size, conflicts, avatars
+
+Shots: `shots/v2-*.png`.
+- **Rows:** the author's GitHub avatar comes before the number. Icons replace the words, each named on hover: checks ✓/✗/running, review (eye = your review is asked, send-back = changes asked, thumbs-up = approved), conflict (red, only when a PR conflicts), draft (pencil), comments with a count. Only the exceptions show: a PR that merges cleanly has no mark.
+- **PR size:** green +added and red −removed under the age in the right column (1.2k past a thousand).
+- **PR page:** facts at the top, each an icon row: "Conflicts with main" with the files, or "Merges cleanly into main"; checks, with the failing one named; the review, with the reviewer's avatar. The changes row has +/− and a thin bar split added/removed. Comments carry avatars.
+- **Tabs:** each has its icon (issue ring, pull request).
+
+Sample in v2: the avatars on issues (the mirror has no authors yet), the comment counts, and every PR field above.
