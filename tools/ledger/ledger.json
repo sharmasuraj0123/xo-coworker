@@ -2731,9 +2731,10 @@
    "home": [
     "core/services/media/items.js",
     "core/services/media/layout.js",
-    "js/media.js"
+    "core/services/media/render.js",
+    "core/services/media/hydrate.js"
    ],
-   "note": "Media item normalization and layout moved. The legacy entry still renders and hydrates media."
+   "note": "js/media.js re-exports the shared media modules"
   },
   "js/merge.js": {
    "status": "moved",
@@ -10711,12 +10712,8 @@
    "home": "core/services/media/items.js"
   },
   "js/media.js::exports::mediaItemOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::mediaItem": {
    "status": "moved",
@@ -10727,36 +10724,20 @@
    "home": "core/services/media/items.js"
   },
   "js/media.js::exports::webLinkHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::webGone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::markWebGone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::webImagesHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::fromAttachment": {
    "status": "moved",
@@ -10771,84 +10752,44 @@
    "home": "core/services/media/items.js"
   },
   "js/media.js::exports::mediaHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::exports::cachedSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::loadSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::PICTURE_FACE": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::pictureTone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::hydrateMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::retryMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::galleryOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::slotOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::exports::wireDragOut": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::dim": {
    "status": "moved",
@@ -10899,28 +10840,16 @@
    "home": "core/services/media/items.js"
   },
   "js/media.js::functions::webLinkHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::markWebGone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::webImagesHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::fromAttachment": {
    "status": "moved",
@@ -10935,188 +10864,96 @@
    "home": "core/services/media/items.js"
   },
   "js/media.js::functions::imgHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::oneHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::albumHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::cardHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::mediaHtml": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/render.js"
   },
   "js/media.js::functions::touch": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::evict": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::cachedSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::loadSrc": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::watcherFor": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::stateOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::landed": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::settle": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::failed": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::webFailed": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::pictureTone": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::watch": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::start": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::hydrateMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::retryMedia": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::galleryOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::slotOf": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/media.js::functions::wireDragOut": {
-   "status": "split-region",
-   "home": [
-    "modules/conversation/media/",
-    "core/ui/media (layout)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js"
   },
   "js/merge.js::exports::linesOf": {
    "status": "moved",
