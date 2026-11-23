@@ -11,7 +11,6 @@ assert.match(panel, /\.stage \.ch-old\{flex:0 1 auto;min-height:0;margin-bottom:
 // one fade, one token, for every panel list's cut foot
 assert.match(tokens, /--edge-fade:var\(--s-8\);/);
 assert.match(panel, /\.stage :is\(\[data-fr="agents"\]>\.fr-b,\.ch-old\)\.is-fade\{-webkit-mask-image:linear-gradient\(to bottom,#000 calc\(100% - var\(--edge-fade\)\),transparent\)/);
-assert.match(lp, /\.fr-lp>\.fr-b\.is-fade\{-webkit-mask-image:linear-gradient\(to bottom,#000 calc\(100% - var\(--edge-fade\)\),transparent\)/);
 assert.doesNotMatch(panel + lp, /calc\(100% - 32px\)/);
 // the fade follows the list: its scroll, each paint, the stack's size; read once a frame, after layout
 assert.match(stage, /const LISTS = '\[data-fr="agents"\] > \.fr-b, \.ch-old';/);

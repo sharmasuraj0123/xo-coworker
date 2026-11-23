@@ -21,8 +21,8 @@ t("go(): on a phone, the panel steps aside for the place opened, before anything
     const i = g.indexOf(later); assert.ok(i > close, `before: ${later}`);
   }
 });
-t("only a place opened from the panel: Launchpad, the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
-  for (const m of ["const MAP = createMap(", "const LP = createLaunchpad(", "const STAGE = createStage("]) {
+t("only a place opened from the panel: the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
+  for (const m of ["const MAP = createMap(", "const STAGE = createStage("]) {
     const i = app.indexOf(m); assert.ok(i >= 0, m);
     // (the panel's own rows open a thread as its Thread page beside a chat, else navigate as the panel: openFromPanel)
     assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v(, e)?\) => (go\(v, \{ panel: true \}\)|openFromPanel\(v, e\))/, `${m} navigates as the panel`);

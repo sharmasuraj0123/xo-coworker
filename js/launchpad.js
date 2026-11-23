@@ -1,23 +1,7 @@
-// Launchpad, in the panel: put a project on the web from where you work (the owner, 5 November).
-//
-// Deploy, in the header row of a project and of a thread, pulls the panel out with this section on top and
-// open. The rest of the time it sits folded at the panel's top: one 40 px head that says where the project
-// stands (Not deployed · Building 1m 12s · Live and its address · what went wrong). A 1 px light along its top
-// edge says the same in colour, as in the Launchpad demo: green and still when live, a blue sweep while it
-// deploys, red when a release didn't go live, amber when it waits for you.
-//
-// One card tells the whole story: the project as it will run, top to bottom, repository → image → app →
-// address. Before a deploy it's the preview, filled from Space's check and redrawn as you type; during one,
-// the same rows light up in order; afterwards it's what runs. An error marks the row it happened on and puts
-// the fix under it, lit; the alternatives sit below, quieter.
-//
-// Secrets are typed here, kept in memory only until the deploy request carries them to Launchpad (through
-// XO Space, which passes them on and keeps nothing), then wiped. Never localStorage, a URL or a log.
-//
-// stage.js calls: mount(section), paint(v, open), tone(v), has(v), headless(v). app.js calls: button(v),
-// ensure(v), and opens the section through the panel (data-lp-open).
+// Launchpad: put a project on the web from where you work, drawn into its window (js/lpwindow.js).
 
 import { ICON, ARC } from "./ui.js";
+import { xi } from "./icon.js";
 import { appState, nextStep, formKey, launchpadUrl, sizeWords } from "./lpapi.js";
 import { esc, copyText, COPY_REFUSED } from "./util.js";
 import { pointerFollows, focusOpened } from "./keynav.js";
@@ -67,13 +51,39 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   // fallback. A redraw that finds neither the same control nor a named place leaves focus where the browser puts
   // it and records the path in lost (lostFocus(); the browser tests fail on any), so a missing place is a bug
   // that shows, never one that's quietly covered.
-  const S = { el: null, hs: null, ha: null, body: null, key: "", html: "", v: null, shown: null, want: "", lost: [] };
+  const S = { el: null, hs: null, nav: null, notes: null, body: null, key: "", html: "", v: null, shown: null, want: "", lost: [] };
   /** Name where focus goes next, if a redraw takes the focused control away. */
   const land = (sel) => { S.want = sel; };
   /** A subject's one notice (a stop's, an unlink's): shown, or changed in place where it already is; unsay takes it
    *  away. Without notice() (an older host), a plain line. */
-  const say = (mid, line, ms) => { if (notice) notice(mid, line, ms); else if (notify) notify(line.text, line.undo || null, line.kind); };
-  const unsay = (mid) => { if (mid && unnotice) unnotice(mid); };
+  // while the window is open its notices show in it (the page's line is under the window, out of reach); closed,
+  // what's still on goes to the page's line for the time it has left
+  const N = new Map();
+  let seq = 0;
+  const local = () => !!(S.notes && S.shown);
+  function drawNotes() {
+    if (!S.notes) return;
+    const now = Date.now();
+    redraw(S.notes, [...N].map(([mid, { line: l }]) => { const undo = l.undo && (!l.until || l.until > now), err = l.kind === "err";
+      return `<div class="hr hr-ev${undo ? " has-undo" : ""} k-${err ? "stopped" : "done"}" data-mid="${esc(mid)}"><span class="hr-ic ${err ? "k-stopped" : "k-ok"}">${err ? ICON.close : ICON.check}</span><span class="hr-t">${esc(l.text)}</span>${l.sub ? `<span class="hr-s">${esc(l.sub)}</span>` : ""}${undo ? `<button type="button" class="hr-undo" data-lq-undo>${esc(l.undoLabel || "Undo")}</button>` : ""}</div>`; }).join(""));
+  }
+  const drop = (mid) => { const n = N.get(mid); if (!n) return false; clearTimeout(n.t); clearTimeout(n.u); N.delete(mid); return true; };
+  const say = (mid, line, ms) => {
+    if (local()) {
+      drop(mid);
+      N.set(mid, { line, until: Date.now() + ms, t: setTimeout(() => { N.delete(mid); drawNotes(); }, ms), u: line.until ? setTimeout(drawNotes, Math.max(0, line.until - Date.now())) : 0 });
+      drawNotes(); return;
+    }
+    if (notice) notice(mid, line, ms); else if (notify) notify(line.text, line.undo || null, line.kind);
+  };
+  const unsay = (mid) => { if (!mid) return; if (drop(mid)) drawNotes(); else if (unnotice) unnotice(mid); };
+  const tell = (text, undo = null, kind = "done") => (local() ? say(`lp-n${++seq}`, { text, kind, undo }, kind === "err" ? 6000 : 4200) : notify && notify(text, undo, kind));
+  /** The window closed: its notices still on go to the page's line, for the time they have left. */
+  function handOver() {
+    const now = Date.now();
+    for (const [mid, n] of [...N]) { drop(mid); if (n.until > now && notice) notice(mid, n.line, n.until - now); }
+    drawNotes();
+  }
   /** A stop that won't be asked for, or whose answer no longer matters (the run went live, failed, or was replaced):
    *  its window ends and its notice goes, so nothing on screen offers to stop a run that is over. */
   const endStop = (run) => { if (!run) return; if (run.stopping) { clearTimeout(run.stopping); run.stopping = 0; } unsay(run.mid); };
@@ -225,8 +235,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (e.step === "live" && e.state === "done") land('[data-lp="again"]');
     if (e.state === "failed") land('.lp-rec .lp-go, .lp-acts .lp-go, [data-lp="retry"], [data-lp="recheck-gh"]');
     const name = f.name || nameOf(p);
-    if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!visible(p)) notify && notify(`${name} is live`); }
-    if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!visible(p)) notify && notify(`${name}: ${failWords(s.run.error).toLowerCase()}`, null, "err"); }
+    if (e.step === "live" && e.state === "done") { announce(`${name} is live.`); if (!visible(p)) tell(`${name} is live`); }
+    if (e.state === "failed") { announce(`${name} didn't deploy: ${failWords(s.run.error)}.`); if (!visible(p)) tell(`${name}: ${failWords(s.run.error).toLowerCase()}`, null, "err"); }
     changed();
   }
 
@@ -273,124 +283,85 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
   const failWords = (e) => ({ build_failed: "Build failed", build_timeout: "Build is slow", health_check_failed: "Didn't go live", release_failed: "Didn't go live", release_timeout: "Release is slow", github_workflow_scope: "Needs GitHub", github_not_connected: "Needs GitHub", github_token_invalid: "Needs GitHub", push_rejected: "Push refused", remote_ahead: "Push refused", launchpad_unreachable: "Launchpad didn't answer", github_unreachable: "GitHub didn't answer", launchpad_limit: "App limit reached", launchpad_forbidden: "Launchpad said no", cancelled: "Stopped" })[e.code] || "Didn't deploy";
 
-  // ── the system view: the app as it runs, after the Launchpad demo ───────────────
-  // Visitors reach its address, the address routes to the running app, and the release's image feeds it: four
-  // nodes, top to bottom in the panel (side by side when the panel is wide). Before a deploy it's the preview,
-  // drawn from the check and the form; during one, the same nodes light up as the deploy reaches them; after, it's
-  // what runs. Only what Space says is drawn: nothing here is invented to fill a card.
-  function system(p, mode) {
-    const s = proj(p), c = s.check, f = s.form, r = s.run;
-    const admin = c.repo && (c.repo.admin || !c.github?.connected);
-    const app = r?.live || (mode === "live" ? c.app : null);
-    const real = app?.host || "";
-    const [mine, domain] = real ? split(real) : ["", ""];
-    const port = f.port || "—";
-    const name = esc(f.name || c.app?.name || nameOf(p));
-    // how each part stands
-    let img = "plan", inst = "plan", addr = "plan", imgText = "", instText = "", instWord = "On launch", imgAt = 0, instAt = 0;
-    if (mode === "live") {
-      const [tone, words] = c.app?.status && !r?.live ? appState(c.app.status) : ["go", "Live"];
-      img = "ready";
-      inst = { go: "ready", work: "starting", stop: "failing" }[tone] || "none";
-      instWord = { go: "Serving", work: "Rolling out", stop: "Not ready" }[tone] || words;
-      addr = tone === "go" ? "on" : "off";
-    } else if (mode === "run") {
-      const st = (n) => r?.steps[n] || {};
-      const build = st("build"), repo = st("repo"), rel = st("release"), live = st("live");
-      // out of touch, nothing is drawn as under way: a step it last saw is paused, not spinning (Astra on 447edb6)
-      img = build.state === "failed" || repo.state === "failed" ? "failed" : build.state === "done" ? "ready" : r.lost ? (build.state || repo.state ? "paused" : "todo") : build.state === "doing" || repo.state === "doing" || repo.state === "done" ? "building" : "todo";
-      const logs = build.url ? ` · <a class="lp-ln" href="${esc(build.url)}" target="_blank" rel="noopener">Logs</a>` : "";
-      const said = (t) => t && r.error && (t === r.error.text || t === r.error.message); // the headline says it already
-      imgText = build.state === "doing" ? `On GitHub Actions${logs}` : build.state === "paused" ? `Was building when XO lost touch${logs}` : build.state ? `${said(build.text) ? "Didn't build" : esc(build.text || "")}${logs}` : repo.text ? (said(repo.text) ? "Didn't push" : esc(repo.text)) : "";
-      imgAt = build.state === "doing" ? build.at : repo.state === "doing" ? repo.at : 0;
-      inst = rel.state === "failed" ? "failing" : rel.state === "done" ? "ready" : rel.state === "doing" ? "starting" : rel.state === "paused" ? "paused" : "none";
-      instWord = { failing: "Not ready", ready: "Serving", starting: "Starting", paused: "Paused", none: "Waits for the image" }[inst];
-      instText = rel.state === "failed" ? (said(rel.text) ? "" : esc(rel.text || "")) : rel.of ? `${rel.ready} of ${rel.of} ready` : "";
-      instAt = rel.state === "doing" ? rel.at : 0;
-      addr = live.state === "done" ? "on" : c.app ? "on" : "off"; // an app already live keeps serving while the new release rolls out
+  // ── the window's parts ──────────────────────────────────────────────────────
+  const btn = (act, label, icon = "", lit = false, more = "") => `<button type="button" class="btn ${lit ? "btn-pri lp-go" : "lp-b"}" data-lp="${act}"${more}>${icon}<span>${label}</span></button>`;
+  const out = (href, label, lit = false) => { const h = esc(href), in_ = `<span>${label}</span>${LP_ICON.out}`; return lit ? `<a class="btn btn-pri lp-go" href="${h}" target="_blank" rel="noopener">${in_}</a>` : `<a class="btn lp-b" href="${h}" target="_blank" rel="noopener">${in_}</a>`; };
+  const eye = (tone, words, meta = "") => `<p class="lq-eye${tone ? ` t-${tone}` : ""}"><i aria-hidden="true"></i><span>${words}</span>${meta ? `<em>· ${meta}</em>` : ""}</p>`;
+  /** Every screen's top: where it stands, its title, the address, its buttons, and a sentence. */
+  const top = ({ tone = "", words = "", meta = "", title, sub = "", addr = "", acts = "" }) =>
+    `<header class="lq-top">${words ? eye(tone, words, meta) : ""}<div class="lq-hero"><h2 class="lq-t lp-h" id="lq-title">${title}</h2>${addr}${sub ? `<p class="lq-sub lp-p">${sub}</p>` : ""}${acts ? `<div class="lq-acts lp-acts">${acts}</div>` : ""}</div></header>`;
+  /** The address Launchpad gave (never one made up from the name), with Copy. */
+  const addrHtml = (s, a, on = true) => (a?.host ? `<p class="lq-addr${on ? "" : " is-off"}"><a class="lq-host" href="${esc(a.url)}" target="_blank" rel="noopener" title="Open ${esc(a.host)}">${esc(a.host)}</a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button></p>` : "");
+
+  /** The deploy's four steps, after the Launchpad demo: planned before a deploy, lit as one runs, done once live. */
+  function track(p, mode) {
+    const s = proj(p), c = s.check, r = s.run, branch = esc(c.repo?.branch || "main");
+    const LAB = { done: ["Pushed", "Built", "Released", "Live"], doing: ["Pushing", "Building", "Releasing", "Going live"], failed: ["Didn't push", "Didn't build", "Didn't release", "Didn't answer"], paused: ["Paused", "Paused", "Paused", "Paused"], todo: ["Push", "Build", "Release", "Live"] };
+    let st = ["todo", "todo", "todo", "todo"], meta;
+    if (mode === "preview") {
+      const gh = !c.github ? "" : !c.github.connected ? "GitHub isn't connected" : !c.github.workflow ? "Needs GitHub's workflow permission" : "";
+      meta = [`${branch} to GitHub`, gh ? `<span class="lq-need">${gh}</span>` : "On GitHub Actions", "On Launchpad", "At its own address"];
+    } else if (mode === "live") {
+      const a = r?.live || c.app || {}, [tone] = c.app?.status && !r?.live ? appState(c.app.status) : ["go"];
+      const commit = r?.live?.commit || c.app?.commit || "", at = a.at || c.app?.at, release = r?.release || a.release || c.app?.release;
+      const ready = c.app?.ready, of = c.app?.of;
+      st = ["done", "done", "done", { go: "done", work: "doing", stop: "failed" }[tone] || "todo"];
+      meta = [commit ? `<code>${esc(commit)}</code>` : branch, at ? ago(at) : "On GitHub Actions", release ? `#${release}` : "", of ? `${ready ?? of} of ${of} ready` : ""];
+    } else {
+      const said = (t) => t && r.error && (t === r.error.text || t === r.error.message);
+      st = NODES.map((n) => { const x = r.steps[n]?.state; return x === "doing" ? (r.lost ? "paused" : "doing") : x === "done" || x === "failed" || x === "paused" ? x : "todo"; });
+      meta = NODES.map((n, i) => {
+        const x = r.steps[n] || {}, text = x.text && !said(x.text) ? esc(x.text) : "";
+        const logs = n === "build" && x.url ? ` · <a class="lp-ln" href="${esc(x.url)}" target="_blank" rel="noopener">Logs</a>` : "";
+        if (st[i] === "doing") return `${since(x.at || r.startedAt)}${logs}`;
+        if (n === "release" && x.of) return `${x.ready} of ${x.of} ready`;
+        if (n === "release" && r.release) return `#${r.release}`;
+        return text ? `${text}${logs}` : st[i] === "todo" ? "" : logs.slice(3);
+      });
     }
-    const gh = !c.github ? "" : !c.github.connected ? "GitHub isn't connected" : !c.github.workflow ? "GitHub needs the workflow permission" : "";
-    if (mode === "preview" && gh) img = "need";
-    const release = r?.release || app?.release || c.app?.release;
-    const commit = (r?.live?.commit || c.app?.commit || "");
-    const at = app?.at || c.app?.at;
-    const ready = r?.steps?.release?.ready ?? c.app?.ready, of = r?.steps?.release?.of ?? c.app?.of;
-    const clock = (t) => (t ? `<span class="lp-tm">${since(t)}</span>` : "");
-    const light = (x) => (x === "starting" || x === "building" ? '<i class="lp-arc" aria-hidden="true"></i>' : `<i class="lpv-light ${x}" aria-hidden="true"></i>`);
-    const line = (cls) => `<span class="lpv-link ${cls}" aria-hidden="true"></span>`;
-    const on = addr === "on";
-    // the nodes
-    const visitors = `<div class="lpv-vis"><span class="lpv-orb${on ? " on" : ""}">${ICON.globe}</span><span class="lpv-cap">Visitors</span></div>`;
-    const address = `<div class="lpv-card lpv-addr ${mode === "preview" ? "plan" : on ? "on" : "off"}">` +
-      `<div class="lpv-h">${LP_ICON.link}<span>Address</span>${real ? `<span class="lpv-acts"><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(app.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></span>` : ""}</div>` +
-      `<div class="lpv-host">${real ? `<b>${esc(mine)}</b><span>${esc(domain)}</span>` : `<b>Launchpad's</b><span>given when it's created</span>`}</div>` +
-      `<div class="lpv-tags"><span class="lpv-tag">HTTPS</span></div></div>`;
-    const instance = `<div class="lpv-card lpv-inst ${inst}">` +
-      `<div class="lpv-top">${light(inst)}<b>${name}</b><span class="lpv-st ${inst}">${esc(instWord)}</span></div>` +
-      `<div class="lpv-facts">${mode === "preview" ? `<span>1 instance</span><span>port ${esc(port)}</span>` : `${release ? `<span>Release #${release}</span>` : ""}${of ? `<span>${ready} of ${of} ready</span>` : ""}${instText && !of ? `<span>${instText}</span>` : ""}<span>port ${esc(port)}</span>${clock(instAt)}`}</div></div>`;
-    const repoLine = admin ? `${esc(c.repo.full)} · ${esc(c.repo.branch || "main")}` : `<span title="You're not an admin on ${esc(c.repo.full)}, so Launchpad can't add its build there">a private copy in your GitHub</span> <span class="lp-new">new</span>`;
-    const image = `<div class="lpv-card lpv-img ${img}">` +
-      `<div class="lpv-h">${LP_ICON.image}<span>Image</span>${clock(imgAt)}</div>` +
-      (mode === "live" && release ? `<div class="lpv-rel">Release #${release}</div><div class="lpv-meta">${commit ? `<code>${esc(commit)}</code>` : ""}<span>GitHub build${at ? ` · ${ago(at)}` : ""}</span></div>`
-        : `<div class="lpv-rel">${mode === "preview" ? "Built by GitHub Actions" : { ready: "Built", failed: "Didn't build", building: r?.steps?.build?.state ? "Building" : "Pushing to GitHub", paused: "Paused", todo: "Waits for the push" }[img] || ""}</div>` +
-          (mode !== "preview" && imgText ? `<div class="lpv-meta">${imgText}</div>` : "")) +
-      `<div class="lpv-meta">${img === "need" ? `<span class="lpv-need">${gh}</span>` : `<span>from ${repoLine}</span>`}</div></div>`;
-    const fed = img === "failed" ? "err" : inst === "starting" || img === "building" ? "flow" : img === "ready" && (inst === "ready" || inst === "starting") ? "feed" : "ghost";
-    const toAddr = on ? "ok" : "ghost", toApp = on && inst === "ready" ? "ok" : inst === "failing" ? "err" : "ghost";
-    // the panel: the same system as one row of four small lit nodes (the demo's mini flow), what matters under it
-    const node = (st, icon, label, title, cls = "") => `<span class="lpm-n ${st}${cls}" title="${esc(title)}"><i class="lpm-t">${icon}${st === "starting" || st === "building" ? ARC : ""}</i><b>${label}</b></span>`;
-    const mline = (cls) => `<span class="lpm-l ${cls}" aria-hidden="true"></span>`;
-    const appTitle = `${f.name || c.app?.name || nameOf(p)}: ${instWord}`;
-    const detail = mode === "live" && real
-      ? `<div class="lpm-addr${addr === "on" ? "" : " is-off"}"><a class="lpm-host" href="${esc(app.url)}" target="_blank" rel="noopener" title="Open ${esc(real)}"><b>${esc(mine)}</b><span>${esc(domain)}</span></a><button type="button" class="lp-ib" data-lp="copy" title="${s.copied > Date.now() ? "Copied" : "Copy the address"}" aria-label="Copy the address">${s.copied > Date.now() ? ICON.check : ICON.copy}</button><a class="lp-ib" href="${esc(app.url)}" target="_blank" rel="noopener" title="Open it" aria-label="Open it">${LP_ICON.out}</a></div>` +
-        `<p class="lpm-meta"><span class="lpm-k">Release</span>${release ? `<span>#${release}</span>` : ""}${commit ? `<code>${esc(commit)}</code>` : ""}<span>built${at ? ` ${ago(at)}` : " on GitHub"}</span>${of && inst !== "ready" ? `<span>${ready} of ${of} ready</span>` : ""}</p>`
-      : mode === "preview"
-        ? `<p class="lpm-meta"><span class="lpm-k">Image</span>${img === "need" ? `<span class="lpv-need">${gh}</span>` : `<span>from ${repoLine}</span>`}</p>`
-        : inst === "starting" || inst === "failing" ? `<p class="lpm-meta"><span class="lpm-k">${name}</span><span>${esc(instWord)}</span>${of ? `<span>${ready} of ${of} ready</span>` : instText ? `<span>${instText}</span>` : ""}${clock(instAt)}</p>`
-        : imgText || imgAt ? `<p class="lpm-meta"><span class="lpm-k">Image</span><span>${imgText}</span>${clock(imgAt)}</p>` : "";
-    const mini = `<div class="lpm" data-mode="${mode}" role="img" aria-label="${esc(`${nameOf(p)}: visitors, its address, the app (${instWord}), the image`)}"><div class="lpm-row">` +
-      node(on ? "on" : mode === "preview" ? "plan" : "off", ICON.globe, "Visitors", "Visitors") + mline(toAddr) +
-      node(mode === "preview" ? "plan" : on ? "on" : "off", LP_ICON.link, "Address", real || "Its address on Launchpad") + mline(toApp) +
-      node(inst, LP_ICON.app, name, appTitle, " lpm-app") + mline(fed) +
-      node(img, LP_ICON.image, "Image", img === "need" ? gh : "The image GitHub Actions builds") + `</div>${detail}</div>`;
-    // full size: the demo's own cards, side by side
-    const cards = `<div class="lpv" data-mode="${mode}" role="img" aria-label="${esc(`How ${nameOf(p)} runs: visitors, its address, the app, the image`)}">` +
-      visitors + line(toAddr) + address + line(toApp) + instance + line(fed) + image + `</div>`;
-    // the environment, under either view: how many of its names are set on Launchpad (names only), and Change
-    // what it runs on: the size it was made with, and its disk if it has one
-    // the settings (Change) hang off the last line they cover: the environment's, else the machine's, so an app with
-    // a disk and no environment can still grow it (Astra on b33d3eb)
-    const hasEnv = !!(mode === "live" && real && c.env?.length), change = `<button type="button" class="lp-a" data-lp="edit">Change</button>`;
-    const ca = c.app, machine = mode === "live" && real && ca && (ca.size || ca.sizeLabel) ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Machine</span><span class="lpm-v"><span>${esc(sizeText(c, ca.size, ca.sizeLabel))}</span>${ca.storage ? `<span>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></span>` : ""}</span>${hasEnv ? "" : change}</p>` : "";
-    const env = machine + (hasEnv ? `<p class="lpm-meta lpm-env"><span class="lpm-k">Environment</span><span class="lpm-v"><span>${c.env.filter((x) => x.set).length} of ${c.env.length} set</span></span><button type="button" class="lp-a" data-lp="edit">Change</button></p>` : "");
-    return mini + cards + env;
+    const at = st.reduce((m, x, i) => (x === "todo" ? m : i), 0);
+    const tone = st.includes("failed") ? " t-stop" : st.includes("doing") ? " t-work" : st.includes("paused") ? "" : st[0] === "done" ? " t-go" : "";
+    const cls = { done: " is-done", doing: " is-now", failed: " is-bad", paused: " is-paused", todo: "" };
+    return `<ol class="lq-track${tone}" data-at="${at}" aria-label="${esc(`${nameOf(p)}'s deploy: push, build, release, live`)}">` +
+      NODES.map((n, i) => `<li class="lq-st${cls[st[i]]}"><i aria-hidden="true"></i><b>${LAB[st[i]][i]}</b>${meta[i] ? `<span>${meta[i]}</span>` : ""}</li>`).join("") + `</ol>`;
   }
 
-  /** The demo's headline: the state in one word or a few, large, and what it means in a sentence */
-  const hero = (word, sentence, tone = "") => `<div class="lpv-hero"><h3 class="lp-h${tone ? ` t-${tone}` : ""}">${word}</h3>${sentence ? `<p class="lp-p">${sentence}</p>` : ""}</div>`;
+  /** What the app runs from and on: only what Space reports; Change opens its settings (a linked app). */
+  function details(p) {
+    const s = proj(p), c = s.check, f = s.form || {}, ca = c.app, r = s.run;
+    const row = (k, v, end = "") => `<div class="lq-row"><span class="lq-k">${k}</span><span class="lq-v">${v}</span>${end}</div>`;
+    const change = (label, what) => (ca && !ca.gone ? `<button type="button" class="lq-go lp-a" data-lp="edit" aria-label="${esc(`${label} ${what}`)}">${label}${ICON.right}</button>` : "");
+    const admin = c.repo && (c.repo.admin || !c.github?.connected);
+    const rows = [];
+    if (c.repo) rows.push(row("Source", admin ? `${esc(c.repo.full)}<small>${esc(c.repo.branch || "main")} · builds on every push</small>` : `<span title="You're not an admin on ${esc(c.repo.full)}, so Launchpad can't add its build there">A private copy in your GitHub</span> <span class="lp-new">new</span>`));
+    if (ca && (ca.size || ca.sizeLabel)) rows.push(row("Machine", `${esc(sizeText(c, ca.size, ca.sizeLabel))}${ca.storage ? `<small>${esc(String(ca.storage.gb))} GB disk at <code>${esc(ca.storage.path)}</code></small>` : ""}`, change("Change", "the machine")));
+    const port = r?.error?.port || f.port || "";
+    if (port) rows.push(row("Port", `<code>${esc(String(port))}</code>`));
+    if (c.env?.length) rows.push(row("Environment", `${c.env.filter((x) => x.set).length} of ${c.env.length} set`, change("Edit", "the environment")));
+    return rows.length ? `<p class="lq-h">Details</p><div class="lq-group">${rows.join("")}</div>` : "";
+  }
+
+  /** The one thing to do next, lit, in a card that says why; the other ways beside it, quieter. */
+  const rec = (title, text, act, label, icon = "", s = null, alts = "", tone = "") => {
+    const asking = s && s.asking && /^ask/.test(act), err = s && !s.asking && s.askErr && /^ask/.test(act) ? s.askErr : "";
+    return `<div class="lq-note lp-rec${tone ? ` t-${tone}` : ""}"><div class="lq-nc"><b>${title}</b><p>${text}</p>${err ? `<p class="lp-err" role="status">Couldn't start the thread: ${esc(err)}.</p>` : ""}</div>` +
+      `<div class="lq-acts">${alts}<button type="button" class="btn btn-pri lp-go" data-lp="${act}"${asking ? ' aria-disabled="true"' : ""}>${asking ? '<i class="lp-arc" aria-hidden="true"></i><span>Starting a thread…</span>' : `${icon}<span>${err ? "Try again" : label}</span>`}</button></div></div>`;
+  };
   const span = (ms) => { const m = Math.max(1, Math.round(ms / 60e3)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.round(m / 60)} h` : `${Math.round(m / 1440)} d`; };
 
   /** A decision's own lit button above the form: not when the form is the answer (settings), nor done outside */
   const lit = (nd) => { const a = nextStep(nd.action, nd.data); return a && a[1] !== "settings" && a[1] !== "retry" && a[1] !== "log" ? a : null; };
   const fixOf = (e) => (e.fix ? `<p class="lp-note">${esc(e.fix)}</p>` : "");
-  /** Space's next step as the lit button; done outside the panel, only a quiet way back once it's done */
+  /** Space's next step as the lit button; done outside the window, only a quiet way back once it's done */
   const actionHtml = (e) => {
     const a = nextStep(e.action);
-    if (!a) return e.action === "none" ? "" : `<div class="lp-acts"><button type="button" class="lp-b" data-lp="retry">${ICON.retry}<span>Deploy again once that's done</span></button></div>`;
-    if (a[1] === "log") return e.url ? `<div class="lp-acts"><a class="lp-go" href="${esc(e.url)}" target="_blank" rel="noopener"><span>${a[0]}</span>${LP_ICON.out}</a></div>` : "";
-    return `<div class="lp-acts"><button type="button" class="lp-go" data-lp="${a[1]}">${a[1] === "reconnect" ? LP_ICON.github : a[1] === "retry" ? ICON.retry : ""}<span>${a[0]}</span></button></div>`;
+    if (!a) return e.action === "none" ? "" : `<div class="lq-acts lp-acts">${btn("retry", "Deploy again once that's done", ICON.retry)}</div>`;
+    if (a[1] === "log") return e.url ? `<div class="lq-acts lp-acts">${out(e.url, a[0], true)}</div>` : "";
+    return `<div class="lq-acts lp-acts">${btn(a[1], a[0], a[1] === "reconnect" ? LP_ICON.github : a[1] === "retry" ? ICON.retry : "", true)}</div>`;
   };
   /** A gh login on this machine without `workflow`: Space's command, to copy, and a way to check again. */
   const ghCmd = (fix) => /`([^`]+)`/.exec(fix || "")?.[1] || "";
   const cmdHtml = (cmd, s) => { const on = s && s.cmdCopied > Date.now(); return `<div class="lp-cmd"><code>${esc(cmd)}</code><button type="button" class="lp-ib" data-lp="cmd-copy" data-v="${esc(cmd)}" title="${on ? "Copied" : "Copy the command"}" aria-label="Copy the command">${on ? ICON.check : ICON.copy}</button></div>`; };
-
-  const head = (h, p, tone = "") => `<div class="lp-hd"><h3 class="lp-h${tone ? ` t-${tone}` : ""}">${h}</h3>${p ? `<p class="lp-p">${p}</p>` : ""}</div>`;
-  const rec = (title, text, act, label, icon = "", s = null) => {
-    const asking = s && s.asking && /^ask/.test(act), err = s && !s.asking && s.askErr && /^ask/.test(act) ? s.askErr : "";
-    return `<div class="lp-rec"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}Recommended</span><b>${title}</b><p>${text}</p></div>` +
-      `<button type="button" class="lp-go" data-lp="${act}"${asking ? ' aria-disabled="true"' : ""}>${asking ? '<i class="lp-arc" aria-hidden="true"></i><span>Starting a thread…</span>' : `${icon}<span>${err ? "Try again" : label}</span>`}</button>` +
-      (err ? `<p class="lp-err" role="status">Couldn't start the thread: ${esc(err)}.</p>` : "") + `</div>`;
-  };
 
   /** Where launchpad.json sends the code, and where git's origin points: both whole, so the person sees the difference. */
   const repoFacts = (nd) => {
@@ -415,61 +386,69 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const mine = env.filter((x) => x.sensitive || !x.default || f.env[x.name] || s.envAll || (s.editing && c.app)), rest = env.length - mine.length;
     const nd = s.needs;
     const editing = !!(s.editing && c.app);
-    return (editing ? head(`${esc(nameOf(p))}'s settings`, `Change what you need; ${c.behind ? `it deploys again with them, and with ${esc(c.repo.branch || "main")}'s commits since the live release` : "the live commit is built again with them"}. Values left empty stay as they are on Launchpad.`)
-      : head(`Put ${esc(nameOf(p))} on the web`, guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it.")) +
+    const sm = editing ? summary(p) : null;
+    const decline = nd?.code === "confirm_repo" ? btn("decline-repo", "Not this repository") : nd?.code === "other_apps" ? btn("decline-apps", "Don't push") : "";
+    return (editing ? top({ tone: sm.tone, words: sm.words, title: `${esc(nameOf(p))}'s settings`, sub: `Change what you need; ${c.behind ? `it deploys again with them, and with ${esc(c.repo.branch || "main")}'s commits since the live release` : "the live commit is built again with them"}. Values left empty stay as they are on Launchpad.` })
+      : top({ words: "Not on the web yet", title: `Put ${esc(nameOf(p))} on the web`, sub: guessed ? "Found these in the project. Check them, then deploy." : "Launchpad builds it on every push and runs it at an address of its own. Nothing goes out until you press Deploy." })) +
       askedHtml(p) +
-      (nd ? `<div class="lp-rec lp-ask"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}One thing first</span><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : nd.code === "other_apps" ? appsFacts(nd) : ""}</div>${lit(nd) ? `<button type="button" class="lp-go" data-lp="${lit(nd)[1]}"><span>${esc(lit(nd)[0])}</span></button>` : ""}${nd.code === "confirm_repo" ? `<div class="lp-alt"><button type="button" class="lp-a" data-lp="decline-repo"><span>Not this repository</span></button></div>` : nd.code === "other_apps" ? `<div class="lp-alt"><button type="button" class="lp-a" data-lp="decline-apps"><span>Don't push</span></button></div>` : ""}</div>` : "") +
+      (nd ? `<div class="lq-note lp-rec lp-ask t-need"><div class="lq-nc"><b>${esc(nd.message || "")}</b>${nd.fix ? `<p>${esc(nd.fix)}</p>` : ""}${nd.code === "confirm_repo" ? repoFacts(nd) : nd.code === "other_apps" ? appsFacts(nd) : ""}</div>${decline || lit(nd) ? `<div class="lq-acts">${decline}${lit(nd) ? btn(lit(nd)[1], esc(lit(nd)[0]), "", true) : ""}</div>` : ""}</div>` : "") +
       (c.blockers.length ? `<p class="lp-note t-need">Deploy would stop here: ${esc(c.blockers.join("; "))}.</p>` : "") +
       // what Space warned of before the button is pressed (a repository that isn't the person's own, uncommitted changes, …)
       (c.warnings.length ? c.warnings.map((w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("") : "") +
-      (editing ? "" : system(p, "preview")) +
-      (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lp-alt lp-left"><button type="button" class="lp-a" data-lp="recheck-gh"${s.pre === 1 ? ' aria-disabled="true"' : ""}>${s.pre === 1 ? '<i class="lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span>' : `${ICON.retry}<span>I ran it: check again</span>`}</button></div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
+      (editing ? "" : track(p, "preview")) +
+      (c.github.source === "gh" && c.github.connected && !c.github.workflow && ghCmd(c.github.fix) ? `<div class="lp-gh"><p class="lp-note">Or grant it to this machine's gh login, then check again:</p>${cmdHtml(ghCmd(c.github.fix), s)}<div class="lq-acts">${s.pre === 1 ? `<button type="button" class="btn lp-b" data-lp="recheck-gh" aria-disabled="true"><i class="lp-arc" aria-hidden="true"></i><span>Checking GitHub…</span></button>` : btn("recheck-gh", "I ran it: check again", ICON.retry)}</div>${s.ghErr ? `<p class="lp-err lp-gh-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` : "") +
       (S.v && S.v.startsWith("t:") ? `<p class="lp-note lp-src" title="This thread's work goes out once it's merged into ${esc(c.repo.branch || "main")}">${ICON.branch}<span>Deploys <b>${esc(c.repo.branch || "main")}</b>, not this thread's branch.</span></p>` : "") +
-      `<div class="lp-set">` +
+      `<p class="lq-h">Setup</p><div class="lq-group lp-set">` +
       (editing ? "" : field("name", "Name", f.name, { hint: e.name || "It can't change later.", bad: !!e.name, fix: e.nameFix })) +
       field("port", "Port", f.port, { hint: e.port || (c.portFrom ? `${c.portSure === false ? "A guess from" : "From"} ${esc(where(c.portFrom))}` : "Where the app listens"), bad: !!e.port, mode: "numeric", short: true }) +
       machineRows(s, c, f, e, editing) +
       // once a repository name had to be chosen, its field stays while you change it (a fixed error mustn't make it vanish)
       (e.repo || f.repoChosen ? field("repo", "Repository", f.repo, { hint: e.repo || hintFor("repo", p), bad: !!e.repo }) : "") +
       `</div>` +
-      (env.length ? `<fieldset class="lp-env"><legend><span>Environment</span>${from ? `<small>from ${esc(from)}</small>` : ""}</legend>` +
-        mine.map((x) => `<label class="lp-f lp-ev"><span class="lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><input class="lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(editing && x.set ? "Set · leave to keep" : x.default || "Not set")}" aria-label="${esc(x.name)}"></label>`).join("") +
-        (rest ? `<button type="button" class="lp-a lp-more" data-lp="env-all"><span>${rest} more with example values</span>${ICON.chevron || ""}</button>` : "") +
-        `<p class="lp-lock">${ICON.lock}<span>Straight to Launchpad; XO never keeps them.</span></p></fieldset>` : "") +
-      `<div class="lp-foot">` + (scope
-        ? `<button type="button" class="lp-go lp-wide${nd && lit(nd) ? " is-quiet" : ""}" data-lp="deploy">${LP_ICON.rocket}<span>${editing ? "Deploy with these" : `Deploy ${esc(f.name || nameOf(p))}`}</span></button>`
-        : `<button type="button" class="lp-go lp-wide" data-lp="reconnect">${LP_ICON.github}<span>${c.github.connected ? "Reconnect GitHub" : "Connect GitHub"}</span></button>`) +
-      (editing ? `<div class="lp-alt"><button type="button" class="lp-a" data-lp="edit-cancel"><span>Cancel</span></button></div></div>`
-        : `<div class="lp-alt"><button type="button" class="lp-a" data-lp="pick">${LP_ICON.link}<span>Link an app already on Launchpad</span></button></div></div>`);
+      (env.length ? `<p class="lq-h" id="lq-env">Environment${from ? ` <span>from ${esc(from)}</span>` : ""}</p><fieldset class="lq-group lp-env" aria-labelledby="lq-env">` +
+        mine.map((x) => `<label class="lq-row lp-f lp-ev"><span class="lq-k lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><span class="lq-v lp-v"><input class="lq-in lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(editing && x.set ? "Set · leave to keep" : x.default || "Not set")}" aria-label="${esc(x.name)}"></span><span class="lq-ed" aria-hidden="true">${ICON.edit}</span></label>`).join("") +
+        (rest ? `<button type="button" class="lq-row lq-more lp-a lp-more" data-lp="env-all"><span>${rest} more with example values</span>${ICON.chevron || ""}</button>` : "") +
+        `</fieldset><p class="lp-lock">${ICON.lock}<span>Straight to Launchpad; XO never keeps them.</span></p>` : "") +
+      `<div class="lq-foot lp-foot">` +
+      (editing ? `<button type="button" class="lq-link lp-a" data-lp="edit-cancel"><span>Cancel</span></button>`
+        : `<button type="button" class="lq-link lp-a" data-lp="pick">${LP_ICON.link}<span>Link an app already on Launchpad</span></button>`) +
+      `<div class="lq-acts">` + (scope
+        ? `<button type="button" class="btn lp-go${nd && lit(nd) ? " is-quiet" : " btn-pri"}" data-lp="deploy">${LP_ICON.rocket}<span>${editing ? "Deploy with these" : `Deploy ${esc(f.name || nameOf(p))}`}</span></button>`
+        : btn("reconnect", c.github.connected ? "Reconnect GitHub" : "Connect GitHub", LP_ICON.github, true)) + `</div></div>`;
   }
+  /** A row of the Setup group: its label, the value or field with its hint under it, and what changes it. */
+  const row = (label, inner, bad = false, tag = "div", end = "") => `<${tag} class="lq-row lp-f${bad ? " is-bad" : ""}"><span class="lq-k lp-l">${label}</span>${inner}${end}</${tag}>`;
+  const PEN = `<span class="lq-ed" aria-hidden="true">${ICON.edit}</span>`;
   /** The machine: for a new app, its size (only what the template allows, its default chosen) and an optional disk;
    *  in a linked app's settings, the size it was made with (fixed) and its disk, which can grow but never shrink. */
   function machineRows(s, c, f, e, editing) {
     const ids = (id) => `aria-describedby="lp-h-${id}"${e[id] ? ' aria-invalid="true"' : ""}`;
-    const row = (label, inner, bad = false, tag = "div") => `<${tag} class="lp-f${bad ? " is-bad" : ""}"><span class="lp-l">${label}</span>${inner}</${tag}>`;
-    const hint = (id, text) => `<span class="lp-hint" id="lp-h-${id}">${text}</span>`;
+    const hint = (id, text) => `<small class="lp-hint" id="lp-h-${id}">${text}</small>`;
     if (editing) {
       const a = c.app;
-      return (a.size || a.sizeLabel ? row("Size", `<span class="lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
+      return (a.size || a.sizeLabel ? row("Size", `<span class="lq-v lp-v"><span class="lp-ro">${esc(sizeText(c, a.size, a.sizeLabel))}</span>${hint("size", "Fixed when it was created.")}</span>`) : "") +
         (a.storage === undefined ? "" : a.storage
-          ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label")
-          : row("Disk", `<span class="lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
+          ? row("Disk", `<span class="lq-v lp-v"><span class="lp-pair"><input class="lq-in lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u lp-at">GB at <code>${esc(a.storage.path)}</code></span></span>${hint("disk", e.disk || "Grows, never shrinks.")}</span>`, !!e.disk, "label", PEN)
+          : row("Disk", `<span class="lq-v lp-v"><span class="lp-ro">None</span>${hint("disk", "Can't be added after creation.")}</span>`));
     }
-    // a Space that offers sizes (xo-space 3886701 on): folded to one line until you change it; an older one, nothing
+    // a Space that offers sizes (xo-space 3886701 on): folded to one row until you change it; an older one, nothing
     const z = c.sizes, at = f.size || z?.def || "";
     if (!z) return "";
     if (!(s.machine || e.size || e.disk)) {
       const t = z.tiers.find((x) => x.name === at);
-      return row("Machine", `<span class="lp-v is-row"><span class="lp-ro">${esc(t ? `${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB` : "Launchpad's default")}${f.disk ? ` · ${esc(f.diskGb)} GB disk` : ""}</span><button type="button" class="lp-a lp-chg" data-lp="machine-open" aria-label="Change the machine">Change</button></span>`);
+      return row("Machine", `<span class="lq-v lp-v"><span class="lp-ro">${esc(t ? t.label : "Launchpad's default")}</span><small>${esc(t ? `${t.cpu} CPU · ${t.memory_gb} GB memory` : "Its size, as Launchpad picks")}${f.disk ? ` · ${esc(f.diskGb)} GB disk` : ""}</small></span>`, false, "div",
+        `<button type="button" class="lq-go lp-a lp-chg" data-lp="machine-open" aria-label="Change the machine">Change${ICON.right}</button>`);
     }
     // the app's one dropdown (<xo-select>, js/dropdown.js), never the browser's own <select> (the owner's decision);
     // its row is a div, not a label, so a click on the word Size doesn't open the list
-    return (z ? row("Size", `<span class="lp-v"><xo-select class="lp-xs" data-lp-f="size" aria-label="Size" ${ids("size")}>${z.def ? "" : `<option value=""${at ? "" : " selected"}>Launchpad's default</option>`}` +
+    return row("Size", `<span class="lq-v lp-v"><xo-select class="lp-xs" data-lp-f="size" aria-label="Size" ${ids("size")}>${z.def ? "" : `<option value=""${at ? "" : " selected"}>Launchpad's default</option>`}` +
         z.tiers.map((t) => `<option value="${esc(t.name)}"${at === t.name ? " selected" : ""}${t.name === z.def ? ' data-desc="Default"' : ""}>${esc(`${t.label} · ${t.cpu} CPU, ${t.memory_gb} GB`)}</option>`).join("") +
-        `</xo-select>${hint("size", e.size || sizeHint(c, f))}</span>`, !!e.size) : "") +
+        `</xo-select>${hint("size", e.size || sizeHint(c, f))}</span>`, !!e.size) +
       (f.disk
-        ? row("Disk", `<span class="lp-v"><span class="lp-pair"><input class="lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span><button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button></span>${hint("disk", e.disk || "Grows later, never shrinks.")}</span>`, !!e.disk)
-        : row("Disk", `<span class="lp-v is-row"><button type="button" class="lp-a lp-add" data-lp="disk-add">${ICON.plus}<span>Add a disk</span></button>${hint("disk", "Only at creation")}</span>`));
+        ? row("Disk", `<span class="lq-v lp-v"><span class="lp-pair"><input class="lq-in lp-in lp-mono" data-lp-f="diskPath" value="${esc(f.diskPath)}" placeholder="/data" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Where the disk is mounted" ${ids("disk")}><input class="lq-in lp-in is-gb" data-lp-f="diskGb" value="${esc(f.diskGb)}" inputmode="numeric" autocomplete="off" aria-label="Disk size in GB" ${ids("disk")}><span class="lp-u">GB</span></span>${hint("disk", e.disk || "Grows later, never shrinks.")}</span>`, !!e.disk, "div",
+          `<button type="button" class="lp-ib" data-lp="disk-remove" title="No disk" aria-label="No disk">${ICON.close}</button>`)
+        : row("Disk", `<span class="lq-v lp-v"><span class="lp-ro">None</span>${hint("disk", "Only at creation")}</span>`, false, "div",
+          `<button type="button" class="lq-go lp-a lp-add" data-lp="disk-add">${ICON.plus}<span>Add a disk</span></button>`));
   }
   /** A field's hint while its value is valid (what setupHtml and machineRows show without an error). */
   function hintFor(k, p) {
@@ -483,76 +462,68 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
   const sizeHint = (c, f) => (c.sizes?.def && (f.size || c.sizes.def) === c.sizes.def ? "The default; fixed once created." : "Fixed once it's created.");
   function field(id, label, value, { hint = "", bad = false, mode = "text", short = false, fix = "" } = {}) {
-    // every hint and error sits under its field, whole (a short field's hint beside it was cut: "A port from 1 to 6553…");
-    // Launchpad's free name is a button of its own under the hint, on its edge
-    return `<label class="lp-f${bad ? " is-bad" : ""}"><span class="lp-l">${label}</span><span class="lp-v"><input class="lp-in${short ? " is-short" : ""}" data-lp-f="${id}" value="${esc(value || "")}" inputmode="${mode}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lp-h-${id}"${bad ? ' aria-invalid="true"' : ""}><span class="lp-hint" id="lp-h-${id}">${hint}</span>${fix ? `<button type="button" class="lp-b lp-fix" data-lp="use-name" data-v="${esc(fix)}">Use ${esc(fix)}</button>` : ""}</span></label>`;
+    // the field sits on its row, borderless, its hint under it on the same edge; Launchpad's free name is a button under the hint
+    return row(label, `<span class="lq-v lp-v"><input class="lq-in lp-in${short ? " is-short" : ""}" data-lp-f="${id}" value="${esc(value || "")}" inputmode="${mode}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="lp-h-${id}"${bad ? ' aria-invalid="true"' : ""}><small class="lp-hint" id="lp-h-${id}">${hint}</small>${fix ? `<button type="button" class="btn lp-b lp-fix" data-lp="use-name" data-v="${esc(fix)}">Use ${esc(fix)}</button>` : ""}</span>`, bad, "label", PEN);
   }
 
   /** What Space warned of on the way (uncommitted changes left out, env names with no value): worth reading, not fatal. */
   const warnHtml = (s) => (s.warn || []).map((w) => `<p class="lp-note t-need">${esc(w)}</p>`).join("");
+  const appName = (p) => esc(proj(p).form?.name || proj(p).check?.app?.name || nameOf(p));
 
   function runHtml(p) {
-    const s = proj(p), r = s.run, name = esc(s.form.name || nameOf(p));
-    if (r.undo) return hero("Starting", `Deploying ${name} in <span class="lp-count" data-until="${r.undo}">${Math.max(1, Math.ceil((r.undo - Date.now()) / 1000))}</span> s.`, "work") + system(p, "run") +
-      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="undo">${ICON.undo}<span>Undo</span></button></div>`;
-    const on = NODES.find((n) => r.steps[n]?.state === "doing") || "repo", rel = r.steps.release || {};
+    const s = proj(p), r = s.run, name = appName(p), was = s.check.app;
+    if (r.undo) return top({ tone: "work", words: "Starting", title: name, sub: `Deploying ${name} in <span class="lp-count" data-until="${r.undo}">${Math.max(1, Math.ceil((r.undo - Date.now()) / 1000))}</span> s.`, acts: btn("undo", "Undo", ICON.undo) }) + track(p, "run");
+    const on = NODES.find((n) => r.steps[n]?.state === "doing") || "repo", rel = r.steps.release || {}, build = r.steps.build || {};
     const word = { repo: "Pushing", build: "Building", release: `Rolling out${r.release ? ` #${r.release}` : ""}`, live: "Going live" }[on];
     const sentence = on === "release" && rel.of
-      ? `${rel.ready} of ${rel.of} new instance${rel.of > 1 ? "s" : ""} ${rel.of > 1 ? "are" : "is"} ready.${s.check.app?.release ? ` Release #${s.check.app.release} keeps serving until the new one is healthy.` : ""}`
-      : `${{ repo: `Pushing ${esc(s.check.repo.branch || "main")} to GitHub`, build: "GitHub Actions is building the image", release: "Launchpad is starting the new release", live: "Going live" }[on]} · ${since(r.startedAt)} in all`;
+      ? `${rel.ready} of ${rel.of} new instance${rel.of > 1 ? "s" : ""} ${rel.of > 1 ? "are" : "is"} ready.${was?.release ? ` Release #${was.release} keeps serving until the new one is healthy.` : ""}`
+      : `${{ repo: `Pushing ${esc(s.check.repo.branch || "main")} to GitHub.`, build: "GitHub Actions is building the image.", release: "Launchpad is starting the new release.", live: "Going live." }[on]}${was?.release && on !== "release" ? ` Release #${was.release} keeps serving.` : ""}`;
     // Stop's 3 s: the stop can still be taken back, here where it was asked for (the notice's Undo does the same);
     // then it's out, and only Space's receipt says it stopped (G6)
     const q = r.stopErr ? `<p class="lp-q t-need" role="status">Couldn't stop it: ${esc(r.stopErr)}. It's still deploying.</p>`
       : r.stopSent ? `<p class="lp-q" role="status">Stopping… it stops once Space confirms.</p>`
       : r.stopping ? `<p class="lp-q" role="status">Stops in <span class="lp-count" data-until="${r.stopAt}">${Math.max(1, Math.ceil((r.stopAt - Date.now()) / 1000))}</span> s.</p>`
-      : `<p class="lp-q">Carries on if you close this.</p>`;
-    const stop = r.stopSent ? `<button type="button" class="lp-b" data-lp="stop" aria-disabled="true"><i class="lp-arc" aria-hidden="true"></i><span>Stopping…</span></button>`
-      : r.stopping ? `<button type="button" class="lp-b" data-lp="stop-undo"><span>Keep deploying</span></button>`
-      : `<button type="button" class="lp-b" data-lp="stop">${ICON.stop}<span>${r.stopErr ? "Stop again" : "Stop"}</span></button>`;
-    return hero(word, sentence, "work") + system(p, "run") + warnHtml(s) +
-      `<div class="lp-acts">${q}${stop}<button type="button" class="lp-b" data-lp="hide"><span>Hide</span></button></div>`;
+      : `<p class="lp-q">You can close this window. It carries on, and Coworker tells you when it's live.</p>`;
+    const stop = r.stopSent ? `<button type="button" class="btn lp-b" data-lp="stop" aria-disabled="true"><i class="lp-arc" aria-hidden="true"></i><span>Stopping…</span></button>`
+      : r.stopping ? btn("stop-undo", "Keep deploying")
+      : btn("stop", r.stopErr ? "Stop again" : "Stop", ICON.stop);
+    return top({ tone: "work", words: word, meta: `${since(r.startedAt)} in all`, title: name, addr: addrHtml(s, was), sub: sentence, acts: stop + (build.url ? out(build.url, "Show log") : "") }) +
+      track(p, "run") + q + warnHtml(s) + details(p);
   }
 
   /** The stream dropped and couldn't be picked up: the deploy carries on in Space, nothing here spins */
   function lostHtml(p) {
-    return hero("Lost touch", "The deploy carries on in Space. Follow it again to see where it is.") + system(p, "run") +
-      `<div class="lp-acts"><button type="button" class="lp-go" data-lp="rewatch">${ICON.retry}<span>Follow it again</span></button></div>`;
+    return top({ words: "Lost touch", title: appName(p), sub: "The deploy carries on in Space. Follow it again to see where it is.", acts: btn("rewatch", "Follow it again", ICON.retry, true) }) + track(p, "run");
   }
 
   function liveHtml(p) {
-    const s = proj(p), a = s.run?.live || s.check.app, name = esc(s.form?.name || nameOf(p));
+    const s = proj(p), a = s.run?.live || s.check.app, name = appName(p);
     const appUrl = launchpadUrl(s.run?.appId || s.check.app?.id);
-    if (a.gone) return head(`${name}'s app is gone`, "Launchpad has no such app for you: it was deleted, or it is someone else's. Its repository, port and settings are still here.", "stop") +
-      rec("Create it again", "A new app from the same repository, with the same settings.", "recreate", "Create it again", LP_ICON.rocket) +
-      `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="unlink"><span>Unlink</span></button></div>`;
+    if (a.gone) return top({ tone: "stop", words: "App not on Launchpad", title: `${name}'s app is gone`, sub: "Launchpad has no such app for you: it was deleted, or it is someone else's. Its repository, port and settings are still here." }) +
+      rec("Create it again", "A new app from the same repository, with the same settings.", "recreate", "Create it again", LP_ICON.rocket, null, btn("unlink", "Unlink"));
     const [tone, words] = a.status && !s.run?.live ? appState(a.status) : ["go", "Live"];
-    const of = s.check.app?.of || 1, ready = s.check.app?.ready ?? of, rel = a.release || s.check.app?.release;
-    const sentence = tone === "go"
-      ? `${rel ? `Release #${rel}` : name} has served${a.at ? ` for ${span(Date.now() - a.at)}` : ""} on ${ready} of ${of} instance${of > 1 ? "s" : ""}.`
-      : tone === "work" ? `A new release is rolling out${rel ? `; release #${rel} keeps serving until it's healthy` : ""}.` : tone === "stop" ? "Its instances aren't answering. Deploying again, or the logs in Launchpad, say why." : `${name} isn't serving.`;
-    return hero(tone === "go" ? "Live" : words, sentence, tone) + askedHtml(p) +
-      system(p, "live") + (s.run?.live ? warnHtml(s) : "") +
-      `<div class="lp-acts"><button type="button" class="lp-b" data-lp="again">${LP_ICON.rocket}<span>Deploy again</span></button>${appUrl ? `<a class="lp-b" href="${esc(appUrl)}" target="_blank" rel="noopener"><span>Open in Launchpad</span>${LP_ICON.out}</a>` : ""}` +
-      `<span class="lp-mw"><button type="button" class="lp-ib" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More" tabindex="-1"><button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span></div>`;
+    const rel = a.release || s.check.app?.release;
+    const sentence = tone === "go" ? "" : tone === "work" ? `A new release is rolling out${rel ? `; release #${rel} keeps serving until it's healthy` : ""}.` : tone === "stop" ? "Its instances aren't answering. Deploying again, or the logs in Launchpad, say why." : `${name} isn't serving.`;
+    const menu = `<span class="lp-mw"><button type="button" class="lp-ib lq-more-b" data-lp="menu" aria-haspopup="menu" aria-expanded="${s.menu}" aria-controls="lp-mn" title="More" aria-label="More">${LP_ICON.more}</button>${s.menu ? `<span class="lp-mn" id="lp-mn" role="menu" aria-label="More" tabindex="-1">${appUrl ? `<a role="menuitem" tabindex="-1" href="${esc(appUrl)}" target="_blank" rel="noopener">Open in Launchpad</a>` : ""}<button type="button" role="menuitem" tabindex="-1" data-lp="unlink">Unlink from Launchpad</button></span>` : ""}</span>`;
+    return top({ tone, words: tone === "go" ? "Live" : words, meta: rel ? `Release #${rel}${a.at ? ` · ${ago(a.at)}` : ""}` : a.at ? ago(a.at) : "", title: name, addr: addrHtml(s, a, tone === "go"), sub: sentence,
+      acts: btn("again", "Deploy again", LP_ICON.rocket) + (a.url ? out(a.url, "Open", true) : "") + menu }) +
+      askedHtml(p) + track(p, "live") + (s.run?.live ? warnHtml(s) : "") + details(p);
   }
 
   function failedHtml(p) {
-    const s = proj(p), e = s.run.error, name = esc(s.form.name || nameOf(p));
-    if (e.code === "build_failed") return hero("The build failed", `${esc(e.text || "")}${e.step ? ` in <code>${esc(e.step)}</code>` : ""}`.trim() || "GitHub Actions couldn't build the image.", "stop") +
-      system(p, "run") + (e.log ? `<pre class="lp-log" aria-label="The build log's last lines">${e.log.map(esc).join("\n")}</pre>` : "") +
-      rec("Ask an agent to fix it", "In a new thread it reads the log and fixes the cause. Deploy again here once it's merged.", "ask-fix", "Ask an agent", LP_ICON.rocket, s) +
-      `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="retry">${ICON.retry}<span>Try again</span></button>${e.url ? `<a class="lp-b" href="${esc(e.url)}" target="_blank" rel="noopener"><span>Logs on GitHub</span>${LP_ICON.out}</a>` : ""}</div>`;
-    if (e.code === "health_check_failed" && e.declared && e.declared !== e.port) return hero(`${e.release ? `Release #${e.release}` : name} didn't go live`, `Nothing answers on port ${e.port}: the image listens on ${e.declared}.${e.last ? ` Release #${e.last} keeps serving.` : ""}`, "stop") +
-      system(p, "run") +
-      rec(`Use port ${e.declared}`, `The image listens on ${e.declared}; the app sends traffic to ${e.port}.`, "fix-port", `Use port ${e.declared}`) +
-      `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="retry">${ICON.retry}<span>Try again</span></button></div>`;
-    if (NEEDS_YOU.has(e.code)) return hero(e.code === "github_workflow_scope" ? "GitHub needs one more permission" : "GitHub isn't connected", e.code === "github_workflow_scope" ? "Launchpad adds a build workflow to the repository, which takes GitHub's <code>workflow</code> permission. Nothing else changes." : esc(e.message || ""), "need") +
-      system(p, "run") + (e.source === "gh" && ghCmd(e.fix)
-        ? `<div class="lp-rec"><div class="lp-rec-c"><span class="lp-rec-k">${ICON.spark}Recommended</span><b>Grant it to this machine's gh login</b><p>Run this, then check again.</p></div>${cmdHtml(ghCmd(e.fix), s)}<button type="button" class="lp-go" data-lp="recheck-gh">${ICON.retry}<span>I ran it: check again</span></button>${s.ghErr ? `<p class="lp-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div>` +
-          `<div class="lp-or"><span>Or</span><button type="button" class="lp-b" data-lp="reconnect">${LP_ICON.github}<span>Reconnect GitHub here</span></button></div>`
+    const s = proj(p), e = s.run.error, name = appName(p), was = s.check.app;
+    const head = (tone, sub, acts = "") => top({ tone, words: failWords(e), meta: e.release ? `Release #${e.release}` : "", title: name, addr: addrHtml(s, was), sub, acts });
+    if (e.code === "build_failed") return head("stop", `${esc(e.text || "")}${e.step ? ` in <code>${esc(e.step)}</code>` : ""}`.trim() || "GitHub Actions couldn't build the image.", e.url ? out(e.url, "Logs on GitHub") : "") +
+      track(p, "run") + (e.log ? `<pre class="lp-log" aria-label="The build log's last lines">${e.log.map(esc).join("\n")}</pre>` : "") +
+      rec("Ask an agent to fix it", "In a new thread it reads the log and fixes the cause. Deploy again here once it's merged.", "ask-fix", "Ask an agent", "", s, btn("retry", "Try again", ICON.retry), "stop") + details(p);
+    if (e.code === "health_check_failed" && e.declared && e.declared !== e.port) return head("stop", "") + track(p, "run") +
+      rec(`Nothing answered on port ${e.port}`, `The image listens on ${e.declared}.${e.last ? ` Release #${e.last} keeps serving.` : ""}`, "fix-port", `Use port ${e.declared}`, "", null, btn("retry", "Try again", ICON.retry), "stop") + details(p);
+    if (NEEDS_YOU.has(e.code)) return top({ tone: "need", words: failWords(e), title: e.code === "github_workflow_scope" ? "GitHub needs one more permission" : "GitHub isn't connected", sub: e.code === "github_workflow_scope" ? "Launchpad adds a build workflow to the repository, which takes GitHub's <code>workflow</code> permission. Nothing else changes." : esc(e.message || "") }) +
+      track(p, "run") + (e.source === "gh" && ghCmd(e.fix)
+        ? `<div class="lq-note lp-rec"><div class="lq-nc"><b>Grant it to this machine's gh login</b><p>Run this, then check again.</p>${cmdHtml(ghCmd(e.fix), s)}${s.ghErr ? `<p class="lp-err" role="status">Couldn't check GitHub: ${esc(s.ghErr)}.</p>` : ""}</div><div class="lq-acts">${btn("reconnect", "Reconnect GitHub here", LP_ICON.github)}${btn("recheck-gh", "I ran it: check again", ICON.retry, true)}</div></div>`
         : rec("Reconnect GitHub", "Grant it once; then deploy again.", "reconnect", e.code === "github_workflow_scope" ? "Reconnect GitHub" : "Connect GitHub", LP_ICON.github));
-    return hero(`${name} didn't deploy`, esc(e.message || e.text || "Something went wrong on the way."), "stop") + system(p, "run") +
-      fixOf(e) + actionHtml(e);
+    return top({ tone: "stop", words: failWords(e), title: `${name} didn't deploy`, addr: addrHtml(s, was), sub: esc(e.message || e.text || "Something went wrong on the way.") }) + track(p, "run") +
+      fixOf(e) + actionHtml(e) + details(p);
   }
 
   /** What the app reports about the thread an Ask started: that exact thread (by id), else nothing known. Working
@@ -567,52 +538,50 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (mine.held) return { k: "idle", word: mine.held };
     return { k: "idle", word: "Not working right now" };
   }
-  const askRow = (g, st) => `<ul class="lp-ag"><li><button type="button" class="lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? ARC : ""}</span><span class="lp-c"><b>${esc(g.title)}</b><span>${esc(st.word)}</span></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}</span></button></li></ul>`;
+  const askRow = (g, st) => `<ul class="lq-group lp-ag"><li><button type="button" class="lq-row lp-agr" data-lp="thread" data-go="t:${esc(g.thread)}" title="Open the thread"><span class="lp-t">${ICON.threadOne}${st.k === "work" ? ARC : ""}</span><span class="lq-v lp-c"><b>${esc(g.title)}</b><small>${esc(st.word)}</small></span><span class="lp-m">${st.k === "work" ? `<span class="lp-tm">${since(g.since)}</span>` : ""}${ICON.right}</span></button></li></ul>`;
   /** The thread an Ask (from a failed deploy) started: its row, with what it means for deploying. */
   function askedHtml(p) {
     const s = proj(p), g = s.asked;
     if (!g || s.check?.state === "needs-agent") return "";
     const st = askState(p, g);
     const line = st.k === "done" ? "Its agent says it's done. Merge its work, then deploy again here." : st.k === "work" ? "An agent is fixing it. Deploy again here once its work is merged." : "A thread was started to fix it. Deploy again here once its work is merged.";
-    return `<div class="lp-asked"><p class="lp-note">${line}</p>${askRow(g, st)}</div>`;
+    return `<div class="lp-asked"><p class="lq-h">${line}</p>${askRow(g, st)}</div>`;
   }
 
   function needsHtml(p) {
     const c = proj(p).check;
-    return head(`${esc(nameOf(p))} needs preparing first`, "Launchpad can't tell how to run it as it is. An agent can prepare it.") +
-      (c.missing.length ? `<ul class="lp-check">${c.missing.map((m) => `<li class="${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<span>${esc(m.why)}</span>` : ""}</span></li>`).join("")}</ul>` : "") +
-      rec("Ask an agent to get it ready", "In a new thread it adds what's missing. Once that's merged, deploy from here.", "ask", "Ask an agent", LP_ICON.rocket, proj(p));
+    return top({ words: "Not ready yet", title: `${esc(nameOf(p))} needs preparing first`, sub: "Launchpad can't tell how to run it as it is. An agent can prepare it." }) +
+      (c.missing.length ? `<p class="lq-h">What Launchpad looks for</p><ul class="lq-group lp-check">${c.missing.map((m) => `<li class="lq-row ${m.ok ? "is-ok" : "is-no"}"><span class="lp-ck">${m.ok ? ICON.check : ""}</span><span class="lq-v lp-c"><b>${esc(cap(m.what))}</b>${m.why ? `<small>${esc(m.why)}</small>` : ""}</span></li>`).join("")}</ul>` : "") +
+      rec("Ask an agent to get it ready", "In a new thread it adds what's missing. Once that's merged, deploy from here.", "ask", "Ask an agent", "", proj(p));
   }
 
   function gettingHtml(p) {
-    const s = proj(p), g = s.check.getting || findThread(p) || s.asked, st = askState(p, g);
+    const s = proj(p), g = s.check.getting || findThread(p) || s.asked, st = askState(p, g), sm = summary(p);
     const line = st.k === "done" ? "Its agent says it's done. Once its work is merged, Deploy is ready here." : st.k === "work" ? "An agent is adding what Launchpad needs. Once its work is merged, Deploy is ready here." : "A thread was started to add what Launchpad needs. Once its work is merged, Deploy is ready here.";
-    return head(`Getting ${esc(nameOf(p))} ready`, line) + askRow(g, st) +
-      system(p, "preview");
+    return top({ tone: sm.tone, words: sm.words, title: `Getting ${esc(nameOf(p))} ready`, sub: line }) + askRow(g, st) + track(p, "preview");
   }
 
   function deviceHtml(p) {
-    const d = proj(p).device;
-    if (!d.code) return head("Connecting GitHub…", "A GitHub login this machine already has is used as it is.", "need") + `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>Asking Space.</span></p>`;
-    return head("Connect GitHub", "Enter this code on GitHub. It grants the <code>workflow</code> permission Launchpad needs.", "need") +
-      `<div class="lp-code"><code aria-label="The code">${esc(d.code)}</code><button type="button" class="lp-b" data-lp="code-copy">${d.copiedUntil > Date.now() ? ICON.check : ICON.copy}<span>${d.copiedUntil > Date.now() ? "Copied" : "Copy"}</span></button></div>` +
-      `<a class="lp-go lp-wide" href="${esc(d.url)}" target="_blank" rel="noopener">${LP_ICON.github}<span>Open GitHub</span>${LP_ICON.out}</a>` +
-      `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>Waiting for GitHub. This carries on by itself.</span></p>` +
-      `<div class="lp-alt"><button type="button" class="lp-a" data-lp="device-cancel"><span>Cancel</span></button></div>`;
+    const d = proj(p).device, wait = (w) => `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>${w}</span></p>`;
+    if (!d.code) return top({ tone: "need", words: "Waiting for GitHub", title: "Connecting GitHub…", sub: "A GitHub login this machine already has is used as it is." }) + wait("Asking Space.");
+    return top({ tone: "need", words: "Waiting for GitHub", title: "Connect GitHub", sub: "Enter this code on GitHub. It grants the <code>workflow</code> permission Launchpad needs." }) +
+      `<div class="lp-code"><code aria-label="The code">${esc(d.code)}</code>${btn("code-copy", d.copiedUntil > Date.now() ? "Copied" : "Copy", d.copiedUntil > Date.now() ? ICON.check : ICON.copy)}</div>` +
+      wait("Waiting for GitHub. This carries on by itself.") +
+      `<div class="lq-foot"><button type="button" class="lq-link lp-a" data-lp="device-cancel"><span>Cancel</span></button><div class="lq-acts"><a class="btn btn-pri lp-go" href="${esc(d.url)}" target="_blank" rel="noopener">${LP_ICON.github}<span>Open GitHub</span>${LP_ICON.out}</a></div></div>`;
   }
 
   function pickHtml(p) {
     const s = proj(p), list = s.picking?.apps;
     const wait = (w) => `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>${w}</span></p>`;
-    return head("Link an app on Launchpad", `${esc(nameOf(p))} deploys to the app you pick from now on.`) +
+    return top({ title: "Link an app on Launchpad", sub: `${esc(nameOf(p))} deploys to the app you pick from now on.` }) +
       (s.linking ? wait("Linking…") : !list ? wait("Reading your apps…") : !list.length ? `<p class="lp-note">No apps on Launchpad yet.</p>` :
-        `<ul class="lp-also">${list.map((a) => `<li><button type="button" class="lp-appr" data-lp="link" data-id="${esc(a.id)}"${a.linkable ? "" : ` disabled title="Not built from GitHub, so XO can't deploy to it"`}><span class="lp-t">${LP_ICON.app}</span><span class="lp-c"><b>${esc(a.name)}</b>${a.linkable ? `<span class="lp-mono">${esc(a.host)}</span>` : "<span>Not built from GitHub: XO can't deploy to it</span>"}</span><span class="lp-m">${((t, w) => `<span class="lp-st t-${t}">${t === "work" ? '<i class="lp-arc" aria-hidden="true"></i>' : "<i></i>"}${esc(w)}</span>`)(...appState(a.status))}</span></button></li>`).join("")}</ul>`) +
-      `<div class="lp-alt"><button type="button" class="lp-a" data-lp="pick-cancel"><span>Back</span></button></div>`;
+        `<p class="lq-h">Your apps on Launchpad</p><ul class="lq-group lp-also">${list.map((a) => `<li><button type="button" class="lq-row lp-appr" data-lp="link" data-id="${esc(a.id)}"${a.linkable ? "" : ` disabled title="Not built from GitHub, so XO can't deploy to it"`}><span class="lp-t">${LP_ICON.app}</span><span class="lq-v lp-c"><b>${esc(a.name)}</b>${a.linkable ? `<small class="lp-mono">${esc(a.host)}</small>` : "<small>Not built from GitHub: XO can't deploy to it</small>"}</span><span class="lp-m">${((t, w) => eye(t === "stop" ? "stop" : t, esc(w)))(...appState(a.status))}</span></button></li>`).join("")}</ul>`) +
+      `<div class="lq-foot"><button type="button" class="lq-link lp-a" data-lp="pick-cancel">${ICON.back}<span>Back</span></button></div>`;
   }
 
   function checkingHtml(p) {
-    return head(`Checking ${esc(nameOf(p))}…`, "Its repository, its port and what it needs to run.") +
-      `<div class="lpm is-skel" aria-hidden="true"><div class="lpm-row">${'<span class="lpm-n"><i class="lpm-t"></i><b></b></span><span class="lpm-l"></span>'.repeat(3)}<span class="lpm-n"><i class="lpm-t"></i><b></b></span></div></div>`;
+    return top({ words: "Checking…", title: `Checking ${esc(nameOf(p))}…`, sub: "Its repository, its port and what it needs to run." }) +
+      `<ol class="lq-track is-skel" aria-hidden="true">${"<li class=\"lq-st\"><i></i><b></b><span></span></li>".repeat(4)}</ol>`;
   }
 
   function bodyHtml(p) {
@@ -620,7 +589,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const s = proj(p), c = s.check;
     return {
       key: `${p}|${sc}` + (sc === "setup" ? `|${formKey(c, { pre: s.pre, needs: s.needs && [s.needs.code, s.needs.message, s.needs.fix, s.needs.action, s.needs.data?.repo, s.needs.data?.origin, s.needs.data?.branch, (s.needs.data?.apps || []).map((a) => `${a.id}/${a.slug || ""}/${a.workflow || ""}`).join()], errs: s.form.errs || {}, envAll: !!s.envAll, editing: !!s.editing, machine: !!s.machine, disk: !!s.form.disk, thread: !!S.v?.startsWith("t:"), ghErr: s.ghErr || "", asked: !!s.asked })}` : ""),
-      html: sc === "checking" ? checkingHtml(p) : sc === "check-failed" ? head("Couldn't check this project", esc(proj(p).err?.message || "XO Space didn't answer.")) + `<div class="lp-acts"><button type="button" class="lp-b" data-lp="recheck">${ICON.retry}<span>Try again</span></button></div>`
+      html: sc === "checking" ? checkingHtml(p) : sc === "check-failed" ? top({ words: "Couldn't check", title: "Couldn't check this project", sub: esc(proj(p).err?.message || "XO Space didn't answer."), acts: btn("recheck", "Try again", ICON.retry) })
         : sc === "setup" ? setupHtml(p) : sc === "undo" || sc === "run" ? runHtml(p) : sc === "lost" ? lostHtml(p) : sc === "live" ? liveHtml(p) : sc === "failed" ? failedHtml(p)
         : sc === "needs" ? needsHtml(p) : sc === "getting" ? gettingHtml(p) : sc === "device" ? deviceHtml(p) : sc === "pick" ? pickHtml(p) : "",
       form: sc === "setup",
@@ -637,7 +606,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     S.key = ""; S.html = "";
   }
 
-  // ── painting into the frame stage.js made ─────────────────────────────────
+  // ── painting into the window lpwindow.js made ───────────────────────────────
   function paint(v, open) {
     if (!S.el) return;
     const p = projectOf(v);
@@ -647,10 +616,14 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (!p) return;
     const sm = summary(p);
     S.el.dataset.tone = sm.tone;
-    const hs = `<span class="lp-st t-${sm.tone}">${sm.tone === "work" ? '<i class="lp-arc" aria-hidden="true"></i>' : "<i></i>"}<span>${esc(sm.words)}</span>${sm.at ? ` <span class="lp-tm">${since(sm.at)}</span>` : ""}</span>${sm.host ? `<a class="lp-hh" href="${esc(sm.url)}" target="_blank" rel="noopener" title="Open ${esc(sm.host)}">${esc(sm.host)}</a>` : ""}`;
-    if (S.hs._h !== hs) { redraw(S.hs, hs); S.hs._h = hs; }
-    const ha = !open && sm.cta ? `<button type="button" class="lp-hb" data-lp="open">${LP_ICON.rocket}<span>Deploy</span></button>` : sm.url ? `<a class="fr-ib" href="${esc(sm.url)}" target="_blank" rel="noopener" title="Open ${esc(sm.host)}" aria-label="Open it">${LP_ICON.out}</a>` : "";
-    if (S.ha._h !== ha) { redraw(S.ha, ha); S.ha._h = ha; }
+    const hs = `<span class="lp-st t-${sm.tone}"><i aria-hidden="true"></i><span>${esc(sm.words)}</span>${sm.at ? ` <span class="lp-tm">${since(sm.at)}</span>` : ""}</span>`;
+    if (S.hs && S.hs._h !== hs) { redraw(S.hs, hs); S.hs._h = hs; }
+    if (S.nav) {
+      const s = proj(p), on = s.editing && s.check?.app ? "edit" : "home";
+      const nav = `<button type="button" class="nrow${on === "home" ? " is-on" : ""}" data-lp="${on === "home" ? "home" : "edit-cancel"}"${on === "home" ? ' aria-current="page"' : ""}><span class="nr-ic">${xi("dashboard")}</span><span>Overview</span></button>` +
+        (s.check?.app && !s.check.app.gone && !s.run ? `<button type="button" class="nrow${on === "edit" ? " is-on" : ""}" data-lp="edit"${on === "edit" ? ' aria-current="page"' : ""}><span class="nr-ic">${xi("settings-general")}</span><span>Settings</span></button>` : "");
+      if (S.nav._h !== nav) { redraw(S.nav, nav); S.nav._h = nav; }
+    }
     if (!open) return;
     preflight(p);
     const b = bodyHtml(p);
@@ -660,7 +633,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     const same = b.html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1").replace(/(class="lp-count"[^>]*>)\d+/g, "$1");
     if (S.key !== b.key || S.html !== same) {
       const ae = document.activeElement && S.body.contains(document.activeElement) ? (document.activeElement.closest("xo-select") || document.activeElement) : null;
-      // the focused control by what it is, and which of its kind (Copy shows twice: the panel's line, the wide card)
+      // the focused control by what it is, and which of its kind (Change shows on two rows)
       const [focus, nth] = ae && ae !== S.body ? keyOf(ae) : [null, 0];
       const caret = ae && ae.matches("input") ? [ae.selectionStart, ae.selectionEnd] : null;
       const fresh = S.key.split("|").slice(0, 2).join("|") !== b.key.split("|").slice(0, 2).join("|");
@@ -693,18 +666,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       : el.dataset.lp ? `[data-lp="${el.dataset.lp}"]` : el.matches("a[href]") ? `a[href="${CSS.escape(el.getAttribute("href"))}"]` : null;
     return sel ? [sel, Math.max(0, [...S.body.querySelectorAll(sel)].indexOf(el))] : [null, 0];
   }
-  /** As you type: the card's name, address and port follow the fields, and nothing else redraws. */
+  /** As you type: Deploy's name and the size's hint follow the fields, and nothing else redraws. */
   function syncPreview(p) {
-    const f = proj(p).form, view = S.body.querySelector('.lpv[data-mode="preview"]');
-    const sh = S.body.querySelector("#lp-h-size");
+    const f = proj(p).form, sh = S.body.querySelector("#lp-h-size");
     if (sh && !f.errs?.size && sh.closest(".lp-f")?.querySelector("xo-select")) sh.textContent = sizeHint(proj(p).check, f);
-    if (!view) return;
-    const set = (sel, html) => { const n = S.body.querySelector(sel); if (n && n.innerHTML !== html) n.innerHTML = html; };
-    set(".lpm .lpm-app b", esc(f.name || nameOf(p)));
-    set('.lpv[data-mode="preview"] .lpv-inst .lpv-top b', esc(f.name || nameOf(p)));
-    set('.lpv[data-mode="preview"] .lpv-inst .lpv-facts', `<span>1 instance</span><span>port ${esc(f.port || "—")}</span>`);
     const go = S.body.querySelector('[data-lp="deploy"] span');
-    if (go) go.textContent = `Deploy ${f.name || nameOf(p)}`;
+    if (go && !proj(p).editing) go.textContent = `Deploy ${f.name || nameOf(p)}`;
   }
 
 
@@ -766,7 +733,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     land('[data-lp="stop"]'); // Undo's time is up: it goes, Stop takes its place
     changed();
   }
-  const visible = (p) => S.el && !S.el.classList.contains("is-folded") && !S.el.hidden && S.v && projectOf(S.v) === p && document.body.classList.contains("stage-open");
+  const visible = (p) => !!(S.el && S.shown === p && S.el.open !== false);
 
   /** Reconnect GitHub with the workflow scope: Space's device flow, polled until it's granted. */
   async function github(p) {
@@ -798,8 +765,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           return;
         }
       }
-      if (ours()) { s.device = null; land('[data-lp="reconnect"]'); notify && notify("GitHub's code ran out. Reconnect again.", null, "err"); changed(); }
-    } catch (e) { if (!ours()) return; s.device = null; land('[data-lp="reconnect"]'); notify && notify(`GitHub didn't connect: ${e.message}`, null, "err"); changed(); }
+      if (ours()) { s.device = null; land('[data-lp="reconnect"]'); tell("GitHub's code ran out. Reconnect again.", null, "err"); changed(); }
+    } catch (e) { if (!ours()) return; s.device = null; land('[data-lp="reconnect"]'); tell(`GitHub didn't connect: ${e.message}`, null, "err"); changed(); }
   }
 
   async function startPick(p) {
@@ -808,7 +775,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     land('[data-lp="pick-cancel"]'); // Back, while it reads; the list arrives under it
     changed();
     try { const apps = await api.apps(p); if (s.picking) s.picking.apps = apps; } // Back meanwhile: nothing to fill
-    catch (e) { s.picking = null; land('[data-lp="pick"]'); notify && notify(`Couldn't read your Launchpad apps: ${e.message}`, null, "err"); }
+    catch (e) { s.picking = null; land('[data-lp="pick"]'); tell(`Couldn't read your Launchpad apps: ${e.message}`, null, "err"); }
     changed();
   }
 
@@ -819,7 +786,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     s.picking = null; s.linking = true; land('[data-lp="pick-cancel"]'); changed();
     api.link(p, id)
       .then((a) => { s.check = { ...s.check, state: "linked", app: a }; s.run = null; land('[data-lp="again"]'); load(p, true); })
-      .catch((e) => { land('[data-lp="pick"]'); notify && notify(`Couldn't link it: ${e.message}`, null, "err"); })
+      .catch((e) => { land('[data-lp="pick"]'); tell(`Couldn't link it: ${e.message}`, null, "err"); })
       .finally(() => { s.linking = false; changed(); });
   }
 
@@ -908,27 +875,17 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
 
   /** A notice's Undo was pressed for project p: focus moves before the notice takes its button away, onto what the
-   *  Undo brought back, and only onto a control a person can reach. In order:
-   *    1. p's section, open: sel in it (the redraw then names the final place);
-   *    2. p's section in the open panel, folded: its head's fold (the run Undo kept is in there);
-   *    3. p on screen with the panel closed: the header's Deploy for p;
-   *    4. another place on screen: that page's work (the notice isn't about it: never another project's Deploy);
-   *    5. on a phone the open panel covers the page: the panel's own way back to it (Close the panel).
-   *  A control under the covering panel (a phone) is out of reach even where it isn't inert. */
+   *  Undo brought back, and only onto a control a person can reach: sel in p's open window; else the header's Deploy
+   *  for p; else the page's work (the notice isn't about it: never another project's Deploy). */
   function fromNotice(p, sel) {
-    const covered = document.body.classList.contains("stage-open") && matchMedia("(max-width: 760px)").matches;
-    const reach = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]") && !(covered && !el.closest("#stage")));
+    const reach = (el) => !!(el && el.getClientRects().length && !el.closest("[inert]"));
     const go = (el) => { el.focus({ preventScroll: true }); return true; };
     const n = visible(p) && S.body.querySelector(sel);
     if (reach(n)) return go(n);
-    const fold = S.el && !S.el.hidden && projectOf(S.v) === p && document.body.classList.contains("stage-open") && S.el.querySelector('[data-fr-fold="launch"]');
-    if (reach(fold)) return go(fold);
     const d = projectOf(S.v) === p && [...document.querySelectorAll("[data-lp-open]")].find(reach);
     if (d) return go(d);
     const w = ["scroller", "home"].map((id) => document.getElementById(id)).find(reach);
     if (w) return go(w);
-    const close = document.querySelector("#stage [data-stg-close]");
-    if (reach(close)) return go(close);
     return false;
   }
 
@@ -947,7 +904,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
    *  and unmark() takes back what an earlier success still shows: a refusal never wears the last copy's "Copied". */
   async function copied(text, what, mark, unmark) {
     const ok = await copyText(String(text || ""));
-    if (!ok) { unmark && unmark(); changed(); announce(COPY_REFUSED); notify && notify(COPY_REFUSED, null, "err"); return; }
+    if (!ok) { unmark && unmark(); changed(); announce(COPY_REFUSED); tell(COPY_REFUSED, null, "err"); return; }
     mark(); announce(`Copied ${what}.`); changed();
     clearTimeout(S.copiedT); S.copiedT = setTimeout(changed, 1600); // the latest Copy's 1.5 s, not the first's
   }
@@ -957,10 +914,10 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     if (!p) return;
     const s = proj(p);
     switch (name) {
-      case "open": onOpen && onOpen(); return;
       case "deploy": deploy(p); return;
       case "undo": if (s.run) { s.run = null; s.form.allowApps = null; land('[data-lp="deploy"], [data-lp="again"], [data-lp="recreate"]'); announce("Deploy undone. Nothing changed."); changed(); } return;
-      case "hide": { const here = S.body?.contains(document.activeElement); onHide && onHide(); if (here) S.el.querySelector('[data-fr-fold="launch"]')?.focus({ preventScroll: true }); return; } // folded: focus on its head's fold
+      case "hide": onHide && onHide(); return;
+      case "home": if (s.editing) { s.editing = false; s.form.env = {}; S.key = ""; changed(); } return;
       case "stop": startStop(p); return;
       case "stop-undo": if (s.run) keep(p, s.run); return;
       case "cmd-copy": copied(el.dataset.v, "the command", () => {
@@ -995,7 +952,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
       case "decline-apps": s.needs = null; s.form.allowApps = null; s.run = null; S.key = ""; land('[data-lp="deploy"], [data-lp="reconnect"]'); announce("Not pushing. Nothing changed."); changed(); return;
       case "decline-repo": s.needs = null; s.form.useRepo = ""; s.run = null; S.key = ""; land('[data-lp="deploy"], [data-lp="reconnect"]'); announce("Not deploying to that repository. Nothing changed."); changed(); return;
       case "create-repo": s.check = { ...s.check, repo: { ...s.check.repo, admin: false } }; s.needs = null; s.run = null; deploy(p); return;
-      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => notify && notify(`Couldn't link it: ${err.message}`, null, "err")); changed(); return; }
+      case "link-same": { const id = s.needs?.data?.app?.id || s.run?.error?.app?.id; s.needs = null; s.run = null; land('[data-lp="deploy"], [data-lp="reconnect"]'); if (id) api.link(p, id).then((a) => { s.check = { ...s.check, state: "linked", app: a }; deploy(p, true); }).catch((err) => tell(`Couldn't link it: ${err.message}`, null, "err")); changed(); return; }
       case "env-all": { // the first of the names it shows, by name (an index into the list could miss when they interleave)
         const f = s.form, first = (s.check.env || []).find((x) => !(x.sensitive || !x.default || f.env[x.name]));
         s.envAll = true; S.key = ""; land(first ? `[data-lp-env="${CSS.escape(first.name)}"]` : ".lp-ev input"); changed(); return;
@@ -1047,15 +1004,14 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           });
         return;
       }
-      // the thread takes the place of what's shown, and focus goes to it: go() places it (on a phone, the panel goes
-      // first: app.js go(), S193)
+      // the thread takes the place of what's shown, and focus goes to it: go() closes the window and places it
       case "thread": go && go(el.dataset.go); return;
       case "fix-port": s.form.port = String(s.run.error.declared); s.run = null; deploy(p); return;
       case "use-name": s.form.name = el.dataset.v; s.form.errs = {}; S.key = ""; land('[data-lp-f="name"]'); changed(); return;
       case "recheck": s.err = null; land(AFTER); load(p, true); changed(); return; // Checking… has nothing to press: the section holds focus
     }
   }
-  let onOpen = null, onHide = null;
+  let onHide = null;
 
 
   /** More below than the section shows: its foot fades rather than ending on a cut row. */
@@ -1067,13 +1023,15 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     b.classList.toggle("is-fade", more && !b.querySelector(".lp-foot")); // a section without a foot fades at its edge
   }
 
-  function mount(section, { open, hide }) {
-    S.el = section; S.hs = section.querySelector(".lp-hs"); S.ha = section.querySelector(".lp-ha"); S.body = section.querySelector(".fr-b");
+  function mount(section, { hide }) {
+    S.el = section; S.hs = section.querySelector(".lp-hs"); S.nav = section.querySelector(".lq-nav"); S.notes = section.querySelector(".lq-notes"); S.body = section.querySelector(".fr-b");
     S.body.addEventListener("scroll", over, { passive: true });
     pointerFollows(S.body); // the ⋯ menu: the item under the mouse is the active one (C058)
     addEventListener("resize", over);
-    onOpen = open; onHide = hide;
+    onHide = hide;
     section.addEventListener("click", (e) => {
+      const u = e.target.closest("[data-lq-undo]");
+      if (u) { const mid = u.closest("[data-mid]")?.dataset.mid, n = N.get(mid); if (n) { drop(mid); drawNotes(); n.line.undo(); } return; }
       const b = e.target.closest("[data-lp]");
       if (!b || !section.contains(b)) { if (!e.target.closest(".lp-mw")) { const p = projectOf(S.v); if (p && proj(p).menu) menu(p, false); } return; }
       e.preventDefault();
@@ -1112,13 +1070,12 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         }
       }
     });
-    // Esc in the ⋯ menu closes the menu, not the panel: heard before the panel's own Esc (stage.js listens in its
-    // capture phase), so only from the document's
+    // Esc in the ⋯ menu or an open list closes that, not the window: heard first, in the document's capture phase
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape" || !S.body) return;
-      const x = e.target.closest?.(".fr-lp xo-select.is-open");
+      const x = e.target.closest?.(".lq xo-select.is-open");
       if (x) { e.preventDefault(); e.stopPropagation(); x.close(true); return; } // the list closes, focus stays on Size
-      if (!e.target.closest?.(".fr-lp .lp-mw")) return;
+      if (!e.target.closest?.(".lq .lp-mw")) return;
       const p = projectOf(S.v);
       if (!p || !proj(p).menu) return;
       e.preventDefault(); e.stopPropagation();
@@ -1135,8 +1092,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   return {
     mount, paint,
-    /** The panel closed: what was typed in the section goes with it. */
-    away() { if (S.shown) forget(S.shown); S.shown = null; },
+    /** The window closed: what was typed in it goes with it; its notices go to the page's line. */
+    away() { if (S.shown) forget(S.shown); handOver(); S.shown = null; },
     /** Does this view's project get a Launchpad section (and the header's Deploy)? Unknown counts as yes. */
     has(v) {
       const p = projectOf(v);
@@ -1150,17 +1107,35 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     inspect(v) { const p = projectOf(v); if (!p) return null; const s = proj(p); return { screen: screen(p), err: s.err ? String(s.err.message || s.err) : null, ghErr: s.ghErr || null, workflow: s.check?.github?.workflow ?? null, pre: s.pre }; },
     /** Redraws that took the focused control away with no place named for focus (each one is a bug). */
     lostFocus: () => S.lost.slice(),
+    /** Press one of the open window's own buttons by its action, as a click would (the page's fixes). */
+    press(name) { const b = S.body?.querySelector(`[data-lp="${name}"]`); if (b) act(name, b); },
+    /** Every project's deploy at a glance, for the Launchpad page: each read once in a while, unknown ones left out. */
+    overview(ps) {
+      return ps.map((p) => {
+        load(p);
+        const s = P.get(p), c = s?.check;
+        if (!c || c.state === "not-deployable") return null;
+        const sc = screen(p), sm = summary(p), r = s.run, app = r?.live || c.app, e = r?.error;
+        const ran = r && !r.live && r.steps;
+        const steps = ran ? NODES.map((n) => r.steps[n]?.state || "") : app ? ["done", "done", "done", { go: "done", work: "doing", stop: "failed" }[sm.tone] || ""] : ["", "", "", ""];
+        const port = e && e.code === "health_check_failed" && e.declared && e.declared !== e.port;
+        const why = port ? `Nothing answered on port ${e.port}; the image listens on ${e.declared}.${e.last ? ` Release #${e.last} keeps serving.` : ""}` : e ? e.message || e.text || failWords(e) : sm.tone === "stop" ? "Its instances aren't answering." : "";
+        return { p, name: app?.name || s.form?.name || nameOf(p), kind: app || r ? "app" : sc === "needs" || sc === "getting" ? "needs" : "ready",
+          tone: sm.tone, words: sm.words, at: sm.at || app?.at || 0, host: app?.host || "", url: app?.url || "", steps, log: e?.url || "",
+          need: sm.tone === "stop" || sm.tone === "need" ? { why, act: port ? "fix-port" : "", label: port ? `Use port ${e.declared}` : "" } : null };
+      }).filter(Boolean);
+    },
     /** Read what Space says about the view's project, once in a while. */
     ensure(v) { const p = projectOf(v); if (p) load(p); },
-    /** The header's Deploy: what the project's deploy is doing, at a glance; it opens the panel's section. */
+    /** The header's Deploy: what the project's deploy is doing, at a glance; it opens the window. */
     button(v, open) {
       const p = projectOf(v);
       if (!p || !this.has(v)) return "";
       const sm = P.get(p)?.check ? summary(p) : { tone: "", words: "" };
       const busy = sm.tone === "work";
       const label = busy ? "Deploying" : "Deploy";
-      const tip = sm.tone === "go" ? `Live at ${sm.host}` : sm.tone === "stop" ? `${sm.words}: open Launchpad in the panel` : sm.tone === "need" ? "Launchpad waits for you" : busy ? `${sm.words} on Launchpad` : "Deploy on Launchpad";
-      return `<button type="button" class="tw-act lp-btn${sm.tone ? ` t-${sm.tone}` : ""}${open ? " is-on" : ""}" data-lp-open aria-pressed="${!!open}" aria-controls="stage" title="${esc(tip)}">${busy ? '<i class="lp-arc" aria-hidden="true"></i>' : LP_ICON.rocket}<span>${label}</span></button>`;
+      const tip = sm.tone === "go" ? `Live at ${sm.host}` : sm.tone === "stop" ? `${sm.words}: open Launchpad` : sm.tone === "need" ? "Launchpad waits for you" : busy ? `${sm.words} on Launchpad` : "Deploy on Launchpad";
+      return `<button type="button" class="tw-act lp-btn${sm.tone ? ` t-${sm.tone}` : ""}${open ? " is-on" : ""}" data-lp-open aria-pressed="${!!open}" aria-haspopup="dialog" title="${esc(tip)}">${busy ? '<i class="lp-arc" aria-hidden="true"></i>' : LP_ICON.rocket}<span>${label}</span></button>`;
     },
   };
 }

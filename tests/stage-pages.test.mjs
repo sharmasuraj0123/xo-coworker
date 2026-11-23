@@ -37,7 +37,7 @@ assert.match(css, /\.stage\.is-covered \.stg-frames\{visibility:hidden;content-v
 assert.match(css, /\.stg-body\{flex:1;min-height:0;display:grid;grid-template:minmax\(0,1fr\)\/minmax\(0,1fr\)\}/);
 
 // under a page the sections aren't redrawn (they are when they show again)
-assert.match(stage, /if \(!S\.lp && !covered\) set\("agents"/);
+assert.match(stage, /if \(!covered\) set\("agents"/);
 
 // the panel's own attribute: never [data-page], which is Settings' (its tabs hid the panel: the owner's gap, 20 Nov)
 assert.match(stage, /if \(S\.page\) el\.dataset\.stgPage = S\.page\.name; else delete el\.dataset\.stgPage;/);

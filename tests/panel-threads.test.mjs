@@ -24,8 +24,8 @@ assert.match(stage, /const FR_KEY = "xo-stage-frames-3"/, "fresh frame state, so
 assert.match(map, /mode: "graph",/);
 assert.match(map, /getItem\(MODE_KEY\) === "tree"\) M\.mode = "tree"/);
 
-// Launchpad: only while open
-assert.match(stage, /const lpOn = lpCan && S\.lp;\n\s*LPF\.hidden = !lpOn;/);
+// Launchpad: in its own window, never a frame of the panel
+assert.doesNotMatch(stage, /fr-lp|LPF/);
 
 // one vocabulary: the four words, and how a thread gets one
 assert.match(app, /const STATE_WORDS = \{ needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" \}/);
@@ -45,7 +45,7 @@ assert.match(app, /class="tw-act th-ctl" data-stage-open aria-controls="stage" t
 assert.match(app, /\$\{ICON\.threadOne\}<span class="th-w">Threads<\/span><span class="th-n">\$\{n\}<\/span>\$\{live\}/);
 assert.match(app, /\$\{stateMark\("working"\)\}<span class="pj-k">\$\{by\.working\}/);
 assert.match(app, /\$\{stateMark\("needs_reply"\)\}<span class="pj-k">\$\{by\.needs\}/);
-assert.match(app, /\(pv \? S\.hdrCtl \+ LP\.button\(v, STAGE\.launchOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
+assert.match(app, /\(pv \? S\.hdrCtl \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
 assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
 const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 const th = appCss.slice(appCss.indexOf("── The project header's Threads control"));
@@ -58,7 +58,7 @@ assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) S
 // on its first thread and its head glows (the owner, 19 Nov 14:50Z: "clicking on threads doesn't do anything")
 const stg = readFileSync(new URL("../js/stage.js", import.meta.url), "utf8");
 const thFn = stg.slice(stg.indexOf("    threads() {"), stg.indexOf("    },", stg.indexOf("    threads() {")));
-assert.match(thFn, /if \(S\.page\) dropPages\(\);\s*S\.lp = false; fr\.agents\.folded = false;\s*open\(\{ focus: false \}\);/);
+assert.match(thFn, /if \(S\.page\) dropPages\(\);\s*fr\.agents\.folded = false;\s*open\(\{ focus: false \}\);/);
 assert.match(thFn, /\(b\.querySelector\("\.tg-box \[data-go\]"\) \|\| el\.querySelector\('\[data-fr-fold="agents"\]'\)\)\?\.focus/);
 assert.match(thFn, /f\.classList\.add\("is-flash"\)/);
 

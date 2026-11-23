@@ -74,7 +74,6 @@ const OWN = {
   ".b-hold": () => /\.hold-fill\{[^}]*transform:scaleX\(var\(--p,0\)\)[^}]*background:color-mix\(in srgb,var\(--err\) 38%/.test(all) && !/\.b-hold\.(is-holding|tense)\{[^}]*box-shadow/.test(all),
   ".theme": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 28%/.test(fnd),
   ".switch": () => /:where\(\.theme,\.switch\):where\(:active:not\([^)]*\)\) \.th-track\{background-image/.test(fnd),
-  ".lp-go": () => /\.lp-go:active\{[^}]*background:var\(--lit-press\)/.test(all),
   ".tw-act.lp-btn": () => /\.tw-act\.lp-btn:active,\.tw-act\.lp-btn\.is-on\{background:var\(--ok-fill-press\)\}/.test(all),
   ".lk:not(.lk-in)": () => /\.lk-out:active\{opacity:\.7\}/.test(all), // the links in text: .lk-out (.lk-in, a token, takes the layer)
   ":is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all)": () => DIM === ".vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all",

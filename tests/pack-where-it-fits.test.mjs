@@ -65,7 +65,7 @@ await t("Shells is its icon and count, named for a screen reader", () => {
 });
 await t("panel heads lead with their place's icon; Map's switch is its two icons", () => {
   const st = read("js/stage.js");
-  assert.match(st, /const FRAME_IC = \{ launch: "deploy", agents: "threads", changes: "changes", map: "map" \};/);
+  assert.match(st, /const FRAME_IC = \{ agents: "threads", changes: "changes", map: "map" \};/);
   assert.match(st, /\$\{xi\(FRAME_IC\[id\], "fr-ic"\)\}\$\{title\}/);
   assert.match(st, /data-map-mode="tree" title="Diagram" aria-label="Diagram">\$\{ICON\.map\}/);
   assert.match(st, /data-map-mode="graph" title="Graph" aria-label="Graph">\$\{ICON\.graph\}/);
@@ -101,7 +101,7 @@ await t("the exact pack icon for a download, a new tab, an undo, made code, link
   const v = read("js/viewer.js");
   assert.equal(v.match(/\$\{ICON\.download\}<span>Download<\/span>/g).length, 2);
   assert.match(v, /\$\{ICON\.out\}<span>Open in a new tab<\/span>/);
-  assert.match(read("js/launchpad.js"), /\$\{ICON\.undo\}<span>Undo<\/span>/);
+  assert.match(read("js/launchpad.js"), /btn\("undo", "Undo", ICON\.undo\)/);
   assert.match(read("js/recordview.js"), /data: ICON\.table, code: ICON\.code, link: ICON\.link,/);
   assert.match(read("js/runsview.js"), /title="What its sub-agents did">\$\{ICON\.agent\}/);
 });

@@ -60,6 +60,7 @@
         <button type="button" class="nrow" data-go="chats" id="nv-chats"><span class="nr-ic" id="ic-chats"></span><span class="nr-name">Chats</span></button>
         <!-- Artifacts (js/recordview.js): everything threads made, across projects, a place of its own -->
         <button type="button" class="nrow" data-go="artifacts" id="nv-arts"><span class="nr-ic" id="ic-arts"></span><span class="nr-name">Artifacts</span><span class="nr-q" id="arts-n"></span></button>
+        <button type="button" class="nrow" data-go="launchpad" id="nv-lp" hidden><span class="nr-ic" id="ic-lp"></span><span class="nr-name">Launchpad</span></button>
         <!-- the places you keep, in your order (Edit the sidebar…, in More), then More: where the rest wait, so this list
              never outgrows a screen -->
         <button type="button" class="nrow" id="nv-more" aria-haspopup="menu" aria-expanded="false" aria-controls="side-more"><span class="nr-ic" id="ic-more"></span><span class="nr-name">More</span></button>
@@ -92,6 +93,7 @@
 
       <!-- Artifacts: everything threads made, across projects (js/recordview.js) -->
       <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
+      <section class="lpp" id="lpp" aria-labelledby="lpp-h" tabindex="-1" hidden></section>
 
       <!-- A conversation: the Workspace, a project, or a thread -->
       <section class="conv" id="conv" hidden>

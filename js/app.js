@@ -40,6 +40,8 @@ import { createViewer } from "./viewer.js";
 import { createMap } from "./map.js";
 import { createStage } from "./stage.js";
 import { createLaunchpad } from "./launchpad.js";
+import { createLpWindow } from "./lpwindow.js";
+import { createLpPage } from "./lppage.js";
 import { createLpApi } from "./lpapi.js";
 import { createFiles, fileScope, localIn, scopeOf as filesScopeOf } from "./files.js";
 import { createPaths } from "./paths.js";
@@ -384,12 +386,12 @@ const MAP = createMap({ world, viewer: VW, go: (v) => go(v, { panel: true }), an
 // Files: the project's files, and the one place a file opens (js/files.js, design-research/13)
 const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
 // Files is a page of the panel (js/filespage.js); otherwise the panel is a stack of frames: Threads · Changes · Map
-// Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread; its section tops the panel
+// Launchpad (js/launchpad.js): Deploy in the header row of a project and a thread opens it in its window (js/lpwindow.js)
 const lpProject = (v) => (v && v.startsWith("p:") ? v.slice(2) : v && v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
 // the thread "Ask an agent" started: by its id when Launchpad has it (whatever its title, past older threads of the
 // same title; resolved reads as done); without one, discovered by xo-space's title "Deploy to Launchpad", while open
 const lpThread = (p, id) => { const t = id ? world.thread(id) : world.state.threads.find((x) => x.project === p && /^deploy to launchpad/i.test(x.title || "") && x.state !== "resolved"); return t && t.project === p ? { thread: t.id, title: t.title, since: t.createdAt, busy: isBusy(t), held: isHeld(t) ? heldShort(t.held) : null, done: t.state === "done" || t.state === "resolved" } : null; };
-const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => go(v, { panel: true }), announce, onChange: () => schedule(),
+const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (p) => PROJ(p), findThread: lpThread, go: (v) => { LW.close(); go(v); }, announce, onChange: () => schedule(),
   // Launchpad's own Undo names where focus goes (Stop, the header's Deploy, the page's work): ownFocus
   // and its kind: a failure ("err") reads as every failure notice here does (kind "stopped": the error's mark and
   // ink), never with the success check (Launchpad grader on 842a6d1: "Couldn't unlink" showed a green check)
@@ -398,9 +400,14 @@ const LP = createLaunchpad({ api: createLpApi(), projectOf: lpProject, nameOf: (
   // the owner's choice B): its Undo's deadline is the action's own (l.until), so it can't outlive what it undoes
   notice: (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); },
   unnotice: (mid) => heraldDrop(mid) });
+const LW = createLpWindow({ launch: LP, projectOf: lpProject, nameOf: (p) => PROJ(p), iconOf: (p) => (p ? projectIcon(p) : ""), allApps: () => go("launchpad"), onChange: () => schedule() });
+const LPP = createLpPage({ el: $("#lpp"), launch: LP, projects: () => projects().map((p) => p.id), iconOf: (p) => projectIcon(p), open: (v, from) => LW.open(v, from), press: (name) => LW.press(name) });
+// the places that are a page of their own rather than a conversation, each its own section
+const PAGE_OF = { home: "#home", artifacts: "#arts", launchpad: "#lpp" };
+const pageEl = (v) => (PAGE_OF[v] ? $(PAGE_OF[v]) : null);
 // the panel is a project's: its chat, the Workspace's, and their threads; Home, Chats, Artifacts and the rest have none
 const panelPlace = (v) => /^(?:ws$|[pt]:)/.test(v || "");
-const STAGE = createStage({ place: panelPlace, map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), launch: LP, threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
+const STAGE = createStage({ place: panelPlace, map: MAP, files: FILES, changes: CHG, openFiles: () => FP.show({ focus: true }), viewer: VW, view: () => S.view, go: (v, e) => openFromPanel(v, e), announce, onChange: () => schedule(), frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), threads: (v) => panelThreads(v), shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e) });
 // Files, a page of the panel (js/filespage.js; the owner, 19 Nov 14:57Z): the tree and the file open beside the chat,
 // which never moves
 const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: () => S.view, announce });
@@ -530,10 +537,11 @@ function sideRender(needs) {
   $("#nv-ws").classList.toggle("is-on", S.view === "ws");
   $("#nv-chats").classList.toggle("is-on", CH.isChats(S.view));
   $("#nv-arts").classList.toggle("is-on", S.view === "artifacts");
+  $("#nv-lp").classList.toggle("is-on", S.view === "launchpad");
   // the Artifacts row's count is quiet: a number, never a signal
   { const n = REC.artifacts.count(); const t = n ? String(n) : ""; if ($("#arts-n").textContent !== t) $("#arts-n").textContent = t; $("#nv-arts").setAttribute("aria-label", n ? `Artifacts, ${n}` : "Artifacts"); }
   // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
-  for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts"), $("#nv-lp")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   const now = Date.now();
   const rows = projects().map((p) => {
     const on = S.view === "p:" + p.id || convThread(S.view)?.project === p.id;
@@ -1395,7 +1403,7 @@ function topRender(needs) {
       `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id && S.tMenuIn !== "page"}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
       (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
     // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
-    const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, STAGE.launchOpen)}${STAGE.button(v)}</span>`;
+    const allActs = acts ? acts.replace(/<\/span>$/, `${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`;
     who = `${title}${label}<span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
@@ -1406,7 +1414,7 @@ function topRender(needs) {
   // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
   // closing All finds it to return to (Astra H30)
   const pv = v.startsWith("p:");
-  const endHtml = t ? end : end + (pv ? S.hdrCtl + LP.button(v, STAGE.launchOpen) : "") + STAGE.button(v);
+  const endHtml = t ? end : end + (pv ? S.hdrCtl + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
   if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
   LP.ensure(v);
   checklistRender(needs);
@@ -2927,10 +2935,10 @@ function render() {
   pings(needs);
   const v = S.view;
   const isHome = v === "home";
-  const isArts = v === "artifacts";
+  const isArts = v === "artifacts", isLp = v === "launchpad", isPage = !!PAGE_OF[v];
   // written only when they change: every write is a mutation other layers react to. data-conv names the
   // conversation itself (its id), so nothing has to infer "a new conversation opened" from what's on screen
-  const appEl = $("#app"), kind = isHome ? "home" : isArts ? "artifacts" : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
+  const appEl = $("#app"), kind = isPage ? v : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
   if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
   if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
   dockAtTop(v === "chats");
@@ -2938,14 +2946,14 @@ function render() {
   // nothing to write to (the create-project grader on 131d146: its composer stayed, "Message undefined…")
   const gone = v.startsWith("t:") && !convThread(v);
   if (appEl.hasAttribute("data-gone") !== gone) appEl.toggleAttribute("data-gone", gone);
-  $("#home").hidden = !isHome;
-  $("#arts").hidden = !isArts;
-  $("#conv").hidden = isHome || isArts;
-  const pbt = isHome ? "Home" : isArts ? "Artifacts" : "";
+  for (const [k, sel] of Object.entries(PAGE_OF)) $(sel).hidden = k !== v;
+  $("#conv").hidden = isPage;
+  const pbt = isHome ? "Home" : isArts ? "Artifacts" : isLp ? "Launchpad" : "";
   if ($("#pb-t")._h !== pbt + v) { $("#pb-t").innerHTML = pbt ? esc(pbt) : XO; $("#pb-t")._h = pbt + v; }
   sideRender(needs);
   if (isHome) { homeRender(needs); rendered = MAIN.rendered = "home"; }
   else if (isArts) { REC.artifacts.render(); rendered = MAIN.rendered = "artifacts"; }
+  else if (isLp) { LPP.render(); rendered = MAIN.rendered = "launchpad"; }
   else {
     topRender(needs);
     wsHeadRender(needs);
@@ -2954,7 +2962,7 @@ function render() {
     // focus in the composer as it goes with its thread: to Go to Home, else the conversation, never the page
     if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
   }
-  if (!isHome && !isArts) requestAnimationFrame(() => loadAhead(MAIN));
+  if (!isPage) requestAnimationFrame(() => loadAhead(MAIN));
   if (TP.C && TP.tid && !TP.wait && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
   dockRender(needs);
   heraldRender(needs);
@@ -2969,6 +2977,7 @@ function render() {
   MAP.render(v);
   VW.notice();
   STAGE.sync();
+  LW.sync();
   FP.sync();
   const nd = needs.filter((n) => n.admitted && !n.later).length;
   document.title = Kit.titleFor(nd, "XO Space");
@@ -2979,7 +2988,7 @@ function render() {
 }
 /** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
  *  region (Home, Artifacts, else the conversation). */
-const placeRegion = () => (S.view === "home" ? $("#home") : S.view === "artifacts" ? $("#arts") : scroller);
+const placeRegion = () => pageEl(S.view) || scroller;
 /**
  * The progress line, XO's one motif, in the browser tab too. While an agent works, the mark carries the
  * latest working thread's own steps along its foot (green done, blue the step it's on, grey to do), the
@@ -3190,8 +3199,7 @@ initFollow();
 
 // ── navigation: back always returns exactly where you were ─────────────────
 function saveScroll() {
-  if (S.view === "home") S.scroll.home = $("#home").scrollTop;
-  else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
+  if (pageEl(S.view)) S.scroll[S.view] = pageEl(S.view).scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
 function go(v, { from, row = null, focus = false, carry = false, panel = false, still = false } = {}) {
@@ -3225,23 +3233,22 @@ function go(v, { from, row = null, focus = false, carry = false, panel = false, 
   S.view = v;
   follow();
   TD.key = null; tdock.innerHTML = ""; tdock._ch = "";
-  const el = v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : $("#column");
+  const el = pageEl(v) || $("#column");
   el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
   void el.offsetWidth;
   if (!still) el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : back ? "enter-l" : "enter");
   loadDraft();
   render();
-  if (v === "home") $("#home").scrollTop = S.scroll.home || 0;
-  if (v === "artifacts") $("#arts").scrollTop = S.scroll.artifacts || 0;
+  if (pageEl(v)) pageEl(v).scrollTop = S.scroll[v] || 0;
   const was = back ? S.backTo[from] : null;
   if (back) delete S.backTo[from];
   const left = was && was.view === v ? $("#msgs").querySelector(`:scope > [data-k="${CSS.escape(was.k)}"]`) : null;
   const target = left ? left.querySelector(`[data-go="${CSS.escape(from)}"]`) || left.querySelector("[data-go]") : null;
   if (focus) say.focus({ preventScroll: true });
   else if (back && target) target.focus({ preventScroll: true });
-  // the place's own reading region: Home's, Artifacts' (the conversation's scroller is hidden there), else the
+  // the place's own reading region: a page's own section (the conversation's scroller is hidden there), else the
   // conversation; never a hidden one (Astra H8: Jump → Artifacts landed on the page)
-  else if (!$("#panel").contains(document.activeElement)) (v === "home" ? $("#home") : v === "artifacts" ? $("#arts") : scroller).focus({ preventScroll: true });
+  else if (!$("#panel").contains(document.activeElement)) (pageEl(v) || scroller).focus({ preventScroll: true });
   returnPill(back && target && !focus ? target : null);
 }
 /** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's
@@ -4166,7 +4173,7 @@ function threadIc(t) {
 }
 function jumpRender() {
   const q = jq.value.trim().toLowerCase();
-  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }];
+  const all = [{ v: "home", name: "Home", sub: "Your next move", icon: ICON.home }, { v: "ws", name: "Workspace", sub: "The coordinator", icon: XO }, { v: "chats", name: "Chats", sub: "Ask anything, no project needed", icon: ICON.thread }, { v: "artifacts", name: "Artifacts", sub: "Everything your threads made", icon: ICON.stack }, { v: "launchpad", name: "Launchpad", sub: "Every project's app on the web", icon: ICON.deploy }];
   const needN = new Map();
   for (const x of D.needItems()) if (x.admitted && !x.later) needN.set(x.t.project, (needN.get(x.t.project) || 0) + 1);
   // typed for, the projects that need you come first
@@ -4184,7 +4191,7 @@ function jumpRender() {
     { name: "Keyboard shortcuts", sub: "Action", icon: ICON.sliders, run: () => openKeys() },
     { name: light ? "Dark mode" : "Light mode", sub: "Action", icon: light ? ICON.moon : ICON.sun, run: () => $("#theme").click() },
     ...(IQ.kindOf(sessionOf(S.view)) ? [{ name: "Intelligence: model and thinking", sub: "Action", icon: ICON.sliders, run: () => IQ.open(sessionOf(S.view), $("#iq")) }] : []),
-    ...(S.view !== "home" && S.view !== "artifacts" ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
+    ...(!pageEl(S.view) ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
   ].filter((x) => x.name.toLowerCase().includes(q)) : [];
   jitems = all.filter((x) => !q || (x.name + " " + x.sub).toLowerCase().includes(q)).concat(verbs, REC.jumpItems(q));
   jsel = Math.min(jsel, Math.max(0, jitems.length - 1));
@@ -4571,6 +4578,7 @@ const SIDE = {
     { id: "arts", name: "Artifacts", sel: "#nv-arts" },
   ],
   PLACES: [
+    { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
     { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
     { id: "routing", name: "Routing", ic: () => ICON.router },
     { id: "rules", name: "Rules", ic: () => ICON.rule },
@@ -4748,7 +4756,7 @@ SHAPE.synced.then(() => { SIDE.adopt(); SIDE.apply(); });
 SHAPE.onChange(() => SIDE.apply());
 
 // the Map's toggle, in every conversation's header
-document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else if (e.target.closest?.("[data-lp-open]")) STAGE.launch(); });
+document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else { const b = e.target.closest?.("[data-lp-open]"); if (b) { if (LW.isOpen) LW.close(); else LW.open(S.view, b); } } });
 
 // ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
@@ -4818,7 +4826,7 @@ function runGlobal(id) {
 // what Esc does (the top sheet, the viewer, Settings, the sidebar), then a thread's parent, then the
 // places you came through; with nothing left it lets the browser leave.
 const sheetsOpen = () => QO.isOpen || !jump.hidden || !keys.hidden || !allEl.hidden || RS.open || CREATE.isOpen() || IQ.isOpen || CH.setupOpen;
-const placeOk = (v) => v === "home" || v === "ws" || v === "chats" || v === "artifacts" || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
+const placeOk = (v) => v === "ws" || v === "chats" || !!PAGE_OF[v] || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
 function canBack() {
   return sheetsOpen() || LB.isOpen || FP.isOpen || (STAGE.isOpen && PHONE.matches) || !setEl.hidden || D.isOpen() || $("#app").classList.contains("drawer") || SH.raised || S.view !== "home" || S.trail.length > 0;
 }
@@ -4965,6 +4973,7 @@ $("#ic-home").innerHTML = ICON.home;
 $("#ic-ws").innerHTML = XO;
 $("#ic-chats").innerHTML = ICON.thread;
 $("#ic-arts").innerHTML = ICON.stack;
+$("#ic-lp").innerHTML = ICON.deploy;
 $("#ic-shells").innerHTML = ICON.shell;
 // a new chat's setup: folder, agent, model, effort, what it may do (all from the runtime's feature list)
 {
