@@ -32,7 +32,7 @@ export function madeNaming(m, max = 28) {
 
 /** @typedef {{_h?: string | null, _keys?: boolean, _scope?: string, _seeded?: boolean, _built?: boolean, _sk?: boolean}} RenderState */
 
-/** @typedef {{world: {thread: (id: string | null) => {project?: string, worktree?: string, cwd?: string} | null | undefined, project: (id: string) => unknown}, go: (view: string) => void, VW: {open: (file: {path: string, name: string, type: string, bytes: number | null, project?: string, rel?: string, why?: string}, from: Element | null) => void}, PROJ: (id: string) => string, schedule: () => void, announce: (words: string) => void, skTile: (where: boolean | "page", i?: number) => string, skBar: (w?: string, cls?: string) => string, rememberedMade: () => number | null}} MadeDeps */
+/** @typedef {{world: {thread: (id: string | null) => {project?: string, worktree?: string, cwd?: string} | null | undefined, project: (id: string) => unknown}, go: (view: string) => void, VW: {open: (file: {path: string, name: string, type: string, bytes: number | null, project?: string, rel?: string, why?: string}, from: Element | null) => void}, PROJ: (id: string) => string, schedule: () => void, announce: (words: string) => void, skTile: (where: boolean | "page", i?: number) => string, skBar: (w?: string, cls?: string) => string, rememberedMade: () => number | null | undefined}} MadeDeps */
 
 /** @param {MadeDeps} deps */
 export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, skBar, rememberedMade }) {

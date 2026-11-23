@@ -1,6 +1,7 @@
 // Files (js/files.js): which folder a view shows, and where a file the viewer opened sits in it. No network.
 //   node tests/files.test.mjs
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
@@ -77,7 +78,11 @@ globalThis.localStorage = {
   removeItem: (key) => storage.delete(key),
 };
 
-await import("../js/skeleton.js");
+const index = new URL("../index.html", import.meta.url);
+const entry = new window.DOMParser().parseFromString(readFileSync(index, "utf8"), "text/html");
+const [firstPaint, boot] = entry.querySelectorAll('script[type="module"][src]');
+assert.equal(boot?.getAttribute("src"), "./boot.js", "Home paints before the app module loads");
+await import(new URL(firstPaint.getAttribute("src"), index).href);
 t("Home paints on entry using the stored shape before the app starts", () => {
   assert.ok(document.querySelector("#home h1")?.textContent.trim());
   assert.ok(document.querySelector("#home .hm-date")?.textContent.trim());

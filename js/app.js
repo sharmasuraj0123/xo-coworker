@@ -61,7 +61,7 @@ import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { createShells } from "./shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { drawSections } from "../modules/home/sections.js";
-import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
+import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { arrive, still, EASE, MOVE } from "./motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";

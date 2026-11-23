@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 479 |
+| moved | 480 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 168 |
 | kept | 57 |
-| split | 29 |
+| split | 28 |
 
-Items inside first-party files: 2488 (moved 1463, planned 632, kept 135, split-region 130, deleted 127, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted 127, split-region 107, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -103,7 +103,7 @@ Items inside first-party files: 2488 (moved 1463, planned 632, kept 135, split-r
 | `js/shells/model.js` | 128 | moved | modules/shells/model.js |
 | `js/shells/term.js` | 205 | moved | modules/shells/term.js |
 | `js/sideorder.js` | 28 | moved | shell/sideorder.js |
-| `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
+| `js/skeleton.js` | 105 | moved | modules/home/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
 | `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
 | `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |

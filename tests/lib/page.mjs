@@ -3,4 +3,4 @@ import { readFileSync } from "node:fs";
 import { SETTINGS, OVERLAYS } from "../../shell/overlays.js";
 
 const html = readFileSync(new URL("../../index.html", import.meta.url), "utf8");
-export const pageHtml = () => html.replace("    </main>\n", `${SETTINGS}    </main>\n`).replace('  <script type="module" src="./js/skeleton.js">', `${OVERLAYS}  <script type="module" src="./js/skeleton.js">`);
+export const pageHtml = () => html.replace("    </main>\n", `${SETTINGS}    </main>\n`).replace('  <script type="module" src="./modules/home/skeleton.js">', `${OVERLAYS}  <script type="module" src="./modules/home/skeleton.js">`);

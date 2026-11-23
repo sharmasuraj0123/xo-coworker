@@ -2863,11 +2863,8 @@
    "home": "shell/sideorder.js"
   },
   "js/skeleton.js": {
-   "status": "split",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ]
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/sse.js": {
    "status": "moved",
@@ -12401,188 +12398,96 @@
    "home": "modules/shells/term.js"
   },
   "js/skeleton.js::exports::greeting": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::exports::today": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::exports::bar": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::exports::skTile": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::exports::rememberedMade": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::exports::rememberHome": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::exports::homeShell": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::functions::greeting": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::functions::skTile": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::functions::recall": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::functions::rememberedMade": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::functions::rememberHome": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::functions::homeShell": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-body": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::home": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-head": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-since": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-next": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-then": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-end": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::hm-made": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::ids::home-h": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/skeleton.js::storage::xo-home-shape": {
-   "status": "split-region",
-   "home": [
-    "modules/home/skeleton.js",
-    "core/ui/skeleton.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/skeleton.js"
   },
   "js/sse.js::exports::createParser": {
    "status": "moved",
