@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { cssNames } from "./lib/sources.mjs";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = ["../modules/files/viewer.js", "../modules/files/viewer-events.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
 const css = cssNames().map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

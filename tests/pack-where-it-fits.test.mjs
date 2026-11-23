@@ -72,7 +72,7 @@ await t("panel heads lead with their place's icon; Map's switch is its two icons
   assert.match(st, /data-map-mode="graph" title="Graph" aria-label="Graph">\$\{ICON\.graph\}/);
 });
 await t("the editor's state is the working mark, save and its key, or a check", () => {
-  const v = read("js/viewer.js");
+  const v = ["modules/files/viewer.js", "modules/files/viewer-head.js"].map(read).join("\n");
   assert.match(v, /<span class="spin" aria-hidden="true"><\/span><span class="sr-only">Saving…<\/span>/);
   assert.match(v, /\$\{xi\("save"\)\}<span class="sr-only">Unsaved<\/span>\$\{keyHtml/);
   assert.match(v, /\$\{ICON\.check\}<span class="sr-only">Saved<\/span>/);
@@ -99,7 +99,7 @@ await t("the exact pack icon for a download, a new tab, an undo, made code, link
   for (const [k, n] of [["download", "download"], ["undo", "undo"], ["table", "table"], ["code", "code"], ["link", "link"], ["agent", "agent"], ["out", "external-link"]]) assert.match(ui, new RegExp(`  ${k}: xi\\("${n}"\\),`), k);
   assert.doesNotMatch(ui, /down: xi\("arrow-down"\)/);
   assert.match(read("core/ui/lightbox.js"), /title="Download">\$\{ICON\.download\}/);
-  const v = read("js/viewer.js");
+  const v = ["modules/files/viewer.js", "modules/files/viewer-head.js"].map(read).join("\n");
   assert.equal(v.match(/\$\{ICON\.download\}<span>Download<\/span>/g).length, 2);
   assert.match(v, /\$\{ICON\.out\}<span>Open in a new tab<\/span>/);
   assert.match(read("modules/launchpad/views.js"), /btn\("undo", "Undo", ICON\.undo\)/);

@@ -67,10 +67,6 @@
   "extra": 10,
   "refs": 0
  },
- "js/viewer.js": {
-  "extra": 72,
-  "refs": 1
- },
  "css/app.css": {
   "extra": 154,
   "refs": 0

@@ -59,7 +59,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   const lp = readFileSync(new URL("../modules/launchpad/launchpad.js", import.meta.url), "utf8");
   assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.nav, nav\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
   assert.doesNotMatch(sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n"), /S\.body\.innerHTML\s*=/);
-  assert.match(src("viewer.js"), /redrawNode\(top, head\(\)\);/);
+  assert.match(readFileSync(new URL("../modules/files/viewer-head.js", import.meta.url), "utf8"), /redrawNode\(top, head\(\)\);/);
   const app = src("app.js");
   assert.match(app, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);
   assert.match(app, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);

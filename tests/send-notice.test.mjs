@@ -26,7 +26,7 @@ t("each attempt and each answer sets that notice whole: out (a Retry too), sent,
   assert.doesNotMatch(b, /\.replace\(\/\^Sending/, "never a text edit of the last notice");
 });
 t("the file actions' Tell says nothing itself before the answer (the message's notice does)", () => {
-  const v = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+  const v = readFileSync(new URL("../modules/files/viewer-events.js", import.meta.url), "utf8");
   const i = v.indexOf('e.target.closest("[data-vw-tell]")'), line = v.slice(i, v.indexOf("\n", i));
   assert.doesNotMatch(line, /Told the agent/);
 });

@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import { deferred, dom } from "./lib/dom.mjs";
 import { createViewerDiff } from "../modules/files/viewer-diff.js";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../modules/files/viewer-events.js", import.meta.url), "utf8");
 const diff = readFileSync(new URL("../modules/files/viewer-diff.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

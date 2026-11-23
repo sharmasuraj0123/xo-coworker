@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/viewer.js", import.meta.url), "utf8");
+const src = ["../modules/files/viewer.js", "../modules/files/viewer-events.js", "../modules/files/viewer-head.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
 const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

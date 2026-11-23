@@ -4439,14 +4439,9 @@
    "home": "vendor/xterm/xterm.mjs"
   },
   "js/viewer.js": {
-   "status": "split",
-   "home": [
-    "modules/files/scope.js",
-    "modules/files/version-time.js",
-    "modules/files/viewer-diff.js",
-    "js/viewer.js"
-   ],
-   "note": "The legacy viewer entry supplies the Changes renderer to the Files diff component."
+   "status": "moved",
+   "home": "modules/files/viewer.js",
+   "note": "The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle."
   },
   "js/words.js": {
    "status": "moved",
@@ -14285,125 +14280,60 @@
    "home": "modules/files/version-time.js"
   },
   "js/viewer.js::exports::createViewer": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer.js"
   },
   "js/viewer.js::functions::whenWords": {
    "status": "moved",
    "home": "modules/files/version-time.js"
   },
   "js/viewer.js::functions::createViewer": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer.js"
   },
   "js/viewer.js::ids::vw-h": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-head.js"
   },
   "js/viewer.js::routes::/api/xo-projects/<project>/file": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-reads.js"
   },
   "js/viewer.js::routes::/api/files/*": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-reads.js"
   },
   "js/viewer.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-text.js"
   },
   "js/viewer.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::outside_project": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-reads.js"
   },
   "js/viewer.js::keys::Tab": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::ArrowDown": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::ArrowUp": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::Home": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/viewer.js::keys::End": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/viewer-events.js"
   },
   "js/words.js::exports::wordsOf": {
    "status": "moved",
