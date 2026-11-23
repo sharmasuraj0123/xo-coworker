@@ -409,13 +409,16 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
         mine.map((x) => `<label class="lq-row lp-f lp-ev"><span class="lq-k lp-l lp-mono" title="${esc(x.name)}">${esc(x.name)}</span><span class="lq-v lp-v"><input class="lq-in lp-in" data-lp-env="${esc(x.name)}" type="${x.sensitive ? "password" : "text"}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${esc(editing && x.set ? "Set · leave to keep" : x.default || "Not set")}" aria-label="${esc(x.name)}"></span><span class="lq-ed" aria-hidden="true">${ICON.edit}</span></label>`).join("") +
         (rest ? `<button type="button" class="lq-row lq-more lp-a lp-more" data-lp="env-all"><span>${rest} more with example values</span>${ICON.chevron || ""}</button>` : "") +
         `</fieldset><p class="lp-lock">${ICON.lock}<span>Straight to Launchpad; XO never keeps them.</span></p>` : "") +
+      (scope ? "" : `<p class="lp-note t-need lp-gh-why">${ghWhy(c.github)}</p>`) +
       `<div class="lq-foot lp-foot">` +
       (editing ? `<button type="button" class="lq-link lp-a" data-lp="edit-cancel"><span>Cancel</span></button>`
         : `<button type="button" class="lq-link lp-a" data-lp="pick">${LP_ICON.link}<span>Link an app already on Launchpad</span></button>`) +
       `<div class="lq-acts">` + (scope
-        ? `<button type="button" class="btn lp-go${nd && lit(nd) ? " is-quiet" : " btn-pri"}" data-lp="deploy">${LP_ICON.rocket}<span>${editing ? "Deploy with these" : `Deploy ${esc(f.name || nameOf(p))}`}</span></button>`
-        : btn("reconnect", c.github.connected ? "Reconnect GitHub" : "Connect GitHub", LP_ICON.github, true)) + `</div></div>`;
+        ? `<button type="button" class="btn lp-go${nd && lit(nd) ? " is-quiet" : " btn-pri"}" data-lp="deploy"${s.pre === 1 ? ' aria-busy="true"' : ""}>${s.pre === 1 ? '<i class="spin" aria-hidden="true"></i>' : LP_ICON.rocket}<span>${editing ? "Deploy with these" : `Deploy ${esc(f.name || nameOf(p))}`}</span></button>`
+        : btn("reconnect", c.github.connected || c.github.error ? "Reconnect GitHub" : "Connect GitHub", LP_ICON.github, true)) + `</div></div>`;
   }
+  const ghWhy = (g) => (g.error === "github_token_invalid" ? "GitHub's sign-in has expired, so Launchpad can't push to deploy. Reconnect it to go on."
+    : !g.connected ? "Launchpad deploys from your repository on GitHub. Connect it to go on." : "GitHub needs the workflow permission before Launchpad can deploy. Reconnect it to grant it.");
   /** A row of the Setup group: its label, the value or field with its hint under it, and what changes it. */
   const row = (label, inner, bad = false, tag = "div", end = "") => `<${tag} class="lq-row lp-f${bad ? " is-bad" : ""}"><span class="lq-k lp-l">${label}</span>${inner}${end}</${tag}>`;
   const PEN = `<span class="lq-ed" aria-hidden="true">${ICON.edit}</span>`;
@@ -572,7 +575,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
 
   function pickHtml(p) {
     const s = proj(p), list = s.picking?.apps;
-    const wait = (w) => `<p class="lp-wait"><i class="lp-arc" aria-hidden="true"></i><span>${w}</span></p>`;
+    const wait = (w) => `<p class="lp-wait"><i class="spin" aria-hidden="true"></i><span>${w}</span></p>`;
     return top({ title: "Link an app on Launchpad", sub: `${esc(nameOf(p))} deploys to the app you pick from now on.` }) +
       (s.linking ? wait("Linking…") : !list ? wait("Reading your apps…") : !list.length ? `<p class="lp-note">No apps on Launchpad yet.</p>` :
         `<p class="lq-h">Your apps on Launchpad</p><ul class="lq-group lp-also">${list.map((a) => `<li><button type="button" class="lq-row lp-appr" data-lp="link" data-id="${esc(a.id)}"${a.linkable ? "" : ` disabled title="Not built from GitHub, so XO can't deploy to it"`}><span class="lp-t">${LP_ICON.app}</span><span class="lq-v lp-c"><b>${esc(a.name)}</b>${a.linkable ? `<small class="lp-mono">${esc(a.host)}</small>` : "<small>Not built from GitHub: XO can't deploy to it</small>"}</span><span class="lp-m">${((t, w) => eye(t === "stop" ? "stop" : t, esc(w)))(...appState(a.status))}</span></button></li>`).join("")}</ul>`) +
@@ -580,8 +583,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
   }
 
   function checkingHtml(p) {
-    return top({ words: "Checking…", title: `Checking ${esc(nameOf(p))}…`, sub: "Its repository, its port and what it needs to run." }) +
-      `<ol class="lq-track is-skel" aria-hidden="true">${"<li class=\"lq-st\"><i></i><b></b><span></span></li>".repeat(4)}</ol>`;
+    return `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"></i><span class="sr-only">Checking ${esc(nameOf(p))}…</span></div>`;
   }
 
   function bodyHtml(p) {
@@ -1111,7 +1113,7 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
     press(name) { const b = S.body?.querySelector(`[data-lp="${name}"]`); if (b) act(name, b); },
     /** Every project's deploy at a glance, for the Launchpad page: each read once in a while, unknown ones left out. */
     overview(ps) {
-      return ps.map((p) => {
+      const all = ps.map((p) => {
         load(p);
         const s = P.get(p), c = s?.check;
         if (!c || c.state === "not-deployable") return null;
@@ -1124,6 +1126,8 @@ export function createLaunchpad({ api, projectOf, nameOf = (p) => p, findThread 
           tone: sm.tone, words: sm.words, at: sm.at || app?.at || 0, host: app?.host || "", url: app?.url || "", steps, log: e?.url || "",
           need: sm.tone === "stop" || sm.tone === "need" ? { why, act: port ? "fix-port" : "", label: port ? `Use port ${e.declared}` : "" } : null };
       }).filter(Boolean);
+      all.pending = ps.filter((p) => { const s = P.get(p); return s && !s.check && !s.err; }).length;
+      return all;
     },
     /** Read what Space says about the view's project, once in a while. */
     ensure(v) { const p = projectOf(v); if (p) load(p); },
