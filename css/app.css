@@ -1292,9 +1292,9 @@ body.panel-open .app[data-view="home"] .toast-wrap{bottom:96px}
 .field{display:flex;flex-direction:column;gap:8px}
 .field>span{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .field em{font-style:normal;font-weight:var(--fw-regular);color:var(--ink-4);margin-left:4px}
-.field input,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--field-line);border-radius:var(--r);background:var(--field-bg);font-size:var(--fs-ui);line-height:var(--lh-ui);resize:vertical;transition:border-color var(--d-hover) var(--ease)}
-.field input{height:var(--h-lg)}
-.field input::placeholder,.field textarea::placeholder{color:var(--ink-5)}
+.field input,.field textarea,.lq-in{width:100%;padding:9px var(--field-px);border:1px solid var(--field-line);border-radius:var(--r);background:var(--field-bg);font-size:var(--fs-ui);line-height:var(--lh-ui);resize:vertical;transition:border-color var(--d-hover) var(--ease)}
+.field input,.lq-in{height:var(--h-lg)}
+.field input::placeholder,.field textarea::placeholder,.lq-in::placeholder{color:var(--ink-5)}
 /* A note under a field: one icon, then one line of words (an action inside reads as a link) */
 .cp-note{display:flex;align-items:flex-start;gap:8px;min-height:16px;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
 .cp-note>svg,.cp-note>.spin{flex:none;--ic:13px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2)}
