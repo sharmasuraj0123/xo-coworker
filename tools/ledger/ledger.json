@@ -9048,14 +9048,8 @@
    "home": "modules/files/scope.js"
   },
   "js/files.js::exports::newFileSay": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::exports::createFiles": {
    "status": "split-region",
@@ -9080,14 +9074,8 @@
    "home": "modules/files/scope.js"
   },
   "js/files.js::functions::newFileSay": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/files.js::functions::createFiles": {
    "status": "split-region",
@@ -14652,22 +14640,12 @@
    "home": "core/platform/clipboard.js"
   },
   "js/viewer.js::exports::RUNS": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/scope.js"
   },
   "js/viewer.js::exports::whenWords": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/version-time.js"
   },
   "js/viewer.js::exports::createViewer": {
    "status": "split-region",
@@ -14679,13 +14657,8 @@
    "note": "assign to its region's home when this file moves (see its analysis)"
   },
   "js/viewer.js::functions::whenWords": {
-   "status": "split-region",
-   "home": [
-    "modules/files/viewer",
-    "modules/files/documents (external-change intake)",
-    "modules/changes/file-diff"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/version-time.js"
   },
   "js/viewer.js::functions::createViewer": {
    "status": "split-region",

@@ -23,13 +23,12 @@ import { redraw } from "./redraw.js";
 import { api } from "../core/platform/api.js";
 import { activityOf } from "../core/services/agent-activity.js";
 import { folderOf } from "../core/services/places.js";
-import { scopeOf, fileScope, localIn } from "../modules/files/scope.js";
+import { scopeOf, fileScope, localIn, newFileSay, RUNS_SAY } from "../modules/files/scope.js";
 import { fileIcon, folderIcon } from "./fileicons.js";
 import { countsHtml } from "../core/ui/components/counts.js";
-import { RUNS } from "./viewer.js";
 import { pointerFollows } from "./keynav.js";
 
-export { scopeOf, fileScope, localIn } from "../modules/files/scope.js";
+export { scopeOf, fileScope, localIn, newFileSay } from "../modules/files/scope.js";
 
 const WIDE = 600;       // the panel's width from which tree and file sit side by side (the panel goes to 720)
 const TOUCHED = 6;      // "Touched by agents" shows at most this many
@@ -46,22 +45,6 @@ const size = (n) => (n == null ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${Mat
 const base = (p) => String(p || "").split("/").pop();
 const parentOf = (p) => { const i = p.lastIndexOf("/"); return i < 0 ? "" : p.slice(0, i); };
 const MARK_WORD = { new: "new", edited: "edited", deleted: "deleted" };
-
-const RUNS_SAY = { runs: true, words: "Runs code: Enter makes it anyway", why: "Git or an agent runs what a file here says" };
-/**
- * What a new file's name would do in folder `dir` (inside the place on screen), said under the name: {err,
- * words} when it can't be made (no name, a folder in it, a name that's there: `d` is the folder as read,
- * {files, dirs}, or null), the runs-code note when Git or an agent runs it (or Space already said so:
- * `confirm`), else null.
- */
-export function newFileSay(n, dir, d, confirm = false) {
-  if (!n) return null;
-  if (/[/\\]/.test(n)) return { err: true, words: "A name only: no folders" };
-  if (n === "." || n === ".." || n.includes("\0")) return { err: true, words: "A file can't be called that" };
-  if (d && d.files.some((x) => x.name === n)) return { err: true, words: `${n} is already here` };
-  if (d && d.dirs.some((x) => x.name === n)) return { err: true, words: `There's a folder called ${n} here` };
-  return confirm || RUNS.test(dir ? `${dir}/${n}` : n) ? RUNS_SAY : null;
-}
 
 export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null, paths = null }) {
   const F = {

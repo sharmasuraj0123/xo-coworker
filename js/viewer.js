@@ -14,6 +14,11 @@ import { countsHtml } from "../core/ui/components/counts.js";
 import { createDocs, byWords } from "../modules/files/documents.js";
 import { mount as mountEditor, prefetch as prefetchEditor } from "../modules/files/editor.js";
 import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
+import { RUNS } from "../modules/files/scope.js";
+import { whenWords } from "../modules/files/version-time.js";
+
+export { RUNS } from "../modules/files/scope.js";
+export { whenWords } from "../modules/files/version-time.js";
 
 const size = (n) => (n == null || !Number.isFinite(n) ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 const bytes = (s) => new TextEncoder().encode(s).length;
@@ -22,10 +27,6 @@ const KIND_WORD = { markdown: "Markdown", html: "HTML", text: "Text", code: "Cod
 
 const LOCK_IC = xi("lock", "", "sm");
 const BOLT_IC = xi("runs-code", "", "sm");
-// files git or an agent runs (Space confirms a save to one with a 428; the head says so before you type)
-// before Space answers with the file's place: what git or an agent runs. Case doesn't matter (Space treats
-// .GIT/ and .Claude/ as .git/ and .claude/, on any file system)
-export const RUNS = /^(?:\.git|\.claude|\.codex|\.agents)(?:\/|$)|^\.mcp\.json$/i;
 // Space's reasons a file can't be changed here, in words
 const NOT_EDITABLE = {
   read_only_place: "Read only · XO keeps this file",
@@ -43,18 +44,6 @@ const SRC_IC = ICON.code;
 const PAGE_IC = ICON.doc;
 const PREV_IC = ICON.back;
 const NEXT_IC = ICON.right;
-
-/** When, in a few words ("just now", "4 min ago", "10:42"). Pure. */
-export function whenWords(at, now = Date.now()) {
-  const t = Date.parse(at || "");
-  if (!Number.isFinite(t)) return "";
-  const s = Math.max(0, (now - t) / 1000);
-  if (s < 45) return "just now";
-  if (s < 3600) return `${Math.round(s / 60)} min ago`;
-  const d = new Date(t);
-  const same = new Date(now).toDateString() === d.toDateString();
-  return same ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : d.toLocaleDateString([], { day: "numeric", month: "short" });
-}
 
 /**
  * The viewer. ask: {target(f) → its name in words, or null when there's nowhere to send; send(f, a, b, text) → true

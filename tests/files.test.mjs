@@ -86,7 +86,13 @@ t("Home paints on entry using the stored shape before the app starts", () => {
 
 const { api } = await import("../core/platform/api.js");
 const { createFiles } = await import("../js/files.js");
-const { createViewer } = await import("../js/viewer.js");
+const { createViewer, whenWords } = await import("../js/viewer.js");
+t("The viewer describes recent versions relative to now", () => {
+  const at = "2026-11-23T20:00:00.000Z", time = Date.parse(at);
+  assert.equal(whenWords("", time), "");
+  assert.equal(whenWords(at, time + 44_000), "just now");
+  assert.equal(whenWords(at, time + 45_000), "1 min ago");
+});
 const reads = [], saves = [], versionReads = [];
 api.projectTree = async (project, path) => {
   reads.push([project, path]);
