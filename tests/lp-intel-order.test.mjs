@@ -17,7 +17,7 @@ Object.assign(globalThis, {
 globalThis.window = globalThis;
 globalThis.sessionStorage = globalThis.localStorage;
 const intel = await import("../js/intel.js");
-const src = readFileSync(new URL("../js/intel.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../modules/chats/intel.js", import.meta.url), "utf8");
 
 let passed = 0;
 const tests = [];

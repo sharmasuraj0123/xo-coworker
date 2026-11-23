@@ -7,24 +7,12 @@
   "extra": 21,
   "refs": 0
  },
- "js/chats.js": {
-  "extra": 1,
-  "refs": 0
- },
  "js/decide.js": {
   "extra": 19,
   "refs": 0
  },
  "js/files.js": {
   "extra": 66,
-  "refs": 0
- },
- "js/gestures.js": {
-  "extra": 11,
-  "refs": 0
- },
- "js/intel.js": {
-  "extra": 36,
   "refs": 0
  },
  "js/map.js": {
@@ -35,32 +23,12 @@
   "extra": 75,
   "refs": 0
  },
- "js/model.js": {
-  "extra": 5,
-  "refs": 0
- },
  "js/msgx.js": {
   "extra": 101,
   "refs": 0
  },
  "js/recordview.js": {
   "extra": 29,
-  "refs": 0
- },
- "js/runsview.js": {
-  "extra": 2,
-  "refs": 0
- },
- "js/shells/dock.js": {
-  "extra": 25,
-  "refs": 0
- },
- "js/shells/model.js": {
-  "extra": 18,
-  "refs": 0
- },
- "js/shells/term.js": {
-  "extra": 13,
   "refs": 0
  },
  "js/skeleton.js": {

@@ -1,14 +1,11 @@
 {
  "lines": {
   "js/app.js": 4395,
-  "js/chats.js": 449,
   "js/decide.js": 1101,
   "js/files.js": 940,
-  "js/intel.js": 736,
   "js/map.js": 1102,
   "js/media.js": 590,
   "js/msgx.js": 905,
-  "js/shells/dock.js": 704,
   "js/timeline.js": 454,
   "js/viewer.js": 1138,
   "css/app.css": 3051,

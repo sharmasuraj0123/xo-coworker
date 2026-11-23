@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 461 |
+| moved | 471 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 181 |
+| planned | 172 |
 | kept | 56 |
-| split | 35 |
+| split | 34 |
 
-Items inside first-party files: 2488 (moved 1050, planned 758, split-region 389, kept 168, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -38,7 +38,7 @@ Items inside first-party files: 2488 (moved 1050, planned 758, split-region 389,
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |
 | `js/changesframe.js` | 323 | moved | modules/changes/frame.js · next: countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
-| `js/chats.js` | 523 | planned | modules/chats/ |
+| `js/chats.js` | 523 | moved | modules/chats/chats.js |
 | `js/comms.js` | 173 | moved | core/services/comms.js |
 | `js/content.js` | 70 | moved | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |
@@ -56,14 +56,14 @@ Items inside first-party files: 2488 (moved 1050, planned 758, split-region 389,
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
-| `js/gestures.js` | 453 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
-| `js/ghpage.js` | 241 | planned | modules/github/page.js |
+| `js/gestures.js` | 453 | moved | shell/gestures.js · next: the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor |
+| `js/ghpage.js` | 241 | moved | modules/github/page.js |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js · next: js/highlight.js re-exports it until the shims go |
 | `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/icon.js` | 30 | moved | core/ui/icons/icon.js · next: js/icon.js re-exports core/ui/icons/icon.js until the shims go |
 | `js/imagechange.js` | 120 | moved | modules/changes/imagechange.js · next: js/imagechange.js re-exports modules/changes/imagechange.js until the shell renders panel.frame from places and the shims go |
-| `js/intel.js` | 749 | planned | modules/intelligence/ |
+| `js/intel.js` | 749 | moved | modules/chats/intel.js |
 | `js/keynav.js` | 118 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
 | `js/keys.js` | 182 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
 | `js/kit.js` | 265 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
@@ -77,7 +77,7 @@ Items inside first-party files: 2488 (moved 1050, planned 758, split-region 389,
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 612 | split | modules/conversation/media/, core/ui/media (layout) |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
-| `js/model.js` | 34 | planned | modules/threads/checklist.js |
+| `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
 | `js/msgx.js` | 918 | split | modules/conversation/decorate.js, modules/conversation/working.js, modules/conversation/actions.js, modules/conversation/gestures.js, modules/conversation/latest-button.js, modules/composer (reply chip, quote) |
 | `js/pacing.js` | 67 | moved | modules/decisions/pacing.js |
@@ -94,15 +94,15 @@ Items inside first-party files: 2488 (moved 1050, planned 758, split-region 389,
 | `js/rich.js` | 282 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
-| `js/runsview.js` | 168 | planned | modules/threads/runs/ |
+| `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
 | `js/shape.js` | 731 | moved | core/services/shape/ · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
-| `js/shells/dock.js` | 704 | planned | modules/shells/dock.js |
-| `js/shells/model.js` | 128 | planned | modules/shells/model.js |
-| `js/shells/term.js` | 205 | planned | modules/shells/term.js |
-| `js/sideorder.js` | 28 | planned | shell/rail/order.js |
+| `js/shells/dock.js` | 704 | moved | modules/shells/dock.js |
+| `js/shells/model.js` | 128 | moved | modules/shells/model.js |
+| `js/shells/term.js` | 205 | moved | modules/shells/term.js |
+| `js/sideorder.js` | 28 | moved | shell/sideorder.js |
 | `js/skeleton.js` | 105 | split | modules/home/skeleton.js, core/ui/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
 | `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |

@@ -2518,8 +2518,8 @@
    "note": "js/chart.js re-exports it until the shims go"
   },
   "js/chats.js": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/comms.js": {
    "status": "moved",
@@ -2607,15 +2607,12 @@
    "note": "every importer points at core/platform/fuzzy.js, so it leaves with no re-export"
   },
   "js/gestures.js": {
-   "status": "split",
-   "home": [
-    "core/platform/gestures.js",
-    "shell (the app's gestures: wireGestures, dockGestures, long press)"
-   ],
-   "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
+   "status": "moved",
+   "home": "shell/gestures.js",
+   "note": "the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor"
   },
   "js/ghpage.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/github/page.js"
   },
   "js/herald.js": {
@@ -2644,8 +2641,8 @@
    "note": "js/imagechange.js re-exports modules/changes/imagechange.js until the shell renders panel.frame from places and the shims go"
   },
   "js/intel.js": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/keynav.js": {
    "status": "moved",
@@ -2739,8 +2736,8 @@
    "note": "every importer points at core/platform/diff.js, so it leaves with no re-export"
   },
   "js/model.js": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/motion.js": {
    "status": "moved",
@@ -2832,8 +2829,8 @@
    "note": "the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section"
   },
   "js/runsview.js": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runtimes.js": {
    "status": "moved",
@@ -2861,20 +2858,20 @@
    "note": "whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later"
   },
   "js/shells/dock.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/model.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/term.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/sideorder.js": {
-   "status": "planned",
-   "home": "shell/rail/order.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/skeleton.js": {
    "status": "split",
@@ -8575,40 +8572,40 @@
    "home": "core/ui/markdown/chart.js"
   },
   "js/chats.js::exports::createChats": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::functions::createChats": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::ids::conv-title": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::ids::cs-pop": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::chc-h": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::storage::cv-chat-prefs": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::keys::would_stop_runs": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::keys::auth_required": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/chats.js::keys::timeout": {
-   "status": "planned",
-   "home": "modules/chats/"
+   "status": "moved",
+   "home": "modules/chats/chats.js"
   },
   "js/comms.js::exports::nameWith": {
    "status": "moved",
@@ -9662,16 +9659,16 @@
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::dockGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::exports::wireGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::exports::copyText": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "core/platform/clipboard.js"
   },
   "js/gestures.js::functions::tick": {
    "status": "moved",
@@ -9702,28 +9699,28 @@
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::dockGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::functions::wireGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::functions::longPress": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::ids::msgs": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::ids::scroller": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::keys::Escape": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::custom_events::xo:gesture": {
    "status": "moved",
@@ -9842,84 +9839,84 @@
    "home": "modules/changes/imagechange.js"
   },
   "js/intel.js::exports::sessionOrder": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/session-order.js"
   },
   "js/intel.js::exports::createIntel": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::functions::sessionOrder": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/session-order.js"
   },
   "js/intel.js::functions::createIntel": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::ids::iq-pop": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::ids::iq-rt-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-hh": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-mv-cons": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-m-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-e-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-ro-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::keys::still_busy": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::keys::timeout": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::keys::Tab": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys:: ": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::Enter": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowLeft": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowRight": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowDown": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowUp": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/keynav.js::exports::usable": {
    "status": "moved",
@@ -11461,20 +11458,20 @@
    "home": "core/platform/diff.js"
   },
   "js/model.js::exports::parseChecklist": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/model.js::exports::tasksOf": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/model.js::functions::parseChecklist": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/model.js::functions::tasksOf": {
-   "status": "planned",
-   "home": "modules/threads/checklist.js"
+   "status": "moved",
+   "home": "core/services/world/checklist.js"
   },
   "js/motion.js::exports::EASE": {
    "status": "moved",
@@ -12785,72 +12782,72 @@
    "home": "modules/runtimes/settings.js"
   },
   "js/runsview.js::exports::runsStripHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::runsListHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::saidHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::stopsHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::pathHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "absent from the release catch-up base"
   },
   "js/runsview.js::exports::transcriptHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::runViewHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::runsStripHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::rowHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "replaced by agentHtml and cmdHtml in the release catch-up base"
   },
   "js/runsview.js::functions::runsListHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::saidHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::stopsHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::pathHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "absent from the release catch-up base"
   },
   "js/runsview.js::functions::transcriptHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::runViewHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::ids::runs-h": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "absent from the release catch-up base"
   },
   "js/runsview.js::keys::run:${r.id}": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runtimes.js::exports::rtName": {
    "status": "moved",
@@ -13238,163 +13235,163 @@
    "home": "modules/settings/shape-page.js"
   },
   "js/shells/dock.js::exports::createShells": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::functions::createShells": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::ids::shd": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::ids::nv-shells": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/dock.js"
   },
   "js/shells/dock.js::ids::app": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-view.js"
   },
   "js/shells/dock.js::keys::Enter": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::Escape": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::Home": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::End": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::ArrowRight": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/dock.js::keys::ArrowUp": {
-   "status": "planned",
-   "home": "modules/shells/dock.js"
+   "status": "moved",
+   "home": "modules/shells/dock-input.js"
   },
   "js/shells/model.js::exports::busyWith": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::isRunning": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::isDetached": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::span": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::whereOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::stateLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::dotOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::runningOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::listRows": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::cleanName": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::nameFor": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::HIGH": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::LOW": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::createFlow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::backoff": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::exports::closeMeaning": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::span": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::whereOf": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::stateLine": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::listRows": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::cleanName": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::createFlow": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/model.js::functions::closeMeaning": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/model.js"
   },
   "js/shells/term.js::exports::themeFromCss": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::exports::mountShell": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::functions::themeFromCss": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::functions::mountShell": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::keys::signed_out": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/shells/term.js::keys::not_local": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/shells/term.js"
   },
   "js/skeleton.js::exports::greeting": {
@@ -17298,20 +17295,20 @@
    "home": "js/cardparts.js"
   },
   "js/chats.js::ids::cs-agent-l": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::cs-model-l": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::cs-e-l": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/chats.js::ids::cs-hh": {
-   "status": "kept",
-   "home": "js/chats.js"
+   "status": "moved",
+   "home": "modules/chats/setup.js"
   },
   "js/flavours.js::exports::STONE": {
    "status": "kept",
@@ -17326,72 +17323,72 @@
    "home": "modules/conversation/follow.js"
   },
   "js/gestures.js::exports::conversationGestures": {
-   "status": "kept",
-   "home": "js/gestures.js"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::functions::conversationGestures": {
-   "status": "kept",
-   "home": "js/gestures.js"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/ghpage.js::exports::since": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::longAgo": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::issueOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::prOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::issueRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::prRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::createGhPage": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::since": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::longAgo": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::person": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::issueOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::prOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::issueRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::prRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::createGhPage": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/icon.js::exports::stateMark": {
    "status": "moved",
@@ -17402,12 +17399,12 @@
    "home": "core/ui/icons/icon.js"
   },
   "js/intel.js::exports::EFFORT_WORD": {
-   "status": "kept",
-   "home": "js/intel.js"
+   "status": "moved",
+   "home": "modules/chats/effort.js"
   },
   "js/intel.js::exports::EFFORT_HINT": {
-   "status": "kept",
-   "home": "js/intel.js"
+   "status": "moved",
+   "home": "modules/chats/effort.js"
   },
   "js/keynav.js::exports::focusOpened": {
    "status": "moved",
@@ -17458,36 +17455,36 @@
    "home": "core/services/git-state.js"
   },
   "js/runsview.js::functions::stopHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::agentHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::cmdHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::cmdsHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::splitRuns": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/sideorder.js::exports::JOIN_MS": {
-   "status": "kept",
-   "home": "js/sideorder.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/sideorder.js::exports::createCalmOrder": {
-   "status": "kept",
-   "home": "js/sideorder.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/sideorder.js::functions::createCalmOrder": {
-   "status": "kept",
-   "home": "js/sideorder.js"
+   "status": "moved",
+   "home": "shell/sideorder.js"
   },
   "js/stage.js::storage::xo-stage-w2": {
    "status": "moved",
@@ -17510,24 +17507,24 @@
    "home": "js/timeline.js"
   },
   "js/turnview.js::exports::cmdIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/turnview.js::exports::stepIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/turnview.js::exports::stepLineHtml": {
    "status": "kept",
    "home": "js/turnview.js"
   },
   "js/turnview.js::functions::cmdIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/turnview.js::functions::stepIcon": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "core/services/step-icons.js"
   },
   "js/ui.js::exports::stateMark": {
    "status": "kept",

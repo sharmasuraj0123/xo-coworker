@@ -9,9 +9,12 @@
 import assert from "node:assert/strict";
 import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import { redraw } from "../core/ui/redraw.js";
+import { runsListHtml } from "../js/runsview.js";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const view = readFileSync(new URL("../js/runsview.js", import.meta.url), "utf8");
+const view = readFileSync(new URL("../modules/runs/view.js", import.meta.url), "utf8");
 const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -66,4 +69,25 @@ t("a stop on its way: its line says it's being sent, and its Stop is busy and ta
   assert.match(view, /\$\{busy \? ' aria-busy="true" aria-disabled="true"' : ""\}>\$\{ICON\.stop\}<span>\$\{busy \? "Stopping…" : "Stop"\}<\/span>/);
   assert.match(view, /out\.includes\(`all:\$\{session\}`\)/, "Stop all too");
 });
+{
+  const { document } = await dom('<section id="runs"></section>');
+  const panel = document.getElementById("runs");
+  const key = "run:agent";
+  const runs = [{ id: "agent", kind: "subagent", state: "running", title: "Read the list" }];
+  const paint = (options) => redraw(panel, runsListHtml(runs, null, { canStop: true, ...options }));
+  paint({ state: "loading" });
+  assert.match(panel.querySelector("[role=status]").textContent, /Reading its sub-agents/);
+  paint({ stops: [{ key, what: "Read the list" }] });
+  const undo = panel.querySelector("[data-runs-undo]");
+  assert.equal(undo.dataset.runsUndo, key);
+  assert.equal(undo.textContent, "Undo");
+  paint({ out: [key], saidFor: { key, kind: "halt", text: "Sending the stop…" } });
+  const run = panel.querySelector(".rn-row");
+  assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-busy"), "true");
+  assert.match(run.querySelector("[role=status]").textContent, /Sending the stop/);
+  paint({ saidFor: { key, kind: "stopped", text: "Not confirmed", sub: "Stop again if it keeps working." } });
+  assert.equal(panel.querySelector("[data-run-stop]").hasAttribute("aria-busy"), false);
+  assert.match(panel.querySelector(".rn-row [role=alert]").textContent, /Not confirmed.*Stop again/);
+}
+
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

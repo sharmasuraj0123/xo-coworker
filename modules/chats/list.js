@@ -7,7 +7,7 @@ import { rtMark } from "../../core/services/runtimes.js";
 
 const RECENT = 3;
 
-/** @typedef {{ id: string, agent?: string | null, updated_at?: string, created_at: string }} ChatRow */
+/** @typedef {import("./types").Session} ChatRow */
 
 /** @typedef {{ for?: string, until?: string }} Hold */
 

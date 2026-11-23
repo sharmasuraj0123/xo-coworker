@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("js/app.js"), msgx = read("js/msgx.js"), gest = read("js/gestures.js"), mcss = read("css/msgx.css"), acss = read("css/app.css"), pcss = read("css/panel.css");
+const app = read("js/app.js"), msgx = read("js/msgx.js"), gest = read("shell/gestures.js"), mcss = read("css/msgx.css"), acss = read("css/app.css"), pcss = read("css/panel.css");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
@@ -83,9 +83,10 @@ t("10 · a coordinator's avatar wears its own conversation's project, not the si
   assert.match(mount, /project: \(\) => convProject\(tpView\(\)\)/);
 });
 t("11 · touch: long-press Copy and a drag down that lowers the keyboard, in every conversation", () => {
-  assert.match(gest, /export function conversationGestures\(C\) \{/);
-  assert.match(gest, /conversationGestures\(\{ scroller: \$\("#scroller"\), msgs: document\.getElementById\("msgs"\), say: A\.say, toast: A\.toast \}\);/);
-  assert.doesNotMatch(fn(gest, "function longPress(A)"), /getElementById/);
+  const source = gest.replace(/\/\*\* @type \{HTMLElement\} \*\/ \((document\.getElementById\("msgs"\))\)/g, "$1");
+  assert.match(source, /export function conversationGestures\(C, wordsOf\) \{/);
+  assert.match(source, /conversationGestures\(\{ scroller: \$\("#scroller"\), msgs: document\.getElementById\("msgs"\), say: A\.say, toast: A\.toast \}, wordsOf\);/);
+  assert.doesNotMatch(fn(source, "function longPress(A, wordsOf)"), /getElementById/);
   assert.match(mount, /conversationGestures\(\{ scroller: els\.scroller, msgs: els\.msgs, say: TP\.K\.say, toast: \(text\) => toastLine\(text\) \}\);/);
   assert.match(acss, /\.composer-field>textarea\{min-height:var\(--h-touch\)\}/, "a phone's field is touch height in both");
   assert.doesNotMatch(acss, /#say\{min-height/);

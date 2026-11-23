@@ -1,11 +1,54 @@
 import assert from "node:assert/strict";
+import { dom } from "./lib/dom.mjs";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("js/app.js"), view = read("js/runsview.js"), html = read("index.html"), css = read("css/app.css");
+const app = read("js/app.js"), view = read("modules/runs/view.js"), html = read("index.html"), css = read("css/app.css");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
+
+{
+  const { document, window } = await dom('<main id="main"><div id="conv"></div></main><div id="dock"></div><div id="side"></div><div id="side-scrim"></div><div id="settings"></div><div id="viewer"></div><div id="pn-stage"></div><div id="pn-foot"></div><div id="all-list"></div><div id="scroller"><div id="msgs"></div></div><div id="runs-card"></div>');
+  globalThis.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
+  globalThis.getSelection = () => null;
+  globalThis.innerWidth = 400;
+  const { wireGestures } = await import("../js/gestures.js");
+  const conv = document.getElementById("conv"), runsCard = document.getElementById("runs-card");
+  Object.defineProperty(runsCard, "offsetWidth", { value: 400 });
+  const calls = [];
+  let runsDeep = false;
+  wireGestures({
+    view: () => "t:thread", phone: () => true, overlay: () => false,
+    back: () => calls.push("thread"), runsBack: () => calls.push("runs"),
+    runsCard, runsDeep: () => runsDeep, sheets: [],
+  });
+  const swipe = async (target, distance) => {
+    const send = (type, clientX, timeStamp) => {
+      const event = new window.Event(type, { bubbles: true, cancelable: true });
+      const touch = { identifier: 1, clientX, clientY: 30 };
+      Object.defineProperties(event, {
+        touches: { value: type === "touchend" ? [] : [touch] },
+        changedTouches: { value: [touch] },
+        timeStamp: { value: timeStamp },
+      });
+      target.dispatchEvent(event);
+    };
+    const settled = new Promise((resolve) => document.addEventListener("xo:gesture", resolve, { once: true }));
+    send("touchstart", 40, 0);
+    send("touchmove", 40 + distance, 100);
+    send("touchend", 40 + distance, 200);
+    await settled;
+  };
+  await swipe(conv, 60);
+  assert.deepEqual(calls, []);
+  await swipe(conv, 180);
+  assert.deepEqual(calls, ["thread"]);
+  runsDeep = true;
+  await swipe(runsCard, 180);
+  assert.deepEqual(calls, ["thread", "runs"]);
+  assert.equal(conv.classList.contains("is-swiped"), false);
+}
 
 t("no sheet: the page's content is built once and mounted in the panel's page box", () => {
   assert.doesNotMatch(html, /id="runs"|id="runs-card"/);

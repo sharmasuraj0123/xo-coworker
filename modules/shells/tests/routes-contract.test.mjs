@@ -1,0 +1,44 @@
+// @ts-check
+
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { api, terminalSocketUrl } from "../../../core/platform/api.js";
+
+/** @type {{ paths: Record<string, string[]> }} */
+const snapshot = JSON.parse(readFileSync(new URL("../../../core/platform/tests/fixtures/openapi-routes.json", import.meta.url), "utf8"));
+const origin = "https://xo.test/";
+
+const id = "sample-terminal";
+const session = "/api/terminal/sessions";
+const terminalTemplate = session + "/{terminal_id}";
+const terminalPath = session + "/" + id;
+
+/** @type {[method: string, template: string, path: string, call: () => Promise<unknown>][]} */
+const routes = [
+  ["GET", "/api/terminal/status", "/api/terminal/status", () => api.terminalStatus()],
+  ["GET", session, session, () => api.terminals()],
+  ["POST", session, session, () => api.openTerminal({ name: "Example" })],
+  ["GET", terminalTemplate, terminalPath, () => api.terminal(id)],
+  ["POST", terminalTemplate + "/attach", terminalPath + "/attach", () => api.attachTerminal(id)],
+  ["PATCH", terminalTemplate, terminalPath, () => api.renameTerminal(id, "Example")],
+  ["DELETE", terminalTemplate, terminalPath, () => api.closeTerminal(id)],
+  ["GET", "/api/chat/worktrees", "/api/chat/worktrees", () => api.worktrees("sample-chat")],
+];
+
+for (const [method, template, path, request] of routes) {
+  assert.ok(snapshot.paths[template]?.includes(method), `${method} ${template} is in OpenAPI`);
+  /** @type {string[][]} */
+  const requests = [];
+  globalThis.fetch = async (url, options) => {
+    requests.push([options?.method || "GET", new URL(String(url), origin).pathname]);
+    return Response.json({});
+  };
+  await request();
+  assert.deepEqual(requests, [[method, path]], `${method} ${path}`);
+}
+
+Object.defineProperty(globalThis, "location", { value: new URL(origin), configurable: true });
+const socket = new URL(terminalSocketUrl(id));
+assert.equal(socket.protocol, "wss:");
+assert.equal(socket.pathname, terminalPath + "/ws");
+assert.ok(snapshot.paths[terminalTemplate]?.includes("GET"), "the socket belongs to a terminal session in OpenAPI");
