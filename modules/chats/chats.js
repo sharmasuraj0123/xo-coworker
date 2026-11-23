@@ -285,18 +285,24 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
       if (local.body.delivery === "now") C.now = null;
       announce("Sent.");
     } catch (err) {
-      if ((/** @type {ChatSendError} */ (err)).code === "would_stop_runs") {
+      const sendError = /** @type {ChatSendError} */ (err);
+      if (sendError.code === "would_stop_runs") {
         // say what "now" would stop; resend the same request (same client_id) only if the person agrees
-        const count = Number((/** @type {ChatSendError} */ (err)).count);
+        const count = Number(sendError.count);
         C.confirm.set(sid, { local, sid, count: Number.isInteger(count) && count >= 0 ? count : 0 });
         local.status = "held";
       } else {
-        local.status = "failed"; local.errTitle = (/** @type {ChatSendError} */ (err)).code === "auth_required" ? "The agent isn't connected" : (/** @type {ChatSendError} */ (err)).code === "timeout" ? "No answer from XO" : (/** @type {ChatSendError} */ (err)).status === 501 ? "This agent can't chat yet" : (/** @type {ChatSendError} */ (err)).status === 0 || (/** @type {ChatSendError} */ (err)).status === 502 ? "Can't reach XO" : "Not sent"; local.err = (/** @type {ChatSendError} */ (err)).message;
+        local.status = "failed";
+        local.errTitle = sendError.code === "auth_required" ? "The agent isn't connected"
+          : sendError.code === "timeout" ? "No answer from XO"
+          : sendError.status === 501 ? "This agent can't chat yet"
+          : sendError.status === 0 || sendError.status === 502 ? "Can't reach XO" : "Not sent";
+        local.err = sendError.message;
         // a new chat has nowhere to show a failed message: your words go back into the composer
         if (!sid) {
           const back = restore ? restore(local.body.text) : false;
-          if (back) heraldShow({ kind: "stopped", text: local.errTitle, sub: `${(/** @type {ChatSendError} */ (err)).message} Your message is back in the box.` }, 7000);
-          else heraldShow({ kind: "stopped", text: local.errTitle, sub: (/** @type {ChatSendError} */ (err)).message, undo: () => restore && restore(local.body.text, { force: true }), undoLabel: "Put my message back" }, 12000);
+          if (back) heraldShow({ kind: "stopped", text: local.errTitle, sub: `${sendError.message} Your message is back in the box.` }, 7000);
+          else heraldShow({ kind: "stopped", text: local.errTitle, sub: sendError.message, undo: () => restore && restore(local.body.text, { force: true }), undoLabel: "Put my message back" }, 12000);
         }
       }
     }

@@ -108,10 +108,11 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
       try { tk = (await api.attachTerminal(id)).ticket; }
       catch (err) {
         if (gone) return;
-        if ((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "terminal_not_found") return end("ended", { reason: "This shell was closed." });
-        if ((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "terminal_disabled") return end("off", { reason: (/** @type {import("../../core/platform/http.js").ApiError} */ (err)).message });
-        if ((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "signed_out" || (/** @type {import("../../core/platform/http.js").ApiError} */ (err)).code === "not_local") return end("error", { reason: (/** @type {import("../../core/platform/http.js").ApiError} */ (err)).message });
-        return retry((/** @type {import("../../core/platform/http.js").ApiError} */ (err)).message);
+        const attachError = /** @type {import("../../core/platform/http.js").ApiError} */ (err);
+        if (attachError.code === "terminal_not_found") return end("ended", { reason: "This shell was closed." });
+        if (attachError.code === "terminal_disabled") return end("off", { reason: attachError.message });
+        if (attachError.code === "signed_out" || attachError.code === "not_local") return end("error", { reason: attachError.message });
+        return retry(attachError.message);
       }
     }
     if (gone) return;
