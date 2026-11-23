@@ -6,7 +6,7 @@
 export function createSettingsFrame({ el, side, phoneButton, closeButton, onPage, beforeOpen, beforeClose, onHidden, focusIn, fallback, phone }) {
   /** @type {Element | null} */
   let setReturn = null;
-  const all = (/** @type {string} */ sel) => /** @type {HTMLElement[]} */ ([...document.querySelectorAll(sel)]);
+  const all = (/** @type {string} */ sel) => /** @type {HTMLElement[]} */ ([...el.querySelectorAll(sel)]);
   /** @param {string} id */
   function setPage(id) {
     // the rail is a tablist: only the chosen tab is in the Tab order, Tab goes on into its page
