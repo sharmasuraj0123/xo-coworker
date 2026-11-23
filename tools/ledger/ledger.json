@@ -2832,8 +2832,8 @@
    "note": "the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section"
   },
   "js/runsview.js": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runtimes.js": {
    "status": "moved",
@@ -12785,72 +12785,72 @@
    "home": "modules/runtimes/settings.js"
   },
   "js/runsview.js::exports::runsStripHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::runsListHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::saidHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::stopsHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::pathHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "absent from the release catch-up base"
   },
   "js/runsview.js::exports::transcriptHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::exports::runViewHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::runsStripHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::rowHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "replaced by agentHtml and cmdHtml in the release catch-up base"
   },
   "js/runsview.js::functions::runsListHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::saidHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::stopsHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::pathHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "absent from the release catch-up base"
   },
   "js/runsview.js::functions::transcriptHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::runViewHtml": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::ids::runs-h": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "deleted",
+   "reason": "absent from the release catch-up base"
   },
   "js/runsview.js::keys::run:${r.id}": {
-   "status": "planned",
-   "home": "modules/threads/runs/"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runtimes.js::exports::rtName": {
    "status": "moved",
@@ -17458,24 +17458,24 @@
    "home": "core/services/git-state.js"
   },
   "js/runsview.js::functions::stopHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::agentHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::cmdHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::cmdsHtml": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/runsview.js::functions::splitRuns": {
-   "status": "kept",
-   "home": "js/runsview.js"
+   "status": "moved",
+   "home": "modules/runs/view.js"
   },
   "js/sideorder.js::exports::JOIN_MS": {
    "status": "moved",

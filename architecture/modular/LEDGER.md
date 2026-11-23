@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 463 |
+| moved | 464 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 179 |
+| planned | 178 |
 | kept | 56 |
 | split | 35 |
 
-Items inside first-party files: 2488 (moved 1061, planned 754, split-region 389, kept 161, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1079, planned 737, split-region 389, kept 156, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -94,7 +94,7 @@ Items inside first-party files: 2488 (moved 1061, planned 754, split-region 389,
 | `js/rich.js` | 282 | moved | core/ui/markdown/rich.js · next: js/rich.js re-exports it until the shims go |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js · next: js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
-| `js/runsview.js` | 168 | planned | modules/threads/runs/ |
+| `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
 | `js/shape.js` | 731 | moved | core/services/shape/ · next: every importer points at the new home, so it leaves with no re-export |

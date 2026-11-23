@@ -14,7 +14,7 @@ import { redraw } from "../core/ui/redraw.js";
 import { runsListHtml } from "../js/runsview.js";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const view = readFileSync(new URL("../js/runsview.js", import.meta.url), "utf8");
+const view = readFileSync(new URL("../modules/runs/view.js", import.meta.url), "utf8");
 const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

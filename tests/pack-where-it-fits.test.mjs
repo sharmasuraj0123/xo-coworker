@@ -47,7 +47,7 @@ await t("a step's icon comes from its kind, its tool's own name in any runtime, 
   ];
   for (const [r, n] of want) assert.equal(stepIcon(r), n, JSON.stringify(r));
   assert.match(tv, /<span class="tb-ri">\$\{xi\(stepIcon\(r\)\)\}<\/span>/);
-  assert.match(read("js/runsview.js"), /<span class="tb-ri">\$\{xi\(stepIcon\(\{ kind: it\.kind, tool: it\.tool, target: it\.target, line: it\.title \}\)\)\}<\/span>/);
+  assert.match(read("modules/runs/view.js"), /<span class="tb-ri">\$\{xi\(stepIcon\(\{ kind: it\.kind, tool: it\.tool, target: it\.target, line: it\.title \}\)\)\}<\/span>/);
 });
 await t("every name the rows can draw is in the pack", () => {
   const names = [...iconSrc.slice(iconSrc.indexOf("const KIND_ICON"), iconSrc.indexOf("export function stepIcon")).matchAll(/"([a-z-]+)"\]?[,\s}]/g)].map((m) => m[1]);
@@ -106,7 +106,7 @@ await t("the exact pack icon for a download, a new tab, an undo, made code, link
   assert.match(v, /\$\{ICON\.out\}<span>Open in a new tab<\/span>/);
   assert.match(read("modules/launchpad/views.js"), /btn\("undo", "Undo", ICON\.undo\)/);
   assert.match(read("modules/artifacts/cards.js"), /data: ICON\.table, code: ICON\.code, link: ICON\.link,/);
-  assert.match(read("js/runsview.js"), /title="What its sub-agents did">\$\{ICON\.agent\}/);
+  assert.match(read("modules/runs/view.js"), /title="What its sub-agents did">\$\{ICON\.agent\}/);
 });
 await t("the title bar's tile centres on the title's first line, from the line height and the tile", () => {
   const f = read("css/foundation.css");
@@ -118,7 +118,7 @@ await t("the title bar's tile centres on the title's first line, from the line h
 });
 await t("a thinking step leads with the brain, in a turn and in a sub-agent's work, and its line shows it", () => {
   assert.match(read("core/ui/icons/names.js"), /  brain: xi\("brain"\),/);
-  for (const f of ["js/turnview.js", "js/runsview.js"]) assert.match(read(f), /<span class="tb-hi">\$\{ICON\.brain\}<\/span><span class="tb-ht/, f);
+  for (const f of ["js/turnview.js", "modules/runs/view.js"]) assert.match(read(f), /<span class="tb-hi">\$\{ICON\.brain\}<\/span><span class="tb-ht/, f);
   assert.match(read("css/foundation.css"), /\.turn>\.tb:not\(\.tb-think\)>\.tb-h \.tb-hi\{display:none\}/);
 });
 await t("a running tool group leads with its running step's own icon (blue while live), never an empty arc slot", () => {
