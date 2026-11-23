@@ -2576,13 +2576,9 @@
    "note": "js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go"
   },
   "js/files.js": {
-   "status": "split",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ]
+   "status": "moved",
+   "home": "modules/files/files.js",
+   "note": "The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/."
   },
   "js/filespage.js": {
    "status": "moved",
@@ -9031,14 +9027,8 @@
    "home": "core/ui/icons/fileicons.js"
   },
   "js/files.js::exports::FILES_ICON": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::exports::scopeOf": {
    "status": "moved",
@@ -9057,14 +9047,8 @@
    "home": "modules/files/scope.js"
   },
   "js/files.js::exports::createFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::functions::scopeOf": {
    "status": "moved",
@@ -9083,158 +9067,68 @@
    "home": "modules/files/scope.js"
   },
   "js/files.js::functions::createFiles": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::ids::viewer": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::storage::xo-files-secs": {
    "status": "moved",
    "home": "modules/files/section-folds.js"
   },
   "js/files.js::keys::all": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Tab": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::ArrowDown": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::ArrowUp": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Home": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::End": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::ContextMenu": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::F10": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::F2": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Delete": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/files.js::keys::Backspace": {
-   "status": "split-region",
-   "home": [
-    "modules/files/tree",
-    "modules/files/ops",
-    "core/services/places.js",
-    "core/services/activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/files/files.js"
   },
   "js/filespage.js::exports::createFilesPage": {
    "status": "moved",

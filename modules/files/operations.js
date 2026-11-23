@@ -42,7 +42,7 @@ export function createFileOperations({ F, NW, dirs, load, paths, changes, viewer
     const dir = NW.dir;
     NW.el.remove();
     Object.assign(NW, { key: null, dir: null, el: null, busy: false, confirm: false, mode: "file", from: null });
-    if (focus) (dir ? rowOf(dir) : /** @type {HTMLElement | null} */ (F.host.querySelector("[data-fl-new]")))?.focus({ preventScroll: true });
+    if (focus) (dir ? rowOf(dir) : /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (F.host).querySelector("[data-fl-new]")))?.focus({ preventScroll: true });
   }
   function placeNew() {
     if (!NW.el) return;
@@ -97,7 +97,7 @@ export function createFileOperations({ F, NW, dirs, load, paths, changes, viewer
       if (NW.el) { paint(); return; }
       F.sel = local; F.fileView = true; F.auto = false;
       paint();
-      viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));
+      viewer.open({ path: local, name: n, bytes: 0, project: s.project, rel, created: r.edit_id || true }, /** @type {HTMLElement} */ (F.host).querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`));
     } catch (cause) {
       const err = /** @type {FileError} */ (cause);
       if (!NW.el || NW.el !== mine || F.scope.key !== s.key) return;
@@ -126,7 +126,7 @@ export function createFileOperations({ F, NW, dirs, load, paths, changes, viewer
       await load(s, parentOf(local), { again: true });
       await load(s, dir, { again: true });
       paint();
-      /** @type {unknown} */ (rowOf(local)?.focus({ preventScroll: true })) || /** @type {HTMLElement | null} */ (F.host.querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`))?.focus({ preventScroll: true });
+      /** @type {unknown} */ (rowOf(local)?.focus({ preventScroll: true })) || /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (F.host).querySelector(`.fl-g [data-fl-file="${CSS.escape(local)}"]`))?.focus({ preventScroll: true });
     } catch (cause) {
       const err = /** @type {FileError} */ (cause);
       if (NW.el !== mine) return;
@@ -163,7 +163,7 @@ export function createFileOperations({ F, NW, dirs, load, paths, changes, viewer
       /** @type {NonNullable<OperationDependencies["paths"]>} */ (paths).changed({ project: s.project, base: s.base || "" }, { kind: "delete", path: local });
       await load(s, parentOf(local), { again: true });
       paint();
-      /** @type {HTMLElement | null} */ (F.host.querySelector("[data-fl-undo]"))?.focus({ preventScroll: true });
+      /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (F.host).querySelector("[data-fl-undo]"))?.focus({ preventScroll: true });
     } catch (cause) {
       const err = /** @type {FileError} */ (cause);
       F.undo = { err: err.status === 428 ? "Git or an agent runs what's in it: delete it from a shell, or ask the agent" : err.status === 403 ? "XO keeps this: it can't be deleted here" : err.message || "Couldn't delete it", name: base(local) };

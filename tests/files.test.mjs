@@ -126,6 +126,7 @@ t("Files reads the saved project fold and writes the same key when opened", () =
   assert.equal(host.querySelector('[data-fl-sec="all"]')?.getAttribute("aria-expanded"), "false");
   click('[data-fl-sec="all"]');
   assert.equal(host.querySelector('[data-fl-sec="all"]').getAttribute("aria-expanded"), "true");
+  same(document.activeElement, host.querySelector('[data-fl-sec="all"]'));
   assert.deepEqual(JSON.parse(storage.get("xo-files-secs")), {});
 });
 const folder = '[data-fl-dir="docs"]';

@@ -13,6 +13,8 @@ import { dkey } from "./folder-reads.js";
 
 /** @import { Touch } from "./marks.js" */
 
+/** @import { FilesScope } from "./scope.js" */
+
 /** @import { TreeDependencies, TreeState, TreeContext, TreeGroup, CachedElement, ProjectScope } from "./tree-types.d.ts" */
 
 const CH = ICON.right;
@@ -169,13 +171,14 @@ export function createFilesTree({ F, M, NW, dirs, load, paths, folded, setOf, op
   /** @param {CachedElement} node @param {string} html */
   const put = (node, html) => { if (node._h !== html) { node.innerHTML = html; node._h = html; return true; } return false; };
 
-  /** @param {ProjectScope} s @param {CachedElement} tree */
-  function paintTree(s, tree) {
-    if (s.key === "all") {
+  /** @param {FilesScope} scope @param {CachedElement} tree */
+  function paintTree(scope, tree) {
+    if (scope.key === "all") {
       if (T.key !== "all") { T.key = "all"; T.groups = new Map(); T.on = null; tree._h = null; }
       put(tree, pickHtml());
       return;
     }
+    const s = /** @type {ProjectScope} */ (scope);
     if (T.key !== s.key || !tree.firstElementChild) {
       tree.innerHTML = `<div class="fl-head"></div><div class="fl-list"><div class="fl-secs"></div><div class="fl-g" data-fl-g=""></div></div>`;
       tree._h = null; T.key = s.key; T.on = null; T.q = null;

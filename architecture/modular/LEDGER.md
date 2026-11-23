@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 461 |
+| moved | 462 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 181 |
 | kept | 56 |
-| split | 35 |
+| split | 34 |
 
-Items inside first-party files: 2488 (moved 1166, planned 758, split-region 273, kept 168, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1183, planned 758, split-region 256, kept 168, deleted 122, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -50,7 +50,7 @@ Items inside first-party files: 2488 (moved 1166, planned 758, split-region 273,
 | `js/drafts.js` | 61 | moved | modules/files/drafts.js |
 | `js/dropdown.js` | 321 | moved | core/ui/components/xo-select.js · next: js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets |
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
-| `js/files.js` | 940 | split | modules/files/tree, modules/files/ops, core/services/places.js, core/services/activity.js |
+| `js/files.js` | 940 | moved | modules/files/files.js · next: The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/. |
 | `js/filespage.js` | 134 | moved | modules/files/page.js |
 | `js/flavours.js` | 20 | planned | core/ui/flavours.js |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |

@@ -9,7 +9,7 @@ interface Undo { name: string; err?: string; editId?: string; s?: FilesScope; lo
 type PathChange = { kind: "rename"; path: string; old_path: string } | { kind: "create" | "delete"; path: string };
 
 export interface OperationDependencies {
-  F: { scope: FilesScope; host: HTMLElement; q: string; sel: string | null; fileView: boolean; auto: boolean; undo: Undo | null };
+  F: { scope: FilesScope; host: HTMLElement | null; q: string; sel: string | null; fileView: boolean; auto: boolean; undo?: Undo | null };
   NW: { key: string | null; dir: string | null; el: HTMLElement | null; busy: boolean; confirm: boolean; mode: NameMode; from: string | null };
   dirs: TreeDependencies["dirs"];
   load: TreeDependencies["load"];

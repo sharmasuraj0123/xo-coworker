@@ -36,7 +36,7 @@ await t("Back is written through patch(): only when its name changes, in place",
   assert.equal((app.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
 await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new file's row are the tree's own", () => {
-  const f = src("files.js") + ["tree.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
+  const f = ["files.js", "tree.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
   const i = f.indexOf("function sync(s, local, g, ctx) {");
   const body = f.slice(i, f.indexOf("\n  }\n", i));
   assert.match(body, /redraw\(g\.el, rowsHtml\(/);
@@ -147,7 +147,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   const dir = mkdtempSync(join(tmpdir(), "files-press-"));
   try {
     // a folder laid out as the repo is: js/files.js, the pure modules it uses as they are, the rest stood in for
-    const filesSrc = src("files.js");
+    const filesSrc = readFileSync(new URL("../modules/files/files.js", import.meta.url), "utf8");
     const specs = [...filesSrc.matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((m) => m[1]);
     const STUB = {
       "focusview.js": "export const inSight = () => true; export const bringWhole = () => {};",
@@ -252,7 +252,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.ok(fh.querySelector('[data-fl-g="b/q/r"] [data-fl-file="b/q/r/s.md"]'), "the file is there to be marked");
     });
     await t("Files: an open folder that nothing has read starts its read where it's drawn, so Reading… always has a read", () => {
-      const f = readFileSync(new URL("../js/files.js", import.meta.url), "utf8");
+      const f = readFileSync(new URL("../modules/files/files.js", import.meta.url), "utf8");
       const tree = readFileSync(new URL("../modules/files/tree.js", import.meta.url), "utf8");
       const i = tree.indexOf("function sync(s, local, g, ctx) {"), body = tree.slice(i, tree.indexOf("\n  }\n", i));
       assert.match(body, /if \(!dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
