@@ -7789,12 +7789,12 @@
    "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3875)"
   },
   "js/app.js::functions::panelShell": {
-   "status": "planned",
-   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3899)"
+   "status": "moved",
+   "home": "modules/shells/panel.js"
   },
   "js/app.js::functions::openShell": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3913)"
+   "status": "moved",
+   "home": "modules/shells/panel.js"
   },
   "js/app.js::functions::openAll": {
    "status": "planned",

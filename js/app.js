@@ -74,6 +74,7 @@ import { initCreate } from "../modules/create-project/create.js";
 import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createShells } from "../modules/shells/dock.js";
+import { createShellPanel } from "../modules/shells/panel.js";
 import { createRecord } from "./recordview.js";
 import { createHomeParts } from "../modules/home/parts.js";
 import { createNextCard } from "../modules/home/next-card.js";
@@ -3074,32 +3075,7 @@ async function deleteThread(tid) {
     heraldShow({ kind: "stopped", text: "Couldn't delete the thread", sub: String(err && err.message || err), force: true }, 6000);
   }
 }
-/** The panel's Shell: the shells' own dock moved into the panel (the same sessions and tabs as under the page), a
- *  shell opened for where you are (a thread's worktree, a project's folder, the workspace). Off, it goes back under
- *  the page, put away. Put away from inside the panel (its own ↓), the panel goes back to its frames. */
-const SHD_HOME = { parent: $("#shd").parentNode, next: $("#shd").nextSibling };
-function panelShell(on, host, where) {
-  const d = $("#shd");
-  if (on) {
-    if (!SH.enabled) { STAGE.shellOff(); heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200); return; }
-    host.append(d); d.classList.add("in-panel");
-    const at = where || S.view;
-    // one that couldn't open goes back
-    Promise.resolve(openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws")).then(() => { if (STAGE.isShell && d.hidden) STAGE.shellOff(); }, () => { if (STAGE.isShell) STAGE.shellOff(); });
-  } else {
-    d.classList.remove("in-panel");
-    SHD_HOME.parent.insertBefore(d, SHD_HOME.next);
-    SH.hide();
-  }
-}
-new MutationObserver(() => { if (STAGE.isShell && $("#shd").hidden) STAGE.shellOff(); }).observe($("#shd"), { attributes: true, attributeFilter: ["hidden"] });
-/** A Shell button: "ws", "p:<project folder>" or "t:<thread>" (its worktree, else the project's folder). */
-function openShell(where) {
-  if (where === "ws") return SH.openWorkspace();
-  if (where.startsWith("p:")) return SH.openProject(where.slice(2));
-  const t = world.thread(where.slice(2));
-  if (t) SH.openThread({ project: t.project, chatId: t.chatId, ts: t.id, title: t.title });
-}
+const { panelShell, openShell } = createShellPanel({ S, STAGE, SH, world, heraldShow });
 /** All threads: from the project's title it drops down under it (the thread switcher); elsewhere a sheet. */
 function openAll(anchor = null) {
   if (!convProject(S.view) || convProject(S.view) === "workspace") return;
