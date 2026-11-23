@@ -2615,7 +2615,7 @@
    "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
   },
   "js/ghpage.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/github/page.js"
   },
   "js/herald.js": {
@@ -17334,64 +17334,64 @@
    "home": "js/gestures.js"
   },
   "js/ghpage.js::exports::since": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::longAgo": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::issueOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::prOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::issueRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::prRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::exports::createGhPage": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::since": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::longAgo": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::person": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::issueOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::prOf": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::issueRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::prRow": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/ghpage.js::functions::createGhPage": {
-   "status": "kept",
-   "home": "js/ghpage.js"
+   "status": "moved",
+   "home": "modules/github/page.js"
   },
   "js/icon.js::exports::stateMark": {
    "status": "moved",

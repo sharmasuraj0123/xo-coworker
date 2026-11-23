@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 464 |
+| moved | 465 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 178 |
+| planned | 177 |
 | kept | 56 |
 | split | 35 |
 
-Items inside first-party files: 2488 (moved 1079, planned 737, split-region 389, kept 156, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1094, planned 737, split-region 389, kept 141, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -57,7 +57,7 @@ Items inside first-party files: 2488 (moved 1079, planned 737, split-region 389,
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
 | `js/gestures.js` | 453 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
-| `js/ghpage.js` | 241 | planned | modules/github/page.js |
+| `js/ghpage.js` | 241 | moved | modules/github/page.js |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js · next: js/highlight.js re-exports it until the shims go |
 | `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: nothing imports the old path, so it leaves with no re-export |
