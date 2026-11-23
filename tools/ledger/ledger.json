@@ -2607,12 +2607,9 @@
    "note": "every importer points at core/platform/fuzzy.js, so it leaves with no re-export"
   },
   "js/gestures.js": {
-   "status": "split",
-   "home": [
-    "core/platform/gestures.js",
-    "shell (the app's gestures: wireGestures, dockGestures, long press)"
-   ],
-   "note": "the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them"
+   "status": "moved",
+   "home": "shell/gestures.js",
+   "note": "the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor"
   },
   "js/ghpage.js": {
    "status": "moved",
@@ -9662,16 +9659,16 @@
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::exports::dockGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::exports::wireGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::exports::copyText": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "core/platform/clipboard.js"
   },
   "js/gestures.js::functions::tick": {
    "status": "moved",
@@ -9702,28 +9699,28 @@
    "home": "core/platform/gestures.js"
   },
   "js/gestures.js::functions::dockGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::functions::wireGestures": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::functions::longPress": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::ids::msgs": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::ids::scroller": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::keys::Escape": {
-   "status": "planned",
-   "home": "shell (the app's gestures)"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::custom_events::xo:gesture": {
    "status": "moved",
@@ -17326,12 +17323,12 @@
    "home": "modules/conversation/follow.js"
   },
   "js/gestures.js::exports::conversationGestures": {
-   "status": "kept",
-   "home": "js/gestures.js"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/gestures.js::functions::conversationGestures": {
-   "status": "kept",
-   "home": "js/gestures.js"
+   "status": "moved",
+   "home": "shell/gestures.js"
   },
   "js/ghpage.js::exports::since": {
    "status": "moved",

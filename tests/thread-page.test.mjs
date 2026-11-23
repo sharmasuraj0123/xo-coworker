@@ -64,7 +64,7 @@ console.log("thread-page: ok");
   assert.match(cd, /dockGestures\(tdock\);/, "and its drag");
   assert.doesNotMatch(cd, /S\.view/, "its conversation's view, never the main chat's");
   assert.doesNotMatch(a, /tpDockRender|data-tpd-undo/, "no copy of the dock for the page");
-  const g = readFileSync(new URL("../js/gestures.js", import.meta.url), "utf8");
+  const g = readFileSync(new URL("../shell/gestures.js", import.meta.url), "utf8");
   assert.match(g, /export function dockGestures\(tdock\) \{/);
   assert.doesNotMatch(g.slice(g.indexOf("export function wireGestures(")), /drag\(tdock, \{/, "the drag is bound once per dock, by its dock");
   console.log("thread-page clicks: ok");

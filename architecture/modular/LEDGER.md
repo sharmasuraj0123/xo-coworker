@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 468 |
+| moved | 469 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 174 |
 | kept | 56 |
-| split | 35 |
+| split | 34 |
 
-Items inside first-party files: 2488 (moved 1140, planned 697, split-region 389, kept 135, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1151, planned 688, split-region 389, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -56,7 +56,7 @@ Items inside first-party files: 2488 (moved 1140, planned 697, split-region 389,
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
-| `js/gestures.js` | 453 | split | core/platform/gestures.js, shell (the app's gestures: wireGestures, dockGestures, long press) · next: the drag primitive is in core/platform/gestures.js; the app's gestures stay in js/gestures.js until the shell takes them |
+| `js/gestures.js` | 453 | moved | shell/gestures.js · next: the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor |
 | `js/ghpage.js` | 241 | moved | modules/github/page.js |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js · next: js/highlight.js re-exports it until the shims go |
