@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 471 |
+| moved | 472 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 172 |
+| planned | 171 |
 | kept | 56 |
 | split | 34 |
 
-Items inside first-party files: 2488 (moved 1162, planned 677, split-region 389, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1180, planned 659, split-region 389, kept 133, deleted 126, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -63,7 +63,7 @@ Items inside first-party files: 2488 (moved 1162, planned 677, split-region 389,
 | `js/hopstate.js` | 13 | moved | core/services/world/hops.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/icon.js` | 30 | moved | core/ui/icons/icon.js · next: js/icon.js re-exports core/ui/icons/icon.js until the shims go |
 | `js/imagechange.js` | 120 | moved | modules/changes/imagechange.js · next: js/imagechange.js re-exports modules/changes/imagechange.js until the shell renders panel.frame from places and the shims go |
-| `js/intel.js` | 749 | planned | modules/intelligence/ |
+| `js/intel.js` | 749 | moved | modules/chats/intel.js |
 | `js/keynav.js` | 118 | moved | core/ui/a11y/keynav.js · next: js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go |
 | `js/keys.js` | 182 | split | core/platform/keys.js, core/kernel (shortcut place), modules/settings/keyboard.js · next: the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys |
 | `js/kit.js` | 265 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |

@@ -2641,8 +2641,8 @@
    "note": "js/imagechange.js re-exports modules/changes/imagechange.js until the shell renders panel.frame from places and the shims go"
   },
   "js/intel.js": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/keynav.js": {
    "status": "moved",
@@ -9843,80 +9843,80 @@
    "home": "modules/chats/session-order.js"
   },
   "js/intel.js::exports::createIntel": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::functions::sessionOrder": {
    "status": "moved",
    "home": "modules/chats/session-order.js"
   },
   "js/intel.js::functions::createIntel": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::ids::iq-pop": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::ids::iq-rt-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-hh": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-mv-cons": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-m-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-e-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::ids::iq-ro-l": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-view.js"
   },
   "js/intel.js::keys::still_busy": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::keys::timeout": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel.js"
   },
   "js/intel.js::keys::Tab": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys:: ": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::Enter": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowLeft": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowRight": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowDown": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/intel.js::keys::ArrowUp": {
-   "status": "planned",
-   "home": "modules/intelligence/"
+   "status": "moved",
+   "home": "modules/chats/intel-input.js"
   },
   "js/keynav.js::exports::usable": {
    "status": "moved",
