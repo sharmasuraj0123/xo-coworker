@@ -39,7 +39,7 @@ await t("no ARIA state is written as a bare attribute anywhere", () => {
   assert.deepEqual(bare, [], "toggleAttribute leaves an ARIA state empty");
 });
 await t("the sidebar's current place says aria-current=\"page\"", () => {
-  assert.match(readSource("js/app.js"), /if \(b\.classList\.contains\("is-on"\)\) b\.setAttribute\("aria-current", "page"\); else b\.removeAttribute\("aria-current"\);/);
+  assert.match(readSource("shell/rail/rows.js"), /if \(b\.classList\.contains\("is-on"\)\) b\.setAttribute\("aria-current", "page"\); else b\.removeAttribute\("aria-current"\);/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 process.exit();
