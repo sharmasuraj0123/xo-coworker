@@ -144,7 +144,7 @@ LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") apply
 // ── state ───────────────────────────────────────────────────────────────────
 const S = {
   view: "home",            // home | ws | p:<project> | t:<thread>
-  parent: {}, opener: {}, scroll: {},
+  parent: {}, backTo: {}, scroll: {},
   dockFold: {},
   lref: {},                // beside a file: the lines a message will be about, per conversation {path, a, b, name}
   get showHops() { return SHAPE.on("xo:thread/hops"); },  // the shape's xo:thread/hops (cv-hops folded into this device's layer)
@@ -2822,6 +2822,7 @@ function tpMount(box) {
 }
 function tpShow(key, { focus = false } = {}) {
   if (TP.tid !== key) {
+    returnPill(null);
     if (TP.tid && TP.K) saveDraft(TP.K);
     TP.tid = key;
     TP.C.rendered = null; TP.C.filled = null;
@@ -3193,10 +3194,10 @@ function saveScroll() {
   else if (S.view === "artifacts") S.scroll.artifacts = $("#arts").scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-function go(v, { from, focus = false, carry = false, panel = false, still = false } = {}) {
+function go(v, { from, row = null, focus = false, carry = false, panel = false, still = false } = {}) {
   if (!v) return;
   // a file with unsaved edits asks first (Files › Edit, its head): Discard, then on
-  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, focus, carry, panel, still })); return; }
+  if (v !== S.view && VW.editing) { VW.leave(() => go(v, { from, row, focus, carry, panel, still })); return; }
   // an edit or menu in a thread's header belongs to that visit
   S.tEdit = null; S.tMenu = null;
   // the file viewer belongs to the conversation it was opened from
@@ -3212,14 +3213,13 @@ function go(v, { from, focus = false, carry = false, panel = false, still = fals
   // A place changed from elsewhere leaves it covering (lpshell LP21: the panel's Close keeps focus)
   if (panel && v !== S.view && PHONE.matches && STAGE.isOpen) STAGE.close({ restore: false, quiet: true });
   if (v === S.view) { if (focus) say.focus(); return; }
-  const a = document.activeElement;
-  const opener = a && a.closest?.("[data-k]");
-  if (opener && opener.closest("#msgs")) S.opener[S.view] = opener.dataset.k || opener.dataset.go;
   saveScroll(); saveDraft();
   // the phone's Back retraces the places you went; a thread's parent already knows its own way back
   if (!S.retrace && !v.startsWith("t:") && !v.startsWith("c:")) { S.trail = S.trail.filter((x) => x !== v); S.trail.push(S.view); if (S.trail.length > 30) S.trail.shift(); }
   const deeper = v.startsWith("t:") && !S.view.startsWith("t:");
   if (v.startsWith("t:")) S.parent[v] = from || (S.view.startsWith("t:") ? S.parent[S.view] : S.view);
+  // each visit to a thread keeps the message it was opened from, and only that visit's Back reads it
+  if (v.startsWith("t:")) S.backTo[v] = row ? { view: S.view, k: row } : null;
   const back = from && from.startsWith("t:");
   REC.leave(S.view, v);
   S.view = v;
@@ -3233,8 +3233,10 @@ function go(v, { from, focus = false, carry = false, panel = false, still = fals
   render();
   if (v === "home") $("#home").scrollTop = S.scroll.home || 0;
   if (v === "artifacts") $("#arts").scrollTop = S.scroll.artifacts || 0;
-  const k = S.opener[v];
-  const target = k ? ($("#msgs").querySelector(`[data-k="${CSS.escape(k)}"] [data-go]`)) : null;
+  const was = back ? S.backTo[from] : null;
+  if (back) delete S.backTo[from];
+  const left = was && was.view === v ? $("#msgs").querySelector(`:scope > [data-k="${CSS.escape(was.k)}"]`) : null;
+  const target = left ? left.querySelector(`[data-go="${CSS.escape(from)}"]`) || left.querySelector("[data-go]") : null;
   if (focus) say.focus({ preventScroll: true });
   else if (back && target) target.focus({ preventScroll: true });
   // the place's own reading region: Home's, Artifacts' (the conversation's scroller is hidden there), else the
@@ -3661,14 +3663,15 @@ function composerNow() {
 const composers = () => (TP.K ? [MK, TP.K] : [MK]);
 // the notices' line follows you between the chat and the panel's thread page
 document.addEventListener("focusin", () => { const K = composerNow(); if (K !== S.kNow) { S.kNow = K; schedule(); } });
+const rowIn = (el) => el.closest("#msgs > [data-k]")?.dataset.k || null;
 document.addEventListener("click", (e) => {
   const t = e.target;
   if (t.closest("#iq-pop")) return;
   const g = t.closest("[data-go]");
   // (the panel's own links are the panel's: it opens a thread as its page beside a chat, else goes as the panel)
-  if (g && !t.closest("#all") && !t.closest("#stage")) { e.preventDefault(); go(g.dataset.go); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
+  if (g && !t.closest("#all") && !t.closest("#stage")) { e.preventDefault(); go(g.dataset.go, { row: rowIn(g) }); if (g.dataset.goMsg) showMsg(g.dataset.goMsg); return; }
   const tl = t.closest("a[data-thread]");
-  if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) { if (t.closest("#stage")) openFromPanel("t:" + tl.dataset.thread, e); else go("t:" + tl.dataset.thread); } else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
+  if (tl) { e.preventDefault(); if (world.thread(tl.dataset.thread)) { if (t.closest("#stage")) openFromPanel("t:" + tl.dataset.thread, e); else go("t:" + tl.dataset.thread, { row: rowIn(tl) }); } else heraldShow({ kind: "calm", text: "That thread isn't loaded", sub: "it may be in another project" }, 3200); return; }
   if (t.closest("[data-older]")) { loadOlderNow(convAt(t)); return; }
   const so = t.closest("[data-start]");
   if (so) { startDraft(+so.dataset.start); return; }

@@ -79,7 +79,7 @@ t("9 · a link in the panel keeps the message it points at, and a thread link op
   assert.match(o, /if \(msg\) showMsg\(msg, TP\.C\); return;/);
   assert.match(o, /go\(v, \{ panel: true \}\);\n\s*if \(msg\) showMsg\(msg\);/);
   assert.match(fn(app, "function showMsg("), /const el = C\.msgs\.querySelector/);
-  assert.match(app, /if \(t\.closest\("#stage"\)\) openFromPanel\("t:" \+ tl\.dataset\.thread, e\); else go\("t:" \+ tl\.dataset\.thread\);/);
+  assert.match(app, /if \(t\.closest\("#stage"\)\) openFromPanel\("t:" \+ tl\.dataset\.thread, e\); else go\("t:" \+ tl\.dataset\.thread, \{ row: rowIn\(tl\) \}\);/);
 });
 t("10 · a coordinator's avatar wears its own conversation's project, not the sidebar's place", () => {
   assert.match(msgx, /const pid = E\.project\?\.\(\), row = document\.querySelector\(pid \? `#projects \.prow\[data-go="p:\$\{CSS\.escape\(pid\)\}"\]` :/);
