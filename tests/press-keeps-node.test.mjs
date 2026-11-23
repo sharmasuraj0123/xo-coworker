@@ -23,13 +23,6 @@ const t = async (name, fn) => {
 const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 
 // ── the write paths, from the source (no DOM needed) ─────────────────────────
-await t("patch() draws a region in place (redraw), never with innerHTML", () => {
-  const app = src("app.js");
-  const i = app.indexOf("function patch(el, html) {");
-  const body = app.slice(i, app.indexOf("\n}\n", i));
-  assert.match(body, /redraw\(el, html\); el\._h = html;/);
-  assert.doesNotMatch(body, /innerHTML/);
-});
 await t("Back is written through patch(): only when its name changes, in place", () => {
   const app = src("app.js");
   assert.doesNotMatch(app, /back\.innerHTML\s*=/);
@@ -76,8 +69,38 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   /** A press held across `fn`: pointerdown on `node`, fn() (a redraw), then the press ends. True if the node stayed. */
   const pressAcross = async (node, fn) => { ev(node, "pointerdown"); await fn(); const kept = node.isConnected; ev(node, "pointerup"); ev(node, "click"); return kept; };
 
-  const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
+  const { patch, redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
+  const { landed } = await import("../core/ui/motion.js");
   const host = document.getElementById("host");
+
+  await t("patch keeps matching controls and focuses the replacement when a control changes tag", () => {
+    assert.equal(patch(host, '<button data-fid="back">Back</button>'), true);
+    const back = host.firstElementChild;
+    back.focus();
+    const renamed = '<button data-fid="back">Back to Home</button>';
+    assert.equal(patch(host, renamed), true);
+    assert.ok(host.firstElementChild === back, "changing the label keeps the control");
+    assert.equal(back.textContent, "Back to Home");
+    assert.equal(patch(host, renamed), false, "the same markup is skipped");
+    patch(host, '<a href="/" data-fid="back">Back to Home</a>');
+    assert.ok(host.firstElementChild !== back, "the link replaces the button");
+    assert.ok(document.activeElement === host.firstElementChild, "focus follows the replacement");
+  });
+
+  await t("landed staggers the arrival of a skeleton's children once", () => {
+    const delays = [];
+    const animate = window.Element.prototype.animate;
+    window.Element.prototype.animate = (_, options) => delays.push(options.delay);
+    try {
+      host.innerHTML = "<span>A</span><span>B</span>";
+      host._sk = true;
+      landed(host);
+      landed(host);
+      assert.deepEqual(delays, [0, 40]);
+    } finally {
+      window.Element.prototype.animate = animate;
+    }
+  });
 
   await t("redraw: a control whose key stays is the same node when its text, class and count change", () => {
     redraw(host, `<button data-go="t:a" class="nw st-busy"><b>Alpha</b><span>1 of 4</span></button><button data-go="t:b" class="nw"><b>Beta</b></button>`);

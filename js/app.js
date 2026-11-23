@@ -1,6 +1,6 @@
 import { createWorld, esc, WAITING } from "./world.js";
 import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPending, busyAttrs } from "../core/platform/index.js";
-import { redraw } from "./redraw.js";
+import { patch, redraw } from "../core/ui/redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "../modules/decisions/kit.js";
@@ -68,7 +68,7 @@ import { createShells } from "../modules/shells/dock.js";
 import { createRecord } from "./recordview.js";
 import { drawSections } from "../modules/home/sections.js";
 import { greeting, today } from "./skeleton.js"; // Home's shell, drawn before this module graph arrives
-import { arrive, still, EASE, MOVE } from "./motion.js";
+import { arrive, landed, still, EASE, MOVE } from "../core/ui/motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
@@ -555,25 +555,6 @@ function sideRender(needs) {
   side.addEventListener("focusout", (e) => { if (!side.contains(e.relatedTarget)) settle(); });
 }
 
-/** A block whose stand-in was showing: its real content arrives now. */
-function landed(el, parts = el ? [...el.children] : []) {
-  if (!el || !el._sk) return;
-  el._sk = false;
-  parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
-}
-function patch(el, html) {
-  if (el._h === html) return false;
-  const a = document.activeElement;
-  let sel = null;
-  if (a && a !== el && el.contains(a)) {
-    if (a.dataset.fid) sel = `[data-fid="${CSS.escape(a.dataset.fid)}"]`;
-    else if (a.id) sel = `#${CSS.escape(a.id)}`;
-    else { const d = [...a.attributes].filter((x) => x.name.startsWith("data-")); if (d.length) sel = a.tagName.toLowerCase() + d.map((x) => (x.value ? `[${x.name}="${CSS.escape(x.value)}"]` : `[${x.name}]`)).join(""); }
-  }
-  redraw(el, html); el._h = html;
-  if (sel && !a.isConnected) el.querySelector(sel)?.focus({ preventScroll: true });
-  return true;
-}
 function homeParts(needs = D.needItems()) {
   const adm = needs.filter((n) => n.admitted);
   const active = adm.filter((n) => !n.later);

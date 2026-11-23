@@ -7169,12 +7169,12 @@
    "home": "shell (sidebar host and place rows) + modules/projects (project list section) (app.js l.521)"
   },
   "js/app.js::functions::landed": {
-   "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.617)"
+   "status": "moved",
+   "home": "core/ui/motion.js"
   },
   "js/app.js::functions::patch": {
-   "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.629)"
+   "status": "moved",
+   "home": "core/ui/redraw.js"
   },
   "js/app.js::functions::homeParts": {
    "status": "planned",
