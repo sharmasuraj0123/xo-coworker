@@ -9,6 +9,7 @@ import { dom } from "./lib/dom.mjs";
 
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const storage = new Map([["cv-theme", "light"], ["cv-flavour", "onyx"]]);
+const blockedStorage = new Set();
 /** @type {FrameRequestCallback[]} */
 const frames = [];
 const matches = window.Element.prototype.matches;
@@ -24,7 +25,10 @@ Object.assign(globalThis, {
   sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
   localStorage: {
     getItem: (/** @type {string} */ key) => storage.get(key) ?? null,
-    setItem: (/** @type {string} */ key, /** @type {string} */ value) => storage.set(key, value),
+    setItem: (/** @type {string} */ key, /** @type {string} */ value) => {
+      if (blockedStorage.has(key)) throw new DOMException("QuotaExceededError");
+      storage.set(key, value);
+    },
   },
   MutationObserver: window.MutationObserver,
   ResizeObserver: class { observe() {} disconnect() {} },
@@ -81,3 +85,13 @@ assert.equal(document.documentElement.dataset.theme, "light", "the theme switch 
 assert.equal(storage.get("cv-theme"), "light", "the theme switch persists Light");
 assert.equal(document.querySelector("#theme").getAttribute("aria-checked"), "true");
 assert.equal(document.querySelector('#mode-seg [data-mode="light"]').getAttribute("aria-checked"), "true", "the theme switch syncs Appearance");
+
+blockedStorage.add("cv-theme");
+press('#mode-seg [data-mode="dark"]');
+assert.equal(document.documentElement.dataset.theme, "light", "the theme stays on its stored mode when a write fails");
+const modeRow = document.querySelector("#mode-seg").closest(".set-row");
+assert.match(modeRow.querySelector('.set-err[role="alert"]').textContent, /this browser won't keep it after a reload/);
+blockedStorage.delete("cv-theme");
+press('#mode-seg [data-mode="dark"]');
+assert.ok(!modeRow.querySelector(".set-err"), "the inline error clears after a successful write");
+assert.equal(document.documentElement.dataset.theme, "dark");

@@ -77,13 +77,14 @@ import { wireGestures, dockGestures, conversationGestures } from "./gestures.js"
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../core/services/runtimes.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
-import { createSettingsFrame, createSettingsSections, createKeysPage, keysSheetRender, createShapeView, SHAPE_IC, UNKEPT } from "../modules/settings/index.js";
+import { createSettingsFrame, createSettingsSections, createKeysPage, keysSheetRender, createShapeView, SHAPE_IC } from "../modules/settings/index.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { createCalmOrder } from "../shell/sideorder.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance } from "../modules/settings/appearance.js";
+import { createDeviceNotice } from "../modules/settings/device-notice.js";
 import { wireSound } from "../modules/settings/sound.js";
 import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 import { regionRings } from "./ring.js";
@@ -3614,18 +3615,7 @@ const soundRender = wireSound({ sound, announce });
 // a switch says on or off; its label says what (no glyph in the knob)
 function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
 function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
-function deviceSaid(tog, r, done) {
-  const l = tog.closest(".set-row").querySelector(".set-l");
-  let why = l.querySelector(".set-err");
-  const say = r && r.error ? r.error : r && r.kept === false ? UNKEPT : null;
-  if (say) {
-    if (!why) { why = document.createElement("p"); why.className = "set-err"; why.setAttribute("role", "alert"); l.append(why); }
-    why.textContent = say;
-    return;
-  }
-  why?.remove();
-  announce(done);
-}
+const deviceSaid = createDeviceNotice(announce);
 $("#webpics-tog").addEventListener("click", (e) => {
   // this device's layer of the shape: a picture's site learns someone looked, so each device decides
   const on = !SHAPE.on(WEBPICS);

@@ -7852,8 +7852,8 @@
    "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
   },
   "js/app.js::functions::deviceSaid": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4165)"
+   "status": "moved",
+   "home": "modules/settings/device-notice.js"
   },
   "js/app.js::functions::setChatBubbles": {
    "status": "planned",
