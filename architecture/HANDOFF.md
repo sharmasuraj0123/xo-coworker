@@ -36,14 +36,20 @@ The P1 candidate at `43e65c75` passed the clean-export full check with `JOBS=1`.
 
 ## P2 forward merge in progress
 
-The active worktree has the single forward merge of release `f0144d5f` staged on `modular/integration-bc5bb3`. The P1 tag is the rollback point. Later release fixes, including button tokens and Accounts sign-in, belong in the pre-P5 forward merge.
+The single forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `modular/integration-bc5bb3`. The P1 tag is the rollback point. Later release fixes, including button tokens and Accounts sign-in, belong in the pre-P5 forward merge.
 
 - The panel uses release's single visible page, one level of Back, shared width and Files close behavior, with page registration and mounting through the kernel.
 - Launchpad uses the release window and home implementation under `modules/launchpad/`. Since still renders the quiet one-line release summary. The grouped-card helpers had no live caller in the release pin.
 - The versioned static server includes the modular paths. The GitHub page retains the three optional release routes with 404 behavior checked by the route contract and page tests.
 - The ledger is pinned to the merged release tree. Its plan check passed and final obligations fell from 1,332 to 1,328.
-- Back and Escape use release's separate orders on one kernel stack. Phone Back asks before closing a standalone viewer with unsaved edits. Tests cover competing surfaces and fail when any of the three checked priorities is reversed.
-- The staged clean export passed the full check, including all 263 unit files by exit code. The approved browser lane, visual comparisons and independent review are pending. The six P3 package drafts get their base commits and launch handoff at the P2 gate.
+- Back and Escape use release's separate orders on one kernel stack. Phone Back asks before closing a standalone viewer with unsaved edits. Tests check both complete orders and reject an ordered handler whose layer is missing from its order.
+- The committed clean export passed the full check, including all 263 unit files by exit code.
+- The first browser lane exposed missing startup responses in the fake Space, six outdated accessibility snapshots, and two Apps cases for an entry point absent from both parent branches. Commit `5532a1a6` added and tested the fixture responses. The next run passed all 16 fast-lane cases against fresh accessibility captures from the pinned release served by its own `serve.py`. Run both deferred cases with `node e2e/run.mjs apps` at the Apps gate.
+- The independent P2 review found two lost release behaviors. The panel now reflects the visible page and its Shell tooltip on each paint, and Settings navigation queries only inside Settings. DOM regressions reproduced both failures on the merge before the fixes.
+- All 16 paired Chromium screenshots matched byte for byte. Both builds ran through their own `serve.py` with the same seed. The pairs cover Home, conversation, the right panel and Settings on desktop and phone in light and dark mode.
+- Carry the inherited multiline comments flagged by the independent P2 review into the pre-P5 quality audit.
+- Before P5, resolve mask asset caching with the coordinator. The release `--mask-*` URLs resolve under `/v/<hash>/assets/` and are immutable. The modular tokens in `core/ui/tokens.css` use root-relative URLs and revalidate. Chromium resolves a relative URL from the consuming stylesheet, and the modular consumers sit at different depths. A direct switch to a stylesheet-relative path returned 404 from `css/app.css`.
+- The six P3 package drafts get their base commits and launch handoff at the P2 gate.
 
 ## Previous handoff from 19 November 2026
 
