@@ -2,6 +2,7 @@
 import { esc } from "../../core/platform/util.js";
 
 /** @typedef {import("./groups-types.d.ts").ThreadInfo & { label?: string, canDelete?: boolean }} MenuThread */
+
 /** @typedef {{ panelThreads: ReturnType<typeof import("./groups.js").createThreadGroups>["panelThreads"], SH: { enabled: boolean }, movable: (t: MenuThread) => boolean, isBusy: (t: MenuThread) => boolean }} MenuDeps */
 
 /** @param {MenuDeps} options */

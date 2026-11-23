@@ -1,8 +1,4 @@
 // @ts-check
-// The thread's ⋯ and one vocabulary (the owner, 19 Nov): one menu for everything a thread can do, only what fits
-// its state; Delete only where Space offers it, asked in place; "Waiting", never "Idle"; All threads in the panel's
-// four states; the Now strip gone from the header (the panel's Threads has every thread).
-//   node tests/thread-menu.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { dom } from "./lib/dom.mjs";

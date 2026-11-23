@@ -7289,12 +7289,12 @@
    "home": "modules/threads (thread head) (app.js l.1439)"
   },
   "js/app.js::functions::workingRuns": {
-   "status": "planned",
-   "home": "modules/runs (or threads/runs) (app.js l.1488)"
+   "status": "moved",
+   "home": "modules/runs/strip.js"
   },
   "js/app.js::functions::runsStrip": {
-   "status": "planned",
-   "home": "modules/runs (or threads/runs) (app.js l.1492)"
+   "status": "moved",
+   "home": "modules/runs/strip.js"
   },
   "js/app.js::functions::runsRender": {
    "status": "planned",

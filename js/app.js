@@ -18,9 +18,10 @@ import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, v
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
-import { runsStripHtml, runsListHtml, runViewHtml } from "../modules/runs/view.js";
+import { runsListHtml, runViewHtml } from "../modules/runs/view.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
-import { LIVE_RUN, createRunsReads } from "../modules/runs/read.js";
+import { createRunsReads } from "../modules/runs/read.js";
+import { createRunsStrip } from "../modules/runs/strip.js";
 import { createRunsStop } from "../modules/runs/stop.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
@@ -1061,29 +1062,7 @@ function checklistRender(needs, th = $("#thead"), view = S.view, listId = "ck-li
   if (th._h !== all) { redraw(th, all); th._h = all; }
 }
 
-// ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ──
-const runsAsked = new Map(); // session → the working count its runs were last listed for
-/** How many of a thread's sub-agents work now, by the best count known (the stream's, or the thread's). */
-function workingRuns(t) {
-  const lr = (world.state.liveRuns || {})[t.sessionId];
-  return Math.max((t.runs && (t.runs.running || 0) + (t.runs.waiting || 0)) || 0, lr ? lr.running + lr.waiting : 0, (t.session && t.session.live_runs) || 0);
-}
-function runsStrip(t) {
-  if (!t.sessionId || !world.state.runs) return "";
-  const mine = [...world.state.runs.values()].filter((r) => r.session === t.sessionId && !r.hidden);
-  const live = mine.filter((r) => LIVE_RUN(r) && (r.depth || 1) === 1);
-  // after a reload the stream hasn't named the runs still working: the thread's counts know, so list them
-  const working = workingRuns(t);
-  // asked once per count: if the thread's counts stay stale after a read, the read isn't repeated
-  if (working > mine.filter(LIVE_RUN).length && runsAsked.get(t.sessionId) !== working) {
-    runsAsked.set(t.sessionId, working);
-    world.act.listRuns(t.sessionId).then(() => schedule(), () => {});
-  }
-  const total = Math.max((t.runs && t.runs.total) || 0, mine.length);
-  // a shape without sub-agent counts (xo:thread/subagents) keeps only a sub-agent that waits on you
-  if (!SHAPE.on("xo:thread/subagents")) return runsStripHtml(live.filter((r) => r.state === "waiting"), 0);
-  return runsStripHtml(live, total);
-}
+const { runsStrip, workingRuns } = createRunsStrip({ world, SHAPE, schedule });
 // Sub-agents: a page in the right panel, over the thread page it was opened from
 const runsCard = document.createElement("div");
 Object.assign(runsCard, { id: "runs-card", className: "runs-pg", tabIndex: -1 });
