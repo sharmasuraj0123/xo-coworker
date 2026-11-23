@@ -1,4 +1,4 @@
-// A main action is one look app-wide from the --pri tokens: XO's green, or the ink where a flavour asks; a link drawn as a button keeps its button's look.
+// A main action is one look app-wide from the --pri tokens: XO's green, or the ink where a flavour asks; a card's own action stays the ink; a link drawn as a button keeps its button's look.
 //   node tests/primary-button.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -21,12 +21,12 @@ t("a flavour with primary ink fills its main actions with the ink, and no other 
   assert.deepEqual(set, ink);
   assert.equal((fl.match(/--pri-fill:/g) || []).length, ink.length);
 });
-t("every main action takes them: .btn-pri, .xd-btn.is-pri, .b-go, .iq-done and the round sends", () => {
+t("every main action takes them: .btn-pri, .xd-btn.is-pri and the round sends; a card's Send and the picker's Done stay the ink", () => {
   const app = css("app.css"), diffs = css("diffs.css");
   assert.match(app, /\n\.btn-pri\{background:var\(--pri-fill\);border-color:var\(--pri-fill\);color:var\(--pri-ink\)\}/);
   assert.match(diffs, /\n\.xd-btn\.is-pri\{background:var\(--pri-fill\);border-color:var\(--pri-fill\);color:var\(--pri-ink\)\}/);
-  assert.match(app, /\n\.b-go\{background:var\(--pri-fill\);color:var\(--pri-ink\);border-color:var\(--pri-fill\)\}/);
-  assert.match(app, /\n\.iq-done\{[^}]*background:var\(--pri-fill\);color:var\(--pri-ink\)/);
+  assert.match(app, /\n\.b-go\{background:var\(--ink\);color:var\(--on-ink\);border-color:var\(--ink\)\}/);
+  assert.match(app, /\n\.iq-done\{[^}]*background:var\(--ink\);color:var\(--on-ink\)/);
   assert.match(app, /\n\.send\{[^}]*background:var\(--pri-fill\);color:var\(--pri-ink\)/);
   assert.match(diffs, /\n\.xd-q \.xd-send\{[^}]*background:var\(--pri-fill\);color:var\(--pri-ink\)/);
   for (const [f, s] of sheets) assert.doesNotMatch(s, /(\.btn-pri|\.xd-btn\.is-pri|\.b-go|\.iq-done|\.send|\.xd-send)[^{,]*\{[^}]*var\(--accent-(fill|hover|press)\)/, f);
