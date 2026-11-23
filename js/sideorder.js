@@ -1,5 +1,7 @@
 // projects at work or needing you on top; it changes only while you're off the sidebar, after a while at work or idle
-export function createCalmOrder({ join = 30000, leave = 60000 } = {}) {
+// how long a project works before it moves up, and stays idle before it moves down
+export const JOIN_MS = 10000, LEAVE_MS = 60000;
+export function createCalmOrder({ join = JOIN_MS, leave = LEAVE_MS } = {}) {
   let top = new Set();
   const since = new Map(), idle = new Map();
   function order(rows, now, { first = false, held = false } = {}) {
