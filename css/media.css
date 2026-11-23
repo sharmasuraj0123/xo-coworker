@@ -65,8 +65,10 @@
 .mx-more{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgb(0 0 0 / .48);color:#fff;
   font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20);font-variant-numeric:tabular-nums;pointer-events:none}
 
-/* an agent's words under a shared set */
-.mx-cap{max-width:66ch;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
+/* a caption under a picture, a set or a diagram is small print: the meta role in a quieter ink, never the message's voice */
+:is(.mx-cap,.ximg-cap,.md-dg-why){font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+/* an agent's words under a shared set, a step apart from the words after it */
+.mx-cap{max-width:66ch;margin-bottom:var(--s-2)}
 
 /* a picture from the web that couldn't show: the outbound link it would have been (css/links.css .lk-out), on a line
    where the picture was; several wrap. The lightbox's "Open original ↗" is a lightbox button, its arrow the link's. */

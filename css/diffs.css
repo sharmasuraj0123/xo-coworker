@@ -233,7 +233,7 @@ diffs-container{
 .ximg-open:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 .ximg-say{display:flex;align-items:center;gap:8px;margin:0;padding:4px 8px;border-radius:var(--r-sm);background:var(--fill-1);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .ximg-say .spin{width:10px;height:10px}
-.ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
+.ximg-cap{flex:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:8px 12px;border-top:1px solid var(--panel-line)}
 .ximg-cap b{font-weight:var(--fw-medium);color:var(--ink-2)}
 .ximg-m{font-variant-numeric:tabular-nums}
 .ximg-n{flex-basis:100%}

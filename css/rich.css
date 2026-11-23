@@ -226,4 +226,4 @@
 .md-dg-src code{background:none;border:0;padding:0;font:inherit}
 .md-diagram.is-done>.md-dg-src{display:none}
 .md-diagram.is-failed>.md-dg-src{color:var(--ink-2)}
-.md-dg-why{margin:0 0 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-3);text-align:left}
+.md-dg-why{margin:0 0 8px;text-align:left}
