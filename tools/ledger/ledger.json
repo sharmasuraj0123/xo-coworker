@@ -7844,12 +7844,12 @@
    "home": "modules/settings/sound.js"
   },
   "js/app.js::functions::hopsRender": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4158)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::webpicsRender": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::deviceSaid": {
    "status": "moved",

@@ -93,7 +93,7 @@ import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
-import { wireAppearance } from "../modules/settings/appearance.js";
+import { wireAppearance, wireMessageHops, wireWebPictures } from "../modules/settings/appearance.js";
 import { createDeviceNotice } from "../modules/settings/device-notice.js";
 import { wireSound } from "../modules/settings/sound.js";
 import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
@@ -3236,15 +3236,8 @@ addEventListener("keydown", (e) => {
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
 const soundRender = wireSound({ sound, announce });
-// a switch says on or off; its label says what (no glyph in the knob)
-function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
-function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
 const deviceSaid = createDeviceNotice(announce);
-$("#webpics-tog").addEventListener("click", (e) => {
-  // this device's layer of the shape: a picture's site learns someone looked, so each device decides
-  const on = !SHAPE.on(WEBPICS);
-  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
-});
+const webpicsRender = wireWebPictures(SHAPE, WEBPICS, deviceSaid);
 const { lookSync } = wireAppearance({ THEME, applyTheme, deviceSaid });
 // Settings › Appearance › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
 // index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
@@ -3264,12 +3257,7 @@ $("#bubbles-tog").addEventListener("click", (e) => {
   deviceSaid(e.currentTarget, r, r.on ? "Messages show in bubbles." : "Replies read as full-width documents.");
 });
 bubblesRender();
-$("#hops-tog").addEventListener("click", (e) => {
-  // this device's layer of the shape (xo:thread/hops), where cv-hops was folded in; the shape's change redraws
-  const on = !S.showHops;
-  deviceSaid(e.currentTarget, SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } }), on ? "Showing how messages travel." : "Hiding how messages travel.");
-});
-hopsRender();
+const hopsRender = wireMessageHops(S, SHAPE, deviceSaid);
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
 let keysReturn = null;
 function openKeys() { keysSheetRender(); keysReturn = document.activeElement; keys.hidden = false; focusOverlay(keys.querySelector("[data-close]")); }

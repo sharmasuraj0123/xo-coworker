@@ -36,3 +36,27 @@ export function wireAppearance({ THEME, applyTheme, deviceSaid }) {
   lookSync();
   return { lookSync };
 }
+
+/** @import { AppearanceShape, DeviceNotice } from "./types.d.ts" */
+
+/** @param {AppearanceShape} SHAPE @param {string} WEBPICS @param {DeviceNotice} deviceSaid */
+export function wireWebPictures(SHAPE, WEBPICS, deviceSaid) {
+  function webpicsRender() { $("#webpics-tog").setAttribute("aria-checked", String(SHAPE.on(WEBPICS))); }
+  $("#webpics-tog").addEventListener("click", (/** @type {Event} */ e) => {
+    // A picture's site learns someone looked, so each device decides.
+    const on = !SHAPE.on(WEBPICS);
+    deviceSaid(/** @type {Element} */ (e.currentTarget), SHAPE.setDevice({ surfaces: { [WEBPICS]: { on } } }), on ? "Pictures from the web show in the conversation." : "Pictures from the web show as links.");
+  });
+  return webpicsRender;
+}
+
+/** @param {{ readonly showHops?: boolean }} S @param {AppearanceShape} SHAPE @param {DeviceNotice} deviceSaid */
+export function wireMessageHops(S, SHAPE, deviceSaid) {
+  function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
+  $("#hops-tog").addEventListener("click", (/** @type {Event} */ e) => {
+    const on = !S.showHops;
+    deviceSaid(/** @type {Element} */ (e.currentTarget), SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } }), on ? "Showing how messages travel." : "Hiding how messages travel.");
+  });
+  hopsRender();
+  return hopsRender;
+}
