@@ -82,11 +82,12 @@ t("a stop on its way: its line says it's being sent, and its Stop is busy and ta
   assert.equal(undo.dataset.runsUndo, key);
   assert.equal(undo.textContent, "Undo");
   paint({ out: [key], saidFor: { key, kind: "halt", text: "Sending the stop…" } });
-  assert.equal(panel.querySelector("[data-run-stop]").getAttribute("aria-busy"), "true");
-  assert.match(panel.querySelector("[role=status]").textContent, /Sending the stop/);
+  const run = panel.querySelector(".rn-row");
+  assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-busy"), "true");
+  assert.match(run.querySelector("[role=status]").textContent, /Sending the stop/);
   paint({ saidFor: { key, kind: "stopped", text: "Not confirmed", sub: "Stop again if it keeps working." } });
   assert.equal(panel.querySelector("[data-run-stop]").hasAttribute("aria-busy"), false);
-  assert.match(panel.querySelector("[role=alert]").textContent, /Not confirmed.*Stop again/);
+  assert.match(panel.querySelector(".rn-row [role=alert]").textContent, /Not confirmed.*Stop again/);
 }
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
