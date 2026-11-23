@@ -1,4 +1,3 @@
-
 // @ts-check
 
 import { esc } from "../../platform/index.js";
@@ -21,7 +20,6 @@ const gone = new Set(); // addresses that failed in this page: drawn as their li
 /** A web picture as the outbound link it would have been: underlined with ↗, its alt as the words, else its host. @param {MediaItem} it */
 export function webLinkHtml(it) {
   const w = /** @type {Partial<NonNullable<MediaItem["web"]>>} */ (it.web || {});
-  // set like any outbound link (js/markdown.js outText): its last word, or an address's last piece, keeps the ↗
   const words = it.title ? outText(it.title) : outText(/** @type {string} */ (w.host || w.url), { address: true });
   return `<a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="${esc(w.url)}">${words}</a>`;
 }
