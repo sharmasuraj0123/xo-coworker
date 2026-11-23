@@ -2641,7 +2641,6 @@ function openMedia(el, e) {
 }
 
 let drawing = null;
-const { fileRoute, openSharedFile, openLineRef } = createConversationFiles({ currentView: () => drawing || S.view, convThread, convAt, CHG, VW });
 
 // ── "Ask about these lines" (Files, js/viewer.js): to the file's own thread, else its project's coordinator ──
 /** Your words; a question about lines leads with them as an in-app capsule that opens Files there. */
@@ -2825,6 +2824,7 @@ $("#top").addEventListener("focusout", (e) => {
 // ── clicks ──────────────────────────────────────────────────────────────────
 /** The conversation a control is in (P1 step 8): the panel's thread page, else the main chat. */
 const convAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.C : MAIN);
+const { fileRoute, openSharedFile, openLineRef } = createConversationFiles({ currentView: () => drawing || S.view, convThread, convAt, CHG, VW });
 const composerAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.K : MK);
 /** The conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat. */
 function composerNow() {
