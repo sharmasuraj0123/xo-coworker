@@ -7581,8 +7581,8 @@
    "home": "shell/navigation.js"
   },
   "js/app.js::functions::decideKey": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
+   "status": "moved",
+   "home": "modules/decisions/conversation-actions.js"
   },
   "js/app.js::functions::showMsg": {
    "status": "moved",
@@ -7788,8 +7788,8 @@
    "home": "modules/settings/apply-shape.js"
   },
   "js/app.js::functions::decideLimit": {
-   "status": "planned",
-   "home": "modules/runtimes (app.js l.4233)"
+   "status": "moved",
+   "home": "modules/decisions/conversation-actions.js"
   },
   "js/app.js::functions::unfreeze": {
    "status": "moved",

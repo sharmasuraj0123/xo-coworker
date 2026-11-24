@@ -42,6 +42,7 @@ import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
+import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
@@ -1044,6 +1045,7 @@ runsCard.addEventListener("click", (e) => {
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
+const { decideKey, decideLimit } = createConversationDecisionActions({ S, D, world, tdock, convThread, schedule, announce });
 const dockDeps = { CH, D, S, world, convThread, convHost, askShort, schedule, dockGestures };
 const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, item: null, busy: false, undone: null, gen: 0 } }, dockDeps);
 const TD = MDOCK.TD;
@@ -1646,22 +1648,6 @@ const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, 
 function go(v, options) { return navigate(v, options); }
 $("#top-back").addEventListener("click", back);
 
-/** Open a decision: in a thread, its own card; elsewhere the panel. */
-function decideKey(key, opts) {
-  const t = convThread(S.view);
-  const n = D.needItems().find((x) => x.key === key);
-  if (t && n && n.t.id === t.id && !D.isOpen() && !opts) {
-    // asked to open this thread's own decision: it opens, folded or not (Astra S150: its notice left it folded)
-    delete S.dockFold[key];
-    if (n.later) S.later.delete(key);
-    if (n.held) D.bringIn(key);
-    schedule();
-    requestAnimationFrame(() => requestAnimationFrame(() => tdock.querySelector(".card")?.focus({ preventScroll: true })));
-    return;
-  }
-  D.open(key, opts);
-}
-
 // ── files on messages (hub #30): the shared-file card, opening in the same viewer ──
 const openMedia = createMediaOpener({ msgsEl, LB, VW });
 
@@ -2196,15 +2182,6 @@ const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({
 const shapeApply = createShapeApply({ S, SV, SHAPE, setWorkMode, hopsRender, webpicsRender, convThread, world, loadChatHops, SH, STAGE, schedule });
 SHAPE.onChange(() => shapeApply());
 shapeApply({ boot: true });
-/** F5: wait for the limit, or move every waiting thread, from the card on a thread (the same item as in Needs you). */
-async function decideLimit(id, decision) {
-  S.limitBusy = id; S.limitErr = null; schedule();
-  try {
-    await world.act.decideItem(id, { decision });
-    announce(decision === "move" ? "Moving the waiting threads. Each one says where it went." : "They wait for the limit to open.");
-  } catch (err) { S.limitErr = { id, text: err.gone ? "It was already decided, or the limit opened." : err.message }; }
-  S.limitBusy = null; schedule();
-}
 const SECTIONS = createSettingsSections({ places: kernel.places, nav: setEl.querySelector(".set-nav"), pages: setEl.querySelector(".set-page").parentElement, at: () => ({ project: S.view.startsWith("p:") ? S.view.slice(2) : convThread(S.view)?.project }), pick: (id) => SETF.setPage(id), isOpen: () => !setEl.hidden, onTabs: () => SV.apply() });
 const SETF = createSettingsFrame({
   el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE, focusIn: focusOverlay, fallback: () => say,
