@@ -2,7 +2,7 @@
 
 import { createScope } from "../../core/kernel/scope.js";
 import { createLru } from "../../core/platform/cache.js";
-import { ApiError } from "../../core/platform/http.js";
+import { ApiError, missingRoute } from "../../core/platform/http.js";
 import { latest } from "../../core/platform/latest.js";
 
 const DETAIL_CACHE_SIZE = 64;
@@ -40,7 +40,7 @@ export function createItemReads(api, current, paint, announce) {
     } catch (error) {
       if (signal.aborted) return;
       if (!(error instanceof ApiError)) throw error;
-      if (error.status === 404 || error.status === 405) { unsupported.add(kind); return; }
+      if (missingRoute(error)) { unsupported.add(kind); return; }
       if (current(project, key)) { failed = k; paint(); announce(FAILED); }
       return;
     }

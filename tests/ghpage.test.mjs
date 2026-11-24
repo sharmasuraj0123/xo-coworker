@@ -80,7 +80,7 @@ t("the page's styles use the app's tokens, never a raw colour", () => {
   assert.equal(/#[0-9a-fA-F]{3,8}\b|rgb\(/.test(mine), false);
 });
 
-async function githubPage({ pulls, item, failed = false }) {
+async function githubPage({ pulls, item, failure }) {
   const { document, window } = await dom("<div id='panel'></div>");
   const panel = document.getElementById("panel");
   const project = "demo", base = `/api/xo-projects/${project}/github`;
@@ -93,7 +93,7 @@ async function githubPage({ pulls, item, failed = false }) {
     if (path === `${base}/issues`) return Response.json({ repo: "o/r", issues: [issue] });
     if (path === `${base}/pulls` && pulls) return Response.json({ pulls: [pr] });
     if (path === "/api/connectors/github/status") return Response.json({ status: "connected" });
-    if (failed && path === `${base}/issues/1`) return Response.json({ detail: "Failed" }, { status: 500 });
+    if (failure && path === `${base}/issues/1`) return Response.json({ detail: failure.detail }, { status: failure.status });
     return Response.json({ detail: "Not Found" }, { status: 404 });
   };
   const pages = new Map();
@@ -140,7 +140,7 @@ async function githubPage({ pulls, item, failed = false }) {
   assert.match(panel.querySelector(".gh-title").textContent, pull ? /Pull from list/ : /Issue from list/);
   assert.ok(!panel.querySelector(".gh-body"), "the base row is useful even without optional details");
   assert.ok(panel.querySelector(`a[href="${pull ? pr.url : issue.url}"]`), "the GitHub link remains available");
-  if (failed) {
+  if (failure) {
     assert.match(panel.textContent, /Couldn't read this item from GitHub/);
     return;
   }
@@ -155,6 +155,7 @@ async function githubPage({ pulls, item, failed = false }) {
 await githubPage({ pulls: false });
 await githubPage({ pulls: false, item: "i1" });
 await githubPage({ pulls: true, item: "p2" });
-await githubPage({ pulls: false, item: "i1", failed: true });
+await githubPage({ pulls: false, item: "i1", failure: { status: 500, detail: "Failed" } });
+await githubPage({ pulls: false, item: "i1", failure: { status: 404, detail: { code: "not_found", message: "Issue removed" } } });
 
 console.log(`${passed} passed`);
