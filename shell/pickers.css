@@ -1,10 +1,12 @@
-.jump-field{flex:none;display:flex;align-items:center;gap:8px;padding:0 16px;height:var(--h-bar);border-bottom:1px solid var(--line-soft);color:var(--ink-4)}
+.jump-field{flex:none;display:flex;align-items:center;gap:var(--s-2);padding:0 var(--s-4);height:var(--h-bar);
+  border-bottom:1px solid var(--line-soft);color:var(--ink-4)}
 .jump-field svg{width:var(--ic-lg);height:var(--ic-lg)}
 .jump-field input{flex:1;height:100%;border:0;background:transparent;outline:none;font-size:var(--fs-ui)}
 /* a palette like Spotlight: 12 outside, its 6 px rows 6 px from the edge (5 + the 1 px edge) */
 .jump-card{border-radius:var(--r-lg)}
 .jump-list{list-style:none;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:5px}
-.jump-list li{display:flex;align-items:center;gap:12px;min-height:var(--h-lg);padding:4px 10px;border-radius:var(--r-sm);cursor:pointer}
+.jump-list li{display:flex;align-items:center;gap:var(--s-3);min-height:var(--h-lg);padding:var(--s-1) 10px;
+  border-radius:var(--r-sm);cursor:pointer}
 .jump-list li.is-t{padding-left:30px}
 .jump-list li[aria-selected="true"]{background:var(--hover-fill)}
 .j-ic{flex:none;display:grid;place-items:center;width:20px;color:var(--ink-4)}
@@ -14,9 +16,11 @@
 .j-s{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
 .j-none{padding:14px;color:var(--ink-4)}
 .keys-card{width:min(800px,100%);max-height:84vh}
-.keys-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px 32px;padding:12px 24px 16px;overflow-y:auto}
-.keys{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;align-content:start;font-size:var(--fs-ui)}
+.keys-cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3) var(--s-8);
+  padding:var(--s-3) var(--s-6) var(--s-4);overflow-y:auto}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:var(--s-2) var(--s-4);align-content:start;font-size:var(--fs-ui)}
 .keys dt{white-space:nowrap;color:var(--ink-3)}
 .keys dd{color:var(--ink-2)}
-.keys .kh{grid-column:1/-1;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);margin-top:4px}
+.keys .kh{grid-column:1/-1;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);
+  color:var(--ink-4);margin-top:var(--s-1)}
 .keys dd:empty{display:none}
