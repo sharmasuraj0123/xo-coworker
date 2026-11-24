@@ -10,12 +10,12 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { ICON, stepMark, stateMark, XO, $, RM, reconcile, morph, expand } from "./ui.js";
+import { ICON, stepMark, stateMark, XO, $, RM, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
-import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
+import { mediaHtml, fromAttachment, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
@@ -36,6 +36,8 @@ import { createDelivery } from "../modules/conversation/delivery.js";
 import { createComposerTarget } from "../modules/conversation/target.js";
 import { createMentionList } from "../modules/conversation/mention.js";
 import { createLiveConversation } from "../modules/conversation/live.js";
+import { createConversationPaging } from "../modules/conversation/paging.js";
+import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
 import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { tickElapsed } from "../shell/elapsed.js";
@@ -1604,9 +1606,6 @@ const openFromPanel = createPanelThreadOpener({ S, world, STAGE, TP, go, showMsg
 
 // ── render ──────────────────────────────────────────────────────────────────
 const scroller = $("#scroller"), msgsEl = $("#msgs");
-function createConv({ view, msgs, scroller: sc, column, typing, follow, main = false }) {
-  return { get view() { return typeof view === "function" ? view() : view; }, msgs, scroller: sc, column, typing, follow, main, rendered: null, filled: null };
-}
 const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
   follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } });
 const { readingPlace, holdPlace, foldsBefore, workMotion } = createReadingLayout({ S, MAIN });
@@ -1619,60 +1618,8 @@ const { readingPlace, holdPlace, foldsBefore, workMotion } = createReadingLayout
 /** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
  *  region (Home, Artifacts, else the conversation). */
 const placeRegion = () => pageEl(S.view) || scroller;
-/** Earlier messages load before you reach them (hub #28). Within about a screen of the top, the next
- *  page is fetched, and it lands above what you're reading without moving it; a first page too short to
- *  scroll keeps loading until it fills the view or the conversation begins. A thread pages the same way. */
-function loadAhead(C = MAIN) {
-  const v = C.view;
-  if (C.rendered !== v || v === "home" || CH.isChats(v)) return;
-  if (C.follow.fromTop() > Math.max(600, C.scroller.clientHeight)) return;
-  const t = convThread(v);
-  if (t) { if (world.act.loadOlderThread && canPageOlder(world.state.threadHist?.[t.id])) world.act.loadOlderThread(t.id); return; }
-  const c = chatOf(v); const h = c && world.state.hist[c];
-  if (h && h.loaded && !h.all && !h.loading && !h.olderError) world.act.loadOlder(c);
-}
-/** "Earlier messages" (or "Try again"), pressed: the conversation's next older page. */
-function loadOlderNow(C = MAIN) {
-  const from = document.activeElement?.closest?.("[data-older]") ? C.view : null;
-  if (from) C.scroller.focus({ preventScroll: true });
-  let read = null;
-  const t = convThread(C.view);
-  if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) read = world.act.loadOlderThread(t.id); }
-  else { const c = chatOf(C.view); if (c) read = world.act.loadOlder(c); }
-  if (from) Promise.resolve(read).finally(() => {
-    if (C.view !== from || document.activeElement !== C.scroller) return;
-    render();
-    C.msgs.querySelector("[data-older]")?.focus({ preventScroll: true });
-  });
-}
+const { loadAhead, loadOlderNow } = createConversationPaging({ MAIN, CH, world, convThread, chatOf, render: () => render() });
 
-/** One conversation's drawing: its messages (reconciled in place), pictures, the place you read held, the work's
- *  folds gliding, its thread's root found, its typing line; opening it lands at the latest. */
-function drawConv(C, needs) {
-  const v = C.view;
-  const opening = C.rendered !== v;
-  let quiet = opening;
-  // the first real fill of a conversation lands quietly (no arrivals), and where you are
-  const ready = liveReady(v);
-  if (!opening && ready && C.filled !== v) quiet = true;
-  C.filled = ready ? v : null;
-  if (C.main) S.filled = C.filled;
-  CHG.sync(v); // what this place changed: read on opening, and after each edit an agent finishes
-  const items = msgItems(v, needs);
-  // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
-  const folds = quiet ? null : foldsBefore(C, items);
-  const place = !opening && !C.follow.isPinned() ? readingPlace(C) : null;
-  reconcile(C.msgs, items, { quiet, fallback: () => (C.main ? $("#say") : C.scroller) });
-  hydrateMedia(C.msgs); // new pictures load and fade in; redrawn ones keep their pixels
-  if (place) { holdPlace(C, place); queueMicrotask(() => holdPlace(C, place)); } // after msgx's decoration too
-  if (folds) workMotion(C, folds);
-  ensureRoot(v);
-  typingRender(C);
-  // opening a conversation lands at the latest (the owner, 5 Nov). After that, follow.js keeps you there
-  // while you are (its first real fill included); if you scrolled up while it loaded, you stay where you
-  // went (QA R2: the fill used to count as opening it again and threw you back to the latest)
-  if (opening) { C.rendered = v; if (v === "chats") C.follow.toTop(); else C.follow.toLatest(false); }
-}
 
 // what scrolling asks of the page (an older page near the top, the header's edge): once a frame, not once an event
 let scrollRaf = 0;
@@ -1717,6 +1664,7 @@ function saveScroll() {
 }
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
 const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ S, world, CH, convThread, chatOf });
+const drawConv = createConversationDrawing({ S, CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender });
 const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread });
 function go(v, options) { return navigate(v, options); }
 $("#top-back").addEventListener("click", back);

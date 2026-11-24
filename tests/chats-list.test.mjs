@@ -107,7 +107,7 @@ t("its look: tokens only, a list of titles with no tiles, rims or dividers, rows
 });
 t("Chats opens at its top, the newest first; a chat still opens at its latest", () => {
   const app = read("js/app.js"), fo = read("modules/conversation/follow.js");
-  assert.match(app, /if \(opening\) \{ C\.rendered = v; if \(v === "chats"\) C\.follow\.toTop\(\); else C\.follow\.toLatest\(false\); \}/);
+  assert.match(read("modules/conversation/draw.js"), /if \(opening\) \{ C\.rendered = v; if \(v === "chats"\) C\.follow\.toTop\(\); else C\.follow\.toLatest\(false\); \}/);
   assert.match(fo, /function toTop\(\) \{\n\s*pinned = false; held = false;\n\s*sc\(\)\.scrollTop = 0; lastTop = 0;/);
   assert.match(app, /follow: \{ toLatest, toTop, unpin/, "the main chat's follower has it too");
 });

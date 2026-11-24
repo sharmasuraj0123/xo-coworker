@@ -7505,8 +7505,8 @@
    "home": "modules/threads/open-panel-thread.js"
   },
   "js/app.js::functions::createConv": {
-   "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2820)"
+   "status": "moved",
+   "home": "modules/conversation/draw.js"
   },
   "js/app.js::functions::schedule": {
    "status": "moved",
@@ -7521,16 +7521,16 @@
    "home": "shell/favicon.js"
   },
   "js/app.js::functions::loadAhead": {
-   "status": "planned",
-   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2921)"
+   "status": "moved",
+   "home": "modules/conversation/paging.js"
   },
   "js/app.js::functions::loadOlderNow": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.2937)"
+   "status": "moved",
+   "home": "modules/conversation/paging.js"
   },
   "js/app.js::functions::drawConv": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.2953)"
+   "status": "moved",
+   "home": "modules/conversation/draw.js"
   },
   "js/app.js::functions::readingPlace": {
    "status": "moved",
