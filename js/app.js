@@ -99,7 +99,7 @@ import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
-import { fileIcon } from "./fileicons.js";
+import { createFileQuestion } from "../modules/conversation/file-question.js";
 import { setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { createChangesFrame } from "../modules/changes/frame.js";
 import { createTray } from "./attach.js";
@@ -126,7 +126,6 @@ import { createSettingsFrame, createSettingsSections, createKeysPage, createShap
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
-import { noticeFor } from "../core/services/notices.js";
 import { createConversationNotices } from "../modules/conversation/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
@@ -269,7 +268,7 @@ world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the 
 const CHG = createChanges({ world, api, onChange: () => schedule() });
 const VW = createViewer({
   announce, onChange: () => schedule(), changes: CHG,
-  ask: { target: (f) => askPlace(f)?.name || null, send: askAboutLines, compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
+  ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text), compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   // each save (⌘S): its place's changes are read again, once you pause
   edits: { saved: (f) => savedSoon(f) },
   // who made a version: an agent's thread, by its title
@@ -1172,88 +1171,10 @@ const openMedia = createMediaOpener({ msgsEl, LB, VW });
 
 let drawing = null;
 
-// ── "Ask about these lines" (Files, js/viewer.js): to the file's own thread, else its project's coordinator ──
-/** Your words; a question about lines leads with them as an in-app capsule that opens Files there. */
-function youText(text) {
-  const r = lineRef(text);
-  if (!r) {
-    // a question about a whole file: its capsule, then your words
-    const f = fileRef(text);
-    if (!f) return esc(text);
-    return `<a href="#${esc(f.path)}" class="lk lk-in lk-file" data-ref="${esc(f.path)}" title="${esc(f.path)}"><span class="lk-ic">${fileIcon(f.path.split("/").pop())}</span><span class="lk-t">${esc(f.path.split("/").pop())}</span></a>\n${esc(f.rest)}`;
-  }
-  const name = r.path.split("/").pop(), lines = r.a === r.b ? `${r.a}` : `${r.a}–${r.b}`;
-  return `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}" data-ref-a="${r.a}" data-ref-b="${r.b}" title="${esc(`${r.path}, ${r.a === r.b ? "line" : "lines"} ${lines}`)}"><span class="lk-ic">${fileIcon(name)}</span><span class="lk-t">${esc(name)} · ${lines}</span></a>\n${esc(r.rest)}`;
-}
-/** Where a question about a project file goes: {conv, thread, chat, name, path (in its place)}, or null. */
-function askPlace(f) {
-  if (!f || !f.project || !f.rel) return null;
-  const fs = fileScope(f, { threads: world.state.threads, project: PROJ });
-  const path = fs && localIn(fs, f);
-  if (path == null) return null;
-  const thread = fs.tid ? world.thread(fs.tid) : null;
-  return thread ? { conv: `t:${thread.id}`, thread, chat: thread.project, name: thread.title || "this thread", path } : { conv: convOfChat(f.project), thread: null, chat: f.project, name: PROJ(f.project), path };
-}
-/**
- * Send "path:a-b" and the question, as your message there. The agent reads the path and lines first;
- * your bubble shows them as a capsule that opens Files at those lines (timeline.js lineRef).
- */
-function askAboutLines(f, a, b, text) {
-  const at = askPlace(f);
-  return !!at && sendAbout(f, `${at.path}:${a}${b > a ? `-${b}` : ""}\n\n${text}`);
-}
-/** Beside the chat (Layout A, the owner's D4): asking about lines puts them in this conversation's own composer
- *  as a capsule, and the composer has focus. The file's place must be this conversation; else false (the
- *  file's own composer asks, as before). */
-function composeAbout(f, a, b) {
-  // the chat is always beside the panel's file now: the lines go into its composer
-  const at = askPlace(f);
-  if (!at || at.conv !== S.view || CH.isChats(S.view)) return false;
-  S.lref[S.view] = { path: at.path, a, b, name: f.name || at.path.split("/").pop() };
-  lrefRender();
-  say.focus({ preventScroll: true });
-  announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${S.lref[S.view].name} are in your message. Write your question.`);
-  return true;
-}
-/** Ask about this (Astra's I7): the whole file, as a capsule in the composer of the conversation it belongs to (that
-    conversation opens if it isn't this one); the line above the field already names who receives it. Nothing is
-    sent until you write and send; × takes it out. */
-function askAboutFile(f) {
-  const at = askPlace(f);
-  if (!at) { announce("This file isn't in a project XO can ask about."); return false; }
-  const ref = { path: at.path, a: null, b: null, name: f.name || at.path.split("/").pop() };
-  if (at.conv !== S.view) { VW.close({ restore: false }); go(at.conv); }
-  S.lref[at.conv] = ref;
-  lrefRender();
-  say.focus({ preventScroll: true });
-  announce(`${ref.name} is in your message to ${at.name}. Write your question.`);
-  return true;
-}
-/** The capsule above the composer's field: the file and its lines (opens them), and × to take it out. */
-function lrefRender() {
-  const r = S.lref[S.view], el = $("#cref");
-  const lines = r && r.a ? ` · ${r.a}${r.b > r.a ? `–${r.b}` : ""}` : "";
-  const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}"${r.a ? ` data-ref-a="${r.a}" data-ref-b="${r.b}"` : ""} title="${esc(r.a ? `${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${r.b > r.a ? `–${r.b}` : ""}` : r.path)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)}${lines}</span></a>` +
-    `<button type="button" class="cref-x" data-lref-x aria-label="${r.a ? `Take ${r.a === r.b ? "the line" : "the lines"} out of this message` : `Take ${esc(r.name || r.path.split("/").pop())} out of this message`}" title="${r.a ? (r.a === r.b ? "Take it out" : "Take them out") : "Take the file out"}">${ICON.close}</button>` : "";
-  el.hidden = !r;
-  if (el._h !== html) { redraw(el, html); el._h = html; }
-}
-/** A message about a project file, as yours, in its thread (or its project's chat). True when it went. */
-function sendAbout(f, text) {
-  const at = askPlace(f);
-  if (!at) return false;
-  // the file's own place decides (its thread, or its project's chat), never the chat or draft on screen
-  const block = blockFor(at.thread ? { thread: true } : { pid: at.chat });
-  if (block) { refuse(block); return false; }
-  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, to: at.name, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
-  (S.local[at.conv] = S.local[at.conv] || []).push(m);
-  sound.play("send");
-  heraldShow(noticeFor(m, "out"), 9000);
-  if (at.thread) STAGE.resumeFollow(at.conv);
-  deliverLive(m, at.thread);
-  schedule();
-  return true;
-}
+const { youText, askPlace, askAboutLines, composeAbout, askAboutFile, lrefRender } = createFileQuestion({
+  S, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
+  fileScope, localIn, lineRef, fileRef,
+});
 
 // ── a thread's own header: resolve and reopen with Undo (R1), rename, label ──
 const resolveThread = createThreadResolve({ world, schedule, announce, heraldFor, heraldShow, heraldDrop });
