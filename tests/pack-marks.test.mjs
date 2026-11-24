@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { xi } from "../core/ui/icons/icon.js";
 import { ICON, stepMark } from "../core/ui/icons/names.js";
+import { sheet } from "./lib/cascade.mjs";
 import { readSource, sourcePaths, sourceText } from "./lib/sources.mjs";
 
 const icon = "core/ui/icons/icon.js";
@@ -31,7 +32,7 @@ t("spinners, needs-you marks and status dots draw from the pack's files, not CSS
   const tok = readSource("core/ui/tokens.css");
   for (const [k, f] of [["working", "e-state-marks/state-working.svg"], ["needs", "e-state-marks/state-needs-you.svg"], ["dot", "d-things-and-kinds/step-dot.svg"], ["stop", "c-actions/stop.svg"], ["warn", "d-things-and-kinds/warning.svg"], ["next", "b-arrows-and-chevrons/arrow-right.svg"]])
     assert.match(tok, new RegExp(`--mask-${k}:url\\(/core/ui/icons/source/xo/${f.replace(/\./g, "\\.")}\\)`), k);
-  const all = sourceText(".css");
+  const all = sheet(new URL("../css/app.css", import.meta.url)) + "\n" + sourceText(".css");
   const rule = (sel) => { const i = all.indexOf("\n" + sel + "{"); assert.ok(i >= 0, sel); return all.slice(i, all.indexOf("}", i)); };
   for (const sel of [".spin", ".tb-live", ".lp-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
   assert.doesNotMatch(all, /\.arc::before/, "the corner badge is the pack's badge mark (icon.js ARC), not a mask");
