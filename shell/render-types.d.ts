@@ -7,7 +7,8 @@ interface Sync { sync(): void }
 export interface RenderDeps<N extends RenderNeed, T extends RenderThread, C extends RenderConversation> {
   world: { state: { loaded?: boolean; threads: T[] } };
   D: Sync & { needItems(): N[] };
-  S: { view: string; focusNext?: (string | (() => HTMLElement | null))[] | null };
+  view(): string;
+  restoreFocus(): void;
   PAGE_OF: Record<string, string>;
   MAIN: C;
   pings(needs: N[]): void;

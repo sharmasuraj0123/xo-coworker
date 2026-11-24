@@ -4,7 +4,7 @@ interface SideThread {
   project: string;
   state: string;
   host?: boolean;
-  held?: Hold;
+  held?: Hold | null;
   busy?: boolean;
 }
 
@@ -16,20 +16,20 @@ export interface SideNeed {
   t: Pick<SideThread, "project" | "host">;
 }
 
-export interface SideRowsDeps {
-  S: { view: string; wash: Map<string, { n: number; until: number }> };
+export interface SideRowsDeps<N extends SideNeed> {
+  view: () => string;
   world: {
     state: { threads: SideThread[] };
     act: { coordinatorBusy: (project: string) => unknown; coordinatorHeld?: (project: string) => Hold | null };
   };
   CH: { isChats: (view: string) => boolean };
   REC: { artifacts: { count: () => number } };
-  D: { needItems: () => SideNeed[] };
+  D: { needItems: () => N[] };
   projects: () => { id: string; name: string }[];
   convThread: (view: string) => { project: string } | null | undefined;
   isBusy: (thread: SideThread) => boolean;
   isHeld: (thread: SideThread) => boolean;
-  askShort: (need: SideNeed) => string;
+  askShort: (need: N) => string;
   projectIcon: (project: string) => string;
   folded: () => boolean;
 }

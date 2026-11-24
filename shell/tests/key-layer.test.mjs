@@ -11,7 +11,7 @@ const { document, window } = await dom(`
     <section id="content">${controls}</section><section id="files"></section>
     <section id="settings" hidden>${controls}</section><div class="toast-wrap"></div>
   </main></div>
-  <div id="jump" hidden>${controls}</div><div id="all" hidden>${controls}</div>
+  <div id="jump" hidden>${controls}</div>
   <div id="keys" hidden>${controls}</div><div id="quickopen" hidden></div>
 `);
 globalThis.MutationObserver = window.MutationObserver;
@@ -19,14 +19,13 @@ Node.DOCUMENT_POSITION_FOLLOWING = 4;
 for (const button of document.querySelectorAll("button")) Object.defineProperty(button, "tabIndex", { value: 0 });
 const byId = (id) => document.getElementById(id);
 const app = byId("app"), main = byId("main"), side = byId("side"), settings = byId("settings");
-const keys = byId("keys"), all = byId("all"), jump = byId("jump"), quickopen = byId("quickopen");
+const keys = byId("keys"), jump = byId("jump"), quickopen = byId("quickopen");
 const files = byId("files"), content = byId("content");
 const phone = new window.EventTarget();
 phone.matches = false;
 const layer = (id, host, config) => ({ id, open: () => !host.hidden, close: () => { host.hidden = true; }, ...config });
 const stack = stackLayers(createKernel().layers, [
   layer("jump", jump, { tab: () => jump, watchHidden: jump, inertsApp: true }),
-  layer("all", all, { tab: () => all, watchHidden: all, inertsApp: true }),
   layer("keys", keys, { tab: () => keys, watchHidden: keys, inertsApp: true }),
   layer("quickopen", quickopen, { inertsApp: true }),
   layer("settings", settings, { watchHidden: settings, tab: () => phone.matches ? settings : null }),
@@ -63,7 +62,6 @@ wraps(side);
 
 settings.hidden = false;
 jump.hidden = false;
-all.hidden = false;
 keys.hidden = false;
 await mutation();
 assert.equal(app.inert, true);
@@ -77,8 +75,6 @@ assert.equal(tab(keys.lastElementChild), true);
 same(document.activeElement, keys.lastElementChild);
 keys.lastElementChild.removeEventListener("keydown", claimed);
 keys.hidden = true;
-wraps(all);
-all.hidden = true;
 wraps(jump);
 jump.hidden = true;
 wraps(settings);

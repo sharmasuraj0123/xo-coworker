@@ -50,8 +50,9 @@ try {
 }
 
 const notices = [];
+let view = "ws";
 const ping = createDecisionPings({
-  S: { view: "ws" }, P: { mayPing: () => true }, PROJ: () => "Research", askShort: (need) => need.key,
+  view: () => view, P: { mayPing: () => true }, PROJ: () => "Research", askShort: (need) => need.key,
   heraldShow: (notice) => notices.push(notice),
 });
 /** @param {string} key */
@@ -60,3 +61,8 @@ ping([need("already-seen")]);
 ping([need("already-seen"), need("new")]);
 ping([need("new")]);
 assert.deepEqual(notices.map((notice) => notice.decide), ["new"], "only a newly arrived ask speaks once");
+view = "t:in-thread";
+ping([need("in-thread")]);
+view = "ws";
+ping([need("in-thread"), need("elsewhere")]);
+assert.deepEqual(notices.map((notice) => notice.decide), ["new", "elsewhere"], "the thread shows its own asks without a repeated ping");

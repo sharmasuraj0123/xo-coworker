@@ -1,11 +1,14 @@
 // @ts-check
 
 import * as K from "../core/platform/keys.js";
+import { createScope } from "../core/kernel/scope.js";
 
-/** @param {{ S: {recording: unknown, view: string}, SH: {owns: (event: KeyboardEvent) => boolean}, jump: HTMLElement, IQ: {isOpen: boolean}, CREATE: {isOpen: () => boolean}, keys: HTMLElement, allEl: HTMLElement, GLOBAL: Record<string, () => unknown> & {shells: () => unknown}, FP: {toggleTree: () => boolean}, QO: {isOpen: boolean, close: () => void, open: (mode: "files" | "text") => boolean}, LAYERS: Pick<ReturnType<typeof import("./layers.js").stackLayers>, "escape">, back: () => unknown, go: (view: string) => unknown }} deps */
-export function wireGlobalKeys({ S, SH, jump, IQ, CREATE, keys, allEl, GLOBAL, FP, QO, LAYERS, back, go }) {
-  addEventListener("keydown", (e) => {
-    if (S.recording) return; // Settings › Keyboard is listening for a new key
+/** @param {import("./global-keys-types.d.ts").GlobalKeysOptions} deps */
+export function wireGlobalKeys({ view, capturing, SH, jump, IQ, CREATE, keys, GLOBAL, FP, QO, LAYERS, back, go }) {
+  const scope = createScope();
+  scope.listen(window, "keydown", (event) => {
+    if (capturing()) return;
+    const e = /** @type {KeyboardEvent} */ (event);
     if (e.isComposing || e.keyCode === 229) return;
     if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
     const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
@@ -14,12 +17,13 @@ export function wireGlobalKeys({ S, SH, jump, IQ, CREATE, keys, allEl, GLOBAL, F
     if (CREATE.isOpen()) return;
     if (e.key === "Escape") {
       if (LAYERS.escape()) return;
-      if (S.view.startsWith("t:")) back();
-      else if (S.view.startsWith("c:")) go("chats");
+      const current = view();
+      if (current.startsWith("t:")) back();
+      else if (current.startsWith("c:")) go("chats");
       return;
     }
     if (K.typing(e) || e.metaKey || e.ctrlKey || e.altKey) return; // typing, even in Pierre's editor (a shadow root)
-    if (!keys.hidden || !allEl.hidden) return;
+    if (!keys.hidden) return;
     const s = K.globalFor(e, { typing: false });
     if (s && !K.hasMod(s) && runGlobal(s)) e.preventDefault();
   });
@@ -32,4 +36,5 @@ export function wireGlobalKeys({ S, SH, jump, IQ, CREATE, keys, allEl, GLOBAL, F
     GLOBAL[id]();
     return true;
   }
+  return scope.dispose;
 }

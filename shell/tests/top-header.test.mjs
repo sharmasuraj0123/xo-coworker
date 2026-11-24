@@ -9,7 +9,7 @@ const { document } = await dom('<header id="top"><button id="top-back" hidden></
 const K = createKernel();
 definePlaces(K);
 K.places.contribute("header.action", { id: "outline", label: "Outline", icon: "plug", when: ({ project }) => project === "p", onPress() {} }, "xo.apps-host");
-const S = { view: "p:p", parent: { "t:t": "home" }, hdrCtl: '<button data-stage-open>Threads</button>' };
+let view = "p:p";
 const thread = { id: "t", project: "p", state: "working", busy: true };
 const calls = [];
 let title = "<h1>Project</h1>";
@@ -18,12 +18,13 @@ const back = document.getElementById("top-back");
 const who = document.getElementById("top-who");
 const end = document.getElementById("top-end");
 const render = createTopHeader({
-  S, convThread: (v) => v === "t:t" ? thread : null, isBusy: (t) => t.busy,
+  location: { view: () => view, parentOf: (v) => v === "t:t" ? "home" : undefined },
+  convThread: (v) => v === "t:t" ? thread : null, isBusy: (t) => t.busy,
   CH: { isChats: (v) => v === "chats" || v.startsWith("c:"), headHtml: () => "<h1>Chat</h1>" },
   STAGE: { button: () => "<button>Panel</button>" },
   checklistRender: () => calls.push("checklist"),
   PROJ: () => "Project",
-  conversationHeaderHtml: () => title,
+  conversationHeaderHtml: () => ({ who: title, controls: '<button data-stage-open>Threads</button>' }),
   kernel: K, atOf: () => ({ project: "p" }), LW: { isOpen: false },
   LP: { button: () => "<button>Deploy</button>", ensure: () => calls.push("launchpad") },
   tdelRender: () => calls.push("delete"),
@@ -38,7 +39,7 @@ render([]);
 assert.ok(end.querySelector("[data-stage-open]") === threads, "the open control survives a title redraw");
 assert.deepEqual(calls.slice(-4), ["launchpad", "checklist", "delete", "since"]);
 assert.equal(who.textContent, "Project renamed");
-S.view = "t:t";
+view = "t:t";
 title = '<input value="Editing">';
 render([]);
 assert.equal(top.dataset.state, "busy");
@@ -50,7 +51,7 @@ render([{ t: { id: "t" }, admitted: true }]);
 assert.equal(top.dataset.state, "need");
 assert.ok(who.querySelector("input") === input, "the paused title draw keeps the active editor");
 assert.ok(back.querySelector("span") === backLabel, "a changed state keeps the Back label in place");
-S.view = "c:chat";
+view = "c:chat";
 render([]);
 assert.equal(back.getAttribute("aria-label"), "Back to Chats");
 assert.equal(who.textContent, "Chat");

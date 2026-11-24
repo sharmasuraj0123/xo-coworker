@@ -2,9 +2,9 @@
 import { layerQueries } from "./layer-queries.js";
 
 const ORDER = {
-  back: ["create", "jump", "intel", "chat-setup", "runs", "keys", "all", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"],
-  escape: ["jump", "intel", "quickopen", "runs", "keys", "all", "settings", "files-page", "drawer", "decisions", "chat-setup"],
-  tab: ["keys", "all", "jump", "settings", "drawer"],
+  back: ["create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"],
+  escape: ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"],
+  tab: ["keys", "jump", "settings", "drawer"],
 };
 /** @param {import("../core/kernel/types").Layers} layers @param {import("./layer-queries.js").AppLayer[]} list */
 export function stackLayers(layers, list) {

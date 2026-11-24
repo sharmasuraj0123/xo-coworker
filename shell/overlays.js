@@ -108,17 +108,6 @@ export const OVERLAYS = `
   </form>
 </dialog>
 
-<div class="sheet" id="all" role="dialog" aria-modal="true" aria-labelledby="all-h" hidden>
-  <div class="sheet-card all-card">
-    <header class="sheet-h"><h2 id="all-h">All threads</h2><button type="button" class="x" data-close aria-label="Close"></button></header>
-    <div class="all-tools">
-      <div class="all-q"><span id="all-ic"></span><input id="all-q" placeholder="Search threads" autocomplete="off" aria-label="Search threads"></div>
-      <div class="all-f" id="all-f" role="radiogroup" aria-label="Show"></div>
-    </div>
-    <div class="all-list" id="all-list"></div>
-  </div>
-</div>
-
 <div class="sheet" id="runs" role="dialog" aria-modal="true" aria-labelledby="runs-h" hidden>
   <div class="sheet-card runs-card" id="runs-card" tabindex="-1"></div>
 </div>

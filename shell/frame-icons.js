@@ -32,7 +32,6 @@ export function drawFrameIcons(SHAPE_IC) {
   $("#sound-tog .th-knob").innerHTML = ICON.sound;
   for (const x of $$(".sheet [data-close]")) x.innerHTML = ICON.close;
   $("#jump-ic").innerHTML = ICON.search;
-  $("#all-ic").innerHTML = ICON.search;
 }
 
 export function drawSidebarControls() {

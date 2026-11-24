@@ -2,6 +2,7 @@
 
 import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { menuKeys } from "../core/ui/a11y/keynav.js";
+import { createScope } from "../core/kernel/scope.js";
 import { drag, glide, follow, unstyle, tick, scrollsX, scrolledY, edgeIsSafari, FLICK } from "../core/platform/gestures.js";
 /** @typedef {{ scroller: HTMLElement, msgs: HTMLElement, say?: HTMLElement, toast?: (message: string) => void }} Conversation */
 
@@ -9,7 +10,7 @@ import { drag, glide, follow, unstyle, tick, scrollsX, scrolledY, edgeIsSafari, 
 
 /** @typedef {{ host: HTMLElement, card?: () => HTMLElement | null, open: () => boolean, close: () => void }} Sheet */
 
-/** @typedef {{ phone: () => boolean, overlay: () => unknown, view: () => string, back: () => void, drawer: (open: boolean) => void, isDrawer: () => boolean, closeSettings: () => void, settingsOpen: () => boolean, viewerOpen: () => boolean, closeViewer: () => void, sheets: Sheet[], panelOpen: () => boolean, runsDeep: () => boolean, runsBack: () => void, runsCard: HTMLElement, say?: HTMLElement, toast?: (message: string) => void, canResolve: () => boolean, resolve: (id: string, resolved: boolean, row: HTMLElement) => void, threadOf: (id: string) => { id: string, state: string } | null }} SurfaceGestures */
+/** @typedef {{ phone: () => boolean, overlay: () => unknown, view: () => string, back: () => void, drawer: (open: boolean) => void, isDrawer: () => boolean, closeSettings: () => void, settingsOpen: () => boolean, viewerOpen: () => boolean, closeViewer: () => void, sheets: Sheet[], panelOpen: () => boolean, runsDeep: () => boolean, runsBack: () => void, runsCard: HTMLElement, say?: HTMLElement, toast?: (message: string) => void }} SurfaceGestures */
 
 /** @param {number} d */
 const band = (d) => d * 0.28;
@@ -46,8 +47,8 @@ export function dockGestures(tdock) {
   });
 }
 
-/** @param {SurfaceGestures} A @param {WordsOf} wordsOf */
-export function wireGestures(A, wordsOf) {
+/** @param {SurfaceGestures} A @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */
+export function wireGestures(A, wordsOf, scope) {
   const $ = (/** @type {string} */ s) => /** @type {HTMLElement} */ (document.querySelector(s));
   const main = $("#main"), side = $("#side"), scrim = $("#side-scrim");
   const W = () => main.clientWidth || innerWidth;
@@ -203,36 +204,6 @@ export function wireGestures(A, wordsOf) {
     cancel: () => unstyle(stage),
   });
 
-  // (a thread's decision card's drag comes with its dock: dockGestures, called by app.js's createDock for each)
-
-  // ── All threads: swipe a row left to Resolve it (Reopen a resolved one), with Undo in its place ──
-  const allList = $("#all-list");
-  /** @type {HTMLElement | null} */
-  let row = null;
-  drag(allList, {
-    axis: "x",
-    start: ({ target }) => {
-      const b = /** @type {HTMLElement | null} */ (target.closest(".ar[data-go^='t:']"));
-      if (!b || !A.canResolve()) return false;
-      row = b;
-      const t = A.threadOf((/** @type {string} */ (b.dataset.go)).slice(2));
-      if (!t) return false;
-      (/** @type {HTMLElement} */ ((/** @type {HTMLElement} */ (row)).parentElement)).dataset.act = t.state === "resolved" ? "Reopen" : "Resolve";
-      return true;
-    },
-    accept: (dx) => dx < 0,
-    move: (dx) => { (/** @type {HTMLElement} */ ((/** @type {HTMLElement} */ (row)).parentElement)).classList.add("is-swiping"); follow(/** @type {HTMLElement} */ (row), `translateX(${Math.min(0, dx)}px)`); (/** @type {HTMLElement} */ ((/** @type {HTMLElement} */ (row)).parentElement)).classList.toggle("is-armed", -dx > (/** @type {HTMLElement} */ (row)).offsetWidth * 0.4); },
-    end: async (dx, _dy, vx) => {
-      const li = (/** @type {HTMLElement} */ ((/** @type {HTMLElement} */ (row)).parentElement)), w = (/** @type {HTMLElement} */ (row)).offsetWidth;
-      if (committed(dx, vx, w, 0.4)) {
-        tick();
-        await glide(/** @type {HTMLElement} */ (row), `translateX(${-w}px)`, { ms: 160 });
-        const t = A.threadOf((/** @type {string} */ ((/** @type {HTMLElement} */ (row)).dataset.go)).slice(2));
-        if (t) A.resolve(t.id, t.state !== "resolved", li);
-      } else { await glide(/** @type {HTMLElement} */ (row), "translateX(0)"); unstyle(row); li.classList.remove("is-swiping", "is-armed"); }
-    },
-    cancel: () => { unstyle(row); row?.parentElement?.classList.remove("is-swiping", "is-armed"); },
-  });
 
   // ── a sub-agent opened in its page: swipe right goes back to the list ──
   const runsCard = A.runsCard;
@@ -249,85 +220,97 @@ export function wireGestures(A, wordsOf) {
     cancel: () => unstyle(runsCard),
   });
 
-  conversationGestures({ scroller: $("#scroller"), msgs: /** @type {HTMLElement} */ (document.getElementById("msgs")), say: A.say, toast: A.toast }, wordsOf);
+  conversationGestures({ scroller: $("#scroller"), msgs: $("#msgs"), say: A.say, toast: A.toast }, wordsOf, scope);
 }
 
-/** @param {Conversation} C @param {WordsOf} wordsOf */
-export function conversationGestures(C, wordsOf) {
+/** @param {Conversation} C @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */
+export function conversationGestures(C, wordsOf, scope) {
   // ── while typing, a drag down over the conversation lowers the keyboard (the draft is kept) ──
   const sc = C.scroller;
   let y0 = /** @type {number | null} */ (null), x0 = 0;
-  sc.addEventListener("touchstart", (e) => { y0 = document.activeElement === C.say && e.touches.length === 1 ? e.touches[0].clientY : null; x0 = e.touches[0]?.clientX || 0; }, { passive: true });
-  sc.addEventListener("touchmove", (e) => {
+  scope.listen(sc, "touchstart", (event) => {
+    const { touches } = /** @type {TouchEvent} */ (event);
+    y0 = document.activeElement === C.say && touches.length === 1 ? touches[0].clientY : null;
+    x0 = touches[0]?.clientX || 0;
+  }, { passive: true });
+  scope.listen(sc, "touchmove", (event) => {
     if (y0 == null) return;
-    const p = e.touches[0], dy = p.clientY - y0;
+    const p = (/** @type {TouchEvent} */ (event)).touches[0], dy = p.clientY - y0;
     if (dy > 28 && dy > Math.abs(p.clientX - x0)) { (/** @type {HTMLElement} */ (C.say)).blur(); y0 = null; }
   }, { passive: true });
-  longPress(C, wordsOf);
+  longPress(C, wordsOf, scope);
 }
 
 const HOLD = 480;
-/** @param {Conversation} A @param {WordsOf} wordsOf */
-function longPress(A, wordsOf) {
+/** @param {Conversation} A @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */
+function longPress(A, wordsOf, scope) {
   const msgs = A.msgs;
-  let timer = 0, at = /** @type {{ x: number, y: number } | null} */ (null), menu = /** @type {HTMLElement | null} */ (null), from = /** @type {HTMLElement | null} */ (null), fired = false;
+  let cancelHold = () => {}, cancelMenu = () => {}, fired = false;
+  let at = /** @type {{ x: number, y: number } | null} */ (null);
+  let menu = /** @type {HTMLElement | null} */ (null), from = /** @type {HTMLElement | null} */ (null);
   const WHAT = ".m-you .bubble, .m-them:not(.m-turn):not(.m-card) > .mb > .prose, .m-turn .tb-answer";
-  const shut = () => {
+  const shut = (restoreFocus = true) => {
     if (!menu) return;
-    if (menu.contains(document.activeElement) && from && from.isConnected) {
+    if (restoreFocus && menu.contains(document.activeElement) && from?.isConnected) {
       if (!from.hasAttribute("tabindex")) from.tabIndex = -1;
       from.focus({ preventScroll: true });
     }
     menu.remove(); menu = null; from = null;
-    document.removeEventListener("touchstart", outside, true);
-    document.removeEventListener("keydown", esc, true);
+    cancelMenu();
   };
-  const outside = (/** @type {TouchEvent} */ e) => { if (menu && !menu.contains(/** @type {Node} */ (e.target))) shut(); };
-  const esc = (/** @type {KeyboardEvent} */ e) => { if (e.key === "Escape") { e.stopPropagation(); shut(); } };
+  const outside = (/** @type {Event} */ e) => { if (menu && !menu.contains(/** @type {Node} */ (e.target))) shut(); };
+  const esc = (/** @type {Event} */ e) => { if ((/** @type {KeyboardEvent} */ (e)).key === "Escape") { e.stopPropagation(); shut(); } };
   const clearSel = () => { for (const el of msgs.querySelectorAll(".is-selecting")) el.classList.remove("is-selecting"); };
-  document.addEventListener("selectionchange", () => { const s = getSelection(); if (s && s.isCollapsed) clearSel(); });
+  scope.effect(() => () => shut(false));
+  scope.listen(document, "selectionchange", () => { const s = getSelection(); if (s && s.isCollapsed) clearSel(); });
 
-  msgs.addEventListener("touchstart", (e) => {
-    clearTimeout(timer);
+  const stopHold = () => { cancelHold(); at = null; };
+  scope.listen(msgs, "touchstart", (event) => {
+    const e = /** @type {TouchEvent} */ (event);
+    stopHold();
     fired = false;
     const el = e.touches.length === 1 && !(/** @type {Element} */ (e.target)).closest("a, button, input, textarea, .md-code, [data-copy]") ? (/** @type {Element} */ (e.target)).closest(WHAT) : null;
     if (!el || el.classList.contains("is-selecting")) return;
     const p = e.touches[0];
-    at = { x: p.clientX, y: p.clientY };
-    timer = setTimeout(() => { fired = true; tick(); open(/** @type {HTMLElement} */ (el), /** @type {{ x: number, y: number }} */ (at)); }, HOLD);
+    const origin = at = { x: p.clientX, y: p.clientY };
+    cancelHold = scope.timeout(() => { fired = true; tick(); open(/** @type {HTMLElement} */ (el), origin); }, HOLD);
   }, { passive: true });
-  msgs.addEventListener("touchmove", (e) => {
-    if (!at || !timer) return;
-    const p = e.touches[0];
-    if (Math.hypot(p.clientX - at.x, p.clientY - at.y) > 8) { clearTimeout(timer); timer = 0; }
+  scope.listen(msgs, "touchmove", (event) => {
+    if (!at) return;
+    const p = (/** @type {TouchEvent} */ (event)).touches[0];
+    if (Math.hypot(p.clientX - at.x, p.clientY - at.y) > 8) stopHold();
   }, { passive: true });
-  const stop = (/** @type {TouchEvent} */ e) => { clearTimeout(timer); timer = 0; if (fired && e.cancelable) e.preventDefault(); };
-  msgs.addEventListener("touchend", stop);
-  msgs.addEventListener("touchcancel", stop);
+  const stop = (/** @type {Event} */ e) => { stopHold(); if (fired && e.cancelable) e.preventDefault(); };
+  scope.listen(msgs, "touchend", stop);
+  scope.listen(msgs, "touchcancel", stop);
   // Android opens its own menu on a long-press: ours is the one shown
-  msgs.addEventListener("contextmenu", (e) => { if (fired || (matchMedia("(pointer: coarse)").matches && (/** @type {Element} */ (e.target)).closest(WHAT) && !(/** @type {Element} */ (e.target)).closest(".is-selecting"))) e.preventDefault(); });
-  A.scroller.addEventListener("scroll", shut, { passive: true });
+  scope.listen(msgs, "contextmenu", (e) => { if (fired || (matchMedia("(pointer: coarse)").matches && (/** @type {Element} */ (e.target)).closest(WHAT) && !(/** @type {Element} */ (e.target)).closest(".is-selecting"))) e.preventDefault(); });
+  scope.listen(A.scroller, "scroll", () => shut(), { passive: true });
 
   /** @param {HTMLElement} el @param {{ x: number, y: number }} p */
   function open(el, p) {
     shut();
+    const menuScope = createScope();
+    cancelMenu = menuScope.dispose;
     from = el;
     menu = document.createElement("div");
     menu.className = "lp-menu";
     menu.setAttribute("role", "menu");
     menu.setAttribute("aria-label", "Message");
     menu.innerHTML = `<button type="button" role="menuitem" data-lp="copy">Copy</button><button type="button" role="menuitem" data-lp="select">Select text</button>`;
-    menuKeys(menu, { close: shut }); // ↓ ↑ Home End; Tab closes it back to the message (Escape: esc below)
+    menuKeys(menu, { close: () => shut() });
     document.body.appendChild(menu);
     const r = menu.getBoundingClientRect();
     const x = Math.max(10, Math.min(innerWidth - r.width - 10, p.x - r.width / 2));
     const y = p.y - r.height - 18 > 10 ? p.y - r.height - 18 : p.y + 18;
     menu.style.left = `${x}px`; menu.style.top = `${y}px`;
-    menu.addEventListener("click", (e) => {
+    menuScope.listen(menu, "click", (e) => {
       const b = /** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest("[data-lp]"));
       if (!b) return;
       // "Copied" only once it's on the clipboard; refused, said so
-      if (b.dataset.lp === "copy") { copyText(wordsOf(el)).then((ok) => A.toast?.(ok ? "Copied" : COPY_REFUSED)); } // its words, as the desktop's Copy reads them
+      if (b.dataset.lp === "copy") {
+        copyText(wordsOf(el)).then((ok) => { if (!scope.signal.aborted) A.toast?.(ok ? "Copied" : COPY_REFUSED); });
+      }
       else {
         // focus goes to the message first (shut), then its words are selected: the selection stays
         shut();
@@ -339,7 +322,10 @@ function longPress(A, wordsOf) {
       }
       shut();
     });
-    setTimeout(() => { document.addEventListener("touchstart", outside, true); document.addEventListener("keydown", esc, true); }, 0);
+    menuScope.timeout(() => {
+      menuScope.listen(document, "touchstart", outside, true);
+      menuScope.listen(document, "keydown", esc, true);
+    }, 0);
     (/** @type {HTMLButtonElement} */ (menu.querySelector("button"))).focus({ preventScroll: true });
   }
 }

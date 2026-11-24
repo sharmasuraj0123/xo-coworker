@@ -14,7 +14,7 @@ export function createShellScheduler(render) {
 
 /** @template {import("./render-types.d.ts").RenderNeed} Need @template {import("./render-types.d.ts").RenderThread} Thread @template {import("./render-types.d.ts").RenderConversation} Conversation @param {import("./render-types.d.ts").RenderDeps<Need, Thread, Conversation>} options */
 export function createShellRenderer({
-  world, D, S, PAGE_OF, MAIN, pings, dockAtTop, convThread, sideRender, homeRender, REC, LPP,
+  world, D, view, restoreFocus, PAGE_OF, MAIN, pings, dockAtTop, convThread, sideRender, homeRender, REC, LPP,
   topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
   dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
   MAP, VW, LW, FP, titleFor, isBusy,
@@ -23,7 +23,7 @@ export function createShellRenderer({
     if (!world.state.loaded) return;
     const needs = D.needItems();
     pings(needs);
-    const v = S.view;
+    const v = view();
     const isHome = v === "home";
     const isArts = v === "artifacts", isLp = v === "launchpad", isPage = !!PAGE_OF[v];
     // Only write changed view and conversation attributes, since other layers observe them.
@@ -67,7 +67,6 @@ export function createShellRenderer({
     const nd = needs.filter((n) => n.admitted && !n.later).length;
     document.title = titleFor(nd, "XO Space");
     faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
-    // Move focus to the requested replacement during the same redraw.
-    if (S.focusNext) { const to = S.focusNext.map((sel) => (typeof sel === "function" ? sel() : $(sel))).find(usable); S.focusNext = null; to?.focus({ preventScroll: true }); }
+    restoreFocus();
   };
 }

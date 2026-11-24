@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { createKernel } from "../../core/kernel/index.js";
 import { stackLayers } from "../layers.js";
 
-const backOrder = ["create", "jump", "intel", "chat-setup", "runs", "keys", "all", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"];
-const escapeOrder = ["jump", "intel", "quickopen", "runs", "keys", "all", "settings", "files-page", "drawer", "decisions", "chat-setup"];
+const backOrder = ["create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"];
+const escapeOrder = ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"];
 const ids = [...new Set([...backOrder, ...escapeOrder])].sort();
 const kernel = createKernel({ warn() {}, log() {} });
 const open = new Set();

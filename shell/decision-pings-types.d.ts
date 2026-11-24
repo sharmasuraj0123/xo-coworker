@@ -1,7 +1,7 @@
 export interface PingNeed { key: string; group: string; ask: { stopByYou?: boolean }; t: { id: string; project: string } }
 
 export interface DecisionPingDeps<N extends PingNeed> {
-  S: { view: string; seen?: Set<string> | null };
+  view(): string;
   P: { mayPing: (need: N) => boolean };
   PROJ(project: string): string;
   askShort(need: N): string;
