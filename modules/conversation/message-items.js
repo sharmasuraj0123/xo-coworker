@@ -13,7 +13,7 @@ import { turnHtml, turnAv } from "./blocks/turn.js";
 
 /** @import { Control, History, Limit, Message } from "./message-types.d.ts" */
 
-/** @import { RankedNeed } from "./draw-types.d.ts" */
+/** @import { RankedNeed } from "../../core/services/decision-types.d.ts" */
 
 /** @import { Block, Turn } from "./blocks/turn.js" */
 

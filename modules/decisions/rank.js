@@ -4,7 +4,7 @@
 
 import * as Kit from "./kit.js";
 
-/** @typedef {"glance" | "decide" | "think"} Effort */
+/** @import { Effort } from "../../core/services/decision-types.d.ts" */
 
 /** @typedef {{ key?: string, t: any, ask: any, group?: string, risk?: string, effort: Effort, lev: { min: number, steps: number }, later?: boolean, since: number }} Need */
 

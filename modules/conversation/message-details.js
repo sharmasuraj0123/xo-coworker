@@ -12,7 +12,7 @@ import { stateMark } from "../../core/ui/icons/icon.js";
 
 /** @import { MessageDetailsDeps, MessageThread } from "./message-details-types.d.ts" */
 
-/** @import { RankedNeed } from "./draw-types.d.ts" */
+/** @import { RankedNeed } from "../../core/services/decision-types.d.ts" */
 
 /** @param {MessageDetailsDeps} deps */
 export function createMessageDetails({

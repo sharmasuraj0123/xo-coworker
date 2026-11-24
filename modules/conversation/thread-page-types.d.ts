@@ -1,14 +1,16 @@
-import type { createDock } from "../decisions/dock.js";
+import type { RankedNeed } from "../../core/services/decision-types.d.ts";
 import type { ChecklistDeps, ChecklistNeed } from "./checklist-types.d.ts";
 import type { Composer } from "./composer-types.d.ts";
-import type { Conversation, RankedNeed } from "./draw-types.d.ts";
+import type { Conversation } from "./draw-types.d.ts";
 import type { Follow } from "./follow.js";
 import type { decorateConversation } from "./decoration.js";
 import type { heldBadge } from "../../core/services/world/held.js";
 
 type Thread = NonNullable<ReturnType<ChecklistDeps["convThread"]>> & { held?: Parameters<typeof heldBadge>[0] };
 type PanelComposer = Composer & { iq: HTMLElement };
-export type DockNeed = Parameters<ReturnType<typeof createDock>["render"]>[0][number];
+export type DockNeed = RankedNeed & { ask: { item?: { id: string } } };
+type DockMount = { el: HTMLElement; view(): string; region(): HTMLElement };
+type Dock = { reset(): void; render(needs: DockNeed[]): void };
 
 export type ThreadPage = {
   box: HTMLElement | null;
@@ -17,20 +19,20 @@ export type ThreadPage = {
   tid: string | null;
   follow: Follow | null;
   viewSubs: Set<() => void>;
-  dock?: ReturnType<typeof createDock>;
+  dock?: Dock;
   deco?: ReturnType<typeof decorateConversation>;
   dockRO?: ResizeObserver;
   scrollRaf?: number;
   wait?: boolean;
 };
 
-export type ThreadPageDeps = {
+export type ThreadPageDeps<DockDeps> = {
   STAGE: { slot: HTMLElement; pageShown: { name: string } | null; closePage(name: string): unknown };
   S: { tMenu?: string | null; tMenuIn?: string | null };
   world: { act: { watchSideThread?: (key: string | null) => unknown } };
   D: { needItems(): DockNeed[] };
-  createDock: typeof createDock;
-  dockDeps: Parameters<typeof createDock>[1];
+  createDock(mount: DockMount, deps: DockDeps): Dock;
+  dockDeps: DockDeps;
   wireComposer(composer: Composer): void;
   wireTray(composer: Composer): void;
   closeThreadMenu(): void;

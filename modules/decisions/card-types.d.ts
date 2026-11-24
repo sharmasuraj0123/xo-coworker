@@ -1,5 +1,5 @@
 import type { actsOf, headOf } from "./cardparts.js";
-import type { Effort } from "./rank.js";
+import type { Effort } from "../../core/services/decision-types.d.ts";
 import type { LimitItem } from "./cards/evidence-types.d.ts";
 import type { paidHtml } from "./cards/paid.js";
 

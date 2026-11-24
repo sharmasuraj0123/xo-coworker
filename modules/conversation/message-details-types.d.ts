@@ -1,6 +1,5 @@
-import type { EFFORT } from "../decisions/rank.js";
+import type { Effort, RankedNeed } from "../../core/services/decision-types.d.ts";
 import type { ProjectionThread } from "./message-types.d.ts";
-import type { RankedNeed } from "./draw-types.d.ts";
 import type { Run } from "./stop-types.d.ts";
 import type { Hop } from "../../core/services/world/relay.js";
 import type { heldWords } from "../../core/services/world/held.js";
@@ -22,7 +21,7 @@ export type MessageDetailsDeps = {
     act: { sessionState(sessionId: string | null | undefined): unknown };
     thread(id: string): MessageThread | null | undefined;
   };
-  EFFORT: typeof EFFORT;
+  EFFORT: Readonly<Record<Effort, { time: string }>>;
   REC: { latestOf?: (threadId: string, project: string) => { key: string; path?: string | null; title?: string; name?: string } | null };
   SHAPE: { on(key: string): boolean; word(noun: string): string };
   PROJ(project: string | null): string;

@@ -4,7 +4,9 @@ import { $ } from "../../core/platform/dom.js";
 import { hydrateMedia } from "../../core/services/media/hydrate.js";
 import { reconcile } from "../../core/ui/redraw.js";
 
-/** @import { Conversation, ConversationMount, DrawingDeps, RankedNeed } from "./draw-types.d.ts" */
+/** @import { RankedNeed } from "../../core/services/decision-types.d.ts" */
+
+/** @import { Conversation, ConversationMount, DrawingDeps } from "./draw-types.d.ts" */
 
 /** @param {ConversationMount} options @returns {Conversation} */
 export function createConv({ view, msgs, scroller: sc, column, typing, follow, main = false }) {

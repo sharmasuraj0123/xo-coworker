@@ -1,4 +1,4 @@
-import type { RankedNeed } from "./needs.js";
+import type { RankedNeed } from "../../core/services/decision-types.d.ts";
 
 export type OpenOptions = { only?: "glance" | string[] | null; teach?: string | null };
 export type DecisionError = Error & { gone?: string };

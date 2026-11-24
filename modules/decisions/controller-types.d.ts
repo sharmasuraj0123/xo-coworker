@@ -1,6 +1,7 @@
 import type { createDecisionCard, ScopeParts } from "./card.js";
 import type { CardChoice, CardNeed, NoteMode } from "./card-events-types.d.ts";
-import type { RankedNeed, createNeedItems } from "./needs.js";
+import type { createNeedItems } from "./needs.js";
+import type { RankedNeed } from "../../core/services/decision-types.d.ts";
 import type { createPacing } from "./pacing.js";
 import type { PanelState } from "./panel-view-types.d.ts";
 import type { DecisionEntry, DecisionQueueDeps } from "./queue-types.d.ts";

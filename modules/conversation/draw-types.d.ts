@@ -1,8 +1,6 @@
 import type { Follow } from "./follow.js";
 import type { createReadingLayout } from "./reading-layout.js";
-import type { RankedNeed } from "../decisions/needs.js";
-
-export type { RankedNeed };
+import type { RankedNeed } from "../../core/services/decision-types.d.ts";
 
 type Layout = ReturnType<typeof createReadingLayout>;
 type Reading = Parameters<typeof createReadingLayout>[0]["MAIN"];

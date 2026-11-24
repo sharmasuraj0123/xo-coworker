@@ -5,24 +5,16 @@ import { itemEffort } from "../../core/services/review.js";
 import * as Kit from "./kit.js";
 import { effortOf, leverageOf, rank } from "./rank.js";
 
-/** @typedef {{id: string, title: string, state: string, checklist: {total: number, done: number}, stop?: unknown, happened?: string, asks?: {item?: object}[], host?: boolean, live?: boolean, busy?: boolean}} Thread */
+/** @import { NeedThread, NeedFields, RankFields, RankedNeed } from "../../core/services/decision-types.d.ts" */
 
 /** @typedef {{seq: number, at: number}} Seen */
 
-/** @typedef {{item?: object, kind?: string, title?: string, risk?: string, detail?: string}} Ask */
-
-/** @typedef {{key: string, t: Thread, ask: Ask, group: string, risk: string}} UnrankedNeedFields */
-
-/** @typedef {{since: number, waitSince: number, effort: import("./rank.js").Effort, lev: {min: number, steps: number}, idle: boolean, later: boolean}} RankFields */
-
-/** @typedef {UnrankedNeedFields & Partial<RankFields>} UnrankedNeed */
-
-/** @typedef {UnrankedNeedFields & RankFields & import("./pacing.js").Paced} RankedNeed */
+/** @typedef {NeedFields & Partial<RankFields>} UnrankedNeed */
 
 /** @param {string} r */
 export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[/** @type {"destructive" | "notable" | "routine" | "stopped"} */ (r)] || "Notable";
 
-/** @param {{world: {state: {threads: Thread[], hosts?: Thread[]}}, P: Pick<ReturnType<typeof import("./pacing.js").createPacing>, "classify">, later: Set<string>, waitSince: Map<string, number>, stoppedDone: Set<string>, sentKeys: Map<string, number>, queue: {has(key: string): boolean}}} options */
+/** @param {{world: {state: {threads: NeedThread[], hosts?: NeedThread[]}}, P: Pick<ReturnType<typeof import("./pacing.js").createPacing>, "classify">, later: Set<string>, waitSince: Map<string, number>, stoppedDone: Set<string>, sentKeys: Map<string, number>, queue: {has(key: string): boolean}}} options */
 export function createNeedItems({ world, P, later, waitSince, stoppedDone, sentKeys, queue }) {
   /** @type {Map<string, Seen>} */
   const firstSeen = new Map();

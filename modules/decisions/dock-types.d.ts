@@ -1,4 +1,4 @@
-import type { RankedNeed } from "./needs.js";
+import type { RankedNeed } from "../../core/services/decision-types.d.ts";
 import type { goneLine } from "./cardparts.js";
 
 export type Thread = { id: string; host?: boolean };

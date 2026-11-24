@@ -1,5 +1,8 @@
 export interface Folder { root: string; base: string; project: string; projectRoot: string }
 export type Place = { rel: string; abs?: undefined } | { abs: string; rel?: undefined };
+export type FileLocation = { project?: string; rel?: string };
+export type FileScope = { key: string; project?: string; base?: string; label?: string; sub?: string; tid?: string };
+export type ScopeThread = { id: string; project?: string; worktree?: string; cwd?: string; branch?: string };
 export interface ActivityRow { kind: string; target?: string; status?: string; waiting?: boolean }
 export interface Turn { session?: string; status?: string }
 export interface Turns { list(pred: (t: any) => boolean): Turn[]; blocksOf(t: Turn): { type: string; rows?: ActivityRow[] }[] }

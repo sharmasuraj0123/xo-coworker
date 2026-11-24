@@ -2,11 +2,11 @@
 
 import { folderOf } from "../../core/services/places.js";
 
-/** @typedef {{id: string, project?: string, worktree?: string, cwd?: string, branch?: string}} ScopeThread */
+/** @typedef {import("../../core/services/types.d.ts").ScopeThread} ScopeThread */
 
-/** @typedef {{key: string, project?: string, base?: string, label?: string, sub?: string, tid?: string}} FilesScope */
+/** @typedef {import("../../core/services/types.d.ts").FileScope} FilesScope */
 
-/** @typedef {{project?: string, rel?: string}} FileLocation */
+/** @typedef {import("../../core/services/types.d.ts").FileLocation} FileLocation */
 
 /** The folder a view shows: {key, project, base (the API path of its root), label, sub} or {key: "all"}. @param {string | null | undefined} view @param {{thread: (id: string) => ScopeThread | null | undefined, project: (id: string) => string}} deps @returns {FilesScope} */
 export function scopeOf(view, { thread, project }) {

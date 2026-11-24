@@ -18,7 +18,7 @@ import { wordsOf } from "./words.js";
 
 /** @import { DockNeed, PanelComposer, Thread, ThreadPage, ThreadPageDeps } from "./thread-page-types.d.ts" */
 
-/** @param {ThreadPageDeps} deps */
+/** @template DockDeps @param {ThreadPageDeps<DockDeps>} deps */
 export function createThreadPage({
   STAGE, S, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu, addFiles, toggleIq, sessionOf,
   convProject, watchDock, toastLine, loadAhead, returnPill, saveDraft, loadDraft, convThread, stOf, glyphOf,

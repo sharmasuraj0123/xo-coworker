@@ -10,9 +10,9 @@ import { sound } from "../../core/services/sound.js";
 
 /** @import { FileQuestionDeps, FileReference, QuestionFile } from "./file-question-types.d.ts" */
 
-/** @import { FilesScope } from "../files/scope.js" */
-
 /** @import { LocalMessage } from "./delivery-types.d.ts" */
+
+/** @import { FileScope } from "../../core/services/types.d.ts" */
 
 /** @param {FileQuestionDeps} deps */
 export function createFileQuestion({
@@ -33,7 +33,7 @@ export function createFileQuestion({
   /** @param {QuestionFile | null | undefined} f */
   function askPlace(f) {
     if (!f || !f.project || !f.rel) return null;
-    const fs = /** @type {FilesScope} */ (fileScope(f, { threads: world.state.threads, project: PROJ }));
+    const fs = /** @type {FileScope} */ (fileScope(f, { threads: world.state.threads, project: PROJ }));
     const path = fs && localIn(fs, f);
     if (path == null) return null;
     const thread = fs.tid ? world.thread(fs.tid) : null;

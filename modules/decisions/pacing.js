@@ -5,7 +5,9 @@
 export const SMALL_MIN = 30;
 export const PING_MIN = 60;
 
-/** @typedef {{ key: string, risk?: string, group?: string, idle?: boolean, lev: { min: number }, bypass?: boolean, held?: boolean, heldWhy?: string, admitted?: boolean }} Paced */
+/** @import { PacingFields } from "../../core/services/decision-types.d.ts" */
+
+/** @typedef {PacingFields & { key: string, risk?: string, group?: string, idle?: boolean, lev: { min: number } }} Paced */
 
 /** @param {{ params?: unknown }} [_] */
 export function createPacing(_ = {}) {
