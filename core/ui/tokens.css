@@ -61,12 +61,10 @@
   --ring-room:6px;
   /* Dark ink maintains contrast on every agent colour. */
   --on-agent:#0B0B0C;
-  /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
   /* a switch's knob is white in every theme; the icon on a lit one */
   --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
-  /* a form field: its well, its edge, its edge while typed in */
   --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8); --field-px:var(--s-3);
   /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
   --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
@@ -77,7 +75,6 @@
   --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
   /* Status roles provide the shared hues for labels and quiet tints. */
   --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
-
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --sans-read:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -95,7 +92,6 @@
   --ink-read:var(--ink);
   --ok-fill:color-mix(in srgb,var(--accent-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--accent-fill) 22%,transparent); --ok-fill-press:color-mix(in srgb,var(--accent-fill) 28%,transparent);
   --measure-min:480px; --measure:max(calc(100% - var(--s-12)), min(100%, var(--measure-min)));   /* outside a view's column: its own box */
-
   --r-xs:6px; --r-sm:6px; --r:8px; --r-lg:12px; --r-xl:20px; --r-2xl:22px; --r-3xl:28px; --r-pill:999px;
   /* the dock family (every decision card, its folded and done lines, the composer) shares one corner; its controls sit --card-in from the edge */
   --r-card:24px; --card-in:var(--s-3); --card-pad:var(--s-5);
@@ -175,6 +171,10 @@
   --r-viewer-segment-inset:4px; --s-viewer-code-top:14px; --s-viewer-code-line-start:14px; --s-viewer-path-offset:22px;
   --s-viewer-copy-block:9px; --s-viewer-copy-inline:6px; --s-viewer-phone-inline:18px; --offset-viewer-download-link:2px;
   --measure-viewer-empty:44ch; --palette-white:#fff; --fill-viewer-document:var(--palette-white); --tile-viewer-checker:16px;
+  --h-home-panel-card:58px; --h-home-wait-card:50px; --ic-home-handled-badge:22px; --r-home-handled-badge:50%;
+  --s-home-card-row-gap:2px; --s-home-wait-card-block:6px; --s-home-wait-card-gap:6px; --s-home-wait-detail-gap:2px;
+  --w-home-handled-project:110px; --w-home-handled-progress:44px; --offset-home-handled-icon:4px;
+  --h-home-progress-track:3px; --r-home-progress-track:3px;
   --mix-link-fill:7%; --mix-link-hover:14%; --mix-link-press:18%; --mix-link-quiet:5%; --mix-link-underline:55%;
   --s-lk-b:.735em; --s-lk-start:.38em; --s-lk-end:.6em; --s-link-icon-gap:.2em;
   --s-link-file-start:.4167em; --s-link-file-gap:.3167em; --s-link-arrow-gap:.14em;
@@ -182,7 +182,7 @@
   --offset-link-arrow-run:1.5px; --offset-link-arrow-rise:-1.5px; --offset-link-underline:3px; --opacity-link-press:.7;
   --stroke-focus:2px; --offset-link-focus-in:1px; --offset-link-focus-out:2px; --r-link-focus:3px; --size-inline-link-code:.9em;
   --dock-gap:var(--s-3); --cbar-fade:30px;
-  --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
+  --edge-fade:var(--s-8);
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
   /* Hover starts faster than it releases. Floating surfaces leave faster than they enter. */
