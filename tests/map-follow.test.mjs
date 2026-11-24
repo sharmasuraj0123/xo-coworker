@@ -1,9 +1,10 @@
 // @ts-check
 import assert from "node:assert/strict";
 import { mock } from "node:test";
+import { valuesFor } from "./lib/css-snapshot.mjs";
 import { dom } from "./lib/dom.mjs";
 
-const { window, document } = await dom('<div id="tree"></div><div id="graph"></div>');
+const { window, document } = await dom('<div id="tree"></div><div id="graph"></div><button id="outside">Outside</button>');
 const frames = new Map();
 let frameId = 0, mode = "tree", boxWidth = 100, phone = false;
 let target = "/home/coder/project/one.js";
@@ -46,6 +47,7 @@ function withFrame() {
 
 mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1 });
 try {
+  assert.deepEqual(valuesFor(".dg", "overflow"), ["clip"], "the camera alone can move the drawing");
   for (const view of ["tree", "graph"]) {
     mode = view;
     target = "/home/coder/project/one.js";
@@ -87,6 +89,20 @@ try {
     const revealed = canvas.style.transform;
     follow.focus();
     assert.notEqual(canvas.style.transform, revealed, "leaving the drawing restores Follow");
+    {
+      const node = canvas.querySelector("button[data-node], button[data-mp-go]");
+      assert.ok(node, `${view} has a keyboard target in the drawing`);
+      node.getBoundingClientRect = () => ({ left: 2500, top: 60, width: 90, height: 28 });
+      const following = canvas.style.transform;
+      node.focus();
+      const nodePosition = canvas.style.transform;
+      assert.notEqual(nodePosition, following, `${view} brings a distant focused node into view immediately`);
+      assert.equal(canvas.classList.contains("is-glide"), false);
+      assert.equal(follow.getAttribute("aria-pressed"), "true");
+      document.getElementById("outside").focus();
+      assert.notEqual(canvas.style.transform, nodePosition, `${view} brings the agent back when focus leaves the drawing`);
+      assert.equal(follow.getAttribute("aria-pressed"), "true");
+    }
     target = "/home/coder/project/two.js";
     map.render("t:worker");
     for (let n = 0; n < 40; n++) { mock.timers.tick(16); withFrame(); }

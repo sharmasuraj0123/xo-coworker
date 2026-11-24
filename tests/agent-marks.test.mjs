@@ -1,11 +1,10 @@
-// A runtime's mark (core/services/runtimes.js rtMark, the owner, 19 Nov): Claude Code wears Claude's, Codex OpenAI's, Antigravity
-// its own; anything else keeps its name as text. The name is always said: on hover and to a screen reader, or written
-// beside the mark where there's room. Pure: node only.
-//   node tests/agent-marks.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
 import { existsSync } from "node:fs";
 import { rtMark, markOf, rtName } from "../core/services/runtimes.js";
+import { ORIGIN, sourcePath } from "../tools/conformance/css-publication.mjs";
+import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
@@ -30,19 +29,25 @@ t("a runtime without a mark: null, so its name stays text", () => {
   assert.equal(rtName("other"), "other");
 });
 t("every mark is a local file the stylesheet draws", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  for (const m of ["claude", "openai", "antigravity"]) {
-    assert.ok(existsSync(new URL(`../js/vendor/agent-marks/${m}.svg`, import.meta.url)), m);
-    assert.match(css, new RegExp(`\\.agm-${m}\\{[^}]*url\\(\\.\\./js/vendor/agent-marks/${m}\\.svg\\)`), m);
+  for (const mark of ["claude", "openai", "antigravity"]) {
+    const properties = mark === "openai" ? ["-webkit-mask", "mask"] : ["background-image"];
+    for (const property of properties) {
+      const values = valuesFor(`.agm-${mark}`, property);
+      assert.equal(values.length, 1);
+      const url = /^url\("([^"]+)"\)/.exec(String(values[0]))?.[1];
+      assert.ok(url?.endsWith(`/${mark}.svg`), `${mark} ${property}`);
+      const file = sourcePath(new URL(url, ORIGIN));
+      assert.ok(existsSync(new URL(`..${file}`, import.meta.url)), file);
+    }
   }
-  // OpenAI's Blossom stays in the ink (a mask), never coloured
-  assert.match(css, /\.agm-openai\{background-color:currentColor;-webkit-mask:/);
+  assert.deepEqual(valuesFor(".agm-openai", "background-color"), ["currentColor"]);
 });
 t("a mark centres on its words' capitals at the one icon size, and a picker's choice never squeezes below its mark and name", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.agm\{[^}]*width:var\(--ic\);height:var\(--ic\);vertical-align:calc\(var\(--cap-mid\) - var\(--ic\) \/ 2\)/);
-  const btn = css.match(/\.iq-route button\{([^}]*)\}/)[1];
-  assert.doesNotMatch(btn, /min-width:0/);
-  assert.match(btn, /white-space:nowrap/);
+  const icon = resolveValue("var(--ic)");
+  assert.deepEqual(valuesFor(".agm", "width"), [icon]);
+  assert.deepEqual(valuesFor(".agm", "height"), [icon]);
+  assert.deepEqual(valuesFor(".agm", "vertical-align"), [resolveValue("calc(var(--cap-mid) - var(--ic) / 2)")]);
+  assert.ok(!valuesFor(".iq-route button", "min-width").includes("0"));
+  assert.deepEqual(valuesFor(".iq-route button", "white-space"), ["nowrap"]);
 });
 console.log(`\n${passed} passed`);

@@ -5082,8 +5082,8 @@
    "home": "core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/map-focus-reveal.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map-focus-reveal.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "Replaced by the mounted keyboard reveal and return-to-agent checks in tests/map-follow.test.mjs."
   },
   "tests/map-follow-cursor.test.mjs": {
    "status": "planned",

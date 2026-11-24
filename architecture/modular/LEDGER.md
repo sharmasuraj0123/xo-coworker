@@ -4,9 +4,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 520 |
+| planned | 519 |
 | moved | 487 |
-| deleted | 336 |
+| deleted | 337 |
 | kept | 57 |
 | split | 29 |
 | vendor | 13 |
@@ -244,7 +244,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `tests/lp-phone-links.test.mjs` | 84 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-stop-notice.test.mjs` | 171 | moved | modules/launchpad/tests/lp-stop-notice.test.mjs · next: still reads app.js's notice() source; its rewrite as a behaviour test is owed |
 | `tests/main-clip.test.mjs` | 19 | planned | core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map-focus-reveal.test.mjs` | 38 | planned | modules/map/tests/map-focus-reveal.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/map-focus-reveal.test.mjs` | 38 | deleted | Replaced by the mounted keyboard reveal and return-to-agent checks in tests/map-follow.test.mjs. |
 | `tests/map-follow-cursor.test.mjs` | 26 | planned | modules/map/tests/map-follow-cursor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-follow.test.mjs` | 35 | planned | modules/map/tests/map-follow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-reach.test.mjs` | 33 | planned | modules/map/tests/map-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

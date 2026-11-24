@@ -16,114 +16,165 @@
 @import url("../modules/settings/settings.css");
 @import url("../shell/responsive.css");
 @import url("../modules/conversation/history.css");
-/* ── storm's turns: the server's blocks, laid out quietly (ch 09 §2) ─────────
-   Work folds by default; a running turn shows its current row. Blue = working,
-   amber = waiting on you, red = failed; everything else neutral ink. */
-.m-turn{margin-bottom:14px}
-.turn{display:flex;flex-direction:column;gap:4px;max-width:66ch}
-.tb-h{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+/* Tool calls and their output within a turn. */
+.m-turn{margin-bottom:var(--s-turn-gap)}
+.turn{display:flex;flex-direction:column;gap:var(--s-1);max-width:var(--measure-turn)}
+.tb-h{
+  display:flex;align-items:center;gap:var(--s-2);width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);
+  margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)
+}
 .tb-h:not(:disabled):hover{background:var(--row-hover);color:var(--ink-2)}
 .tb-h:disabled{cursor:default}
-.tb-hi{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
+.tb-hi{flex:none;display:grid;place-items:center;width:var(--ic-base);height:var(--ic-base);color:var(--ink-4)}
 .tb-hi svg{width:var(--ic);height:var(--ic)}
 .tb-ht{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb-ht code,.tb-rl code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);letter-spacing:var(--tr-20);color:inherit}
 /* the count (hub #21): a small mono chip, centred on the label's line, never a loose digit */
-.tb-n{flex:none;display:inline-grid;place-items:center;min-width:20px;height:18px;padding:0 5px;border-radius:var(--r-sm);background:var(--fill-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tb-n{
+  flex:none;display:inline-grid;place-items:center;min-width:var(--w-tool-count);height:var(--h-tool-count);
+  padding:0 var(--s-tool-count-inset);border-radius:var(--r-sm);background:var(--fill-2);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);font-variant-numeric:tabular-nums
+}
 .tb-chev{flex:none;display:grid;place-items:center;color:var(--ink-4);transition:transform var(--dur-base) var(--ease)}
 .tb-chev svg{width:var(--ic-sm);height:var(--ic-sm)}
 .tb-h[aria-expanded="true"] .tb-chev{transform:rotate(180deg)}
 /* blue while it runs, grey once it has finished: a live line and the step running in it alike */
 .tb.is-live>.tb-h .tb-hi,:is(.tb-row,.rt-call).s-running:not(.is-waiting) .tb-ri,.tb-spin{color:var(--info)}
-.tb-spin{width:10px;height:10px}
+.tb-spin{width:var(--ic-activity);height:var(--ic-activity)}
 .tb-act.is-waiting .tb-h{color:var(--warn)}
-.tb-steps{margin:var(--s-1) 0 var(--s-2) var(--s-6);padding-left:12px;border-left:1px solid var(--line-soft);list-style:none;display:flex;flex-direction:column;gap:4px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
-.tb-rows{list-style:none;margin:var(--s-1) 0 var(--s-1) var(--s-6);display:flex;flex-direction:column;gap:1px}
+.tb-steps{
+  margin:var(--s-1) 0 var(--s-2) var(--s-6);padding-left:var(--s-3);border-left:var(--hair) solid var(--line-soft);
+  list-style:none;display:flex;flex-direction:column;gap:var(--s-1);font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)
+}
+.tb-rows{list-style:none;margin:var(--s-1) 0 var(--s-1) var(--s-6);display:flex;flex-direction:column;gap:var(--s-tool-row-gap)}
 .tb-rows.is-cur{margin-top:0}
-.tb-rh{display:flex;align-items:center;gap:8px;width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.tb-rh{
+  display:flex;align-items:center;gap:var(--s-2);width:100%;min-height:var(--h-ctl);padding:var(--s-1) var(--halo);
+  margin-left:calc(-1 * var(--halo));border-radius:var(--r-sm);text-align:left;
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)
+}
 .tb-rh.is-btn:hover{background:var(--hover-fill)}
-.tb-ri{flex:none;display:grid;place-items:center;width:16px;height:16px;color:var(--ink-4)}
+.tb-ri{flex:none;display:grid;place-items:center;width:var(--ic-base);height:var(--ic-base);color:var(--ink-4)}
 .tb-ri svg{width:var(--ic);height:var(--ic)}
 .tb-rl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb-rp{flex:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.tb-m{flex:none;display:grid;place-items:center;width:16px;height:16px;font-size:var(--fs-meta)}
+.tb-m{flex:none;display:grid;place-items:center;width:var(--ic-base);height:var(--ic-base);font-size:var(--fs-meta)}
 .tb-m svg{width:var(--ic-sm);height:var(--ic-sm)}
 .tb-m.is-ok{color:var(--ink-4)}
 .tb-m.is-err{color:var(--err-ink)}
 .tb-m.is-den{color:var(--ink-3)}
-.tb-m.is-wait{width:var(--ic-sm);height:var(--ic-sm);margin:0 1px;background:var(--warn);mask:var(--mask-needs)}
+.tb-m.is-wait{width:var(--ic-sm);height:var(--ic-sm);margin:0 var(--s-tool-icon-inset);background:var(--warn);mask:var(--mask-needs)}
 /* a failed step reads in ink; only its small ✕ is red (red is for what you need to know) */
 .tb-row.s-error .tb-rl{color:var(--ink-2)}
 .tb-row.is-waiting .tb-rl{color:var(--warn)}
 .tb-row.is-pending .tb-rl{color:var(--ink-4)}
-.tb-rb{margin:var(--s-1) 0 var(--s-2) var(--s-6);display:flex;flex-direction:column;gap:4px}
+.tb-rb{margin:var(--s-1) 0 var(--s-2) var(--s-6);display:flex;flex-direction:column;gap:var(--s-1)}
 .tb-cmd{display:block;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);overflow-wrap:anywhere}
-.tb-out{margin:0;max-height:240px;overflow:auto;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-faint);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.tb-out{
+  margin:0;max-height:var(--h-tool-output);overflow:auto;padding:var(--s-tool-output-block) var(--s-3);border-radius:var(--r-sm);
+  background:var(--surface);border:var(--hair) solid var(--line-faint);
+  font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;
+  scrollbar-width:thin;scrollbar-color:var(--line) var(--scrollbar-track)
+}
 .tb-note{font-size:var(--fs-meta);color:var(--ink-4)}
-.tb-plan-l{list-style:none;margin:var(--s-1) 0 var(--s-2) var(--s-6);display:flex;flex-direction:column;gap:4px}
+.tb-plan-l{list-style:none;margin:var(--s-1) 0 var(--s-2) var(--s-6);display:flex;flex-direction:column;gap:var(--s-1)}
 .tb-plan-l .ck{font-size:var(--fs-ui)}
 .tb-narr{font-size:var(--fs-ui);color:var(--ink-2)}
 .tb-text.is-live{color:var(--ink-2)}
-.tb-files{margin-top:4px}
-.tb-fh{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);color:var(--ink-3)}
+.tb-files{margin-top:var(--s-1)}
+.tb-fh{display:flex;align-items:center;gap:var(--s-2);font-size:var(--fs-ui);color:var(--ink-3)}
 .tb-fh svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
-.tb-fl{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.tb-file{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%;height:var(--tile-xl);padding:0 14px 0 10px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft)}
-.tb-fi{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:var(--r-sm);background:var(--surface);color:var(--ink-3)}
+.tb-fl{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:var(--s-2)}
+.tb-file{
+  display:flex;align-items:center;gap:var(--s-2);min-width:0;max-width:100%;height:var(--tile-xl);
+  padding:0 var(--s-tool-file-end) 0 var(--s-tool-file-start);border-radius:var(--r-lg);background:var(--surface);
+  border:var(--hair) solid var(--line-soft)
+}
+.tb-fi{
+  flex:none;display:grid;place-items:center;width:var(--ic-tool-file);height:var(--ic-tool-file);border-radius:var(--r-sm);
+  background:var(--surface);color:var(--ink-3)
+}
 .tb-fi svg{width:var(--ic-sm);height:var(--ic-sm)}
-.tb-fn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.tb-fn{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);
+  color:var(--ink)
+}
 .tb-fm{flex:none;font-size:var(--fs-meta);color:var(--ink-4)}
-.tb-end{display:flex;align-items:center;gap:8px;min-height:28px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)}
-.tb-end svg{flex:none;width:var(--ic);height:var(--ic);padding:1px}
+.tb-end{
+  display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-tool-status);
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-4)
+}
+.tb-end svg{flex:none;width:var(--ic);height:var(--ic);padding:var(--s-tool-icon-inset)}
 .tb-end.is-err{color:var(--err-ink)}
 .tb-end.is-stop{color:var(--ink-3)}
 /* a turn's work, folded to one line (hub #29): the count, the live ticker, what changed, what failed */
-.tb-work{display:flex;flex-direction:column;gap:2px}
+.tb-work{display:flex;flex-direction:column;gap:var(--s-tool-work-gap)}
 .tb-wh .tb-ht{color:var(--ink-3)}
 .tb-work.is-waiting .tb-wh .tb-ht{color:var(--warn)}
 .tb-work .elapsed{font-variant-numeric:tabular-nums}
 .tb-wn{flex:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.tb-wn::before{content:"·";margin-right:7px;color:var(--ink-4)}
-.tb-work>.tb:not(.tb-work){margin-left:24px}
+.tb-wn::before{content:"·";margin-right:var(--s-tool-separator-gap);color:var(--ink-4)}
+.tb-work>.tb:not(.tb-work){margin-left:var(--s-6)}
 .tb-work>.tb-narr{font-size:var(--fs-ui);color:var(--ink-3)}
-.tb-rail{display:flex;flex-direction:column;gap:4px;margin:var(--s-1) 0 var(--s-1);padding-left:23px;border-left:1px solid var(--line-soft)}
+.tb-rail{
+  display:flex;flex-direction:column;gap:var(--s-1);margin:var(--s-1) 0 var(--s-1);padding-left:var(--s-tool-rail-inset);
+  border-left:var(--hair) solid var(--line-soft)
+}
 .tb-rail .tb-narr{font-size:var(--fs-ui);color:var(--ink-3)}
 .tb-bad{margin-top:0}
-.tb-chg{list-style:none;display:flex;flex-wrap:wrap;gap:4px;margin:var(--s-1) 0 var(--s-1) var(--s-6)}
+.tb-chg{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-1);margin:var(--s-1) 0 var(--s-1) var(--s-6)}
 /* what a turn shows without being opened starts on the text column; what you open hangs 24 px in, on the work's rail */
 .tb-rows.is-cur,.tb-work>:is(.tb-rows,.tb-chg,.tb-wbad),.turn>.tb>:is(.tb-chg,.tb-plan-l){margin-left:0}
 /* the agent's tile beside a running turn centres on the turn's first line (30 px; 36 on a phone) */
-.m-turn{--tb-line:var(--h-ctl);--av-h:32px}
+.m-turn{--tb-line:var(--h-ctl);--av-h:var(--tile)}
 [data-density="compact"] .m-turn{--tb-line:var(--h-ctl)}
 .m-turn>.av:not(.av-gap){margin-top:calc((var(--tb-line) - var(--av-h)) / 2)}
-.tb-cf{display:inline-flex;align-items:center;gap:4px;max-width:260px;height:var(--h-ctl);padding:0 10px 0 8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.tb-cf{
+  display:inline-flex;align-items:center;gap:var(--s-1);max-width:var(--w-tool-file-label);height:var(--h-ctl);
+  padding:0 var(--s-tool-file-start) 0 var(--s-2);border-radius:var(--r-sm);background:var(--surface);
+  border:var(--hair) solid var(--line-soft);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);
+  transition:
+  background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),var(--tx-press-transform)
+}
 .tb-cf:hover{background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink)}
-.tb-cf:active{transform:scale(.97)}
+.tb-cf:active{transform:scale(var(--press-scale))}
 .tb-cfi{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .tb-cfi svg{width:var(--ic-sm);height:var(--ic-sm)}
 .tb-cfn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tb-cf.is-more{padding:0 10px;color:var(--ink-4)}
+.tb-cf.is-more{padding:0 var(--s-tool-file-start);color:var(--ink-4)}
 
 /* paused: it waits on you (shape: an outlined diamond, amber) */
 .st-paused{--st:var(--warn)}
 
 /* a thread's own header: its label, Resolve / Reopen (R1), rename and label */
-.tw-label{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:var(--r-sm);background:var(--fill-2);border:1px solid var(--line-soft);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* F1: the runtime a thread runs on, named only when there are several. Identity, not status: grey,
-   unboxed, after the state badge; amber only when that runtime can't take work. It opens Settings › Runtimes. */
-.tw-rt{flex:none;height:var(--h-sm);padding:0 var(--halo);margin-left:calc(-1 * var(--s-1));border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);white-space:nowrap;transition:color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
+.tw-label{
+  flex:none;display:inline-flex;align-items:center;height:var(--h-thread-label);padding:0 var(--s-thread-label-inline);
+  border-radius:var(--r-sm);background:var(--fill-2);border:var(--hair) solid var(--line-soft);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-2);max-width:var(--w-thread-label);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+/* Runtime identity in the thread header and thread list. */
+.tw-rt{
+  flex:none;height:var(--h-sm);padding:0 var(--halo);margin-left:calc(-1 * var(--s-1));border-radius:var(--r-sm);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);white-space:nowrap;
+  transition:color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)
+}
 .tw-rt:hover,.tw-rt:focus-visible{color:var(--ink-2);background:var(--hover-fill)}
 .tw-rt.is-warn,.ar-r.is-warn{color:var(--warn)}
 .ar-r{color:var(--ink-4)}
-/* An agent's mark (js/runtimes.js rtMark; files and their source in js/vendor/agent-marks): one 16 px size on the icon
-   grid. Claude and Antigravity in their own colours; OpenAI's Blossom in the text's ink, as a mask, since OpenAI's
-   rules keep it black or white. Beside words it centres on the middle of their capitals, the one rule for an icon
-   beside words (tokens.css --cap-mid; it was a hand-set -3px, which with the name in an inline-flex box sat the mark
-   2 px above the letters, the owner's 12:21Z shot); with its name, 6 px before it, both in one line of text. */
-.agm{display:inline-block;flex:none;width:var(--ic);height:var(--ic);vertical-align:calc(var(--cap-mid) - var(--ic) / 2);background:center/contain no-repeat}
+/* Agent marks align to the capital height of adjacent text. */
+.agm{
+  display:inline-block;flex:none;width:var(--ic);height:var(--ic);vertical-align:calc(var(--cap-mid) - var(--ic) / 2);
+  background:center/contain no-repeat
+}
 .agm-claude{background-image:url(../js/vendor/agent-marks/claude.svg)}
 .agm-antigravity{background-image:url(../js/vendor/agent-marks/antigravity.svg)}
-.agm-openai{background-color:currentColor;-webkit-mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat;mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat}
+.agm-openai{
+  background-color:currentColor;-webkit-mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat;
+  mask:url(../js/vendor/agent-marks/openai.svg) center/contain no-repeat
+}
 .agm-n{white-space:nowrap}
 .agm-n>.agm,.agm.is-lead{margin-right:var(--gap-icon)}
 
@@ -138,7 +189,7 @@
 /* one line each, the menu as wide as its longest (it wrapped "Open a shell in its worktree" onto two) */
 .tw-menu{min-width:var(--menu-w)}
 .tw-menu button{white-space:nowrap}
-/* the title being renamed: a field in the head, 32 like the head's controls (34: grader B on ba93c9b, S009) */
+/* Keep the title field aligned with the other header controls. */
 .tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)}
 .tw-in-l{flex:0 1 200px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .ar-l{flex:none;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 7px;height:20px;line-height:var(--lh-meta);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-meta);color:var(--ink-3)}
@@ -146,9 +197,7 @@
 @media (max-width:760px){
   .tw-act span{display:none}
   .tw-act{width:var(--h-touch);height:var(--h-touch);padding:0;justify-content:center}
-  /* a phone gives the thread's name a row of its own, two lines at most (it used to get 69 px for
-     270 px of title, "Pixel …"); its state, runtime and actions share the row below, centred on one
-     line, the actions at the right. Every control here is 36 px, the panel button included. */
+  /* On phones, the title has its own two-line row above the state, runtime and actions. */
   .top[data-kind="thread"] .top-who{flex-wrap:wrap;row-gap:8px}
   .top[data-kind="thread"] .tw-h{flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip}
   .top[data-kind="thread"] .tw-acts{margin-left:auto}
@@ -195,9 +244,7 @@
 .chg+.chg{margin-top:10px}
 .teach-scope.is-list button{border-radius:var(--r-sm)}
 /* ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ── */
-/* a scroller of controls keeps the ring's room inside it: overflow-x clips the other axis too, so a focused chip's ring
-   (4 px outside it) was cut on three sides, only its right 2 px showing (the create-project grader on 427f41c, C047).
-   The room is padding, given back by the margin, so the chips sit where they did */
+/* Padding keeps the focus ring inside the scroller. The margin preserves the position of the chips. */
 .rn-strip{display:flex;gap:4px;margin:calc(8px - var(--ring-room)) calc(-1 * var(--ring-room)) calc(-1 * var(--ring-room));padding:var(--ring-room);overflow-x:auto;scrollbar-width:none}
 .rn-strip::-webkit-scrollbar{display:none}
 .rn-it{flex:none;display:flex;min-width:0}
@@ -376,9 +423,7 @@
 .btn-danger[aria-busy="true"]:active{background:var(--danger-fill)}
 /* a question's other button while its answer is on its way (Keep mine during a Switch): unavailable, and it says the wait */
 :is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]),:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]):is(:hover,:active){opacity:.55;cursor:progress;background:none;border-color:var(--line);color:var(--ink-2);transform:none}
-/* a list reads as one instrument panel (hub #18/#19), as Keyboard's does: one card, hairlines between its rows.
-   A row is what it says (a column: title, then its details, each on its own line) and its action at the right;
-   a question about it opens across the row's full width, under it. */
+/* One card with hairline dividers. Each confirmation spans its row. */
 .rl-list,.wt-list{list-style:none;display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline);overflow:hidden}
 .rl-row,.wt-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-2) var(--s-4);min-height:var(--s-12);padding:var(--s-3) var(--s-3) var(--s-3) var(--s-4);border-top:1px solid var(--line-faint)}
 .rl-row:first-child,.wt-row:first-child{border-top:0}
@@ -471,9 +516,7 @@
   .composer-field>textarea{min-height:var(--h-touch)}
   .kr-k{min-height:var(--h-touch)}
 }
-/* phone: a failure keeps its reason whole, on a second row, with its own button ("Put my message back", "Retry") or
-   without: cut to "XO shows everyt…", a notice hid what it meant (the create-project grader on 366e72d, S117's
-   preset that couldn't be read; the whole of it was only in the live region) */
+/* Let failure notices wrap onto their own row on phones. */
 @media (max-width:760px){
   .hr-ev.k-stopped{flex-wrap:wrap;row-gap:0;height:auto;min-height:calc(var(--note-h) + 2px);padding:calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--note-in) - 1px) calc(var(--edge-text) - 1px);border-radius:var(--r-xl)}
   .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
@@ -492,8 +535,7 @@
   .iq .iq-sep,.iq .iq-e{display:none}
   .target:not(.cs-perm):has(~ .tg-now:not([hidden])){display:none}
 }
-/* ── shared files (if1 #2, hub #25): the card is a button; the file opens in a viewer beside
-   the conversation, like a canvas. Same slot as the Needs you panel, wider; on phones, the screen. */
+/* Shared file cards open a viewer alongside the conversation or fill a phone screen. */
 .tb-file{display:block;height:auto;padding:0;background:none;border:0;border-radius:0;min-width:0;max-width:100%}
 .tb-fb{display:flex;align-items:center;gap:12px;min-width:min(260px,100%);max-width:100%;height:56px;padding:0 12px 0 10px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--hairline);text-align:left;cursor:pointer;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .tb-fb:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
@@ -534,8 +576,7 @@
 .vw-body{flex:1;min-height:0;overflow:auto}
 .vw-body.is-frame{display:flex;flex-direction:column;overflow:hidden}
 .vw-md{padding:20px 28px 40px}
-/* a document reads in the app's one reading style (core/ui/tokens.css: read 16/24, .prose), as a message does; Files'
-   page view takes the same tokens (css/docs.css, .cm-xo-page) */
+/* Documents use the same reading style as messages. */
 .vw-frame{flex:1;width:100%;min-height:0;border:0;background:#fff}
 /* an image: fitted to the panel, or 1:1 (scrolls); the checkerboard shows through transparency */
 .vw-img{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:100%;padding:20px}
@@ -550,8 +591,7 @@
 .vw-src code{font:inherit;background:none;border:0;padding:0}
 .vw-cut{display:flex;align-items:center;gap:8px;margin:0;padding:9px 16px;border-bottom:1px solid var(--line-faint);background:var(--warn-subtle);font-size:var(--fs-ui);color:var(--ink-2)}
 .vw-cut svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--warn)}
-/* a refused Copy path: the path itself, read-only, to select and copy (all of it is selected when it's focused), on its
-   own row under the words and as wide as the line, so the path reads whole (36 tall on a phone: phone.css) */
+/* Offer a full-width, read-only path when copying to the clipboard fails. */
 .vw-cut:has(.vw-cut-sel){flex-wrap:wrap}
 .vw-cut:has(.vw-cut-sel)>span{flex:1 1 0;min-width:0} /* the words keep their row beside the clock and wrap there: only the field goes under them (S270) */
 .vw-cut-sel{flex:1 0 calc(100% - 22px);margin-left:22px;height:var(--h-ctl);padding:0 6px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-1);font:var(--fw-regular) var(--fs-meta)/var(--lh-title) var(--mono);color:var(--ink)}
@@ -581,11 +621,7 @@
   .vw-sub span:first-of-type::before{content:none}
 }
 
-/* ── Light, not costume (plan Part C; ideas from launchpad-demo, toned down) ──────────────────
-   The sci-fi is in the light and the type, never in costume: a faint atmosphere behind Home and
-   Settings, a thin state-coloured line along the top of the decision card and a thread's header,
-   deeper "instrument" surfaces for code, and mono with tabular digits for counts and ids.
-   Nothing glows; colour still means status only; the one moving line stops under reduced motion. */
+/* Subtle depth distinguishes surfaces. State color stays tied to meaning. */
 :root{(1100px 520px at 10% -12%,rgba(var(--accent-rgb),.07),transparent 62%),
     radial-gradient(900px 600px at 96% -16%,color-mix(in srgb,var(--info) 9%,transparent),transparent 62%);
 
@@ -620,8 +656,7 @@
 .nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:var(--tr-20)}   /* the sidebar's, as it is */
 .settings .set-top{background:transparent}
 
-/* ── files on a message (hub #30): the paperclip, the chips on the unsent message, the drop veil,
-   and the cards under a sent message (the shared-file card, with a thumbnail for an image) ── */
+/* Attachments on drafts and sent messages. */
 .attach{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .attach:hover{background:var(--hover-fill);color:var(--ink-2)}
 .attach svg{width:var(--ic);height:var(--ic)}
@@ -633,9 +668,7 @@
 .att-ic.is-img{padding:0;overflow:hidden;background:var(--fill-2) repeating-conic-gradient(var(--checker) 0 25%,transparent 0 50%) 0 0/10px 10px}
 .att-ic img{display:block;width:100%;height:100%;object-fit:cover}
 button.att-ic{position:relative;cursor:zoom-in}
-/* its face is the picture: the press layer's fill lies under it, so hover and press are a veil over it, as a message's
-   pictures have (css/media.css .mx-one, S090): 12% of a veil chosen against the picture, 24% held. The picture's dimming on hover went toward the
-   dark surface in dark, 3% of the box, and held looked as hovered (grader A on 33ee53d, S233) */
+/* Paint hover and press tints above the image. */
 button.att-ic.is-img::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;background:transparent;transition:background-color var(--d-hover) var(--ease)}
 button.att-ic.is-img:hover::after{background-color:color-mix(in srgb,var(--veil) 12%,transparent)}
 button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil) 24%,transparent);transition-duration:0s}
@@ -665,8 +698,7 @@ button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil
   .att{padding-right:4px}
   .att-b{--nest-in:5px}
 }
-/* the line under the text ("Reply in this thread"): its icon sat on the baseline, 2.5 px above the row's
-   centre line; every glyph in the row centres on it */
+/* Center every glyph in the reply row. */
 .target>span:has(>svg){display:inline-flex;align-items:center}
 .drop-veil{position:absolute;inset:var(--s-2);z-index:calc(var(--z-panel) + 10);display:grid;place-items:center;border-radius:var(--r-2xl);border:2px dashed rgba(var(--accent-rgb),.6);background:rgb(0 0 0 / .32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);pointer-events:none;animation:msg-in var(--d-out) var(--ease)}
 .drop-veil p{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:999px;background:var(--herald-bg);border:1px solid var(--line-soft);font-size:var(--fs-ui);color:var(--ink)}
@@ -700,10 +732,7 @@ a.vw-btn{text-decoration:none}
 .shd.is-min{height:auto}
 .shd.is-min .shd-body,.shd.is-min .shd-grip{display:none}
 .shd.is-min .shd-bar{cursor:pointer}
-/* the separator: a 24 px band to take hold of, centred on the dock's line, which stays the thin line it is (the owner's
-   decision, 10 Nov, S269: an 8 px band was hard to find). Its pill and its ring keep their place on the line: the
-   ring drawn 8 px inside the band, so it's the 12 px it was. The shell bar's controls stand above the band where it
-   overlaps them, so it never takes their clicks; the composer above sits 18 px clear of it */
+/* Center the resize target on the dock line, below the shell controls. */
 .shd-grip{position:absolute;left:0;right:0;top:calc(var(--h-sm) / -2);height:var(--h-sm);z-index:2;cursor:ns-resize;border-radius:0}
 .shd-grip:focus-visible{outline-offset:-8px}
 .shd-grip::after{content:"";position:absolute;left:50%;top:calc((var(--h-sm) - var(--grab-h)) / 2);width:var(--grab-w);height:var(--grab-h);margin-left:calc(var(--grab-w) / -2);border-radius:2px;background:var(--fill-4);opacity:0;transition:opacity var(--d-hover) var(--ease)}
@@ -732,7 +761,7 @@ a.vw-btn{text-decoration:none}
 .shd-tx svg{width:var(--ic-xs);height:var(--ic-xs)}
 .shd-dot{flex:none;width:7px;height:7px;mask:var(--mask-dot);background:var(--ink-4)}
 .shd-dot.d-on{background:var(--accent-fill);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.16)}
-.shd-dot.d-away{background:var(--ink-3)} /* running, nobody watching: a quiet filled dot. No blue dots (the owner's standing decision); blue is for work in progress only */
+.shd-dot.d-away{background:var(--ink-3)} /* Use a quiet dot for a running shell without viewers. */
 .shd-dot.d-wait{background:var(--warn);animation:shd-pulse 1.2s var(--ease-loop) infinite}
 .shd-dot.d-ended{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-4)}
 @keyframes shd-pulse{50%{opacity:.35}}
@@ -810,16 +839,12 @@ a.vw-btn{text-decoration:none}
   .shd-tabw.is-edit .shd-in{width:160px;font-size:var(--fs-input)} /* 16 on a phone: anything smaller zooms the page */
 }
 
-/* ── touch gestures (js/gestures.js) ──────────────────────
-   The surfaces follow the finger; these are only what shows while they do: the page being swiped back
-   lifts off the list, the sidebar casts its shadow while dragged, sheets show a grabber, a row swiped
-   left shows what letting go will do. */
+/* Paint the surfaces being dragged, their shadows and the next action. */
 .conv.is-swiped{background:var(--canvas);box-shadow:var(--e2)}
 .main:has(.conv.is-swiped){background:var(--sunken)}
 .lp-menu{position:fixed;z-index:calc(var(--z-toast) - 5);display:flex;gap:2px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:float-in var(--d-out) var(--ease)}
 .lp-menu button{min-height:var(--h-lg);padding:0 14px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
-/* its active item is the focused one, however focus got there (opened by a touch, it starts on Copy): painted by
-   :focus, as every menu's (Launchpad grader on 23c726e, S170/S171: a touch-moved focus showed nothing) */
+/* Paint the action with focus, including after touch opens the menu. */
 .lp-menu button:active,.lp-menu button:focus{background:var(--menu-focus)}
 .ar-list li{position:relative;border-radius:var(--r-sm)}
 .ar-list li.is-swiping::before{content:attr(data-act);position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:18px;border-radius:var(--r-sm);background:var(--float);color:var(--ink-3);font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -830,7 +855,7 @@ a.vw-btn{text-decoration:none}
 .ar-undo svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--accent-fill)}
 .ar-undo b{color:var(--ink);font-weight:var(--fw-strong)}
 .ar-undo button{flex:none;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font-weight:var(--fw-strong);color:var(--ink);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-/* its Undo answers the pointer (grader B on ba93c9b, S024: a button with no class of its own, the hover census couldn't name it) */
+/* Show hover feedback on Undo. */
 .ar-undo button:hover{background:var(--hover-fill)}
 /* waiting on Space (the spinner in the line's own ink), and refused: the mark in the error ink, never the accent */
 .ar-undo[aria-busy="true"] b{color:var(--ink-2)}
@@ -869,9 +894,7 @@ a.vw-btn{text-decoration:none}
 .md-it:has(.md-open:hover){background:color-mix(in srgb,var(--ink) 7%,var(--fill-1))}
 .md-open{cursor:pointer}
 .md-it:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-/* the card draws the ring for its open control, above everything in it: drawn by the control as an inset outline,
-   the ring lay under the picture, which is positioned and so paints over it (the controls grader on b340841, C013:
-   the top two-thirds of the ring hidden in all four cells). Inside the card's edge, so no scroller or list clips it */
+/* Place the focus ring above the picture and inside the card edge. */
 .md-open:focus-visible{outline:none}
 .md-it:has(.md-open:focus-visible)::after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px var(--focus)}
 .md-it:has(.md-open:active){transform:scale(.985)}
@@ -887,8 +910,7 @@ a.vw-btn{text-decoration:none}
 .md-it.is-gone .md-th,.md-it.is-gone .md-meta b{opacity:.55}
 .md-meta{display:flex;flex-direction:column;gap:4px;padding:10px 12px 4px;min-width:0}
 .md-meta b{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* the meta line only: a name cut in the middle is two spans inside the name, and keeps the name's own look (the
-   Artifacts screenshots: a long name read as grey, small meta) */
+/* Both halves of the truncated name inherit the same type. */
 .md-meta > span{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .md-from{display:flex;align-items:center;gap:4px;margin:0 6px 7px;padding:4px 6px;border-radius:var(--r-sm);min-width:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-align:left}
 .md-from:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
@@ -897,8 +919,7 @@ a.vw-btn{text-decoration:none}
 .md-pin{position:absolute;top:var(--cell-in);right:var(--cell-in);display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:calc(var(--nest-r) - var(--nest-in));background:color-mix(in srgb,var(--canvas) 78%,transparent);color:var(--ink-3);opacity:0;transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease),background var(--d-hover) var(--ease)}
 .md-pin svg{width:var(--ic-sm);height:var(--ic-sm)}
 .md-it:hover .md-pin,.md-pin:focus-visible,.md-it.is-pin .md-pin{opacity:1}
-/* hovered, a pin takes a firmer backing and the first ink; a pinned one its accent's hover. The pinned colour is the
-   stronger rule, so it had held through hover: no change (the controls grader on b340841, S094) */
+/* Use the stronger accent surface when a pinned control is hovered. */
 .md-pin:hover{background:color-mix(in srgb,var(--fill-3) 92%,transparent);color:var(--ink)}
 .md-it.is-pin .md-pin:hover{color:var(--accent-hover)}
 .md-it.is-pin .md-pin{color:var(--accent)}
@@ -907,9 +928,7 @@ a.vw-btn{text-decoration:none}
 .md-grid.is-strip .md-th{height:80px}
 .md-grid.is-strip .md-meta{padding-bottom:var(--s-3)}
 .md-recent .hm-lbl svg{width:var(--ic-sm);height:var(--ic-sm)}
-/* Loading in its final shape (js/skeleton.js): a quiet bar where words will be, an empty frame where a picture
-   will be. The real thing lands in the same place at the same size, so nothing below it moves. Grey, never a
-   colour; a slow breath, still under reduced motion. */
+/* Match the final layout to prevent shifts when loading finishes. */
 .sk{display:inline-block;vertical-align:middle;height:8px;max-width:100%;border-radius:999px;background:var(--fill-2);animation:sk-breathe calc(var(--d-land) * 2) var(--ease-loop) infinite alternate}
 .sk.sk-l{height:16px}
 .sk.sk-lb{height:10px}
@@ -1021,10 +1040,7 @@ button.dg-n:hover{background-image:linear-gradient(var(--hover-fill),var(--hover
 /* the graph: the same boxes as dots on a living layout */
 .k-graph .gn{position:absolute;left:0;top:0;display:flex;align-items:center;gap:8px;height:16px;margin-top:-8px;padding:0;background:none;border:0;white-space:nowrap;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);cursor:pointer}
 .k-graph div.gn{cursor:default}
-/* the dot's paint is one shadow of four named layers, top first: an inset edge (a folded folder, a pale agent
-   colour), the gap that parts it from the lines, the focus ring, and a halo (an agent is here). A state sets only
-   its own layer, so none can take another's away: focus shows on every dot, whatever else it is (Astra S082: the
-   folded folder's and the panel's whole-shadow rules hid it) */
+/* Keep the dot's edge, gap, focus ring and presence halo in separate layers. */
 .gn-d{flex:none;width:calc(var(--r) * 2);height:calc(var(--r) * 2);margin-left:calc(var(--r) * -1);border-radius:50%;background:var(--map-dot);--gn-gap:var(--canvas);box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),var(--gn-halo,0 0 #0000);transition:background var(--d-in) var(--ease),box-shadow var(--d-in) var(--ease),transform var(--dur-base)}
 .gn-l{text-shadow:0 0 3px var(--canvas),0 0 3px var(--canvas);transition:opacity var(--d-hover) var(--ease)}
 .gn.k-root .gn-d{background:var(--accent)}
@@ -1096,18 +1112,14 @@ button.dg-n:hover{background-image:linear-gradient(var(--hover-fill),var(--hover
 }
 @media (prefers-reduced-motion:reduce){.dg-n.is-hit,.gn.is-hit .gn-d{animation:none}.dg-cur,.dg-world.is-glide{transition:none}}
 
-/* ── the panel (js/stage.js): one card on the right, with tabs. Map, Made and File today; apps later.
-   It owns the frame (card, tabs, full size, close); each tab owns only what's inside. Same family as
-   the Needs you panel, which takes the right side while it's open and gives it back. One width for
-   every tab (the Map's --mw), so switching tabs never moves the conversation. ───────────────────── */
+/* The panel owns its frame and all tabs use the same width. */
 body.panel-open .stage{display:none}
 .stage{position:absolute;z-index:var(--z-panel);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow:hidden;outline:none}
 .stage[hidden]{display:none}
 .stage.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 :root[data-theme="light"] .stage{background:var(--surface)}
 body.stage-full .stage{left:var(--float-inset);width:auto;z-index:calc(var(--z-panel) + 1)}
-/* at full size the panel covers the chat: the chat's own dock (its composer, its card) hides under it; a dock inside the
-   panel (the Thread page's reply box and decision) is the page's own and stays */
+/* Hide the conversation dock under a full-size panel while keeping its own dock visible. */
 body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock){visibility:hidden}
 /* the Map and the viewer inside it: the panel is their card, their tabs and their close */
 .stage .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
@@ -1119,7 +1131,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .stg-btn:hover{background:var(--btn-fill-hover);color:var(--ink)}
 .stg-btn:active{transform:scale(.95)}
 .stg-btn.is-on{background:var(--btn-fill-press);color:var(--ink)}
-/* the open panel's opener still answers the pointer: one step deeper (Astra C023: is-on hid its hover) */
+/* An open panel's toggle still shows hover feedback. */
 .stg-btn.is-on:hover{background:var(--btn-fill-press)}
 /* Made, as a tab */
 .md-pane{display:flex;flex-direction:column;min-height:0;height:100%}
@@ -1152,14 +1164,12 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .top[data-kind="project"] .top-who{flex:0 0 auto;max-width:min(52%,426px)}
 .top[data-kind="project"] .stg-btn{align-self:center}
 .top[data-kind="project"] .top-who .tw-t{flex:0 1 auto}
-/* an agent at work: its tile beside the turn (and the "working" line) glows, a short blue light
-   travelling round the border, as the sidebar's working cubes do; a running step is a breathing dot,
-   never a spinner. Waiting on you: amber, still. */
+/* The work arc moves for active work. Amber remains still while waiting. */
 .av-live{position:relative;color:var(--info);border-color:transparent;background:linear-gradient(color-mix(in srgb,var(--info) 12%,var(--surface)),color-mix(in srgb,var(--info) 12%,var(--surface))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 26%,var(--fill-3)),color-mix(in srgb,var(--info) 26%,var(--fill-3))) border-box;box-shadow:0 0 10px -3px color-mix(in srgb,var(--info) 45%,transparent);animation:pr-orbit 2.8s linear infinite}
 .av-live svg{width:var(--ic);height:var(--ic)}
 .av-live.is-wait{color:var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--surface));border-color:transparent;box-shadow:none;animation:none}
 .m-turn.is-live{align-items:flex-start}
-/* what is running now: the blue working arc (the owner bans blue dots; the arc is the one working sign) */
+/* The blue arc marks active work. */
 .tb-live{display:block;width:10px;height:10px;color:var(--info);background:currentColor;mask:var(--mask-working);animation:arc-turn 1.6s linear infinite}
 @media (prefers-reduced-motion:reduce){.tb-live{animation:none}}
 @media (prefers-reduced-motion:reduce){.av-live{animation:none}}
@@ -1175,9 +1185,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .sheet.is-drop .all-card{width:var(--dw,480px);transform-origin:top right}
 /* "New messages" centres on the conversation, not on the page under a panel */
 
-/* ── Files (js/files.js): the panel's file browser, and the one place a file opens. The tree on the
-   left and the file beside it when the panel is wide; one at a time when it isn't. Agents' marks:
-   blue being edited now, amber edited, green new. ───────────────────────────────────────────────── */
+/* The file panel shows the tree alongside the file when there is enough room. */
 .fl{display:flex;height:100%;min-height:0}
 .fl-tree{display:flex;flex-direction:column;min-width:0;min-height:0;flex:1}
 .fl-pv{display:none;flex-direction:column;min-width:0;min-height:0;flex:1}
@@ -1199,8 +1207,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .fl-crumb{display:flex;align-items:center;gap:8px;min-width:0;padding:0 4px}
 .fl-crumb b{min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fl-crumb small{flex:none;max-width:55%;padding:3px 7px;border-radius:var(--r-sm);background:var(--fill-2);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* back to the projects: on the scale (24; 36 on a phone, as the phone's other icon controls), in every sheet
-   (Astra S062 on 2354917: the panel's sheet made it 20 × 20) */
+/* Use the same back-control size across the file panels. */
 .fl-up{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm);color:var(--ink-3)}
 .fl-up:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .fl-up svg{width:var(--ic);height:var(--ic)}
@@ -1235,14 +1242,11 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .fl-who.w-deleted i{background:var(--err)}
 .fl-note{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px;min-height:28px;padding:0 10px 0 calc(32px + var(--d,0) * 16px);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .fl-note.is-err{color:var(--err-ink)}
-/* the quiet text link used as a control (Files' and Runs' Try again): one whole target wherever it's used, its words
-   on one line, never squeezed by the words beside it (Astra S061 on 2354917: 54 × 16 px at 390; S238 the same) */
+/* Keep the full retry control and its label together. */
 .fl-link{flex:none;display:inline-flex;align-items:center;min-height:var(--h-ctl);white-space:nowrap;color:var(--ink-2);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line-strong)}
 .fl-link:hover{color:var(--ink);text-decoration-color:currentColor}
 
-/* ── Settings › Runtimes (mixed runtimes F2, F3) ─────────────────────────────
-   A runtime is identity, not status: its name is plain ink. Colour belongs to its pill and meters,
-   and only amber and red mean anything (near or at a limit, can't take work). Pills carry words. */
+/* Runtime names use neutral ink. Pills and meters show approaching and reached limits. */
 .rt-list{display:flex;flex-direction:column;gap:8px}
 .rt-card{display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--hairline)}
 .rt-hd{display:flex;align-items:baseline;gap:8px;min-width:0}
@@ -1292,8 +1296,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 }
 
 /* ── a move to another runtime (mixed runtimes F4) ──────────────────────────── */
-/* A continuation is an event line like every other (icon in the avatar column, words on the text edge, time
-   on the column's right edge), not a box of its own; its reason may wrap to a second line. */
+/* Place continuation events in the same columns as other events. */
 .ev.mv-ban{align-items:flex-start;margin:4px 0 16px}
 .mv-ban .ev-ic{color:var(--ink-3)}
 .mv-ban .ev-t{flex:1;white-space:normal;overflow:visible;text-overflow:clip;text-wrap:pretty}
@@ -1334,17 +1337,14 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-ferr{font-size:var(--fs-meta);color:var(--err-ink)}
 .rt-saved{font-size:var(--fs-meta);color:var(--ink-4)}
 
-/* ── The thread's ⋯ (the owner, 19 Nov): one menu, in groups; Delete, asked in place under the header ───────────
-   Groups part with a hairline, inset like the items' words. Delete's confirm sits on the header's own edges
-   (--hg) with one gap (--s-3) above and below, as Settings › Worktrees asks it. */
+/* Group thread actions and place the delete confirmation under the header. */
 .tw-sep{display:block;height:1px;margin:var(--s-1) var(--s-2);background:var(--line-soft)}
 .tw-menu .tw-danger{color:var(--err-ink)}
 .tw-menu button[aria-disabled="true"]{color:var(--ink-5);cursor:default}
 .tdel{flex:none;padding:var(--s-3) var(--hg)}
 .tdel[hidden]{display:none}
 
-/* All threads: the agent's mark small, under the row's time (the panel's rule, css/panel.css). Everything in the row
-   sits on its first line (the title's), so the time stays level with the title and the mark takes the line under it. */
+/* Put the agent mark under the time while keeping the time aligned with the title. */
 .ar.has-mk{grid-template-rows:var(--lh-ui) var(--mark-sm)}
 .ar.has-mk>*{grid-row:1}
 .ar.has-mk>.ar-a{grid-row:1 / span 2;align-self:start}
@@ -1353,14 +1353,10 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .ar-mk{display:flex;align-items:center;height:var(--mark-sm)}
 .ar-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}
 
-/* ── A project's header on one line (the owner, 19 Nov 13:54Z): its name, then what's at work as a glyph and a number,
-   one quiet 24 control (--h-sm, --r-sm) that opens the panel's Threads; the words are its tooltip and its name. */
+/* Keep the project name and Threads control on one line. */
 .tw-t.is-one{flex-direction:row;align-items:center;gap:var(--s-3)}
 
-/* ── The project header's Threads control (the owner, 19 Nov 14:16Z): one 32 control, the header's own button
-   family (.tw-act), that says "Threads" and how many; what's at work is the blue arc and its number, what needs you
-   the amber mark and its number. Spaced from the title by the header's own gaps; short of room, the word goes first
-   and the marks and numbers stay. */
+/* Hide the Threads label before the activity marks or counts when space is tight. */
 .th-ctl{flex:none;gap:var(--s-2)}
 .th-ctl .th-w{color:var(--ink)}
 .th-ctl .th-n{color:var(--ink-3);font-variant-numeric:tabular-nums}

@@ -152,7 +152,7 @@
   --mask-done:url(/core/ui/icons/source/xo/e-state-marks/state-done.svg) center/contain no-repeat; --mask-failed:url(/core/ui/icons/source/xo/e-state-marks/state-failed.svg) center/contain no-repeat;
   --mask-dot:url(/core/ui/icons/source/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(/core/ui/icons/source/xo/c-actions/stop.svg) center/200% no-repeat;
   --mask-warn:url(/core/ui/icons/source/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(/core/ui/icons/source/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
-  --ic-xs:12px; --ic-sm:14px; --ic:var(--s-4); --ic-lg:var(--s-5);
+  --ic-xs:12px; --ic-sm:14px; --ic-base:16px; --ic:var(--ic-base); --ic-lg:20px;
   --edge-text:var(--s-3); /* words or a bare glyph at a bar's end sit this far inside its line; a filled control nests concentric instead */
   --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
@@ -160,6 +160,12 @@
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
   /* Shared gap between an icon and its label. */
   --gap-icon:var(--s-2);
+  --hair:1px; --scrollbar-track:transparent; --measure-turn:66ch;
+  --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
+  --s-tool-file-end:14px; --s-tool-file-start:10px; --s-tool-separator-gap:7px; --s-tool-rail-inset:23px;
+  --w-tool-count:20px; --h-tool-count:18px; --h-tool-output:240px; --h-tool-status:28px;
+  --ic-activity:10px; --ic-tool-file:26px; --w-tool-file-label:260px; --s-tool-icon-inset:1px;
+  --h-thread-label:22px; --s-thread-label-inline:9px; --w-thread-label:180px;
   /* The dock gap spaces the composer and notices, and the fade provides room above them. */
   --dock-gap:var(--s-3); --cbar-fade:30px;
   --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
@@ -178,6 +184,7 @@
   --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
   --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s; --d-wait:400ms;
   --press-scale:.97;
+  --tx-press-transform:transform var(--dur-fast) var(--ease);
 }
 
 /* Light: one neutral family, the dark theme's own, so no warm off-white sits beside a cool one. The side is

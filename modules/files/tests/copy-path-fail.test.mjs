@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { api } from "../../../core/platform/api.js";
 import { settle } from "../../../tests/lib/dom.mjs";
-import { declarationsFor } from "../../../tests/lib/css-snapshot.mjs";
+import { declarationsFor, valuesFor } from "../../../tests/lib/css-snapshot.mjs";
 import { projectFile, unavailable, viewerFixture } from "./viewer-fixture.mjs";
 
 const draft = "<p>Draft contents</p>";
@@ -15,6 +15,8 @@ globalThis.localStorage = {
 };
 const { viewer, window, document, host, clipboard, announcements, selected, click } = await viewerFixture();
 const attempted = [];
+const fallback = [];
+window.HTMLTextAreaElement.prototype.select = function () { fallback.push(this.value); };
 clipboard.writeText = async (text) => { attempted.push(text); throw new Error("Clipboard refused"); };
 viewer.open(unavailable(".xo/worktrees/example/docs/note.txt"));
 click(".vw-path [data-vw-copy-path]");
@@ -43,6 +45,7 @@ click("[data-vw-more]");
 click("[data-vw-copy]");
 await settle();
 assert.deepEqual(attempted, [path, draft]);
+assert.deepEqual(fallback, attempted, "both refusal paths attempt the legacy clipboard");
 assert.equal(announcements.at(-1), "Couldn't copy.");
 assert.match(host.querySelector('[role="alert"]').textContent, /Select the text and copy it, or download the file/);
 assert.ok(!host.querySelector("[data-vw-cut-sel]"));
@@ -52,3 +55,6 @@ assert.ok(rule(".vw-cut:has(.vw-cut-sel)", "flex-wrap").includes("wrap"));
 assert.ok(rule((selector) => selector.replace(/\s/g, "") === ".vw-cut:has(.vw-cut-sel)>span", "flex").includes("1 1 0"));
 assert.ok(rule(".vw-cut-sel", "flex").includes("1 0 calc(100% - 22px)"));
 assert.ok(rule(".vw-cut-sel", "font").some((value) => value.includes("var(--mono)")));
+assert.deepEqual(valuesFor(".vw-cut:has(.vw-cut-sel)>span", "min-width"), ["0"]);
+assert.deepEqual(valuesFor(".vw-cut-sel", "margin-left"), ["22px"]);
+assert.ok(!valuesFor(".vw-cut-sel", "min-width").includes("0"));
