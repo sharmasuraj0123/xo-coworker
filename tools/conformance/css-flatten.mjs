@@ -39,8 +39,8 @@ function rebaseUrls(value, from) {
   return parts.join("") + value.slice(offset);
 }
 
-/** @param {string} root @param {string} [entry] */
-export function flattenStyles(root, entry = "index.html") {
+/** @param {string} root @param {string} [entry] @param {(row: object, path: string) => void} [onDeclaration] */
+export function flattenStyles(root, entry = "index.html", onDeclaration) {
   const base = new URL(entry, ENTRY);
   const rootPath = resolve(root);
   const { document } = parseHTML(readFileSync(resolve(rootPath, entry), "utf8"));
@@ -55,7 +55,9 @@ export function flattenStyles(root, entry = "index.html") {
       if (node.type === "comment") continue;
       if (node.type === "decl") {
         const value = rebaseUrls(node.value, url);
-        rows.push({ context, property: node.prop, value, important: Boolean(node.important) });
+        const row = { context, property: node.prop, value, important: Boolean(node.important) };
+        rows.push(row);
+        onDeclaration?.(row, sourcePath(url));
       } else if (node.type === "rule") {
         emit(node.nodes, url, [...context, { selector: node.selector }]);
       } else if (node.type === "atrule" && node.name.toLowerCase() === "import") {
