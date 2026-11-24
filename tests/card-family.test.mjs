@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { list } from "postcss";
+import { substitute } from "../tools/conformance/css-resolve.mjs";
 import { declarationsFor, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
 const base = Object.fromEntries(tokenValuesFor());
@@ -101,7 +102,7 @@ test("the composer: Send and Add files are --comp-ctl circles, --comp-in from it
   for (const sel of [".send", ".attach"]) {
     const r = rule(sel);
     assert.equal(prop(r, "width"), "var(--comp-ctl)", sel); assert.equal(prop(r, "height"), "var(--comp-ctl)", sel);
-    assert.equal(prop(r, "border-radius"), "50%", sel);
+    for (const env of Object.values(SCREENS)) assert.equal(substitute(prop(r, "border-radius"), new Map(Object.entries(env))), "50%", sel);
     assert.ok([...r.keys()].every((property) => !property.startsWith("margin")), sel);
   }
   const c = rule(".composer");
@@ -125,7 +126,7 @@ test("in the composer: a file and the reply quote take the corner left inside it
   assert.equal(prop(attachment, "border-radius"), "var(--nest-r)");
   assert.equal(prop(rule(".att-ic"), "border-radius"), NEST);
   const button = rule(".att-b");
-  assert.equal(prop(button, "--nest-in"), "11px");
+  assert.equal(px(prop(button, "--nest-in"), SCREENS.desktop), 11);
   assert.equal(prop(button, "border-radius"), NEST);
   const q = rule(".mx-reply"), qn = nest(q);
   assert.equal(qn["--nest-r"], "var(--r-card)"); assert.equal(qn["--nest-in"], "var(--comp-in)");

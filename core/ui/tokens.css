@@ -32,6 +32,7 @@
   --row-line:rgba(255,255,255,.05); --row-line-hover:rgba(255,255,255,.09); --row-hi:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.035);
   /* frosted bars and toasts */
   --herald-bg:rgba(27,27,27,.9); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
+  --fill-drop-veil:rgb(0 0 0 / .32);
   --comp-bg:var(--float); --line-composer-focus:var(--line-strong);
   /* Floating surfaces pair a contact shadow with a short ambient shadow. */
   --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
@@ -165,6 +166,10 @@
   --s-model-chip-phone:6px; --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
   --r-segment-inset:2px; --offset-inside-focus-ring:-2px; --r-thread-state-mark:var(--h-thread-state-mark);
   --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
+  --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
+  --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
+  --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
+  --stroke-drop-target:2px; --edge-drop-target:rgba(var(--accent-rgb),.6); --blur-drop-veil:3px; --s-drop-label-inline:18px;
   --s-viewer-head-top:14px; --s-viewer-button-end:11px; --s-viewer-button-start:9px; --s-viewer-segment-in:3px; --s-viewer-seg-inline:10px;
   --r-viewer-segment-inset:4px; --s-viewer-path-offset:22px; --fill-viewer-embedded:var(--fill-clear);
   --s-viewer-copy-block:9px; --s-viewer-copy-inline:6px; --s-viewer-phone-inline:18px; --offset-viewer-download-link:2px;
@@ -217,6 +222,7 @@
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
   --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
   --herald-bg:rgba(255,255,255,.92); --toast-bg:rgba(28,28,28,.96); --stamp-bg:rgba(255,255,255,.95);
+  --fill-drop-veil:color-mix(in srgb,var(--surface) 55%,transparent);
   --e-composer-idle:0 1px 2px rgba(var(--black-rgb),.04),0 3px 10px -4px rgba(var(--black-rgb),.07);
   --e-composer-focused:0 1px 2px rgba(var(--black-rgb),.05),0 4px 14px -6px rgba(var(--black-rgb),.1);
   --e-composer-compact:var(--e-composer-idle); --line-composer-focus:var(--line-hover);
