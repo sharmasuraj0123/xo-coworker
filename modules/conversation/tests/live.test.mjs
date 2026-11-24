@@ -1,13 +1,22 @@
+// @ts-check
 import assert from "node:assert/strict";
-import { createLiveConversation } from "./live.js";
+import { createLiveConversation } from "../live.js";
 
+/** @type {unknown[][]} */
 const calls = [];
 const S = { view: "home" };
 const thread = { id: "thread-1", project: "demo", loaded: false, messages: [{ seq: null }, { seq: 16 }] };
+/** @type {import("../live-types.d.ts").LiveConversationDeps["world"]} */
 const world = {
   state: { hist: { workspace: { loading: true } }, timeline: {}, threadHist: {}, found: {} },
-  act: Object.fromEntries(["watch", "watchThread", "watchSession", "loadHops", "loadChatHops", "findRows"]
-    .map((name) => [name, (...args) => { calls.push([name, ...args]); }])),
+  act: {
+    watch: (ids) => calls.push(["watch", ids]),
+    watchThread: (id) => calls.push(["watchThread", id]),
+    watchSession: (id) => calls.push(["watchSession", id]),
+    loadHops: (id) => calls.push(["loadHops", id]),
+    loadChatHops: (project) => calls.push(["loadChatHops", project]),
+    findRows: (project, ids, seq) => calls.push(["findRows", project, ids, seq]),
+  },
 };
 const live = createLiveConversation({
   S, world,
@@ -38,6 +47,7 @@ assert.deepEqual(calls.splice(0), [
 assert.equal(live.liveReady(S.view), false);
 thread.loaded = true;
 assert.equal(live.liveReady(S.view), true);
+assert.ok(world.state.threadHist && world.state.found);
 world.state.threadHist["thread-1"] = { loaded: true, all: false };
 live.ensureRoot();
 assert.deepEqual(calls, []);
