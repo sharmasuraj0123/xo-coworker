@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { dom } from "../../../tests/lib/dom.mjs";
+import { declarationsFor } from "../../../tests/lib/css-snapshot.mjs";
 import { flattenStyles } from "../../../tools/conformance/css-flatten.mjs";
 import { resolvedStyles } from "../../../tools/conformance/css-resolve.mjs";
 
@@ -25,3 +26,8 @@ const pill = declarations.filter((entry) => entry.context.at(-1)?.selector ===
 assert.equal(pill.find(({ property }) => property === "width")?.value, "fit-content");
 const line = declarations.filter((entry) => entry.context.at(-1)?.selector === ".mx-wl");
 assert.equal(line.find(({ property }) => property === "text-overflow")?.value, "ellipsis");
+
+const waves = declarationsFor((selector) => /^:root\[data-msgx\] /.test(selector), "animation")
+  .filter(({ value }) => /\bmx-(shimmer|await|doing)\b/.test(value));
+assert.equal(waves.length, 4);
+for (const { value } of waves) assert.match(value, /\bmx-(shimmer|await|doing) var\(--d-loop\)/);

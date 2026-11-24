@@ -1,23 +1,22 @@
 // @ts-check
 import { elapsed, RM } from "../../core/platform/index.js";
+import { EASE } from "../../core/platform/motion.js";
+import { LOOP, MOVE, OUT } from "../../core/ui/tokens.js";
 
 /** @typedef {{cancel?: () => void, cardKey?: string, open?: boolean, rows?: Set<string> | null, cardHeight?: number, resize?: {animation: Animation, from: number, to: number, duration: number} | null, card?: HTMLElement | null}} WorkCard */
 
 /** @typedef {WorkCard & {text: string, since: number, swapped: number, height?: number, pill: HTMLButtonElement}} Working */
 
-const WAVE_MS = 2400; // the wave of this layer's own animations (mx-shimmer, mx-doing, mx-await)
 /** @param {ParentNode} [root] */
 export function wave(root = document) {
-  for (const e of /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(".mx-wl, .tc-segs, .tc-segs .sg.s-doing"))) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
+  if (!LOOP) return;
+  const phase = `${-(Date.now() % LOOP)}ms`;
+  for (const e of /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(".mx-wl, .tc-segs, .tc-segs .sg.s-doing"))) {
+    if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", phase);
+  }
 }
 
-/** @param {string} name @param {HTMLElement} node */
-function motionDuration(name, node) {
-  const value = getComputedStyle(node).getPropertyValue(name).trim();
-  return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
-}
-
-/** @param {import("./decoration-types.js").Conversation} E @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+/** @param {Pick<import("./decoration-types.js").Conversation, "msgs" | "follow">} E @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
 export function createWorkingTurn(E, scope) {
   const msgs = E.msgs;
 
@@ -128,7 +127,7 @@ export function createWorkingTurn(E, scope) {
     w.title = text === "Working" ? "See every step" : `${text}\nSee every step`;
     if (!cur || cur.textContent !== text) {
       const old = cur || (was && was.text !== text ? Object.assign(document.createElement("span"), { className: "mx-wl", textContent: was.text }) : null);
-      if (old) { if (!old.parentNode) wt.append(old); old.className = "mx-wl is-out"; scope.timeout(() => old.remove(), motionDuration("--d-out", el)); }
+      if (old) { if (!old.parentNode) wt.append(old); old.className = "mx-wl is-out"; scope.timeout(() => old.remove(), OUT); }
       const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: text });
       wt.append(line);
     }
@@ -159,9 +158,8 @@ export function createWorkingTurn(E, scope) {
 
   /** @param {HTMLElement} el @param {number} from @param {number} to @param {boolean} [delay] */
   function resizeTurn(el, from, to, delay = false) {
-    const ms = motionDuration("--d-move", el);
     const animation = el.animate([{ minHeight: `${from}px` }, { minHeight: `${to}px` }], {
-      duration: ms, delay: delay ? ms : 0, fill: "backwards", easing: getComputedStyle(el).getPropertyValue("--ease"),
+      duration: MOVE, delay: delay ? MOVE : 0, fill: "backwards", easing: EASE,
     });
     ownAnimation(animation);
   }
@@ -199,15 +197,13 @@ export function createWorkingTurn(E, scope) {
     const previous = st.resize;
     const progress = (/** @type {{animation: {effect: AnimationEffect}} | null | undefined} */ (previous))?.animation.effect.getComputedTiming().progress ?? 1;
     const from = previous ? previous.from + (previous.to - previous.from) * progress : st.cardHeight;
-    const style = getComputedStyle(card);
-    const fullDuration = motionDuration("--d-move", card);
-    const duration = previous && previous.to === h ? Math.max(0, previous.duration - (/** @type {number} */ (previous.animation.currentTime || 0))) : fullDuration;
+    const duration = previous && previous.to === h ? Math.max(0, previous.duration - (/** @type {number} */ (previous.animation.currentTime || 0))) : MOVE;
     previous?.animation.cancel();
     if (st.card) st.card.style.overflow = "";
     st.resize = null;
     if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !RM.matches) {
       card.style.overflow = "hidden";
-      const animation = card.animate([{ height: `${from}px` }, { height: `${h}px` }], { duration, easing: style.getPropertyValue("--ease").trim(), fill: "both" });
+      const animation = card.animate([{ height: `${from}px` }, { height: `${h}px` }], { duration, easing: EASE, fill: "both" });
       ownAnimation(animation);
       const resize = st.resize = { animation, from, to: h, duration };
       animation.finished.then(() => {

@@ -13,3 +13,4 @@ function milliseconds(name) {
 export const IN = milliseconds("--d-in");
 export const MOVE = milliseconds("--d-move");
 export const OUT = milliseconds("--d-out");
+export const LOOP = milliseconds("--d-loop");

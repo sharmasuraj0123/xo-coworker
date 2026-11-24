@@ -157,8 +157,8 @@
 :root[data-msgx] .mx-work:hover,:root[data-msgx] .m-turn.is-live.is-folded .mx-work:hover{background:var(--mx-them-top)}
 .mx-wt{position:relative;flex:1 1 auto;min-width:0;height:var(--lh-ui);overflow:hidden}
 .mx-wl{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-:root[data-msgx] .mx-wl:not(.is-out){background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
-:root[data-msgx] .mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both,mx-shimmer 2.4s linear var(--mx-wave,0s) infinite}
+:root[data-msgx] .mx-wl:not(.is-out){background:linear-gradient(90deg,var(--ink-3) 0%,var(--ink-3) 35%,var(--ink) 50%,var(--ink-3) 65%,var(--ink-3) 100%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:mx-shimmer var(--d-loop) linear var(--mx-wave,0s) infinite}
+:root[data-msgx] .mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both,mx-shimmer var(--d-loop) linear var(--mx-wave,0s) infinite}
 @keyframes mx-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
 .mx-wl.is-in{animation:mx-line-in var(--dur-slow) var(--ease) both}
 .mx-wl.is-out{position:absolute;inset:0;animation:mx-line-out var(--d-out) var(--ease) both}
@@ -229,9 +229,9 @@
 :root[data-msgx] .m-them .tc-top b{font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans)}
 :root[data-msgx] .m-them .tc-st{color:var(--st,var(--ink-3));font-weight:var(--fw-medium)}
 
-:root[data-msgx] .m-them .tc-segs.is-empty::before{content:"";display:block;flex:1;height:8px;border-radius:calc(var(--r-xl) - 16px);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+:root[data-msgx] .m-them .tc-segs.is-empty::before{content:"";display:block;flex:1;height:8px;border-radius:calc(var(--r-xl) - 16px);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--st,var(--info)) 75%,transparent),transparent) 0 0/40% 100% no-repeat,color-mix(in srgb,var(--st,var(--info)) 18%,transparent);animation:mx-await var(--d-loop) var(--ease-loop) var(--mx-wave,0s) infinite}
 @keyframes mx-await{0%{background-position:-70% 0,0 0;opacity:.6}50%{opacity:1}100%{background-position:170% 0,0 0;opacity:.6}}
-:root[data-msgx] .m-them .tc-segs .sg.s-doing{background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent) 0 0/45% 100% no-repeat,var(--info);animation:mx-doing 2.4s var(--ease-loop) var(--mx-wave,0s) infinite}
+:root[data-msgx] .m-them .tc-segs .sg.s-doing{background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent) 0 0/45% 100% no-repeat,var(--info);animation:mx-doing var(--d-loop) var(--ease-loop) var(--mx-wave,0s) infinite}
 @keyframes mx-doing{from{background-position:-90% 0,0 0}to{background-position:190% 0,0 0}}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-done{position:relative;overflow:hidden;background:var(--info);animation:none}
 :root[data-msgx] .m-them .tc-segs .sg.mx-seg-done::after{content:"";position:absolute;inset:0;background:var(--accent-fill);transform-origin:left center;animation:seg-fill var(--d-land) var(--ease) both}
