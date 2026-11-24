@@ -187,6 +187,10 @@ test("a map over a literal list reports only the files that can be read", (conte
     "tests/constant.test.mjs": `${reader}const files = ${entries}; files.map((name) => name.length); files.${map};`,
     "tests/computed.test.mjs": `${reader}[...otherFiles, 'decoration'].${map};`,
     "tests/mutated.test.mjs": `${reader}const files = ${entries}; files.push(extra); files.${map};`,
+    "tests/callback.test.mjs": `${reader}const files = ${entries}; files.map((name, i, all) => { all[0] = "notice-line"; }); files.${map};`,
+    "tests/arguments.test.mjs": `${reader}const files = ${entries}; files.map(function () { arguments[2][0] = "notice-line"; }); files.${map};`,
+    "tests/exported.test.mjs": `${reader}export const files = ${entries}; files.${map};`,
+    "tests/eval.test.mjs": `${reader}const files = ${entries}; eval(source); files.${map};`,
     "tests/shadowed.test.mjs": reader + 'const name = "decoration"; function inspect(name) { ' +
       'readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url)); }',
   });
@@ -194,7 +198,7 @@ test("a map over a literal list reports only the files that can be read", (conte
   for (const name of ["literal", "constant"]) {
     assert.deepEqual(target(findings, `tests/${name}.test.mjs`), wanted.map((entry) => `modules/conversation/${entry}.js`));
   }
-  for (const name of ["computed", "mutated", "shadowed"]) {
+  for (const name of ["computed", "mutated", "callback", "arguments", "exported", "eval", "shadowed"]) {
     assert.deepEqual(target(findings, `tests/${name}.test.mjs`), files.map((entry) => `modules/conversation/${entry}.js`));
   }
 });

@@ -16,8 +16,10 @@ function bindings(tree, file) {
   const names = new Map();
   const parents = new WeakMap();
   const harnesses = new Map();
+  let dynamicScope = false;
   walk(tree, (node, parent) => {
     parents.set(node, parent);
+    if (node.type === "CallExpression" && node.callee.type === "Identifier" && node.callee.name === "eval") dynamicScope = true;
     if (node.type === "Identifier") {
       if (!names.has(node.name)) names.set(node.name, []);
       names.get(node.name).push(node);
@@ -41,7 +43,7 @@ function bindings(tree, file) {
       if (READ.test(property.key?.name ?? "")) readers.add(property.value.name);
     }
   });
-  return { readers, namespaces, values, names, parents, harnesses };
+  return { readers, namespaces, values, names, parents, harnesses, dynamicScope };
 }
 
 /** @typedef {{ name: string, value: string }} MapInput */
@@ -83,15 +85,25 @@ function pathValue(node, file, values, input, seen = new Set()) {
   }
 }
 
+/** @param {object} call */
+function mapCallback(call) {
+  if (call?.type !== "CallExpression" || call.arguments.length !== 1) return undefined;
+  const [fn] = call.arguments;
+  if (fn.type !== "ArrowFunctionExpression" || fn.params.length < 1 || fn.params.length > 2) return undefined;
+  if (fn.params.every((parameter) => parameter.type === "Identifier")) return fn;
+}
+
 /** @param {object} receiver @param {ReturnType<typeof bindings>} refs */
-function mappedArray(receiver, { values, names, parents }) {
+function mappedArray(receiver, { values, names, parents, dynamicScope }) {
   if (receiver.type !== "Identifier") return receiver;
+  if (dynamicScope) return undefined;
   const array = values.get(receiver.name);
   const declaration = array && parents.get(array);
-  if (!declaration || !names.get(receiver.name).every((use) => {
+  if (!declaration || parents.get(parents.get(declaration))?.type === "ExportNamedDeclaration") return undefined;
+  if (!names.get(receiver.name).every((use) => {
     if (use === declaration.id) return true;
     const property = parents.get(use), call = property && parents.get(property);
-    return property?.object === use && member(property) === "map" && call?.type === "CallExpression" && call.callee === property;
+    return property?.object === use && member(property) === "map" && mapCallback(call) && call.callee === property;
   })) return undefined;
   return array;
 }
@@ -103,8 +115,8 @@ function literalMaps(tree, refs) {
     if (node.type !== "CallExpression" || member(node.callee) !== "map") return;
     const array = mappedArray(node.callee.object, refs);
     if (array?.type !== "ArrayExpression" || array.elements.some((item) => typeof literal(item) !== "string")) return;
-    const [fn] = node.arguments;
-    if (!["ArrowFunctionExpression", "FunctionExpression"].includes(fn?.type)) return;
+    const fn = mapCallback(node);
+    if (!fn) return;
     const [parameter] = fn.params;
     const body = fn.body.type === "BlockStatement" && fn.body.body.length === 1 && fn.body.body[0].type === "ReturnStatement"
       ? fn.body.body[0].argument : fn.body;
