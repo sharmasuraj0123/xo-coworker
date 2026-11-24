@@ -6,10 +6,10 @@ import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const M = await import("../js/media.js");
+const M = { ...await import("../core/services/media/render.js"), ...await import("../core/services/media/items.js"), ...await import("../core/services/media/layout.js") };
 const { attachmentsOf } = await import("../core/services/world/rows.js");
 const { uiMsg, updateMessage } = await import("../core/services/world/timeline.js");
-const { turnHtml } = await import("../js/turnview.js");
+const { turnHtml } = await import("../modules/conversation/blocks/turn.js");
 const MD = await import("../core/ui/markdown/markdown.js");
 
 let passed = 0;

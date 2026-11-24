@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { scopeOf, localIn, fileScope, newFileSay } = await import("../js/files.js");
+const { scopeOf, localIn, fileScope, newFileSay } = await import("../modules/files/scope.js");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -90,7 +90,7 @@ t("Home paints on entry using the stored shape before the app starts", () => {
 });
 
 const { api } = await import("../core/platform/api.js");
-const { createFiles } = await import("../js/files.js");
+const { createFiles } = await import("../modules/files/files.js");
 const { createViewer, whenWords } = await import("../js/viewer.js");
 t("The viewer describes recent versions relative to now", () => {
   const at = "2026-11-23T20:00:00.000Z", time = Date.parse(at);

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { createMapAgents } from "../modules/map/agents.js";
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { stepLineHtml, turnHtml } = await import("../js/turnview.js");
+const { stepLineHtml, turnHtml } = await import("../modules/conversation/blocks/turn.js");
 const sub = stepLineHtml("Sub-agent: `Read-only regression review`", "subagent");
 assert.equal(sub, "Sub-agent: Read-only regression review");
 assert.equal(stepLineHtml("Sub-agent: `<b>`", "subagent").includes("<b>"), false, "the title is escaped");

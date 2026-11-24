@@ -1,14 +1,9 @@
-// node core/platform/tests/util.test.mjs: esc, space, isImagePath, toMs and the old js/util.js names, through both doors.
 import assert from "node:assert/strict";
 
 const P = await import("../index.js");
-const legacy = await import("../../../js/util.js");
 let passed = 0;
 const t = (name, fn) => { fn(); passed++; console.log("  ok  " + name); };
 
-t("js/util.js still offers every name it had, each the platform's own", () => {
-  for (const n of ["space", "esc", "toMs", "isImagePath", "copyText", "COPY_REFUSED"]) assert.equal(legacy[n], P[n], n);
-});
 t("esc escapes text for element content and quoted attributes", () => {
   assert.equal(P.esc(`<a href="x">it's \`q\` & co</a>`), "&lt;a href=&quot;x&quot;&gt;it&#39;s &#96;q&#96; &amp; co&lt;/a&gt;");
   assert.equal(P.esc(null), "");

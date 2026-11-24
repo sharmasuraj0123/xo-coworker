@@ -14,7 +14,7 @@ g.location = new URL("http://127.0.0.1/");
 g.fetch = () => new Promise(() => {});
 g.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
 
-const { createIntel } = await import("../js/intel.js");
+const { createIntel } = await import("../modules/chats/intel.js");
 const thread = { id: "cmsg_1", chatId: "chat_demo", project: "demo", title: "Tidy", runtime: "claude_code", sessionId: "cse_1", intelligence: {} };
 const world = {
   state: { router: null, policy: null, chatPolicy: {}, runtimes: [], threads: [thread] },

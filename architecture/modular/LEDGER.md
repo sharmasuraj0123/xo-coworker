@@ -36,7 +36,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | moved | modules/decisions/cardparts.js |
 | `js/changes.js` | 194 | moved | modules/changes/store.js |
-| `js/changesframe.js` | 323 | moved | modules/changes/frame.js · next: countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go |
+| `js/changesframe.js` | 323 | moved | modules/changes/frame.js |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js |
 | `js/chats.js` | 523 | moved | modules/chats/chats.js |
 | `js/comms.js` | 173 | moved | core/services/comms.js |
@@ -50,7 +50,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/drafts.js` | 61 | moved | modules/files/drafts.js |
 | `js/dropdown.js` | 321 | moved | core/ui/components/xo-select.js |
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js |
-| `js/files.js` | 940 | moved | modules/files/files.js · next: The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/. |
+| `js/files.js` | 940 | moved | modules/files/files.js |
 | `js/filespage.js` | 134 | moved | modules/files/page.js |
 | `js/flavours.js` | 20 | moved | core/ui/flavours.js |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js |
@@ -75,7 +75,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
-| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js · next: js/media.js re-exports the shared media modules |
+| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js |
@@ -87,7 +87,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/pending.js` | 22 | moved | core/platform/pending.js · next: every importer points at core/platform/pending.js, so it leaves with no re-export |
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
-| `js/record.js` | 342 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js · next: every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go |
+| `js/record.js` | 342 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
 | `js/recordview.js` | 857 | kept | js/recordview.js · next: Composes Since and Made and passes the legacy Home first-paint helpers. |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js |
 | `js/review.js` | 153 | moved | core/services/review.js |
@@ -110,10 +110,10 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/timeline.js` | 840 | moved | core/services/world/timeline.js |
 | `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: Callers use the owning modules directly. |
-| `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
+| `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
 | `js/viewer.js` | 1158 | moved | modules/files/viewer.js · next: The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |
-| `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) · next: js/world.js re-exports the store and the platform's esc until the shims go |
+| `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) |
 | `js/xoicons.js` | 391 | moved | core/ui/icons/xoicons.js |
 
 ## css (19)

@@ -2,7 +2,7 @@
 
 // Jump (⌘K): one field over the places, threads and actions; arrows or the pointer choose, Enter or a click goes.
 
-import { esc } from "../../js/world.js";
+import { esc } from "../../core/platform/util.js";
 
 /** @param {import("./types").JumpDeps} deps */
 export function createJump({ host, field, list, places, actions, more, go, announce, focusIn, onHidden }) {

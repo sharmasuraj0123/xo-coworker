@@ -1,7 +1,7 @@
 // @ts-check
 
 // Create XO Project: start empty or clone a Git repository (a Space clone job, polled and stoppable) into a new project.
-import { esc } from "../../js/world.js";
+import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { $ as query } from "../../core/platform/dom.js";
 import { RM } from "../../core/ui/motion.js";

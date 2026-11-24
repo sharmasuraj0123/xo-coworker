@@ -16,7 +16,7 @@ Object.assign(globalThis, {
 });
 globalThis.window = globalThis;
 globalThis.sessionStorage = globalThis.localStorage;
-const intel = await import("../js/intel.js");
+const intel = await import("../modules/chats/session-order.js");
 const src = readFileSync(new URL("../modules/chats/intel.js", import.meta.url), "utf8");
 
 let passed = 0;

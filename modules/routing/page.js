@@ -3,7 +3,7 @@
 // Settings › Routing: who routes a new message, the decision models and their keys, and chats with their own routing.
 
 import { api } from "../../core/platform/api.js";
-import { esc } from "../../js/world.js";
+import { esc } from "../../core/platform/util.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";
 import { rovingTab } from "../../core/ui/a11y/keynav.js";
 

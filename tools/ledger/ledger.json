@@ -2510,8 +2510,7 @@
   },
   "js/changesframe.js": {
    "status": "moved",
-   "home": "modules/changes/frame.js",
-   "note": "countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go"
+   "home": "modules/changes/frame.js"
   },
   "js/chart.js": {
    "status": "moved",
@@ -2568,8 +2567,7 @@
   },
   "js/files.js": {
    "status": "moved",
-   "home": "modules/files/files.js",
-   "note": "The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/."
+   "home": "modules/files/files.js"
   },
   "js/filespage.js": {
    "status": "moved",
@@ -2709,8 +2707,7 @@
     "core/services/media/layout.js",
     "core/services/media/render.js",
     "core/services/media/hydrate.js"
-   ],
-   "note": "js/media.js re-exports the shared media modules"
+   ]
   },
   "js/merge.js": {
    "status": "moved",
@@ -2771,8 +2768,7 @@
     "modules/since/model.js",
     "core/services/git-state.js",
     "core/ui/virtual.js"
-   ],
-   "note": "every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go"
+   ]
   },
   "js/recordview.js": {
    "status": "kept",
@@ -2912,8 +2908,7 @@
     "core/platform/util.js",
     "core/platform/time.js",
     "core/platform/clipboard.js"
-   ],
-   "note": "js/util.js re-exports core/platform until the shims go"
+   ]
   },
   "js/vendor/agent-marks/README.md": {
    "status": "vendor",
@@ -4413,8 +4408,7 @@
    "home": [
     "core/services/world/store.js",
     "core/platform/util.js (esc)"
-   ],
-   "note": "js/world.js re-exports the store and the platform's esc until the shims go"
+   ]
   },
   "js/xoicons.js": {
    "status": "moved",

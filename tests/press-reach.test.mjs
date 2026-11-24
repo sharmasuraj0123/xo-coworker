@@ -53,7 +53,7 @@ document.createElement = (name, options) => name === "canvas" ? {
   },
 } : make(name, options);
 for (const img of document.querySelectorAll("img")) Object.defineProperties(img, { complete: { value: true }, naturalWidth: { value: 8 } });
-await import("../js/media.js");
+await import("../core/services/media/hydrate.js");
 t("a picture's veil is chosen by the sum of its RGB channels before hover draws", () => {
   assert.match(media, /:where\(\.mx-one,\.mx-tile,button\.att-ic\.is-img\)\[data-tone="dark"\]\{--veil:#FFFFFF\}/);
   assert.match(media, /:where\(\.mx-one,\.mx-tile,button\.att-ic\.is-img\)\[data-tone="light"\]\{--veil:#000000\}/);

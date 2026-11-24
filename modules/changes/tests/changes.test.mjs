@@ -14,7 +14,6 @@ globalThis.fetch = async (url) => {
 const { scopeOf, activityIn, createChanges, lineRef, fileRef } = await import("../store.js");
 const { choose, newestHunkLine } = await import("../frame.js");
 const { countsHtml } = await import("../../../core/ui/components/counts.js");
-const { countsHtml: shim } = await import("../../../js/changesframe.js");
 const { api } = await import("../../../core/platform/api.js");
 const { createTurns } = await import("../../../core/services/world/turns.js");
 
@@ -198,7 +197,6 @@ await t("the newest hunk: the first hunk the new patch has that the old one didn
 
 await t("counts read +n −n, and say nothing for a side with none", () => {
   assert.match(countsHtml({ additions: 5, deletions: 8 }), /\+5<\/b><b class="xd-d">−8/);
-  assert.equal(shim, countsHtml, "the panel's import still finds the one atom");
   assert.doesNotMatch(countsHtml({ additions: 3, deletions: 0 }), /−/);
   assert.equal(countsHtml(null), "");
   assert.equal(countsHtml({ additions: null, deletions: null }), "");

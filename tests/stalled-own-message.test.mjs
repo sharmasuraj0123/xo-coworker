@@ -48,7 +48,7 @@ const be = fakeBackend({
   "/chat/runtimes": { runtimes: [] },
   "/chat/router": { mode: "agent" },
 });
-const { createWorld } = await import("../js/world.js");
+const { createWorld } = await import("../core/services/world/store.js");
 const world = createWorld();
 be.push("snapshot", { data: { seq: 1, turns: [] } });
 await until(() => world.state.loaded);

@@ -1235,7 +1235,8 @@ t("S201/S202: the lightbox's end arrow keeps focus at the end", async () => {
   const page = await app();
   await toDemo(page);
   await page.evaluate(async () => {
-    const { mediaItem, mediaHtml } = await import("./js/media.js");
+    const { mediaItem } = await import("./core/services/media/items.js");
+    const { mediaHtml } = await import("./core/services/media/render.js");
     const { createLightbox } = await import("./modules/conversation/lightbox.js");
     const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
     const root = document.createElement("div"); root.id = "lbx-test"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
@@ -3348,7 +3349,8 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   await sweep("a project with a thread needing you");
   // the lightbox, dark in both themes (S080 Open in Files and Next, S201 Previous: light's press ink on its chrome)
   await page.evaluate(async () => {
-    const { mediaItem, mediaHtml } = await import("./js/media.js");
+    const { mediaItem } = await import("./core/services/media/items.js");
+    const { mediaHtml } = await import("./core/services/media/render.js");
     const { createLightbox } = await import("./modules/conversation/lightbox.js");
     // the app's mark, a black, a white, a mid grey and a mid green picture: the veil shows over any picture, in both themes
     // (S233 on aba434f: a mid-tone picture under the ink's veil moved 19 RGB-sum in dark)
@@ -3562,7 +3564,7 @@ async function decisions(kind = "approval", count = 1) {
   await page.route("**/api/**", (r) => r.fulfill({ status: 403, contentType: "application/json", body: '{"error":"test_only"}' }));
   await page.goto(BASE + "/");
   await page.evaluate(async ({ kind, count }) => {
-    const { createDecisions } = await import("./js/decide.js");
+    const { createDecisions } = await import("./modules/decisions/controller.js");
     const calls = [];
     const threads = Array.from({ length: count }, (_, i) => ({ id: "t-" + i, title: "Task " + i, project: "demo", state: kind === "stopped" ? "failed" : "needs_approval", happened: "Test only", checklist: { total: 1, done: 0, items: [{ text: "Step", state: "todo" }] }, messages: [],
       asks: kind === "stopped" ? [] : [{ id: "ask-" + i, kind: kind === "question" ? "question" : "approval", title: "Choice " + i, risk: "routine", detail: "A local test.", ...(kind === "question" ? { options: ["First", "Second"] } : {}) }] }));

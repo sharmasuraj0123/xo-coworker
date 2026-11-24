@@ -192,7 +192,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     const place = (rel, text) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); writeFileSync(join(dir, rel), text); };
     const stubFor = (rel) => STUB[rel] ?? STUB[rel.replace(/^js\//, "")];
     writeFileSync(join(dir, "package.json"), '{"type":"module"}');
-    const todo = ["js/files.js"], seen = new Set();
+    const todo = ["modules/files/files.js"], seen = new Set();
     while (todo.length) {
       const rel = todo.pop();
       if (seen.has(rel)) continue;
@@ -205,7 +205,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     }
     assert.ok(specs.length > 5, "files.js's imports were read");
     // the copy registers its own press listener on the same document: both see the same presses
-    const { createFiles } = await import(join(dir, "js/files.js"));
+    const { createFiles } = await import(join(dir, "modules/files/files.js"));
     const { calls } = await import(join(dir, "core/platform/api.js"));
     const { MARKS } = await import(join(dir, "core/services/agent-activity.js"));
     const world = { state: { turns: [], threads: [{ id: "t1", project: "p", sessionId: "s", title: "Agent" }], projects: [{ id: "p", name: "P" }] }, thread: () => null };

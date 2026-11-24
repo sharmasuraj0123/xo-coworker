@@ -10,7 +10,7 @@ Object.assign(globalThis, {
   ResizeObserver: class { observe() {} disconnect() {} },
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
 });
-const { createDecisions } = await import("../js/decide.js");
+const { createDecisions } = await import("../modules/decisions/controller.js");
 const { createPacing } = await import("../modules/decisions/pacing.js");
 const { createDock } = await import("../modules/decisions/dock.js");
 const { READ_MS } = await import("../modules/decisions/kit.js");
