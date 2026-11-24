@@ -6,7 +6,7 @@ interface ReadOptions { signal?: AbortSignal }
 type SignInRoute = "claude-code" | "codex" | "antigravity";
 
 export interface Api {
-  status(): Json;
+  status(): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Json;
   models(runtime: string): Json;
   runtimePolicy(): Json;

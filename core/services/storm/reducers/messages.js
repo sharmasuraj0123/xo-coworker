@@ -8,8 +8,8 @@ import { COORD } from "../config.js";
 export const messages = {
   message(ctx, env, d) {
     const { state } = ctx;
-    /** @type {import("../types").Row} */
-    const row = { ...d, seq: env.seq ?? d.seq ?? null };
+    /** @type {import("../types").MessageRow} */
+    const row = { ...d, id: d.id, seq: env.seq ?? d.seq ?? null };
     const project = ctx.projectOf(row.chat_id || env.chat_id);
     if (row.thread_ts) {
       const { list, added } = mergeRows(state.threadMsgs[row.thread_ts] || [], [row]);

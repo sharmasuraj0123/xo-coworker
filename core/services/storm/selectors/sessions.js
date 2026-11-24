@@ -18,7 +18,7 @@ export function installSessions(ctx) {
     /** @type {Session | null} */
     let current = null;
     for (const s of Object.values(state.sessions)) {
-      if (s.chat_id !== chat || !COORD.has(s.role) || s.retired_at) continue;
+      if (s.chat_id !== chat || !s.role || !COORD.has(s.role) || s.retired_at) continue;
       if (!current || (s.seq || 0) > (current.seq || 0)) current = s;
     }
     return current;
@@ -44,7 +44,7 @@ export function installSessions(ctx) {
     return heldOf({ ...s, pool: s.pool || ctx.agentPool(s.agent) }, state.pools);
   };
   ctx.agentPool = (agent) => {
-    const rt = agent ? (state.runtimes || []).find((/** @type {any} */ x) => x.name === agent) : null;
+    const rt = agent ? state.runtimes?.find((x) => x.name === agent) : null;
     return (rt && rt.health && rt.health.pool) || (rt && rt.cli && rt.cli.account ? `${agent}:${rt.cli.account}` : null);
   };
   /** A thread's agent at work: its session's newest status, and the session list's or this view's `busy`, whichever came later. */
@@ -53,8 +53,8 @@ export function installSessions(ctx) {
     if (!sid || !now) return false;
     const live = state.sessions[sid];
     const view = r.session ? { sub: readSub({ state: r.session.state, busy: typeof r.session.busy === "boolean" ? r.session.busy : r.busy }), readAt: r._readAt || 0 } : null;
-    const ok = (/** @type {any} */ x) => x && x.sub !== undefined;
-    const read = ok(live) && (!ok(view) || (live.readAt || 0) >= /** @type {any} */ (view).readAt) ? live : ok(view) ? view : null;
+    const viewRead = view?.sub !== undefined ? view : null;
+    const read = live?.sub !== undefined && (!viewRead || (live.readAt || 0) >= viewRead.readAt) ? live : viewRead;
     return sessionBusy({ id: sid, state: now.state, statusAt: now.statusAt, statusSeq: now.statusSeq, sub: read ? read.sub : undefined, readAt: read ? read.readAt || 0 : 0 }, ctx.evidenceOf(sid, runsBy.get(sid) || []));
   };
 }

@@ -1,11 +1,12 @@
 // @ts-check
 
-/** @typedef {Record<string, any>} Row */
+/** @import { MessageRow, Row } from "../storm/types.d.ts" */
 
 const COORDINATORS = new Set(["workspace-coordinator", "project-coordinator"]);
 
-/** A storm message row as the UI's message: who said it, its text, where it was forwarded from, its files and reactions, and a move's ends. @param {Row} row @returns {Row} */
+/** @param {Row} row */
 export function uiMsg(row) {
+  /** @type {"you" | "system" | "coord" | "agent"} */
   const who = row.author_kind === "owner" ? "you"
     : row.author_kind === "system" ? "system"
       : COORDINATORS.has(row.author_id) ? "coord" : "agent";
@@ -27,33 +28,32 @@ export function uiMsg(row) {
     files: attachmentsOf(row),
     passedOn: p && p.project ? { project: String(p.project), to: (p.forwarded_message_ids || [])[0] || null } : null,
     reactions: Array.isArray(x.reactions) ? x.reactions.filter((/** @type {Row} */ r) => r && r.emoji) : [],
-    // a move to another runtime: the old thread's note, and the new thread's root
     continuedIn: x.continued_in || null,
     continuedFrom: x.continued_from || null,
   };
 }
 
-/** A `reaction` event onto the rows holding its message: a new list, or null when the message isn't in it. @param {Row[]} list @param {Row} d @param {string | null} [at] @returns {Row[] | null} */
+/** @template {Row} T @param {T[] | undefined} list @param {Row} d @param {string | null} [at] */
 export function addReaction(list, d, at = null) {
-  const i = (list || []).findIndex((r) => r && r.id === d.message_id);
-  if (i < 0 || !d.emoji) return null;
+  const i = list?.findIndex((r) => r && r.id === d.message_id) ?? -1;
+  if (!list || i < 0 || !d.emoji) return null;
   const row = list[i], x = row.extra || {};
   const next = [...list];
   next[i] = { ...row, extra: { ...x, reactions: [...(x.reactions || []), { emoji: d.emoji, by: d.by || null, at }] } };
   return next;
 }
 
-/** A `message.updated` event (files shared after a turn's last reply) merged into its row: a new list, or null when the message isn't in it. @param {Row[]} list @param {Row} d @returns {Row[] | null} */
+/** @template {Row} T @param {T[] | undefined} list @param {Row} d */
 export function updateMessage(list, d) {
-  const i = d && d.id ? (list || []).findIndex((r) => r && r.id === d.id) : -1;
-  if (i < 0 || !d.extra || typeof d.extra !== "object") return null;
+  const i = d && d.id ? list?.findIndex((r) => r && r.id === d.id) ?? -1 : -1;
+  if (!list || i < 0 || !d.extra || typeof d.extra !== "object") return null;
   const row = list[i];
   const next = [...list];
   next[i] = { ...row, extra: { ...(row.extra || {}), ...d.extra } };
   return next;
 }
 
-/** Storm rows merged into a list ordered by seq (ids are not ordered): {list, added}. @param {Row[]} list @param {Row[] | null | undefined} incoming @returns {{ list: Row[], added: Row[] }} */
+/** @param {MessageRow[]} list @param {MessageRow[] | null | undefined} incoming */
 export function mergeRows(list, incoming) {
   const byId = new Map(list.map((m) => [m.id, m]));
   const added = [];
@@ -90,7 +90,7 @@ export function attachmentsOf(row) {
   const out = [];
   for (const a of list) {
     if (!a) continue;
-    /** @type {Row} */
+    /** @type {import("../media/types.d.ts").SharedFile} */
     const f = { name: String(a.name || "file"), type: String(a.type || ""), bytes: a.bytes ?? null };
     if (a.id) f.id = String(a.id);
     else if (a.project_id && a.relative_path) Object.assign(f, { project_id: String(a.project_id), relative_path: String(a.relative_path), path: String(a.path || a.relative_path) });
@@ -105,7 +105,7 @@ export function attachmentsOf(row) {
   return out;
 }
 
-/** A file's title as people read it: one line of words, or "" when there's none. @param {any} t */
+/** @param {unknown} t */
 export const titleOf = (t) => (typeof t === "string" ? t.replace(/\s+/g, " ").trim() : "");
 
 /** A picture's w, h and tint as the server sent them (only the keys it sent). @param {Row | null | undefined} a @returns {Row} */

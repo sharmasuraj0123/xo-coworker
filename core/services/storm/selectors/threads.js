@@ -7,9 +7,8 @@ import { BUSY } from "../config.js";
 
 /** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Row} Row */
 
-// a thread's title and label are plain text: one that came escaped ("Settings &amp; Home") reads as it was meant
 const ENTITIES = /** @type {Record<string, string>} */ ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'" });
-/** @param {any} v */
+/** @param {unknown} v */
 const plainText = (v) => (v == null ? v : String(v).replace(/&(amp|lt|gt|quot|#39);/g, (m, e) => ENTITIES[e]));
 
 /** The thread view-model: a raw storm row made into what the views render. @param {Ctx} ctx */
@@ -31,6 +30,7 @@ export function installThreads(ctx) {
   /** @param {Row} r */
   function moveOf(r) {
     // the row says it (continued_in / continued_from); else the frame, or the old thread's note
+    /** @type {{to?: string, at?: string, text?: string} | null} */
     let to = state.moves[r.ts] || (r.continued_in ? { to: r.continued_in } : null);
     if (!to) for (const m of state.threadMsgs[r.ts] || []) { const x = m.extra && m.extra.continued_in; if (x) to = { to: x, text: m.text || "" }; }
     const from = r.continued_from ? { from: r.continued_from, ...(fromIndex.get(r.ts) || {}) } : fromIndex.get(r.ts) || null;
@@ -55,8 +55,7 @@ export function installThreads(ctx) {
     for (const m of rows || []) if (!last || (m.seq ?? -1) > (last.seq ?? -1)) last = m;
     return !!last && last.author_kind === "owner";
   }
-  ctx.uiThread = (r, runsBy = ctx.runsBySession()) => {
-    const project = ctx.projectOf(r.chat_id);
+  ctx.uiThread = (r, project, runsBy = ctx.runsBySession()) => {
     const now = r.session_id ? ctx.sessionNow(r.session_id, r) : null;
     const sstate = (now && now.state) || null;
     const card = r.card || {};
@@ -64,7 +63,7 @@ export function installThreads(ctx) {
     const turn = r.session_id && (busy || BUSY.has(sstate)) ? state.turns.running(r.session_id) : null;
     // held back by a gate (the usage limit, …): nothing runs, its message waits; what for and until when
     const held = busy ? null : ctx.heldOfSession(now, runsBy.get(r.session_id) || []);
-    /** @type {Row} */
+    /** @type {import("../../world/state-types.d.ts").WorldThread} */
     const t = {
       id: r.ts, project, chatId: r.chat_id,
       title: plainText(r.title) || "Thread", label: plainText(r.label) || null,
@@ -75,7 +74,7 @@ export function installThreads(ctx) {
       createdAt: Date.parse(r.created_at) || Date.now(), lastAt: Date.parse(r.updated_at) || Date.now(),
       checklist: tasksOf(r.status_md || ""),
       messages: (state.threadMsgs[r.ts] || []).map(uiMsg),
-      asks: [], live: true, loaded: !!(state.threadHist[r.ts] && state.threadHist[r.ts].loaded),
+      asks: [], stop: null, live: true, loaded: !!state.threadHist[r.ts]?.loaded,
       // "Working" means its agent really works, never just the thread's state; waiting on you is never Working
       busy,
       held,

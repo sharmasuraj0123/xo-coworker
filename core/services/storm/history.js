@@ -37,8 +37,8 @@ export function installHistory(ctx) {
       const d = await client.messages(chat, { before_seq: NEWEST, limit: PAGE });
       ctx.addRows(project, d.messages || []);
       state.hist[project] = { loading: false, loaded: true, all: !d.next_before_seq, error: null, before: d.next_before_seq || null };
-    } catch (/** @type {any} */ err) {
-      state.hist[project] = { loading: false, loaded: false, all: false, error: err.message, before: null };
+    } catch (err) {
+      state.hist[project] = { loading: false, loaded: false, all: false, error: err instanceof Error ? err.message : null, before: null };
     }
     emit();
   };
@@ -55,7 +55,7 @@ export function installHistory(ctx) {
       h.before = d.next_before_seq || null;
       h.all = !h.before;
       h.olderError = null;
-    } catch (/** @type {any} */ err) { h.olderError = err.message; }
+    } catch (err) { h.olderError = err instanceof Error ? err.message : String(err); }
     h.loading = false;
     emit();
   };
@@ -84,7 +84,7 @@ export function installHistory(ctx) {
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
       state.threadMsgs[ts] = list;
       Object.assign(th, pageAfter(th, m), { error: null });
-    } catch (/** @type {any} */ err) { th.error = err.message; }
+    } catch (err) { th.error = err instanceof Error ? err.message : String(err); }
     th.loading = false;
     ctx.soon();
   };
@@ -92,7 +92,7 @@ export function installHistory(ctx) {
   ctx.loadOlderThread = async (ts) => {
     const r = rawThreads.get(ts);
     const th = state.threadHist[ts];
-    if (!r || !canPageOlder(th)) return;
+    if (!r || !th || !canPageOlder(th)) return;
     th.older = true;
     ctx.soon();
     try {
@@ -101,7 +101,7 @@ export function installHistory(ctx) {
       if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null);
       state.threadMsgs[ts] = list;
       Object.assign(th, pageAfter(th, m), { olderError: null });
-    } catch (/** @type {any} */ err) { th.olderError = err.message; }
+    } catch (err) { th.olderError = err instanceof Error ? err.message : String(err); }
     th.older = false;
     ctx.soon();
   };
@@ -121,7 +121,7 @@ export function installHistory(ctx) {
     if (!ts || !d.action) return false;
     const list = state.controls[ts] || (state.controls[ts] = []);
     if (env.seq != null && list.some((/** @type {Row} */ c) => c.seq === env.seq)) return false;
-    list.push({ ...d, at: env.ts, seq: env.seq ?? null });
+    list.push({ ...d, action: d.action, at: env.ts, seq: env.seq ?? null });
     list.sort((/** @type {Row} */ a, /** @type {Row} */ b) => (a.seq ?? Infinity) - (b.seq ?? Infinity));
     return true;
   };

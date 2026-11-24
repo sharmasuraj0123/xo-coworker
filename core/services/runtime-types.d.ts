@@ -15,6 +15,7 @@ export interface RuntimeHealth {
   cli_version?: string | null;
   checked_at?: string | null;
   account?: string | null;
+  pool?: string | null;
   usable?: boolean;
   why_not?: string;
   error?: RuntimeError | null;
@@ -23,12 +24,15 @@ export interface RuntimeHealth {
   windows?: Record<string, UsageWindow | null>;
 }
 
+export interface RuntimeFeature { values?: string[]; support?: string; behaviour?: string | null }
+
 export interface Runtime {
   name: string;
   default?: boolean;
-  cli?: { version?: string | null } | null;
+  cli?: { version?: string | null; logged_in?: boolean; account?: string | null } | null;
   health?: RuntimeHealth | null;
-  features?: { features?: { [name: string]: unknown; send_while_running?: { behaviour?: string | null } } };
+  features?: { features?: Record<string, RuntimeFeature | undefined> };
+  error?: RuntimeError | string | null;
 }
 
 export interface RuntimePolicy {

@@ -66,7 +66,7 @@ export const sessions = {
     const project = ctx.projectOf(t.chat);
     const aw = project && state.awaiting[project];
     const wake = aw && `msg:${aw.id}`;
-    const mine = aw && (t.wakes || []).includes(wake);
+    const mine = aw && (t.wakes || []).includes(`msg:${aw.id}`);
     const requeued = (d.wakes_requeued || []).includes(wake);
     // "interrupted" (a restart) puts the wake back: the coordinator still answers, so we keep waiting
     if (mine && d.status === "failed" && !requeued) {

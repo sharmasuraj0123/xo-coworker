@@ -71,7 +71,7 @@ export function startStorm(ctx) {
     stream = new SSEStream(client.streamUrl(), {
       headers: coderHeaders,
       onFrame,
-      onState: (/** @type {string} */ s, /** @type {any} */ info) => {
+      onState: (s, info) => {
         state.conn = s; state.connInfo = info;
         if (s !== "connecting") firstFrame();
         if (s === "live" && state.loaded) { ctx.loadStatus(); if (state.error || !state.projects.length) ctx.recover(); }
@@ -98,7 +98,7 @@ export function startStorm(ctx) {
     const keep = new Set();
     for (const ts of [watched.thread, watched.side]) { const t = ts && rawThreads.get(ts); if (t && t.session_id) keep.add(t.session_id); }
     if (watched.session) keep.add(watched.session); // an open plain chat keeps its turns
-    for (const sid of state.turns.prune(keep)) trimmed.add(sid);
+    for (const sid of state.turns.prune(keep)) { if (sid != null) trimmed.add(sid); }
     // sub-agents: keep every live one and the open thread's; the rest only up to a bounded log
     const ended = [...state.runs.values()].filter((r) => !["running", "waiting"].includes(r.state) && !keep.has(r.session));
     if (ended.length > RUNS_KEEP) for (const r of ended.sort((a, b) => String(a.ended_at || "").localeCompare(String(b.ended_at || ""))).slice(0, ended.length - RUNS_KEEP)) state.runs.delete(r.id);

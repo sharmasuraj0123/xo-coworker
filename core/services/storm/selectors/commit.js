@@ -20,8 +20,9 @@ export function installCommit(ctx) {
     const next = [];
     const runsBy = ctx.runsBySession();
     for (const r of rawThreads.values()) {
-      const t = ctx.uiThread(r, runsBy);
-      if (!t.project || !known.has(t.project)) continue;
+      const project = ctx.projectOf(r.chat_id);
+      if (!project || !known.has(project)) continue;
+      const t = ctx.uiThread(r, project, runsBy);
       const old = prev.get(t.id);
       if (state.loaded && !ctx.holding) {
         if (old && old.state !== t.state) event({ kind: t.state === "done" ? "done" : WAITING_STATES.has(t.state) && !t.frozen ? "ask" : "state", thread: t.id, project: t.project, text: `${t.title}: ${t.state.replace("_", " ")}` });
@@ -31,9 +32,9 @@ export function installCommit(ctx) {
       next.push(t);
     }
     state.threads = next.sort((a, b) => b.lastAt - a.lastAt);
-    /** Items with no thread (paid usage, a project the workspace proposes, a plain chat's report) reach Needs you through a host. @type {Map<string, Row>} */
+    /** @type {Map<string, import("../../world/state-types.d.ts").DecisionHost>} */
     const hosts = new Map();
-    /** @type {any} */
+    /** @type {ReturnType<typeof accountRows> | null} */
     let rows = null;
     const paidRows = () => rows || (rows = accountRows({ advisory: state.advisory, held: heldModes(state.paid), pools: state.pools, served: state.paidPools }));
     for (const it of state.review.values()) {
@@ -42,12 +43,11 @@ export function installCommit(ctx) {
       if (!h) continue;
       // an item of your account (usage) or of a plain chat belongs to no project row in the sidebar
       const project = h.chat ? ctx.projectOf(h.chat) || "workspace" : h.session ? "@chats" : "@account";
-      // in a project or the Workspace, who asked: its coordinator (or a sub-agent of it), not a thread
       const asker = h.chat ? askerOf(it) : null;
+      /** @type {import("../../world/state-types.d.ts").DecisionHost} */
       const host = hosts.get(h.id) || { id: h.id, host: true, project, chatId: h.chat, plainSession: h.session || null, asker, title: h.title || (asker ? "Coordinator" : project === "workspace" ? "Workspace" : project),
         state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [], live: true, loaded: true, busy: false,
         createdAt: Date.parse(it.created_at) || Date.now(), lastAt: Date.parse(it.created_at) || Date.now(), card: {} };
-      // a usage limit: its words in the owner's terms, and no move a project's policy forbids
       const shown = isLimitItem(it) ? limitItem(it, state.runtimes, ctx.chatPolicyOf) : paidItem(it, paidRows());
       if (shown !== it && isLimitItem(it)) host.title = "Usage limit";
       host.asks.push(...stormAsks(host, [shown]));

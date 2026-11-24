@@ -14,7 +14,7 @@ export const space = {
   // creation: the hop without its note; a state move: {id, state}
   hop(ctx, env, d) {
     const old = ctx.state.hops.get(d.id);
-    if (old || d.kind) { ctx.putHop(d, { seq: (old && old.seq) ?? env.seq ?? null, at: (old && old.at) || env.ts }); ctx.emitSoon(); }
+    if (old || d.kind) { ctx.putHop({ ...d, id: d.id }, { seq: old?.seq ?? env.seq ?? null, at: old?.at || env.ts }); ctx.emitSoon(); }
     // a move for a hop not read yet (a cold load, its history still on the way) is held for it
     else if (d.id && d.state) ctx.holdMove(d.id, d.state);
     // the open thread shows what its hops say: read the new one's note

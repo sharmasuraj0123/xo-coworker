@@ -1,24 +1,14 @@
-export type Row = Record<string, any>;
+import type { WorldState, WorldThread } from "../world/state-types.d.ts";
+
+export type Row = import("../world/sessions.js").Row;
+export type MessageRow = Row & { id: string };
+export type HopRow = Row & { id: string; state?: string | null; seq?: number | null; at?: string | null };
 export type Frame = { type: string; id?: string | null; envelope?: Row };
 export type StormEvent = Row & { kind: string };
 export type Sent = { at: number; seq: number | null };
 export type Session = Row & { id: string };
 export type Project = Row & { id: string; chatId: string };
 export type ClosedReview = { state: "withdrawn" | "expired"; reason: string | null; why: string; at: number };
-
-export interface StormState extends Row {
-  projects: Project[];
-  threads: Row[];
-  loaded: boolean;
-  lastSeq: number;
-  sessions: Record<string, Session>;
-  review: Map<string, Row>;
-  gone: Map<string, ClosedReview>;
-  runs: Map<string, Row>;
-  hops: Map<string, Row>;
-  turns: any;
-  pools: Record<string, Row>;
-}
 
 export type Reducer = (ctx: Ctx, env: Row, d: Row, tid: string | null, type: string) => void;
 
@@ -31,7 +21,7 @@ export interface Watched {
 
 /** What the storm parts share: the world's state, its private records, and each part's functions. */
 export interface Ctx {
-  state: StormState;
+  state: WorldState;
   emit: () => void;
   event: (e: StormEvent) => void;
   chatProject: Map<string, string | null>;
@@ -58,7 +48,7 @@ export interface Ctx {
 
   indexMoves: () => void;
   chatPolicyOf: (chat: string | null) => Row | null;
-  uiThread: (r: Row, runsBy?: Map<string, Row[]>) => Row;
+  uiThread: (r: Row, project: string, runsBy?: Map<string, Row[]>) => WorldThread;
   runsBySession: () => Map<string, Row[]>;
   commit: () => void;
   soon: () => void;
@@ -84,7 +74,7 @@ export interface Ctx {
   recover: () => Promise<void>;
   stopTimers: () => void;
 
-  addRows: (project: string, rows: Row[]) => Row[];
+  addRows: (project: string, rows: MessageRow[]) => MessageRow[];
   loadTimeline: (project: string) => Promise<void>;
   loadOlder: (project: string) => Promise<void>;
   loadThread: (ts: string) => Promise<void>;
@@ -94,7 +84,7 @@ export interface Ctx {
   findRows: (project: string, ids: string[], beforeSeq?: number | null) => void;
   clearSought: () => void;
 
-  putHop: (h: Row, extra: Row) => void;
+  putHop: (h: HopRow, extra: Row) => void;
   holdMove: (id: string, st: string) => void;
   hopsSoon: (ts: string) => void;
   hopsOnce: (ts: string) => Promise<void> | undefined;

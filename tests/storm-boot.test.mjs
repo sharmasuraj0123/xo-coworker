@@ -4,6 +4,25 @@ import { fakeBackend, boot, until, settle, fire, intervals, thread, runner } fro
 const { t, done, assert } = runner();
 const { createWorld } = await import("../core/services/world/store.js");
 
+t("one world never receives the runs and turns of another instance", async () => {
+  const be = fakeBackend();
+  const { world: first } = await boot(be);
+  be.push("turn.started", { turn_id: "first-turn", session_id: "first-session", seq: 2 }, 2);
+  be.push("run.started", { session_id: "first-session", seq: 3, data: { run_id: "first-run" } }, 3);
+  await until(() => first.state.runs.has("first-run"));
+
+  const { world: second } = await boot(be);
+  assert.equal(second.state.turns.get("first-turn"), null);
+  assert.equal(second.state.runs.has("first-run"), false);
+  be.push("turn.started", { turn_id: "second-turn", session_id: "second-session", seq: 2 }, 2);
+  be.push("run.started", { session_id: "second-session", seq: 3, data: { run_id: "second-run" } }, 3);
+  await until(() => second.state.runs.has("second-run"));
+  assert.equal(second.state.turns.running("second-session")?.id, "second-turn");
+  assert.equal(first.state.turns.running("first-session")?.id, "first-turn");
+  assert.equal(first.state.turns.get("second-turn"), null);
+  assert.equal(first.state.runs.has("second-run"), false);
+});
+
 t("boot: the stream opens first, nothing is read until its first frame, then everything is read", async () => {
   const be = fakeBackend();
   const world = createWorld();

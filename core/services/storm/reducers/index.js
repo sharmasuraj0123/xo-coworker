@@ -23,7 +23,7 @@ export function installApply(ctx) {
     const tid = state.turns.apply(f);
     if (type !== "chat" && env.chat_id && !chatProject.has(env.chat_id)) ctx.maybeChats(); // a chat we don't know yet (a creation says so itself)
     const reduce = Object.hasOwn(REDUCERS, type) ? REDUCERS[type] : null;
-    if (reduce) reduce(ctx, env, d, tid, type);
+    if (reduce) reduce(ctx, env, d, typeof tid === "string" ? tid : null, type);
     else if (tid) ctx.emitSoon(); // a block or turn frame: re-render, no need to rebuild the threads
   };
 }

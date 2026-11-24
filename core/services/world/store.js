@@ -1,7 +1,8 @@
 // @ts-check
 import { stormSource } from "../storm/index.js";
+import { createTurns } from "./turns.js";
 
-/** @typedef {import("../storm/types").StormState} State @typedef {import("../storm/types").StormEvent} WorldEvent @typedef {import("../storm/types").Row} Row */
+/** @typedef {import("./state-types.d.ts").WorldState} State @typedef {import("../storm/types").StormEvent} WorldEvent */
 
 /** Waiting on the person: a question, an approval, or paused by storm's loop breaker (a reply in the thread resumes it). @param {string} s */
 export const WAITING = (s) => s === "needs_reply" || s === "needs_approval" || s === "paused";
@@ -13,7 +14,35 @@ export function createWorld() {
   /** @type {Set<(e: WorldEvent, s: State) => void>} */
   const evs = new Set();
   /** @type {State} */
-  const state = /** @type {any} */ ({ projects: [], threads: [], activity: [], busy: {}, loaded: false, error: null, now: Date.now() });
+  const state = {
+    projects: [], threads: [], hosts: [], activity: [], busy: {}, loaded: false, error: null, now: Date.now(),
+    status: null, statusError: null, runtimes: null, router: null, pools: {},
+    advisory: null,
+    paidOk: false,
+    paidPools: [],
+    paid: [],
+    policy: null,
+    chatPolicy: {},
+    controls: {},
+    moves: {},
+    conn: "connecting", connInfo: null,
+    timeline: {},
+    hist: {},
+    found: {},
+    threadMsgs: {},
+    threadHist: {},
+    sessions: {},
+    awaiting: {},
+    failed: {},
+    routed: {},
+    review: new Map(),
+    gone: new Map(),
+    runs: new Map(),
+    hops: new Map(),
+    liveRuns: {},
+    turns: createTurns(),
+    lastSeq: 0,
+  };
   const emit = () => { state.now = Date.now(); for (const f of subs) f(state); };
   /** @param {WorldEvent} e */
   const event = (e) => {
@@ -32,7 +61,7 @@ export function createWorld() {
     /** Discrete events: a state change, a new ask, a message, done. @param {(e: WorldEvent, s: State) => void} fn */
     onEvent(fn) { evs.add(fn); return () => evs.delete(fn); },
     act: source.act,
-    /** @param {string} id */
+    /** @param {string | null | undefined} id */
     thread: (id) => state.threads.find((t) => t.id === id),
     /** @param {string} id */
     project: (id) => state.projects.find((p) => p.id === id),

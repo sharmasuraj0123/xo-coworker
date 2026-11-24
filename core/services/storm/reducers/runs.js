@@ -15,8 +15,8 @@ export const runs = {
     if (r) { ctx.state.runs.set(d.run_id, { ...r, state: d.state || r.state, stopping: !!d.stop_requested_at, background: d.background ?? r.background, seen: Date.now(), seenSeq: env.seq ?? r.seenSeq ?? null }); ctx.soon(); }
   },
   "run.finished"(ctx, env, d) {
-    const r = ctx.state.runs.get(d.run_id) || { id: d.run_id, session: env.session_id, title: "Sub-agent", kind: "subagent" };
-    ctx.state.runs.set(d.run_id, { ...r, state: d.state || "finished", status: d.status, summary: d.summary || null, tokens: d.tokens ?? r.tokens, tool_calls: d.tool_calls ?? r.tool_calls, last_tool: d.last_tool ?? r.last_tool, stopped_by: d.stopped_by || null, ended_at: env.ts || new Date().toISOString(), seen: Date.now() });
+    const r = ctx.state.runs.get(d.run_id);
+    ctx.state.runs.set(d.run_id, { ...(r || { id: d.run_id, session: env.session_id, title: "Sub-agent", kind: "subagent" }), state: d.state || "finished", status: d.status, summary: d.summary || null, tokens: d.tokens ?? r?.tokens, tool_calls: d.tool_calls ?? r?.tool_calls, last_tool: d.last_tool ?? r?.last_tool, stopped_by: d.stopped_by || null, ended_at: env.ts || new Date().toISOString(), seen: Date.now() });
     ctx.soon();
   },
   runs(ctx, env, d) {
