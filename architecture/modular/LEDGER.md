@@ -7,9 +7,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 489 |
 | vendor | 370 |
 | deleted | 337 |
-| planned | 156 |
+| planned | 155 |
 | kept | 60 |
-| split | 30 |
+| split | 31 |
 | split-region | 4 |
 
 Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted 151, split 3), in `ledger.json` as `path::kind::name`.
@@ -125,7 +125,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css |
 | `css/base.css` | 58 | moved | core/ui/foundation.css |
 | `css/diffs.css` | 243 | planned | modules/changes/diffs.css |
-| `css/docs.css` | 143 | planned | modules/files/editor/docs.css |
+| `css/docs.css` | 143 | split | modules/files/editor/docs.css, modules/search/quick-open.css, modules/files/editor/document-states.css, css/docs.css · next: The entry preserves the Files and Quick Open cascade order. Its 600 px compatibility rule remains pending breakpoint consolidation. |
 | `css/dropdown.css` | 51 | moved | core/ui/components/xo-select.css |
 | `css/flavours.css` | 477 | split | css/flavours.css, css/flavour-swatches.css |
 | `css/foundation.css` | 246 | split-region | core/ui/foundation.css, modules/* (structure rules) |

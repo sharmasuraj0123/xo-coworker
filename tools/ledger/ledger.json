@@ -1577,8 +1577,14 @@
    "home": "modules/changes/diffs.css"
   },
   "css/docs.css": {
-   "status": "planned",
-   "home": "modules/files/editor/docs.css"
+   "status": "split",
+   "home": [
+    "modules/files/editor/docs.css",
+    "modules/search/quick-open.css",
+    "modules/files/editor/document-states.css",
+    "css/docs.css"
+   ],
+   "note": "The entry preserves the Files and Quick Open cascade order. Its 600 px compatibility rule remains pending breakpoint consolidation."
   },
   "css/dropdown.css": {
    "status": "moved",

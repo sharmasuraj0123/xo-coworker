@@ -1,0 +1,34 @@
+.qo-card{width:min(var(--w-quick-open),calc(100vw - var(--s-8)))}
+.qo-where{
+  flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)
+}
+.qo-opts{display:flex;gap:var(--s-1);padding:var(--s-quick-options-block) var(--s-4);border-bottom:var(--hair) solid var(--line-soft)}
+.qo-opt{
+  height:var(--h-sm);min-width:var(--h-sm);padding:0 var(--s-quick-option-inline);border:var(--hair) solid var(--line);
+  border-radius:var(--r-xs);background:none;color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--mono);
+  cursor:pointer
+}
+.qo-opt:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.qo-opt[aria-pressed="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
+.qo-list li{gap:var(--s-2);min-height:var(--h-ctl);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.qo-list li b{font-weight:var(--fw-strong);color:var(--ink)}
+.qo-fi{flex:none;display:grid;place-items:center;width:var(--ic-base)}
+.qo-fi svg{width:var(--ic);height:var(--ic)}
+.qo-n{flex:none;color:var(--ink-2);white-space:nowrap}
+.qo-d{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-4);font-size:var(--fs-meta)}
+.qo-tag{flex:none;margin-left:auto;font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)}
+.qo-list li.qo-h{cursor:default;min-height:var(--h-sm);margin-top:var(--s-1)}
+.qo-list li.qo-m{padding-left:var(--s-quick-match-indent)}
+.qo-ln{flex:none;min-width:var(--h-ctl);text-align:right;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);color:var(--ink-5)}
+.qo-t{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:pre;
+  font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);color:var(--ink-3)
+}
+.qo-t b{background:color-mix(in srgb,var(--warn) 24%,var(--fill-clear));border-radius:var(--r-xs);color:var(--ink)}
+.qo-foot{
+  margin:0;padding:var(--s-quick-footer-top) var(--s-4) var(--s-quick-footer-bottom);
+  font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-4)
+}
+.qo-foot:empty{display:none}
+
