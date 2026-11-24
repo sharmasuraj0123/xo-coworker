@@ -1,42 +1,63 @@
 // @ts-check
 
+import { createScope } from "../../core/kernel/scope.js";
 import { parentOf } from "./scope.js";
 
-/** @param {HTMLElement} host @param {() => boolean} enabled @param {(row: HTMLElement) => string | null} pathOfRow @param {(path: string) => string} base @param {(from: string, to: string) => void} moveTo */
-export function wireFileDrag(host, enabled, pathOfRow, base, moveTo) {
-  /** @type {{ path: string; kind: string } | null} */
-  let dragging = null;
-  /** @param {HTMLElement} t */
-  const dropDir = (t) => { const r = t.closest && /** @type {HTMLElement | null} */ (t.closest(".fl-g > .fl-r.is-dir")); if (r) return r.dataset.flDir; return t.closest && t.closest(".fl-list") && !t.closest(".fl-r, .fl-secs") ? "" : null; };
-  /** @param {string | null | undefined} to */
-  const fits = (to) => dragging && to != null && to !== parentOf(dragging.path) && to !== dragging.path && !to.startsWith(dragging.path + "/");
+/** @param {string} path @param {string} to */
+const fits = (path, to) => to !== parentOf(path) && to !== path && !to.startsWith(path + "/");
 
+/** @param {HTMLElement} host @param {() => string | null} scopeKey @param {(row: HTMLElement) => string | null} pathOfRow @param {(path: string) => string} base @param {(from: string, to: string) => void} moveTo */
+export function wireFileDrag(host, scopeKey, pathOfRow, base, moveTo, scope = createScope()) {
+  /** @type {{ path: string, key: string } | null} */
+  let dragging = null;
+  /** @param {HTMLElement} target */
+  function destination(target) {
+    const folder = /** @type {HTMLElement | null} */ (target.closest(".fl-g > .fl-r.is-dir"));
+    if (folder?.dataset.flDir != null) return { path: folder.dataset.flDir, element: folder };
+    const list = target.closest(".fl-list");
+    return list && !target.closest(".fl-r, .fl-secs") ? { path: "", element: list } : null;
+  }
   /** @type {Element | null} */
   let over = null;
   /** @param {Element | null} el */
-  const mark = (el) => { if (over === el) return; over?.classList.remove("is-drop"); over = el; el?.classList.add("is-drop"); };
-  host.addEventListener("dragstart", (e) => {
-    const t = /** @type {HTMLElement} */ (e.target);
-    const r = t.closest && /** @type {HTMLElement | null} */ (t.closest(".fl-g > .fl-r[draggable]"));
-    if (!r || !enabled()) return;
-    dragging = { path: /** @type {string} */ (pathOfRow(r)), kind: r.dataset.flDir != null ? "dir" : "file" };
-    /** @type {DataTransfer} */ (e.dataTransfer).effectAllowed = "move";
-
-    /** @type {DataTransfer} */ (e.dataTransfer).setData("text/plain", dragging.path);
+  function mark(el) {
+    if (over === el) return;
+    over?.classList.remove("is-drop");
+    over = el;
+    el?.classList.add("is-drop");
+  }
+  scope.listen(host, "dragstart", (event) => {
+    const e = /** @type {DragEvent} */ (event);
+    const row = /** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest(".fl-g > .fl-r[draggable]"));
+    const key = scopeKey();
+    const path = row && pathOfRow(row);
+    if (key == null || path == null || !e.dataTransfer) return;
+    dragging = { path, key };
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", path);
   });
-  host.addEventListener("dragover", (e) => {
-    const to = dropDir(/** @type {HTMLElement} */ (e.target));
-    if (!fits(to)) { mark(null); return; }
-    e.preventDefault(); /** @type {DataTransfer} */ (e.dataTransfer).dropEffect = "move";
-    mark(to ? /** @type {HTMLElement} */ (e.target).closest(".fl-r") : /** @type {HTMLElement} */ (e.target).closest(".fl-list"));
-  });
-  host.addEventListener("dragleave", (e) => { if (!host.contains(/** @type {Node | null} */ (e.relatedTarget))) mark(null); });
-  host.addEventListener("dragend", () => { dragging = null; mark(null); });
-  host.addEventListener("drop", (e) => {
-    const to = dropDir(/** @type {HTMLElement} */ (e.target)), d = dragging;
-    mark(null); dragging = null;
-    if (!d || !fits(to)) return;
+  scope.listen(host, "dragover", (event) => {
+    const e = /** @type {DragEvent} */ (event);
+    const to = destination(/** @type {HTMLElement} */ (e.target));
+    if (!to || !dragging || dragging.key !== scopeKey() || !fits(dragging.path, to.path)) { mark(null); return; }
     e.preventDefault();
-    moveTo(d.path, to ? `${to}/${base(d.path)}` : base(d.path));
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+    mark(to.element);
   });
+  scope.listen(host, "dragleave", (e) => {
+    if (!host.contains(/** @type {Node | null} */ ((/** @type {DragEvent} */ (e)).relatedTarget))) mark(null);
+  });
+  const reset = () => { dragging = null; mark(null); };
+  scope.listen(host, "dragend", reset);
+  scope.listen(host, "drop", (e) => {
+    const to = destination(/** @type {HTMLElement} */ (e.target));
+    const item = dragging;
+    reset();
+    if (!to || !item || item.key !== scopeKey() || !fits(item.path, to.path)) return;
+    e.preventDefault();
+    const name = base(item.path);
+    moveTo(item.path, to.path ? `${to.path}/${name}` : name);
+  });
+  scope.effect(() => reset);
+  return scope.dispose;
 }

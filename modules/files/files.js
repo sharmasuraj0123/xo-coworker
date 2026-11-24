@@ -309,7 +309,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-name]") && NW.el && !NW.busy && !/** @type {HTMLInputElement} */ (e.target).value.trim()) setTimeout(() => { if (NW.el && !NW.el.contains(/** @type {HTMLElement | null} */ (document.activeElement)) && !/** @type {HTMLInputElement} */ (NW.el.querySelector("input")).value.trim()) endNew(); });
     });
     host.addEventListener("scroll", () => closeMenu(), true);
-    wireFileDrag(host, () => ops(F.scope), pathOfRow, base, moveTo);
+    wireFileDrag(host, () => ops(F.scope) ? F.scope.key : null, pathOfRow, base, moveTo);
     host.addEventListener("keydown", (e) => {
       if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-name]")) {
         if (e.key === "Enter") { e.preventDefault(); makeNew(); }
