@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { dom, same } from "./lib/dom.mjs";
 import { MAIN_LAYERS } from "../shell/overlays.js";
+import { createDockFolds } from "../modules/decisions/dock-folds.js";
 
 const { window, document } = await dom(`
   <section id="region" tabindex="-1"><div id="dock"></div></section>
@@ -35,13 +36,13 @@ const root = document.querySelector("#dock");
 const region = document.querySelector("#region");
 const D = createDecisions({
   world, P: createPacing(), PROJ: (p) => p, announce() {}, render() {}, back() {}, later: new Set(), waitSince: new Map(),
-  onUndone: (key) => { if (dock.TD.undone?.key === key) dock.TD.undone.end(); },
+  onUndone: (key) => dock.undoReceipt(key),
 });
 let renders = 0;
 const renderCard = D.cardHtml;
 D.cardHtml = (...args) => { renders++; return renderCard(...args); };
 const dock = createDock({ el: root, view: () => "t:thread", region: () => region }, {
-  CH: { isChats: () => false }, D, S: { dockFold: {} }, world,
+  CH: { isChats: () => false }, D, folds: createDockFolds(), world,
   convThread: () => thread, convHost: () => null, askShort: (need) => need.ask.title,
   schedule() {}, dockGestures() {},
 });

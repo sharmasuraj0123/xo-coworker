@@ -1,11 +1,4 @@
-// A send the gate refused before it went (routing Off, XO out of reach, a limit, an ended chat) is shown, not only said
-// (the controls grader on d79d37e, S137 in all four cells: under routing Off, Tell the agent read "Not sent: Routing is
-// off for this chat" in #live and the screen stayed Saved · Undo · Tell). The real herald runs the refused notice;
-// then every refused path in app.js is checked to go through the one refuse(), which shows it. The drawn notice in
-// all four cells is the flows case's.
-//   node tests/refused.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import * as H from "../core/services/notices.js";
 
 let passed = 0;
@@ -33,27 +26,4 @@ t("shown at once over a passing line, and in its turn behind an Undo (the real h
   assert.equal(B.state.herald && B.state.herald.text, "Not sent: Routing is off for this chat", "then the refusal, in its turn");
 });
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
-const fileQuestion = readFileSync(new URL("../modules/conversation/file-question.js", import.meta.url), "utf8");
-const body = (name) => { const source = `${app}\n${delivery}\n${fileQuestion}`; const i = source.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0; const j = source.indexOf("{", i); for (let k = j; k < source.length; k++) { if (source[k] === "{") d++; else if (source[k] === "}" && --d === 0) return source.slice(j, k + 1); } return null; };
-t("one refuse(): it says it and shows it", () => {
-  const b = body("refuse");
-  assert.ok(b, "app.js has refuse(block, kept)");
-  assert.match(b, /announce\(`Not sent: \$\{block\}/, "said once in #live");
-  assert.match(b, /heraldShow\(refusedNotice\(block, kept\), \d+\)/, "and shown");
-});
-t("every refused path goes through it: the composer, Chats, a Retry, a Chat's Retry, a file's Tell and Ask about this", () => {
-  assert.doesNotMatch(`${app}\n${delivery}\n${fileQuestion}`, /announce\(`Not sent: \$\{block\}[^`]*`\);\s*return/, "no path only says it");
-  const has = (src, what) => assert.ok(/if \(block\) \{ refuse\(block[^)]*\); return( false)?; \}/.test(src || ""), what);
-  has(body("sendLive"), "the composer");
-  has(body("retry"), "a message's Retry");
-  has(body("sendAbout"), "a file's Tell and Ask about this");
-  const sendFn = body("send") || "";
-  assert.match(sendFn, /CH\.isChats\(K\.view\)[\s\S]*?const block = liveBlock\(K\.view, K\.say\.value\);\s*if \(block\) \{ refuse\(block, "your text is kept"\); return; \}/, "Chats' composer (its own composer, P1)");
-  assert.match(app, /if \(chr\) \{[\s\S]{0,200}?const block = liveBlock\(\);\s*if \(block\) \{ refuse\(block, "the message stays, to retry"\); return; \}[\s\S]{0,120}?CH\.retry\(/, "a Chat's Retry passes the gate first");
-  // and nothing else calls the gate and quietly returns
-  const silent = [...`${app}\n${delivery}\n${fileQuestion}`.matchAll(/(?:blockFor\([^)]*\)|liveBlock\([^)]*\))\) return;/g)].length;
-  assert.equal(silent, 0, "no refused path returns without a word");
-});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createScope } from "../core/kernel/scope.js";
 import { dom } from "./lib/dom.mjs";
 
 test("the live phone viewer leaves horizontal drags inside CodeMirror to the editor", async () => {
@@ -30,13 +31,14 @@ test("the live phone viewer leaves horizontal drags inside CodeMirror to the edi
     doc: { state: "readonly" },
     name: "notes.txt",
   });
+  const scope = createScope();
   try {
     wireGestures({
       phone: () => true,
       viewerOpen: () => true,
       runsCard: document.querySelector("#runs-card"),
       sheets: [],
-    }, () => "");
+    }, () => "", scope);
     const touch = (target, type, clientX) => {
       const event = new window.Event(type, { bubbles: true, cancelable: true });
       const points = [{ identifier: 1, clientX, clientY: 30 }];
@@ -56,6 +58,7 @@ test("the live phone viewer leaves horizontal drags inside CodeMirror to the edi
     touch(header, "touchcancel", 100);
     assert.equal(viewer.style.transform, "");
   } finally {
+    scope.dispose();
     editor.destroy();
   }
 });

@@ -1,13 +1,11 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
-import { fileURLToPath } from "node:url";
 import { ICON } from "../core/ui/icons/names.js";
-import { appDocument } from "../tools/conformance/templates.mjs";
-import { publishedRules } from "./lib/css-snapshot.mjs";
 import { deferred, dom, same } from "./lib/dom.mjs";
 
-const markup = appDocument(fileURLToPath(new URL("../", import.meta.url)));
-const { document, window } = await dom(markup.documentElement.outerHTML, { wholeDocument: true });
+const markup = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const { document, window } = await dom(markup, { wholeDocument: true });
 const encode = new TextEncoder();
 let stream;
 let sequence = 0;
@@ -67,6 +65,7 @@ Object.assign(globalThis, {
   },
 });
 await import("../boot.js");
+const { publishedRules } = await import("./lib/css-snapshot.mjs");
 
 async function paint() {
   await new Promise((resolve) => setImmediate(resolve));

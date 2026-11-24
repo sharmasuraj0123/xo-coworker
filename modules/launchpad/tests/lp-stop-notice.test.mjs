@@ -1,7 +1,8 @@
 // Stop and Unlink each have one notice, changed in place, whose Undo's deadline is the action's own; the real notices service and Launchpad on a mocked clock, with app.js's notice() adapter.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { mock } from "node:test";
+import { createLaunchpadHerald } from "../herald.js";
+import { createConversationNotices } from "../../../core/services/notices/line.js";
 
 // a stand-in DOM, just enough for the section to mount and paint in place (nothing here is measured)
 const el = () => { const e = { hidden: false, dataset: {}, style: {}, innerHTML: "", textContent: "", content: { childNodes: [] }, firstChild: null, scrollTop: 0, clientHeight: 0, scrollHeight: 0,
@@ -16,21 +17,14 @@ Object.assign(globalThis, {
 globalThis.window = globalThis;
 
 mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: 1_000_000 });
-const { createHerald } = await import("../../../core/services/notices.js");
 const { createLaunchpad } = await import("../launchpad.js");
-const appSrc = readFileSync(new URL("../../../js/app.js", import.meta.url), "utf8");
 
 const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); };
 const at = async (ms) => { mock.timers.tick(ms); await flush(); };
 
 /** A Launchpad on a project "demo" with a deploy under way, its herald, and app.js's notice adapter. */
 async function world({ stopAnswer = async () => ({}), unlinkAnswer = async () => ({}), linked = false }) {
-  const state = { herald: null };
-  const her = createHerald({ state });
-  const heraldShow = (h, ms) => her.show(h, ms), heraldFor = (mid, make, ms) => her.forMsg(mid, make, ms), heraldDrop = (mid) => her.drop(mid);
-  // app.js's adapter, as written there (checked against its source below)
-  const notice = (mid, l, ms) => { const h = { mid, kind: l.kind === "err" ? "stopped" : l.kind || "done", text: l.text, ...(l.sub ? { sub: l.sub } : {}), ...(l.undo ? { undo: l.undo, undoLabel: l.undoLabel, undoUntil: l.until || 0, ownFocus: true } : {}) }; return heraldFor(mid, () => h, ms) || heraldShow(h, ms); };
-  const unnotice = (mid) => heraldDrop(mid);
+  const her = createConversationNotices(() => {});
   let stream = null;
   const api = {
     check: async () => (linked
@@ -40,7 +34,7 @@ async function world({ stopAnswer = async () => ({}), unlinkAnswer = async () =>
     stop: () => stopAnswer(),
     unlink: () => unlinkAnswer(),
   };
-  const lp = createLaunchpad({ api, projectOf: (v) => (v === "p:demo" ? "demo" : null), announce() {}, notify() {}, notice, unnotice, onChange() {} });
+  const lp = createLaunchpad({ api, projectOf: (v) => (v === "p:demo" ? "demo" : null), announce() {}, ...createLaunchpadHerald(her), onChange() {} });
   const section = el(); const hs = el(), ha = el(), body = el();
   section.querySelector = (q) => (q === ".lp-hs" ? hs : q === ".lp-ha" ? ha : q === ".fr-b" ? body : null);
   section.contains = () => true;
@@ -49,19 +43,22 @@ async function world({ stopAnswer = async () => ({}), unlinkAnswer = async () =>
   if (!linked) { stream({ type: "run", started: Date.now() - 5000 }); stream({ type: "step", step: "build", state: "doing", at: Date.now() }); }
   lp.paint("p:demo", true);
   const press = (name) => section.on.click[0]({ target: { closest: (q) => (q === "[data-lp]" ? { dataset: { lp: name } } : null) }, preventDefault() {} });
-  const line = () => (state.herald && state.herald.until > Date.now() ? state.herald : null);
-  const waiting = () => her.HQ.map((x) => x.h);
-  return { state, her, press, line, waiting, stream: (e) => stream(e) };
+  return { her, press, line: her.current, stream: (e) => stream(e) };
 }
 
 let passed = 0;
 const tests = [];
 const t = (name, fn) => tests.push([name, fn]);
 
-t("app.js hands Launchpad one notice per subject (mid), changed in place, and drops it; an Undo past its deadline does nothing", () => {
-  assert.match(appSrc, /notice: \(mid, l, ms\) => \{ const h = \{ mid, kind: l\.kind === "err" \? "stopped" : l\.kind \|\| "done", text: l\.text, \.\.\.\(l\.sub \? \{ sub: l\.sub \} : \{\}\), \.\.\.\(l\.undo \? \{ undo: l\.undo, undoLabel: l\.undoLabel, undoUntil: l\.until \|\| 0, ownFocus: true \} : \{\}\) \}; return heraldFor\(mid, \(\) => h, ms\) \|\| heraldShow\(h, ms\); \},/);
-  assert.match(appSrc, /unnotice: \(mid\) => heraldDrop\(mid\) \}\);/);
-  assert.match(appSrc, /if \(typeof u === "function"\) \{ if \(h\.undoUntil && Date\.now\(\) > h\.undoUntil\) return; h\.until = 0; u\(\); heraldNext\(\); \}/);
+t("a notice's Undo waits for its own deadline and does nothing after it", async () => {
+  const her = createConversationNotices(() => {});
+  const { notice } = createLaunchpadHerald(her);
+  let undoCount = 0;
+  notice("deploy", { text: "Stopping", kind: "halt", until: Date.now() + 30, undo: () => { undoCount++; } }, 500);
+  await at(31);
+  her.undo();
+  assert.equal(undoCount, 0);
+  assert.equal(her.current().kind, "halt");
 });
 
 t("Stop, refused: one notice the whole way; its Undo lasts exactly the window; then 'Couldn't stop … · Stop again', never beside 'Stopping … · Undo'", async () => {
@@ -74,13 +71,16 @@ t("Stop, refused: one notice the whole way; its Undo lasts exactly the window; t
   await at(3000); // the window ends: the stop goes out
   l = w.line();
   assert.equal(l.mid, mid, "the same notice");
+  assert.equal(l.kind, "halt");
   assert.equal(l.text, "Stopping the deploy of demo…"); assert.equal(l.undo, undefined, "no Undo once the stop has gone out");
   answer(new Error("Fixture offline")); await flush(); // refused, a moment later
   l = w.line();
   assert.equal(l.mid, mid); assert.equal(l.text, "Couldn't stop the deploy of demo"); assert.equal(l.undoLabel, "Stop again");
-  assert.ok(![l, ...w.waiting()].some((h) => /^Stopping the deploy of demo$/.test(h.text) && h.undo), "no 'Stopping … · Undo' left anywhere");
+  assert.equal(l.kind, "stopped");
   await at(200); // where the old notice lived on (3000 → 3200): still only the refusal
   assert.equal(w.line()?.text, "Couldn't stop the deploy of demo");
+  await at(Math.max(0, w.line().until - Date.now()) + 1);
+  assert.equal(w.line(), null, "no earlier Undo reappears after the refusal expires");
 });
 
 t("Stop, confirmed: the same notice becomes 'Deploy of demo stopped'", async () => {
@@ -125,7 +125,7 @@ t("Stop again, from the refused notice: a new window on the same notice, with it
   let n = 0; const w = await world({ stopAnswer: async () => { n++; throw new Error("Fixture offline"); } });
   w.press("stop"); await at(3000); await flush();
   let l = w.line(); assert.equal(l.undoLabel, "Stop again");
-  l.until = 0; l.undo(); // what the herald's click does for this line (no deadline on Stop again)
+  w.her.undo();
   l = w.line();
   assert.equal(l.text, "Stopping the deploy of demo"); assert.equal(l.undoUntil, Date.now() + 3000);
   await at(3000); await flush(); assert.equal(n, 2);
@@ -144,12 +144,13 @@ t("Unlink: its Undo lasts exactly as long as the unlink waits; then the same not
   answer(new Error("Fixture offline")); await flush();
   l = w.line();
   assert.equal(l.mid, mid); assert.equal(l.text, "Couldn't unlink from Launchpad"); assert.match(l.sub, /Fixture offline\. It's still linked\./);
+  assert.equal(l.kind, "stopped");
 });
 
 t("Unlink undone from its notice within the window: nothing is sent", async () => {
   let sent = 0; const w = await world({ linked: true, unlinkAnswer: async () => { sent++; return {}; } });
   w.press("unlink");
-  const l = w.line(); l.until = 0; l.undo(); // what the herald's click does (inside the deadline)
+  w.her.undo();
   await at(3500); assert.equal(sent, 0);
 });
 

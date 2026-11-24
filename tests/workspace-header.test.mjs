@@ -6,7 +6,7 @@ import { createWorkspaceHeader } from "../shell/workspace-header.js";
 const { document } = await dom('<header id="ws-head"></header>');
 const state = { view: "ws" };
 const projects = [{ id: "first" }];
-const render = createWorkspaceHeader(state, () => projects);
+const render = createWorkspaceHeader(() => state.view, () => projects);
 const header = document.querySelector("#ws-head");
 
 render();

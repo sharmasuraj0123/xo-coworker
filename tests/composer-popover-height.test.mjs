@@ -1,24 +1,72 @@
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync } from "node:fs";
+import { createScope } from "../core/kernel/scope.js";
+import { createMentionList } from "../modules/conversation/mention-input.js";
+import { decls, rules } from "./lib/cascade.mjs";
+import { dom, same } from "./lib/dom.mjs";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = sheet(new URL("../css/app.css", import.meta.url)), tokens = read("core/ui/tokens.css"), js = read("modules/conversation/mention.js");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
-const rule = (sel) => { const i = app.indexOf("\n" + sel + "{"); assert.ok(i >= 0, sel); return app.slice(i + sel.length + 2, app.indexOf("}", i)); };
+const { document, window } = await dom(`<div>${[0, 1].map(() =>
+  '<form><textarea></textarea><ul class="at-list" role="listbox" hidden></ul></form>').join("")}</div>`);
+const composers = [...document.querySelectorAll("form")].map((form, index) => {
+  const say = form.querySelector("textarea");
+  say.setSelectionRange = (start, end) => Object.assign(say, { selectionStart: start, selectionEnd: end });
+  form.getBoundingClientRect = () => ({ top: 350 - 100 * index });
+  const at = form.querySelector("ul");
+  at.scrollTop = 0;
+  Object.defineProperty(at, "clientHeight", { value: 20 });
+  return { main: index === 0, form, say, at };
+});
+const [main] = composers;
+Object.defineProperties(window.HTMLElement.prototype, {
+  offsetTop: { get() { return this.dataset?.pid === "beta" ? 30 : 0; } },
+  offsetHeight: { get() { return 10; } },
+});
+const saved = [];
+const mentions = createMentionList({
+  MK: main, world: { state: { threads: [] } },
+  projects: () => [{ id: "alpha", name: "Alpha" }, { id: "beta", name: "Beta" }],
+  projectIcon: () => "", isBusy: () => false,
+  saveDraft: (composer) => saved.push(composer.say.value),
+  updateComposer: (composer) => mentions.render(composer),
+});
+function key(name, composer) {
+  const event = new window.Event("keydown", { cancelable: true, bubbles: true });
+  Object.assign(event, { key: name });
+  return mentions.keys(event, composer);
+}
 
-t("one token for both lists: a height and their own scroll", () => {
-  assert.match(tokens, /--pop-list-h:min\(296px,40dvh\);/);
-  assert.match(rule(".iq-list"), /max-height:var\(--pop-list-h\);overflow-y:auto;/);
-  assert.match(rule(".at-list"), /overflow-y:auto;overscroll-behavior:contain;/);
-});
-t("the @ list never reaches past the top bar", () => {
-  assert.match(rule(".at-list"), /^max-height:min\(var\(--pop-list-h\),var\(--at-room,100dvh\) - var\(--h-bar\) - var\(--s-3\)\);/);
-  assert.match(js, /at\.style\.setProperty\("--at-room", `\$\{Math\.round\(K\.form\.getBoundingClientRect\(\)\.top\)\}px`\)/, "its own composer's top (the main chat's or the panel's)");
-});
-t("the keyboard's row is kept in view by the list's own scroll, never scrollIntoView", () => {
-  assert.match(js, /if \(li\.offsetTop < at\.scrollTop\) at\.scrollTop = li\.offsetTop;/);
-  assert.doesNotMatch(js.slice(js.indexOf("const li = at.children[at._sel]"), js.indexOf("function atClose")), /scrollIntoView\(/);
-});
-console.log(`\n${passed} passed`);
+const scope = createScope();
+for (const [index, composer] of composers.entries()) {
+  mentions.wire(composer, scope);
+  composer.say.value = "@";
+  composer.say.setSelectionRange(1, 1);
+  mentions.render(composer);
+  assert.equal(composer.at.style.getPropertyValue("--at-room"), `${350 - 100 * index}px`);
+  assert.equal(key("ArrowDown", composer), true);
+  assert.equal(composer.at.scrollTop, 20, "The list scrolls its own selected row into view");
+  assert.equal(composer.say.getAttribute("aria-activedescendant"), composer.at.lastElementChild.id);
+  assert.equal(key("Escape", composer), true);
+  mentions.render(composer);
+  assert.equal(composer.at.hidden, true, "Escape keeps the list closed at the same caret");
+  mentions.aim(composer);
+  assert.equal(composer.at.hidden, false);
+  same(document.activeElement, composer.say);
+  const beta = composer.at.lastElementChild;
+  beta.dispatchEvent(new window.Event("pointermove", { bubbles: true }));
+  assert.equal(composer.say.getAttribute("aria-activedescendant"), beta.id);
+  assert.equal(key("Enter", composer), true);
+  assert.equal(composer.say.value, "@beta ");
+  assert.equal(composer.at.hidden, true);
+}
+assert.deepEqual(saved, ["@beta ", "@beta "]);
+scope.dispose();
+
+const styles = rules(new URL("./lib/cascade.mjs", import.meta.url));
+const properties = (selector) => Object.fromEntries(styles.filter(({ sel }) => sel === selector)
+  .flatMap(({ d }) => decls(d)).map(({ p, v }) => [p, v]));
+const at = properties(".at-list");
+const iq = properties(".iq-list");
+assert.equal(at["overflow-y"], "auto");
+assert.equal(iq["overflow-y"], "auto");
+assert.equal(at["overscroll-behavior"], "contain");
+assert.ok(at["max-height"].includes(iq["max-height"]));
+assert.ok(at["max-height"].includes("var(--at-room,100dvh)"));

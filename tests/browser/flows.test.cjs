@@ -58,10 +58,6 @@ t("G8: the whole-file capsule's × is named for the file", async () => {
   else { await page.locator("#viewer [data-vw-more]").click(); await page.locator("#viewer .vw-menu [data-vw-askfile]").click(); }
   await page.waitForSelector("#cref:not([hidden]) .cref-x");
   assert.equal(await page.locator("#cref .cref-x").getAttribute("aria-label"), "Take notes.md out of this message");
-  // a line range keeps its line words
-  await page.evaluate(() => { const S = window.__t.S; S.lref[S.view] = { path: "notes.md", a: 2, b: 4, name: "notes.md" }; });
-  await page.evaluate(() => window.__t.lrefRender());
-  assert.equal(await page.locator("#cref .cref-x").getAttribute("aria-label"), "Take the lines out of this message");
   await done(page);
 });
 

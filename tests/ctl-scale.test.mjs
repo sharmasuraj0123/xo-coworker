@@ -169,7 +169,7 @@ test("standalone link buttons have a height floor and inline links sit in their 
   assert.deepEqual([...subjects(heightRule), ".cp-link", ".lp-ln", ".wsh-home"].sort(), subjects(linkStyle).sort());
   const { document } = await dom('<header id="ws-head"></header>');
   const { createWorkspaceHeader } = await import("../shell/workspace-header.js");
-  createWorkspaceHeader({ view: "ws" }, () => [])();
+  createWorkspaceHeader(() => "ws", () => [])();
   const sentence = document.querySelector(".wsh-p");
   const link = sentence?.querySelector("button.wsh-home");
   assert.ok(link);

@@ -1,47 +1,77 @@
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { cmp, context, decls, rules, spec } from "./lib/cascade.mjs";
+import { dom, same } from "./lib/dom.mjs";
+import { resolveTokens } from "./lib/tokens.mjs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
+import { createNoticeLine } from "../modules/conversation/notice-line.js";
+import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("js/app.js"), msgx = read("modules/conversation/decoration.js"), gest = read("shell/gestures.js"), mcss = read("modules/conversation/msgx.css"), acss = sheet(new URL("../css/app.css", import.meta.url)), pcss = read("css/panel.css");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
-const notices = read("modules/conversation/notice-line.js").replace(/^ {2}/gm, "");
-const page = read("modules/conversation/thread-page.js").replace(/^ {2}/gm, "");
-const mount = fn(page, "function tpMount(box)");
-const markup = read("modules/conversation/thread-page-html.js");
-const editing = read("modules/threads/editing.js");
+test("notices move to the composer in use, with independent space and an Undo focus target", async () => {
+  const { document } = await dom(`
+    <div class="app" id="app"><div class="dock is-stacked" id="dock">
+      <div class="herald" id="herald" aria-live="polite"></div>
+      <label class="composer-field"><textarea id="main-reply"></textarea></label>
+    </div></div>
+    <div class="tp"><div class="dock is-stacked" id="tpdock">
+      <div class="herald" id="tpherald" aria-live="polite"></div>
+      <label class="composer-field"><textarea id="panel-reply"></textarea></label>
+    </div></div>`);
+  const page = document.querySelector("#app"), panel = document.querySelector(".tp");
+  const mainLine = document.querySelector("#herald"), panelLine = document.querySelector("#tpherald");
+  const main = { say: document.querySelector("#main-reply") };
+  const reply = { say: document.querySelector("#panel-reply") };
+  document.querySelector("#dock").getBoundingClientRect = () => ({ top: 520 });
+  document.querySelector("#tpdock").getBoundingClientRect = () => ({ top: 680 });
+  mainLine.getBoundingClientRect = () => ({ top: 480 });
+  panelLine.getBoundingClientRect = () => ({ top: 630 });
+  let current = main;
+  const state = { view: "p:demo", herald: null };
+  const { heraldRender } = createNoticeLine({
+    notice: () => state.herald, MK: main, world: { state: { router: { mode: "off" } } },
+    composerNow: () => current, panelHost: () => panel, connDest: () => ({ pid: "demo" }),
+    convThread: () => null, placeRegion: () => page, STOP_ICON: "",
+  });
+  heraldRender();
+  assert.match(mainLine.textContent, /The router is off/);
+  assert.equal(page.style.getPropertyValue("--herald-room"), "48px");
+  assert.equal(panel.style.getPropertyValue("--herald-room"), "0px");
+  current = reply;
+  heraldRender();
+  assert.equal(panelLine.textContent, "", "thread replies do not show the router Off warning");
+  assert.equal(mainLine.textContent, "", "the other line is empty");
 
-t("the conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat", () => {
-  const now = fn(app, "function composerNow()");
-  assert.match(now, /if \(!TP\.K \|\| STAGE\.pageShown\?\.name !== "thread"\) return MK;/);
-  assert.match(now, /if \(document\.body\.classList\.contains\("stage-full"\) \|\| PHONE\.matches\) return TP\.K;/);
-  assert.match(now, /if \(!a \|\| a === document\.body\) return S\.kNow \|\| MK;\n\s*return TP\.box\.contains\(a\) \? TP\.K : MK;/, "focus dropped with a redrawn control: the conversation you were in (an Interrupt's Undo)");
+  const now = Date.now();
+  state.herald = { kind: "done", text: "Stopped a run", n: 1, until: now + 5000, undo() {} };
+  heraldRender();
+  assert.match(panelLine.textContent, /Stopped a run/);
+  assert.equal(page.style.getPropertyValue("--herald-room"), "0px");
+  assert.equal(panel.style.getPropertyValue("--herald-room"), "58px");
+  panelLine.querySelector("[data-herald-undo]").focus();
+  state.herald = null;
+  heraldRender();
+  same(document.activeElement, reply.say, "a disappearing Undo returns focus to the reply");
+
+  const published = rules(new URL("./lib/panel-parity.mjs", import.meta.url));
+  const winning = (element, name, width) => published.flatMap((rule) => {
+    if (!/\.herald\b|\btextarea\b/.test(rule.sel) || /::/.test(rule.sel)) return [];
+    const declarations = decls(rule.d).filter((decl) => decl.p === name);
+    if (!declarations.length || !context(rule, width).active || !element.matches(rule.sel)) return [];
+    return declarations.map((decl) => ({ ...decl, score: spec(rule.sel), order: rule.n }));
+  }).sort((a, b) => Number(a.imp) - Number(b.imp) || cmp(a.score, b.score) || a.order - b.order).at(-1)?.v;
+  document.body.classList.add("stage-covers");
+  assert.equal(winning(mainLine, "position", 390), "fixed");
+  assert.equal(winning(panelLine, "position", 390), "absolute");
+  assert.equal(winning(panelLine, "bottom", 390), "calc(100% + var(--dock-gap))");
+  const touchMinimum = resolveTokens("var(--h-touch)");
+  for (const composer of [main, reply]) assert.equal(winning(composer.say, "min-height", 390), touchMinimum);
 });
-t("1 · a drop: the app's one drop path hides the veil and adds the files to the composer under the pointer", () => {
-  assert.doesNotMatch(mount, /addEventListener\("drop"|addEventListener\("dragover"|stopPropagation/, "the panel no longer swallows the drop (the veil stayed up)");
-  assert.match(app, /if \(takes\(composerAt\(e\.target\)\)\) \{ depth\+\+; veil\.hidden = false; \}/);
-  assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/);
-});
-t("2 · notices: the panel's thread page has its own line, over its own composer, and the line follows you", () => {
-  assert.match(markup, /<div class="dock tp-dock" id="tpdock"><div class="herald" id="tpherald" aria-live="polite"><\/div>/);
-  assert.match(notices, /const heraldBox = \(\) => \(composerNow\(\) === MK \? \$\("#herald"\) : \$\("#tpherald"\)\);/);
-  assert.match(fn(notices, "function heraldRender("), /const box = heraldBox\(\);\n\s*for \(const o of \[\$\("#herald"\), \$\("#tpherald"\)\]\) if \(o && o !== box && o\.firstChild\)/, "the other line is emptied");
-  assert.match(app, /document\.addEventListener\("focusin", \(\) => \{ const K = composerNow\(\); if \(K !== S\.kNow\) \{ S\.kNow = K; schedule\(\); \} \}\);/);
-  assert.match(mount, /herald: \$\("#tpherald"\)/, "its back-to-latest button moves with its line");
-  assert.match(pcss, /body\.stage-covers \.herald:not\(\.tp \.herald\)\{position:fixed/, "only the chat's line rises over a covering panel");
-  assert.match(acss, /body:not\(\.stage-covers\) \.dock\.is-stacked>\.herald,\.tp \.dock\.is-stacked>\.herald\{/, "over a card docked in the panel it stands above it, covering or not");
-  assert.match(notices, /connLine\(world\.state, box === \$\("#herald"\) \? connDest\(\) : \{ thread: true \}\)/, "routing Off is never said over a thread's reply");
-});
-t("3 · a decision's Undo in the panel's dock ends its done line at once, as the chat's does", () => {
-  assert.match(app, /onUndone: \(key\) => \{[^\n]*for \(const d of \[TD, TP\.dock\?\.TD\]\) if \(d\?\.undone && d\.undone\.key === key\) d\.undone\.end\(\); \},/);
-});
-t("4 · a line capsule opens the file in its own conversation's place", () => {
+
+test("a line capsule opens a file in its own conversation's worktree", () => {
   const opened = [];
-  const { openLineRef } = createConversationFiles({ currentView: () => "p:other", convThread: () => null,
-    convAt: () => ({ view: "t:fixture" }), CHG: { scope: (view) => view === "t:fixture" ? { project: "p", worktree: "fixture" } : null },
+  const { openLineRef } = createConversationFiles({
+    currentView: () => "p:other", convThread: () => null, convAt: () => ({ view: "t:fixture" }),
+    CHG: { scope: (view) => view === "t:fixture" ? { project: "p", worktree: "fixture" } : null },
     VW: { open: (file, from) => opened.push([file, from]) },
   });
   const link = { dataset: { ref: "src/a.js", refA: "3", refB: "5" } };
@@ -49,65 +79,20 @@ t("4 · a line capsule opens the file in its own conversation's place", () => {
   assert.deepEqual(opened[0][0], { path: "src/a.js", name: "a.js", project: "p", rel: ".xo/worktrees/fixture/src/a.js", lines: [3, 5] });
   assert.ok(opened[0][1] === link);
 });
-t("5 · / and the model shortcut act on the conversation in use", () => {
-  assert.match(app, /intel: \(\) => \{ const K = composerNow\(\); toggleIq\(sessionOf\(K\.view\), K\.iq\); \},/);
-  assert.match(app, /write: \(\) => composerNow\(\)\.say\.focus\(\),/);
+
+test("a panel link keeps its message when it opens either conversation", async () => {
+  const { document } = await dom('<a data-go="t:demo" data-go-msg="message-7"><span>Open message</span></a>');
+  const state = { view: "p:project" };
+  const panel = { view: "t:demo" };
+  const calls = [];
+  const open = createPanelThreadOpener({
+    view: () => state.view, TP: { C: panel }, world: { thread: () => true },
+    STAGE: { show: (page, key) => calls.push([page, key]) },
+    go: (...args) => calls.push(args), showMsg: (...args) => calls.push(args),
+  });
+  const event = { target: document.querySelector("span") };
+  open("t:demo", event);
+  assert.deepEqual(calls.splice(0), [["thread", "demo"], ["message-7", panel]]);
+  open("t:demo", { ...event, metaKey: true });
+  assert.deepEqual(calls, [["t:demo", { panel: true }], ["message-7"]]);
 });
-t("6 · focus after Retry, Pick back up and a notice's Undo goes to that conversation's composer", () => {
-  const r = fn(read("modules/conversation/delivery.js"), "function retry(id)");
-  assert.match(r, /K = composerAt\(document\.activeElement\);/);
-  assert.match(r, /if \(had\) K\.say\.focus\(\{ preventScroll: true \}\);/);
-  assert.match(editing, /const K = composerAt\(btn\); S\.focusNext = \[\(\) => K\.say, \(\) => K\.conv\.scroller\];/);
-  assert.match(app, /const K = composerNow\(\); S\.focusNext = \[\.\.\.\(\(h && h\.back\) \|\| \[\]\), \(\) => K\.say\];/);
-  assert.match(notices, /function heraldBack\(h\) \{ return \[[^\n]*composerNow\(\)\.say\]\.find\(usable\)/);
-  assert.match(app, /S\.focusNext = \[\(\) => heraldBox\(\)\?\.querySelector\("\[data-herald-undo\]"\)\];/, "Interrupt's Undo, in the line where it shows");
-  assert.doesNotMatch(app, /"#herald \[data-herald-undo\]"|S\.focusNext = \["#say"|"#send"\]/);
-  assert.match(app, /const inUse = \(sel\) => \(\) => \{ const K = composerNow\(\); return sel === "#send" \? K\.send : K\.main \? \$\(sel\) : TP\.box\.querySelector\(sel\); \};/, "a Stop's notice goes back to its own conversation's controls");
-});
-t("7 · the @ list and the target line: one code for both composers", () => {
-  assert.match(markup, /<ul id="tat-list" class="at-list" role="listbox" aria-label="Projects" hidden><\/ul>/);
-  assert.match(markup, /aria-autocomplete="list" aria-controls="tat-list" aria-expanded="false"/);
-  assert.match(markup, /<button type="button" class="target" id="ttarget" title="Aim at a project \(@\)"><\/button>/);
-  assert.match(mount, /atList: TP\.K\.at,/, "Enter and Esc in the field leave an open list to it");
-  const composer = read("modules/conversation/composer.js");
-  const w = fn(composer, "function wireComposer(K)");
-  assert.match(w, /if \(atKeys\(e, K\)\) return;/);
-  assert.match(w, /wireAt\(K\);\n\s*K\.target\.addEventListener\("click", \(\) => aimAt\(K\)\);/);
-  assert.match(fn(composer, "function updateComposer("), /sendRender\(K\); growSay\(K\);\n\s*if \(document\.activeElement === K\.say\) atRender\(K\); else atClose\(K\);/, "a redraw while you're elsewhere never opens it");
-  assert.match(w, /K\.say\.addEventListener\("input", \(\) => \{ K\.at\._sel = 0;/, "typing starts the list at its first row, as the chat's does");
-  assert.match(app, /if \(atKeys\(e, MK\)\) return;/, "the main chat's field: the same keys");
-  assert.match(app, /aimAt\(MK\);\n\}\);/);
-  assert.match(app, /if \(TP\.K && document\.activeElement === TP\.K\.say && !TP\.K\.at\.hidden\) \{ atShut\(TP\.K\); return true; \}/, "the page's Esc shuts an open list first, as the chat's field does");
-});
-t("8 · the room under the last message is each conversation's own", () => {
-  assert.match(mcss, /:root\[data-msgx\] :is\(\.app\.has-tdock \.scroller:not\(\.tp \.scroller\),\.tp\.has-tdock \.scroller\)\{/);
-  const room = fn(notices, "function heraldRoom()");
-  assert.match(room, /\[\[\$\("#herald"\), \$\("#dock"\), \$\("#app"\)\], \[\$\("#tpherald"\), \$\("#tpdock"\), panelHost\(\)\]\]/, "the panel sets its own, never inherits the chat's");
-  assert.match(page, /TP\.dockRO = watchDock\(els\.dock, box\);/, "its dock measured as the chat's is (is-stacked too)");
-});
-t("9 · a link in the panel keeps the message it points at, and a thread link opens the panel's way", () => {
-  const o = read("modules/threads/open-panel-thread.js");
-  assert.match(o, /msg = e\?\.target\?\.closest\?\.\("\[data-go\]"\)\?\.dataset\.goMsg;/);
-  assert.match(o, /if \(msg\) showMsg\(msg, TP\.C\); return;/);
-  assert.match(o, /go\(v, \{ panel: true \}\);\n\s*if \(msg\) showMsg\(msg\);/);
-  assert.match(fn(read("modules/conversation/navigation.js"), "function showMsg("), /const el = C\.msgs\.querySelector/);
-  assert.match(app, /if \(t\.closest\("#stage"\)\) openFromPanel\("t:" \+ tl\.dataset\.thread, e\); else go\("t:" \+ tl\.dataset\.thread, \{ row: rowIn\(tl\) \}\);/);
-});
-t("10 · a coordinator's avatar wears its own conversation's project, not the sidebar's place", () => {
-  assert.match(msgx, /const pid = E\.project\?\.\(\), row = document\.querySelector\(pid \? `#projects \.prow\[data-go="p:\$\{CSS\.escape\(pid\)\}"\]` :/);
-  assert.match(mount, /project: \(\) => convProject\(tpView\(\)\)/);
-});
-t("11 · touch: long-press Copy and a drag down that lowers the keyboard, in every conversation", () => {
-  const source = gest.replace(/\/\*\* @type \{HTMLElement\} \*\/ \((document\.getElementById\("msgs"\))\)/g, "$1");
-  assert.match(source, /export function conversationGestures\(C, wordsOf\) \{/);
-  assert.match(source, /conversationGestures\(\{ scroller: \$\("#scroller"\), msgs: document\.getElementById\("msgs"\), say: A\.say, toast: A\.toast \}, wordsOf\);/);
-  assert.doesNotMatch(fn(source, "function longPress(A, wordsOf)"), /getElementById/);
-  assert.match(mount, /bindConversation\(\{ scroller: els\.scroller, msgs: els\.msgs, say: TP\.K\.say, toast: \(text\) => toastLine\(text\) \}, wordsOf\);/);
-  assert.match(acss, /\.composer-field>textarea\{min-height:var\(--h-touch\)\}/, "a phone's field is touch height in both");
-  assert.doesNotMatch(acss, /#say\{min-height/);
-});
-t("12 · a model change redraws every composer's chip", () => {
-  assert.match(app, /onChange: \(o\) => \{ for \(const K of composers\(\)\) chipRender\(o && o\.fade, K\); \},/);
-  assert.match(app, /const composers = \(\) => \(TP\.K \? \[MK, TP\.K\] : \[MK\]\);/);
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

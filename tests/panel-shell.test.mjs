@@ -4,11 +4,11 @@ import { clearTimeout, setImmediate, setInterval, setTimeout } from "node:timers
 import { dom, same } from "./lib/dom.mjs";
 import { bootPage } from "./lib/page.mjs";
 import { stageFixture } from "./lib/stage-fixture.mjs";
-import { publishedRules } from "./lib/css-snapshot.mjs";
-import { mediaHolds } from "./lib/cascade.mjs";
-import { createShellPanel } from "../modules/shells/panel.js";
 import { SHELL_DOCK } from "../shell/overlays.js";
-const { stage: withoutShells } = await stageFixture({ shell: null });
+const { stage: withoutShells } = await stageFixture({ reduced: false, shell: null });
+const { createShellPanel } = await import("../modules/shells/panel.js");
+const { publishedRules } = await import("./lib/css-snapshot.mjs");
+const { mediaHolds } = await import("./lib/cascade.mjs");
 assert.equal(Boolean(withoutShells.querySelector("[data-stg-shell]")), false);
 const mounts = [];
 const { stage, panel, window: panelWindow } = await stageFixture({ shell: (...args) => mounts.push(args) });
@@ -61,7 +61,7 @@ const SH = {
   openProject(project) { dock.hidden = false; calls.push(project); },
   openThread(thread) { dock.hidden = false; calls.push(thread); },
 };
-const { panelShell, dispose } = createShellPanel({ S: { view: "p:project" }, STAGE, SH,
+const { panelShell, dispose } = createShellPanel({ view: () => "p:project", STAGE, SH,
   world: { thread: (id) => ({ project: "project", chatId: "chat", id, title: "Review" }) },
   heraldShow: (notice) => calls.push(notice.text),
 });

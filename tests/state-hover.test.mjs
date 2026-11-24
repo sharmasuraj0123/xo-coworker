@@ -85,7 +85,7 @@ test("the shared wash recognizes every styled selected state", () => {
     }
   }
   assert.ok(known.size > 60, known.size + " selected-state rules in the census");
-  assert.ok(known.has('.all-f button[aria-checked="true"]'), "the filter chip uses the shared wash");
+  assert.ok(known.has('.cp-mode button[aria-checked="true"]'), "the filter chip uses the shared wash");
   assert.ok([...known].some((selector) => selector.includes(".prow.is-on")), "the sidebar selection is counted");
   assert.deepEqual([...missing].sort(), [], "selected states missing from the shared wash");
   assert.deepEqual([...silent].sort(), [], "hover feedback outside the shared treatment");

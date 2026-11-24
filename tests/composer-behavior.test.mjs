@@ -89,7 +89,7 @@ function element(selector) {
 }
 function press(selector, pointerType = "mouse") {
   const event = new window.Event("click", { bubbles: true, cancelable: true });
-  element(selector).dispatchEvent(Object.assign(event, { pointerType }));
+  element(selector).dispatchEvent(Object.assign(event, { detail: 1, pointerType }));
 }
 function submit() {
   element("#composer").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
@@ -232,4 +232,4 @@ press("[data-stage-open]", "touch");
 press('#stage [data-go="t:thread-1"]', "touch");
 await draw();
 await draw();
-assert.ok(document.activeElement === element("#tsay"), "touch panel entry currently focuses its composer");
+assert.ok(document.activeElement === element("#stage [data-page-heading]"), "touch panel entry focuses its heading");

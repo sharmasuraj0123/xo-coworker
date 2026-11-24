@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { stopOf, stopWords } from "../core/services/world/timeline.js";
-import { sheet } from "./lib/cascade.mjs";
+import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 import { dom } from "./lib/dom.mjs";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
+import { createScope } from "../core/kernel/scope.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createTopHeader } from "../shell/top-header.js";
 
@@ -126,11 +127,14 @@ await t("A requested stop retains its explanation across the header, checklist a
   const { document } = await dom('<header id="top"><button id="top-back"></button><div id="top-who"></div><div id="top-end"></div></header><div id="thead"></div>');
   const thread = { id: "t", project: "p", title: "Test", state: "failed", lastAt: 0,
     stop: { by: "you", reason: "Finishing for today" }, checklist: { total: 1, done: 0, items: [{ state: "doing", text: "First task" }] } };
-  const S = { view: "t:t", parent: {}, ckOpen: {}, ckSeen: {} };
+  const view = () => "t:t";
   const convThread = () => thread, isBusy = () => false;
-  const checklistRender = createChecklistRenderer({ S, convThread, SHAPE: { on: () => false }, runsStrip: () => "", schedule() {} });
-  const header = createTopHeader({ S, convThread, isBusy, checklistRender, CH: { isChats: () => false }, STAGE: { button: () => "" },
-    PROJ: () => "Project", conversationHeaderHtml: () => "<h1>Test</h1>", LP: { ensure() {} }, tdelRender() {}, REC: { sinceLine() {} } });
+  const { render: checklistRender } = createChecklistRenderer({
+    view, scope: createScope(), convThread, SHAPE: { on: () => false }, runsStrip: () => "", schedule() {},
+  });
+  const header = createTopHeader({ location: { view, parentOf: () => undefined },
+    convThread, isBusy, checklistRender, CH: { isChats: () => false }, STAGE: { button: () => "" },
+    PROJ: () => "Project", conversationHeaderHtml: () => ({ who: "<h1>Test</h1>", controls: "" }), LP: { ensure() {} }, tdelRender() {}, REC: { sinceLine() {} } });
   const { panelThreads } = createThreadGroups({ world: { state: { threads: [thread] } }, D: { needItems: () => [] }, MAP: { agents: () => [] },
     convProject: () => "p", askShort: () => "", threadMark: () => "", isBusy, isHeld: () => false });
   header([]);
@@ -142,9 +146,12 @@ await t("A requested stop retains its explanation across the header, checklist a
   header([]);
   assert.equal(document.getElementById("top").dataset.state, "stop");
   assert.equal(document.querySelector(".ck-now").dataset.mode, "failed");
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.g-stopped,\.g-resolved,\.g-held,\.g-idle\{color:var\(--ink-4\)\}/);
-  assert.match(css, /\.st-stopped\{--st:var\(--ink-4\)\}/);
+  const rules = publishedRules();
+  for (const [selector, property] of [[".g-stopped", "color"], [".st-stopped", "--st"]]) {
+    const values = rules.filter((rule) => rule.sel === selector)
+      .flatMap((rule) => rule.declarations.filter(({ p }) => p === property).map(({ v }) => resolveValue(v)));
+    assert.deepEqual(values, [resolveValue("var(--ink-4)")]);
+  }
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

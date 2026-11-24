@@ -4,15 +4,15 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 486 |
+| moved | 488 |
 | vendor | 376 |
 | deleted | 337 |
-| planned | 147 |
-| kept | 61 |
-| split | 36 |
+| planned | 138 |
+| kept | 66 |
+| split | 38 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept 153, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1782, planned 373, deleted 185, kept 145, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -32,7 +32,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 |---|---:|---|---|
 | `js/accounts.js` | 134 | moved | modules/settings/accounts.js |
 | `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: Callers use the owning modules directly. |
-| `js/app.js` | 5060 | split | js/app.js, core/ui/theme.js, core/ui/redraw.js, core/services/notices.js, shell/navigation.js, shell/layers.js, shell/keyboard-layers.js, shell/global-keys.js, shell/back-steps.js, modules/conversation/composer.js, modules/threads/all-sheet.js, modules/settings/shortcuts-sheet.js · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
+| `js/app.js` | 5060 | split | js/app.js, core/ui/theme.js, core/ui/redraw.js, core/ui/markdown/copy.js, core/services/notices.js, shell/navigation.js, shell/layers.js, shell/keyboard-layers.js, shell/global-keys.js, shell/back-steps.js, modules/conversation/composer.js, modules/settings/shortcuts-sheet.js · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: Callers use the owning modules directly. |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | moved | modules/decisions/cardparts.js |
@@ -97,7 +97,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
-| `js/settings.js` | 407 | split | js/settings.js, modules/settings/host.js, modules/routing/page.js, modules/routing/actions.js, modules/rules/page.js, modules/worktrees/page.js · next: The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events. |
+| `js/settings.js` | 407 | split | modules/settings/module.js, modules/settings/host.js, modules/settings/page-events.js, modules/routing/module.js, modules/routing/page.js, modules/routing/actions.js, modules/rules/module.js, modules/rules/page.js, modules/worktrees/module.js, modules/worktrees/page.js · next: The Settings service owns page delegation. Routing, Rules, and Worktrees register and dispose their own page handlers. |
 | `js/shape.js` | 731 | split | core/services/shape/model.js, core/services/shape/changes.js, core/services/shape/store.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | split | modules/shells/dock.js, modules/shells/dock-refresh.js, modules/shells/dock-resize.js, modules/shells/dock-open.js, modules/shells/dock-actions.js, modules/shells/dock-rename.js |
@@ -227,7 +227,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `tests/image-text-mode.test.mjs` | 28 | moved | modules/files/tests/image-text-mode.test.mjs |
 | `tests/imagechange.test.mjs` | 34 | moved | modules/changes/tests/imagechange.test.mjs |
 | `tests/inverse-toast.test.mjs` | 56 | planned | core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/iq-one-path.test.mjs` | 22 | kept | tests/iq-one-path.test.mjs |
+| `tests/iq-one-path.test.mjs` | 22 | moved | tests/app-wiring.test.mjs · next: Boot opens and closes the same Intelligence picker from both mounted composers. |
 | `tests/jump-projects.test.mjs` | 47 | kept | tests/jump-projects.test.mjs |
 | `tests/key-layer.test.mjs` | 20 | moved | shell/tests/key-layer.test.mjs · next: The rewritten test exercises Escape, Tab, focus and inert holds through the shell layer stack. |
 | `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -258,13 +258,13 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `tests/menu-motion.test.mjs` | 20 | kept | tests/menu-motion.test.mjs |
 | `tests/menu-one-active.test.mjs` | 45 | planned | core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/menu-open-unlit.test.mjs` | 35 | kept | tests/menu-open-unlit.test.mjs |
-| `tests/menu-successor.test.mjs` | 42 | planned | core/ui (menus, all modules)/tests/menu-successor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-successor.test.mjs` | 42 | moved | tests/app-wiring.test.mjs |
 | `tests/menu-type.test.mjs` | 32 | kept | tests/menu-type.test.mjs |
 | `tests/merge.test.mjs` | 81 | planned | modules/files/tests/merge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/names.test.mjs` | 24 | planned | modules/repo/tests/names.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/no-offedge.test.mjs` | 33 | planned | core/ui (css guard)/tests/no-offedge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/notice-clear.test.mjs` | 70 | planned | shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/notice-kind.test.mjs` | 65 | planned | modules/conversation/tests/notice-kind.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/notice-kind.test.mjs` | 65 | kept | tests/notice-kind.test.mjs |
 | `tests/one-active.test.mjs` | 23 | planned | core/ui (lists)/tests/one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/pack-marks.test.mjs` | 58 | kept | tests/pack-marks.test.mjs |
 | `tests/pack-where-it-fits.test.mjs` | 135 | kept | tests/pack-where-it-fits.test.mjs |
@@ -273,7 +273,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `tests/paid.test.mjs` | 86 | planned | modules/settings/tests/paid.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/paint-a11y.test.mjs` | 40 | planned | modules/files/tests/paint-a11y.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/panel-parity.test.mjs` | 100 | kept | tests/panel-parity.test.mjs |
-| `tests/panel-shell.test.mjs` | 61 | planned | shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/panel-shell.test.mjs` | 61 | kept | tests/panel-shell.test.mjs |
 | `tests/panel-threads.test.mjs` | 103 | planned | modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/path-copy-inline.test.mjs` | 24 | moved | modules/files/tests/path-copy-inline.test.mjs |
 | `tests/pending.test.mjs` | 37 | planned | core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -295,14 +295,14 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `tests/record.test.mjs` | 280 | planned | modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reduced-motion.test.mjs` | 25 | planned | core/ui (css guard)/tests/reduced-motion.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/refusal-mark.test.mjs` | 26 | planned | modules/files/tests/refusal-mark.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/refused.test.mjs` | 57 | planned | modules/composer/tests/refused.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/refused.test.mjs` | 57 | split | tests/refused.test.mjs, tests/send-gate.test.mjs, tests/app-wiring.test.mjs, tests/conversation-file-question.test.mjs |
 | `tests/region-focus.test.mjs` | 28 | moved | modules/files/tests/region-focus.test.mjs |
 | `tests/render-focus.test.mjs` | 22 | moved | modules/files/tests/render-focus.test.mjs |
 | `tests/retry-waiting.test.mjs` | 34 | planned | modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reveal-focus.test.mjs` | 20 | moved | modules/changes/tests/reveal-focus.test.mjs |
 | `tests/rich-markdown.test.mjs` | 133 | planned | modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/ring.test.mjs` | 124 | kept | tests/ring.test.mjs |
 | `tests/routing-truth.test.mjs` | 45 | moved | modules/routing/tests/routing-truth.test.mjs |
 | `tests/routing-words.test.mjs` | 26 | moved | modules/routing/tests/routing-words.test.mjs · next: rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test |
 | `tests/row-insets.test.mjs` | 54 | kept | tests/row-insets.test.mjs |
@@ -316,8 +316,8 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `tests/seg-fold.test.mjs` | 32 | planned | modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/seg-ring.test.mjs` | 16 | planned | core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/send-calm.test.mjs` | 23 | kept | tests/send-calm.test.mjs |
-| `tests/send-gate.test.mjs` | 36 | planned | modules/composer/tests/send-gate.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/send-notice.test.mjs` | 36 | planned | modules/composer/tests/send-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/send-gate.test.mjs` | 36 | kept | tests/send-gate.test.mjs |
+| `tests/send-notice.test.mjs` | 36 | split | tests/send-gate.test.mjs, tests/conversation-file-question.test.mjs · next: Delivery and file-question tests exercise the notices produced by their respective send flows. |
 | `tests/serve.test.py` | 615 | planned | modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/settings-css.test.mjs` | 20 | planned | core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/shape-held.test.mjs` | 42 | moved | modules/settings/tests/shape-held.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
@@ -339,14 +339,14 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `tests/stale-pass.test.mjs` | 47 | planned | core/ui (css guard)/tests/stale-pass.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/stalled-own-message.test.mjs` | 77 | kept | tests/stalled-own-message.test.mjs |
 | `tests/start-centred.test.mjs` | 23 | planned | core/ui (css guard)/tests/start-centred.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/state-hover.test.mjs` | 127 | planned | core/ui (css guard, all modules)/tests/state-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/state-hover.test.mjs` | 127 | kept | tests/state-hover.test.mjs |
 | `tests/step-line-face.test.mjs` | 15 | kept | tests/step-line-face.test.mjs |
 | `tests/stopped-on-purpose.test.mjs` | 145 | planned | modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/storm.test.mjs` | 401 | planned | core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/target-bounded.test.mjs` | 29 | planned | core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/targets-css.test.mjs` | 74 | planned | core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/thread-filter.test.mjs` | 55 | planned | modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/thread-menu.test.mjs` | 43 | planned | modules/threads/tests/thread-menu.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/thread-menu.test.mjs` | 43 | kept | tests/thread-menu.test.mjs |
 | `tests/thread-page.test.mjs` | 166 | planned | modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/thread-spawn-session.test.mjs` | 69 | kept | tests/thread-spawn-session.test.mjs |
 | `tests/turn-split-notes.test.mjs` | 30 | kept | tests/turn-split-notes.test.mjs |

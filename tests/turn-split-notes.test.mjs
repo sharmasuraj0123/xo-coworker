@@ -1,10 +1,9 @@
 // A running turn splits at a coordinator's note or an ask as it does at a message, so work done after one sits below it.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { turnSegments } = await import("../modules/conversation/blocks/turn.js");
+const { createConversationMessages } = await import("../modules/conversation/messages.js");
 
-const messages = readFileSync(new URL("../modules/conversation/messages.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -21,9 +20,34 @@ t("the 21 Nov Chats turn: 6 steps, the steer and its note, 20 steps, the ask and
 });
 
 t("the turn is split after the notes, asks, relays and steers are on the list, and reads them", () => {
-  const notes = messages.indexOf("for (const n of hopNotes(t,"), turns = messages.indexOf("for (const sg of turnSegments(tu, blocks, says))");
-  assert.equal(notes > 0 && turns > notes, true);
-  assert.match(messages, /\.concat\(out\.filter\(\(x\) => x\.seq != null && \/\^\(hopn\|relay\|ctl\|hop\):\/\.test\(x\.key\)\)/);
-  assert.match(messages, /const tail = says\.reduce\(\(a, m\) => \(m\.seq > a \? m\.seq : a\), 0\) \+ 0\.5;/);
+  const at = new Date("2026-11-21T08:50:36Z").getTime();
+  const time = (seconds) => new Date(at + seconds * 1000).toISOString();
+  const thread = { id: "thread", project: "demo", sessionId: "session", loaded: true, busy: true, messages: [] };
+  const turn = { id: "turn", session: "session", seq: 10, status: "running", at: time(0) };
+  const blocks = [{ seq: 11, text: "Read" }, { seq: 14, text: "Edited" }];
+  const hops = [
+    { id: "note", kind: "relay", from_role: "project-coordinator", to_role: "thread", note: "Scope update", seq: 13 },
+    { id: "ask", kind: "ask", from_role: "thread", to_role: "project-coordinator", note: "Ask first", seq: 15 },
+    { id: "answer", kind: "answer", from_role: "project-coordinator", to_role: "thread", note: "Proceed", seq: 16, cause: "ask" },
+  ].map((hop) => ({ ...hop, thread_ts: thread.id, created_at: time(hop.seq) }));
+  const messagesOf = createConversationMessages({
+    world: {
+      state: {
+        hist: {}, timeline: { demo: [] }, hops: new Map(hops.map((hop) => [hop.id, hop])),
+        controls: { thread: [{ at: time(12), seq: 12, action: "steer" }] },
+        turns: { running: () => turn, list: (pick) => [turn].filter(pick), blocksOf: () => blocks },
+      },
+      act: {},
+    },
+    shape: { on: () => false }, PROJ: () => "Demo", convThread: () => thread, chatOf: () => "demo",
+    localMessages: { alias: () => null, list: () => [], mergeEchoes() {} },
+  });
+  const projected = messagesOf("t:thread").filter((message) => message.seq != null);
+  assert.deepEqual(projected.map((message) => [message.who, message.seq]), [
+    ["turn", 10], ["control", 12], ["coord", 13], ["turn", 14], ["asked", 15], ["coord", 16], ["turn", 16.5],
+  ]);
+  assert.deepEqual(projected.filter((message) => message.who === "turn").map((message) => message.blocks.length), [1, 1, 0]);
+  assert.equal(projected[2].lead, "ctl:12");
+  assert.equal(projected.at(-1).turn.status, "running");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

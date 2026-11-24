@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { createThreadGroups } from "../modules/threads/groups.js";
-import { createAllThreadsSheet } from "../modules/threads/all-sheet.js";
-import { dom, same } from "./lib/dom.mjs";
+import { same } from "./lib/dom.mjs";
 import { declarationsFor, valuesFor } from "./lib/css-snapshot.mjs";
 import { threadStage } from "./lib/thread-stage.mjs";
 
@@ -43,43 +42,6 @@ assert.equal(search.parentElement.parentElement.hidden, true);
 threads.push(...Array.from({ length: 11 }, (_, i) => ({ ...stopped, id: `extra-${i}` })));
 panel.panel.repaint();
 assert.equal(search.parentElement.parentElement.hidden, false, "long lists expose the filter immediately");
-
-const { document, window } = await dom('<button id="opener">Threads</button><section id="all" hidden><input><div class="all-list"><button data-go="t:one">First result</button></div></section>');
-const allEl = document.querySelector("#all"), opener = document.querySelector("#opener");
-const field = allEl.querySelector("input"), result = allEl.querySelector("[data-go]");
-Object.defineProperty(result, "offsetParent", { value: allEl });
-field.select = () => {};
-const destinations = [];
-const { openAll, closeAll } = createAllThreadsSheet({
-  allEl, field, phone: { matches: false }, S: { view: "p:project" }, convProject: () => "project",
-  allRender() {}, syncInert() {}, schedule() {}, go: (view) => destinations.push(view),
-});
-function pressAll(key) {
-  const event = new window.Event("keydown", { bubbles: true, cancelable: true });
-  event.key = key;
-  document.activeElement.dispatchEvent(event);
-  assert.equal(event.defaultPrevented, true, key);
-}
-opener.focus();
-openAll();
-same(document.activeElement, field);
-pressAll("ArrowDown");
-same(document.activeElement, result);
-pressAll("ArrowUp");
-same(document.activeElement, field);
-result.focus();
-pressAll("/");
-same(document.activeElement, field);
-field.value = "query";
-pressAll("Escape");
-assert.equal(field.value, "");
-assert.equal(allEl.hidden, false);
-closeAll();
-same(document.activeElement, opener);
-openAll();
-pressAll("Enter");
-assert.deepEqual(destinations, ["t:one"]);
-assert.equal(allEl.hidden, true);
 
 const agentList = '.stage .fr[data-fr="agents"] .fr-b';
 assert.ok(valuesFor(agentList, "scroll-snap-type").includes("y mandatory"));

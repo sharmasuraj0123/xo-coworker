@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createConversationHeader } from "../modules/conversation/header.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
+import { createThreadControls } from "../modules/threads/controls.js";
 import { threadsCtl } from "../modules/threads/header.js";
 import { createTopHeader } from "../shell/top-header.js";
 import { declarationsFor, resolveValue, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
@@ -43,13 +44,14 @@ test("the project header counts all thread states and places Threads before Depl
   const head = document.createElement("header");
   head.innerHTML = '<div id="top"><button id="top-back"></button><div id="top-who"></div><div id="top-end"></div></div>';
   document.body.append(head);
-  const S = { view: "p:p", parent: {}, desc: {}, hdrCtl: "" };
   const PROJ = () => "Project";
   const conversationHeaderHtml = createConversationHeader({
-    S, PICK: {}, threadCounts, PROJ, projectIcon: () => "", threadsCtl, convHost: () => null,
+    threadControls: createThreadControls(), description: () => undefined,
+    PICK: {}, threadCounts, PROJ, projectIcon: () => "", threadsCtl, convHost: () => null,
   });
   const render = createTopHeader({
-    S, PROJ, conversationHeaderHtml, kernel: { places: { entries: () => [] } }, convThread: () => null,
+    location: { view: () => "p:p", parentOf: () => undefined },
+    PROJ, conversationHeaderHtml, kernel: { places: { entries: () => [] } }, convThread: () => null,
     CH: { isChats: () => false }, STAGE: panel, atOf: () => ({}),
     LP: { button: () => '<button id="deploy">Deploy</button>', ensure() {} }, LW: { isOpen: false },
     checklistRender() {}, tdelRender() {}, REC: { sinceLine() {} },

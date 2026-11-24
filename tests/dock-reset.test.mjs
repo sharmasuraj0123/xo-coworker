@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { dom, same } from "./lib/dom.mjs";
+import { createDockFolds } from "../modules/decisions/dock-folds.js";
 
 const { document } = await dom('<section id="region" tabindex="-1"><div id="dock"></div></section>');
 let disconnects = 0;
@@ -13,10 +14,9 @@ const region = document.querySelector("#region"), el = document.querySelector("#
 let confirming = true;
 const dock = createDock({ el, view: () => "chats", region: () => region }, {
   CH: { isChats: () => true, confirmHtml: () => confirming ? "<button>Send now</button>" : "" },
-  D: { isOpen: () => false }, S: { dockFold: {} }, world: { state: { gone: new Map() } },
+  D: { isOpen: () => false }, folds: createDockFolds(), world: { state: { gone: new Map() } },
   convThread: () => null, convHost: () => null, dockGestures() {},
 });
-assert.equal(dock.TD.gen, 0);
 dock.render([]);
 const confirmation = el.firstElementChild;
 confirmation.focus();
@@ -25,7 +25,6 @@ same(el.firstElementChild, confirmation);
 dock.reset();
 assert.equal(el.childElementCount, 0);
 assert.equal(disconnects, 1);
-assert.deepEqual(dock.TD, { key: null, item: null, busy: false, undone: null, gen: 1 });
 same(document.activeElement, region);
 dock.render([]);
 assert.equal(el.textContent, "Send now");

@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createConversationMessages } from "../modules/conversation/messages.js";
+import { createLocalMessages } from "../modules/conversation/local-messages.js";
 import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
 
 test("event lines use a bare icon in both message views", () => {
@@ -31,7 +32,8 @@ test("adjacent event lines have 8px before and after", () => {
 
 test("decision events begin with their verb and prefer the supplied wording", () => {
   const messages = createConversationMessages({
-    S: { local: {}, alias: new Map(), showHops: false },
+    localMessages: createLocalMessages(),
+    shape: { on: () => false },
     world: { state: { hist: {}, timeline: { project: [] }, threads: [] }, act: {} },
     D: {
       decisions: () => [

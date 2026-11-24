@@ -2,13 +2,17 @@ import assert from "node:assert/strict";
 import { createHerald } from "../core/services/notices.js";
 import { createDelivery } from "../modules/conversation/delivery.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
+import { createFileReferences } from "../modules/conversation/file-references.js";
+import { createLocalMessages } from "../modules/conversation/local-messages.js";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
 
 const { document } = await dom('<textarea></textarea><button id="send">Send</button><div id="messages"></div>');
 const say = document.querySelector("textarea");
 const send = document.querySelector("#send");
 const msgs = document.querySelector("#messages");
-const S = { view: "t:active", local: {}, lref: {}, n: 0 };
+const S = { view: "t:active" };
+const localMessages = createLocalMessages();
+const fileReferences = createFileReferences();
 const thread = { id: "active", project: "demo", title: "Active" };
 const state = {
   loaded: true,
@@ -28,7 +32,7 @@ const provider = (kind) => (recipient, text, options) => {
 };
 const K = { get view() { return S.view; }, say, send, conv: { msgs, follow: { toLatest: () => rendered.push("follow") } } };
 const delivery = createDelivery({
-  S, world: { state, act: { ask: provider("ask"), reply: provider("reply") } },
+  view: () => S.view, localMessages, fileReferences, world: { state, act: { ask: provider("ask"), reply: provider("reply") } },
   MK: K, say, CH: { isChats: (view) => view.startsWith("c:"), blocked: () => chatBlock, send: (view, text) => requests.push({ view, text }) },
   STAGE: { resumeFollow() {} },
   PROJ: (id) => id === "demo" ? "Demo" : id,
@@ -36,11 +40,11 @@ const delivery = createDelivery({
   convThread: (view) => view === "t:active" ? thread : null, composerAt: () => K,
   filesHere: () => ({ count: 0 }), tray: {}, dropThumb() {},
   saveDraft() {}, updateComposer() {}, growSay() {}, announce: (message) => announcements.push(message), schedule() {}, go() {},
-  render: () => rendered.push((S.local[S.view] ?? []).at(-1)?.text),
+  render: () => rendered.push(localMessages.list(S.view).at(-1)?.text),
   heraldShow: herald.show, heraldFor: herald.forMsg,
 });
 
-S.lref[S.view] = { path: "notes.md", a: 2, b: 4, name: "notes.md" };
+fileReferences.set(S.view, { path: "notes.md", a: 2, b: 4, name: "notes.md" });
 say.value = "@workspace keep these words";
 delivery.send();
 await settle();
@@ -55,13 +59,13 @@ await settle();
 assert.equal(requests[0].kind, "reply");
 assert.equal(requests[0].recipient, thread.id);
 assert.equal(requests[0].text, "notes.md:2-4\n\nA reply that bypasses routing");
-assert.equal(S.lref[S.view], undefined, "the reference is consumed by an accepted send");
+assert.equal(fileReferences.get(S.view), undefined, "the reference is consumed by an accepted send");
 assert.deepEqual(rendered, [requests[0].text, "follow"]);
 same(document.activeElement, say);
 requests[0].answer.resolve({});
 await settle();
 
-S.lref[S.view] = { path: "notes.md", a: null, b: null, name: "notes.md" };
+fileReferences.set(S.view, { path: "notes.md", a: null, b: null, name: "notes.md" });
 say.value = "@demo What about this project?";
 delivery.send();
 await settle();
@@ -69,11 +73,11 @@ const first = requests[1];
 assert.equal(first.kind, "ask");
 assert.equal(first.recipient, "demo");
 assert.equal(first.text, "What about this project?");
-assert.equal(S.lref[S.view]?.path, "notes.md", "the thread retains its reference after a send to a different conversation");
+assert.equal(fileReferences.get(S.view)?.path, "notes.md", "the thread retains its reference after a send to a different conversation");
 assert.equal(notices.herald.text, "Sending to Demo…");
 first.answer.reject(Object.assign(new Error("connection lost"), { status: 502 }));
 await settle();
-const failed = S.local["p:demo"][0];
+const failed = localMessages.list("p:demo")[0];
 assert.equal(failed.status, "failed");
 assert.equal(notices.herald.text, "Not sent: Can't reach XO");
 assert.equal(notices.herald.sub, "open the conversation to retry");
@@ -98,7 +102,7 @@ delivery.send();
 await settle();
 requests.at(-1).answer.reject(Object.assign(new Error("connection lost"), { status: 502 }));
 await settle();
-const blocked = S.local["p:demo"].at(-1);
+const blocked = localMessages.list("p:demo").at(-1);
 const routing = state.projects.find(({ id }) => id === "demo").routing;
 routing.mode = "off";
 delivery.retry(blocked.id);
@@ -127,7 +131,7 @@ S.view = "t:active";
 const file = { project: "demo", rel: "notes.md" };
 const fileSends = [];
 const fileQuestion = createFileQuestion({
-  S, world: { state }, PROJ: (id) => id, convOfChat: (id) => "p:" + id,
+  view: () => S.view, localMessages, fileReferences, world: { state }, PROJ: (id) => id, convOfChat: (id) => "p:" + id,
   fileScope: (picked) => ({ project: picked.project }), localIn: (_, picked) => picked.rel,
   blockFor: delivery.blockFor, refuse: delivery.refuse,
   deliverLive: (message) => fileSends.push(message), schedule() {}, heraldShow: herald.show,

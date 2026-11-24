@@ -60,7 +60,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   const matches = side.matches.bind(side);
   side.matches = (selector) => selector === ":focus-within" ? side.contains(document.activeElement) : matches(selector);
   const needs = [];
-  const sideRender = createSideRows({ S: { view: "home", wash: new Map() },
+  const sideRender = createSideRows({ view: () => "home",
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
     CH: { isChats: () => false }, REC: { artifacts: { count: () => 0 } }, D: { needItems: () => needs },
     projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,

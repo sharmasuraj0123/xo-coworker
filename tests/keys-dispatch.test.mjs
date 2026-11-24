@@ -61,13 +61,13 @@ t("⌥ alone (it types a character of its own) is refused for an Anywhere action
   assert.equal(K.set("keys", "mod+alt+j").ok, true, "with ⌘/Ctrl it's fine");
   K.resetAll();
 });
-const { document, window } = await dom('<button id="page"></button><textarea></textarea><div id="jump" hidden></div><div id="keys" hidden></div><div id="all" hidden></div>');
+const { document, window } = await dom('<button id="page"></button><textarea></textarea><div id="jump" hidden></div><div id="keys" hidden></div>');
 const page = document.querySelector("#page"), editor = document.querySelector("textarea");
 const S = { view: "t:thread", recording: false }, jump = document.querySelector("#jump");
 const calls = [];
 let terminal = false, modal = false, handlesEscape = false;
-wireGlobalKeys({
-  S, jump, keys: document.querySelector("#keys"), allEl: document.querySelector("#all"),
+const dispose = wireGlobalKeys({
+  view: () => S.view, capturing: () => S.recording, jump, keys: document.querySelector("#keys"),
   SH: { owns: () => terminal }, IQ: { isOpen: false }, CREATE: { isOpen: () => modal },
   GLOBAL: Object.fromEntries(GLOBAL.map((id) => [id, () => calls.push(id)])),
   LAYERS: { escape() { calls.push("escape"); return handlesEscape; } },
@@ -122,3 +122,6 @@ t("Escape falls through to thread Back or Chats when the shell has no closing la
   assert.deepEqual(calls.splice(0), ["escape", "back", "escape", "chats", "escape", "escape"]);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+dispose();
+assert.equal(press(page, "mod+k"), false, "the retired global listener no longer handles shortcuts");
+assert.deepEqual(calls, []);

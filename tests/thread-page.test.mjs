@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { dom, same, settle } from "./lib/dom.mjs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
+import { createThreadControls } from "../modules/threads/controls.js";
 
 const { document, window } = await dom(`<div id="tphead"></div><div id="tmsgs">Outside the panel</div>
 <input id="att-input" accept="text/plain"><aside><header></header><div id="thread"></div></aside>`);
@@ -13,14 +14,14 @@ const { createThreadPage } = await import("../modules/conversation/thread-page.j
 const outside = document.querySelector("#tmsgs");
 const box = document.querySelector("#thread");
 document.querySelector("#att-input").accept = "text/plain";
-const S = {};
+const threadControls = createThreadControls();
 const calls = [];
 let threadExists = true;
 const STAGE = { slot: document.querySelector("aside header"), pageShown: { name: "thread" },
   closePage: (key) => calls.push(["close", key]) };
 const needs = [];
 const page = createThreadPage({
-  STAGE, S, world: { act: { watchSideThread: (key) => calls.push(["watch", key]) } },
+  STAGE, threadControls, world: { act: { watchSideThread: (key) => calls.push(["watch", key]) } },
   D: { needItems: () => needs },
   createDock: (mount) => {
     same(mount.el, box.querySelector(".tdock"));
@@ -40,21 +41,21 @@ const page = createThreadPage({
   drawConv: (conv, items) => { same(conv.msgs, box.querySelector(".msgs")); same(items, needs); calls.push(["draw"]); },
   updateComposer() {}, sendRender() {}, targetLineRender() {},
 });
-page.tpMount(box);
+const unmount = page.tpMount(box);
 const { TP } = page;
 same(TP.C.msgs, box.querySelector(".msgs"));
 same(TP.K.form, box.querySelector("form"));
 assert.deepEqual(calls.splice(0).map(([kind]) => kind), ["composer", "tray"]);
 assert.equal(TP.K.input.getAttribute("accept"), "text/plain");
-page.tpShow("t1", { focus: true });
+page.tpShow("t1");
+page.tpFocus(null, "keyboard");
 await settle();
 assert.equal(outside.textContent, "Outside the panel");
 same(document.activeElement, TP.K.say);
 assert.deepEqual(calls.splice(0).map(([kind]) => kind), ["return", "reset", "watch", "draft", "draw", "dock"]);
 assert.equal(box.querySelector("[data-tp-main]").dataset.tpMain, "t1");
 
-S.tMenu = "t1";
-S.tMenuIn = "page";
+threadControls.toggleMenu("t1", "page");
 page.drawThreadPage(needs);
 const menu = STAGE.slot.querySelector("[data-tmenu]");
 assert.equal(menu.getAttribute("aria-expanded"), "true");
@@ -70,8 +71,8 @@ page.drawThreadPage(needs);
 assert.deepEqual(calls.splice(0), [["close", "thread"]]);
 page.tpClose();
 assert.deepEqual(calls.splice(0), [["save"], ["watch", null]]);
-TP.deco.destroy();
-TP.follow.destroy();
+unmount();
+assert.equal(TP.follow === null && TP.K === null, true);
 
 const opened = [];
 const { fileRoute, openSharedFile } = createConversationFiles({

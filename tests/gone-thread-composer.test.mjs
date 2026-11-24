@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { createComposerTarget } from "../modules/conversation/target.js";
 import { createShellRenderer } from "../shell/render.js";
+import { createRedrawFocus } from "../shell/redraw-focus.js";
 import { dom, same } from "./lib/dom.mjs";
 import { flattenStyles } from "../tools/conformance/css-flatten.mjs";
 
@@ -16,6 +17,7 @@ const msgsEl = document.getElementById("msgs");
 const home = msgsEl.querySelector("[data-go=home]");
 const app = document.getElementById("app");
 const state = { view: "t:first" };
+const redrawFocus = createRedrawFocus();
 const noop = () => {};
 const sync = { sync: noop };
 const thread = { lastAt: 0 };
@@ -27,7 +29,8 @@ const { syncPlaceholder } = createComposerTarget({
   PROJ: (id) => { assert.equal(id, "project"); return "Project"; }, convThread, convProject: (view) => convThread(view) ? "project" : null,
 });
 const render = createShellRenderer({
-  world, D: { ...sync, needItems: () => [] }, S: state, PAGE_OF: { home: "#home" }, MAIN: { rendered: null },
+  world, D: { ...sync, needItems: () => [] }, view: () => state.view, restoreFocus: redrawFocus.restore,
+  PAGE_OF: { home: "#home" }, MAIN: { rendered: null },
   pings: noop, dockAtTop: noop, convThread, sideRender: noop, homeRender: noop,
   REC: { artifacts: { render: noop } }, LPP: { render: noop }, topRender: noop, wsHeadRender: noop, drawConv: noop,
   say, msgsEl, placeRegion: () => region, loadAhead: noop, TP: { C: null, tid: null }, STAGE: sync,
@@ -45,6 +48,15 @@ state.view = "t:gone";
 render();
 assert.equal(app.dataset.conv, "t:gone");
 same(document.querySelector("#pb-t svg"), crumb, "switching conversations preserves the breadcrumb icon");
+const next = document.createElement("button");
+next.id = "next-focus";
+redrawFocus.request(["#missing", "#next-focus", () => say]);
+msgsEl.append(next);
+render();
+same(document.activeElement, next, "redraw resolves the first usable control after it appears");
+say.focus();
+render();
+same(document.activeElement, say, "a redraw consumes its focus request");
 say.focus();
 threads.delete(state.view);
 render();

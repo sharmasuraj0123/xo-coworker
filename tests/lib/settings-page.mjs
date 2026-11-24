@@ -9,3 +9,18 @@ export async function mountSettingsPage(id) {
     + `<div data-page="${id}"><div class="set-live"></div></div></section>`);
   return Object.freeze(createSettingsHost());
 }
+
+/** @param {string} page @param {import("../../core/kernel/types").ModuleDef} module @param {import("../../shell/app-service-types").AppServices} services */
+export async function openSettingsModule(page, module, services) {
+  await mountSettingsPage(page);
+  const { createKernel } = await import("../../core/kernel/index.js");
+  const { createAppServices } = await import("../../shell/app-services.js");
+  const { SETTINGS_PAGE_OPEN, settingsModule } = await import("../../modules/settings/module.js");
+  const kernel = createKernel();
+  kernel.register(createAppServices(services, () => {}));
+  kernel.register(settingsModule);
+  kernel.register(module);
+  await kernel.start();
+  kernel.bus.emit(SETTINGS_PAGE_OPEN, page);
+  return () => kernel.disable(settingsModule.manifest.id);
+}

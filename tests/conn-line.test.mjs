@@ -25,7 +25,7 @@ const { document } = await dom('<main id="app"><div id="dock"><div id="herald"><
 const main = {}, reply = {};
 let composer = main;
 const line = createNoticeLine({
-  S: { view: "home", herald: null }, world: { state: w(AGENT, OFF) }, MK: main, composerNow: () => composer,
+  notice: () => null, world: { state: w(AGENT, OFF) }, MK: main, composerNow: () => composer,
   panelHost: () => document.getElementById("panel"), connDest: () => ({ pid: "alpha" }), placeRegion: () => null,
 });
 line.heraldRender([]);
