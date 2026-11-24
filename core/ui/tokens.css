@@ -45,6 +45,8 @@
   --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24);
   --shadow-md:var(--e2); --shadow-lg:var(--e2);
   --fill-tool-output:var(--surface); --edge-tool-output:var(--line-faint);
+  --edge-home-handled:var(--line-faint); --fill-home-handled-badge:rgba(var(--accent-rgb),.12);
+  --fill-home-handled-hover:color-mix(in srgb,var(--ink) 7%,var(--surface));
   --lift-1:0 0 #0000; --lift-2:0 0 #0000; --lift-3:var(--e2);   /* light's paper lifts; in dark a step does it */
   --hairline:inset 0 1px 0 rgba(255,255,255,.035);
   --scrim:rgba(0,0,0,.55);
@@ -61,7 +63,6 @@
   --ring-room:6px;
   /* Dark ink maintains contrast on every agent colour. */
   --on-agent:#0B0B0C;
-  /* a switch's knob is white in every theme; the icon on a lit one */
   --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
@@ -73,7 +74,6 @@
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
   /* Coordinator names and marks use the same violet in every view. */
   --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
-  /* Status roles provide the shared hues for labels and quiet tints. */
   --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --sans-read:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -195,7 +195,6 @@
   --press-scale:.97;
   --tx-press-transform:transform var(--dur-fast) var(--ease);
 }
-/* Light uses a recessed sidebar, white content surfaces and short, low shadows. */
 :root[data-theme="light"]{
   color-scheme:light;
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
@@ -225,6 +224,7 @@
   --lift-3:0 0 0 .5px rgba(0,0,0,.03),0 2px 6px rgba(0,0,0,.04),0 18px 44px -14px rgba(0,0,0,.16);
   --shadow-md:var(--lift-2); --shadow-lg:var(--lift-3);
   --fill-tool-output:var(--fill-1); --edge-tool-output:var(--line-soft);
+  --edge-home-handled:var(--line-soft);
   --hairline:0 0 #0000;
   --scrim:rgba(18,18,18,.16);
   --sha:.28;
