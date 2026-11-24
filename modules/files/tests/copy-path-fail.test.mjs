@@ -53,7 +53,7 @@ assert.ok(!host.querySelector("[data-vw-cut-sel]"));
 const rule = (selector, property) => declarationsFor(selector, property).map((entry) => entry.value);
 assert.ok(rule(".vw-cut:has(.vw-cut-sel)", "flex-wrap").includes("wrap"));
 assert.ok(rule((selector) => selector.replace(/\s/g, "") === ".vw-cut:has(.vw-cut-sel)>span", "flex").includes("1 1 0"));
-assert.ok(rule(".vw-cut-sel", "flex").includes("1 0 calc(100% - 22px)"));
+assert.deepEqual(valuesFor(".vw-cut-sel", "flex"), ["1 0 calc(100% - 22px)"], "The path field fills its indented row");
 assert.ok(rule(".vw-cut-sel", "font").some((value) => value.includes("var(--mono)")));
 assert.deepEqual(valuesFor(".vw-cut:has(.vw-cut-sel)>span", "min-width"), ["0"]);
 assert.deepEqual(valuesFor(".vw-cut-sel", "margin-left"), ["22px"]);

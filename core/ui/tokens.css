@@ -117,11 +117,8 @@
   --r-note:calc(var(--r) + var(--s-2));
   /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
   --halo:8px; --cell-in:4px;
-  /* a whole row reads as a card when hovered (Home's lists): its fill reaches a step further, at --r-lg */
   --halo-row:12px;
-  /* Shared insets, rails and grab targets align panels and phone controls. */
   --float-inset:var(--s-3); --h-phonebar:52px; --rail-w:44px; --grip-w:8px; --grab-w:36px; --grab-h:4px;
-  /* the sidebar folded to its rail: one row and the rows' own inset on each side (64) */
   --side-rail-w:calc(var(--h-row) + 2 * var(--s-3));
   /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
@@ -131,9 +128,7 @@
   --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
   /* Rows share the control grid with separate heights for compact, action and two-line rows. */
   --h-row:40px; --h-row-compact:32px; --h-row-act:48px; --h-row-list:56px;
-  /* Tile sizes are independent of control density. */
   --h-touch:36px; --h-hit:44px; --tile-sm:28px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
-  /* Agent mark in list metadata. */
   --mark-sm:var(--s-3);
   /* Icons use the standard size, with smaller metadata and larger phone-bar sizes. */
   --mask-working:url(/core/ui/icons/source/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-load:url(/core/ui/icons/source/xo/n-people-status-and-time/spinner.svg) center/contain no-repeat; --mask-needs:url(/core/ui/icons/source/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
@@ -145,7 +140,7 @@
   --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
-  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-10:40px; --s-12:48px;
   /* Shared gap between an icon and its label. */
   --gap-icon:var(--s-2);
   --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch;
@@ -169,6 +164,11 @@
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
   --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
+  --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
+  --s-viewer-head-top:14px; --s-viewer-button-end:11px; --s-viewer-button-start:9px; --s-viewer-segment-in:3px; --s-viewer-seg-inline:10px;
+  --r-viewer-segment-inset:4px; --s-viewer-code-top:14px; --s-viewer-code-line-start:14px; --s-viewer-path-offset:22px;
+  --s-viewer-copy-block:9px; --s-viewer-copy-inline:6px; --s-viewer-phone-inline:18px; --offset-viewer-download-link:2px;
+  --measure-viewer-empty:44ch; --palette-white:#fff; --fill-viewer-document:var(--palette-white); --tile-viewer-checker:16px;
   --mix-link-fill:7%; --mix-link-hover:14%; --mix-link-press:18%; --mix-link-quiet:5%; --mix-link-underline:55%;
   --s-lk-b:.735em; --s-lk-start:.38em; --s-lk-end:.6em; --s-link-icon-gap:.2em;
   --s-link-file-start:.4167em; --s-link-file-gap:.3167em; --s-link-arrow-gap:.14em;
