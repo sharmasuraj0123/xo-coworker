@@ -2,6 +2,7 @@
 @import url("../shell/frame.css");
 @import url("../modules/home/home.css");
 @import url("../modules/home/next.css");
+@import url("../core/ui/empty-state.css");
 @import url("../modules/conversation/conversation.css");
 @import url("../modules/conversation/composer.css");
 @import url("../modules/threads/intelligence.css");
@@ -32,7 +33,6 @@
 @import url("../modules/conversation/notice-phone.css");
 @import url("../modules/chats/send-now.css");
 @import url("../modules/files/conversation-cards.css");
-
 .viewer{position:absolute;z-index:calc(var(--z-panel) + 2);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--vw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:var(--hair) solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden}
 .viewer.is-in{animation:sheet-in var(--d-move) var(--ease) both}
 .vw-top{flex:none;display:flex;align-items:center;gap:var(--s-3);padding:var(--s-viewer-head-top) var(--s-3) var(--s-3) var(--s-4);border-bottom:var(--hair) solid var(--line-faint)}
