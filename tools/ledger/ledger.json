@@ -7471,24 +7471,24 @@
    "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::tpMount": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2707)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::tpShow": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2743)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::tpUnmount": {
    "status": "planned",
    "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2756)"
   },
   "js/app.js::functions::tpHead": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2781)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::drawThreadPage": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2791)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::openFromPanel": {
    "status": "moved",

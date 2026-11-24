@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const page = readFileSync(new URL("../modules/conversation/thread-page.js", import.meta.url), "utf8");
 const go = readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8");
 assert.doesNotMatch(app, /S\.opener|opener: \{\}/, "no store guessed from focus");
 assert.doesNotMatch(go, /activeElement[^;]*closest\?\.\("\[data-k\]"\)/, "where you left from is never read from focus");
@@ -10,8 +11,8 @@ assert.match(app, /go\("t:" \+ tl\.dataset\.thread, \{ row: rowIn\(tl\) \}\)/);
 assert.match(go, /if \(v\.startsWith\("t:"\)\) S\.backTo\[v\] = row \? \{ view: S\.view, k: row \} : null;/, "every visit replaces the last one's");
 assert.match(go, /const was = back \? S\.backTo\[from\] : null;\n    if \(back\) delete S\.backTo\[from\];/, "read once, by that visit's Back");
 assert.match(go, /was && was\.view === v \?/, "only in the chat it was opened from");
-const tp = app.slice(app.indexOf("function tpShow("), app.indexOf("function tpShow(") + 200);
-assert.match(tp, /if \(TP\.tid !== key\) \{\n    returnPill\(null\);/, "another thread in the panel ends the offer");
+const tp = page.slice(page.indexOf("function tpShow("), page.indexOf("function tpShow(") + 200);
+assert.match(tp, /if \(TP\.tid !== key\) \{\n\s*returnPill\(null\);/, "another thread in the panel ends the offer");
 // the trip, played through: A from its card, B from elsewhere, Back from each
 const S = { view: "p:x", backTo: {} };
 const enter = (v, row) => { S.backTo[v] = row ? { view: S.view, k: row } : null; S.view = v; };

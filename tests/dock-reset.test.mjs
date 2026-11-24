@@ -5,6 +5,7 @@ const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const body = (start, source = app) => { const i = source.indexOf(start); assert.ok(i >= 0, start); return source.slice(i, source.indexOf("\n}\n", i)); };
+const page = readFileSync(new URL("../modules/conversation/thread-page.js", import.meta.url), "utf8").replace(/^ {2}/gm, "");
 const dock = readFileSync(new URL("../modules/decisions/dock.js", import.meta.url), "utf8").replace(/^ {2}/gm, "");
 
 t("the dock has one reset: its state, its contents and its observer together", () => {
@@ -12,8 +13,8 @@ t("the dock has one reset: its state, its contents and its observer together", (
   assert.match(dock, /return \{ render: dockRender, reset, TD, el: tdock \};/);
 });
 t("the Thread page resets its dock when it shows another thread, never its state alone", () => {
-  assert.match(body("function tpShow("), /TP\.dock\.reset\(\);/);
-  assert.doesNotMatch(app, /Object\.assign\(TP\.dock\.TD/);
+  assert.match(body("function tpShow(", page), /\(TP\.dock\)\)\.reset\(\);/);
+  assert.doesNotMatch(page, /Object\.assign\(TP\.dock\.TD/);
   assert.doesNotMatch(app, /\.TD\.key = null/);
 });
 t("a decision's line and a withdrawal's line stop when their dock was reset under them", () => {

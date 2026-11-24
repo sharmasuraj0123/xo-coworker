@@ -27,7 +27,7 @@ import { createRunsStop } from "../modules/runs/stop.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
-import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
+import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
 import { createReadingLayout } from "../modules/conversation/reading-layout.js";
@@ -39,7 +39,7 @@ import { createMentionList } from "../modules/conversation/mention.js";
 import { createLiveConversation } from "../modules/conversation/live.js";
 import { createConversationPaging } from "../modules/conversation/paging.js";
 import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
-import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
+import { createThreadPage } from "../modules/conversation/thread-page.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
 import { createConversationStarts } from "../modules/conversation/start.js";
@@ -117,7 +117,7 @@ import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
-import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
+import { wireGestures, dockGestures } from "./gestures.js";
 import { rtName, untilWords } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
@@ -1133,74 +1133,11 @@ function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip
 
 
 
-// ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
-// The panel page renders the thread's facts and replies.
-// conversation (createConv + createFollow + msgx), typing line and composer (wireComposer). It opens from the
-// panel's Threads beside a chat; ⌘/Ctrl-click, or Open full width, gives today's full page.
-const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
-const tpView = () => (TP.tid ? "t:" + TP.tid : "");
-function tpMount(box) {
-  TP.box = box;
-  box.classList.add("tp");
-  box.innerHTML = threadPageHtml($);
-  const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
-  TP.follow = createFollow(els);
-  TP.follow.init();
-  TP.C = createConv({ view: tpView, msgs: els.msgs, scroller: els.scroller, column: els.column, typing: $("#ttyping"), follow: TP.follow });
-  TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
-    tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
-  wireComposer(TP.K);
-  wireTray(TP.K);
-  TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller }, dockDeps);
-  // its ⋯ lives in the panel's head
-  const acts = document.createElement("span");
-  acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
-  STAGE.slot.append(acts);
-  menuKeys(acts, { close: () => closeThreadMenu() });
-  // its files: the paperclip; a drop on the page is the app's one drop, into this composer
-  TP.K.attach.addEventListener("click", () => TP.K.input.click());
-  TP.K.input.addEventListener("change", () => { addFiles(TP.K.input.files, TP.K); TP.K.input.value = ""; });
-  // its model and effort: the thread's own session, the chat's picker
-  TP.K.iq.addEventListener("click", () => toggleIq(sessionOf(tpView()), TP.K.iq));
-  TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: TP.K.at,
-    dock: els.dock, tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
-  // the composer's height is the conversation's room at its foot (as #app's --dock-h is the main chat's)
-  TP.dockRO = watchDock(els.dock, box);
-  conversationGestures({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) });
-  els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(TP.C); }); }, { passive: true });
-}
-function tpShow(key, { focus = false } = {}) {
-  if (TP.tid !== key) {
-    returnPill(null);
-    if (TP.tid && TP.K) saveDraft(TP.K);
-    TP.tid = key;
-    TP.C.rendered = null; TP.C.filled = null;
-    TP.C.msgs.replaceChildren(); $("#tpthead").hidden = true;
-    TP.dock.reset();
-    world.act.watchSideThread?.(key);
-    loadDraft(TP.K);
-    TP.viewSubs.forEach((fn) => fn());
-    // drawn after the first frame, so the slide starts at the press
-    const t = convThread(tpView());
-    if (t) tpHead(t);
-    TP.wait = true;
-    requestAnimationFrame(() => setTimeout(() => {
-      TP.wait = false;
-      if (TP.tid === key && STAGE.pageShown?.name === "thread") drawThreadPage(D.needItems());
-      if (focus && TP.tid === key) TP.K.say.focus({ preventScroll: true });
-    }, 0));
-    return;
-  }
-  drawThreadPage(D.needItems());
-  if (focus) requestAnimationFrame(() => TP.K.say.focus({ preventScroll: true }));
-}
-// the page closes: its draft is kept, its parts stay built
-function tpClose() {
-  if (TP.K && TP.tid) saveDraft(TP.K);
-  if (S.tMenuIn === "page") { S.tMenu = null; S.tMenuIn = null; }
-  world.act.watchSideThread?.(null);
-  TP.tid = null;
-}
+const { TP, tpMount, tpShow, tpClose, drawThreadPage } = createThreadPage({
+  STAGE, S, world, D, dockDeps, wireComposer, wireTray, closeThreadMenu: () => closeThreadMenu(), addFiles, toggleIq, sessionOf, convProject, watchDock,
+  toastLine, loadAhead: (C) => loadAhead(C), returnPill: (destination) => returnPill(destination), saveDraft, loadDraft, convThread,
+  stOf, glyphOf, isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv: (C, needs) => drawConv(C, needs), updateComposer, sendRender, targetLineRender,
+});
 STAGE.page("thread", {
   title: (key) => world.thread(key)?.title || "Thread",
   mount: (box) => tpMount(box),
@@ -1212,24 +1149,6 @@ STAGE.page("thread", {
     if (TP.K && document.activeElement === TP.K.say && !TP.K.at.hidden) { atShut(TP.K); return true; }
     if (TP.K && document.activeElement === TP.K.say) { TP.K.say.blur(); TP.C.scroller.focus({ preventScroll: true }); return true; } return false; },
 });
-// its facts under the panel's head, its ⋯ in it
-function tpHead(t) {
-  const head = $("#tphead"), acts = $("#tpacts");
-  const open = S.tMenu === t.id && S.tMenuIn === "page";
-  const html = `<button type="button" class="stg-btn tp-main" data-tp-main="${esc(t.id)}" title="Open in main chat" aria-label="Open in main chat">${ICON.toMain}</button><span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
-    `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
-  const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
-  if (head._h !== html + menu) { redraw(head, html); redraw(acts, menu); head._h = html + menu; }
-}
-function drawThreadPage(needs) {
-  const t = convThread(tpView());
-  if (!t) { STAGE.closePage("thread"); return; } // a thread that's gone (deleted, resolved away) leaves the panel
-  tpHead(t);
-  checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
-  drawConv(TP.C, needs);
-  TP.dock.render(needs); // the chat's own dock, over its own element: its card, fold, Undo
-  if (document.activeElement !== TP.K.say) updateComposer(TP.K); else { sendRender(TP.K); targetLineRender(TP.K); }
-}
 // the thread moves from the panel into the main chat: its frame snaps across while the panel steps back without its copy
 function toMain(id) {
   closeThreadMenu({ focus: false });

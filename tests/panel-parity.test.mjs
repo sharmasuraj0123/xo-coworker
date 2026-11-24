@@ -8,7 +8,8 @@ const app = read("js/app.js"), msgx = read("modules/conversation/decoration.js")
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
-const mount = fn(app, "function tpMount(box)");
+const page = read("modules/conversation/thread-page.js").replace(/^ {2}/gm, "");
+const mount = fn(page, "function tpMount(box)");
 const markup = read("modules/conversation/thread-page-html.js");
 const editing = read("modules/threads/editing.js");
 
@@ -81,7 +82,7 @@ t("8 · the room under the last message is each conversation's own", () => {
   assert.match(mcss, /:root\[data-msgx\] :is\(\.app\.has-tdock \.scroller:not\(\.tp \.scroller\),\.tp\.has-tdock \.scroller\)\{/);
   const room = fn(app, "function heraldRoom()");
   assert.match(room, /\[\[\$\("#herald"\), \$\("#dock"\), \$\("#app"\)\], \[\$\("#tpherald"\), \$\("#tpdock"\), TP\.box\]\]/, "the panel sets its own, never inherits the chat's");
-  assert.match(app, /TP\.dockRO = watchDock\(els\.dock, box\);/, "its dock measured as the chat's is (is-stacked too)");
+  assert.match(page, /TP\.dockRO = watchDock\(els\.dock, box\);/, "its dock measured as the chat's is (is-stacked too)");
 });
 t("9 · a link in the panel keeps the message it points at, and a thread link opens the panel's way", () => {
   const o = read("modules/threads/open-panel-thread.js");
@@ -100,7 +101,7 @@ t("11 · touch: long-press Copy and a drag down that lowers the keyboard, in eve
   assert.match(source, /export function conversationGestures\(C, wordsOf\) \{/);
   assert.match(source, /conversationGestures\(\{ scroller: \$\("#scroller"\), msgs: document\.getElementById\("msgs"\), say: A\.say, toast: A\.toast \}, wordsOf\);/);
   assert.doesNotMatch(fn(source, "function longPress(A, wordsOf)"), /getElementById/);
-  assert.match(mount, /conversationGestures\(\{ scroller: els\.scroller, msgs: els\.msgs, say: TP\.K\.say, toast: \(text\) => toastLine\(text\) \}\);/);
+  assert.match(mount, /bindConversation\(\{ scroller: els\.scroller, msgs: els\.msgs, say: TP\.K\.say, toast: \(text\) => toastLine\(text\) \}, wordsOf\);/);
   assert.match(acss, /\.composer-field>textarea\{min-height:var\(--h-touch\)\}/, "a phone's field is touch height in both");
   assert.doesNotMatch(acss, /#say\{min-height/);
 });
