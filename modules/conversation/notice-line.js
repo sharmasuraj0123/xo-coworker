@@ -5,7 +5,6 @@ import { connLine } from "../../core/services/world/conn.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
-
 /** @import { Notice } from "../../core/services/notices.js" */
 
 /** @import { Composer } from "./composer-types.d.ts" */
