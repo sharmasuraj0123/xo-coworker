@@ -208,7 +208,7 @@ export const api = {
   /** {project?, path?, name?, rows?, cols?}; no project is a workspace shell → {terminal, ticket, ticket_expires_in} */
   openTerminal: (body) => send("POST", "/terminal/sessions", body),
   /** A fresh ticket to (re)attach: {ticket, ticket_expires_in} */
-  attachTerminal: (id) => send("POST", `/terminal/sessions/${enc(id)}/attach`),
+  attachTerminal: (id, { signal } = {}) => request(`/terminal/sessions/${enc(id)}/attach`, { method: "POST", signal }),
   renameTerminal: (id, name) => send("PATCH", `/terminal/sessions/${enc(id)}`, { name }),
   /** Hangs up everything started in that shell, and forgets it. */
   closeTerminal: (id) => send("DELETE", `/terminal/sessions/${enc(id)}`),

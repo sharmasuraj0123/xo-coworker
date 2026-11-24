@@ -109,7 +109,7 @@ export interface Api {
   terminals(query?: Query): Json;
   terminal(id: Id): Json;
   openTerminal(body: object): Json;
-  attachTerminal(id: Id): Json;
+  attachTerminal(id: Id, options?: ReadOptions): Promise<{ ticket: string; ticket_expires_in: number }>;
   renameTerminal(id: Id, name: string): Json;
   closeTerminal(id: Id): Json;
 

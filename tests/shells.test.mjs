@@ -1,12 +1,10 @@
-// Shells (js/shells/model.js): what a row says, which shells count, flow control and reconnecting.
-// Pure, no network.   node tests/shells.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { registerHooks } from "node:module";
 import { fileURLToPath } from "node:url";
 import { startSpace } from "../e2e/lib/space.mjs";
 import { declarationsFor, resolveValue } from "./lib/css-snapshot.mjs";
-import { dom, same, settle } from "./lib/dom.mjs";
+import { deferred, dom, same, settle } from "./lib/dom.mjs";
 import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../modules/shells/model.js";
 
 let passed = 0;
@@ -145,11 +143,32 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
   globalThis.localStorage = globalThis.sessionStorage = { getItem: () => null, setItem() {} };
   globalThis.getComputedStyle = () => ({ getPropertyValue: () => "" });
   globalThis.location = new URL("http://local/");
+  const observers = new Set();
   globalThis.MutationObserver = globalThis.ResizeObserver = class {
-    observe() {}
-    disconnect() {}
+    observe() { observers.add(this); }
+    disconnect() { observers.delete(this); }
   };
-  globalThis.WebSocket = class { close() {} };
+  const onlineListeners = new Set();
+  globalThis.addEventListener = (type, listener, options) => {
+    if (type === "online") onlineListeners.add(listener);
+    window.addEventListener(type, listener, options);
+  };
+  globalThis.removeEventListener = (type, listener, options) => {
+    if (type === "online") onlineListeners.delete(listener);
+    window.removeEventListener(type, listener, options);
+  };
+  const closed = [], sockets = [];
+  let closeError = null;
+  globalThis.WebSocket = class {
+    static OPEN = 1;
+    sent = [];
+    constructor() { sockets.push(this); }
+    send(data) { this.sent.push(JSON.parse(data)); }
+    close(code, reason) {
+      if (closeError) throw closeError;
+      closed.push({ code, reason });
+    }
+  };
   globalThis.fetch = async (url, options) => {
     const path = new URL(String(url), "http://local/").pathname;
     if (path === "/api/terminal/status") return Response.json({ enabled: true });
@@ -163,14 +182,14 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
   const hooks = registerHooks({
     load(url, context, next) {
       if (url.endsWith("/vendor/xterm/addon-fit.mjs")) {
-        return { format: "module", shortCircuit: true, source: "export class FitAddon { fit() {} }" };
+        return { format: "module", shortCircuit: true, source: "export class FitAddon { fit() { this.fits = (this.fits || 0) + 1; } }" };
       }
       if (url.endsWith("/vendor/xterm/xterm.mjs")) {
         return {
           format: "module",
           shortCircuit: true,
           source: `export class Terminal {
-            loadAddon() {}
+            loadAddon(fit) { this.fit = fit; }
             attachCustomKeyEventHandler() {}
             onData() {}
             onBinary() {}
@@ -182,6 +201,7 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
               host.append(this.input);
             }
             focus() { this.input.focus(); }
+            dispose() { this.input.remove(); }
           }`,
         };
       }
@@ -189,6 +209,105 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
     },
   });
   const { createShells } = await import("../modules/shells/dock.js").finally(() => hooks.deregister());
+  const { mountShell } = await import("../modules/shells/term.js");
+  t("a shell fits only a visible host with nonzero width and height, and detaches its view", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    let width = 0, height = 120, parent = document.body;
+    Object.defineProperties(host, {
+      clientWidth: { get: () => width }, clientHeight: { get: () => height }, offsetParent: { get: () => parent },
+    });
+    const shell = mountShell(host, { id: "demo", ticket: "attach-ticket" });
+    assert.equal(observers.size, 2);
+    assert.equal(onlineListeners.size, 1);
+    const socket = sockets.at(-1);
+    socket.onopen();
+    assert.deepEqual(socket.sent.map(({ type, ticket }) => [type, ticket]), [["auth", "attach-ticket"]]);
+    assert.equal(shell.term.fit.fits ?? 0, 0);
+    width = 100;
+    shell.refit();
+    assert.equal(shell.term.fit.fits, 1);
+    height = 0;
+    shell.refit();
+    assert.equal(shell.term.fit.fits, 1);
+    height = 120;
+    parent = null;
+    shell.refit();
+    assert.equal(shell.term.fit.fits, 1);
+    shell.dispose();
+    assert.equal(host.childElementCount, 0);
+    assert.deepEqual(closed, [{ code: 1000, reason: "detached" }]);
+    assert.equal(observers.size, 0, "disconnect the host and theme observers");
+    assert.equal(onlineListeners.size, 0, "remove the terminal's online listener");
+    host.remove();
+  });
+  t("a socket close failure is reported while the terminal still disposes", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    closeError = new Error("socket closed unexpectedly");
+    const previous = globalThis.reportError;
+    const errors = [];
+    globalThis.reportError = (error) => errors.push(error.message);
+    try {
+      const shell = mountShell(host, { id: "demo", ticket: "attach-ticket" });
+      shell.dispose();
+      assert.equal(host.childElementCount, 0);
+      assert.deepEqual(errors, [closeError.message]);
+    } finally {
+      closeError = null;
+      globalThis.reportError = previous;
+      host.remove();
+    }
+  });
+  {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const held = deferred(), attempts = [];
+    const original = { fetch, setTimeout, clearTimeout };
+    const timers = new Map();
+    let timer = 0;
+    Object.assign(globalThis, {
+      fetch: (url, options) => {
+        assert.equal(new URL(String(url), "http://local/").pathname, "/api/terminal/sessions/demo/attach");
+        assert.equal(options.method, "POST");
+        attempts.push(options.signal);
+        return held.promise;
+      },
+      setTimeout: (callback) => { timers.set(++timer, callback); return timer; },
+      clearTimeout: (id) => timers.delete(id),
+    });
+    const shell = mountShell(host, { id: "demo", ticket: "initial" });
+    const stale = sockets.at(-1);
+    const socketCount = sockets.length;
+    try {
+      stale.onclose({ code: 1006, reason: "" });
+      const retry = timers.values().next().value;
+      assert.equal(typeof retry, "function");
+      retry();
+      assert.equal(shell.state, "retrying");
+      assert.equal(attempts.length, 1);
+      window.dispatchEvent(new window.Event("online"));
+      window.dispatchEvent(new window.Event("online"));
+      shell.reconnect();
+      assert.equal(attempts.length, 1, "reconnect triggers share the held attach");
+      assert.equal(attempts[0].aborted, false);
+      stale.onopen();
+      assert.equal(stale.sent.length, 0, "an obsolete socket cannot send auth during the retry");
+      shell.dispose();
+      assert.equal(attempts[0].aborted, true, "disposing aborts the request's fetch signal");
+      stale.onopen();
+      assert.equal(stale.sent.length, 0, "an obsolete socket cannot send auth");
+    } finally {
+      shell.dispose();
+      held.resolve(Response.json({ ticket: "late" }));
+      Object.assign(globalThis, original);
+      host.remove();
+    }
+    await settle();
+    assert.equal(sockets.length, socketCount, "a late response cannot open a socket after disposal");
+    passed++;
+    console.log("  ok  a held retry stays singular, aborts on disposal and ignores late socket callbacks");
+  }
   const schedule = globalThis.setTimeout;
   globalThis.setTimeout = (callback, delay, ...args) => {
     const timer = schedule(callback, delay, ...args);

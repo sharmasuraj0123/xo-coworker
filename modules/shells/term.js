@@ -4,8 +4,10 @@
 
 import { Terminal } from "../../js/vendor/xterm/xterm.mjs";
 import { FitAddon } from "../../js/vendor/xterm/addon-fit.mjs";
+import { createScope } from "../../core/kernel/scope.js";
 import { api, terminalSocketUrl } from "../../core/platform/api.js";
 import { copyText } from "../../core/platform/index.js";
+import { reportFailure } from "../../core/services/notices/failures.js";
 import { createFlow, backoff, closeMeaning } from "./model.js";
 
 /** @typedef {'connecting' | 'live' | 'retrying' | 'ended' | 'off' | 'error'} TerminalState */
@@ -42,6 +44,48 @@ export function themeFromCss(el = document.documentElement) {
   };
 }
 
+/** @param {InstanceType<typeof Terminal>} term @param {(event: KeyboardEvent) => boolean} keys @param {TerminalCallbacks} on */
+function bindTerminalKeys(term, keys, on) {
+  term.attachCustomKeyEventHandler((/** @type {KeyboardEvent} */ e) => {
+    if (keys(e) === false) return false;
+    if (e.type === "keydown" && e.ctrlKey && e.shiftKey && !e.metaKey && !e.altKey) {
+      const k = e.key.toLowerCase();
+      if (k === "c") { const sel = term.getSelection(); if (sel) copyText(sel).then((ok) => on.copy?.(ok)); e.preventDefault(); return false; }
+      if (k === "v") return false;
+    }
+    return true;
+  });
+}
+
+/** @param {ReturnType<typeof createScope>} scope @param {HTMLElement} host @param {() => void} refit @param {() => void} recolor */
+function observeTerminal(scope, host, refit, recolor) {
+  let cancelResize = () => {};
+  const resize = new ResizeObserver(() => { cancelResize(); cancelResize = scope.timeout(refit, RESIZE_MS); });
+  resize.observe(host);
+  scope.observe(resize);
+  const theme = new MutationObserver(recolor);
+  theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
+  scope.observe(theme);
+}
+
+/** @typedef {{ticket: string} | {state: TerminalState, reason: string} | {retry: string}} AttachResult */
+
+/** @param {string} id @param {AbortSignal} signal @returns {Promise<AttachResult | null>} */
+async function attachTicket(id, signal) {
+  if (signal.aborted) return null;
+  try { return await api.attachTerminal(id, { signal }); }
+  catch (error) {
+    if (signal.aborted) return null;
+    const failure = /** @type {import("../../core/platform/http.js").ApiError} */ (error);
+    if (failure.code === "terminal_not_found") return { state: "ended", reason: "This shell was closed." };
+    if (failure.code === "terminal_disabled") return { state: "off", reason: failure.message };
+    if (failure.code === "signed_out" || failure.code === "not_local") {
+      return { state: "error", reason: failure.message };
+    }
+    return { retry: failure.message };
+  }
+}
+
 /** @param {HTMLElement} host @param {{ id: string, ticket?: string | null, on?: TerminalCallbacks, keys?: (event: KeyboardEvent) => boolean }} options */
 export function mountShell(host, { id, ticket = null, on = {}, keys = () => true }) {
   const term = new Terminal({
@@ -57,24 +101,15 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
   term.loadAddon(fit);
   term.open(host);
 
-  const flow = createFlow();
-  let ws = /** @type {WebSocket | null} */ (null), state = /** @type {TerminalState} */ ("connecting"), tries = 0, timer = 0, gone = false, fresh = ticket, lastSize = "";
+  const flow = createFlow(), scope = createScope();
+  let ws = /** @type {WebSocket | null} */ (null), state = /** @type {TerminalState} */ ("connecting");
+  let tries = 0, attaching = false, fresh = ticket, lastSize = "", cancelRetry = () => {};
   let gen = 0; // which connection a write callback belongs to: an old one's never counts against the new
 
   /** @param {TerminalState} s @param {TerminalDetail} [detail] */
   const emit = (s, detail) => { state = s; on.state?.(s, detail); };
 
-  term.attachCustomKeyEventHandler((/** @type {KeyboardEvent} */ e) => {
-    if (keys(e) === false) return false;
-    // Ctrl+Shift+C / V copy and paste (Ctrl+C and Ctrl+V stay the shell's); ⌘C / ⌘V already work
-    if (e.type === "keydown" && e.ctrlKey && e.shiftKey && !e.metaKey && !e.altKey) {
-      const k = e.key.toLowerCase();
-      // the copy is said only once the text is on the clipboard; refused, the dock says why (focus stays here)
-      if (k === "c") { const sel = term.getSelection(); if (sel) copyText(sel).then((ok) => on.copy?.(ok)); e.preventDefault(); return false; }
-      if (k === "v") return false; // the browser's own paste lands in xterm's textarea
-    }
-    return true;
-  });
+  bindTerminalKeys(term, keys, on);
 
   /** @param {string | Uint8Array<ArrayBuffer>} data */
   const send = (data) => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(data); };
@@ -85,38 +120,33 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
   term.onTitleChange((/** @type {string} */ t) => on.title?.(t));
   term.onBell(() => on.bell?.());
 
-  // ── size: fit the host, tell the server (debounced) ─────────────────────
-  const visible = () => host.offsetParent !== null && host.clientWidth > 0 && host.clientHeight > 0;
+  const visible = () => host.offsetParent !== null && Boolean(host.clientWidth && host.clientHeight);
   function refit({ tell = true } = {}) {
     if (!visible()) return;
     try { fit.fit(); } catch { return; }
     const size = `${term.rows}x${term.cols}`;
     if (tell && size !== lastSize) { lastSize = size; control({ type: "resize", rows: term.rows, cols: term.cols }); }
   }
-  let rt = 0;
-  const ro = new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(refit, RESIZE_MS); });
-  ro.observe(host);
 
-  // ── the socket ─────────────────────────────────────────────────────────
-  async function connect() {
-    if (gone) return;
-    clearTimeout(timer);
-    emit(tries ? "retrying" : "connecting");
-    let tk = fresh;
-    fresh = null; // a ticket is good for one attach
-    if (!tk) {
-      try { tk = (await api.attachTerminal(id)).ticket; }
-      catch (err) {
-        if (gone) return;
-        const attachError = /** @type {import("../../core/platform/http.js").ApiError} */ (err);
-        if (attachError.code === "terminal_not_found") return end("ended", { reason: "This shell was closed." });
-        if (attachError.code === "terminal_disabled") return end("off", { reason: attachError.message });
-        if (attachError.code === "signed_out" || attachError.code === "not_local") return end("error", { reason: attachError.message });
-        return retry(attachError.message);
-      }
-    }
-    if (gone) return;
-    refit({ tell: false });
+  async function connect(reset = false) {
+    if (scope.signal.aborted || attaching || ws) return;
+    attaching = true;
+    try {
+      cancelRetry();
+      if (reset) tries = 0;
+      emit(tries ? "retrying" : "connecting");
+      const supplied = fresh;
+      fresh = null;
+      const answer = supplied ? { ticket: supplied } : await attachTicket(id, scope.signal);
+      if (scope.signal.aborted || !answer) return;
+      if ("state" in answer) return end(answer.state, { reason: answer.reason });
+      if ("retry" in answer) return retry(answer.retry);
+      refit({ tell: false });
+      if (!scope.signal.aborted) openSocket(answer.ticket);
+    } finally { attaching = false; }
+  }
+  /** @param {string} ticketValue */
+  function openSocket(ticketValue) {
     const sock = new WebSocket(terminalSocketUrl(id));
     sock.binaryType = "arraybuffer";
     ws = sock;
@@ -124,8 +154,9 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
     flow.reset();
     let opened = false;
     sock.onopen = () => {
+      if (ws !== sock || scope.signal.aborted) return;
       opened = true;
-      sock.send(JSON.stringify({ type: "auth", ticket: tk, rows: term.rows, cols: term.cols }));
+      sock.send(JSON.stringify({ type: "auth", ticket: ticketValue, rows: term.rows, cols: term.cols }));
       lastSize = `${term.rows}x${term.cols}`;
     };
     sock.onmessage = (ev) => {
@@ -149,7 +180,7 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
     sock.onclose = (ev) => {
       if (ws !== sock) return;
       ws = null;
-      if (gone) return;
+      if (scope.signal.aborted) return;
       const what = closeMeaning(ev.code);
       if (what === "ended") return end("ended", { code: ev.code, reason: ev.reason });
       if (what === "off") return end("off", { reason: ev.reason || "Shells are turned off." });
@@ -160,14 +191,14 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
   }
   /** @param {string} why */
   function retry(why) {
-    if (gone) return;
+    if (scope.signal.aborted) return;
     const wait = backoff(tries++);
     emit("retrying", { reason: why, wait });
-    timer = setTimeout(connect, wait);
+    cancelRetry = scope.timeout(connect, wait);
   }
   /** @param {TerminalState} s @param {TerminalDetail} detail */
   function end(s, detail) {
-    clearTimeout(timer);
+    cancelRetry();
     // nothing types into an ended shell: its cursor stops blinking and goes
     if (s === "ended" || s === "off") { term.options.cursorBlink = false; term.write("\x1b[?25l"); }
     emit(s, detail);
@@ -181,14 +212,9 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
     term.write(bytes, () => { if (g !== gen) return; const r = flow.drew(n); if (r) control({ type: r }); });
   }
 
-  // a browser that comes back online retries now rather than at the end of its wait
-  const online = () => { if (state === "retrying") { tries = 0; connect(); } };
-  addEventListener("online", online);
-
-  // a theme switch recolours the terminal
-  const mo = new MutationObserver(() => { term.options.theme = themeFromCss(); });
-  mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-flavour"] });
-
+  const online = () => { if (state === "retrying") connect(true); };
+  scope.listen(globalThis, "online", online);
+  observeTerminal(scope, host, refit, () => { term.options.theme = themeFromCss(); });
   connect();
 
   return {
@@ -198,15 +224,16 @@ export function mountShell(host, { id, ticket = null, on = {}, keys = () => true
     focus: () => term.focus(),
     refit: () => refit(),
     /** Try again now (after an error or while waiting out a backoff). */
-    reconnect: () => { if (!gone && state !== "live") { tries = 0; connect(); } },
+    reconnect: () => { if (state !== "live") connect(true); },
     /** Leave: close the socket (the shell keeps running) and free the terminal. */
     dispose() {
-      gone = true;
-      clearTimeout(timer); clearTimeout(rt);
-      removeEventListener("online", online);
-      ro.disconnect(); mo.disconnect();
-      if (ws) { try { ws.close(1000, "detached"); } catch { /* already closing */ } ws = null; }
-      term.dispose();
+      if (scope.signal.aborted) return;
+      scope.dispose();
+      const attached = ws;
+      ws = null;
+      try { attached?.close(1000, "detached"); }
+      catch (error) { reportFailure(error); }
+      finally { term.dispose(); }
     },
   };
 }
