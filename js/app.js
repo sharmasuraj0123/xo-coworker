@@ -1,5 +1,5 @@
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, clock, dayOf, short } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, clock, dayOf } from "../core/platform/index.js";
 import { redraw } from "../core/ui/redraw.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
@@ -12,7 +12,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stateMark, XO, $, RM, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, plainText, heldWords, heldShort } from "./timeline.js";
+import { plainText, heldWords, heldShort } from "./timeline.js";
 import { turnHtml, turnAv, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
@@ -40,6 +40,7 @@ import { createLiveConversation } from "../modules/conversation/live.js";
 import { createConversationPaging } from "../modules/conversation/paging.js";
 import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
 import { createConversationMessages } from "../modules/conversation/messages.js";
+import { createMessageDetails } from "../modules/conversation/message-details.js";
 import { createThreadPage } from "../modules/conversation/thread-page.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
@@ -457,64 +458,6 @@ function proseHtml(text) {
   const html = renderMarkdown(text);
   return `<div class="prose${html.includes('<div class="md-table') ? " has-table" : ""}">${html}</div>`;
 }
-function threadCardHtml(tid, needs) {
-  const t = world.thread(tid);
-  if (!t) return "";
-  const c = t.checklist;
-  const n = needs.find((x) => x.t.id === t.id && x.admitted);
-  const heldN = !n ? needs.find((x) => x.t.id === t.id && x.held) : null;
-  const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
-  const segs = c.items.map((i) => `<i class="sg s-${i.state}"></i>`).join("");
-  const st = n ? `Needs you · ${EFFORT[n.effort].time}` : isBusy(t) ? `Working${c.total ? ` · ${c.done} of ${c.total}` : ""}` : t.state === "done" ? `Done${c.total ? ` · ${c.total} of ${c.total}` : ""}` : wordOf(t);
-  const now = n ? `${ICON.needs}${askTitle(n)}` : isBusy(t) && cur ? `${ICON.doing}${esc(cur.text)}` : isHeld(t) ? esc(heldWords(t.held)) : t.stop ? esc(stopWords(t.stop)) : t.state === "failed" ? esc(String(t.happened || "").replace(/^Stopped:\s*/i, "")) : t.state === "done" ? esc(t.happened || "Finished.") : "";
-  // a finished thread offers its real next step: the newest file it made, one click away (no file, no offer)
-  const made = !n && t.state === "done" && REC.latestOf ? REC.latestOf(t.id, t.project) : null;
-  return `<div class="tcard st-${n ? "needs" : stOf(t)}${made ? " has-next" : ""}">` +
-    `<button type="button" class="tc-open" data-go="t:${esc(t.id)}" aria-label="Open thread: ${esc(t.title)}, ${esc(st)}">` +
-    `<span class="tc-top">${stateMark(n ? "needs_reply" : glyphOf(t))}<b>${esc(t.title)}</b><span class="tc-st">${esc(st)}</span></span>` +
-    `<span class="tc-segs${segs ? "" : " is-empty"}" aria-hidden="true">${segs}</span>` +
-    (now ? `<span class="tc-now">${now}</span>` : "") +
-    `<span class="tc-foot">${threadMark(t, { withName: true })}${t.branch && SHAPE.on("xo:thread/branch") ? `<code>${esc(t.branch)}</code>` : `<span>${noun("thread")}</span>`}${heldN ? `<span class="tc-cw">a small ask can wait</span>` : ""}<span>${short(t.lastAt) === "now" ? "just now" : short(t.lastAt) + " ago"}</span><span class="tc-go">Open ${ICON.arrow}</span></span></button>` +
-    (n ? `<button type="button" class="tc-dec" data-decide="${esc(n.key)}">Decide</button>` : "") +
-    (made ? `<button type="button" class="tc-next" data-made-file="${esc(made.key)}" title="${esc(made.path)}">${ICON.doc}<span>Open ${esc(made.title || made.name)}</span></button>` : "") + `</div>`;
-}
-
-/** Under your message that waits for the agent's turn to end: what happens to it, and Interrupt. */
-function queuedMeta(conv, answered = false) {
-  const t = convThread(conv);
-  if (!t) return "";
-  if (S.stops.has(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
-  // a runtime that steers took it into the running turn: nothing waits, nothing to interrupt (F7)
-  if (sendWhileRunning(t) === "steered") return answered ? "" : `<div class="meta"><span>Sent into its current turn</span></div>`;
-  const run = running(conv); // the conversation it's drawn in (the main chat, or a thread page in the panel)
-  const n = workingRuns(t);
-  const title = `Stop the agent's current turn${n ? ` and its ${n} sub-agent${n === 1 ? "" : "s"}` : ""} so it reads this now (Undo for 3 s)`;
-  return `<div class="meta"><span>Waiting · the agent reads this when its current turn ends</span>` +
-    (run && run.kind === "thread" ? `<button type="button" class="meta-btn" data-interrupt title="${esc(title)}">${ICON.bolt}Interrupt</button>` : "") + `</div>`;
-}
-
-function nameOf(conv, who) {
-  if (who === "coord") return [conv === "ws" ? "Coordinator" : `${PROJ(convProject(conv))} coordinator`, ""];
-  const t = convThread(conv);
-  return [t ? `${PROJ(t.project)} agent` : "Agent", (SHAPE.on("xo:thread/branch") && t?.branch) || SHAPE.word("thread")];
-}
-
-/** F4: the two ends of a move, linked both ways. The reason is the server's, after its colon. */
-function moveBannerHtml(m, here) {
-  const reasonOf = (text) => { const i = String(text || "").indexOf(": "); return i > 0 ? text.slice(i + 2).trim() : ""; };
-  const link = (ts, fallback) => { const o = world.thread(ts); return o ? `<button type="button" class="rt-go" data-go="t:${esc(ts)}" title="Open “${esc(o.title)}”"><b>${esc(o.title)}</b></button>` : `<b>${esc(fallback)}</b>`; };
-  if (m.continuedIn) {
-    const to = world.thread(m.continuedIn), mv = (here && here.movedTo) || {};
-    const agent = (to && agentOf(to)) || mv.agent;
-    const why = mv.reason || reasonOf(m.text);
-    const frozen = !!(here && here.frozen);
-    return `<div class="ev mv-ban"><span class="ev-ic">${ICON.runtime}</span><span class="ev-t">Continued in ${link(m.continuedIn, "a new thread")}${agent ? ` on ${esc(rtName(agent))}` : ""}${why ? `: ${esc(why)}` : ""}</span>` +
-      (frozen ? `<button type="button" class="ev-undo" data-unfreeze="${esc(here.id)}" title="Its agent carries on here; the new thread keeps going too">Pick this thread back up</button>` : "") + `<time>${clock(m.at)}</time></div>`;
-  }
-  const from = world.thread(m.continuedFrom);
-  const fromAgent = from ? agentOf(from) : null;
-  return `<div class="ev mv-ban"><span class="ev-ic">${ICON.runtime}</span><span class="ev-t">Continued from ${link(m.continuedFrom, "an earlier thread")}${fromAgent ? ` (${esc(rtName(fromAgent))})` : ""}${reasonOf(m.text) ? `: ${esc(reasonOf(m.text))}` : ""}</span><time>${clock(m.at)}</time></div>`;
-}
 const HS_THEM = (n) => `<div class="hs-them" aria-hidden="true"><i class="hs-av"></i><div class="hs-b"><i class="hs-bar hs-name"></i>${"<i class=\"hs-bar\"></i>".repeat(n)}</div></div>`;
 const HIST_SKEL = `<div class="hist-skel" role="status"><span class="sr-only">Loading earlier messages</span>${HS_THEM(2)}` +
   `<div class="hs-you" aria-hidden="true"><i class="hs-bub"><i class="hs-bar"></i></i></div>${HS_THEM(1)}</div>`;
@@ -525,19 +468,6 @@ const answeredAfter = (list, m) => {
   return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" ||
     (x.who === "turn" && x.turn && x.turn.status !== "running" && Array.from(x.blocks || []).some((b) => b && (b.type === "answer" || b.type === "text") && String(b.text || "").trim())));
 };
-/** The thread a hop handed your message to, by the hop's own message ids; null when no hop names it. */
-function passedTo(m) {
-  if (!world.state.hops) return null;
-  // the message as the server knows it: a row carries its server id (sid); a bubble you sent here keeps its
-  // local id (id, key), and S.alias maps the server's id to it once the row is back
-  const ids = new Set([m.sid, m.id, m.key].filter(Boolean));
-  for (const [sid, lid] of S.alias) if (ids.has(lid)) ids.add(sid);
-  if (!ids.size) return null;
-  for (const h of world.state.hops.values()) {
-    if ((h.kind === "relay" || h.kind === "brief") && h.to_role === "thread" && h.thread_ts && (h.message_ids || []).some((x) => ids.has(x))) return world.thread(h.thread_ts)?.title || "a thread";
-  }
-  return null;
-}
 function msgItems(conv, needs) {
   drawing = conv;
   try { return msgItemsOf(conv, needs); } finally { drawing = null; }
@@ -985,6 +915,10 @@ initFollow();
 // ── navigation: back always returns exactly where you were ─────────────────
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
 const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ S, world, CH, convThread, chatOf });
+const { threadCardHtml, queuedMeta, nameOf, moveBannerHtml, passedTo } = createMessageDetails({
+  S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf,
+  askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf,
+});
 const drawConv = createConversationDrawing({ S, CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender });
 const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread });
 function go(v, options) { return navigate(v, options); }

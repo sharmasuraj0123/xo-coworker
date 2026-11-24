@@ -7134,24 +7134,24 @@
    "home": "modules/conversation (app.js l.1057)"
   },
   "js/app.js::functions::threadCardHtml": {
-   "status": "planned",
-   "home": "modules/threads (`conversation.block` \"thread-card\") (app.js l.1061)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::queuedMeta": {
-   "status": "planned",
-   "home": "modules/conversation (+ composer stop API) (app.js l.1084)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::nameOf": {
-   "status": "planned",
-   "home": "modules/conversation (+ composer stop API) (app.js l.1097)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::moveBannerHtml": {
-   "status": "planned",
-   "home": "modules/runtimes (`conversation.block` \"move\") (app.js l.1104)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::passedTo": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.1136)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::startHtml": {
    "status": "moved",
