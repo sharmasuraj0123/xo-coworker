@@ -66,7 +66,7 @@ function sourceFiles() {
       if (SKIP.test(rel + "/")) continue;
       const st = statSync(join(ROOT, rel));
       if (st.isDirectory()) walk(rel);
-      else if (/\.(m?js|css)$/.test(n)) out.push(rel);
+      else if (/\.(m?js|d\.ts|css)$/.test(n)) out.push(rel);
     }
   };
   for (const d of SOURCE_DIRS) if (existsSync(join(ROOT, d))) walk(d);
@@ -168,13 +168,19 @@ step("comments", () => {
 const RANK = [["core/kernel/", 0], ["core/platform/", 1], ["core/ui/", 2], ["core/services/", 3], ["shell/", 4], ["modules/", 5], ["apps-host/", 6], ["js/", 7], ["boot.js", 8]];
 const rankOf = (/** @type {string} */ f) => RANK.find(([p]) => f.startsWith(p))?.[1] ?? -1;
 const moduleOf = (/** @type {string} */ f) => (f.startsWith("modules/") ? f.split("/")[1] : null);
+function* importSpecifiers(text) {
+  for (const [, from, inline] of text.matchAll(/(?:^|\n)\s*(?:import|export)\s[^"'`;]*?\bfrom\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g)) yield from || inline;
+  for (const [doc] of text.matchAll(/^\s*\/\*\*[\s\S]*?\*\//gm)) {
+    for (const [, from] of doc.matchAll(/@import\s+[^"'@]*?\bfrom\s*["']([^"']+)["']/g)) yield from;
+  }
+}
+
 function layerViolations() {
   const out = {};
-  for (const f of sourceFiles().filter((x) => /\.m?js$/.test(x) && rankOf(x) >= 0 && rankOf(x) < 7)) {
+  for (const f of sourceFiles().filter((x) => /\.(m?js|d\.ts)$/.test(x) && rankOf(x) >= 0 && rankOf(x) < 7)) {
     const text = readFileSync(join(ROOT, f), "utf8");
-    for (const m of text.matchAll(/(?:^|\n)\s*(?:import|export)\s[^"'`;]*?from\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g)) {
-      const spec = m[1] || m[2];
-      if (!spec || !spec.startsWith(".")) continue;
+    for (const spec of importSpecifiers(text)) {
+      if (!spec.startsWith(".")) continue;
       const target = relative(ROOT, join(ROOT, dirname(f), spec)).replace(/\\/g, "/");
       if (/(^|\/)(vendor|node_modules)\//.test(target) || target.startsWith("js/vendor/")) continue;
       const testOfLegacy = /(^|\/)tests\//.test(f) && target.startsWith("js/");
