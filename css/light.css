@@ -27,7 +27,6 @@
 :root[data-theme="light"] .tcard:hover{background:var(--surface)}
 :root[data-theme="light"] .ckbar{background:var(--surface);border-color:var(--line-soft)}
 :root[data-theme="light"] .sheet.is-drop .all-card{box-shadow:var(--lift-3)}
-:root[data-theme="light"] :is(.iq-pop,.tw-menu,.lp-menu,.at-list){box-shadow:var(--lift-3)}
 :root[data-theme="light"] .dg-tools{box-shadow:var(--lift-2)}
 :root[data-theme="light"] .sheet{background:var(--scrim)}
 

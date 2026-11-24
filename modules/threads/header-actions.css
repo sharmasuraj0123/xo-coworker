@@ -13,7 +13,7 @@
 .tw-menu{
   position:absolute;right:0;top:calc(100% + var(--s-thread-menu-offset));z-index:var(--z-panel);display:flex;flex-direction:column;
   min-width:var(--w-thread-menu-floor);padding:var(--menu-pad);border-radius:var(--r-menu);border:var(--hair) solid var(--line-soft);
-  background:var(--float);box-shadow:var(--e2)
+  background:var(--float);box-shadow:var(--lift-3)
 }
 .tw-menu button{
   height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;

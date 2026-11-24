@@ -28,7 +28,10 @@
   .iq-l.is-pending .iq-nk{font-size:0}
   .iq-l.is-pending .iq-nk::before{margin:0;vertical-align:top}
 }
-.iq-pop{--nest-r:var(--r-menu);--nest-in:calc(var(--menu-pad) + 1px);position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;padding:var(--menu-pad);border-radius:var(--nest-r);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);outline:none;transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
+.iq-pop{--nest-r:var(--r-menu);--nest-in:calc(var(--menu-pad) + 1px);position:fixed;z-index:var(--z-popover);
+  display:flex;flex-direction:column;padding:var(--menu-pad);border-radius:var(--nest-r);
+  background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--lift-3);outline:none;
+  transform-origin:100% 100%;animation:float-in var(--d-pop) var(--ease)}
 .iq-pop.is-out{animation:float-out var(--d-pop-out) var(--ease) forwards}
 .iq-h{display:flex;align-items:center;gap:8px;padding:8px var(--s-2) 2px}
 .iq-h h2{flex:1;min-width:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

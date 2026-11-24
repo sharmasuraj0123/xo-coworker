@@ -314,7 +314,8 @@ a.vw-btn{text-decoration:none}
 /* Paint the surfaces being dragged, their shadows and the next action. */
 .conv.is-swiped{background:var(--canvas);box-shadow:var(--e2)}
 .main:has(.conv.is-swiped){background:var(--sunken)}
-.lp-menu{position:fixed;z-index:calc(var(--z-toast) - 5);display:flex;gap:2px;padding:4px;border-radius:var(--r-lg);background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--e2);animation:float-in var(--d-out) var(--ease)}
+.lp-menu{position:fixed;z-index:calc(var(--z-toast) - 5);display:flex;gap:2px;padding:4px;border-radius:var(--r-lg);
+  background:var(--float);border:1px solid var(--line-soft);box-shadow:var(--lift-3);animation:float-in var(--d-out) var(--ease)}
 .lp-menu button{min-height:var(--h-lg);padding:0 14px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 /* Paint the action with focus, including after touch opens the menu. */
 .lp-menu button:active,.lp-menu button:focus{background:var(--menu-focus)}
