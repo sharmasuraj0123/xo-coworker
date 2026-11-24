@@ -9,7 +9,7 @@
       "dom.iterable"
     ],
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
