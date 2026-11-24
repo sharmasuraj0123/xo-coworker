@@ -128,7 +128,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `css/docs.css` | 143 | split | modules/files/editor/docs.css, modules/search/quick-open.css, modules/files/editor/document-states.css, css/docs.css · next: The entry preserves the Files and Quick Open cascade order. Its 600 px compatibility rule remains pending breakpoint consolidation. |
 | `css/dropdown.css` | 51 | moved | core/ui/components/xo-select.css |
 | `css/flavours.css` | 477 | split | css/flavours.css, css/flavour-swatches.css |
-| `css/foundation.css` | 246 | split-region | core/ui/foundation.css, modules/* (structure rules) |
+| `css/foundation.css` | 246 | split-region | shell/panel/frame-styles.css, css/foundation.css · next: The panel frame defaults and entrance live in the shell. The original entry still owns the remaining shared controls and component overrides. |
 | `css/launchpad.css` | 291 | split | css/launchpad.css, modules/launchpad/window.css, modules/launchpad/launchpad.css, modules/launchpad/page.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
 | `css/light.css` | 67 | split-region | core/ui/tokens.css (light roles), modules/* (light blocks) |
 | `css/links.css` | 97 | split | modules/conversation/links.css, css/links.css · next: The entry stylesheet imports the conversation links in their original cascade position. |

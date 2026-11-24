@@ -1,0 +1,13 @@
+/* Shared defaults for controls and panel geometry. */
+
+:root{--sw:var(--w-stage-default);--vw:var(--sw);--edge:var(--s-4);--row-h:var(--h-foundation-row)}
+
+.stage,.panel,body.stage-full .stage{top:0;right:0;bottom:0;border-radius:0;border:0;
+  border-left:var(--hair) solid var(--line-faint);box-shadow:none;animation:none}
+/* a side panel arrives from the edge it lives on: 12 px and a fade, 240 ms; the conversation re-wraps once, at the start */
+@media (min-width:761px){
+  .viewer{top:0;right:0;bottom:0;border-radius:0;border:0;border-left:var(--hair) solid var(--line-faint);box-shadow:none}
+  .stage:not([hidden]),.panel:not([hidden]),.viewer.is-in{animation:panel-in var(--d-sheet) var(--ease)}
+  body.viewer-open:not(.stage-open):not(.panel-open) .main{--rp:var(--vw)}
+}
+@keyframes panel-in{from{opacity:0;transform:translateX(var(--slide-panel-in))}}

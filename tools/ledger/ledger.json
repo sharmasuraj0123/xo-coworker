@@ -1600,9 +1600,10 @@
   "css/foundation.css": {
    "status": "split-region",
    "home": [
-    "core/ui/foundation.css",
-    "modules/* (structure rules)"
-   ]
+    "shell/panel/frame-styles.css",
+    "css/foundation.css"
+   ],
+   "note": "The panel frame defaults and entrance live in the shell. The original entry still owns the remaining shared controls and component overrides."
   },
   "css/launchpad.css": {
    "status": "split",
