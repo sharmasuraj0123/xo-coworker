@@ -1,0 +1,29 @@
+/* Pierre inherits the diff theme inputs through the shadow host. */
+diffs-container{
+  display:block;
+  /* A nonzero host height keeps Pierre from opening an unmeasured file at its last line. */
+  min-height:1px;
+  --diffs-font-family:var(--mono);
+  --diffs-header-font-family:var(--sans);
+  --diffs-font-size:var(--fs-code); --diffs-line-height:var(--lh-ui); --diffs-tab-size:2;
+  --diffs-font-features:"liga" 0,"calt" 0;   /* => reads as two characters, as in the viewer */
+  --diffs-bg-context-override:var(--fill-1);
+  --diffs-bg-buffer-override:var(--fill-1);
+  /* a change: a low tint of green or red per line, one step stronger on the words that changed */
+  --diffs-bg-addition-override:color-mix(in srgb,var(--accent-fill) 9%,var(--fill-1));
+  --diffs-bg-addition-emphasis-override:color-mix(in srgb,var(--accent-fill) 24%,var(--fill-1));
+  --diffs-bg-addition-number-override:color-mix(in srgb,var(--accent-fill) 12%,var(--fill-1));
+  --diffs-bg-deletion-override:color-mix(in srgb,var(--err) 9%,var(--fill-1));
+  --diffs-bg-deletion-emphasis-override:color-mix(in srgb,var(--err) 24%,var(--fill-1));
+  --diffs-bg-deletion-number-override:color-mix(in srgb,var(--err) 12%,var(--fill-1));
+  --diffs-addition-color-override:var(--accent);
+  --diffs-deletion-color-override:var(--err-ink);
+  --diffs-modified-color-override:var(--info);
+  --diffs-fg-number-override:var(--ink-4);
+  /* "13 unmodified lines", hover, and the lines you select */
+  --diffs-bg-separator-override:color-mix(in srgb,var(--ink) 5%,var(--fill-1));
+  --diffs-bg-hover-override:color-mix(in srgb,var(--ink) 5%,var(--fill-1));
+  --diffs-bg-selection-override:color-mix(in srgb,var(--info) 16%,var(--fill-1));
+  --diffs-bg-selection-number-override:color-mix(in srgb,var(--info) 24%,var(--fill-1));
+  --diffs-selection-number-fg:var(--ink);
+}

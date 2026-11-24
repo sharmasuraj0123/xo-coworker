@@ -1573,8 +1573,9 @@
    "home": "core/ui/foundation.css"
   },
   "css/diffs.css": {
-   "status": "planned",
-   "home": "modules/changes/diffs.css"
+   "status": "split",
+   "home": ["modules/changes/diff-theme.css", "css/diffs.css"],
+   "note": "Changes owns the diff element's token inputs. The remaining diff styles retain their existing cascade positions."
   },
   "css/docs.css": {
    "status": "split",
