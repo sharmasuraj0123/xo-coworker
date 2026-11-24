@@ -117,7 +117,8 @@
 @media (max-width:760px){
   .hr-ev.k-stopped{
     flex-wrap:wrap;row-gap:0;height:auto;min-height:calc(var(--note-h) + var(--s-herald-edge-pair));
-    padding:calc(var(--note-in) - var(--hair)) calc(var(--note-in) - var(--hair)) calc(var(--note-in) - var(--hair)) calc(var(--edge-text) - var(--hair));
+    padding:calc(var(--note-in) - var(--hair)) calc(var(--note-in) - var(--hair))
+      calc(var(--note-in) - var(--hair)) calc(var(--edge-text) - var(--hair));
     border-radius:var(--r-xl)
   }
   .hr-ev.k-stopped .hr-s{display:block;order:3;flex:1 1 100%;min-width:0;white-space:normal;overflow:visible}
