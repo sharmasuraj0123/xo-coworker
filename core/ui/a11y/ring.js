@@ -1,5 +1,7 @@
 // @ts-check
 
+import { createScope } from "../../kernel/scope.js";
+
 // The keyboard's ring over a region you scroll with the keys, drawn as one layer just after it, since its own outline sits under what it paints.
 export const REGIONS = ".vw-body, .cx-pd";
 
@@ -22,6 +24,7 @@ const radii = (cs) => [cs.borderTopLeftRadius, cs.borderTopRightRadius, cs.borde
 
 /** Draws the ring over whichever region has the keyboard's focus, following its size, and drops it when focus leaves. */
 export function regionRings(doc = document, win = window) {
+  const scope = createScope();
   /** @type {HTMLElement | null} */
   let ring = null;
   /** @type {HTMLElement | null} */
@@ -58,8 +61,20 @@ export function regionRings(doc = document, win = window) {
     if (win.ResizeObserver) { ro = new win.ResizeObserver(place); ro.observe(el); if (el.parentElement) ro.observe(el.parentElement); }
     place();
   };
-  doc.addEventListener("focusin", (e) => { const t = /** @type {any} */ (e.target); if (t && t.matches && t.matches(REGIONS)) win.requestAnimationFrame(check); });
-  doc.addEventListener("keydown", () => { if (!ring) win.requestAnimationFrame(check); }, true);
-  doc.addEventListener("focusout", (e) => { if (e.target === on) drop(); });
-  win.addEventListener("resize", () => { if (on) place(); });
+  let frame = 0;
+  function schedule() {
+    if (frame) return;
+    frame = win.requestAnimationFrame(() => { frame = 0; check(); });
+  }
+  scope.effect(() => () => {
+    if (frame) win.cancelAnimationFrame(frame);
+    drop();
+  });
+  scope.listen(doc, "focusin", (e) => {
+    if (e.target instanceof win.Element && e.target.matches(REGIONS)) schedule();
+  });
+  scope.listen(doc, "keydown", () => { if (!ring) schedule(); }, true);
+  scope.listen(doc, "focusout", (e) => { if (e.target === on) drop(); });
+  scope.listen(win, "resize", place);
+  return scope.dispose;
 }
