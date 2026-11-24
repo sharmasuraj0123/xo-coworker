@@ -1,8 +1,8 @@
 # Fix plan for the modular codebase
 
-Plan only. Nothing here is built until the owner approves its package. Every path and line is read from the tree at `modular-gate-P3-group-05` (`0ef1bf97`) unless it says otherwise. Group 6's branch was read at `eda19fc3`.
+Plan only. Nothing here is built until the owner approves its package. Round 1 (F1–F28, N1–N3) was read from `modular-gate-P3-group-05` (`0ef1bf97`), and Group 6's branch from `eda19fc3`. Round 2 folds in the independent quality audit (Q-…), rechecked on the integration head `0e9158f6`.
 
-The owner's priority sets the bar: quality, system design and sound engineering before speed. Most findings are not separate bugs. They come from six missing or unused contracts. The plan fixes each contract once, then moves each finding onto it, and adds a check so new code can't reintroduce the pattern.
+The owner's priority sets the bar: quality, system design and sound engineering before speed. Most findings are not separate bugs. They come from a few missing or unused contracts (C1–C6 in round 1, C8–C11 in round 2). The plan fixes each contract once, then moves each finding onto it, and adds a check so new code can't reintroduce the pattern.
 
 ## 1. What the findings have in common
 
@@ -16,6 +16,15 @@ The owner's priority sets the bar: quality, system design and sound engineering 
 | Focus and scroll decided at each call site | thread open on touch raises the keyboard, `#panel` focus fallback, radio Tab stop, quote jump outside follow | **C6 Focus and scroll policy** |
 
 Static serving (masks, stylesheet graph) is its own design item, **C7**.
+
+Round 2 (the quality audit) shows four more patterns, between modules and under the checks rather than inside modules:
+
+| Pattern | Audit findings | Contract |
+|---|---|---|
+| Written rules no check counts, so they hold in letter and fail in intent | H2, H5, H7, M2, M3, M8, L1, L6 | **C8 Conformance ratchets** |
+| Modules wired through the app entry and one shared mutable `S` | H1, H3, L4 | **C9 Module boundaries and state ownership** |
+| Tokens exist, but components restate values and themes per rule | H4, H5, H6, M7, L3 | **C10 Style system** |
+| Tests pin source text, so they neither catch regressions nor allow refactors | H2, L5 | **C11 Tests test behaviour** |
 
 ## 2. The contracts
 
@@ -82,6 +91,48 @@ Static serving (masks, stylesheet graph) is its own design item, **C7**.
 ### C7 Static serving
 
 Findings F27 and F28 move to the blazing-fast UI phase after P5. Use the [P3 measurements](HANDOFF.md#p3-exit-evidence) as the baseline.
+
+### C8 Conformance ratchets (round 2)
+
+**Rule.** Every written rule in `AGENTS.md` that a machine can count has a check. A check counts per file, keeps a baseline that may only go down, and fails on any new file above zero. A file a package touches leaves at zero on the rules listed for that package.
+
+**Where.** `tools/conformance/`, grown from package A's `tools/lifecycle.mjs`: one runner, one parse per file, rule modules that each return counts, one baseline file per rule family in `tools/baselines/`. JS rules walk the `acorn` tree A already uses. CSS rules walk a parsed stylesheet (`postcss`, dev-only, the same kind of tool as `acorn`). Comment rules read comments from the same parse instead of the line scanner in `check.mjs:107–140`. `check.mjs` gains one `conformance` step.
+
+**Rules it carries.** Source-reading tests (H2), `any` in JSDoc and `.d.ts` (H7), lines over 140 characters in hand-written sources (M3), top-level functions over 150 lines (H3), exports with no importer outside tests (L1), DOM expando writes (L6, N2), colour literals and `data-theme` selectors outside the token files (H4), px literals other than 0 and 1 by property class (H5), width media queries that aren't the one breakpoint (H6), changelog comments (M2), `.py` sources in the size ratchet (M9), dependency keys passed to `create*({…})` in the app entry and a parameter named `S` under `modules/` (H1).
+
+**Rejected.** (a) One more ad-hoc step in `check.mjs` per rule: it already holds the line, `!important` and comment scans as separate text passes, and A deliberately kept the entry small. (b) Regex sweeps: the audit's own counts differ from mine by up to 4×, depending on the pattern (colours: 64 against 260). Counts from a parse are stable, so a baseline means something. (c) Turning rules on as hard errors at once: thousands of hits stop every package. Ratchets stop growth on day one and fall as packages touch files.
+
+**Enforcement.** The runner is itself tested: each rule has a fixture that must count exactly N, and a deliberate break (a planted `any`, a planted `#fff`) must fail the step.
+
+### C9 Module boundaries and state ownership (round 2)
+
+**Rule.** Each piece of state has one owner module. Others read it through the owner's typed service and hear changes through the bus. Modules don't receive each other's functions through the app entry.
+
+**Where.** The kernel already has `ctx.provide`, `ctx.use` and `ctx.on`. Add a typed service registry: an `interface Services` in `core/kernel/types.d.ts` that each module extends with its own entry (`declare module` merging), so `ctx.use("chats")` returns `ChatsService`, not `unknown`. Each owner keeps its state in a small typed store, `createStore<T>()` in `core/kernel/store.js`: `get`, `set(patch)`, `subscribe`, change published on the bus under the owner's topic.
+
+**Rejected.** (a) Type `S` as one big interface: it would make shared mutable state official. (b) An app-wide store library: it brings back one central bag, under another name, plus a dependency. (c) Keep the dependency bags and type them: types don't stop module A from reaching into module B's internals.
+
+**Enforcement.** C8's dependency-key and `S` ratchets. The kernel's conformance test (`live(id)` is 0 after disable) runs for every migrated module. The `layers` check stays, and with the bags gone it measures what it was meant to.
+
+### C10 Style system (round 2)
+
+**Rule.** Three tiers. Palette values live only in `core/ui/tokens.css` and `css/flavours.css`. Role tokens give each theme and flavour its meaning (`--sep`, `--edge-soft`, `--fill-hover`, `--fill-selected`, `--shadow-contact`). Components use roles only, and no component rule names a theme. Every length belongs to a token class by what it measures: spacing (`--s-*`) for padding, margin, gap and inset; control and icon sizes (`--h-*`, `--icon-*`); radii (`--r-*`); the hairline (`--hair`); elevation (`--e*`, `--lift-*`). JS reads durations, easing and the breakpoint from one module (`core/ui/tokens.js`, `core/platform/viewport.js`), never its own numbers. Where the owner's 21 November rule applies (size by content), a fixed width or height is removed, not tokenized.
+
+**Why this and not the audit's codemod as written.** Mapping every 16 px to `--s-4` would tie an icon's width to the spacing rhythm. Changing the rhythm would then resize icons. The class of the property decides the token.
+
+**Proof without a browser.** `tools/conformance/css-resolve.mjs` flattens the boot stylesheets in load order. It resolves every `var()` for each theme and flavour and writes one table: selector, property, layer, order and resolved value. A token-only commit must leave that table byte-identical. A move commit must leave the flattened sequence identical. Screenshot pairs then confirm each step once, as the coordinator asked, but a failure is caught before a browser runs.
+
+**Rejected.** Screenshot pairs alone: they cover 20 views, not every rule, and each run is the heaviest thing this box does.
+
+**Enforcement.** C8's style rules. A resolved-table test per step.
+
+### C11 Tests test behaviour (round 2)
+
+**Rule.** A unit test drives the module through its public factory or service and asserts on the DOM, the store or the API calls. A style test asserts on the parsed stylesheet or on C10's resolved table, never on source text. A test lives in its module's `tests/` folder.
+
+**Where.** `core/ui/test-kit` gains `mountModule(def, fakes)` (kernel plus fake services) and `cssTable()` (C10's resolver). Existing linkedom patterns in `modules/*/tests` are the model.
+
+**Enforcement.** C8's source-reading ratchet (175 test files read sources at `0e9158f6`). Each replaced assertion is proven by a deliberate break of the behaviour it now covers.
 
 ## 3. Findings
 
@@ -275,32 +326,166 @@ Format: **Root cause** (confirmed or not), **Fix** (with what was rejected), **O
 - **N2.** DOM expandos hold state (`tdock._ch`, `el._mx`, `el._mxe`, `b._mxq`, `el._h` in `motion.js:76`). They escape types and survive redraws unpredictably. Replace with `WeakMap`s owned by each controller as each area is touched; add to the post-P4 audit.
 - **N3.** Every storage access hand-wraps `try`/`catch` (43 references in 22 files); covered by C4.
 
+### Audit findings (round 2)
+
+Source: `QUALITY-AUDIT-P3-G6.md` (audit tree `bb4fef4d`, the Group 6 gate). Every finding was rechecked on the integration head `0e9158f6`, which adds package A. Line numbers are from `0e9158f6`. Counts come from my own sweeps; where they differ from the audit's, both are given.
+
+**Q-H1. Hand-wired dependency bags and a shared untyped `S`.**
+- Root cause, confirmed: `js/app.js:187` declares `S`; 28 files under `modules/` and `shell/` assign `S.*` (audit: 27). `js/app.js` has 92 `create*({…})` calls in 1,388 lines. Consumers type their own slice: `modules/threads/delete-view.js:7` declares `{ tDel, tDelLose }`, fields that never appear at the declaration.
+- Fix: C9, module by module, together with the `activate(ctx)` migration (package K). For each module: give its slice of `S` an owner store, expose it as a typed service, move readers to `ctx.use`, delete the slice. `S` is gone when its last field is.
+- Owner-visible: no. Regression check: C8's `S` and dependency-key ratchets; kernel conformance per migrated module.
+- When: after the P4 gate (P4 is emptying `js/app.js`: 48 lines added and 208 removed on its branch). Size L, risk medium.
+
+**Q-H2. Tests read source text.**
+- Root cause, confirmed: 175 test files call `readFileSync` (audit: 93 that also `assert.match` on source). `tests/thread-page.test.mjs:6–10` reads `js/app.js`, `thread-page.js`, `message-items.js`, `thread-page-html.js` and `css/panel.css`.
+- Fix: C11. Each package replaces the source-reading assertions about the files it changes, in its own commits. Package K replaces the rest module by module. Rejected: one big test-rewrite package. It would be written against code that packages B–F are still changing, and done twice.
+- Owner-visible: no. Regression check: C8's source-reading ratchet.
+- When: the ratchet now (H); the rewrites ride along with each package. Size L in total, S–M per package.
+
+**Q-H3. Whole modules are one closure (46 functions over 150 lines).**
+- Root cause, confirmed: `modules/files/files.js` 399 lines, `modules/map/map.js` 397, `modules/files/viewer.js` 395, `modules/chats/chats.js` 374, `shell/panel/panel.js` 360, each mostly one `create*` function.
+- Fix: in K, for each module: pure model and view functions go into their own files (`modules/decisions/rank.js` is the pattern), and the factory keeps wiring and state. The extracted functions get direct unit tests. Rejected: splitting by line count alone; the result would be the same closure spread across files.
+- Owner-visible: no. Regression check: C8 adds "top-level function over 150 lines" to the size ratchet.
+- When: K, after P4. Size L, risk low per module.
+
+**Q-H4. The light theme is per-component overrides.**
+- Root cause, confirmed: `data-theme="light"` rules outside the token files: `css/light.css` 45, `css/flavour-swatches.css` 30, `css/panel.css` 24, `css/app.css` 12, `css/diffs.css` 6, `shell/sidebar.css` 4. `css/light.css:4–12` shows the cause. Dark separates with a fill step and light with a line, so each component restates its edge per theme. The structural intent has no role token.
+- Fix: C10 role tokens for those intents, defined per theme and flavour, then delete the overrides. Rejected: moving the overrides into `tokens.css` unchanged; that relocates them without fixing anything.
+- Owner-visible: no, proven by C10's resolved table, then one screenshot pair set.
+- When: package J, step J2. Size M, risk medium (flavour-by-theme combinations).
+
+**Q-H5. About 1,900 literal px values beside a spacing scale.**
+- Root cause, confirmed: 1,907 on-scale px literals in `css/`, `shell/`, `modules/` and `core/ui/` (audit: about 1,960). `var(--s-*)` is used 639 times (audit: 383). The scale (`core/ui/tokens.css:168`) is 4, 8, 12 … 48 px. The values 2, 3, 5, 6, 10, 14 and 18 px aren't on it.
+- Fix: C10 by property class, in two commits per area. First the token-only move, proven by an identical resolved table. Then a separate snapping and content-sizing pass that changes looks and goes to the owner.
+- Owner-visible: the first step no; the second yes. **Owner decision** (see §5).
+- When: package J, steps J3 and J4. Size L, risk medium.
+
+**Q-H6. The phone breakpoint written in 61 places.**
+- Root cause, confirmed: 52 CSS lines with `760` and 9 JS sites, in three forms: `matchMedia("(max-width: 760px)")` (`js/app.js:177`, `:814`; `modules/shells/dock-input.js:103`; `modules/chats/intel.js:106`; `modules/chats/setup.js:124`; `modules/map/map.js:87`), `innerWidth <= 760` (`shell/panel/panel.js:175`, `core/ui/lightbox.js:70`) and `innerWidth > 760` (`shell/panel/width.js:24`). The `innerWidth` form disagrees with CSS by the scrollbar's width.
+- Fix: `core/platform/viewport.js` exports `PHONE` (one `MediaQueryList`) and `onViewport(fn)` through the scope. Every JS site uses it. CSS keeps one query string, enforced by C8, until package E can substitute `@custom-media`.
+- Owner-visible: only at exactly the breakpoint, where JS and CSS now agree. No decision needed.
+- When: the primitive in package I now. Each package converts its own sites (C: Chats and Shells; D: Map). The app entry and panel sites go after P4. Lightbox goes after B merges. Size S, risk low.
+
+**Q-H7. 728 `any` (audit 829); three files unchecked.**
+- Root cause, confirmed: `modules/files/markdown-page.js` has 42; `modules/launchpad/page.js` and `window.js` have no `// @ts-check`; `jsconfig.json:12` `checkJs: false`.
+- Fix: C8 ratchet now. CodeMirror is typed from its own `.d.ts` files through `modules/files/cm-types.d.ts`. Each package clears `any` in the files it touches. `checkJs: true` goes in when the opt-outs are zero (end of K).
+- Owner-visible: no. When: ratchet in H; CodeMirror types in K (Files). Size M.
+
+**Q-M1. Three repaint helpers keyed by an expando.**
+- Root cause, confirmed: `core/ui/patch.js:6–18` wraps `redraw` and then guesses focus again from `data-*` attributes. `core/ui/motion.js:76` `setHtml`. Both memo on `el._h`. Used by 8 files: `modules/conversation/notice-line.js`, `modules/artifacts/cards.js` and `page.js`, `modules/home/view.js` and `handled.js`, `shell/workspace-header.js`, `shell/top-header.js`, `core/ui/motion.js`. 196 expando writes in total.
+- Fix: C5 completed. `redraw()` memoizes in a `WeakMap`, and any focus case `patch` rescued becomes a `redraw.js` test and fix. `patch.js` and `setHtml` are deleted. Rejected: keeping `patch` as a "safe" wrapper; two paths drift apart.
+- Owner-visible: no. Regression check: the C8 expando ratchet; a DOM test per case `patch` handled.
+- When: package D (none of those files are in P4's or B's diffs). Size S–M, risk low.
+
+**Q-M2. About 115 changelog comments.**
+- Root cause, confirmed: for example `js/app.js:617` ("Astra C058 on 517af1c"). `REF` (`tools/check.mjs:107`) has no pattern for reviewers, hashes, QA numbers or owner dates. My broad sweep finds 169 candidates, some of them false positives.
+- Fix: C8's comment rule, with the audit's patterns, covering `css/` and `serve.py`, baselined. Each package rewrites the hits in the files it touches as one-line present-tense reasons, or deletes them. The `js/app.js` hits go with P4 or K.
+- Owner-visible: no. When: rule in H; rewrites ride along. Size S per package.
+
+**Q-M3. Lines packed to pass the 400-line limit.**
+- Root cause, confirmed: `core/ui/icons/xoicons.js` has 331 lines over 160 characters (it is generated), `modules/launchpad/views.js` 62 (the longest is 721), `modules/conversation/conversation.css` 43.
+- Fix: C8 line-length ratchet at 140, with generated files exempt. Typedefs move to `*-types.d.ts`; templates split into view functions in K.
+- Owner-visible: no. When: rule in H; burn-down in K. Size M.
+
+**Q-M4. Time and count wording implemented about six times.**
+- Root cause, confirmed: `DAY = 86400000` in `core/services/world/list-time.js:2`, `modules/artifacts/model.js:7`, `modules/github/page.js:10` and `modules/since/model.js:8`. A "within six days" rule appears in both `core/services/runtimes.js:60` and `core/services/world/held.js:18`. `plural` appears in `core/services/git-state.js:8`, `modules/since/model.js:11` and `modules/runs/view.js:64` with one signature, and in `js/app.js:180` with another that returns only the word. `modules/decisions/rank.js:37,45` adds two more formatters.
+- Fix: `core/platform/time.js` owns the clock, day, relative and until formats with named styles (for example `short` "4m" and `prose` "4 min ago"), on its cached formatters. `core/platform/words.js` owns `plural` and `count`. Each surface keeps the format it shows today by choosing the matching style, so the first step changes no text. Where a surface's output matches neither style, I list it for the owner instead of guessing. Rejected: one format everywhere; a visible change decided by a refactor.
+- Owner-visible: no in the first step. Regression check: table tests of each style; C8 duplicate-constant rule (`86400000` outside `time.js`).
+- When: package I for `core/`, Since and Artifacts; the GitHub, Runs and Decisions sites in D, C and F; `js/app.js` after P4. Size M, risk low.
+
+**Q-M5. The conversation exists twice, through global IDs.**
+- Root cause, confirmed: `modules/conversation/thread-page.js:31–40` looks up the panel copy by `#t…` IDs. There are 29 `:is(#msgs,#tmsgs)` selectors in `modules/conversation/msgx.css` and 19 in `core/ui/markdown/rich.css`.
+- Fix: a conversation instance mounted on a root, looked up relative to the root and styled by class. `createConv` already takes its elements. Rejected: generating the `t` IDs from a prefix; still global, still ID specificity.
+- Owner-visible: no, but switching from ID to class selectors changes specificity, so this needs C10's resolved table and a screenshot pair.
+- When: package F (after P4; P4 touches `modules/conversation/main-decoration.js` and `lightbox.js`). Size M, risk medium.
+
+**Q-M6. Focus after counted frames; the composer `held` workaround; bare delays.**
+- Root cause, confirmed: `js/app.js:628–643` keeps an empty Home composer from shrinking under a press. It has its own capture listeners and a 600 ms touch allowance, which copies `core/ui/redraw.js:21–29` (`pressed`, the same 600 ms). There are 46 `setTimeout` calls with literal delays.
+- Fix: C6 extended. Focus happens in the same task as the commit through `focusEntry`; no counted frames. The press tracker becomes one export of `core/ui/press.js`, used by `redraw.js` and the composer. The composer's shrink waits on `:focus-within` plus "no press in flight", so `held` and its listeners go. Delays become named durations in `core/ui/tokens.js` (N1).
+- Owner-visible: no, if the shrink timing is kept. **Owner decision** if they'd rather the composer simply not shrink on blur.
+- When: F (after P4). Size M, risk medium.
+
+**Q-M7. 2,009 lines of module rules in two global sheets.**
+- Root cause, confirmed: `css/app.css` has 1,377 lines and 18 `@import`s; `css/panel.css` has 632. `shell/kernel.js:12` `addModule` is never called.
+- Fix: C10's order-preserving move. Cut `css/app.css` into consecutive chunks in its current order; each chunk goes to the owning module's sheet, and `css/app.css` becomes a pure import list in the same order. The flattened sequence is then identical by construction, and C10's tool proves it. Rejected: moving rules into sheets that are already imported at the top; that reorders the cascade.
+- Owner-visible: no. Request count goes up until package E flattens at serve time, which the owner accepted (the speed work comes later).
+- When: package J, step J1. Size M, risk low.
+
+**Q-M8. Lint has correctness off.**
+- Root cause, confirmed: `.oxlintrc.json:4`.
+- Fix: correctness on, suspicious as warnings, today's hits baselined in `tools/baselines/lint.json`. Each package clears hits in its files.
+- Owner-visible: no. When: H. Size S.
+
+**Q-M9. `serve.py` is 736 lines and outside the size rule.**
+- Root cause, confirmed: `tools/check.mjs:12` `SOURCE_DIRS` covers JS and CSS only.
+- Fix: `.py` joins the size ratchet in H at today's size. Split into `serve/static.py`, `proxy.py`, `ws.py` and later `css.py` as the first step of E. Rejected: splitting now; E is deferred past P5 and nothing else changes the file.
+- When: ratchet in H; the split in E. Size M.
+
+**Q-L1. Dead exports.**
+- Root cause, confirmed: `modules/decisions/rank.js:37` `fmtMin` and `:45` `fmtAgent` have no importer.
+- Fix: C8 exports rule; deletions in the owning package (these two in F).
+
+**Q-L2. Thread search written twice with different fields.**
+- Root cause, confirmed: `shell/panel/lists.js:17` matches title, sub, summary and branch; `modules/threads/all.js:28` leaves out `sub`.
+- Fix: one `matchThread(t, q)` in `core/services/world`, used by both.
+- Owner-visible: All threads also matches the subtitle. Small; listed in §5. When: D. Size S.
+
+**Q-L3. Easing defined twice.** `core/platform/motion.js:4` and `core/ui/tokens.css:188`. Fix with N1 through `core/ui/tokens.js` in package I. Not visible if the values match, proven by a test that compares the JS value with the token.
+
+**Q-L4. Cryptic names** (`S`, `D`, `TP`, `LPP`, `.stg-`, `.shd-`). Renamed at the service boundary as K moves each module, and CSS prefixes as J moves each sheet. Not visible.
+
+**Q-L5. Tests away from their modules** (213 in `tests/`, 85 in module folders). Moved as each package touches a module; K finishes. Not visible.
+
+**Q-L6. 196 DOM expando writes.** C8 ratchet in H; N2's `WeakMap` rule as each area is touched.
+
+
 ## 4. Fix packages
 
-Each package is one branch from the latest gate, in small commits: the contract or test first, then one finding per commit with its deliberate-break proof. New tests go in new files so they don't collide with Group 6's 59 touched test files. Baselines (`ratchets.json`, `ledger.json`) are regenerated by the integrator at merge, never hand-merged.
+Each package is one branch from the latest gate, in small commits: the contract or test first, then one finding per commit with its deliberate-break proof. New tests go in the module's own `tests/` folder (C11). Baselines and the ledger are regenerated by the integrator at merge, never merged by hand.
 
-| # | Package | Findings | Owns (files) | When | Size | Risk | Owner OK needed |
+**Leave touched files clean.** From package H on, every file a package changes leaves at zero on these C8 rules: comment-only catch, changelog comments, `any`, source-reading assertions about that file, the breakpoint and expandos. Splitting oversized closures (Q-H3) is K's work, not every package's.
+
+| # | Package | Findings | Owns (files) | When | Size | Risk | Visible |
 |---|---|---|---|---|---|---|---|
-| **A** | Contracts | C1–C4 primitives, the `lifecycle` check | `core/kernel/scope.js` (new), `core/kernel/kernel.js`, `core/platform/cache.js` (new), `core/platform/storage.js` (new), `core/platform/pending.js`, `tools/check.mjs`, `tools/baselines/lifecycle.json` (new), `AGENTS.md` | **Now** | M | Low; no behaviour change | No |
-| **B** | Files and media | F1, F2, F3 | `modules/files/drag.js`, `files.js`, `page.js`; `core/services/media/render.js`, `hydrate.js` | **Now**, after A | M | Medium (F3 lightbox) | F1 |
-| **C** | Reads and timers | F4, F7, F8, F11, F14, F15, F16 | `modules/chats/chats.js`, `intel.js`, `intel-catalog.js`, `record-lines.js`; `modules/shells/dock.js`, `dock-input.js`; `modules/settings/accounts.js`; `modules/map/folders.js`; `modules/runs/strip.js` | **Now**, after A | M | Medium (F4) | F4, F11, F16 |
-| **D** | Redraw, focus and small correctness | F5, F6, F10, F12, F13, F17, and `focusEntry` in `core/ui/a11y/focus.js` | `modules/github/page.js`, `core/ui/a11y/keynav.js`, `core/ui/a11y/focus.js`, `modules/settings/appearance.js`, `modules/map/map.js`, `modules/projects/icon-choice.js`, `modules/artifacts/made.js` | **Now**, after A | S–M | Low | F5, F10, F13 |
-| **E** | Static serving | F27, F28 | `serve.py`, `tests/serve.test.py` | **Blazing-fast UI after P5** | M | Medium | No (screenshot pair needs browser permission) |
-| **F** | Conversation and decisions | F18–F24, N2 for the dock | `modules/conversation/*`, `modules/decisions/*`, `js/decide.js`, `js/app.js` call sites, `shell/overlays.js` (heading `tabindex`) | **Wait: Group 6 gate** (all are in Group 6's diff). Must also land before P4 starts or after its gate, since P4 edits the app entry | M–L | Medium | F18, F23, F24 |
-| **G** | Measure and tidy | F9, F21's trace, F25, F26, N1, the `activate(ctx)` migration plan | as measured | **Wait: P4 gate** | M | Low | Browser runs need the owner's permission |
+| **A** | Contracts | C1–C4, `lifecycle` check | merged at `0e9158f6` | Done | M | — | No |
+| **B** | Files and media | F1, F2, F3 | `modules/files/*`, `core/services/media/*`, `core/ui/lightbox.js` (as on `modular/fix-b`) | In progress. Scope unchanged; its lightbox breakpoint site goes to K | M | Medium | F1 (approved) |
+| **H** | Conformance (new) | C8; the rules for Q-H1, H2, H3, H4–H7, M2, M3, M8, M9, L1, L6; C10's resolver `css-resolve.mjs` | `tools/conformance/*` (new, absorbs `tools/lifecycle.mjs`), `tools/check.mjs`, `tools/baselines/*.json` (new families), `.oxlintrc.json`, `package.json` and lock (`postcss`, dev-only), `AGENTS.md` | **Now**: tools only; the only overlap with P4 is regenerated baselines | M | Low | No |
+| **I** | Platform wording and viewport (new) | Q-H6 primitive, Q-M4 (`core/`, Since, Artifacts) | `core/platform/viewport.js` (new), `core/platform/time.js`, `core/platform/words.js` (new), `core/services/runtimes.js`, `core/services/world/held.js`, `list-time.js`, `core/services/git-state.js`, `modules/since/model.js`, `modules/artifacts/model.js` | **Now**, after H | S–M | Low | No |
+| **C** | Reads and timers, widened | F4, F7, F8, F11, F14, F15, F16; Q-H6 sites in Chats and Shells; Q-M4 in Runs | round 1 list plus `modules/chats/setup.js`, `modules/runs/view.js` | **Now**, after H and I | M | Medium | F4, F11, F16 (approved) |
+| **D** | Redraw, focus and UI primitives, widened | F5, F6, F10, F12, F13, F17; Q-M1, Q-L2, Q-L3, N1; Q-H6 in Map; Q-M4 in GitHub; `core/ui/press.js` for Q-M6 | round 1 list plus `core/ui/redraw.js`, `core/ui/patch.js` (deleted), `core/ui/motion.js`, `core/platform/motion.js`, `core/ui/tokens.js` (new), `core/ui/press.js` (new), the 7 `patch`/`setHtml` callers, `shell/panel/lists.js`, `modules/threads/all.js`, `core/services/world` (matcher) | **Now**, after H and I. None of these files are in P4's or B's diffs | M | Low | F5, F10, F13 (approved); Q-L2 (§5) |
+| **J** | Style system (new) | J1 Q-M7 order-preserving ownership; J2 Q-H4 role tokens; J3 Q-H5 token-only move; J4 Q-H5 snapping and content sizing; J5 the breakpoint check to zero | `css/*`, module and shell stylesheets, `core/ui/tokens.css`, `css/flavours.css`. The conversation sheets (`msgx.css`, `conversation.css`, `rich.css`) wait for F | J1–J3 **can start now** (P4's branch changes no CSS), after H, when the coordinator has a worker slot. J4 needs the owner | L | Medium | J1–J3 no, proven by the resolved table plus one screenshot pair set each. J4 yes |
+| **F** | Conversation and decisions, widened | F18–F24, N2 for the dock; Q-M5, Q-M6, Q-L1 (`fmtMin`, `fmtAgent`), Q-M4 in Decisions | `modules/conversation/*`, `modules/decisions/*`, `js/decide.js`, `shell/overlays.js`, the conversation sheets | **After the P4 gate** (P4 changes `main-decoration.js`, `lightbox.js` and the app entry) | L | Medium | F18, F23, F24 (approved); Q-M6 (§5) |
+| **K** | Module boundaries (new; takes over G's `activate(ctx)` migration) | Q-H1, Q-H3, Q-H7 (CodeMirror types, `checkJs: true`), Q-H2 and Q-M3 burn-down, Q-L4, Q-L5, the app-entry sites of Q-H6, Q-M2 and Q-M4 | one module per slice. Leaf modules first (Since, GitHub, Runs, Worktrees, Rules, Routing), Settings, Files, Map and Chats next, Conversation and Decisions last, then the app entry | **After the P4 gate, before P5**. Runs after F for Conversation and Decisions | L (days) | Medium | No |
+| **G** | Measure | F9, F21's trace, F25, F26 | as measured | After the P4 gate, in the same browser session as J's screenshot pairs | S | Low | No; browser time needs the owner |
+| **E** | Static serving, widened | F27, F28; Q-M9 split first; `@custom-media` for the breakpoint | `serve.py` → `serve/*`, `tests/serve.test.py` | **After P5** (blazing-fast UI phase, the owner's ruling) | M | Medium | No |
 
-**In parallel with the remaining modularization:** A first. The coordinator schedules B, C and D after A and the P3 audit, within the worker limit. F and G wait for P4.
+### Order and parallelism
 
-**Order by value and risk:** A, then B (the Files drop bug and unbounded media growth), C, D, F and G. E follows P5.
+1. **Now, beside P4's revision:** B finishes. Then H, which is small, tools-only and changes the baseline every later package is measured against. Then I. Then C and D in parallel: their files are disjoint from each other, from B and from P4's branch (`2c3c409b`). If the worker limit allows a third, J1–J3 can run, since no open branch touches CSS.
+2. **After the P4 gate:** F. K starts with leaf modules in parallel with F and reaches Conversation and Decisions after F merges. G and J's screenshot pairs share one browser session under the lease. J4 waits for the owner's call.
+3. **Before P5:** everything except E. The independent audit that HANDOFF requires before P5 runs on a tree where every C8 ratchet has been falling.
+4. **After P5:** E.
 
-**Memory rule for the builders:** one package worker at a time unless the coordinator says the box has room; each runs one small test process at a time and the fast check, with one full check per package at hand-off under the lease.
+**Why H goes first.** Without it, C and D would each fix their files and nothing would stop the next change from undoing it. With it, every package from here on is measured, and the ratchets show progress as numbers that only go down.
+
+**Memory rule for the builders:** at most the coordinator's worker limit; one small test process each; the fast check while working and one full check per package at hand-off under the lease. Screenshot pairs only with the owner's permission, one browser project-wide.
+
+### What changes nothing visible
+
+No visible change (proven by tests; style steps by C10's resolved table, then a screenshot pair set): H, I, Q-H1, Q-H2, Q-H3, Q-H4 (J2), Q-H5's first step (J3), Q-H7, Q-M1, Q-M2, Q-M3, Q-M4's first step, Q-M5 (specificity risk, so table and screenshot pair), Q-M7 (J1), Q-M8, Q-M9, Q-L1, Q-L3, Q-L4, Q-L5, Q-L6.
+
+Visible: Q-H5's second step (J4), Q-L2 (All threads also matches subtitles), and Q-M6 only if the owner chooses to drop the shrink. Q-H6 changes behaviour only at exactly 760 px, where JS and CSS now agree.
 
 ## 5. Decisions for the owner
 
-1. **Files drag-and-drop works again** (F1). Recommended: yes.
-2. **Chats list paints first, titles fill in** (F4), and ask Space to serve titles in the session list. Recommended: yes to both.
-3. **Theme when the browser won't save** (F10): keep the new theme for this session and say it won't be remembered (recommended), or revert.
-4. **GitHub sign-in after Settings closes** (F11): finishes in the background with a notice (recommended), or cancels.
-5. **Small visible corrections:** GitHub detail failure line (F5), renamed project's inferred icon updates (F13), "couldn't undo" line (F16), quote jump lands on the right message and stops following (F24). Recommended: yes.
-6. **Phone thread open focuses the heading, not the field** (F18). This is your 19 November rule; confirm.
-7. **Working pill sized by CSS instead of JS** (F23), with one before/after screenshot pair, and permission for the small browser runs in E and G.
+**Round 1: approved** on 24 November 2026 (cmsg_7396f7976c094d49), all seven on the recommended options: F1, F4 with the Space title request, F10 keep for the session, F11 finish in the background, the small corrections (F5, F13, F16, F24), F18, and F23 with its screenshot pair.
+
+**Round 2: new decisions**
+
+1. **Spacing values off the scale** (J4: 2, 3, 5, 6, 10, 14 and 18 px). Recommended: snap to the 4 px scale and keep only named optical tokens for 1–3 px nudges, reviewed on screenshot pairs. The alternative is to add the frequent values to the scale.
+2. **Size by content app-wide** (J4). Apply your 21 November rule wherever a fixed width or height can be replaced by content sizing, reviewed on screenshot pairs. Recommended: yes.
+3. **The empty Home composer's shrink on blur** (Q-M6). Recommended: keep the shrink and rebuild it so a click can't miss, with no workaround and no visible change. The alternative is to stop shrinking.
+4. **All threads search also matches the subtitle**, like the panel's search (Q-L2). Recommended: yes.
+5. **Browser runs for proof.** One screenshot pair set for each of J1–J4, F's selector change (Q-M5) and F23, each under the lease, one at a time. Recommended: allow these. The alternative is to batch them into P5, which makes a mismatch hard to trace to its step.
+
+**For the coordinator, not the owner:** H adds `postcss` as a dev-only tool next to `acorn`. The app still ships plain files with no build.
