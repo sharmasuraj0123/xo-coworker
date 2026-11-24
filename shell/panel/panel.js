@@ -3,6 +3,8 @@
 // The panel: one right-hand column of stacked frames (Threads, Changes, Map) or one page in their place.
 
 import { $ } from "../../core/platform/dom.js";
+import { createScope } from "../../core/kernel/scope.js";
+import { read, write } from "../../core/platform/storage.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -10,8 +12,9 @@ import { usable } from "../../core/ui/a11y/focus.js";
 import { ORDER, MAP_H, ROW, createFrames } from "./frames.js";
 import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
-import { createWidth } from "./width.js";
+import { createCover, createWidth } from "./width.js";
 import { countsHtml } from "../../core/ui/components/counts.js";
+/** @import { ChangesFrame, FrameState, MapFrame, StageDeps, StageState } from "./panel-types.d.ts" */
 
 const KEY = "xo-stage";
 const FR_KEY = "xo-stage-frames-3"; // Threads · Changes · Map, the Map folded at first
@@ -21,29 +24,28 @@ const UNFULL_IC = ICON.unfull;
 const FOLD_IC = ICON.chevron;
 const FILES_IC = ICON.folder;
 
-/** @param {string} k */
-const sget = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch { return {}; } };
-/** @param {string} k @param {unknown} v */
-const sset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
-
-/** @typedef {{ files: any, openFiles?: (() => void) | null, github?: { has(v: string): Promise<boolean>, show(): void } | null, place?: (v: string) => boolean, viewer: any, view: () => string, go: (v: string, e?: Event) => void, announce: (s: string) => void, onChange?: () => void, frames?: () => string[], threads?: any, shell?: ((on: boolean, host?: HTMLElement, view?: string) => void) | null, owns?: (e: Event) => boolean, at: () => import("../../core/kernel/types").At, places: import("../../core/kernel/types").Kernel["places"] }} StageDeps */
-
 /** @param {StageDeps} deps */
 export function createStage({ files, openFiles = null, github = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, places }) {
-  const saved = sget(KEY);
-  const frameOf = (/** @type {string} */ id) => /** @type {any} */ (places.get("panel.frame", id));
-  const map = frameOf("map").api, CHF = frameOf("changes");
+  const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
+  const mapFrame = /** @type {MapFrame | undefined} */ (places.get("panel.frame", "map"));
+  const changesFrame = /** @type {ChangesFrame | undefined} */ (places.get("panel.frame", "changes"));
+  if (!mapFrame || !changesFrame) throw new Error("Panel frames are missing");
+  const layoutScope = createScope();
+  const map = mapFrame.api;
   // the Map starts folded, in its Graph: Threads and Changes have the room
-  const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...sget(FR_KEY) };
+  /** @type {Partial<FrameState>} */
+  const savedFrames = read(FR_KEY, JSON.parse, {});
+  /** @type {FrameState} */
+  const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...savedFrames };
   if (!fr.agents.groups) fr.agents.groups = { done: true };
   if (!fr.map.h) fr.map.h = MAP_H;
   // a height dragged before Threads went by rows: its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
-  /** @type {any} */
-  const S = { open: false, full: false, returnTo: null, stackH: 0, h: {} };
+  /** @type {StageState} */
+  const S = { open: false, full: false, returnTo: null, stackH: 0, h: {}, page: null, under: null, tgMore: {} };
 
-  /** @type {any} */
   const el = document.createElement("aside");
+  const query = (/** @type {string} */ selector) => /** @type {HTMLElement} */ (el.querySelector(selector));
   el.className = "stage";
   el.id = "stage";
   el.hidden = true;
@@ -63,7 +65,16 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   const main = /** @type {HTMLElement} */ ($("#main"));
   main.appendChild(el);
   // the stack's height, as laid out, from its observer: Threads' cap is worked out from it without forcing a layout
-  if (typeof ResizeObserver === "function") new ResizeObserver(([e]) => { const h = Math.round(e.contentRect.height); if (h !== S.stackH) { S.stackH = h; if (S.open) { capAgents(); edges(); } } }).observe(el.querySelector(".stg-frames"));
+  if (typeof ResizeObserver === "function") {
+    const observer = new ResizeObserver(([entry]) => {
+      const height = Math.round(entry.contentRect.height);
+      if (height === S.stackH) return;
+      S.stackH = height;
+      if (S.open) { capAgents(); edges(); }
+    });
+    observer.observe(query(".stg-frames"));
+    layoutScope.observe(observer);
+  }
   const LISTS = '[data-fr="agents"] > .fr-b, .ch-old';
   const edge = (/** @type {Element} */ b) => b.classList.toggle("is-fade", b.scrollTop + b.clientHeight < b.scrollHeight - 1);
   let edgeF = 0;
@@ -72,29 +83,32 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     const target = /** @type {Element | null} */ (e.target);
     if (target?.matches?.(LISTS)) edge(target);
   }, { capture: true, passive: true });
-  const body = (/** @type {string} */ id) => el.querySelector(`[data-fr="${id}"] .fr-b`);
+  const body = (/** @type {string} */ id) => query(`[data-fr="${id}"] .fr-b`);
+  const filter = () => /** @type {HTMLInputElement} */ (query("[data-tg-q]"));
   // Threads' body: the filter field (kept, never redrawn under your typing) over the list (drawn in place)
   body("agents").innerHTML = `<div class="tg-q" hidden><label class="tg-qf">${ICON.search}<input type="search" data-tg-q placeholder="Filter threads" aria-label="Filter threads by title, summary or branch" aria-keyshortcuts="/" autocomplete="off" spellcheck="false"></label><kbd class="tg-k" aria-hidden="true">/</kbd></div><div class="tg-box"></div>`;
   {
-    const inp = body("agents").querySelector("[data-tg-q]");
+    const inp = filter();
     inp.addEventListener("input", () => { S.tq = inp.value; paint(); });
     inp.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
       if (e.key === "Escape" && inp.value) { e.preventDefault(); e.stopPropagation(); inp.value = ""; S.tq = ""; paint(); return; }
       // empty, Esc puts a field you opened away again and goes back to the search button
-      if (e.key === "Escape" && S.tqOpen) { e.preventDefault(); e.stopPropagation(); S.tqOpen = false; paint(); el.querySelector("[data-tg-find]")?.focus({ preventScroll: true }); return; }
-      if (e.key === "ArrowDown" || e.key === "Enter") { const r = body("agents").querySelector(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
+      if (e.key === "Escape" && S.tqOpen) { e.preventDefault(); e.stopPropagation(); S.tqOpen = false; paint(); query("[data-tg-find]")?.focus({ preventScroll: true }); return; }
+      if (e.key === "ArrowDown" || e.key === "Enter") { const r = query(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
     });
   }
-  frameOf("map").mount(body("map"));
+  mapFrame.mount(body("map"));
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
   body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
-  const CX = CHF.mount(body("changes").firstElementChild, {
+  const CX = changesFrame.mount(query(".cx-host"), {
     view,
-    openFile: (/** @type {any} */ s, /** @type {string} */ path, /** @type {any} */ from) => viewer.open({ path, name: path.split("/").pop(), project: s.project, rel: s.worktree ? `.xo/worktrees/${s.worktree}/${path}` : path, show: "changes" }, from),
+    openFile: ({ project, worktree }, path, from) => viewer.open({
+      path, name: path.split("/").pop(), project, rel: worktree ? `.xo/worktrees/${worktree}/${path}` : path, show: "changes",
+    }, from),
     onChange: () => onChange && onChange(),
   });
 
-  function persist() { sset(KEY, { open: S.open || !!S.resume }); sset(FR_KEY, fr); }
+  function persist() { write(KEY, JSON.stringify({ open: S.open || !!S.resume })); write(FR_KEY, JSON.stringify(fr)); }
 
   const placeless = () => !place(view());
 
@@ -113,33 +127,38 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   function findThreads() {
     if (fr.agents.folded) { fr.agents.folded = false; persist(); layout(); }
     S.tqOpen = true; paint();
-    const q = el.querySelector("[data-tg-q]"); q.focus({ preventScroll: true }); q.select();
+    const q = filter(); q.focus({ preventScroll: true }); q.select();
   }
 
   function paint() {
     PG.reflect();
     if (!S.open) return;
     const v = view();
-    /** @type {any[]} */
     const ag = map.agents(v);
     // a clock's figures aren't a change; what changes is drawn in place, so the row you're on stays itself
-    const set = (/** @type {string} */ k, /** @type {any} */ node, /** @type {string} */ html) => { const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1"); if (S.h[k] !== same) { redraw(node, html); S.h[k] = same; } };
-    set("head", el.querySelector(".stg-t"), PG.titleHtml());
+    const set = (/** @type {string} */ k, /** @type {HTMLElement} */ node, /** @type {string} */ html) => {
+      const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1");
+      if (S.h[k] !== same) { redraw(node, html); S.h[k] = same; }
+    };
+    set("head", query(".stg-t"), PG.titleHtml());
     const covered = !!S.page;
-    if (github) { const button = el.querySelector("[data-open-gh]"); github.has(v).then((ok) => { if (button.hidden === ok) button.hidden = !ok; }); }
-    const tg = /** @type {Array<{ k: string, rows: any[] }> | null} */ (threads ? threads(v) : null);
+    if (github) {
+      const button = query("[data-open-gh]");
+      github.has(v).then((ok) => { if (button.hidden === ok) button.hidden = !ok; });
+    }
+    const tg = threads?.(v);
     const tq = (S.tq || "").trim().toLowerCase(), total = tg ? tg.reduce((n, x) => n + x.rows.length, 0) : 0;
-    const qBox = body("agents").querySelector(".tg-q");
+    const qBox = query(".tg-q");
     qBox.hidden = !(tg && (total > FILTER_AT || tq || S.tqOpen));
-    if (!covered) set("agents", body("agents").querySelector(".tg-box"), tg ? threadsHtml(tg, tq, { folds: fr.agents.groups, more: S.tgMore }) : agentsHtml(ag, v));
+    if (!covered) set("agents", query(".tg-box"), tg ? threadsHtml(tg, tq, { folds: fr.agents.groups, more: S.tgMore }) : agentsHtml(ag, v));
     // the threads, not the coordinator's row: the same count as the header's Threads
-    const agentCount = el.querySelector('[data-fr-n="agents"]');
+    const agentCount = query('[data-fr-n="agents"]');
     const count = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));
     if (agentCount.textContent !== count) agentCount.textContent = count;
     // Changes: Space's list and diff where it has /changes, else today's list
     if (!fr.changes.folded && !covered) CX.paint();
     const hd = CX.head();
-    const [cxHost, old] = body("changes").children;
+    const cxHost = query(".cx-host"), old = query(".ch-old");
     cxHost.hidden = !hd; old.hidden = !!hd;
     if (!hd && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch, v)); }
     edges();
@@ -150,10 +169,10 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       S.chEmpty = empty; layout();
     }
     // the Map's Diagram | Graph only while the Map is open; its fold opens it
-    { const mv = el.querySelector('[data-fr="map"] .fr-views'); if (mv) mv.hidden = !!fr.map.folded; }
-    const n = el.querySelector('[data-fr-n="changes"]');
+    query('[data-fr="map"] .fr-views').hidden = !!fr.map.folded;
+    const n = query('[data-fr-n="changes"]');
     set("chn", n, hd ? (hd.count ? `${hd.count}${hd.total.add || hd.total.del ? ` ${countsHtml(hd.total)}` : ""}` : "") : String(files.changes(v).length || ""));
-    const fw = el.querySelector("[data-follow]");
+    const fw = query("[data-follow]");
     fw.hidden = !hd || !hd.count;
     if (hd) {
       fw.classList.toggle("is-on", hd.follow);
@@ -161,44 +180,25 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       fw.title = hd.follow ? "Following the agent: the file it changes shows here. Pick a file or scroll to stop." : "Follow the agent: show each file it changes as it changes it";
       fw.setAttribute("aria-label", hd.follow ? "Following the agent" : "Follow the agent");
     }
-    for (const b of el.querySelectorAll("[data-map-mode]")) { const on = map.mode === b.dataset.mapMode; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; }
+    for (const b of /** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll("[data-map-mode]"))) {
+      const on = map.mode === b.dataset.mapMode;
+      b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1;
+    }
     body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
-    const fb = el.querySelector("[data-stg-full]");
+    const fb = query("[data-stg-full]");
     const fh = S.full ? UNFULL_IC : FULL_IC;
-    if (fb._h !== fh) { fb.innerHTML = fh; fb._h = fh; }
+    redraw(fb, fh);
     fb.setAttribute("aria-label", S.full ? "Back beside the conversation" : "Full size");
     fb.title = S.full ? "Back beside the conversation" : "Full size";
   }
 
-  /** While the panel covers the page (full size, or on a phone) what's under it is inert; the herald and toast stay in reach. */
-  function coverSync() {
-    const on = S.open && !el.hidden && (S.full || innerWidth <= 760);
-    /** @type {any[]} */
-    const keep = [document.getElementById("herald")].filter(Boolean);
-    // what should be inert is worked out whole each time; whatever this marked before and shouldn't be is released
-    const want = /** @type {Set<any>} */ (new Set());
-    const walk = (/** @type {any} */ root) => {
-      for (const c of root.children) {
-        if (c === el || c.classList.contains("toast-wrap") || keep.includes(c)) continue;
-        if (keep.some((k) => c.contains(k))) walk(c);
-        else want.add(c);
-      }
-    };
-    // focus on what's about to be covered goes into the panel, never to the page
-    const a = /** @type {any} */ (document.activeElement), outside = !!a && a !== document.body && !el.contains(a) && !keep.some((k) => k.contains(a)) && !a.closest(".toast-wrap");
-    if (on && el.parentElement) walk(el.parentElement);
-    for (const n of /** @type {any} */ (document.querySelectorAll("[data-stage-inert]"))) if (!want.has(n)) { n.inert = false; delete n.dataset.stageInert; }
-    // only what isn't inert already is marked (another owner's inert stays its own)
-    for (const n of want) if (!n.inert) { n.inert = true; n.dataset.stageInert = ""; }
-    document.body.classList.toggle("stage-covers", on);
-    if (on && (outside || document.activeElement === document.body) && (!a || a === document.body || !!a.closest("[inert]") || !a.isConnected)) el.focus({ preventScroll: true });
-  }
+  const coverSync = createCover(el, S, layoutScope);
 
   function open({ focus = true } = {}) {
     if (placeless()) return;
     if (!S.open) {
       S.open = true;
-      S.returnTo = document.activeElement;
+      S.returnTo = /** @type {HTMLElement | null} */ (document.activeElement);
       el.hidden = false;
       // its entrance starts in the next frame, not by forcing a layout in the middle of the switch that brought it
       el.classList.remove("is-in"); requestAnimationFrame(() => { if (S.open) el.classList.add("is-in"); });
@@ -214,6 +214,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   }
 
   function close({ restore = true, quiet = false } = {}) {
+    github?.leave?.();
     if (S.page) dropPages();
     if (!S.open) return;
     S.open = false;
@@ -224,7 +225,8 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     map.hide();
     persist();
     // back to what opened it, or, if that was redrawn meanwhile, to the toggle on screen now: never to the page
-    const back = [S.returnTo, ...document.querySelectorAll("[data-stage-toggle]")].find(usable);
+    const toggles = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll("[data-stage-toggle]"));
+    const back = [S.returnTo, ...toggles].find(usable);
     S.returnTo = null;
     if (restore && back) back.focus({ preventScroll: true });
     // the head is redrawn after this (its toggle with it): once it has been, focus is on the toggle drawn now
@@ -248,68 +250,75 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     if (placeless()) { if (S.open) { S.resume = true; close({ restore: false, quiet: true }); } }
     else if (S.resume) { S.resume = false; open({ focus: false }); }
     // what the cover holds inert follows the page as it changes
-    if (S.open || document.querySelector("[data-stage-inert]")) coverSync();
+    if (S.open) coverSync();
     if (!S.open) return;
     apply();
     paint();
   }
 
-  el.addEventListener("click", (/** @type {any} */ e) => {
+  el.addEventListener("click", (e) => {
     const t = e.target;
+    if (!(t instanceof Element)) return;
+    const closest = (/** @type {string} */ selector) => /** @type {HTMLElement | null} */ (t.closest(selector));
     if (t.closest("[data-stg-close]")) { requestClose(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
     if (t.closest("[data-stg-sections]")) { if (!(S.page && PAGES.get(S.page.name)?.up?.(S.page.key) === true)) back(); return; }
-    const pa = t.closest("[data-stg-act]");
-    if (pa && S.page) { PAGES.get(S.page.name)?.act?.(pa.dataset.stgAct, pa); return; }
-    const fo = t.closest("[data-fr-fold]");
-    if (fo) {
-      const id = fo.dataset.frFold;
+    const pa = closest("[data-stg-act]");
+    if (pa?.dataset.stgAct && S.page) { PAGES.get(S.page.name)?.act?.(pa.dataset.stgAct, pa); return; }
+    const id = closest("[data-fr-fold]")?.dataset.frFold;
+    if (id === "agents" || id === "changes" || id === "map") {
       fr[id].folded = !fr[id].folded;
       layout(); paint(); persist(); return;
     }
-    const mm = t.closest("[data-map-mode]");
-    if (mm) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mm.dataset.mapMode); paint(); return; }
+    const mode = closest("[data-map-mode]")?.dataset.mapMode;
+    if (mode) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mode); paint(); return; }
     if (t.closest("[data-open-gh]")) { if (S.page?.name === "github" || S.page?.name === "ghitem") dropPages(); else github?.show(); return; }
     if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(); else openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
-    const ch = t.closest("[data-change]");
-    if (ch) { const rel = ch.dataset.change; viewer.open({ path: rel, name: rel.split("/").pop(), project: ch.dataset.changeProject, rel }, ch); return; }
-    const tf = t.closest("[data-tg-fold]");
-    if (tf) { const k = tf.dataset.tgFold; fr.agents.groups = { ...(fr.agents.groups || {}), [k]: !fr.agents.groups?.[k] }; persist(); paint(); el.querySelector(`[data-tg-fold="${CSS.escape(k)}"]`)?.focus({ preventScroll: true }); return; }
-    const tm = t.closest("[data-tg-more]");
-    if (tm) { const k = tm.dataset.tgMore; S.tgMore = { ...(S.tgMore || {}), [k]: true }; paint(); return; }
+    const ch = closest("[data-change]"), rel = ch?.dataset.change;
+    if (rel) { viewer.open({ path: rel, name: rel.split("/").pop(), project: ch?.dataset.changeProject, rel }, ch); return; }
+    const fold = closest("[data-tg-fold]")?.dataset.tgFold;
+    if (fold) {
+      fr.agents.groups = { ...fr.agents.groups, [fold]: !fr.agents.groups[fold] }; persist(); paint();
+      query(`[data-tg-fold="${CSS.escape(fold)}"]`)?.focus({ preventScroll: true }); return;
+    }
+    const more = closest("[data-tg-more]")?.dataset.tgMore;
+    if (more) { S.tgMore[more] = true; paint(); return; }
     if (t.closest("[data-tg-find]")) { findThreads(); return; }
-    if (t.closest("[data-tg-clear]")) { const inp = el.querySelector("[data-tg-q]"); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
-    const g = t.closest("[data-go]");
-    if (g) { go(g.dataset.go, e); }
+    if (t.closest("[data-tg-clear]")) { const inp = filter(); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
+    const destination = closest("[data-go]")?.dataset.go;
+    if (destination) go(destination, e);
   });
-  el.addEventListener("keydown", (/** @type {any} */ e) => {
+  el.addEventListener("keydown", (e) => {
     // inside the Shell page's terminal every key is the shell's, by the shells' own rule
-    if (owns(e)) return;
-    if (e.target.closest?.("[data-map-mode]") && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+    if (owns(e) || !(e.target instanceof Element)) return;
+    const tab = e.target.closest("[data-map-mode]");
+    if (tab && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
       e.preventDefault(); e.stopPropagation();
-      const tabs = [...el.querySelectorAll("[data-map-mode]")], index = tabs.indexOf(e.target.closest("[data-map-mode]"));
+      const tabs = [.../** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll("[data-map-mode]"))];
+      const index = tabs.findIndex((candidate) => candidate === tab);
       const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (index + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
       tabs[next].focus(); tabs[next].click(); return;
     }
     // / in the panel goes to the Threads filter when it shows (elsewhere / still writes)
-    if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.("input, textarea, [contenteditable]")) {
+    if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest("input, textarea, [contenteditable]")) {
       if (!S.page && !fr.agents.folded && el.querySelector('[data-fr="agents"]:not([hidden])')) { e.preventDefault(); e.stopPropagation(); findThreads(); return; }
     }
     if (e.key !== "Escape") return;
-    if (e.target.closest && e.target.closest("input") && e.target.value) return;
+    if (e.target.tagName === "INPUT" && /** @type {HTMLInputElement} */ (e.target).value) return;
     e.preventDefault(); e.stopPropagation();
     // the page first (its find bar, a question, an old version), then full size, then the sections, then closed
     if (S.page && PAGES.get(S.page.name)?.escape?.(S.page.key) === true) return;
     if (S.page) back(); else if (S.full) setFull(false); else requestClose();
   }, true);
 
-  W = createWidth({ el, S, coverSync, capAgents });
+  W = createWidth({ el, S, coverSync, capAgents, scope: layoutScope });
 
-  if (saved.open) S.resume = true;
+  if (savedOpen) S.resume = true;
 
   return {
+    disposeLayout: layoutScope.dispose,
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,
     /** The header's Threads: the panel open on its Threads whatever it showed, its first thread focused, its head glowing once. */
@@ -318,16 +327,16 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       fr.agents.folded = false;
       open({ focus: false });
       persist(); layout(); paint();
-      const f = el.querySelector('[data-fr="agents"]'), b = body("agents");
+      const f = query('[data-fr="agents"]'), b = body("agents");
       b.scrollTop = 0;
-      (b.querySelector(".tg-box [data-go]") || el.querySelector('[data-fr-fold="agents"]'))?.focus({ preventScroll: true });
+      (query(".tg-box [data-go]") || query('[data-fr-fold="agents"]'))?.focus({ preventScroll: true });
       f.classList.remove("is-flash"); void f.offsetWidth; f.classList.add("is-flash");
     },
     get isShell() { return S.page?.name === "shell"; },
     shellOff: () => setShell(false),
     page: PG.page, show, back, closePage: PG.closePage, requestClose,
-    leave: dropPages,
-    get slot() { return el.querySelector(".stg-pa"); },
+    leave() { github?.leave?.(); dropPages(); },
+    get slot() { return query(".stg-pa"); },
     get pageShown() { return S.page ? { ...S.page } : null; },
     repaint: () => paint(),
     /** The shape changed: the frames it keeps, at once. */
@@ -346,7 +355,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     /** The file chosen in the panel's Changes for a view, while the panel shows it. @param {string} v */
     chosen(v) { return S.open && !fr.changes.folded && frames().includes("changes") ? CX.chosen(v) : null; },
     /** The app's theme switched: drawn diffs follow. @param {string} t */
-    theme: (t) => CHF.theme(t),
+    theme: (t) => changesFrame.theme(t),
     /** The place's name for the title bar (app.js knows the names). @param {(v: string) => string} fn */
     set names(fn) { nameOf = fn; },
     /** Is this element inside the panel (so the app's Esc leaves it alone)? @param {Node | null} node */

@@ -1,22 +1,25 @@
 // @ts-check
 
 import { dom } from "./dom.mjs";
-import { tokenValuesFor } from "./css-snapshot.mjs";
 
 /** @typedef {(on: boolean, host?: HTMLElement, view?: string) => void} StageShell */
 
-/** @param {{ reduced?: boolean, place?: (view: string) => boolean, threads?: (view: string) => object[], shell?: StageShell | null }} [options] */
-export async function stageFixture({ reduced = true, place = (view) => view.startsWith("p:"), threads = null, shell = () => {} } = {}) {
+/** @param {{ reduced?: boolean, phone?: boolean, place?: (view: string) => boolean, threads?: (view: string) => object[], shell?: StageShell | null }} [options] */
+export async function stageFixture({ reduced = true, phone = false, place = (view) => view.startsWith("p:"), threads = null, shell = () => {} } = {}) {
   const { document, window } = await dom('<button id="outside">Outside</button><div id="main"></div>');
   const storage = new Map();
   const animations = [];
-  const tokens = tokenValuesFor();
+  const phoneQuery = document.createElement("span");
+  Object.defineProperty(phoneQuery, "matches", { get: () => phone });
   Object.assign(globalThis, {
     innerWidth: 1440,
     localStorage: { getItem: (name) => storage.get(name) ?? null, setItem: (name, value) => storage.set(name, value) },
-    matchMedia: () => ({ matches: reduced, addEventListener() {}, removeEventListener() {} }),
-    getComputedStyle: () => ({ getPropertyValue: (name) => tokens.get(name) ?? "" }),
+    matchMedia: (query) => query.includes("max-width")
+      ? phoneQuery : { matches: query.includes("prefers-reduced-motion") && reduced },
   });
+  const { tokenValuesFor } = await import("./css-snapshot.mjs");
+  const tokens = tokenValuesFor();
+  globalThis.getComputedStyle = () => ({ getPropertyValue: (name) => tokens.get(name) ?? "" });
   window.HTMLElement.prototype.select = () => {};
   window.HTMLElement.prototype.getAnimations = () => [];
   window.HTMLElement.prototype.animate = function (frames, timing) {
@@ -44,6 +47,7 @@ export async function stageFixture({ reduced = true, place = (view) => view.star
   return {
     document, window, panel, stage, storage, animations,
     visit(id) { panel.leave(); view = id; panel.sync(); },
+    setPhone(matches) { phone = matches; phoneQuery.dispatchEvent(new window.Event("change")); },
     change(files) { changed = files; panel.sync(); },
     shellKeys(value) { shellsOwnKey = value; },
   };

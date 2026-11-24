@@ -12860,7 +12860,13 @@
   },
   "js/stage.js::ids::herald": {
    "status": "moved",
-   "home": "shell/panel/panel.js"
+   "home": "shell/panel/width.js",
+   "evidence": {
+    "shell/panel/width.js": {
+     "anchor": "document.getElementById(\"herald\")",
+     "reason": "Stage keeps the herald available outside its cover."
+    }
+   }
   },
   "js/stage.js::storage::${W_KEY}:${S.page.name}": {
    "status": "deleted",
@@ -12868,7 +12874,13 @@
   },
   "js/stage.js::storage::<k>": {
    "status": "moved",
-   "home": "shell/panel/panel.js"
+   "home": "shell/panel/panel.js",
+   "evidence": {
+    "shell/panel/panel.js": {
+     "anchor": "read(FR_KEY, JSON.parse, {})",
+     "reason": "Stage restores its saved panel frames through the typed storage service."
+    }
+   }
   },
   "js/stage.js::storage::xo-stage-w": {
    "status": "deleted",
@@ -16321,7 +16333,13 @@
   },
   "js/stage.js::storage::xo-stage-w2": {
    "status": "moved",
-   "home": "shell/panel/width.js"
+   "home": "shell/panel/width.js",
+   "evidence": {
+    "shell/panel/width.js": {
+     "anchor": "read(W_KEY, (value) => Number(value) || 0, 0)",
+     "reason": "The stored Stage width keeps its key and is read through the shared storage service."
+    }
+   }
   },
   "js/timeline.js::exports::dayGroup": {
    "status": "moved",

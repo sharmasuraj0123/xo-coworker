@@ -26,3 +26,14 @@ export function write(key, value, kind = "local") {
     return { kept: false };
   }
 }
+
+/** @param {string} key @param {"local" | "session"} [kind] */
+export function erase(key, kind = "local") {
+  try {
+    const store = kind === "session" ? globalThis.sessionStorage : globalThis.localStorage;
+    store.removeItem(key);
+    return { kept: true };
+  } catch {
+    return { kept: false };
+  }
+}
