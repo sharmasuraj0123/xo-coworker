@@ -4,8 +4,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 531 |
-| moved | 479 |
+| planned | 523 |
+| moved | 487 |
 | deleted | 336 |
 | kept | 57 |
 | split | 28 |
@@ -174,7 +174,7 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `tests/conv-sound.test.mjs` | 110 | planned | core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/copied-speaker.test.mjs` | 21 | kept | tests/copied-speaker.test.mjs |
-| `tests/copy-path-fail.test.mjs` | 57 | planned | modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/copy-path-fail.test.mjs` | 57 | moved | modules/files/tests/copy-path-fail.test.mjs |
 | `tests/cover-inert.test.mjs` | 28 | planned | shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/create-busy-honest.test.mjs` | 33 | moved | modules/create-project/tests/create-busy-honest.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs); its two app-wide ARIA rules stay source checks |
 | `tests/create.test.mjs` | 51 | moved | modules/create-project/tests/create.test.mjs |
@@ -200,7 +200,7 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `tests/edits.test.mjs` | 50 | planned | modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/event-lines.test.mjs` | 25 | kept | tests/event-lines.test.mjs |
 | `tests/field-ring.test.mjs` | 41 | planned | core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/file-cache.test.mjs` | 25 | planned | modules/files/tests/file-cache.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/file-cache.test.mjs` | 25 | moved | modules/files/tests/file-cache.test.mjs |
 | `tests/files-stop-look.test.mjs` | 23 | planned | modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files-tree-scroll-fold.test.mjs` | 54 | planned | modules/files/tests/files-tree-scroll-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/files.test.mjs` | 66 | planned | modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -224,7 +224,7 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `tests/hover-rings.test.mjs` | 41 | kept | tests/hover-rings.test.mjs |
 | `tests/hover-veil.test.mjs` | 42 | kept | tests/hover-veil.test.mjs |
 | `tests/icon-gap.test.mjs` | 24 | planned | core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/image-text-mode.test.mjs` | 28 | planned | modules/files/tests/image-text-mode.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/image-text-mode.test.mjs` | 28 | moved | modules/files/tests/image-text-mode.test.mjs |
 | `tests/imagechange.test.mjs` | 34 | moved | modules/changes/tests/imagechange.test.mjs |
 | `tests/inverse-toast.test.mjs` | 56 | planned | core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/iq-one-path.test.mjs` | 22 | kept | tests/iq-one-path.test.mjs |
@@ -275,7 +275,7 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `tests/panel-parity.test.mjs` | 100 | kept | tests/panel-parity.test.mjs |
 | `tests/panel-shell.test.mjs` | 61 | planned | shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/panel-threads.test.mjs` | 103 | planned | modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/path-copy-inline.test.mjs` | 24 | planned | modules/files/tests/path-copy-inline.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/path-copy-inline.test.mjs` | 24 | moved | modules/files/tests/path-copy-inline.test.mjs |
 | `tests/pending.test.mjs` | 37 | planned | core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-cascade.test.mjs` | 27 | planned | core/ui (css guard)/tests/phone-cascade.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/phone-floor.test.mjs` | 140 | planned | core/ui (css guard)/tests/phone-floor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -296,8 +296,8 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `tests/reduced-motion.test.mjs` | 25 | planned | core/ui (css guard)/tests/reduced-motion.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/refusal-mark.test.mjs` | 26 | planned | modules/files/tests/refusal-mark.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/refused.test.mjs` | 57 | planned | modules/composer/tests/refused.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/region-focus.test.mjs` | 28 | planned | modules/files/tests/region-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/render-focus.test.mjs` | 22 | planned | modules/files/tests/render-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/region-focus.test.mjs` | 28 | moved | modules/files/tests/region-focus.test.mjs |
+| `tests/render-focus.test.mjs` | 22 | moved | modules/files/tests/render-focus.test.mjs |
 | `tests/retry-waiting.test.mjs` | 34 | planned | modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/reveal-focus.test.mjs` | 20 | moved | modules/changes/tests/reveal-focus.test.mjs |
 | `tests/rich-markdown.test.mjs` | 133 | planned | modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -353,10 +353,10 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `tests/turnview.test.mjs` | 307 | planned | modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/type-faces.test.mjs` | 46 | kept | tests/type-faces.test.mjs |
 | `tests/type-roles.test.mjs` | 70 | kept | tests/type-roles.test.mjs |
-| `tests/viewer-busy.test.mjs` | 43 | planned | modules/files/tests/viewer-busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/viewer-busy.test.mjs` | 43 | moved | modules/files/tests/viewer-busy.test.mjs |
 | `tests/viewer-errors.test.mjs` | 25 | planned | modules/files/tests/viewer-errors.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/viewer-head-focus.test.mjs` | 18 | planned | modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/viewer-hooks.test.mjs` | 37 | planned | modules/files/tests/viewer-hooks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/viewer-hooks.test.mjs` | 37 | moved | modules/files/tests/viewer-hooks.test.mjs |
 | `tests/words.test.mjs` | 47 | moved | modules/conversation/tests/words.test.mjs · next: still reads the source for the two imports; its rewrite as a behaviour test is owed |
 | `tests/xoicons.test.mjs` | 114 | planned | core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 

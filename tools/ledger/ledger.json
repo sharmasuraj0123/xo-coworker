@@ -4755,8 +4755,9 @@
    "home": "tests/copied-speaker.test.mjs"
   },
   "tests/copy-path-fail.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/copy-path-fail.test.mjs",
+   "evidence": { "modules/files/tests/copy-path-fail.test.mjs": { "anchor": "assert.deepEqual(attempted, [path, draft])", "reason": "Checks path and live document copying and the corresponding refusal UI." } }
   },
   "tests/cover-inert.test.mjs": {
    "status": "planned",
@@ -4860,8 +4861,9 @@
    "home": "core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/file-cache.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/file-cache.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/file-cache.test.mjs",
+   "evidence": { "modules/files/tests/file-cache.test.mjs": { "anchor": "refresh keeps the editor for the same document", "reason": "Checks the open editor identity and the version sent on successive saves." } }
   },
   "tests/files-stop-look.test.mjs": {
    "status": "planned",
@@ -4964,8 +4966,9 @@
    "home": "core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/image-text-mode.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/image-text-mode.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/image-text-mode.test.mjs",
+   "evidence": { "modules/files/tests/image-text-mode.test.mjs": { "anchor": "viewer.open(documentFile);\nassert.equal(host.querySelector", "reason": "Checks that image toggles keep the document mode and reopen images at Fit." } }
   },
   "tests/imagechange.test.mjs": {
    "status": "moved",
@@ -5196,8 +5199,9 @@
    "home": "modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/path-copy-inline.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/path-copy-inline.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/path-copy-inline.test.mjs",
+   "evidence": { "modules/files/tests/path-copy-inline.test.mjs": { "anchor": "the pending label is delayed for a quick copy", "reason": "Checks the rendered inline label before, during and after clipboard work." } }
   },
   "tests/pending.test.mjs": {
    "status": "planned",
@@ -5281,12 +5285,14 @@
    "home": "modules/composer/tests/refused.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/region-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/region-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/region-focus.test.mjs",
+   "evidence": { "modules/files/tests/region-focus.test.mjs": { "anchor": "focus returns to the replacement retry", "reason": "Checks focus in the diff region when a retry fails again or succeeds." } }
   },
   "tests/render-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/render-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/render-focus.test.mjs",
+   "evidence": { "modules/files/tests/render-focus.test.mjs": { "anchor": "successful retry returns focus to the inline Copy path action", "reason": "Checks the real focus fallback when the offered path disappears." } }
   },
   "tests/retry-waiting.test.mjs": {
    "status": "planned",
@@ -5513,8 +5519,9 @@
    "home": "tests/type-roles.test.mjs"
   },
   "tests/viewer-busy.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/viewer-busy.test.mjs",
+   "evidence": { "modules/files/tests/viewer-busy.test.mjs": { "anchor": "the pending download excludes clipboard work", "reason": "Checks pending copy and download exclusion, status and stale completion." } }
   },
   "tests/viewer-errors.test.mjs": {
    "status": "planned",
@@ -5525,8 +5532,9 @@
    "home": "modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/viewer-hooks.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-hooks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/viewer-hooks.test.mjs",
+   "evidence": { "modules/files/tests/viewer-hooks.test.mjs": { "anchor": "duplicate rendered control hook:", "reason": "Checks hook uniqueness in rendered viewer states and native focus retention." } }
   },
   "tests/words.test.mjs": {
    "status": "moved",
