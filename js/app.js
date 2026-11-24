@@ -1214,7 +1214,7 @@ for (const dispose of [
   runsPage.dispose, disposeRunsStrip, threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,
   SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), stopShell, disposeConversationStops,
-  STAGE.disposeLayout,
+  STAGE.disposeLayout, LPP.dispose, LW.dispose,
 ]) appScope.effect(() => dispose);
 appScope.listen(window, "pagehide", (event) => {
   if ("persisted" in event && event.persisted) return;

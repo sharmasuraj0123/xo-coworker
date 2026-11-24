@@ -13,6 +13,7 @@ Object.assign(globalThis, {
   document: { getElementById: () => el(), createElement: () => el(), querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, body: el(), documentElement: el(), activeElement: null },
   location: new URL("http://127.0.0.1/"), localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
   matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), addEventListener() {}, CSS: { escape: String }, requestAnimationFrame: (f) => setTimeout(f, 0),
+  cancelAnimationFrame: (id) => clearTimeout(id),
 });
 globalThis.window = globalThis;
 

@@ -69,6 +69,9 @@ function flushFrames() {
 const matches = window.Element.prototype.matches;
 window.HTMLElement.prototype.scrollTo = function () {};
 window.HTMLElement.prototype.getAnimations = function () { return []; };
+const dialogPrototype = Object.getPrototypeOf(document.createElement("dialog"));
+dialogPrototype.showModal = function () { this.open = true; };
+dialogPrototype.close = function () { this.open = false; this.dispatchEvent(new window.Event("close")); };
 const chipRects = window.HTMLElement.prototype.getClientRects;
 window.HTMLElement.prototype.getClientRects = function () {
   if (this.id === "iq") return [{ width: 40, height: 20 }];
@@ -137,6 +140,8 @@ Object.assign(globalThis, {
     const path = new URL(String(input), location.href).pathname;
     const resource = path.split("/").at(-1);
     if (path === "/api/chat/stream") return new Response(streamBody);
+    if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "ready" });
+    if (path === "/api/deploy/demo/preflight") return Response.json({});
     if (path === "/api/terminal/status") {
       shellSignal = init?.signal;
       return shellStatus.promise;
@@ -763,6 +768,22 @@ press("#tdel [data-tdel-yes]");
 await new Promise(setImmediate);
 assert.deepEqual(threadDeletes, [{ keep_branch: true }]);
 assert.equal(app.dataset.conv, "p:demo", "successful deletion returns to the project");
+press("#nv-lp");
+await new Promise(setImmediate);
+flushFrames();
+const launchpadAction = document.querySelector('#lpp [data-lpp-open="demo"]');
+assert.ok(launchpadAction, "the overview draws the real project action");
+const launchpadOverview = launchpadAction.closest("#lpp");
+const removeOverviewListener = launchpadOverview.removeEventListener;
+let overviewRetirements = 0;
+launchpadOverview.removeEventListener = function (type, ...args) {
+  if (type === "click") overviewRetirements++;
+  return removeOverviewListener.call(this, type, ...args);
+};
+press('#lpp [data-lpp-open="demo"]');
+const launchpadDialog = document.querySelector("#lq");
+assert.equal(launchpadDialog.open, true, "the overview's action opens the production Launchpad dialog");
+launchpadDialog.querySelector("[data-lq-close]").click();
 press("#nv-home");
 
 assert.ok(JSON.parse(storage.get("xo-seen")).home > lastHomeVisit, "Home records its visit in the app's Since store");
@@ -794,6 +815,8 @@ assert.equal(filePickerClicks, 1, "the mounted composer opens its file picker");
 const mountedDockObservers = mountedThreadObservers();
 assert.equal(stageLayoutObservers.size, 2, "Stage watches sidebar width and frame height independently");
 pagehide(true);
+launchpadAction.click();
+assert.equal(launchpadDialog.open, true, "the page cache keeps Launchpad's overview and dialog active");
 press("#attach");
 assert.equal(filePickerClicks, 2, "the page cache keeps the composer control live");
 assert.equal(rules.signal.aborted || worktrees.signal.aborted, false, "the page cache keeps both Settings readers live");
@@ -806,6 +829,12 @@ assert.equal(threadDockObservers.size, mountedDockObservers.length);
 assert.equal(stageLayoutObservers.size, 2, "the page cache keeps Stage layout observations");
 assert.ok(mountedDockObservers.every((observer) => threadDockObservers.has(observer)), "the page cache keeps the mounted dock observations");
 pagehide(false);
+assert.equal(overviewRetirements, 1, "unloading releases the Launchpad overview click listener");
+launchpadOverview.removeEventListener = removeOverviewListener;
+assert.equal(launchpadDialog.isConnected, false, "unloading removes the Launchpad dialog");
+assert.equal(launchpadDialog.open, false);
+launchpadAction.click();
+assert.equal(launchpadDialog.open, false, "the retained overview cannot reopen its retired dialog");
 press("#attach");
 assert.equal(filePickerClicks, 2, "unloading releases the retained composer control");
 for (const id of settingsOwners) assert.equal(kernel.live(id), 0, `${id} disposed through the app`);
