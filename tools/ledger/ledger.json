@@ -7182,8 +7182,8 @@
    "home": "modules/threads/header.js"
   },
   "js/app.js::functions::hostNeedHtml": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1340)"
+   "status": "moved",
+   "home": "modules/conversation/header.js"
   },
   "js/app.js::functions::topRender": {
    "status": "moved",
@@ -7898,8 +7898,8 @@
    "home": "modules/home/handled.js"
   },
   "js/app.js::ids::conv-title": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1350)"
+   "status": "moved",
+   "home": "modules/conversation/header.js"
   },
   "js/app.js::ids::tw-edit": {
    "status": "moved",

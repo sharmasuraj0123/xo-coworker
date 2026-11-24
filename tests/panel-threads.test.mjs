@@ -74,13 +74,14 @@ assert.equal(document.querySelector(".is-work .pj-k")?.textContent, "1");
 assert.ok(document.querySelector(".is-need") === null, "no needs-you marker");
 assert.equal(threadsCtl(0, running), "", "a project without threads has no control");
 const shellHeader = readFileSync(new URL("../shell/top-header.js", import.meta.url), "utf8");
+const conversationHeader = readFileSync(new URL("../modules/conversation/header.js", import.meta.url), "utf8");
 assert.match(shellHeader, /\(pv \? S\.hdrCtl \+ headerActionsHtml\(kernel\.places, atOf\(v\)\) \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
 assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
 const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 const th = appCss.slice(appCss.indexOf("── The project header's Threads control"));
 assert.ok(th.length > 200, "the block is there");
 assert.doesNotMatch(th.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@container top \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/, "tokens only");
-assert.match(app, /<span class="tw-t is-one"><h1 id="conv-title"/);
+assert.match(conversationHeader, /<span class="tw-t is-one"><h1 id="conv-title"/);
 assert.match(app, /else if \(e\.target\.closest\?\.\("\[data-stage-open\]"\)\) STAGE\.threads\(\)/, "the header's Threads shows Threads, open or not");
 
 // with the panel open, the header's Threads still answers: Shell and Launchpad give way, Threads unfolds, focus lands
@@ -94,8 +95,8 @@ assert.match(thFn, /f\.classList\.add\("is-flash"\)/);
 // one count (the owner, 19 Nov 14:50Z: 35 in the header, 73 in the panel): every thread of the project, by state;
 // the header and the panel's head both say it; the coordinator's row isn't a thread
 assert.deepEqual(threadCounts("p", []), { all: 4, needs: 0, working: 1, waiting: 1, done: 2 });
-assert.match(app, /const by = threadCounts\(pid, needs\);/);
-assert.match(app, /S\.hdrCtl = threadsCtl\(by\.all, by\);/);
+assert.match(conversationHeader, /const by = threadCounts\(pid, needs\);/);
+assert.match(conversationHeader, /S\.hdrCtl = threadsCtl\(by\.all, by\);/);
 assert.match(stg, /tg\.reduce\(\(n, x\) => n \+ x\.rows\.filter\(\(r\) => !r\.coord\)\.length, 0\)/, "the panel's head counts threads, not the coordinator");
 assert.deepEqual(panelThreads("p:p").map(({ k, rows }) => [k, rows.map(({ go }) => go)]), [
   ["needs", ["t:a"]],

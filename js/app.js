@@ -1,5 +1,5 @@
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, clock, dayOf, short, busyAttrs } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, clock, dayOf, short } from "../core/platform/index.js";
 import { redraw } from "../core/ui/redraw.js";
 import { patch } from "../core/ui/patch.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
@@ -42,6 +42,7 @@ import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
 import { createConversationStarts } from "../modules/conversation/start.js";
+import { createConversationHeader } from "../modules/conversation/header.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
@@ -54,7 +55,7 @@ import { createMap } from "../modules/map/map.js";
 import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
-import { headerActionsHtml, wireHeaderActions } from "../shell/header.js";
+import { wireHeaderActions } from "../shell/header.js";
 import { createTopHeader } from "../shell/top-header.js";
 import { createWorkspaceHeader } from "../shell/workspace-header.js";
 import { stackLayers } from "../shell/layers.js";
@@ -852,75 +853,6 @@ function msgItemsOf(conv, needs) {
   }
   return items;
 }
-
-// ── headers: Workspace, project (title + one sentence + the Now shelf), thread (+ checklist) ──
-
-/** The title bar's count line, set as type: each figure a shade brighter than its word, in
- *  tabular figures so a count that changes never shifts the line, and a quiet dot between; a narrow
- *  line breaks only at a dot, never inside "1 resolved". */
-const counted = (n, word) => (n ? `<span class="pj-c"><span class="pj-k">${n}</span> ${word}</span>` : "");
-const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
-
-/** A chat whose own coordinator asks: "Needs you" leads its count line, and opens the card above the composer. */
-function hostNeedHtml(v, needs) {
-  const h = convHost(v);
-  const n = h ? needs.find((x) => x.t.id === h.id && !x.later && (x.admitted || x.held)) : null;
-  if (!n) return "";
-  const k = h.asks.length;
-  const who = h.asker ? "Coordinator" : h.title;
-  return `<button type="button" class="pj-need" data-dock-open="${esc(n.key)}" title="Open the decision, above the composer">` +
-    `${stateMark("needs_approval")}<span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
-}
-
-
-function conversationHeaderHtml(v, t, needs) {
-  let who;
-  if (v === "ws") {
-    const P0 = homeParts(needs);
-    // hub #28: a normal chat's header, like a project's: the counts in one line, what needs you one click away
-    const asking = new Set(needs.map((n) => n.t.id));
-    const working = world.state.threads.filter(isBusy).length;
-    // held back by a gate (the usage limit…): "waiting", the word its badge and the Waiting filter use; neither working nor idle
-    const waiting = world.state.threads.filter((x) => isHeld(x) && !asking.has(x.id)).length;
-    const idle = world.state.threads.filter((x) => x.state === "working" && !isBusy(x) && !isHeld(x) && !asking.has(x.id)).length;
-    const done = doneToday().length;
-    const parts = [counted(working, "working"), counted(waiting, "waiting"), counted(P0.held.length, "can wait"), counted(idle, "idle"), counted(done, "finished today")].filter(Boolean);
-    const need = hostNeedHtml(v, needs);
-    const line = countLine([...(parts.length ? parts : ["All quiet"]), projects().length && `across ${counted(projects().length, projects().length === 1 ? "project" : "projects")}`]);
-    // the counts go to Home; what the Workspace's own coordinator asks opens here, so the two are separate buttons
-    who = `<span class="tw-ic tw-xo" aria-hidden="true">${XO}</span><span class="tw-t"><h1 id="conv-title">Workspace</h1>${need ? `<span class="pj-s has-need">${countLine([need, `<button type="button" class="pj-home" data-go="home" title="What needs you is on Home">${line}</button>`])}</span>` : `<button type="button" class="pj-s pj-home" data-go="home" title="What needs you is on Home">${line}</button>`}</span>`;
-  } else if (v.startsWith("p:")) {
-    const pid = v.slice(2);
-    // the same count and words as the panel's Threads (threadCounts): every thread, Done folded there
-    const by = threadCounts(pid, needs);
-    const need = hostNeedHtml(v, needs);
-    // the header says the project has threads (the owner, 19 Nov 14:20Z picked it beside Deploy): Threads and how
-    // many, what's at work, what needs you; one control among the header's actions, apart from the title
-    who = `<button type="button" class="pj-pick" data-pj-icon="${esc(pid)}" aria-haspopup="dialog" aria-expanded="${PICK.pid === pid}" title="Change ${esc(PROJ(pid))}'s icon" aria-label="Change ${esc(PROJ(pid))}'s icon"><span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span></button><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
-    S.hdrCtl = threadsCtl(by.all, by);
-  } else if (t) {
-    const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
-    // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
-    const edVal = ed ? S.tEdit.value : "", edBusy = ed && S.tEdit.busy ? ' aria-busy="true" readonly' : "";
-    const title = ed === "title"
-      ? threadTitleInput(edVal, edBusy)
-      : `<h1 class="tw-h" id="conv-title">${esc(t.title)}</h1>`;
-    const label = ed === "label"
-      ? threadLabelInput(edVal, edBusy)
-      : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
-    const resolved = t.state === "resolved";
-    const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
-      `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id && S.tMenuIn !== "page"}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
-      (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
-    // a shell in its worktree is in the menu (and the shells dock); the header keeps Resolve and the panel
-    const ext = headerActionsHtml(kernel.places, atOf(v)), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`;
-    who = `${title}${label}<span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
-    // a field being edited is never replaced under the person's fingers (a frame may change the badge)
-    if (ed && $("#tw-edit")) who = null;
-  } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
-  return who;
-}
-
 
 const { runsStrip, workingRuns } = createRunsStrip({ world, SHAPE, schedule });
 const checklistRender = createChecklistRenderer({ S, SHAPE, convThread, runsStrip, schedule });
@@ -1952,6 +1884,10 @@ let allReturn = null;
 const allRender = createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadMark, glyphOf, rtTag, STATE_WORDS });
 radioKeys($("#all-f"));
 const tdelRender = createThreadDeleteView(S);
+const conversationHeaderHtml = createConversationHeader({
+  S, world, PICK, LP, LW, STAGE, kernel, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
+  threadCounts, PROJ, projectIcon, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
+});
 const topRender = createTopHeader({ S, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender, REC });
 const deleteThread = createThreadDelete({ S, world, render: () => render(), go, announce, heraldShow, PROJ });
 const { panelShell, openShell } = createShellPanel({ S, STAGE, SH, world, heraldShow });
