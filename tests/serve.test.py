@@ -585,10 +585,20 @@ class StaticCaching(unittest.TestCase):
         self.assertIn('href="./v/%s/core/ui/foundation.css"' % v, html)
         self.assertNotRegex(html, r'(?:href|src)="\./(?:(?:js|css|fonts|core|shell|modules)/|boot\.js")')
         self.assertLess(html.index("importmap"), html.index('type="module"'))
+        self.assertLess(html.index(f'./v/{v}/core/ui/foundation.css'), html.index(f'./v/{v}/css/app.css'))
+        module_entries = [
+            f'./v/{v}/modules/home/skeleton.js',
+            f'./v/{v}/boot.js',
+            f'./v/{v}/modules/conversation/main-decoration.js',
+        ]
+        self.assertEqual(
+            [line.split('src="', 1)[1].split('"', 1)[0] for line in html.splitlines() if '<script type="module" src="' in line],
+            module_entries,
+        )
 
     def test_modular_imports_are_served_with_the_same_version(self):
         version = serve.tree_version()
-        for relative in ("boot.js", "shell/frame.js", "core/ui/tokens.css", "modules/launchpad/window.css"):
+        for relative in ("boot.js", "shell/frame.js", "core/ui/tokens.css", "modules/launchpad/window.css", "modules/home/skeleton.js", "modules/conversation/main-decoration.js"):
             with self.subTest(path=relative):
                 status, headers, body = fetch(f"/v/{version}/{relative}")
                 self.assertEqual(status, 200)
