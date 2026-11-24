@@ -35,6 +35,7 @@ import { worktreesModule } from "../modules/worktrees/module.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "../modules/chats/chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "../modules/conversation/follow.js";
+import { mountMainDecoration } from "../modules/conversation/main-decoration.js";
 import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts } from "../modules/conversation/drafts.js";
 import { createReadingLayout } from "../modules/conversation/reading-layout.js";
@@ -80,7 +81,7 @@ import { wireHeaderActions } from "../shell/header.js";
 import { createTopHeader } from "../shell/top-header.js";
 import { createWorkspaceHeader } from "../shell/workspace-header.js";
 import { stackLayers } from "../shell/layers.js";
-import { focusOverlay, mountKeyboardLayers } from "../shell/keyboard-layers.js";
+import { createOverlayFocus, mountKeyboardLayers } from "../shell/keyboard-layers.js";
 import { wireGlobalKeys } from "../shell/global-keys.js";
 import { createShortcutsSheet } from "../modules/settings/shortcuts-sheet.js";
 import { wireBack } from "../shell/back.js";
@@ -668,7 +669,7 @@ function dockAtTop(top) {
   dock.classList.toggle("is-top", top);
   had?.focus({ preventScroll: true });
 }
-initFollow();
+appScope.effect(initFollow);
 
 // ── navigation: back always returns exactly where you were ─────────────────
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
@@ -1056,6 +1057,7 @@ function jumpActions() {
     ...(!pageEl(currentView()) ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
   ];
 }
+const focusOverlay = createOverlayFocus(appScope);
 const JUMP = createJump({ host: jump, field: $("#jump-q"), list: $("#jump-list"), places: jumpPlaces, actions: jumpActions, more: (q) => REC.jumpItems(q), go: (v) => go(v), announce, focusIn: focusOverlay, onHidden: () => syncInert() });
 
 
@@ -1163,12 +1165,14 @@ const LAYERS = stackLayers(kernel.layers, [
 /** @param {string} v */
 const placeOk = (v) => v === "ws" || CH.isChats(v) || Object.hasOwn(PAGE_OF, v)
   || v.startsWith("p:") && !!world.project(v.slice(2)) || v.startsWith("t:") && !!world.thread(v.slice(2));
-const syncInert = mountKeyboardLayers({ layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl });
+const { syncInert, dispose: disposeKeyboardLayers } = mountKeyboardLayers({
+  layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl,
+});
 const disposeGlobalKeys = wireGlobalKeys({
   view: navigationState.view, capturing: KP.capturing, SH, jump, IQ, CREATE, keys, GLOBAL, FP, QO, LAYERS, back, go,
 });
 const { canBack, stepBack } = createBackSteps({ location: navigationState, LAYERS, placeOk, go, back });
-wireBack({ canBack, stepBack });
+appScope.effect(() => wireBack({ canBack, stepBack }));
 
 // ── touch gestures and the title back to the top ──
 wireGestures({
@@ -1203,10 +1207,11 @@ bindChatControls({
 });
 drawFrameIcons(SHAPE_IC);
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
+appScope.effect(mountMainDecoration);
 await kernel.start();
 const stopShell = startShell({ THEME, applyTheme, SIDE, soundRender, PHONE, setDrawer, render, world, schedule, follow, loadDraft });
 for (const dispose of [
-  codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys,
+  codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo,
   REC.dispose, () => { void kernel.disable(settingsModule.manifest.id); }, CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
   runsPage.dispose, disposeRunsStrip, threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,

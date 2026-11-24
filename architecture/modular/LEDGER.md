@@ -80,7 +80,7 @@ Items inside first-party files: 2488 (moved 1782, planned 373, deleted 185, kept
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js |
-| `js/msgx.js` | 918 | split | modules/conversation/main-decoration.js, modules/conversation/decoration.js · next: The main conversation starts decoration in the same script slot after boot. |
+| `js/msgx.js` | 918 | split | modules/conversation/main-decoration.js, modules/conversation/decoration.js · next: App boot mounts the main conversation decoration and owns its teardown. |
 | `js/pacing.js` | 67 | moved | modules/decisions/pacing.js |
 | `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | moved | modules/decisions/cards/paid.js |

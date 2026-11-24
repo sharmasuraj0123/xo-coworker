@@ -594,7 +594,6 @@ class StaticCaching(unittest.TestCase):
         module_entries = [
             f'./v/{v}/modules/home/skeleton.js',
             f'./v/{v}/boot.js',
-            f'./v/{v}/modules/conversation/main-decoration.js',
         ]
         self.assertEqual(
             [line.split('src="', 1)[1].split('"', 1)[0] for line in html.splitlines() if '<script type="module" src="' in line],

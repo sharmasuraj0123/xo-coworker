@@ -16,6 +16,7 @@ const blockedStorage = new Set();
 const sinceReads = [];
 const settingsReads = new Map();
 const chatTitleRead = deferred();
+const initialChats = deferred();
 /** @type {AbortSignal | undefined} */
 let chatTitleSignal;
 /** @type {Map<Element, (entries: { target: Element; isIntersecting: boolean }[]) => void>} */
@@ -62,8 +63,13 @@ const clipboard = [];
 const frames = new Map();
 const shellRelocationObservers = new Set();
 const threadDockObservers = new Set();
+const mainFollowObservers = new Set();
+const mainDecorationObservers = new Set();
+const keyboardLayerObservers = new Set();
 const resizeTargets = new WeakMap();
 const stageLayoutObservers = new Set();
+const historyCalls = [];
+let historyState = null;
 let nextFrame = 0;
 function flushFrames() {
   for (const [id, frame] of [...frames]) if (frames.delete(id)) frame(performance.now());
@@ -88,7 +94,12 @@ Object.assign(globalThis, {
   location: new URL("http://localhost/"),
   innerWidth: 1440,
   innerHeight: 900,
-  history: { replaceState() {}, pushState() {} },
+  history: {
+    get state() { return historyState; },
+    replaceState(state) { historyState = state; },
+    pushState(state) { historyState = state; historyCalls.push("push"); },
+    back() { historyCalls.push("back"); },
+  },
   sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
   localStorage: {
     getItem: (/** @type {string} */ key) => storage.get(key) ?? null,
@@ -100,10 +111,14 @@ Object.assign(globalThis, {
   MutationObserver: class extends window.MutationObserver {
     observe(node, options) {
       if (node.id === "shd" && options.attributeFilter?.includes("hidden")) shellRelocationObservers.add(this);
+      if (node.id === "keys" && options.attributeFilter?.includes("hidden")) keyboardLayerObservers.add(this);
+      if (node.id === "typing" || node.id === "msgs") mainDecorationObservers.add(this);
       return super.observe(node, options);
     }
     disconnect() {
       shellRelocationObservers.delete(this);
+      mainDecorationObservers.delete(this);
+      keyboardLayerObservers.delete(this);
       return super.disconnect();
     }
   },
@@ -112,9 +127,15 @@ Object.assign(globalThis, {
     observe(node) {
       resizeTargets.get(this).add(node.id);
       if (node.id === "tpdock") threadDockObservers.add(this);
+      if (node.id === "column") mainFollowObservers.add(this);
       if (node.matches("#side, .stg-frames")) stageLayoutObservers.add(this);
     }
-    disconnect() { resizeTargets.get(this).clear(); threadDockObservers.delete(this); stageLayoutObservers.delete(this); }
+    disconnect() {
+      resizeTargets.get(this).clear();
+      threadDockObservers.delete(this);
+      stageLayoutObservers.delete(this);
+      mainFollowObservers.delete(this);
+    }
   },
   IntersectionObserver: class {
     constructor(callback) { this.callback = callback; this.nodes = new Set(); }
@@ -181,10 +202,11 @@ Object.assign(globalThis, {
       else settingsReads.set(resource, pending);
       return response.promise;
     }
-    if (path === "/api/chat/chats") return Response.json({ chats: [
-      { id: "workspace-chat", kind: "workspace" },
-      { id: "project-chat", kind: "project", project: "demo" },
-    ] });
+    if (path === "/api/chat/chats") return (await initialChats.promise).clone();
+    if (path === "/api/chat/chats/workspace-chat/messages") return Response.json({ messages: [{
+      id: "first-workspace-reply", chat_id: "workspace-chat", author_kind: "owner", seq: 1,
+      created_at: new Date(lastHomeVisit).toISOString(), text: "The first message in Workspace",
+    }] });
     if (path === "/api/chat/runtimes") return Response.json({ runtimes: [{ name: "codex", cli: { logged_in: true } }, { name: "claude_code" }] });
     if (path.startsWith("/api/chat/runtimes/") && resource === "models") {
       modelReads.push(path);
@@ -224,7 +246,20 @@ Object.assign(globalThis, {
 });
 Object.defineProperty(navigator, "clipboard", { value: { writeText: async (/** @type {string} */ text) => { clipboard.push(text); } } });
 
+await import("../modules/home/skeleton.js");
+const firstHome = document.querySelector("#home");
+const initialHome = firstHome.innerHTML;
+assert.ok(firstHome.querySelector(".hm-sk"), "the Home skeleton supplies the initial page");
 await import("../boot.js");
+const mainLatest = document.querySelector("#conv > .mx-down");
+assert.ok(mainLatest, "the decorator mounts while the first world read is held");
+assert.equal(mainLatest.classList.contains("is-on"), false, "the new control has no visible startup state");
+assert.equal(document.querySelector("#conv").hidden, true, "the conversation remains out of the initial layout");
+assert.equal(firstHome.innerHTML, initialHome, "boot keeps the initial Home layout while the first read is held");
+initialChats.resolve(Response.json({ chats: [
+  { id: "workspace-chat", kind: "workspace" },
+  { id: "project-chat", kind: "project", project: "demo" },
+] }));
 const { kernel } = await import("../shell/kernel.js");
 await new Promise((resolve) => setImmediate(resolve));
 flushFrames();
@@ -414,6 +449,12 @@ press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
 assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 1 project/);
+await new Promise(setImmediate);
+flushFrames();
+await new Promise(setImmediate);
+const firstWorkspace = document.querySelector('#msgs [data-k="first-workspace-reply"]');
+assert.match(firstWorkspace?.textContent ?? "", /The first message in Workspace/);
+assert.ok(firstWorkspace.hasAttribute("data-noswipe"), "the first real conversation draw is decorated");
 const message = document.createElement("div");
 message.className = "m-them";
 message.innerHTML = '<div class="mb"><div class="prose"><p>Run this:</p><div class="md-code"><div class="md-code-head">JavaScript <button data-copy>Copy</button></div><pre><code>const answer = 42;</code></pre></div><p>Then check it.</p></div></div>';
@@ -913,7 +954,16 @@ press("#attach");
 assert.equal(filePickerClicks, 1, "the mounted composer opens its file picker");
 const mountedDockObservers = mountedThreadObservers();
 assert.equal(stageLayoutObservers.size, 2, "Stage watches sidebar width and frame height independently");
+assert.ok(document.querySelector("#conv > .mx-down") === mainLatest, "the boot decoration stays mounted");
+assert.equal(mainFollowObservers.size, 1, "the main scroller owns one follow observer");
+const mainDecoration = mainDecorationObservers.size;
+assert.ok(mainDecoration > 0, "the mounted main decoration watches typing and messages");
+assert.equal(keyboardLayerObservers.size, 1, "the keyboard layers observe modal visibility");
 pagehide(true);
+assert.equal(mainLatest.isConnected, true, "the page cache keeps the main conversation decoration");
+assert.equal(mainDecorationObservers.size, mainDecoration);
+assert.equal(mainFollowObservers.size, 1);
+assert.equal(keyboardLayerObservers.size, 1);
 launchpadAction.click();
 assert.equal(launchpadDialog.open, true, "the page cache keeps Launchpad's overview and dialog active");
 press("#attach");
@@ -931,6 +981,8 @@ key("Escape");
 press('#projects [data-go="p:demo"]');
 failedFromStage("failed-thread");
 const cachedPost = await sendFromMain("A cached reply");
+const cachedBubble = [...document.querySelectorAll("#msgs .m-you")].find((row) => row.textContent.includes("A cached reply"));
+assert.ok(cachedBubble?.hasAttribute("data-noswipe"), "the decorator still handles new messages after a persisted pagehide");
 press('#top [data-resolve="failed-thread"]');
 await new Promise(setImmediate);
 assert.deepEqual(threadResolves.map(({ body }) => body), [{ resolved: true }]);
@@ -960,6 +1012,21 @@ assert.deepEqual(threadResolves.map(({ thread, body }) => [thread, body]), [
 ]);
 assert.ok(frames.size, "the live Resolve action has queued a render");
 pagehide(false);
+assert.equal(mainLatest.isConnected, false, "unload destroys the booted main conversation decoration");
+assert.equal(mainDecorationObservers.size, 0, "unload disconnects the main decoration observers");
+assert.equal(mainFollowObservers.size, 0, "unload disconnects the main scroller's follower");
+assert.equal(keyboardLayerObservers.size, 0, "unload disconnects the keyboard layer observer");
+const closeKeysButton = shortcuts.querySelector("[data-close]");
+closeKeysButton.tabIndex = 0;
+shortcuts.hidden = false;
+document.querySelector("#say").focus();
+assert.equal(key("Tab").defaultPrevented, false, "the retired keyboard layers cannot trap Tab");
+shortcuts.hidden = true;
+const priorHistoryCalls = historyCalls.length;
+historyState = null;
+window.dispatchEvent(new window.Event("popstate"));
+assert.equal(historyCalls.length, priorHistoryCalls, "the retired Back listener cannot change browser history");
+assert.equal(app.dataset.conv, "t:failed-late", "a retained popstate cannot leave the retired conversation");
 const live = document.querySelector("#live");
 const lastAnnouncement = live.textContent;
 const lastNotice = document.querySelector("#herald").textContent;

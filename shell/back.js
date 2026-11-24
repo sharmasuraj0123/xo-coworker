@@ -1,23 +1,31 @@
 // @ts-check
 
-// The phone's own Back (Android's back gesture, Safari's edge swipe): one history entry of the app's own while there's somewhere to go back to.
+import { createScope } from "../core/kernel/scope.js";
 
-/** Back takes one step in the app, and with nothing left the browser leaves. @param {{ canBack: () => boolean, stepBack: () => boolean }} o @param {Window} [win] @param {Document} [doc] */
+/** @param {{canBack(): boolean, stepBack(): boolean}} o @param {Window} [win] @param {Document} [doc] */
 export function wireBack({ canBack, stepBack }, win = window, doc = document) {
+  const scope = createScope();
   const HIST = { armed: win.history.state?.xo === 1 };
   function armBack() {
     if (HIST.armed || !canBack()) return;
-    try { win.history.pushState({ ...(win.history.state || {}), xo: 1 }, ""); HIST.armed = true; } catch { /* a sandboxed frame */ }
+    try {
+      win.history.pushState({ ...win.history.state, xo: 1 }, "");
+      HIST.armed = true;
+    } catch (error) {
+      if (!(error && typeof error === "object" && "name" in error && error.name === "SecurityError")) throw error;
+    }
   }
-  win.addEventListener("popstate", () => {
+  scope.listen(win, "popstate", () => {
     HIST.armed = win.history.state?.xo === 1;
     if (HIST.armed) return; // forward onto our own entry: nothing to undo
     if (!stepBack()) { win.history.back(); return; }
     armBack();
   });
-  // arm on the person's own taps and keys (an entry pushed without one can be skipped by Back)
-  doc.addEventListener("click", () => setTimeout(armBack, 0), true);
-  win.addEventListener("keyup", () => setTimeout(armBack, 0), true);
-  doc.addEventListener("touchend", () => setTimeout(armBack, 0), { capture: true, passive: true });
-  doc.addEventListener("xo:gesture", armBack);
+  // Browser Back can skip history entries inserted without a user gesture.
+  const armAfterInput = () => { scope.timeout(armBack, 0); };
+  scope.listen(doc, "click", armAfterInput, true);
+  scope.listen(win, "keyup", armAfterInput, true);
+  scope.listen(doc, "touchend", armAfterInput, { capture: true, passive: true });
+  scope.listen(doc, "xo:gesture", armBack);
+  return scope.dispose;
 }

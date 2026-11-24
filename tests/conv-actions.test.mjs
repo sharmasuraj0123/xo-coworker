@@ -28,7 +28,8 @@ const copied = [];
 Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (t) => { copied.push(t); } } });
 g.getSelection = () => ({ isCollapsed: true, toString: () => "" });
 
-await import("../modules/conversation/main-decoration.js");
+const { mountMainDecoration } = await import("../modules/conversation/main-decoration.js");
+const destroyMain = mountMainDecoration();
 const { decorateConversation } = await import("../modules/conversation/decoration.js");
 const $ = (s, r = document) => r.querySelector(s);
 let view = "t:one";
@@ -160,6 +161,8 @@ assert.equal(viewSubs.length, 0, "the disposed conversation is unsubscribed");
 click(fresh.querySelector(".mx-actrow [data-mx-reply]"));
 say.value = "After"; key(say, "Enter");
 assert.equal(say.value, "After", "its keys no longer quote");
+destroyMain();
+assert.equal(document.querySelectorAll("body > .mx-qpop").length, 0, "the main conversation removes its quote button on teardown");
 
 console.log("conv-actions: ok");
 process.exit(0);

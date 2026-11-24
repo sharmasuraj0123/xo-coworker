@@ -13,12 +13,16 @@ import { RM } from "../../core/ui/motion.js";
 
 /** @param {FollowEls} els @returns {Follow} */
 export function createFollow(els) {
-  /** @param {keyof FollowEls} k @returns {any} */
+  /** @param {keyof FollowEls} k */
   const get = (k) => { const v = els[k]; return typeof v === "function" ? v() : v; };
-  /** @returns {HTMLElement} */
-  const sc = () => get("scroller");
-  /** @returns {HTMLElement} */
-  const rowsEl = () => get("msgs");
+  /** @param {keyof FollowEls} k */
+  function required(k) {
+    const node = get(k);
+    if (!node) throw new Error(`Missing conversation follow target: ${k}`);
+    return node;
+  }
+  const sc = () => required("scroller");
+  const rowsEl = () => required("msgs");
   let pinned = true, lastTop = 0;
   /** @type {{ k: string, y: number } | null} */
   let place = null;
@@ -88,12 +92,12 @@ export function createFollow(els) {
   /** @type {ResizeObserver | null} */
   let ro = null;
   /** @type {(() => void) | null} */
-  let onScroll = null;
+  let removeScroll = null;
   function init() {
-    const s = sc(), column = get("column");
+    const s = sc(), column = required("column");
     lastTop = s.scrollTop;
     let seenW = column.clientWidth;
-    onScroll = () => {
+    const onScroll = () => {
       const top = s.scrollTop, gap = s.scrollHeight - s.clientHeight - top;
       const w = column.clientWidth;
       if (w !== seenW) { seenW = w; lastTop = top; return; }
@@ -104,6 +108,7 @@ export function createFollow(els) {
       if (!pinned && !(held && ours)) { held = false; notePlace(); }
     };
     s.addEventListener("scroll", onScroll, { passive: true });
+    removeScroll = () => s.removeEventListener("scroll", onScroll);
     const keep = () => {
       if (pinned) { if (fromLatest() > 0.5) { s.scrollTop = s.scrollHeight; lastTop = s.scrollTop; } width = column.clientWidth; return; }
       if (column.clientWidth !== width) { width = column.clientWidth; keepPlace(); }
@@ -113,7 +118,7 @@ export function createFollow(els) {
     ro = new ResizeObserver(keep);
     ro.observe(column); ro.observe(s);
   }
-  function destroy() { ro?.disconnect(); ro = null; if (onScroll) sc()?.removeEventListener("scroll", onScroll); onScroll = null; }
+  function destroy() { ro?.disconnect(); ro = null; removeScroll?.(); removeScroll = null; }
   return { fromLatest, fromTop, isPinned, toLatest, toTop, unpin, toRow, init, destroy };
 }
 
@@ -127,4 +132,4 @@ export const toLatest = (smooth = false) => MAIN.toLatest(smooth);
 export const unpin = (row) => MAIN.unpin(row);
 /** @param {Element | null | undefined} el @param {boolean} [smooth] */
 export const toRow = (el, smooth = false) => MAIN.toRow(el, smooth);
-export function initFollow() { MAIN.init(); }
+export function initFollow() { MAIN.init(); return MAIN.destroy; }

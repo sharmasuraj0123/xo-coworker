@@ -2880,7 +2880,13 @@
     "modules/conversation/main-decoration.js",
     "modules/conversation/decoration.js"
    ],
-   "note": "The main conversation starts decoration in the same script slot after boot."
+   "note": "App boot mounts the main conversation decoration and owns its teardown.",
+   "evidence": {
+    "modules/conversation/main-decoration.js": {
+     "anchor": "return decorateConversation({",
+     "reason": "The main conversation passes its mounted elements and scrolling callbacks to the shared decorator."
+    }
+   }
   },
   "js/pacing.js": {
    "status": "moved",

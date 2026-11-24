@@ -2,8 +2,9 @@
 import assert from "node:assert/strict";
 import { dom, same } from "../../tests/lib/dom.mjs";
 import { createKernel } from "../../core/kernel/index.js";
+import { createScope } from "../../core/kernel/scope.js";
 import { stackLayers } from "../layers.js";
-import { focusOverlay, mountKeyboardLayers } from "../keyboard-layers.js";
+import { createOverlayFocus, mountKeyboardLayers } from "../keyboard-layers.js";
 
 const controls = '<button tabindex="0">First</button><button tabindex="0">Last</button>';
 const { document, window } = await dom(`
@@ -31,7 +32,7 @@ const stack = stackLayers(createKernel().layers, [
   layer("settings", settings, { watchHidden: settings, tab: () => phone.matches ? settings : null }),
   { id: "drawer", open: () => app.classList.contains("drawer"), close: () => app.classList.remove("drawer"), tab: () => phone.matches ? side : null },
 ]);
-const syncInert = mountKeyboardLayers({ layers: stack, phone, app, main, side, settings });
+const { syncInert, dispose } = mountKeyboardLayers({ layers: stack, phone, app, main, side, settings });
 const mutation = async () => { await Promise.resolve(); await Promise.resolve(); };
 const tab = (target, shiftKey = false) => {
   const e = new window.Event("keydown", { bubbles: true, cancelable: true });
@@ -100,8 +101,31 @@ native.setAttribute("open", "");
 native.matches = (selector) => selector === ":modal";
 document.body.append(native);
 keys.hidden = false;
+const scope = createScope();
+const focusOverlay = createOverlayFocus(scope);
 focusOverlay(keys.firstElementChild);
 content.firstElementChild.focus();
 native.dispatchEvent(new window.Event("close"));
 same(document.activeElement, keys.firstElementChild);
+focusOverlay(keys.firstElementChild);
+content.firstElementChild.focus();
+scope.dispose();
+native.dispatchEvent(new window.Event("close"));
+assert.ok(document.activeElement === content.firstElementChild, "a retired native dialog cannot return focus");
+
+syncInert();
+assert.equal(app.inert, true, "an open keyboard layer owns its background cover");
+dispose();
+assert.equal(app.inert, false, "disposal releases the keyboard layer cover");
+assert.equal(files.inert, true, "disposal does not touch inert state from another owner");
+keys.lastElementChild.focus();
+assert.equal(tab(keys.lastElementChild), false, "a retired keyboard layer cannot trap Tab");
+keys.hidden = true;
+await mutation();
+keys.hidden = false;
+phone.matches = true;
+phone.dispatchEvent(new window.Event("change"));
+await mutation();
+assert.equal(side.inert, false, "a retired keyboard layer ignores viewport changes");
+assert.equal(app.inert, false, "a retired keyboard layer ignores open-state mutations");
 console.log("keyboard layers preserve Tab order, inert ownership and focus return");

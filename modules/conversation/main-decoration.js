@@ -2,12 +2,21 @@
 import { decorateConversation } from "./decoration.js";
 import { toLatest as mainToLatest, fromLatest as mainFromLatest, toRow as mainToRow } from "./follow.js";
 
-const $ = (/** @type {string} */ s) => /** @type {HTMLElement} */ (document.querySelector(s));
+/** @param {string} id */
+function element(id) {
+  const node = document.getElementById(id);
+  if (!node) throw new Error(`Missing conversation element #${id}`);
+  return node;
+}
 
-decorateConversation({
-  conv: $("#conv"), msgs: $("#msgs"), scroller: $("#scroller"), typing: $("#typing"),
-  composer: $("#composer"), say: /** @type {HTMLTextAreaElement} */ ($("#say")), send: $("#send"), atList: $("#at-list"),
-  dock: $("#dock"), tdock: $("#tdock"), herald: $("#herald"), host: /** @type {HTMLElement} */ (document.getElementById("app")),
-  follow: { toLatest: mainToLatest, fromLatest: mainFromLatest, toRow: mainToRow },
-  isThread: () => (/** @type {HTMLElement} */ (document.getElementById("app"))).dataset.view === "thread", main: true,
-});
+export function mountMainDecoration() {
+  const host = element("app"), composer = element("composer"), say = composer.querySelector("textarea");
+  if (say?.id !== "say") throw new Error("The conversation composer requires #say.");
+  return decorateConversation({
+    conv: element("conv"), msgs: element("msgs"), scroller: element("scroller"), typing: element("typing"),
+    composer, say, send: element("send"), atList: document.getElementById("at-list"),
+    dock: element("dock"), tdock: element("tdock"), herald: document.getElementById("herald"), host,
+    follow: { toLatest: mainToLatest, fromLatest: mainFromLatest, toRow: mainToRow },
+    isThread: () => host.dataset.view === "thread", main: true,
+  }).destroy;
+}
