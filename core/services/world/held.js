@@ -1,5 +1,5 @@
 // @ts-check
-import { clockWords } from "../runtimes.js";
+import { clock, formatDate, isSoon } from "../../platform/time.js";
 
 const NB = "\u00a0"; // a time is one phrase: it never breaks across lines ("1:31" / "AM")
 /** @typedef {{until?: string | null, for?: string, asked?: boolean, why?: string}} Hold */
@@ -12,11 +12,11 @@ function whenParts(iso, now) {
   if (!Number.isFinite(ms)) return null;
   const d = new Date(ms), t = new Date(now), next = new Date(now);
   next.setDate(next.getDate() + 1);
-  const hm = clockWords(/** @type {string} */ (iso), ms); // the time alone (same day as itself)
+  const hm = clock(ms);
   if (d.toDateString() === t.toDateString()) return { day: "", hm };
   if (d.toDateString() === next.toDateString()) return { day: "tomorrow", hm };
-  if (ms > now && ms - now < 6 * 86400000) return { day: d.toLocaleDateString(undefined, { weekday: "short" }), hm };
-  return { day: d.toLocaleDateString(undefined, { day: "numeric", month: "short" }), date: true, hm };
+  if (isSoon(ms, now)) return { day: formatDate(d, "weekday"), hm };
+  return { day: formatDate(d, "monthDay"), date: true, hm };
 }
 /** @param {string | null | undefined} iso */
 export function heldClock(iso, now = Date.now()) {

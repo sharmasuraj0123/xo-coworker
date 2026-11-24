@@ -1,0 +1,52 @@
+export interface RuntimeError {
+  code?: string;
+  message?: string;
+}
+
+export interface UsageWindow {
+  state?: string;
+  utilization?: number | null;
+  resets_at?: string | null;
+}
+
+export interface RuntimeHealth {
+  installed?: boolean;
+  logged_in?: boolean;
+  cli_version?: string | null;
+  checked_at?: string | null;
+  account?: string | null;
+  usable?: boolean;
+  why_not?: string;
+  error?: RuntimeError | null;
+  limit?: string;
+  resets_at?: string | null;
+  windows?: Record<string, UsageWindow | null>;
+}
+
+export interface Runtime {
+  name: string;
+  default?: boolean;
+  cli?: { version?: string | null } | null;
+  health?: RuntimeHealth | null;
+  features?: { features?: { [name: string]: unknown; send_while_running?: { behaviour?: string | null } } };
+}
+
+export interface RuntimePolicy {
+  allowed?: string[] | null;
+  default?: string | null;
+  fallback?: boolean | null;
+  preferences?: string | null;
+}
+
+export interface UsageItem {
+  kind?: string;
+  title?: string;
+  why?: string;
+  detail?: {
+    limit?: string;
+    move_to?: string | null;
+    resets_at?: string | null;
+    threads?: { chat_id: string }[];
+  } | null;
+  options?: { decision?: string; label?: string }[];
+}

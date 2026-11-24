@@ -12083,11 +12083,11 @@
   },
   "js/runtimes.js::functions::untilWords": {
    "status": "moved",
-   "home": "core/services/runtimes.js"
+   "home": "core/platform/time.js"
   },
   "js/runtimes.js::functions::clockWords": {
    "status": "moved",
-   "home": "core/services/runtimes.js"
+   "home": "core/platform/calendar.js"
   },
   "js/runtimes.js::functions::healthOf": {
    "status": "moved",
@@ -13394,11 +13394,11 @@
   },
   "js/ui.js::functions::clock": {
    "status": "moved",
-   "home": "core/platform/time.js"
+   "home": "core/platform/calendar.js"
   },
   "js/ui.js::functions::dayOf": {
    "status": "moved",
-   "home": "core/platform/time.js"
+   "home": "core/platform/calendar.js"
   },
   "js/ui.js::functions::short": {
    "status": "moved",

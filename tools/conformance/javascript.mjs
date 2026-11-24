@@ -56,7 +56,9 @@ export function javascriptRules(file, source, { tree, comments }, report, files)
     if (node.type === "BinaryExpression" && /^(?:[<>]=?|[!=]==?)$/.test(node.operator)
         && [[node.left, node.right], [node.right, node.left]].some(([width, limit]) =>
           VIEWPORT.test(width.name ?? member(width) ?? "") && typeof literal(limit) === "number")) count("viewportLiteral");
-    if (node.type === "Literal" && node.value === DAY_MS && file !== "core/platform/time.js") count("dayLiteral");
+    const dayOwner = file === "core/platform/calendar.js" && parent?.type === "VariableDeclarator"
+      && parent.id.name === "DAY_MS" && parent.init === node && topLevelValues.has(node);
+    if (node.type === "Literal" && node.value === DAY_MS && !dayOwner) count("dayLiteral");
   });
   if (TEST.test(file)) sourceReads(file, tree, files, report);
 }

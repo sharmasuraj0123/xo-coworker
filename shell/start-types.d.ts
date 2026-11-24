@@ -3,7 +3,6 @@ export interface ShellStartup {
   applyTheme: (mode: "light" | "dark") => void;
   SIDE: { folded: boolean, fold: (folded: boolean, options: { quiet: boolean }) => void };
   soundRender: () => void;
-  PHONE: Pick<MediaQueryList, "addEventListener">;
   setDrawer: (open: boolean) => void;
   render: () => void;
   world: { subscribe: (callback: () => void) => void };

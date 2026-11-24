@@ -4,7 +4,7 @@
 
 /** @typedef {import("./types").Made} Made @typedef {import("./types").Kind} Kind @typedef {import("./types").MadeRow} MadeRow */
 
-const DAY = 86400000;
+import { DAY_MS } from "../../core/platform/time.js";
 
 /** @param {unknown} name */
 const EXT = (name) => ((/\.([\w-]+)$/.exec(String(name || "")) || [])[1] || "").toLowerCase();
@@ -68,12 +68,12 @@ export function madeItems(threads, { pins = new Set() } = {}) {
   return out;
 }
 
-/** Made as the backend keeps it (`GET /chat/chats/{chat}/made` rows), in madeItems' shape, newest first. @param {MadeRow[] | null | undefined} rows @param {{ project?: any, threadTitle?: (ts: any) => string }} [opts] @returns {Made[]} */
+/** @param {MadeRow[] | null | undefined} rows @param {import("./row-types").MadeOptions} [opts] @returns {Made[]} */
 export function madeFromServer(rows, { project, threadTitle = () => "" } = {}) {
   return (rows || []).filter((r) => r && r.id).map((r) => {
     const name = r.name || (r.path || r.url || r.git?.branch || "").split("/").filter(Boolean).pop() || "Untitled";
     const kind = r.kind === "link" ? "link" : r.kind === "branch" ? "branch" : r.kind === "image" ? "image" : madeKind({ name, type: r.mime || "" });
-    return { key: r.id, id: r.id, server: true, tid: r.thread_ts || null, project, threadTitle: threadTitle(r.thread_ts) || "", title: fileTitle(r.title), path: r.path || r.relative_path || r.url || name, name,
+    return { key: r.id, id: r.id, server: true, tid: r.thread_ts || null, project, threadTitle: threadTitle(r.thread_ts ?? "") || "", title: fileTitle(r.title), path: r.path || r.relative_path || r.url || name, name,
       type: r.mime || "", bytes: r.bytes ?? null, kind, at: Date.parse(r.updated_at || r.created_at || "") || 0, pinned: !!r.pinned,
       exists: r.exists !== false, url: r.url || null, git: r.git || null, turn: r.turn_id || null,
       fileProject: r.project_id || null, rel: r.relative_path || null };
@@ -93,7 +93,7 @@ export function madeGroups(items, now = Date.now()) {
   /** @type {[string, string, Made[]][]} */
   const G = [["pinned", "Pinned", []], ["today", "Today", []], ["week", "This week", []], ["earlier", "Earlier", []]];
   for (const m of items) {
-    const g = m.pinned ? 0 : m.at >= today ? 1 : m.at >= today - 6 * DAY ? 2 : 3;
+    const g = m.pinned ? 0 : m.at >= today ? 1 : m.at >= today - 6 * DAY_MS ? 2 : 3;
     G[g][2].push(m);
   }
   return G.filter((g) => g[2].length).map(([id, label, list]) => ({ id, label, items: list }));

@@ -63,6 +63,19 @@ for (const [rule, source, file = FILE, header = HEADER] of jsCases) {
   });
 }
 
+test("only the canonical calendar day constant owns the millisecond literal", (context) => {
+  const calendar = "core/platform/calendar.js";
+  const definition = "const DAY_MS = 86_400_000;";
+  const root = fixture(context, {
+    [calendar]: HEADER + definition + "\n{ " + definition + " }",
+    ["core/platform/time.js"]: HEADER + definition,
+  });
+  assert.deepEqual(inventory(root).map(({ file, rule, line }) => [file, rule, line]), [
+    [calendar, "dayLiteral", 4],
+    ["core/platform/time.js", "dayLiteral", 3],
+  ]);
+});
+
 const cssCases = [
   ["rawColor", 'a { color: #fff; }'],
   ["rawColor", 'a { color: oklch(0.6 0 0); }'],

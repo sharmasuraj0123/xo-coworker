@@ -1,6 +1,8 @@
 // @ts-check
 
-// Time words. Formatters are made once: toLocale*String with options builds one per call (25 ms per 400-row redraw).
+import { formatDate } from "./calendar.js";
+import { count } from "./words.js";
+export { DAY_MS, startOfDay, formatDate, clock, dayOf, isSoon, clockWords } from "./calendar.js";
 
 /** Parse an ISO time ("…Z") into epoch ms, or NaN. @param {string | null | undefined} iso */
 export function toMs(iso) {
@@ -9,18 +11,16 @@ export function toMs(iso) {
   return Number.isFinite(ms) ? ms : NaN;
 }
 
-const CLOCK_F = new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" });
-const DAY_F = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" });
-/** @param {number} ms */
-export function clock(ms) {
-  return CLOCK_F.format(ms);
-}
-/** @param {number} ms */
-export function dayOf(ms, now = Date.now()) {
-  const d = new Date(ms), t = new Date(now), y = new Date(now - 86400000);
-  if (d.toDateString() === t.toDateString()) return "Today";
-  if (d.toDateString() === y.toDateString()) return "Yesterday";
-  return DAY_F.format(d);
+/** @param {string} iso */
+export function untilWords(iso, now = Date.now()) {
+  const ms = toMs(iso);
+  if (!Number.isFinite(ms)) return "";
+  const m = Math.round((ms - now) / 60000);
+  if (m <= 0) return "";
+  if (m < 60) return `in ${m} min`;
+  const h = Math.floor(m / 60), r = m % 60;
+  if (h < 24) return `in ${h} h${r ? ` ${r} min` : ""}`;
+  return `in ${count(Math.round(h / 24), "day")}`;
 }
 /** @param {number} ms */
 export function short(ms, now = Date.now()) {
@@ -30,7 +30,7 @@ export function short(ms, now = Date.now()) {
   if (m < 60) return `${m}m`;
   const h = Math.round(m / 60);
   if (h < 24) return `${h}h`;
-  return new Date(ms).toLocaleDateString(undefined, { weekday: "short" });
+  return formatDate(ms, "weekday");
 }
 /** @param {number} secs */
 export function elapsed(secs) {
