@@ -64,3 +64,16 @@
 .vw-path{display:flex;align-items:center;gap:var(--gap-icon);flex-wrap:wrap;justify-content:center}
 .vw-path code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2)}
 .vw-path-copy svg{width:var(--ic-sm);height:var(--ic-sm)}
+@media (max-width:760px){
+  .viewer{position:fixed;inset:0;width:auto;z-index:var(--z-popover);border-radius:0;border:0}
+  .viewer.is-in{animation:sheet-up var(--d-move) var(--ease) both}
+  .vw-btn span{display:none}
+  .vw-btn{padding:0;justify-content:center}
+  .vw-x,.vw-btn{min-height:var(--h-lg)}
+  .vw-md{padding:var(--s-4) var(--s-viewer-phone-inline) var(--s-10)}
+  .vw-sub code{display:none}
+  .vw-wide{display:none}
+  .vw-narrow{display:inline}
+  .vw-img{padding:var(--s-3)}
+  .vw-sub span:first-of-type::before{content:none}
+}
