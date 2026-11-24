@@ -10,6 +10,7 @@ import { dom } from "./lib/dom.mjs";
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const storage = new Map([["cv-theme", "light"], ["cv-flavour", "onyx"]]);
 const blockedStorage = new Set();
+let phone = false;
 /** @type {string[]} */
 const clipboard = [];
 /** @type {FrameRequestCallback[]} */
@@ -36,6 +37,7 @@ Object.assign(globalThis, {
   ResizeObserver: class { observe() {} disconnect() {} },
   customElements: window.customElements,
   isSecureContext: true,
+  matchMedia: (/** @type {string} */ query) => ({ get matches() { return query === "(max-width: 760px)" && phone; }, addEventListener() {}, removeEventListener() {} }),
   getComputedStyle: window.getComputedStyle,
   requestAnimationFrame: (/** @type {FrameRequestCallback} */ fn) => frames.push(fn),
   setInterval: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setInterval(fn, ms).unref(),
@@ -140,6 +142,7 @@ assert.ok(document.activeElement === shortcuts.querySelector("[data-close]"), "o
 key("Escape");
 assert.equal(shortcuts.hidden, true, "Escape closes Shortcuts");
 assert.ok(document.activeElement === fold, "closing Shortcuts restores the previous focus");
+await new Promise((resolve) => setImmediate(resolve));
 
 press("#set-side");
 assert.equal(document.querySelector("#settings").hidden, false, "sidebar opens Settings");
@@ -179,3 +182,27 @@ blockedStorage.delete("cv-theme");
 press('#mode-seg [data-mode="dark"]');
 assert.ok(!modeRow.querySelector(".set-err"), "the inline error clears after a successful write");
 assert.equal(document.documentElement.dataset.theme, "dark");
+const settings = document.querySelector("#settings");
+const settingsClose = document.querySelector("#set-x");
+Object.defineProperty(settingsClose, "tabIndex", { value: 0 });
+fold.focus();
+assert.equal(key("Tab").defaultPrevented, false, "desktop Settings leaves Tab to the browser");
+key("Escape");
+assert.equal(settings.hidden, true, "Escape closes the app's Settings layer");
+await new Promise((resolve) => setImmediate(resolve));
+
+phone = true;
+const settingsOpener = document.querySelector("#set-phone");
+settingsOpener.focus();
+press("#set-phone");
+assert.equal(settings.hidden, false, "the phone button opens Settings");
+await new Promise((resolve) => setImmediate(resolve));
+const home = document.querySelector("#home");
+assert.equal(home.inert, true, "Settings holds the background inert");
+fold.focus();
+assert.equal(key("Tab").defaultPrevented, true, "phone Settings traps Tab");
+assert.ok(settings.contains(document.activeElement), "Tab moves focus into Settings");
+key("Escape");
+assert.equal(settings.hidden, true);
+assert.equal(home.inert, false, "closing Settings releases the background");
+assert.ok(document.activeElement === settingsOpener, "closing Settings restores the phone opener");
