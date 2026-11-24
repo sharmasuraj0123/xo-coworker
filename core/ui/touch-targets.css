@@ -1,0 +1,13 @@
+/* Expand touch targets without changing their layout. */
+@media (pointer:coarse){
+  :root:root :is(.side-plus,[data-arts-kind],.ev-asked>.ev-t){position:relative}
+  :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:var(--s-touch-extension)}
+  /* Static pins already fill their target and must leave the card clickable. */
+  :root:root .arts:not(.is-pics) .ar-grid .md-pin::after{content:none}
+  :root:root .md-pane .md-pin::after{content:none}
+  :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:var(--s-notice-touch-extension) 0}
+  :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:var(--h-hit)}
+  :root:root .side-pop[role=menu] .nrow{min-height:var(--h-hit)}
+  :root:root .fl-more{width:var(--h-ctl);height:var(--h-folder-touch-action);margin-top:0}
+}
+

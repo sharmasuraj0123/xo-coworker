@@ -1645,12 +1645,21 @@
    ]
   },
   "css/phone.css": {
-   "status": "split-region",
+   "status": "split",
    "home": [
     "shell/phone.css",
-    "modules/* (phone blocks)"
+    "core/ui/touch-targets.css",
+    "shell/phone-panel.css",
+    "modules/conversation/composer-phone.css",
+    "modules/files/viewer-phone.css",
+    "shell/phone-stage-bar.css",
+    "modules/launchpad/phone.css",
+    "modules/files/version-segment-phone.css",
+    "modules/conversation/turns-phone.css",
+    "core/ui/phone-control-floor.css",
+    "css/phone.css"
    ],
-   "note": "The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css."
+   "note": "The entry preserves the order of the header, shared controls and component styles. The 340 px and 400 px rules remain pending breakpoint consolidation."
   },
   "css/rich.css": {
    "status": "moved",

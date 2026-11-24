@@ -9,8 +9,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | deleted | 337 |
 | planned | 148 |
 | kept | 61 |
-| split | 31 |
-| split-region | 4 |
+| split | 32 |
+| split-region | 3 |
 
 Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted 151, split 3), in `ledger.json` as `path::kind::name`.
 
@@ -135,7 +135,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
 | `css/panel.css` | 681 | split-region | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
-| `css/phone.css` | 286 | split-region | shell/phone.css, modules/* (phone blocks) · next: The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css. |
+| `css/phone.css` | 286 | split | shell/phone.css, core/ui/touch-targets.css, shell/phone-panel.css, modules/conversation/composer-phone.css, modules/files/viewer-phone.css, shell/phone-stage-bar.css, modules/launchpad/phone.css, modules/files/version-segment-phone.css, modules/conversation/turns-phone.css, core/ui/phone-control-floor.css, css/phone.css · next: The entry preserves the order of the header, shared controls and component styles. The 340 px and 400 px rules remain pending breakpoint consolidation. |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
 | `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui/density.css, modules/conversation/shape.css, css/shape.css · next: The entry stylesheet imports Settings, density and the conversation preferences in their original cascade order. |
 | `css/side.css` | 158 | moved | shell/sidebar.css |

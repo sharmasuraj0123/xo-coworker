@@ -1,80 +1,13 @@
 @import url("../shell/phone.css");
-
-/* Expand touch targets without changing their layout. */
-@media (pointer:coarse){
-  :root:root :is(.side-plus,[data-arts-kind],.ev-asked>.ev-t){position:relative}
-  :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:var(--s-touch-extension)}
-  /* Static pins already fill their target and must leave the card clickable. */
-  :root:root .arts:not(.is-pics) .ar-grid .md-pin::after{content:none}
-  :root:root .md-pane .md-pin::after{content:none}
-  :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:var(--s-notice-touch-extension) 0}
-  :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:var(--h-hit)}
-  :root:root .side-pop[role=menu] .nrow{min-height:var(--h-hit)}
-  :root:root .fl-more{width:var(--h-ctl);height:var(--h-folder-touch-action);margin-top:0}
-}
-
-/* Preserve the conversation width behind a covering panel. */
-@media (max-width:760px){
-  :root:root body.stage-open .home{padding-right:var(--s-4)}
-  :root:root body.stage-open :is(.dock,.toast-wrap){right:0}
-}
-/* Keep the target mark and the model visible together. */
-@media (max-width:760px){
-  :root:root .target :is(.tg-w,.muted){display:none}
-  :root:root .target b{display:none}
-  :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
-  :root:root .iq{padding:0 var(--s-model-chip-phone)}
-  :root:root .iq-sep{margin:0 var(--s-1)}
-}
-@media (max-width:760px){
-  .fl-link{min-height:var(--h-touch)}
-  .fl-up{width:var(--h-touch);height:var(--h-touch)}
-  .vw-seg{height:var(--h-lg);padding:var(--hair)}
-  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r-sm) - var(--r-segment-inset))}
-  @container flpv (max-width:520px){.vw-seg button{width:var(--h-touch)}}
-}
-
-@media (max-width:760px){
-  .vw-btn{width:var(--h-lg)}
-  .vw-t h2{font-size:var(--fs-title)}
-  /* The viewer clips outside rings and its full-screen header clears the notch. */
-  .vw-top :focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
-  .viewer:not(.stage .viewer) .vw-top{height:calc(var(--h-lg) + env(safe-area-inset-top, 0px));
-    padding-top:env(safe-area-inset-top, 0px)}
-  .stg-bar{height:calc(var(--h-lg) + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
-  .lp-pair .lp-ib{width:var(--h-lg);height:var(--h-lg)}
-  .lp-ro{padding:var(--s-launchpad-readonly-phone) 0}
-}
-
-@media (max-width:760px){
-  .vw-seg.is-words button{height:var(--h-touch)}
-  :root[data-msgx] .m-turn .turn>.tb>.tb-h,
-  :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h,
-  [data-density="compact"] .tb-h{min-height:var(--h-touch)}
-  [data-density="compact"] .m-turn{--tb-line:var(--h-touch)}
-}
-
-/* Give controls a shared floor with zero specificity. */
-@media (max-width:760px){
-  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],
-    [role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),
-    a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-ln,.cp-link)){min-height:var(--h-touch);min-width:var(--h-touch)}
-  /* A boxed field gets its minimum height from the box. */
-  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],
-    [type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.jump-field) input)){min-height:var(--h-touch)}
-  :where(.fl-q,.ar-q,.all-q,.fl-new-r){min-height:var(--h-touch)}
-  :where(.x,.vw-x,.vw-btn,.fr-ib,.stg-x,.lbx-btn,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,
-    .fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act){min-width:var(--h-touch)}
-  .fl-r,.tb-rh{min-height:var(--h-touch)}
-  :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
-  :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-touch)}
-  .nrow,.prow{min-height:var(--h-lg);padding-top:var(--s-sidebar-row-phone);padding-bottom:var(--s-sidebar-row-phone)}
-  .side-pop[role=menu] .nrow{min-height:var(--menu-row)}
-  .hd-r{min-height:var(--h-lg)}
-  :is(.ar,.ar-fold,.ar-undo){min-height:var(--h-lg)}
-  :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
-  :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:var(--h-row-act)}
-}
+@import url("../core/ui/touch-targets.css");
+@import url("../shell/phone-panel.css");
+@import url("../modules/conversation/composer-phone.css");
+@import url("../modules/files/viewer-phone.css");
+@import url("../shell/phone-stage-bar.css");
+@import url("../modules/launchpad/phone.css");
+@import url("../modules/files/version-segment-phone.css");
+@import url("../modules/conversation/turns-phone.css");
+@import url("../core/ui/phone-control-floor.css");
 
 /* Give the count room on narrow collapsed checklists. */
 @media (max-width:400px){

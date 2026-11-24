@@ -1,0 +1,22 @@
+/* Give controls a shared floor with zero specificity. */
+@media (max-width:760px){
+  :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],
+    [role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),
+    a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-ln,.cp-link)){min-height:var(--h-touch);min-width:var(--h-touch)}
+  /* A boxed field gets its minimum height from the box. */
+  :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],
+    [type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.jump-field) input)){min-height:var(--h-touch)}
+  :where(.fl-q,.ar-q,.all-q,.fl-new-r){min-height:var(--h-touch)}
+  :where(.x,.vw-x,.vw-btn,.fr-ib,.stg-x,.lbx-btn,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,
+    .fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act){min-width:var(--h-touch)}
+  .fl-r,.tb-rh{min-height:var(--h-touch)}
+  :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
+  :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-touch)}
+  .nrow,.prow{min-height:var(--h-lg);padding-top:var(--s-sidebar-row-phone);padding-bottom:var(--s-sidebar-row-phone)}
+  .side-pop[role=menu] .nrow{min-height:var(--menu-row)}
+  .hd-r{min-height:var(--h-lg)}
+  :is(.ar,.ar-fold,.ar-undo){min-height:var(--h-lg)}
+  :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
+  :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:var(--h-row-act)}
+}
+

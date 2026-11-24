@@ -1,0 +1,5 @@
+/* Preserve the conversation width behind a covering panel. */
+@media (max-width:760px){
+  :root:root body.stage-open .home{padding-right:var(--s-4)}
+  :root:root body.stage-open :is(.dock,.toast-wrap){right:0}
+}

@@ -1,0 +1,7 @@
+@media (max-width:760px){
+  :root[data-msgx] .m-turn .turn>.tb>.tb-h,
+  :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h,
+  [data-density="compact"] .tb-h{min-height:var(--h-touch)}
+  [data-density="compact"] .m-turn{--tb-line:var(--h-touch)}
+}
+

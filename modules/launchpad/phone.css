@@ -1,0 +1,5 @@
+@media (max-width:760px){
+  .lp-pair .lp-ib{width:var(--h-lg);height:var(--h-lg)}
+  .lp-ro{padding:var(--s-launchpad-readonly-phone) 0}
+}
+
