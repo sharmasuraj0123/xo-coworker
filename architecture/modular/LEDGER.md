@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 488 |
+| moved | 487 |
 | vendor | 376 |
 | deleted | 337 |
 | planned | 147 |
 | kept | 61 |
-| split | 34 |
+| split | 35 |
 | split-region | 3 |
 
 Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept 153, split 3), in `ledger.json` as `path::kind::name`.
@@ -57,7 +57,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
-| `js/gestures.js` | 453 | split | shell/gestures.js, core/platform/gestures.js · next: The app passes the conversation text extractor when it wires gestures. |
+| `js/gestures.js` | 453 | split | shell/gestures.js, core/platform/gestures.js, core/platform/gesture-motion.js · next: The app passes the conversation text extractor when it wires gestures. |
 | `js/ghpage.js` | 241 | moved | modules/github/page.js |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js |
@@ -100,7 +100,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `js/settings.js` | 407 | split | js/settings.js, modules/settings/host.js, modules/routing/page.js, modules/routing/actions.js, modules/rules/page.js, modules/worktrees/page.js · next: The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events. |
 | `js/shape.js` | 731 | split | core/services/shape/model.js, core/services/shape/changes.js, core/services/shape/store.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
-| `js/shells/dock.js` | 704 | moved | modules/shells/dock.js |
+| `js/shells/dock.js` | 704 | split | modules/shells/dock.js, modules/shells/dock-refresh.js, modules/shells/dock-resize.js, modules/shells/dock-open.js, modules/shells/dock-actions.js, modules/shells/dock-rename.js |
 | `js/shells/model.js` | 128 | moved | modules/shells/model.js |
 | `js/shells/term.js` | 205 | moved | modules/shells/term.js |
 | `js/sideorder.js` | 28 | moved | shell/sideorder.js |

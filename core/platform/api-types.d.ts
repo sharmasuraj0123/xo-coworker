@@ -105,9 +105,9 @@ export interface Api {
   signInCode(route: Exclude<SignInRoute, "codex">, sessionId: Id, code: string): Json;
   signInCancel(route: "claude-code"): Json;
 
-  terminalStatus(): Json;
-  terminals(query?: Query): Json;
-  terminal(id: Id): Json;
+  terminalStatus(options?: ReadOptions): Json;
+  terminals(query?: Query, options?: ReadOptions): Json;
+  terminal(id: Id, options?: ReadOptions): Json;
   openTerminal(body: object): Json;
   attachTerminal(id: Id, options?: ReadOptions): Promise<{ ticket: string; ticket_expires_in: number }>;
   renameTerminal(id: Id, name: string): Json;

@@ -1,6 +1,5 @@
 import type { Shell } from "./model.js";
 import type { mountShell, TerminalDetail, TerminalState } from "./term.js";
-
 type Notify = (notice: { kind: string; text: string; sub?: string }) => void;
 type Announce = (text: string) => void;
 type ProjectName = (project: string) => string;
@@ -19,12 +18,6 @@ export interface DockSnapshot {
   active: string;
   open: boolean;
   filter?: string | null;
-}
-
-export interface DockError {
-  status?: number;
-  code?: string;
-  message: string;
 }
 
 export type DockTarget = {
@@ -85,6 +78,7 @@ export interface DockViewOptions {
 }
 
 export interface DockActionOptions {
+  requests: ReturnType<typeof import("./dock-requests.js").createDockRequests>;
   root: DockControls;
   listEl: DockControls;
   confirmEl: DockControls;
@@ -100,7 +94,11 @@ export interface DockActionOptions {
   announce: Announce;
 }
 
+export type DockRenameOptions = Pick<DockActionOptions,
+  "requests" | "root" | "upsert" | "nameOf" | "render" | "changed" | "notify" | "announce">;
+
 export interface DockInputOptions {
+  scope: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
   root: DockControls;
   side: HTMLElement;
   listEl: DockControls;

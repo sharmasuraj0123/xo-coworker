@@ -2649,7 +2649,8 @@
    "status": "split",
    "home": [
     "shell/gestures.js",
-    "core/platform/gestures.js"
+    "core/platform/gestures.js",
+    "core/platform/gesture-motion.js"
    ],
    "note": "The app passes the conversation text extractor when it wires gestures."
   },
@@ -2965,8 +2966,37 @@
    "note": "whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later"
   },
   "js/shells/dock.js": {
-   "status": "moved",
-   "home": "modules/shells/dock.js"
+   "status": "split",
+   "home": [
+    "modules/shells/dock.js",
+    "modules/shells/dock-refresh.js",
+    "modules/shells/dock-resize.js",
+    "modules/shells/dock-open.js",
+    "modules/shells/dock-actions.js",
+    "modules/shells/dock-rename.js"
+   ],
+   "evidence": {
+    "modules/shells/dock-refresh.js": {
+     "anchor": "function createDockRefresh(R, { scope, offNow, changed, listShown })",
+     "reason": "Owns status and list polling, including visibility and cancellation."
+    },
+    "modules/shells/dock-resize.js": {
+     "anchor": "function bindDockResize(state, { grip, root, scope, render, persist, refit })",
+     "reason": "Keeps pointer and keyboard resizing in the lifetime of the mounted dock."
+    },
+    "modules/shells/dock-open.js": {
+     "anchor": "chatActivityApi.worktrees(chatId, signal)",
+     "reason": "Chooses or creates the requested shell after the scoped thread worktree lookup."
+    },
+    "modules/shells/dock-actions.js": {
+     "anchor": "return requests.write(() => api.closeTerminal(id), (result) => {",
+     "reason": "Owns terminal close and close-all settlements in the mounted dock."
+    },
+    "modules/shells/dock-rename.js": {
+     "anchor": "await requests.write(() => api.renameTerminal(id, name), (result) => {",
+     "reason": "Preserves the dock's rename field and receipt behavior."
+    }
+   }
   },
   "js/shells/model.js": {
    "status": "moved",
@@ -9540,15 +9570,15 @@
   },
   "js/gestures.js::exports::glide": {
    "status": "moved",
-   "home": "core/platform/gestures.js"
+   "home": "core/platform/gesture-motion.js"
   },
   "js/gestures.js::exports::follow": {
    "status": "moved",
-   "home": "core/platform/gestures.js"
+   "home": "core/platform/gesture-motion.js"
   },
   "js/gestures.js::exports::unstyle": {
    "status": "moved",
-   "home": "core/platform/gestures.js"
+   "home": "core/platform/gesture-motion.js"
   },
   "js/gestures.js::exports::dockGestures": {
    "status": "moved",
@@ -9580,15 +9610,15 @@
   },
   "js/gestures.js::functions::glide": {
    "status": "moved",
-   "home": "core/platform/gestures.js"
+   "home": "core/platform/gesture-motion.js"
   },
   "js/gestures.js::functions::follow": {
    "status": "moved",
-   "home": "core/platform/gestures.js"
+   "home": "core/platform/gesture-motion.js"
   },
   "js/gestures.js::functions::unstyle": {
    "status": "moved",
-   "home": "core/platform/gestures.js"
+   "home": "core/platform/gesture-motion.js"
   },
   "js/gestures.js::functions::dockGestures": {
    "status": "moved",
@@ -12546,7 +12576,13 @@
   },
   "js/shells/dock.js::keys::ArrowUp": {
    "status": "moved",
-   "home": "modules/shells/dock-input.js"
+   "home": "modules/shells/dock-resize.js",
+   "evidence": {
+    "modules/shells/dock-resize.js": {
+     "anchor": "key !== \"ArrowUp\" && key !== \"ArrowDown\"",
+     "reason": "The scoped grip handler adjusts the dock height with the arrow keys."
+    }
+   }
   },
   "js/shells/model.js::exports::busyWith": {
    "status": "moved",

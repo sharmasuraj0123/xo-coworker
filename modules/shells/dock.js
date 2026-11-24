@@ -1,10 +1,14 @@
 // @ts-check
 
-import { api } from "../../core/platform/api.js";
 import { COPY_REFUSED } from "../../core/platform/index.js";
+import { createScope } from "../../core/kernel/scope.js";
+import { read, write } from "../../core/platform/storage.js";
+import { createDockRefresh } from "./dock-refresh.js";
+import { createDockRequests } from "./dock-requests.js";
+import { createShellOpeners } from "./dock-open.js";
 import * as K from "../../core/platform/keys.js";
 import { mountShell } from "./term.js";
-import { isRunning, runningOf, nameFor } from "./model.js";
+import { isRunning, runningOf } from "./model.js";
 import { createDockView } from "./dock-view.js";
 import { createDockActions } from "./dock-actions.js";
 import { bindDockInput } from "./dock-input.js";
@@ -12,20 +16,15 @@ import { bindDockInput } from "./dock-input.js";
 const LIST = "list";
 const OPEN_KEY = "xo-shells";       // sessionStorage: the tabs attached in this browser tab, so a reload reattaches
 const SIZE_KEY = "xo-shells-dock";  // localStorage: the dock's height and whether it is minimised
-const POLL_LIST = 15000;            // while the list is on screen
-const POLL_IDLE = 60000;            // otherwise: the sidebar count and the badges stay roughly right
-
-/** @template T @param {Storage} store @param {string} k @param {T} d @returns {T} */
-const sget = (store, k, d) => { try { return JSON.parse(/** @type {string} */ (store.getItem(k))) ?? d; } catch { return d; } };
-/** @param {Storage} store @param {string} k @param {unknown} v */
-const sset = (store, k, v) => { try { store.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
 /** @param {import('./dock-types.js').DockOptions} [options] */
 export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = () => {}, announce = () => {}, wanted = () => true } = {}) {
+  const scope = createScope();
+  const requests = createDockRequests(scope.signal);
   const root = /** @type {HTMLElement} */ (document.getElementById("shd"));
   const side = /** @type {HTMLElement} */ (document.getElementById("nv-shells"));
-  const saved = sget(localStorage, SIZE_KEY, /** @type {{min?: boolean, h?: number}} */ ({}));
-  const was = sget(sessionStorage, OPEN_KEY, /** @type {import("./dock-types.js").DockSnapshot | null} */ (null)); // read before the first render writes it over
+  const saved = /** @type {{min?: boolean, h?: number}} */ (read(SIZE_KEY, JSON.parse, {}) ?? {});
+  let savedTabs = /** @type {import("./dock-types.js").DockSnapshot | null} */ (read(OPEN_KEY, JSON.parse, null, "session"));
   /** @type {import("./dock-types.js").DockState} */
   const R = {
     enabled: false, reason: null, statusAt: 0,
@@ -73,37 +72,17 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     if (i >= 0) R.list[i] = t; else R.list.push(t);
   }
   function persist() {
-    sset(sessionStorage, OPEN_KEY, { tabs: R.order, active: R.active, open: R.open, filter: R.filter });
-    sset(localStorage, SIZE_KEY, { h: R.h, min: R.min });
+    if (!savedTabs) write(OPEN_KEY, JSON.stringify({ tabs: R.order, active: R.active, open: R.open, filter: R.filter }), "session");
+    write(SIZE_KEY, JSON.stringify({ h: R.h, min: R.min }));
+  }
+  function claimView() {
+    if (!savedTabs) return;
+    savedTabs = null;
+    persist();
   }
   const changed = () => { render(); persist(); onChange(); };
 
-  let pollT = 0;
-  async function refresh({ status = false } = {}) {
-    clearTimeout(pollT);
-    try {
-      if (status || !R.statusAt || Date.now() - R.statusAt > POLL_IDLE - 1000) {
-        const s = await api.terminalStatus();
-        R.statusAt = Date.now();
-        const was = R.enabled;
-        R.enabled = !!s.enabled; R.reason = s.reason || null;
-        if (was && !R.enabled) offNow(R.reason);
-      }
-      if (R.enabled) {
-        const d = await api.terminals();
-        R.list = d.terminals || [];
-        R.loaded = true; R.err = null;
-      }
-    } catch (err) {
-      // a backend without /api/terminal (404) has no shells; anything else keeps what we had
-      if ((/** @type {import("./dock-types.js").DockError} */ (err)).status === 404 && !R.loaded) R.enabled = false;
-      else R.err = (/** @type {import("./dock-types.js").DockError} */ (err)).message;
-    }
-    changed();
-    clearTimeout(pollT); // another refresh may have finished meanwhile: keep one timer
-    pollT = setTimeout(refresh, listShown() ? POLL_LIST : POLL_IDLE);
-  }
-  document.addEventListener("visibilitychange", () => { if (!document.hidden && R.enabled) refresh(); });
+  const { refresh, refreshSoon } = createDockRefresh(R, { scope, offNow, changed: refreshed, listShown });
 
   /** Shells were turned off under us: every tab ends, and the UI goes away. @param {string | null} reason */
   function offNow(reason) {
@@ -114,6 +93,8 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
 
   /** @param {string} id @param {{ticket?: string | null, focus?: boolean}} [options] */
   function attach(id, { ticket = null, focus = true } = {}) {
+    if (scope.signal.aborted) return;
+    claimView();
     if (R.tabs.has(id)) { activate(id, { focus }); return; }
     const pane = document.createElement("div");
     pane.className = "shd-term";
@@ -145,11 +126,13 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   }
   /** @param {string} id */
   function activate(id, { focus = true } = {}) {
+    if (scope.signal.aborted) return;
+    claimView();
     R.active = id; R.open = true; R.min = false;
     R.edit = null;
     render(); persist();
     const tab = R.tabs.get(id);
-    if (tab) requestAnimationFrame(() => { tab.handle.refit(); if (focus) tab.handle.focus(); });
+    if (tab) scope.frame(() => { tab.handle.refit(); if (focus) tab.handle.focus(); });
     else if (id === LIST) { refresh(); if (focus) (/** @type {HTMLButtonElement | null} */ (tabsEl.querySelector(`[data-sh-tab="${LIST}"]`)))?.focus(); }
   }
   /** Stop watching: the socket closes, the shell keeps running. @param {string} id */
@@ -170,10 +153,10 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     }
   }
   /** A tab waiting to reconnect counts its seconds down (a number written once and never moved was a lie a second later). */
-  let cdT = 0;
+  let cdT = /** @type {(() => void) | undefined} */ (undefined);
   function countdown() {
     if (cdT) return;
-    cdT = setInterval(() => {
+    cdT = scope.interval(() => {
       let any = false;
       for (const tab of R.tabs.values()) {
         if (tab.state !== "retrying" || !tab.until) continue;
@@ -181,62 +164,29 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
         const n = tab.pane.querySelector(".shd-note [data-left]");
         if (n) n.textContent = String(Math.max(1, Math.ceil((tab.until - Date.now()) / 1000)));
       }
-      if (!any) { clearInterval(cdT); cdT = 0; }
+      if (!any) { cdT?.(); cdT = undefined; }
     }, 250);
   }
-  let soonT = 0;
-  const refreshSoon = () => { clearTimeout(soonT); soonT = setTimeout(() => refresh(), 600); };
 
-  /** @param {{project?: string, name: string | null, path?: string}} body @param {string} where */
-  async function create(body, where) {
-    if (!R.enabled || !wanted() || R.opening) return; // one shell per press: a second click while it opens opens nothing
-    R.opening = true; render();
-    try {
-      const d = await api.openTerminal(body);
-      R.opening = false;
-      upsert(d.terminal);
-      attach(d.terminal.id, { ticket: d.ticket });
-      announce(`Shell open in ${where}`);
-    } catch (err) {
+  const { openProject, openWorkspace, openThread } = createShellOpeners(R, {
+    requests, wanted, render, attach, upsert, showList, projectName: PROJ, refresh, notify, announce, claimView,
+    focusNew() {
       const had = root.contains(document.activeElement) || document.activeElement === document.body;
-      R.opening = false; render();
-      if (had && !root.contains(document.activeElement)) /** @type {HTMLButtonElement | null} */ (listEl.querySelector("[data-sh-new]"))?.focus(); // refused: back on New shell
-      notify({ kind: "stopped", text: "Couldn't open a shell", sub: (/** @type {import("./dock-types.js").DockError} */ (err)).message });
-      announce(`Couldn't open a shell: ${(/** @type {import("./dock-types.js").DockError} */ (err)).message}`);
-      if ((/** @type {import("./dock-types.js").DockError} */ (err)).code === "terminal_disabled") refresh({ status: true });
-    }
-  }
-  /** The project's Shell button: a new shell in its folder, or its list when it has some already. @param {string} pid */
-  function openProject(pid, { fresh = false } = {}) {
-    if (!fresh && runningOf(R.list, pid).length) return showList(pid);
-    return create({ project: pid, name: nameFor(PROJ(pid)) }, PROJ(pid));
-  }
-  function openWorkspace({ fresh = false } = {}) {
-    if (!fresh && R.list.some((t) => isRunning(t) && t.scope === "workspace")) return showList("workspace");
-    return create({ name: "Workspace" }, "the workspace");
-  }
-  /** @param {{project: string, chatId: string, ts: string, title: string}} thread */
-  async function openThread({ project, chatId, ts, title }) {
-    if (!project || project === "workspace") return create({ name: nameFor(title) || "Workspace" }, "the workspace");
-    let path = null;
-    try {
-      const d = await api.worktrees(chatId);
-      const w = (d.worktrees || []).find((/** @type {{thread_ts: string, exists?: boolean, error?: string, path?: string}} */ x) => x.thread_ts === ts && x.exists !== false && !x.error);
-      path = w ? w.path : null;
-    } catch { /* no worktree list: the project folder it is */ }
-    const there = path && R.list.find((t) => isRunning(t) && t.project === project && (t.path === path || t.cwd === path));
-    if (there) return attach(there.id);
-    return create({ project, ...(path ? { path } : {}), name: nameFor(title) || nameFor(PROJ(project)) }, path ? "the thread's worktree" : PROJ(project));
-  }
+      render();
+      const next = listEl.querySelector("[data-sh-new]");
+      if (had && !root.contains(document.activeElement) && next instanceof HTMLElement) next.focus();
+    },
+  });
   /** @param {string | null} [filter] */
   function showList(filter = null) {
+    if (scope.signal.aborted) return;
     R.filter = filter;
     R.confirm = null;
     activate(LIST);
   }
   /** The toggle key: open (where you left off), minimise, or open again. */
   function toggle() {
-    if (!R.enabled || !wanted()) return;
+    if (scope.signal.aborted || !R.enabled || !wanted()) return;
     if (!R.open) { activate(R.active); return; }
     // Keep focus on the minimize button when it was pressed.
     const onMin = !!document.activeElement?.closest?.("[data-sh-min]");
@@ -247,12 +197,12 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
   }
 
   const { askClose, keepIt, closeShell, askCloseDetached, closeDetached, startRename, renameBack, saveRename } = createDockActions(R, {
-    root, listEl, confirmEl, LIST, byId, upsert, nameOf, render, changed, detach, refreshSoon, notify, announce,
+    root, listEl, confirmEl, LIST, byId, upsert, nameOf, render, changed, detach, refreshSoon, notify, announce, requests,
   });
   const { PHONE, refit } = bindDockInput(R, {
     root, side, listEl, tabsEl, grip, LIST, showList, toggle, activate, detach, attach, startRename, askClose,
     openProject, openWorkspace, askCloseDetached, changed, keepIt, closeShell, closeDetached, away, saveRename,
-    render, renameBack, owns, persist,
+    render, renameBack, owns, persist, scope,
   });
 
   /** Is this key event the shell's (inside a terminal), so the app's shortcuts must leave it alone? @param {Event} e */
@@ -261,19 +211,21 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     return !!(el && el.closest && el.closest("#shd .xterm"));
   }
 
-  (async () => {
-    await refresh({ status: true });
-    if (!R.enabled || !was) return;
-    R.filter = was.filter ?? null;
-    for (const id of was.tabs || []) if (isRunning(byId(id))) attach(id, { focus: false });
-    const active = was.active === LIST || R.tabs.has(was.active) ? was.active : R.order[0] || LIST;
-    R.open = !!was.open && (R.tabs.size > 0 || active === LIST);
-    R.active = active;
+  function refreshed() {
+    if (!savedTabs || !R.enabled || !R.loaded) { changed(); return; }
+    const snapshot = savedTabs;
+    savedTabs = null;
+    R.filter = snapshot.filter ?? null;
+    for (const id of snapshot.tabs || []) if (isRunning(byId(id))) attach(id, { focus: false });
+    R.active = snapshot.active === LIST || R.tabs.has(snapshot.active) ? snapshot.active : R.order[0] || LIST;
+    R.open = !!snapshot.open && (R.tabs.size > 0 || R.active === LIST);
     changed();
     R.tabs.get(R.active)?.handle.refit();
-  })();
+  }
+  void refresh({ status: true });
 
   return {
+    dispose() { scope.dispose(); for (const id of [...R.order]) detach(id, { quiet: true }); },
     /** On, and wanted: the thread menu's "Open a shell" and ⌘` follow this. */
     get enabled() { return R.enabled && wanted(); },
     /** On at the backend, whatever the shape says (the shape's capability check). */
@@ -286,12 +238,12 @@ export function createShells({ PROJ = (p) => p, notify = () => {}, onChange = ()
     /** Shown and not minimised (the panel's Shell mode leaves when the dock is put away from inside it). */
     get shown() { return R.enabled && wanted() && R.open && !R.min; },
     /** Put away, as its own ↓ does: shells keep running. */
-    hide() { if (!R.open) return; R.open = false; changed(); away(); },
+    hide() { if (scope.signal.aborted || !R.open) return; R.open = false; changed(); away(); },
     /** On a phone, is the shells sheet up over the page (so Back puts it away first)? */
-    get raised() { return PHONE.matches && R.enabled && wanted() && R.open && !R.min; },
+    get raised() { return !!PHONE?.matches && R.enabled && wanted() && R.open && !R.min; },
     /** Back on a phone: half height first, then away behind the sidebar's toggle. */
     lower() {
-      if (!(PHONE.matches && R.open && !R.min)) return false;
+      if (scope.signal.aborted || !(PHONE?.matches && R.open && !R.min)) return false;
       if (!R.half) { R.half = true; render(); refit(); return true; }
       R.min = true; R.half = false; changed();
       away();

@@ -201,10 +201,10 @@ export const api = {
   signInCode: (route, sessionId, code) => exchange(`connect/${route}/callback`, "POST", { session_id: sessionId, code }),
   signInCancel: (route) => exchange(`connect/${route}`, "DELETE"),
 
-  terminalStatus: () => get("/terminal/status"),
+  terminalStatus: ({ signal } = {}) => get("/terminal/status", undefined, signal),
   /** {project?, path?, workspace?: true} → {terminals: [T…]}, oldest first */
-  terminals: (query = {}) => get("/terminal/sessions", query),
-  terminal: (id) => get(`/terminal/sessions/${enc(id)}`),
+  terminals: (query = {}, { signal } = {}) => get("/terminal/sessions", query, signal),
+  terminal: (id, { signal } = {}) => get(`/terminal/sessions/${enc(id)}`, undefined, signal),
   /** {project?, path?, name?, rows?, cols?}; no project is a workspace shell → {terminal, ticket, ticket_expires_in} */
   openTerminal: (body) => send("POST", "/terminal/sessions", body),
   /** A fresh ticket to (re)attach: {ticket, ticket_expires_in} */
