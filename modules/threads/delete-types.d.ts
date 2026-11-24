@@ -1,7 +1,12 @@
 export interface DeleteRefusal extends Error {
-  code?: string;
+  code: "would_lose_work";
   confirm?: string | null;
   what?: { summary?: string | null; confirm?: string | null };
+}
+
+export interface ThreadDeletePrompt {
+  id: string;
+  loss: { summary: string | null; confirm: string | null } | null;
 }
 
 interface DeleteNotice {
@@ -15,7 +20,6 @@ interface DeleteNotice {
 }
 
 export interface DeleteDeps<Row> {
-  S: { tDel: string | null; tDelLose: { summary: string | null; confirm: string | null } | null };
   world: {
     thread: (id: string) => { project: string; title: string; branch?: string | null } | null | undefined;
     act: {
@@ -24,6 +28,7 @@ export interface DeleteDeps<Row> {
     };
   };
   render: () => void;
+  view: () => string;
   go: (view: string) => unknown;
   announce: (text: string) => void;
   heraldShow: (notice: DeleteNotice, ms: number) => unknown;

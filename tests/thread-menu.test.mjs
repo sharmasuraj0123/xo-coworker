@@ -1,9 +1,9 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { dom } from "./lib/dom.mjs";
+import { deferred, dom, same } from "./lib/dom.mjs";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
-import { createThreadDeleteView } from "../modules/threads/delete-view.js";
+import { createThreadDelete } from "../modules/threads/delete.js";
 
 const earlier = { id: "earlier", project: "project", state: "working", busy: true, title: "Earlier", lastAt: 2, branch: "branch&name", label: "Work", canDelete: true };
 const later = { id: "later", project: "project", state: "resolved", busy: false, title: "Later", lastAt: 1 };
@@ -37,7 +37,6 @@ assert.equal(main.querySelector("[data-tmove]")?.getAttribute("data-tmove"), "ea
 assert.ok(page.querySelector("[data-tcopy], [data-chat-stop], [data-tdel], [data-tmove]") === null, "main-only actions stay out of the panel");
 assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no key glyphs in it");
 
-// Delete: Space says per thread; asked in place, Keep it first; undo
 {
   const sent = [];
   globalThis.fetch = async (url, init) => { sent.push([init.method, String(url), init.body]); return { ok: true, status: 200, type: "basic", text: async () => "{}" }; };
@@ -46,50 +45,76 @@ assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no k
   await api.restoreThread("c/1", "t 1");
   assert.deepEqual(sent, [["DELETE", "api/chat/chats/c%2F1/threads/t%201", '{"keep_branch":true}'], ["POST", "api/chat/chats/c%2F1/threads/t%201/restore", "{}"]]);
 }
-const { createThreadDelete } = await import("../modules/threads/delete.js");
-/** @type {{ tDel: string | null, tDelLose: { summary: string | null; confirm: string | null } | null }} */
-const decision = { tDel: null, tDelLose: null };
-const renderDelete = createThreadDeleteView(decision);
 const dialog = document.getElementById("tdel");
 assert.ok(dialog);
-renderDelete(earlier);
-assert.equal(dialog.hidden, true);
-decision.tDel = earlier.id;
-renderDelete(earlier);
-assert.equal(dialog.hidden, false);
-assert.equal(dialog.querySelector("button")?.textContent, "Keep it", "Keep it comes first");
-assert.match(dialog.textContent, /Its branch branch&name is kept/);
-assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete thread");
-decision.tDelLose = { summary: "One unpublished commit", confirm: "confirm-token" };
-renderDelete(earlier);
-assert.match(dialog.textContent, /One unpublished commit/);
-assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
-renderDelete(later);
-assert.equal(dialog.hidden, true);
-assert.equal(dialog.children.length, 0);
-decision.tDel = earlier.id;
-decision.tDelLose = null;
+/** @type {typeof earlier | typeof later} */
+let current = earlier;
 const requests = [], restored = [], places = [], notices = [];
-const remove = createThreadDelete({
-  S: decision, PROJ: () => "Project", announce() {}, render: () => renderDelete(earlier),
+let pending = deferred();
+let hold = false;
+const deletion = createThreadDelete({
+  PROJ: () => "Project", announce() {}, render: () => deletion.render(current), view: () => "t:" + current.id,
   go: (view) => places.push(view), heraldShow: (notice) => notices.push(notice),
-  world: { thread: () => earlier, act: {
+  world: { thread: (id) => world.state.threads.find((thread) => thread.id === id), act: {
     async deleteThread(id, options) {
       requests.push([id, options]);
-      if (!options.confirm) throw Object.assign(new Error("Unpublished"), { code: "would_lose_work", confirm: "confirm-token", what: { summary: "One unpublished commit" } });
+      if (hold) return pending.promise;
+      if (!options.confirm) {
+        throw Object.assign(new Error("Unpublished"), { code: "would_lose_work", confirm: "confirm-token", what: { summary: "One unpublished commit" } });
+      }
       return { row: { chat_id: "chat" } };
     },
     async restoreThread(id, row) { restored.push([id, row]); },
   } },
 });
-await remove(earlier.id);
-assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
+deletion.render(earlier);
+assert.equal(dialog.hidden, true);
+deletion.ask(earlier.id);
+assert.equal(dialog.hidden, false);
+assert.equal(dialog.querySelector("button")?.textContent, "Keep it", "Keep it comes first");
+assert.match(dialog.textContent, /Its branch branch&name is kept/);
+const approve = dialog.querySelector("[data-tdel-yes]");
+assert.equal(approve?.textContent, "Delete thread");
+approve.focus();
+await deletion.confirm(earlier.id);
 assert.match(dialog.textContent, /One unpublished commit/);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
+same(document.activeElement, approve);
+deletion.render(later);
+assert.equal(dialog.hidden, true);
+assert.equal(dialog.children.length, 0);
 assert.deepEqual(places, []);
-await remove(earlier.id);
+await deletion.confirm(earlier.id);
 assert.deepEqual(requests, [[earlier.id, { keepBranch: true, confirm: null }], [earlier.id, { keepBranch: true, confirm: "confirm-token" }]]);
 assert.deepEqual(places, ["p:" + earlier.project]);
 await notices[0].undo();
 assert.deepEqual(restored, [[earlier.id, { chat_id: "chat" }]]);
+
+hold = true;
+deletion.ask(earlier.id);
+const submitted = deletion.confirm(earlier.id);
+await Promise.resolve();
+current = later;
+deletion.ask(later.id);
+pending.resolve({ row: { chat_id: "chat" } });
+await submitted;
+assert.deepEqual(places, ["p:" + earlier.project], "a completed delete leaves the current conversation in place");
+deletion.render(later);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.getAttribute("data-tdel-yes"), later.id);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete thread");
+assert.equal(deletion.cancel(), later.id);
+assert.equal(dialog.hidden, true);
+
+pending = deferred();
+deletion.ask(later.id);
+const departing = deletion.confirm(later.id);
+await Promise.resolve();
+deletion.dispose();
+pending.resolve({ row: { chat_id: "chat" } });
+await departing;
+assert.deepEqual(places, ["p:" + earlier.project], "an unloaded confirmation cannot change the view");
+assert.equal(notices.length, 2, "an unloaded confirmation cannot show a notice");
+await notices[0].undo();
+assert.equal(restored.length, 1, "an unloaded undo cannot start a write");
 
 console.log("thread-menu: ok");
