@@ -7072,8 +7072,8 @@
    "home": "modules/runtimes/thread.js"
   },
   "js/app.js::functions::threadTargetHtml": {
-   "status": "planned",
-   "home": "Group 6: composer target presentation in js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::pings": {
    "status": "moved",
@@ -7377,16 +7377,16 @@
    "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
   },
   "js/app.js::functions::targetLineRender": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2280)"
+   "status": "moved",
+   "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::updateComposer": {
    "status": "planned",
    "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
   },
   "js/app.js::functions::syncPlaceholder": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2336)"
+   "status": "moved",
+   "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::atClose": {
    "status": "planned",

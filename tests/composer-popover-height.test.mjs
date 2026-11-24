@@ -18,6 +18,6 @@ t("the @ list never reaches past the top bar", () => {
 });
 t("the keyboard's row is kept in view by the list's own scroll, never scrollIntoView", () => {
   assert.match(js, /if \(li\.offsetTop < at\.scrollTop\) at\.scrollTop = li\.offsetTop;/);
-  assert.doesNotMatch(js.slice(js.indexOf("const li = at.children[at._sel]"), js.indexOf("function syncPlaceholder")), /scrollIntoView\(/);
+  assert.doesNotMatch(js.slice(js.indexOf("const li = at.children[at._sel]"), js.indexOf("function atClose")), /scrollIntoView\(/);
 });
 console.log(`\n${passed} passed`);

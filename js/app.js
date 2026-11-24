@@ -12,7 +12,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stepMark, stateMark, XO, $, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
@@ -33,6 +33,7 @@ import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
 import { createReadingLayout } from "../modules/conversation/reading-layout.js";
 import { createConversationStops } from "../modules/conversation/stops.js";
 import { createDelivery } from "../modules/conversation/delivery.js";
+import { createComposerTarget } from "../modules/conversation/target.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf, goneLine } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
@@ -386,12 +387,6 @@ REC.panel = STAGE;
 const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRuntime({ world, SHAPE, isHeld });
 const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 /** The composer's target line in a thread; while its agent works, where your words land. */
-function threadTargetHtml(t) {
-  if (t.frozen) return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">Reply in </span><b>this ${noun("thread")}</b></span><span class="muted">· sending picks it back up</span>`;
-  const how = isBusy(t) && t.state !== "resolved" ? sendWhileRunning(t) : null;
-  const tail = how === "steered" ? `<span class="muted">· sent into the current turn</span>` : how === "queued" ? `<span class="muted">· queued for the next turn</span>` : "";
-  return `<span class="tg-t">${ICON.thread}</span><span><span class="tg-w">Reply in </span><b>this ${noun("thread")}</b></span>${tail}`;
-}
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
 // ── events: a calm labelled line, never the composer, never a quiet row ────
@@ -1373,6 +1368,7 @@ const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack
   S, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt: (node) => composerAt(node),
   filesHere, tray, dropThumb, saveDraft, updateComposer, growSay, announce, heraldShow, heraldFor, schedule, render: () => render(), go,
 });
+const { targetLineRender, syncPlaceholder } = createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, convProject, liveBlock, isBusy, sendWhileRunning, noun });
 function chipHtml(c) {
   const img = c.type ? kindOf(c.type) === "image" : /^image\//.test(c.blob?.type || "");
   const thumb = img && c.blob && c.state !== "failed";
@@ -1549,21 +1545,6 @@ function chatTargetRender() {
   $("#target").title = S.view === "chats" ? "The folder a new chat works in" : "";
   return true;
 }
-function targetLineRender(K = MK) {
-  const tg = targetOf(K.say.value, world.state.projects);
-  const pid = tg.pid;
-  const t = convThread(K.view);
-  const block = liveBlock(K.view, K.say.value);
-  let html;
-  if (block) html = `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(block)}</span>`;
-  else if (pid === "workspace") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span>`;
-  else if (pid) html = `${ICON.arrow}<span>New work for <b>${esc(PROJ(pid))}</b></span>`;
-  else if (t) html = threadTargetHtml(t);
-  else if (K.view === "ws" || K.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
-  else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(K.view)))}</b><span class="tg-w"> coordinator</span></span>`;
-  if (K.target._h !== html) { K.target.innerHTML = html; K.target._h = html; }
-  K.target.title = "Aim at a project (@)";
-}
 function updateComposer(K = MK) {
   if (!K.main) {
     trayRender(K); chipRender(false, K);
@@ -1616,13 +1597,6 @@ function atRender(K) {
   K.say.setAttribute("aria-activedescendant", `${pre}-${at._sel}`);
 }
 /** The composer's placeholder follows the view, and a resolved thread says a reply reopens it. */
-function syncPlaceholder(K = MK) {
-  if (CH.isChats(K.view)) { const ph = CH.placeholder(K.view); if (K.say.placeholder !== ph) { K.say.placeholder = ph; K.label.textContent = ph; } return; }
-  const t = convThread(K.view), pid = convProject(K.view);
-  // (a thread that isn't here has no project to name: its composer isn't drawn, and its label says only "Message")
-  const ph = t ? (t.state === "resolved" ? "Reply to reopen it…" : t.frozen ? "Write here to pick this thread back up…" : "Reply to the agent…") : K.view === "home" ? (PHONE.matches ? "What should get done?" : "What should get done? Use @project to aim it") : K.view === "ws" ? "Ask anything across your projects…" : pid ? `Message ${PROJ(pid)}…` : "Message";
-  if (K.say.placeholder !== ph) { K.say.placeholder = ph; K.label.textContent = ph; }
-}
 /** The @ list closed, and the field's accessible state with it (no longer expanded, no active option): one
  *  operation, so what's seen and what's announced always agree (Astra H24). */
 function atClose(K = MK) {

@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const src = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("../modules/conversation/target.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -25,7 +25,7 @@ t("focus in the composer as it goes: to Go to Home, else the conversation, never
   assert.match(r, /if \(gone && document\.activeElement === say\) .*msgsEl\.querySelectorAll\('\.calm-act \[data-go="home"\]'\)\)\]\.find\(usable\) \|\| placeRegion\(\)\)\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the placeholder never names a project it doesn't have", () => {
-  const f = src.slice(src.indexOf("function syncPlaceholder(K = MK) {"), src.indexOf("\n}\n", src.indexOf("function syncPlaceholder(K = MK) {")));
+  const f = src.slice(src.indexOf("function syncPlaceholder(K = MK) {"), src.indexOf("\n  }\n", src.indexOf("function syncPlaceholder(K = MK) {")));
   assert.match(f, /const t = convThread\(K\.view\), pid = convProject\(K\.view\);/);
   assert.match(f, /: pid \? `Message \$\{PROJ\(pid\)\}…` : "Message";/, "a project only when there is one");
   assert.doesNotMatch(f, /`Message \$\{PROJ\(convProject/, "no unguarded lookup");
