@@ -113,10 +113,6 @@
 .vw-verbar .xd-btn.is-on{background:var(--fill-2);color:var(--ink)}
 
 @media (prefers-reduced-motion:reduce){.xd-state.is-done{animation:none}.vw-doc .cm-xo-tint{transition:none}}
-@media (max-width:600px){
-  .vw-doc .cm-xo-page .cm-content{padding:var(--s-4) var(--s-4) var(--h-bar)}
-  .vw-who{display:none}
-}
 .qo-card{width:min(var(--w-quick-open),calc(100vw - var(--s-8)))}
 .qo-where{
   flex:none;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -163,3 +159,7 @@
 
 .cm-md-table td,.cm-md-table th{cursor:text;outline:none}
 .cm-md-table td:focus,.cm-md-table th:focus{box-shadow:inset 0 0 0 var(--hair) var(--line-strong);background:var(--hover-fill)}
+@media (max-width:600px){
+  .vw-doc .cm-xo-page .cm-content{padding:var(--s-4) var(--s-4) var(--h-bar)}
+  .vw-who{display:none}
+}
