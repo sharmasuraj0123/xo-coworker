@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
+import { publishedRules } from "./lib/css-snapshot.mjs";
 import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
 import { dom, same } from "./lib/dom.mjs";
 import { createChats as mountChats } from "../modules/chats/chats.js";
@@ -99,56 +99,81 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   assert.deepEqual(modes.map((row) => row.getAttribute("aria-checked")), ["false", "true"]);
   assert.deepEqual(modes.map((row) => row.getAttribute("tabindex")), ["-1", "0"]);
 }
-t("its look: tokens only, a list of titles with no tiles, rims or dividers, rows 48 whose hover reaches --halo-row past the words", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  const block = css.slice(css.indexOf(".cs-hi{"), css.indexOf(".chl-calm{"));
-  assert.match(block, /\.chl-list\{list-style:none;display:flex;flex-direction:column;margin:0;padding:0\}/);
-  assert.doesNotMatch(block, /\.chl-list>li\+li/, "no dividers");
-  assert.match(block, /\.chl-row\{[^}]*height:var\(--h-row-act\);padding:0 var\(--halo-row\);margin:0 calc\(-1 \* var\(--halo-row\)\);border-radius:var\(--r-lg\)/);
-  assert.match(block, /\.chl-tile\{[^}]*width:var\(--ic\);height:var\(--ic\);color:var\(--ink-3\)\}/, "the mark is bare: no fill, no rim");
-  assert.match(block, /\.chl-t\{[^}]*font:var\(--fw-regular\) var\(--fs-read\)\/var\(--lh-read\)/, "titles at reading size");
-  assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/1px solid|gap:2px/g, ""), /\b\d+px\b|#[0-9a-f]{3,8}\b|rgba?\(/i);
-  assert.doesNotMatch(css, /\n\.ch-(list|row|main|t|m|a)\{/, "no global ch- rules left to leak into the panel's Changes");
-});
-t("A project heading with no actions can use the full row", () => {
-  assert.match(sheet(new URL("../css/app.css", import.meta.url)), /\.top\[data-kind="project"\]:has\(> \.top-end:empty\) \.top-who\{flex:1;max-width:none\}/);
+const rules = publishedRules();
+const declarations = (selector, condition = "") => {
+  const selected = rules.filter((rule) => rule.sel === selector && rule.at.join(" ") === condition);
+  assert.ok(selected.length, `Missing ${selector} in ${condition || "the base styles"}`);
+  return Object.fromEntries(selected.flatMap((rule) => rule.declarations).map(({ p, v }) => [p, v]));
+};
+const style = (selector, expected, condition = "") => {
+  const found = declarations(selector, condition);
+  const actual = Object.fromEntries(Object.keys(expected).map((property) => [property, found[property]]));
+  assert.deepEqual(actual, expected, `${selector} ${condition}`);
+};
+
+t("Chats lists bare marks beside reading-size titles with no row dividers", () => {
+  style(".chl-list", { "list-style": "none", display: "flex", "flex-direction": "column", margin: "0", padding: "0" });
+  assert.ok(!rules.some(({ sel }) => sel.includes(".chl-list>li+li")), "no dividers");
+  style(".chl-row", {
+    height: "var(--h-row-act)", padding: "0 var(--halo-row)", margin: "0 calc(-1 * var(--halo-row))",
+    "border-radius": "var(--r-lg)",
+  });
+  const tile = declarations(".chl-tile");
+  style(".chl-tile", { width: "var(--ic)", height: "var(--ic)", color: "var(--ink-3)" });
+  assert.ok(Object.keys(tile).every((property) => !/^(background|border|box-shadow)/.test(property)), "the mark has no fill or rim");
+  style(".chl-t", { font: "var(--fw-regular) var(--fs-read)/var(--lh-read) var(--sans)" });
+  const start = rules.find(({ sel }) => sel === ".cs-hi").n;
+  const end = rules.find(({ sel }) => sel === ".chl-calm").n;
+  const literals = rules.filter(({ n, declarations: rows }) => n >= start && n < end
+    && rows.some(({ v }) => /\b\d+px\b|#[0-9a-f]{3,8}\b|rgba?\(/i.test(v)));
+  assert.deepEqual(literals.map(({ sel }) => sel), []);
+  assert.ok(!rules.some(({ sel, f }) => (f === "/css/app.css" || f.startsWith("/modules/chats/"))
+    && /^\.ch-(list|row|main|t|m|a)$/.test(sel)), "no Chats selectors leak into Changes");
 });
 
-t("Chats starts with its composer: under the greeting at the top, the dock back at the foot in a chat", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.dock\.is-top>\.herald\{top:calc\(100% \+ \(var\(--s-10\) - var\(--h-ctl\)\) \/ 2\);bottom:auto\}/, "a notice drops under the composer, never over the greeting or the box");
-  assert.match(css, /\.main:has\(\.dock\.is-top\)\{--dock-h:0px\}/, "nothing reserves the foot's room on Chats");
-  assert.match(css, /\.cs-hi\{[^}]*var\(--fs-display\)\/var\(--lh-display\)/, "the greeting is Home's display role");
+t("A project heading with no actions can use the full row", () => {
+  style('.top[data-kind="project"]:has(>.top-end:empty) .top-who', { flex: "1", "max-width": "none" });
 });
-t("Recent chats use the shared search style and align their controls with the composer", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.chl-more\{[^}]*padding:0 var\(--halo\);margin-right:calc\(-1 \* var\(--halo\)\);border-radius:var\(--r\)/);
-  assert.match(css, /\.scroller:has\(\.chl-few,\.chl-calm\)>\.column\{height:0;margin-bottom:auto\}/);
-  assert.doesNotMatch(sheet(new URL("../css/panel.css", import.meta.url)), /\.stage \.tg-qf/, "the search field is one shared look");
+
+t("The Chats greeting and composer lead the page without space reserved at the foot", () => {
+  style(".dock.is-top>.herald", { top: "calc(100% + (var(--s-10) - var(--h-ctl)) / 2)", bottom: "auto" });
+  style(".main:has(.dock.is-top)", { "--dock-h": "0px" });
+  style(".cs-hi", {
+    font: "var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans)",
+    margin: "var(--cs-lead,auto) 0 var(--s-2) var(--col-x)",
+  });
 });
-t("Chats has no bar over its greeting: the greeting is the title, a phone keeps its menu", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url)), ph = sheet(new URL("../shell/phone.css", import.meta.url));
-  assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
-  assert.match(ph, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/);
+
+t("Recent chats share the search style and align controls with the composer", () => {
+  style(".chl-more", { padding: "0 var(--halo)", "margin-right": "calc(-1 * var(--halo))", "border-radius": "var(--r)" });
+  style('.app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column', { height: "0", "margin-bottom": "auto" });
+  assert.ok(!rules.some(({ sel }) => sel.startsWith(".stage .tg-qf")), "the search field is one shared look");
 });
-t("what it may do on its own reads as a choice you make about trust: a question, each mode its mark and sentence, careful first", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.cs-md\{font:var\(--fw-regular\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-3\);text-wrap:pretty\}/);
+
+t("The Chats greeting replaces the desktop bar while the phone keeps its menu", () => {
+  const chats = '.app:is([data-conv="chats"],[data-conv^="c:"])';
+  style(chats + " .top", { display: "none" }, "@media (min-width:761px)");
+  style(":root:root " + chats + " #top-who", { display: "none" }, "@media (max-width:760px)");
 });
-t("switching to All keeps the greeting where it stood: no recentring, no scroll", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.cs-hi\{[^}]*margin:var\(--cs-lead,auto\) /);
+
+t("Permission choices have readable explanations and fixed model and mode chips stay quiet", () => {
+  style(".cs-md", {
+    font: "var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)", color: "var(--ink-3)", "text-wrap": "pretty",
+  });
+  for (const selector of [".is-fixed:is(.target,.iq)", ".is-fixed:is(.target,.iq):is(:hover,:active)"]) {
+    style(selector, { cursor: "default", background: "none" });
+  }
 });
-t("an open chat has no bar: its model and mode are fixed chips in its composer, its state in the composer's line", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
-  assert.match(css, /\.is-fixed:is\(\.target,\.iq\),\.is-fixed:is\(\.target,\.iq\):is\(:hover,:active\)\{cursor:default;background:none\}/);
-});
-t("a phone's composer row never pushes Send out: the model chip gives way, Send now is a filled capsule", () => {
-  const css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(css, /\.iq\{flex:0 1 auto;/, "the model chip gives way last, ending in an ellipsis");
-  assert.match(css, /\.tg-now\{[^}]*border-radius:var\(--r-pill\);background:var\(--btn-fill\);/);
-  assert.doesNotMatch(css.match(/\.tg-now\{[^}]*\}/)[0], /border:/, "no rim of its own");
-  assert.match(css, /@media \(max-width:760px\)\{\n  \.tg-now\{height:var\(--h-touch\)\}\n[^}]*\n  \.iq \.iq-sep,\.iq \.iq-e\{display:none\}\n  \.target:not\(\.cs-perm\):has\(~ \.tg-now:not\(\[hidden\]\)\)\{display:none\}\n\}/);
+
+t("Send now is a filled capsule and can fit next to the phone composer", () => {
+  assert.ok(rules.some(({ sel, declarations: rows }) => sel === ".iq"
+    && rows.some(({ p, v }) => p === "flex" && v === "0 1 auto")), "the model chip gives way");
+  style(".tg-now", { "border-radius": "var(--r-pill)", background: "var(--btn-fill)" });
+  assert.ok(!Object.hasOwn(declarations(".tg-now"), "border"), "no rim of its own");
+  const phone = "@media (max-width:760px)";
+  style(".tg-now", { height: "var(--h-touch)" }, phone);
+  for (const selector of [".iq .iq-sep", ".iq .iq-e", ".target:not(.cs-perm):has(~.tg-now:not([hidden]))"]) {
+    style(selector, { display: "none" }, phone);
+  }
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

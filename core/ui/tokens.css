@@ -167,6 +167,8 @@
   --s-setting-error-block:10px; --s-setting-form-inline:18px; --offset-setting-link:2px; --offset-swatch:calc(var(--s-1) + .5px);
   --measure-setting-description:60ch; --w-setting-pairing:16rem; --w-setting-row-label:160px; --w-worktree-hold:170px;
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
+  --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
+  --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
   --mix-link-fill:7%; --mix-link-hover:14%; --mix-link-press:18%; --mix-link-quiet:5%; --mix-link-underline:55%;
   --s-lk-b:.735em; --s-lk-start:.38em; --s-lk-end:.6em; --s-link-icon-gap:.2em;
   --s-link-file-start:.4167em; --s-link-file-gap:.3167em; --s-link-arrow-gap:.14em;
