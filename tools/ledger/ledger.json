@@ -7347,7 +7347,7 @@
   },
   "js/app.js::functions::runsEscape": {
    "status": "moved",
-   "home": "modules/runs/panel.js"
+   "home": "modules/runs/escape.js"
   },
   "js/app.js::functions::openRuns": {
    "status": "moved",
@@ -7882,7 +7882,7 @@
   },
   "js/app.js::functions::keyLayer": {
    "status": "moved",
-   "home": "shell/layers.js"
+   "home": "shell/layer-queries.js"
   },
   "js/app.js::functions::soundRender": {
    "status": "moved",

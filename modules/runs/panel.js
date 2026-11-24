@@ -62,13 +62,5 @@ export function createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, s
     if (here) to();
   }
 
-  function runsEscape() {
-    if (RS.view !== "run") { closeRuns(); return; }
-    const id = RS.runId;
-    RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (RS.pollT)); RS.keepScroll = false;
-    runsRender(); STAGE.repaint();
-    runsLand(`[data-run="${CSS.escape(/** @type {string} */ (id))}"]`)?.focus({ preventScroll: true });
-  }
-
-  return { runsRender, runsLand, runsEscape, runsGone };
+  return { runsRender, runsLand, closeRuns, runsGone };
 }

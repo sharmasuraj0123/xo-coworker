@@ -1,13 +1,12 @@
 // @ts-check
+import { layerQueries } from "./layer-queries.js";
 
-/** @typedef {{ id: string, open: () => boolean, close: () => boolean | void, overlay?: boolean, tab?: () => HTMLElement | null, inertsApp?: boolean, watchHidden?: HTMLElement }} AppLayer */
 const ORDER = {
   back: ["create", "jump", "intel", "chat-setup", "runs", "keys", "all", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"],
   escape: ["jump", "intel", "quickopen", "runs", "keys", "all", "settings", "files-page", "drawer", "decisions", "chat-setup"],
   tab: ["keys", "all", "jump", "settings", "drawer"],
 };
-
-/** @param {import("../core/kernel/types").Layers} layers @param {AppLayer[]} list */
+/** @param {import("../core/kernel/types").Layers} layers @param {import("./layer-queries.js").AppLayer[]} list */
 export function stackLayers(layers, list) {
   const entries = new Map(list.map((layer) => [layer.id, layer]));
   if (entries.size !== list.length) throw new Error("shell layers must have unique ids");
@@ -22,19 +21,7 @@ export function stackLayers(layers, list) {
   return {
     back: () => layers.back(ORDER.back),
     escape: () => layers.escape(ORDER.escape),
-    keyLayer: () => {
-      for (const id of ORDER.tab) {
-        const layer = entries.get(id);
-        if (!layer?.open()) continue;
-        const el = layer.tab?.();
-        if (el) return el;
-      }
-      return null;
-    },
-    isOpen: (/** @type {string} */ id) => entries.get(id)?.open() ?? false,
-    inertsApp: () => list.some((layer) => layer.inertsApp && layer.open()),
-    watched: list.flatMap((layer) => layer.watchHidden ? [layer.watchHidden] : []),
-    open: ({ overlay = false } = {}) => list.some((l) => (!overlay || l.overlay !== false) && l.open()),
+    ...layerQueries(entries, ORDER.tab),
     undo: () => { for (const u of undos.reverse()) u(); },
   };
 }

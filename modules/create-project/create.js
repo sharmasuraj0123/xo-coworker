@@ -1,17 +1,13 @@
 // @ts-check
 
 // Create XO Project: start empty or clone a Git repository (a Space clone job, polled and stoppable) into a new project.
-import { esc } from "../../core/platform/util.js";
+import { esc, RM, copyText, COPY_REFUSED } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
-import { $ as query } from "../../core/platform/dom.js";
-import { RM } from "../../core/ui/motion.js";
+import { $ } from "../../core/platform/dom.js";
 import { api } from "../../core/platform/api.js";
 import { fmtSize } from "../../core/services/media/attachment-rules.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
-import { copyText, COPY_REFUSED } from "../../core/platform/index.js";
-
-const $ = /** @type {(sel: string) => any} */ (query);
 
 const PHASE = /** @type {Record<string, string>} */ ({ counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" });
 

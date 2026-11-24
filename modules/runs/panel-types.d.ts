@@ -9,7 +9,6 @@ export interface RunsPanelDeps {
     pageShown?: { name: string } | null;
     close(options: { restore: boolean }): void;
     closePage(name: string): void;
-    repaint(): void;
     owns(element: Element | null): boolean;
   };
   runsCard: HTMLElement & { _h?: string };

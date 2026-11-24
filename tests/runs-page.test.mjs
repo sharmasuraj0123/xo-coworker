@@ -3,6 +3,7 @@ import { deferred, dom, same } from "./lib/dom.mjs";
 import { readFileSync } from "node:fs";
 import { createRunsOpener } from "../modules/runs/controller.js";
 import { createRunsPanel } from "../modules/runs/panel.js";
+import { createRunsEscape } from "../modules/runs/escape.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("js/app.js"), view = read("modules/runs/view.js"), html = read("index.html"), css = read("css/app.css");
@@ -67,7 +68,8 @@ t("no sheet: the page's content is built once and mounted in the panel's page bo
   const RS = { open: true, view: "run", runId: "agent", session: "team", gen: 1, tree: [{ id: "agent", kind: "subagent", state: "running", title: "Agent" }] };
   const calls = [];
   const STAGE = { pageShown: { name: "runs" }, repaint: () => calls.push("repaint"), close: (options) => calls.push(options) };
-  const { runsEscape } = createRunsPanel({ RS, STAGE, runsCard, S: { tbOpen: {} }, world: { act: {} }, pendingStops: [], stopsOut: new Set() });
+  const actions = createRunsPanel({ RS, STAGE, runsCard, S: { tbOpen: {} }, world: { act: {} }, pendingStops: [], stopsOut: new Set() });
+  const runsEscape = createRunsEscape({ RS, ...actions, repaint: () => STAGE.repaint() });
   t("Runs steps back to the focused agent, then to the thread", () => {
     runsEscape();
     assert.equal(RS.view, "list");

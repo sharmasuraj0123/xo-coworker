@@ -24,6 +24,7 @@ import { wireDragOut } from "../core/services/media/hydrate.js";
 import { startRich } from "../core/ui/markdown/rich.js";
 import { createLightbox } from "../modules/conversation/lightbox.js";
 import { createRunsPanel } from "../modules/runs/panel.js";
+import { createRunsEscape } from "../modules/runs/escape.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
 import { createRunsReads } from "../modules/runs/read.js";
 import { createRunsStrip } from "../modules/runs/strip.js";
@@ -460,7 +461,8 @@ const pendingStops = [];
 const running = createRunningState({ S, world, CH, convThread, chatOf });
 const { stopsHerald, stopRun, interruptRun } = createConversationStops({ S, world, Kit, PROJ, announce, schedule, chatOf, pendingStops, heraldShow, heraldNext, inUse: (selector) => inUse(selector), running, workingRuns });
 const stopsOut = new Set();
-const { runsRender, runsLand, runsEscape, runsGone } = createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller });
+const { runsRender, runsLand, closeRuns, runsGone } = createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller });
+const runsEscape = createRunsEscape({ RS, closeRuns, runsRender, repaint: () => STAGE.repaint(), runsLand });
 const runsTitle = () => (RS.view === "run" ? (RS.run && /^(background_command|monitor)$/.test(RS.run.kind) ? "Command" : "Sub-agent") : "Sub-agents");
 const { readRunsList, openRun } = createRunsReads({ RS, world, STAGE, runsRender });
 STAGE.page("runs", {
@@ -1131,7 +1133,6 @@ const SIDE = createSide({ shape: SHAPE, keys: K, announce, render, toggleJump: (
 // the Map's toggle, in every conversation's header
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else { const b = e.target.closest?.("[data-lp-open]"); if (b) { if (LW.isOpen) LW.close(); else LW.open(S.view, b); } } });
 
-// ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
   shells: () => SH.toggle(),
   jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),
@@ -1142,7 +1143,6 @@ const GLOBAL = {
   sideFold: () => SIDE.fold(!SIDE.folded),
 };
 
-// ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
 // One history entry of the app's own while there's somewhere to go back to: Back closes the top-most open layer, then goes to a thread's parent, then the places you came through; with nothing left the browser leaves.
 const LAYERS = stackLayers(kernel.layers, [
   { id: "create", open: () => CREATE.isOpen(), close: () => { CREATE.close(); } },

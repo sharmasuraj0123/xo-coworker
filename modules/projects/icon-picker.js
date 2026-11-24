@@ -1,5 +1,4 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { classify, glyph, TOPICS } from "./projicons.js";
 import { wirePickKeys } from "./icon-picker-keys.js";
@@ -39,7 +38,7 @@ export function createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIco
   function closePick({ focus = false } = {}) {
     if (!PICK.el) return;
     PICK.el.remove(); PICK.from?.setAttribute("aria-expanded", "false");
-    const back = $(`[data-pj-icon="${CSS.escape(/** @type {string} */ (PICK.pid))}"]`);
+    const back = /** @type {HTMLElement | null} */ (document.querySelector(`[data-pj-icon="${CSS.escape(/** @type {string} */ (PICK.pid))}"]`));
     PICK.el = null; PICK.pid = null; PICK.from = null;
     if (focus) back?.focus({ preventScroll: true });
   }
