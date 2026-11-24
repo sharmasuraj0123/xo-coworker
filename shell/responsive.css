@@ -46,7 +46,6 @@
   .top[data-kind="project"]{flex-wrap:wrap;gap:8px 12px;padding:14px 16px 12px}
   .top[data-kind="project"] .top-who{flex:1;max-width:none}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-title)}
-  .all-btn{align-self:center;margin-top:0;padding:0 4px 0 10px}
   .pj-s{white-space:normal}
   .thead{padding-left:var(--hg);padding-right:var(--hg)}
   .ck-tog{gap:8px;padding:0 8px 0 10px}
@@ -100,11 +99,9 @@
   .set-nav{border-left:0}
   .set-ph{margin-bottom:16px;padding-bottom:12px}
   .sheet{padding-top:6vh;-webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px)}
-  .ar{grid-template-columns:14px minmax(0,1fr) auto 34px}
-  .ar .mini{display:none}
   /* touch targets: 36 px minimum at 390 */
   .help,.x,.pn-x{width:var(--h-touch);height:var(--h-touch)}
-  .c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.all-btn,.meta-btn,.top-back{min-height:var(--h-touch)}
+  .c-where,.teach-tog,.iq,.iq-back,.iq-auto,.ev-undo,.cw-in,.hm-quiet,.tc-go,.meta-btn,.top-back{min-height:var(--h-touch)}
   .iq{padding:0 12px}
   .b-opt.has-pv{flex-direction:row;align-items:center;gap:12px;padding:8px 12px}
   .c-opts{gap:4px}

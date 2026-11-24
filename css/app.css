@@ -184,21 +184,6 @@ a.vw-btn{text-decoration:none}
 .lp-menu button{min-height:var(--h-lg);padding:0 14px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 /* Paint the action with focus, including after touch opens the menu. */
 .lp-menu button:active,.lp-menu button:focus{background:var(--menu-focus)}
-.ar-list li{position:relative;border-radius:var(--r-sm)}
-.ar-list li.is-swiping::before{content:attr(data-act);position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:18px;border-radius:var(--r-sm);background:var(--float);color:var(--ink-3);font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.ar-list li.is-armed::before{background:color-mix(in srgb,var(--accent-fill) 26%,var(--float));color:var(--ink)}
-.ar-list li.is-swiping .ar{position:relative;background:var(--surface)}
-.ar-undo{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--h-row);padding:4px 6px 4px 10px;font-size:var(--fs-ui);color:var(--ink-3)}
-.ar-undo span{display:inline-flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ar-undo svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--accent-fill)}
-.ar-undo b{color:var(--ink);font-weight:var(--fw-strong)}
-.ar-undo button{flex:none;height:var(--h-ctl);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line);font-weight:var(--fw-strong);color:var(--ink);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease)}
-/* Show hover feedback on Undo. */
-.ar-undo button:hover{background:var(--hover-fill)}
-/* waiting on Space (the spinner in the line's own ink), and refused: the mark in the error ink, never the accent */
-.ar-undo[aria-busy="true"] b{color:var(--ink-2)}
-.ar-undo .spin{flex:none;width:12px;height:12px}
-.ar-undo.is-err svg{color:var(--err-ink)}
 @media (pointer:coarse){
   /* a long-press opens Copy · Select text (the browser's own selection comes back with Select text) */
   .m-you .bubble,.m-them>.mb>.prose,.m-turn .tb-answer{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
@@ -218,8 +203,6 @@ a.vw-btn{text-decoration:none}
 /* ── a project's record: Since you left's line under a project's header, and Made with Recently made on Home ── */
 .since{flex:none;padding:var(--s-3) var(--hg);border-bottom:1px solid var(--line-view)}
 
-.all-btn.is-made{gap:8px}
-.all-btn.is-made svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}
 .made-card{width:min(1000px,100%);max-height:80vh}
 .md-h p{margin-top:5px;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 .md-tools{flex-direction:row;flex-wrap:wrap;align-items:center}
@@ -490,13 +473,6 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .pj-title svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4);transition:transform var(--dur-base) var(--ease),color var(--d-hover) var(--ease)}
 .pj-title:hover svg{color:var(--ink-2)}
 .pj-title[aria-expanded="true"] svg{transform:rotate(180deg)}
-.sheet.is-drop{display:block;padding:0;background:transparent;animation:none;-webkit-backdrop-filter:none;backdrop-filter:none}
-.sheet.is-drop .all-card{position:absolute;left:var(--dx);top:var(--dy);width:min(480px,calc(100vw - var(--dx) - 16px));max-height:min(70vh,580px);border-radius:var(--r-lg);box-shadow:var(--e2);animation:float-in-down var(--d-out) var(--ease) both;transform-origin:top left}
-/* dropped from its button it's 12: the same rules at 6 px (5 + 1); one text column 16 px in */
-.sheet.is-drop .sheet-h{padding:5px 5px 4px 15px}
-.sheet.is-drop .all-tools{padding:8px 15px 10px}
-.sheet.is-drop .all-list{padding:4px 5px 5px}
-.sheet.is-drop .sheet-h h2{font-size:var(--fs-title)}
 @media (max-width:760px){
   .stage,body.stage-full .stage{position:fixed;inset:0;width:auto;border-radius:0;border:0}
 }
@@ -516,13 +492,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 /* a thread in ⌘K: the thread mark, its state on its corner */
 .j-th{position:relative;display:grid;place-items:center;width:20px;height:20px;color:var(--ink-3)}
 .stg-pane:focus{outline:none}
-/* Threads: a quiet labelled button beside the panel button; its list drops down under it */
 .top-end{gap:8px}
-.th-btn{gap:8px;padding:0 6px 0 10px;align-self:center}
-.th-btn svg{width:var(--ic);height:var(--ic);color:var(--ink-3)}
-.th-btn:hover svg,.th-btn[aria-expanded="true"] svg{color:var(--ink)}
-.th-btn[aria-expanded="true"]{background:var(--fill-2);border-color:var(--line-strong);color:var(--ink)}
-.sheet.is-drop .all-card{width:var(--dw,480px);transform-origin:top right}
 /* "New messages" centres on the conversation, not on the page under a panel */
 
 /* The file panel shows the tree alongside the file when there is enough room. */
@@ -684,14 +654,6 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .tdel{flex:none;padding:var(--s-3) var(--hg)}
 .tdel[hidden]{display:none}
 
-/* Put the agent mark under the time while keeping the time aligned with the title. */
-.ar.has-mk{grid-template-rows:var(--lh-ui) var(--mark-sm)}
-.ar.has-mk>*{grid-row:1}
-.ar.has-mk>.ar-a{grid-row:1 / span 2;align-self:start}
-.ar-a{display:flex;flex-direction:column;align-items:flex-end}
-.ar-a>span:first-child{line-height:var(--lh-ui)}
-.ar-mk{display:flex;align-items:center;height:var(--mark-sm)}
-.ar-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}
 
 /* Keep the project name and Threads control on one line. */
 .tw-t.is-one{flex-direction:row;align-items:center;gap:var(--s-3)}

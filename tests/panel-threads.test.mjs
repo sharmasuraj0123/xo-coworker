@@ -7,7 +7,7 @@ import { createThreadGroups } from "../modules/threads/groups.js";
 import { createThreadControls } from "../modules/threads/controls.js";
 import { threadsCtl } from "../modules/threads/header.js";
 import { createTopHeader } from "../shell/top-header.js";
-import { declarationsFor, resolveValue, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
+import { stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 import { stageFixture } from "./lib/stage-fixture.mjs";
 
 const needs = [{ t: { id: "a" }, admitted: true, group: "now" }];
@@ -161,8 +161,4 @@ test("thread marks and controls use shared size tokens", () => {
   assert.equal(tokenValuesFor().get("--mark-sm"), "var(--s-3)");
   assert.deepEqual(valuesFor(".stage .ag-mk .agm", "width"), ["12px"]);
   assert.deepEqual(valuesFor(".stage .ag-mk .agm", "height"), ["12px"]);
-  const timingRow = declarationsFor(".ar.has-mk", "grid-template-rows")[0];
-  assert.equal(resolveValue(timingRow.value), "20px 12px");
-  assert.deepEqual(valuesFor(".ar.has-mk>*", "grid-row"), ["1"]);
-  assert.deepEqual(declarationsFor((candidate) => candidate.includes(".ar:has(")), []);
 });

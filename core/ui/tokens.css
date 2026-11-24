@@ -134,7 +134,7 @@
   --w-tool-count:20px; --h-tool-count:18px; --h-tool-output:240px; --h-tool-status:28px;
   --ic-activity:10px; --ic-tool-file:26px; --w-tool-file-label:260px; --s-tool-icon-inset:1px;
   --h-thread-label:22px; --s-thread-label-inline:9px; --w-thread-label:180px; --h-risk-badge:20px;
-  --w-thread-label-phone:110px; --w-thread-list-label:120px; --h-thread-list-label:20px; --s-thread-list-label-inline:7px;
+  --w-thread-label-phone:110px;
   --s-thread-control-inline:10px; --s-thread-menu-offset:6px; --w-thread-menu-floor:180px; --w-thread-rename:200px;
   --s-tool-rail-phone:14px;
   --ic-decision-option:13px; --s-decision-option-text:2px; --s-decision-section:10px; --s-decision-change-inline:14px;

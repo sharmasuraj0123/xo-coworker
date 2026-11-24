@@ -34,7 +34,7 @@ body.stage-full .stg-grip{display:none}
     linear-gradient(color-mix(in srgb,currentColor 8%,var(--fill-clear)),color-mix(in srgb,currentColor 8%,var(--fill-clear)))!important}
 
 /* Keep controls in place and give a press its own fill. */
-:is(.help,.create,.then-i,.hm-quiet,.top-back,.all-btn,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.stg-btn,.fl-r,.ar,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
+:is(.help,.create,.then-i,.hm-quiet,.top-back,.wsh-next,.tc-open,.tc-dec,button.hr,.t-undo,.dock-hide,.dock-fold,.btn,.set-nav button,button.kr-k,.tb-cf,.tw-act,.tw-rt,.tb-fb,.stg-btn,.fl-r,.jump-list li,.iq-row,.hd,.hd-r,.fl-back,.stg-ic,.md-open,.md-from):active,.pn-nav:active:not(:disabled){transform:none}
 :where(button,a[href][class],[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],summary,.rt-check):where(:not(:disabled,[aria-disabled="true"],.send,.btn-pri,.iq-done,.b-hold,.theme,.switch,.lk:not(.lk-in),.xd-btn.is-pri,.xd-send,.tw-act.lp-btn,.prow,.nrow,:is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all))):where(:active){background-image:linear-gradient(var(--press-fill),var(--press-fill))!important;--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
 /* Give text controls a rounded focus and press area. */
 :is(.tb-h,.tb-rh){width:calc(100% + 2 * var(--halo));margin-inline:calc(-1 * var(--halo));padding-inline:var(--halo);border-radius:var(--r)}
@@ -85,13 +85,10 @@ body.stage-full .stg-grip{display:none}
 .pj-c{white-space:nowrap}
 .pj-d{color:var(--ink-4)}
 .tw-t h1{font-size:var(--fs-title);font-weight:var(--fw-strong);letter-spacing:var(--tr-15)}
-.th-btn{gap:var(--s-2);padding:0 var(--s-2)}
-.th-btn span{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
 @media (max-width:760px){
   .top[data-kind="project"] .top-who{flex:1 1 100%;max-width:none;align-items:flex-start;gap:var(--s-3)}
   .top[data-kind="project"] .tw-t h1{font-size:var(--fs-title)}
 }
-.all-btn span{border-radius:var(--r-sm)}
 .dlg-head{align-items:flex-start}
 
 /* Inset focus rings take the contrasting ink for their fill. */
@@ -102,7 +99,7 @@ body.stage-full .stg-grip{display:none}
 /* the picker's Done, filled with the ink, presses a quarter of the way to the canvas */
 :where(.iq-done):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 76%,var(--canvas))!important}
 :where(.send.is-stop):where(:active:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background-color:color-mix(in srgb,var(--ink) 18%,var(--stop))!important}
-:is(.fl-r,.fl-sec,.shd-tab,.ar,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{
+:is(.fl-r,.fl-sec,.shd-tab,.then-i,.jump-list li,.iq-row,.set-nav button,.tb-h,.md-from,.md-pin,.ck-tog):focus-visible{
   outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
 .md-it{overflow:visible}
 .md-th{border-radius:var(--r-lg-in) var(--r-lg-in) 0 0}

@@ -3,8 +3,8 @@
   --h-row:var(--h-row-compact); --h-ctl:var(--h-sm);
   --fs-title:var(--fs-ui); --lh-title:var(--lh-ui); --fs-read:var(--fs-ui); --lh-read:var(--lh-ui); --fw-read:var(--fw-regular);
 }
-[data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
+[data-density="compact"] :is(.iq,.stg-btn,.target){height:var(--h-ctl)}
 [data-density="compact"] :is(.attach,.send){align-self:flex-end}
 [data-density="compact"] :is(.ck-tog,.ag-r,.set-nav button){height:var(--h-row)}
-[data-density="compact"] :is(.hd-r,.ar){min-height:var(--h-row)}
+[data-density="compact"] .hd-r{min-height:var(--h-row)}
 [data-density="compact"] .tb-h{min-height:var(--h-ctl)}

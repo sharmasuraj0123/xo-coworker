@@ -29,8 +29,3 @@
   font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)
 }
 .tw-in-l{flex:0 1 var(--w-thread-rename);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.ar-l{
-  flex:none;max-width:var(--w-thread-list-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  padding:0 var(--s-thread-list-label-inline);height:var(--h-thread-list-label);line-height:var(--lh-meta);
-  border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-meta);color:var(--ink-3)
-}
