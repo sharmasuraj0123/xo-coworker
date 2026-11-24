@@ -351,7 +351,7 @@ a.vw-btn{text-decoration:none}
 }
 
 /* ── a project's record: Since you left's line under a project's header, and Made with Recently made on Home ── */
-.since{flex:none;padding:12px var(--hg);border-bottom:1px solid var(--line-view)}
+.since{flex:none;padding:var(--s-3) var(--hg);border-bottom:1px solid var(--line-view)}
 
 .all-btn.is-made{gap:8px}
 .all-btn.is-made svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--accent)}

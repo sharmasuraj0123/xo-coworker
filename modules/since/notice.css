@@ -1,8 +1,9 @@
-/* ── since you were away: one quiet line (the owner removed the card, 2026-11-04) ─────────────────────────── */
-.since .sl{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
+.since .sl{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-2);margin:0;
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);animation:rise-in var(--d-in) var(--ease)}
 .since .sl>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
 .sl-k{color:var(--ink-3)}
-.sl-part{height:var(--h-sm);padding:0 8px;border-radius:var(--r-sm);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums}
+.sl-part{height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);color:var(--ink-2);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);font-variant-numeric:tabular-nums}
 .sl-part:hover{background:var(--hover-fill);color:var(--ink)}
 .sl-part.t-amber{color:var(--warn)}
 .sl-part.t-red{color:var(--err-ink)}
@@ -10,9 +11,11 @@
 .sl-x{display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-left:auto;border-radius:var(--r-sm);color:var(--ink-4)}
 .sl-x:hover{background:var(--hover-fill);color:var(--ink)}
 .sl-x svg{width:var(--ic-sm);height:var(--ic-sm)}
-.sl-home{display:flex;flex-direction:column;gap:2px;margin:0 0 24px;animation:rise-in var(--d-in) var(--ease)}
-.sl-home .sl-k{display:flex;align-items:center;gap:8px;margin-bottom:4px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
+.sl-home{display:flex;flex-direction:column;gap:2px;margin:0 0 var(--s-6);animation:rise-in var(--d-in) var(--ease)}
+.sl-home .sl-k{display:flex;align-items:center;gap:var(--s-2);margin-bottom:var(--s-1);
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3)}
 .sl-home .sl-k svg{width:var(--ic-sm);height:var(--ic-sm);color:var(--ink-4)}
-.sl.is-home{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
-.sl-p{height:var(--h-sm);padding:0 8px 0 0;color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.sl.is-home{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-2);margin:0;
+  font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.sl-p{height:var(--h-sm);padding:0 var(--s-2) 0 0;color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .sl-p:hover{color:var(--accent)}
