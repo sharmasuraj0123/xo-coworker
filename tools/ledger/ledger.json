@@ -8999,15 +8999,15 @@
   },
   "js/doceditor.js::functions::highlight": {
    "status": "moved",
-   "home": "modules/files/editor.js"
+   "home": "modules/files/editor-extensions.js"
   },
   "js/doceditor.js::functions::tints": {
    "status": "moved",
-   "home": "modules/files/editor.js"
+   "home": "modules/files/editor-extensions.js"
   },
   "js/doceditor.js::functions::askTip": {
    "status": "moved",
-   "home": "modules/files/editor.js"
+   "home": "modules/files/editor-extensions.js"
   },
   "js/doceditor.js::functions::mount": {
    "status": "moved",

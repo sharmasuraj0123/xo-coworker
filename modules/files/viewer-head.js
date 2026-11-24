@@ -202,8 +202,11 @@ export function createViewerHead({ V, TX, el, doc, canSave, chg, showsDiff, show
   }
   function headFocus(go = true) {
     const head = el.querySelector(".vw-top");
-    const to = (TX.h && showsText() && TX.h.view.contentDOM)
-      || (head && [...head.querySelectorAll('button:not(:disabled), [tabindex="0"]')].find((x) => x.getClientRects().length && !x.closest("[inert]"))) || el;
+    const editor = TX.h && showsText() && TX.h.view.contentDOM;
+    const first = editor ? undefined : [...head?.querySelectorAll('button:not(:disabled), [tabindex="0"]') ?? []]
+      .filter((node) => node instanceof HTMLElement)
+      .find((node) => node.getClientRects().length && !node.closest("[inert]"));
+    const to = editor || first || el;
     if (go) to.focus({ preventScroll: true });
     return to;
   }

@@ -1,18 +1,16 @@
-// CodeMirror 6, vendored (tools/codemirror/vendor.mjs): the files are the pinned and hashed ones and nothing
-// else, cm.js and merge.js share one @codemirror/state (two copies break every instanceof inside CodeMirror),
-// each entry exports what the manifest says, every bundled package carries its licence, and a language from
-// the language data loads lazily. No network, no browser: @codemirror/view loads in Node without a DOM.
-//   node tests/codemirror-vendor.test.mjs
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative, posix } from "node:path";
+import { registerHooks } from "node:module";
+import { join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { startSpace } from "../e2e/lib/space.mjs";
+import { dom } from "./lib/dom.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const VENDOR = join(ROOT, "js/vendor/codemirror");
+const VENDOR_PATH = "js/vendor/codemirror";
+const VENDOR = join(ROOT, VENDOR_PATH);
 const manifest = JSON.parse(readFileSync(join(VENDOR, "manifest.json"), "utf8"));
-const url = (f) => pathToFileURL(join(VENDOR, f)).href;
 
 let passed = 0;
 const t = async (name, fn) => {
@@ -20,7 +18,7 @@ const t = async (name, fn) => {
   catch (e) { console.error("  FAIL " + name + "\n    " + e.message); process.exitCode = 1; }
 };
 
-await t("the vendored files are the pinned CodeMirror 6, every file as hashed, nothing extra", () => {
+await t("the vendored files match the pinned CodeMirror 6 inventory", () => {
   assert.equal(manifest.package, "codemirror");
   assert.equal(manifest.esbuild, "0.28.2");
   assert.equal(manifest.pinned["@codemirror/state"], "6.7.6");
@@ -29,32 +27,103 @@ await t("the vendored files are the pinned CodeMirror 6, every file as hashed, n
   const walk = (d) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (f !== "manifest.json") files.push(relative(VENDOR, p).split("\\").join("/")); } };
   walk(VENDOR);
   assert.deepEqual(files.sort(), Object.keys(manifest.files).sort(), "files on disk and in manifest.json differ: rerun tools/codemirror/vendor.mjs");
-  for (const f of files) assert.equal(createHash("sha256").update(readFileSync(join(VENDOR, f))).digest("hex"), manifest.files[f], `${f} changed since it was vendored`);
   for (const f of files) assert.ok(/^(cm\.js|merge\.js|LICENSES\.md|c\/[\w-]+\.js)$/.test(f), `${f}: unexpected file`);
 });
 
-// the static imports of a file, recursively, read from the files themselves
-const staticGraph = (f, seen = new Set()) => {
-  if (seen.has(f)) return seen;
-  seen.add(f);
-  const src = readFileSync(join(VENDOR, f), "utf8");
-  for (const m of src.matchAll(/(?:^|[;}])\s*import\s*(?:[^"'()]*?from\s*)?["'](\.{1,2}\/[^"']+)["']/g)) staticGraph(posix.join(posix.dirname(f), m[1]), seen);
-  return seen;
-};
-
-await t("one @codemirror/state: a single file holds it, and both entries load that file", () => {
-  const all = Object.keys(manifest.files).filter((f) => f.endsWith(".js"));
-  const holders = all.filter((f) => readFileSync(join(VENDOR, f), "utf8").includes("Unrecognized extension value in extension set"));
-  assert.equal(holders.length, 1, `@codemirror/state is in ${holders.length} files: ${holders.join(", ")}`);
-  const cm = staticGraph("cm.js"), merge = staticGraph("merge.js");
-  assert.ok(cm.has(holders[0]) && merge.has(holders[0]), `${holders[0]} isn't a static import of both entries`);
-  for (const f of merge) if (f !== "merge.js") assert.ok(cm.has(f), `merge.js loads ${f}, which cm.js doesn't: a second copy of shared code`);
-  assert.deepEqual([...cm].sort(), manifest.initial["cm.js"], "cm.js's static imports differ from the manifest");
-  assert.deepEqual([...merge].sort(), manifest.initial["merge.js"], "merge.js's static imports differ from the manifest");
+await t("every CodeMirror asset has its pinned SHA-256", async () => {
+  const space = await startSpace({ root: ROOT });
+  try {
+    for (const [path, expected] of Object.entries(manifest.files)) {
+      const response = await fetch(`${space.base}/${VENDOR_PATH}/${path}`);
+      assert.equal(response.status, 200, path);
+      const actual = createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
+      assert.equal(actual, expected, `${path} changed since it was vendored`);
+    }
+  } finally {
+    await space.close();
+  }
 });
 
-const cm = await import(url("cm.js"));
-const merge = await import(url("merge.js"));
+const loaded = new Set();
+const prefix = pathToFileURL(VENDOR + "/").href;
+const configuration = new URL("../modules/files/editor-extensions.js", import.meta.url).href;
+const hooks = registerHooks({
+  load(href, context, next) {
+    if (href === configuration) loaded.add("editor-extensions.js");
+    if (href.startsWith(prefix)) loaded.add(href.slice(prefix.length));
+    return next(href, context);
+  },
+});
+await import("../modules/files/viewer.js");
+const { loadCM, loadMerge, mount, prefetch } = await import("../modules/files/editor.js");
+const eager = [...loaded];
+prefetch();
+const prefetchStarted = loaded.has("cm.js");
+const cm = await loadCM();
+const prefetched = [...loaded].sort();
+loaded.clear();
+
+await t("mounting a file loads and applies the editor configuration", async () => {
+  const { document, window } = await dom("<section id=editor></section>");
+  const host = document.querySelector("#editor");
+  const { MutationObserver, requestAnimationFrame, cancelAnimationFrame } = globalThis;
+  Object.assign(globalThis, {
+    MutationObserver: window.MutationObserver,
+    requestAnimationFrame: () => 1,
+    cancelAnimationFrame() {},
+  });
+  document.getSelection = () => null;
+  document.hasFocus = () => false;
+  const doc = { state: "readonly" };
+  const docs = { textOf: () => "file contents", attach() {} };
+  let handle;
+  try {
+    handle = await mount(host, { docs, doc, name: "note" });
+    assert.equal(handle.view.state.doc.toString(), "file contents");
+    assert.equal(handle.view.contentDOM.getAttribute("contenteditable"), "false");
+    assert.deepEqual([...loaded], ["editor-extensions.js"]);
+  } finally {
+    handle?.destroy();
+    Object.assign(globalThis, { MutationObserver, requestAnimationFrame, cancelAnimationFrame });
+  }
+  assert.equal(host.childElementCount, 0);
+});
+
+loaded.clear();
+const merge = await loadMerge();
+hooks.deregister();
+
+await t("viewer startup defers CodeMirror and its configuration, and prefetch starts CodeMirror alone", () => {
+  assert.deepEqual(eager, []);
+  assert.equal(prefetchStarted, true);
+  assert.deepEqual(prefetched, manifest.initial["cm.js"]);
+  assert.deepEqual([...loaded], ["merge.js"]);
+  assert.ok(manifest.initial["merge.js"].every((file) => file === "merge.js" || prefetched.includes(file)));
+});
+
+await t("editor configuration keeps page attributes, read-only state and the save and ask keys", async () => {
+  const { createEditorConfiguration } = await import("../modules/files/editor-extensions.js");
+  const asks = [];
+  let saves = 0;
+  const { prepareExtensions } = createEditorConfiguration(cm, { onAsk: (lines) => asks.push(lines) });
+  const extensions = prepareExtensions({
+    name: "note.md", isMd: true, page: true, pageExt: [], onUpdate() {},
+    onSave() { saves++; },
+  });
+  const state = cm.EditorState.create({ doc: "first\nsecond", selection: { anchor: 0, head: 8 }, extensions: extensions(true) });
+  assert.equal(state.facet(cm.EditorState.readOnly), true);
+  assert.equal(state.facet(cm.EditorView.editable), false);
+  assert.deepEqual(state.facet(cm.EditorView.contentAttributes).find((attrs) => attrs["aria-label"]), {
+    "aria-label": "note.md, as a page", spellcheck: "true",
+  });
+  const bindings = state.facet(cm.keymap).flat();
+  const save = bindings.find(({ key }) => key === "Mod-s");
+  assert.equal(save.preventDefault, true);
+  assert.equal(save.run({ state }), true);
+  assert.equal(saves, 1);
+  assert.equal(bindings.find(({ key }) => key === "Mod-l").run({ state }), true);
+  assert.deepEqual(asks, [{ a: 1, b: 2 }]);
+});
 
 await t("cm.js and merge.js export exactly the names the manifest lists", () => {
   assert.deepEqual(Object.keys(cm).sort(), manifest.exports["cm.js"]);
