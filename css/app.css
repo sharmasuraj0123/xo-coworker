@@ -64,7 +64,7 @@
 .vw-img.is-actual{height:auto;min-height:100%;width:max-content;min-width:100%}
 .vw-img.is-actual img{max-width:none;max-height:none;cursor:zoom-out}
 .vw-narrow{display:none}
-.vw-code{display:grid;grid-template-columns:auto minmax(0,1fr);min-height:100%;background:var(--fill-1);font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono)}
+.vw-code{display:grid;grid-template-columns:auto minmax(0,1fr);min-height:100%;font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono)}
 .vw-code pre{margin:0;padding:var(--s-viewer-code-top) 0 var(--s-10);font:inherit;white-space:pre}
 .vw-ln{padding-left:var(--s-viewer-code-line-start)!important;padding-right:var(--s-3)!important;text-align:right;color:var(--ink-4);opacity:.7;user-select:none;-webkit-user-select:none;border-right:var(--hair) solid var(--line-faint);font-variant-numeric:tabular-nums}
 .vw-src{padding-left:var(--s-4)!important;padding-right:var(--s-5)!important;overflow-x:auto}
@@ -584,7 +584,6 @@ body.panel-open .stage{display:none}
 .stage{position:absolute;z-index:var(--z-panel);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--mw);display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-soft);box-shadow:var(--e2);overflow:hidden;outline:none}
 .stage[hidden]{display:none}
 .stage.is-in{animation:sheet-in var(--d-move) var(--ease) both}
-:root[data-theme="light"] .stage{background:var(--surface)}
 body.stage-full .stage{left:var(--float-inset);width:auto;z-index:calc(var(--z-panel) + 1)}
 /* Hide the conversation dock under a full-size panel while keeping its own dock visible. */
 body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock){visibility:hidden}
