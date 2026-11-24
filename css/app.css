@@ -20,70 +20,117 @@
 @import url("../modules/threads/thread-badges.css");
 @import url("../core/ui/icons/agent-marks.css");
 
-.tw-acts{position:relative;flex:none;display:flex;align-items:center;gap:8px}
-.tw-act{display:inline-flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
+.tw-acts{position:relative;flex:none;display:flex;align-items:center;gap:var(--s-2)}
+.tw-act{
+  display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3) 0 var(--s-thread-control-inline);
+  border-radius:var(--r-sm);border:var(--hair) solid var(--palette-transparent);background:var(--btn-fill);color:var(--ink);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);
+  transition:
+    background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),var(--tx-press-transform)
+}
 .tw-act svg{width:var(--ic);height:var(--ic)}
 .tw-act:hover{background:var(--btn-fill-hover);color:var(--ink)}
-.tw-act:active{background:var(--btn-fill-press);transform:scale(.97)}
+.tw-act:active{background:var(--btn-fill-press);transform:scale(var(--press-scale))}
 .tw-more{width:var(--h-ctl);padding:0;justify-content:center}
-.tw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:180px;padding:var(--menu-pad);border-radius:var(--r-menu);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2)}
-.tw-menu button{height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
+.tw-menu{
+  position:absolute;right:0;top:calc(100% + var(--s-thread-menu-offset));z-index:var(--z-panel);display:flex;flex-direction:column;
+  min-width:var(--w-thread-menu-floor);padding:var(--menu-pad);border-radius:var(--r-menu);border:var(--hair) solid var(--line-soft);
+  background:var(--float);box-shadow:var(--e2)
+}
+.tw-menu button{
+  height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;
+  font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)
+}
 /* one line each, the menu as wide as its longest (it wrapped "Open a shell in its worktree" onto two) */
 .tw-menu{min-width:var(--menu-w)}
 .tw-menu button{white-space:nowrap}
 /* Keep the title field aligned with the other header controls. */
-.tw-in{flex:1;min-width:0;height:var(--h-ctl);padding:0 10px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)}
-.tw-in-l{flex:0 1 200px;font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.ar-l{flex:none;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 7px;height:20px;line-height:var(--lh-meta);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-meta);color:var(--ink-3)}
+.tw-in{
+  flex:1;min-width:0;height:var(--h-ctl);padding:0 var(--s-thread-control-inline);border-radius:var(--r-sm);
+  border:var(--hair) solid var(--line-strong);background:var(--surface);
+  font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)
+}
+.tw-in-l{flex:0 1 var(--w-thread-rename);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.ar-l{
+  flex:none;max-width:var(--w-thread-list-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:0 var(--s-thread-list-label-inline);height:var(--h-thread-list-label);line-height:var(--lh-meta);
+  border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-meta);color:var(--ink-3)
+}
 .hr-conn.k-wait .hr-t{color:var(--warn)}
 @media (max-width:760px){
   .tw-act span{display:none}
   .tw-act{width:var(--h-touch);height:var(--h-touch);padding:0;justify-content:center}
   /* On phones, the title has its own two-line row above the state, runtime and actions. */
-  .top[data-kind="thread"] .top-who{flex-wrap:wrap;row-gap:8px}
-  .top[data-kind="thread"] .tw-h{flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip}
+  .top[data-kind="thread"] .top-who{flex-wrap:wrap;row-gap:var(--s-2)}
+  .top[data-kind="thread"] .tw-h{
+    flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip
+  }
   .top[data-kind="thread"] .tw-acts{margin-left:auto}
   .top .stg-btn,.top .tw-more{width:var(--h-touch);height:var(--h-touch)}
-  .tb-rows,.tb-steps,.tb-plan-l{margin-left:14px}
-  .tw-label{max-width:110px}
+  .tb-rows,.tb-steps,.tb-plan-l{margin-left:var(--s-tool-rail-phone)}
+  .tw-label{max-width:var(--w-thread-label-phone)}
 }
 
-/* ── storm review items in the Decision Kit (U2): the server's own answers ──── */
+/* Review choices can include a separate detail line. */
 .o-d{display:block;margin-top:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);text-align:left}
 .b-opt:not(.has-pv):has(.o-d){align-items:flex-start;text-align:left}
-.c-qs{display:flex;flex-direction:column;gap:12px;margin-bottom:4px}
-.c-q{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.c-qs{display:flex;flex-direction:column;gap:var(--s-3);margin-bottom:var(--s-1)}
+.c-q{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--s-2);min-width:0}
 .c-q legend{padding:0;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .c-q-q{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
-.c-q-opts{display:flex;flex-direction:column;gap:4px}
-.c-q-o{display:flex;align-items:flex-start;gap:8px;min-height:var(--h-lg);padding:var(--s-2) var(--s-3);border-radius:var(--r-sm);background:var(--fill-1);cursor:pointer;transition:background var(--d-hover) var(--ease)}
+.c-q-opts{display:flex;flex-direction:column;gap:var(--s-1)}
+.c-q-o{
+  display:flex;align-items:flex-start;gap:var(--s-2);min-height:var(--h-lg);padding:var(--s-2) var(--s-3);
+  border-radius:var(--r-sm);background:var(--fill-1);cursor:pointer;transition:background var(--d-hover) var(--ease)
+}
 .card .c-q-o{border-radius:calc(var(--nest-r) - var(--nest-in))}
 .c-q-o:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 .c-q-o:has(input:checked){background:var(--ok-fill)}
-.c-q-o input{--ic:13px;margin-top:calc((1lh - var(--ic)) / 2);accent-color:var(--accent-fill)}
-.c-q-o span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.c-q-o input{--ic:var(--ic-decision-option);margin-top:calc((1lh - var(--ic)) / 2);accent-color:var(--accent-fill)}
+.c-q-o span{display:flex;flex-direction:column;gap:var(--s-decision-option-text);min-width:0}
 .c-q-o b{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
 .c-q-o em{font-style:normal;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3)}
-/* answers one per row: the label, its grey line under it; the one the agent recommends first, on a soft green tile */
+/* Stack answer details and highlight the recommended choice. */
 .c-opts.is-list{display:flex;flex-direction:column;gap:var(--s-1)}
-.c-opts.is-list .b-opt{justify-content:center;align-items:flex-start;text-align:left;padding:var(--s-2) var(--s-3);border-color:transparent;background:var(--fill-1)}
+.c-opts.is-list .b-opt{
+  justify-content:center;align-items:flex-start;text-align:left;padding:var(--s-2) var(--s-3);
+  border-color:var(--palette-transparent);background:var(--fill-1)
+}
 .c-opts.is-list .b-opt:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :is(.c-opts.is-list .b-opt,.c-q-o).is-rec{background:var(--accent-subtle)}
-:is(.c-opts.is-list .b-opt,.c-q-o).is-rec:hover{background:color-mix(in srgb,var(--accent-fill) 22%,var(--fill-1))}
+:is(.c-opts.is-list .b-opt,.c-q-o).is-rec:hover{background:color-mix(in srgb,var(--accent-fill) var(--mix-rec-hover),var(--fill-1))}
 .o-rec{font-weight:var(--fw-medium);color:var(--ok-text)}
 .o-cost{color:var(--warn-text)}
-.c-q-in,.c-name-in{height:var(--h-lg);padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-strong);background:var(--surface);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
+.c-q-in,.c-name-in{
+  height:var(--h-lg);padding:0 var(--s-3);border-radius:var(--r-sm);border:var(--hair) solid var(--line-strong);
+  background:var(--surface);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)
+}
 .c-q-s{font-size:var(--fs-meta);color:var(--ink-4)}
-.c-name{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:var(--fs-meta);color:var(--ink-3)}
-.c-iwhy{display:flex;align-items:flex-start;gap:8px;margin-top:10px;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3)}
-.c-iwhy+.c-btns{margin-top:12px}
-.c-iwhy svg{flex:none;--ic:13px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2);color:var(--ink-4)}
-.teach-scope.is-list{display:flex;flex-direction:column;align-items:stretch;gap:4px}
-.teach-scope.is-list button{justify-content:flex-start;text-align:left;height:auto;min-height:var(--h-row);padding:8px 12px;line-height:var(--lh-ui);white-space:normal}
-.dt-facts{list-style:none;display:flex;flex-direction:column;gap:4px;margin-top:12px;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
+.c-name{
+  display:flex;flex-direction:column;gap:var(--s-1);margin-bottom:var(--s-decision-section);
+  font-size:var(--fs-meta);color:var(--ink-3)
+}
+.c-iwhy{
+  display:flex;align-items:flex-start;gap:var(--s-2);margin-top:var(--s-decision-section);
+  font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3)
+}
+.c-iwhy+.c-btns{margin-top:var(--s-3)}
+.c-iwhy svg{
+  flex:none;--ic:var(--ic-decision-option);width:var(--ic);height:var(--ic);
+  margin-top:calc((1lh - var(--ic)) / 2);color:var(--ink-4)
+}
+.teach-scope.is-list{display:flex;flex-direction:column;align-items:stretch;gap:var(--s-1)}
+.teach-scope.is-list button{
+  justify-content:flex-start;text-align:left;height:auto;min-height:var(--h-row);
+  padding:var(--s-2) var(--s-3);line-height:var(--lh-ui);white-space:normal
+}
+.dt-facts{
+  list-style:none;display:flex;flex-direction:column;gap:var(--s-1);margin-top:var(--s-3);
+  font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)
+}
 .dt-facts li::before{content:"· ";color:var(--ink-4)}
-.chg.is-md .chg-md{padding:10px 14px}
-.chg+.chg{margin-top:10px}
+.chg.is-md .chg-md{padding:var(--s-decision-section) var(--s-decision-change-inline)}
+.chg+.chg{margin-top:var(--s-decision-section)}
 .teach-scope.is-list button{border-radius:var(--r-sm)}
 /* ── sub-agents (U2, ch 14 §11): working now under the checklist; the list and each run in a sheet ── */
 /* Padding keeps the focus ring inside the scroller. The margin preserves the position of the chips. */
