@@ -5,20 +5,21 @@
 .dlg[open]{animation:sheet-in var(--d-sheet) var(--ease)}
 .dlg.is-closing{animation:sheet-out var(--d-out) var(--ease) forwards}
 .dlg::backdrop{background:var(--scrim);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-.dlg form{display:flex;flex-direction:column;gap:16px;padding:24px 24px 20px}
-.dlg-head{display:flex;gap:12px;align-items:flex-start}
+.dlg form{display:flex;flex-direction:column;gap:var(--s-4);padding:var(--s-6) var(--s-6) var(--s-5)}
+.dlg-head{display:flex;gap:var(--s-3);align-items:flex-start}
 .dlg-ic{display:grid;place-items:center;flex:none;width:var(--tile-lg);height:var(--tile-lg);border-radius:var(--r);background:var(--fill-2);color:var(--ink-2)}
 .dlg-ic svg{width:var(--ic-lg);height:var(--ic-lg)}
 .dlg-head h2{font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);letter-spacing:0}
 .dlg-head p{margin-top:var(--s-1);font-size:var(--fs-ui);color:var(--ink-3);line-height:var(--lh-ui)}
-.field{display:flex;flex-direction:column;gap:8px}
+.field{display:flex;flex-direction:column;gap:var(--s-2)}
 .field>span{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
-.field em{font-style:normal;font-weight:var(--fw-regular);color:var(--ink-4);margin-left:4px}
+.field em{font-style:normal;font-weight:var(--fw-regular);color:var(--ink-4);margin-left:var(--s-1)}
 .field input,.field textarea,.lq-in{width:100%;padding:9px var(--field-px);border:1px solid var(--field-line);border-radius:var(--r);background:var(--field-bg);font-size:var(--fs-ui);line-height:var(--lh-ui);resize:vertical;transition:border-color var(--d-hover) var(--ease)}
 .field input,.lq-in{height:var(--h-lg)}
 .field input::placeholder,.field textarea::placeholder,.lq-in::placeholder{color:var(--ink-5)}
 /* A note under a field: one icon, then one line of words (an action inside reads as a link) */
-.cp-note{display:flex;align-items:flex-start;gap:8px;min-height:16px;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
+.cp-note{display:flex;align-items:flex-start;gap:var(--s-2);min-height:16px;
+  font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
 .cp-note>svg,.cp-note>.spin{flex:none;--ic:13px;width:var(--ic);height:var(--ic);margin-top:calc((1lh - var(--ic)) / 2)}
 .cp-note>.spin{--ic:11px;margin-inline:1px}
 .cp-note>span{min-width:0;overflow-wrap:anywhere}
@@ -32,7 +33,9 @@
 .dlg-err .cp-link{color:inherit}
 /* Start from: two halves, concentric with the 12 px field corners (12 − 1 border − 3 inset = 8) */
 .cp-mode{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:var(--h-lg);padding:2px;border-radius:var(--r);background:var(--fill-2)}
-.cp-mode button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:0;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);white-space:nowrap;transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
+.cp-mode button{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2);min-width:0;border-radius:var(--r-sm);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3);white-space:nowrap;
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .cp-mode button:hover:not(:disabled){color:var(--ink)}
 .cp-mode button[aria-checked="true"]{background:var(--float);color:var(--ink);box-shadow:0 0 0 1px var(--line-soft),0 1px 2px rgb(0 0 0 / calc(.18 * var(--sha)))}
 .cp-mode button:disabled{cursor:default}
@@ -46,13 +49,13 @@
 .field textarea{min-height:62px;max-height:160px;resize:none;field-sizing:content}
 .dlg :is(input,textarea):disabled{opacity:.55}
 /* Cloning: a bar that runs until Space has a real figure, then fills; and the time it has taken */
-.cp-prog{display:flex;flex-direction:column;gap:8px}
+.cp-prog{display:flex;flex-direction:column;gap:var(--s-2)}
 .cp-bar{height:3px;border-radius:2px;background:var(--fill-2);overflow:hidden}
 .cp-bar i{display:block;width:32%;height:100%;border-radius:inherit;background:var(--info);animation:cp-run 1.4s var(--ease) infinite}
 .cp-bar.is-known i{animation:none;transition:width var(--d-long) var(--ease)}
 @keyframes cp-run{from{transform:translateX(-100%)}to{transform:translateX(312%)}}
 /* What it's doing on top, how far under it; the time and Stop keep their own place on the right */
-.cp-row{display:flex;align-items:center;gap:12px;min-height:38px}
+.cp-row{display:flex;align-items:center;gap:var(--s-3);min-height:38px}
 .cp-what{flex:1;min-width:0;display:flex;flex-direction:column;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3)}
 .cp-phase{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cp-phase b{font-weight:var(--fw-medium);color:var(--ink)}
@@ -62,9 +65,12 @@
 .cp-stop{flex:none}  /* the dialog's own 38 px button, the same as Close beside it */
 .cp-hint{font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
 @media (prefers-reduced-motion:reduce){.cp-bar i{width:100%;animation:none;opacity:.5}}
-.dlg-err{padding:10px 12px;border-radius:var(--r-sm);background:var(--err-subtle);color:var(--err-ink);font-size:var(--fs-ui);line-height:var(--lh-ui)}
-.dlg-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:var(--s-1)}
-.btn{display:inline-flex;text-decoration:none;align-items:center;justify-content:center;gap:8px;height:var(--h-ctl);padding:0 14px;border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap}
+.dlg-err{padding:10px var(--s-3);border-radius:var(--r-sm);background:var(--err-subtle);
+  color:var(--err-ink);font-size:var(--fs-ui);line-height:var(--lh-ui)}
+.dlg-foot{display:flex;justify-content:flex-end;gap:var(--s-2);margin-top:var(--s-1)}
+.btn{display:inline-flex;text-decoration:none;align-items:center;justify-content:center;gap:var(--s-2);height:var(--h-ctl);
+  padding:0 14px;border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);white-space:nowrap}
 
 .btn:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--btn-fill-hover);color:var(--ink)}
 .btn:active:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--btn-fill-press);transform:scale(var(--press-scale));--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
@@ -76,7 +82,8 @@
 .dlg .btn{height:var(--h-lg);padding:0 18px;border-radius:var(--r);font-size:var(--fs-ui)}
 .btn .spin{width:12px;height:12px}
 
-.sheet{position:fixed;inset:0;z-index:var(--z-popover);display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:var(--scrim);animation:fade var(--dur-base) var(--ease)}
+.sheet{position:fixed;inset:0;z-index:var(--z-popover);display:flex;justify-content:center;align-items:flex-start;
+  padding:12vh var(--s-4) var(--s-4);background:var(--scrim);animation:fade var(--dur-base) var(--ease)}
 @keyframes fade{from{opacity:0}}
 .sheet-card{width:min(600px,100%);max-height:76vh;display:flex;flex-direction:column;border-radius:var(--r-2xl);
   background:var(--surface);border:1px solid var(--line);box-shadow:var(--lift-3);overflow:hidden;
