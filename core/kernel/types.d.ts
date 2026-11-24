@@ -108,6 +108,7 @@ export interface ModuleContext {
   interval(fn: () => void, ms: number): Undo;
   frame(fn: (t: number) => void): Undo;
   observe(observer: { disconnect(): void }): Undo;
+  readonly signal: AbortSignal;
   onFlush(key: string, fn: () => void): Undo;
   invalidate(key?: string): void;
   pushLayer(layer: Layer): Undo;

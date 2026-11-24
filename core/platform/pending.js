@@ -1,6 +1,6 @@
 // @ts-check
 
-// A control that starts a request answers once until it settles: a second press joins the first request.
+export { latest } from "./latest.js";
 
 /** @type {Map<unknown, Promise<any>>} */
 const inflight = new Map();
