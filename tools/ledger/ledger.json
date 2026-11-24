@@ -6003,9 +6003,8 @@
    "home": "modules/conversation/history.css"
   },
   "css/app.css::ids::say": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "No #say rule at the Group 5 gate. The composer textarea uses the shared rules in modules/conversation/composer.css."
   },
   "css/launchpad.css::ids::fr-body-launch": {
    "status": "moved",
@@ -7415,8 +7414,8 @@
    "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::lift": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
+   "status": "deleted",
+   "reason": "Absent at the Group 5 gate. The send-calm suite checks that Send has no lift."
   },
   "js/app.js::functions::liveBlock": {
    "status": "moved",
@@ -7479,8 +7478,8 @@
    "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::tpUnmount": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2756)"
+   "status": "deleted",
+   "reason": "Absent at the Group 5 gate. The panel retains the mounted thread page, covered by the thread-page suite."
   },
   "js/app.js::functions::tpHead": {
    "status": "moved",
