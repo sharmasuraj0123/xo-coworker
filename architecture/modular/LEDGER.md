@@ -8,9 +8,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 487 |
 | deleted | 336 |
 | kept | 57 |
-| split | 28 |
+| split | 29 |
 | vendor | 13 |
-| split-region | 5 |
+| split-region | 4 |
 
 Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted 150, split 3), in `ledger.json` as `path::kind::name`.
 
@@ -137,7 +137,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `css/panel.css` | 681 | split-region | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
 | `css/phone.css` | 286 | split-region | shell/phone.css, modules/* (phone blocks) · next: The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css. |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
-| `css/shape.css` | 68 | split-region | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
+| `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui/density.css, modules/conversation/shape.css, css/shape.css · next: The entry stylesheet imports Settings, density and the conversation preferences in their original cascade order. |
 | `css/side.css` | 158 | moved | shell/sidebar.css |
 | `css/tokens.css` | 301 | moved | core/ui/tokens.css |
 

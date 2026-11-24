@@ -1650,12 +1650,14 @@
    "home": "core/ui/markdown/rich.css"
   },
   "css/shape.css": {
-   "status": "split-region",
+   "status": "split",
    "home": [
     "modules/settings/shape.css",
-    "core/ui (density)"
+    "core/ui/density.css",
+    "modules/conversation/shape.css",
+    "css/shape.css"
    ],
-   "note": "Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui"
+   "note": "The entry stylesheet imports Settings, density and the conversation preferences in their original cascade order."
   },
   "css/side.css": {
    "status": "moved",

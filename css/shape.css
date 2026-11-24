@@ -1,19 +1,3 @@
 @import url("../modules/settings/shape.css");
-/* Shape preferences for the main surface and overlays. */
-
-/* Compact density steps down the control heights and reading scale. */
-:root[data-density="compact"] :is(.main,.sheet,.iq-pop){
-  --h-row:var(--h-row-compact); --h-ctl:var(--h-sm);
-  --fs-title:var(--fs-ui); --lh-title:var(--lh-ui); --fs-read:var(--fs-ui); --lh-read:var(--lh-ui); --fw-read:var(--fw-regular);
-}
-[data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
-[data-density="compact"] :is(.attach,.send){align-self:flex-end}
-[data-density="compact"] :is(.ck-tog,.ag-r,.set-nav button){height:var(--h-row)}
-[data-density="compact"] :is(.hd-r,.ar){min-height:var(--h-row)}
-[data-density="compact"] .tb-h{min-height:var(--h-ctl)}
-
-/* The simple model choice. */
-.iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}
-
-/* Failed steps in the text summary. */
-.tb-wbad{margin:var(--s-1) 0 0 var(--s-6)}
+@import url("../core/ui/density.css");
+@import url("../modules/conversation/shape.css");
