@@ -24,7 +24,7 @@ const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 
 // ── the write paths, from the source (no DOM needed) ─────────────────────────
 await t("Back is written through patch(): only when its name changes, in place", () => {
-  const header = readSource("shell/header.js");
+  const header = readSource("shell/top-header.js");
   assert.doesNotMatch(header, /back\.innerHTML\s*=/);
   assert.equal((header.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
@@ -69,8 +69,9 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   /** A press held across `fn`: pointerdown on `node`, fn() (a redraw), then the press ends. True if the node stayed. */
   const pressAcross = async (node, fn) => { ev(node, "pointerdown"); await fn(); const kept = node.isConnected; ev(node, "pointerup"); ev(node, "click"); return kept; };
 
-  const { patch, redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
-  const { landed } = await import("../core/ui/motion.js");
+  const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
+  const { patch } = await import("../core/ui/patch.js");
+  const { landed } = await import("../core/ui/landing.js");
   const host = document.getElementById("host");
 
   await t("patch keeps matching controls and focuses the replacement when a control changes tag", () => {

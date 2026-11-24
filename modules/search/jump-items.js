@@ -2,7 +2,9 @@
 import { ICON, XO } from "../../core/ui/icons/names.js";
 import { stateMark } from "../../core/ui/icons/icon.js";
 
-/** @import { JumpItem, JumpItemsDeps, JumpThread } from "./types.d.ts" */
+/** @import { JumpItem } from "./types.d.ts" */
+
+/** @import { JumpItemsDeps, JumpThread } from "./jump-items-types.d.ts" */
 
 /** @param {JumpItemsDeps} options */
 export function createJumpItems({ D, projects, threadsOf, projectIcon, glyphOf, wordOf }) {

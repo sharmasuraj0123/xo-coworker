@@ -20,13 +20,6 @@ export function arrive(el, { delay = 0 } = {}) {
   el.animate([{ opacity: 0, transform: "translateY(6px) scale(.985)" }, { opacity: 1, transform: "none" }], { duration: IN, delay, easing: EASE, fill: "backwards" });
 }
 
-/** @param {(Element & { _sk?: boolean }) | null} el @param {(Element | null)[]} [parts] */
-export function landed(el, parts = el ? [...el.children] : []) {
-  if (!el || !el._sk) return;
-  el._sk = false;
-  parts.forEach((c, i) => c && arrive(c, { delay: i * 40 }));
-}
-
 /** An image shows itself once decoded: a soft fade, never a flash of a half-drawn picture. @param {HTMLImageElement | null | undefined} img */
 export function fadeImage(img) {
   if (!img) return;

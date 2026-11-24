@@ -20,15 +20,6 @@ export interface QuickOpenState {
   t: ReturnType<typeof setTimeout> | 0; o: Record<string, boolean>; noSearch: boolean; pendingEnter?: boolean;
 }
 export interface JumpItem { v?: string; name: string; sub: string; icon: string; t?: boolean; run?: () => void }
-export interface JumpThread { id: string; title: string }
-export interface JumpItemsDeps {
-  D: { needItems: () => { t: { id: string; project: string }; admitted?: boolean; later?: boolean }[] };
-  projects: () => { id: string; name: string }[];
-  threadsOf: (project: string) => JumpThread[];
-  projectIcon: (project: string) => string;
-  glyphOf: (thread: JumpThread) => string;
-  wordOf: (thread: JumpThread) => string;
-}
 export interface JumpDeps {
   host: HTMLElement; field: HTMLInputElement; list: HTMLElement;
   places: (q: string) => JumpItem[]; actions: () => JumpItem[]; more: (q: string) => JumpItem[];

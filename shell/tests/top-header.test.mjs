@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { dom } from "../../tests/lib/dom.mjs";
 import { createKernel } from "../../core/kernel/index.js";
 import { definePlaces } from "../places.js";
-import { createTopHeader } from "../header.js";
+import { createTopHeader } from "../top-header.js";
 
 const { document } = await dom('<header id="top"><button id="top-back" hidden></button><div id="top-who"></div><div id="top-end"></div></header>');
 const K = createKernel();

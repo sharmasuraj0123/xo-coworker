@@ -1,6 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { keysSheetRender } from "../index.js";
+import { keysSheetRender } from "../keys-sheet.js";
 import { set } from "../../../core/platform/keys.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 

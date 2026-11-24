@@ -1,6 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { createBackSteps } from "../back.js";
+import { createBackSteps } from "../back-steps.js";
 
 const S = { view: "t:thread", trail: ["p:open", "p:gone", "p:current"], retrace: false };
 let layerOpen = true;

@@ -11,7 +11,7 @@ const WEBPICS = "xo:conversation/webpics", HOPS = "xo:thread/hops";
 const S = { showHops: true }, announced = [], saved = [];
 const deviceSaid = createDeviceNotice((text) => announced.push(text));
 let showPictures = false;
-/** @type {import("../types.d.ts").AppearanceShape} */
+/** @type {import("../appearance-types.d.ts").AppearanceShape} */
 const shape = {
   on: () => showPictures,
   setDevice({ surfaces }) {

@@ -3,8 +3,9 @@
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
-import { expand, landed } from "../../core/ui/motion.js";
-import { patch } from "../../core/ui/redraw.js";
+import { expand } from "../../core/ui/motion.js";
+import { landed } from "../../core/ui/landing.js";
+import { patch } from "../../core/ui/patch.js";
 
 /** @import { HandledDeps, HandledParts, WorkingThread } from "./handled-types.d.ts" */
 

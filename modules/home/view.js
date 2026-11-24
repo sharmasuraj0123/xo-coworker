@@ -3,8 +3,9 @@
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { dial, ICON, NEXT_GLYPH, XO } from "../../core/ui/icons/names.js";
-import { landed, RM, wait } from "../../core/ui/motion.js";
-import { patch } from "../../core/ui/redraw.js";
+import { RM, wait } from "../../core/ui/motion.js";
+import { landed } from "../../core/ui/landing.js";
+import { patch } from "../../core/ui/patch.js";
 import { drawSections } from "./sections.js";
 
 /** @import { HomeChoice, HomeViewDeps, HomeViewNeed } from "./view-types.d.ts" */

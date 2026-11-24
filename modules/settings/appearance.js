@@ -5,7 +5,7 @@ import { esc } from "../../core/platform/util.js";
 import { radioKeys } from "../../core/ui/a11y/keynav.js";
 import { STONE, FLAVOURS } from "../../core/ui/flavours.js";
 
-/** @param {import("./types").AppearanceDeps} deps */
+/** @param {import("./appearance-types.d.ts").AppearanceDeps} deps */
 export function wireAppearance({ THEME, applyTheme, deviceSaid }) {
   const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
   const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
@@ -37,7 +37,7 @@ export function wireAppearance({ THEME, applyTheme, deviceSaid }) {
   return { lookSync };
 }
 
-/** @import { AppearanceShape, DeviceNotice } from "./types.d.ts" */
+/** @import { AppearanceShape, DeviceNotice } from "./appearance-types.d.ts" */
 
 /** @param {AppearanceShape} SHAPE @param {string} WEBPICS @param {DeviceNotice} deviceSaid */
 export function wireWebPictures(SHAPE, WEBPICS, deviceSaid) {

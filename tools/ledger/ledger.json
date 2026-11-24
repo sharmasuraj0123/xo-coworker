@@ -7167,11 +7167,11 @@
   },
   "js/app.js::functions::landed": {
    "status": "moved",
-   "home": "core/ui/motion.js"
+   "home": "core/ui/landing.js"
   },
   "js/app.js::functions::patch": {
    "status": "moved",
-   "home": "core/ui/redraw.js"
+   "home": "core/ui/patch.js"
   },
   "js/app.js::functions::homeParts": {
    "status": "moved",
@@ -7279,8 +7279,8 @@
   },
   "js/app.js::functions::topRender": {
    "status": "moved",
-   "home": "shell/header.js",
-   "note": "Shell owns the header host and action ordering. Conversation title markup and editing remain in js/app.js with the conversation holdback."
+   "home": "shell/top-header.js",
+   "note": "Shell owns the header host and action ordering. Conversation title markup remains in js/app.js with the conversation holdback."
   },
   "js/app.js::functions::checklistRender": {
    "status": "planned",
@@ -7898,7 +7898,7 @@
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "moved",
-   "home": "modules/settings/keys-page.js"
+   "home": "modules/settings/keys-sheet.js"
   },
   "js/app.js::functions::keysPageRender": {
    "status": "moved",
@@ -7911,11 +7911,11 @@
   },
   "js/app.js::functions::canBack": {
    "status": "moved",
-   "home": "shell/back.js"
+   "home": "shell/back-steps.js"
   },
   "js/app.js::functions::stepBack": {
    "status": "moved",
-   "home": "shell/back.js"
+   "home": "shell/back-steps.js"
   },
   "js/app.js::functions::armBack": {
    "status": "moved",
@@ -8115,7 +8115,7 @@
   },
   "js/app.js::keys::all": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "modules/files/search-place.js"
   },
   "js/app.js::keys::Escape": {
    "status": "planned",

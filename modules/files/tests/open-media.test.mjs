@@ -4,7 +4,7 @@ import { dom } from "../../../tests/lib/dom.mjs";
 import { mediaItem } from "../../../core/services/media/items.js";
 import { mediaHtml } from "../../../core/services/media/render.js";
 import { createMediaOpener } from "../open-media.js";
-import { filePlace } from "../scope.js";
+import { filePlace } from "../search-place.js";
 
 const { document } = await dom('<main id="msgs"></main>');
 const msgsEl = document.getElementById("msgs");

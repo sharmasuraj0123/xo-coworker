@@ -1,6 +1,6 @@
 // @ts-check
 import { $ } from "../core/platform/dom.js";
-import { patch } from "../core/ui/redraw.js";
+import { patch } from "../core/ui/patch.js";
 import { XO } from "../core/ui/icons/names.js";
 
 /** @param {{ view: string }} S @param {() => readonly unknown[]} projects */

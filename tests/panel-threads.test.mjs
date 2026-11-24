@@ -73,7 +73,7 @@ document.querySelector("header").innerHTML = threadsCtl(running.all, running);
 assert.equal(document.querySelector(".is-work .pj-k")?.textContent, "1");
 assert.ok(document.querySelector(".is-need") === null, "no needs-you marker");
 assert.equal(threadsCtl(0, running), "", "a project without threads has no control");
-const shellHeader = readFileSync(new URL("../shell/header.js", import.meta.url), "utf8");
+const shellHeader = readFileSync(new URL("../shell/top-header.js", import.meta.url), "utf8");
 assert.match(shellHeader, /\(pv \? S\.hdrCtl \+ headerActionsHtml\(kernel\.places, atOf\(v\)\) \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
 assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
 const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
