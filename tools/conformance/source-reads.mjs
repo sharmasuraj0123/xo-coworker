@@ -8,14 +8,25 @@ const READ = /^(?:readFile|readFileSync|createReadStream)$/;
 const SOURCE_EXTENSION = /\.(?:[cm]?js|css|html|py|ts)$/i;
 const FIXTURE = /(?:^|\/)(?:fixtures?|snapshots?|testdata)(?:\/|$)/;
 
-/** @param {object} tree */
-function bindings(tree) {
+/** @param {object} tree @param {string} file */
+function bindings(tree, file) {
   const readers = new Set();
   const namespaces = new Set();
   const values = new Map();
   const names = new Map();
+  const parents = new WeakMap();
+  const harnesses = new Map();
   walk(tree, (node, parent) => {
-    if (node.type === "Identifier") names.set(node.name, (names.get(node.name) ?? 0) + 1);
+    parents.set(node, parent);
+    if (node.type === "Identifier") {
+      if (!names.has(node.name)) names.set(node.name, []);
+      names.get(node.name).push(node);
+    }
+    if (node.type === "ImportDeclaration" && normalize(join(dirname(file), node.source.value)) === "tests/lib/dom.mjs") {
+      for (const specifier of node.specifiers) {
+        if (specifier.imported?.name === "dom") harnesses.set(specifier.local.name, specifier);
+      }
+    }
     if (node.type === "ImportDeclaration" && FS.test(node.source.value)) {
       for (const specifier of node.specifiers) {
         if (READ.test(specifier.imported?.name ?? "")) readers.add(specifier.local.name);
@@ -30,7 +41,7 @@ function bindings(tree) {
       if (READ.test(property.key?.name ?? "")) readers.add(property.value.name);
     }
   });
-  return { readers, namespaces, values, names };
+  return { readers, namespaces, values, names, parents, harnesses };
 }
 
 /** @param {object} node @param {string} file @param {Map<string, object>} values @param {Set<object>} [seen] */
@@ -65,13 +76,13 @@ function pathValue(node, file, values, seen = new Set()) {
   }
 }
 
-/** @param {object} tree @param {Map<string, object>} values @param {Map<string, number>} names */
+/** @param {object} tree @param {Map<string, object>} values @param {Map<string, object[]>} names */
 function literalMaps(tree, values, names) {
   const inputs = new WeakMap();
   walk(tree, (node) => {
     if (node.type !== "CallExpression" || member(node.callee) !== "map") return;
     const receiver = node.callee.object;
-    const array = receiver.type === "Identifier" && names.get(receiver.name) === 2 ? values.get(receiver.name) : receiver;
+    const array = receiver.type === "Identifier" && names.get(receiver.name)?.length === 2 ? values.get(receiver.name) : receiver;
     if (array?.type !== "ArrayExpression" || array.elements.some((item) => typeof literal(item) !== "string")) return;
     const [fn] = node.arguments;
     if (!["ArrowFunctionExpression", "FunctionExpression"].includes(fn?.type)) return;
@@ -84,9 +95,31 @@ function literalMaps(tree, values, names) {
   return inputs;
 }
 
+/** @param {object} read @param {ReturnType<typeof bindings>} bindings */
+function bootsDom(read, { parents, names, harnesses }) {
+  const parent = parents.get(read);
+  const value = parent?.type === "AwaitExpression" ? parent : read;
+  const declaration = parents.get(value);
+  let argument = value;
+  if (declaration?.type === "VariableDeclarator" && parents.get(declaration)?.kind === "const") {
+    const uses = names.get(declaration.id.name);
+    if (uses?.length !== 2) return false;
+    argument = uses.find((use) => use !== declaration.id);
+  }
+  const call = parents.get(argument);
+  if (call?.type !== "CallExpression" || call.arguments[0] !== argument) return false;
+  const name = call.callee.name;
+  const specifier = harnesses.get(name);
+  return !!specifier && names.get(name).every((use) => {
+    const owner = parents.get(use);
+    return owner === specifier || (owner?.type === "CallExpression" && owner.callee === use);
+  });
+}
+
 /** @param {string} file @param {object} tree @param {Set<string>} files @param {Function} report */
 export function sourceReads(file, tree, files, report) {
-  const { readers, namespaces, values, names } = bindings(tree);
+  const refs = bindings(tree, file);
+  const { readers, namespaces, values, names } = refs;
   const inputs = literalMaps(tree, values, names);
   walk(tree, (node) => {
     if (node.type !== "CallExpression") return;
@@ -97,6 +130,7 @@ export function sourceReads(file, tree, files, report) {
     const paths = (inputs.get(node) ?? [values]).map((input) => pathValue(node.arguments[0], file, input));
     const production = paths.filter((path) => !path || !(FIXTURE.test(path) || (/\.[\w]+$/.test(path) && !SOURCE_EXTENSION.test(path))));
     if (!production.length) return;
+    if (production.every((path) => path && /\.html$/i.test(path)) && bootsDom(node, refs)) return;
     const line = node.loc.start.line;
     report("sourceRead", line);
     const candidates = new Set(production.filter(Boolean).flatMap((path) => [normalize(path), normalize(join(dirname(file), path))]));

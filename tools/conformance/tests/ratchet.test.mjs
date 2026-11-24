@@ -197,6 +197,22 @@ test("a map over a literal list reports only the files that can be read", (conte
   }
 });
 
+test("only HTML used solely to boot the DOM harness is exempt", (context) => {
+  const setup = 'import { readFileSync } from "node:fs"; import { dom as boot } from "./lib/dom.mjs";';
+  const read = 'readFileSync(new URL("../index.html", import.meta.url), "utf8")';
+  const root = fixture(context, {
+    "index.html": "<!doctype html>",
+    "tests/lib/dom.mjs": "export function dom() {}",
+    "tests/direct.test.mjs": `${setup} await boot(${read});`,
+    "tests/bound.test.mjs": `${setup} const html = ${read}; await boot(html);`,
+    "tests/asserted.test.mjs": `${setup} const html = ${read}; await boot(html); assert.match(html, /main/);`,
+    "tests/shadowed.test.mjs": `${setup} function other(boot) { boot(${read}); }`,
+  });
+  const findings = inventory(root);
+  const reads = findings.filter((entry) => entry.rule === "sourceRead").map((entry) => entry.file).sort();
+  assert.deepEqual(reads, ["tests/asserted.test.mjs", "tests/shadowed.test.mjs"]);
+});
+
 test("a test import does not rescue a dead export and a used re-export reaches its origin", (context) => {
   const root = fixture(context, {
     [FILE]: HEADER + "export const used = 1, dead = 2;",
