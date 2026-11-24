@@ -32,13 +32,11 @@ t("it loads right after the tokens, and the mode and flavour are set before the 
   assert.match(head, /prefers-color-scheme: light/);
   assert.ok(head.indexOf("cv-flavour") < head.indexOf('rel="stylesheet"'), "before any stylesheet");
 });
-t("Settings › Appearance offers the mode (dark, light, system) and every flavour, from the one list in js/flavours.js", () => {
-  const html = read("shell/overlays.js"), app = read("js/app.js");
+t("Settings › Appearance offers the mode (dark, light, system) and every flavour, from the shared palette", () => {
+  const html = read("shell/overlays.js");
   assert.match(html, /id="mode-seg" role="radiogroup" aria-labelledby="mode-l"/);
   assert.match(html, /id="flavour-seg" role="radiogroup" aria-labelledby="flavour-l"/);
-  assert.match(app, /import \{ STONE, FLAVOURS \} from "\.\/flavours\.js";/);
-  assert.match(app, /\["dark", "Dark"\], \["light", "Light"\], \["system", "System"\]/);
-  assert.match(read("tools/flavours/build.mjs"), /import \{ FLAVOURS \} from "\.\.\/\.\.\/js\/flavours\.js";/);
+  assert.match(read("tools/flavours/build.mjs"), /import \{ FLAVOURS \} from "\.\.\/\.\.\/core\/ui\/flavours\.js";/);
 });
 t("a flavour never changes a status hue, the accent or the XO mark", () => {
   const fixed = ["--accent", "--accent-fill", "--accent-hover", "--accent-press", "--accent-rgb", "--warn", "--info", "--violet", "--err", "--err-ink", "--coord", "--mark-x", "--mark-o", "--go", "--work", "--need", "--danger"];

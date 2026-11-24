@@ -155,6 +155,8 @@ The shared-source ledger keys owned by group 6 are listed below. In each list, a
 
 Group 6 also owns any other `css/app.css` rules interleaved with its conversation and composer regions. Group 4 leaves them in place and names the affected regions and ledger keys at handoff. This includes `#hm-body > div` and the shared mobile rule covering `#iq-pop` and `#cs-pop`. Move the interleaved rules with their respective regions, preserving exact source order and checking the cascade winners. Keep each shared rule intact.
 
+Group 4 also hands off `js/app.js::functions::threadTargetHtml` to Group 6. Move it with `targetLineRender`, which uses it to render the composer's destination for a thread.
+
 **Keep outside the package** · `index.html`, tokens, Files, timeline renderer and shell layer behavior. Route new cross-module needs through existing contracts and propose any missing contract to the coordinator.
 
 **Entry and exit** · Land characterization tests before the first move. Pin composer focus by desktop versus touch entry, drafts, attachment/send/stop/retry, decisions and Undo, and focus and scroll on in-place redraw. Exercise all through DOM or public API and show each new test failing on a deliberate break. Exit with boot and compatibility shims only at the legacy entry point, and zero unresolved `planned` code entries across P3. Six or more slices. Run serially and last.

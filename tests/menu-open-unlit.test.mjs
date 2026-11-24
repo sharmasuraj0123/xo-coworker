@@ -29,7 +29,7 @@ t("the sidebar's More and the thread menu open through it; More's hover moves it
 });
 t("a sidebar row in a menu is lit by focus only: its row hover stays off, so the pointer and a key never light two", () => {
   const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
-  assert.match(css("app.css"), /\n\.nrow:not\(\[role=menuitem\]\):hover\{background:var\(--row-hover\)\}/);
+  assert.match(css("../shell/frame.css"), /\n\.nrow:not\(\[role=menuitem\]\):hover\{background:var\(--row-hover\)\}/);
   assert.match(css("../shell/sidebar.css"), /:root:root \.side :is\(\.nrow,\.prow\):not\(\[role=menuitem\]\):hover\{/);
 });
 console.log(`\n${passed} passed`);

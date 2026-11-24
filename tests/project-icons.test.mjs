@@ -5,7 +5,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TOPICS, glyph } from "../modules/projects/projicons.js";
+import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
+import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
+import { dom } from "./lib/dom.mjs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
 
@@ -13,23 +16,47 @@ assert.equal(TOPICS.length, 31);
 for (const k of TOPICS) assert.ok(hasIcon(`project-${k}`), k);
 assert.match(glyph("project"), /data-xi="project"/);
 
-// the choice, checked as written: only a topic or the cube counts
-const own = /const ownIcon = (\(pid\) => \{[^\n]*\});/.exec(app);
-assert.ok(own);
-const make = (icons) => new Function("SHAPE", "TOPICS", `return ${own[1]};`)({ get: (k) => (k === "layout" ? { icons } : undefined) }, TOPICS);
-assert.equal(make({ a: "research" })("a"), "research");
-assert.equal(make({ a: "project" })("a"), "project");
-assert.equal(make({ a: "nonsense" })("a"), null, "an unknown choice: its own guess");
-assert.equal(make({})("a"), null);
-
-// it wins over the guess, and a change of it draws again (the memo knows it)
-assert.match(app, /const icon = own \|\| classify\(/);
-assert.match(app, /if \(memo && memo\.n === ts\.length && memo\.own === own\) return memo\.svg;/);
-// kept in your shape; Automatic removes it
-assert.match(app, /SHAPE\.patchMine\(\{ layout: \{ icons: \{ \[pid\]: k \|\| null \} \} \}\);/);
+const icons = {};
+const world = { state: { threads: [] }, project: () => null };
+const SHAPE = { get: (key) => key === "layout" ? { icons } : undefined };
+const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice({ world, SHAPE });
+assert.equal(ownIcon("a"), null);
+assert.equal(projectIcon("a"), glyph("project"));
+world.state.threads.push({ project: "a", title: "research" });
+assert.equal(projectIcon("a"), glyph("research"), "a new thread can change the automatic icon");
+icons.a = "project";
+assert.equal(ownIcon("a"), "project");
+assert.equal(projectIcon("a"), glyph("project"), "the selected cube overrides the cached guess");
+icons.a = "mobile";
+assert.equal(ownIcon("a"), "mobile");
+assert.equal(projectIcon("a"), glyph("mobile"), "a new choice overrides the cached choice");
+icons.a = "nonsense";
+assert.equal(ownIcon("a"), null, "an unknown choice falls back to the guess");
+assert.equal(projectIcon("a"), glyph("research"));
+world.state.threads[0].title = "finance";
+assert.equal(projectIcon("a"), glyph("research"), "the automatic icon is cached while the thread count holds");
+forgetIcon("a");
+assert.equal(projectIcon("a"), glyph("finance"), "forgetting a choice clears the cached icon");
+const { document, window } = await dom('<button data-pj-icon="a"></button>');
+const opener = document.querySelector("[data-pj-icon]");
+const changes = [];
+const picker = createProjectIconPicker({
+  world, SHAPE: { patchMine: (change) => changes.push(change) }, PROJ: () => "Research",
+  ownIcon, forgetIcon, announce() {}, render() {}, wirePickKeys() {},
+});
+for (const selected of ["mobile", ""]) {
+  picker.pickIcon("a", opener);
+  const popover = document.querySelector('.pk-pop[role="dialog"]');
+  assert.ok(popover);
+  assert.equal(opener.getAttribute("aria-expanded"), "true");
+  assert.equal(popover.querySelectorAll('[role="radio"][tabindex="0"]').length, 1);
+  popover.querySelector(`[role="radio"][data-pk="${selected}"]`).dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.equal(opener.getAttribute("aria-expanded"), "false");
+  assert.ok(document.activeElement === opener, "choosing restores focus to the opener");
+}
+assert.deepEqual(changes, [{ layout: { icons: { a: "mobile" } } }, { layout: { icons: { a: null } } }]);
 // the header tile opens it, a dialog of radios with one Tab stop; arrows walk the grid, Esc closes back to the tile
 assert.match(app, /class="pj-pick" data-pj-icon="\$\{esc\(pid\)\}" aria-haspopup="dialog"/);
-assert.match(app, /role="radio" aria-checked="\$\{on\}" data-pk="\$\{k\}"/);
 assert.match(app, /\{ ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os\.length - 1 - i \}/);
 assert.match(app, /if \(e\.key === "Escape"\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); closePick\(\{ focus: true \}\); return; \}/);
 

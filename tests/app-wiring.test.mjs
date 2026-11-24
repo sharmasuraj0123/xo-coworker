@@ -1,0 +1,110 @@
+// @ts-check
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { setImmediate, setInterval, setTimeout } from "node:timers";
+import { STONE, FLAVOURS } from "../core/ui/flavours.js";
+import { xi } from "../core/ui/icons/icon.js";
+import { ICON } from "../core/ui/icons/names.js";
+import { dom } from "./lib/dom.mjs";
+
+const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
+const storage = new Map([["cv-theme", "light"], ["cv-flavour", "onyx"]]);
+const blockedStorage = new Set();
+/** @type {FrameRequestCallback[]} */
+const frames = [];
+const matches = window.Element.prototype.matches;
+window.HTMLElement.prototype.scrollTo = function () {};
+window.Element.prototype.matches = function (/** @type {string} */ selector) {
+  if (selector === ":focus-within") return this.contains(document.activeElement);
+  return matches.call(this, selector);
+};
+Object.assign(globalThis, {
+  location: new URL("http://localhost/"),
+  innerWidth: 1440,
+  history: { replaceState() {}, pushState() {} },
+  sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
+  localStorage: {
+    getItem: (/** @type {string} */ key) => storage.get(key) ?? null,
+    setItem: (/** @type {string} */ key, /** @type {string} */ value) => {
+      if (blockedStorage.has(key)) throw new DOMException("QuotaExceededError");
+      storage.set(key, value);
+    },
+  },
+  MutationObserver: window.MutationObserver,
+  ResizeObserver: class { observe() {} disconnect() {} },
+  customElements: window.customElements,
+  getComputedStyle: window.getComputedStyle,
+  requestAnimationFrame: (/** @type {FrameRequestCallback} */ fn) => frames.push(fn),
+  setInterval: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setInterval(fn, ms).unref(),
+  setTimeout: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setTimeout(fn, ms).unref(),
+  fetch: async () => new Response("{}", { headers: { "content-type": "application/json" } }),
+  EventSource: class { addEventListener() {} close() {} },
+});
+
+await import("../boot.js");
+await new Promise((resolve) => setImmediate(resolve));
+for (const frame of frames.splice(0)) frame(performance.now());
+
+assert.ok(document.querySelector("#brand-mark svg"), "boot installs the visible brand icon");
+assert.ok(document.querySelector("#side-fold svg"), "boot installs the sidebar fold icon");
+const expectedIcon = document.createElement("span");
+expectedIcon.innerHTML = xi("dashboard");
+assert.equal(document.querySelector("#ic-more").innerHTML, expectedIcon.innerHTML, "More uses the dashboard icon");
+expectedIcon.innerHTML = ICON.right;
+assert.equal(document.querySelector("#nv-more .nr-chev").innerHTML, expectedIcon.innerHTML, "More shows the right chevron");
+assert.equal(document.querySelector("#home").hidden, false, "boot starts on Home");
+assert.equal(document.documentElement.dataset.theme, "light", "boot restores the stored mode");
+assert.equal(document.documentElement.dataset.flavour, "onyx", "boot restores the stored flavour");
+
+const press = (/** @type {string} */ selector) => {
+  const button = document.querySelector(selector);
+  assert.ok(button, selector);
+  button.dispatchEvent(new window.Event("click", { bubbles: true, cancelable: true }));
+};
+press("#nv-ws");
+assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
+assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
+assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 0 projects/);
+press("#nv-home");
+assert.equal(document.querySelector("#nv-home").getAttribute("aria-current"), "page", "Home navigation restores Home");
+assert.equal(document.querySelector("#app").dataset.conv, "home", "the shell tracks Home after navigation");
+assert.ok(document.querySelector("#ws-head").closest("[hidden]"), "Home hides the Workspace conversation");
+
+press("#set-side");
+assert.equal(document.querySelector("#settings").hidden, false, "sidebar opens Settings");
+press('#settings [data-set="appearance"]');
+assert.equal(document.querySelector('#settings [data-page="appearance"]').hidden, false, "Appearance is the visible Settings page");
+assert.deepEqual([...document.querySelectorAll('#mode-seg [role="radio"]')].map((b) => [b.dataset.mode, b.textContent]), [["dark", "Dark"], ["light", "Light"], ["system", "System"]]);
+assert.deepEqual([...document.querySelectorAll('#flavour-seg [role="radio"]')].map((b) => [b.dataset.flavour, b.textContent]), [STONE, ...FLAVOURS].map(({ id, name }) => [id, name]));
+press('#mode-seg [data-mode="dark"]');
+assert.equal(document.documentElement.dataset.theme, "dark", "choosing Dark applies it immediately");
+assert.equal(storage.get("cv-theme"), "dark", "choosing Dark persists it");
+assert.equal(document.querySelector('#mode-seg [data-mode="dark"]').getAttribute("aria-checked"), "true");
+press('#flavour-seg [data-flavour="stone"]');
+assert.equal(document.documentElement.dataset.flavour, undefined, "Stone removes the flavour override");
+assert.equal(storage.get("cv-flavour"), "stone", "choosing Stone persists it");
+press("#bubbles-tog");
+assert.equal(document.documentElement.dataset.msgx, "bubbles");
+assert.equal(document.documentElement.dataset.msgxTails, "");
+assert.equal(storage.get("cv-bubbles"), "on");
+assert.equal(document.querySelector("#bubbles-tog").getAttribute("aria-checked"), "true");
+press("#bubbles-tog");
+assert.equal(document.documentElement.dataset.msgx, undefined);
+assert.equal(document.documentElement.dataset.msgxTails, undefined);
+assert.equal(storage.get("cv-bubbles"), "off");
+
+press("#theme");
+assert.equal(document.documentElement.dataset.theme, "light", "the theme switch applies Light");
+assert.equal(storage.get("cv-theme"), "light", "the theme switch persists Light");
+assert.equal(document.querySelector("#theme").getAttribute("aria-checked"), "true");
+assert.equal(document.querySelector('#mode-seg [data-mode="light"]').getAttribute("aria-checked"), "true", "the theme switch syncs Appearance");
+
+blockedStorage.add("cv-theme");
+press('#mode-seg [data-mode="dark"]');
+assert.equal(document.documentElement.dataset.theme, "light", "the theme stays on its stored mode when a write fails");
+const modeRow = document.querySelector("#mode-seg").closest(".set-row");
+assert.match(modeRow.querySelector('.set-err[role="alert"]').textContent, /this browser won't keep it after a reload/);
+blockedStorage.delete("cv-theme");
+press('#mode-seg [data-mode="dark"]');
+assert.ok(!modeRow.querySelector(".set-err"), "the inline error clears after a successful write");
+assert.equal(document.documentElement.dataset.theme, "dark");

@@ -2,7 +2,7 @@
 
 // The sidebar: folded, a rail of the same rows with their words hidden; its bar is yours to edit, and More holds the rest.
 
-import { $, $$ } from "../../js/ui.js";
+import { $, $$ } from "../../core/platform/dom.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { esc } from "../../core/platform/index.js";
@@ -120,7 +120,7 @@ export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump
     /** More: the places you didn't keep, each with its pin, and "Edit the sidebar…"; or, editing, every place with its switch and grip. */
     drawMore() {
       const b = SIDE.bar(), pop = $("#side-more");
-      const icon = (/** @type {Place} */ p) => (p.ic ? p.ic() : $(p.sel)?.querySelector(".nr-ic")?.innerHTML || "");
+      const icon = (/** @type {Place} */ p) => (p.ic ? p.ic() : $(/** @type {string} */ (p.sel))?.querySelector(".nr-ic")?.innerHTML || "");
       let html;
       if (SIDE.editing) {
         pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Edit the sidebar");

@@ -33,7 +33,7 @@ assert.doesNotMatch(code, /dataset\.page\b/);
 assert.doesNotMatch(css, /\[data-page\]/);
 
 // a page belongs to its place: another place closes it; the panel closing closes it (and the file in it)
-assert.match(app, /if \(v !== S\.view\) STAGE\.leave\(\);/);
+assert.match(readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8"), /if \(v !== S\.view\) STAGE\.leave\(\);/);
 assert.doesNotMatch(app, /FP\.reset\(\)/);
 assert.match(fp, /close: \(\) => \{ if \(viewer\.hasFile\) viewer\.close\(\{ restore: false \}\); files\.hide\(\); \},/);
 

@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FLAVOURS } from "../../js/flavours.js";
+import { FLAVOURS } from "../../core/ui/flavours.js";
 
 export { FLAVOURS };
 

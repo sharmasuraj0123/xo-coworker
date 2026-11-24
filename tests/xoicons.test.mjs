@@ -60,7 +60,7 @@ t("every icon a module names is in the pack", () => {
 });
 
 t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
-  const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "js/map.js", "modules/files/files.js", "modules/files/page.js", "modules/changes/frame.js", "modules/settings/shape-page.js",
+  const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "modules/map/map.js", "modules/map/head.js", "modules/map/tree.js", "modules/map/drawing.js", "modules/files/files.js", "modules/files/page.js", "modules/changes/frame.js", "modules/settings/shape-page.js",
     "modules/files/viewer.js", "modules/files/viewer-head.js", "modules/files/viewer-text.js", "core/ui/lightbox.js", "modules/create-project/create.js", "modules/chats/intel-view.js", "modules/search/quickopen.js", ...sourcePaths(".js").filter((p) => p.startsWith("modules/conversation/")), ...sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")),
     "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "modules/projects/projicons.js"];
   for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);

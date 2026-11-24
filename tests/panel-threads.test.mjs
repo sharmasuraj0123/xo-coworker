@@ -6,9 +6,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import { panelSrc } from "./lib/panel-src.mjs";
+import { dom } from "./lib/dom.mjs";
+import { createThreadGroups } from "../modules/threads/groups.js";
+import { threadsCtl } from "../modules/threads/header.js";
 const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const map = readFileSync(new URL("../js/map.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // the frame
@@ -22,17 +24,30 @@ assert.doesNotMatch(stage.replace(/\/\/[^\n]*/g, ""), /Agentic Control Pane/, "t
 // the Map: folded and Graph at first; a choice you made still wins
 assert.match(stage, /map: \{ h: MAP_H, folded: true \}/);
 assert.match(stage, /const FR_KEY = "xo-stage-frames-3"/, "fresh frame state, so the new defaults apply");
-assert.match(map, /mode: "graph",/);
-assert.match(map, /getItem\(MODE_KEY\) === "tree"\) M\.mode = "tree"/);
 
 // Launchpad: in its own window, never a frame of the panel
 assert.doesNotMatch(stage, /fr-lp|LPF/);
 
 // one vocabulary: the four words, and how a thread gets one
-assert.match(app, /const STATE_WORDS = \{ needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" \}/);
-const fn = app.slice(app.indexOf("function threadState("), app.indexOf("function panelThreads("));
-const threadState = new Function("isBusy", `${fn}; return threadState;`)((t) => !!t.busy);
 const needs = [{ t: { id: "a" }, admitted: true, group: "now" }];
+const threads = [
+  { id: "a", project: "p", state: "working", busy: true },
+  { id: "b", project: "p", state: "done" },
+  { id: "c", project: "p", state: "done" },
+  { id: "d", project: "q", state: "working" },
+  { id: "e", project: "p", state: "working" },
+].map((thread, i) => ({ ...thread, title: thread.id, lastAt: Date.UTC(2026, 9, i + 1) }));
+const { STATE_WORDS, threadState, threadCounts, panelThreads } = createThreadGroups({
+  world: { state: { threads } },
+  D: { needItems: () => needs },
+  MAP: { agents: () => [{ go: "p:p", doing: "Coordinating", since: null }] },
+  convProject: () => "p",
+  askShort: () => "Review",
+  threadMark: () => "",
+  isBusy: (thread) => !!thread.busy,
+  isHeld: (thread) => !!thread.held,
+});
+assert.deepEqual(STATE_WORDS, { needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" });
 assert.equal(threadState({ id: "a", state: "working" }, needs), "needs");
 assert.equal(threadState({ id: "b", state: "working", busy: true }, needs), "working");
 assert.equal(threadState({ id: "c", state: "working" }, needs), "waiting", "an open thread whose agent is idle waits");
@@ -42,11 +57,24 @@ assert.equal(threadState({ id: "e", state: "working", frozen: true }, needs), "d
 // the header: the same words, and the counts open the panel
 // the Threads control beside Deploy (the owner, 19 Nov 14:16Z / 14:20Z picked A): "Threads" and how many, the working
 // arc and its number, the needs-you mark and its number; one 32 control (.tw-act) among the actions; opens Threads
-assert.match(app, /class="tw-act th-ctl" data-stage-open aria-controls="stage" title="\$\{esc\(words\)\}: open them in the panel"/);
-assert.match(app, /\$\{ICON\.threadOne\}<span class="th-w">Threads<\/span><span class="th-n">\$\{n\}<\/span>\$\{live\}/);
-assert.match(app, /\$\{stateMark\("working"\)\}<span class="pj-k">\$\{by\.working\}/);
-assert.match(app, /\$\{stateMark\("needs_reply"\)\}<span class="pj-k">\$\{by\.needs\}/);
-assert.match(app, /\(pv \? S\.hdrCtl \+ headerActionsHtml\(kernel\.places, atOf\(v\)\) \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
+const by = threadCounts("p", needs);
+const { document } = await dom(`<header>${threadsCtl(by.all, by)}</header>`);
+const control = document.querySelector("button.tw-act.th-ctl[data-stage-open]");
+assert.ok(control);
+assert.equal(control.getAttribute("aria-controls"), "stage");
+assert.equal(control.title, "4 threads, 1 needs you: open them in the panel");
+assert.equal(control.getAttribute("aria-label"), "4 threads, 1 needs you. Open them in the panel");
+assert.equal(control.querySelector(".th-w")?.textContent, "Threads");
+assert.equal(control.querySelector(".th-n")?.textContent, "4");
+assert.equal(control.querySelector(".is-need .pj-k")?.textContent, "1");
+assert.ok(control.querySelector(".is-work") === null, "no working marker");
+const running = threadCounts("p", []);
+document.querySelector("header").innerHTML = threadsCtl(running.all, running);
+assert.equal(document.querySelector(".is-work .pj-k")?.textContent, "1");
+assert.ok(document.querySelector(".is-need") === null, "no needs-you marker");
+assert.equal(threadsCtl(0, running), "", "a project without threads has no control");
+const shellHeader = readFileSync(new URL("../shell/top-header.js", import.meta.url), "utf8");
+assert.match(shellHeader, /\(pv \? S\.hdrCtl \+ headerActionsHtml\(kernel\.places, atOf\(v\)\) \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");
 assert.doesNotMatch(app, /xo-hdr-opt/, "the exploration switch is gone");
 const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 const th = appCss.slice(appCss.indexOf("── The project header's Threads control"));
@@ -65,15 +93,16 @@ assert.match(thFn, /f\.classList\.add\("is-flash"\)/);
 
 // one count (the owner, 19 Nov 14:50Z: 35 in the header, 73 in the panel): every thread of the project, by state;
 // the header and the panel's head both say it; the coordinator's row isn't a thread
-const cf = app.slice(app.indexOf("function threadCounts("), app.indexOf("\n}\n", app.indexOf("function threadCounts(")) + 2);
-const threadCounts = new Function("world", "threadState", `${cf}; return threadCounts;`)(
-  { state: { threads: [{ project: "p", s: "working" }, { project: "p", s: "done" }, { project: "p", s: "done" }, { project: "q", s: "waiting" }, { project: "p", s: "waiting" }] } },
-  (t) => t.s);
 assert.deepEqual(threadCounts("p", []), { all: 4, needs: 0, working: 1, waiting: 1, done: 2 });
 assert.match(app, /const by = threadCounts\(pid, needs\);/);
 assert.match(app, /S\.hdrCtl = threadsCtl\(by\.all, by\);/);
 assert.match(stg, /tg\.reduce\(\(n, x\) => n \+ x\.rows\.filter\(\(r\) => !r\.coord\)\.length, 0\)/, "the panel's head counts threads, not the coordinator");
-assert.match(app, /const ts = world\.state\.threads\.filter\(\(t\) => t\.project === pid\)\.sort/, "the panel lists every thread of the project");
+assert.deepEqual(panelThreads("p:p").map(({ k, rows }) => [k, rows.map(({ go }) => go)]), [
+  ["needs", ["t:a"]],
+  ["working", ["p:p"]],
+  ["waiting", ["t:e"]],
+  ["done", ["t:c", "t:b"]],
+], "the panel groups every thread from this project and shows its coordinator separately");
 assert.doesNotMatch(app, /class="all-btn th-btn"/, "the header's Threads button moved into the panel");
 
 // the group heads: tokens only (a 1 px line aside)
@@ -90,14 +119,11 @@ assert.match(stage, /if \(S\.chEmpty === true && !empty && fr\.changes\.folded\)
 // the agent's mark, quiet: under the row's time, small, in the panel and in All threads alike
 { const a = stage.indexOf('<span class="ag-tm"><span class="ag-when">'), b = stage.indexOf('<span class="ag-mk">${r.mark}</span>'); assert.ok(a > 0 && b > a, "the mark sits under the time, in the right column"); }
 assert.doesNotMatch(stage, /<b>\$\{r\.mark/, "not before the title");
-assert.match(app, /<span class="ar-a"><span>\$\{esc\(short\(t\.lastAt\)\)\}<\/span>\$\{mk \? `<span class="ar-mk">\$\{mk\}/);
-assert.match(app, /const mk = threadMark\(t\);\n\s*return `<li><button type="button" class="ar st-\$\{k\}\$\{mk \? " has-mk" : ""\}"/, "the row says it has a mark: a class, not :has()");
 const acss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
 assert.match(acss, /\.ar\.has-mk\{grid-template-rows:var\(--lh-ui\) var\(--mark-sm\)\}\n\.ar\.has-mk>\*\{grid-row:1\}/);
 // a :has() that styles another element restyled the whole page on every text change (a phone in the panel lagged)
 assert.doesNotMatch(acss, /\.ar:has\(/);
 assert.match(stage, /if \(agentCount\.textContent !== count\) agentCount\.textContent = count;/, "the agents count is written only when it changes");
-assert.doesNotMatch(app, /<span class="ar-tl">\$\{threadMark/, "not before All threads' title");
 assert.match(readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8"), /--mark-sm:var\(--s-3\);/);
 assert.match(css, /\.stage \.ag-mk \.agm\{width:var\(--mark-sm\);height:var\(--mark-sm\)/);
 

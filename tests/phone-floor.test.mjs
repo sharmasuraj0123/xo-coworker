@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
-import { rules, context, decls, px, spec, cmp, covers } from "./lib/cascade.mjs";
+import { rules, context, decls, px, spec, cmp, covers, sheet } from "./lib/cascade.mjs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
@@ -75,7 +75,7 @@ t("a control whose words hide to leave its icon is 36 px wide on a phone too (th
     const k = /\.([\w-]+)(?:[.:][\w-]+(?:\([^)]*\))?)*(?: |>)span$/.exec(sel.trim());
     if (k) iconed.add(k[1]);
   }
-  const phone = resolveTokens(readFileSync(new URL("css/phone.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
+  const phone = resolveTokens(sheet(new URL("css/phone.css", ROOT)));
   const wide = /:where\(([^)]*)\)\{min-width:36px\}/.exec(phone);
   assert.ok(wide, "phone.css's square-at-the-floor list");
   const listed = new Set(wide[1].split(",").map((x) => x.trim().replace(/^\./, "")));

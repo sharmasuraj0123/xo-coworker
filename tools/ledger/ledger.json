@@ -1561,7 +1561,8 @@
   },
   "css/app.css": {
    "status": "split",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)"
+   "home": ["core/ui/app-controls.css", "shell/frame.css", "modules/home/home.css", "css/app.css"],
+   "note": "The compatibility entry loads the moved regions in their original order."
   },
   "css/artifacts.css": {
    "status": "moved",
@@ -1640,7 +1641,8 @@
    "home": [
     "shell/phone.css",
     "modules/* (phone blocks)"
-   ]
+   ],
+   "note": "The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css."
   },
   "css/rich.css": {
    "status": "moved",
@@ -2468,8 +2470,9 @@
    "note": "the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint"
   },
   "js/accounts.js": {
-   "status": "planned",
-   "home": "modules/settings/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js",
+   "note": "js/accounts.js re-exports the Accounts entry points"
   },
   "js/api.js": {
    "status": "split",
@@ -2482,7 +2485,7 @@
   "js/app.js": {
    "status": "split",
    "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)",
-   "note": "moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js"
+   "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance."
   },
   "js/attach.js": {
    "status": "split",
@@ -2585,8 +2588,9 @@
    "home": "modules/files/page.js"
   },
   "js/flavours.js": {
-   "status": "planned",
-   "home": "core/ui/flavours.js"
+   "status": "moved",
+   "home": "core/ui/flavours.js",
+   "note": "js/flavours.js re-exports the palette"
   },
   "js/focusview.js": {
    "status": "moved",
@@ -2705,7 +2709,7 @@
     "core/services/places.js",
     "core/services/agent-activity.js"
    ],
-   "note": "folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map"
+   "note": "The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services."
   },
   "js/markdown.js": {
    "status": "split",
@@ -6038,12 +6042,8 @@
    "home": "modules/conversation/msgx.css"
   },
   "css/phone.css::ids::top": {
-   "status": "split-region",
-   "home": [
-    "shell/phone.css",
-    "modules/* (phone blocks)"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/phone.css"
   },
   "css/rich.css::ids::msgs": {
    "status": "moved",
@@ -7115,100 +7115,100 @@
    "home": "core/platform/http.js"
   },
   "js/app.js::functions::applyTheme": {
-   "status": "planned",
-   "home": "core/ui theme service (diffview subscribes) (app.js l.116)"
+   "status": "moved",
+   "home": "core/ui/theme.js"
   },
   "js/app.js::functions::announce": {
-   "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.162)"
+   "status": "moved",
+   "home": "core/ui/a11y/announce.js"
   },
   "js/app.js::functions::savedSoon": {
-   "status": "planned",
-   "home": "modules/changes; modules/files (viewer) (app.js l.233)"
+   "status": "moved",
+   "home": "modules/changes/saved.js"
   },
   "js/app.js::functions::projectIcon": {
-   "status": "planned",
-   "home": "modules/projects (icon service, public API `projectIcon`) (app.js l.277)"
+   "status": "moved",
+   "home": "modules/projects/icon-choice.js"
   },
   "js/app.js::functions::pickIcon": {
-   "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.291)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker.js"
   },
   "js/app.js::functions::closePick": {
-   "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.322)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker.js"
   },
   "js/app.js::functions::chooseIcon": {
-   "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.329)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker.js"
   },
   "js/app.js::functions::waitingOn": {
-   "status": "planned",
-   "home": "modules/runtimes (`thread.badge` contribution) (app.js l.425)"
+   "status": "moved",
+   "home": "modules/runtimes/thread.js"
   },
   "js/app.js::functions::rtTag": {
-   "status": "planned",
-   "home": "modules/runtimes (`thread.badge` contribution) (app.js l.432)"
+   "status": "moved",
+   "home": "modules/runtimes/thread.js"
   },
   "js/app.js::functions::threadTargetHtml": {
    "status": "planned",
-   "home": "modules/runtimes (+ composer target provider from threads) (app.js l.476)"
+   "home": "Group 6: composer target presentation in js/app.js"
   },
   "js/app.js::functions::pings": {
-   "status": "planned",
-   "home": "modules/decisions (app.js l.508)"
+   "status": "moved",
+   "home": "shell/decision-pings.js"
   },
   "js/app.js::functions::sideRender": {
-   "status": "planned",
-   "home": "shell (sidebar host and place rows) + modules/projects (project list section) (app.js l.521)"
+   "status": "moved",
+   "home": "shell/rail/rows.js"
   },
   "js/app.js::functions::landed": {
-   "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.617)"
+   "status": "moved",
+   "home": "core/ui/landing.js"
   },
   "js/app.js::functions::patch": {
-   "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.629)"
+   "status": "moved",
+   "home": "core/ui/patch.js"
   },
   "js/app.js::functions::homeParts": {
-   "status": "planned",
-   "home": "`patch` → core/ui (render primitives, next to redraw.js); `homeParts` → modules/home (app.js l.642)"
+   "status": "moved",
+   "home": "modules/home/parts.js"
   },
   "js/app.js::functions::optHtml": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.652)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::nextActHtml": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.656)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::nextHead": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.685)"
+   "status": "deleted",
+   "reason": "Removed in 156711d0 when Home switched to the shared decision card's lead markup."
   },
   "js/app.js::functions::nextCardHtml": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.699)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::functions::homeRender": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.716)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::functions::endRender": {
-   "status": "planned",
-   "home": "modules/home (app.js l.803)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::functions::handledListHtml": {
-   "status": "planned",
-   "home": "modules/home (app.js l.815)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::functions::nextDecide": {
-   "status": "planned",
-   "home": "modules/home (app.js l.829)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::functions::setHandled": {
-   "status": "planned",
-   "home": "modules/home (app.js l.844)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::functions::convHost": {
    "status": "planned",
@@ -7259,68 +7259,69 @@
    "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
   },
   "js/app.js::functions::wsHeadRender": {
-   "status": "planned",
-   "home": "modules/conversation (workspace) (app.js l.1303)"
+   "status": "moved",
+   "home": "shell/workspace-header.js"
   },
   "js/app.js::functions::threadCounts": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1320)"
+   "status": "moved",
+   "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::threadsCtl": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1330)"
+   "status": "moved",
+   "home": "modules/threads/header.js"
   },
   "js/app.js::functions::hostNeedHtml": {
    "status": "planned",
    "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1340)"
   },
   "js/app.js::functions::topRender": {
-   "status": "planned",
-   "home": "shell (header host) + `header.title`/`header.action`/`header.menu` places filled by projects, threads, launchpad, stage, chats, runtimes (app.js l.1352)"
+   "status": "moved",
+   "home": "shell/top-header.js",
+   "note": "Shell owns the header host and action ordering. Conversation title markup remains in js/app.js with the conversation holdback."
   },
   "js/app.js::functions::checklistRender": {
    "status": "planned",
    "home": "modules/threads (thread head) (app.js l.1439)"
   },
   "js/app.js::functions::workingRuns": {
-   "status": "planned",
-   "home": "modules/runs (or threads/runs) (app.js l.1488)"
+   "status": "moved",
+   "home": "modules/runs/strip.js"
   },
   "js/app.js::functions::runsStrip": {
-   "status": "planned",
-   "home": "modules/runs (or threads/runs) (app.js l.1492)"
+   "status": "moved",
+   "home": "modules/runs/strip.js"
   },
   "js/app.js::functions::runsRender": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1516)"
+   "status": "moved",
+   "home": "modules/runs/panel.js"
   },
   "js/app.js::functions::runsEscape": {
    "status": "planned",
-   "home": "modules/runs (app.js l.1536)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::openRuns": {
    "status": "moved",
    "home": "modules/runs/controller.js"
   },
   "js/app.js::functions::runsLand": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1555)"
+   "status": "moved",
+   "home": "modules/runs/panel.js"
   },
   "js/app.js::functions::readRunsList": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1561)"
+   "status": "moved",
+   "home": "modules/runs/read.js"
   },
   "js/app.js::functions::openRun": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1537)"
+   "status": "moved",
+   "home": "modules/runs/read.js"
   },
   "js/app.js::functions::readTranscript": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1590)"
+   "status": "moved",
+   "home": "modules/runs/read.js"
   },
   "js/app.js::functions::closeRuns": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1617)"
+   "status": "moved",
+   "home": "modules/runs/panel.js"
   },
   "js/app.js::functions::stopReceipt": {
    "status": "moved",
@@ -7359,8 +7360,8 @@
    "home": "modules/conversation/typing.js"
   },
   "js/app.js::functions::tickElapsed": {
-   "status": "planned",
-   "home": "modules/conversation (typing) (app.js l.1958)"
+   "status": "moved",
+   "home": "shell/elapsed.js"
   },
   "js/app.js::functions::HER": {
    "status": "planned",
@@ -7399,16 +7400,16 @@
    "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
   },
   "js/app.js::functions::recordLine": {
-   "status": "planned",
-   "home": "modules/intel (`composer.tool` + `conversation.local-row`) (app.js l.2028)"
+   "status": "moved",
+   "home": "modules/chats/record-lines.js"
   },
   "js/app.js::functions::recUndoLeaves": {
-   "status": "planned",
-   "home": "modules/intel (`composer.tool` + `conversation.local-row`) (app.js l.2041)"
+   "status": "moved",
+   "home": "modules/chats/record-lines.js"
   },
   "js/app.js::functions::undoRecord": {
-   "status": "planned",
-   "home": "modules/intel (`composer.tool` + `conversation.local-row`) (app.js l.2045)"
+   "status": "moved",
+   "home": "modules/chats/record-lines.js"
   },
   "js/app.js::functions::chipRender": {
    "status": "planned",
@@ -7579,20 +7580,20 @@
    "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2791)"
   },
   "js/app.js::functions::openFromPanel": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2806)"
+   "status": "moved",
+   "home": "modules/threads/open-panel-thread.js"
   },
   "js/app.js::functions::createConv": {
    "status": "planned",
    "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2820)"
   },
   "js/app.js::functions::schedule": {
-   "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2828)"
+   "status": "moved",
+   "home": "shell/render.js"
   },
   "js/app.js::functions::render": {
-   "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2834)"
+   "status": "moved",
+   "home": "shell/render.js"
   },
   "js/app.js::functions::faviconRender": {
    "status": "moved",
@@ -7635,12 +7636,12 @@
    "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
   },
   "js/app.js::functions::go": {
-   "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3092)"
+   "status": "moved",
+   "home": "shell/navigation.js"
   },
   "js/app.js::functions::returnPill": {
-   "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3142)"
+   "status": "moved",
+   "home": "shell/return-pill.js"
   },
   "js/app.js::functions::liveReady": {
    "status": "planned",
@@ -7659,8 +7660,8 @@
    "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
   },
   "js/app.js::functions::back": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3217)"
+   "status": "moved",
+   "home": "shell/navigation.js"
   },
   "js/app.js::functions::decideKey": {
    "status": "planned",
@@ -7683,24 +7684,24 @@
    "home": "modules/conversation (app.js l.3272)"
   },
   "js/app.js::functions::openMedia": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.3285)"
+   "status": "moved",
+   "home": "modules/files/open-media.js"
   },
   "js/app.js::functions::fileRoute": {
-   "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3303)"
+   "status": "moved",
+   "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::openSharedFile": {
-   "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3309)"
+   "status": "moved",
+   "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::youText": {
    "status": "planned",
    "home": "modules/files (route resolution), called from conversation (app.js l.3320)"
   },
   "js/app.js::functions::openLineRef": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3332)"
+   "status": "moved",
+   "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::askPlace": {
    "status": "planned",
@@ -7727,84 +7728,84 @@
    "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3392)"
   },
   "js/app.js::functions::resolveThread": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3415)"
+   "status": "moved",
+   "home": "modules/threads/resolve.js"
   },
   "js/app.js::functions::closeThreadMenu": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3446)"
+   "status": "moved",
+   "home": "modules/threads/editing.js"
   },
   "js/app.js::functions::startThreadEdit": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3456)"
+   "status": "moved",
+   "home": "modules/threads/editing.js"
   },
   "js/app.js::functions::endThreadEdit": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3467)"
+   "status": "moved",
+   "home": "modules/threads/editing.js"
   },
   "js/app.js::functions::saveThreadField": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3478)"
+   "status": "moved",
+   "home": "modules/threads/editing.js"
   },
   "js/app.js::functions::openNext": {
-   "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3736)"
+   "status": "moved",
+   "home": "modules/home/open-next.js"
   },
   "js/app.js::functions::threadState": {
-   "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3746)"
+   "status": "moved",
+   "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::panelThreads": {
-   "status": "planned",
-   "home": "modules/threads (public `threadState`, `panelThreads` → panel frame \"threads\") (app.js l.3755)"
+   "status": "moved",
+   "home": "modules/threads/groups.js"
   },
   "js/app.js::functions::allRender": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3783)"
+   "status": "moved",
+   "home": "modules/threads/all.js"
   },
   "js/app.js::functions::allFilterRender": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3822)"
+   "status": "moved",
+   "home": "modules/threads/all.js"
   },
   "js/app.js::functions::threadSiblings": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3837)"
+   "status": "moved",
+   "home": "modules/threads/menu.js"
   },
   "js/app.js::functions::threadMenuHtml": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3845)"
+   "status": "moved",
+   "home": "modules/threads/menu.js"
   },
   "js/app.js::functions::tdelRender": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3863)"
+   "status": "moved",
+   "home": "modules/threads/delete-view.js"
   },
   "js/app.js::functions::deleteThread": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3875)"
+   "status": "moved",
+   "home": "modules/threads/delete.js"
   },
   "js/app.js::functions::panelShell": {
-   "status": "planned",
-   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3899)"
+   "status": "moved",
+   "home": "modules/shells/panel.js"
   },
   "js/app.js::functions::openShell": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3913)"
+   "status": "moved",
+   "home": "modules/shells/panel.js"
   },
   "js/app.js::functions::openAll": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3920)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::closeAll": {
    "status": "planned",
-   "home": "modules/threads (app.js l.3942)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::setDrawer": {
    "status": "moved",
    "home": "shell/phone.js"
   },
   "js/app.js::functions::threadIc": {
-   "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4025)"
+   "status": "moved",
+   "home": "modules/search/jump-items.js"
   },
   "js/app.js::functions::jumpRender": {
    "status": "moved",
@@ -7813,7 +7814,7 @@
   },
   "js/app.js::functions::focusOverlay": {
    "status": "planned",
-   "home": "modules/search (jump) with a **`jump.item` / `jump.action` list place** every module contributes to (app.js l.4058)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::openJump": {
    "status": "moved",
@@ -7827,55 +7828,55 @@
   },
   "js/app.js::functions::syncInert": {
    "status": "planned",
-   "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4093)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::keyLayer": {
    "status": "planned",
-   "home": "core/ui (layers / focus trap service: `layer.push/pop`) (app.js l.4107)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::soundRender": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4132)"
+   "status": "moved",
+   "home": "modules/settings/sound.js"
   },
   "js/app.js::functions::hopsRender": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4158)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::webpicsRender": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4159)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::deviceSaid": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4165)"
+   "status": "moved",
+   "home": "modules/settings/device-notice.js"
   },
   "js/app.js::functions::setChatBubbles": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4186)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::bubblesRender": {
-   "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4193)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::openKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4208)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::closeKeys": {
    "status": "planned",
-   "home": "modules/settings host; shape fan-out → core/services shape `onChange` subscribers per module (app.js l.4209)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::shapeApply": {
-   "status": "planned",
-   "home": "modules/runtimes (app.js l.4219)"
+   "status": "moved",
+   "home": "modules/settings/apply-shape.js"
   },
   "js/app.js::functions::decideLimit": {
    "status": "planned",
    "home": "modules/runtimes (app.js l.4233)"
   },
   "js/app.js::functions::unfreeze": {
-   "status": "planned",
-   "home": "modules/settings (route `settings/<page>`) (app.js l.4242)"
+   "status": "moved",
+   "home": "modules/threads/editing.js"
   },
   "js/app.js::functions::setPage": {
    "status": "moved",
@@ -7893,8 +7894,8 @@
    "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
   },
   "js/app.js::functions::keysSheetRender": {
-   "status": "planned",
-   "home": "core/platform keys (sheet + settings section); rail keys → modules/settings (app.js l.4296)"
+   "status": "moved",
+   "home": "modules/settings/keys-sheet.js"
   },
   "js/app.js::functions::keysPageRender": {
    "status": "moved",
@@ -7903,97 +7904,95 @@
   },
   "js/app.js::functions::runGlobal": {
    "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4631)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::functions::canBack": {
-   "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4648)",
-   "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
+   "status": "moved",
+   "home": "shell/back-steps.js"
   },
   "js/app.js::functions::stepBack": {
-   "status": "planned",
-   "home": "core/platform router (history) + core/ui layers (app.js l.4652)",
-   "note": "its layers are now one list on the kernel's stack (shell/layers.js); the history part stays until the router moves"
+   "status": "moved",
+   "home": "shell/back-steps.js"
   },
   "js/app.js::functions::armBack": {
    "status": "moved",
    "home": "shell/back.js"
   },
   "js/app.js::functions::whenWorld": {
-   "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4722)"
+   "status": "moved",
+   "home": "core/services/world/when.js"
   },
   "js/app.js::functions::resolveFromRow": {
-   "status": "planned",
-   "home": "`whenWorld` → core/services world; `resolveFromRow` → modules/threads (app.js l.4735)"
+   "status": "moved",
+   "home": "modules/threads/row-resolve.js"
   },
   "js/app.js::ids::nx-note-in": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.677)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::ids::nx-h": {
-   "status": "planned",
-   "home": "modules/home (consumes the decisions API) (app.js l.708)"
+   "status": "moved",
+   "home": "modules/home/next-card.js"
   },
   "js/app.js::ids::hm-head": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-body": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-since": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-next": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-then": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-end": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::hm-made": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.719)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::home-h": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.734)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::then-h": {
-   "status": "planned",
-   "home": "modules/home; `#hm-since`, `#hm-made` slots → `home.block` place (artifacts registers) (app.js l.779)"
+   "status": "moved",
+   "home": "modules/home/view.js"
   },
   "js/app.js::ids::handled": {
-   "status": "planned",
-   "home": "`S` must be split per module (see §3); `announce` → core/platform a11y (app.js l.152)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::hd-head": {
-   "status": "planned",
-   "home": "modules/home (app.js l.806)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::hd-b": {
-   "status": "planned",
-   "home": "modules/home (app.js l.806)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::hd-in": {
-   "status": "planned",
-   "home": "modules/home (app.js l.806)"
+   "status": "moved",
+   "home": "modules/home/handled.js"
   },
   "js/app.js::ids::conv-title": {
    "status": "planned",
    "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1350)"
   },
   "js/app.js::ids::tw-edit": {
-   "status": "planned",
-   "home": "shell (header host) + `header.title`/`header.action`/`header.menu` places filled by projects, threads, launchpad, stage, chats, runtimes (app.js l.1408)"
+   "status": "moved",
+   "home": "modules/threads/editing.js"
   },
   "js/app.js::ids::tphead": {
    "status": "planned",
@@ -8068,8 +8067,8 @@
    "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2718)"
   },
   "js/app.js::ids::tdel-q": {
-   "status": "planned",
-   "home": "modules/threads (`thread.menu` list place: shells, runtimes add items) (app.js l.3869)"
+   "status": "moved",
+   "home": "modules/threads/delete-view.js"
   },
   "js/app.js::ids::keys-reset-all": {
    "status": "moved",
@@ -8077,24 +8076,27 @@
    "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::ids::all-list": {
-   "status": "planned",
-   "home": "modules/threads (app.js l.3814)"
+   "status": "moved",
+   "home": [
+    "shell/overlays.js",
+    "modules/threads/all.js"
+   ]
   },
   "js/app.js::storage::cv-theme": {
-   "status": "planned",
-   "home": "core/ui theme service (diffview subscribes) (app.js l.115)"
+   "status": "moved",
+   "home": ["core/ui/theme.js", "modules/settings/appearance.js"]
   },
   "js/app.js::storage::cv-bubbles": {
-   "status": "planned",
-   "home": "`settings.section` contributions: sounds → core/ui sound; bubbles + webpics → modules/conversation; hops → modules/threads; keys sheet → core/platform keys (app.js l.4182)"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "moved",
    "home": "shell/rail/side.js"
   },
   "js/app.js::storage::${f.project}|${f.rel}": {
-   "status": "planned",
-   "home": "modules/changes; modules/files (viewer) (app.js l.234)"
+   "status": "moved",
+   "home": "modules/changes/saved.js"
   },
   "js/app.js::storage::<SIDE.KEY>": {
    "status": "moved",
@@ -8109,48 +8111,48 @@
    "home": "shell/rail/side.js"
   },
   "js/app.js::keys::all": {
-   "status": "planned",
-   "home": "drop (history) (app.js l.6)"
+   "status": "moved",
+   "home": "modules/files/search-place.js"
   },
   "js/app.js::keys::Escape": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.311)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::usable": {
-   "status": "planned",
-   "home": "core/kernel loader; each module imports its own deps (app.js l.69)"
+   "status": "moved",
+   "home": "modules/runtimes/thread.js"
   },
   "js/app.js::keys::ArrowDown": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::ArrowUp": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::Enter": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.288)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::transcript_gone": {
-   "status": "planned",
-   "home": "modules/runs (app.js l.1607)"
+   "status": "moved",
+   "home": "modules/runs/read.js"
   },
   "js/app.js::keys::run_not_live": {
-   "status": "planned",
-   "home": "modules/runs (shares the \"pending stops\" herald with composer stop: core/services stops) (app.js l.1636)"
+   "status": "moved",
+   "home": "modules/runs/stop.js"
   },
   "js/app.js::keys::Tab": {
    "status": "planned",
-   "home": "modules/runs (app.js l.1532)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::would_lose_work": {
-   "status": "planned",
-   "home": "modules/shells (`panel.page` \"shell\") (app.js l.3891)"
+   "status": "moved",
+   "home": "modules/threads/delete.js"
   },
   "js/app.js::keys::/": {
    "status": "planned",
-   "home": "drop (history) (app.js l.1)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::Home": {
    "status": "deleted",
@@ -8158,15 +8160,15 @@
   },
   "js/app.js::keys::End": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::ArrowRight": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::keys::ArrowLeft": {
    "status": "planned",
-   "home": "modules/projects (picker; registers `header.title` affordance) (app.js l.315)"
+   "home": "P4: keyboard and overlay layers (currently js/app.js)"
   },
   "js/app.js::custom_events::xo:gesture": {
    "status": "moved",
@@ -10164,13 +10166,8 @@
    "home": "modules/launchpad/client.js"
   },
   "js/map.js::exports::MAP_ICON": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/icons.js"
   },
   "js/map.js::exports::colorOf": {
    "status": "moved",
@@ -10201,13 +10198,8 @@
    "home": "modules/map/layout.js"
   },
   "js/map.js::exports::createMap": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/map.js::functions::colorOf": {
    "status": "moved",
@@ -10242,57 +10234,32 @@
    "home": "modules/map/layout.js"
   },
   "js/map.js::functions::afterPause": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/after-pause.js"
   },
   "js/map.js::functions::createMap": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/map.js::ids::mp-h": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/head.js"
   },
   "js/map.js::storage::cv-map": {
    "status": "deleted",
    "reason": "only the standalone #map read it (open last time); the Map lives in the panel, whose own state keeps its frame (tests/map-panel-only.test.mjs)"
   },
   "js/map.js::storage::cv-map-mode": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/map.js::keys::Escape": {
    "status": "deleted",
    "reason": "the standalone #map closed on Esc; in the panel the panel decides what Esc does (tests/map-panel-only.test.mjs)"
   },
   "js/map.js::custom_events::loadingdone": {
-   "status": "split-region",
-   "home": [
-    "modules/map",
-    "core/services/places.js",
-    "core/services/agent-activity.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/map/map.js"
   },
   "js/markdown.js::exports::setThreadInfo": {
    "status": "moved",
@@ -13163,28 +13130,12 @@
    "reason": "nothing imported it (no importer in js/, core/, tests/, tools/ or index.html)"
   },
   "js/ui.js::exports::$": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/dom.js"
   },
   "js/ui.js::exports::$$": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/dom.js"
   },
   "js/ui.js::exports::RM": {
    "status": "moved",
@@ -13216,44 +13167,20 @@
    "home": "core/platform/time.js"
   },
   "js/ui.js::exports::plain": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/ui/markdown/plain.js"
   },
   "js/ui.js::exports::reconcile": {
    "status": "moved",
    "home": "core/ui/redraw.js"
   },
   "js/ui.js::exports::sound": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/sound.js"
   },
   "js/ui.js::exports::esc": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/platform/util.js"
   },
   "js/ui.js::exports::keepTurning": {
    "status": "moved",
@@ -13304,16 +13231,8 @@
    "home": "core/ui/motion.js"
   },
   "js/ui.js::storage::cv-sound": {
-   "status": "split-region",
-   "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "core/services/sound.js"
   },
   "js/ui.js::custom_events::redrawn": {
    "status": "moved",
@@ -15474,8 +15393,8 @@
    "home": "css/app.css"
   },
   "css/phone.css::ids::top-who": {
-   "status": "kept",
-   "home": "css/phone.css"
+   "status": "moved",
+   "home": "shell/phone.css"
   },
   "index.html::ids::nv-lp": {
    "status": "kept",
@@ -15658,12 +15577,12 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::lookSync": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::lookSet": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/settings/appearance.js"
   },
   "js/app.js::ids::tpherald": {
    "status": "kept",
@@ -15674,8 +15593,8 @@
    "home": "js/app.js"
   },
   "js/app.js::storage::cv-flavour": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": ["core/ui/theme.js", "modules/settings/appearance.js"]
   },
   "js/app.js::storage::<key>": {
    "status": "kept",

@@ -23,17 +23,10 @@ const t = async (name, fn) => {
 const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 
 // ── the write paths, from the source (no DOM needed) ─────────────────────────
-await t("patch() draws a region in place (redraw), never with innerHTML", () => {
-  const app = src("app.js");
-  const i = app.indexOf("function patch(el, html) {");
-  const body = app.slice(i, app.indexOf("\n}\n", i));
-  assert.match(body, /redraw\(el, html\); el\._h = html;/);
-  assert.doesNotMatch(body, /innerHTML/);
-});
 await t("Back is written through patch(): only when its name changes, in place", () => {
-  const app = src("app.js");
-  assert.doesNotMatch(app, /back\.innerHTML\s*=/);
-  assert.equal((app.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
+  const header = readSource("shell/top-header.js");
+  assert.doesNotMatch(header, /back\.innerHTML\s*=/);
+  assert.equal((header.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
 await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new file's row are the tree's own", () => {
   const f = ["files.js", "tree.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
@@ -47,12 +40,12 @@ await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new f
   assert.match(f, /el\.className = "fl-new"; el\.setAttribute\("data-own", ""\)/, "a new file's row");
 });
 await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
-  const m = src("map.js");
+  const m = ["map.js", "drawing.js", "diagram.js"].map((f) => readSource(`modules/map/${f}`)).join("\n");
   assert.doesNotMatch(m, /nodes\.innerHTML\s*=/);
   assert.match(m, /redraw\(nodes, html\)/, "the graph");
   assert.match(m, /redraw\(nodes, nodesHtml\)/, "the tree");
   assert.match(m, /redraw\(hd, h\); M\.head = h;/, "the head");
-  assert.match(m, /redraw\(c\.el\.querySelector\("\.dg-tag"\), tag\)/, "a cursor's tag");
+  assert.match(m, /redraw\(\/\*\* @type \{HTMLButtonElement\} \*\/ \(c\.el\.querySelector\("\.dg-tag"\)\), tag\)/, "a cursor's tag");
 });
 await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
   assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
@@ -63,8 +56,8 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   const app = src("app.js");
   assert.match(app, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);
   assert.match(app, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);
-  assert.match(app, /redraw\(hn, hnHtml\)/); assert.match(app, /redraw\(wn, wnHtml\)/);
-  assert.match(app, /redraw\(\$\("#all-list"\), html\)/);
+  const rail = readSource("shell/rail/rows.js");
+  assert.match(rail, /redraw\(hn, hnHtml\)/); assert.match(rail, /redraw\(wn, wnHtml\)/);
 });
 
 // ── on a DOM ──────────────────────────────────────────────────────────────────
@@ -77,26 +70,57 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   const pressAcross = async (node, fn) => { ev(node, "pointerdown"); await fn(); const kept = node.isConnected; ev(node, "pointerup"); ev(node, "click"); return kept; };
 
   const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
+  const { patch } = await import("../core/ui/patch.js");
+  const { landed } = await import("../core/ui/landing.js");
   const host = document.getElementById("host");
+
+  await t("patch keeps matching controls and focuses the replacement when a control changes tag", () => {
+    assert.equal(patch(host, '<button data-fid="back">Back</button>'), true);
+    const back = host.firstElementChild;
+    back.focus();
+    const renamed = '<button data-fid="back">Back to Home</button>';
+    assert.equal(patch(host, renamed), true);
+    assert.ok(host.firstElementChild === back, "changing the label keeps the control");
+    assert.equal(back.textContent, "Back to Home");
+    assert.equal(patch(host, renamed), false, "the same markup is skipped");
+    patch(host, '<a href="/" data-fid="back">Back to Home</a>');
+    assert.ok(host.firstElementChild !== back, "the link replaces the button");
+    assert.ok(document.activeElement === host.firstElementChild, "focus follows the replacement");
+  });
+
+  await t("landed staggers the arrival of a skeleton's children once", () => {
+    const delays = [];
+    const animate = window.Element.prototype.animate;
+    window.Element.prototype.animate = (_, options) => delays.push(options.delay);
+    try {
+      host.innerHTML = "<span>A</span><span>B</span>";
+      host._sk = true;
+      landed(host);
+      landed(host);
+      assert.deepEqual(delays, [0, 40]);
+    } finally {
+      window.Element.prototype.animate = animate;
+    }
+  });
 
   await t("redraw: a control whose key stays is the same node when its text, class and count change", () => {
     redraw(host, `<button data-go="t:a" class="nw st-busy"><b>Alpha</b><span>1 of 4</span></button><button data-go="t:b" class="nw"><b>Beta</b></button>`);
     const a = host.querySelector('[data-go="t:a"]'), b = host.querySelector('[data-go="t:b"]'), label = a.querySelector("b");
     redraw(host, `<button data-go="t:a" class="nw st-idle"><b>Alpha</b><span>2 of 4</span></button><button data-go="t:b" class="nw st-busy"><b>Beta</b><i></i></button>`);
-    assert.equal(host.querySelector('[data-go="t:a"]'), a); assert.equal(host.querySelector('[data-go="t:b"]'), b);
-    assert.equal(a.querySelector("b"), label, "the label a press lands on");
+    assert.ok(host.querySelector('[data-go="t:a"]') === a); assert.ok(host.querySelector('[data-go="t:b"]') === b);
+    assert.ok(a.querySelector("b") === label, "the label a press lands on");
     assert.equal(a.className, "nw st-idle"); assert.equal(a.querySelector("span").textContent, "2 of 4");
   });
   await t("redraw: the node under a press is never moved when the list reorders; what's drawn moves around it", async () => {
     redraw(host, `<button data-go="t:a"><b>A</b></button><button data-go="t:b"><b>B</b></button><button data-go="t:c"><b>C</b></button>`);
     const c = host.querySelector('[data-go="t:c"] b');
     const kept = await pressAcross(c, () => {
-      assert.equal(pressedNode(), c, "the press is known");
+      assert.ok(pressedNode() === c, "the press is known");
       redraw(host, `<button data-go="t:c"><b>C</b></button><button data-go="t:a"><b>A</b></button><button data-go="t:b"><b>B</b></button>`);
     });
     assert.ok(kept, "the pressed label stayed in the page");
     assert.deepEqual([...host.children].map((x) => x.dataset.go), ["t:c", "t:a", "t:b"], "and the order is the new one");
-    assert.equal(pressedNode(), null, "a click ends the press");
+    assert.ok(pressedNode() === null, "a click ends the press");
   });
   await t("redraw: a press doesn't keep what the new HTML no longer has (the thing it stood for went)", async () => {
     redraw(host, `<button data-go="t:a">A</button><button data-go="t:b">B</button>`);
@@ -108,7 +132,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     host.innerHTML = `<header class="vw-top"><button data-vw-edit>Edit</button><span class="vw-n">a.md</span></header>`;
     const top = host.firstElementChild, edit = top.querySelector("[data-vw-edit]");
     const now = redrawNode(top, `<header class="vw-top is-upd"><button data-vw-edit>Edit</button><span class="vw-n">a.md · Updated</span></header>`);
-    assert.equal(now, top); assert.equal(top.querySelector("[data-vw-edit]"), edit);
+    assert.ok(now === top); assert.ok(top.querySelector("[data-vw-edit]") === edit);
     assert.equal(top.className, "vw-top is-upd"); assert.equal(top.querySelector(".vw-n").textContent, "a.md · Updated");
   });
 
@@ -120,7 +144,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     const el = box.firstElementChild, name = el.querySelector(".pr-n");
     const kept = await pressAcross(name, () => reconcile(box, [{ key: "x", html: row(true) }], { quiet: true }));
     assert.ok(kept, "the pressed name stayed");
-    assert.equal(box.firstElementChild, el, "the row is the same node");
+    assert.ok(box.firstElementChild === el, "the row is the same node");
     assert.ok(el.classList.contains("is-busy"), "and shows the change");
   });
 
@@ -199,10 +223,10 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     await t("Files: an agent's mark changing in a folder keeps every row above it the same node", () => {
       const before = ["a", "b", "c"].map(row);
       mark("b/x.js", true);
-      assert.deepEqual(["a", "b", "c"].map(row), before, "the top folders' rows weren't replaced");
+      assert.ok(["a", "b", "c"].every((key, index) => row(key) === before[index]), "the top folders' rows weren't replaced");
       assert.ok(row("b").querySelector(".fl-who"), "and b shows the mark");
       mark("b/x.js", false);
-      assert.deepEqual(["a", "b", "c"].map(row), before);
+      assert.ok(["a", "b", "c"].every((key, index) => row(key) === before[index]));
     });
     await t("Files: a folder pressed while marks change still opens on that press (its row stays in the page)", async () => {
       const name = row("c").querySelector(".fl-n");
@@ -212,7 +236,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.match(fh.querySelector('[data-fl-g="c"]').textContent, /Reading/);
       await answer("c", ["c/d"], ["c/z.js"]);
       const g = fh.querySelector('[data-fl-g="c"]');
-      assert.equal(row("c").nextElementSibling, g, "its group follows its row");
+      assert.ok(row("c").nextElementSibling === g, "its group follows its row");
       assert.deepEqual([...g.querySelectorAll("[data-fl-dir],[data-fl-file]")].map((x) => x.dataset.flDir || x.dataset.flFile), ["c/d", "c/z.js"]);
     });
     await t("Files: an open folder's group survives its parent's rows redrawing (a mark ripples up)", async () => {
@@ -220,9 +244,9 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       await answer("c/d", [], ["c/d/e.md"]);
       const g = fh.querySelector('[data-fl-g="c/d"]'), file = g.querySelector('[data-fl-file="c/d/e.md"]');
       mark("c/d/e.md", true);
-      assert.equal(fh.querySelector('[data-fl-g="c/d"]'), g, "the same group");
-      assert.equal(g.querySelector('[data-fl-file="c/d/e.md"]'), file, "the same row");
-      assert.equal(row("c/d").nextElementSibling, g);
+      assert.ok(fh.querySelector('[data-fl-g="c/d"]') === g, "the same group");
+      assert.ok(g.querySelector('[data-fl-file="c/d/e.md"]') === file, "the same row");
+      assert.ok(row("c/d").nextElementSibling === g);
       assert.ok(row("c").querySelector(".fl-who") && row("c/d").querySelector(".fl-who"), "the mark shows on each folder above");
     });
     await t("Files: closing and opening again puts the folder's group back after its row, once", () => {
@@ -230,7 +254,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.equal(fh.querySelectorAll('[data-fl-g="c"]').length, 0, "closed: its group left the page");
       row("c").querySelector(".fl-n").dispatchEvent(new window.Event("click", { bubbles: true }));
       assert.equal(fh.querySelectorAll('[data-fl-g="c"]').length, 1);
-      assert.equal(row("c").nextElementSibling, fh.querySelector('[data-fl-g="c"]'));
+      assert.ok(row("c").nextElementSibling === fh.querySelector('[data-fl-g="c"]'));
     });
     // the owner, 19 Nov: a folder stuck on "Reading…" until clicked again. A file opened from elsewhere (Changed, a chip)
     // opens every folder down to it and reads them one after another; the app renders between the reads, and each render

@@ -2,7 +2,7 @@
 
 // The phone's drawer: the sidebar slides over the page, with a scrim; closed, focus returns to its opener.
 
-import { $ } from "../js/ui.js";
+import { $ } from "../core/platform/dom.js";
 
 /** The drawer's open and close, wired to its buttons. @param {{ phone: MediaQueryList, syncInert: () => void }} deps @returns {(open: boolean) => void} */
 export function createDrawer({ phone: PHONE, syncInert }) {

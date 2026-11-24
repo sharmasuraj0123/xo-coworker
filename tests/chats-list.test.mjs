@@ -40,7 +40,7 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   assert.equal(group.querySelector(".chl-h").id, group.getAttribute("aria-labelledby"));
   const idle = box.querySelector('[data-go="c:idle"]');
   assert.ok(idle.querySelector(".chl-tile .agm-openai"));
-  assert.equal(idle.querySelector(".chl-tile [data-xi]"), null);
+  assert.ok(idle.querySelector(".chl-tile [data-xi]") === null, "idle tiles have no icon badge");
   assert.equal(idle.querySelector(".chl-t").textContent, "A chat in your projects folder");
   assert.equal(idle.querySelector(".chl-a").textContent, rowTime(plain.created_at));
   assert.ok(box.querySelector('[data-go="c:waiting"] .chl-tile [data-xi="state-needs-you"]'));
@@ -143,7 +143,7 @@ t("Chats' header line runs the row's width: the project cap only shares a row wi
 t("Chats starts with its composer: under the greeting at the top, the dock back at the foot in a chat", () => {
   const app = read("js/app.js"), html = read("index.html"), css = read("css/app.css");
   assert.match(html, /id="scroller"[^>]*>\s*<h1 class="cs-hi" id="cs-hi" hidden>What can I help with\?<\/h1>\s*<p class="cs-sub" id="cs-sub" hidden>[^<]+<\/p>/);
-  assert.match(app, /dockAtTop\(v === "chats"\);/);
+  assert.match(read("shell/render.js"), /dockAtTop\(v === "chats"\);/);
   assert.match(app, /if \(top\) \$\("#cs-sub"\)\.after\(dock\); else \$\("#drop-veil"\)\.after\(dock\);/);
   assert.match(app, /had\?\.focus\(\{ preventScroll: true \}\)/, "focus in the composer survives the move");
   assert.match(css, /\.dock\.is-top>\.herald\{top:calc\(100% \+ \(var\(--s-10\) - var\(--h-ctl\)\) \/ 2\);bottom:auto\}/, "a notice drops under the composer, never over the greeting or the box");
@@ -166,7 +166,7 @@ t("Recent: the three latest under the composer, all of them a click away with a 
   assert.doesNotMatch(read("css/panel.css"), /\.stage \.tg-qf/, "the search field is one shared look");
 });
 t("Chats has no bar over its greeting: the greeting is the title, a phone keeps its menu", () => {
-  const css = read("css/app.css"), ph = read("css/phone.css"), src = read("modules/chats/chats.js");
+  const css = read("css/app.css"), ph = read("shell/phone.css"), src = read("modules/chats/chats.js");
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(ph, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/);
   assert.match(src, /v === "chats" \? "Ask anything to start a chat…"/);
@@ -187,7 +187,7 @@ t("switching to All keeps the greeting where it stood: no recentring, no scroll"
   assert.match(css, /\.cs-hi\{[^}]*margin:var\(--cs-lead,auto\) /);
 });
 t("an open chat has no bar: its model and mode are fixed chips in its composer, its state in the composer's line", () => {
-  const app = read("js/app.js"), src = read("modules/chats/chats.js"), css = read("css/app.css"), phone = read("css/phone.css");
+  const app = read("js/app.js"), src = read("modules/chats/chats.js"), css = read("css/app.css"), phone = read("shell/phone.css");
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(phone, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/, "a phone keeps only its way back");
   assert.match(src, /const st = own \|\| setup\(\);/, "the chips read the chat's own model and mode");

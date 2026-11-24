@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 480 |
+| moved | 482 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 168 |
+| planned | 166 |
 | kept | 57 |
 | split | 28 |
 
-Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted 127, split-region 107, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1608, planned 527, kept 131, deleted 128, split-region 93, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -29,9 +29,9 @@ Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/accounts.js` | 134 | planned | modules/settings/accounts.js |
+| `js/accounts.js` | 134 | moved | modules/settings/accounts.js · next: js/accounts.js re-exports the Accounts entry points |
 | `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
-| `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: moved so far: the sidebar (SIDE) to shell/rail/side.js, the phone drawer to shell/phone.js, the tab favicon to shell/favicon.js |
+| `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: js/attach.js re-exports the attachment rules, tray and shared row helpers |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | planned | modules/decisions/cardparts.js |
@@ -52,7 +52,7 @@ Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
 | `js/files.js` | 940 | moved | modules/files/files.js · next: The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/. |
 | `js/filespage.js` | 134 | moved | modules/files/page.js |
-| `js/flavours.js` | 20 | planned | core/ui/flavours.js |
+| `js/flavours.js` | 20 | moved | core/ui/flavours.js · next: js/flavours.js re-exports the palette |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
@@ -72,7 +72,7 @@ Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted
 | `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
 | `js/lppage.js` | 48 | moved | modules/launchpad/page.js |
 | `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: folderOf, placeOf, pathsInCommand are in core/services/places.js; activityOf in core/services/agent-activity.js; colorOf, layoutOf, edgePath in modules/map/layout.js; the standalone #map's code and CSS are deleted, its <aside> in index.html waits for the shell; the rest waits for modules/map |
+| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js · next: js/media.js re-exports the shared media modules |
@@ -120,7 +120,7 @@ Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `css/app.css` | 3148 | split | core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map) |
+| `css/app.css` | 3148 | split | core/ui/app-controls.css, shell/frame.css, modules/home/home.css, css/app.css · next: The compatibility entry loads the moved regions in their original order. |
 | `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css |
 | `css/base.css` | 58 | moved | core/ui/foundation.css |
 | `css/diffs.css` | 243 | planned | modules/changes/diffs.css |
@@ -134,7 +134,7 @@ Items inside first-party files: 2488 (moved 1486, planned 632, kept 135, deleted
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
 | `css/panel.css` | 681 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
-| `css/phone.css` | 286 | split | shell/phone.css, modules/* (phone blocks) |
+| `css/phone.css` | 286 | split | shell/phone.css, modules/* (phone blocks) · next: The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css. |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
 | `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
 | `css/side.css` | 158 | moved | shell/sidebar.css |

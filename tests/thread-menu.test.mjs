@@ -1,22 +1,48 @@
-// The thread's ⋯ and one vocabulary (the owner, 19 Nov): one menu for everything a thread can do, only what fits
-// its state; Delete only where Space offers it, asked in place; "Waiting", never "Idle"; All threads in the panel's
-// four states; the Now strip gone from the header (the panel's Threads has every thread).
-//   node tests/thread-menu.test.mjs
+// @ts-check
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import { createThreadMenu } from "../modules/threads/menu.js";
+import { createThreadGroups } from "../modules/threads/groups.js";
+import { createThreadDeleteView } from "../modules/threads/delete-view.js";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const all = readFileSync(new URL("../modules/threads/all.js", import.meta.url), "utf8");
 
 // the menu: ⋯, not ✎; built from the thread's state
 assert.match(app, /class="tw-act tw-more" data-tmenu="\$\{esc\(t\.id\)\}"[^`]*aria-label="Thread actions">\$\{ICON\.more\}<\/button>/);
-const menu = app.slice(app.indexOf("function threadMenuHtml("), app.indexOf("/** Delete, asked in place"));
-assert.match(menu, /"Previous thread", !sib\.prev\)/);
-assert.match(menu, /"Next thread", !sib\.next\)/);
-assert.match(menu, /t\.branch \? item\(`data-tcopy=/, "Copy branch name only with a branch");
-assert.match(menu, /isBusy\(t\) \? item\("data-chat-stop", "Stop"\) : ""/, "Stop only while it works");
-assert.match(menu, /t\.canDelete \? item\(`data-tdel=/, "Delete only where Space can delete it");
-assert.doesNotMatch(menu, /[⌘⇧⏎⌫]/, "no key glyphs in it");
+const earlier = { id: "earlier", project: "project", state: "working", busy: true, title: "Earlier", lastAt: 2, branch: "branch&name", label: "Work", canDelete: true };
+const later = { id: "later", project: "project", state: "resolved", busy: false, title: "Later", lastAt: 1 };
+const world = { state: { threads: [later, earlier] } };
+const isBusy = (thread) => !!thread.busy;
+const { panelThreads } = createThreadGroups({ world, isBusy, isHeld: () => false, convProject: () => "project",
+  D: { needItems: () => [] }, MAP: { agents: () => [{ go: "p:project", doing: "Coordinating", since: null }] },
+  askShort: () => "", threadMark: () => "",
+});
+const menu = createThreadMenu({ panelThreads, SH: { enabled: true }, isBusy, movable: (thread) => thread.id === earlier.id });
+const { document } = await dom('<section id="main"></section><section id="page"></section><div id="top-who"></div><div id="tdel" hidden></div>');
+const main = document.getElementById("main");
+const page = document.getElementById("page");
+assert.ok(main && page);
+main.innerHTML = menu(earlier);
+page.innerHTML = menu(later, "page");
+const [mainPrev, mainNext] = main.querySelectorAll("[data-tgo]");
+const [pagePrev, pageNext] = page.querySelectorAll("[data-tgo]");
+assert.equal(mainPrev.textContent, "Previous thread");
+assert.equal(mainPrev.getAttribute("aria-disabled"), "true", "skip the project coordinator");
+assert.equal(mainNext.textContent, "Next thread");
+assert.equal(mainNext.getAttribute("data-tgo"), "t:later");
+assert.equal(pagePrev.getAttribute("data-tgo"), "t:earlier");
+assert.equal(pageNext.getAttribute("aria-disabled"), "true");
+assert.equal(main.querySelector("[data-tside]")?.textContent, "Open beside its project's chat");
+assert.equal(page.querySelector("[data-tp-main]")?.textContent, "Open in main chat");
+assert.equal(main.querySelector("[data-tcopy]")?.getAttribute("data-tcopy"), "branch&name");
+assert.equal(main.querySelector("[data-chat-stop]")?.textContent, "Stop");
+assert.equal(main.querySelector("[data-tdel]")?.getAttribute("data-tdel"), "earlier");
+assert.equal(main.querySelector("[data-tmove]")?.getAttribute("data-tmove"), "earlier");
+assert.ok(page.querySelector("[data-tcopy], [data-chat-stop], [data-tdel], [data-tmove]") === null, "main-only actions stay out of the panel");
+assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no key glyphs in it");
 
 // Delete: Space says per thread; asked in place, Keep it first; undo
 {
@@ -27,17 +53,57 @@ assert.doesNotMatch(menu, /[⌘⇧⏎⌫]/, "no key glyphs in it");
   await api.restoreThread("c/1", "t 1");
   assert.deepEqual(sent, [["DELETE", "api/chat/chats/c%2F1/threads/t%201", '{"keep_branch":true}'], ["POST", "api/chat/chats/c%2F1/threads/t%201/restore", "{}"]]);
 }
-const del = app.slice(app.indexOf("function tdelRender("), app.indexOf("/** A Shell button: \"ws\""));
-assert.ok(del.indexOf("data-tdel-no>Keep it") < del.indexOf("data-tdel-yes"), "Keep it comes first");
-assert.match(del, /keepBranch: true/, "its branch is kept");
-assert.match(del, /undo: \(\) => world\.act\.restoreThread\(tid, res\.row\)/);
-assert.match(del, /err\.code === "would_lose_work"/, "work kept nowhere else is named and asked again");
+const { createThreadDelete } = await import("../modules/threads/delete.js");
+/** @type {{ tDel: string | null, tDelLose: { summary: string | null; confirm: string | null } | null }} */
+const decision = { tDel: null, tDelLose: null };
+const renderDelete = createThreadDeleteView(decision);
+const dialog = document.getElementById("tdel");
+assert.ok(dialog);
+renderDelete(earlier);
+assert.equal(dialog.hidden, true);
+decision.tDel = earlier.id;
+renderDelete(earlier);
+assert.equal(dialog.hidden, false);
+assert.equal(dialog.querySelector("button")?.textContent, "Keep it", "Keep it comes first");
+assert.match(dialog.textContent, /Its branch branch&name is kept/);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete thread");
+decision.tDelLose = { summary: "One unpublished commit", confirm: "confirm-token" };
+renderDelete(earlier);
+assert.match(dialog.textContent, /One unpublished commit/);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
+renderDelete(later);
+assert.equal(dialog.hidden, true);
+assert.equal(dialog.children.length, 0);
+decision.tDel = earlier.id;
+decision.tDelLose = null;
+const requests = [], restored = [], places = [], notices = [];
+const remove = createThreadDelete({
+  S: decision, PROJ: () => "Project", announce() {}, render: () => renderDelete(earlier),
+  go: (view) => places.push(view), heraldShow: (notice) => notices.push(notice),
+  world: { thread: () => earlier, act: {
+    async deleteThread(id, options) {
+      requests.push([id, options]);
+      if (!options.confirm) throw Object.assign(new Error("Unpublished"), { code: "would_lose_work", confirm: "confirm-token", what: { summary: "One unpublished commit" } });
+      return { row: { chat_id: "chat" } };
+    },
+    async restoreThread(id, row) { restored.push([id, row]); },
+  } },
+});
+await remove(earlier.id);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
+assert.match(dialog.textContent, /One unpublished commit/);
+assert.deepEqual(places, []);
+await remove(earlier.id);
+assert.deepEqual(requests, [[earlier.id, { keepBranch: true, confirm: null }], [earlier.id, { keepBranch: true, confirm: "confirm-token" }]]);
+assert.deepEqual(places, ["p:" + earlier.project]);
+await notices[0].undo();
+assert.deepEqual(restored, [[earlier.id, { chat_id: "chat" }]]);
 assert.match(html, /<div class="tdel" id="tdel" hidden><\/div>/);
 
 // one vocabulary
 assert.doesNotMatch(app.replace(/\/\/[^\n]*/g, "") + readFileSync(new URL("../js/chats.js", import.meta.url), "utf8"), /"Idle"/, "nothing reads Idle");
-assert.match(app, /const ALL_F = \[\["all", "All"\], \["needs", "Needs you"\], \["working", "Working"\], \["waiting", "Waiting"\], \["done", "Done"\]\];/);
-assert.match(app, /const cat = \(t\) => threadState\(t, needs\);/);
+assert.match(all, /const ALL_F = \[\["all", "All"\], \["needs", "Needs you"\], \["working", "Working"\], \["waiting", "Waiting"\], \["done", "Done"\]\];/);
+assert.match(all, /const cat = \(t\) => threadState\(t, needs\);/);
 
 // the Now strip is gone, with everything that was its own
 assert.doesNotMatch(app + html, /now-wrap|nowRender|nowEdges|fitChips/);

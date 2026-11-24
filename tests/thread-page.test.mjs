@@ -1,6 +1,7 @@
 // A thread beside the coordinator's chat (the owner chose the proper build, 19 Nov 15:20Z): the panel's Thread page.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createConversationFiles } from "../modules/files/conversation-files.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
@@ -20,14 +21,14 @@ assert.match(app, /TP\.C = createConv\(\{ view: tpView, msgs: els\.msgs/);
 assert.match(app, /wireComposer\(TP\.K\);/);
 assert.match(app, /decorateConversation\(\{ conv: box, msgs: els\.msgs/);
 // it draws with everything else, as its own conversation; a thread that's gone leaves the panel
-assert.match(app, /if \(TP\.C && TP\.tid && !TP\.wait && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
+assert.match(readFileSync(new URL("../shell/render.js", import.meta.url), "utf8"), /if \(TP\.C && TP\.tid && !TP\.wait && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
 assert.match(app, /drawConv\(TP\.C, needs\);/);
 assert.match(app, /checklistRender\(needs, \$\("#tpthead"\), tpView\(\), "tck-list"\);/);
 assert.match(app, /if \(!t\) \{ STAGE\.closePage\("thread"\); return; \}/);
 // watched beside the main thread (storm keeps both)
 assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
 // opening: beside a chat, from the panel's rows; ⌘/Ctrl-click or elsewhere: today's full page
-const ofp = app.slice(app.indexOf("function openFromPanel("), app.indexOf("\n}\n", app.indexOf("function openFromPanel(")));
+const ofp = readFileSync(new URL("../modules/threads/open-panel-thread.js", import.meta.url), "utf8");
 assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\),/);
 assert.match(ofp, /!\(e && \(e\.metaKey \|\| e\.ctrlKey\)\)/);
 assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); if \(msg\) showMsg\(msg, TP\.C\); return;/);
@@ -73,7 +74,7 @@ console.log("thread-page: ok");
 // the page's one reading column: its messages and its dock (asks line, composer) share their edges
 { const c2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(c2, /\.stage \.tp,\.stage \.tp \.dock\{--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\);--measure:max\(calc\(var\(--col-w\) - var\(--s-12\)\), min\(100%, var\(--measure-min\)\)\)\}/, "the main chat's own column rule");
-  const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  const a2 = readFileSync(new URL("../shell/frame.css", import.meta.url), "utf8");
   assert.match(a2, /:is\(\.home,\.conv,\.arts,\.lpp,\.dock\)\{container-type:inline-size;--col-w:min\(var\(--col-max\),100cqw - 2 \* var\(--gut-min\)\);--col-x:calc\(\(100cqw - var\(--col-w\)\) \/ 2\);--measure:max\(calc\(var\(--col-w\) - var\(--s-12\)\), min\(100%, var\(--measure-min\)\)\)\}/);
   assert.match(a2, /\n\.main\{--rp:0px;--gut-min:28px;--col-max:calc\(24 \* var\(--h-ctl\)\)\}/);
   const st2 = readFileSync(new URL("../shell/panel/width.js", import.meta.url), "utf8");
@@ -82,15 +83,20 @@ console.log("thread-page: ok");
   console.log("thread-page column and width: ok"); }
 
 // a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
-assert.match(app, /VW\.open\(\{ \.\.\.f, \.\.\.fileRoute\(f\.path, convAt\(btn\)\.view\) \}, btn\);/);
 assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
-{ // fileRoute, run as written: a thread's path goes through its thread; a project chat's through the project
-  const src = app.slice(app.indexOf("function fileRoute("), app.indexOf("\n}\n", app.indexOf("function fileRoute(")) + 2);
-  const fr = new Function("convThread", "sharedFileRoute", "S", "drawing", `${src}; return fileRoute;`)(
-    (v) => (v === "t:x" ? { id: "x", project: "p" } : null), (t, p) => ({ via: t ? "thread:" + t.id : "none", p }), { view: "p:p" }, null);
-  assert.deepEqual(fr("a.md", "t:x"), { via: "thread:x", p: "a.md" }, "the thread page's chip: its thread's worktree");
-  assert.deepEqual(fr("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
-  assert.deepEqual(fr("a.md"), { project: "p", rel: "a.md" }, "no conversation named, nothing drawn: the main chat's");
+{
+  const opened = [];
+  const { fileRoute, openSharedFile } = createConversationFiles({
+    currentView: () => "p:p", convAt: () => ({ view: "t:x" }),
+    convThread: (view) => view === "t:x" ? { project: "p", worktree: "/srv/p/.xo/worktrees/x" } : null,
+    CHG: { scope: () => null }, VW: { open: (file, from) => opened.push([file, from]) },
+  });
+  const chip = { dataset: { file: "a.md", fileName: "a.md", fileType: "text/markdown" } };
+  openSharedFile(chip);
+  assert.deepEqual(opened[0][0], { path: "a.md", name: "a.md", type: "text/markdown", bytes: null, project: "p", rel: ".xo/worktrees/x/a.md" });
+  assert.ok(opened[0][1] === chip);
+  assert.deepEqual(fileRoute("a.md", "p:p"), { project: "p", rel: "a.md" }, "the project chat's chip: the project");
+  assert.deepEqual(fileRoute("a.md"), { project: "p", rel: "a.md" }, "the main chat when a conversation wasn't supplied");
   console.log("thread-page file chips: ok"); }
 
 // its ⋯ is THE thread menu (the owner, 19 Nov 18:59Z): the full header's, opened in the page; its hover and keys
@@ -98,9 +104,10 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
 assert.match(app, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
 assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
 assert.match(app, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
-assert.match(app, /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
+assert.match(readFileSync(new URL("../modules/threads/editing.js", import.meta.url), "utf8"), /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
-assert.match(app, /where === "page" \? item\(`data-tp-main="\$\{esc\(t\.id\)\}"`, "Open in main chat"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
+const menuSource = readFileSync(new URL("../modules/threads/menu.js", import.meta.url), "utf8");
+assert.match(menuSource, /where === "page" \? item\(`data-tp-main="\$\{esc\(t\.id\)\}"`, "Open in main chat"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);
 assert.match(app, /render\(\); \/\/ drawn now, in the click/);
 // one ⤢ in the head (the panel's full size); the thread's own page is "Open as its own page" in its ⋯ (the owner, 20 Nov:
 // two ⤢ did different things)
@@ -153,7 +160,7 @@ console.log("thread-page files and model: ok");
   const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
   assert.match(ui, /toMain: xi\("open-in-main"\),/);
   assert.match(app, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
-  assert.match(app, /if \(!still\) el\.classList\.add\(/);
+  assert.match(readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8"), /if \(!still\) el\.classList\.add\(/);
   assert.match(app, /function toMain\(id\) \{\n  closeThreadMenu\(\{ focus: false \}\);\n  STAGE\.closePage\("thread"\); go\("t:" \+ id, \{ panel: true \}\);\n\}/);
   assert.doesNotMatch(app, /startViewTransition/, "no pictures of the thread are morphed: nothing zooms or seems to scroll");
   assert.doesNotMatch(appCss, /view-transition/);

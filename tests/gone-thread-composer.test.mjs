@@ -11,7 +11,7 @@ const src = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const r = (() => { const i = src.indexOf("function render() {\n  if (!world.state.loaded) return;"); assert.ok(i > 0); return src.slice(i, src.indexOf("\n}\n", i)); })();
+const r = readFileSync(new URL("../shell/render.js", import.meta.url), "utf8");
 
 t("the view says when its thread isn't here", () => {
   assert.match(r, /const gone = v\.startsWith\("t:"\) && !convThread\(v\);/);
@@ -22,7 +22,7 @@ t("a gone thread draws no composer; the line above it stays for what's said", ()
   assert.match(css, /\.app\[data-gone\] \.cbar\{padding:0;background:none\}/);
 });
 t("focus in the composer as it goes: to Go to Home, else the conversation, never the page", () => {
-  assert.match(r, /if \(gone && document\.activeElement === say\) \(\[\.\.\.msgsEl\.querySelectorAll\('\.calm-act \[data-go="home"\]'\)\]\.find\(usable\) \|\| placeRegion\(\)\)\.focus\(\{ preventScroll: true \}\);/);
+  assert.match(r, /if \(gone && document\.activeElement === say\) .*msgsEl\.querySelectorAll\('\.calm-act \[data-go="home"\]'\)\)\]\.find\(usable\) \|\| placeRegion\(\)\)\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the placeholder never names a project it doesn't have", () => {
   const f = src.slice(src.indexOf("function syncPlaceholder(K = MK) {"), src.indexOf("\n}\n", src.indexOf("function syncPlaceholder(K = MK) {")));

@@ -3,9 +3,11 @@ import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../js/sideorder.js";
+import { createSideRows } from "../shell/rail/rows.js";
+import { dom } from "./lib/dom.mjs";
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8"), ui = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
+const ui = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
 const R = (active = [], urgent = []) => ["a", "b", "c", "d"].map((id) => ({ id, active: active.includes(id) || urgent.includes(id), urgent: urgent.includes(id) }));
 
 await t("the first draw puts what is active on top at once, in the list's order", () => {
@@ -55,14 +57,37 @@ await t("a project that goes away leaves the order", () => {
   assert.deepEqual(c.order(R().filter((x) => x.id !== "a"), 1000, { held: true }).top, []);
 });
 
-await t("the sidebar draws the calm order: the top part, a divider, the rest; a change glides; leaving the sidebar settles it", () => {
-  const i = app.indexOf("function sideRender(needs) {"), body = app.slice(i, app.indexOf("\n}\n", i));
-  assert.match(body, /SIDE_CALM\.order\(rows\.map\(\(r\) => \(\{ id: r\.key, active: r\.active, urgent: r\.urgent \}\)\), now, \{ first: !sideRender\.ready, held \}\)/);
-  assert.match(body, /key: "pr-sep", html: `<div class="pr-sep" aria-hidden="true"><\/div>`/);
-  assert.match(body, /el\.animate\(\[\{ transform: `translateY\(\$\{dy\}px\)` \}, \{ transform: "none" \}\], \{ duration: MOVE, easing: EASE \}\)/);
-  assert.match(body, /!still\(\)/, "reduced motion: it lands at once");
-  assert.match(app, /side\.addEventListener\("pointerleave", \(\) => \{ SIDE_CALM\.over = false; settle\(\); \}\)/);
-  assert.match(app, /active: busy \|\| needsMe, urgent: needsMe/);
+await t("the sidebar waits for the pointer to leave, then moves the urgent row and keeps its identity", async () => {
+  const nav = ["home", "ws", "chats", "arts", "lp", "more"].map((place) => `<button id="nv-${place}"><span id="${place}-n"></span></button>`).join("");
+  const { document, window } = await dom(`<aside id="side"><nav class="nav">${nav}</nav><div id="projects"></div></aside>`);
+  const side = document.getElementById("side"), box = document.getElementById("projects");
+  const matches = side.matches.bind(side);
+  side.matches = (selector) => selector === ":focus-within" ? side.contains(document.activeElement) : matches(selector);
+  const needs = [];
+  const sideRender = createSideRows({ S: { view: "home", wash: new Map() },
+    world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
+    CH: { isChats: () => false }, REC: { artifacts: { count: () => 0 } }, D: { needItems: () => needs },
+    projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
+    isBusy: (thread) => thread.busy, isHeld: () => false, askShort: () => "Needs review", projectIcon: () => "", folded: () => false,
+  });
+  const order = () => [...box.children].map((row) => row.dataset.k);
+  sideRender(needs);
+  const alpha = box.lastElementChild;
+  assert.deepEqual(order(), ["b", "pr-sep", "a"]);
+  side.dispatchEvent(new window.Event("pointerenter"));
+  needs.push({ admitted: true, group: "ask", t: { project: "a" } });
+  sideRender(needs);
+  assert.deepEqual(order(), ["b", "pr-sep", "a"]);
+  const schedule = globalThis.setTimeout;
+  let settle;
+  globalThis.setTimeout = (fn, duration) => { assert.equal(duration, 800); settle = fn; };
+  try { side.dispatchEvent(new window.Event("pointerleave")); } finally { globalThis.setTimeout = schedule; }
+  assert.equal(typeof settle, "function");
+  settle();
+  assert.deepEqual(order(), ["a", "b"]);
+  assert.ok(box.firstElementChild === alpha);
+  assert.equal(alpha.getAttribute("aria-label"), "Alpha. 1 needs you: Needs review");
+  assert.equal(document.getElementById("nv-home").getAttribute("aria-current"), "page");
 });
 
 const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f));
