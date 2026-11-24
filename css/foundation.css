@@ -116,10 +116,6 @@ body.stage-full .stg-grip{display:none}
 /* Home, nothing waiting: the headline says it once; one quiet line under it, no card */
 .calm-line{margin-top:var(--s-3);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-3)}
 /* the panel's content shares one edge (16) with its tabs */
-.md-pane .md-h{padding:var(--s-4) var(--s-4) var(--s-artifact-pane-seam)}
-.md-pane .md-tools{padding:var(--s-artifact-pane-tools) var(--s-4)}
-.md-pane .md-body{padding:var(--s-artifact-pane-seam) var(--s-4) var(--s-4)}
-.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(var(--w-artifact-grid-card),1fr))}
 .fl-head{padding:var(--s-3) var(--s-3) var(--s-2)}
 /* the sidebar keeps its focus ring as it was */
 .side :focus-visible{border-radius:var(--r-sidebar-focus)}
@@ -131,7 +127,7 @@ body.stage-full .stg-grip{display:none}
 .pr-busy{display:none}
 
 /* The caret and border indicate focus in a text box. */
-:is(.fl-q,.all-q,.ar-q,.composer,.jump-field,.xd-q,.tg-qf):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
+:is(.fl-q,.ar-q,.composer,.jump-field,.xd-q,.tg-qf):has(:is(input,textarea):focus-visible),.fl-new-r input:focus-visible{outline:none}
 /* a text field never wears the ring: its accent caret says where typing goes, and a bordered field's edge glows */
 :is(input:not([type=checkbox],[type=radio],[type=range],[type=button],[type=submit],[type=reset],[type=file],[type=color],[type=image]),textarea,[contenteditable]):focus-visible{outline:none}
 :is(input,textarea,[contenteditable]){caret-color:var(--accent)}

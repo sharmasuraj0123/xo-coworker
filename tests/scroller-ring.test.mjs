@@ -51,7 +51,6 @@ const SCROLLERS = {
 ".shd-tabs": ["inset:.shd-tab", "a shell's tabs"], ".vw-tabs": ["inset:.vw-tab-b", "the open files' tabs (their close buttons inset too)"],
   ".set-nav": ["inset:.set-nav button", "Settings' rail"], ".fl-list": ["inset:.fl-r", "Files' tree"], ".iq-list": ["inset:.iq-row", "the picker's models"],
   ".stage .cx-list": ["inset:.cx-r", "the changes list"],
-  ".md-body": ["inset:.md-from", "Made's cards (their ring a layer inside them, C013; their from line and pin inset)"],
   ".fr-b": ["inset:.ag-r", "the stage's frames (agents and changes rows, inset)"], ".stage .ch-old": ["inset:.ch-r", "a change's older lines"],
   ".home": ["inner", "Home's column carries the room"], ".arts": ["inner", "Artifacts' column carries the room"],
   ".lpp": ["inner", "Launchpad's column carries the room"], ".lq-body": ["room", "Launchpad's window body"],

@@ -47,7 +47,7 @@ test("each classed button offers visible pointer feedback", () => {
 test("buttons without their own classes retain the parent treatment", () => {
   const grouped = new Set([
     ".lp-menu button", ".vw-seg button", ".dg-mode button", ".dg-tools button", ".rt-seg button", ".cp-mode button",
-    ".iq-route button", ".all-f button", ".ar-kinds button", ".teach-scope button", ".set-nav button",
+    ".iq-route button", ".ar-kinds button", ".teach-scope button", ".set-nav button",
   ]);
   const boxed = new Set(rules.filter(({ sel, declarations }) => /(^|[\s>])button$/.test(sel)
     && declarations.some(({ p, v }) => (p === "border" && resolveValue(v.split(" ")[0]) === "1px")

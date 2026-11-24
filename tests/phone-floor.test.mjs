@@ -140,7 +140,7 @@ test("boxed links share the floor and links in sentences are excluded", () => {
 
 test("a text field has a 36 px floor on itself or its box", () => {
   const types = ["checkbox", "radio", "range", "hidden", "file", "color", "image", "submit", "button", "reset"];
-  const boxes = [".fl-q", ".ar-q", ".all-q", ".jump-field"];
+  const boxes = [".fl-q", ".ar-q", ".jump-field"];
   const typeSelectors = types.map((type) => "[type=" + type + "]").join(",");
   const field = ":where(input:not(" + typeSelectors + ")):where(:not(:is(" + boxes.join(",") + ") input))";
   assert.ok(declarationsFor(selector => normalizeList(selector) === field, "min-height").some(matchesFloor));

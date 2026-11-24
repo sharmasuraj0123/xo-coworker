@@ -5,13 +5,8 @@ import { test } from "node:test";
 import { declarationsFor, publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 import { isPhone } from "./lib/cascade.mjs";
 
-test("Load earlier and All’s filters use their control heights", () => {
-  for (const [selector, height] of [[".hist-more", "--h-sm"], [".all-f button", "--h-ctl"]]) {
-    assert.ok(declarationsFor(selector, "height").some(({ value }) => value === "var(" + height + ")"), selector);
-  }
-  assert.ok(declarationsFor(".all-f button", "align-items").some(({ value }) => value === "center"));
-  assert.ok(declarationsFor(".all-f button", "display").some(({ value }) => value === "inline-flex"));
-  assert.ok(declarationsFor(".all-f button", "gap").some(({ value }) => resolveValue(value) === "8px"));
+test("Load earlier uses the small control height", () => {
+  assert.ok(declarationsFor(".hist-more", "height").some(({ value }) => value === "var(--h-sm)"));
 });
 
 test("the phone thread head gives its controls four pixels above their focus rings", () => {

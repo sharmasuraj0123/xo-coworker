@@ -12,10 +12,10 @@ body.stage-over .stage{box-shadow:var(--e2)}
 .fl-crumb small{max-width:60%;padding:0;border-radius:0;background:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .fl-up{margin:0 calc((16px - var(--h-sm)) / 2);border-radius:var(--r-sm)} /* its size is app.css's, on the scale (S062) */
 .fl-up svg{width:var(--ic-sm);height:var(--ic-sm)}
-.fl-q,.md-pane .md-tools .all-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
-.fl-q svg,.md-pane .md-tools .all-q svg{width:var(--ic);height:var(--ic)}
-.fl-q input,.md-pane .md-tools .all-q input{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
-:root[data-theme="light"] .fl-q,:root[data-theme="light"] .md-pane .md-tools .all-q{background:var(--surface);border-color:rgba(0,0,0,.12)}
+.fl-q{box-sizing:border-box;height:var(--h-ctl);padding:0 8px;gap:8px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-soft)}
+.fl-q svg{width:var(--ic);height:var(--ic)}
+.fl-q input{font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans)}
+:root[data-theme="light"] .fl-q{background:var(--surface);border-color:rgba(0,0,0,.12)}
 
 /* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
    folder's chevron or a file's icon; every name starts on the name column ──────────────────────────── */
@@ -119,52 +119,8 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-pv{container:flpv / inline-size}
 :root[data-theme="light"] .vw-seg{background:var(--fill-1);border-color:rgba(0,0,0,.08)}
 
-/* ── Made: the same scope line and field; a list (36 px thumb on the edge, name, one line under it)
-   until there's room for a gallery ──────────────────────────────────────────────────────────────── */
-.md-pane{container:made / inline-size}
-.md-pane .md-h{display:flex;align-items:baseline;gap:8px;min-width:0;padding:12px var(--pe) 0}
-.md-pane .md-h h2{flex:none;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.md-pane .md-h p{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
-.md-pane .md-tools{gap:8px;padding:8px var(--pe)}
-.md-pane .md-tools .all-q{flex:1 1 100%;max-width:none}
-.md-pane .all-f{gap:4px}
-.md-pane .all-f button{height:var(--h-sm);padding:0 8px;gap:4px;border-radius:var(--r-sm);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
-.md-pane .all-f button span{font-variant-numeric:tabular-nums}
-.md-pane .md-body{padding:0 var(--pe) 12px}
-.md-pane .md-gh{padding:12px 0 8px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-caps);text-transform:uppercase;color:var(--ink-4)}
-.md-pane .md-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-.md-pane .md-it{border-radius:var(--r-sm)}
-.md-pane .md-th{border-radius:var(--r-sm) var(--r-sm) 0 0;height:100px}
 .md-ic{width:auto;height:auto;background:none;border:0}
 .md-ic svg,.md-ic svg.fi{width:var(--h-sm);height:var(--h-sm)}
-.md-pane .md-meta{gap:4px;padding:12px 12px 4px}
-.md-pane .md-from{gap:4px;margin:0 4px 8px;padding:4px 8px;border-radius:var(--r-sm);font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
-.md-pane .md-meta b{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-.md-pane .md-meta > span{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
-@container made (max-width:519px){
-  .md-pane .md-body{padding:0 6px 12px}
-  .md-pane .md-gh{padding-left:6px}
-  .md-pane .md-grid{display:flex;flex-direction:column;gap:0}
-  .md-pane .md-it{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border:0;border-radius:var(--r-sm);background:none;overflow:visible}
-  .md-pane .md-it:hover{background:var(--surface)}
-  .md-pane .md-it{--th:40px;--tg:12px}
-  .md-pane .md-open{grid-column:1;grid-row:1;flex-direction:row;align-items:center;gap:var(--tg);padding:8px 6px 0}
-  .md-pane .md-it:not(:has(.md-from)) .md-open{padding-bottom:8px}
-  .md-pane .md-th{flex:none;width:var(--th);height:var(--th);gap:0;border-radius:var(--r-sm);border:1px solid var(--line-soft);background:var(--surface)}
-  .md-pane .md-ext{display:none}
-  .md-pane .md-ic svg,.md-pane .md-ic svg.fi{width:var(--ic-lg);height:var(--ic-lg)}
-  .md-pane .md-meta{gap:0;padding:0}
-  .md-pane .md-meta b{line-height:var(--lh-ui)}
-  .md-pane .md-from{grid-column:1;grid-row:2;margin:4px 0 8px calc(6px + var(--th) + var(--tg) - var(--halo));padding:0 var(--halo);gap:4px;border-radius:var(--r);background-color:transparent!important;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
-  .md-pane .md-from:hover{color:var(--ink-2)}
-  .md-pane .md-from svg{display:none}
-  .md-pane .md-from span::before{content:"from "}
-  .md-pane .md-pin{position:static;grid-column:2;grid-row:1 / span 2;width:28px;height:28px;margin-right:4px;border-radius:var(--r-sm);background:none}
-  .md-pane .md-pin:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-  :root[data-theme="light"] .md-pane .md-it:hover{background:rgba(0,0,0,.04)}
-  :root[data-theme="light"] .md-pane .md-th{background:var(--canvas);border-color:rgba(0,0,0,.08)}
-}
-
 /* ── the Map in the panel: the same scope line, then one surface edge to edge ─────────────────────── */
 .map-host .mp-top{padding:12px var(--pe) 8px}
 .map-host .mp-t h2{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}
