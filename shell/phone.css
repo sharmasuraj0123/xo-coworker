@@ -3,7 +3,7 @@
 
 @media (max-width:760px){
   :root{--dock-bar:var(--h-hit);--dock-btn:var(--h-touch);--note-h:var(--h-touch);--comp-ctl:var(--h-touch);--card-pad:var(--s-4)}
-  :root:root .phonebar{padding:6px 16px 5px 6px}
+  :root:root .phonebar{padding:6px var(--s-4) 5px 6px}
   :root:root .phonebar .help.gear,
   :root:root .top :is(.tw-act,.stg-btn,.th-btn){border-radius:var(--r-lg)}
   :root:root .tw-menu{min-width:236px}
@@ -13,13 +13,14 @@
   :root:root .phonebar{height:calc(var(--h-phonebar) + env(safe-area-inset-top));padding-top:calc(6px + env(safe-area-inset-top))}
   :root:root :is(.home,.conv){top:calc(52px + env(safe-area-inset-top))}
   :root:root .side-top{height:calc(64px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top)}
-  :root:root .set-top{padding-top:calc(12px + env(safe-area-inset-top))}
+  :root:root .set-top{padding-top:calc(var(--s-3) + env(safe-area-inset-top))}
 
   :root:root .app:is([data-view="thread"],[data-view="project"],[data-view="ws"]) .phonebar{display:none}
   :root:root .app:is([data-view="thread"],[data-view="project"],[data-view="ws"]) .conv{top:0}
   :root:root .top{
-    flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:4px;row-gap:0;
-    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--top-line,var(--line-faint))}
+    flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:var(--s-1);row-gap:0;
+    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) var(--s-4) 5px 6px;
+    border-bottom:1px solid var(--top-line,var(--line-faint))}
   :root:root .top-menu,
   :root:root .top-back{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);min-height:var(--h-lg);margin:0;padding:0;border-radius:var(--r-lg);color:var(--ink-2)}
   :root:root .top-back[hidden]{display:none}
@@ -34,52 +35,60 @@
   :root:root .top:has(> .top-back[hidden]) .top-menu{display:grid}
   :root:root .top:has(> .top-back:not([hidden])) .top-menu{display:none}
 
-  :root:root .top .top-who{flex:1 1 0;min-width:0;max-width:none;align-items:center;gap:8px}
+  :root:root .top .top-who{flex:1 1 0;min-width:0;max-width:none;align-items:center;gap:var(--s-2)}
   :root:root .top .tw-ic{display:none}
-  :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:4px}
+  :root:root .top .tw-t{display:flex;flex-direction:column;gap:0;min-width:0;padding-left:var(--s-1)}
   :root:root .top .tw-t h1,
   :root:root .top .tw-h{font:var(--fw-strong) var(--fs-title)/var(--lh-ui) var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   :root:root .top .pj-s{display:block;min-width:0;height:16px;margin:0;padding:0;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-3);text-align:left;overflow:clip;overflow-clip-margin:var(--ring-room);text-overflow:ellipsis;white-space:nowrap}
   :root:root .top .pj-s :is(button,.pj-home){min-height:0;height:16px;line-height:var(--lh-meta)}
-  :root:root .top-end{gap:8px;margin-left:8px}
+  :root:root .top-end{gap:var(--s-2);margin-left:var(--s-2)}
   :root:root .top .pj-s.has-need{display:flex;align-items:center;font-size:0}
   :root:root .top .pj-s.has-need > :not(.pj-need){display:none}
   :root:root .top .pj-s.has-need{height:var(--h-touch);margin-top:var(--s-1);overflow:visible}
-  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:var(--h-touch);min-height:var(--h-touch);padding:0 12px 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:var(--fs-meta);line-height:var(--lh-meta)}
+  :root:root .top .pj-s > .pj-need{flex:0 1 auto;min-width:0;max-width:100%;height:var(--h-touch);min-height:var(--h-touch);
+    padding:0 var(--s-3) 0 10px;border-radius:999px;background:color-mix(in srgb,var(--warn) 12%,transparent);
+    font-size:var(--fs-meta);line-height:var(--lh-meta)}
   :root:root .top .pj-s > .pj-need:hover{background-color:color-mix(in srgb,var(--warn) 24%,transparent);color:var(--warn)}
   :root:root .top .pj-need .pj-nt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   :root:root .top .pj-need :is(.g,.pj-k){flex:none}
 
-  :root:root .top[data-kind="thread"] .top-who{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:20px 16px;column-gap:0;row-gap:0;padding-left:4px}
+  :root:root .top[data-kind="thread"] .top-who{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;
+    grid-template-rows:20px 16px;column-gap:0;row-gap:0;padding-left:var(--s-1)}
   :root:root .top[data-kind="thread"] .tw-h{grid-column:1 / 4;grid-row:1;display:block;-webkit-line-clamp:unset}
   :root:root .top[data-kind="thread"] .tw-in-t{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-strong) var(--fs-input)/1 var(--sans)}
   :root:root .top[data-kind="thread"] .tw-in-l{grid-column:1 / 4;grid-row:1 / 3;height:var(--h-touch);font:var(--fw-medium) var(--fs-input)/1 var(--sans)}
-  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:4px;background:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
-  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;margin-left:8px;padding:0 6px;font-size:var(--fs-meta);line-height:var(--lh-meta);max-width:100%}
-  :root:root .top[data-kind="thread"] .tw-acts{grid-column:4;grid-row:1 / 3;align-self:center;margin-left:8px}
+  :root:root .top[data-kind="thread"] .badge{grid-column:1;grid-row:2;height:16px;padding:0;gap:var(--s-1);
+    background:none;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
+  :root:root .top[data-kind="thread"] .tw-label{grid-column:3;grid-row:2;justify-self:start;height:16px;
+    margin-left:var(--s-2);padding:0 6px;font-size:var(--fs-meta);line-height:var(--lh-meta);max-width:100%}
+  :root:root .top[data-kind="thread"] .tw-acts{grid-column:4;grid-row:1 / 3;align-self:center;margin-left:var(--s-2)}
   :root:root .top[data-kind="thread"] .top-who:has(.tw-in) :is(.badge,.tw-rt,.tw-label){display:none}
   :root:root .top[data-kind="thread"] .top-who:has(.tw-in-l) .tw-h{display:none}
   :root:root .top[data-kind="thread"] .top-who:has(> .tw-t){display:flex}
   :root:root .top[data-kind="thread"] .top-who > .tw-t{padding-left:0}
   :root:root .top[data-kind="thread"] .top-who:has(> .tw-t) .badge{height:28px;padding:0 10px;background:color-mix(in srgb,var(--st,var(--ink-4)) 12%,transparent)}
 
-  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:4px}
+  :root:root .top .th-btn{height:var(--h-touch);min-height:var(--h-touch);margin:0;padding:0 7px 0 10px;font-size:0;gap:var(--s-1)}
   :root:root .top .th-btn span{font-size:var(--fs-meta);border-radius:calc(var(--r-lg) - 8px)}
   :root:root .top[data-kind="project"] .top-who{flex:1 1 0}
 
-  :root:root .thead{display:flex;align-items:flex-start;gap:8px;padding:4px 16px 8px}
+  :root:root .thead{display:flex;align-items:flex-start;gap:var(--s-2);padding:var(--s-1) var(--s-4) var(--s-2)}
   :root:root .top[data-kind="thread"]{border-bottom:0;padding-bottom:0}
   :root:root .thead .ckbar{flex:1;min-width:0}
-  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 12px 0 10px;border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:4px}
+  :root:root .thead .rn-log{flex:none;height:var(--h-lg);margin:0;padding:0 var(--s-3) 0 10px;
+    border-radius:var(--r-lg);border:1px solid var(--line-faint);gap:var(--s-1)}
   :root:root .thead .rn-log span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   :root:root .thead .rn-log::after{content:attr(data-n);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-strip{display:none}
-  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:8px;height:var(--h-lg);padding:0 13px 0 12px;border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
+  :root:root .thead .rn-live{flex:none;display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-lg);
+    padding:0 13px 0 var(--s-3);border-radius:var(--r-lg);border:1px solid color-mix(in srgb,var(--info) 28%,var(--line-soft));
+    background:color-mix(in srgb,var(--info) 6%,transparent);color:var(--ink-2)}
   :root:root .thead .rn-live:has(.g-needs_reply){border-color:transparent;background:color-mix(in srgb,var(--warn) 7%,transparent)}
   :root:root .thead .rn-live .rn-n{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums}
   :root:root .thead .rn-live:active{transform:scale(.96)}
 
-  :root:root .top[data-kind="thread"]::before{top:env(safe-area-inset-top);left:16px;right:16px}
+  :root:root .top[data-kind="thread"]::before{top:env(safe-area-inset-top);left:var(--s-4);right:var(--s-4)}
 
   :root:root .conv:has(.tw-menu,.ckbar.is-open) :is(.top,.thead){position:relative;z-index:6;background:var(--canvas)}
   :root:root .conv:has(.tw-menu) #top{z-index:7}
