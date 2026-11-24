@@ -35,23 +35,8 @@
 @import url("../modules/files/conversation-cards.css");
 @import url("../modules/files/viewer.css");
 @import url("../modules/decisions/risk-states.css");
+@import url("../shell/header-state.css");
 
-.top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:var(--h-thread-state-mark);
-  border-radius:0 0 var(--r-thread-state-mark) var(--r-thread-state-mark);pointer-events:none;opacity:0;
-  transition:opacity var(--dur-slow) var(--ease)}
-.top[data-state="need"]::before{opacity:.8;
-  background:linear-gradient(90deg,var(--fill-clear),var(--warn) 20%,var(--warn) 80%,var(--fill-clear))}
-.top[data-state="stop"]::before{opacity:.8;
-  background:linear-gradient(90deg,var(--fill-clear),var(--err-ink) 20%,var(--err-ink) 80%,var(--fill-clear))}
-.top[data-state="done"]::before{opacity:.55;
-  background:linear-gradient(90deg,var(--fill-clear),var(--accent-fill) 20%,var(--accent-fill) 80%,var(--fill-clear))}
-.top[data-state="busy"]::before{opacity:.8;
-  background:linear-gradient(90deg,var(--fill-clear) 0%,color-mix(in srgb,var(--info) 35%,var(--fill-clear)) 30%,var(--info) 50%,
-    color-mix(in srgb,var(--info) 35%,var(--fill-clear)) 70%,var(--fill-clear) 100%) 0 0/50% 100% no-repeat;
-  animation:sl-sweep var(--dur-thread-state-sweep) var(--ease-loop) infinite}
-@keyframes sl-sweep{from{background-position:-100% 0}to{background-position:200% 0}}
-@media (prefers-reduced-motion:reduce){.top[data-state="busy"]::before{animation:none;
-  background:linear-gradient(90deg,var(--fill-clear),var(--info) 20%,var(--info) 80%,var(--fill-clear))}}
 .md-code{background:var(--term-bg)}
 .ck-n,.pn-count,.tc-st{font-family:var(--sans);font-variant-numeric:tabular-nums}
 .nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:var(--tr-20)}   /* the sidebar's, as it is */
