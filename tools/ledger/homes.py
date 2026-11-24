@@ -12,6 +12,18 @@ NON_CODE = (b"//", b"# ", b"/*", b"* ", b"import ")
 IDENTIFIER = re.compile(r"[\w$]+")
 MIN_ANCHOR_CHARACTERS = 8
 SCRIPTS = {".js", ".mjs", ".cjs"}
+SETTLED = {"moved", "split", "kept", "vendor"}
+
+
+def destinations(entry):
+    home = entry.get("home")
+    paths = home if isinstance(home, list) else [home]
+    status = entry["status"]
+    if status == "split" and len({str(path) for path in paths}) < 2:
+        return (), "split requires multiple distinct homes"
+    if status != "split" and len(paths) != 1:
+        return (), f"{status} requires one home"
+    return paths, None
 
 
 def verified_anchor(evidence, data):
@@ -35,9 +47,18 @@ def source_lines(data):
 
 
 class Homes:
-    def __init__(self, root, commit):
+    def __init__(self, root, commit, items, tracked):
         self.root = Path(root).resolve()
         self.commit = commit
+        paths = set()
+        for key, entry in items.items():
+            parts = key.split("::", 2)
+            if len(parts) != 3 or parts[0] not in tracked or parts[1] != "functions" or entry["status"] not in SETTLED:
+                continue
+            for path in destinations(entry)[0]:
+                if not self.path_problem(path) and Path(path).suffix in SCRIPTS:
+                    paths.add(path)
+        self.function_index = self.parse_functions(sorted(paths)) if paths else {}
 
     @cache
     def original(self, source):
@@ -66,22 +87,6 @@ class Homes:
                                 text=True, capture_output=True, check=True)
         return json.loads(result.stdout)
 
-    @cache
-    def function_index(self):
-        result = subprocess.run(
-            ["git", "-C", self.root, "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
-            capture_output=True, text=True, check=True,
-        )
-        paths = {path for path in result.stdout.split("\0") if Path(path).suffix in SCRIPTS}
-        return self.parse_functions(sorted(paths))
-
-    @cache
-    def functions(self, path):
-        if Path(path).suffix not in SCRIPTS:
-            return ()
-        indexed = self.function_index()
-        return indexed[path] if path in indexed else self.parse_functions([path])[path]
-
     def problems(self, key, entry, tracked):
         source, *item = key.split("::", 2)
         if source not in tracked:
@@ -90,23 +95,17 @@ class Homes:
         if item and len(item) != 2:
             yield f"invalid item key: {key}"
             return
-        home = entry["home"]
-        paths = home if isinstance(home, list) else [home]
-        status = entry["status"]
-        if status == "split" and len({str(path) for path in paths}) < 2:
-            yield f"split requires multiple distinct homes: {key}"
-            return
-        if status != "split" and len(paths) != 1:
-            yield f"{status} requires one home: {key}"
+        paths, invalid = destinations(entry)
+        if invalid:
+            yield f"{invalid}: {key}"
             return
         for path in paths:
             problem = self.problem(source, item, entry, path)
             if problem:
                 yield f"{problem}: {key} -> {path}"
 
-    def problem(self, source, item, entry, path):
-        if not isinstance(path, str) or not path:
-            return "home must be a repository-relative file"
+    @cache
+    def validate_path(self, path):
         relative = Path(path)
         if relative.is_absolute() or ".." in relative.parts or relative.as_posix() != path:
             return "home must be a canonical repository-relative file"
@@ -115,6 +114,20 @@ class Homes:
             return "home is a directory"
         if not target.is_file() or target.is_symlink() or not target.resolve().is_relative_to(self.root):
             return "home does not exist as a repository file"
+
+    def path_problem(self, path):
+        if not isinstance(path, str) or not path:
+            return "home must be a repository-relative file"
+        return self.validate_path(path)
+
+    def problem(self, source, item, entry, path):
+        invalid = self.path_problem(path)
+        if invalid:
+            return invalid
+        function = bool(item and item[0] == "functions")
+        indexed = self.function_index.get(path, {}) if function else {}
+        if "error" in indexed:
+            return indexed["error"]
         status = entry["status"]
         if status == "kept":
             return None if path == source else "kept home differs from its source"
@@ -124,7 +137,7 @@ class Homes:
             return "moved home is still its source"
         if item:
             kind, name = item
-            candidates = self.functions(path) if kind == "functions" else self.items(path).get(kind, ())
+            candidates = indexed.get("names", ()) if function else self.items(path).get(kind, ())
             if name in candidates:
                 return None
         elif path == source or self.related(source, path):

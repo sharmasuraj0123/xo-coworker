@@ -19,8 +19,11 @@ for (const file of files) {
           && ["ArrowFunctionExpression", "FunctionExpression"].includes(node.init?.type)) names.add(node.id.name);
     });
   } catch (error) {
-    if (!(error instanceof SyntaxError) && error.code !== "ENOENT") throw error;
+    if (!(error instanceof SyntaxError) && !error.code) throw error;
+    found[file] = { error: error instanceof SyntaxError ? `cannot parse JavaScript: ${error.message}`
+      : `cannot read JavaScript (${error.code})` };
+    continue;
   }
-  found[file] = [...names];
+  found[file] = { names: [...names] };
 }
 process.stdout.write(JSON.stringify(found));
