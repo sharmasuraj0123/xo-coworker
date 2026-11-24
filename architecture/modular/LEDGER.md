@@ -5,9 +5,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | Status | Files |
 |---|---:|
 | moved | 488 |
-| planned | 389 |
+| planned | 385 |
 | deleted | 337 |
-| vendor | 141 |
+| vendor | 145 |
 | kept | 57 |
 | split | 30 |
 | split-region | 4 |
@@ -418,10 +418,10 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/vendor/agent-marks/README.md` | 13 | planned | vendor/agent-marks/README.md |
-| `js/vendor/agent-marks/antigravity.svg` | 1 | planned | vendor/agent-marks/antigravity.svg |
-| `js/vendor/agent-marks/claude.svg` | 1 | planned | vendor/agent-marks/claude.svg |
-| `js/vendor/agent-marks/openai.svg` | 1 | planned | vendor/agent-marks/openai.svg |
+| `js/vendor/agent-marks/README.md` | 13 | vendor | vendor/agent-marks/README.md |
+| `js/vendor/agent-marks/antigravity.svg` | 1 | vendor | vendor/agent-marks/antigravity.svg |
+| `js/vendor/agent-marks/claude.svg` | 1 | vendor | vendor/agent-marks/claude.svg |
+| `js/vendor/agent-marks/openai.svg` | 1 | vendor | vendor/agent-marks/openai.svg |
 | `js/vendor/codemirror/LICENSES.md` | 1347 | vendor | vendor/codemirror/LICENSES.md |
 | `js/vendor/codemirror/c/apl-WDIZS52W.js` | 1 | vendor | vendor/codemirror/c/apl-WDIZS52W.js |
 | `js/vendor/codemirror/c/asciiarmor-A6BLF7D6.js` | 1 | vendor | vendor/codemirror/c/asciiarmor-A6BLF7D6.js |

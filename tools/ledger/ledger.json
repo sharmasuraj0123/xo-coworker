@@ -3046,19 +3046,19 @@
    ]
   },
   "js/vendor/agent-marks/README.md": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/agent-marks/README.md"
   },
   "js/vendor/agent-marks/antigravity.svg": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/agent-marks/antigravity.svg"
   },
   "js/vendor/agent-marks/claude.svg": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/agent-marks/claude.svg"
   },
   "js/vendor/agent-marks/openai.svg": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/agent-marks/openai.svg"
   },
   "js/vendor/codemirror/LICENSES.md": {

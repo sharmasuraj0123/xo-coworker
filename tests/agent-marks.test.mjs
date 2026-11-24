@@ -1,7 +1,6 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
 import { rtMark, markOf, rtName } from "../core/services/runtimes.js";
 import { ORIGIN, sourcePath } from "../tools/conformance/css-publication.mjs";
 import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
@@ -35,9 +34,9 @@ t("every mark is a local file the stylesheet draws", () => {
       const values = valuesFor(`.agm-${mark}`, property);
       assert.equal(values.length, 1);
       const url = /^url\("([^"]+)"\)/.exec(String(values[0]))?.[1];
-      assert.ok(url?.endsWith(`/${mark}.svg`), `${mark} ${property}`);
+      assert.ok(url, `${mark} ${property} has a published URL`);
       const file = sourcePath(new URL(url, ORIGIN));
-      assert.ok(existsSync(new URL(`..${file}`, import.meta.url)), file);
+      assert.equal(file, `/vendor/agent-marks/${mark}.svg`, `${mark} ${property}`);
     }
   }
   assert.deepEqual(valuesFor(".agm-openai", "background-color"), ["currentColor"]);

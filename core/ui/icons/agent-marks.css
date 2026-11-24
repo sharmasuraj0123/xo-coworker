@@ -3,11 +3,11 @@
   display:inline-block;flex:none;width:var(--ic);height:var(--ic);vertical-align:calc(var(--cap-mid) - var(--ic) / 2);
   background:center/contain no-repeat
 }
-.agm-claude{background-image:url(../../../js/vendor/agent-marks/claude.svg)}
-.agm-antigravity{background-image:url(../../../js/vendor/agent-marks/antigravity.svg)}
+.agm-claude{background-image:url(../../../vendor/agent-marks/claude.svg)}
+.agm-antigravity{background-image:url(../../../vendor/agent-marks/antigravity.svg)}
 .agm-openai{
-  background-color:currentColor;-webkit-mask:url(../../../js/vendor/agent-marks/openai.svg) center/contain no-repeat;
-  mask:url(../../../js/vendor/agent-marks/openai.svg) center/contain no-repeat
+  background-color:currentColor;-webkit-mask:url(../../../vendor/agent-marks/openai.svg) center/contain no-repeat;
+  mask:url(../../../vendor/agent-marks/openai.svg) center/contain no-repeat
 }
 .agm-n{white-space:nowrap}
 .agm-n>.agm,.agm.is-lead{margin-right:var(--gap-icon)}

@@ -627,6 +627,18 @@ class StaticCaching(unittest.TestCase):
                     if path.endswith(".js"):
                         self.assertEqual(headers.get("content-type"), "text/javascript")
 
+    def test_versioned_agent_mark_svgs(self):
+        prefix = f"/v/{serve.tree_version()}"
+        for mark in ("antigravity", "claude", "openai"):
+            with self.subTest(mark=mark):
+                relative = f"vendor/agent-marks/{mark}.svg"
+                status, headers, body = fetch(f"{prefix}/{relative}")
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, "image/svg+xml", serve.IMMUTABLE))
+                with open(os.path.join(ROOT, relative), "rb") as svg:
+                    self.assertEqual(body, svg.read())
+                self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
+
     def test_current_version_is_immutable(self):
         status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")
         self.assertEqual(status, 200)
