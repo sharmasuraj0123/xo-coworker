@@ -88,7 +88,7 @@
 @media (prefers-reduced-motion:reduce){.prow.busy .pr-ic{animation:none}}
 
 .prow.needs .pr-ic{background:color-mix(in srgb,var(--warn) 13%,var(--sb-g1C));border-color:transparent;color:var(--warn)}
-.prow.needs .pr-name{color:var(--need-text)}
+.prow.needs .pr-name{--project-name-ink:var(--ink-project-attention)}
 .prow.needs{background:color-mix(in srgb,var(--warn) 6%,var(--row-bg));border-color:transparent}
 .prow.needs .pr-t{color:color-mix(in srgb,var(--warn) 72%,var(--ink-3))}
 .prow.needs.k-red{background:color-mix(in srgb,var(--err) 6%,var(--row-bg));border-color:transparent}

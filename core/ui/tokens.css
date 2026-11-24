@@ -66,7 +66,7 @@
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
   --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8); --field-px:var(--s-3);
   /* words in a status hue: amber that must read as text, a project needing you, a diff's lines, a danger's facts */
-  --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink));
+  --warn-text:var(--warn); --need-text:color-mix(in srgb,var(--warn) 22%,var(--ink)); --ink-project-attention:initial;
   --add-text:#B8E68E; --del-text:#F0A6AA; --danger-text:#F0B3B6;
   --ok-text:var(--accent); --danger-ink:color-mix(in srgb,var(--err-ink) 85%,var(--ink));   /* words on a green or a red tint */
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
@@ -209,8 +209,8 @@
   --mark-x:#151515; --mark-o:#83D63A;
   --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
   --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:rgba(var(--accent-rgb),.8);
-  --warn-text:#8A4B0B; --need-text:#5E3507; --add-text:#2F5A12; --del-text:#9B1C22; --danger-text:#9B1C22;
-  --ok-text:color-mix(in srgb,var(--accent) 80%,var(--ink)); --danger-ink:var(--err-ink);
+  --warn-text:#8A4B0B; --need-text:#5E3507; --ink-project-attention:var(--need-text); --add-text:#2F5A12; --del-text:#9B1C22;
+  --danger-text:#9B1C22; --ok-text:color-mix(in srgb,var(--accent) 80%,var(--ink)); --danger-ink:var(--err-ink);
   --bubble:#EFEFEF; --bubble-line:#EFEFEF; --bubble-top:#FFFFFF; --bubble-foot:#F7F7F7;
   --term-bg:var(--fill-1);
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;

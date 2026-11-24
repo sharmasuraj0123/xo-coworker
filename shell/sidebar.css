@@ -7,8 +7,8 @@
 
 .prow:not(.busy):not(.needs):not(.is-on){background:transparent;border-color:transparent;box-shadow:none}
 .prow:not(.busy):not(.needs):not(.is-on):hover{background:var(--row-hover)}
-.prow:not(.is-on) .pr-name{color:var(--ink-2)}
-.prow:not(.is-on):hover .pr-name,.prow.is-on .pr-name{color:var(--ink)}
+.prow:not(.is-on) .pr-name{color:var(--project-name-ink,var(--ink-2))}
+.prow:not(.is-on):hover .pr-name,.prow.is-on .pr-name{color:var(--project-name-ink,var(--ink))}
 .prow.is-on .pr-name{font-weight:var(--fw-medium)}
 
 /* the open project: the one raised card */

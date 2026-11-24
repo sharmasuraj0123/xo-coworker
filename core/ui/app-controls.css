@@ -1,5 +1,4 @@
 :root{--side-w:264px; --pw:clamp(392px,33vw,452px); --dock-h:150px}
-:root[data-theme="light"] .prow.needs .pr-name{color:var(--need-text)}
 
 ::selection{background:var(--fill-selection)}
 html,body{overflow:clip}
