@@ -33,7 +33,7 @@ test("pages cover the underlying sections and the shared header stays at the sta
 test("docked viewers use the panel width and do not hide the conversation dock", () => {
   const main = "body.viewer-open:not(.stage-open):not(.panel-open) .main";
   assert.ok(declarationsFor(main, "--rp").some((row) => row.value === "var(--vw)"));
-  assert.ok(stylesheetRows.some((row) => row.property === "--sw" && row.value === "360px"));
+  assert.ok(stylesheetRows.some((row) => row.property === "--sw" && resolveValue(row.value) === "360px"));
   assert.deepEqual(stylesheetRows.filter((row) => row.property === "--vw").map((row) => row.value), ["var(--sw)"]);
   assert.deepEqual(declarationsFor((selector) => /^body\.map-open.*\.main$/.test(selector), "--rp"), []);
   assert.ok(!declarationsFor("body.viewer-open .tdock", "display").some((row) => row.value === "none"));

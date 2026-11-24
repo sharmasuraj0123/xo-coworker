@@ -160,6 +160,10 @@
   --s-file-tab-gap:2px; --w-file-tab:220px; --ic-file-dirty:8px; --s-file-versions-gap:2px; --w-file-version-count:48px;
   --font-file-meta:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);
   --font-file-meta-code:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);
+  --w-stage-default:360px; --h-foundation-row:36px; --slide-panel-in:12px; --edge-panel-flush:rgba(0,0,0,.08);
+  --w-panel-grip-line:2px; --w-artifact-grid-card:148px; --w-header-xo-mark:20px; --h-header-xo-mark:8px;
+  --s-artifact-pane-seam:2px; --s-artifact-pane-tools:10px; --r-sidebar-focus:6px; --offset-workspace-link-ring:1px;
+  --offset-field-ring:-1px; --r-grip-ring:3px; --spread-field-halo:3px;
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
   --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
@@ -179,7 +183,6 @@
   --stroke-focus:2px; --offset-link-focus-in:1px; --offset-link-focus-out:2px; --r-link-focus:3px; --size-inline-link-code:.9em;
   --dock-gap:var(--s-3); --cbar-fade:30px;
   --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
-
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
   /* Hover starts faster than it releases. Floating surfaces leave faster than they enter. */
@@ -192,11 +195,9 @@
   --press-scale:.97;
   --tx-press-transform:transform var(--dur-fast) var(--ease);
 }
-
 /* Light uses a recessed sidebar, white content surfaces and short, low shadows. */
 :root[data-theme="light"]{
   color-scheme:light;
-
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
   --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
   --menu-focus:#EEEEEE;
@@ -238,7 +239,6 @@
   --sb-g17:#FFFFFF; --sb-g1A:#FFFFFF; --sb-g1C:#FFFFFF; --sb-g1F:#ECECEC; --sb-g22:#EDEDED; --sb-g26:#E3E3E3; --sb-g2A:#DBDBDB; --sb-g45:#ABABAB;
   --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
 @media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
-
 /* Toasts and lightboxes retain the dark surface roles in light mode. */
 :root[data-theme="light"] :is(.toast,.lbx){
   color-scheme:dark; color:var(--ink);

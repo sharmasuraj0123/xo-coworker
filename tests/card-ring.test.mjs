@@ -1,33 +1,49 @@
-// A card whose picture is positioned draws its focus ring above the picture (the controls grader on b340841, C013:
-// an Artifacts card's ring, drawn by its open control as an inset outline, lay under the thumbnail, which is
-// positioned and so paints over it; the top two-thirds were hidden in all four cells). A message's picture tiles had
-// the same cause. And a pinned card's pin answers hover (S094: the pinned colour was the stronger rule and held).
-//   node tests/card-ring.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const app = read("css/app.css"), media = read("modules/conversation/media/media.css"), fnd = read("css/foundation.css");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+const rules = publishedRules();
 
-t("an Artifacts card's ring is a layer above its picture, inside its edge; the open control draws none of its own", () => {
-  assert.match(app, /\.md-th\{position:relative;/, "the picture is positioned (why an inset outline lay under it)");
-  assert.match(app, /\.md-open:focus-visible\{outline:none\}/);
-  assert.match(app, /\.md-it:has\(\.md-open:focus-visible\)::after\{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px var\(--focus\)\}/);
-  assert.match(app, /\.md-it\{position:relative;/, "the card holds the layer");
-  assert.doesNotMatch(fnd, /:is\([^)]*\.md-open[^)]*\):focus-visible\{outline-offset:-2px\}/, "no inset outline for it in the shared list");
+/** @param {string} actual @param {string} expected */
+function sameValue(actual, expected) {
+  if (actual === expected) return true;
+  return JSON.stringify(resolveValue(actual)) === JSON.stringify(resolveValue(expected));
+}
+
+/** @param {string} selector @param {Record<string, string>} properties */
+function hasRule(selector, properties) {
+  return rules.some(rule => rule.sel === selector && Object.entries(properties).every(([name, expected]) =>
+    rule.declarations.some(({ p, v }) => p === name && sameValue(v, expected))));
+}
+
+test("the artifact card draws its keyboard ring above the picture", () => {
+  assert.ok(hasRule(".md-th", { position: "relative" }));
+  assert.ok(hasRule(".md-it", { position: "relative" }));
+  assert.ok(hasRule(".md-open:focus-visible", { outline: "none" }));
+  assert.ok(hasRule(".md-it:has(.md-open:focus-visible)::after", {
+    content: '""', position: "absolute", inset: "0", "z-index": "2",
+    "border-radius": "inherit", "pointer-events": "none", "box-shadow": "inset 0 0 0 2px var(--focus)",
+  }));
+  const sharedInset = rules.filter(({ sel }) => sel.startsWith(":is(") && sel.endsWith("):focus-visible"));
+  assert.ok(!sharedInset.some(rule => rule.sel.includes(".md-open")
+    && rule.declarations.some(({ p, v }) => p === "outline-offset" && resolveValue(v) === "-2px")));
 });
-t("a message's picture tile draws its ring above its picture too", () => {
-  assert.match(media, /\.mx-img\{position:absolute;/, "the picture is positioned");
-  assert.match(media, /\.mx-tile:focus-visible\{z-index:3;outline:none\}/);
-  assert.match(media, /\.mx-tile:focus-visible::after\{content:"";position:absolute;inset:0;z-index:3;[^}]*box-shadow:inset 0 0 0 2px var\(--focus\)\}/);
+
+test("a picture message draws its keyboard ring over the image", () => {
+  assert.ok(hasRule(".mx-img", { position: "absolute" }));
+  assert.ok(hasRule(".mx-tile:focus-visible", { "z-index": "3", outline: "none" }));
+  assert.ok(hasRule(".mx-tile:focus-visible::after", {
+    content: '""', position: "absolute", inset: "0", "z-index": "3", "box-shadow": "inset 0 0 0 2px var(--focus)",
+  }));
 });
-t("a pin answers hover, a pinned one too: its own rule at least as strong as the pinned colour", () => {
-  assert.match(app, /\.md-it\.is-pin \.md-pin\{color:var\(--accent\)\}/);
-  assert.match(app, /\.md-it\.is-pin \.md-pin:hover\{color:var\(--accent-hover\)\}/);
-  assert.match(app, /\.md-pin:hover\{background:color-mix\(in srgb,var\(--fill-3\) 92%,transparent\);color:var\(--ink\)\}/);
-  assert.match(app, /:root\[data-theme="light"\] \.md-pin:hover\{background:var\(--surface\)\}/);
-  assert.match(app, /:root\[data-theme="light"\] \.md-it\.is-pin \.md-pin:hover\{color:color-mix\(in srgb,var\(--accent\) 75%,var\(--ink\)\)\}/, "light's pinned glyph a step firmer, not the paler fill hover");
+
+test("hover styles distinguish the pinned glyph in both themes", () => {
+  assert.ok(hasRule(".md-it.is-pin .md-pin", { color: "var(--accent)" }));
+  assert.ok(hasRule(".md-it.is-pin .md-pin:hover", { color: "var(--accent-hover)" }));
+  assert.ok(hasRule(".md-pin:hover", { background: "color-mix(in srgb,var(--fill-3) 92%,transparent)", color: "var(--ink)" }));
+  assert.ok(hasRule(':root[data-theme="light"] .md-pin:hover', { background: "var(--surface)" }));
+  assert.ok(hasRule(':root[data-theme="light"] .md-it.is-pin .md-pin:hover',
+    { color: "color-mix(in srgb,var(--accent) 75%,var(--ink))" }));
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

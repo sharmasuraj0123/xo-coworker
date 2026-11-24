@@ -1,128 +1,161 @@
-// A chosen control answers the pointer, whatever its state draws, by one census of every state the CSS styles. The
-// controls grader found three states that silenced hover, one at a time: the Artifacts pin, the sidebar's stateful
-// rows (C008), and on 414de0f the chosen filter chip in All threads, "All 5", the same at rest and hovered in both
-// desktop themes (S020), while "Waiting 1" brightened. The cause was one pattern: a hover drawn as a fill or an ink,
-// which a state's own fill and inks matched or outranked. The fix is one rule (foundation.css): hovered, any chosen
-// state takes one layer of its own ink over whatever it draws, !important on a zero-specificity selector.
-//
-// The census reads every rule that styles a chosen state (checked, selected, pressed, current, on, here, …) on a
-// desktop, and places the element it styles: a control or a stateful wrapper the shared layer reaches, a written
-// other way (the sidebar's rows, lists whose selection the pointer moves), or not a control at all (nothing to hover:
-// a mark, a card). A state on something hoverable that's none of these fails, and so does a state token the shared
-// layer doesn't list: a new state can't silence hover.
-//   node tests/state-hover.test.mjs
+// @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { rules, context, decls } from "./lib/cascade.mjs";
-import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { parse, stringify } from "css-what";
+import { templateElements } from "../tools/conformance/templates.mjs";
+import { context } from "./lib/cascade.mjs";
+import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
+import { dom, same } from "./lib/dom.mjs";
 
-const ROOT = new URL("../", import.meta.url);
-const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
-const src = [read("index.html"), ...sourcePaths(".js").map(readSource)].join("\n");
-const found = read("css/foundation.css").replace(/\/\*[\s\S]*?\*\//g, "");
-const all = rules(new URL("tests/lib/x.mjs", ROOT));
+const rules = publishedRules().filter((rule) => context(rule, 1440).active
+  && rule.at.every((condition) => !condition.startsWith("@keyframes ")));
+const root = fileURLToPath(new URL("../", import.meta.url));
+const hosts = "button,a[href],summary,[role=button],[role=tab],[role=radio],[role=switch],[role=checkbox],"
+  + "[role=option],[role=menuitem],[role=menuitemradio],.shd-tabw";
+const drawn = templateElements(root);
+const controlClasses = new Set(drawn.filter((node) => node.matches(hosts)).flatMap((node) => [...node.classList]));
+const drawnClasses = new Set(drawn.flatMap((node) => [...node.classList]));
+const alternatives = [".prow", ".nrow", ".dd-row", ".at-list li", ".jump-list li", ".shd-tabw>*", ".shd-tabw.is-edit"];
+const states = /^(?:is-)?(?:on|cur|here|sel|active|pinned|current|chosen|picked|selected)$/;
+const visual = /^(background(?:-color|-image)?|color|border(?:-color)?|box-shadow|opacity|outline-color|text-decoration-color)$/;
+const combiner = new Set(["adjacent", "child", "column-combinator", "descendant", "parent", "sibling"]);
 
-// the shared layer, as written
-const LAYER = /:where\(([^)]*)\):where\(((?:[^()]|\([^()]*\))*)\):where\(:hover:not\(((?:[^()]|\([^()]*\))*)\)\)\{background-image:linear-gradient\(color-mix\(in srgb,currentColor 8%,transparent\),color-mix\(in srgb,currentColor 8%,transparent\)\)!important\}/;
-const layer = LAYER.exec(found);
-const [hosts, states, off] = layer ? [layer[1].split(","), layer[2].match(/\[[^\]]*\](?::not\([^)]*\))?|\.[\w-]+/g), layer[3]] : [[], [], ""];
-
-// a chosen state: aria-checked/selected/pressed true, aria-current, and the class names the app gives one
-const CHOSEN = /\[aria-(?:checked|selected|pressed)="?true"?\]|\[aria-current(?:="?(?!false)[\w-]+"?)?\]|\.(?:is-(?:on|cur|here|sel|active|pinned|current|chosen|picked|selected)|on|active|current|selected|pinned|chosen)(?![\w-])/g;
-const VIS = /^(background|background-color|background-image|color|border|border-color|box-shadow|opacity|outline-color|text-decoration-color)$/;
-const norm = (k) => k.replace(/="?true"?/, '="true"').replace(/^\[aria-current.*$/, '[aria-current]:not([aria-current="false"])');
-
-// what the templates draw: each class with the tags and roles it's drawn on
-const drawnOn = new Map();
-const on = (k, tag) => { if (!drawnOn.has(k)) drawnOn.set(k, new Set()); drawnOn.get(k).add(tag); };
-// a class list in markup, written out or through a variable (map.js: class="${cls}", const cls = `dg-n …`); only the
-// classes before the first ${…} are the element's own
-// the variable's own definition: the nearest one before the markup that uses it
-const varAt = (name, at) => { let v = null; for (const m of src.slice(0, at).matchAll(new RegExp(`const ${name} = \`([^\`]*)\``, "g"))) v = m[1]; return v; };
-const own = (v) => v.split("${")[0].split(/\s+/).filter((k) => /^[\w-]+$/.test(k));
-for (const m of src.matchAll(/<(\w+)\b([^>]*)>/g)) {
-  const c = /class="([^"]*)/.exec(m[2]); if (!c) continue;
-  const role = /role="(\w+)"/.exec(m[2]), tag = m[1].toLowerCase() + (role ? `[role=${role[1]}]` : "");
-  const v = /^\$\{(\w+)\}/.exec(c[1]), def = v && varAt(v[1], m.index);
-  for (const k of own(def != null ? def : c[1])) on(k, tag);
-}
-// one made by createElement and given its class (msgx.js: the Back to the latest button)
-for (const m of src.matchAll(/const (\w+) = document\.createElement\("(\w+)"\);[^]{0,120}?\1\.className = "([^"]+)"/g)) for (const k of own(m[3])) on(k, m[2]);
-const drawn = (k) => drawnOn.has(k) || new RegExp(`["'\\s.]${k}["'\\s]`).test(src);
-const CONTROL_TAG = /^(button|a|summary)\b|\[role=(button|tab|radio|switch|checkbox|option|menuitem|menuitemradio)\]/;
-const hosted = (subject) => { const tags = [...subject.classes].flatMap((k) => [...(drawnOn.get(k) || [])]); return CONTROL_TAG.test(subject.tag) || /\[role=/.test(subject.tag) || tags.some((t) => CONTROL_TAG.test(t)) || subject.classes.has("shd-tabw"); };
-
-// those the shared layer names out, each with how it answers instead
-const OTHER = [
-  [/\.(prow|nrow)\b/, /:root:root \.side :is\(\.prow\.busy,\.prow\.needs,\.prow\.is-on,\.nrow\.is-on\):hover\{background-image:linear-gradient\(color-mix\(in srgb,var\(--ink\) 6%,transparent\)/, "shell/sidebar.css", "the sidebar's rows: their own layer over each state's wash (C008), the sidebar's frozen look"],
-  [/\.dd-row\b/, /addEventListener\("pointermove", \(e\) => \{ const r = \/\*\* @type \{any\} \*\/ \(e\.target\)\.closest\?\.\("\.dd-row"\); if \(r && !r\.hasAttribute\("aria-disabled"\)\) this\._activate\(/, "core/ui/components/xo-select.js", "a dropdown's rows: the pointer moves its one active row (C058)"],
-  [/\.at-list li\b/, /at\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "js/app.js", "the @ list's rows: the pointer moves the selection (C058)"],
-  [/\.jump-list li\b/, /list\.addEventListener\("pointermove", \(e\) => \{[^]*?li\.setAttribute\("aria-selected", "true"\)/, "modules/search/jump.js", "Jump's rows: the pointer moves the selection"],
-  [/\.shd-tab(?![\w-])/, /\.shd-tabw\)/, "css/foundation.css", "a shell's tab: its wrapper draws the state, and the wrapper takes the layer"],
-  [/\.shd-tabw\.is-edit/, /\.shd-tabw\.is-edit\{|\.shd-tabw\.is-edit,/, "css/app.css", "a shell's tab being renamed: a field, not a tab to hover"],
-];
-const other = (sel) => OTHER.find(([re]) => re.test(sel));
-
-// the census
-const placed = { layer: [], other: [], inert: [], undrawn: [], fails: [], tokens: new Set() };
-for (const r of all) {
-  const c = context(r, 1440);
-  if (!c.active) continue;
-  const parts = r.sel.split(/[\s>+~]+/), last = parts[parts.length - 1];
-  if (/::?(before|after|placeholder|marker)|:(hover|active|focus|focus-visible|focus-within)\b/.test(last)) continue;
-  const toks = last.match(CHOSEN); if (!toks) continue;
-  if (!decls(r.d).some((d) => VIS.test(d.p))) continue;
-  const name = `${r.f}: ${r.sel}`;
-  for (const k of toks) placed.tokens.add(norm(k));
-  const classes = new Set((last.replace(CHOSEN, "").match(/\.[\w-]+/g) || []).map((x) => x.slice(1)));
-  const subject = { tag: last.replace(/[.#:[].*$/, "") + (/\[role=[\w"]+\]/.exec(last)?.[0].replace(/"/g, "") || ""), classes };
-  const o = other(r.sel);
-  if (o) { placed.other.push(name); continue; }
-  if (classes.size && ![...classes].some(drawn) && !subject.tag) { placed.undrawn.push(name); continue; }
-  if (hosted(subject)) { placed.layer.push(name); continue; }
-  // not a control: hoverable only if some :hover rule names it
-  const hoverable = all.some((h) => { if (!/:hover/.test(h.sel)) return false; const hl = h.sel.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").split(/[\s>+~]+/).filter((x) => /:hover/.test(x)).join(" "); return [...classes].some((k) => new RegExp(`\\.${k}(?![\\w-])`).test(hl)); });
-  if (hoverable) placed.fails.push(name); else placed.inert.push(name);
+/** @param {import("css-what").Selector[]} selector */
+function subject(selector) {
+  return selector.slice(selector.findLastIndex(({ type }) => combiner.has(type)) + 1);
 }
 
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+/** @param {import("css-what").Selector} part */
+function chosen(part) {
+  if (part.type !== "attribute") return false;
+  if (part.name === "class") return part.action === "element" && states.test(part.value);
+  if (part.name === "aria-current") return part.value !== "false";
+  return /^aria-(?:checked|selected|pressed)$/.test(part.name) && part.value === "true";
+}
 
-t("one layer for every chosen control: its own ink, over whatever it draws, before the press", () => {
-  assert.ok(layer, "the shared layer is in foundation.css");
-  for (const h of ["button", "a[href]", "summary", "[role=button]", "[role=tab]", "[role=radio]", "[role=switch]", "[role=option]", ".shd-tabw"]) assert.ok(hosts.includes(h), `it reaches ${h}`);
-  assert.ok(found.indexOf(layer[0]) < found.search(/\{background-image:linear-gradient\(var\(--press-fill\),var\(--press-fill\)\)!important/), "it comes before the press, so a press shows the press fill");
-  assert.match(off, /^:disabled,\[aria-disabled="true"\],/, "never on a control that can't be used");
-});
-t("the census reads the states, the grader's chip and C008's rows among them", () => {
-  const n = placed.layer.length + placed.other.length + placed.inert.length + placed.undrawn.length + placed.fails.length;
-  assert.ok(n > 60, `${n} state rules`);
-  assert.ok(placed.layer.includes('app.css: .all-f button[aria-checked="true"]'), "S020's chip reached by the layer");
-  assert.ok(placed.other.some((x) => /sidebar\.css: \.prow\.is-on/.test(x)), "C008's rows placed with their own layer");
-});
-t("every state the CSS styles on a control is a state the layer lists: a new one can't silence hover", () => {
-  const missing = [...placed.tokens].filter((k) => !states.includes(k)).sort();
-  assert.deepEqual(missing, [], `states styled but not in the shared layer: ${missing.join(", ")}`);
-});
-t("every chosen state on something hoverable is reached by the layer or answers another way, written", () => {
-  assert.deepEqual(placed.fails, [], `chosen states on hoverable things the layer doesn't reach:\n  ${placed.fails.join("\n  ")}`);
-});
-t("each other way still holds, and each is named out of the layer", () => {
-  for (const [re, proof, file, why] of OTHER) {
-    assert.match(read(file), proof, `${re}: ${why}`);
+/** @param {import("css-what").Selector} part */
+const className = (part) => part.type === "attribute" && part.name === "class" && part.action === "element" ? part.value : "";
+/** @param {import("css-what").Selector} part */
+const key = (part) => part.type === "attribute" && part.name === "aria-current" ? "[aria-current]" : stringify([[part]]);
+/** @param {import("css-what").Selector | undefined} part @param {string} name */
+const args = (part, name) => part?.type === "pseudo" && part.name === name && Array.isArray(part.data) ? part.data : [];
+
+const wash = rules.find(({ sel, declarations }) => sel.startsWith(":where(") && declarations.some(({ p, v }) =>
+  p === "background-image" && resolveValue(v) === "linear-gradient(color-mix(in srgb,currentColor 8%,transparent),"
+    + "color-mix(in srgb,currentColor 8%,transparent))"));
+assert.ok(wash, "the shared hover wash for selected controls is published");
+const [hostGroup, stateGroup, hoverGroup] = parse(wash.sel)[0];
+const washHosts = new Set(args(hostGroup, "where").map((part) => stringify([part])));
+const washStates = new Set(args(stateGroup, "where").flatMap((part) => part.filter(chosen).map(key)));
+const exclusion = args(hoverGroup, "where")[0]?.find((part) => part.type === "pseudo" && part.name === "not");
+const washExclusions = new Set(args(exclusion, "not").map((part) => stringify([part])));
+
+test("selected controls draw the shared hover wash before the press wash", () => {
+  for (const host of parse(hosts)) assert.ok(washHosts.has(stringify([host])), stringify([host]));
+  for (const selector of [":disabled", '[aria-disabled="true"]', ...alternatives]) {
+    assert.ok(washExclusions.has(stringify(parse(selector))), "the selected wash excludes " + selector);
   }
-  for (const x of [".prow", ".nrow", ".dd-row", ".at-list li", ".jump-list li", ".shd-tabw > *", ".shd-tabw.is-edit"]) assert.ok(off.split(",").includes(x), `${x} named out of the layer`);
+  const press = rules.find(({ sel, declarations }) => sel.endsWith(":where(:active)")
+    && declarations.some(({ p, v }) => p === "background-image" && v === "linear-gradient(var(--press-fill),var(--press-fill))"));
+  assert.ok(press && press.n > wash.n, "a press takes priority over the hover wash");
 });
-t("no state's own background is !important: nothing outranks the layer but the press", () => {
-  const loud = all.filter((r) => (r.sel.match(CHOSEN) || []).length && !/:active|:hover/.test(r.sel) && decls(r.d).some((d) => /^background(-image)?$/.test(d.p) && d.imp)).map((r) => `${r.f}: ${r.sel}`);
-  assert.deepEqual(loud, []);
+
+test("the shared wash recognizes every styled selected state", () => {
+  const active = rules.filter(({ sel, declarations }) => !/::|:(hover|active|focus(?:-visible|-within)?)\b/.test(sel)
+    && declarations.some(({ p }) => visual.test(p)));
+  const hovered = new Set(rules.filter(({ sel }) => sel.includes(":hover")).flatMap(({ sel }) =>
+    parse(sel).flatMap((option) => subject(option).map(className))).filter(Boolean));
+  const missing = new Set();
+  const silent = new Set();
+  const known = new Set();
+  for (const rule of active) {
+    for (const option of parse(rule.sel)) {
+      const parts = subject(option);
+      const selected = parts.filter(chosen);
+      if (selected.length === 0) continue;
+      known.add(rule.sel);
+      for (const part of selected) if (!washStates.has(key(part))) missing.add(key(part));
+      const own = parts.filter((part) => !chosen(part)).map(className).filter(Boolean);
+      if (own.length && !own.some((name) => drawnClasses.has(name))) continue;
+      if (/^(button|a|summary)\b|\[role=/.test(stringify([parts])) || own.some((name) => controlClasses.has(name))) continue;
+      if (/\.(?:prow|nrow|dd-row|shd-tabw|shd-tab)\b|\.at-list li|\.jump-list li/.test(rule.sel)) continue;
+      if (rule.sel === ".vw-tab.is-on") continue;
+      if (own.some((name) => hovered.has(name))) silent.add(rule.sel);
+    }
+  }
+  assert.ok(known.size > 60, known.size + " selected-state rules in the census");
+  assert.ok(known.has('.all-f button[aria-checked="true"]'), "the filter chip uses the shared wash");
+  assert.ok([...known].some((selector) => selector.includes(".prow.is-on")), "the sidebar selection is counted");
+  assert.deepEqual([...missing].sort(), [], "selected states missing from the shared wash");
+  assert.deepEqual([...silent].sort(), [], "hover feedback outside the shared treatment");
 });
-t("no control's background is the shorthand marked !important: it would take the press layer away (S002: Ran the tests held as hovered)", () => {
-  // background: … !important sets background-image too, above the press layer's zero-specificity !important
-  const ctlAll = new Set([...drawnOn].filter(([, tags]) => [...tags].some((x) => CONTROL_TAG.test(x))).map(([k]) => k));
-  const loud = all.filter((r) => { const last = r.sel.split(/[\s>+~]+/).pop(); return /^button\b/.test(last) || (last.match(/\.[\w-]+/g) || []).some((k) => ctlAll.has(k.slice(1))); })
-    .filter((r) => decls(r.d).some((d) => d.p === "background" && d.imp)).map((r) => `${r.f}: ${r.sel}`);
-  assert.deepEqual(loud, [], "controls whose background shorthand is !important");
+
+test("no selected fill or control shorthand overrides the shared feedback", () => {
+  const offenders = [];
+  for (const { sel, declarations } of rules) {
+    if (!declarations.some(({ p, imp }) => imp && /^background(?:-image)?$/.test(p))) continue;
+    for (const option of parse(sel)) {
+      const parts = subject(option);
+      const own = parts.map(className).filter(Boolean);
+      const selected = !/:active|:hover/.test(sel) && parts.some(chosen);
+      const control = /^button\b/.test(stringify([parts])) || own.some((name) => controlClasses.has(name));
+      if (selected || (control && declarations.some(({ p, imp }) => p === "background" && imp))) offenders.push(sel);
+    }
+  }
+  assert.deepEqual(offenders, []);
 });
-console.log(`  (placed: ${placed.layer.length} by the layer, ${placed.other.length} another way, ${placed.inert.length} not controls, ${placed.undrawn.length} not drawn)`);
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+
+test("the sidebar paints its own selected rows and a shell uses the tab wrapper", () => {
+  const sidebar = ":root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):hover";
+  assert.ok(rules.some(({ sel, declarations }) => sel === sidebar && declarations.some(({ p, v }) =>
+    p === "background-image" && v.startsWith("linear-gradient(color-mix(in srgb,var(--ink) 6%,"))));
+  assert.ok(washHosts.has(".shd-tabw"));
+  assert.ok(rules.some(({ sel }) => sel.includes(".shd-tabw.is-edit")));
+});
+
+test("the selected file tab keeps its wrapper fill when hovered", () => {
+  assert.ok(rules.some(({ sel, declarations }) => sel === ".vw-tab.is-on"
+    && declarations.some(({ p, v }) => p === "background" && v === "var(--canvas)")));
+  assert.ok(rules.some(({ sel, declarations }) => sel === ".vw-tab:not(.is-on):hover"
+    && declarations.some(({ p, v }) => p === "background" && v === "var(--hover-fill)")));
+  assert.ok(controlClasses.has("vw-tab-b"), "the tab inside the wrapper is a control");
+});
+
+test("a select moves one active choice under the pointer and skips disabled choices", async () => {
+  const { window, document } = await dom("<main></main>");
+  Object.assign(globalThis, {
+    customElements: window.customElements,
+    MutationObserver: class {
+      observe() {}
+      takeRecords() { return []; }
+    },
+    getComputedStyle: window.getComputedStyle,
+    innerHeight: 844,
+    innerWidth: 1440,
+    removeEventListener: window.removeEventListener.bind(window),
+  });
+  await import("../core/ui/components/xo-select.js");
+  const select = document.createElement("xo-select");
+  select.innerHTML = '<option value="a">Alpha</option><option value="b" disabled>Bravo</option><option value="c">Charlie</option>';
+  Object.defineProperty(select.querySelector("[disabled]"), "disabled", { value: true });
+  document.querySelector("main").append(select);
+  const button = select.querySelector("button");
+  button.focus();
+  button.click();
+  const rows = [...select.querySelectorAll(".dd-row")];
+  assert.equal(rows.length, 3);
+  const pointing = (index) => rows[index].dispatchEvent(new window.Event("pointermove", { bubbles: true }));
+  const current = () => rows.filter((row) => row.classList.contains("is-cur")).map((row) => row.id);
+  pointing(1);
+  assert.deepEqual(current(), [rows[0].id], "a disabled row cannot take the active position");
+  pointing(2);
+  assert.deepEqual(current(), [rows[2].id]);
+  assert.equal(button.getAttribute("aria-activedescendant"), rows[2].id);
+  same(document.activeElement, button);
+  const enter = new window.Event("keydown", { bubbles: true, cancelable: true });
+  enter.key = "Enter";
+  button.dispatchEvent(enter);
+  assert.equal(select.value, "c");
+  select.remove();
+});

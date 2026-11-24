@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { parse, stringify } from "css-what";
 import { regionRings } from "../core/ui/a11y/ring.js";
 import { stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
 import { dom } from "./lib/dom.mjs";
@@ -31,8 +32,9 @@ test("field wrappers covered by the shared focus rule have no extra ring", () =>
 test("bordered fields draw keyboard focus on their own edge", () => {
   const fieldTypes = ["checkbox", "radio", "range", "button", "submit", "reset", "file", "color", "image"];
   const except = fieldTypes.map((type) => `[type=${type}]`).join(",");
-  const selector = `:is(input:not(${except}),textarea,select,.dd-btn):focus-visible`;
-  assert.deepEqual(valuesFor(selector, "outline-offset"), ["-1px"]);
+  const selector = stringify(parse(`:is(input:not(${except}),textarea,select,.dd-btn):focus-visible`));
+  const sharedFieldRing = (candidate) => candidate.startsWith(":is(input:not(") && stringify(parse(candidate)) === selector;
+  assert.deepEqual(valuesFor(sharedFieldRing, "outline-offset"), ["-1px"]);
   const fields = (candidate) => !candidate.includes(":has(")
     && /(^|[\s,(>])(?:input|textarea|select)\b[^,]*:focus/.test(candidate);
   for (const offset of valuesFor(fields, "outline-offset").flat()) {
