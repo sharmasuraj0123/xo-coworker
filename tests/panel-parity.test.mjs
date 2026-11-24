@@ -80,7 +80,7 @@ t("8 · the room under the last message is each conversation's own", () => {
   assert.match(app, /TP\.dockRO = watchDock\(els\.dock, box\);/, "its dock measured as the chat's is (is-stacked too)");
 });
 t("9 · a link in the panel keeps the message it points at, and a thread link opens the panel's way", () => {
-  const o = fn(app, "function openFromPanel(");
+  const o = read("modules/threads/open-panel-thread.js");
   assert.match(o, /msg = e\?\.target\?\.closest\?\.\("\[data-go\]"\)\?\.dataset\.goMsg;/);
   assert.match(o, /if \(msg\) showMsg\(msg, TP\.C\); return;/);
   assert.match(o, /go\(v, \{ panel: true \}\);\n\s*if \(msg\) showMsg\(msg\);/);

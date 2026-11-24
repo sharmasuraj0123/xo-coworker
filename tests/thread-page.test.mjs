@@ -28,7 +28,7 @@ assert.match(app, /if \(!t\) \{ STAGE\.closePage\("thread"\); return; \}/);
 // watched beside the main thread (storm keeps both)
 assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
 // opening: beside a chat, from the panel's rows; ⌘/Ctrl-click or elsewhere: today's full page
-const ofp = app.slice(app.indexOf("function openFromPanel("), app.indexOf("\n}\n", app.indexOf("function openFromPanel(")));
+const ofp = readFileSync(new URL("../modules/threads/open-panel-thread.js", import.meta.url), "utf8");
 assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\),/);
 assert.match(ofp, /!\(e && \(e\.metaKey \|\| e\.ctrlKey\)\)/);
 assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); if \(msg\) showMsg\(msg, TP\.C\); return;/);

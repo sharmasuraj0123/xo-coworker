@@ -7583,8 +7583,8 @@
    "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2791)"
   },
   "js/app.js::functions::openFromPanel": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2806)"
+   "status": "moved",
+   "home": "modules/threads/open-panel-thread.js"
   },
   "js/app.js::functions::createConv": {
    "status": "planned",

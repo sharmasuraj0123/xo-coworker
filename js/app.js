@@ -63,6 +63,7 @@ import { threadsCtl } from "../modules/threads/header.js";
 import { createAllThreads } from "../modules/threads/all.js";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadDeleteView } from "../modules/threads/delete-view.js";
+import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
@@ -2213,12 +2214,7 @@ function toMain(id) {
   STAGE.closePage("thread"); go("t:" + id, { panel: true });
 }
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-main]"); if (b) toMain(b.dataset.tpMain); });
-function openFromPanel(v, e) {
-  const besideChat = S.view === "ws" || S.view.startsWith("p:"), msg = e?.target?.closest?.("[data-go]")?.dataset.goMsg;
-  if (v && v.startsWith("t:") && besideChat && !(e && (e.metaKey || e.ctrlKey)) && world.thread(v.slice(2))) { STAGE.show("thread", v.slice(2), { focus: true }); if (msg) showMsg(msg, TP.C); return; }
-  go(v, { panel: true });
-  if (msg) showMsg(msg);
-}
+const openFromPanel = createPanelThreadOpener({ S, world, STAGE, TP, go, showMsg });
 
 // ── render ──────────────────────────────────────────────────────────────────
 const scroller = $("#scroller"), msgsEl = $("#msgs");

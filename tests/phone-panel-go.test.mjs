@@ -65,5 +65,5 @@ t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wa
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 
 // openFromPanel: what isn't a thread page beside a chat still goes as the panel's own link
-{ const app2 = readFileSync(new URL("../js/app.js", import.meta.url), "utf8"); const f = app2.slice(app2.indexOf("function openFromPanel("), app2.indexOf("\n}\n", app2.indexOf("function openFromPanel(")));
+{ const f = read("modules/threads/open-panel-thread.js");
   if (!/go\(v, \{ panel: true \}\);/.test(f)) { console.error("  FAIL openFromPanel passes panel"); process.exitCode = 1; } }
