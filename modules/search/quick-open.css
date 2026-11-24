@@ -5,7 +5,7 @@
 }
 .qo-opts{display:flex;gap:var(--s-1);padding:var(--s-quick-options-block) var(--s-4);border-bottom:var(--hair) solid var(--line-soft)}
 .qo-opt{
-  height:var(--h-sm);min-width:var(--h-sm);padding:0 var(--s-quick-option-inline);border:var(--hair) solid var(--line);
+  padding:max(0px, (var(--h-sm) - 1lh - 2 * var(--hair)) / 2) var(--s-quick-option-inline);border:var(--hair) solid var(--line);
   border-radius:var(--r-xs);background:none;color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--mono);
   cursor:pointer
 }
