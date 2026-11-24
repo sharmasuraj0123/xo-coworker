@@ -7331,24 +7331,24 @@
    "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::chipHtml": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2112)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::trayRender": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2129)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::addFiles": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2150)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::insertText": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2166)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::wireTray": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2174)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::growSay": {
    "status": "moved",

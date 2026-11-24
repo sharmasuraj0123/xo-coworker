@@ -46,6 +46,7 @@ import { createConversationStarts } from "../modules/conversation/start.js";
 import { createConversationHeader } from "../modules/conversation/header.js";
 import { createComposerControls } from "../modules/conversation/composer-controls.js";
 import { createComposer } from "../modules/conversation/composer.js";
+import { createComposerAttachments } from "../modules/conversation/composer-attachments.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
@@ -101,7 +102,7 @@ import { createGhPage } from "../modules/github/page.js";
 import { fileIcon } from "./fileicons.js";
 import { setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { createChangesFrame } from "../modules/changes/frame.js";
-import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
+import { createTray } from "./attach.js";
 import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
 import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
@@ -1015,10 +1016,7 @@ const canAttach = (v) => v !== "chats" && !CH.isChats(v);
 /** The chat id a file added here uploads to: the Workspace, the project, or the thread's project. */
 const attachChat = (v) => { const p = chatOf(v); return p && world.act.chatId ? world.act.chatId(p) : null; };
 const filesHere = (view = S.view) => (canAttach(view) ? tray.status(view) : { count: 0, busy: false, failed: false });
-// An image chip shows the picture itself, from the bytes the browser already holds: no request.
-const thumbs = new WeakMap(); // blob → object URL, freed when the chip leaves the composer
-const thumbOf = (c) => { let u = thumbs.get(c.blob); if (!u) { u = URL.createObjectURL(c.blob); thumbs.set(c.blob, u); } return u; };
-const dropThumb = (c) => { const u = c && thumbs.get(c.blob); if (u) { URL.revokeObjectURL(u); thumbs.delete(c.blob); } };
+const { trayRender, addFiles, insertText, wireTray, dropThumb } = createComposerAttachments({ MK, tray, canAttach, attachChat, announce, heraldShow, updateComposer: (K) => updateComposer(K), saveDraft, VW });
 const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack, editFailed } = createDelivery({
   S, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt: (node) => composerAt(node),
   filesHere, tray, dropThumb, saveDraft, updateComposer: (K) => updateComposer(K), growSay: (K) => growSay(K), announce, heraldShow, heraldFor, schedule, render: () => render(), go,
@@ -1026,107 +1024,9 @@ const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack
 const { targetLineRender, syncPlaceholder } = createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, convProject, liveBlock, isBusy, sendWhileRunning, noun });
 const { chipRender, sendRender, chatTargetRender } = createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock });
 const { atRender, atClose, pickAt } = createMentionList({ MK, world, projects, projectIcon, isBusy, saveDraft, updateComposer: (K) => updateComposer(K) });
-function chipHtml(c) {
-  const img = c.type ? kindOf(c.type) === "image" : /^image\//.test(c.blob?.type || "");
-  const thumb = img && c.blob && c.state !== "failed";
-  // once uploaded it opens in the viewer, like a sent message's file
-  const ic = thumb ? `<img src="${esc(thumbOf(c))}" alt="" decoding="async">` : img ? ICON.image : ICON.doc;
-  const state = c.state === "failed" ? `<span class="att-err">${esc(uploadErrorText(c.err))}</span>`
-    : c.state === "uploading" ? `<span class="att-pct">Uploading</span>` : "";
-  const sub = [c.paste ? esc(c.name) : esc(fmtSize(c.bytes ?? c.size)), state].filter(Boolean).join(" · ");
-  const btn = (a, label, icon, extra = "") => `<button type="button" class="att-b" data-a="${a}" aria-label="${esc(label)}" title="${esc(label)}"${extra}>${icon}</button>`;
-  return `<li class="att st-${c.state}${c.paste ? " is-paste" : ""}" data-lid="${esc(c.lid)}"${c.err ? ` title="${esc(c.err.message || "")}"` : ""}>` +
-    (thumb && c.id ? `<button type="button" class="att-ic is-img" data-a="view" aria-label="Preview ${esc(c.name)}" title="Preview">${ic}</button>` : `<span class="att-ic${thumb ? " is-img" : ""}">${ic}</span>`) +
-    `<span class="att-t"><span class="att-n">${esc(c.paste ? pasteLabel(c.paste) : c.name)}</span><span class="att-m">${sub}</span></span>` +
-    (c.paste ? btn("view", "Preview the pasted text", ICON.eye) + `<button type="button" class="att-tx" data-a="inline" title="Put it back in the message as text">As text</button>` : "") +
-    (c.state === "failed" && !FINAL.has(c.err?.code) ? btn("retry", `Retry ${c.name}`, ICON.retry) : "") +
-    btn("x", `Remove ${c.paste ? "the pasted text" : c.name}`, ICON.close) +
-    `<i class="att-bar" aria-hidden="true"></i></li>`;
-}
-function trayRender(K = MK) {
-  const on = canAttach(K.view);
-  K.attach.hidden = !on;
-  const list = on ? tray.list(K.view) : [];
-  K.tray.hidden = !list.length;
-  K.note.hidden = !list.length;
-  K.form.classList.toggle("has-files", !!list.length);
-  const html = list.map(chipHtml).join("");
-  // in place (js/redraw.js): a chip whose upload finishes or fails is the same chip, its Remove the same button,
-  // so a focused Remove keeps focus (Astra H28)
-  if (K.tray._h !== html) { redraw(K.tray, html); K.tray._h = html; }
-  // progress moves without redrawing the chips (a focused Remove stays focused)
-  for (const c of list) {
-    const el = K.tray.querySelector(`[data-lid="${CSS.escape(c.lid)}"]`);
-    if (!el) continue;
-    const p = c.state === "uploading" ? Math.min(1, (c.sent || 0) / Math.max(1, c.size)) : c.state === "done" ? 1 : 0;
-    el.style.setProperty("--p", String(p));
-    const pct = el.querySelector(".att-pct");
-    if (pct) pct.textContent = c.sent ? `${Math.floor(p * 100)}%` : "Uploading";
-  }
-}
-function addFiles(files, K = MK) {
-  const list = [...(files || [])];
-  if (!list.length) return;
-  if (!canAttach(K.view)) { announce("Files can't be attached in this conversation."); return; }
-  const chat = attachChat(K.view);
-  if (!chat) { heraldShow({ kind: "stopped", text: "Files can't be attached yet", sub: "still connecting to XO" }, 4600); return; }
-  const refused = tray.add(K.view, chat, list);
-  const took = list.length - refused.length;
-  if (refused.length) {
-    heraldShow({ kind: "stopped", text: refused.length === 1 ? `${refused[0].name} wasn't attached` : `${refused.length} files weren't attached`, sub: refused[0].why }, 6000);
-    announce(`${refused.map((r) => `${r.name}: ${r.why}`).join(" ")}`);
-  }
-  if (took) announce(`${took === 1 ? "1 file" : `${took} files`} uploading.`);
-  updateComposer(K);
-  K.say.focus({ preventScroll: true });
-}
-function insertText(text, K = MK) {
-  K.say.focus({ preventScroll: true });
-  K.say.setRangeText(text, K.say.selectionStart, K.say.selectionEnd, "end");
-  updateComposer(K); saveDraft(K);
-}
 $("#attach").innerHTML = ICON.clip;
 $("#attach").addEventListener("click", () => attInput.click());
 attInput.addEventListener("change", () => { addFiles(attInput.files); attInput.value = ""; });
-function wireTray(K) {
-K.tray.addEventListener("click", (e) => {
-  const b = e.target.closest("[data-a]");
-  const li = b && b.closest("[data-lid]");
-  if (!li) return;
-  const lid = li.dataset.lid, c = tray.list(K.view).find((x) => x.lid === lid);
-  if (!c) return;
-  if (b.dataset.a === "x") {
-    // just drop its id: the server sweeps a file no message names. Focus goes on first, to the next chip's Remove
-    // (or the composer), so it never sits on a chip that's going
-    const next = li.nextElementSibling?.querySelector("[data-a=x]") || li.previousElementSibling?.querySelector("[data-a=x]");
-    if (li.contains(document.activeElement)) (next || K.say).focus({ preventScroll: true });
-    dropThumb(tray.remove(K.view, lid));
-    announce(`${c.paste ? "The pasted text" : c.name} removed.`);
-    trayRender(K);
-  } else if (b.dataset.a === "retry") {
-    // Retry goes as the upload starts again: focus moves first to the same chip's Remove, which stays (H28)
-    if (b === document.activeElement) li.querySelector("[data-a=x]")?.focus({ preventScroll: true });
-    tray.retry(K.view, lid);
-    trayRender(K);
-  }
-  else if (b.dataset.a === "view") VW.open(c.paste != null ? { name: c.name, bytes: c.size, local: c.paste } : { name: c.name, type: c.type, bytes: c.bytes ?? c.size, att: { chat: c.chat, id: c.id } }, b);
-  else if (b.dataset.a === "inline") { tray.remove(K.view, lid); insertText(c.paste, K); announce("The pasted text is back in the message."); }
-});
-K.say.addEventListener("paste", (e) => {
-  const cd = e.clipboardData;
-  if (!cd || !canAttach(K.view)) return;
-  const files = [...(cd.files || [])];
-  if (files.length) { e.preventDefault(); addFiles(files, K); return; }
-  const text = cd.getData("text/plain");
-  if (!text || !isLargePaste(text)) return;
-  const chat = attachChat(K.view);
-  if (!chat) return; // not connected yet: it goes in as text
-  e.preventDefault();
-  if (!tray.addPaste(K.view, chat, text)) { insertText(text, K); announce(`A message takes at most ${MAX_FILES} files, so the paste went in as text.`); return; }
-  announce("The long paste was added as a file. As text puts it back in the message.");
-  updateComposer(K);
-});
-}
 wireTray(MK);
 const { wireComposer, growSay, updateComposer } = createComposer({
   MK, say, trayRender, chipRender, lrefRender: () => lrefRender(), chatTargetRender, syncPlaceholder, sendRender,
