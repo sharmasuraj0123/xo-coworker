@@ -68,6 +68,7 @@ const original = image(), lightbox = image(), detached = image();
 const first = showSrc(original, album[0]);
 const duplicate = showSrc(lightbox, album[0]);
 const cancelled = showSrc(detached, album[1]);
+await settle();
 detached.remove();
 shared.resolve(new Blob());
 await Promise.all([first, duplicate, cancelled]);

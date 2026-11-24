@@ -2730,7 +2730,11 @@
     "core/services/media/images.js",
     "core/services/media/intersection.js",
     "core/services/media/cache.js",
-    "core/services/media/stack-data.js"
+    "core/services/media/stack-data.js",
+    "core/services/media/image-scope.js",
+    "core/services/media/object-urls.js",
+    "core/services/media/picture-load.js",
+    "core/services/media/project-images.js"
    ],
    "note": "js/media.js re-exports the shared media modules"
   },
@@ -10613,11 +10617,11 @@
   },
   "js/media.js::functions::watch": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/picture-load.js"
   },
   "js/media.js::functions::start": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/picture-load.js"
   },
   "js/media.js::functions::hydrateMedia": {
    "status": "moved",

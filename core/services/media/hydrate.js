@@ -2,17 +2,17 @@
 
 import { createScope } from "../../kernel/scope.js";
 import { createLru } from "../../platform/cache.js";
-import { fadeImage, EASE, MOVE, still } from "../../ui/motion.js";
+import { EASE, MOVE, still } from "../../ui/motion.js";
 import { labelOf } from "./items.js";
 import { MEDIA_CACHE_MAX, markWebGone } from "./cache.js";
 import { mediaItemOf, stackItems, setStackItems } from "./stack-data.js";
 import { webLinkHtml } from "./render.js";
-import { cachedSrc, forgetSrc, showSrc } from "./images.js";
-import { watchNear } from "./intersection.js";
+import { cachedSrc, forgetSrc } from "./images.js";
+import { loadPicture } from "./picture-load.js";
 
 /** @typedef {ReturnType<typeof import("./items.js").mediaItem>} MediaItem */
 
-/** @typedef {HTMLImageElement & {_mx?: boolean, _mxSlow?: ReturnType<typeof setTimeout>, dataset: {mxImg: string}}} MediaImage */
+/** @typedef {HTMLImageElement & {_mx?: boolean, dataset: {mxImg: string}}} MediaImage */
 
 /** @typedef {HTMLElement & {_mxGone?: boolean}} MediaBox */
 
@@ -20,7 +20,6 @@ import { watchNear } from "./intersection.js";
 
 /** @type {ReturnType<typeof createLru<string, MediaImage>>} */
 const shown = createLru({ max: MEDIA_CACHE_MAX });
-const SLOW_MS = 3000;
 
 /** @param {Element | null} box @param {string | null} cls @param {string} [text] */
 function stateOf(box, cls, text) {
@@ -32,7 +31,6 @@ function stateOf(box, cls, text) {
 }
 /** @param {MediaImage} img @param {HTMLElement | null} box @param {string} key */
 function landed(img, box, key) {
-  clearTimeout(img._mxSlow);
   stateOf(box, null);
   box && box.classList.add("is-in");
   if (box && box.classList.contains("mx-one") && box.classList.contains("is-frame")) settle(img, box);
@@ -62,7 +60,6 @@ function settle(img, box) {
 }
 /** @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem | null} [it] */
 function failed(img, box, it) {
-  clearTimeout(img._mxSlow);
   img.style.opacity = "0";
   if (it && it.web) { webFailed(box, it); return; }
   stateOf(box, "is-err", `Couldn't load ${it ? labelOf(it) : "this picture"} · Retry`);
@@ -129,22 +126,15 @@ if (typeof document !== "undefined") {
     if (t) { if (face.dataset.tone !== t) face.dataset.tone = t; } else if (face.dataset.tone) delete face.dataset.tone;
   }, true);
 }
-/** Show an <img> once it has decoded (motion.js fadeImage); one already decoded (cached) shows at once. @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem | null} [it] */
-function watch(img, box, it) {
-  const key = img.dataset.mxImg;
-  if (img.complete && img.naturalWidth) { landed(img, box, key); return; }
-  fadeImage(img);
-  img.addEventListener("load", () => landed(img, box, key), { once: true });
-  img.addEventListener("error", () => failed(img, box, it), { once: true });
-}
-/** A picture near the screen starts loading; one that takes over 3 s says so (never a spinner). @param {MediaImage} img */
-function start(img) {
-  const box = /** @type {MediaBox | null} */ (img.closest(".mx-one,.mx-tile"));
-  const it = mediaItemOf(img.dataset.mxImg, img);
-  if (img.complete && img.naturalWidth) return;
-  img._mxSlow = setTimeout(() => { if (!(img.complete && img.naturalWidth) && !/** @type {MediaBox} */ (box).classList.contains("is-err")) stateOf(box, "is-slow", "Loading…"); }, SLOW_MS);
-  if (img.getAttribute("src")) return;
-  showSrc(img, it).then(() => { if (img.isConnected) watch(img, box, it); }, () => { if (img.isConnected) failed(img, box, it); });
+/** @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem | null} item @param {boolean} near */
+function prepare(img, box, item, near) {
+  loadPicture(img, item, {
+    near,
+    ready: () => landed(img, box, img.dataset.mxImg),
+    failed: () => failed(img, box, item),
+    slow: () => stateOf(box, "is-slow", "Loading…"),
+    removed: () => { img._mx = false; },
+  });
 }
 
 /** @param {HTMLElement | null | undefined} root */
@@ -160,9 +150,7 @@ export function hydrateMedia(root) {
     const same = old && !old.isConnected && old.complete && old.naturalWidth && (img.getAttribute("src") || u) === old.getAttribute("src");
     if (same) { old.className = img.className; img.replaceWith(old); box && box.classList.add("is-in"); continue; }
     if (u && !img.getAttribute("src")) img.src = u;
-    if (img.getAttribute("src")) watch(img, box, it);
-    else img.style.opacity = "0";
-    watchNear(img, () => start(img));
+    prepare(img, box, it, true);
   }
 }
 
@@ -175,8 +163,8 @@ export function retryMedia(el) {
   stateOf(box, null);
   img.removeAttribute("src"); img.style.opacity = "0";
   if (it && !it.src) forgetSrc(it);
-  if (it && it.src) { img.src = it.src + (it.src.includes("?") ? "&" : "?") + "r=" + Date.now(); watch(img, box, it); }
-  else start(img);
+  if (it?.src) img.src = it.src + (it.src.includes("?") ? "&" : "?") + "r=" + Date.now();
+  prepare(img, box, it, false);
   return true;
 }
 

@@ -24,38 +24,26 @@ function createWatcher(root, doc) {
     for (const { target, isIntersecting } of entries) {
       if (!isIntersecting) continue;
       const img = /** @type {HTMLImageElement} */ (target);
-      const start = watcher.targets.get(img);
-      if (!start) continue;
-      unwatch(root, watcher, img);
-      if (img.isConnected) start();
+      watcher.targets.get(img)?.();
     }
   }, { root: root === doc ? null : /** @type {Element} */ (root), rootMargin: "800px 0px" }), targets: new Map() };
   scope.observe(watcher.observer);
-  const removals = new MutationObserver((records) => {
-    for (const record of records) {
-      for (const node of record.removedNodes) {
-        if (node.nodeType !== 1 || node.isConnected) continue;
-        const el = /** @type {Element} */ (node);
-        const imgs = el.matches("img.mx-img") ? [el] : el.querySelectorAll("img.mx-img");
-        for (const target of imgs) {
-          const img = /** @type {HTMLImageElement} */ (target);
-          if (watcher.targets.has(img)) unwatch(root, watcher, img);
-        }
-      }
-    }
-  });
-  scope.observe(removals);
-  removals.observe(doc, { subtree: true, childList: true });
   watchers.set(root, watcher);
   return watcher;
 }
 
-/** @param {HTMLImageElement} img @param {() => void} start */
-export function watchNear(img, start) {
+/** @param {HTMLImageElement} img @param {() => void} start @param {ReturnType<typeof createScope>} scope */
+export function watchNear(img, start, scope) {
   if (typeof IntersectionObserver !== "function") { start(); return; }
   const doc = img.ownerDocument;
   const root = img.closest(".scroller") || doc;
   const watcher = watchers.get(root) || createWatcher(root, doc);
-  watcher.targets.set(img, start);
-  watcher.observer.observe(img);
+  const stop = scope.effect(() => {
+    watcher.targets.set(img, () => {
+      stop();
+      if (img.isConnected) start();
+    });
+    watcher.observer.observe(img);
+    return () => unwatch(root, watcher, img);
+  });
 }
