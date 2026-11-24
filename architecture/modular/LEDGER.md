@@ -5,14 +5,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | Status | Files |
 |---|---:|
 | moved | 488 |
-| planned | 385 |
+| planned | 383 |
 | deleted | 337 |
 | vendor | 145 |
-| kept | 57 |
+| kept | 59 |
 | split | 30 |
 | split-region | 4 |
 
-Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted 150, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted 151, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -73,7 +73,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
 | `js/lppage.js` | 48 | moved | modules/launchpad/page.js |
 | `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
-| `js/map.js` | 1360 | split | modules/map/map.js, modules/map/layout.js, modules/map/diagram.js, modules/map/folders.js, modules/map/tree.js, modules/map/agents.js, modules/map/icons.js, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |
+| `js/map.js` | 1360 | split | modules/map/map.js, modules/map/input.js, modules/map/render.js, modules/map/layout.js, modules/map/diagram.js, modules/map/folders.js, modules/map/tree.js, modules/map/agents.js, modules/map/icons.js, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js, core/services/media/images.js, core/services/media/intersection.js, core/services/media/cache.js, core/services/media/stack-data.js, core/services/media/image-scope.js, core/services/media/object-urls.js, core/services/media/picture-load.js, core/services/media/project-images.js |
@@ -249,7 +249,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `tests/map-follow.test.mjs` | 35 | planned | modules/map/tests/map-follow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-reach.test.mjs` | 33 | planned | modules/map/tests/map-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map-tag-press.test.mjs` | 22 | planned | core/ui (css guard)/tests/map-tag-press.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map.test.mjs` | 108 | planned | modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/map.test.mjs` | 108 | kept | tests/map.test.mjs |
 | `tests/md-headings.test.mjs` | 30 | kept | tests/md-headings.test.mjs |
 | `tests/mdlive.test.mjs` | 108 | planned | modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/media.test.mjs` | 369 | planned | modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -358,7 +358,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `tests/viewer-head-focus.test.mjs` | 18 | planned | modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/viewer-hooks.test.mjs` | 37 | moved | modules/files/tests/viewer-hooks.test.mjs |
 | `tests/words.test.mjs` | 47 | moved | modules/conversation/tests/words.test.mjs · next: still reads the source for the two imports; its rewrite as a behaviour test is owed |
-| `tests/xoicons.test.mjs` | 114 | planned | core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/xoicons.test.mjs` | 114 | kept | tests/xoicons.test.mjs |
 
 ## tests-browser (10)
 

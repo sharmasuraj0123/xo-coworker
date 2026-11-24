@@ -2729,6 +2729,8 @@
    "status": "split",
    "home": [
     "modules/map/map.js",
+    "modules/map/input.js",
+    "modules/map/render.js",
     "modules/map/layout.js",
     "modules/map/diagram.js",
     "modules/map/folders.js",
@@ -5104,8 +5106,8 @@
    "home": "core/ui (css guard)/tests/map-tag-press.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/map.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map.test.mjs"
   },
   "tests/md-headings.test.mjs": {
    "status": "kept",
@@ -5551,8 +5553,8 @@
    "note": "still reads the source for the two imports; its rewrite as a behaviour test is owed"
   },
   "tests/xoicons.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/xoicons.test.mjs"
   },
   "tools/codemirror/vendor.mjs": {
    "status": "planned",
@@ -10438,8 +10440,8 @@
   },
   "js/map.js::custom_events::loadingdone": {
    "status": "moved",
-   "home": "modules/map/map.js",
-   "evidence": { "modules/map/map.js": { "anchor": "mountScope.listen(document.fonts, \"loadingdone\"", "reason": "The Map listens for font loading through its mount scope." } }
+   "home": "modules/map/input.js",
+   "evidence": { "modules/map/input.js": { "anchor": "mountScope.listen(document.fonts, \"loadingdone\"", "reason": "The Map listens for font loading through its mount scope." } }
   },
   "js/markdown.js::exports::setThreadInfo": {
    "status": "moved",
@@ -15263,12 +15265,12 @@
    "home": "modules/conversation/tests/words.test.mjs"
   },
   "tests/xoicons.test.mjs::exports::ICON": {
-   "status": "planned",
-   "home": "core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The test imports the published icon table and renders its entries."
   },
   "tests/xoicons.test.mjs::ids::c": {
-   "status": "planned",
-   "home": "core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/xoicons.test.mjs"
   },
   "tools/codemirror/vendor.mjs::exports::${keep.join(\"": {
    "status": "planned",

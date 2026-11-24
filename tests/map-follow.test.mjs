@@ -1,6 +1,7 @@
 // @ts-check
 import assert from "node:assert/strict";
 import { mock } from "node:test";
+import { createScope } from "../core/kernel/scope.js";
 import { valuesFor } from "./lib/css-snapshot.mjs";
 import { dom } from "./lib/dom.mjs";
 
@@ -30,6 +31,7 @@ const { createMap } = await import("../modules/map/map.js");
 const thread = { id: "worker", title: "Worker", project: "project", cwd: "/home/coder/project", state: "working", sessionId: "worker" };
 const turn = { session: "worker", status: "running", at: "2026-11-24T05:00:00Z" };
 const world = {
+  act: {},
   state: { projects: [{ id: "project" }], threads: [thread], turns: {
     list: (select) => [turn].filter(select),
     blocksOf: () => [{ type: "activity", rows: [{ kind: "edit_file", status: "running", target }] }],
@@ -45,6 +47,24 @@ function withFrame() {
   }
 }
 
+/** @param {Element} node @param {string} type @param {object} properties */
+function input(node, type, properties) {
+  const event = Object.assign(new window.Event(type, { bubbles: true, cancelable: true }), properties);
+  node.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+
+/** @param {Element} viewport */
+const wheel = (viewport) => input(viewport, "wheel", { deltaX: 25, deltaY: 0, ctrlKey: false, metaKey: false });
+
+/** @param {Element} viewport */
+const changeMode = (viewport) => input(viewport, "keydown", { key: "g" });
+
+/** @param {Element} viewport @param {string} type @param {number} clientX */
+const pointer = (viewport, type, clientX) => input(viewport, type, {
+  pointerId: 1, pointerType: "mouse", button: 0, clientX, clientY: 50,
+});
+
 mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1 });
 try {
   assert.deepEqual(valuesFor(".dg", "overflow"), ["clip"], "the camera alone can move the drawing");
@@ -55,7 +75,8 @@ try {
     const spoken = [], opened = [];
     const map = createMap({ world, go: (place) => opened.push(place), announce: (text) => spoken.push(text), isBusy: () => true, openFile() {}, stepLineHtml: () => "" });
     map.render("t:worker");
-    map.mount(host);
+    const mountScope = createScope();
+    map.mount(host, mountScope);
     withFrame();
     mock.timers.tick(120);
     await new Promise(setImmediate);
@@ -132,8 +153,41 @@ try {
       act();
       assert.deepEqual(opened, ["t:worker"]);
       phone = false;
+
+      let captured = false;
+      Object.assign(viewport, { setPointerCapture() { captured = true; }, hasPointerCapture: () => captured,
+        releasePointerCapture() { captured = false; } });
+      pointer(viewport, "pointerdown", 50);
+      pointer(viewport, "pointermove", 85);
+      assert.equal(captured, true);
+      assert.equal(changeMode(viewport), true);
+      assert.equal(map.mode, "graph");
+      const next = host.querySelector(".dg");
+      const nextCanvas = next.querySelector(".dg-world");
+      assert.ok(next !== viewport && !viewport.isConnected);
+      const position = nextCanvas.style.transform;
+      assert.equal(wheel(viewport), false, "a removed Diagram cannot handle the wheel");
+      assert.equal(changeMode(viewport), false, "a removed Diagram cannot toggle the current mode");
+      pointer(viewport, "pointerup", 85);
+      assert.equal(captured, false, "replacing the viewport releases pointer capture");
+      assert.equal(viewport.classList.contains("is-drag"), false);
+      assert.equal(map.mode, "graph");
+      assert.equal(nextCanvas.style.transform, position);
+      assert.equal(wheel(next), true, "the current Graph still handles the wheel");
+      assert.notEqual(nextCanvas.style.transform, position);
+
+      map.render("p:project");
+      const project = host.querySelector(".dg");
+      assert.ok(project !== next);
+      assert.equal(wheel(next), false, "changing places also disconnects the old viewport");
+      assert.equal(wheel(project), true);
     }
+    const retained = host.querySelector(".dg");
     map.unmount();
+    assert.equal(mountScope.size, 0);
+    assert.equal(retained.isConnected, true);
+    assert.equal(wheel(retained), false, "unmount disconnects the retained viewport's input");
+    assert.equal(changeMode(retained), false);
   }
 } finally {
   mock.timers.reset();

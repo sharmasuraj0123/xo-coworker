@@ -1,6 +1,3 @@
-// The Map's pure parts (core/services/places.js, agent-activity.js, modules/map/layout.js): a thread's folder, where a step's file is, what a session's turns
-// touched and which file is live, and the folded tree. No network.
-//   node tests/map.test.mjs
 import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
@@ -95,7 +92,9 @@ t("a connector runs straight when level, and turns with rounded corners otherwis
 
 t("an agent keeps its colour", () => {
   assert.equal(colorOf("cmsg_1"), colorOf("cmsg_1"));
-  assert.match(colorOf("x"), /^#[0-9A-F]{6}$/i);
+  const colors = new Set(Array.from("abcdef", colorOf));
+  assert.equal(colors.size, 6);
+  for (const color of colors) assert.match(color, /^#[0-9A-F]{6}$/i);
 });
 
 t("a command's files: the cursor can follow cd, relative and absolute paths, never a sed expression", () => {

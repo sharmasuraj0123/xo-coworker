@@ -46,3 +46,47 @@ export type MapState =
 export type PointerStart = Point & { pts: Map<number, Point>; s: number; moved: boolean };
 export type MapNode = TreeNode & { parent: string | null };
 export type MapDrawAgent = DrawAgent;
+
+export type MountScope = ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+type MapCamera = ReturnType<typeof import("./camera.js").createMapCamera>;
+type MapAgents = ReturnType<typeof import("./agents.js").createMapAgents>;
+type MapTree = ReturnType<typeof import("./tree.js").createMapTree>;
+type MapDrawing = ReturnType<typeof import("./drawing.js").createMapDrawing>;
+type MapFolders = ReturnType<typeof import("./folders.js").createMapFolders>;
+
+interface MapViewport {
+  M: MapState;
+  view: () => HTMLElement | null;
+}
+
+interface MapCameraInput {
+  M: MapState;
+  camera: MapCamera;
+  clamp: CameraDeps["clamp"];
+}
+
+export interface MapViewportDeps extends MapCameraInput {
+  tool: (name: string) => void;
+}
+
+export interface MapInputDeps extends MapCameraInput, Pick<MapDeps, "announce" | "go" | "openFile"> {
+  host: () => HTMLElement;
+  view: MapViewport["view"];
+  paint: () => void;
+  load: (...args: Parameters<MapFolders["load"]>) => void;
+  tagW: () => number;
+  modeKey: string;
+}
+
+export interface MapRenderDeps extends MapViewport,
+  Pick<MapAgents, "agentOf" | "agentsIn">,
+  Pick<MapTree, "folderTree" | "projectsTree">,
+  Pick<MapDrawing, "spotOf" | "paintGraph">,
+  Pick<MapCamera, "reframe" | "frame" | "camOf"> {
+  host: () => HTMLElement | null;
+  scopeOf: (view: string) => Scope;
+  skeleton: (scope: Scope) => void;
+  tagW: () => number;
+  headHtml: ReturnType<typeof import("./head.js").createMapHead>;
+  paintDiagram: ReturnType<typeof import("./diagram.js").createMapDiagram>;
+}

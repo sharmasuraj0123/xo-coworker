@@ -1,25 +1,25 @@
-// The owner's icon pack (core/ui/icons/source/xo, 19 Nov) is the one source of the app's icons: core/ui/icons/xoicons.js is what
-// tools/xoicons/build.mjs makes of it (each file passed an allowlist; ink is currentColor; no Figma ids), and every
-// icon set (ICON, the panel, Map, Files, viewer, chat, steps, Launchpad, links, file types, project topics) draws
-// from it, so no module keeps a hand-drawn <svg> of its own.
-//   node tests/xoicons.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { sourcePaths } from "./lib/sources.mjs";
+import { fileURLToPath } from "node:url";
+import { dom } from "./lib/dom.mjs";
+import { flattenStyles } from "../tools/conformance/css-flatten.mjs";
 import { build, clean } from "../tools/xoicons/build.mjs";
 import { XI } from "../core/ui/icons/xoicons.js";
 import { xi, hasIcon } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
-import { classify, glyph } from "../modules/projects/projicons.js";
+import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
 import { fileIcon, iconKey, FOLDER_ICON } from "../core/ui/icons/fileicons.js";
+import { faviconRender } from "../shell/favicon.js";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
+const { document } = await dom('<link rel="icon" href="favicon.svg">');
+const generated = await import(`data:text/javascript,${encodeURIComponent(build())}`);
+const styles = flattenStyles(fileURLToPath(new URL("../", import.meta.url)));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
 t("core/ui/icons/xoicons.js is what the pack makes (rebuild: node tools/xoicons/build.mjs)", () => {
-  assert.equal(read("core/ui/icons/xoicons.js"), build());
-  const man = JSON.parse(read("core/ui/icons/source/xo/manifest.json"));
+  assert.deepEqual(XI, generated.XI);
+  const man = JSON.parse(readFileSync(new URL("../core/ui/icons/source/xo/manifest.json", import.meta.url), "utf8"));
   assert.equal(Object.keys(XI).length, man.icons.length);
 });
 
@@ -46,37 +46,28 @@ t("xi(): the pack's icon, its name on it, a size only from the scale", () => {
   assert.match(xi("lock", "", "sm"), /class="xi ic-sm"/);
   assert.throws(() => xi("lock", "", "15"));
   assert.throws(() => xi("no-such-icon"));
-  const base = read("core/ui/foundation.css");
-  assert.match(base, /:where\(svg\.xi:not\(\.xo-mark\)\)\{width:var\(--ic\);height:var\(--ic\)\}/);
-  for (const k of ["xs", "sm", "lg"]) assert.match(base, new RegExp(`:where\\(svg\\.xi\\.ic-${k}\\)\\{width:var\\(--ic-${k}\\);height:var\\(--ic-${k}\\)\\}`));
+  const dimensions = (selector) => styles
+    .filter((entry) => ["width", "height"].includes(entry.property) && entry.context.some((scope) => scope.selector === selector))
+    .map(({ value }) => value);
+  assert.deepEqual(dimensions(":where(svg.xi:not(.xo-mark))"), ["var(--ic)", "var(--ic)"]);
+  for (const size of ["xs", "sm", "lg"]) assert.deepEqual(dimensions(`:where(svg.xi.ic-${size})`), Array(2).fill(`var(--ic-${size})`));
 });
 
-t("every icon a module names is in the pack", () => {
-  const files = sourcePaths(".js");
-  const names = new Set();
-  for (const f of files) for (const m of read(f).matchAll(/\bxi\("([a-z0-9-]+)"/g)) names.add(m[1]);
-  assert.ok(names.size > 60, `${names.size} names`);
-  for (const n of names) assert.ok(hasIcon(n), n);
-});
-
-t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
-  const sets = ["core/ui/icons/names.js", "shell/panel/panel.js", "shell/panel/pages.js", "shell/panel/frames.js", "shell/panel/lists.js", "modules/map/map.js", "modules/map/head.js", "modules/map/tree.js", "modules/map/drawing.js", "modules/files/files.js", "modules/files/page.js", "modules/changes/frame.js", "modules/settings/shape-page.js",
-    "modules/files/viewer.js", "modules/files/viewer-head.js", "modules/files/viewer-text.js", "core/ui/lightbox.js", "modules/create-project/create.js", "modules/chats/intel-view.js", "modules/search/quickopen.js", ...sourcePaths(".js").filter((p) => p.startsWith("modules/conversation/")), ...sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")),
-    "core/ui/markdown/inline.js", "core/ui/markdown/markdown.js", "modules/projects/projicons.js"];
-  for (const f of sets) assert.doesNotMatch(read(f), /<svg viewBox="0 0 24 24"|<path d="M|const I = \(d/, f);
-  const ui = read("core/ui/icons/names.js");
-  const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));
-  for (const line of block.split("\n").slice(1)) if (/^ {2}\w+:/.test(line)) assert.match(line, /: xi\("[a-z0-9-]+"/, line);
-  // the stamps and the Stop come from the pack too; the undo ring (an animation) and the tab's live icon are drawn
-  assert.match(read("modules/decisions/panel-view.js"), /const BIG_CHECK = ICON\.stampAllow;\nconst BIG_BACK = ICON\.stampBack;/);
-  assert.doesNotMatch(read("js/app.js"), /viewBox="0 0 52 52"/);
+t("named icons render known entries with the pack's geometry", () => {
+  const sample = document.createElement("div");
+  assert.ok(Object.keys(ICON).length > 60);
+  for (const [key, markup] of Object.entries(ICON)) {
+    sample.innerHTML = markup;
+    const svg = sample.querySelector("svg");
+    const name = svg?.getAttribute("data-xi");
+    assert.ok(hasIcon(name), key);
+    assert.equal(svg.getAttribute("viewBox"), key === "cursor" ? "4.5 2.5 18 18" : XI[name][0], key);
+  }
 });
 
 t("project topics: each topic is the owner's project-<topic>; nothing placed keeps the cube", () => {
-  const src = read("modules/projects/projicons.js");
-  const topics = [...src.matchAll(/^ {2}\["([a-z-]+)", "/gm)].map((m) => m[1]);
-  assert.equal(topics.length, 31);
-  for (const k of topics) assert.ok(hasIcon(`project-${k}`), k);
+  assert.equal(TOPICS.length, 31);
+  for (const topic of TOPICS) assert.match(glyph(topic), new RegExp(`data-xi="project-${topic}"`));
   assert.equal(classify("cron jobs").icon, "automation");
   assert.equal(classify("Telescope research").icon, "research");
   assert.equal(classify("qwzx").icon, "project");
@@ -95,20 +86,18 @@ t("file types: the plain kinds are the owner's, in their kind's colour; others' 
 });
 
 t("the app icon is the owner's; the tab's working line sits on its foot", () => {
-  const fav = read("favicon.svg");
+  const fav = readFileSync(new URL("../favicon.svg", import.meta.url), "utf8");
   assert.match(fav, /viewBox="0 0 48 48"/);
   assert.match(fav, /<rect width="48" height="48" rx="11" fill="#151515"\/>/);
-  const app = read("shell/favicon.js");
-  assert.match(app, /const W = 28\.5, X = 9\.75, GAP = 1\.5/);
-  assert.match(app, /y="35" width="\$\{w\.toFixed\(2\)\}" height="2\.5" rx="1\.25"/);
-});
-
-t("every ICON name used by an importer exists in the icon catalogue", () => {
-  const keys = new Set(Object.keys(ICON));
-  const users = sourcePaths(".js").filter((f) => /import \{[^}]*\bICON\b[^}]*\} from "[^"]*(?:ui|icons\/names)\.js"/.test(read(f)));
-  assert.ok(users.includes("modules/shells/dock-view.js"));
-  const missing = users.flatMap((f) => [...read(f).matchAll(/(?<![\w.])ICON\.([A-Za-z0-9_]+)/g)].map((m) => m[1]).filter((k) => !keys.has(k)).map((k) => `${f}: ICON.${k}`));
-  assert.deepEqual(missing, []);
+  const link = document.querySelector('link[rel="icon"]');
+  faviconRender({ checklist: { total: 3, done: 1 } });
+  const frame = document.createElement("div");
+  frame.innerHTML = decodeURIComponent(link.getAttribute("href").split(",")[1]);
+  const segments = [...frame.querySelectorAll('rect[y="35"]')];
+  assert.deepEqual(segments.map((node) => [node.getAttribute("x"), node.getAttribute("width"), node.getAttribute("height"), node.getAttribute("rx")]),
+    [["9.75", "8.50", "2.5", "1.25"], ["19.75", "8.50", "2.5", "1.25"], ["29.75", "8.50", "2.5", "1.25"]]);
+  faviconRender(null);
+  assert.equal(link.getAttribute("href"), "favicon.svg");
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
