@@ -10,7 +10,7 @@ const S = { view: "p:project", allFilter: "all", allDone: false };
 const common = { project: "project", checklist: { done: 0, total: 0 }, lastAt: Date.now() };
 const world = { state: { threads: [
   { ...common, id: "live", title: "Review", summary: "publish notes", branch: "verify", state: "working", busy: true },
-  { ...common, id: "done", title: "Former notes", state: "resolved" },
+  { ...common, id: "done", title: "Former notes", state: "resolved", summary: null, branch: null },
 ] } };
 const D = { needItems: () => [] }, convProject = () => "project", isHeld = () => false;
 const { STATE_WORDS, threadState, threadSubtitles } = createThreadGroups({ world, D, convProject, isHeld, isBusy: (thread) => !!thread.busy,
@@ -35,6 +35,10 @@ assert.ok(document.querySelector('[data-go="t:done"]') === null, "the completed 
 input.value = "checks";
 render();
 assert.ok(document.querySelector('[data-go="t:live"]') === row, "All threads matches the activity subtitle");
+input.value = "null";
+render();
+assert.equal(document.querySelector('#all-list [data-go="t:done"]'), null, "missing fields don't become searchable words");
+input.value = "checks";
 S.allFilter = "waiting";
 render();
 assert.match(document.querySelector(".ar-none").textContent, /Nothing matches/);

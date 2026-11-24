@@ -7,6 +7,7 @@ import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 
 /** @import { Notice } from "../../core/services/notices.js" */
+
 /** @import { Composer } from "./composer-types.d.ts" */
 
 /** @typedef {{ S: { view: string; herald: Notice | null }; world: { state: Parameters<typeof connLine>[0] }; MK: Composer; composerNow(): Composer; panelHost(): HTMLElement | null; convThread(view: string): unknown; connDest(): Parameters<typeof connLine>[1]; placeRegion(): HTMLElement | null; STOP_ICON: string }} NoticeLineDeps */
