@@ -1,9 +1,7 @@
-/* Diffs drawn by @pierre/diffs (modules/changes/diffview.js): set here from XO's tokens as custom properties on
-   its element, which its shadow root inherits; the syntax colours are a generated pair (modules/changes/diffthemes.js). */
+/* Pierre inherits the diff theme inputs through the shadow host. */
 diffs-container{
   display:block;
-  /* never 0 px tall: Pierre's virtualiser keeps a file that ends above the view where it ends, so an empty
-     one, before its first rows, read as "above" and threw a long file to its last line on opening */
+  /* A nonzero host height keeps Pierre from opening an unmeasured file at its last line. */
   min-height:1px;
   --diffs-font-family:var(--mono);
   --diffs-header-font-family:var(--sans);
