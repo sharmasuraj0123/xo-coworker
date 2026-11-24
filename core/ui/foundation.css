@@ -15,32 +15,25 @@ input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 
 @layer foundation{
-:focus-visible{outline:3px solid var(--focus);outline-offset:0}
-/* the ring has room wherever focus scrolls a control into view, by a Tab or a script's scrollIntoView: the browser
-   brings a control only as far as its own edge, so at a scroller's foot the ring was cut off (the create-project
-   grader on 65e84b7, S111/S112: Settings › Routing's Keep it and Disconnect flush with the foot, 3.56 px of the ring
-   cut). Layout, not a smaller ring; zero specificity, and on controls only (a snapping list snaps its rows) */
+:focus-visible{outline:var(--stroke-focus-outline) solid var(--focus);outline-offset:0}
+/* Reserve scroll space for complete focus rings without affecting snapping rows. */
 :where(a[href],button,input,select,textarea,summary,xo-select,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]){scroll-margin:var(--ring-room)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-kbd{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);padding:2px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:var(--r-sm);color:var(--ink-3)}
+kbd{
+  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);padding:var(--s-keycap-block) var(--s-keycap-inline);
+  border:var(--hair) solid var(--line);border-bottom-width:var(--stroke-keycap-base);border-radius:var(--r-sm);color:var(--ink-3)
+}
 /* Control transitions share the timing tokens and yield to component rules. */
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]){transition-property:background-color,border-color,color,box-shadow,opacity,transform;transition-duration:var(--d-hover);transition-timing-function:var(--ease)}
-/* only the control under the pointer engages fast: set on every element, :hover would also catch <body>
-   and every ancestor, and their children would inherit 120 ms, so nothing would ever release slowly */
+/* Restrict fast hover feedback to controls so unrelated descendants retain their release time. */
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for],li:has(> button)):hover{--d-hover:var(--d-hover-in)}
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]):active{--d-hover:var(--d-press)}
 ::selection{background:rgba(var(--accent-rgb),.24)}
 
-/* ── Plan F · icons: one drawn weight at every size, square ends like a ruled line ─────────────────
-   Every UI glyph is drawn on a 24 grid with stroke="currentColor"; drawn at 11–18 px its line used to
-   range 0.73–1.20 px. A non-scaling stroke holds it at 1.5 px whatever the size. Square caps (not
-   round, not butt): a dot drawn as a 0.01-long line still shows. Pierre's file icons are filled and
-   untouched; so are the XO mark and the left sidebar (the owner: keep it exactly as it is). */
-svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:1.5px;stroke-linecap:square;stroke-linejoin:miter}
+/* Outline icons use a constant stroke and square caps so short segments stay visible. */
+svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:var(--stroke-outline-icon);stroke-linecap:square;stroke-linejoin:miter}
 svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,polygon,circle,rect,ellipse){vector-effect:non-scaling-stroke}
-/* The owner's icon pack (js/xoicons.js, 19 Nov) carries its own pen on each path (1.75 on the 24 grid, round ends and
-   joins), so the rule above doesn't touch it. Its size is a token unless the slot says otherwise (no specificity:
-   any slot's own rule wins). */
+/* XO icons keep their own path strokes and let the component determine their size. */
 :where(svg.xi:not(.xo-mark)){width:var(--ic);height:var(--ic)}
 :where(svg.xi.ic-xs){width:var(--ic-xs);height:var(--ic-xs)}
 :where(svg.xi.ic-sm){width:var(--ic-sm);height:var(--ic-sm)}
@@ -54,9 +47,6 @@ svg[stroke="currentColor"][fill="none"]:not(.side svg) :is(path,line,polyline,po
 [role=menu]{animation:float-in-down var(--d-out) var(--ease)}
 
 @media (prefers-reduced-motion:reduce){
-  /* nothing moves. Transitions are none, not 0.01 ms: a 0.01 ms one is given to every property of every element (its
-     property list is "all" by default), so for that moment a change hasn't happened: a sheet just shown is still
-     hidden, and focus handed into it is refused (a phone's folded chat bar tapped: its head refused focus, which fell
-     to the page: C029/F08). The two waits on a transition's end have their own time-outs (media.js, dropdown.js). */
+  /* Zero-duration transitions let newly visible controls take focus immediately. */
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:0s!important;transition-delay:0s!important;scroll-behavior:auto!important}
 }

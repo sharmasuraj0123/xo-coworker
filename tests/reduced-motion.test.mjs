@@ -1,24 +1,65 @@
-// Reduced motion: nothing moves, and nothing lags. A 0.01 ms transition on every property of every element (the
-// default property list is "all") left a change unmade for a moment: a sheet just shown read hidden, and focus handed
-// into it was refused (C029/F08: a phone's folded chat bar tapped, its head refused focus, which fell to the page;
-// and grips and fields read outline:none's 3 px for a moment: C034/C035, C030/S069). Checked from base.css; the
-// waits on a transition's or an animation's end keep their own time-outs.
-//   node tests/reduced-motion.test.mjs
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+// @ts-check
 
-const base = readFileSync(new URL("../core/ui/foundation.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-t("under reduced motion, transitions are none: no duration, no delay", () => {
-  const m = /@media \(prefers-reduced-motion:reduce\)\{\s*\*,\*::before,\*::after\{([^}]*)\}/.exec(base);
-  assert.ok(m, "the global reduced-motion rule");
-  assert.match(m[1], /transition-duration:0s!important/);
-  assert.match(m[1], /transition-delay:0s!important/);
-  assert.doesNotMatch(m[1], /transition-duration:\.01ms/, "never a tiny transition on everything");
+import assert from "node:assert/strict";
+import test from "node:test";
+import { declarationsFor } from "./lib/css-snapshot.mjs";
+import { dom } from "./lib/dom.mjs";
+
+test("reduced motion suppresses all transition durations and delays", () => {
+  for (const property of ["transition-duration", "transition-delay"]) {
+    const rows = declarationsFor("*,*::before,*::after", property).filter(({ context }) =>
+      context.some(({ at, params }) => at === "media" && params === "(prefers-reduced-motion:reduce)"));
+    assert.deepEqual(rows.map(({ value, important }) => ({ value, important })), [{ value: "0s", important: true }], property);
+  }
 });
-t("the waits on a transition's or an animation's end have their own time-outs", () => {
-  assert.match(readFileSync(new URL("../core/services/media/hydrate.js", import.meta.url), "utf8"), /addEventListener\("transitionend"[^\n]*\n\s*setTimeout\(done, MOVE \+ 80\)/);
-  assert.match(readFileSync(new URL("../core/ui/components/xo-select.js", import.meta.url), "utf8"), /addEventListener\("animationend", done, \{ once: true \}\); setTimeout\(done, \d+\)/);
+
+test("a select closes even without an animationend event", async ({ mock }) => {
+  const { window, document } = await dom("<main></main>");
+  Object.assign(globalThis, {
+    customElements: window.customElements,
+    MutationObserver: class {
+      observe() {}
+      takeRecords() { return []; }
+    },
+    getComputedStyle: window.getComputedStyle,
+    innerHeight: 844,
+    innerWidth: 1440,
+    removeEventListener: window.removeEventListener.bind(window),
+  });
+  await import("../core/ui/components/xo-select.js");
+  mock.timers.enable({ apis: ["setTimeout"] });
+  const select = document.createElement("xo-select");
+  select.innerHTML = '<option value="a">Alpha</option><option value="b">Bravo</option>';
+  document.querySelector("main").append(select);
+  const button = select.querySelector('[role="combobox"]');
+  button.click();
+  const menu = select.querySelector(".dd-menu");
+  assert.equal(button.getAttribute("aria-expanded"), "true");
+  button.click();
+  assert.equal(button.getAttribute("aria-expanded"), "false");
+  assert.equal(menu.hidden, false, "the outro remains visible until cleanup");
+  mock.timers.runAll();
+  assert.equal(menu.hidden, true, "a missing animationend cannot strand the menu");
+  select.remove();
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+
+test("a loaded picture settles even without a transitionend event", async ({ mock }) => {
+  const { window, document } = await dom('<main><div class="mx-one is-frame"><img class="mx-img" data-mx-img="settle"></div></main>');
+  window.Element.prototype.animate = () => { throw new Error("the frame uses a CSS transition"); };
+  globalThis.getComputedStyle = window.getComputedStyle;
+  const { hydrateMedia } = await import("../core/services/media/hydrate.js");
+  mock.timers.enable({ apis: ["setTimeout"] });
+  const frame = document.querySelector(".mx-one");
+  frame.getBoundingClientRect = () => ({ width: 400, height: 260, bottom: 260 });
+  const image = frame.querySelector("img");
+  Object.defineProperties(image, {
+    complete: { value: true }, naturalWidth: { value: 640 }, naturalHeight: { value: 480 },
+  });
+  hydrateMedia(document.querySelector("main"));
+  assert.equal(frame.style.height, "300px");
+  assert.equal(frame.style.aspectRatio, "auto");
+  mock.timers.runAll();
+  assert.equal(frame.style.transition, "");
+  assert.equal(frame.style.height, "");
+  assert.equal(frame.style.aspectRatio, "640 / 480");
+});

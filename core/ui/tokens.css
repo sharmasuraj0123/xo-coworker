@@ -56,12 +56,11 @@
   /* the main action's fill: XO's accent; a flavour may make it the ink (tools/flavours, primary) */
   --pri-fill:var(--accent-fill); --pri-fill-hover:var(--accent-hover); --pri-fill-press:var(--accent-press); --pri-ink:var(--accent-ink);
   --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
-  /* The one focus ring: 3 px of soft accent hugging the control; a typed-in field's edge and the glow outside it */
-  --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
+  --stroke-focus-outline:3px; --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
   /* Scroll containers reserve the ring's offset and room around focused controls. */
   --ring-room:6px;
-  /* Dark ink maintains contrast on every agent colour. */
-  --on-agent:#0B0B0C;
+  --s-keycap-block:2px; --s-keycap-inline:5px; --stroke-keycap-base:2px; --stroke-outline-icon:1.5px;
+  --on-agent:#0B0B0C; /* Dark ink maintains contrast on agent colours. */
   --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));

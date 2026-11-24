@@ -88,7 +88,8 @@ test("state tints do not bring back a coloured rim", () => {
 });
 
 test("keyboard focus uses an accent outline and soft halo", () => {
-  role(":focus-visible", "outline", "3px solid var(--focus)");
+  role(":focus-visible", "outline", "var(--stroke-focus-outline) solid var(--focus)");
+  assert.equal(resolveValue("var(--stroke-focus-outline)"), "3px");
   role(":focus-visible", "outline-offset", "0");
   for (const [name, opacity] of [["--focus", ".4"], ["--focus-halo", ".2"]]) {
     assert.deepEqual(stylesheetRows.filter((row) => row.property === name).map(({ value }) => value),
