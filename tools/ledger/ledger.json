@@ -7128,8 +7128,8 @@
    "home": "modules/home/handled.js"
   },
   "js/app.js::functions::convHost": {
-   "status": "planned",
-   "home": "core/services (conversation addressing) (app.js l.855)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::messagesOf": {
    "status": "planned",
@@ -7269,8 +7269,8 @@
    "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::openAsk": {
-   "status": "planned",
-   "home": "modules/conversation (typing) (app.js l.1886)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::typingRender": {
    "status": "moved",
@@ -7589,16 +7589,16 @@
    "home": "modules/conversation/navigation.js"
   },
   "js/app.js::functions::fwdSource": {
-   "status": "planned",
-   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3257)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::reactionsHtml": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.3264)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::reactorName": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.3272)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::openMedia": {
    "status": "moved",

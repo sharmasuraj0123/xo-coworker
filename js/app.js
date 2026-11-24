@@ -12,7 +12,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stepMark, stateMark, XO, $, RM, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, heldWords, heldShort, heldBadge } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, pageFloor, inPage, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
@@ -40,6 +40,7 @@ import { createConversationPaging } from "../modules/conversation/paging.js";
 import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
 import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
+import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
@@ -159,6 +160,7 @@ const noun = (w) => { const x = SHAPE.word(w); return x === w ? esc(w) : `<span 
 
 const params = new URL(location.href).searchParams;
 const PROJ = (id) => (id === "workspace" ? "Workspace" : id === "@account" ? "Your account" : id === "@chats" ? "Chats" : world.project(id)?.name || id);
+const { convHost, openAsk, fwdSource, reactionsHtml } = createMessageContext({ world, PROJ });
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } },
@@ -436,14 +438,6 @@ const { homeRender, nextDecide } = createHomeView({
   S, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today, num, noun, plural, isBusy, askTitle, PROJ, kernel,
   SV: { homeOrder: (body) => SV.homeOrder(body) }, announce, schedule,
 });
-/** What a project's, the Workspace's or a plain chat's own conversation asks of you (its host: no thread). */
-function convHost(v) {
-  const hosts = world.state.hosts || [];
-  if (v.startsWith("c:")) return hosts.find((h) => h.id === `session:${v.slice(2)}`) || null;
-  const chat = v === "ws" ? world.project("workspace")?.chatId : v.startsWith("p:") ? world.project(v.slice(2))?.chatId : null;
-  return chat ? hosts.find((h) => h.id === `chat:${chat}`) || null : null;
-}
-
 /** The real timeline (workspace or project) or the thread's own messages, with its root first. */
 function messagesOf(conv) {
   const out = [];
@@ -1056,21 +1050,6 @@ const TD = MDOCK.TD;
 const dockRender = (needs) => MDOCK.render(needs);
 
 // ── typing ──────────────────────────────────────────────────────────────────
-/** An ask this project's coordinator sent to the Workspace that isn't answered yet. xo-space publishes the hop
-    when the call happens ("sent"), marks it "delivered" when the Workspace's turn takes it and "answered" when
-    the answer is made. Only an ask waits for a reply (a relay or a forward doesn't), and only for 20 minutes:
-    an ask nobody answers mustn't hold the line for ever. */
-function openAsk(project) {
-  const chatId = world.project(project)?.chatId;
-  if (!chatId || !world.state.hops) return null;
-  let best = null, at = 0;
-  for (const h of world.state.hops.values()) {
-    if (h.chat_id !== chatId || h.kind !== "ask" || h.from_role !== "project-coordinator" || !(h.state === "sent" || h.state === "delivered")) continue;
-    const t = Date.parse(h.created_at || h.at || "") || 0;
-    if (t && Date.now() - t < 20 * 60e3 && t > at) { best = h; at = t; }
-  }
-  return best;
-}
 const sendingTo = (chat) => (S.local[convOfChat(chat)] || []).find((m) => m.status === "sending" && m.target === chat) || null;
 let TYPING = null;
 function typingRender(C = MAIN) { return (TYPING ||= createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, sendingTo, schedule: () => schedule(), tick: () => tickElapsed() })).render(C); }
@@ -1684,30 +1663,6 @@ function decideKey(key, opts) {
 }
 
 // ── files on messages (hub #30): the shared-file card, opening in the same viewer ──
-/** The project a forwarded copy came from, when it wasn't the Workspace's own message (else null). */
-function fwdSource(fwd) {
-  const p = fwd.chatId && world.act.projectOf ? world.act.projectOf(fwd.chatId) : null;
-  if (p) return p === "workspace" ? null : p;
-  const v = fwd.via || [];
-  return v.length > 1 && v[0] !== "workspace" && v[0] !== "project" && world.project(v[0]) ? v[0] : null;
-}
-/** The emoji agents put on a message, one chip per emoji with its count; hover names who. */
-function reactionsHtml(reactions) {
-  const groups = reactionGroups(reactions);
-  if (!groups.length) return "";
-  return `<div class="m-reacts" aria-label="Reactions">${groups.map((g) => {
-    const who = g.by.map(reactorName).join(", ") || "An agent";
-    return `<span class="m-react" title="${esc(`${who} reacted ${g.emoji}`)}">${esc(g.emoji)}${g.count > 1 ? `<span class="m-react-n">${g.count}</span>` : ""}</span>`;
-  }).join("")}</div>`;
-}
-function reactorName(sessionId) {
-  const s = (world.state.sessions || {})[sessionId];
-  if (!s) return "An agent";
-  if (s.role === "workspace-coordinator") return "The Workspace coordinator";
-  const p = s.chat_id && world.act.projectOf ? world.act.projectOf(s.chat_id) : null;
-  if (s.role === "project-coordinator") return p && p !== "workspace" ? `The ${PROJ(p)} coordinator` : "The coordinator";
-  return p && p !== "workspace" ? `A ${PROJ(p)} agent` : "An agent";
-}
 const openMedia = createMediaOpener({ msgsEl, LB, VW });
 
 let drawing = null;
