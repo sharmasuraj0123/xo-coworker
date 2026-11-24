@@ -6,8 +6,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { panelSrc } from "./lib/panel-src.mjs";
 import { createThreadGroups } from "../modules/threads/groups.js";
+import { createAllThreadsSheet } from "../modules/threads/all-sheet.js";
+import { dom, same } from "./lib/dom.mjs";
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const stage = panelSrc, app = read("js/app.js"), panel = read("css/panel.css"), found = read("css/foundation.css");
+const stage = panelSrc, panel = read("css/panel.css"), found = read("css/foundation.css");
 
 // the match, run as written
 const m = /const matchesQ = (\(r, q\) => \{[^\n]*\});/.exec(stage);
@@ -54,8 +56,42 @@ assert.ok(matchesQ(panelRow, "rail 305201"), "the grouped row carries its summar
 // All threads: the same match, the same keys
 const allSource = readFileSync(new URL("../modules/threads/all.js", import.meta.url), "utf8");
 assert.match(allSource, /const s = `\$\{t\.title\} \$\{t\.summary \|\| ""\} \$\{t\.branch \|\| ""\}`\.toLowerCase\(\); return q\.split\(\/\\s\+\/\)\.every\(\(w\) => s\.includes\(w\)\);/);
-assert.match(app, /if \(e\.key === "Escape" && inSearch && \$\("#all-q"\)\.value\)/);
-assert.match(app, /if \(e\.key === "\/" && !inSearch/);
+const { document, window } = await dom('<button id="opener">Threads</button><section id="all" hidden><input><div class="all-list"><button data-go="t:one">First result</button></div></section>');
+const allEl = document.querySelector("#all"), opener = document.querySelector("#opener");
+const field = allEl.querySelector("input"), result = allEl.querySelector("[data-go]");
+Object.defineProperty(result, "offsetParent", { value: allEl });
+field.select = () => {};
+const destinations = [];
+const { openAll, closeAll } = createAllThreadsSheet({
+  allEl, field, phone: { matches: false }, S: { view: "p:project" }, convProject: () => "project",
+  allRender() {}, syncInert() {}, schedule() {}, go: (view) => destinations.push(view),
+});
+const press = (key) => {
+  const e = new window.Event("keydown", { bubbles: true, cancelable: true });
+  e.key = key;
+  document.activeElement.dispatchEvent(e);
+  assert.equal(e.defaultPrevented, true, key);
+};
+opener.focus();
+openAll();
+same(document.activeElement, field);
+press("ArrowDown");
+same(document.activeElement, result);
+press("ArrowUp");
+same(document.activeElement, field);
+result.focus();
+press("/");
+same(document.activeElement, field);
+field.value = "query";
+press("Escape");
+assert.equal(field.value, "");
+assert.equal(allEl.hidden, false);
+closeAll();
+same(document.activeElement, opener);
+openAll();
+press("Enter");
+assert.deepEqual(destinations, ["t:one"]);
+assert.equal(allEl.hidden, true);
 
 // CSS: tokens only; the field's box takes the one focus ring
 const block = panel.slice(panel.indexOf("── Threads' filter"), ((panel.indexOf("/* ──", panel.indexOf("── Threads' filter") + 4) + 1) || panel.length + 1) - 1);
