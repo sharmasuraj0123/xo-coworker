@@ -30,17 +30,10 @@
 :root[data-theme="light"] .dg-tools{box-shadow:var(--lift-2)}
 :root[data-theme="light"] .sheet{background:var(--scrim)}
 
-/* the Map's light paper, on the same neutral family */
-:root[data-theme="light"] .dg{
-  background-color:var(--canvas);
-  background-image:radial-gradient(circle,var(--line) var(--dot-map-core),var(--palette-transparent) var(--dot-map-feather));
-  border-color:var(--line-soft)
-}
-:root[data-theme="light"] .dg-edges path,:root[data-theme="light"] .dg-edges line{stroke:var(--fill-4)}
+/* Light Map surfaces and controls use a neutral palette. */
 :root[data-theme="light"] .dg-n{background:var(--surface);border-color:var(--line)}
 :root[data-theme="light"] button.dg-n:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root[data-theme="light"] .dg-n.k-dir{background:var(--fill-1)}
-:root[data-theme="light"] .gn-l{text-shadow:0 0 var(--blur-map-label) var(--canvas),0 0 var(--blur-map-label) var(--canvas)}
 :root[data-theme="light"] .dg-cur.is-idle .dg-tag{background:var(--fill-3);color:var(--ink-2)}
 :root[data-theme="light"] .dg-tools,:root[data-theme="light"] .dg-key{background:var(--surface);border-color:var(--line)}
 :root[data-theme="light"] .dg-sep{background:var(--line-soft)}
