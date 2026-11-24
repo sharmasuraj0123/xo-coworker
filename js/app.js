@@ -12,8 +12,8 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stateMark, XO, $, RM, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, pageFloor, inPage, heldWords, heldShort, heldBadge } from "./timeline.js";
-import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
+import { stopWords, plainText, heldWords, heldShort } from "./timeline.js";
+import { turnHtml, turnAv, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
@@ -39,6 +39,7 @@ import { createMentionList } from "../modules/conversation/mention.js";
 import { createLiveConversation } from "../modules/conversation/live.js";
 import { createConversationPaging } from "../modules/conversation/paging.js";
 import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
+import { createConversationMessages } from "../modules/conversation/messages.js";
 import { createThreadPage } from "../modules/conversation/thread-page.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
@@ -447,185 +448,8 @@ const { homeRender, nextDecide } = createHomeView({
   S, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today, num, noun, plural, isBusy, askTitle, PROJ, kernel,
   SV: { homeOrder: (body) => SV.homeOrder(body) }, announce, schedule,
 });
-/** The real timeline (workspace or project) or the thread's own messages, with its root first. */
-function messagesOf(conv) {
-  const out = [];
-  const t = convThread(conv);
-  const chat = chatOf(conv);
-  const st = world.state;
-  const h = chat ? st.hist[chat] : null;
-  let rows;
-  if (t) {
-    const root = (st.timeline[t.project] || []).find((r) => r.id === t.id) || st.found?.[t.project]?.get(t.id);
-    rows = [...(root ? [uiMsg(root)] : []), ...t.messages];
-  } else rows = (st.timeline[chat] || []).map(uiMsg);
-  // optimistic rows whose server copy arrived first (the stream can beat the POST): the bubble stays, once
-  const locals = S.local[conv] || [];
-  for (const [lid, sid] of echoes(locals, rows, new Set(S.alias.keys()))) {
-    S.alias.set(sid, lid);
-    const m = locals.find((x) => x.id === lid);
-    m.merged = true; m.status = "sent";
-  }
-  // a thread draws nothing of its own until its first page is in. Its turns and notes are read alongside the
-  // page and came sooner: drawn alone they sat under "No messages in this thread yet." for seconds, then the
-  // messages landed among them and pushed what you were reading away (1-5k px on a long thread, at 1x)
-  if (t && !t.loaded) {
-    const err = st.threadHist?.[t.id]?.error;
-    out.push({ key: "note", at: -Infinity, who: "note", ...(err ? { text: `Couldn't load this thread: ${err}` } : { load: "Loading the thread" }) });
-    out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
-    return out;
-  }
-  if (!t && h) {
-    if (h.error && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", text: `Couldn't load this conversation: ${h.error} Retrying.` });
-    else if (h.loading && !rows.length) out.push({ key: "note", at: -Infinity, who: "note", load: "Loading the conversation" });
-    else if (rows.length || h.loading) out.push({ key: "hist", at: -Infinity, who: "hist", h });
-  }
-  // a thread read in pages: the same line at its top (older pages on their way, or its beginning once a
-  // thread that needed more than one page has been read to it)
-  const th = t ? st.threadHist && st.threadHist[t.id] : null;
-  if (th && th.loaded && rows.length && (!th.all || th.paged)) out.push({ key: "hist", at: -Infinity, who: "hist", h: { loading: !!th.older, all: !!th.all, olderError: th.olderError || null, before: th.before } });
-  const ids = t ? [] : world.state.threads.filter((x) => x.project === chat).map((x) => x.id);
-  const { on, alone } = threadAnchors(rows, ids);
-  // the thread's running turn: your messages sent after it started wait for it to end
-  const turn = t && t.busy && t.sessionId && st.turns ? st.turns.running(t.sessionId) : null;
-  for (const m of rows) {
-    const key = S.alias.get(m.id) || m.id;
-    const base = { key, sid: m.id, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId, reactions: m.reactions };
-    if (m.who === "you" && !t && conv !== "ws" && m.fwd) {
-      // a forwarded copy of your message: where it began, not just the copy before it (a forward back into the
-      // chat you wrote it in is a copy of a copy, and must not read as you saying it again)
-      const o = forwardOrigin(m.fwd, (id, cid) => {
-        const p = cid && world.act.projectOf ? world.act.projectOf(cid) : null;
-        return p ? (st.timeline[p] || []).find((r) => r.id === id) || st.found?.[p]?.get(id) || null : null;
-      });
-      if (!o.known && world.act.findRows) { const p = o.chatId && world.act.projectOf ? world.act.projectOf(o.chatId) : null; if (p) world.act.findRows(p, [o.id], m.seq); }
-      // the same words you wrote earlier in this very chat, while the chain can't be read yet
-      const mine = o.known ? (world.act.projectOf?.(o.chatId) === chat ? { id: o.id, text: o.row ? o.row.text : m.text } : null)
-        : rows.filter((x) => x.who === "you" && !x.fwd && x.id !== m.id && x.at < m.at && x.text && x.text === m.text).pop();
-      if (mine) { out.push({ key, sid: m.id, at: m.at, seq: m.seq, who: "system", back: { id: mine.id, text: String(mine.text ?? m.text), via: m.fwd.via } }); continue; }
-      out.push({ ...base, who: "you", fwd: o.known ? { chatId: o.chatId, id: o.id, via: m.fwd.via } : m.fwd, queued: waitsForTurn(m, turn) });
-      if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
-    } else if (m.who === "you") {
-      out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
-      if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
-    } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom });
-    else if (t && m.who === "agent" && /^✓\s/.test(m.text)) out.push({ key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
-    else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", fwd: conv !== "ws" && m.fwd ? m.fwd : null, threads: on.get(m.id) || null });
-  }
-  if (conv.startsWith("p:")) {
-    const pid = conv.slice(2);
-    const since = h && !h.all ? rows.reduce((a, m) => (Number.isFinite(m.at) && m.at < a ? m.at : a), Infinity) : -Infinity;
-    const inView = (at) => !(at < since);
-    for (const x of threadsOf(pid)) {
-      if (!inView(x.lastAt)) continue;
-      if (x.state === "done") out.push({ key: `${x.id}:done`, at: x.lastAt, who: "event", text: `${x.title} finished`, tone: "ok" });
-      if (x.state === "failed") out.push({ key: `${x.id}:failed`, at: x.lastAt, who: "event", text: `${x.title} stopped`, tone: "stop" });
-    }
-    for (const d of D.decisions().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `${d.verb} · ${d.said || d.label}`, tone: d.choice === "deny" ? "back" : "ok" });
-    for (const d of D.notSent().filter((d) => d.project === pid && inView(d.at))) out.push({ key: `dec:${d.id}`, at: d.at, who: "event", text: `Not sent · ${d.said || d.label} · ${d.why}`, tone: "sys" });
-  }
-  // what its coordinator did to its turn (F6): one row each, in order. An interrupt or a stop also left XO's
-  // own note on the thread; that note becomes the row, so nothing is said twice.
-  if (t) for (const c of st.controls[t.id] || []) {
-    const at = Date.parse(c.at) || 0;
-    const note = c.action !== "steer" ? out.find((x) => x.who === "system" && !x.ctl && !x.continuedIn && !x.continuedFrom && !x.passedOn && /interrupt|stop/i.test(x.text || "") && Math.abs((x.at || 0) - at) < 15000) : null;
-    if (note) { note.who = "control"; note.ctl = c; continue; }
-    out.push({ key: `ctl:${c.seq ?? at}`, at, seq: c.seq, who: "control", ctl: c });
-  }
-  // a usage limit this thread waits on (F5): the same card as in Needs you, small, at the end
-  if (t) for (const it of t.limits || []) out.push({ key: `lim:${it.id}`, at: Date.now(), who: "limit", item: it });
-  // a move the thread row knows but whose note isn't in what we hold: its banner anyway (F4)
-  if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
-  if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(t.movedTo.at) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
-  // your messages relayed into this thread by its coordinator (if1 #7): the relay hop names them, and they
-  // stay on the project's timeline (storm doesn't copy them), so they're shown here in place, whatever the
-  // hops setting, marked as passed on, linking back to where you wrote them
-  if (t && st.hops) {
-    const { shown, missing } = relayedInto(t, st.hops.values(), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)), st.found?.[t.project]);
-    const who = (r) => (r === "workspace-coordinator" ? "Workspace coordinator" : r === "project-coordinator" ? `${PROJ(t.project)} coordinator` : null);
-    for (const m of shown) {
-      if (m.who === "you") out.push({ key: `relay:${m.id}`, at: m.hop.at || m.at, seq: m.hop.seq ?? m.seq, who: "you", text: m.text, files: m.files, chatId: m.chatId, wrote: m.at, relay: { project: t.project, id: m.id, fwd: m.fwd, at: m.hop.at || 0 } });
-      else out.push({ key: `relay:${m.id}`, at: m.at, seq: m.seq, who: m.who, text: m.text, files: m.files, chatId: m.chatId, ...(who(m.role) ? { name: who(m.role), role: "passed on", coord: true } : {}) });
-    }
-    if (world.act.findRows) for (const x of missing) world.act.findRows(t.project, x.ids, x.seq);
-  }
-  // what the coordinators and this thread wrote each other: storm keeps it as hops (their note), never
-  // as messages, so it's shown here in place, whatever the hops setting
-  const noted = new Set();
-  if (t && st.hops) {
-    for (const n of hopNotes(t, st.hops.values())) {
-      noted.add(n.id);
-      if (n.dir === "down") out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "coord", text: n.text, name: n.from === "workspace" ? "Workspace coordinator" : `${PROJ(t.project)} coordinator`, role: n.kind, cause: n.cause });
-      else out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "asked", text: n.text, hop: n.id });
-    }
-    // a steer delivers the coordinator's next note (the hop stored right after it): the line says what happened, the note what it said
-    for (const c of out.filter((x) => x.who === "control" && x.ctl.action === "steer" && x.seq != null).sort((a, b) => a.seq - b.seq)) {
-      const note = out.filter((x) => x.who === "coord" && !x.lead && x.key.startsWith("hopn:") && x.seq > c.seq && x.at - c.at >= 0 && x.at - c.at < 10000).sort((a, b) => a.seq - b.seq)[0];
-      if (note) note.lead = c.key;
-    }
-  }
-  // how messages travelled to and from this thread (11 §16): hidden by default, shown by choice
-  if (t && S.showHops && st.hops) {
-    for (const hp of st.hops.values()) {
-      if (hp.thread_ts !== t.id || noted.has(hp.id)) continue;
-      const text = hopLine(hp, PROJ(t.project));
-      if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
-    }
-  }
-  if (t && t.sessionId && st.turns) {
-    const says = rows.filter((m) => m.seq != null && m.id !== t.id).map((m) => ({ seq: m.seq, at: m.at, who: m.who }))
-      .concat(out.filter((x) => x.seq != null && /^(hopn|relay|ctl|hop):/.test(x.key)).map((x) => ({ seq: x.seq, at: x.at, who: x.who })));
-    // what the agent's messages carry: a turn's shared_files block doesn't draw them a second time
-    const carried = rows.filter((m) => m.who !== "you").flatMap((m) => m.files || []);
-    // a running turn's still-empty last stretch is "now": after everything held
-    const tail = says.reduce((a, m) => (m.seq > a ? m.seq : a), 0) + 0.5;
-    for (const tu of st.turns.list((x) => x.session === t.sessionId)) {
-      const blocks = st.turns.blocksOf(tu);
-      const said = says.some((q) => q.who === "agent" && q.seq >= (tu.seq ?? Infinity) && q.seq <= (tu.lastSeq || Infinity));
-      for (const sg of turnSegments(tu, blocks, says)) {
-        const turn = segmentTurn(tu, sg);
-        const seq = tu.status === "running" && sg.last && sg.k > 0 && !sg.blocks.length ? Math.max(sg.seq, tail) : sg.seq;
-        out.push({ key: sg.last ? `turn:${tu.id}` : `turn:${tu.id}#${sg.k}`, at: sg.from ?? (Date.parse(tu.at) || Date.now()), seq, who: "turn", turn, blocks: sg.blocks, hideAnswer: said, carried, working: sg.k > 0 });
-      }
-    }
-  }
-  // the Workspace's and a project's own hops, by the same choice: what a coordinator did on its own, and
-  // work handed on to another project (its forward and the answer back)
-  if (!t && chat && S.showHops && st.hops) {
-    const cid = world.act.chatId?.(chat);
-    // its own, and a forward into another project that one of its own asks caused
-    const mine = (hp) => hp.chat_id === cid || (hp.kind === "forward" && st.hops.get(hp.cause)?.chat_id === cid);
-    for (const hp of cid ? st.hops.values() : []) {
-      if (hp.thread_ts != null || !mine(hp)) continue;
-      const text = hopLine(hp, PROJ(chat), hp.kind === "forward" ? PROJ(world.act.projectOf?.(hp.chat_id) || "") : null);
-      if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
-    }
-  }
-  // the coordinator's turn for your message failed: say so where you'll look (GitHub #30)
-  const fail = !t && chat ? st.failed && st.failed[chat] : null;
-  if (fail) out.push({ key: `fail:${fail.id}`, at: fail.at, who: "event", tone: "stop", text: `The coordinator couldn't answer: ${fail.error}` });
-  // empty means nobody has said anything yet: XO's own lines here (a new project's "cloned from …", a record
-  // line) are no conversation, so they don't stand in for one (the owner, 13 Nov 17:40Z: a cloned project
-  // opened on its one "cloned" line, without the starts)
-  if (!rows.length && !locals.some((m) => m.who === "you") && !(h && (h.loading || h.error))) {
-    // a project's empty chat opens on what its coordinator can start for you (startHtml), after XO's own lines
-    out.push(t || conv === "ws" ? { key: "empty", at: -Infinity, who: "note", text: t ? "No messages in this thread yet." : "No messages yet. Ask the coordinator anything below." } : { key: "empty", at: Infinity, who: "start", pid: convProject(conv) });
-  }
-  out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
-  const floor = t ? pageFloor(th, t.messages) : null;
-  const floorAt = floor == null ? null : t.messages.find((m) => m.seq === floor)?.at ?? null;
-  const shown = floor == null ? out : out.filter((m) => inPage(m, floor, floorAt));
-  const stored = shown.filter((m) => m.seq != null).sort((a, b) => a.seq - b.seq);
-  const rest = shown.filter((m) => m.seq == null).sort((a, b) => a.at - b.at);
-  const merged = [];
-  let i = 0;
-  for (const m of stored) {
-    while (i < rest.length && rest[i].at < m.at) merged.push(rest[i++]);
-    merged.push(m);
-  }
-  while (i < rest.length) merged.push(rest[i++]);
-  return merged;
-}
+const messagesOf = createConversationMessages({ S, world, D, PROJ, convThread, chatOf, convProject, threadsOf });
+
 
 /** A message's words. One that holds a table is the wide kind of bubble: the whole text column, so a
  *  table gets the room it needs (QA #5; a prose bubble stops at 560 px, 88 % of the column). */

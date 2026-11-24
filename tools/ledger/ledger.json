@@ -7126,8 +7126,8 @@
    "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::messagesOf": {
-   "status": "planned",
-   "home": "modules/conversation (model, pure) → core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
+   "status": "moved",
+   "home": "modules/conversation/messages.js"
   },
   "js/app.js::functions::proseHtml": {
    "status": "planned",
