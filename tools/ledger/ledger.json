@@ -7278,8 +7278,9 @@
    "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1340)"
   },
   "js/app.js::functions::topRender": {
-   "status": "planned",
-   "home": "shell (header host) + `header.title`/`header.action`/`header.menu` places filled by projects, threads, launchpad, stage, chats, runtimes (app.js l.1352)"
+   "status": "moved",
+   "home": "shell/header.js",
+   "note": "Shell owns the header host and action ordering. Conversation title markup and editing remain in js/app.js with the conversation holdback."
   },
   "js/app.js::functions::checklistRender": {
    "status": "planned",

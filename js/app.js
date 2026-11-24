@@ -36,7 +36,7 @@ import { createMap } from "../modules/map/map.js";
 import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
-import { headerActionsHtml, wireHeaderActions } from "../shell/header.js";
+import { createTopHeader, headerActionsHtml, wireHeaderActions } from "../shell/header.js";
 import { stackLayers } from "../shell/layers.js";
 import { createBackSteps, wireBack } from "../shell/back.js";
 import { createNavigation } from "../shell/navigation.js";
@@ -927,33 +927,8 @@ function hostNeedHtml(v, needs) {
 }
 
 
-function topRender(needs) {
-  const v = S.view;
-  const t = convThread(v);
-  const top = $("#top");
-  top.dataset.kind = t ? "thread" : "project"; // hub #28: the Workspace has a project's header, always shown
-  // a thin state line along the thread's header: amber needs you, blue working, green done, red stopped
-  top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" && !t.stop ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
-  const back = $("#top-back");
-  back.hidden = !t;
-  if (CH.isChats(v)) {
-    // Chats: the list, or one chat with its way back to the list
-    top.dataset.kind = v === "chats" ? "project" : "thread";
-    back.hidden = v === "chats";
-    if (v !== "chats") { patch(back, `${ICON.back}<span>Chats</span>`); back.setAttribute("aria-label", "Back to Chats"); back.title = "Back (Esc)"; }
-    patch($("#top-who"), CH.headHtml(v));
-    patch($("#top-end"), STAGE.button(v));
-    checklistRender(needs);
-    return;
-  }
-  if (t) {
-    const to = S.parent[v] || "p:" + t.project;
-    const name = to === "home" ? "Home" : to === "ws" ? "Workspace" : PROJ(to.slice(2));
-    patch(back, `${ICON.back}<span>${esc(name)}</span>`); // written when the name changes, not every render
-    back.setAttribute("aria-label", `Back to ${name}`);
-    back.title = "Back (Esc)";
-  }
-  let who, end = "";
+function conversationHeaderHtml(v, t, needs) {
+  let who;
   if (v === "ws") {
     const P0 = homeParts(needs);
     // hub #28: a normal chat's header, like a project's: the counts in one line, what needs you one click away
@@ -997,18 +972,7 @@ function topRender(needs) {
     // a field being edited is never replaced under the person's fingers (a frame may change the badge)
     if (ed && $("#tw-edit")) who = null;
   } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
-  // in place (js/redraw.js): Resolve turning into Reopen, ⋯ opening its menu, the badge changing, all keep the
-  // control you're on
-  if (who != null && $("#top-who")._h !== who) { redraw($("#top-who"), who); $("#top-who")._h = who; }
-  // in place too: Threads (the switcher's opener) is the same button when All opens and sets aria-expanded, so
-  // closing All finds it to return to (Astra H30)
-  const pv = v.startsWith("p:");
-  const endHtml = t ? end : end + (pv ? S.hdrCtl + headerActionsHtml(kernel.places, atOf(v)) + LP.button(v, LW.isOpen) : "") + STAGE.button(v);
-  if ($("#top-end")._h !== endHtml) { redraw($("#top-end"), endHtml); $("#top-end")._h = endHtml; }
-  LP.ensure(v);
-  checklistRender(needs);
-  tdelRender(t);
-  REC.sinceLine(v.startsWith("p:") ? v.slice(2) : null, needs);
+  return who;
 }
 
 
@@ -3056,6 +3020,7 @@ let allReturn = null;
 const allRender = createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadMark, glyphOf, rtTag, STATE_WORDS });
 radioKeys($("#all-f"));
 const tdelRender = createThreadDeleteView(S);
+const topRender = createTopHeader({ S, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender, REC });
 async function deleteThread(tid) {
   const t = world.thread(tid);
   if (!t || !world.act.deleteThread) return;

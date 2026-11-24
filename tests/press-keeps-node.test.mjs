@@ -24,9 +24,9 @@ const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 
 // ── the write paths, from the source (no DOM needed) ─────────────────────────
 await t("Back is written through patch(): only when its name changes, in place", () => {
-  const app = src("app.js");
-  assert.doesNotMatch(app, /back\.innerHTML\s*=/);
-  assert.equal((app.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
+  const header = readSource("shell/header.js");
+  assert.doesNotMatch(header, /back\.innerHTML\s*=/);
+  assert.equal((header.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
 await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new file's row are the tree's own", () => {
   const f = ["files.js", "tree.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
