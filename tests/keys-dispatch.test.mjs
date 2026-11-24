@@ -1,9 +1,3 @@
-// Settings and the page agree on every key that works anywhere (the controls grader's C118 on c055e74: Settings took
-// Ctrl+Shift+J for All shortcuts, stored and announced it, and pressing it did nothing: the page answered ⌘/Ctrl keys
-// for four actions only). The real js/keys.js: for each "Anywhere" action and each candidate key, if set() takes it,
-// the keydown that key makes sets that action off (globalFor), while typing too when it has ⌘/Ctrl, and never while
-// typing when it hasn't; and app.js asks globalFor, not a list of its own. Also: ⌥ alone is refused (it types).
-//   node tests/keys-dispatch.test.mjs
 import assert from "node:assert/strict";
 import { dom } from "./lib/dom.mjs";
 import { wireGlobalKeys } from "../shell/global-keys.js";
@@ -28,7 +22,7 @@ const CANDIDATES = [
 const GLOBAL = K.ACTIONS.filter((a) => a.scope === "global" && !a.fixed).map((a) => a.id);
 
 t("every key Settings takes for an Anywhere action, the page answers with that action", () => {
-  assert.equal(typeof K.globalFor, "function", "js/keys.js globalFor(e, { typing })");
+  assert.equal(typeof K.globalFor, "function");
   const wrong = [];
   let taken = 0;
   for (const id of GLOBAL) {

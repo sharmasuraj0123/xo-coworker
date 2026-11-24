@@ -1048,10 +1048,10 @@ const conversationHeaderHtml = createConversationHeader({
 const topRender = createTopHeader({ S, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender, REC });
 const deleteThread = createThreadDelete({ S, world, render: () => render(), go, announce, heraldShow, PROJ });
 const { panelShell, openShell } = createShellPanel({ S, STAGE, SH, world, heraldShow });
-const { openAll, closeAll } = createAllThreadsSheet({ allEl, field: $("#all-q"), phone: PHONE, S, convProject, allRender, schedule, syncInert, go });
+const { openAll, closeAll } = createAllThreadsSheet({ allEl, field: $("#all-q"), phone: PHONE, S, convProject, allRender, schedule, syncInert: () => syncInert(), go });
 
 // ── phone drawer ────────────────────────────────────────────────────────────
-const setDrawer = createDrawer({ phone: PHONE, syncInert });
+const setDrawer = createDrawer({ phone: PHONE, syncInert: () => syncInert() });
 
 // ── Create XO Project (modules/create-project/create.js): start empty or clone a repository ─────
 const CREATE = initCreate({
@@ -1163,8 +1163,7 @@ const LAYERS = stackLayers(kernel.layers, [
   { id: "chat-setup", open: () => CH.setupOpen, close: () => { CH.closeSetup(); } },
 ]);
 const placeOk = (v) => v === "ws" || v === "chats" || !!PAGE_OF[v] || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
-const syncLayers = mountKeyboardLayers({ layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl });
-function syncInert() { syncLayers(); }
+const syncInert = mountKeyboardLayers({ layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl });
 wireGlobalKeys({ S, SH, jump, IQ, CREATE, keys, allEl, GLOBAL, FP, QO, LAYERS, back, go });
 const { canBack, stepBack } = createBackSteps({ S, LAYERS, placeOk, go, back });
 wireBack({ canBack, stepBack });

@@ -10,6 +10,8 @@ import { dom } from "./lib/dom.mjs";
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const storage = new Map([["cv-theme", "light"], ["cv-flavour", "onyx"]]);
 const blockedStorage = new Set();
+/** @type {string[]} */
+const clipboard = [];
 /** @type {FrameRequestCallback[]} */
 const frames = [];
 const matches = window.Element.prototype.matches;
@@ -33,6 +35,7 @@ Object.assign(globalThis, {
   MutationObserver: window.MutationObserver,
   ResizeObserver: class { observe() {} disconnect() {} },
   customElements: window.customElements,
+  isSecureContext: true,
   getComputedStyle: window.getComputedStyle,
   requestAnimationFrame: (/** @type {FrameRequestCallback} */ fn) => frames.push(fn),
   setInterval: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setInterval(fn, ms).unref(),
@@ -40,6 +43,7 @@ Object.assign(globalThis, {
   fetch: async () => new Response("{}", { headers: { "content-type": "application/json" } }),
   EventSource: class { addEventListener() {} close() {} },
 });
+Object.defineProperty(navigator, "clipboard", { value: { writeText: async (/** @type {string} */ text) => { clipboard.push(text); } } });
 
 await import("../boot.js");
 await new Promise((resolve) => setImmediate(resolve));
@@ -85,10 +89,57 @@ press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
 assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 0 projects/);
+const message = document.createElement("div");
+message.className = "m-them";
+message.innerHTML = '<div class="mb"><div class="prose"><p>Run this:</p><div class="md-code"><div class="md-code-head">JavaScript <button>Copy</button></div><pre><code>const answer = 42;</code></pre></div><p>Then check it.</p></div></div>';
+document.querySelector("#msgs").append(message);
+const touch = Object.assign(new window.Event("touchstart", { bubbles: true }), { touches: [{ clientX: 50, clientY: 50 }] });
+const realTimeout = globalThis.setTimeout;
+/** @type {(() => void)[]} */
+const pressTimers = [];
+try {
+  globalThis.setTimeout = (callback) => pressTimers.push(callback);
+  message.querySelector("p").dispatchEvent(touch);
+} finally {
+  globalThis.setTimeout = realTimeout;
+}
+for (const callback of pressTimers) callback();
+press('.lp-menu [data-lp="copy"]');
+assert.deepEqual(clipboard, ["Run this:\n\nconst answer = 42;\n\nThen check it."], "long-press copies only the message text through boot's gesture wiring");
+message.remove();
 press("#nv-home");
 assert.equal(document.querySelector("#nv-home").getAttribute("aria-current"), "page", "Home navigation restores Home");
 assert.equal(document.querySelector("#app").dataset.conv, "home", "the shell tracks Home after navigation");
 assert.ok(document.querySelector("#ws-head").closest("[hidden]"), "Home hides the Workspace conversation");
+
+const jump = document.querySelector("#jump");
+const app = document.querySelector("#app");
+const key = (/** @type {string} */ name, mods = {}) => {
+  const event = Object.assign(new window.Event("keydown", { cancelable: true }), { key: name, altKey: false, ctrlKey: false, metaKey: false, shiftKey: false, ...mods });
+  window.dispatchEvent(event);
+  return event;
+};
+assert.equal(key("k", { metaKey: true }).defaultPrevented, true, "boot registers the Jump shortcut");
+assert.equal(jump.hidden, false);
+await new Promise((resolve) => setImmediate(resolve));
+assert.equal(app.inert, true, "the app's Jump layer holds the application inert");
+const jumpField = document.querySelector("#jump-q");
+Object.defineProperty(jumpField, "tabIndex", { value: 0 });
+fold.focus();
+assert.equal(key("Tab").defaultPrevented, true, "the app's Jump layer traps Tab");
+assert.ok(document.activeElement === jumpField, "Tab moves focus back into Jump");
+assert.equal(key("Escape").defaultPrevented, true);
+assert.equal(jump.hidden, true, "Escape dispatches through the app's Jump layer");
+assert.equal(app.inert, false, "closing Jump returns the application to interaction");
+
+fold.focus();
+const shortcuts = document.querySelector("#keys");
+assert.equal(key("?").defaultPrevented, true, "boot registers the Shortcuts key");
+assert.equal(shortcuts.hidden, false);
+assert.ok(document.activeElement === shortcuts.querySelector("[data-close]"), "opening Shortcuts focuses its close button");
+key("Escape");
+assert.equal(shortcuts.hidden, true, "Escape closes Shortcuts");
+assert.ok(document.activeElement === fold, "closing Shortcuts restores the previous focus");
 
 press("#set-side");
 assert.equal(document.querySelector("#settings").hidden, false, "sidebar opens Settings");

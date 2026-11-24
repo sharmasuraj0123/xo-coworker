@@ -1,11 +1,7 @@
 // @ts-check
 
-// A message's words for Copy, on stand-in elements: one reading for the desktop's Copy and the phone's long-press Copy.
-
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 
-// ── stand-ins: text and elements, white-space by tag (a pre keeps its lines), matches() for the selectors used ──
 class Text { constructor(v) { this.nodeType = 3; this.nodeValue = v; } }
 class El {
   constructor(tag, attrs = {}, kids = []) { this.nodeType = 1; this.tagName = tag.toUpperCase(); this.attrs = attrs; this.childNodes = kids.map((k) => (typeof k === "string" ? new Text(k) : k)); this.ws = attrs.ws || (this.tagName === "PRE" ? "pre" : "normal"); }
@@ -36,11 +32,5 @@ await t("a code block's label and Copy aren't its words: the long-press Copy and
       h("pre", null, h("code", null, "const a = 1;\n  return a;"))),
     h("p", null, "Then ", h("svg", { "aria-hidden": "true" }, "icon"), "check it."));
   assert.equal(wordsOf(prose), "Run this:\n\nconst a = 1;\n  return a;\n\nThen check it.");
-});
-await t("the phone's long-press Copy reads the message through the same extraction, never its innerText", () => {
-  const g = readFileSync(new URL("../../../shell/gestures.js", import.meta.url), "utf8"), m = readFileSync(new URL("../decoration.js", import.meta.url), "utf8");
-  assert.match(g, /dataset\.lp === "copy"\) \{ copyText\(wordsOf\(el\)\)/, "its Copy copies wordsOf(el)");
-  assert.doesNotMatch(g, /copyText\(\(el\.innerText/, "not innerText");
-  assert.match(m, /import \{ wordsOf \} from "\.\/words\.js"/, "desktop Copy imports the same extractor");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
