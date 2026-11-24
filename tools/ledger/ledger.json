@@ -15404,8 +15404,8 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::tpClose": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::toMain": {
    "status": "kept",
@@ -15432,12 +15432,12 @@
    "home": "modules/settings/appearance.js"
   },
   "js/app.js::ids::tpherald": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tat-list": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::storage::cv-flavour": {
    "status": "moved",
