@@ -7261,12 +7261,12 @@
    "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1725)"
   },
   "js/app.js::functions::fitDock": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1740)"
+   "status": "moved",
+   "home": "modules/decisions/dock-layout.js"
   },
   "js/app.js::functions::dockEdges": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1759)"
+   "status": "moved",
+   "home": "modules/decisions/dock-layout.js"
   },
   "js/app.js::functions::dockRender": {
    "status": "planned",

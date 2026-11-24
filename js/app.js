@@ -35,6 +35,7 @@ import { createConversationStops } from "../modules/conversation/stops.js";
 import { createDelivery } from "../modules/conversation/delivery.js";
 import { createComposerTarget } from "../modules/conversation/target.js";
 import { createMentionList } from "../modules/conversation/mention.js";
+import { fitDock, dockEdges } from "../modules/decisions/dock-layout.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf, goneLine } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
@@ -1063,40 +1064,6 @@ function reset() {
 }
   const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
 const GONE_FRESH = 5000; // a withdrawal older than this was not what just emptied the dock
-const DOCK_Q_ROOM = 8; // under the question's last line: the body's own bottom padding and a little air
-function fitDock(frame) {
-  const body = frame && frame.querySelector(".c-body");
-  if (!body || !frame.isConnected) return;
-  const h = body.querySelector(".c-h");
-  if (frame.classList.contains("is-one")) frame.classList.remove("is-one");
-  const one = !!h && h.getBoundingClientRect().bottom - body.getBoundingClientRect().top + DOCK_Q_ROOM > body.clientHeight + 0.5;
-  frame.classList.toggle("is-one", one);
-  // one scroll: the answers can start below the card's edge, so a pill on that edge says they're there
-  let more = body.querySelector(".dock-more");
-  if (one && !more) {
-    more = document.createElement("button");
-    more.type = "button";
-    more.className = "dock-more";
-    more.dataset.dockMore = "";
-    more.innerHTML = `<span class="dm-p">Answers${ICON.chevron}</span>`;
-    body.appendChild(more);
-  } else if (!one && more) more.remove();
-  dockEdges(frame);
-}
-function dockEdges(frame) {
-  const sc = frame.classList.contains("is-one") ? frame.querySelector(".card-in") : frame.querySelector(".c-body");
-  if (!sc) return;
-  const more = sc.scrollHeight - sc.clientHeight > 1;
-  sc.classList.toggle("fade-t", more && sc.scrollTop > 1);
-  // in one scroll the "Answers" pill's own band is the bottom edge
-  sc.classList.toggle("fade-b", more && !sc.matches(".card-in") && sc.scrollTop < sc.scrollHeight - sc.clientHeight - 1);
-  // the answers in view: the "Answers" pill has said its piece and fades away
-  const act = frame.querySelector(".c-act");
-  if (act) frame.classList.toggle("ans-in", act.getBoundingClientRect().top < sc.getBoundingClientRect().bottom - 40);
-  // the other scroller of the two never keeps a fade from the other mode
-  const other = sc.matches(".c-body") ? frame.querySelector(".card-in") : frame.querySelector(".c-body");
-  other?.classList.remove("fade-t", "fade-b");
-}
 const dockRO = new ResizeObserver(() => { const f = tdock.querySelector(".card.is-dock"); if (f) fitDock(f); });
 tdock.addEventListener("scroll", () => { const f = tdock.querySelector(".card.is-dock"); if (f) dockEdges(f); }, { capture: true, passive: true });
 function dockRender(needs) {
