@@ -4,15 +4,15 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 489 |
+| moved | 488 |
 | vendor | 376 |
 | deleted | 337 |
-| planned | 148 |
+| planned | 147 |
 | kept | 61 |
-| split | 32 |
+| split | 34 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted 151, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept 153, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -75,7 +75,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
 | `js/map.js` | 1360 | split | modules/map/map.js, modules/map/input.js, modules/map/render.js, modules/map/layout.js, modules/map/diagram.js, modules/map/folders.js, modules/map/tree.js, modules/map/agents.js, modules/map/icons.js, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js |
-| `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
+| `js/mdlive.js` | 331 | split | modules/files/markdown-page.js, modules/files/markdown-blocks.js, modules/files/markdown-table.js, modules/files/markdown-widgets.js |
 | `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js, core/services/media/images.js, core/services/media/intersection.js, core/services/media/cache.js, core/services/media/stack-data.js, core/services/media/image-scope.js, core/services/media/object-urls.js, core/services/media/picture-load.js, core/services/media/project-images.js |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
@@ -92,7 +92,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `js/recordview.js` | 857 | kept | js/recordview.js · next: The application composes Since and Made, contributes their sections, and supplies the existing Home skeleton helpers. |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js |
 | `js/review.js` | 153 | moved | core/services/review.js |
-| `js/rich.js` | 282 | moved | core/ui/markdown/rich.js |
+| `js/rich.js` | 282 | split | core/ui/markdown/rich.js, core/ui/markdown/rich-elements.js |
 | `js/ring.js` | 65 | moved | core/ui/a11y/ring.js |
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 168 | moved | modules/runs/view.js |
@@ -251,7 +251,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `tests/map-tag-press.test.mjs` | 22 | planned | core/ui (css guard)/tests/map-tag-press.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/map.test.mjs` | 108 | kept | tests/map.test.mjs |
 | `tests/md-headings.test.mjs` | 30 | kept | tests/md-headings.test.mjs |
-| `tests/mdlive.test.mjs` | 108 | planned | modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/mdlive.test.mjs` | 108 | moved | modules/files/tests/mdlive.test.mjs |
 | `tests/media.test.mjs` | 369 | planned | modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/menu-focus-fill.test.mjs` | 35 | planned | core/ui (css guard)/tests/menu-focus-fill.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/menu-focus.test.mjs` | 33 | planned | modules/files/tests/menu-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

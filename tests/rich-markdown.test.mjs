@@ -151,20 +151,22 @@ const hooks = registerHooks({
     ` };
   },
 });
-const { cachedMath, drawDiagram, drawMath, startRich } = await import("../core/ui/markdown/rich.js");
+const { drawRichElement, startRich } = await import("../core/ui/markdown/rich.js");
 startRich();
 const loadedAtStartup = [...mermaidLoads];
-const diagramSource = "flowchart LR\n  A --> B";
-const [diagram] = await Promise.allSettled([drawDiagram(diagramSource)]);
-const [redraw] = await Promise.allSettled([drawDiagram(diagramSource)]);
+const diagramSource = "```mermaid\nflowchart LR\n  A --> B\n```";
+const renderedDiagram = document.createElement("div");
+renderedDiagram.innerHTML = renderMarkdown(diagramSource);
+document.body.append(renderedDiagram);
+await drawRichElement(renderedDiagram.querySelector("figure"));
+const firstDiagram = renderedDiagram.querySelector("svg")?.getAttribute("data-render");
+renderedDiagram.innerHTML = renderMarkdown(diagramSource);
 hooks.deregister();
 t("the first diagram loads the published Mermaid module and redraw reuses its output", () => {
   assert.deepEqual(loadedAtStartup, []);
   assert.deepEqual(mermaidLoads, [mermaidEntry]);
-  if (diagram.status === "rejected") throw diagram.reason;
-  if (redraw.status === "rejected") throw redraw.reason;
-  assert.equal(diagram.value, '<svg data-render="1"></svg>');
-  assert.equal(redraw.value, diagram.value);
+  assert.equal(firstDiagram, "1");
+  assert.equal(renderedDiagram.querySelector("svg")?.getAttribute("data-render"), firstDiagram);
 });
 t("chart hover follows the nearest values and clears when the pointer leaves", () => {
   const plot = document.querySelector(".mc-plot");
@@ -188,7 +190,10 @@ t("chart hover follows the nearest values and clears when the pointer leaves", (
 assert.equal(document.head.childElementCount, 0, "starting rich markdown does not request KaTeX");
 const formula = "a^2 + b^2";
 let drawn = false;
-const drawing = drawMath(formula).then((html) => { drawn = true; return html; });
+const renderedFormula = document.createElement("div");
+renderedFormula.innerHTML = renderInline("$" + formula + "$");
+document.body.append(renderedFormula);
+const drawing = drawRichElement(renderedFormula.querySelector(".md-math")).then(() => { drawn = true; });
 const [stylesheet, script] = document.head.children;
 assert.equal(stylesheet.rel, "stylesheet");
 assert.equal(stylesheet.href, new URL("../vendor/katex/katex.min.css", import.meta.url).href);
@@ -205,9 +210,10 @@ script.onload();
 await settle();
 assert.equal(drawn, false, "a formula waits for its stylesheet");
 stylesheet.onload();
-assert.equal(await drawing, "<span>rendered math</span>");
-assert.equal(cachedMath(formula), "<span>rendered math</span>");
-assert.equal(await drawMath(formula), "<span>rendered math</span>");
+await drawing;
+assert.equal(renderedFormula.querySelector(".md-math").innerHTML, "<span>rendered math</span>");
+renderedFormula.innerHTML = renderInline("$" + formula + "$");
+assert.equal(renderedFormula.querySelector(".md-math").innerHTML, "<span>rendered math</span>");
 assert.equal(document.head.childElementCount, 2);
 delete window.katex;
 passed++;

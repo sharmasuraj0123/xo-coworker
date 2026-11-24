@@ -1,40 +1,35 @@
-// Markdown as a page (modules/files/markdown-page.js): tables, rules, display math and ```math, ```mermaid, ```chart blocks are drawn
-// whole; with the caret inside one its source shows with its drawing kept under it (a rule is always drawn); plain
-// fenced code stays text. The file's text is never changed. Node, with the vendored CodeMirror's state (no view, no browser).
-//   node tests/mdlive.test.mjs
+// Markdown page widgets keep the editable source and rendered document in sync.
 import assert from "node:assert/strict";
 
-const CM = await import("../vendor/codemirror/cm.js");
-// core/ui/markdown/rich.js reads the page's theme and makes a canvas when it loads: the least of a page for it (set after the editor's
-// own code has loaded, which reads `document` only when it's there)
+const CM = await import("../../../vendor/codemirror/cm.js");
 globalThis.document = { documentElement: { dataset: {} }, createElement: () => ({ getContext: () => null }), querySelector: () => null };
 globalThis.addEventListener ??= () => {};
-const { pageView, toggleMark, rowLine, tableRows } = await import("../modules/files/markdown-page.js");
+const { pageView, toggleMark, rowLine, tableRows } = await import("../markdown-page.js");
 const { EditorState, EditorView, markdown, markdownLanguage, ensureSyntaxTree } = CM;
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 
 const DOC = [
-  "# Title",                 // 1
-  "",                        // 2
-  "| a | b |",               // 3
-  "|---|---|",               // 4
-  "| 1 | 2 |",               // 5
-  "",                        // 6
-  "```mermaid",              // 7
-  "graph TD; A-->B",         // 8
-  "```",                     // 9
-  "",                        // 10
-  "```js",                   // 11
-  "const x = 1;",            // 12
-  "```",                     // 13
-  "",                        // 14
-  "$$x^2$$",                 // 15
-  "",                        // 16
-  "---",                     // 17
-  "",                        // 18
-  "End.",                    // 19
+  "# Title",
+  "",
+  "| a | b |",
+  "|---|---|",
+  "| 1 | 2 |",
+  "",
+  "```mermaid",
+  "graph TD; A-->B",
+  "```",
+  "",
+  "```js",
+  "const x = 1;",
+  "```",
+  "",
+  "$$x^2$$",
+  "",
+  "---",
+  "",
+  "End.",
 ].join("\n");
 
 function blocks(anchorLine) {
@@ -96,13 +91,72 @@ t("a long file read a part at a time: every table is drawn once the parser has r
 });
 
 t("a table's cells and its rows' lines: read from the source, written back one row at a time", () => {
-  const t = tableRows("| ID | Means |\n|:--|--:|\n| `a|b` | one \\| two |\n| x | |");
-  assert.equal(t.width, 2);
-  assert.deepEqual(t.align, ["", "right"]);
-  assert.deepEqual(t.rows.map((r) => r.line), [0, 2, 3], "the delimiter row is skipped");
-  assert.deepEqual(t.rows[1].cells, ["`a|b`", "one | two"]);
+  const parsed = tableRows("| ID | Means |\n|:--|--:|\n| `a|b` | one \\| two |\n| x | |");
+  assert.equal(parsed.width, 2);
+  assert.deepEqual(parsed.align, ["", "right"]);
+  assert.deepEqual(parsed.rows.map((r) => r.line), [0, 2, 3], "the delimiter row is skipped");
+  assert.deepEqual(parsed.rows[1].cells, ["`a|b`", "one | two"]);
   assert.equal(rowLine(["one | two", "x"]), "| one \\| two | x |", "a pipe in a cell is escaped");
   assert.equal(rowLine(["", ""]), "|  |  |");
+});
+
+const { dom, same } = await import("../../../tests/lib/dom.mjs");
+const tableFrame = await dom("<main></main>");
+const { createTableWidget } = await import("../markdown-table.js");
+const { createMarkdownWidgets } = await import("../markdown-widgets.js");
+const TableWidget = createTableWidget(CM.WidgetType);
+
+t("a reused table edits its current source position and focuses a newly inserted row", () => {
+  const table = "| a | b |\n|---|---|\n| c | d |";
+  const leading = "A paragraph.\n\n";
+  const view = {
+    state: EditorState.create({ doc: table }),
+    dispatch(spec) { this.state = this.state.update(spec).state; },
+  };
+  const first = new TableWidget(table, 0);
+  const wrap = first.toDOM(view);
+  tableFrame.document.querySelector("main").append(wrap);
+  const cell = wrap.querySelector('[data-r="1"][data-c="1"]');
+  cell.focus();
+  view.state = EditorState.create({ doc: leading + table });
+  const shifted = new TableWidget(table, leading.length);
+  assert.equal(shifted.eq(first), false, "CodeMirror asks a relocated table to update its DOM binding");
+  assert.equal(shifted.updateDOM(wrap), true);
+  same(wrap.querySelector('[data-r="1"][data-c="1"]'), cell);
+  cell.textContent = "revised";
+  cell.dispatchEvent(new tableFrame.window.Event("input", { bubbles: true }));
+  const revised = table.replace("| c | d |", "| c | revised |");
+  assert.equal(view.state.doc.toString(), leading + revised);
+
+  const current = new TableWidget(revised, leading.length);
+  current.updateDOM(wrap);
+  const enter = new tableFrame.window.Event("keydown", { bubbles: true, cancelable: true });
+  enter.key = "Enter";
+  cell.dispatchEvent(enter);
+  const extended = revised + "\n|  |  |";
+  assert.equal(view.state.doc.toString(), leading + extended);
+  const extendedTable = new TableWidget(extended, leading.length);
+  extendedTable.updateDOM(wrap);
+  const addedCell = wrap.querySelector('[data-r="2"][data-c="0"]');
+  same(tableFrame.document.activeElement, addedCell);
+  extendedTable.destroy(wrap);
+  addedCell.textContent = "Retired table";
+  addedCell.dispatchEvent(new tableFrame.window.Event("input", { bubbles: true }));
+  assert.equal(view.state.doc.toString(), leading + extended, "retiring the table releases its input handler");
+});
+
+t("a destroyed Markdown widget can no longer move the editor caret", () => {
+  const { MathWidget } = createMarkdownWidgets(CM.WidgetType);
+  const widget = new MathWidget("$x$", 3);
+  const moves = [];
+  const view = { dispatch: (spec) => moves.push(spec.selection.anchor), focus() {} };
+  const element = widget.toDOM(view);
+  tableFrame.document.querySelector("main").append(element);
+  const press = () => element.dispatchEvent(new tableFrame.window.Event("mousedown", { cancelable: true }));
+  press();
+  widget.destroy(element);
+  press();
+  assert.deepEqual(moves, [4]);
 });
 
 console.log(`${passed} passed`);

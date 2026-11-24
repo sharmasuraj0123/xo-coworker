@@ -1,34 +1,29 @@
 // @ts-check
 
 import { xi } from "../../core/ui/icons/icon.js";
+import { reportFailure } from "../../core/services/notices/failures.js";
 
-/** @import { EditorMountOptions } from "./types.d.ts" */
+/** @import { EditorMountOptions } from "./editor-types.d.ts" */
 
-/** @typedef {typeof import("../../vendor/codemirror/cm.js")} CodeMirror */
-
-/** @typedef {InstanceType<CodeMirror["EditorState"]>} EditorState */
-
-/** @typedef {InstanceType<CodeMirror["EditorView"]>} EditorView */
-
-/** @typedef {InstanceType<CodeMirror["ViewUpdate"]>} ViewUpdate */
-
-/** @typedef {InstanceType<CodeMirror["Transaction"]>} Transaction */
-
-/** @typedef {InstanceType<CodeMirror["StateField"]>} StateField */
-
-/** @typedef {CodeMirror["Decoration"]["none"]} DecorationSet */
-
-/** @typedef {Parameters<InstanceType<CodeMirror["Compartment"]>["of"]>[0]} Extension */
+/** @import {CodeMirror, EditorState, Extension, ViewUpdate} from "./cm-types.d.ts" */
 
 /** @typedef {{from: number, to: number}} LineRange */
-
-/** @typedef {{a: number, b: number, pos: number}} SelectedLines */
 
 /** @typedef {{name: string, page: boolean, isMd: boolean, pageExt: Extension}} PageOptions */
 
 /** @typedef {Pick<EditorMountOptions, "onSave" | "onKey"> & {onUpdate: (update: ViewUpdate) => void}} EditorEvents */
 
 const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform || "");
+
+/** @param {CodeMirror} CM @returns {Promise<Extension>} */
+export async function loadPageExtension(CM) {
+  try {
+    return (await import("./markdown-page.js")).pageView(CM);
+  } catch (error) {
+    reportFailure(error);
+    return [];
+  }
+}
 
 /** @param {CodeMirror} CM */
 function highlight(CM) {
@@ -61,19 +56,21 @@ function highlight(CM) {
 /** Briefly mark changed lines, using inclusive 1-based ranges. @param {CodeMirror} CM */
 function tints(CM) {
   const { StateEffect, StateField, Decoration, EditorView } = CM;
+  /** @type {import("@codemirror/state").StateEffectType<LineRange[]>} */
   const add = StateEffect.define();
+
+  /** @type {import("@codemirror/state").StateEffectType<null>} */
   const clear = StateEffect.define();
   const mark = Decoration.line({ class: "cm-xo-tint" });
   const field = StateField.define({
     create: () => Decoration.none,
-    update(/** @type {DecorationSet} */ deco, /** @type {Transaction} */ tr) {
+    update(deco, tr) {
       deco = deco.map(tr.changes);
       for (const e of tr.effects) {
         if (e.is(clear)) deco = Decoration.none;
         if (e.is(add)) {
           const doc = tr.state.doc, out = [];
-          const ranges = /** @type {LineRange[]} */ (e.value);
-          for (const { from, to } of ranges) {
+          for (const { from, to } of e.value) {
             for (let n = Math.max(1, from); n <= Math.min(doc.lines, to); n++) out.push(mark.range(doc.line(n).from));
           }
           deco = deco.update({ add: out, sort: true });
@@ -81,7 +78,7 @@ function tints(CM) {
       }
       return deco;
     },
-    provide: (/** @type {StateField} */ f) => EditorView.decorations.from(f),
+    provide: (f) => EditorView.decorations.from(f),
   });
   return { field, add, clear };
 }
@@ -89,8 +86,6 @@ function tints(CM) {
 /** @param {CodeMirror} CM @param {Pick<EditorMountOptions, "onLines" | "onAsk">} options */
 function askTip(CM, { onLines, onAsk }) {
   const { StateField, showTooltip } = CM;
-  /** @param {EditorState} state @param {StateField} field @returns {SelectedLines | null} */
-  const getLines = (state, field) => state.field(field);
   const linesOf = (/** @type {EditorState} */ state) => {
     const s = state.selection.main;
     if (s.empty) return null;
@@ -100,12 +95,12 @@ function askTip(CM, { onLines, onAsk }) {
   };
   const field = StateField.define({
     create: linesOf,
-    update(/** @type {SelectedLines | null} */ lines, /** @type {Transaction} */ tr) {
+    update(lines, tr) {
       if (!tr.selection && !tr.docChanged) return lines;
       return linesOf(tr.state);
     },
-    provide: (/** @type {StateField} */ f) => showTooltip.compute([f], (/** @type {EditorState} */ state) => {
-      const l = getLines(state, f);
+    provide: (f) => showTooltip.compute([f], (state) => {
+      const l = state.field(f);
       if (!l || !onAsk) return null;
       return {
         pos: l.pos, above: false, arrow: false,
@@ -129,7 +124,7 @@ function askTip(CM, { onLines, onAsk }) {
   let last = null;
   const listen = CM.EditorView.updateListener.of((/** @type {ViewUpdate} */ u) => {
     if (!u.selectionSet && !u.docChanged) return;
-    const l = getLines(u.state, field);
+    const l = u.state.field(field);
     const k = l ? `${l.a}-${l.b}` : "";
     if (k !== last) {
       last = k;
@@ -195,7 +190,7 @@ export function createEditorConfiguration(CM, { onLines, onAsk }) {
     const keys = keymap.of([
       { key: "Mod-s", preventDefault: true, run: () => { if (onSave) onSave(); return true; } },
       { key: "Ctrl-g", run: gotoLine },
-      { key: "Mod-l", run: (/** @type {EditorView} */ v) => {
+      { key: "Mod-l", run: (v) => {
         const l = ask.linesOf(v.state);
         if (!l || !onAsk) return false;
         onAsk({ a: l.a, b: l.b });

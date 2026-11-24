@@ -1,10 +1,8 @@
 // @ts-check
 
-/** @import { EditorMountOptions } from "./types.d.ts" */
+/** @import { EditorMountOptions } from "./editor-types.d.ts" */
 
-/** @import { CodeMirror, EditorState, EditorView, LineRange, Transaction } from "./editor-extensions.js" */
-
-/** @typedef {typeof import("../../vendor/codemirror/merge.js")} CodeMirrorMerge */
+/** @import { CodeMirror, CodeMirrorMerge, EditorState, LanguageSupport } from "./cm-types.d.ts" */
 
 const CM_URL = new URL("../../vendor/codemirror/cm.js", import.meta.url).href;
 const MERGE_URL = new URL("../../vendor/codemirror/merge.js", import.meta.url).href;
@@ -21,17 +19,16 @@ const TINT_MS = 2400;
 
 /** @param {HTMLElement} host @param {EditorMountOptions} options */
 export async function mount(host, { docs, doc, name = "", page = false, onLines = null, onAsk = null, onSave = null, onKey = null }) {
-  const [CM, { createEditorConfiguration }] = await Promise.all([loadCM(), import("./editor-extensions.js")]);
+  const [CM, { createEditorConfiguration, loadPageExtension }] = await Promise.all([loadCM(), import("./editor-extensions.js")]);
   const { EditorState, EditorView, lineNumbers, highlightActiveLineGutter, foldGutter, LanguageDescription, languages } = CM;
   const { external, lang, ro, pageC, gutters, mergeC, tint, prepareExtensions } = createEditorConfiguration(CM, { onLines, onAsk });
   const isMd = /\.(md|markdown|mdx)$/i.test(name) || doc.kind === "markdown";
-  let pageExt = [];
-  if (isMd) { try { pageExt = (await import("./markdown-page.js")).pageView(CM); } catch (e) { console.error(e); } }
+  const pageExt = isMd ? await loadPageExtension(CM) : [];
 
   const extensions = prepareExtensions({
     name, page, isMd, pageExt, onSave, onKey,
     onUpdate(u) {
-      if (u.docChanged && !u.transactions.some((/** @type {Transaction} */ tr) => tr.annotation(external))) {
+      if (u.docChanged && !u.transactions.some((tr) => tr.annotation(external))) {
         if (!viewing) docs.edited(doc);
       }
       if (merging && u.docChanged) countChunks();
@@ -43,7 +40,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   let state = doc.cmState && doc.cmState.doc.toString() === docs.textOf(doc)
     ? doc.cmState.update({ effects: CM.StateEffect.reconfigure.of(extensions(readOnlyNow())) }).state
     : EditorState.create({ doc: docs.textOf(doc), extensions: extensions(readOnlyNow()) });
-  const view = /** @type {EditorView & {contentDOM: HTMLElement}} */ (new EditorView({ state, parent: host }));
+  const view = new EditorView({ state, parent: host });
   doc.cmState = null;
   /** @type {EditorState | null} */
   let live = null;
@@ -54,7 +51,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   // the code's own language, once it's loaded (a file opens at once, coloured a moment later)
   if (!isMd) {
     const d = LanguageDescription.matchFilename(languages, name);
-    if (d) d.load().then((/** @type {InstanceType<CodeMirror["LanguageSupport"]>} */ support) => {
+    if (d) d.load().then((/** @type {LanguageSupport} */ support) => {
       if (!destroyed) view.dispatch({ effects: lang.reconfigure(support) });
     }).catch(() => {});
   }
@@ -63,7 +60,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   docs.attach(doc, {
     source: () => (live || view.state).doc.toString(),
     length: () => (live || view.state).doc.length,
-    apply: (/** @type {LineRange & {insert: string}} */ e, /** @type {{lines?: LineRange[]} | null} */ info) => {
+    apply: (e, info) => {
       const spec = { changes: { from: e.from, to: e.to, insert: e.insert }, annotations: external.of(true) };
       if (live) { live = live.update(spec).state; return; }
       const lines = info && info.lines && info.lines.length ? info.lines : null;
@@ -123,9 +120,10 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     },
     /** A clash (the document's merge): each place you both changed is a chunk, Keep yours or Take theirs. */
     async showMerge() {
-      if (!doc.merge) return;
+      const merge = doc.merge;
+      if (!merge) return;
       const M = await loadMerge();
-      if (destroyed) return;
+      if (destroyed || doc.merge !== merge) return;
       merging = true; showing = false;
       const control = (/** @type {"accept" | "reject"} */ type, /** @type {(event: MouseEvent) => void} */ action) => {
         const b = document.createElement("button");
@@ -134,7 +132,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
         b.addEventListener("mousedown", action);
         return b;
       };
-      view.dispatch({ effects: mergeC.reconfigure(M.unifiedMergeView({ original: doc.merge.other, mergeControls: control, highlightChanges: true, gutter: true })) });
+      view.dispatch({ effects: mergeC.reconfigure(M.unifiedMergeView({ original: merge.other, mergeControls: control, highlightChanges: true, gutter: true })) });
       const first = M.getChunks(view.state);
       if (first && first.chunks.length) view.dispatch({ selection: { anchor: first.chunks[0].fromB }, effects: EditorView.scrollIntoView(first.chunks[0].fromB, { y: "center" }) });
       countChunks();

@@ -2765,8 +2765,27 @@
    ]
   },
   "js/mdlive.js": {
-   "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "status": "split",
+   "home": [
+    "modules/files/markdown-page.js",
+    "modules/files/markdown-blocks.js",
+    "modules/files/markdown-table.js",
+    "modules/files/markdown-widgets.js"
+   ],
+   "evidence": {
+    "modules/files/markdown-blocks.js": {
+     "anchor": "function blocksOf(state, syntaxTree)",
+     "reason": "Classifies the editor syntax tree and places the block decorations."
+    },
+    "modules/files/markdown-table.js": {
+     "anchor": "function createTableWidget(WidgetType)",
+     "reason": "The editable table owns its row serialization, keyboard controls and reused DOM."
+    },
+    "modules/files/markdown-widgets.js": {
+     "anchor": "function createMarkdownWidgets(WidgetType)",
+     "reason": "Builds the rendered block, formula and bullet widgets."
+    }
+   }
   },
   "js/media.js": {
    "status": "split",
@@ -2894,8 +2913,11 @@
    "home": "core/services/review.js"
   },
   "js/rich.js": {
-   "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "status": "split",
+   "home": [
+    "core/ui/markdown/rich.js",
+    "core/ui/markdown/rich-elements.js"
+   ]
   },
   "js/ring.js": {
    "status": "moved",
@@ -5130,8 +5152,8 @@
    "home": "tests/md-headings.test.mjs"
   },
   "tests/mdlive.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/mdlive.test.mjs"
   },
   "tests/media.test.mjs": {
    "status": "planned",
@@ -10621,11 +10643,11 @@
   },
   "js/mdlive.js::exports::rowLine": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/mdlive.js::exports::tableRows": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/mdlive.js::exports::pageView": {
    "status": "moved",
@@ -10633,7 +10655,7 @@
   },
   "js/mdlive.js::functions::drawIn": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-widgets.js"
   },
   "js/mdlive.js::functions::toggleMark": {
    "status": "moved",
@@ -10641,11 +10663,11 @@
   },
   "js/mdlive.js::functions::rowLine": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/mdlive.js::functions::tableRows": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/mdlive.js::functions::pageView": {
    "status": "moved",
@@ -10653,15 +10675,15 @@
   },
   "js/mdlive.js::keys::Tab": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/mdlive.js::keys::Escape": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/mdlive.js::keys::Enter": {
    "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "home": "modules/files/markdown-table.js"
   },
   "js/media.js::exports::LIMITS": {
    "status": "moved",
@@ -11864,20 +11886,20 @@
    "home": "core/services/review.js"
   },
   "js/rich.js::exports::cachedMath": {
-   "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "status": "deleted",
+   "reason": "The inline Markdown hook owns cache access."
   },
   "js/rich.js::exports::cachedDiagram": {
-   "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "status": "deleted",
+   "reason": "The inline Markdown hook owns cache access."
   },
   "js/rich.js::exports::drawMath": {
-   "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "status": "deleted",
+   "reason": "Document and editor drawings use the shared element renderer."
   },
   "js/rich.js::exports::drawDiagram": {
-   "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "status": "deleted",
+   "reason": "Document and editor drawings use the shared element renderer."
   },
   "js/rich.js::exports::startRich": {
    "status": "moved",
@@ -11913,7 +11935,7 @@
   },
   "js/rich.js::functions::drawMathEl": {
    "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "home": "core/ui/markdown/rich-elements.js"
   },
   "js/rich.js::functions::hexOf": {
    "status": "moved",
@@ -11928,12 +11950,12 @@
    "home": "core/ui/markdown/rich.js"
   },
   "js/rich.js::functions::drawDiagram": {
-   "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "status": "deleted",
+   "reason": "The shared element renderer consumes the typed diagram result."
   },
   "js/rich.js::functions::drawDiagramEl": {
    "status": "moved",
-   "home": "core/ui/markdown/rich.js"
+   "home": "core/ui/markdown/rich-elements.js"
   },
   "js/rich.js::functions::chartHover": {
    "status": "moved",
@@ -14996,12 +15018,12 @@
    "home": "modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/mdlive.test.mjs::functions::blocks": {
-   "status": "planned",
-   "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/mdlive.test.mjs"
   },
   "tests/mdlive.test.mjs::globals::document": {
-   "status": "planned",
-   "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/mdlive.test.mjs"
   },
   "tests/media.test.mjs::globals::matchMedia": {
    "status": "planned",

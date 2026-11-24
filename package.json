@@ -9,6 +9,15 @@
     "test": "node tests/run.mjs"
   },
   "devDependencies": {
+    "@codemirror/autocomplete": "6.20.4",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-markdown": "6.5.2",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/merge": "6.12.3",
+    "@codemirror/search": "6.7.2",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@lezer/highlight": "1.2.5",
     "@types/node": "24.19.2",
     "acorn": "8.15.0",
     "css-what": "8.0.0",

@@ -1,7 +1,8 @@
-import type { ChangeInfo } from "./types";
+import type { ChangeInfo, ViewerDocument } from "./document-types";
 import type { createDocs } from "./documents.js";
 import type { mount } from "./editor.js";
 import type { createViewerDiff, FileChange } from "./viewer-diff.js";
+export type { ViewerDocument } from "./document-types";
 
 export interface ViewerFile {
   name?: string;
@@ -20,20 +21,6 @@ export interface ViewerFile {
 }
 
 export type OpenFile = ViewerFile & { image: boolean; where: string };
-export type FileVersion = ChangeInfo & { text?: string | null; gone?: boolean };
-export interface ViewerDocument {
-  key: string;
-  project: string;
-  rel: string;
-  state: string;
-  version: string | null;
-  versions: FileVersion[];
-  viewing: FileVersion | null;
-  checkedSig?: string;
-  err?: string | null;
-  merge?: { left: number } | null;
-  confirm?: boolean;
-}
 
 export interface ViewerData {
   kind: string;
