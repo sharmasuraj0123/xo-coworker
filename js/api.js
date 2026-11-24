@@ -244,6 +244,11 @@ export const api = {
   status: () => get("/chat/status"),
   runtimes: () => get("/chat/runtimes"),
   models: (runtime) => get(`/chat/runtimes/${enc(runtime)}/models`),
+  /** Local OpenAI-compatible connection. The backend returns api_key_set, never the saved key. */
+  localModel: () => get("/chat/local-model"),
+  setLocalModel: (body) => send("PUT", "/chat/local-model", body),
+  /** Probe a draft connection on the backend without changing the saved configuration. */
+  testLocalModel: (body) => request("/chat/local-model/test", { method: "POST", body, timeout: 60000 }),
   /** {space, effective}: the Space's runtime policy (mixed runtimes §2.2) */
   runtimePolicy: () => get("/chat/runtime-policy"),
   /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */

@@ -2,7 +2,7 @@
 
 **XO Space's web UI.** Codename xo-swim: Smart Work & Ideas Management.
 
-A web UI for the XO Space **projects chat** backend (`/api/projects-chat/*`). It is built around one idea: protect the person's attention. The screen shows what is worth your time and the next action. Everything that only needs an agent stays quiet.
+A web UI for the XO Space **Storm chat** backend (`/api/chat/*`). It is built around one idea: protect the person's attention. The screen shows what is worth your time and the next action. Everything that only needs an agent stays quiet.
 
 - **Home**: what is worth your time across every project, ranked. Small asks that block nobody wait quietly and say why. Then "Handled": what is running and what can wait.
 - **Needs you** panel: one decision at a time, with what it unblocks, the evidence and Details. On phones it is a bottom sheet.
@@ -62,6 +62,14 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 - It tunnels one WebSocket, a shell's terminal (`GET /api/terminal/sessions/{id}/ws`), after the same checks,
   forwarding only `Upgrade`, `Connection` and `Sec-WebSocket-*` (no `Origin`, cookies, Coder token or query),
   and refuses every other upgrade.
+
+## Local models
+
+With a local-model-enabled XO Space backend, open **Settings > Runtimes > Local model**. Enter the OpenAI-compatible API base URL (including `/v1`), such as `http://127.0.0.1:8090/v1` for llama.cpp or `http://127.0.0.1:11434/v1` for Ollama. The address is resolved by the XO Space server.
+
+**Test connection** discovers the server's model IDs without saving. Choose a model, enable the connection, and press **Save connection**. A key is optional; saved keys are never returned to the browser. A blank key keeps the saved key; **Remove saved API key** removes it on save.
+
+Choose **Local model** in a conversation's model picker, or select it under **Usual runtime** to use it for new work. Existing threads retain their runtime. Connection checks and inference go through XO Space; the browser never calls the model server directly. Configuration uses `GET/PUT /api/chat/local-model`, and testing uses `POST /api/chat/local-model/test`.
 
 ## The backend
 
@@ -136,6 +144,7 @@ The UI reads and writes your real XO workspace. **Sending a message starts real 
 | `js/intel.js` | the model and depth chip |
 | `js/runtimes.js` | runtimes, the pure part: names, health in words, usage windows, the runtime policy, moves, the limit card |
 | `js/rtsettings.js` | Settings › Runtimes: each runtime's health, and the defaults |
+| `js/localmodels.js` | Settings › Runtimes: local OpenAI-compatible connection, model discovery, and saved-key handling |
 | `js/content.js` | what an ask costs you, what it frees, and its evidence |
 | `js/ui.js` | icons and motion helpers |
 | `js/gestures.js` | touch gestures on a phone: swipe back or open the sidebar, drag sheets away, swipe between asks, long-press Copy (design-research/11) |

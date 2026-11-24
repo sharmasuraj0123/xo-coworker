@@ -4,6 +4,7 @@ docs/
 # Runtime
 .server.log
 .server.pid
+.local-preview/
 __pycache__/
 *.pyc
 
