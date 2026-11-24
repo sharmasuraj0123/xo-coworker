@@ -1,6 +1,8 @@
 import type { createDockRequests } from "./dock-requests.js";
 import type { DockActionOptions, DockViewOptions } from "./dock-types.d.ts";
 
+export interface OpenIntent { fresh?: boolean; signal?: AbortSignal }
+
 export interface ShellThread {
   project: string;
   chatId?: string;

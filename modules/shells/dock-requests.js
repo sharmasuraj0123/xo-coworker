@@ -4,13 +4,13 @@
 
 /** @param {AbortSignal} signal */
 export function createDockRequests(signal) {
-  const active = () => !signal.aborted;
+  const active = (intent = signal) => !signal.aborted && !intent.aborted;
   /** @template T @param {() => T} effect */
   const publish = (effect) => active() ? effect() : undefined;
 
   /** @template T, U @param {() => Promise<T>} work @param {(result: Result<T>) => U} effect */
-  async function settle(work, effect) {
-    if (!active()) return;
+  async function settle(work, effect, intent = signal) {
+    if (!active(intent)) return;
     /** @type {Result<T>} */
     let result;
     try {
@@ -18,10 +18,11 @@ export function createDockRequests(signal) {
     } catch (error) {
       result = { ok: false, error };
     }
-    return publish(() => effect(result));
+    return active(intent) ? effect(result) : undefined;
   }
 
   /** @template T, U @param {(signal: AbortSignal) => Promise<T>} work @param {(result: Result<T>) => U} effect */
-  const read = (work, effect) => settle(() => work(signal), effect);
+  const read = (work, effect, intent = signal) =>
+    settle(() => work(intent === signal ? signal : AbortSignal.any([signal, intent])), effect, intent);
   return { read, write: settle, active, publish };
 }

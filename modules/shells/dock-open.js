@@ -1,24 +1,34 @@
 // @ts-check
 
 import { api, chatActivityApi } from "../../core/platform/api.js";
+import { createScope } from "../../core/kernel/scope.js";
 import { ApiError } from "../../core/platform/http.js";
 import { reportFailure, requestFailureMessage } from "../../core/services/notices/failures.js";
 import { isRunning, nameFor, runningOf } from "./model.js";
 
-/** @import { DockOpenOptions, ShellThread, ShellWorktree } from "./dock-open-types.d.ts" */
+/** @import { DockOpenOptions, OpenIntent, ShellThread, ShellWorktree } from "./dock-open-types.d.ts" */
 
 /** @param {import("./dock-types.d.ts").DockState} state @param {DockOpenOptions} options */
 export function createShellOpeners(state, {
   requests, wanted, render, attach, upsert, focusNew, showList, projectName, refresh, notify, announce, claimView,
 }) {
-  /** @param {{project?: string, name: string | null, path?: string}} body @param {string} where */
-  function open(body, where) {
-    if (!requests.active() || !state.enabled || !wanted() || state.opening) return;
+  /** @param {{project?: string, name: string | null, path?: string}} body @param {string} where @param {AbortSignal} [intent] */
+  function open(body, where, intent) {
+    if (!requests.active(intent) || !state.enabled || !wanted() || state.opening) return;
+    const lifetime = createScope();
     claimView();
     state.opening = true;
+    function finish() {
+      state.opening = false;
+      lifetime.dispose();
+    }
+    if (intent) lifetime.listen(intent, "abort", () => {
+      finish();
+      if (requests.active()) render();
+    }, { once: true });
     render();
     return requests.write(() => api.openTerminal(body), (result) => {
-      state.opening = false;
+      finish();
       if (result.ok) {
         const { terminal, ticket } = result.value;
         upsert(terminal);
@@ -33,28 +43,29 @@ export function createShellOpeners(state, {
       notify({ kind: "stopped", text: "Couldn't open a shell", sub: message });
       announce(`Couldn't open a shell: ${message}`);
       if (disabled) void refresh({ status: true });
-    });
+    }, intent).finally(lifetime.dispose);
   }
 
-  /** @param {string} project */
-  function openProject(project, { fresh = false } = {}) {
-    if (!requests.active()) return;
+  /** @param {string} project @param {OpenIntent} [options] */
+  function openProject(project, { fresh = false, signal } = {}) {
+    if (!requests.active(signal)) return;
     if (!fresh && runningOf(state.list, project).length) return showList(project);
-    return open({ project, name: nameFor(projectName(project)) }, projectName(project));
+    return open({ project, name: nameFor(projectName(project)) }, projectName(project), signal);
   }
 
-  function openWorkspace({ fresh = false } = {}) {
-    if (!requests.active()) return;
+  /** @param {OpenIntent} [options] */
+  function openWorkspace({ fresh = false, signal } = {}) {
+    if (!requests.active(signal)) return;
     if (!fresh && state.list.some((terminal) => isRunning(terminal) && terminal.scope === "workspace")) return showList("workspace");
-    return open({ name: "Workspace" }, "the workspace");
+    return open({ name: "Workspace" }, "the workspace", signal);
   }
 
-  /** @param {ShellThread} thread */
-  function openThread({ project, chatId, ts, title }) {
-    if (!requests.active() || !state.enabled || !wanted() || state.opening) return;
-    if (!project || project === "workspace") return open({ name: nameFor(title) || "Workspace" }, "the workspace");
+  /** @param {ShellThread} thread @param {Pick<OpenIntent, "signal">} [options] */
+  function openThread({ project, chatId, ts, title }, { signal } = {}) {
+    if (!requests.active(signal) || !state.enabled || !wanted() || state.opening) return;
+    if (!project || project === "workspace") return open({ name: nameFor(title) || "Workspace" }, "the workspace", signal);
     claimView();
-    return requests.read((signal) => chatActivityApi.worktrees(chatId, signal), (result) => {
+    return requests.read((readSignal) => chatActivityApi.worktrees(chatId, readSignal), (result) => {
       let path = null;
       if (result.ok) {
         const found = (result.value.worktrees || []).find((/** @type {ShellWorktree} */ tree) =>
@@ -65,8 +76,9 @@ export function createShellOpeners(state, {
         isRunning(terminal) && terminal.project === project && (terminal.path === path || terminal.cwd === path));
       if (there) { attach(there.id); return; }
       const name = projectName(project);
-      return open({ project, ...(path ? { path } : {}), name: nameFor(title) || nameFor(name) }, path ? "the thread's worktree" : name);
-    });
+      const body = { project, ...(path ? { path } : {}), name: nameFor(title) || nameFor(name) };
+      return open(body, path ? "the thread's worktree" : name, signal);
+    }, signal);
   }
 
   return { openProject, openWorkspace, openThread };

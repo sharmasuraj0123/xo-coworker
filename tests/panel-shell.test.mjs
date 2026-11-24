@@ -38,8 +38,19 @@ assert.deepEqual([...toggle.children].map((child) => child.className), ["gear-ic
 
 // the app: the dock itself moves (no second terminal), a shell opens where it was asked for, and it goes back home
 const { document, window } = await dom(`<main><i id="before"></i>${SHELL_DOCK.trim()}<i id="after"></i></main><aside id="host"></aside>`);
-globalThis.MutationObserver = window.MutationObserver;
 const dock = document.getElementById("shd");
+const dockHome = dock.parentNode;
+const relocations = new Set();
+globalThis.MutationObserver = class extends window.MutationObserver {
+  observe(node, options) {
+    if (node === dock) relocations.add(this);
+    return super.observe(node, options);
+  }
+  disconnect() {
+    relocations.delete(this);
+    return super.disconnect();
+  }
+};
 const host = document.getElementById("host");
 const calls = [];
 const STAGE = { isShell: true, shellOff() { this.isShell = false; calls.push("off"); } };
@@ -50,7 +61,7 @@ const SH = {
   openProject(project) { dock.hidden = false; calls.push(project); },
   openThread(thread) { dock.hidden = false; calls.push(thread); },
 };
-const { panelShell } = createShellPanel({ S: { view: "p:project" }, STAGE, SH,
+const { panelShell, dispose } = createShellPanel({ S: { view: "p:project" }, STAGE, SH,
   world: { thread: (id) => ({ project: "project", chatId: "chat", id, title: "Review" }) },
   heraldShow: (notice) => calls.push(notice.text),
 });
@@ -80,6 +91,51 @@ STAGE.isShell = true;
 panelShell(true, host);
 assert.deepEqual(calls.slice(-2), ["off", "Shells aren't on here"]);
 assert.equal(dock.getAttribute("aria-label"), "Shells");
+
+SH.enabled = true;
+const opening = Array.from({ length: 4 }, () => Promise.withResolvers());
+let openCount = 0;
+SH.openProject = () => opening[openCount++].promise;
+STAGE.isShell = true;
+const retired = panelShell(true, host, "p:one");
+await panelShell(false);
+const active = panelShell(true, host, "p:two");
+opening[0].resolve();
+await retired;
+assert.equal(STAGE.isShell, true, "an old open cannot close a newer shell page");
+dock.hidden = false;
+opening[1].resolve();
+await active;
+assert.equal(STAGE.isShell, true);
+
+const showError = new Error("Cannot mount a terminal");
+const reported = [];
+const priorReporter = globalThis.reportError;
+globalThis.reportError = (error) => reported.push(error);
+try {
+  const broken = panelShell(true, host, "p:three");
+  opening[2].reject(showError);
+  await broken;
+  assert.deepEqual(reported, [showError], "an unexpected failure reaches the shared error reporter once");
+  assert.equal(STAGE.isShell, false, "a failed current open closes its page");
+} finally {
+  globalThis.reportError = priorReporter;
+}
+
+STAGE.isShell = true;
+const pending = panelShell(true, host, "p:four");
+assert.equal(relocations.size, 1);
+assert.ok(dock.parentNode === host);
+const beforeDispose = calls.slice();
+dispose();
+assert.equal(relocations.size, 0, "disposing disconnects the relocation observer");
+assert.ok(dock.parentNode === dockHome, "disposal restores the original parent");
+assert.ok(dock.nextSibling === document.getElementById("after"), "disposal restores the original position");
+assert.equal(dock.classList.contains("in-panel"), false);
+dock.hidden = true;
+opening[3].resolve();
+await pending;
+assert.deepEqual(calls, beforeDispose, "a retained dock and pending open cannot change the Stage after disposal");
 
 const rules = publishedRules();
 const propertiesFor = (selector) => Object.fromEntries(rules.filter(({ sel }) => sel === selector)

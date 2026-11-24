@@ -1,33 +1,74 @@
 // @ts-check
+import { createScope } from "../../core/kernel/scope.js";
 import { $ } from "../../core/platform/dom.js";
+import { reportFailure } from "../../core/services/notices/failures.js";
 
 /** @import { ShellPanelDeps } from "./panel-types.d.ts" */
 
 /** @param {ShellPanelDeps} options */
 export function createShellPanel({ S, STAGE, SH, world, heraldShow }) {
-  const SHD_HOME = { parent: /** @type {ParentNode} */ ($("#shd").parentNode), next: $("#shd").nextSibling };
-  /** @param {boolean} on @param {HTMLElement} host @param {string} [where] */
-  function panelShell(on, host, where) {
-    const d = $("#shd");
-    if (on) {
-      if (!SH.enabled) { STAGE.shellOff(); heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200); return; }
-      host.append(d); d.classList.add("in-panel");
-      const at = where || S.view;
-      // one that couldn't open goes back
-      Promise.resolve(openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws")).then(() => { if (STAGE.isShell && d.hidden) STAGE.shellOff(); }, () => { if (STAGE.isShell) STAGE.shellOff(); });
-    } else {
-      d.classList.remove("in-panel");
-      SHD_HOME.parent.insertBefore(d, SHD_HOME.next);
+  const scope = createScope();
+  const dock = $("#shd");
+  const parent = /** @type {ParentNode} */ (dock.parentNode), next = dock.nextSibling;
+  let mounted = false;
+  /** @type {(() => void) | undefined} */
+  let cancelOpen;
+  function restore() {
+    if (!mounted) return;
+    mounted = false;
+    dock.classList.remove("in-panel");
+    parent.insertBefore(dock, next);
+  }
+  /** @param {boolean} on @param {HTMLElement} [host] @param {string} [where] */
+  async function panelShell(on, host, where) {
+    if (scope.signal.aborted) return;
+    cancelOpen?.();
+    if (!on || !host) {
+      restore();
       SH.hide();
+      return;
     }
+    if (!SH.enabled) {
+      STAGE.shellOff();
+      heraldShow({ kind: "calm", text: "Shells aren't on here" }, 3200);
+      return;
+    }
+    host.append(dock);
+    dock.classList.add("in-panel");
+    mounted = true;
+    const intent = new AbortController();
+    const finish = scope.effect(() => () => {
+      cancelOpen = undefined;
+      intent.abort();
+    });
+    cancelOpen = finish;
+    const at = where || S.view;
+    const current = () => !intent.signal.aborted && STAGE.isShell;
+    try {
+      await openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws", { signal: intent.signal });
+    } catch (error) {
+      if (!current()) return;
+      finish();
+      reportFailure(error);
+      STAGE.shellOff();
+      return;
+    }
+    if (!current()) return;
+    finish();
+    if (dock.hidden) STAGE.shellOff();
   }
-  new MutationObserver(() => { if (STAGE.isShell && $("#shd").hidden) STAGE.shellOff(); }).observe($("#shd"), { attributes: true, attributeFilter: ["hidden"] });
-  /** @param {string} where */
-  function openShell(where) {
-    if (where === "ws") return SH.openWorkspace();
-    if (where.startsWith("p:")) return SH.openProject(where.slice(2));
+  const observer = new MutationObserver(() => {
+    if (mounted && !cancelOpen && STAGE.isShell && dock.hidden) STAGE.shellOff();
+  });
+  scope.effect(() => restore);
+  scope.observe(observer);
+  observer.observe(dock, { attributes: true, attributeFilter: ["hidden"] });
+  /** @param {string} where @param {{signal: AbortSignal}} [options] */
+  function openShell(where, options) {
+    if (where === "ws") return SH.openWorkspace(options);
+    if (where.startsWith("p:")) return SH.openProject(where.slice(2), options);
     const t = world.thread(where.slice(2));
-    if (t) SH.openThread({ project: t.project, chatId: t.chatId, ts: t.id, title: t.title });
+    if (t) return SH.openThread({ project: t.project, chatId: t.chatId, ts: t.id, title: t.title }, options);
   }
-  return { panelShell, openShell };
+  return { panelShell, openShell, dispose: scope.dispose };
 }
