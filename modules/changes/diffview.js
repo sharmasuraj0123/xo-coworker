@@ -4,6 +4,8 @@
 
 /** @import { DiffOptions } from "./types.d.ts" */
 
+/** @import { DiffWorkerPool, PierreDiffs, RenderedDiff } from "./pierre-types.d.ts" */
+
 const LIB = new URL("../../js/vendor/pierre-diffs/diffs.js", import.meta.url).href;
 const WORKER = new URL("../../js/vendor/pierre-diffs/worker.js", import.meta.url).href;
 const THEMES = { dark: "xo-dark", light: "xo-light" };
@@ -36,20 +38,22 @@ export function langOf(path) {
   return (dot > 0 || (dot === 0 && name.length > 1)) ? EXT[name.slice(dot + 1)] || "text" : "text";
 }
 
-/** ── the library, on first need ───────────────────────────────────────────────── @type {Promise<any> | null} */
+/** @type {Promise<PierreDiffs> | null} */
 let lib = null;
-/** @returns {Promise<any>} */
 function load() {
-  lib ??= Promise.all([import(LIB), import("./diffthemes.js")]).then(([P, T]) => {
+  lib ??= Promise.all([
+    /** @type {Promise<PierreDiffs>} */ (import(LIB)),
+    import("./diffthemes.js"),
+  ]).then(([P, T]) => {
     P.registerCustomTheme("xo-dark", async () => T.XO_DARK);
     P.registerCustomTheme("xo-light", async () => T.XO_LIGHT);
     return P;
   }).catch((e) => { lib = null; throw e; }); // a failed fetch can be tried again
   return lib;
 }
-/** @type {any} */
+/** @type {DiffWorkerPool | null} */
 let pool = null;
-/** @param {any} P */
+/** @param {PierreDiffs} P */
 function workers(P) {
   pool ??= P.getOrCreateWorkerPoolSingleton({
     poolOptions: { workerFactory: () => new Worker(WORKER, { type: "module" }), poolSize: 1, mainThreadMaxCharacters: 0 },
@@ -79,7 +83,7 @@ export function prefetch(paths = []) {
   (async () => { await quiet(); await workers(await load()).initialize(langs); })().catch(() => { for (const l of langs) loadedLangs.delete(l); });
 }
 
-/** ── the theme: every live view follows the app's switch ───────────────────────────── @type {Set<any>} */
+/** @type {Set<RenderedDiff>} */
 const live = new Set();
 const themeNow = () => (document.documentElement.dataset.theme === "light" ? "light" : "dark");
 /** @param {string} t */
@@ -91,7 +95,7 @@ const common = (o) => ({
   disableFileHeader: true, overflow: o.wrap ? "wrap" : "scroll", tokenizeMaxLineLength: 1000,
 });
 
-/** One file's diff out of git's patch for it (its whole `diff --git` block). @param {any} P @param {string} patch @param {string | undefined} path @param {string | undefined} key */
+/** @param {PierreDiffs} P @param {string} patch @param {string | undefined} path @param {string | undefined} key */
 function parse(P, patch, path, key) {
   const fd = P.parsePatchFiles(patch, key ? { cacheKeyPrefix: key } : undefined)[0]?.files[0];
   if (!fd) throw new Error("not a patch");
@@ -105,7 +109,7 @@ export async function diff(host, patch, o = {}) {
   const v = new P.FileDiff({
     ...common(o), diffStyle: o.split ? "split" : "unified", diffIndicators: "bars", lineDiffType: "word",
     hunkSeparators: "line-info", expansionLineCount: 20,
-    ...(o.loadFiles ? { loadDiffFiles: (/** @type {any} */ fd) => o.loadFiles?.(fd) } : {}),
+    ...(o.loadFiles ? { loadDiffFiles: (fd) => o.loadFiles?.(fd) } : {}),
     ...(o.onSelect ? { enableLineSelection: true, onLineSelected: o.onSelect } : {}),
   }, workers(P));
   v.render({ fileDiff: parse(P, patch, o.path, o.key), containerWrapper: host });

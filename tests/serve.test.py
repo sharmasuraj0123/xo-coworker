@@ -10,6 +10,7 @@ backend in this process that records every request it gets. Standard library onl
 from __future__ import annotations
 
 import http.client
+from hashlib import sha256
 import importlib.util
 import json
 import os
@@ -611,6 +612,17 @@ class StaticCaching(unittest.TestCase):
         status, h2, body = fetch("/index.html", {"If-None-Match": h["etag"]})
         self.assertEqual((status, body), (304, b""))
         self.assertEqual(h2["etag"], h["etag"])
+
+    def test_vendor_bundles_match_their_published_manifests(self):
+        base = f"/v/{serve.tree_version()}/js/vendor"
+        for library in ("codemirror", "pierre-diffs"):
+            status, _, body = fetch(f"{base}/{library}/manifest.json")
+            self.assertEqual(status, 200, library)
+            for path, digest in json.loads(body)["files"].items():
+                with self.subTest(library=library, path=path):
+                    status, headers, contents = fetch(f"{base}/{library}/{path}")
+                    self.assertEqual((status, headers["cache-control"], sha256(contents).hexdigest()),
+                                     (200, serve.IMMUTABLE, digest))
 
     def test_current_version_is_immutable(self):
         status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")

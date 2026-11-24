@@ -70,10 +70,12 @@ async function pass() {
   }
 }
 
-/** @type {Promise<any> | null} */
+/** @typedef {{renderToString(tex: string, options: Record<string, string | number | boolean>): string}} Katex */
+
+/** @type {Promise<Katex> | null} */
 let katexP = null;
 function loadKatex() {
-  const w = /** @type {any} */ (window);
+  const w = /** @type {Window & {katex?: Katex}} */ (window);
   if (w.katex) return Promise.resolve(w.katex);
   katexP ||= new Promise((ok, no) => {
     const base = new URL("../../../js/vendor/katex/", import.meta.url).href;
@@ -113,7 +115,9 @@ async function drawMathEl(el) {
   el.classList.add("is-done");
 }
 
-/** @type {Promise<any> | null} */
+/** @typedef {{initialize(options: Record<string, unknown>): void, render(id: string, source: string): Promise<{svg: string}>}} Mermaid */
+
+/** @type {Promise<Mermaid> | null} */
 let mermaidP = null;
 /** @type {string | null} */
 let mermaidTheme = null;
@@ -163,7 +167,7 @@ async function mermaidFor(th) {
 /** Mermaid draws one diagram at a time through one queue (its configuration is global). @type {Promise<unknown>} */
 let queue = Promise.resolve();
 /** @type {Map<string, Promise<Drawing | { error: string }>>} */
-const INFLIGHT = new Map(); // theme + "\n" + src → its drawing's promise
+const INFLIGHT = new Map();
 /** {html, theme, w} for this theme, drawing it if needed; {error} when Mermaid can't read it. Never rejects. @param {string} src @returns {Promise<Drawing | { error: string }>} */
 function diagramFor(src, th = theme()) {
   const key = th + "\n" + src;
@@ -184,7 +188,8 @@ function diagramFor(src, th = theme()) {
       DIAGRAMS.set(key, got); cap(DIAGRAMS, 200); LATEST.set(src, got); cap(LATEST, 200);
       return got;
     } catch (e) {
-      FAILED.set(src, String((e && /** @type {any} */ (e).message) || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));
+      const message = e && /** @type {{message?: unknown}} */ (e).message;
+      FAILED.set(src, String(message || "Mermaid couldn't read it.").split("\n")[0].slice(0, 160));
       return { error: /** @type {string} */ (FAILED.get(src)) };
     } finally {
       document.getElementById("d" + id)?.remove(); // Mermaid's scratch box, left behind when it throws
@@ -220,35 +225,44 @@ async function drawDiagramEl(fig) {
   }
 }
 
-/** Charts: a crosshair at the nearest x and a card with each series' value there, read from the chart's own data table. @param {any} e */
+/** Shows the values at the nearest x. @param {PointerEvent} e */
 function chartHover(e) {
-  const plot = e.target.closest?.(".md-chart .mc-plot");
+  const plot = /** @type {Element} */ (e.target).closest?.(".md-chart .mc-plot");
   if (!plot) return;
-  const fig = plot.closest(".md-chart"), hov = plot.querySelector(":scope > .mc-hover");
+  const fig = /** @type {HTMLElement} */ (plot.closest(".md-chart"));
+  const hov = /** @type {HTMLElement | null} */ (plot.querySelector(":scope > .mc-hover"));
   if (!hov || fig.dataset.chart === "scatter") return;
   const r = plot.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
-  const rows = [...fig.querySelectorAll(".mc-data tbody tr[data-at]")];
+  const rows = /** @type {HTMLElement[]} */ ([...fig.querySelectorAll(".mc-data tbody tr[data-at]")]);
   if (!rows.length) return;
   let best = rows[0], d = Infinity;
-  for (const row of rows) { const dd = Math.abs(+row.dataset.at - f); if (dd < d) { d = dd; best = row; } }
-  const at = +best.dataset.at, names = [...fig.querySelectorAll(".mc-data thead th")].slice(1).map((th) => th.textContent);
+  for (const row of rows) { const dd = Math.abs(Number(row.dataset.at) - f); if (dd < d) { best = row; d = dd; } }
+  const at = Number(best.dataset.at), names = [...fig.querySelectorAll(".mc-data thead th")].slice(1).map((th) => th.textContent);
   const vals = [...best.querySelectorAll("td")].map((td) => td.textContent);
   let tip = hov.querySelector(":scope > .mc-tip[data-own]");
   if (!tip) {
     hov.insertAdjacentHTML("beforeend", `<i class="mc-cross" data-own></i><div class="mc-tip" data-own></div>`);
     tip = hov.querySelector(":scope > .mc-tip");
   }
+  if (!tip) return;
   tip.innerHTML = `<b></b>${vals.map((_, i) => `<span><i class="mc-sw" style="--c:var(--viz-${i + 1})"></i><em></em><strong></strong></span>`).join("")}`;
-  tip.querySelector("b").textContent = best.querySelector("th").textContent;
-  tip.querySelectorAll("span").forEach((/** @type {any} */ s, /** @type {number} */ i) => { s.querySelector("em").textContent = names[i] || ""; s.querySelector("strong").textContent = vals[i]; });
+  const label = tip.querySelector("b");
+  if (label) label.textContent = best.querySelector("th")?.textContent ?? "";
+  tip.querySelectorAll("span").forEach((s, i) => {
+    const name = s.querySelector("em"), value = s.querySelector("strong");
+    if (name) name.textContent = names[i] || "";
+    if (value) value.textContent = vals[i];
+  });
   hov.style.setProperty("--at", `${at * 100}%`);
   hov.classList.toggle("is-left", at > 0.6);
   hov.classList.add("is-on");
 }
-/** @param {any} e */
+/** @param {PointerEvent} e */
 function chartLeave(e) {
-  const plot = e.target.closest?.(".md-chart .mc-plot");
-  if (plot && !plot.contains(e.relatedTarget)) plot.querySelector(":scope > .mc-hover")?.classList.remove("is-on");
+  const plot = /** @type {Element} */ (e.target).closest?.(".md-chart .mc-plot");
+  if (plot && !plot.contains(/** @type {Node | null} */ (e.relatedTarget))) {
+    plot.querySelector(":scope > .mc-hover")?.classList.remove("is-on");
+  }
 }
 
 let started = false;

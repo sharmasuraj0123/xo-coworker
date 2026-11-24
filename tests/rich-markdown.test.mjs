@@ -1,8 +1,6 @@
-// What a reply can hold beyond words (owner, 19 Nov): math, charts, diagrams and the conversation's own pictures, as
-// core/ui/markdown writes them (chart.js draws charts; rich.js draws math and diagrams in the browser, through
-// setRich). Pure: node only.
-//   node tests/rich-markdown.test.mjs
+// Markdown rendering and interactive charts in a Node DOM.
 import assert from "node:assert/strict";
+import { dom } from "./lib/dom.mjs";
 import { renderMarkdown, renderInline, setRich, imageLine } from "../core/ui/markdown/markdown.js";
 import { chartHtml, readChart, niceTicks, fmt } from "../core/ui/markdown/chart.js";
 
@@ -128,6 +126,29 @@ t("![alt](relative.png) is a picture in the conversation's folder", () => {
   assert.equal(imageLine("![a](notes.txt)"), null);
   // without the app's picture renderer it's the file's capsule (opens in Files)
   assert.match(renderMarkdown("![The fit](plots/fit.png)"), /data-file="plots\/fit.png"/);
+});
+
+const { document, window } = await dom(`${chartHtml(JSON.stringify(SPEC))}<button>Outside the chart</button>`);
+globalThis.MutationObserver = class { observe() {} };
+const { startRich } = await import("../core/ui/markdown/rich.js");
+startRich();
+t("chart hover follows the nearest values and clears when the pointer leaves", () => {
+  const plot = document.querySelector(".mc-plot");
+  plot.getBoundingClientRect = () => ({ left: 20, width: 100 });
+  const move = (clientX) => plot.dispatchEvent(Object.assign(new window.Event("pointermove", { bubbles: true }), { clientX }));
+  const hover = plot.querySelector(".mc-hover");
+  move(65);
+  assert.equal(hover.classList.contains("is-on"), true);
+  assert.equal(hover.querySelector(".mc-tip b").textContent, "5");
+  assert.deepEqual([...hover.querySelectorAll(".mc-tip em")].map((label) => label.textContent), ["Measured", "Model"]);
+  assert.deepEqual([...hover.querySelectorAll(".mc-tip strong")].map((value) => value.textContent), ["0.7", "0.69"]);
+  move(119);
+  assert.equal(hover.querySelector(".mc-tip b").textContent, "10");
+  assert.equal(hover.classList.contains("is-left"), true);
+  plot.dispatchEvent(Object.assign(new window.Event("pointerout", { bubbles: true }), {
+    relatedTarget: document.querySelector("button"),
+  }));
+  assert.equal(hover.classList.contains("is-on"), false);
 });
 
 console.log(`\n${passed} passed`);
