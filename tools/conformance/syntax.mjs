@@ -4,7 +4,7 @@ import { parse, tokenizer } from "acorn";
 
 export const JS = /\.[cm]?js$/;
 export const TEST = /(^|\/)tests\/|\.test\.[cm]?js$/;
-export const SOURCE = /^(?:js|css|core|shell|modules|apps-host)\/|^(?:boot\.js|index\.html|serve\.py)$/;
+export const SOURCE = /^(?:js|css|core|shell|modules|apps-host|serve)\/|^(?:boot\.js|index\.html|serve\.py)$/;
 
 /** @param {string} source @param {string} file */
 export function javascript(source, file) {

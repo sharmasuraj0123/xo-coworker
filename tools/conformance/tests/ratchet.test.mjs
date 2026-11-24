@@ -132,10 +132,11 @@ test("Python uses real comments and docstrings and ratchets file size", (context
     + 'text = "# Astra C058"\n# QA #123\n';
   const root = fixture(context, {
     "serve.py": source,
+    "serve/proxy.py": "pass\n".repeat(401),
   });
-  const findings = inventory(root, ["serve.py"]);
-  assert.deepEqual(kind(findings), ["changelogComment", "commentLines", "pythonSize"]);
-  assert.equal(compare(findings, EMPTY, new Set()).errors.length, 3);
+  const findings = inventory(root);
+  assert.deepEqual(kind(findings), ["changelogComment", "commentLines", "pythonSize", "pythonSize"]);
+  assert.equal(compare(findings, EMPTY, new Set()).errors.length, 4);
 });
 
 test("a source read identifies the test and the production path, leaving data fixtures alone", (context) => {

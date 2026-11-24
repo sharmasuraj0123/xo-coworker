@@ -13,7 +13,7 @@ import { checksLifecycle } from "./lifecycle.mjs";
 import { declarationSyntax, javascript, JS, SOURCE, TEST } from "./syntax.mjs";
 
 const ROOT_FILES = ["boot.js", "index.html", "serve.py"];
-const ROOT_DIRS = ["js", "css", "core", "shell", "modules", "apps-host", "tests", "tools", "e2e"];
+const ROOT_DIRS = ["js", "css", "core", "shell", "modules", "apps-host", "serve", "tests", "tools", "e2e"];
 const EXCLUDED = new Set(["vendor", "node_modules", "__pycache__", "baselines", "diffview", "fixtures", "testdata"]);
 const GENERATED = new Set(["core/ui/icons/xoicons.js", "css/flavours.css", "css/flavour-swatches.css"]);
 const HANDWRITTEN_LIMIT = 140;
