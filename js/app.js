@@ -14,8 +14,8 @@ import { ICON } from "../core/ui/icons/names.js";
 import { $ } from "../core/platform/dom.js";
 import { RM, morph } from "../core/ui/motion.js";
 import { sound } from "../core/services/sound.js";
-import { plainText, heldWords, heldShort } from "../core/services/world/timeline.js";
-import { stepLineHtml } from "../modules/conversation/blocks/turn.js";
+import { plainText, heldWords, heldShort, cliName, chatOrder, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
+import { stepLineHtml, turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, webImagesHtml } from "../core/services/media/render.js";
 import { fromSharedFile, viewerFile } from "../core/services/media/items.js";
@@ -30,7 +30,7 @@ import { createRunsStrip } from "../modules/runs/strip.js";
 import { createRunsStop } from "../modules/runs/stop.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
-import { createChats } from "./chats.js";
+import { createChats } from "../modules/chats/chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
@@ -60,7 +60,9 @@ import { createConversationDecisionActions } from "../modules/decisions/conversa
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
-import { createViewer } from "./viewer.js";
+import { createFileViewer } from "../modules/files/viewer.js";
+import { diff, jump as jumpDiff, setTheme as setDiffTheme } from "../modules/changes/diffview.js";
+import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
 import { createMap } from "../modules/map/map.js";
 import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
@@ -110,7 +112,6 @@ import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
-import { setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { createChangesFrame } from "../modules/changes/frame.js";
 import { createTray } from "../core/services/media/attachment-tray.js";
 import { api, uploadAttachment } from "../core/platform/api.js";
@@ -127,14 +128,14 @@ import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
-import { wireGestures, dockGestures } from "./gestures.js";
+import { wireGestures, dockGestures } from "../shell/gestures.js";
+import { wordsOf } from "../modules/conversation/words.js";
 import { rtName } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
 import { createSettingsFrame, createSettingsSections, createKeysPage, createShapeView, SHAPE_IC } from "../modules/settings/index.js";
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
-import { setWorkMode } from "../modules/conversation/blocks/turn.js";
 import { radioKeys, menuKeys, focusOpened } from "../core/ui/a11y/keynav.js";
 import { createConversationNotices } from "../modules/conversation/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
@@ -272,11 +273,11 @@ const CH = createChats({
     putBack(text);
     return true;
   },
-});
+}, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
 // what a place changed, from Space's /changes (modules/changes/store.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, api, onChange: () => schedule() });
-const VW = createViewer({
+const VW = createFileViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text), compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   // each save (⌘S): its place's changes are read again, once you pause
@@ -290,7 +291,7 @@ const VW = createViewer({
   closed: () => edgeBack(decisionsCard),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
-}); // a file, in the panel's Files page (modules/files/page.js)
+}, { $, diff, jump: jumpDiff, isImageChange, drawImageChange });
 const savedSoon = createSavedSoon(CHG);
 // a file changed on disk (Space's file.version): the open file takes it in, and the place's file list follows
 world.onEvent((e) => {
@@ -1169,7 +1170,7 @@ const { canBack, stepBack } = createBackSteps({ S, LAYERS, placeOk, go, back });
 wireBack({ canBack, stepBack });
 
 const resolveFromRow = createRowResolve({ world, resolveThread, allEl, allRender });
-// ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
+// ── touch gestures and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
   overlay: () => LAYERS.open({ overlay: true }),
@@ -1194,7 +1195,7 @@ wireGestures({
   threadOf: (id) => world.thread(id),
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
   toast: (text) => toastLine(text),
-});
+}, wordsOf);
 $("#pb-t").addEventListener("click", () => {
   (S.view === "home" ? $("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
 });

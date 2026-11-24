@@ -102,7 +102,7 @@ assert.deepEqual(restored, [[earlier.id, { chat_id: "chat" }]]);
 assert.match(html, /<div class="tdel" id="tdel" hidden><\/div>/);
 
 // one vocabulary
-assert.doesNotMatch(app.replace(/\/\/[^\n]*/g, "") + readFileSync(new URL("../js/chats.js", import.meta.url), "utf8"), /"Idle"/, "nothing reads Idle");
+assert.doesNotMatch(app.replace(/\/\/[^\n]*/g, "") + readFileSync(new URL("../modules/chats/chats.js", import.meta.url), "utf8"), /"Idle"/, "nothing reads Idle");
 assert.match(all, /const ALL_F = \[\["all", "All"\], \["needs", "Needs you"\], \["working", "Working"\], \["waiting", "Waiting"\], \["done", "Done"\]\];/);
 assert.match(all, /const cat = \(t\) => threadState\(t, needs\);/);
 

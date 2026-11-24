@@ -172,7 +172,7 @@ t("vendored xterm files are the pinned ones", () => {
       return next(url, context);
     },
   });
-  const { createShells } = await import("../js/shells/dock.js").finally(() => hooks.deregister());
+  const { createShells } = await import("../modules/shells/dock.js").finally(() => hooks.deregister());
   const schedule = globalThis.setTimeout;
   globalThis.setTimeout = (callback, delay, ...args) => {
     const timer = schedule(callback, delay, ...args);

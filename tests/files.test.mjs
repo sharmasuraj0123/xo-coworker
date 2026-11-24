@@ -91,7 +91,11 @@ t("Home paints on entry using the stored shape before the app starts", () => {
 
 const { api } = await import("../core/platform/api.js");
 const { createFiles } = await import("../modules/files/files.js");
-const { createViewer, whenWords } = await import("../js/viewer.js");
+const { createFileViewer } = await import("../modules/files/viewer.js");
+const { whenWords } = await import("../modules/files/version-time.js");
+const { $ } = await import("../core/platform/dom.js");
+const { diff, jump } = await import("../modules/changes/diffview.js");
+const { isImageChange, drawImageChange } = await import("../modules/changes/imagechange.js");
 t("The viewer describes recent versions relative to now", () => {
   const at = "2026-11-23T20:00:00.000Z", time = Date.parse(at);
   assert.equal(whenWords("", time), "");
@@ -108,7 +112,7 @@ api.projectTree = async (project, path) => {
 api.projectFile = async () => ({ kind: "html", content: "<p>saved</p>", version: "v1", editable: true });
 api.projectVersions = async (project, path) => { versionReads.push([project, path]); return { versions: [] }; };
 api.saveProjectFile = async (...args) => { saves.push(args); return { version: "v2" }; };
-const viewer = createViewer({ announce() {}, onChange() {} });
+const viewer = createFileViewer({ announce() {}, onChange() {} }, { $, diff, jump, isImageChange, drawImageChange });
 const files = createFiles({
   world: { state: { turns: [], threads: [], projects: [] }, thread: () => null },
   changes: {

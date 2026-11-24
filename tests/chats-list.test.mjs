@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
-import { dayGroup, rowTime } from "../core/services/world/timeline.js";
+import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
 import { dom, same } from "./lib/dom.mjs";
-import { createChats } from "../js/chats.js";
+import { createChats as mountChats } from "../modules/chats/chats.js";
+import { turnHtml, turnAv } from "../modules/conversation/blocks/turn.js";
+
+const createChats = (deps) => mountChats(deps, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const controls = read("modules/conversation/composer-controls.js");

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 
 const ui = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
-const src = ["js/app.js", "js/chats.js", "modules/conversation/blocks/turn.js"].map((f) => [f, readFileSync(new URL(`../${f}`, import.meta.url), "utf8")]);
+const src = ["js/app.js", "modules/chats/chats.js", "modules/conversation/blocks/turn.js"].map((f) => [f, readFileSync(new URL(`../${f}`, import.meta.url), "utf8")]);
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const i = ui.indexOf("export function reconcile("), body = ui.slice(i, ui.indexOf("\n}\n", i));

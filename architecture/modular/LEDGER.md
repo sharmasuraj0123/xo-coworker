@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 482 |
+| moved | 480 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 165 |
 | kept | 57 |
-| split | 29 |
+| split | 31 |
 
 Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted 131, split 3), in `ledger.json` as `path::kind::name`.
 
@@ -56,7 +56,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
 | `js/fuzzy.js` | 118 | moved | core/platform/fuzzy.js · next: every importer points at core/platform/fuzzy.js, so it leaves with no re-export |
-| `js/gestures.js` | 453 | moved | shell/gestures.js · next: the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor |
+| `js/gestures.js` | 453 | split | shell/gestures.js, core/platform/gestures.js · next: The app passes the conversation text extractor when it wires gestures. |
 | `js/ghpage.js` | 241 | moved | modules/github/page.js |
 | `js/herald.js` | 92 | moved | core/services/notices.js · next: every importer points at the new home; the line is drawn by app.js's heraldShow, which the shell takes |
 | `js/highlight.js` | 149 | moved | core/ui/markdown/highlight.js |
@@ -88,7 +88,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/projicons.js` | 83 | moved | modules/projects/projicons.js |
 | `js/quickopen.js` | 179 | moved | modules/search/quickopen.js |
 | `js/record.js` | 342 | split | modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js |
-| `js/recordview.js` | 857 | kept | js/recordview.js · next: Composes Since and Made and passes the legacy Home first-paint helpers. |
+| `js/recordview.js` | 857 | kept | js/recordview.js · next: The application composes Since and Made, contributes their sections, and supplies the existing Home skeleton helpers. |
 | `js/redraw.js` | 130 | moved | core/ui/redraw.js |
 | `js/review.js` | 153 | moved | core/services/review.js |
 | `js/rich.js` | 282 | moved | core/ui/markdown/rich.js |
@@ -96,7 +96,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
-| `js/settings.js` | 407 | split | modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: js/settings.js keeps only the wiring until the shell's settings.section place takes it |
+| `js/settings.js` | 407 | split | js/settings.js, modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events. |
 | `js/shape.js` | 731 | moved | core/services/shape/ · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | moved | modules/shells/dock.js |
@@ -111,7 +111,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
 | `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: Callers use the owning modules directly. |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
-| `js/viewer.js` | 1158 | moved | modules/files/viewer.js · next: The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle. |
+| `js/viewer.js` | 1158 | split | modules/files/viewer.js, js/app.js · next: The app supplies the existing Changes renderers directly to Files. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |
 | `js/world.js` | 56 | split | core/services/world/store.js, core/platform/util.js (esc) |
 | `js/xoicons.js` | 391 | moved | core/ui/icons/xoicons.js |

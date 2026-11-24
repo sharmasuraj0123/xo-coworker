@@ -2591,9 +2591,12 @@
    "note": "every importer points at core/platform/fuzzy.js, so it leaves with no re-export"
   },
   "js/gestures.js": {
-   "status": "moved",
-   "home": "shell/gestures.js",
-   "note": "the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor"
+   "status": "split",
+   "home": [
+    "shell/gestures.js",
+    "core/platform/gestures.js"
+   ],
+   "note": "The app passes the conversation text extractor when it wires gestures."
   },
   "js/ghpage.js": {
    "status": "moved",
@@ -2773,7 +2776,7 @@
   "js/recordview.js": {
    "status": "kept",
    "home": "js/recordview.js",
-   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
+   "note": "The application composes Since and Made, contributes their sections, and supplies the existing Home skeleton helpers."
   },
   "js/redraw.js": {
    "status": "moved",
@@ -2808,12 +2811,13 @@
   "js/settings.js": {
    "status": "split",
    "home": [
+    "js/settings.js",
     "modules/settings/host.js",
     "modules/routing/page.js",
     "modules/rules/page.js",
     "modules/worktrees/page.js"
    ],
-   "note": "js/settings.js keeps only the wiring until the shell's settings.section place takes it"
+   "note": "The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events."
   },
   "js/shape.js": {
    "status": "moved",
@@ -4395,9 +4399,12 @@
    "home": "vendor/xterm/xterm.mjs"
   },
   "js/viewer.js": {
-   "status": "moved",
-   "home": "modules/files/viewer.js",
-   "note": "The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle."
+   "status": "split",
+   "home": [
+    "modules/files/viewer.js",
+    "js/app.js"
+   ],
+   "note": "The app supplies the existing Changes renderers directly to Files."
   },
   "js/words.js": {
    "status": "moved",

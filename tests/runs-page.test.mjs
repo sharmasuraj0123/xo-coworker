@@ -16,7 +16,8 @@ const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name)
   globalThis.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
   globalThis.getSelection = () => null;
   globalThis.innerWidth = 400;
-  const { wireGestures } = await import("../js/gestures.js");
+  const { wireGestures } = await import("../shell/gestures.js");
+  const { wordsOf } = await import("../modules/conversation/words.js");
   const conv = document.getElementById("conv"), runsCard = document.getElementById("runs-card");
   Object.defineProperty(runsCard, "offsetWidth", { value: 400 });
   const calls = [];
@@ -25,7 +26,7 @@ const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name)
     view: () => "t:thread", phone: () => true, overlay: () => false,
     back: () => calls.push("thread"), runsBack: () => calls.push("runs"),
     runsCard, runsDeep: () => runsDeep, sheets: [],
-  });
+  }, wordsOf);
   const swipe = async (target, distance) => {
     const send = (type, clientX, timeStamp) => {
       const event = new window.Event(type, { bubbles: true, cancelable: true });

@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { refusal } = await import("../modules/files/documents.js");
-const { RUNS } = await import("../js/viewer.js");
+const { RUNS } = await import("../modules/files/scope.js");
 const err = (status, code, extra = {}) => Object.assign(new Error(`${status} ${code}`), { status, code, ...extra });
 
 let passed = 0;
