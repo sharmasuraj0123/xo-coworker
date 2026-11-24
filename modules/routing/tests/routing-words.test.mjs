@@ -1,17 +1,20 @@
-// What Settings › Routing says about chats is read from the routing as it is, never kept from an action (S113): driven on a DOM.
+// Routing describes the models that chats currently name.
 import assert from "node:assert/strict";
-import { dom, settle } from "../../../tests/lib/dom.mjs";
+import { settle } from "../../../tests/lib/dom.mjs";
+import { openSettingsModule } from "../../../tests/lib/settings-page.mjs";
+import { routingModule } from "../module.js";
 
-const PAGE = `<section id="settings"><nav><button data-set="routing">Routing</button></nav><div data-page="routing"><div class="set-live"></div></div></section>`;
-await dom(PAGE);
 const { api } = await import("../../../core/platform/api.js");
-const { createSettings } = await import("../../../js/settings.js");
 let passed = 0;
-const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
+let dispose;
+const t = async (name, fn) => {
+  try { await fn(); passed++; console.log("  ok  " + name); }
+  catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
+  finally { await dispose?.(); dispose = null; }
+};
 
 /** A Space with these models and chats; api answers from it, refusing each chat in patchFails once. */
 async function space(models, chats, { patchFails = new Set() } = {}) {
-  await dom(PAGE);
   const said = [];
   const world = {
     state: { router: null, projects: chats.map(([id, dm]) => ({ id, name: id, chatId: `c-${id}`, routing: dm ? { mode: "decision", decision_model: dm } : null })) },
@@ -21,8 +24,7 @@ async function space(models, chats, { patchFails = new Set() } = {}) {
   api.routerModels = async () => ({ models: models.map((m) => ({ ...m })) });
   api.disconnectRouterModel = async (id) => ({ models: models.map((m) => (m.id === id ? { ...m, connected: false } : { ...m })) });
   api.patchChat = async (id) => { if (patchFails.delete(id)) throw new Error("refused"); return { routing: null }; };
-  const S = createSettings({ world, announce: (s) => said.push(s), PROJ: (id) => id, onChange: () => {} });
-  S.open("routing");
+  dispose = await openSettingsModule("routing", routingModule, { world, announce: (s) => said.push(s), projectName: (id) => id });
   await settle();
   return { world, said };
 }

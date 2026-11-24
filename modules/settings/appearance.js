@@ -49,11 +49,11 @@ export function wireWebPictures(SHAPE, WEBPICS, deviceSaid) {
   return webpicsRender;
 }
 
-/** @param {{ readonly showHops?: boolean }} S @param {AppearanceShape} SHAPE @param {DeviceNotice} deviceSaid */
-export function wireMessageHops(S, SHAPE, deviceSaid) {
-  function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(!!S.showHops)); }
+/** @param {AppearanceShape} SHAPE @param {DeviceNotice} deviceSaid */
+export function wireMessageHops(SHAPE, deviceSaid) {
+  function hopsRender() { $("#hops-tog").setAttribute("aria-checked", String(SHAPE.on("xo:thread/hops"))); }
   $("#hops-tog").addEventListener("click", (/** @type {Event} */ e) => {
-    const on = !S.showHops;
+    const on = !SHAPE.on("xo:thread/hops");
     deviceSaid(/** @type {Element} */ (e.currentTarget), SHAPE.setDevice({ surfaces: { "xo:thread/hops": { on } } }), on ? "Showing how messages travel." : "Hiding how messages travel.");
   });
   hopsRender();

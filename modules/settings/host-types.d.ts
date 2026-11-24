@@ -1,3 +1,11 @@
+export interface SettingsPage {
+  open(): void | Promise<unknown>;
+  click(target: Element): boolean;
+  clickFirst?(target: Element): boolean;
+  change?(target: Element): void;
+  submit?(event: Event): void;
+}
+
 export interface SettingsHost {
   box(id: string): HTMLElement | null;
   paint(id: string, html: string): void;
@@ -13,6 +21,6 @@ export interface SettingsHost {
 
 declare module "../../core/kernel/types" {
   interface Services {
-    settings: SettingsHost;
+    settings: SettingsHost & { bindPage(id: string, page: SettingsPage): () => void };
   }
 }

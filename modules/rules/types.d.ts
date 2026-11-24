@@ -39,7 +39,7 @@ export interface RulesHost {
 export interface RulesOptions {
   world: {
     thread(id: string): { title?: string } | null | undefined;
-    state: { projects: { id: string; pid?: string }[] };
+    state: { projects: { id: string; pid?: string | null }[] };
   };
   announce(words: string): void;
   PROJ(id: string): string;

@@ -1,7 +1,7 @@
 export interface ShapeApplyDeps {
-  S: { readonly showHops: boolean; view: string };
+  view(): string;
   SV: { apply(): void };
-  SHAPE: { opts(key: "xo:thread/work"): { mode: unknown } };
+  SHAPE: { opts(key: "xo:thread/work"): { mode: unknown }; on(key: "xo:thread/hops"): boolean };
   setWorkMode(mode: unknown): void;
   hopsRender(): void;
   webpicsRender(): void;
