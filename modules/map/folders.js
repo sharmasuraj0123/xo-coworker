@@ -16,7 +16,6 @@ export function createMapFolders(api, paint, scope = createScope()) {
   const dirs = new Map();
   const { signal, dispose } = scope;
   scope.effect(() => () => dirs.clear());
-
   /** @param {MapFolder} fold @param {string} local */
   async function load(fold, local, { again = false } = {}) {
     if (signal.aborted) return;
