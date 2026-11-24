@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { turnSegments } = await import("../js/turnview.js");
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const messages = readFileSync(new URL("../modules/conversation/messages.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -21,9 +21,9 @@ t("the 21 Nov Chats turn: 6 steps, the steer and its note, 20 steps, the ask and
 });
 
 t("the turn is split after the notes, asks, relays and steers are on the list, and reads them", () => {
-  const notes = app.indexOf("for (const n of hopNotes(t, st.hops.values()))"), turns = app.indexOf("for (const sg of turnSegments(tu, blocks, says))");
+  const notes = messages.indexOf("for (const n of hopNotes(t,"), turns = messages.indexOf("for (const sg of turnSegments(tu, blocks, says))");
   assert.equal(notes > 0 && turns > notes, true);
-  assert.match(app, /\.concat\(out\.filter\(\(x\) => x\.seq != null && \/\^\(hopn\|relay\|ctl\|hop\):\/\.test\(x\.key\)\)/);
-  assert.match(app, /const tail = says\.reduce\(\(a, m\) => \(m\.seq > a \? m\.seq : a\), 0\) \+ 0\.5;/);
+  assert.match(messages, /\.concat\(out\.filter\(\(x\) => x\.seq != null && \/\^\(hopn\|relay\|ctl\|hop\):\/\.test\(x\.key\)\)/);
+  assert.match(messages, /const tail = says\.reduce\(\(a, m\) => \(m\.seq > a \? m\.seq : a\), 0\) \+ 0\.5;/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

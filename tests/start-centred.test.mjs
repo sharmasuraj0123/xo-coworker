@@ -14,9 +14,9 @@ assert.match(app, /\.column:has\(\.m-start,\.m-load\),\.msgs:has\(> \.m-start,> 
 assert.match(app, /\.m-load\{display:grid;place-items:center;flex:1;[^}]*animation:hs-in var\(--d-in\) var\(--ease\) var\(--d-wait\) both\}/);
 assert.match(app, /\.spin\.is-load\{[^}]*mask:var\(--mask-load\);[^}]*steps\(8\)\}/);
 assert.match(read("core/ui/tokens.css"), /--mask-load:url\(\/core\/ui\/icons\/source\/xo\/n-people-status-and-time\/spinner\.svg\)/);
-const js = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-assert.match(js, /\{ load: "Loading the thread" \}/);
-assert.match(js, /m\.load \? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"><\/i><span class="sr-only">/);
+const messages = read("modules/conversation/messages.js"), items = read("modules/conversation/message-items.js");
+assert.match(messages, /\{ load: "Loading the thread" \}/);
+assert.match(items, /m\.load \? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"><\/i><span class="sr-only">/);
 assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:var\(--s-4\)\}/);
 assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:first-child:not\(\.m-start\)\{margin-top:0\}/);
 // no other rule of the conversation sets a margin on every row of #msgs

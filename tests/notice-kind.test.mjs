@@ -10,6 +10,7 @@ import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const lp = sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const notices = readSource("modules/conversation/notice-line.js");
 const css = sheet(new URL("../css/app.css", import.meta.url));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -61,7 +62,7 @@ t("the app carries a Launchpad notice's kind to the herald (never one kind for a
   assert.match(m[2] || "", /kind === "err" \? "stopped"/, "a failure becomes the app's own failure kind (stopped), as every other failure notice");
 });
 t("the herald draws a failure as a failure: its own mark, in the error's ink (never the success check)", () => {
-  assert.match(app, /h\.kind === "stopped"\s*\?\s*`<span class="hr-ic k-stopped">/, "a failure notice gets the k-stopped mark");
+  assert.match(notices, /h\.kind === "stopped"\s*\?\s*`<span class="hr-ic k-stopped">/, "a failure notice gets the k-stopped mark");
   assert.match(css, /\.hr-ic\.k-stopped\{[^}]*var\(--err-ink\)/, ".hr-ic.k-stopped is in the error's ink");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
