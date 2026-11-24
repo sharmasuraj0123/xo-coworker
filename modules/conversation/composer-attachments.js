@@ -6,11 +6,15 @@ import { redraw } from "../../core/ui/redraw.js";
 import { fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "../../core/services/media/attachment-rules.js";
 
 /** @import { Composer } from "./composer-types.d.ts" */
+
 /** @import { Chip } from "../../core/services/media/attachment-tray.js" */
+
 /** @import { Notice } from "../../core/services/notices.js" */
 
 /** @typedef {{ name: string, bytes: number, local: string } | { name: string, type?: string, bytes: number, att: { chat?: string, id?: string | null } }} Preview */
+
 /** @typedef {ReturnType<typeof import("../../core/services/media/attachment-tray.js").createTray>} Tray */
+
 /** @typedef {{ MK: Composer, tray: Pick<Tray, "list" | "add" | "addPaste" | "remove" | "retry">, canAttach(view: string): boolean, attachChat(view: string): string | null, announce(text: string): void, heraldShow(notice: Notice, ms: number): void, updateComposer(composer: Composer): void, saveDraft(composer: Composer): void, VW: { open(file: Preview, button: HTMLButtonElement): unknown } }} AttachmentComposerDeps */
 
 /** @param {AttachmentComposerDeps} deps */

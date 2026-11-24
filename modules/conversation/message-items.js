@@ -10,8 +10,11 @@ import { fromAttachment } from "../../core/services/media/items.js";
 import { turnHtml, turnAv } from "./blocks/turn.js";
 
 /** @import { MessageItemsDeps } from "./message-items-types.d.ts" */
+
 /** @import { Control, History, Limit, Message } from "./message-types.d.ts" */
+
 /** @import { RankedNeed } from "./draw-types.d.ts" */
+
 /** @import { Block, Turn } from "./blocks/turn.js" */
 
 /** @param {string} text */

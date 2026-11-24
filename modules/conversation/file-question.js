@@ -9,7 +9,9 @@ import { noticeFor } from "../../core/services/notices.js";
 import { sound } from "../../core/services/sound.js";
 
 /** @import { FileQuestionDeps, FileReference, QuestionFile } from "./file-question-types.d.ts" */
+
 /** @import { FilesScope } from "../files/scope.js" */
+
 /** @import { LocalMessage } from "./delivery-types.d.ts" */
 
 /** @param {FileQuestionDeps} deps */

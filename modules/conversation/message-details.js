@@ -10,7 +10,9 @@ import { stateMark } from "../../core/ui/icons/icon.js";
 import { EFFORT } from "../decisions/rank.js";
 
 /** @import { Message } from "./message-types.d.ts" */
+
 /** @import { MessageDetailsDeps, MessageThread } from "./message-details-types.d.ts" */
+
 /** @import { RankedNeed } from "./draw-types.d.ts" */
 
 /** @param {MessageDetailsDeps} deps */
