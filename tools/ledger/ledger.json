@@ -1638,12 +1638,10 @@
   "css/panel.css": {
    "status": "split-region",
    "home": [
-    "shell/panel.css",
-    "modules/threads",
-    "modules/changes",
-    "modules/map",
-    "modules/files"
-   ]
+    "shell/panel/stage-bar.css",
+    "css/panel.css"
+   ],
+   "next": "The shell owns the stage container and header. The entry still owns the Files, Map, Changes and Threads regions and shared panel styles."
   },
   "css/phone.css": {
    "status": "split",

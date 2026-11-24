@@ -134,7 +134,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `css/links.css` | 97 | split | modules/conversation/links.css, css/links.css · next: The entry stylesheet imports the conversation links in their original cascade position. |
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
-| `css/panel.css` | 681 | split-region | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
+| `css/panel.css` | 681 | split-region | shell/panel/stage-bar.css, css/panel.css |
 | `css/phone.css` | 286 | split | shell/phone.css, core/ui/touch-targets.css, shell/phone-panel.css, modules/conversation/composer-phone.css, modules/files/viewer-phone.css, shell/phone-stage-bar.css, modules/launchpad/phone.css, modules/files/version-segment-phone.css, modules/conversation/turns-phone.css, core/ui/phone-control-floor.css, css/phone.css · next: The entry preserves the order of the header, shared controls and component styles. The 340 px and 400 px rules remain pending breakpoint consolidation. |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
 | `css/shape.css` | 68 | split | modules/settings/shape.css, core/ui/density.css, modules/conversation/shape.css, css/shape.css · next: The entry stylesheet imports Settings, density and the conversation preferences in their original cascade order. |
