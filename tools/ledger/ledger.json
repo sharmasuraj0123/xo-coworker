@@ -2466,8 +2466,8 @@
   },
   "index.html": {
    "status": "split",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint"
+   "home": ["index.html", "shell/overlays.js"],
+   "note": "The visible frame stays in the HTML for first paint; the existing shell mount inserts hidden regions before app startup."
   },
   "js/accounts.js": {
    "status": "moved",
@@ -6062,119 +6062,96 @@
    "home": "core/ui/markdown/rich.css"
   },
   "index.html::ids::app": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-fold": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::brand-mark": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-jump": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-x": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::nv-home": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ic-home": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::home-n": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::nv-ws": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ic-ws": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ws-n": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::nv-chats": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ic-chats": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::nv-arts": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ic-arts": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::arts-n": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::nv-more": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ic-more": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-more": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::projects-label": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-add": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::sc-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-find": {
    "status": "deleted",
@@ -6193,283 +6170,228 @@
    "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "index.html::ids::projects": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::nv-shells": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ic-shells": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::theme": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::set-side": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::set-side-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::side-scrim": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::main": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::phonebar": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::pb-menu": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::pb-t": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::set-phone": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::home": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::arts": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::conv": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::top": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::top-menu": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::top-back": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::top-who": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::top-end": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::thead": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::tdel": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::since": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::scroller": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::column": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::ws-head": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::msgs": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::typing": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::drop-veil": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::drop-ic": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::dock": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::herald": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::tdock": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::composer": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::say-label": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::att-tray": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::cref": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::say": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::at-list": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::attach": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::att-input": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::target": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::send-now": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::iq": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::send": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::att-note": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "kept",
+   "home": "index.html"
   },
   "index.html::ids::panel": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::pn-h": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::pn-count": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::pn-x": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::pn-rail": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::pn-stage": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::pn-foot": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::map": {
    "status": "deleted",
    "reason": "the standalone Map's own aside; the Map draws only in the panel's Map frame (tests/map-panel-only.test.mjs)"
   },
   "index.html::ids::viewer": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::toast": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::settings": {
    "status": "moved",
@@ -6612,9 +6534,8 @@
    "note": "the hidden layers' markup; shell/frame.js puts it in place before app.js; each goes to its module as that module draws its own"
   },
   "index.html::ids::shd": {
-   "status": "split-region",
-   "home": "shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::create-dlg": {
    "status": "moved",
@@ -15405,8 +15326,8 @@
    "home": "index.html"
   },
   "index.html::ids::lpp": {
-   "status": "kept",
-   "home": "index.html"
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "index.html::ids::cs-hi": {
    "status": "kept",

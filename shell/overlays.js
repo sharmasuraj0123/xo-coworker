@@ -2,6 +2,31 @@
 
 // The page's hidden layers: Settings over the main area, then Create a project, the sheets and the popovers.
 
+export const PAGE_REGIONS = `
+      <section class="arts" id="arts" aria-labelledby="arts-h" tabindex="-1" hidden></section>
+      <section class="lpp" id="lpp" aria-labelledby="lpp-h" tabindex="-1" hidden></section>
+`;
+
+export const MAIN_LAYERS = `
+      <section class="panel" id="panel" aria-labelledby="pn-h" hidden>
+        <header class="pn-top">
+          <div class="pn-title"><h2 id="pn-h">Needs you</h2><p class="pn-count" id="pn-count" aria-live="polite"></p></div>
+          <button type="button" class="pn-x" id="pn-x" aria-label="Close decisions" title="Close (Esc)"></button>
+        </header>
+        <div class="pn-rail" id="pn-rail" aria-hidden="true"></div>
+        <div class="pn-stage" id="pn-stage"></div>
+        <footer class="pn-foot" id="pn-foot"></footer>
+      </section>
+
+      <section class="viewer" id="viewer" role="dialog" aria-labelledby="vw-h" tabindex="-1" hidden></section>
+
+      <div class="toast-wrap"><div class="toast" id="toast" role="status" hidden></div></div>
+`;
+
+export const SHELL_DOCK = `
+    <section class="shd" id="shd" aria-label="Shells" hidden></section>
+`;
+
 export const SETTINGS = `
 <section class="settings" id="settings" role="dialog" aria-labelledby="set-h" hidden tabindex="-1">
   <header class="set-top"><h1 id="set-h">Settings</h1><button type="button" class="x" id="set-x" aria-label="Close settings" title="Close (Esc)"></button></header>

@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { panelSrc } from "./lib/panel-src.mjs";
 import { dom } from "./lib/dom.mjs";
 import { createShellPanel } from "../modules/shells/panel.js";
+import { SHELL_DOCK } from "../shell/overlays.js";
 const stage = panelSrc;
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
@@ -17,7 +18,7 @@ assert.match(stage, /`<\/div><div class="stg-page"><\/div><\/div>`;/, "the page 
 assert.match(stage, /if \(t\.closest\("\[data-stg-shell\]"\)\) \{ setShell\(S\.page\?\.name !== "shell"\); return; \}/);
 
 // the app: the dock itself moves (no second terminal), a shell opens where it was asked for, and it goes back home
-const { document, window } = await dom('<main><i id="before"></i><section id="shd" hidden></section><i id="after"></i></main><aside id="host"></aside>');
+const { document, window } = await dom(`<main><i id="before"></i>${SHELL_DOCK.trim()}<i id="after"></i></main><aside id="host"></aside>`);
 globalThis.MutationObserver = window.MutationObserver;
 const dock = document.getElementById("shd");
 const host = document.getElementById("host");
@@ -63,7 +64,7 @@ assert.match(app, /shell: \(on, host, where\) => panelShell\(on, host, where\)/)
 
 // the left panel's Shells stay: its toggle and the dock under the page are untouched
 assert.match(html, /<button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"><\/span><span class="sh-n"><\/span><\/button>/);
-assert.match(html, /<section class="shd" id="shd" aria-label="Shells" hidden><\/section>/);
+assert.equal(dock.getAttribute("aria-label"), "Shells");
 
 // CSS: tokens only; the page over the frames in one cell; a phone keeps its own shells sheet
 const block = css.slice(css.indexOf("── Shell mode"), ((css.indexOf("/* ──", css.indexOf("── Shell mode") + 4) + 1) || css.length + 1) - 1);

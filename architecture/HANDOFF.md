@@ -66,6 +66,9 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - The direct message stylesheet moved to `modules/conversation/msgx.css` in its original cascade slot. The move removes comments and transfers the existing seven-declaration priority ratchet with the file. Selectors, declarations and rule order are unchanged.
 - The Group 4 review revision at `2beded2d` assigns `threadTargetHtml` to Group 6 with the composer renderer. P4 owns the remaining overlay functions (`runsEscape`, `openAll`, `closeAll`, `focusOverlay`, `syncInert`, `keyLayer`, `openKeys`, `closeKeys`, `runGlobal`) and their keyboard ledger keys (`Escape`, `ArrowDown`, `ArrowUp`, `Enter`, `Tab`, `/`, `End`, `ArrowRight`, `ArrowLeft`).
 - Group 4 integrates app wiring and styles from `6dcef4db`. The eight files flagged for growth match the worker's base byte for byte. The merge carries the direct Home script and message stylesheet paths forward and preserves the separate ledger changes. Group 5 starts from the `modular-gate-P3-group-04` checkpoint.
+- Group 5 has a coordinator-approved size exception for the existing mount files `shell/frame.js` and `shell/overlays.js`. Review growth against the byte-identical hidden-region markup and unchanged sibling positions specified in the Group 5 brief.
+- Group 5 at `91986c6c` mounts the hidden page regions, decision panel, viewer, toast and Shells at their original sibling positions through the existing shell frame. All 12 moved IDs still have one live node after boot. The head, 18 stylesheet slots, import map and script tail keep their original bytes. The 79 open index keys are resolved. Group 6 starts from `modular-gate-P3-group-05`.
+- The [Group 6 brief](P3-WORK-PACKAGES.md#6-conversation-composer-and-decisions) records the conversation holdbacks. Reconcile it with the Group 5 mount handoff before launch. The [P4 brief](P4-WORK-PACKAGE.md) takes the 18 keyboard and overlay ledger keys, compatibility removals and final ledger passes after the Group 6 gate.
 
 ## Findings for the post-P4 fix phase
 
@@ -97,6 +100,7 @@ P3 and P4 preserve release behavior. Bring findings from every package handoff h
 | The Runs strip does not retry an automatic read at the same count | Group 4 review head `82abf208`, `modules/runs/strip.js:30`. A failed request retains the last count, so the next same-count render skips the read. The manual Runs page has a separate retry path. |
 | An existing browser test looks for the Map palette in the wrong file | Group 4 review head `82abf208`, `tests/browser/flows.test.cjs:2171–2172`. The test reads `js/map.js` for a `PALETTE` literal that was already absent at the Group 4 base. Point the check at the actual palette or verify its rendered result before the approved P5 browser run. |
 | A thrown record Undo callback leaves the record active | Group 4 review revision `2beded2d`, `modules/chats/record-lines.js:35–37`. The inherited Undo callback runs before the record is cleared and the next render is scheduled. Reproduce with a callback that throws. |
+| The decision panel's focus fallback targets an unfocusable section | Group 5 base `312186c3`, `js/decide.js:234–239` and `index.html:121`. Unparking focuses `#panel` when there is no `#card`, but the panel section has no `tabindex`. Reproduce by restoring an open decision panel with no card and checking where focus lands. |
 
 ## Previous handoff from 19 November 2026
 

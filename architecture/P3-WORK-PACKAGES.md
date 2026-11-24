@@ -126,6 +126,8 @@ At exit, list every touched source file's line count and target. Check that the 
 
 **Entry and exit** · Verify first stylesheet, import map and versioned asset paths, boot ordering, landmark and accessible labels, toolbar focus and one live node per moved region. Check that a module can access its markup by normal boot without extra global mounts. Four to six slices. Run serially.
 
+**Approved size exceptions** · At the Group 4 base, `shell/frame.js` is nine lines and `shell/overlays.js` is 120. They may grow only to mount the hidden regions from `index.html:70–71,121–135`. The existing mount files keep the regions together without adding eager startup requests. In review compare each moved markup block byte for byte and verify the same parents and sibling positions through normal boot. Both files must stay under 400 lines. Report the growth and its cause at handoff. The size rule still applies to every other existing file.
+
 #### Engineering and quality checks
 
 - **Small, named commits**, each doing one thing, with a message that says what and why. No mixed refactor+behaviour commits. No drive-by edits outside the package's files.
@@ -143,7 +145,7 @@ At exit, list every touched source file's line count and target. Check that the 
 
 ## 6. Conversation, composer and decisions
 
-**Base** · Verified group 5 gate.
+**Base** · The verified Group 5 merge at `modular-gate-P3-group-05`. Record the resolved hash in the launch message. Suggested branch `modular/p3-06-conversation-decisions`. No overlap with Groups 5 or P4.
 
 **Files and ledger** · `js/decide.js` (9), `js/cardparts.js`, `modules/conversation/`, `modules/decisions/` and the exact conversation, composer and decision ledger keys for `js/app.js` and `css/app.css` handed over from group 4. Claim conversation tests and the parked attachment handoff pieces still needed after group 1. Keep panel Files or other feature implementations outside the package.
 
@@ -155,11 +157,17 @@ The shared-source ledger keys owned by group 6 are listed below. In each list, a
 
 Group 6 also owns any other `css/app.css` rules interleaved with its conversation and composer regions. Group 4 leaves them in place and names the affected regions and ledger keys at handoff. This includes `#hm-body > div` and the shared mobile rule covering `#iq-pop` and `#cs-pop`. Move the interleaved rules with their respective regions, preserving exact source order and checking the cascade winners. Keep each shared rule intact.
 
-Group 4 also hands off `js/app.js::functions::threadTargetHtml` to Group 6. Move it with `targetLineRender`, which uses it to render the composer's destination for a thread.
+Group 4 also hands off `js/app.js::functions::threadTargetHtml` to Group 6. Move it with `targetLineRender`, which uses it to render the composer's destination for a thread. Preserve all four `conv-title` call sites, including their normal header and panel render paths. Group 5 keeps the conversation and composer markup IDs intact and names any mount or unresolved ledger key it transfers. Check that handoff against the pinned ledger before the first move.
 
-**Keep outside the package** · `index.html`, tokens, Files, timeline renderer and shell layer behavior. Route new cross-module needs through existing contracts and propose any missing contract to the coordinator.
+The Group 5 handoff at `91986c6c` closes all 79 open index keys and transfers no new ledger items. The main conversation, dock and composer stay in `index.html`. The decision panel markup now comes from `MAIN_LAYERS` in `shell/overlays.js` via the existing frame mount before app boot. Keep the current markup and mount contract. The decision-panel fallback focus finding stays in the post-P4 fix phase.
 
-**Entry and exit** · Land characterization tests before the first move. Pin composer focus by desktop versus touch entry, drafts, attachment/send/stop/retry, decisions and Undo, and focus and scroll on in-place redraw. Exercise all through DOM or public API and show each new test failing on a deliberate break. Exit with boot and compatibility shims only at the legacy entry point, and zero unresolved `planned` code entries across P3. Six or more slices. Run serially and last.
+**Keep outside the package** · `index.html`, tokens, Files, timeline renderer and shell layer behavior. P4 owns the 18 keyboard and overlay keys listed in its brief, the compatibility entries, and direct-link cleanup that needs an index edit. Keep the current entry points working during each slice. Route cross-module dependencies through existing contracts and propose any missing contract to the coordinator. Keep existing attachment and Runs internals that are already in their destination modules. Update only their conversation call sites or bindings when moving a caller.
+
+**Entry** · Record the Group 5 mount handoff, the open package ledger keys and baseline source order for the app stylesheet. Before moving an untested behavior, pin it through the DOM or public API and show the test failing under a deliberate break. Cover desktop versus touch entry, drafts, attachments, send, stop and retry, decisions and Undo, and focus and scroll on in-place redraw.
+
+**Suggested slices** · Keep small commits within each slice. Start with conversation header and read-only markup, then separate the convo render and scroll wiring, decision card/checklist/dock rendering, composer markup and targeting, draft and attachment wiring, and send/stop/retry. Split large slices at existing contracts. Move CSS in separate commits with the owning region and preserve the expanded order, conditional rules and winners in both themes and phone layouts. Leave `follow.js` in charge of conversation scroll, and check that a held press survives redraw. Compare moved runtime bodies and styles with the pinned base.
+
+**Exit** · Exercise main conversation, thread page and panel conversation through their existing entry points. Check draft keys and restoration, composer focus including touch without raising the keyboard, attachments and targets, send/stop/retry, decision and Undo focus, and active reading position. Module-local route contract tests use the pinned OpenAPI snapshot for moved callers and retain approved optional fallbacks. Run the full check and final ledger serially from a clean export under the lease. Close every Group 6 ledger item in its move commit. List and reconcile any remaining code, asset, tooling or test ledger entries against P4 or an explicit coordinator ruling. The legacy app entry carries boot wiring and the P4 holdbacks. Report file sizes, exact remaining keys and package findings for the post-P4 fix phase.
 
 #### Engineering and quality checks
 

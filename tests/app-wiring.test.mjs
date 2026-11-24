@@ -45,6 +45,22 @@ await import("../boot.js");
 await new Promise((resolve) => setImmediate(resolve));
 for (const frame of frames.splice(0)) frame(performance.now());
 
+for (const id of ["arts", "lpp", "panel", "pn-h", "pn-count", "pn-x", "pn-rail", "pn-stage", "pn-foot", "viewer", "toast", "shd"]) {
+  assert.equal(document.querySelectorAll(`#${id}`).length, 1, `boot mounts exactly one #${id}`);
+}
+assert.deepEqual(
+  [...document.querySelector("main").children].map((node) => node.id || node.className),
+  ["phonebar", "home", "arts", "lpp", "conv", "drop-veil", "dock", "panel", "viewer", "toast-wrap", "settings", "stage"],
+  "boot preserves the main landmark's region order",
+);
+assert.ok(document.querySelector("#main").nextElementSibling === document.querySelector("#shd"), "Shells follows the main landmark in the app");
+assert.equal(document.querySelector("#main").tagName, "MAIN");
+assert.equal(document.querySelector("#side").getAttribute("aria-label"), "Navigation");
+assert.equal(document.querySelector("#panel").getAttribute("aria-labelledby"), "pn-h");
+assert.equal(document.querySelector("#pn-h").textContent, "Needs you");
+assert.equal(document.querySelector("#shd").getAttribute("aria-label"), "Shells");
+assert.equal(document.querySelector("#toast").getAttribute("role"), "status");
+
 assert.ok(document.querySelector("#brand-mark svg"), "boot installs the visible brand icon");
 assert.ok(document.querySelector("#side-fold svg"), "boot installs the sidebar fold icon");
 const expectedIcon = document.createElement("span");
@@ -61,6 +77,10 @@ const press = (/** @type {string} */ selector) => {
   assert.ok(button, selector);
   button.dispatchEvent(new window.Event("click", { bubbles: true, cancelable: true }));
 };
+const fold = document.querySelector("#side-fold");
+fold.focus();
+assert.ok(document.activeElement === fold, "the sidebar toolbar still has a focusable fold control");
+fold.blur();
 press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
