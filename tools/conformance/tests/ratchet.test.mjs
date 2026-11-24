@@ -172,6 +172,31 @@ test("a source read identifies the test and the production path, leaving data fi
   assert.equal(compare(findings, EMPTY, new Set()).errors.length, 2);
 });
 
+test("a map over a literal list reports only the files that can be read", (context) => {
+  const files = ["decoration", "message-reply", "notice-line", "working-turn"];
+  const wanted = files.filter((name) => name !== "notice-line");
+  const scripts = Object.fromEntries(files.map((name) => [`modules/conversation/${name}.js`, HEADER]));
+  const target = (findings, testPath) => findings.filter((entry) => entry.rule === "sourceReadTarget" && entry.note === testPath)
+    .map((entry) => entry.file).sort();
+  const reader = 'import { readFileSync } from "node:fs";\n';
+  const map = 'map((name) => readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url)))';
+  const entries = JSON.stringify(wanted);
+  const root = fixture(context, {
+    ...scripts,
+    "tests/literal.test.mjs": `${reader}${entries}.${map};`,
+    "tests/constant.test.mjs": `${reader}const files = ${entries}; files.${map};`,
+    "tests/computed.test.mjs": `${reader}[...otherFiles, 'decoration'].${map};`,
+    "tests/mutated.test.mjs": `${reader}const files = ${entries}; files.push(extra); files.${map};`,
+  });
+  const findings = inventory(root);
+  for (const name of ["literal", "constant"]) {
+    assert.deepEqual(target(findings, `tests/${name}.test.mjs`), wanted.map((entry) => `modules/conversation/${entry}.js`));
+  }
+  for (const name of ["computed", "mutated"]) {
+    assert.deepEqual(target(findings, `tests/${name}.test.mjs`), files.map((entry) => `modules/conversation/${entry}.js`));
+  }
+});
+
 test("a test import does not rescue a dead export and a used re-export reaches its origin", (context) => {
   const root = fixture(context, {
     [FILE]: HEADER + "export const used = 1, dead = 2;",

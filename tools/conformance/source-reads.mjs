@@ -13,7 +13,9 @@ function bindings(tree) {
   const readers = new Set();
   const namespaces = new Set();
   const values = new Map();
+  const names = new Map();
   walk(tree, (node, parent) => {
+    if (node.type === "Identifier") names.set(node.name, (names.get(node.name) ?? 0) + 1);
     if (node.type === "ImportDeclaration" && FS.test(node.source.value)) {
       for (const specifier of node.specifiers) {
         if (READ.test(specifier.imported?.name ?? "")) readers.add(specifier.local.name);
@@ -28,7 +30,7 @@ function bindings(tree) {
       if (READ.test(property.key?.name ?? "")) readers.add(property.value.name);
     }
   });
-  return { readers, namespaces, values };
+  return { readers, namespaces, values, names };
 }
 
 /** @param {object} node @param {string} file @param {Map<string, object>} values @param {Set<object>} [seen] */
@@ -37,7 +39,12 @@ function pathValue(node, file, values, seen = new Set()) {
   const visited = new Set(seen).add(node);
   const atom = literal(node);
   if (typeof atom === "string") return atom;
-  if (node.type === "TemplateLiteral") return node.quasis.map((part) => part.value.cooked).join("*");
+  if (node.type === "TemplateLiteral") {
+    return node.quasis.map((part, index) => {
+      const value = part.tail ? "" : pathValue(node.expressions[index], file, values, visited) ?? "*";
+      return part.value.cooked + value;
+    }).join("");
+  }
   if (node.type === "Identifier") return pathValue(values.get(node.name), file, values, visited);
   const read = (part) => pathValue(part, file, values, visited);
   if (node.type === "BinaryExpression" && node.operator === "+") {
@@ -58,21 +65,41 @@ function pathValue(node, file, values, seen = new Set()) {
   }
 }
 
+/** @param {object} tree @param {Map<string, object>} values @param {Map<string, number>} names */
+function literalMaps(tree, values, names) {
+  const inputs = new WeakMap();
+  walk(tree, (node) => {
+    if (node.type !== "CallExpression" || member(node.callee) !== "map") return;
+    const receiver = node.callee.object;
+    const array = receiver.type === "Identifier" && names.get(receiver.name) === 2 ? values.get(receiver.name) : receiver;
+    if (array?.type !== "ArrayExpression" || array.elements.some((item) => typeof literal(item) !== "string")) return;
+    const [fn] = node.arguments;
+    if (!["ArrowFunctionExpression", "FunctionExpression"].includes(fn?.type)) return;
+    const [parameter] = fn.params;
+    const body = fn.body.type === "BlockStatement" && fn.body.body.length === 1 && fn.body.body[0].type === "ReturnStatement"
+      ? fn.body.body[0].argument : fn.body;
+    if (parameter?.type !== "Identifier" || body?.type !== "CallExpression") return;
+    inputs.set(body, array.elements.map((item) => new Map(values).set(parameter.name, item)));
+  });
+  return inputs;
+}
+
 /** @param {string} file @param {object} tree @param {Set<string>} files @param {Function} report */
 export function sourceReads(file, tree, files, report) {
-  const { readers, namespaces, values } = bindings(tree);
+  const { readers, namespaces, values, names } = bindings(tree);
+  const inputs = literalMaps(tree, values, names);
   walk(tree, (node) => {
     if (node.type !== "CallExpression") return;
     const { callee } = node;
     const isRead = readers.has(callee.name)
       || (READ.test(member(callee) ?? "") && namespaces.has(callee.object?.name));
     if (!isRead) return;
-    const path = pathValue(node.arguments[0], file, values);
-    if (path && (FIXTURE.test(path) || (/\.[\w]+$/.test(path) && !SOURCE_EXTENSION.test(path)))) return;
+    const paths = (inputs.get(node) ?? [values]).map((input) => pathValue(node.arguments[0], file, input));
+    const production = paths.filter((path) => !path || !(FIXTURE.test(path) || (/\.[\w]+$/.test(path) && !SOURCE_EXTENSION.test(path))));
+    if (!production.length) return;
     const line = node.loc.start.line;
     report("sourceRead", line);
-    if (!path) return;
-    const candidates = new Set([normalize(path), normalize(join(dirname(file), path))]);
+    const candidates = new Set(production.filter(Boolean).flatMap((path) => [normalize(path), normalize(join(dirname(file), path))]));
     for (const part of candidates) {
       if (!part.includes("*")) {
         if (files.has(part) && SOURCE.test(part) && !TEST.test(part)) report("sourceReadTarget", line, part);
