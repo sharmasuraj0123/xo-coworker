@@ -1,12 +1,12 @@
 // @ts-check
 
-
 import { uiMsg } from "../../core/services/world/rows.js";
 import { echoes, threadAnchors, waitsForTurn, pageFloor, inPage } from "../../core/services/world/conversation.js";
 import { forwardOrigin, hopLine, relayedInto, hopNotes } from "../../core/services/world/relay.js";
 import { turnSegments, segmentTurn } from "./blocks/turn.js";
 
 /** @import { Hop } from "../../core/services/world/relay.js" */
+
 /** @import { Control, History, Message, ProjectionDeps, ProjectionThread, RelayRows, RoutedHop, StoredMessage, TimelineRow } from "./message-types.d.ts" */
 
 /** @param {ProjectionDeps} deps */

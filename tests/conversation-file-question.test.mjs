@@ -1,12 +1,12 @@
 // @ts-check
 
 import assert from "node:assert/strict";
-import { createFileQuestion } from "../file-question.js";
-import { fileRef, lineRef } from "../../changes/store.js";
-import { fileScope, localIn } from "../../files/scope.js";
-import { dom } from "../../../tests/lib/dom.mjs";
+import { createFileQuestion } from "../modules/conversation/file-question.js";
+import { fileRef, lineRef } from "../modules/changes/store.js";
+import { fileScope, localIn } from "../modules/files/scope.js";
+import { dom } from "./lib/dom.mjs";
 
-/** @import { FileQuestionDeps } from "../file-question-types.d.ts" */
+/** @import { FileQuestionDeps } from "../modules/conversation/file-question-types.d.ts" */
 
 const { document } = await dom("<textarea></textarea><div id='cref'></div>");
 const thread = { id: "thread-1", title: "Review", project: "demo", worktree: "/demo/.xo/worktrees/thread-1" };

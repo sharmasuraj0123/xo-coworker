@@ -29,6 +29,7 @@ export type ThreadPageDeps = {
   S: { tMenu?: string | null; tMenuIn?: string | null };
   world: { act: { watchSideThread?: (key: string | null) => unknown } };
   D: { needItems(): DockNeed[] };
+  createDock: typeof createDock;
   dockDeps: Parameters<typeof createDock>[1];
   wireComposer(composer: Composer): void;
   wireTray(composer: Composer): void;

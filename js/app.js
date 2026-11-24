@@ -673,7 +673,7 @@ function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip
 
 
 const { TP, tpMount, tpShow, tpClose, drawThreadPage } = createThreadPage({
-  STAGE, S, world, D, dockDeps, wireComposer, wireTray, closeThreadMenu: () => closeThreadMenu(), addFiles, toggleIq, sessionOf, convProject, watchDock,
+  STAGE, S, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu: () => closeThreadMenu(), addFiles, toggleIq, sessionOf, convProject, watchDock,
   toastLine, loadAhead: (C) => loadAhead(C), returnPill: (destination) => returnPill(destination), saveDraft, loadDraft, convThread,
   stOf, glyphOf, isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv: (C, needs) => drawConv(C, needs), updateComposer, sendRender, targetLineRender,
 });
@@ -754,7 +754,7 @@ initFollow();
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
 const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ S, world, CH, convThread, chatOf });
 const messageDetails = createMessageDetails({
-  S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf,
+  S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf, EFFORT,
   askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf,
 });
 const { msgItems, drawingView } = createMessageItems({

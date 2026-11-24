@@ -7,7 +7,6 @@ import { stopWords } from "../../core/services/world/conversation.js";
 import { rtName } from "../../core/services/runtimes.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { stateMark } from "../../core/ui/icons/icon.js";
-import { EFFORT } from "../decisions/rank.js";
 
 /** @import { Message } from "./message-types.d.ts" */
 
@@ -17,7 +16,7 @@ import { EFFORT } from "../decisions/rank.js";
 
 /** @param {MessageDetailsDeps} deps */
 export function createMessageDetails({
-  S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf,
+  S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf, EFFORT,
   askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf,
 }) {
   /** @param {string} tid @param {RankedNeed[]} needs */

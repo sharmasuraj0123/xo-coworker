@@ -1,6 +1,5 @@
 // @ts-check
 
-
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { connLine } from "../../core/services/world/conn.js";
@@ -9,6 +8,7 @@ import { patch } from "../../core/ui/patch.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 
 /** @import { Notice } from "../../core/services/notices.js" */
+
 /** @import { Composer } from "./composer-types.d.ts" */
 
 /** @typedef {{ S: { view: string; herald: Notice | null }; world: { state: Parameters<typeof connLine>[0] }; MK: Composer; composerNow(): Composer; panelHost(): HTMLElement | null; convThread(view: string): unknown; connDest(): Parameters<typeof connLine>[1]; placeRegion(): HTMLElement | null; STOP_ICON: string }} NoticeLineDeps */

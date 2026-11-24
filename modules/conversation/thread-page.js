@@ -1,6 +1,5 @@
 // @ts-check
 
-
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -9,7 +8,6 @@ import { redraw } from "../../core/ui/redraw.js";
 import { menuKeys } from "../../core/ui/a11y/keynav.js";
 import { heldBadge } from "../../core/services/world/held.js";
 import { conversationGestures as bindConversation } from "../../shell/gestures.js";
-import { createDock } from "../decisions/dock.js";
 import { decorateConversation } from "./decoration.js";
 import { createFollow } from "./follow.js";
 import { createConv } from "./draw.js";
@@ -17,11 +15,12 @@ import { threadPageHtml } from "./thread-page-html.js";
 import { wordsOf } from "./words.js";
 
 /** @import { Conversation } from "./draw-types.d.ts" */
+
 /** @import { DockNeed, PanelComposer, Thread, ThreadPage, ThreadPageDeps } from "./thread-page-types.d.ts" */
 
 /** @param {ThreadPageDeps} deps */
 export function createThreadPage({
-  STAGE, S, world, D, dockDeps, wireComposer, wireTray, closeThreadMenu, addFiles, toggleIq, sessionOf,
+  STAGE, S, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu, addFiles, toggleIq, sessionOf,
   convProject, watchDock, toastLine, loadAhead, returnPill, saveDraft, loadDraft, convThread, stOf, glyphOf,
   isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv, updateComposer, sendRender, targetLineRender,
 }) {
