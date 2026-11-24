@@ -1,7 +1,5 @@
 /* Light separates surfaces with borders and shadows. */
 
-:root[data-theme="light"] :is(.side){border-right-color:var(--sb-hair)}
-:root[data-theme="light"] .side-foot{border-color:var(--sb-hair)}
 :root[data-theme="light"] :is(.top[data-kind="project"],.thead,.set-top,.since){border-color:var(--line-soft)}
 :root[data-theme="light"] .tb-out{background:var(--fill-1);border-color:var(--line-soft)}
 

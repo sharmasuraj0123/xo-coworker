@@ -232,10 +232,11 @@
   --danger-fill:color-mix(in srgb,var(--err-ink) 10%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 15%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 20%,transparent);
   --e-decide:#3B3B3B;
 }
-
 :root{--sb-side:#111111; --sb-hair:#232323; --sb-line:#323232; --sb-line-hover:#565656; --sb-bg-3:#252525;
+  --edge-sidebar-frame:var(--sb-g1C); --edge-sidebar-footer:var(--edge-sidebar-frame) currentColor currentColor;
   --sb-g17:#171717; --sb-g1A:#1A1A1A; --sb-g1C:#1C1C1C; --sb-g1F:#1F1F1F; --sb-g22:#222222; --sb-g26:#262626; --sb-g2A:#2A2A2A; --sb-g45:#454545}
 :root[data-theme="light"]{--sb-side:#F2F2F2; --sb-hair:#E8E8E8; --sb-line:#DCDCDC; --sb-line-hover:#BDBDBD; --sb-bg-3:#EEEEEE;
+  --edge-sidebar-frame:var(--sb-hair); --edge-sidebar-footer:var(--edge-sidebar-frame);
   --sb-g17:#FFFFFF; --sb-g1A:#FFFFFF; --sb-g1C:#FFFFFF; --sb-g1F:#ECECEC; --sb-g22:#EDEDED; --sb-g26:#E3E3E3; --sb-g2A:#DBDBDB; --sb-g45:#ABABAB;
   --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
 @media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
@@ -260,7 +261,6 @@
   :root[data-theme="light"]{--ink-3:#333333; --ink-4:#333333; --line:#8E8E8E; --line-hover:#6B6B6B}
   :root[data-theme="light"] :is(.toast,.lbx){--ink-3:#C8C8C8; --ink-4:#C8C8C8; --line:#5A5A5A; --line-hover:#8E8E8E}
 }
-
 /* Quiet state tints, mixed (never new hues), so they follow each theme's own status colour. */
 :root{
   --accent-subtle:color-mix(in srgb,var(--accent-fill) 16%,var(--fill-1));

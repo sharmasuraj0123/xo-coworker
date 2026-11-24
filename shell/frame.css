@@ -1,6 +1,6 @@
 .app{position:fixed;inset:0;display:grid;grid-template-columns:var(--side-w) minmax(0,1fr)}
-
-.side{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--sb-side);border-right:1px solid var(--sb-g1C)}
+.side{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;
+  background:var(--sb-side);border-right:var(--hair) solid var(--edge-sidebar-frame)}
 .side-top{display:flex;align-items:center;gap:8px;height:64px;padding:0 14px 0 20px}
 
 .theme{flex:none;display:grid;place-items:center;width:46px;height:var(--h-ctl);border-radius:999px}
@@ -21,8 +21,8 @@
 .help{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:50%;border:1px solid var(--line);background:var(--fill-1);color:var(--ink-3);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);transition:color var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 .help:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .help:active{transform:scale(.92)}
-.side-foot{flex:none;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:9px 12px 10px;border-top:1px solid var(--sb-g1C)}
-
+.side-foot{flex:none;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:9px 12px 10px;
+  border-top:var(--hair) solid;border-color:var(--edge-sidebar-footer)}
 .sh-tog{margin-right:auto}
 .sh-n{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-3)}
 .sh-n:empty{display:none}
