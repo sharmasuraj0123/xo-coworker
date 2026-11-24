@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Fails when a file of the ledger's base commit has no home; --final also checks the working tree."""
-import json, subprocess, sys
-
-import os
+"""Checks coverage of the base commit and verifies every settled destination."""
+import json, os, subprocess, sys
+from pathlib import Path
 def opt(name, default):
     return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
 repo = opt("--repo", ".")
@@ -16,7 +15,9 @@ errors = []
 for p in sorted(tracked - set(L["files"])): errors.append(f"not in ledger: {p}")
 for p in sorted(set(L["files"]) - tracked): errors.append(f"ledger names an untracked file: {p}")
 FINAL = "--final" in sys.argv
-OK = {"moved", "split", "kept", "deleted", "vendor"} if FINAL else {"planned", "split", "split-region", "decide", "vendor", "moved", "kept", "deleted"}
+SETTLED = {"moved", "split", "kept", "vendor"}
+OK = SETTLED | {"deleted"} | (set() if FINAL else {"planned", "split-region", "decide"})
+root = Path(repo).resolve()
 decides = []
 def check(kind, key, e):
     s = e.get("status")
@@ -24,16 +25,16 @@ def check(kind, key, e):
     elif s not in OK: errors.append(f"status {s!r} not allowed{' in --final' if FINAL else ''}: {key}")
     elif s == "deleted" and not e.get("reason"): errors.append(f"deleted without reason: {key}")
     elif s != "deleted" and not e.get("home"): errors.append(f"{s} without home: {key}")
+    elif s in SETTLED:
+        home = e["home"]
+        for path in home if isinstance(home, list) else [home]:
+            if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts or not (root / path).exists():
+                errors.append(f"{s} home does not exist in the repository: {key} -> {path}")
+    elif FINAL and s == "deleted" and kind == "file" and (root / key).exists():
+        errors.append(f"deleted but still present: {key}")
     if s == "decide": decides.append(key)
 for k, e in L["files"].items(): check("file", k, e)
 for k, e in L.get("items", {}).items(): check("item", k, e)
-if FINAL:
-    for p, e in L["files"].items():
-        h = e.get("home")
-        if e.get("status") in ("moved", "kept") and isinstance(h, str) and " " not in h and not os.path.exists(os.path.join(repo, h)):
-            errors.append(f"{e['status']} home does not exist in the working tree: {p} -> {h}")
-        if e.get("status") == "deleted" and os.path.exists(os.path.join(repo, p)):
-            errors.append(f"deleted but still present: {p}")
 if inv_path and os.path.exists(inv_path):
     inv = json.load(open(inv_path))
     for r in inv["files"]:

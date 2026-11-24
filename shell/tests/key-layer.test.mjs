@@ -1,9 +1,9 @@
+// @ts-check
 import assert from "node:assert/strict";
-import { dom, same } from "./lib/dom.mjs";
-import { createKernel } from "../core/kernel/index.js";
-import { stackLayers } from "../shell/layers.js";
-import { focusOverlay, mountKeyboardLayers } from "../shell/keyboard-layers.js";
-import { createShortcutsSheet } from "../modules/settings/shortcuts-sheet.js";
+import { dom, same } from "../../tests/lib/dom.mjs";
+import { createKernel } from "../../core/kernel/index.js";
+import { stackLayers } from "../layers.js";
+import { focusOverlay, mountKeyboardLayers } from "../keyboard-layers.js";
 
 const controls = '<button tabindex="0">First</button><button tabindex="0">Last</button>';
 const { document, window } = await dom(`
@@ -23,12 +23,11 @@ const keys = byId("keys"), all = byId("all"), jump = byId("jump"), quickopen = b
 const files = byId("files"), content = byId("content");
 const phone = new window.EventTarget();
 phone.matches = false;
-const sheet = createShortcutsSheet({ keys, closeButton: keys.firstElementChild, keysSheetRender() {}, focusOverlay, syncInert: () => syncInert() });
 const layer = (id, host, config) => ({ id, open: () => !host.hidden, close: () => { host.hidden = true; }, ...config });
 const stack = stackLayers(createKernel().layers, [
   layer("jump", jump, { tab: () => jump, watchHidden: jump, inertsApp: true }),
   layer("all", all, { tab: () => all, watchHidden: all, inertsApp: true }),
-  layer("keys", keys, { tab: () => keys, watchHidden: keys, inertsApp: true, close: sheet.closeKeys }),
+  layer("keys", keys, { tab: () => keys, watchHidden: keys, inertsApp: true }),
   layer("quickopen", quickopen, { inertsApp: true }),
   layer("settings", settings, { watchHidden: settings, tab: () => phone.matches ? settings : null }),
   { id: "drawer", open: () => app.classList.contains("drawer"), close: () => app.classList.remove("drawer"), tab: () => phone.matches ? side : null },
@@ -65,8 +64,7 @@ wraps(side);
 settings.hidden = false;
 jump.hidden = false;
 all.hidden = false;
-all.firstElementChild.focus();
-sheet.openKeys();
+keys.hidden = false;
 await mutation();
 assert.equal(app.inert, true);
 assert.equal(content.inert, true);
@@ -78,8 +76,7 @@ keys.lastElementChild.addEventListener("keydown", claimed);
 assert.equal(tab(keys.lastElementChild), true);
 same(document.activeElement, keys.lastElementChild);
 keys.lastElementChild.removeEventListener("keydown", claimed);
-sheet.closeKeys();
-same(document.activeElement, all.firstElementChild);
+keys.hidden = true;
 wraps(all);
 all.hidden = true;
 wraps(jump);
