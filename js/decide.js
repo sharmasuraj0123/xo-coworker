@@ -1,4 +1,5 @@
 import * as Kit from "../modules/decisions/kit.js";
+import { createDecisionQueue } from "../modules/decisions/queue.js";
 import { createNeedItems } from "../modules/decisions/needs.js";
 import { rank } from "../modules/decisions/rank.js";
 import { $, RM, sound } from "./ui.js";
@@ -21,100 +22,12 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   const teach = new Map();
   const noSecret = new Set(); // items XO wouldn't carry a secret answer to (secret_needs_a_call)
   let logN = 0;
+  const F = { open: false, parked: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };
 
-  /** Was the item decided by this very request (same idempotency key)? */
-  const ownDecision = (part, err) => {
-    const k = part.choice && part.choice.body && part.choice.body.idempotency_key;
-    return !!k && !!(err.item && err.item.decision && err.item.decision.idempotency_key === k);
-  };
-  /** A title as a sentence: one full stop, never "token?." */
-  const stop = (t) => { t = String(t || "").trim(); return /[.?!…]$/.test(t) ? t : `${t}.`; };
-  /** Why a decision wasn't sent: the item had already left the list (decided, withdrawn, expired). */
-  function goneWhy(err) {
-    const d = err.item && err.item.decision && err.item.decision.decision;
-    if (err.gone === "already_decided" || err.gone === "decided") return `It was already decided elsewhere${d && VERB[d] ? ` (${VERB[d].toLowerCase()})` : ""}.`;
-    if (err.gone === "withdrawn") return "It was withdrawn before your answer arrived.";
-    if (err.gone === "expired") return "It had expired, and the agent was told.";
-    return "It's no longer waiting for you.";
-  }
-  /** The same, short, for the herald. */
-  function failShort(err) {
-    if (err && err.code === "secret_needs_a_call") return "XO can't carry a secret here. Give it outside XO, then tell the thread.";
-    if (err && err.code === "rule_sentence_mismatch") return "The rule's wording changed. It's back in your list.";
-    if (err && err.status >= 400 && err.status < 500 && err.message) return `${stop(err.message)} It's back in your list.`;
-    return "It didn't reach the agent. It's back in your list.";
-  }
-  /** A decision XO refused: the server's reason, and whether it can simply be tried again. */
-  function failLine(part, err) {
-    const t = stop(part.ask.title);
-    if (err && err.code === "secret_needs_a_call") return `Not sent: ${t} XO can't pass a secret to this question. Don't paste it into the thread: give it to the agent outside XO, then tell the thread it's done.`;
-    if (err && err.code === "rule_sentence_mismatch") return `Not sent: ${t} The rule's wording has changed; read it again and decide. It's back in your list.`;
-    if (err && err.status >= 400 && err.status < 500 && err.message) return `Not sent: ${t} ${stop(err.message)} It's back in your list.`;
-    return `Didn't reach the agent: ${t} It's back in your list.`;
-  }
-
-  // ── commit window (3 s, Undo) ─────────────────────────────────────────────
-  const queue = Kit.createCommitQueue({
-    exec: (p) => Promise.resolve(p.choice && p.choice.resolve ? world.act.resolve(p.t.id, true) : p.stopped ? world.act.reply(p.t.id, p.choice.text) : p.choice && p.choice.storm ? world.act.decideItem(p.ask.item.id, p.choice.body) : Kit.answer(world, p.t, p.ask, p.choice, p.note)).then(() => {
-      // a held ask on a thread that kept working: the answer closes it
-      if (p.t.state === "working" && p.t.asks.length) { p.t.asks = []; p.t.needsYou = ""; }
-    }),
-    onChange(type, item, results) {
-      if (type === "undone") {
-        for (const p of item.parts) { const i = log.indexOf(p.entry); if (i >= 0) log.splice(i, 1); F.status.delete(p.key); }
-        announce("Undone. Nothing was sent; the ask is back.");
-        if (F.open) {
-          const p = item.parts[0];
-          clearTimeout(F.autoT);
-          F.done = false; F.cur = p.key; F.items.set(p.key, p.n);
-          if (!F.order.includes(p.key)) F.order.unshift(p.key);
-          show(F.cur, "undo");
-        }
-        onUndone && onUndone(item.parts[0].key);
-      }
-      if (type === "sending") for (const p of item.parts) p.entry.status = "sending";
-      if (type === "settled") {
-        for (const { part, ok, err } of results) {
-          if (ok) {
-            part.entry.status = "sent";
-            if (part.stopped) stoppedDone.add(part.t.id); else sentKeys.set(part.key, Date.now());
-            onSent && onSent(part);
-          } else if (err && err.gone && ownDecision(part, err)) {
-            // it was this very decision (sent before an error said otherwise): it counts as sent
-            part.entry.status = "sent";
-            sentKeys.set(part.key, Date.now());
-            onSent && onSent(part);
-          } else if (err && err.gone) {
-            // refused because the item had already left: never counted as made (UI-reference §4.3 #7)
-            part.entry.status = "gone";
-            part.entry.why = goneWhy(err);
-            sentKeys.set(part.key, Date.now());
-            announce(`Not sent: ${stop(part.ask.title)} ${part.entry.why}`);
-            onNotSent && onNotSent(part.ask.title, part.entry.why);
-          } else {
-            part.entry.status = "failed";
-            F.status.delete(part.key);
-            if (err && err.code === "secret_needs_a_call" && part.ask.item) noSecret.add(part.ask.item.id);
-            if (part.choice && part.choice.resolve) {
-              // Done that didn't land: the thread stays open and its card comes back
-              announce(`Couldn't resolve ${part.t.title}: ${err && err.message ? stop(err.message) : "XO didn't answer."} It's back in your list.`);
-              onNotSent && onNotSent(`Couldn't resolve ${part.t.title}`, `${err && err.message ? stop(err.message) : "XO didn't answer."} It's back in your list.`);
-              continue;
-            }
-            announce(failLine(part, err));
-            onNotSent && onNotSent(part.ask.title, failShort(err));
-          }
-        }
-      }
-      toastRender();
-      render();
-    },
-  });
-
+  const queue = createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSecret, show: (key, how) => show(key, how), toastRender: () => toastRender(), announce, render, onUndone, onSent, onNotSent });
   const needItems = createNeedItems({ world, P, later, waitSince, stoppedDone, sentKeys, queue });
 
   // ── panel state ───────────────────────────────────────────────────────────
-  const F = { open: false, parked: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };
   const { cardHtml, effTagHtml, leadHtml, chipsHtml } = createDecisionCard({ world, PROJ, F, teach, noSecret });
   /** The words of the newest try on this ask that failed to send, kept for the next try: a Send back's note, or
    *  (mode "reply") an answer you typed; "" once something newer happened to it. */
