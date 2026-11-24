@@ -1,5 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
+import { ApiError } from "../../../core/platform/http.js";
 import { createMapFolders } from "../folders.js";
 
 const scope = { project: "project", base: "worktree" };
@@ -22,7 +23,7 @@ const initial = folders.load(scope, "source");
 assert.deepEqual(folders.get(scope, "source"), { state: "loading" });
 await folders.load(scope, "source", { again: true });
 assert.deepEqual(reads, [["project", "worktree/source"]], "calls deduplicate while a folder is loading");
-pending.reject({ status: 404 });
+pending.reject(new ApiError(404, "not_found", "Folder missing"));
 await initial;
 assert.deepEqual(folders.get(scope, "source"), { state: "error", error: "Not there any more" });
 await folders.load(scope, "source");
@@ -55,6 +56,20 @@ assert.equal(olderSignal?.aborted, true);
 stale.resolve({ files: [{ name: "stale" }] });
 await older;
 assert.deepEqual(folders.get(scope, "source"), { state: "ok", dirs: [], files: [{ name: "latest", path: "latest" }] });
+assert.equal(redraws, 4);
+
+const requestFailure = Object.assign(new TypeError("Broken request"), { status: 404 });
+pending = Promise.withResolvers();
+const unexpected = folders.load(scope, "unexpected");
+pending.reject(requestFailure);
+await assert.rejects(unexpected, (error) => error === requestFailure);
+assert.equal(redraws, 4);
+
+const conversionFailure = new ApiError(404, "not_found", "Broken response accessor");
+pending = Promise.withResolvers();
+const malformed = folders.load(scope, "malformed");
+pending.resolve({ get files() { throw conversionFailure; } });
+await assert.rejects(malformed, (error) => error === conversionFailure);
 assert.equal(redraws, 4);
 
 pending = Promise.withResolvers();
