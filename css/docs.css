@@ -1,94 +1,120 @@
-/* The editor fills the file body. */
 .vw-doc{display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--canvas)}
 .vw-doc>.cm-editor{flex:1 1 auto;min-height:0;height:100%}
 .vw-doc>.cm-editor.cm-focused{outline:none}
 /* The caret marks focus while editing. */
 .vw-body.vw-doc:focus-visible{outline:none}
 .vw-doc .cm-gutters{padding-left:var(--cell-in)}
-.vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 12px 0 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono)}
+.vw-doc .cm-lineNumbers .cm-gutterElement{padding:0 var(--s-3) 0 var(--s-2);font:var(--font-file-meta-code)}
 .vw-doc .cm-content{padding-bottom:var(--h-bar)}
-.vw-doc .cm-xo-fold{display:inline-block;width:12px;color:var(--ink-5);cursor:pointer}
-.vw-doc .cm-panels-top{border-bottom:1px solid var(--line-soft)}
-.vw-doc .cm-panel.cm-search{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:8px 12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
-.vw-doc .cm-panel.cm-search input,.vw-doc .cm-panel.cm-search button{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-xo-fold{display:inline-block;width:var(--ic-xs);color:var(--ink-5);cursor:pointer}
+.vw-doc .cm-panels-top{border-bottom:var(--hair) solid var(--line-soft)}
+.vw-doc .cm-panel.cm-search{
+  display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-1);padding:var(--s-2) var(--s-3);font:var(--font-file-meta)
+}
+.vw-doc .cm-panel.cm-search input,.vw-doc .cm-panel.cm-search button{
+  height:var(--h-sm);border-radius:var(--r-sm);border:var(--hair) solid var(--line);background:var(--surface);
+  color:var(--ink);font:var(--font-file-meta)
+}
 .vw-doc .cm-panel.cm-search input[type=checkbox]{height:auto}
 .vw-doc .cm-panel.cm-search button[name=close]{border:none;background:none;color:var(--ink-3)}
 .vw-doc .cm-panel.cm-search button:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-.vw-doc .cm-panel.cm-gotoLine{padding:8px 12px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
-.vw-doc .cm-panel.cm-gotoLine input{height:var(--h-sm);border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.vw-doc .cm-panel.cm-gotoLine{padding:var(--s-2) var(--s-3);font:var(--font-file-meta)}
+.vw-doc .cm-panel.cm-gotoLine input{
+  height:var(--h-sm);border-radius:var(--r-sm);border:var(--hair) solid var(--line);background:var(--surface);color:var(--ink)
+}
 
 /* Markdown page typography and editing marks. */
 .vw-doc.is-page{background:var(--surface)}
 .vw-doc .cm-xo-page .cm-scroller{font-family:var(--sans);font-size:var(--fs-ui);line-height:var(--lh-ui)}
-.vw-doc .cm-xo-page .cm-content{box-sizing:border-box;max-width:760px;margin:0 auto;padding:32px 40px var(--h-bar)}
-.vw-doc .cm-xo-page .cm-activeLine{background:transparent}
+.vw-doc .cm-xo-page .cm-content{box-sizing:border-box;max-width:var(--w-md-page);margin:0 auto;padding:var(--s-8) var(--s-10) var(--h-bar)}
+.vw-doc .cm-xo-page .cm-activeLine{background:var(--fill-clear)}
 .vw-doc .cm-xo-page .cm-line{padding:0}
 .cm-md-h,.cm-md-h *{font-family:var(--sans);font-weight:var(--fw-strong);color:var(--ink)}
-.cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);padding-top:16px !important}
-.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);padding-top:12px !important}
-.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);padding-top:8px !important}
+.cm-md-h1{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--tr-28);padding-top:var(--s-4) !important}
+.cm-md-h2{font-size:var(--fs-heading);line-height:var(--lh-heading);letter-spacing:var(--tr-20);padding-top:var(--s-3) !important}
+.cm-md-h3,.cm-md-h4{font-size:var(--fs-title);line-height:var(--lh-title);padding-top:var(--s-2) !important}
 .cm-md-h5,.cm-md-h6{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)}
-.cm-md-quote{border-left:2px solid var(--line-strong);padding-left:16px !important;color:var(--ink-2)}
-.cm-md-fence{font-family:var(--mono);font-size:var(--fs-code);line-height:var(--lh-ui);background:var(--code-bg);padding:0 12px !important}
-.cm-md-code{font-family:var(--mono);font-size:var(--fs-code);background:var(--code-bg);border-radius:var(--r-xs);padding:1px 4px}
-.cm-md-link{color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,transparent);text-underline-offset:3px}
-.cm-md-bullet{display:inline-block;width:12px;color:var(--ink-3)}
-.cm-md-block{margin:8px 0;padding:4px 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
-/* Table cells keep their own focus mark. */
+.cm-md-quote{border-left:var(--stroke-md-quote) solid var(--line-strong);padding-left:var(--s-4) !important;color:var(--ink-2)}
+.cm-md-fence{
+  font-family:var(--mono);font-size:var(--fs-code);line-height:var(--lh-ui);background:var(--code-bg);padding:0 var(--s-3) !important
+}
+.cm-md-code{
+  font-family:var(--mono);font-size:var(--fs-code);background:var(--code-bg);border-radius:var(--r-xs);padding:var(--s-md-code-y) var(--s-1)
+}
+.cm-md-link{
+  color:var(--code-fn);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--code-fn) 40%,var(--fill-clear));
+  text-underline-offset:var(--offset-link-underline)
+}
+.cm-md-bullet{display:inline-block;width:var(--ic-xs);color:var(--ink-3)}
+.cm-md-block{margin:var(--s-2) 0;padding:var(--s-1) 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
 .cm-md-imath{cursor:text}
-.vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,transparent)}
+.vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,var(--fill-clear))}
 .vw-doc .cm-changedLine,.vw-doc .cm-inlineChangedLine{background:var(--code-add-bg) !important}
-.vw-doc .cm-deletedChunk{background:var(--code-del-bg) !important;padding-left:8px}
-.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:4px;margin:4px 0}
-.vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 10px;font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans)}
-.vw-doc .cm-changeGutter{width:3px;padding:0}
+.vw-doc .cm-deletedChunk{background:var(--code-del-bg) !important;padding-left:var(--s-2)}
+.vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:var(--s-1);margin:var(--s-1) 0}
+.vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 var(--s-doc-action);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans)}
+.vw-doc .cm-changeGutter{width:var(--w-doc-change-bar);padding:0}
 .vw-doc .cm-changedLineGutter{background:var(--code-add)}
 .vw-doc .cm-deletedLineGutter{background:var(--code-del)}
 .cm-tooltip.cm-xo-asktip{border:none;background:none}
-.cm-xo-asktip .xd-ask{position:static;margin-top:6px}
+.cm-xo-asktip .xd-ask{position:static;margin-top:var(--s-doc-ask-gap)}
 .xd-state.is-quiet{color:var(--ink-4)}
 .xd-state.is-quiet i{background:var(--ink-4)}
 .xd-state.is-done{animation:rise-in var(--d-in) var(--ease)}
 .xd-state.is-need{color:var(--warn)}
 .xd-state.is-need i{background:var(--warn)}
 
-/* ── the open files, as tabs ── */
-.vw-tabs{display:flex;gap:2px;min-height:var(--h-ctl);padding:4px 8px 0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line-faint)}
+.vw-tabs{
+  display:flex;gap:var(--s-file-tab-gap);min-height:var(--h-ctl);padding:var(--s-1) var(--s-2) 0;overflow-x:auto;
+  scrollbar-width:none;border-bottom:var(--hair) solid var(--line-faint)
+}
 .vw-tabs::-webkit-scrollbar{display:none}
-.vw-tab{flex:none;display:inline-flex;align-items:center;max-width:220px;height:var(--h-ctl);border-radius:var(--r-sm) var(--r-sm) 0 0;color:var(--ink-3)}
+.vw-tab{
+  flex:none;display:inline-flex;align-items:center;max-width:var(--w-file-tab);height:var(--h-ctl);
+  border-radius:var(--r-sm) var(--r-sm) 0 0;color:var(--ink-3)
+}
 .vw-tab.is-on{background:var(--canvas);color:var(--ink)}
 .vw-tab:not(.is-on):hover{background:var(--hover-fill)}
 .vw-tab-b:hover{color:var(--ink-2)}
 .vw-tab.is-on .vw-tab-b:hover{color:var(--ink)}
-.vw-tab-b{display:inline-flex;align-items:center;gap:4px;min-width:0;height:100%;padding:0 4px 0 10px;border:none;background:none;color:inherit;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);cursor:pointer}
+.vw-tab-b{
+  display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;height:100%;padding:0 var(--s-1) 0 var(--s-doc-action);
+  border:none;background:none;color:inherit;font:var(--font-file-meta);cursor:pointer
+}
 .vw-tab-b .vw-ic svg{width:var(--ic-sm);height:var(--ic-sm)}
 .vw-tab.is-preview .vw-tn{font-style:italic}
 .vw-tn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vw-tab-x{position:relative;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:4px;border:none;border-radius:var(--r-xs);background:none;color:var(--ink-4);cursor:pointer}
+.vw-tab-x{
+  position:relative;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);margin-right:var(--s-1);
+  border:none;border-radius:var(--r-xs);background:none;color:var(--ink-4);cursor:pointer
+}
 .vw-tab-x svg{width:var(--ic-xs);height:var(--ic-xs)}
 .vw-tab-x>i{display:none}
-.vw-tab-x.is-dirty>i{display:block;position:absolute;width:8px;height:8px;mask:var(--mask-dot);background:var(--ink-3)}
+.vw-tab-x.is-dirty>i{display:block;position:absolute;width:var(--ic-file-dirty);height:var(--ic-file-dirty);
+  mask:var(--mask-dot);background:var(--ink-3)}
 .vw-tab-x.is-dirty svg{visibility:hidden}
 .vw-tab-x:hover{background:var(--hover-fill);color:var(--ink)}
 .vw-tab-x.is-dirty:hover>i{display:none}
 .vw-tab-x.is-dirty:hover svg{visibility:visible}
-.vw-tab-b:focus-visible,.vw-tab-x:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.vw-tab-b:focus-visible,.vw-tab-x:focus-visible{outline:var(--stroke-focus) solid var(--focus);outline-offset:var(--offset-file-tab-focus)}
 
-/* ── the file's versions: ‹ n of m ›, who made it and when, Show changes; an older one, Restore and Latest ── */
-.vw-verbar{display:flex;align-items:center;gap:8px;min-height:var(--h-lg);padding:0 12px;border-bottom:1px solid var(--line-faint);font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);color:var(--ink-3)}
+.vw-verbar{
+  display:flex;align-items:center;gap:var(--s-2);min-height:var(--h-lg);padding:0 var(--s-3);
+  border-bottom:var(--hair) solid var(--line-faint);font:var(--font-file-meta);color:var(--ink-3)
+}
 .vw-verbar.is-old{background:var(--warn-subtle);color:var(--ink-2)}
-.vw-vers{display:inline-flex;align-items:center;gap:2px}
+.vw-vers{display:inline-flex;align-items:center;gap:var(--s-file-versions-gap)}
 .vw-vers .vw-btn{width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-xs)}
 .vw-vers .vw-btn[aria-disabled="true"]{opacity:.35;cursor:default}
-.vw-vn{min-width:48px;text-align:center;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.vw-vn{min-width:var(--w-file-version-count);text-align:center;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .vw-vn b{font-weight:var(--fw-strong);color:var(--ink)}
 .vw-who{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vw-verbar .xd-btn{height:var(--h-sm);padding:0 10px;font-size:var(--fs-meta)}
+.vw-verbar .xd-btn{height:var(--h-sm);padding:0 var(--s-doc-action);font-size:var(--fs-meta)}
 .vw-verbar .xd-btn.is-on{background:var(--fill-2);color:var(--ink)}
 
 @media (prefers-reduced-motion:reduce){.xd-state.is-done{animation:none}.vw-doc .cm-xo-tint{transition:none}}
 @media (max-width:600px){
-  .vw-doc .cm-xo-page .cm-content{padding:16px 16px var(--h-bar)}
+  .vw-doc .cm-xo-page .cm-content{padding:var(--s-4) var(--s-4) var(--h-bar)}
   .vw-who{display:none}
 }
 .qo-card{width:min(var(--w-quick-open),calc(100vw - var(--s-8)))}
@@ -125,8 +151,7 @@
 }
 .qo-foot:empty{display:none}
 
-/* ── moving by dragging in the tree (js/files.js): the folder it would land in ── */
-.fl-r.is-drop,.fl-list.is-drop{background:var(--hover-fill);box-shadow:inset 0 0 0 1px var(--line-strong);border-radius:var(--r-sm)}
+.fl-r.is-drop,.fl-list.is-drop{background:var(--hover-fill);box-shadow:inset 0 0 0 var(--hair) var(--line-strong);border-radius:var(--r-sm)}
 
 /* Unsaved changes wait for an explicit save. */
 .xd-state.is-unsaved{color:var(--ink-2)}
@@ -134,9 +159,7 @@
 .xd-state>svg{flex:none;width:var(--ic-sm);height:var(--ic-sm)}
 .xd-state.is-unsaved>svg{color:var(--warn)}
 
-/* a table's, formula's or diagram's drawing under its source while the caret is in it */
-.cm-md-block.is-preview{margin-top:4px;padding-top:8px;border-top:1px dashed var(--line);opacity:.92}
+.cm-md-block.is-preview{margin-top:var(--s-1);padding-top:var(--s-2);border-top:var(--hair) dashed var(--line);opacity:.92}
 
-/* ── a table you type in (modules/files/markdown-page.js TableWidget): each cell editable where it's drawn ── */
 .cm-md-table td,.cm-md-table th{cursor:text;outline:none}
-.cm-md-table td:focus,.cm-md-table th:focus{box-shadow:inset 0 0 0 1px var(--line-strong);background:var(--hover-fill)}
+.cm-md-table td:focus,.cm-md-table th:focus{box-shadow:inset 0 0 0 var(--hair) var(--line-strong);background:var(--hover-fill)}

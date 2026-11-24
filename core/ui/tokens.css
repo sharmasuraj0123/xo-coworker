@@ -34,7 +34,6 @@
   /* frosted bars and toasts */
   --herald-bg:rgba(27,27,27,.9); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
   --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.35); --comp-hi:rgba(255,255,255,.04);
-
   /* Floating surfaces pair a contact shadow with a short ambient shadow. */
   --e1:none;
   --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
@@ -49,7 +48,6 @@
   --hairline:inset 0 1px 0 rgba(255,255,255,.035);
   --scrim:rgba(0,0,0,.55);
   --sha:1;   /* how much a coloured shadow shows: 1 in dark, .28 in light */
-
   /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
@@ -62,7 +60,6 @@
   --ring-room:6px;
   /* Dark ink maintains contrast on every agent colour. */
   --on-agent:#0B0B0C;
-
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
   /* a switch's knob is white in every theme; the icon on a lit one */
   --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
@@ -78,14 +75,12 @@
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
   /* Coordinator names and marks use the same violet in every view. */
   --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
-
   /* Status roles provide the shared hues for labels and quiet tints. */
   --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
 
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --sans-read:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-
   /* Type roles: every text in the app takes one; read is the chat's voice (drawn lighter and softer on dark), ui the rest */
   --fs-meta:12px; --fs-ui:14px; --fs-code:14px; --fs-read:16px; --fs-title:16px; --fs-input:16px; --fs-heading:20px; --fs-display:28px; --fs-hero:40px;
   --lh-meta:16px; --lh-ui:20px; --lh-read:24px; --lh-title:24px; --lh-heading:28px; --lh-display:36px; --lh-hero:44px;
@@ -161,6 +156,11 @@
   --measure-setting-description:60ch; --w-setting-pairing:16rem; --w-setting-row-label:160px; --w-worktree-hold:170px;
   --w-quick-open:680px; --s-quick-options-block:6px; --s-quick-option-inline:6px; --s-quick-match-indent:34px;
   --s-quick-footer-top:6px; --s-quick-footer-bottom:10px;
+  --w-md-page:760px; --stroke-md-quote:2px; --s-md-code-y:1px; --w-doc-change-bar:3px;
+  --s-doc-action:10px; --s-doc-ask-gap:6px; --offset-file-tab-focus:-2px;
+  --s-file-tab-gap:2px; --w-file-tab:220px; --ic-file-dirty:8px; --s-file-versions-gap:2px; --w-file-version-count:48px;
+  --font-file-meta:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans);
+  --font-file-meta-code:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--mono);
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
   --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
