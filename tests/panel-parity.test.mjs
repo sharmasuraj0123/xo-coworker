@@ -67,10 +67,11 @@ t("7 · the @ list and the target line: one code for both composers", () => {
   assert.match(markup, /aria-autocomplete="list" aria-controls="tat-list" aria-expanded="false"/);
   assert.match(markup, /<button type="button" class="target" id="ttarget" title="Aim at a project \(@\)"><\/button>/);
   assert.match(mount, /atList: TP\.K\.at,/, "Enter and Esc in the field leave an open list to it");
-  const w = fn(app, "function wireComposer(K)");
+  const composer = read("modules/conversation/composer.js");
+  const w = fn(composer, "function wireComposer(K)");
   assert.match(w, /if \(atKeys\(e, K\)\) return;/);
   assert.match(w, /wireAt\(K\);\n\s*K\.target\.addEventListener\("click", \(\) => aimAt\(K\)\);/);
-  assert.match(fn(app, "function updateComposer("), /sendRender\(K\); growSay\(K\);\n\s*if \(document\.activeElement === K\.say\) atRender\(K\); else atClose\(K\);/, "a redraw while you're elsewhere never opens it");
+  assert.match(fn(composer, "function updateComposer("), /sendRender\(K\); growSay\(K\);\n\s*if \(document\.activeElement === K\.say\) atRender\(K\); else atClose\(K\);/, "a redraw while you're elsewhere never opens it");
   assert.match(w, /K\.say\.addEventListener\("input", \(\) => \{ K\.at\._sel = 0;/, "typing starts the list at its first row, as the chat's does");
   assert.match(app, /if \(atKeys\(e, MK\)\) return;/, "the main chat's field: the same keys");
   assert.match(app, /aimAt\(MK\);\n\}\);/);

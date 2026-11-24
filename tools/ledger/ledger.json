@@ -7327,8 +7327,8 @@
    "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::wireComposer": {
-   "status": "planned",
-   "home": "modules/composer (factory `createComposer`) (app.js l.2087)"
+   "status": "moved",
+   "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::chipHtml": {
    "status": "planned",
@@ -7351,8 +7351,8 @@
    "home": "modules/composer (attachments sub-module) (app.js l.2174)"
   },
   "js/app.js::functions::growSay": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2230)"
+   "status": "moved",
+   "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::running": {
    "status": "moved",
@@ -7371,8 +7371,8 @@
    "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::updateComposer": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
+   "status": "moved",
+   "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::syncPlaceholder": {
    "status": "moved",

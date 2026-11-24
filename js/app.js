@@ -45,6 +45,7 @@ import { createChecklistRenderer } from "../modules/conversation/checklist.js";
 import { createConversationStarts } from "../modules/conversation/start.js";
 import { createConversationHeader } from "../modules/conversation/header.js";
 import { createComposerControls } from "../modules/conversation/composer-controls.js";
+import { createComposer } from "../modules/conversation/composer.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
@@ -1001,23 +1002,8 @@ const { recordLine, undoRecord } = createRecordLines({ S, announce, schedule, he
 const say = $("#say"), atList = $("#at-list");
 const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
   tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: atList };
-const { saveDraft, loadDraft } = createDrafts({ S, store, MK, updateComposer });
-const { startHtml, startDraft } = createConversationStarts({ SHAPE, PROJ, say, growSay: () => growSay(), saveDraft, updateComposer });
-/** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
-function wireComposer(K) {
-  K.say.addEventListener("input", () => { K.at._sel = 0; updateComposer(K); saveDraft(K); });
-  K.say.addEventListener("click", () => updateComposer(K));
-  K.say.addEventListener("keydown", (e) => {
-    if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
-    if (atKeys(e, K)) return;
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(K); }
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); K.say.blur(); }
-  });
-  K.form.addEventListener("submit", (e) => { e.preventDefault(); if (K.send.dataset.mode === "stop") stopRun(K.view); else send(K); });
-  wireAt(K);
-  K.target.addEventListener("click", () => aimAt(K));
-}
-
+const { saveDraft, loadDraft } = createDrafts({ S, store, MK, updateComposer: (K) => updateComposer(K) });
+const { startHtml, startDraft } = createConversationStarts({ SHAPE, PROJ, say, growSay: () => growSay(), saveDraft, updateComposer: () => updateComposer() });
 // ── files on the unsent message (hub #30): the paperclip, a drop or a paste adds them; each uploads
 // at once to the chat this conversation writes to, as a chip with its progress, Retry and Remove.
 // Send waits for every upload and stays off while one has failed. A long paste becomes a file.
@@ -1035,11 +1021,11 @@ const thumbOf = (c) => { let u = thumbs.get(c.blob); if (!u) { u = URL.createObj
 const dropThumb = (c) => { const u = c && thumbs.get(c.blob); if (u) { URL.revokeObjectURL(u); thumbs.delete(c.blob); } };
 const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack, editFailed } = createDelivery({
   S, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt: (node) => composerAt(node),
-  filesHere, tray, dropThumb, saveDraft, updateComposer, growSay, announce, heraldShow, heraldFor, schedule, render: () => render(), go,
+  filesHere, tray, dropThumb, saveDraft, updateComposer: (K) => updateComposer(K), growSay: (K) => growSay(K), announce, heraldShow, heraldFor, schedule, render: () => render(), go,
 });
 const { targetLineRender, syncPlaceholder } = createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, convProject, liveBlock, isBusy, sendWhileRunning, noun });
 const { chipRender, sendRender, chatTargetRender } = createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock });
-const { atRender, atClose, pickAt } = createMentionList({ MK, world, projects, projectIcon, isBusy, saveDraft, updateComposer });
+const { atRender, atClose, pickAt } = createMentionList({ MK, world, projects, projectIcon, isBusy, saveDraft, updateComposer: (K) => updateComposer(K) });
 function chipHtml(c) {
   const img = c.type ? kindOf(c.type) === "image" : /^image\//.test(c.blob?.type || "");
   const thumb = img && c.blob && c.state !== "failed";
@@ -1142,6 +1128,10 @@ K.say.addEventListener("paste", (e) => {
 });
 }
 wireTray(MK);
+const { wireComposer, growSay, updateComposer } = createComposer({
+  MK, say, trayRender, chipRender, lrefRender: () => lrefRender(), chatTargetRender, syncPlaceholder, sendRender,
+  targetLineRender, connDest, schedule, atRender, atClose, saveDraft, atKeys, send, stopRun, wireAt, aimAt,
+});
 // a drop anywhere on the page adds the files to the message being written
 {
   const veil = $("#drop-veil");
@@ -1157,39 +1147,6 @@ wireTray(MK);
   addEventListener("dragleave", (e) => { if (hasFiles(e) && --depth <= 0) hide(); });
   addEventListener("drop", (e) => { if (!hasFiles(e)) return; e.preventDefault(); const on = !veil.hidden, K = composerAt(e.target); hide(); if (on && takes(K)) addFiles(e.dataTransfer.files, K); });
   addEventListener("dragend", hide);
-}
-function growSay(K = MK) {
-  K.say.style.height = "auto";
-  const h = K.say.scrollHeight;
-  K.say.style.height = Math.min(h, 200) + "px";
-  K.say.classList.toggle("is-capped", h > 200);
-}
-function updateComposer(K = MK) {
-  if (!K.main) {
-    trayRender(K); chipRender(false, K);
-    targetLineRender(K); syncPlaceholder(K);
-    K.form.classList.toggle("has-text", !!K.say.value);
-    sendRender(K); growSay(K);
-    if (document.activeElement === K.say) atRender(K); else atClose(K);
-    return;
-  }
-  trayRender();
-  lrefRender();
-  if (chatTargetRender()) {
-    syncPlaceholder();
-    $("#composer").classList.toggle("has-text", !!say.value);
-    sendRender(); growSay(); atClose();
-    return;
-  }
-  targetLineRender();
-  // the line above the composer follows where the draft goes (an @ typed in a thread, or taken away): drawn again
-  // with the next render when that changes, so it says what the gate does
-  { const dk = JSON.stringify(connDest()); if (dk !== updateComposer.dk) { updateComposer.dk = dk; schedule(); } }
-  syncPlaceholder();
-  $("#composer").classList.toggle("has-text", !!say.value);
-  sendRender();
-  growSay();
-  atRender(MK);
 }
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
 say.addEventListener("click", () => updateComposer());

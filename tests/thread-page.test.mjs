@@ -130,7 +130,7 @@ for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) ass
 assert.match(app, /wireTray\(TP\.K\);/);
 assert.match(app, /wireTray\(MK\);/);
 assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/, "a drop on the page: the app's one drop, into its composer");
-assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
+assert.match(readFileSync(new URL("../modules/conversation/composer.js", import.meta.url), "utf8"), /trayRender\(K\); chipRender\(false, K\);/);
 assert.match(app, /toggleIq\(sessionOf\(tpView\(\)\), TP\.K\.iq\)/);
 console.log("thread-page files and model: ok");
 // a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
