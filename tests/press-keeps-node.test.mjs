@@ -20,7 +20,6 @@ const t = async (name, fn) => {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
 };
-const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 
 // ── the write paths, from the source (no DOM needed) ─────────────────────────
 await t("Back is written through patch(): only when its name changes, in place", () => {

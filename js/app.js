@@ -1,6 +1,5 @@
-import { createWorld, esc, WAITING } from "./world.js";
+import { createWorld, esc } from "./world.js";
 import { copyText, COPY_REFUSED } from "../core/platform/index.js";
-import { redraw } from "../core/ui/redraw.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderInline, setThreadInfo, setWebImages } from "./markdown.js";
@@ -56,7 +55,6 @@ import { createConversationDecisionActions } from "../modules/decisions/conversa
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
-import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
 import { createMap } from "../modules/map/map.js";
 import { createStage } from "../shell/panel/panel.js";
