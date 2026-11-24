@@ -13,11 +13,6 @@
   :root:root .fl-more{width:var(--h-ctl);height:var(--h-folder-touch-action);margin-top:0}
 }
 
-/* Give the count room on narrow collapsed checklists. */
-@media (max-width:400px){
-  :root:root .thead .ckbar:not(.is-open) .ck-now>span:last-child{display:none}
-}
-
 /* Preserve the conversation width behind a covering panel. */
 @media (max-width:760px){
   :root:root body.stage-open .home{padding-right:var(--s-4)}
@@ -31,9 +26,6 @@
   :root:root .iq{padding:0 var(--s-model-chip-phone)}
   :root:root .iq-sep{margin:0 var(--s-1)}
 }
-/* On the narrowest phones the field's placeholder identifies the recipient. */
-@media (max-width:340px){ :root:root .target{display:none} :root:root .iq{margin-left:auto} }
-
 @media (max-width:760px){
   .fl-link{min-height:var(--h-touch)}
   .fl-up{width:var(--h-touch);height:var(--h-touch)}
@@ -83,3 +75,11 @@
   :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
   :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:var(--h-row-act)}
 }
+
+/* Give the count room on narrow collapsed checklists. */
+@media (max-width:400px){
+  :root:root .thead .ckbar:not(.is-open) .ck-now>span:last-child{display:none}
+}
+
+/* On the narrowest phones the field's placeholder identifies the recipient. */
+@media (max-width:340px){ :root:root .target{display:none} :root:root .iq{margin-left:auto} }
