@@ -85,10 +85,10 @@ export function createKernel(opts = {}) {
     };
   }
 
-  /** @param {string} id */
-  function activate(id) {
-    const rec = mods.get(id);
-    if (!rec || off.has(id) || (safe && !rec.def.manifest.core)) return;
+  /** @param {NonNullable<ReturnType<typeof mods.get>>} rec */
+  function activate(rec) {
+    const { id, core } = rec.def.manifest;
+    if (off.has(id) || (safe && !core)) return;
     if (rec.activation) return rec.activation.done;
     if (missing(rec.def.manifest).length) { rec.status = "waiting"; return; }
     const scope = newScope(), { promise, resolve, reject } = /** @type {PromiseWithResolvers<void>} */ (Promise.withResolvers());
@@ -119,7 +119,7 @@ export function createKernel(opts = {}) {
       for (const rec of [...mods.values()].sort((a, b) => a.order - b.order)) {
         if (rec.status === "active" || rec.status === "failed" || rec.status === "disabled") continue;
         const before = rec.status;
-        await activate(rec.def.manifest.id);
+        await activate(rec);
         if (rec.status !== before) changed = true;
       }
     }
