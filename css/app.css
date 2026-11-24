@@ -37,9 +37,8 @@
 @import url("../modules/decisions/risk-states.css");
 @import url("../shell/header-state.css");
 @import url("../core/ui/markdown/code-surface.css");
-
-.ck-n,.pn-count,.tc-st{font-family:var(--sans);font-variant-numeric:tabular-nums}
-.nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:var(--tr-20)}   /* the sidebar's, as it is */
+@import url("../core/ui/tabular-labels.css");
+@import url("../shell/rail/counts.css");
 
 /* Attachments on drafts and sent messages. */
 .attach{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
