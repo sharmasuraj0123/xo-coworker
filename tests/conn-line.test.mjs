@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 
 const T = await import("../js/timeline.js");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
 const w = (router, own = null, extra = {}) => ({ loaded: true, runtimes: [], pools: {}, router, projects: [{ id: "workspace", routing: null }, { id: "alpha", routing: own }], ...extra });
 const OFF = { mode: "off" }, AGENT = { mode: "agent" };
 let passed = 0;
@@ -28,6 +29,6 @@ t("a real failure shows wherever you are, a thread's reply too", () => {
 });
 t("the app draws the line for the composer's destination (the gate's), not this place's chat", () => {
   assert.match(app, /connLine\(world\.state, box === \$\("#herald"\) \? connDest\(\) : \{ thread: true \}\)/, "the chat's line asks about connDest(); the panel's thread page's is a thread's reply");
-  assert.match(app, /function connDest\(\) \{[^}]*composerDest\(\)/, "which is composerDest(), the gate's");
+  assert.match(delivery, /function connDest\(\) \{[^}]*composerDest\(\)/, "which is composerDest(), the gate's");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

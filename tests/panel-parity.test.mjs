@@ -50,7 +50,7 @@ t("5 · / and the model shortcut act on the conversation in use", () => {
   assert.match(app, /write: \(\) => composerNow\(\)\.say\.focus\(\),/);
 });
 t("6 · focus after Retry, Pick back up and a notice's Undo goes to that conversation's composer", () => {
-  const r = fn(app, "function retry(id)");
+  const r = fn(read("modules/conversation/delivery.js"), "function retry(id)");
   assert.match(r, /K = composerAt\(document\.activeElement\);/);
   assert.match(r, /if \(had\) K\.say\.focus\(\{ preventScroll: true \}\);/);
   assert.match(editing, /const K = composerAt\(btn\); S\.focusNext = \[\(\) => K\.say, \(\) => K\.conv\.scroller\];/);

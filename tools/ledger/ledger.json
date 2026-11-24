@@ -7429,56 +7429,56 @@
    "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
   },
   "js/app.js::functions::liveBlock": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2529)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::blockFor": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2537)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::refuse": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2543)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::connDest": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2548)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::composerDest": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2551)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::sendLive": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2557)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::deliverLive": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2596)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::postLive": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2597)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::postWithFiles": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2627)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::send": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2250)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::retry": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2662)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::putBack": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2681)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::editFailed": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2689)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::tpMount": {
    "status": "planned",

@@ -1,5 +1,5 @@
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, clock, dayOf, short, once, busyAttrs } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, clock, dayOf, short, busyAttrs } from "../core/platform/index.js";
 import { redraw } from "../core/ui/redraw.js";
 import { patch } from "../core/ui/patch.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
@@ -12,7 +12,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stepMark, stateMark, XO, $, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
@@ -32,6 +32,7 @@ import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
 import { createReadingLayout } from "../modules/conversation/reading-layout.js";
 import { createConversationStops } from "../modules/conversation/stops.js";
+import { createDelivery } from "../modules/conversation/delivery.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf, goneLine } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
@@ -99,7 +100,6 @@ import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
-import { arrive } from "../core/ui/motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
 import { rtName, untilWords } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
@@ -109,7 +109,7 @@ import { createSettingsFrame, createSettingsSections, createKeysPage, createShap
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
-import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
+import { createHerald, noticeFor } from "../core/services/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance, wireChatBubbles, wireMessageHops, wireWebPictures } from "../modules/settings/appearance.js";
@@ -1369,6 +1369,10 @@ const filesHere = (view = S.view) => (canAttach(view) ? tray.status(view) : { co
 const thumbs = new WeakMap(); // blob → object URL, freed when the chip leaves the composer
 const thumbOf = (c) => { let u = thumbs.get(c.blob); if (!u) { u = URL.createObjectURL(c.blob); thumbs.set(c.blob, u); } return u; };
 const dropThumb = (c) => { const u = c && thumbs.get(c.blob); if (u) { URL.revokeObjectURL(u); thumbs.delete(c.blob); } };
+const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack, editFailed } = createDelivery({
+  S, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt: (node) => composerAt(node),
+  filesHere, tray, dropThumb, saveDraft, updateComposer, growSay, announce, heraldShow, heraldFor, schedule, render: () => render(), go,
+});
 function chipHtml(c) {
   const img = c.type ? kindOf(c.type) === "image" : /^image\//.test(c.blob?.type || "");
   const thumb = img && c.blob && c.state !== "failed";
@@ -1732,175 +1736,6 @@ function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip
 
 
 
-/** Why sending is paused right now, or "" (classic composerBlock, in plain words). */
-function liveBlock(view = S.view, text = say.value) {
-  if (CH.isChats(view)) return CH.blocked(view) || sendBlock(world.state, { timeline: false });
-  return blockFor(composerDest(view, text));
-}
-/** The one send gate: why a message to this destination can't go right now, or "". dest: { thread: true } (a reply
- *  in a thread, which xo-space never routes) or { pid } (a new message to that chat's timeline: refused when its
- *  routing is off). Every send path names where its message actually goes (Launchpad grader on 652ed3d: Retry and
- *  the file actions asked about the composer's draft instead). */
-function blockFor(dest) {
-  return sendBlock(world.state, { timeline: !dest.thread, pid: dest.thread ? null : dest.pid || "workspace" });
-}
-/** A send the gate refused, before it went: said, and shown where the person is, as a message that didn't go
- *  (core/services/notices.js refusedNotice). Every refused path comes here: the composer, Chats, a Retry, a file's Tell and Ask
- *  about this (the controls grader on d79d37e, S137: the refusal was only read out; the screen didn't change). */
-function refuse(block, kept = "your words are kept") {
-  announce(`Not sent: ${block}. ${kept[0].toUpperCase()}${kept.slice(1)}.`);
-  heraldShow(refusedNotice(block, kept), 6000);
-}
-/** The line above the composer asks what the gate asks (connLine and blockFor: one rule) */
-function connDest() { const d = composerDest(); return d.thread ? { thread: true } : { pid: d.pid }; }
-/** Where the composer's draft goes, as sendLive sends it: this thread, unless it names a project; else the named
- *  project's chat, or this place's. */
-function composerDest(view = S.view, text = say.value) {
-  if (CH.isChats(view)) return { thread: true }; // a plain chat's message is never routed (as liveBlock sends it)
-  const tg = targetOf(text, world.state.projects), t = convThread(view);
-  return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(view) || "workspace" };
-}
-
-function sendLive(raw, K = MK) {
-  const block = liveBlock(K.view, K.say.value);
-  if (block) { refuse(block, "your text is kept"); return; }
-  const tg = targetOf(raw, world.state.projects);
-  let text = stripTarget(raw, tg.token);
-  const files = filesHere(K.view);
-  if (!text && !files.count) return;
-  if (files.busy) { announce("Not sent yet: waiting for the files to upload."); return; }
-  if (files.failed) { announce("Not sent: a file didn't upload. Retry or remove it first."); return; }
-  const t = convThread(K.view);
-  const thread = t && !tg.pid ? t : null;
-  const chat = thread ? t.project : tg.pid || chatOf(K.view) || "workspace";
-  const conv = thread ? K.view : convOfChat(chat);
-  const here = conv === K.view;
-  // the lines a message is about (a file beside the chat): "path:a-b", then the words, as Ask about lines sends
-  const ref = here && S.lref[conv];
-  if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
-  // client_id: a retry of this exact message is the same request, so the server stores it once (UI-reference §0.7)
-  const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, to: thread ? t.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat), cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
-  if (files.count) { m.files = tray.take(K.view); m.files.forEach(dropThumb); }
-  (S.local[conv] = S.local[conv] || []).push(m);
-  K.say.value = ""; saveDraft(K); updateComposer(K);
-  const btn = K.send; btn.classList.remove("fired"); void btn.offsetWidth; btn.classList.add("fired");
-  sound.play("send");
-  // From Home, what you wrote carries you into the conversation it went to (the Workspace, or the
-  // @project's): the bubble rises out of the composer into place, and Back returns to Home. From a
-  // conversation, a message aimed elsewhere leaves you where you are and says where it went.
-  if (!here && K.view === "home") { go(conv, { carry: true }); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
-  // while it's out it says so; each answer sets this same notice whole (postLive: sent, or not sent; a Retry: out)
-  else if (!here) heraldShow(noticeFor(m, "out"), 9000);
-  else { render(); K.conv.follow.toLatest(false); arrive(K.conv.msgs.querySelector(`[data-k="${m.id}"]`)); }
-  // handing the work back to the agent: the panel's Changes follows it again (the owner's D6)
-  if (thread) STAGE.resumeFollow(conv);
-  deliverLive(m, thread);
-}
-
-/** The server's row replaces the optimistic one (same bubble, never twice); errors keep the text. One request at
- *  a time per message: a Retry pressed again while it's out joins it (core/platform/pending.js). */
-function deliverLive(m, thread) { return once(`send:${m.cid}`, () => postLive(m, thread)); }
-async function postLive(m, thread) {
-  m.status = "sending"; delete m.err;
-  // a Retry's attempt: its notice (still "Not sent", on screen or waiting) says it's out again
-  heraldFor(m.id, () => noticeFor(m, "out"));
-  try {
-    await postWithFiles(m, thread);
-    m.status = "sent";
-    const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
-    announce(`Sent to ${where}.`);
-    // its own notice says it went: set whole, whatever it said before ("Sending", or "Not sent" before a Retry)
-    heraldFor(m.id, () => noticeFor(m, "sent"));
-  } catch (err) {
-    m.status = "failed";
-    m.err = { title: err.fileErr ? `A file didn't upload: ${uploadErrorText(err)}` : err.code === "unknown_attachment" ? "A file is no longer on the server" : sendErrorTitle(err), text: err.message || "" };
-    announce(`${m.err.title}. ${m.err.text} Your message is kept; retry or edit it.`);
-    // the failure takes the place of its own "Sending to …" notice; else, away from its conversation, it's said
-    // anew. Forced: it never yields to a passing notice (behind an Undo it waits its turn). Astra on 83929bb:
-    // "Sent to demo" stood over a 503
-    const fail = noticeFor(m, "failed");
-    if (!heraldFor(m.id, () => fail, 6000) && S.view !== m.conv) heraldShow(fail, 6000);
-  }
-  schedule();
-}
-
-/**
- * Post a message with its files. Each file is uploaded to the chat the message goes to (a message
- * aimed elsewhere with @project takes its files along). If the server no longer knows one (an upload
- * no message named is swept after a day), the same bytes go up again, once.
- */
-async function postWithFiles(m, thread) {
-  const project = thread ? thread.project : m.target || "workspace";
-  const postIt = (attachments) => (thread
-    ? world.act.reply(thread.id, m.text, { clientId: m.cid, attachments })
-    : world.act.ask(project, m.text, { clientId: m.cid, attachments }));
-  if (!m.files || !m.files.length) return postIt();
-  const chat = world.act.chatId?.(project);
-  const up = (opts) => tray.ensure(m.files, chat, opts).catch((err) => { throw Object.assign(err, { fileErr: true }); });
-  try {
-    return await postIt(await up());
-  } catch (err) {
-    if (err.code !== "unknown_attachment") throw err;
-    return postIt(await up({ again: true }));
-  }
-}
-
-/** Send what's in the composer. Pressed on Send itself, focus goes to the composer: Send empties it and is
- *  disabled until you write again, which would leave focus on nothing. */
-function send(K = MK) {
-  const raw = K.say.value;
-  const fromSend = document.activeElement === K.send;
-  if (CH.isChats(K.view)) {
-    const text = raw.trim();
-    if (!text) return;
-    const block = liveBlock(K.view, K.say.value);
-    if (block) { refuse(block, "your text is kept"); return; }
-    K.say.value = ""; saveDraft(K); updateComposer(K);
-    sound.play("send");
-    CH.send(K.view, text);
-  } else sendLive(raw, K);
-  if (fromSend && document.activeElement !== K.say && !K.say.value) K.say.focus({ preventScroll: true });
-}
-
-/** A failed message sent again: the same request (its client_id), one at a time, so a second press joins the
- *  first. Its Retry goes as it starts: focus, if it was there, goes to the composer. */
-function retry(id) {
-  for (const list of Object.values(S.local)) {
-    const m = list.find((x) => x.id === id);
-    if (m) {
-      // the message's own destination, never the composer's newer draft: its chat, or its thread
-      const block = blockFor(m.target ? { pid: m.target } : { thread: true });
-      if (block) { refuse(block, "the message stays, to retry"); return; }
-      const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`), K = composerAt(document.activeElement);
-      deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
-      schedule();
-      if (had) K.say.focus({ preventScroll: true });
-      return;
-    }
-  }
-}
-/**
- * A message's words back in the composer (Edit on a failed one, a refused new chat): with what you've written
- * since, never instead of it. The words come first, your newer draft under them, and focus is in the composer.
- */
-function putBack(text, K = MK) {
-  const f = K.say, now = f.value.trim();
-  f.value = now ? `${text}\n\n${f.value.replace(/^\s+/, "")}` : text;
-  growSay(K); saveDraft(K); updateComposer(K); f.focus();
-  f.setSelectionRange(f.value.length, f.value.length);
-}
-/** A failed message's Edit: its words back in the composer of the conversation it's in (the chat's, or a thread
- *  page's in the panel). */
-function editFailed(id, K = MK) {
-  const view = K.view;
-  const list = S.local[view] || [];
-  const i = list.findIndex((x) => x.id === id);
-  if (i < 0) return;
-  const [m] = list.splice(i, 1);
-  if (m.files && m.files.length) tray.restore(view, m.files);
-  putBack((m.target && m.target !== convProject(view) ? `@${m.target} ` : "") + m.text, K);
-  render();
-}
 
 // ── The Thread page (P2): a thread in the panel beside the coordinator's chat ────────────────────────────────
 // The panel page renders the thread's facts and replies.

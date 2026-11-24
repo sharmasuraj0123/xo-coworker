@@ -9,7 +9,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const body = (name) => { const i = app.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0, j = app.indexOf("{", i); for (let k = j; k < app.length; k++) { if (app[k] === "{") d++; else if (app[k] === "}") { d--; if (!d) return app.slice(j, k + 1); } } return null; };
+const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
+const body = (name) => { const source = `${app}\n${delivery}`; const i = source.indexOf(`function ${name}(`); if (i < 0) return null; let d = 0, j = source.indexOf("{", i); for (let k = j; k < source.length; k++) { if (source[k] === "{") d++; else if (source[k] === "}") { d--; if (!d) return source.slice(j, k + 1); } } return null; };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
