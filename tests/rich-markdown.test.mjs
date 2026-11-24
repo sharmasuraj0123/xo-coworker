@@ -1,7 +1,7 @@
 // Markdown rendering and interactive charts in a Node DOM.
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
-import { dom } from "./lib/dom.mjs";
+import { dom, settle } from "./lib/dom.mjs";
 import { renderMarkdown, renderInline, setRich, imageLine } from "../core/ui/markdown/markdown.js";
 import { chartHtml, readChart, niceTicks, fmt } from "../core/ui/markdown/chart.js";
 
@@ -151,7 +151,7 @@ const hooks = registerHooks({
     ` };
   },
 });
-const { drawDiagram, startRich } = await import("../core/ui/markdown/rich.js");
+const { cachedMath, drawDiagram, drawMath, startRich } = await import("../core/ui/markdown/rich.js");
 startRich();
 const loadedAtStartup = [...mermaidLoads];
 const diagramSource = "flowchart LR\n  A --> B";
@@ -184,5 +184,33 @@ t("chart hover follows the nearest values and clears when the pointer leaves", (
   }));
   assert.equal(hover.classList.contains("is-on"), false);
 });
+
+assert.equal(document.head.childElementCount, 0, "starting rich markdown does not request KaTeX");
+const formula = "a^2 + b^2";
+let drawn = false;
+const drawing = drawMath(formula).then((html) => { drawn = true; return html; });
+const [stylesheet, script] = document.head.children;
+assert.equal(stylesheet.rel, "stylesheet");
+assert.equal(stylesheet.href, new URL("../vendor/katex/katex.min.css", import.meta.url).href);
+assert.equal(script.src, new URL("../vendor/katex/katex.min.js", import.meta.url).href);
+window.katex = {
+  renderToString(tex, options) {
+    assert.equal(tex, formula);
+    assert.equal(options.trust, false);
+    assert.equal(options.output, "htmlAndMathml");
+    return "<span>rendered math</span>";
+  },
+};
+script.onload();
+await settle();
+assert.equal(drawn, false, "a formula waits for its stylesheet");
+stylesheet.onload();
+assert.equal(await drawing, "<span>rendered math</span>");
+assert.equal(cachedMath(formula), "<span>rendered math</span>");
+assert.equal(await drawMath(formula), "<span>rendered math</span>");
+assert.equal(document.head.childElementCount, 2);
+delete window.katex;
+passed++;
+console.log("  ok  KaTeX is requested on first use and draws once both assets load");
 
 console.log(`\n${passed} passed`);

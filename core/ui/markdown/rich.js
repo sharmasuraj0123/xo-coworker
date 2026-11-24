@@ -78,7 +78,7 @@ function loadKatex() {
   const w = /** @type {Window & {katex?: Katex}} */ (window);
   if (w.katex) return Promise.resolve(w.katex);
   katexP ||= new Promise((ok, no) => {
-    const base = new URL("../../../js/vendor/katex/", import.meta.url).href;
+    const base = new URL("../../../vendor/katex/", import.meta.url).href;
     const css = Object.assign(document.createElement("link"), { rel: "stylesheet", href: base + "katex.min.css" });
     const js = Object.assign(document.createElement("script"), { src: base + "katex.min.js", async: true });
     // the stylesheet first: a formula drawn before KaTeX's own CSS lands would show twice (HTML and MathML) for a frame

@@ -21,7 +21,7 @@ const { document } = await bootPage();
 globalThis.localStorage = { getItem: (key) => key === "xo-home-shape" ? JSON.stringify({ parts: [{ id: "hm-made", n: 1 }] }) : null };
 await import("../modules/home/skeleton.js");
 await import("../shell/frame.js");
-const all = declarations(["./js/vendor/katex/katex.min.css"]);
+const all = declarations(["./vendor/katex/katex.min.css"]);
 const contests = turned(all, drawn(document));
 
 t("the layers are declared once, in order, before anything else the page styles", () => {

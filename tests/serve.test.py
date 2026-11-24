@@ -15,11 +15,13 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import socket
 import threading
 import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urljoin
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CODER_HOST = "5180--main--ws--someone.coder.example"
@@ -656,6 +658,29 @@ class StaticCaching(unittest.TestCase):
                 with open(os.path.join(ROOT, relative), "rb") as svg:
                     self.assertEqual(body, svg.read())
                 self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
+
+    def test_versioned_katex_scripts_styles_and_fonts(self):
+        prefix = f"/v/{serve.tree_version()}"
+        relative = "vendor/katex"
+        bundle = Path(ROOT) / relative
+        stylesheet = f"{prefix}/{relative}/katex.min.css"
+        status, headers, css = fetch(stylesheet)
+        self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                         (200, "text/css", serve.IMMUTABLE))
+        self.assertEqual(css, (bundle / "katex.min.css").read_bytes())
+        fonts = set(re.findall(r"url\(([^)]+\.woff2)\)", css.decode()))
+        self.assertEqual(fonts, {p.relative_to(bundle).as_posix() for p in bundle.glob("fonts/*.woff2")})
+        self.assertTrue(fonts)
+        assets = {"katex.min.js": "text/javascript", **dict.fromkeys(fonts, "font/woff2")}
+        for asset, mime in sorted(assets.items()):
+            with self.subTest(asset=asset):
+                status, headers, body = fetch(urljoin(stylesheet, asset))
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, mime, serve.IMMUTABLE))
+                self.assertEqual(body, (bundle / asset).read_bytes())
+        for asset in ("katex.min.css", "katex.min.js", *sorted(fonts)):
+            with self.subTest(retired=asset):
+                self.assertEqual(fetch(f"{prefix}/js/{relative}/{asset}")[0], 404)
 
     def test_current_version_is_immutable(self):
         status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")

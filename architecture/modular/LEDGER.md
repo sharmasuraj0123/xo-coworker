@@ -5,9 +5,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | Status | Files |
 |---|---:|
 | moved | 489 |
-| vendor | 346 |
+| vendor | 370 |
 | deleted | 337 |
-| planned | 180 |
+| planned | 156 |
 | kept | 60 |
 | split | 30 |
 | split-region | 4 |
@@ -550,30 +550,30 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `js/vendor/codemirror/cm.js` | 2 | vendor | vendor/codemirror/cm.js |
 | `js/vendor/codemirror/manifest.json` | 581 | vendor | vendor/codemirror/manifest.json |
 | `js/vendor/codemirror/merge.js` | 3 | vendor | vendor/codemirror/merge.js |
-| `js/vendor/katex/LICENSE` |  | planned | vendor/katex/LICENSE |
-| `js/vendor/katex/README.md` | 3 | planned | vendor/katex/README.md |
-| `js/vendor/katex/fonts/KaTeX_AMS-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_AMS-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-Italic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-Italic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Math-Italic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Math-Italic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2` |  | planned | vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Script-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Script-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size1-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size1-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size2-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size2-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size3-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size3-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size4-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size4-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2 |
-| `js/vendor/katex/katex.min.css` | 1 | planned | vendor/katex/katex.min.css |
-| `js/vendor/katex/katex.min.js` | 1 | planned | vendor/katex/katex.min.js |
+| `js/vendor/katex/LICENSE` |  | vendor | vendor/katex/LICENSE |
+| `js/vendor/katex/README.md` | 3 | vendor | vendor/katex/README.md |
+| `js/vendor/katex/fonts/KaTeX_AMS-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_AMS-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-Bold.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Main-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-Italic.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Main-Italic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Main-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Math-Italic.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Math-Italic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2` |  | vendor | vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2` |  | vendor | vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Script-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Script-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size1-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Size1-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size2-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Size2-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size3-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Size3-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size4-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Size4-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2` |  | vendor | vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2 |
+| `js/vendor/katex/katex.min.css` | 1 | vendor | vendor/katex/katex.min.css |
+| `js/vendor/katex/katex.min.js` | 1 | vendor | vendor/katex/katex.min.js |
 | `js/vendor/lucide/LICENSE` |  | deleted | no importer anywhere (owner D6) |
 | `js/vendor/lucide/files.js` | 25 | deleted | no importer anywhere (owner D6) |
 | `js/vendor/lucide/projects.js` | 38 | deleted | no importer anywhere (owner D6) |
