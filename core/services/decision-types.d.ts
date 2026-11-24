@@ -1,10 +1,11 @@
+import type { ReviewDescription } from "./review-description.d.ts";
 export type Effort = "glance" | "decide" | "think";
 
 export type NeedThread = {
   id: string;
   title: string;
   state: string;
-  checklist: { total: number; done: number };
+  checklist: { total: number; done: number; items?: { state: string; text: string }[] };
   stop?: unknown;
   happened?: string;
   asks?: { item?: object }[];
@@ -13,7 +14,7 @@ export type NeedThread = {
   busy?: boolean;
 };
 
-type NeedAsk = { item?: object; kind?: string; title?: string; risk?: string; detail?: string };
+type NeedAsk = { item?: ReviewDescription; kind?: string; title?: string; risk?: string; detail?: string };
 
 export type NeedFields = { key: string; t: NeedThread; ask: NeedAsk; group: string; risk: string };
 

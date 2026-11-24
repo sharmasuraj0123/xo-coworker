@@ -2,13 +2,11 @@
 import { currentPools, mainRuntime } from "./sessions.js";
 import { heldClock } from "./held.js";
 
-/** @typedef {{mode?: string}} Routing */
+/** @import { Runtime } from "../runtime-types.d.ts" */
 
-/** @typedef {{name: string, cli?: {logged_in?: boolean}, error?: unknown}} Runtime */
+/** @typedef {import("./connection-types.d.ts").Connection} Connection */
 
-/** @typedef {{projects?: {id: string, routing?: Routing}[], router?: Routing, statusCode?: string, errorCode?: string, error?: unknown, statusError?: unknown, conn?: string, runtimes?: Runtime[], pools?: Parameters<typeof currentPools>[0], loaded?: boolean}} Connection */
-
-/** @type {Set<string | undefined>} */
+/** @type {Set<string | null | undefined>} */
 const STORM_DOWN = new Set(["engine_not_running", "engine_elsewhere", "engine_failed", "store_refused", "store_failed", "stream_not_running"]);
 /** @type {Record<string, string>} */
 const CLI_NAME = { claude_code: "Claude", codex: "Codex", antigravity: "Antigravity" };

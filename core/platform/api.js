@@ -52,7 +52,7 @@ export const ruleApi = {
 export const api = {
   status: () => get("/chat/status"),
   runtimes: ({ signal } = {}) => get("/chat/runtimes", undefined, signal),
-  models: (runtime) => get(`/chat/runtimes/${enc(runtime)}/models`),
+  models: (runtime, { signal } = {}) => get(`/chat/runtimes/${enc(runtime)}/models`, undefined, signal),
   /** {space, effective}: the Space's runtime policy */
   runtimePolicy: () => get("/chat/runtime-policy"),
   /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */

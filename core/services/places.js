@@ -2,7 +2,7 @@
 
 // Where a thread works and where a path sits in it: a thread's folder, a target inside or outside it, the paths a command names.
 
-/** A thread's folder: its absolute root and, inside the project, the relative base the tree route takes. @param {{ project?: string, worktree?: string, cwd?: string } | null | undefined} t @returns {import("./types").Folder | null} */
+/** @param {Omit<import("./file-scope-types.d.ts").ScopeThread, "id"> | null | undefined} t @returns {import("./types").Folder | null} */
 export function folderOf(t) {
   if (!t || !t.project) return null;
   const wt = String(t.worktree || "").replace(/\/+$/, "");

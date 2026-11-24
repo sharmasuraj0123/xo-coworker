@@ -1,10 +1,12 @@
 // @ts-check
 
-/** @typedef {Record<string, any>} Row @typedef {{ type?: string, envelope?: Row } & Row} Frame @typedef {{ id: string, session: string | null, chat: string | null, thread: string | null, seq: number | null, at: string | null, origin: string | null, wakes: string[], status: string, end: Row | null, blocks: Map<string, Row>, lastSeq: number, held?: Row[], selfEnded?: boolean, stopped?: Row | null }} Turn */
+/** @import { Row } from "../storm/types.d.ts" */
+
+/** @import { Frame, Turn, TurnStep } from "./turn-types.d.ts" */
 
 const ENDED = new Set(["cold", "parked"]);
 
-/** A row patch is the whole row, so it replaces it; only the command output carries over (`output_append` appends). @param {Row | null} old @param {Row} p */
+/** @param {TurnStep | null} old @param {TurnStep & {output_append?: string}} p @returns {TurnStep} */
 function patchRow(old, p) {
   const row = { ...p };
   delete row.output_append;

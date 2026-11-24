@@ -8,7 +8,7 @@ type SignInRoute = "claude-code" | "codex" | "antigravity";
 export interface Api {
   status(): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Json;
-  models(runtime: string): Json;
+  models(runtime: string, options?: ReadOptions): Json;
   runtimePolicy(): Json;
   setRuntimePolicy(policy: object): Json;
   chatRuntimePolicy(chat: Id): Json;
@@ -73,7 +73,7 @@ export interface Api {
   schedule(id: Id): Json;
   scheduleRuns(id: Id, query?: Query): Json;
 
-  projectFile(project: Id, relativePath: string, at?: { commit: string; path?: string } | null, opts?: { purpose?: string; version?: string }): Json;
+  projectFile(project: Id, relativePath: string, at?: { commit: string | null; path?: string } | null, opts?: { purpose?: string; version?: string }): Json;
   saveProjectFile(project: Id, relativePath: string, content: string, baseVersion: string | null, confirm?: string | null, opts?: { restoreOf?: string | null }): Json;
   projectVersions(project: Id, relativePath: string, opts?: { limit?: number; before?: string | null }): Json;
   projectPaths(project: Id, opts?: { worktree?: string | null; stamp?: string | null }): Json;

@@ -2,7 +2,7 @@ import type { WorldState, WorldThread } from "../world/state-types.d.ts";
 
 export type Row = import("../world/sessions.js").Row;
 export type MessageRow = Row & { id: string };
-export type HopRow = Row & { id: string; state?: string | null; seq?: number | null; at?: string | null };
+export type HopRow = Row & import("../world/hop-types.d.ts").Hop;
 export type Frame = { type: string; id?: string | null; envelope?: Row };
 export type StormEvent = Row & { kind: string };
 export type Sent = { at: number; seq: number | null };

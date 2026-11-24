@@ -103,16 +103,19 @@ export function createTray({ upload, onChange = () => {} }) {
       onChange();
       return l.map(({ job, done, ...c }) => c);
     },
-    /** @param {Chip[]} chips @param {string} chat */
+    /** @param {Chip[]} chips @param {string | null | undefined} chat */
     async ensure(chips, chat, { again = false } = {}) {
       const ids = [];
       for (const c of chips) {
         if (again || c.chat !== chat || !c.id) {
+          if (!chat) throw new Error("No chat is available for these attachments");
           const job = upload(chat, c.blob, c.name, {});
           const a = await job.promise;
           Object.assign(c, { id: a.id, chat, name: a.name || c.name, type: a.type, bytes: a.bytes, ...picDims(a), state: "done" });
+          ids.push(a.id);
+        } else {
+          ids.push(c.id);
         }
-        ids.push(c.id);
       }
       return ids;
     },

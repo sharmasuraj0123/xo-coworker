@@ -53,7 +53,7 @@ export function echoes(locals, rows, taken = new Set()) {
 }
 
 
-/** @param {{ by?: string, reason?: string } | null | undefined} stop */
+/** @param {{ by?: string | null, reason?: string | null } | null | undefined} stop */
 export function stopWords(stop) {
   if (!stop) return "";
   const who = stop.by === "you" ? "Stopped by you" : stop.by === "workspace" ? "Stopped by the workspace coordinator" : stop.by === "coordinator" ? "Stopped by the coordinator" : "Stopped";
@@ -99,7 +99,7 @@ export function stripTarget(text, token) {
   return String(text || "").replace(re, "$1").trim();
 }
 
-/** @template {{at: number}} Prompt @template {{at: string, wakes?: unknown[], origin?: string}} Turn @param {readonly Prompt[]} prompts @param {readonly Turn[]} turns */
+/** @template {{at: number}} Prompt @template {{at: string, wakes?: unknown[], origin?: string}} Turn @param {readonly Prompt[]} prompts @param {readonly Turn[]} turns @returns {({kind: "you", m: Prompt} | {kind: "turn", t: Turn})[]} */
 export function chatOrder(prompts, turns) {
   const mine = prompts.map((m, i) => ({ m, i })).sort((a, b) => a.m.at - b.m.at || a.i - b.i);
   const taken = new Set();
@@ -120,6 +120,7 @@ export function chatOrder(prompts, turns) {
   /** @type {{at: number, m: Prompt, t?: undefined, k?: undefined, got?: undefined}[]} */
   const loose = mine.filter((x) => !taken.has(x)).map((x) => ({ at: x.m.at, m: x.m }));
   const all = [...loose, ...groups].sort((a, b) => a.at - b.at || (a.t ? 1 : 0) - (b.t ? 1 : 0) || (a.k ?? 0) - (b.k ?? 0));
+  /** @type {({kind: "you", m: Prompt} | {kind: "turn", t: Turn})[]} */
   const out = [];
   for (const x of all) {
     if (!x.t) { out.push({ kind: "you", m: (/** @type {{m: Prompt}} */ (x)).m }); continue; }

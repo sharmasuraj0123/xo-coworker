@@ -1,7 +1,7 @@
 // @ts-check
 import { uiMsg } from "./rows.js";
 
-/** @typedef {{id: string, from_role: string, to_role: string, kind: string, state?: string, via?: string[], message_ids?: string[], thread_ts?: string, created_at: string, at: string, note?: string, cause?: string, seq?: number}} Hop */
+/** @import { Hop } from "./hop-types.d.ts" */
 
 /** @typedef {{id: string, chatId?: string | null}} MessageRef */
 
@@ -11,7 +11,7 @@ import { uiMsg } from "./rows.js";
 export function hopLine(h, project, onward = null) {
   /** @param {string} role */
   const who = (role) => (/** @type {Record<string, string>} */ ({ thread: "this thread", "project-coordinator": `the ${project} coordinator`, "workspace-coordinator": "the Workspace", xo: "XO", owner: "you", person: "you" }))[role] || "someone";
-  const from = who(h.from_role), to = who(h.to_role);
+  const from = who(h.from_role ?? ""), to = who(h.to_role ?? "");
   const state = h.state === "sent" ? " · not taken up yet" : h.state === "answered" ? " · answered" : "";
   /** @param {string} t */
   const up = (t) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -28,7 +28,7 @@ export function hopLine(h, project, onward = null) {
   }
 }
 
-/** @param {{project?: string, worktree?: string, cwd?: string} | null | undefined} thread @param {string | null | undefined} path */
+/** @param {Omit<import("../file-scope-types.d.ts").ScopeThread, "id"> | null | undefined} thread @param {string | null | undefined} path */
 export function sharedFileRoute(thread, path) {
   const none = { why: "This file is in a folder XO doesn't serve to the UI yet." };
   if (!thread || !thread.project) return none;
@@ -55,15 +55,15 @@ const COORD_WORD = { "project-coordinator": "project", "workspace-coordinator": 
 const DOWN_KINDS = { brief: "brief", relay: "follow-up", answer: "answer" };
 const UP_KINDS = new Set(["relay", "ask"]);
 
-/** @param {{id: string}} thread @param {readonly (Hop | null)[] | null} hops */
+/** @param {{id: string}} thread @param {Iterable<Hop | null> | null} hops */
 export function hopNotes(thread, hops) {
   const out = [];
   for (const hp of hops || []) {
     if (!hp || hp.thread_ts !== thread.id || !String(hp.note || "").trim()) continue;
-    const at = Date.parse(hp.created_at || hp.at) || 0;
+    const at = Date.parse(hp.created_at || hp.at || "") || 0;
     const base = { id: hp.id, seq: hp.seq ?? null, at, text: String(hp.note).trim(), cause: hp.cause || null };
-    if (hp.to_role === "thread" && COORD_WORD[hp.from_role] && DOWN_KINDS[hp.kind]) out.push({ ...base, dir: "down", from: COORD_WORD[hp.from_role], kind: DOWN_KINDS[hp.kind] });
-    else if (hp.from_role === "thread" && COORD_WORD[hp.to_role] && UP_KINDS.has(hp.kind)) out.push({ ...base, dir: "up", from: "thread", kind: hp.kind });
+    if (hp.kind && hp.to_role === "thread" && hp.from_role && COORD_WORD[hp.from_role] && DOWN_KINDS[hp.kind]) out.push({ ...base, dir: "down", from: COORD_WORD[hp.from_role], kind: DOWN_KINDS[hp.kind] });
+    else if (hp.kind && hp.from_role === "thread" && hp.to_role && COORD_WORD[hp.to_role] && UP_KINDS.has(hp.kind)) out.push({ ...base, dir: "up", from: "thread", kind: hp.kind });
   }
   return out;
 }
@@ -87,7 +87,7 @@ export function forwardOrigin(fwd, find, max = 6) {
   return { ...cur, known: false };
 }
 
-/** @param {{id: string}} thread @param {readonly (Hop | null)[] | null} hops @param {readonly {id: string}[]} timeline @param {Set<string>} [have] @param {ReadonlyMap<string, {id: string}> | null} [found] */
+/** @param {{id: string}} thread @param {Iterable<Hop | null> | null} hops @param {readonly {id: string}[]} timeline @param {Set<string>} [have] @param {ReadonlyMap<string, {id: string}> | null} [found] */
 export function relayedInto(thread, hops, timeline, have = new Set(), found = null) {
   const shown = [], missing = [], seen = new Set(have);
   for (const hp of hops || []) {
@@ -98,7 +98,7 @@ export function relayedInto(thread, hops, timeline, have = new Set(), found = nu
       const row = timeline.find((r) => r.id === id) || (found && found.get(id));
       if (!row) { lost.push(id); continue; }
       seen.add(id);
-      shown.push({ ...uiMsg(row), hop: { id: hp.id, seq: hp.seq ?? null, at: Date.parse(hp.created_at || hp.at) || 0 } });
+      shown.push({ ...uiMsg(row), hop: { id: hp.id, seq: hp.seq ?? null, at: Date.parse(hp.created_at || hp.at || "") || 0 } });
     }
     if (lost.length) missing.push({ ids: lost, seq: hp.seq ?? null });
   }
