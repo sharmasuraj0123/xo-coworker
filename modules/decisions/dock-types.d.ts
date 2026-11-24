@@ -1,8 +1,8 @@
-import type { RankedNeed } from "../../core/services/decision-types.d.ts";
+import type { DecisionApi, DecisionNeed } from "./controller-types.d.ts";
 import type { goneLine } from "./cardparts.js";
 
 export type Thread = { id: string; host?: boolean };
-export type Need = RankedNeed & { ask: { item?: { id: string } } };
+export type Need = DecisionNeed;
 export type Gone = NonNullable<Parameters<typeof goneLine>[0]> & { at: number };
 
 export type DockState = {
@@ -17,7 +17,6 @@ export type Mount = {
   el: HTMLElement;
   view: () => string;
   region: () => HTMLElement;
-  TD?: DockState;
 };
 
 export type DockDeps = {
@@ -29,12 +28,12 @@ export type DockDeps = {
     wireCard(frame: HTMLElement, inner: Element, need: Need, options: {
       surface: "dock"; onStep(): void; after(how: string): Promise<void>;
     }): void;
-    decisions(): { verb: string; said?: string }[];
+    decisions(): { verb: string; said?: string | string[] }[];
     needItems(): Need[];
     undo(): boolean;
-    cardKeys(event: KeyboardEvent, card: Element, options: object): void;
+    cardKeys: DecisionApi["cardKeys"];
   };
-  S: { dockFold: Record<string, boolean> };
+  folds: ReturnType<typeof import("./dock-folds.js").createDockFolds>;
   world: { state: { gone: { get(id: string | null): Gone | undefined } } };
   convThread: (view: string) => Thread | null;
   convHost: (view: string) => Thread | null;

@@ -3,7 +3,7 @@
 /** @import { LiveConversationDeps } from "./live-types.d.ts" */
 
 /** @param {LiveConversationDeps} options */
-export function createLiveConversation({ S, world, CH, convThread, chatOf }) {
+export function createLiveConversation({ view, world, CH, convThread, chatOf }) {
   /** @param {string} v */
   function liveReady(v) {
     const t = convThread(v);
@@ -13,7 +13,8 @@ export function createLiveConversation({ S, world, CH, convThread, chatOf }) {
   }
 
   function follow() {
-    const v = S.view, t = convThread(v);
+    const v = view(), t = convThread(v);
+    if (v !== "chats") CH.leaveList();
     if (CH.isChats(v)) { world.act.watch([]); world.act.watchThread(null); world.act.watchSession?.(v.startsWith("c:") ? v.slice(2) : null); CH.open(v); return; }
     world.act.watchSession?.(null);
 
@@ -30,9 +31,9 @@ export function createLiveConversation({ S, world, CH, convThread, chatOf }) {
     if (chat && world.act.loadChatHops) world.act.loadChatHops(chat);
   }
 
-  /** @param {string} [view] */
-  function ensureRoot(view = S.view) {
-    const t = convThread(view);
+  /** @param {string} [destination] */
+  function ensureRoot(destination = view()) {
+    const t = convThread(destination);
     if (!t || !world.act.findRows) return;
     const th = world.state.threadHist?.[t.id];
     if (!th || !th.loaded || !th.all) return;

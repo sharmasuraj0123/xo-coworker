@@ -1,5 +1,7 @@
-export type Thread = { frozen?: boolean; state: string };
-export type Composer = { view: string; say: HTMLTextAreaElement; target: HTMLElement & { _h?: string }; label: HTMLElement };
+import type { Composer } from "./composer-types.d.ts";
+import type { WorldThread } from "../../core/services/world/state-types.d.ts";
+export type { Composer } from "./composer-types.d.ts";
+export type Thread = Pick<WorldThread, "frozen" | "state" | "busy" | "sessionId" | "session">;
 
 export type TargetDeps = {
   MK: Composer;

@@ -19,15 +19,16 @@ const world = {
   },
 };
 const live = createLiveConversation({
-  S, world,
-  CH: { isChats: (view) => view.startsWith("c:"), open: (view) => calls.push(["open", view]) },
+  view: () => S.view, world,
+  CH: { isChats: (view) => view === "chats" || view.startsWith("c:"), open: (view) => calls.push(["open", view]),
+    leaveList: () => { calls.push(["leaveList"]); } },
   convThread: (view) => view === "t:thread-1" ? thread : null,
   chatOf: (view) => view === "home" ? "workspace" : "demo",
 });
 
 live.follow();
 assert.deepEqual(calls.splice(0), [
-  ["watchSession", null], ["loadChatHops", "workspace"], ["watch", ["workspace"]], ["watchThread", null],
+  ["leaveList"], ["watchSession", null], ["loadChatHops", "workspace"], ["watch", ["workspace"]], ["watchThread", null],
 ]);
 assert.equal(live.liveReady("home"), false);
 world.state.timeline.workspace = [{ id: "already-visible" }];
@@ -36,13 +37,13 @@ assert.equal(live.liveReady("home"), true);
 S.view = "c:session-1";
 live.follow();
 assert.deepEqual(calls.splice(0), [
-  ["watch", []], ["watchThread", null], ["watchSession", "session-1"], ["open", "c:session-1"],
+  ["leaveList"], ["watch", []], ["watchThread", null], ["watchSession", "session-1"], ["open", "c:session-1"],
 ]);
 
 S.view = "t:thread-1";
 live.follow();
 assert.deepEqual(calls.splice(0), [
-  ["watchSession", null], ["loadHops", "thread-1"], ["watch", ["demo"]], ["watchThread", "thread-1"],
+  ["leaveList"], ["watchSession", null], ["loadHops", "thread-1"], ["watch", ["demo"]], ["watchThread", "thread-1"],
 ]);
 assert.equal(live.liveReady(S.view), false);
 thread.loaded = true;

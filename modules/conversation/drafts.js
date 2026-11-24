@@ -1,16 +1,35 @@
 // @ts-check
 
-export const DRAFTS = "cv-drafts:live";
+import { read, write } from "../../core/platform/storage.js";
 
-/** @typedef {{view: string, say: {value: string}, at: {_sel: number}}} DraftComposer */
+const DRAFTS = "cv-drafts:live";
 
-/** @template {DraftComposer} Composer @param {{S: {drafts: Record<string, string>}, store: {set: (key: string, drafts: Record<string, string>) => void}, MK: Composer, updateComposer: (composer: Composer) => void}} options */
-export function createDrafts({ S, store, MK, updateComposer }) {
-  /** @param {Composer} [K] */
-  function saveDraft(K = MK) { const v = K.view; if (K.say.value) S.drafts[v] = K.say.value; else delete S.drafts[v]; store.set(DRAFTS, S.drafts); }
+/** @typedef {{view: string, say: {value: string}}} DraftComposer */
 
-  /** @param {Composer} [K] */
-  function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; K.at._sel = 0; updateComposer(K); }
+/** @param {string} raw @returns {[string, string][]} */
+function parseDrafts(raw) {
+  const saved = JSON.parse(raw);
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) return [];
+  return Object.entries(saved).filter((entry) => typeof entry[1] === "string");
+}
+
+/** @template {DraftComposer} C @param {C} main @param {(composer: C) => void} onRestore */
+export function createDrafts(main, onRestore) {
+  const drafts = new Map(read(DRAFTS, parseDrafts, []));
+
+  /** @param {C} [composer] */
+  function saveDraft(composer = main) {
+    const { view, say } = composer;
+    if (say.value) drafts.set(view, say.value);
+    else drafts.delete(view);
+    write(DRAFTS, JSON.stringify(Object.fromEntries(drafts)));
+  }
+
+  /** @param {C} [composer] */
+  function loadDraft(composer = main) {
+    composer.say.value = drafts.get(composer.view) || "";
+    onRestore(composer);
+  }
 
   return { saveDraft, loadDraft };
 }

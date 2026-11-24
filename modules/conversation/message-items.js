@@ -36,8 +36,8 @@ const answeredAfter = (list, m) => {
 
 /** @param {MessageItemsDeps} deps */
 export function createMessageItems({
-  S, world, CH, CHG, STAGE, PROJ, projects, convThread, convProject, messagesOf, fwdSource, reactionsHtml,
-  youText, startHtml, fileRoute, threadCardHtml, queuedMeta, nameOf, moveBannerHtml, passedTo,
+  limitStatus, world, CH, CHG, STAGE, PROJ, projects, convThread, convProject, messagesOf, fwdSource, reactionsHtml,
+  youText, startHtml, fileRoute, threadCardHtml, queuedMeta, nameOf, moveBannerHtml, passedTo, transcriptOpen,
 }) {
   /** @type {string | null} */
   let drawing = null;
@@ -117,7 +117,7 @@ export function createMessageItems({
           (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
           `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${copy}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
       } else if (m.who === "turn") {
-        const inner = turnHtml(/** @type {Turn} */ (m.turn), /** @type {Block[]} */ (m.blocks), { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
+        const inner = turnHtml(/** @type {Turn} */ (m.turn), /** @type {Block[]} */ (m.blocks), { open: transcriptOpen(), hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
         if (!inner) { prev = m; continue; }
         const live = (/** @type {Turn} */ (m.turn)).status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
         const said = live && !unfolded && /class="turn[^"]*\bis-said\b/.test(inner);
@@ -138,13 +138,14 @@ export function createMessageItems({
         html = `<div class="ev ev-sys ev-ctl is-${esc(c.action)}"${c.reason && c.action !== "stop" ? ` title="${esc(c.reason)}"` : ""}><span class="ev-ic">${c.action === "steer" ? ICON.arrow : c.action === "interrupt" ? ICON.pause : ICON.close}</span><span class="ev-t">${esc(text)}</span><time>${clock(m.at)}</time></div>`;
       } else if (m.who === "limit") {
         const it = /** @type {Limit} */ (m.item), L = it.limit;
-        const opts = (it.options || []).map((o) => `<button type="button" class="${o.decision === "move" ? "btn btn-pri" : "btn"}" data-limit="${esc(it.id)}" data-limit-d="${esc(o.decision)}"${S.limitBusy === it.id ? " disabled" : ""}>${esc(o.label)}</button>`).join("");
+        const status = limitStatus(it.id);
+        const opts = (it.options || []).map((o) => `<button type="button" class="${o.decision === "move" ? "btn btn-pri" : "btn"}" data-limit="${esc(it.id)}" data-limit-d="${esc(o.decision)}"${status?.busy ? " disabled" : ""}>${esc(o.label)}</button>`).join("");
         html = `<div class="lim-ban" role="group" aria-labelledby="lim-h-${esc(it.id)}"><p class="lim-h" id="lim-h-${esc(it.id)}">${ICON.clock}<span>${esc(it.title)}${L.resetsAt && untilWords(L.resetsAt) ? ` <em>${esc(untilWords(L.resetsAt))}</em>` : ""}</span></p>` +
-          (it.why ? `<p class="lim-why">${esc(it.why)}</p>` : "") + (S.limitErr && S.limitErr.id === it.id ? `<p class="rt-ferr" role="alert">${esc(S.limitErr.text)}</p>` : "") + `<div class="lim-acts">${opts}</div></div>`;
+          (it.why ? `<p class="lim-why">${esc(it.why)}</p>` : "") + (status?.error ? `<p class="rt-ferr" role="alert">${esc(status.error)}</p>` : "") + `<div class="lim-acts">${opts}</div></div>`;
       } else if (m.who === "system" && (m.continuedIn || m.continuedFrom)) {
         html = moveBannerHtml(m, convThread(conv));
       } else if (m.who === "asked") {
-        const open = !!S.tbOpen[m.key];
+        const open = !!transcriptOpen()[m.key];
         html = `<div class="ev ev-sys ev-asked${open ? " is-open" : ""}"><span class="ev-ic">${ICON.arrow}</span><button type="button" class="ev-t" data-tb="${esc(m.key)}" aria-expanded="${open}" title="${open ? "Fold" : "Show all of it"}">Asked the coordinator: ${esc(m.text)}</button><time>${clock(m.at)}</time></div>`;
       } else if (m.who === "system") {
         html = `<div class="ev ev-sys" title="${esc(m.text)}"><span class="ev-ic">${ICON.router}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;

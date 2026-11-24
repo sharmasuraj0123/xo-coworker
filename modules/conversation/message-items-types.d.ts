@@ -7,10 +7,11 @@ import type { reactionGroups } from "../../core/services/world/conversation.js";
 type Item = { key: string; html: string };
 
 export type MessageItemsDeps = ReturnType<typeof createMessageDetails> & {
-  S: { tbOpen: Record<string, boolean>; limitBusy?: string | null; limitErr?: { id: string; text: string } | null };
+  limitStatus(id: string): { busy: boolean; error?: string } | undefined;
+  transcriptOpen(): Readonly<Record<string, boolean>>;
   world: { project(project: string): unknown };
   CH: { isChats(view: string): boolean; items(view: string): Item[] };
-  CHG: { forTarget(view: string, target: string): { path: string; file: { additions?: number; deletions?: number; binary?: boolean } } | null };
+  CHG: { forTarget(view: string, target: string): { path: string; file: ChangeCounts } | null };
   STAGE: { chosen(view: string): string | null };
   PROJ(project: string | null | undefined): string;
   projects(): readonly unknown[];
@@ -23,3 +24,5 @@ export type MessageItemsDeps = ReturnType<typeof createMessageDetails> & {
   startHtml(project: string): string;
   fileRoute(path: Parameters<NonNullable<RenderOptions["route"]>>[0], view: string): ReturnType<NonNullable<RenderOptions["route"]>>;
 };
+
+type ChangeCounts = { additions?: number | null; deletions?: number | null; binary?: boolean };

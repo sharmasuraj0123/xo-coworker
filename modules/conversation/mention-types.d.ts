@@ -1,11 +1,8 @@
-export type Composer = {
-  main: boolean;
-  at: HTMLUListElement & { _shut?: string | null; _sel?: number };
-  say: HTMLTextAreaElement;
-  form: HTMLElement;
-};
+import type { Composer } from "./composer-types.d.ts";
+export type { Composer } from "./composer-types.d.ts";
 
-type Thread = { project: string };
+type Thread = { project: string; state: string; busy?: boolean };
+export type MentionSelection = { selected: number; closedAt: string | null };
 
 export type MentionDeps = {
   MK: Composer;

@@ -8,11 +8,11 @@ import { stateMark } from "../../core/ui/icons/icon.js";
 import { ICON, XO } from "../../core/ui/icons/names.js";
 import { headerActionsHtml } from "../../shell/header.js";
 
-/** @import { HeaderDeps, HeaderEdit, HeaderNeed, HeaderThread } from "./header-types.d.ts" */
+/** @import { HeaderDeps, HeaderNeed, HeaderThread } from "./header-types.d.ts" */
 
-/** @param {HeaderDeps} options */
+/** @template {HeaderNeed} N @param {HeaderDeps<N>} options */
 export function createConversationHeader({
-  S, world, PICK, LP, LW, STAGE, kernel, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
+  threadControls, description, world, PICK, LP, LW, STAGE, kernel, atOf, convHost, homeParts, projects, doneToday, isBusy, isHeld,
   threadCounts, PROJ, projectIcon, threadsCtl, threadTitleInput, threadLabelInput, threadMenuHtml, stOf, glyphOf, wordOf, rtTag,
 }) {
   /** @param {number} n @param {string} word */
@@ -20,10 +20,11 @@ export function createConversationHeader({
   /** @param {(string | 0)[]} bits */
   const countLine = (bits) => bits.filter(Boolean).join(`<span class="pj-d" aria-hidden="true"> · </span>`);
 
-  /** @param {string} v @param {HeaderNeed[]} needs */
+  /** @param {string} v @param {N[]} needs */
   function hostNeedHtml(v, needs) {
-    const h = /** @type {NonNullable<ReturnType<HeaderDeps["convHost"]>>} */ (convHost(v));
-    const n = h ? needs.find((x) => x.t.id === h.id && !x.later && (x.admitted || x.held)) : null;
+    const h = convHost(v);
+    if (!h) return "";
+    const n = needs.find((x) => x.t.id === h.id && !x.later && (x.admitted || x.held));
     if (!n) return "";
     const k = h.asks.length;
     const who = h.asker ? "Coordinator" : h.title;
@@ -31,9 +32,10 @@ export function createConversationHeader({
       `${stateMark("needs_approval")}<span class="pj-nt">${esc(who)} needs you</span>${k > 1 ? ` <span class="pj-k">${k}</span>` : ""}</button>`;
   }
 
-  /** @param {string} v @param {HeaderThread | null} t @param {HeaderNeed[]} needs */
+  /** @param {string} v @param {HeaderThread | null | undefined} t @param {N[]} needs */
   function conversationHeaderHtml(v, t, needs) {
     let who;
+    let controls = "";
     if (v === "ws") {
       const P0 = homeParts(needs);
       const asking = new Set(needs.map((n) => n.t.id));
@@ -49,11 +51,12 @@ export function createConversationHeader({
       const pid = v.slice(2);
       const by = threadCounts(pid, needs);
       const need = hostNeedHtml(v, needs);
-      who = `<button type="button" class="pj-pick" data-pj-icon="${esc(pid)}" aria-haspopup="dialog" aria-expanded="${PICK.pid === pid}" title="Change ${esc(PROJ(pid))}'s icon" aria-label="Change ${esc(PROJ(pid))}'s icon"><span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span></button><span class="tw-t is-one"><h1 id="conv-title"${S.desc[pid] ? ` title="${esc(S.desc[pid])}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
-      S.hdrCtl = threadsCtl(by.all, by);
+      const desc = description(pid);
+      who = `<button type="button" class="pj-pick" data-pj-icon="${esc(pid)}" aria-haspopup="dialog" aria-expanded="${PICK.pid === pid}" title="Change ${esc(PROJ(pid))}'s icon" aria-label="Change ${esc(PROJ(pid))}'s icon"><span class="tw-ic" aria-hidden="true">${projectIcon(pid)}</span></button><span class="tw-t is-one"><h1 id="conv-title"${desc ? ` title="${esc(desc)}"` : ""}>${esc(PROJ(pid))}</h1>${need}</span>`;
+      controls = threadsCtl(by.all, by);
     } else if (t) {
-      const ed = S.tEdit && S.tEdit.tid === t.id ? S.tEdit.field : null;
-      const edVal = ed ? (/** @type {HeaderEdit} */ (S.tEdit)).value : "", edBusy = ed && (/** @type {HeaderEdit} */ (S.tEdit)).busy ? ' aria-busy="true" readonly' : "";
+      const current = threadControls.edit(), edit = current?.tid === t.id ? current : null;
+      const ed = edit?.field, edVal = edit?.value || "", edBusy = edit?.busy ? ' aria-busy="true" readonly' : "";
       const title = ed === "title"
         ? threadTitleInput(edVal, edBusy)
         : `<h1 class="tw-h" id="conv-title">${esc(t.title)}</h1>`;
@@ -61,14 +64,15 @@ export function createConversationHeader({
         ? threadLabelInput(edVal, edBusy)
         : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
       const resolved = t.state === "resolved";
+      const menu = threadControls.menuOpen(t.id, "main");
       const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
-        `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${S.tMenu === t.id && S.tMenuIn !== "page"}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
-        (S.tMenu === t.id && S.tMenuIn !== "page" ? threadMenuHtml(t) : "") + `</span>` : "";
+        `<button type="button" class="tw-act tw-more" data-tmenu="${esc(t.id)}" aria-haspopup="menu" aria-expanded="${menu}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>` +
+        (menu ? threadMenuHtml(t) : "") + `</span>` : "";
       const ext = headerActionsHtml(kernel.places, atOf(v)), allActs = acts ? acts.replace(/<\/span>$/, `${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`) : `<span class="tw-acts">${ext}${LP.button(v, LW.isOpen)}${STAGE.button(v)}</span>`;
       who = `${title}${label}<span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>${rtTag(t)}${allActs}`;
       if (ed && $("#tw-edit")) who = null;
     } else who = `<span class="tw-t"><h1 id="conv-title">Thread</h1></span>`;
-    return who;
+    return { who, controls };
   }
 
   return conversationHeaderHtml;

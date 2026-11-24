@@ -3,6 +3,7 @@
 import { esc } from "../../core/platform/util.js";
 import { parseTarget as targetOf } from "../../core/services/world/conversation.js";
 import { ICON } from "../../core/ui/icons/names.js";
+import { paintComposerTarget } from "./target-markup.js";
 
 /** @import { TargetDeps, Thread, Composer } from "./target-types.d.ts" */
 
@@ -29,7 +30,7 @@ export function createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, c
     else if (t) html = threadTargetHtml(t);
     else if (K.view === "ws" || K.view === "home") html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>Workspace</b><span class="tg-w"> coordinator</span></span><span class="muted">· @ to aim at a project</span>`;
     else html = `${ICON.arrow}<span><span class="tg-w">To the </span><b>${esc(PROJ(convProject(K.view)))}</b><span class="tg-w"> coordinator</span></span>`;
-    if (K.target._h !== html) { K.target.innerHTML = html; K.target._h = html; }
+    paintComposerTarget(K.target, html);
     K.target.title = "Aim at a project (@)";
   }
 

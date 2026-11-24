@@ -3,6 +3,7 @@
 import { ICON } from "../../core/ui/icons/names.js";
 import { esc } from "../../core/platform/util.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { paintComposerTarget } from "./target-markup.js";
 import { fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "../../core/services/media/attachment-rules.js";
 
 /** @import { Composer } from "./composer-types.d.ts" */
@@ -11,7 +12,7 @@ import { fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_
 
 /** @import { Notice } from "../../core/services/notices.js" */
 
-/** @typedef {{ name: string, bytes: number, local: string } | { name: string, type?: string, bytes: number, att: { chat?: string, id?: string | null } }} Preview */
+/** @typedef {{name: string, type?: string, bytes: number, local?: string, att?: {chat: string, id: string}}} Preview */
 
 /** @typedef {ReturnType<typeof import("../../core/services/media/attachment-tray.js").createTray>} Tray */
 
@@ -53,7 +54,7 @@ export function createComposerAttachments({ MK, tray, canAttach, attachChat, ann
     K.note.hidden = !list.length;
     K.form.classList.toggle("has-files", !!list.length);
     const html = list.map(chipHtml).join("");
-    if (K.tray._h !== html) { redraw(K.tray, html); K.tray._h = html; }
+    paintComposerTarget(K.tray, html, redraw);
     for (const c of list) {
       const el = (/** @type {HTMLElement | null} */ (K.tray.querySelector(`[data-lid="${CSS.escape(c.lid)}"]`)));
       if (!el) continue;
@@ -87,9 +88,9 @@ export function createComposerAttachments({ MK, tray, canAttach, attachChat, ann
     updateComposer(K); saveDraft(K);
   }
 
-  /** @param {Composer} K */
-  function wireTray(K) {
-    K.tray.addEventListener("click", (e) => {
+  /** @param {Composer} K @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+  function wireTray(K, scope) {
+    scope.listen(K.tray, "click", (e) => {
       const b = /** @type {HTMLButtonElement} */ ((/** @type {Element} */ (e.target)).closest("[data-a]"));
       const li = b && /** @type {HTMLElement & {dataset: {lid: string}} | null} */ (b.closest("[data-lid]"));
       if (!li) return;
@@ -106,11 +107,14 @@ export function createComposerAttachments({ MK, tray, canAttach, attachChat, ann
         tray.retry(K.view, lid);
         trayRender(K);
       }
-      else if (b.dataset.a === "view") VW.open(c.paste != null ? { name: c.name, bytes: c.size, local: c.paste } : { name: c.name, type: c.type, bytes: c.bytes ?? c.size, att: { chat: c.chat, id: c.id } }, b);
+      else if (b.dataset.a === "view" && c.paste != null) VW.open({ name: c.name, bytes: c.size, local: c.paste }, b);
+      else if (b.dataset.a === "view" && c.chat && c.id) {
+        VW.open({ name: c.name, type: c.type, bytes: c.bytes ?? c.size, att: { chat: c.chat, id: c.id } }, b);
+      }
       else if (b.dataset.a === "inline") { tray.remove(K.view, lid); insertText(/** @type {string} */ (c.paste), K); announce("The pasted text is back in the message."); }
     });
-    K.say.addEventListener("paste", (e) => {
-      const cd = e.clipboardData;
+    scope.listen(K.say, "paste", (e) => {
+      const cd = (/** @type {ClipboardEvent} */ (e)).clipboardData;
       if (!cd || !canAttach(K.view)) return;
       const files = [...(cd.files || [])];
       if (files.length) { e.preventDefault(); addFiles(files, K); return; }

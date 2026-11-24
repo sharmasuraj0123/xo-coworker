@@ -1,15 +1,11 @@
 import type { createHerald } from "../../core/services/notices.js";
 import type { sendBlock } from "../../core/services/world/conn.js";
+import type { createFileReferences } from "./file-references.js";
+import type { createLocalMessages } from "./local-messages.js";
+import type { Chip, createTray } from "../../core/services/media/attachment-tray.js";
+import type { Composer } from "./composer-types.d.ts";
 
-export type Chip = { blob: Blob };
 export type Thread = { id: string; project: string; title?: string };
-
-export type Composer = {
-  view: string;
-  say: HTMLTextAreaElement;
-  send: HTMLButtonElement;
-  conv: { follow: { toLatest(smooth?: boolean): void }; msgs: HTMLElement };
-};
 
 export type LocalMessage = {
   id: string;
@@ -31,12 +27,9 @@ type SendOptions = { clientId: string; attachments?: string[] };
 type Herald = ReturnType<typeof createHerald>;
 
 export type DeliveryDeps = {
-  S: {
-    view: string;
-    n: number;
-    lref: Record<string, { path: string; a: number; b: number }>;
-    local: Record<string, LocalMessage[]>;
-  };
+  view(): string;
+  localMessages: Pick<ReturnType<typeof createLocalMessages>, "send" | "get" | "removeSend">;
+  fileReferences: Pick<ReturnType<typeof createFileReferences>, "get" | "remove">;
   world: {
     state: NonNullable<Parameters<typeof sendBlock>[0]> & { projects: { id: string; name?: string }[] };
     act: {
@@ -56,11 +49,7 @@ export type DeliveryDeps = {
   convProject: (view: string) => string | null | undefined;
   composerAt: (node: Element | null) => Composer;
   filesHere: (view: string) => { count: number; busy: boolean; failed: boolean };
-  tray: {
-    take(view: string): Chip[];
-    restore(view: string, files: Chip[]): void;
-    ensure(files: Chip[], chat: string | null | undefined, options?: { again?: boolean }): Promise<string[]>;
-  };
+  tray: Pick<ReturnType<typeof createTray>, "take" | "restore" | "ensure">;
   dropThumb: (chip: Chip) => void;
   saveDraft: (composer: Composer) => void;
   updateComposer: (composer: Composer) => void;

@@ -16,8 +16,8 @@ import { stateMark } from "../../core/ui/icons/icon.js";
 
 /** @param {MessageDetailsDeps} deps */
 export function createMessageDetails({
-  S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf, EFFORT,
-  askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf,
+  aliases, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf, EFFORT,
+  askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf, isStopping,
 }) {
   /** @param {string} tid @param {RankedNeed[]} needs */
   function threadCardHtml(tid, needs) {
@@ -45,7 +45,7 @@ export function createMessageDetails({
   function queuedMeta(conv, answered = false) {
     const t = convThread(conv);
     if (!t) return "";
-    if (S.stops.has(/** @type {string} */ (t.sessionId)) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
+    if (isStopping(t.sessionId) || world.act.sessionState(t.sessionId) === "stopping") return `<div class="meta"><i class="spin" aria-hidden="true"></i><span>Stopping its turn · it reads this next</span></div>`;
     if (sendWhileRunning(t) === "steered") return answered ? "" : `<div class="meta"><span>Sent into its current turn</span></div>`;
     const run = running(conv);
     const n = workingRuns(t);
@@ -84,7 +84,7 @@ export function createMessageDetails({
   function passedTo(m) {
     if (!world.state.hops) return null;
     const ids = new Set([m.sid, m.id, m.key].filter(Boolean));
-    for (const [sid, lid] of S.alias) if (ids.has(lid)) ids.add(sid);
+    for (const [sid, lid] of aliases()) if (ids.has(lid)) ids.add(sid);
     if (!ids.size) return null;
     for (const h of world.state.hops.values()) {
       if ((h.kind === "relay" || h.kind === "brief") && h.to_role === "thread" && h.thread_ts && (h.message_ids || []).some((x) => ids.has(x))) return world.thread(h.thread_ts)?.title || "a thread";

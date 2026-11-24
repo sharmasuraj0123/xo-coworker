@@ -2,26 +2,27 @@
 
 import { $ } from "../../core/platform/dom.js";
 
-/** @import { Composer, ComposerDeps } from "./composer-types.d.ts" */
+/** @import { Composer, ComposerDeps, ComposerScope } from "./composer-types.d.ts" */
 
 /** @param {ComposerDeps} options */
 export function createComposer({
   MK, say, trayRender, chipRender, lrefRender, chatTargetRender, syncPlaceholder, sendRender,
-  targetLineRender, connDest, schedule, atRender, atClose, saveDraft, atKeys, send, stopRun, wireAt, aimAt,
+  targetLineRender, connDest, schedule, mentions, saveDraft, send, stopRun,
 }) {
-  /** @param {Composer} K */
-  function wireComposer(K) {
-    K.say.addEventListener("input", () => { K.at._sel = 0; updateComposer(K); saveDraft(K); });
-    K.say.addEventListener("click", () => updateComposer(K));
-    K.say.addEventListener("keydown", (e) => {
+  /** @param {Composer} K @param {ComposerScope} scope */
+  function wireComposer(K, scope) {
+    scope.listen(K.say, "input", () => { mentions.reset(K); updateComposer(K); saveDraft(K); });
+    scope.listen(K.say, "click", () => updateComposer(K));
+    scope.listen(K.say, "keydown", (event) => {
+      const e = /** @type {KeyboardEvent} */ (event);
       if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; }
-      if (atKeys(e, K)) return;
+      if (mentions.keys(e, K)) return;
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(K); }
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); K.say.blur(); }
     });
-    K.form.addEventListener("submit", (e) => { e.preventDefault(); if (K.send.dataset.mode === "stop") stopRun(K.view); else send(K); });
-    wireAt(K);
-    K.target.addEventListener("click", () => aimAt(K));
+    scope.listen(K.form, "submit", (e) => { e.preventDefault(); if (K.send.dataset.mode === "stop") stopRun(K.view); else send(K); });
+    mentions.wire(K, scope);
+    if (!K.main) scope.listen(K.target, "click", () => mentions.aim(K));
   }
 
   /** @param {Composer} [K] */
@@ -39,7 +40,7 @@ export function createComposer({
       targetLineRender(K); syncPlaceholder(K);
       K.form.classList.toggle("has-text", !!K.say.value);
       sendRender(K); growSay(K);
-      if (document.activeElement === K.say) atRender(K); else atClose(K);
+      if (document.activeElement === K.say) mentions.render(K); else mentions.close(K);
       return;
     }
     trayRender();
@@ -47,7 +48,7 @@ export function createComposer({
     if (chatTargetRender()) {
       syncPlaceholder();
       $("#composer").classList.toggle("has-text", !!say.value);
-      sendRender(); growSay(); atClose();
+      sendRender(); growSay(); mentions.close();
       return;
     }
     targetLineRender();
@@ -56,7 +57,7 @@ export function createComposer({
     $("#composer").classList.toggle("has-text", !!say.value);
     sendRender();
     growSay();
-    atRender(MK);
+    mentions.render(MK);
   }
 
   return { wireComposer, growSay, updateComposer };

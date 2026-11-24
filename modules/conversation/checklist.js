@@ -6,32 +6,27 @@ import { WAITING } from "../../core/services/world/store.js";
 import { stopWords } from "../../core/services/world/conversation.js";
 import { ICON, stepMark } from "../../core/ui/icons/names.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { createChecklistState } from "./checklist-state.js";
 
 /** @import { ChecklistDeps, ChecklistNeed, ChecklistHead } from "./checklist-types.d.ts" */
 
 /** @param {ChecklistDeps} options */
-export function createChecklistRenderer({ S, SHAPE, convThread, runsStrip, schedule }) {
+export function createChecklistRenderer({ view, scope, SHAPE, convThread, runsStrip, schedule }) {
+  const state = createChecklistState(scope, schedule);
   /** @param {ChecklistNeed[]} needs @param {ChecklistHead} [th] */
-  return function checklistRender(needs, th = $("#thead"), view = S.view, listId = "ck-list") {
-    const t = convThread(view);
-    if (!t) { th.hidden = true; th._h = ""; return; }
+  function render(needs, th = $("#thead"), current = view(), listId = "ck-list") {
+    const t = convThread(current);
+    if (!t) { th.hidden = true; state.forgetMarkup(th); return; }
     const c = t.checklist;
     if (!c.total) {
       const all = runsStrip(t);
-      if (th._h !== all) { redraw(th, all); th._h = all; }
+      if (state.changed(th, all)) redraw(th, all);
       th.hidden = !all;
       return;
     }
     th.hidden = false;
-    const open = !!S.ckOpen[t.id];
-    const seen = S.ckSeen[t.id];
-    if (seen != null && c.done > seen) {
-      const doneStep = c.items[c.done - 1];
-      S.ckFresh = { tid: t.id, text: doneStep ? doneStep.text : "Step done", until: Date.now() + 1500 };
-      setTimeout(schedule, 1560);
-    }
-    S.ckSeen[t.id] = c.done;
-    const fresh = S.ckFresh && S.ckFresh.tid === t.id && S.ckFresh.until > Date.now() ? S.ckFresh : null;
+    const open = state.isOpen(t.id);
+    const fresh = state.progress(t.id, c.done, c.items[c.done - 1]?.text);
     const n = needs.find((x) => x.t.id === t.id);
     const cur = c.items.find((i) => i.state === "doing") || c.items.find((i) => i.state === "todo");
     let mode = "working", nowHtml;
@@ -50,6 +45,7 @@ export function createChecklistRenderer({ S, SHAPE, convThread, runsStrip, sched
       `<span class="ck-now" data-mode="${mode}">${nowHtml}</span>${t.branch && SHAPE.on("xo:thread/branch") ? `<code class="ck-br">${ICON.branch}${esc(t.branch)}</code>` : ""}<span class="ck-chev">${ICON.chevron}</span></button></div>` +
       `<div class="ck-b"><ol class="ck-list" id="${listId}" aria-label="Checklist">${list}</ol></div></div>`;
     const all = html + runsStrip(t);
-    if (th._h !== all) { redraw(th, all); th._h = all; }
-  };
+    if (state.changed(th, all)) redraw(th, all);
+  }
+  return { render, toggle: state.toggle };
 }

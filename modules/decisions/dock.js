@@ -12,9 +12,10 @@ import { dockEdges, fitDock, revealDockAnswers } from "./dock-layout.js";
 /** @import { Mount, DockDeps, Thread, Need, Gone } from "./dock-types.d.ts" */
 
 /** @param {Mount} mount @param {DockDeps} deps */
-export function createDock({ el: tdock, view, region, TD = { key: null, item: null, busy: false, undone: null, gen: 0 } }, {
-  CH, D, S, world, convThread, convHost, askShort, schedule, dockGestures,
+export function createDock({ el: tdock, view, region }, {
+  CH, D, folds, world, convThread, convHost, askShort, schedule, dockGestures,
 }) {
+  const TD = /** @type {import("./dock-types.d.ts").DockState} */ ({ key: null, item: null, busy: false, undone: null, gen: 0 });
   const placeRegion = region;
   let chatConfirmation = "";
   /** @param {() => void} fill @param {HTMLElement | null} [to] @param {Parameters<typeof morph>[2] | null} [opts] */
@@ -26,11 +27,12 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
     };
     if (opts) morph(tdock, run, opts); else run();
   }
-  function reset() {
+  function reset({ restoreFocus = true } = {}) {
     Object.assign(TD, { key: null, item: null, busy: false, undone: null, gen: TD.gen + 1 });
     chatConfirmation = "";
     dockRO.disconnect();
-    dockSwap(() => tdock.replaceChildren());
+    if (restoreFocus) dockSwap(() => tdock.replaceChildren());
+    else tdock.replaceChildren();
   }
   const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
   const GONE_FRESH = 5000; // a withdrawal older than this was not what just emptied the dock
@@ -46,7 +48,7 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
     const t = convThread(view()) || convHost(view());
     const n = t && !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
     // Keep a folded ask in one line until a new one arrives.
-    const folded = !!(n && S.dockFold[n.key]);
+    const folded = !!(n && folds.isFolded(n.key));
     const key = n ? n.key + (folded ? "|fold" : "") : null;
     if (TD.busy || key === TD.key) return;
     const prev = TD.key, gone = !n && prev ? world.state.gone.get(TD.item) : null;
@@ -140,16 +142,18 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
     const frame = more?.closest(".card.is-dock");
     if (frame) { revealDockAnswers(frame, RM.matches ? "instant" : "smooth"); return; }
     const f = /** @type {(HTMLButtonElement & { dataset: { fold: string } }) | null} */ ((/** @type {Element} */ (e.target)).closest("[data-fold]"));
-    if (f) { S.dockFold[f.dataset.fold] = true; dockRender(D.needItems()); placeRegion().focus({ preventScroll: true }); return; }
+    if (f) { folds.fold(f.dataset.fold); dockRender(D.needItems()); placeRegion().focus({ preventScroll: true }); return; }
     const u = /** @type {(HTMLButtonElement & { dataset: { unfold: string } }) | null} */ ((/** @type {Element} */ (e.target)).closest("[data-unfold]"));
-    if (u) { delete S.dockFold[u.dataset.unfold]; dockRender(D.needItems()); (/** @type {HTMLElement | null} */ (tdock.querySelector(".card")))?.focus({ preventScroll: true }); return; }
+    if (u) { folds.unfold(u.dataset.unfold); dockRender(D.needItems()); (/** @type {HTMLElement | null} */ (tdock.querySelector(".card")))?.focus({ preventScroll: true }); return; }
     if ((/** @type {Element} */ (e.target)).closest("[data-dock-undo]")) D.undo();
   });
   tdock.addEventListener("keydown", (e) => {
     const card = tdock.querySelector(".card");
-    if (!card) return;
+    if (!(card instanceof HTMLElement)) return;
     D.cardKeys(e, card, {});
   });
   dockGestures(tdock);
-  return { render: dockRender, reset, TD, el: tdock };
+  /** @param {string} key */
+  const undoReceipt = (key) => { if (TD.undone?.key === key) TD.undone.end(); };
+  return { render: dockRender, reset, undoReceipt, el: tdock };
 }

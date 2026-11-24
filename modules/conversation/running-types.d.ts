@@ -1,9 +1,10 @@
 import type { Thread } from "./stop-types.d.ts";
 
-type RunningThread = Thread & { busy?: boolean; sessionId?: string };
+type RunningThread = Thread & { busy?: boolean; sessionId?: string | null };
 
 export type RunningDeps = {
-  S: { view: string; stops: ReadonlyMap<string, unknown> };
+  view(): string;
+  isStopping(session: string): boolean;
   world: { act: {
     sessionState(session: string): string | null;
     coordinatorBusy?(chat: string): string | null;

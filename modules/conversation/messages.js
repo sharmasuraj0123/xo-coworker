@@ -1,16 +1,16 @@
 // @ts-check
 
 import { uiMsg } from "../../core/services/world/rows.js";
-import { echoes, threadAnchors, waitsForTurn, pageFloor, inPage } from "../../core/services/world/conversation.js";
+import { threadAnchors, waitsForTurn, pageFloor, inPage } from "../../core/services/world/conversation.js";
 import { forwardOrigin, hopLine, relayedInto, hopNotes } from "../../core/services/world/relay.js";
 import { turnSegments, segmentTurn } from "./blocks/turn.js";
 
-/** @import { Hop } from "../../core/services/world/relay.js" */
+/** @import { Hop } from "../../core/services/world/hop-types.d.ts" */
 
-/** @import { Control, History, Message, ProjectionDeps, ProjectionThread, RelayRows, RoutedHop, StoredMessage, TimelineRow } from "./message-types.d.ts" */
+/** @import { Control, History, Message, ProjectionDeps, ProjectionThread, RelayRows, StoredMessage, TimelineRow } from "./message-types.d.ts" */
 
 /** @param {ProjectionDeps} deps */
-export function createConversationMessages({ S, world, D, PROJ, convThread, chatOf, convProject, threadsOf }) {
+export function createConversationMessages({ localMessages, shape, world, D, PROJ, convThread, chatOf, convProject, threadsOf }) {
   /** @param {string} conv @returns {Message[]} */
   return function messagesOf(conv) {
     /** @type {Message[]} */
@@ -25,16 +25,13 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
       const root = (st.timeline[t.project] || []).find((r) => r.id === t.id) || st.found?.[t.project]?.get(t.id);
       rows = [...(root ? [/** @type {StoredMessage} */ (uiMsg(root))] : []), ...t.messages];
     } else rows = /** @type {StoredMessage[]} */ ((st.timeline[/** @type {string} */ (chat)] || []).map(uiMsg));
-    const locals = S.local[conv] || [];
-    for (const [lid, sid] of echoes(locals, rows, new Set(S.alias.keys()))) {
-      S.alias.set(sid, lid);
-      const m = /** @type {NonNullable<typeof locals[number]>} */ (locals.find((x) => x.id === lid));
-      m.merged = true; m.status = "sent";
-    }
+    const locals = localMessages.list(conv);
+    localMessages.mergeEchoes(conv, rows);
+    const visibleLocals = locals.filter((row) => row.who !== "you" || !row.merged);
     if (t && !t.loaded) {
       const err = st.threadHist?.[t.id]?.error;
       out.push({ key: "note", at: -Infinity, who: "note", ...(err ? { text: `Couldn't load this thread: ${err}` } : { load: "Loading the thread" }) });
-      out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
+      out.push(...visibleLocals.map((m) => ({ ...m, key: m.id })));
       return out;
     }
     if (!t && h) {
@@ -48,8 +45,8 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
     const { on, alone } = threadAnchors(rows, ids);
     const turn = t && t.busy && t.sessionId && st.turns ? st.turns.running(t.sessionId) : null;
     for (const m of rows) {
-      const key = S.alias.get(m.id) || m.id;
-      const base = { key, sid: m.id, at: m.at, seq: m.seq, text: m.text, sent: S.alias.has(m.id), files: m.files, chatId: m.chatId, reactions: m.reactions };
+      const alias = localMessages.alias(m.id);
+      const base = { key: alias || m.id, sid: m.id, at: m.at, seq: m.seq, text: m.text, sent: !!alias, files: m.files, chatId: m.chatId, reactions: m.reactions };
       if (m.who === "you" && !t && conv !== "ws" && m.fwd) {
         const o = forwardOrigin(m.fwd, (id, cid) => {
           const p = cid && world.act.projectOf ? world.act.projectOf(cid) : null;
@@ -58,14 +55,20 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
         if (!o.known && world.act.findRows) { const p = o.chatId && world.act.projectOf ? world.act.projectOf(o.chatId) : null; if (p) world.act.findRows(p, [o.id], m.seq); }
         const mine = o.known ? (world.act.projectOf?.(o.chatId) === chat ? { id: o.id, text: o.row ? (/** @type {TimelineRow} */ (o.row)).text : m.text } : null)
           : rows.filter((x) => x.who === "you" && !x.fwd && x.id !== m.id && x.at < m.at && x.text && x.text === m.text).pop();
-        if (mine) { out.push({ key, sid: m.id, at: m.at, seq: m.seq, who: "system", back: { id: mine.id, text: String(mine.text ?? m.text), via: m.fwd.via } }); continue; }
+        if (mine) {
+          const back = { id: mine.id, text: String(mine.text ?? m.text), via: m.fwd.via };
+          out.push({ key: base.key, sid: m.id, at: m.at, seq: m.seq, who: "system", back });
+          continue;
+        }
         out.push({ ...base, who: "you", fwd: o.known ? { chatId: o.chatId, id: o.id, via: m.fwd.via } : m.fwd, queued: waitsForTurn(m, turn) });
         if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
       } else if (m.who === "you") {
         out.push({ ...base, who: "you", fwd: conv !== "ws" && m.fwd ? m.fwd : null, routed: conv === "ws" ? st.routed[m.id] || null : null, queued: waitsForTurn(m, turn) });
         if (alone.has(m.id)) out.push({ key: `${m.id}:card`, at: m.at, who: "card", thread: m.id });
       } else if (m.who === "system") out.push({ ...base, who: "system", passedOn: m.passedOn, continuedIn: m.continuedIn, continuedFrom: m.continuedFrom });
-      else if (t && m.who === "agent" && /^✓\s/.test(m.text)) out.push({ key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
+      else if (t && m.who === "agent" && /^✓\s/.test(m.text)) {
+        out.push({ key: base.key, at: m.at, who: "event", text: m.text.replace(/^✓\s*/, ""), tone: "ok" });
+      }
       else out.push({ ...base, who: m.who === "coord" ? "coord" : "agent", fwd: conv !== "ws" && m.fwd ? m.fwd : null, threads: on.get(m.id) || null });
     }
     if (conv.startsWith("p:")) {
@@ -91,7 +94,7 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
     if (t && t.movedFrom && !rows.some((m) => m.continuedFrom)) out.push({ key: `mvfrom:${t.id}`, at: t.createdAt - 1, who: "system", text: "", continuedFrom: t.movedFrom.from });
     if (t && t.movedTo && t.movedTo.to && !rows.some((m) => m.continuedIn)) out.push({ key: `mvto:${t.id}`, at: Date.parse(/** @type {string} */ (t.movedTo.at)) || t.lastAt, who: "system", text: "", continuedIn: t.movedTo.to });
     if (t && st.hops) {
-      const { shown, missing } = /** @type {RelayRows} */ (/** @type {unknown} */ (relayedInto(t, /** @type {Hop[]} */ (/** @type {unknown} */ (st.hops.values())), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)), st.found?.[t.project])));
+      const { shown, missing } = /** @type {RelayRows} */ (/** @type {unknown} */ (relayedInto(t, st.hops.values(), st.timeline[t.project] || [], new Set(rows.map((m) => m.id)), st.found?.[t.project])));
       /** @param {string | null | undefined} r */
       const who = (r) => (r === "workspace-coordinator" ? "Workspace coordinator" : r === "project-coordinator" ? `${PROJ(t.project)} coordinator` : null);
       for (const m of shown) {
@@ -102,7 +105,7 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
     }
     const noted = new Set();
     if (t && st.hops) {
-      for (const n of hopNotes(t, /** @type {Hop[]} */ (/** @type {unknown} */ (st.hops.values())))) {
+      for (const n of hopNotes(t, st.hops.values())) {
         noted.add(n.id);
         if (n.dir === "down") out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "coord", text: n.text, name: n.from === "workspace" ? "Workspace coordinator" : `${PROJ(t.project)} coordinator`, role: n.kind, cause: n.cause });
         else out.push({ key: `hopn:${n.id}`, at: n.at, seq: n.seq, who: "asked", text: n.text, hop: n.id });
@@ -112,11 +115,11 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
         if (note) note.lead = c.key;
       }
     }
-    if (t && S.showHops && st.hops) {
+    if (t && shape.on("xo:thread/hops") && st.hops) {
       for (const hp of st.hops.values()) {
         if (hp.thread_ts !== t.id || noted.has(hp.id)) continue;
         const text = hopLine(hp, PROJ(t.project));
-        if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
+        if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at || "") || 0, seq: hp.seq ?? null, who: "system", text });
       }
     }
     if (t && t.sessionId && st.turns) {
@@ -135,14 +138,14 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
         }
       }
     }
-    if (!t && chat && S.showHops && st.hops) {
+    if (!t && chat && shape.on("xo:thread/hops") && st.hops) {
       const cid = world.act.chatId?.(chat);
-      /** @param {RoutedHop} hp */
-      const mine = (hp) => hp.chat_id === cid || (hp.kind === "forward" && (/** @type {Map<string, RoutedHop>} */ (st.hops)).get(/** @type {string} */ (hp.cause))?.chat_id === cid);
+      /** @param {Hop} hp */
+      const mine = (hp) => hp.chat_id === cid || (hp.kind === "forward" && hp.cause && st.hops?.get(hp.cause)?.chat_id === cid);
       for (const hp of cid ? st.hops.values() : []) {
         if (hp.thread_ts != null || !mine(hp)) continue;
         const text = hopLine(hp, PROJ(chat), hp.kind === "forward" ? PROJ(world.act.projectOf?.(hp.chat_id) || "") : null);
-        if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at) || 0, seq: hp.seq ?? null, who: "system", text });
+        if (text) out.push({ key: `hop:${hp.id}`, at: Date.parse(hp.at || hp.created_at || "") || 0, seq: hp.seq ?? null, who: "system", text });
       }
     }
     const fail = !t && chat ? st.failed && st.failed[chat] : null;
@@ -150,7 +153,7 @@ export function createConversationMessages({ S, world, D, PROJ, convThread, chat
     if (!rows.length && !locals.some((m) => m.who === "you") && !(h && (h.loading || h.error))) {
       out.push(t || conv === "ws" ? { key: "empty", at: -Infinity, who: "note", text: t ? "No messages in this thread yet." : "No messages yet. Ask the coordinator anything below." } : { key: "empty", at: Infinity, who: "start", pid: convProject(conv) });
     }
-    out.push(...locals.filter((m) => !m.merged).map((m) => ({ ...m, key: m.id })));
+    out.push(...visibleLocals.map((m) => ({ ...m, key: m.id })));
     const floor = t ? pageFloor(/** @type {History | null} */ (th), t.messages) : null;
     const floorAt = floor == null ? null : (/** @type {ProjectionThread} */ (t)).messages.find((m) => m.seq === floor)?.at ?? null;
     const shown = floor == null ? out : out.filter((m) => inPage(/** @type {NonNullable<Parameters<typeof inPage>[0]>} */ (m), floor, floorAt));

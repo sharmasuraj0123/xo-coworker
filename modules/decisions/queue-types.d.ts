@@ -1,4 +1,4 @@
-import type { CardNeed } from "./card-events-types.d.ts";
+import type { CardChoice, CardNeed } from "./card-events-types.d.ts";
 import type { PanelState } from "./panel-view-types.d.ts";
 
 export type DecisionItem = NonNullable<CardNeed["ask"]["item"]>;
@@ -34,7 +34,7 @@ export type DecisionEntry = {
 };
 
 type DecisionThread = CardNeed["t"] & { state: string; asks: unknown[]; needsYou?: string };
-type DecisionChoice = { resolve?: boolean; text?: string; storm?: boolean; body?: DecisionBody };
+type DecisionChoice = CardChoice | { storm: true; body: DecisionBody };
 export type DecisionPart = {
   key: string;
   n: CardNeed;
@@ -51,7 +51,7 @@ export type DecisionResult = { part: DecisionPart; ok: boolean; err?: DecisionFa
 export type DecisionQueueDeps = {
   world: { act: {
     resolve(id: string, resolved: boolean): unknown;
-    reply(id: string, text?: string): unknown;
+    reply(id: string, text: string): unknown;
     decideItem(id: string, body: DecisionBody): unknown;
   } };
   F: PanelState;

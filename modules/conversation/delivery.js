@@ -8,15 +8,16 @@ import { parseTarget as targetOf, stripTarget } from "../../core/services/world/
 import { noticeFor, refusedNotice } from "../../core/services/notices.js";
 import { uploadErrorText } from "../../core/services/media/attachment-rules.js";
 
-/** @import { DeliveryDeps, Composer, LocalMessage, Thread, SendFailure, Chip } from "./delivery-types.d.ts" */
+/** @import { DeliveryDeps, LocalMessage, Thread, SendFailure } from "./delivery-types.d.ts" */
+/** @import { Composer } from "./composer-types.d.ts" */
 
 /** @param {DeliveryDeps} options */
 export function createDelivery({
-  S, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt,
+  view: currentView, localMessages, fileReferences, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt,
   filesHere, tray, dropThumb, saveDraft, updateComposer, growSay, announce, heraldShow, heraldFor, schedule, render, go,
 }) {
   /** @param {string} [view] @param {string} [text] */
-  function liveBlock(view = S.view, text = say.value) {
+  function liveBlock(view = currentView(), text = say.value) {
     if (CH.isChats(view)) return CH.blocked(view) || sendBlock(world.state, { timeline: false });
     return blockFor(composerDest(view, text));
   }
@@ -35,7 +36,7 @@ export function createDelivery({
   function connDest() { const d = composerDest(); return d.thread ? { thread: true } : { pid: d.pid }; }
 
   /** @param {string} [view] @param {string} [text] */
-  function composerDest(view = S.view, text = say.value) {
+  function composerDest(view = currentView(), text = say.value) {
     if (CH.isChats(view)) return { thread: true }; // a plain chat's message is never routed (as liveBlock sends it)
     const tg = targetOf(text, world.state.projects), t = convThread(view);
     return t && !tg.pid ? { thread: true } : { pid: tg.pid || chatOf(view) || "workspace" };
@@ -56,12 +57,12 @@ export function createDelivery({
     const chat = thread ? (/** @type {Thread} */ (t)).project : tg.pid || chatOf(K.view) || "workspace";
     const conv = thread ? K.view : convOfChat(chat);
     const here = conv === K.view;
-    const ref = here && S.lref[conv];
-    if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; delete S.lref[conv]; }
-    /** @type {LocalMessage} */
-    const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv, at: Date.now(), who: "you", text, status: "sending", target: thread ? null : chat, to: thread ? (/** @type {Thread} */ (t)).title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat), cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
-    if (files.count) { m.files = tray.take(K.view); m.files.forEach(dropThumb); }
-    (S.local[conv] = S.local[conv] || []).push(m);
+    const ref = here && fileReferences.get(conv);
+    if (ref && text) { text = `${ref.a ? `${ref.path}:${ref.a}${ref.b > ref.a ? `-${ref.b}` : ""}` : `File: ${ref.path}`}\n\n${text}`; fileReferences.remove(conv); }
+    const chips = files.count ? tray.take(K.view) : undefined;
+    chips?.forEach(dropThumb);
+    const to = thread ? thread.title || "the thread" : chat === "workspace" ? "the coordinator" : PROJ(chat);
+    const m = localMessages.send({ conv, text, target: thread ? null : chat, to, files: chips });
     K.say.value = ""; saveDraft(K); updateComposer(K);
     const btn = K.send; btn.classList.remove("fired"); void btn.offsetWidth; btn.classList.add("fired");
     sound.play("send");
@@ -89,7 +90,7 @@ export function createDelivery({
       m.err = { title: (/** @type {SendFailure} */ (err)).fileErr ? `A file didn't upload: ${uploadErrorText(/** @type {SendFailure} */ (err))}` : (/** @type {SendFailure} */ (err)).code === "unknown_attachment" ? "A file is no longer on the server" : sendErrorTitle(/** @type {SendFailure} */ (err)), text: (/** @type {SendFailure} */ (err)).message || "" };
       announce(`${m.err.title}. ${m.err.text} Your message is kept; retry or edit it.`);
       const fail = noticeFor(m, "failed");
-      if (!heraldFor(m.id, () => fail, 6000) && S.view !== m.conv) heraldShow(fail, 6000);
+      if (!heraldFor(m.id, () => fail, 6000) && currentView() !== m.conv) heraldShow(fail, 6000);
     }
     schedule();
   }
@@ -101,10 +102,11 @@ export function createDelivery({
     const postIt = (attachments) => (thread
       ? world.act.reply(thread.id, m.text, { clientId: m.cid, attachments })
       : world.act.ask(project, m.text, { clientId: m.cid, attachments }));
-    if (!m.files || !m.files.length) return postIt();
+    const files = m.files;
+    if (!files?.length) return postIt();
     const chat = world.act.chatId?.(project);
     /** @param {{again?: boolean}} [opts] */
-    const up = (opts) => tray.ensure(/** @type {Chip[]} */ (m.files), chat, opts).catch((err) => { throw Object.assign(err, { fileErr: true }); });
+    const up = (opts) => tray.ensure(files, chat, opts).catch((err) => { throw Object.assign(err, { fileErr: true }); });
     try {
       return await postIt(await up());
     } catch (err) {
@@ -131,18 +133,14 @@ export function createDelivery({
 
   /** @param {string} id */
   function retry(id) {
-    for (const list of Object.values(S.local)) {
-      const m = list.find((x) => x.id === id);
-      if (m) {
-        const block = blockFor(m.target ? { pid: m.target } : { thread: true });
-        if (block) { refuse(block, "the message stays, to retry"); return; }
-        const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`), K = composerAt(document.activeElement);
-        deliverLive(m, convThread(m.conv) && !m.target ? convThread(m.conv) : null);
-        schedule();
-        if (had) K.say.focus({ preventScroll: true });
-        return;
-      }
-    }
+    const m = localMessages.get(id);
+    if (m?.who !== "you") return;
+    const block = blockFor(m.target ? { pid: m.target } : { thread: true });
+    if (block) { refuse(block, "the message stays, to retry"); return; }
+    const had = !!document.activeElement?.closest?.(`[data-retry="${CSS.escape(id)}"]`), K = composerAt(document.activeElement);
+    deliverLive(m, m.target ? null : convThread(m.conv));
+    schedule();
+    if (had) K.say.focus({ preventScroll: true });
   }
 
   /** @param {string} text @param {Composer} [K] */
@@ -156,10 +154,8 @@ export function createDelivery({
   /** @param {string} id @param {Composer} [K] */
   function editFailed(id, K = MK) {
     const view = K.view;
-    const list = S.local[view] || [];
-    const i = list.findIndex((x) => x.id === id);
-    if (i < 0) return;
-    const [m] = list.splice(i, 1);
+    const m = localMessages.removeSend(view, id);
+    if (!m) return;
     if (m.files && m.files.length) tray.restore(view, m.files);
     putBack((m.target && m.target !== convProject(view) ? `@${m.target} ` : "") + m.text, K);
     render();

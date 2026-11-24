@@ -1,7 +1,9 @@
 import type { Conversation } from "./draw-types.d.ts";
 import type { Run } from "./stop-types.d.ts";
+import type { createScope } from "../../core/kernel/scope.js";
 
 type MarkupNode = HTMLElement & { _h?: string | null };
+export type ComposerScope = ReturnType<typeof createScope>;
 
 export type Composer = {
   main: boolean;
@@ -17,12 +19,11 @@ export type Composer = {
   input: HTMLInputElement;
   note: HTMLElement;
   iq: MarkupNode | null;
-  at: MarkupNode & { _sel: number; _shut?: string | null };
+  at: HTMLElement;
 };
 
 export type ComposerControlsDeps = {
   MK: Composer;
-  S: { view: string };
   CH: {
     isChats(view: string): boolean;
     chipHtml(view: string): string;
@@ -59,12 +60,8 @@ export type ComposerDeps = {
   targetLineRender(composer?: Composer): unknown;
   connDest(): unknown;
   schedule(): void;
-  atRender(composer: Composer): void;
-  atClose(composer?: Composer): void;
+  mentions: ReturnType<typeof import("./mention-input.js").createMentionList>;
   saveDraft(composer?: Composer): void;
-  atKeys(event: KeyboardEvent, composer: Composer): boolean;
   send(composer: Composer): unknown;
   stopRun(view: string): void;
-  wireAt(composer: Composer): void;
-  aimAt(composer: Composer): void;
 };

@@ -1,14 +1,6 @@
-type Host = { id: string; asks: unknown[]; asker?: string; title: string };
+import type { Hop } from "../../core/services/world/hop-types.d.ts";
 
-type Hop = {
-  id: string;
-  chat_id?: string;
-  kind?: string;
-  from_role?: string;
-  state?: string;
-  created_at?: string;
-  at?: string;
-};
+type Host = { id: string; asks: unknown[]; asker?: string; title: string };
 
 type Session = { role?: string; chat_id?: string };
 

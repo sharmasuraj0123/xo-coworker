@@ -1,9 +1,10 @@
 import type { Row } from "../../core/services/storm/types.d.ts";
-import type { MediaInput } from "../../core/services/media/types.d.ts";
+import type { MediaInput, SharedFile } from "../../core/services/media/types.d.ts";
 import type { reactionGroups, waitsForTurn } from "../../core/services/world/conversation.js";
-import type { Hop } from "../../core/services/world/relay.js";
+import type { Hop } from "../../core/services/world/hop-types.d.ts";
 import type { Block, Turn } from "./blocks/turn.js";
 import type { LocalMessage } from "./delivery-types.d.ts";
+import type { createLocalMessages } from "./local-messages.js";
 
 export type RelayRows = { shown: (StoredMessage & { hop: { seq: number | null; at: number } })[]; missing: { ids: string[]; seq: number | null }[] };
 export type Forward = { id: string; chatId?: string | null; via?: string[]; root?: { id: string; chatId?: string | null } };
@@ -26,7 +27,7 @@ type StoredMessage = {
   passedOn?: PassedOn | null;
   continuedIn?: string | null;
   continuedFrom?: string | null;
-  files?: MediaInput[];
+  files?: SharedFile[];
   reactions?: Reactions;
   chatId?: string | null;
 };
@@ -40,7 +41,7 @@ export type Message = {
   sid?: string;
   text?: string;
   sent?: boolean;
-  files?: MediaInput[];
+  files?: (MediaInput | SharedFile)[];
   reactions?: Reactions;
   chatId?: string | null;
   fwd?: Forward | null;
@@ -82,8 +83,6 @@ export type Message = {
   refused?: boolean;
 };
 
-type LocalRow = Omit<LocalMessage, "files"> & { files?: MediaInput[]; merged?: boolean };
-
 export type ProjectionThread = {
   id: string;
   project: string;
@@ -100,10 +99,11 @@ export type ProjectionThread = {
   movedFrom?: Move;
 };
 
-type Receipt = { id: string; project: string; at: number; said?: string; label: string; verb?: string; choice?: string; why?: string };
+type Receipt = {
+  id: string | number; project: string; at: number; said?: string | string[]; label?: string; verb?: string; choice?: string; why?: string;
+};
 type TimelineRow = Row & { id: string; text?: string };
-type RoutedHop = Hop & { chat_id?: string };
-type SessionTurn = Turn & { session: string };
+type SessionTurn = Turn & { session: string | null };
 type TurnStore = {
   running(session: string): Parameters<typeof waitsForTurn>[1];
   list(include: (turn: SessionTurn) => boolean): SessionTurn[];
@@ -118,7 +118,7 @@ type ProjectedState = {
   turns?: TurnStore;
   routed: Record<string, Message["routed"]>;
   controls: Record<string, Control[] | undefined>;
-  hops?: Map<string, RoutedHop>;
+  hops?: ReadonlyMap<string, Hop>;
   failed?: Record<string, { id: string; at: number; error: string } | undefined>;
 };
 type World = {
@@ -130,7 +130,8 @@ type World = {
   };
 };
 export type ProjectionDeps = {
-  S: { local: Record<string, LocalRow[] | undefined>; alias: Map<string, string>; showHops: boolean };
+  localMessages: Pick<ReturnType<typeof createLocalMessages>, "list" | "mergeEchoes" | "alias">;
+  shape: { on(key: "xo:thread/hops"): boolean };
   world: World;
   D: { decisions(): Receipt[]; notSent(): Receipt[] };
   PROJ(project: string): string;

@@ -12,13 +12,13 @@ import { stepIcon } from "../../../core/services/step-icons.js";
 
 /** @typedef {Parameters<typeof fromSharedFile>[0]} File */
 
-/** @typedef {{kind: string, status: string, waiting?: boolean, pending?: boolean, tool?: string, target?: string, line?: string, summary?: string, call_id?: string, output?: string, progress?: {tool_calls?: number, duration_ms?: number}}} Step */
+/** @typedef {import("../../../core/services/world/turn-types.d.ts").TurnStep} Step */
 
-/** @typedef {{id: string, type: string, done?: boolean, header?: string, started_at?: string, steps?: string[], rows?: Step[], items?: {state: string, text?: string}[], files?: File[], caption?: string, text?: string, seq?: number | null}} Block */
+/** @typedef {import("../../../core/services/world/turn-types.d.ts").TurnBlock} Block */
 
-/** @typedef {{id: string, at?: string, status?: string, seq?: number | null, lastSeq?: number | null, end?: {wall_ms?: number | null, error?: unknown, reason?: string} | null, stopped?: {last_step?: string} | null, selfEnded?: boolean}} Turn */
+/** @typedef {{id: string, at?: string | null, status?: string, seq?: number | null, lastSeq?: number | null, end?: {wall_ms?: number | null, error?: unknown, reason?: string} | null, stopped?: {last_step?: string} | null, selfEnded?: boolean}} Turn */
 
-/** @typedef {{additions?: number, deletions?: number, binary?: boolean, on?: boolean}} Change */
+/** @typedef {{additions?: number | null, deletions?: number | null, binary?: boolean, on?: boolean}} Change */
 
 /** @typedef {Record<string, boolean>} Open */
 

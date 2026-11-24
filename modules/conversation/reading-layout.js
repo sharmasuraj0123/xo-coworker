@@ -8,10 +8,8 @@ import { arrive, still, EASE, MOVE } from "../../core/ui/motion.js";
 
 /** @typedef {{scroller: HTMLElement, msgs: HTMLElement & {children: HTMLCollectionOf<RenderedRow>}}} Conversation */
 
-/** @typedef {{in?: Element | null, k: string, open: boolean, focus: boolean}} ToggledFold */
-
-/** @param {{S: {tbToggled?: ToggledFold | null}, MAIN: Conversation}} options */
-export function createReadingLayout({ S, MAIN }) {
+/** @param {{takeFoldChange: ReturnType<typeof import("./transcript-folds.js").createTranscriptFolds>["takeChange"], MAIN: Conversation}} options */
+export function createReadingLayout({ takeFoldChange, MAIN }) {
   /** @param {string} k */
   const isMessageRow = (k) => k !== "hist" && k !== "note" && k !== "empty" && !k.startsWith("day|");
   /** @param {Conversation} [C] */
@@ -58,10 +56,9 @@ export function createReadingLayout({ S, MAIN }) {
   }
   /** @param {Conversation} C @param {{k: string, parts: Map<string, number>}[]} folds */
   function workMotion(C, folds) {
-    // the fold you toggled is the one in this conversation (a click remembers where it was, S.tbToggled.in)
-    const toggled = S.tbToggled && (!S.tbToggled.in || S.tbToggled.in === C.msgs) ? S.tbToggled : null;
-    if (toggled) S.tbToggled = null;
-    if (toggled && toggled.focus) (/** @type {HTMLElement | null} */ (C.msgs.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)))?.focus({ preventScroll: true });
+    const toggled = takeFoldChange(C.msgs);
+    const hook = toggled && `[data-tb="${CSS.escape(toggled.key)}"]`;
+    if (hook && toggled?.restoreFocus) (/** @type {HTMLElement | null} */ (C.msgs.querySelector(hook)))?.focus({ preventScroll: true });
     if (still() || !folds.length) return;
     const top = C.scroller.getBoundingClientRect().top, bottom = top + C.scroller.clientHeight;
     /** @param {DOMRect} r */
@@ -69,7 +66,7 @@ export function createReadingLayout({ S, MAIN }) {
     for (const f of folds) {
       const el = childOf(C, f.k);
       if (!el || !seen(el.getBoundingClientRect())) continue;
-      const opened = toggled ? el.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.closest("[data-b],[data-r]") : null;
+      const opened = hook ? el.querySelector(hook)?.closest("[data-b],[data-r]") : null;
       /** @param {HTMLElement} x @param {number | undefined} h0 */
       const glide = (x, h0) => {
         const h1 = x.offsetHeight;
@@ -87,8 +84,8 @@ export function createReadingLayout({ S, MAIN }) {
         arrive(x);
       }
       // the chevron of what you opened turns, as it would had it not been redrawn
-      const chev = opened && opened.querySelector(`[data-tb="${CSS.escape((/** @type {ToggledFold} */ (toggled)).k)}"] .tb-chev`);
-      if (chev) chev.animate([{ transform: (/** @type {ToggledFold} */ (toggled)).open ? "none" : "rotate(180deg)" }, { transform: (/** @type {ToggledFold} */ (toggled)).open ? "rotate(180deg)" : "none" }], { duration: MOVE, easing: EASE });
+      const chev = opened && opened.querySelector(`${hook} .tb-chev`);
+      if (chev && toggled) chev.animate([{ transform: toggled.open ? "none" : "rotate(180deg)" }, { transform: toggled.open ? "rotate(180deg)" : "none" }], { duration: MOVE, easing: EASE });
     }
   }
 

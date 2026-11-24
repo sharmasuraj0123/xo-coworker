@@ -20,10 +20,11 @@ import { createDecisionPanelView } from "./panel-view.js";
 /** @import { DecisionControllerDeps, DecisionPanelState, DecisionNeed, DecisionApi, OpenOptions, Transition, DecisionEntry, DecisionItem, CardChoice, DecideOptions, NoteMode, ScopeOption } from "./controller-types.d.ts" */
 
 /** @param {DecisionControllerDeps} options */
-export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent, onShown, onGone }) {
+export function createDecisions({ world, P, PROJ, announce, render, back, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent, onShown, onGone }) {
   const panel = $("#panel"), stage = $("#pn-stage");
   const sentKeys = new Map();
   const stoppedDone = new Set();
+  const later = new Set();
   /** @type {DecisionEntry[]} */
   const log = [];
   const teach = new Map();
@@ -43,20 +44,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     return mode === "reply" ? (e.typed ? (/** @type {string} */ (e.said)) || "" : "") : e.note || "";
   }
   const wireCard = createCardEvents({ F, PROJ, teach, decide, failedWords, onOpenThread, setLater, laterNow });
-  const api = /** @type {DecisionApi} */ ({
-    needItems,
-    decisions: () => log.filter((d) => d.status !== "failed" && d.status !== "gone"),
-    notSent: () => log.filter((d) => d.status === "gone"),
-    failedNote: (key, mode) => failedWords(key, mode), // only while that failure is the latest word on it
-    isOpen: () => F.open && !F.parked,
-    park, unpark,
-    current: () => (F.open && !F.done && !F.vig ? F.cur : null),
-    open, close, sync, undo, decide, decideNow, laterNow, bringIn,
-    cardHtml, cardTitle, wireCard,
-    parts: { effTagHtml, leadHtml, chipsHtml },
-    queued: (key) => queue.has(key),
-    pendingKey: (key) => queue.has(key),
-  });
 
   /** @param {string | null} [startKey] @param {OpenOptions} [options] */
   function open(startKey, { only = null, teach: teachScope = null } = {}) {
@@ -280,6 +267,23 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
 
   const toastRender = createDecisionToast(queue);
 
-  api.cardKeys = wireDecisionKeyboard({ panel, stage, F, undo, onOpenThread, close, confirmAll, setLater, skip });
+  /** @type {DecisionApi} */
+  const api = {
+    needItems,
+    decisions: () => log.filter((d) => d.status !== "failed" && d.status !== "gone"),
+    notSent: () => log.filter((d) => d.status === "gone"),
+    failedNote: (key, mode) => failedWords(key, mode), // only while that failure is the latest word on it
+    isOpen: () => F.open && !F.parked,
+    park, unpark,
+    current: () => (F.open && !F.done && !F.vig ? F.cur : null),
+    open, close, sync, undo, decide, decideNow, laterNow, bringIn,
+    recall: (key) => later.delete(key),
+    recallAll: () => later.clear(),
+    cardHtml, cardTitle, wireCard,
+    cardKeys: wireDecisionKeyboard({ panel, stage, F, undo, onOpenThread, close, confirmAll, setLater, skip }),
+    parts: { effTagHtml, leadHtml, chipsHtml },
+    queued: (key) => queue.has(key),
+    pendingKey: (key) => queue.has(key),
+  };
   return api;
 }

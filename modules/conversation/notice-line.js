@@ -7,12 +7,10 @@ import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 /** @import { Notice } from "../../core/services/notices.js" */
 
-/** @import { Composer } from "./composer-types.d.ts" */
-
-/** @typedef {{ S: { view: string; herald: Notice | null }; world: { state: Parameters<typeof connLine>[0] }; MK: Composer; composerNow(): Composer; panelHost(): HTMLElement | null; convThread(view: string): unknown; connDest(): Parameters<typeof connLine>[1]; placeRegion(): HTMLElement | null; STOP_ICON: string }} NoticeLineDeps */
+/** @import { NoticeLineDeps } from "./notice-line-types.d.ts" */
 
 /** @param {NoticeLineDeps} deps */
-export function createNoticeLine({ S, world, MK, composerNow, panelHost, connDest, placeRegion, STOP_ICON }) {
+export function createNoticeLine({ notice, world, MK, composerNow, panelHost, connDest, placeRegion, STOP_ICON }) {
   /** @type {WeakMap<HTMLElement, { notice: Notice | null, html: string }>} */
   const lines = new WeakMap();
   const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
@@ -23,7 +21,8 @@ export function createNoticeLine({ S, world, MK, composerNow, panelHost, connDes
       if (o.contains(document.activeElement)) heraldBack(lines.get(o)?.notice)?.focus({ preventScroll: true });
       redraw(o, ""); lines.delete(o);
     }
-    const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
+    const current = notice();
+    const h = current && current.until > Date.now() ? current : null;
     const c = h ? null : connLine(world.state, box === $("#herald") ? connDest() : { thread: true });
     let html;
     if (h) {

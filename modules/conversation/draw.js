@@ -14,7 +14,8 @@ export function createConv({ view, msgs, scroller: sc, column, typing, follow, m
 }
 
 /** @param {DrawingDeps} options */
-export function createConversationDrawing({ S, CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender }) {
+export function createConversationDrawing(options) {
+  const { CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender } = options;
   /** @param {Conversation} C @param {RankedNeed[]} needs */
   function drawConv(C, needs) {
     const v = C.view;
@@ -24,7 +25,6 @@ export function createConversationDrawing({ S, CHG, msgItems, readingPlace, hold
     const ready = liveReady(v);
     if (!opening && ready && C.filled !== v) quiet = true;
     C.filled = ready ? v : null;
-    if (C.main) S.filled = C.filled;
     CHG.sync(v); // what this place changed: read on opening, and after each edit an agent finishes
     const items = msgItems(v, needs);
     // the work folds about to be redrawn, measured before anything changes (workMotion glides them)

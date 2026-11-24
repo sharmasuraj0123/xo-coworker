@@ -1,24 +1,21 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
-import { ICON } from "../../core/ui/icons/names.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
-import { redraw } from "../../core/ui/redraw.js";
 import { noticeFor } from "../../core/services/notices.js";
 import { sound } from "../../core/services/sound.js";
+import { createFileReferenceLine } from "./file-reference-line.js";
 
-/** @import { FileQuestionDeps, FileReference, QuestionFile } from "./file-question-types.d.ts" */
-
-/** @import { LocalMessage } from "./delivery-types.d.ts" */
+/** @import { FileQuestionDeps, QuestionFile } from "./file-question-types.d.ts" */
 
 /** @import { FileScope } from "../../core/services/file-scope-types.d.ts" */
 
 /** @param {FileQuestionDeps} deps */
 export function createFileQuestion({
-  S, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
+  view, localMessages, fileReferences, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
   fileScope, localIn, lineRef, fileRef,
 }) {
+  const lrefRender = createFileReferenceLine({ view, fileReferences });
   /** @param {string} text */
   function youText(text) {
     const r = lineRef(text);
@@ -47,11 +44,12 @@ export function createFileQuestion({
   /** @param {QuestionFile} f @param {number} a @param {number} b */
   function composeAbout(f, a, b) {
     const at = askPlace(f);
-    if (!at || at.conv !== S.view || CH.isChats(S.view)) return false;
-    S.lref[S.view] = { path: at.path, a, b, name: f.name || at.path.split("/").pop() };
+    if (!at || at.conv !== view() || CH.isChats(at.conv)) return false;
+    const name = f.name || at.path.split("/").pop();
+    fileReferences.set(at.conv, { path: at.path, a, b, name });
     lrefRender();
     say.focus({ preventScroll: true });
-    announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${(/** @type {FileReference} */ (S.lref[S.view])).name} are in your message. Write your question.`);
+    announce(`Lines ${a}${b > a ? ` to ${b}` : ""} of ${name} are in your message. Write your question.`);
     return true;
   }
   /** @param {QuestionFile} f */
@@ -59,20 +57,12 @@ export function createFileQuestion({
     const at = askPlace(f);
     if (!at) { announce("This file isn't in a project XO can ask about."); return false; }
     const ref = { path: at.path, a: null, b: null, name: f.name || at.path.split("/").pop() };
-    if (at.conv !== S.view) { VW.close({ restore: false }); go(at.conv); }
-    S.lref[at.conv] = ref;
+    if (at.conv !== view()) { VW.close({ restore: false }); go(at.conv); }
+    fileReferences.set(at.conv, ref);
     lrefRender();
     say.focus({ preventScroll: true });
     announce(`${ref.name} is in your message to ${at.name}. Write your question.`);
     return true;
-  }
-  function lrefRender() {
-    const r = S.lref[S.view], el = $("#cref");
-    const lines = r && r.a ? ` · ${r.a}${(/** @type {number} */ (r.b)) > r.a ? `–${r.b}` : ""}` : "";
-    const html = r ? `<a href="#${esc(r.path)}" class="lk lk-in lk-file" data-ref="${esc(r.path)}"${r.a ? ` data-ref-a="${r.a}" data-ref-b="${r.b}"` : ""} title="${esc(r.a ? `${r.path}, ${r.a === r.b ? "line" : "lines"} ${r.a}${(/** @type {number} */ (r.b)) > r.a ? `–${r.b}` : ""}` : r.path)}"><span class="lk-ic">${fileIcon(r.name)}</span><span class="lk-t">${esc(r.name)}${lines}</span></a>` +
-      `<button type="button" class="cref-x" data-lref-x aria-label="${r.a ? `Take ${r.a === r.b ? "the line" : "the lines"} out of this message` : `Take ${esc(r.name || r.path.split("/").pop())} out of this message`}" title="${r.a ? (r.a === r.b ? "Take it out" : "Take them out") : "Take the file out"}">${ICON.close}</button>` : "";
-    el.hidden = !r;
-    if (el._h !== html) { redraw(el, html); el._h = html; }
   }
   /** @param {QuestionFile} f @param {string} text */
   function sendAbout(f, text) {
@@ -80,9 +70,7 @@ export function createFileQuestion({
     if (!at) return false;
     const block = blockFor(at.thread ? { thread: true } : { pid: at.chat });
     if (block) { refuse(block); return false; }
-    /** @type {LocalMessage} */
-    const m = { id: `l${++S.n}_${Date.now().toString(36)}`, conv: at.conv, at: Date.now(), who: "you", text, status: "sending", target: at.thread ? null : at.chat, to: at.name, cid: `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}` };
-    (S.local[at.conv] = S.local[at.conv] || []).push(m);
+    const m = localMessages.send({ conv: at.conv, text, target: at.thread ? null : at.chat, to: at.name });
     sound.play("send");
     heraldShow(noticeFor(m, "out"), 9000);
     if (at.thread) STAGE.resumeFollow(at.conv);

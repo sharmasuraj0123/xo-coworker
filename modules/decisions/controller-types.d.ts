@@ -31,7 +31,6 @@ export type DecisionControllerDeps = Pick<DecisionQueueDeps, "onUndone" | "onSen
   announce(message: string): void;
   render(): void;
   back?: (selectors: string[]) => void;
-  later: Set<string>;
   waitSince: Map<string, number>;
   onOpenThread?: (id: string, surface: "panel" | "dock") => void;
   onAllClear?: (summary: string, freed: number) => void;
@@ -56,6 +55,8 @@ export type DecisionApi = {
   decide(need: DecisionNeed, choice: CardChoice, note?: string, options?: DecideOptions): DecisionEntry | null;
   decideNow(key: string, choice: CardChoice, note?: string): boolean;
   laterNow(key: string): void;
+  recall(key: string): void;
+  recallAll(): void;
   bringIn(key: string): void;
   cardHtml: Card["cardHtml"];
   cardTitle: Card["cardTitle"];

@@ -1,26 +1,17 @@
-import type { heldBadge } from "../../core/services/world/held.js";
+import type { WorldThread } from "../../core/services/world/state-types.d.ts";
 import type { headerActionsHtml } from "../../shell/header.js";
 import type { createMessageContext } from "./message-context.js";
 
-export type HeaderThread = {
-  id: string;
-  title: string;
-  label?: string;
-  state: string;
-  held?: Parameters<typeof heldBadge>[0];
-};
+export type HeaderThread = WorldThread;
 
 export type HeaderNeed = { t: { id: string }; key: string; later?: boolean; admitted?: boolean; held?: boolean };
-export type HeaderEdit = { tid: string; field: string; value: string; busy?: boolean };
 type ThreadCounts = { all: number; working: number; needs: number };
 
-export type HeaderDeps = {
-  S: {
-    desc: Record<string, string>;
-    hdrCtl?: string;
-    tEdit?: HeaderEdit | null;
-    tMenu?: string | null;
-    tMenuIn?: string | null;
+export type HeaderDeps<N extends HeaderNeed> = {
+  description(project: string): string | undefined;
+  threadControls: {
+    edit(): { tid: string; field: "title" | "label"; value: string; busy?: boolean } | null;
+    menuOpen(id: string, location: "main"): boolean;
   };
   world: { state: { threads: HeaderThread[] }; act: { storm?: boolean } };
   PICK: { pid?: string | null };
@@ -30,12 +21,12 @@ export type HeaderDeps = {
   kernel: { places: Parameters<typeof headerActionsHtml>[0] };
   atOf(view: string): Parameters<typeof headerActionsHtml>[1];
   convHost: ReturnType<typeof createMessageContext>["convHost"];
-  homeParts(needs: HeaderNeed[]): { held: unknown[] };
+  homeParts(needs: N[]): { held: unknown[] };
   projects(): unknown[];
   doneToday(): unknown[];
   isBusy(thread: HeaderThread): boolean;
   isHeld(thread: HeaderThread): boolean;
-  threadCounts(project: string, needs: HeaderNeed[]): ThreadCounts;
+  threadCounts(project: string, needs: N[]): ThreadCounts;
   PROJ(project: string): string;
   projectIcon(project: string): string;
   threadsCtl(total: number, counts: ThreadCounts): string;

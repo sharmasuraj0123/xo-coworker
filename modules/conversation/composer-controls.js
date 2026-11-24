@@ -5,11 +5,14 @@ import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { RM } from "../../core/ui/motion.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { paintComposerTarget } from "./target-markup.js";
 
 /** @import { ComposerControlsDeps, Composer } from "./composer-types.d.ts" */
 
 /** @param {ComposerControlsDeps} options */
-export function createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock }) {
+export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock }) {
+  /** @type {WeakMap<HTMLElement, string>} */
+  const markup = new WeakMap();
   /** @param {boolean} [fade] @param {Composer} [K] */
   function chipRender(fade = false, K = MK) {
     const chip = K.iq;
@@ -25,9 +28,9 @@ export function createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessio
     chip.setAttribute("aria-controls", chat ? "cs-pop" : "iq-pop");
     fixChip(chip, fixed);
     chip.classList.toggle("is-pinned", !chat && IQ.current(s).pinned);
-    if (chip._h === html) return;
-    const swap = () => { redraw(chip, html); chip._h = html; };
-    if (fade && chip._h && !RM.matches) {
+    if (markup.get(chip) === html) return;
+    const swap = () => { redraw(chip, html); markup.set(chip, html); };
+    if (fade && markup.get(chip) && !RM.matches) {
       chip.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, fill: "forwards" }).finished.then(() => { swap(); chip.getAnimations().forEach((a) => a.cancel()); chip.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 80 }); });
     } else swap();
   }
@@ -56,23 +59,25 @@ export function createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessio
     else { el.removeAttribute("aria-disabled"); el.setAttribute("aria-haspopup", "dialog"); }
   }
   function chatTargetRender() {
-    sendNowRender();
-    const perm = $("#cs-perm"), ph = CH.isChats(S.view) && !liveBlock() ? CH.permHtml(S.view) : "";
+    const view = MK.view;
+    sendNowRender(view);
+    const perm = $("#cs-perm"), ph = CH.isChats(view) && !liveBlock() ? CH.permHtml(view) : "";
     perm.hidden = !ph;
-    perm.title = CH.permTitle(S.view);
-    fixChip(perm, S.view !== "chats");
-    if (perm._h !== ph) { perm.innerHTML = ph; perm._h = ph; }
-    if (!CH.isChats(S.view)) { $("#target").hidden = false; return false; }
-    const html = CH.blocked(S.view) ? CH.targetHtml(S.view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(S.view);
-    if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
+    perm.title = CH.permTitle(view);
+    fixChip(perm, view !== "chats");
+    if (markup.get(perm) !== ph) { perm.innerHTML = ph; markup.set(perm, ph); }
+    if (!CH.isChats(view)) { $("#target").hidden = false; return false; }
+    const html = CH.blocked(view) ? CH.targetHtml(view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view);
+    paintComposerTarget($("#target"), html);
     $("#target").hidden = !html;
-    $("#target").title = S.view === "chats" ? "The folder a new chat works in" : "";
+    $("#target").title = view === "chats" ? "The folder a new chat works in" : "";
     return true;
   }
 
-  function sendNowRender() {
+  /** @param {string} view */
+  function sendNowRender(view) {
     const b = $("#send-now");
-    const st = CH.isChats(S.view) && !liveBlock() ? CH.nowState(S.view) : null;
+    const st = CH.isChats(view) && !liveBlock() ? CH.nowState(view) : null;
     b.hidden = !st;
     if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
   }

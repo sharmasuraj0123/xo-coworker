@@ -21,7 +21,6 @@ export type ConversationMount = Pick<Conversation, "msgs" | "scroller" | "column
 };
 
 export type DrawingDeps = Layout & {
-  S: { filled?: string | null };
   CHG: { sync(view: string): unknown };
   msgItems(view: string, needs: RankedNeed[]): { key: string; html: string }[];
   ensureRoot(view: string): void;

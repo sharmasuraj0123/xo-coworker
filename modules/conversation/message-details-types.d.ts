@@ -1,12 +1,12 @@
 import type { Effort, RankedNeed } from "../../core/services/decision-types.d.ts";
 import type { ProjectionThread } from "./message-types.d.ts";
 import type { Run } from "./stop-types.d.ts";
-import type { Hop } from "../../core/services/world/relay.js";
+import type { Hop } from "../../core/services/world/hop-types.d.ts";
 import type { heldWords } from "../../core/services/world/held.js";
 import type { stopWords } from "../../core/services/world/conversation.js";
 
 export type MessageThread = Pick<ProjectionThread, "id" | "project" | "state" | "title" | "lastAt" | "movedTo" | "sessionId"> & {
-  branch?: string;
+  branch?: string | null;
   checklist: { total: number; done: number; items: { state: string; text?: string }[] };
   held?: Parameters<typeof heldWords>[0];
   stop?: Parameters<typeof stopWords>[0];
@@ -15,14 +15,14 @@ export type MessageThread = Pick<ProjectionThread, "id" | "project" | "state" | 
 };
 
 export type MessageDetailsDeps = {
-  S: { alias: Map<string, string>; stops: ReadonlyMap<string, unknown> };
+  aliases(): Iterable<[string, string]>;
   world: {
     state: { hops?: ReadonlyMap<string, Hop> };
     act: { sessionState(sessionId: string | null | undefined): unknown };
     thread(id: string): MessageThread | null | undefined;
   };
   EFFORT: Readonly<Record<Effort, { time: string }>>;
-  REC: { latestOf?: (threadId: string, project: string) => { key: string; path?: string | null; title?: string; name?: string } | null };
+  REC: { latestOf?: (threadId: string, project: string) => LatestArtifact | null };
   SHAPE: { on(key: string): boolean; word(noun: string): string };
   PROJ(project: string | null): string;
   convThread(view: string): MessageThread | null;
@@ -35,8 +35,11 @@ export type MessageDetailsDeps = {
   askTitle(need: RankedNeed): string;
   threadMark(thread: MessageThread, options: { withName: boolean }): string;
   noun(word: string): string;
-  sendWhileRunning(thread: MessageThread): string;
+  sendWhileRunning(thread: MessageThread): string | null;
   running(view: string): Run | null;
+  isStopping(session: string | null | undefined): boolean;
   workingRuns(thread: MessageThread): number;
   agentOf(thread: MessageThread): string | null;
 };
+
+type LatestArtifact = { key: string; path?: string | null; title?: string | null; name?: string };

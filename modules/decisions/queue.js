@@ -3,13 +3,21 @@
 import { VERB } from "../../core/services/review.js";
 import * as Kit from "./kit.js";
 
-/** @import { DecisionQueueDeps, DecisionPart, DecisionFailure, DecisionResult, DecisionItem, DecisionBody } from "./queue-types.d.ts" */
+/** @import { DecisionQueueDeps, DecisionPart, DecisionFailure, DecisionResult } from "./queue-types.d.ts" */
+
+/** @param {DecisionQueueDeps["world"]} world @param {DecisionPart} part */
+function sendDecision(world, { t, ask, choice, note, stopped }) {
+  if (typeof choice === "object" && "body" in choice && ask.item) return world.act.decideItem(ask.item.id, choice.body);
+  if (typeof choice === "object" && "resolve" in choice && choice.resolve) return world.act.resolve(t.id, true);
+  if (stopped && typeof choice === "object" && "text" in choice && typeof choice.text === "string") return world.act.reply(t.id, choice.text);
+  return Kit.answer(world, t, ask, choice, note);
+}
 
 /** @param {DecisionQueueDeps} options */
 export function createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSecret, show, toastRender, announce, render, onUndone, onSent, onNotSent }) {
   /** @param {DecisionPart} part @param {DecisionFailure} err */
   const ownDecision = (part, err) => {
-    const k = part.choice && part.choice.body && part.choice.body.idempotency_key;
+    const k = typeof part.choice === "object" && "body" in part.choice && part.choice.body.idempotency_key;
     return !!k && !!(err.item && err.item.decision && err.item.decision.idempotency_key === k);
   };
   /** @param {string | undefined} t */
@@ -39,7 +47,7 @@ export function createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSe
   }
 
   return Kit.createCommitQueue({
-    exec: (/** @type {DecisionPart} */ p) => Promise.resolve(p.choice && p.choice.resolve ? world.act.resolve(p.t.id, true) : p.stopped ? world.act.reply(p.t.id, p.choice.text) : p.choice && p.choice.storm ? world.act.decideItem((/** @type {DecisionItem} */ (p.ask.item)).id, (/** @type {DecisionBody} */ (p.choice.body))) : Kit.answer(world, p.t, p.ask, p.choice, p.note)).then(() => {
+    exec: (/** @type {DecisionPart} */ p) => Promise.resolve(sendDecision(world, p)).then(() => {
       if (p.t.state === "working" && p.t.asks.length) { p.t.asks = []; p.t.needsYou = ""; }
     }),
     onChange(type, item, results) {
@@ -76,7 +84,7 @@ export function createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSe
             part.entry.status = "failed";
             F.status.delete(part.key);
             if (err && err.code === "secret_needs_a_call" && part.ask.item) noSecret.add(part.ask.item.id);
-            if (part.choice && part.choice.resolve) {
+            if (typeof part.choice === "object" && "resolve" in part.choice && part.choice.resolve) {
               announce(`Couldn't resolve ${part.t.title}: ${err && err.message ? stop(err.message) : "XO didn't answer."} It's back in your list.`);
               onNotSent && onNotSent(`Couldn't resolve ${part.t.title}`, `${err && err.message ? stop(err.message) : "XO didn't answer."} It's back in your list.`);
               continue;

@@ -1,4 +1,4 @@
-export type Thread = { title: string };
+export type Thread = Pick<import("../../core/services/world/state-types.d.ts").WorldThread, "title" | "sessionId" | "session">;
 export type Run =
   | { kind: "thread"; t: Thread; session: string }
   | { kind: "chat"; session: string }
@@ -12,7 +12,7 @@ type PendingStop = {
   interrupt?: boolean;
 };
 
-type TurnStop = PendingStop & { session: string; turn: string | null };
+export type TurnStop = PendingStop & { session: string; turn: string | null };
 type Focus = () => HTMLElement | null;
 
 type Notice = {
@@ -26,17 +26,16 @@ type Notice = {
 };
 
 export type StopDeps = {
-  S: { view: string; stops: Map<string, TurnStop>; herald: { tag?: string; until: number } | null };
   world: { act: { turnOf(session: string): string | null; stop(session: string): Promise<{ stopped?: boolean } | null> } };
   Kit: { COMMIT_MS: number };
   PROJ: (id: string | null) => string | null;
   announce: (text: string) => void;
   schedule: () => void;
   chatOf: (view: string) => string | null;
-  pendingStops: PendingStop[];
+  pendingStops: Pick<ReturnType<typeof import("../../core/services/run-stops.js").createPendingRunStops>, "pending" | "remove">;
   heraldShow: (notice: Notice, ms: number) => void;
-  heraldNext: () => void;
+  dismissStops: () => void;
   inUse: (selector: string) => Focus;
-  running: (view: string) => Run | null;
+  running: (view?: string) => Run | null;
   workingRuns: (thread: Thread) => number;
 };
