@@ -29,6 +29,7 @@ import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
+import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf, goneLine } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
@@ -156,7 +157,6 @@ const PHONE = matchMedia("(max-width: 760px)");
 const NUM = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
 const num = (n) => NUM[n] || String(n);
 const plural = (n, w) => `${w}${n === 1 ? "" : "s"}`;
-const DRAFTS = "cv-drafts:live";
 // Stop's square: all of its 14 px box, with 4 px corners (css/app.css, .send.is-stop)
 const STOP_ICON = ICON.stop;
 
@@ -1335,6 +1335,7 @@ function chipRender(fade = false, K = MK) {
 const say = $("#say"), atList = $("#at-list");
 const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
   tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: atList };
+const { saveDraft, loadDraft } = createDrafts({ S, store, MK, updateComposer });
 /** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
 function wireComposer(K) {
   K.say.addEventListener("input", () => { K.at._sel = 0; updateComposer(K); saveDraft(K); });
@@ -1637,9 +1638,6 @@ function pickAt(pid, K = MK) {
   saveDraft(K);
   updateComposer(K); f.focus();
 }
-function saveDraft(K = MK) { const v = K.view; if (K.say.value) S.drafts[v] = K.say.value; else delete S.drafts[v]; store.set(DRAFTS, S.drafts); }
-function loadDraft(K = MK) { K.say.value = S.drafts[K.view] || ""; K.at._sel = 0; updateComposer(K); }
-
 say.addEventListener("input", () => { atList._sel = 0; updateComposer(); saveDraft(); });
 say.addEventListener("click", () => updateComposer());
 say.addEventListener("keydown", (e) => {

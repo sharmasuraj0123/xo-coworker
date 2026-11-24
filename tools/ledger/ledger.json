@@ -7397,12 +7397,12 @@
    "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
   },
   "js/app.js::functions::saveDraft": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2365)"
+   "status": "moved",
+   "home": "modules/conversation/drafts.js"
   },
   "js/app.js::functions::loadDraft": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2366)"
+   "status": "moved",
+   "home": "modules/conversation/drafts.js"
   },
   "js/app.js::functions::sendNowRender": {
    "status": "planned",
