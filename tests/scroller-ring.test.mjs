@@ -61,7 +61,7 @@ const SCROLLERS = {
   ".md-code pre": ["text", "a code block"], ".md-table": ["text", "a table in a message"],
   ".md-display": ["text", "a displayed formula (KaTeX's drawing, no control)"], ".prose .md-math.is-block": ["text", "a displayed formula inside a sentence"],
   ".md-diagram": ["text", "a diagram (Mermaid's svg, strict: no links or controls)"], ".chg pre": ["text", "a change's text"],
-  ".vw-src": ["text", "a file's source"], ".vw-body": ["text", "a file's body"], ".stage .cx-pd": ["text", "a change's diff"],
+  ".vw-body": ["text", "a file's body"], ".stage .cx-pd": ["text", "a change's diff"],
   ".composer textarea.is-capped": ["text", "the message box itself"], ".shp-jb .shp-ta": ["text", "the shape's JSON field"],
   ".tb-out": ["text", "a step's output"], ":root:root .ckbar.is-open .ck-b>ol": ["text", "a phone's checklist: its steps are words"],
 };

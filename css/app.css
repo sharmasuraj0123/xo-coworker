@@ -64,11 +64,6 @@
 .vw-img.is-actual{height:auto;min-height:100%;width:max-content;min-width:100%}
 .vw-img.is-actual img{max-width:none;max-height:none;cursor:zoom-out}
 .vw-narrow{display:none}
-.vw-code{display:grid;grid-template-columns:auto minmax(0,1fr);min-height:100%;font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono)}
-.vw-code pre{margin:0;padding:var(--s-viewer-code-top) 0 var(--s-10);font:inherit;white-space:pre}
-.vw-ln{padding-left:var(--s-viewer-code-line-start)!important;padding-right:var(--s-3)!important;text-align:right;color:var(--ink-4);opacity:.7;user-select:none;-webkit-user-select:none;border-right:var(--hair) solid var(--line-faint);font-variant-numeric:tabular-nums}
-.vw-src{padding-left:var(--s-4)!important;padding-right:var(--s-5)!important;overflow-x:auto}
-.vw-src code{font:inherit;background:none;border:0;padding:0}
 .vw-cut{display:flex;align-items:center;gap:var(--gap-icon);margin:0;padding:var(--s-viewer-copy-block) var(--s-4);border-bottom:var(--hair) solid var(--line-faint);background:var(--warn-subtle);font-size:var(--fs-ui);color:var(--ink-2)}
 .vw-cut svg{flex:none;width:var(--ic-sm);height:var(--ic-sm);color:var(--warn)}
 /* Offer a full-width, read-only path when copying to the clipboard fails. */
@@ -85,7 +80,6 @@
 .vw-path code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-2)}
 .vw-path-copy svg{width:var(--ic-sm);height:var(--ic-sm)}
 :root[data-theme="light"] .viewer{background:var(--surface)}
-:root[data-theme="light"] .vw-code{background:var(--fill-1)}
 @media (max-width:760px){
   .viewer{position:fixed;inset:0;width:auto;z-index:var(--z-popover);border-radius:0;border:0}
   .viewer.is-in{animation:sheet-up var(--d-move) var(--ease) both}
@@ -115,7 +109,6 @@
 @keyframes sl-sweep{from{background-position:-100% 0}to{background-position:200% 0}}
 @media (prefers-reduced-motion:reduce){.top[data-state="busy"]::before{animation:none;background:linear-gradient(90deg,transparent,var(--info) 20%,var(--info) 80%,transparent)}}
 .md-code{background:var(--term-bg)}
-.vw-code{background:var(--term-bg)}
 .ck-n,.pn-count,.tc-st{font-family:var(--sans);font-variant-numeric:tabular-nums}
 .nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:var(--tr-20)}   /* the sidebar's, as it is */
 .settings .set-top{background:transparent}
