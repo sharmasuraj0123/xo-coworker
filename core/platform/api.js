@@ -35,6 +35,10 @@ export const chatActivityApi = {
   markSeen: (chat, signal) => request(`/chat/chats/${enc(chat)}/seen`, { method: "PUT", body: {}, signal }),
   /** @param {string | null} [chat] @param {AbortSignal} [signal] */
   worktrees: (chat, signal) => request("/chat/worktrees", { query: chat ? { chat } : undefined, signal }),
+  /** @param {string} chat @param {string} thread @param {string | null} [confirm] @param {AbortSignal} [signal] */
+  removeWorktree: (chat, thread, confirm, signal) => request(`/chat/worktrees/${enc(chat)}/${enc(thread)}`, {
+    method: "DELETE", query: confirm ? { confirm } : undefined, signal,
+  }),
 };
 
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
@@ -119,7 +123,7 @@ export const api = {
   stopRuns: (session) => send("POST", `/chat/sessions/${enc(session)}/runs/stop`),
 
   worktrees: (chat) => chatActivityApi.worktrees(chat),
-  removeWorktree: (chat, ts, confirm) => send("DELETE", `/chat/worktrees/${enc(chat)}/${enc(ts)}`, undefined, confirm ? { confirm } : undefined),
+  removeWorktree: (chat, ts, confirm) => chatActivityApi.removeWorktree(chat, ts, confirm),
 
   schedules: () => get("/schedules"),
   schedule: (id) => get(`/schedules/${enc(id)}`),

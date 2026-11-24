@@ -1,17 +1,66 @@
-export interface SettingsHost {
-  R: {
-    router: any; models: any[]; rules: any[] | null; defaults: any[]; trees: any[] | null; reported: any[];
-    err: Record<string, any>; form: string | null; confirm: any;
-  };
-  box: (id: string) => any;
-  paint: (id: string, html: string) => void;
-  focusTo: (id: string, to: string | null | undefined) => void;
-  land: (id: string, to: string | null | undefined, from: Element | null | undefined) => void;
-  pend: (key: string, page: string, render: () => void, work: () => Promise<any>, from?: Element | null) => Promise<any>;
-  neighbour: (from: Element | null, row: string, attr: string) => string | null;
-  sel: (attr: string, v: string) => string;
-  errHtml: (text: string | null | undefined) => string;
-  waits: (key: string) => string;
-  when: (iso: string) => string;
+export interface WorktreeLoss {
+  summary?: string;
+  branch?: string;
+  commits?: number;
+  changed?: { paths?: string[] } | null;
+  untracked?: { paths?: string[] } | null;
 }
-export interface PageDeps { world: any; announce: (words: string) => void; PROJ: (id: string) => string; onChange: () => void }
+
+export interface Worktree {
+  chat_id: string;
+  thread_ts: string;
+  path?: string;
+  branch?: string;
+  error?: string | null;
+  exists?: boolean;
+  xo?: boolean;
+  removable?: boolean;
+  would_lose?: WorktreeLoss | null;
+  session_state?: string;
+  thread_state?: string;
+}
+
+export interface ReportedTree {
+  path: string;
+  reported_at: string;
+}
+
+export interface WorktreesResponse {
+  worktrees?: Worktree[];
+  reported?: ReportedTree[];
+}
+
+export interface WorktreeRemoval {
+  key: string;
+  loss?: WorktreeLoss;
+  token?: string;
+}
+
+export interface WorktreesState {
+  trees: Worktree[] | null;
+  reported: ReportedTree[];
+  listError: string | null;
+  removalError: { key: string; text: string } | null;
+  confirmation: WorktreeRemoval | null;
+}
+
+export interface WorktreesHost {
+  box(id: string): Element | null;
+  paint(id: string, html: string): void;
+  focusTo(id: string, selector: string | null): void;
+  pend(key: string, page: string, render: () => void, work: () => Promise<unknown>, from?: Element | null): Promise<unknown>;
+  neighbour(from: Element | null, row: string, attr: string): string | null;
+  sel(attr: string, value: string): string;
+  errHtml(text: string): string;
+  waits(key: string): string;
+  when(iso: string): string;
+}
+
+export interface WorktreesOptions {
+  world: {
+    thread(id: string): { title?: string } | undefined;
+    act: { projectOf?: (chat: string) => string | null };
+  };
+  announce(words: string): void;
+  PROJ(id: string | null): string;
+}
