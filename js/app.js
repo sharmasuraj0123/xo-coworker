@@ -35,6 +35,7 @@ import { createConversationStops } from "../modules/conversation/stops.js";
 import { createDelivery } from "../modules/conversation/delivery.js";
 import { createComposerTarget } from "../modules/conversation/target.js";
 import { createMentionList } from "../modules/conversation/mention.js";
+import { createLiveConversation } from "../modules/conversation/live.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
@@ -1722,46 +1723,9 @@ function saveScroll() {
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
+const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ S, world, CH, convThread, chatOf });
 const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread });
 function go(v, options) { return navigate(v, options); }
-/** Has this conversation's real content arrived (timeline or thread detail)? */
-function liveReady(v) {
-  const t = convThread(v);
-  if (t) return t.loaded;
-  const h = world.state.hist[chatOf(v)];
-  return !!h && !(h.loading && !(world.state.timeline[chatOf(v)] || []).length);
-}
-/** Stream the open conversation (the Workspace on Home); poll an open thread's detail. */
-function follow() {
-  const v = S.view, t = convThread(v);
-  if (CH.isChats(v)) { world.act.watch([]); world.act.watchThread(null); world.act.watchSession?.(v.startsWith("c:") ? v.slice(2) : null); CH.open(v); return; }
-  world.act.watchSession?.(null);
-  // a thread's hops are always read: a message relayed into it shows in place (if1 #7); their lines stay by choice
-  if (t && world.act.loadHops) world.act.loadHops(t.id);
-  // a chat's hops are read on opening it too: the coordinator's "Waiting for … to reply" needs its open asks
-  // (the hop lines themselves still show only by choice)
-  if (!t) loadChatHops(v);
-  world.act.watch(v === "home" || v === "ws" ? ["workspace"] : v.startsWith("p:") ? [v.slice(2)] : t ? [t.project] : []);
-  world.act.watchThread(t ? t.id : null);
-}
-/** "Show hops" on the Workspace or a project: read that chat's own hops once. */
-function loadChatHops(v) {
-  const chat = v === "ws" || v === "home" ? "workspace" : v.startsWith("p:") ? v.slice(2) : null;
-  if (chat && world.act.loadChatHops) world.act.loadChatHops(chat);
-}
-/** An open thread's root request lives on the project timeline; page back until it's there. */
-/** An open thread's root request (on the project's timeline): looked up by id once the thread has been read
- *  back to its beginning, just below its first message. It used to page the project's own conversation back
- *  (up to 6 pages), which grew that conversation for nothing. */
-function ensureRoot(view = S.view) {
-  const t = convThread(view);
-  if (!t || !world.act.findRows) return;
-  const th = world.state.threadHist?.[t.id];
-  if (!th || !th.loaded || !th.all) return;
-  if ((world.state.timeline[t.project] || []).some((r) => r.id === t.id) || world.state.found?.[t.project]?.has(t.id)) return;
-  const first = t.messages.find((m) => m.seq != null);
-  world.act.findRows(t.project, [t.id], first ? first.seq : null);
-}
 $("#top-back").addEventListener("click", back);
 
 /** Open a decision: in a thread, its own card; elsewhere the panel. */

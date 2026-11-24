@@ -7565,20 +7565,20 @@
    "home": "shell/return-pill.js"
   },
   "js/app.js::functions::liveReady": {
-   "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3180)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::follow": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3187)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::loadChatHops": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3200)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::ensureRoot": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::back": {
    "status": "moved",
