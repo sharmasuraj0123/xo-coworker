@@ -43,8 +43,9 @@ export function createMapTree({ M, world, load, folderAt }) {
       const out = /** @type {TreeNode[]} */ ([]);
       if (d.state === "error") {
         M.refs.set(local + "/!", { retry: local, fold }); out.push({ id: local + "/!", kind: "note", name: `${d.error} · Try again`, btn: true });
-        if (!d.previous) return out;
       }
+      const current = d.state === "ok" ? d : d.previous;
+      if (!current) return out;
       const all = more.has(local);
       const seen = setOf(M.shown, scope.key);
       /** @param {TreeFile[]} list @param {number} cap */
@@ -54,7 +55,7 @@ export function createMapTree({ M, world, load, folderAt }) {
         let room = cap - must.size;
         return list.filter((x) => must.has(x.path) || (room-- > 0));
       };
-      const { dirs, files } = d.state === "ok" ? d : d.previous;
+      const { dirs, files } = current;
       const sd = pick(dirs, DIR_CAP), sf = pick(files, FILE_CAP);
       for (const x of sd) seen.add(x.path);
       for (const x of sf) seen.add(x.path);
