@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | kept | 57 |
 | split | 28 |
 
-Items inside first-party files: 2488 (moved 1608, planned 527, kept 131, deleted 128, split-region 93, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1620, planned 527, kept 198, deleted 128, split-region 14, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -21,7 +21,7 @@ Items inside first-party files: 2488 (moved 1608, planned 527, kept 131, deleted
 | `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
 | `README.md` | 192 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
 | `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
-| `index.html` | 299 | split | shell/index.html (thin frame) + module-owned markup (analysis/1-app-index.md element table) · next: the hidden layers' markup is in shell/overlays.js; comments are gone; the visible frame (sidebar, main) stays for the first paint |
+| `index.html` | 299 | split | index.html, shell/overlays.js · next: The visible frame stays in the HTML for first paint; the existing shell mount inserts hidden regions before app startup. |
 | `serve.py` | 714 | kept | serve.py |
 | `start.sh` | 29 | kept | start.sh · next: unchanged |
 
