@@ -6,6 +6,7 @@ import { dom, same } from "./lib/dom.mjs";
 import { createChats } from "../js/chats.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
+const controls = read("modules/conversation/composer-controls.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -132,7 +133,7 @@ t("the New chat picker is the shared picker's look: the chip opens it, agents as
   assert.match(read("index.html"), /<button type="button" class="target cs-perm" id="cs-perm" aria-haspopup="dialog" aria-expanded="false" aria-controls="cs-pop" hidden><\/button>/);
   assert.match(src, /import \{ EFFORT_WORD, EFFORT_HINT \} from "\.\/effort\.js";/, "one set of thinking words");
   assert.match(app, /if \(S\.view === "chats"\) \{ CH\.toggleSetup\(\$\("#iq"\), "model"\);/);
-  assert.match(app, /const html = chat \? CH\.chipHtml\(K\.view\) : IQ\.chipHtml/);
+  assert.match(controls, /const html = chat \? CH\.chipHtml\(K\.view\) : IQ\.chipHtml/);
   assert.doesNotMatch(src + css, /cs-grid|class="cs-mode|xo-select data-cs|tg-ch/, "the form of dropdowns is gone");
   assert.match(app, /const ag = e\.target\.closest\("\[data-cs-agent\]"\);/);
 });
@@ -192,12 +193,12 @@ t("an open chat has no bar: its model and mode are fixed chips in its composer, 
   assert.match(css, /@media \(min-width:761px\)\{\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \.top\{display:none\}\}/);
   assert.match(phone, /\.app:is\(\[data-conv="chats"\],\[data-conv\^="c:"\]\) \#top-who\{display:none\}/, "a phone keeps only its way back");
   assert.match(src, /const st = own \|\| setup\(\);/, "the chips read the chat's own model and mode");
-  assert.match(app, /const chat = CH\.isChats\(K\.view\) && K === MK, fixed = chat && K\.view !== "chats";/);
-  assert.match(app, /fixChip\(perm, S\.view !== "chats"\)/);
+  assert.match(controls, /const chat = CH\.isChats\(K\.view\) && K === MK, fixed = chat && K\.view !== "chats";/);
+  assert.match(controls, /fixChip\(perm, S\.view !== "chats"\)/);
   assert.match(app, /if \(CH\.isChats\(S\.view\)\) return;/, "a fixed chip opens nothing");
   assert.match(src, /return ""; \/\/ the box's own "Reply in this chat…" says it/, "an idle chat's line says nothing the box doesn't");
-  assert.match(app, /\$\("#target"\)\.hidden = !html;/);
-  assert.match(app, /if \(!CH\.isChats\(S\.view\)\) \{ \$\("#target"\)\.hidden = false; return false; \}/, "every other place keeps its line");
+  assert.match(controls, /\$\("#target"\)\.hidden = !html;/);
+  assert.match(controls, /if \(!CH\.isChats\(S\.view\)\) \{ \$\("#target"\)\.hidden = false; return false; \}/, "every other place keeps its line");
   assert.match(css, /\.is-fixed:is\(\.target,\.iq\),\.is-fixed:is\(\.target,\.iq\):is\(:hover,:active\)\{cursor:default;background:none\}/);
 });
 t("a phone's composer row never pushes Send out: the model chip gives way, Send now is a filled capsule", () => {

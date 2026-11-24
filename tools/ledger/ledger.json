@@ -7323,8 +7323,8 @@
    "home": "modules/chats/record-lines.js"
   },
   "js/app.js::functions::chipRender": {
-   "status": "planned",
-   "home": "modules/intel (`composer.tool` + `conversation.local-row`) (app.js l.2059)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::wireComposer": {
    "status": "planned",
@@ -7359,12 +7359,12 @@
    "home": "modules/conversation/running.js"
   },
   "js/app.js::functions::sendRender": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2250)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::chatTargetRender": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::targetLineRender": {
    "status": "moved",
@@ -7395,8 +7395,8 @@
    "home": "modules/conversation/drafts.js"
   },
   "js/app.js::functions::sendNowRender": {
-   "status": "planned",
-   "home": "modules/composer (+ chats provides target/send-now via places) (app.js l.2428)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::stopLive": {
    "status": "moved",

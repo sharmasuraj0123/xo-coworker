@@ -44,6 +44,7 @@ import { createConversationNavigation } from "../modules/conversation/navigation
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
 import { createConversationStarts } from "../modules/conversation/start.js";
 import { createConversationHeader } from "../modules/conversation/header.js";
+import { createComposerControls } from "../modules/conversation/composer-controls.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
@@ -996,28 +997,6 @@ const inUse = (sel) => () => { const K = composerNow(); return sel === "#send" ?
 
 // ── intelligence: the record line and the chip ─────────────────────────────
 const { recordLine, undoRecord } = createRecordLines({ S, announce, schedule, heraldShow, heraldNext, placeRegion: () => placeRegion() });
-function chipRender(fade = false, K = MK) {
-  const chip = K.iq;
-  if (!chip) return;
-  // a chat's agent, model and thinking are its own (js/chats.js), not the router's: a new chat's to choose, an open chat's fixed
-  const s = sessionOf(K.view);
-  const chat = CH.isChats(K.view) && K === MK, fixed = chat && K.view !== "chats";
-  chip.hidden = chat ? !CH.chipHtml(K.view) : CH.isChats(K.view) || !IQ.kindOf(s);
-  if (chip.hidden) return;
-  const html = chat ? CH.chipHtml(K.view) : IQ.chipHtml(s, PHONE.matches);
-  const title = chat ? CH.chipTitle(K.view) : IQ.chipTitle(s);
-  chip.title = title;
-  chip.setAttribute("aria-label", `Intelligence: ${title.replace(/ \([^)]*\)$/, "")}`);
-  chip.setAttribute("aria-controls", chat ? "cs-pop" : "iq-pop");
-  fixChip(chip, fixed);
-  chip.classList.toggle("is-pinned", !chat && IQ.current(s).pinned);
-  if (chip._h === html) return;
-  const swap = () => { redraw(chip, html); chip._h = html; }; // in place: the chip's insides stay the nodes a press is on
-  if (fade && chip._h && !RM.matches) {
-    chip.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 80, fill: "forwards" }).finished.then(() => { swap(); chip.getAnimations().forEach((a) => a.cancel()); chip.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 80 }); });
-  } else swap();
-}
-
 // ── the composer: send, or Stop while something runs ───────────────────────
 const say = $("#say"), atList = $("#at-list");
 const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
@@ -1059,6 +1038,7 @@ const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack
   filesHere, tray, dropThumb, saveDraft, updateComposer, growSay, announce, heraldShow, heraldFor, schedule, render: () => render(), go,
 });
 const { targetLineRender, syncPlaceholder } = createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, convProject, liveBlock, isBusy, sendWhileRunning, noun });
+const { chipRender, sendRender, chatTargetRender } = createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock });
 const { atRender, atClose, pickAt } = createMentionList({ MK, world, projects, projectIcon, isBusy, saveDraft, updateComposer });
 function chipHtml(c) {
   const img = c.type ? kindOf(c.type) === "image" : /^image\//.test(c.blob?.type || "");
@@ -1184,44 +1164,6 @@ function growSay(K = MK) {
   K.say.style.height = Math.min(h, 200) + "px";
   K.say.classList.toggle("is-capped", h > 200);
 }
-function sendRender(K = MK) {
-  const btn = K.send;
-  const files = filesHere(K.view);
-  const empty = !K.say.value.replace(/(^|\s)@[\w.-]+/, "").trim() && !files.count;
-  const run = empty ? running(K.view) : null;
-  const mode = run ? "stop" : "send";
-  if (btn.dataset.mode !== mode) {
-    btn.dataset.mode = mode;
-    redraw(btn, run ? STOP_ICON : ICON.send); // the icon changes in place: a press on it still clicks
-    btn.classList.toggle("is-stop", !!run);
-  }
-  btn.disabled = !run && (empty || !!liveBlock(K.view, K.say.value) || files.busy || files.failed);
-  const wait = files.busy ? "Waiting for the files to upload" : files.failed ? "A file didn't upload: retry or remove it" : "";
-  btn.setAttribute("aria-label", run ? (run.kind === "coord" ? "Stop the reply" : "Stop this run") : wait ? `Send · ${wait}` : "Send");
-  btn.title = run ? (run.kind === "coord" ? "Stop the coordinator" : "Stop the agent (it keeps what's done)") : wait || "Send (Enter)";
-}
-/** A chip that only says (an open chat's model or mode): no popup to promise, nothing to press. */
-function fixChip(el, on) {
-  el.classList.toggle("is-fixed", on);
-  if (on) { el.setAttribute("aria-disabled", "true"); el.removeAttribute("aria-haspopup"); }
-  else { el.removeAttribute("aria-disabled"); el.setAttribute("aria-haspopup", "dialog"); }
-}
-/** A chat's line above the composer and its Send now toggle, which follow the chat's own state. */
-function chatTargetRender() {
-  sendNowRender();
-  const perm = $("#cs-perm"), ph = CH.isChats(S.view) && !liveBlock() ? CH.permHtml(S.view) : "";
-  perm.hidden = !ph;
-  perm.title = CH.permTitle(S.view);
-  fixChip(perm, S.view !== "chats");
-  if (perm._h !== ph) { perm.innerHTML = ph; perm._h = ph; }
-  if (!CH.isChats(S.view)) { $("#target").hidden = false; return false; }
-  // an ended chat says so in its own words; "paused" would promise it comes back
-  const html = CH.blocked(S.view) ? CH.targetHtml(S.view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(S.view);
-  if ($("#target")._h !== html) { $("#target").innerHTML = html; $("#target")._h = html; }
-  $("#target").hidden = !html;
-  $("#target").title = S.view === "chats" ? "The folder a new chat works in" : "";
-  return true;
-}
 function updateComposer(K = MK) {
   if (!K.main) {
     trayRender(K); chipRender(false, K);
@@ -1320,13 +1262,6 @@ function aimAt(K) {
   } else { f.value = "@" + (f.value ? " " + f.value : ""); K.at._sel = 0; saveDraft(K); }
   K.at._shut = null;
   f.focus(); f.setSelectionRange(at, at); updateComposer(K);
-}
-/** "Send now": its own toggle, shown in a chat whose turn is running where the agent can be interrupted. */
-function sendNowRender() {
-  const b = $("#send-now");
-  const st = CH.isChats(S.view) && !liveBlock() ? CH.nowState(S.view) : null;
-  b.hidden = !st;
-  if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }
 }
 $("#cs-perm").addEventListener("click", () => { if (S.view !== "chats") return; CH.toggleSetup($("#cs-perm"), "mode"); updateComposer(); });
 $("#send-now").addEventListener("click", () => { CH.toggleNow(S.view); updateComposer(); say.focus(); });
