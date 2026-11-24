@@ -68,7 +68,7 @@ t("no module keeps a hand-drawn icon: every set draws from the pack", () => {
   const block = ui.slice(ui.indexOf("export const ICON = {"), ui.indexOf("\n};", ui.indexOf("export const ICON = {")));
   for (const line of block.split("\n").slice(1)) if (/^ {2}\w+:/.test(line)) assert.match(line, /: xi\("[a-z0-9-]+"/, line);
   // the stamps and the Stop come from the pack too; the undo ring (an animation) and the tab's live icon are drawn
-  assert.match(read("js/decide.js"), /const BIG_CHECK = ICON\.stampAllow;\nconst BIG_BACK = ICON\.stampBack;/);
+  assert.match(read("modules/decisions/panel-view.js"), /const BIG_CHECK = ICON\.stampAllow;\nconst BIG_BACK = ICON\.stampBack;/);
   assert.doesNotMatch(read("js/app.js"), /viewBox="0 0 52 52"/);
 });
 
