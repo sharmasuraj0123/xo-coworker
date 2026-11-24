@@ -4,9 +4,10 @@
 // concentrically: their radius is its radius less its border and padding. No browser.
 //   node tests/targets-css.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
-const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const read = (f) => (f === "app.css" ? sheet(new URL(`../css/${f}`, import.meta.url)) : readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8")).replace(/\/\*[\s\S]*?\*\//g, "");
 // the sheets in the order index.html loads them (a later one wins at equal specificity)
 const ORDER = ["app.css", "panel.css", "phone.css"];
 const tokens = Object.fromEntries([...read("../core/ui/tokens.css").matchAll(/(--[\w-]+):\s*(\d+)px/g)].map((m) => [m[1], +m[2]]));

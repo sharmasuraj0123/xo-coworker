@@ -1,5 +1,6 @@
 // A thread beside the coordinator's chat (the owner chose the proper build, 19 Nov 15:20Z): the panel's Thread page.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
@@ -116,7 +117,7 @@ assert.match(app, /render\(\); \/\/ drawn now, in the click/);
   assert.doesNotMatch(th, /tp-full/);
   assert.match(th, /redraw\(head, html\); redraw\(acts, menu\);/); }
 // at full size only the chat's own dock hides under the panel; the Thread page's reply box and decision stay
-{ const a3 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+{ const a3 = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(a3, /body\.stage-full \.dock:not\(\.stage \.dock\),body\.stage-full \.tdock:not\(\.stage \.tdock\)\{visibility:hidden\}/);
   assert.doesNotMatch(a3, /body\.stage-full \.dock,body\.stage-full \.tdock\{/, "never every dock");
   // and at full size the page reads at the chat's own column, centred (it ran edge to edge)
@@ -134,7 +135,7 @@ assert.match(app, /toggleIq\(sessionOf\(tpView\(\)\), TP\.K\.iq\)/);
 console.log("thread-page files and model: ok");
 // a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
 // 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
-{ const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8"), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+{ const a2 = sheet(new URL("../css/app.css", import.meta.url)), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-1\) var\(--hg\) var\(--s-2\);/);
   assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
@@ -158,7 +159,7 @@ console.log("thread-page files and model: ok");
 // Open in main chat, left of the state badge (the owner, 21 Nov): the header's filled control, the owner's icon from the pack;
 // the thread takes the main chat with its usual entrance and the panel's page goes back
 { const ui = readFileSync(new URL("../core/ui/icons/names.js", import.meta.url), "utf8");
-  const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  const appCss = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(ui, /toMain: xi\("open-in-main"\),/);
   assert.match(app, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
   assert.match(readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8"), /if \(!still\) el\.classList\.add\(/);

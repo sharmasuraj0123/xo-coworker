@@ -4,12 +4,13 @@
 // each kind.
 //   node tests/notice-kind.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const lp = sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n");
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const css = sheet(new URL("../css/app.css", import.meta.url));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

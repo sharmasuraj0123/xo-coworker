@@ -6,6 +6,7 @@
 // from edge to edge of the conversation, past the header's own edges.
 //   node tests/css-wellformed.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 import { cssNames } from "./lib/sources.mjs";
 
@@ -71,7 +72,7 @@ t("every selector is whole: its brackets and quotes balance, and it holds no wor
 });
 
 t("the thread's header strip has its rule: the header's edges and its rule line", () => {
-  const app = uncomment("app.css", readFileSync(new URL("app.css", DIR), "utf8"));
+  const app = sheet(new URL("app.css", DIR));
   // its padding has a step over the checklist since (var(--s-2), the owner, 19 Nov 16:19Z: 36aa0b6a); what's checked is that the
   // rule is whole and on its own, with the header's edges and its rule line
   assert.ok(/(?:^|\})\s*\.thead\{flex:none;padding:var\(--s-1\) var\(--hg\) var\(--s-2\);border-bottom:1px solid var\(--line-faint\)\}/.test(app), ".thead's rule stands on its own, after a closed rule");

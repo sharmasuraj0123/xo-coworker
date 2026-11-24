@@ -2,11 +2,13 @@
  "lines": {
   "js/app.js": 3463,
   "js/decide.js": 1101,
-  "css/app.css": 2862,
+  "css/app.css": 1377,
   "css/panel.css": 632
  },
  "important": {
-  "css/app.css": 7,
+  "css/app.css": 4,
+  "modules/decisions/decisions.css": 2,
+  "shell/dialogs.css": 1,
   "modules/artifacts/artifacts.css": 1,
   "css/docs.css": 7,
   "css/foundation.css": 12,

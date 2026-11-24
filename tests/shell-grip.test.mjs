@@ -4,6 +4,7 @@
 // composer above (18 px clear of the band's 12). A phone hides it, by design.
 //   node tests/shell-grip.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
 // the stylesheet with its size tokens read as their px (core/ui/tokens.css) and simple calc()s worked out, so a size said
@@ -11,7 +12,7 @@ import { readFileSync } from "node:fs";
 const tokens = Object.fromEntries([...readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8").matchAll(/(--[\w-]+):\s*(-?[\d.]+)px/g)].map((m) => [m[1], +m[2]]));
 const resolve = (css) => css.replace(/var\((--[\w-]+)\)/g, (m, k) => (k in tokens ? `${tokens[k]}px` : m))
   .replace(/calc\(([-\d.px\s()+*/]+)\)/g, (m, e) => { try { return `${Function(`return (${e.replace(/px/g, "")})`)()}px`; } catch { return m; } });
-const app = resolve(readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
+const app = resolve(sheet(new URL("../css/app.css", import.meta.url)));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const px = (re) => { const m = re.exec(app); assert.ok(m, String(re)); return m.slice(1).map(Number); };

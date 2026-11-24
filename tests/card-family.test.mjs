@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { sheet } from "./lib/cascade.mjs";
 
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const tokensCss = read("../core/ui/tokens.css"), phoneCss = sheet(new URL("../css/phone.css", import.meta.url)), app = read("app.css"), msgx = read("../modules/conversation/msgx.css"), shape = read("shape.css");
+const tokensCss = read("../core/ui/tokens.css"), phoneCss = sheet(new URL("../css/phone.css", import.meta.url)), app = sheet(new URL("../css/app.css", import.meta.url)), msgx = read("../modules/conversation/msgx.css"), shape = read("shape.css");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

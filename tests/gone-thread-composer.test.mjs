@@ -5,10 +5,11 @@
 // that was in it goes to Go to Home (else the conversation's region), never to the page.
 //   node tests/gone-thread-composer.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
 const src = readFileSync(new URL("../modules/conversation/target.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const css = sheet(new URL("../css/app.css", import.meta.url));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const r = readFileSync(new URL("../shell/render.js", import.meta.url), "utf8");

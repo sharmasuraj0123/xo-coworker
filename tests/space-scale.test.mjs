@@ -1,10 +1,11 @@
 // Gaps take the spacing scale (4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 48, or a 1–2 px hairline); one-line buttons and bars are --h-ctl.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 
 const dir = new URL("../css/", import.meta.url);
 const sheets = readdirSync(dir).filter((f) => f.endsWith(".css")).map((f) => [f, readFileSync(new URL(f, dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")]);
-const app = sheets.find(([f]) => f === "app.css")[1];
+const app = sheet(new URL("../css/app.css", import.meta.url));
 const SCALE = new Set([0, 1, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64]);
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

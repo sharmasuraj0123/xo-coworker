@@ -1,10 +1,11 @@
 // A message's headings are never smaller than its text: they take the message's own size and line, in bold.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { renderMarkdown } from "../js/markdown.js";
 
 const dir = new URL("../css/", import.meta.url);
-const app = readFileSync(new URL("app.css", dir), "utf8");
+const app = sheet(new URL("app.css", dir));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

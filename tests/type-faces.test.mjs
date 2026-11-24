@@ -1,9 +1,10 @@
 // The app's faces: one family token per role, each face served from fonts/ with its licence, sizes left to the type scale.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, existsSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const tokens = read("core/ui/tokens.css"), app = read("css/app.css"), html = read("index.html");
+const tokens = read("core/ui/tokens.css"), app = sheet(new URL("../css/app.css", import.meta.url)), html = read("index.html");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

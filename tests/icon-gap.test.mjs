@@ -4,10 +4,11 @@
 // itself is gone since (8525acc8, the header's Now strip goes): its chip's checks went with it.
 //   node tests/icon-gap.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const tokens = read("core/ui/tokens.css"), app = read("css/app.css"), diffs = read("css/diffs.css");
+const tokens = read("core/ui/tokens.css"), app = sheet(new URL("../css/app.css", import.meta.url)), diffs = read("css/diffs.css");
 let failed = 0;
 const t = (name, fn) => { try { fn(); console.log(`  ok  ${name}`); } catch (e) { failed++; console.log(`  FAIL ${name}\n${e.message}`); } };
 

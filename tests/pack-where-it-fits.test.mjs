@@ -1,5 +1,6 @@
 // The pack's exact icon where a word or a generic mark stood: commands, git state, Shells, panel heads, the editor's state, Launchpad.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, existsSync } from "node:fs";
 import { cmdIcon, stepIcon } from "../core/services/step-icons.js";
 import { cmdIcon as legacyCmdIcon, stepIcon as legacyStepIcon } from "../js/turnview.js";
@@ -110,8 +111,8 @@ await t("the title bar's tile centres on the title's first line, from the line h
   assert.match(f, /\.tw-ic\{width:var\(--tile-sm\);height:var\(--tile-sm\);/);
   assert.match(f, /\.top-who>\.tw-ic\{margin-block:calc\(\(var\(--lh-title\) - var\(--tile-sm\)\) \/ 2\)\}/);
   assert.match(read("shell/sidebar.css"), /\.pj-pick\{[^}]*height:var\(--h-ctl\);margin:calc\(\(var\(--lh-title\) - var\(--h-ctl\)\) \/ 2\) /);
-  assert.doesNotMatch(read("css/app.css"), /\.tw-ic\{[^}]*width:30px/);
-  assert.match(read("css/app.css"), /\.help\.gear\{padding:0;justify-content:center\}/, "the phone gear is icon-only, not squeezed by the sidebar gear's text padding");
+  assert.doesNotMatch(sheet(new URL("../css/app.css", import.meta.url)), /\.tw-ic\{[^}]*width:30px/);
+  assert.match(sheet(new URL("../css/app.css", import.meta.url)), /\.help\.gear\{padding:0;justify-content:center\}/, "the phone gear is icon-only, not squeezed by the sidebar gear's text padding");
 });
 await t("a thinking step leads with the brain, in a turn and in a sub-agent's work, and its line shows it", () => {
   assert.match(read("core/ui/icons/names.js"), /  brain: xi\("brain"\),/);
@@ -120,13 +121,13 @@ await t("a thinking step leads with the brain, in a turn and in a sub-agent's wo
 });
 await t("a running tool group leads with its running step's own icon (blue while live), never an empty arc slot", () => {
   assert.match(read("modules/conversation/blocks/turn.js"), /<span class="tb-hi">\$\{cur\.length \? xi\(stepIcon\(cur\[0\]\)\) : ICON\.list\}<\/span>/);
-  assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,[^{]*\{color:var\(--info\)\}/);
+  assert.match(sheet(new URL("../css/app.css", import.meta.url)), /\.tb\.is-live>\.tb-h \.tb-hi,[^{]*\{color:var\(--info\)\}/);
 });
 await t("the latest thinking under a closed work fold keeps its brain: no rule hides a line's icon there", () => {
-  assert.doesNotMatch(read("css/app.css"), /\.tb-work:not\(\.is-open\)>\.tb>\.tb-h \.tb-hi\{display:none\}/);
+  assert.doesNotMatch(sheet(new URL("../css/app.css", import.meta.url)), /\.tb-work:not\(\.is-open\)>\.tb>\.tb-h \.tb-hi\{display:none\}/);
 });
 await t("a step's icon is blue while it runs and grey once finished, as a line's header or as a row, opened or not", () => {
-  assert.match(read("css/app.css"), /\.tb\.is-live>\.tb-h \.tb-hi,:is\(\.tb-row,\.rt-call\)\.s-running:not\(\.is-waiting\) \.tb-ri,\.tb-spin\{color:var\(--info\)\}/);
+  assert.match(sheet(new URL("../css/app.css", import.meta.url)), /\.tb\.is-live>\.tb-h \.tb-hi,:is\(\.tb-row,\.rt-call\)\.s-running:not\(\.is-waiting\) \.tb-ri,\.tb-spin\{color:var\(--info\)\}/);
   assert.match(read("modules/conversation/msgx.css"), /:root\[data-msgx\] \.m-turn \.tb-work\.is-open \.tb-rail \.tb-hi\{display:grid\}/);
 });
 await t("a plan's line leads with the checklist, as its steps do", () => {

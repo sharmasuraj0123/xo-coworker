@@ -1,5 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 
 const dir = new URL("../css/", import.meta.url);
@@ -22,7 +23,7 @@ t("a flavour with primary ink fills its main actions with the ink, and no other 
   assert.equal((fl.match(/--pri-fill:/g) || []).length, ink.length);
 });
 t("every main action takes them: .btn-pri, .xd-btn.is-pri and the round sends; a card's Send and the picker's Done stay the ink", () => {
-  const app = css("app.css"), diffs = css("diffs.css");
+  const app = sheet(new URL("../css/app.css", import.meta.url)), diffs = css("diffs.css");
   assert.match(app, /\n\.btn-pri\{background:var\(--pri-fill\);border-color:var\(--pri-fill\);color:var\(--pri-ink\)\}/);
   assert.match(diffs, /\n\.xd-btn\.is-pri\{background:var\(--pri-fill\);border-color:var\(--pri-fill\);color:var\(--pri-ink\)\}/);
   assert.match(app, /\n\.b-go\{background:var\(--ink\);color:var\(--on-ink\);border-color:var\(--ink\)\}/);

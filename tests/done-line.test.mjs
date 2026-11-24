@@ -1,8 +1,8 @@
 // The line left after a decision ("Done. It's back at work.") is one calm row like the checklist bar: --h-ctl, tinted, no rim.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { sheet } from "./lib/cascade.mjs";
 
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const css = sheet(new URL("../css/app.css", import.meta.url));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 

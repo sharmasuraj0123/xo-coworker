@@ -1561,7 +1561,7 @@
   },
   "css/app.css": {
    "status": "split",
-   "home": ["core/ui/app-controls.css", "shell/frame.css", "modules/home/home.css", "css/app.css"],
+   "home": ["core/ui/app-controls.css", "shell/frame.css", "modules/home/home.css", "modules/home/next.css", "modules/conversation/conversation.css", "modules/conversation/composer.css", "modules/threads/intelligence.css", "modules/since/notice.css", "modules/conversation/return-pill.css", "modules/decisions/decisions.css", "modules/home/handled.css", "modules/conversation/dock.css", "shell/dialogs.css", "modules/threads/all.css", "shell/pickers.css", "modules/settings/settings.css", "shell/responsive.css", "modules/conversation/history.css", "css/app.css"],
    "note": "The compatibility entry loads the moved regions in their original order."
   },
   "css/artifacts.css": {
@@ -5993,24 +5993,20 @@
    "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "css/app.css::ids::hm-body": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/handled.css"
   },
   "css/app.css::ids::iq-pop": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/responsive.css"
   },
   "css/app.css::ids::cs-pop": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/responsive.css"
   },
   "css/app.css::ids::composer": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/history.css"
   },
   "css/app.css::ids::say": {
    "status": "split-region",

@@ -1,7 +1,8 @@
 import { test } from "node:test";
+import { sheet } from "./lib/cascade.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const css = sheet(new URL("../css/app.css", import.meta.url));
 const motion = readFileSync(new URL("../core/ui/motion.js", import.meta.url), "utf8");
 
 test("the dots share one long sequence of the loop and the row turns with them", () => {

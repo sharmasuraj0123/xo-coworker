@@ -4,9 +4,10 @@
 // page sits at the top. Measured: margin-top 0 → 184.5 px each side at 1440×900.
 //   node tests/start-centred.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("css/app.css"), rich = read("core/ui/markdown/rich.css");
+const app = sheet(new URL("../css/app.css", import.meta.url)), rich = read("core/ui/markdown/rich.css");
 assert.match(app, /\.m-start\{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;/);
 assert.match(app, /\.column:has\(\.m-start,\.m-load\),\.msgs:has\(> \.m-start,> \.m-load\)\{display:flex;flex:1 0 auto;flex-direction:column\}/);
 // a conversation on its way: the pack's spinner in the middle of that same room, only once it takes a moment

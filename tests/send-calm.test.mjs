@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
 const typing = readFileSync(new URL("../modules/conversation/typing.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const css = sheet(new URL("../css/app.css", import.meta.url));
 const { echoes } = await import("../js/timeline.js");
 assert.doesNotMatch(`${app}\n${delivery}`, /function lift\(/, "no flight from the composer's corner");
 assert.match(delivery, /else \{ render\(\); K\.conv\.follow\.toLatest\(false\); arrive\(K\.conv\.msgs\.querySelector\(`\[data-k="\$\{m\.id\}"\]`\)\); \}/);

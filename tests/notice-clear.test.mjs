@@ -9,11 +9,11 @@
 //   node tests/notice-clear.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { rules, context, decls } from "./lib/cascade.mjs";
+import { sheet, rules, context, decls } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const app = read("css/app.css"), mx = read("modules/conversation/msgx.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
+const app = sheet(new URL("../css/app.css", import.meta.url)), mx = read("modules/conversation/msgx.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
 const js = readFileSync(new URL("js/app.js", ROOT), "utf8");
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 let passed = 0;
@@ -46,11 +46,10 @@ t("census: the line is placed by the stack alone, never against one thing docked
   ], "on the bar's fade with nothing docked, --dock-gap over the composer whatever the bar's fade room; on the stack's top, --dock-gap over it, with anything docked; under the stack when the dock leads its page");
   // the line was once placed 20 px into a bar whose fade room was 30 and 22 on a phone: 10 and 8 px over the box
   // (the owner, 19 Nov). Every bar's top room is the one token the line is placed from.
-  const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
-  const bars = css("app.css").match(/\.cbar\{[^}]*padding:[^;}]+/g).map((d) => d.replace(/^.*padding:/, ""));
+  const bars = app.match(/\.cbar\{[^}]*padding:[^;}]+/g).map((d) => d.replace(/^.*padding:/, ""));
   assert.ok(bars.length >= 2, "the bar's rules: the dock's, a phone's");
   for (const p of bars) assert.ok(p === "0" || p.startsWith("var(--cbar-fade) "), `the bar's top room is --cbar-fade: ${p}`);
-  const tok = css("../core/ui/tokens.css");
+  const tok = read("core/ui/tokens.css");
   assert.match(tok, /--dock-gap:var\(--s-\d+\)/, "the gap is on the space scale");
   assert.match(tok, /--cbar-fade:\d+px/);
   assert.match(app, /\.tdock:not\(:empty\)\{margin-bottom:var\(--dock-gap\)\}/, "the decision over the box: the same gap");
