@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 import { createScope } from "../../../core/kernel/scope.js";
+import { createPlaces } from "../../../core/kernel/places.js";
 
 const { document } = await dom('<div id="tab"></div>');
 const observers = [];
@@ -22,6 +23,7 @@ const requests = [];
 const pending = deferred();
 globalThis.fetch = async (input, { signal } = {}) => {
   const url = new URL(String(input), "https://xo.test/");
+  if (url.pathname === "/api/chat/chats") return Response.json({ chats: [] });
   if (url.pathname.endsWith("/made")) return Response.json({ made: rows });
   assert.match(url.pathname, /\/image$/);
   requests.push({ path: url.searchParams.get("relative_path"), signal });
@@ -29,14 +31,26 @@ globalThis.fetch = async (input, { signal } = {}) => {
 };
 const visits = [];
 const scope = createScope();
-const record = createRecord({ scope, world, go: (view) => visits.push(view), VW: { open() {} }, PROJ: () => project.name,
-  schedule() {}, announce() {}, places: { contribute() {} } });
+const places = createPlaces();
+let rejectArtifacts = true;
+places.define({ id: "home.section", kind: "list", scope: "app", description: "Sections displayed on Home.",
+  check(entry) { if (rejectArtifacts && entry.id === "hm-made") throw new Error("record slot unavailable"); },
+});
+const options = { world, go: (view) => visits.push(view), VW: { open() {} }, PROJ: () => project.name,
+  schedule() {}, announce() {}, places };
+const failedScope = createScope();
+assert.throws(() => createRecord({ ...options, scope: failedScope }), /record slot unavailable/);
+assert.equal(places.entries("home.section").length, 0, "a failed mount removes the earlier contribution");
+assert.equal(failedScope.size, 0, "a failed mount releases its registered effects");
+rejectArtifacts = false;
+const record = createRecord({ ...options, scope });
+assert.equal(places.entries("home.section").length, 2, "the record mounts the Since and Artifacts sections");
 const host = document.getElementById("tab");
 record.panel = { isOpen: true };
 record.made.mount(host);
 record.made.show("p:demo");
 await settle();
-const [observer] = observers;
+const observer = observers.at(-1);
 assert.equal(observer.nodes.size, rows.length);
 assert.equal(requests.length, 0, "offscreen cards make no thumbnail requests");
 const card = host.querySelector('[data-k="image-49"]');
@@ -49,6 +63,7 @@ document.body.append(link);
 link.click();
 assert.deepEqual(visits, ["t:made"]);
 record.dispose();
+assert.equal(places.entries("home.section").length, 0, "disposing the record removes both Home sections");
 assert.equal(scope.size, 0);
 assert.equal(observer.nodes.size, 0);
 assert.equal(requests[0].signal.aborted, true);

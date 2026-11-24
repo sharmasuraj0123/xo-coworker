@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 
 const { document } = await dom(`<div id="tab"></div><div id="home"></div>`);
+globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
 const saved = JSON.stringify({ parts: [{ id: "hm-made", n: 3 }] });
