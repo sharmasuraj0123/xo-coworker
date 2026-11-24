@@ -1,5 +1,7 @@
 // @ts-check
 
+import { createScope } from "../../kernel/scope.js";
+
 // Whatever a script or a Tab focuses is brought wholly into sight by its nearest scroller only (scrollIntoView also moves clipped boxes and a phone's sheet).
 
 /** @typedef {{ top: number, bottom: number, left: number, right: number }} Box */
@@ -96,19 +98,31 @@ export function bringWhole(el, win = window) {
 
 /** Checks every focus but a press's own once the moment's layout has settled, and brings it into sight. */
 export function keepFocusInView(doc = document, win = window) {
+  const scope = createScope();
   /** @type {{ at: number, t: EventTarget | null } | null} */
   let press = null;
-  doc.addEventListener("pointerdown", (e) => { press = { at: win.performance.now(), t: e.target }; }, true);
-  const pressed = (/** @type {any} */ el) => !!press && win.performance.now() - press.at < 400 && !!press.t && (el === press.t || (el.contains && el.contains(press.t)));
-  doc.addEventListener("focusin", (e) => {
+  scope.listen(doc, "pointerdown", (e) => { press = { at: win.performance.now(), t: e.target }; }, true);
+  /** @param {Element} el */
+  const pressed = (el) => {
+    if (!press || win.performance.now() - press.at >= 400) return false;
+    return el === press.t || (typeof win.Node === "function" && press.t instanceof win.Node && el.contains(press.t));
+  };
+  scope.listen(doc, "focusin", (e) => {
     const el = /** @type {Element} */ (e.target);
     if (pressed(el)) return;
-    win.requestAnimationFrame(() => {
-      if (doc.activeElement !== el) return;
-      const b = bring(el, win);
-      if (!b) return;
-      b.sc.scrollTop += b.dy; b.sc.scrollLeft += b.dx;
-      el.dispatchEvent(new win.CustomEvent("focusbrought", { bubbles: true, detail: { dx: b.dx, dy: b.dy } }));
+    const done = scope.effect(() => {
+      let pending = true;
+      const frame = win.requestAnimationFrame(() => {
+        pending = false;
+        done();
+        if (doc.activeElement !== el || scope.signal.aborted) return;
+        const b = bring(el, win);
+        if (!b) return;
+        b.sc.scrollTop += b.dy; b.sc.scrollLeft += b.dx;
+        el.dispatchEvent(new win.CustomEvent("focusbrought", { bubbles: true, detail: { dx: b.dx, dy: b.dy } }));
+      });
+      return () => { if (pending) win.cancelAnimationFrame(frame); };
     });
   });
+  return scope.dispose;
 }

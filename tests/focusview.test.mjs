@@ -7,15 +7,54 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 
 // a page: body > scroller (a 600 px tall box at the top, scrolling) > the element at some top
 function standIn(top, { size = 36, scrolls = true } = {}) {
-  const raf = [], L = {}, calls = [];
-  const doc = { body: {}, documentElement: {}, addEventListener: (t, f) => (L[t] = f), activeElement: null };
+  const raf = new Map(), L = {}, calls = [];
+  let frameId = 0;
+  const doc = { body: {}, documentElement: {}, activeElement: null,
+    addEventListener: (type, fn) => { L[type] = fn; }, removeEventListener: (type) => { delete L[type]; },
+  };
   const box = { top: 0, left: 0, bottom: 600, right: 390 };
   const scroller = { parentElement: doc.body, ownerDocument: doc, scrollHeight: scrolls ? 3000 : 600, clientHeight: 600, scrollWidth: 390, clientWidth: 390, getBoundingClientRect: () => box, scrollTop: 2000, scrollLeft: 0, own: false, closest: (sel) => (sel === "[data-own-scroll]" && scroller.own ? scroller : null) };
   const el = { parentElement: scroller, ownerDocument: doc, getClientRects: () => [1], getBoundingClientRect: () => ({ top, bottom: top + size, left: 16, right: 16 + Math.max(size, 1), width: Math.max(size, 1), height: size }), dispatchEvent: (ev) => calls.push(ev.detail) };
   let now = 1000;
-  const win = { addEventListener: (t, f) => (L["win:" + t] = f), innerHeight: 844, innerWidth: 390, CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }, performance: { now: () => now }, tick: (ms) => (now += ms), requestAnimationFrame: (f) => raf.push(f), getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" } : { overflowY: "visible", overflowX: "visible", clip: n.clip || "auto" }) };
-  return { doc, win, el, scroller, calls, L, focus() { doc.activeElement = el; L.focusin({ target: el }); }, flush() { while (raf.length) raf.shift()(); } };
+  const win = { addEventListener: (t, f) => (L["win:" + t] = f), innerHeight: 844, innerWidth: 390,
+    CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } },
+    performance: { now: () => now }, tick: (ms) => (now += ms),
+    requestAnimationFrame: (fn) => { raf.set(++frameId, fn); return frameId; },
+    cancelAnimationFrame: (id) => raf.delete(id),
+    getComputedStyle: (n) => (n === scroller ? { overflowY: "auto", overflowX: "hidden" }
+      : { overflowY: "visible", overflowX: "visible", clip: n.clip || "auto" }),
+  };
+  return { doc, win, el, scroller, calls, L, raf,
+    focus() { doc.activeElement = el; L.focusin?.({ target: el }); },
+    flush() { for (const [id, fn] of raf) { raf.delete(id); fn(); } },
+  };
 }
+
+t("disposing focus tracking cancels its queued frame and removes its listeners", () => {
+  const P = standIn(-972);
+  const dispose = F.keepFocusInView(P.doc, P.win);
+  P.focus();
+  assert.equal(P.raf.size, 1);
+  dispose();
+  assert.equal(P.raf.size, 0, "the queued focus frame is cancelled");
+  assert.equal(Object.keys(P.L).length, 0, "the document listeners are removed");
+  P.focus(); P.flush();
+  assert.equal(P.scroller.scrollTop, 2000);
+  assert.deepEqual(P.calls, []);
+});
+
+t("a press on a descendant uses the focus tracker's window", () => {
+  const P = standIn(-972);
+  P.win.Node = class extends EventTarget {};
+  const child = new P.win.Node();
+  assert.ok(P.win.Node !== globalThis.Node);
+  P.el.contains = (target) => target === child;
+  const dispose = F.keepFocusInView(P.doc, P.win);
+  P.L.pointerdown({ target: child });
+  P.focus();
+  assert.equal(P.raf.size, 0, "a press on this control's child does not queue focus scrolling");
+  dispose();
+});
 
 t("a focused element wholly out of its scroller is brought in: that scroller only, the least distance", () => {
   assert.equal(typeof F.keepFocusInView, "function", "core/ui/a11y/focus.js keepFocusInView(doc, win)");
