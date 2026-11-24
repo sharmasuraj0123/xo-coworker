@@ -39,74 +39,8 @@
 @import url("../core/ui/markdown/code-surface.css");
 @import url("../core/ui/tabular-labels.css");
 @import url("../shell/rail/counts.css");
+@import url("../modules/conversation/attachments.css");
 
-/* Attachments on drafts and sent messages. */
-.attach{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:var(--r-icon-round);
-  color:var(--ink-4);
-  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.attach:hover{background:var(--hover-fill);color:var(--ink-2)}
-.attach svg{width:var(--ic);height:var(--ic)}
-.attach:not([hidden])+.target{margin-left:0}
-.att-tray{display:flex;flex-wrap:wrap;gap:var(--s-2);margin:0 0 var(--s-draft-block-end) var(--s-draft-outdent);padding:0;list-style:none}
-.att{position:relative;display:flex;align-items:center;gap:var(--s-2);min-width:0;max-width:min(100%,var(--w-draft-file));
-  height:var(--h-draft-file);padding:0 var(--s-1) 0 var(--s-2);
-  border-radius:var(--r-lg);background:var(--surface);border:var(--hair) solid var(--line);overflow:hidden;
-  animation:msg-in var(--dur-base) var(--ease)}
-.att-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);background:var(--fill-2);
-  color:var(--ink-3)}
-.att-ic svg{width:var(--ic);height:var(--ic)}
-.att-ic.is-img{padding:0;overflow:hidden;
-  background:var(--fill-2) repeating-conic-gradient(var(--checker) 0 25%,var(--fill-clear) 0 50%) 0 0/var(--tile-thumb) var(--tile-thumb)}
-.att-ic img{display:block;width:100%;height:100%;object-fit:cover}
-button.att-ic{position:relative;cursor:zoom-in}
-/* Paint hover and press tints above the image. */
-button.att-ic.is-img::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
-  background:var(--fill-clear);
-  transition:background-color var(--d-hover) var(--ease)}
-button.att-ic.is-img:hover::after{background-color:color-mix(in srgb,var(--veil) 12%,var(--fill-clear))}
-button.att-ic.is-img:active::after{background-color:color-mix(in srgb,var(--veil) 24%,var(--fill-clear));transition-duration:0s}
-.att-t{display:flex;flex-direction:column;gap:var(--s-draft-label-gap);min-width:0;flex:1}
-.att-n{font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink);white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis}
-.att-m{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.att-err{color:var(--err-ink)}
-.att-b{flex:none;display:grid;place-items:center;width:var(--h-sm);height:var(--h-sm);border-radius:var(--r-sm);color:var(--ink-4);
-  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.att-b:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-.att-b svg{width:var(--ic-sm);height:var(--ic-sm)}
-.att-tx{flex:none;height:var(--h-sm);padding:0 var(--s-2);border-radius:var(--r-sm);
-  font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);border:var(--hair) solid var(--line)}
-.att-tx:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-.att-bar{position:absolute;left:0;bottom:0;height:var(--h-upload-progress);width:calc(var(--p,0) * 100%);background:var(--accent);opacity:0;
-  transition:width var(--dur-base) linear,opacity var(--d-in)}
-.att.st-uploading .att-bar{opacity:1}
-.att.st-failed{background:color-mix(in srgb,var(--err) 6%,var(--surface))}
-.att.st-failed .att-ic{color:var(--err-ink)}
-.att-note{margin:var(--s-2) 0 0 var(--s-draft-outdent);font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4)}
-.att-note code{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-3)}
-/* a file sits in the composer's corner, --comp-in from its edge; the picture 7 px and the × 11 px inside it, so each stays concentric */
-.composer>.att-tray{order:-2;margin:calc(-1 * var(--s-1)) 0 var(--s-2) 0}
-.composer>.att-note{order:-1;margin:0 0 var(--s-draft-block-end);padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}
-.att{--nest-r:calc(var(--r-card) - var(--comp-in));--nest-in:var(--s-draft-preview-inset);
-  padding:0 var(--s-draft-file-end) 0 var(--s-draft-file-start);border-radius:var(--nest-r)}
-.att-ic{border-radius:calc(var(--nest-r) - var(--nest-in))}
-.att-b{--nest-in:var(--s-draft-remove-inset);border-radius:calc(var(--nest-r) - var(--nest-in))}
-@media (max-width:760px){
-  /* the × grows to 36 for a finger, 5 px in */
-  .att{padding-right:var(--s-1)}
-  .att-b{--nest-in:var(--s-draft-remove-phone)}
-}
-/* Center every glyph in the reply row. */
-.target>span:has(>svg){display:inline-flex;align-items:center}
-.drop-veil{position:absolute;inset:var(--s-2);z-index:calc(var(--z-panel) + 10);display:grid;place-items:center;border-radius:var(--r-2xl);
-  border:var(--stroke-drop-target) dashed var(--edge-drop-target);background:var(--fill-drop-veil);
-  backdrop-filter:blur(var(--blur-drop-veil));-webkit-backdrop-filter:blur(var(--blur-drop-veil));
-  pointer-events:none;animation:msg-in var(--d-out) var(--ease)}
-.drop-veil p{display:inline-flex;align-items:center;gap:var(--s-2);padding:var(--s-3) var(--s-drop-label-inline);
-  border-radius:var(--r-pill);background:var(--herald-bg);
-  border:var(--hair) solid var(--line-soft);font-size:var(--fs-ui);color:var(--ink)}
-.drop-veil svg{width:var(--ic-lg);height:var(--ic-lg);color:var(--accent)}
 .m-reacts{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 0}
 .m-you .m-reacts{justify-content:flex-end}
 .m-react{display:inline-flex;align-items:center;gap:2px;height:22px;padding:0 7px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-ui);line-height:1;cursor:default}
