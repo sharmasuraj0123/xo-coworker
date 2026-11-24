@@ -26,11 +26,11 @@ assert.equal(document.getElementById("all-h").textContent, "All threads · Proje
 assert.equal(document.querySelector(".ar-fold").getAttribute("aria-expanded"), "false");
 assert.equal(row.classList.contains("has-mk"), true);
 assert.ok(row.querySelector(".ar-a > .ar-mk .test-mark"));
-assert.equal(row.querySelector(".ar-tl .test-mark"), null);
+assert.ok(row.querySelector(".ar-tl .test-mark") === null, "the mark stays outside the title");
 input.value = "publish verify";
 render();
 assert.ok(document.querySelector('[data-go="t:live"]') === row);
-assert.equal(document.querySelector('[data-go="t:done"]'), null);
+assert.ok(document.querySelector('[data-go="t:done"]') === null, "the completed thread stays folded");
 S.allFilter = "waiting";
 render();
 assert.match(document.querySelector(".ar-none").textContent, /Nothing matches/);

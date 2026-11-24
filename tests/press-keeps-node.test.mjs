@@ -106,20 +106,20 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     redraw(host, `<button data-go="t:a" class="nw st-busy"><b>Alpha</b><span>1 of 4</span></button><button data-go="t:b" class="nw"><b>Beta</b></button>`);
     const a = host.querySelector('[data-go="t:a"]'), b = host.querySelector('[data-go="t:b"]'), label = a.querySelector("b");
     redraw(host, `<button data-go="t:a" class="nw st-idle"><b>Alpha</b><span>2 of 4</span></button><button data-go="t:b" class="nw st-busy"><b>Beta</b><i></i></button>`);
-    assert.equal(host.querySelector('[data-go="t:a"]'), a); assert.equal(host.querySelector('[data-go="t:b"]'), b);
-    assert.equal(a.querySelector("b"), label, "the label a press lands on");
+    assert.ok(host.querySelector('[data-go="t:a"]') === a); assert.ok(host.querySelector('[data-go="t:b"]') === b);
+    assert.ok(a.querySelector("b") === label, "the label a press lands on");
     assert.equal(a.className, "nw st-idle"); assert.equal(a.querySelector("span").textContent, "2 of 4");
   });
   await t("redraw: the node under a press is never moved when the list reorders; what's drawn moves around it", async () => {
     redraw(host, `<button data-go="t:a"><b>A</b></button><button data-go="t:b"><b>B</b></button><button data-go="t:c"><b>C</b></button>`);
     const c = host.querySelector('[data-go="t:c"] b');
     const kept = await pressAcross(c, () => {
-      assert.equal(pressedNode(), c, "the press is known");
+      assert.ok(pressedNode() === c, "the press is known");
       redraw(host, `<button data-go="t:c"><b>C</b></button><button data-go="t:a"><b>A</b></button><button data-go="t:b"><b>B</b></button>`);
     });
     assert.ok(kept, "the pressed label stayed in the page");
     assert.deepEqual([...host.children].map((x) => x.dataset.go), ["t:c", "t:a", "t:b"], "and the order is the new one");
-    assert.equal(pressedNode(), null, "a click ends the press");
+    assert.ok(pressedNode() === null, "a click ends the press");
   });
   await t("redraw: a press doesn't keep what the new HTML no longer has (the thing it stood for went)", async () => {
     redraw(host, `<button data-go="t:a">A</button><button data-go="t:b">B</button>`);
@@ -131,7 +131,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     host.innerHTML = `<header class="vw-top"><button data-vw-edit>Edit</button><span class="vw-n">a.md</span></header>`;
     const top = host.firstElementChild, edit = top.querySelector("[data-vw-edit]");
     const now = redrawNode(top, `<header class="vw-top is-upd"><button data-vw-edit>Edit</button><span class="vw-n">a.md · Updated</span></header>`);
-    assert.equal(now, top); assert.equal(top.querySelector("[data-vw-edit]"), edit);
+    assert.ok(now === top); assert.ok(top.querySelector("[data-vw-edit]") === edit);
     assert.equal(top.className, "vw-top is-upd"); assert.equal(top.querySelector(".vw-n").textContent, "a.md · Updated");
   });
 
@@ -143,7 +143,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     const el = box.firstElementChild, name = el.querySelector(".pr-n");
     const kept = await pressAcross(name, () => reconcile(box, [{ key: "x", html: row(true) }], { quiet: true }));
     assert.ok(kept, "the pressed name stayed");
-    assert.equal(box.firstElementChild, el, "the row is the same node");
+    assert.ok(box.firstElementChild === el, "the row is the same node");
     assert.ok(el.classList.contains("is-busy"), "and shows the change");
   });
 
@@ -222,10 +222,10 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     await t("Files: an agent's mark changing in a folder keeps every row above it the same node", () => {
       const before = ["a", "b", "c"].map(row);
       mark("b/x.js", true);
-      assert.deepEqual(["a", "b", "c"].map(row), before, "the top folders' rows weren't replaced");
+      assert.ok(["a", "b", "c"].every((key, index) => row(key) === before[index]), "the top folders' rows weren't replaced");
       assert.ok(row("b").querySelector(".fl-who"), "and b shows the mark");
       mark("b/x.js", false);
-      assert.deepEqual(["a", "b", "c"].map(row), before);
+      assert.ok(["a", "b", "c"].every((key, index) => row(key) === before[index]));
     });
     await t("Files: a folder pressed while marks change still opens on that press (its row stays in the page)", async () => {
       const name = row("c").querySelector(".fl-n");
@@ -235,7 +235,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.match(fh.querySelector('[data-fl-g="c"]').textContent, /Reading/);
       await answer("c", ["c/d"], ["c/z.js"]);
       const g = fh.querySelector('[data-fl-g="c"]');
-      assert.equal(row("c").nextElementSibling, g, "its group follows its row");
+      assert.ok(row("c").nextElementSibling === g, "its group follows its row");
       assert.deepEqual([...g.querySelectorAll("[data-fl-dir],[data-fl-file]")].map((x) => x.dataset.flDir || x.dataset.flFile), ["c/d", "c/z.js"]);
     });
     await t("Files: an open folder's group survives its parent's rows redrawing (a mark ripples up)", async () => {
@@ -243,9 +243,9 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       await answer("c/d", [], ["c/d/e.md"]);
       const g = fh.querySelector('[data-fl-g="c/d"]'), file = g.querySelector('[data-fl-file="c/d/e.md"]');
       mark("c/d/e.md", true);
-      assert.equal(fh.querySelector('[data-fl-g="c/d"]'), g, "the same group");
-      assert.equal(g.querySelector('[data-fl-file="c/d/e.md"]'), file, "the same row");
-      assert.equal(row("c/d").nextElementSibling, g);
+      assert.ok(fh.querySelector('[data-fl-g="c/d"]') === g, "the same group");
+      assert.ok(g.querySelector('[data-fl-file="c/d/e.md"]') === file, "the same row");
+      assert.ok(row("c/d").nextElementSibling === g);
       assert.ok(row("c").querySelector(".fl-who") && row("c/d").querySelector(".fl-who"), "the mark shows on each folder above");
     });
     await t("Files: closing and opening again puts the folder's group back after its row, once", () => {
@@ -253,7 +253,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.equal(fh.querySelectorAll('[data-fl-g="c"]').length, 0, "closed: its group left the page");
       row("c").querySelector(".fl-n").dispatchEvent(new window.Event("click", { bubbles: true }));
       assert.equal(fh.querySelectorAll('[data-fl-g="c"]').length, 1);
-      assert.equal(row("c").nextElementSibling, fh.querySelector('[data-fl-g="c"]'));
+      assert.ok(row("c").nextElementSibling === fh.querySelector('[data-fl-g="c"]'));
     });
     // the owner, 19 Nov: a folder stuck on "Reading…" until clicked again. A file opened from elsewhere (Changed, a chip)
     // opens every folder down to it and reads them one after another; the app renders between the reads, and each render

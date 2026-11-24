@@ -40,7 +40,7 @@ t("a row: the agent's mark, its state as a badge on it (none when idle), the tit
   assert.equal(group.querySelector(".chl-h").id, group.getAttribute("aria-labelledby"));
   const idle = box.querySelector('[data-go="c:idle"]');
   assert.ok(idle.querySelector(".chl-tile .agm-openai"));
-  assert.equal(idle.querySelector(".chl-tile [data-xi]"), null);
+  assert.ok(idle.querySelector(".chl-tile [data-xi]") === null, "idle tiles have no icon badge");
   assert.equal(idle.querySelector(".chl-t").textContent, "A chat in your projects folder");
   assert.equal(idle.querySelector(".chl-a").textContent, rowTime(plain.created_at));
   assert.ok(box.querySelector('[data-go="c:waiting"] .chl-tile [data-xi="state-needs-you"]'));

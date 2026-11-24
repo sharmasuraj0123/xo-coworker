@@ -67,11 +67,11 @@ assert.equal(control.getAttribute("aria-label"), "4 threads, 1 needs you. Open t
 assert.equal(control.querySelector(".th-w")?.textContent, "Threads");
 assert.equal(control.querySelector(".th-n")?.textContent, "4");
 assert.equal(control.querySelector(".is-need .pj-k")?.textContent, "1");
-assert.equal(control.querySelector(".is-work"), null);
+assert.ok(control.querySelector(".is-work") === null, "no working marker");
 const running = threadCounts("p", []);
 document.querySelector("header").innerHTML = threadsCtl(running.all, running);
 assert.equal(document.querySelector(".is-work .pj-k")?.textContent, "1");
-assert.equal(document.querySelector(".is-need"), null);
+assert.ok(document.querySelector(".is-need") === null, "no needs-you marker");
 assert.equal(threadsCtl(0, running), "", "a project without threads has no control");
 const shellHeader = readFileSync(new URL("../shell/header.js", import.meta.url), "utf8");
 assert.match(shellHeader, /\(pv \? S\.hdrCtl \+ headerActionsHtml\(kernel\.places, atOf\(v\)\) \+ LP\.button\(v, LW\.isOpen\) : ""\) \+ STAGE\.button\(v\)/, "before Deploy and the panel's toggle");

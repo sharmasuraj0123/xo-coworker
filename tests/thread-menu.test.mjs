@@ -41,7 +41,7 @@ assert.equal(main.querySelector("[data-tcopy]")?.getAttribute("data-tcopy"), "br
 assert.equal(main.querySelector("[data-chat-stop]")?.textContent, "Stop");
 assert.equal(main.querySelector("[data-tdel]")?.getAttribute("data-tdel"), "earlier");
 assert.equal(main.querySelector("[data-tmove]")?.getAttribute("data-tmove"), "earlier");
-assert.equal(page.querySelector("[data-tcopy], [data-chat-stop], [data-tdel], [data-tmove]"), null);
+assert.ok(page.querySelector("[data-tcopy], [data-chat-stop], [data-tdel], [data-tmove]") === null, "main-only actions stay out of the panel");
 assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no key glyphs in it");
 
 // Delete: Space says per thread; asked in place, Keep it first; undo
