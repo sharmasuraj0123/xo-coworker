@@ -5,6 +5,7 @@
 import { gitState } from "../../core/services/git-state.js";
 import { DAY_MS, formatDate, startOfDay } from "../../core/platform/time.js";
 import { count, plural } from "../../core/platform/words.js";
+import { read, write } from "../../core/platform/storage.js";
 
 /** @import {Thread, CatchUpOptions, CatchUpItem} from "./model-types" */
 
@@ -101,17 +102,19 @@ export function sinceWord(since, now = Date.now()) {
   return formatDate(d, days < 7 ? "fullWeekday" : "monthDay");
 }
 
-/** When you last looked, per place ("home", "p:<project>"), kept in a store with get/set (localStorage). @param {Pick<Storage, "getItem" | "setItem">} store @param {string} [key] */
+/** @param {Pick<Storage, "getItem" | "setItem">} store @param {string} [key] */
 export function createSeen(store, key = "xo-seen") {
-  const read = () => { try { return JSON.parse(store.getItem(key) || "{}") || {}; } catch { return {}; } };
-  let all = read();
+  /** @param {string} raw @returns {Record<string, number>} */
+  const parse = (raw) => JSON.parse(raw) || {};
+  let all = read(key, parse, {}, store), pending = {};
   return {
     /** @param {string} place @returns {number | null} */
     get: (place) => all[place] ?? null,
     /** @param {string} place @param {number} [at] */
     mark(place, at = Date.now()) {
-      all = { ...read(), [place]: at };
-      try { store.setItem(key, JSON.stringify(all)); } catch { return; }
+      pending = { ...pending, [place]: at };
+      all = { ...read(key, parse, all, store), ...pending };
+      if (write(key, JSON.stringify(all), store).kept) pending = {};
     },
   };
 }

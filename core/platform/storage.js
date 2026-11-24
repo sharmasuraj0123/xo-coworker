@@ -1,11 +1,11 @@
 // @ts-check
 
-/** @typedef {"local" | "session"} StorageKind */
+/** @typedef {"local" | "session" | Pick<Storage, "getItem" | "setItem">} StorageAccess */
 
-/** @param {StorageKind} kind */
-const backend = (kind) => kind === "session" ? globalThis.sessionStorage : globalThis.localStorage;
+/** @param {StorageAccess} kind */
+const backend = (kind) => kind === "session" ? globalThis.sessionStorage : kind === "local" ? globalThis.localStorage : kind;
 
-/** @template T @param {string} key @param {(raw: string) => T} parse @param {T} fallback @param {StorageKind} [kind] */
+/** @template T @param {string} key @param {(raw: string) => T} parse @param {T} fallback @param {StorageAccess} [kind] */
 export function read(key, parse, fallback, kind = "local") {
   try {
     const raw = backend(kind)?.getItem(key);
@@ -15,7 +15,7 @@ export function read(key, parse, fallback, kind = "local") {
   }
 }
 
-/** @param {string} key @param {string} value @param {StorageKind} [kind] */
+/** @param {string} key @param {string} value @param {StorageAccess} [kind] */
 export function write(key, value, kind = "local") {
   try {
     const store = backend(kind);
