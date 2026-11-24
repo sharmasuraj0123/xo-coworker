@@ -1,6 +1,7 @@
 // @ts-check
 
 import { ICON } from "./icons/names.js";
+import { canvasColor } from "./flavours.js";
 import { redraw } from "./redraw.js";
 import { createThemePreference } from "./theme-preference.js";
 
@@ -19,8 +20,7 @@ export function createTheme(setDiffTheme) {
     if (f === "stone") delete document.documentElement.dataset.flavour; else document.documentElement.dataset.flavour = f;
     setDiffTheme(t);
     document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
-    const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
-    if (canvas) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvas);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvasColor(t, f));
     const b = document.getElementById("theme");
     if (b) {
       b.setAttribute("aria-checked", String(t === "light")); b.title = t === "light" ? "Light mode is on. Switch to dark" : "Switch to light mode";

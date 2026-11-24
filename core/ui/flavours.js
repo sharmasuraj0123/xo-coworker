@@ -19,3 +19,28 @@ export const FLAVOURS = [
   { id: "midnight", name: "Midnight", hue: 245, chroma: 0.045, lift: -0.03, ink: 0.3, light: { hue: 245, chroma: 0.008 }, primary: "ink" },
   { id: "cinder", name: "Cinder", hue: 330, chroma: 0.008, lift: 0.07, ink: 0.5, light: { hue: 60, chroma: 0.008 } },
 ];
+
+/** @param {"light" | "dark"} theme @param {string} flavour */
+export function canvasColor(theme, flavour) {
+  return (CANVAS_COLORS.get(flavour) ?? STONE_CANVAS)[theme];
+}
+// Generated canvas colours begin.
+const STONE_CANVAS = { dark: "#141414", light: "#FAFAFA" };
+const CANVAS_COLORS = new Map([
+  ["stone", STONE_CANVAS],
+  ["sand", { dark: "#17130E", light: "#FFF9F2" }],
+  ["slate", { dark: "#0F141B", light: "#F7FAFF" }],
+  ["dusk", { dark: "#121417", light: "#F8FAFF" }],
+  ["harbor", { dark: "#19232C", light: "#F6FBFF" }],
+  ["plum", { dark: "#1C1923", light: "#FBF9FF" }],
+  ["onyx", { dark: "#050505", light: "#FAFAFA" }],
+  ["tide", { dark: "#001F28", light: "#FFFAEC" }],
+  ["ember", { dark: "#271D14", light: "#FFF7E4" }],
+  ["rose", { dark: "#191625", light: "#FFF5EE" }],
+  ["moss", { dark: "#1B2727", light: "#FFFAE8" }],
+  ["washi", { dark: "#181820", light: "#FDF9DE" }],
+  ["deep", { dark: "#040A12", light: "#FCFAF6" }],
+  ["midnight", { dark: "#000F1E", light: "#F6FBFF" }],
+  ["cinder", { dark: "#272326", light: "#FEF9F5" }],
+]);
+// Generated canvas colours end.
