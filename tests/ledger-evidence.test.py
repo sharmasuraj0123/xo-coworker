@@ -1,4 +1,3 @@
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -8,6 +7,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "ledger"))
 from homes import Homes
+from git_environment import run_git
 
 
 class TransferEvidence(unittest.TestCase):
@@ -25,7 +25,7 @@ class TransferEvidence(unittest.TestCase):
         self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture")
 
     def git(self, *args):
-        return subprocess.run(["git", *args], cwd=self.root, capture_output=True, check=True, text=True).stdout.strip()
+        return run_git(args, cwd=self.root, capture_output=True, check=True, text=True).stdout.strip()
 
     def write(self, name, text):
         (self.root / name).write_text(text, encoding="utf-8")

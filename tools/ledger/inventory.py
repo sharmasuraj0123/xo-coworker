@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Inventories every tracked file at a commit, and the items inside first-party files."""
-import json, os, re, subprocess, sys
+import json, os, re, sys
 from collections import defaultdict
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scan import js_items, css_items, html_items, LEDGER_KINDS
+from git_environment import run_git
 
 repo, commit, out = sys.argv[1], sys.argv[2], Path(sys.argv[3])
 out.mkdir(parents=True, exist_ok=True)
 
 def git(*a):
-    return subprocess.run(["git", "-C", repo, *a], check=True, capture_output=True).stdout
+    return run_git(a, cwd=repo, check=True, capture_output=True).stdout
 
 files = git("ls-tree", "-r", "-l", commit).decode().splitlines()
 entries = []

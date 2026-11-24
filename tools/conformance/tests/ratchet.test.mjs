@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { runGit } from "../../git-environment.mjs";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -204,7 +205,7 @@ test("a successful ratchet update only lowers allowances and a failed update is 
 test("the package base includes committed, staged, unstaged and untracked paths", (context) => {
   const root = fixture(context, { [FILE]: HEADER + "mount();" });
   const git = (...args) => {
-    const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+    const result = runGit(args, { cwd: root, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.trim();
   };
@@ -226,7 +227,7 @@ test("published baseline allowances cannot be raised in a package commit", (cont
   const files = Object.fromEntries(Object.keys(EMPTY).map((name) => [`baselines/${name}.json`, "{}\n"]));
   const root = fixture(context, files);
   const git = (...args) => {
-    const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+    const result = runGit(args, { cwd: root, encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.trim();
   };

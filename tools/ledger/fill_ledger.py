@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fills tools/ledger/ledger.json with each file's planned home; refuses once anything has moved."""
-import json, re, subprocess, sys
+import json, re, sys
+from git_environment import run_git
 from pathlib import Path
 
 D = Path(sys.argv[1]); A = Path(sys.argv[2])
@@ -119,7 +120,7 @@ def regions(md, start_pat, sep):
             if on and row.startswith("####") and out: break
     return out
 APP = regions("1-app-index.md", r"2\.6 REGION MAP", "|")
-def git_show(p): return subprocess.run(["git", "show", f"{commit}:{p}"], capture_output=True, text=True).stdout.splitlines()
+def git_show(p): return run_git(["show", f"{commit}:{p}"], capture_output=True, text=True).stdout.splitlines()
 app_lines = git_show("js/app.js")
 def app_home(token):
     for i, ln in enumerate(app_lines, 1):

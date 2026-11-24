@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Checks coverage of the base commit and verifies every settled destination."""
-import json, os, subprocess, sys
+import json, os, sys
+from git_environment import run_git
 from homes import Homes
 def opt(name, default):
     return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
@@ -9,8 +10,8 @@ ledger_path = opt("--ledger", os.path.join(repo, "tools/ledger/ledger.json"))
 inv_path = opt("--inventory", os.path.join(repo, "tools/ledger/inventory.json"))
 L = json.load(open(ledger_path))
 commit = L["commit"]
-tracked = set(subprocess.run(["git", "-C", repo, "ls-tree", "-r", "--name-only", commit],
-                             check=True, capture_output=True, text=True).stdout.splitlines())
+tracked = set(run_git(["ls-tree", "-r", "--name-only", commit], cwd=repo,
+                      check=True, capture_output=True, text=True).stdout.splitlines())
 errors = []
 for p in sorted(tracked - set(L["files"])): errors.append(f"not in ledger: {p}")
 for p in sorted(set(L["files"]) - tracked): errors.append(f"ledger names an untracked file: {p}")

@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSy
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkConformance } from "./conformance/ratchet.mjs";
+import { runGit } from "./git-environment.mjs";
 import { parseArgs } from "node:util";
 
 const { values: flags } = parseArgs({ options: {
@@ -23,10 +24,10 @@ const bin = (name) => join(ROOT, "node_modules/.bin", name);
 
 const upstreamSame = (() => {
   if (!UPSTREAM) return () => false;
-  const r = run("git", ["diff", "--name-only", UPSTREAM, "--"]);
+  const r = runGit(["diff", "--name-only", UPSTREAM, "--"], { cwd: ROOT, encoding: "utf8" });
   if (r.status !== 0) throw new Error(`--accept-upstream: unknown ref ${UPSTREAM}`);
   const ours = new Set(r.stdout.split("\n").filter(Boolean));
-  const theirs = new Set(run("git", ["ls-tree", "-r", "--name-only", UPSTREAM]).stdout.split("\n"));
+  const theirs = new Set(runGit(["ls-tree", "-r", "--name-only", UPSTREAM], { cwd: ROOT, encoding: "utf8" }).stdout.split("\n"));
   return (/** @type {string} */ f) => theirs.has(f) && !ours.has(f);
 })();
 

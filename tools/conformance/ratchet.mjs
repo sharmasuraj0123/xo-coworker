@@ -1,6 +1,6 @@
 // @ts-check
 
-import { spawnSync } from "node:child_process";
+import { runGit } from "../git-environment.mjs";
 import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { family, inventory } from "./inventory.mjs";
@@ -53,7 +53,7 @@ export function compare(findings, baselines, touched) {
 
 /** @param {string} root @param {string[]} args */
 function gitAt(root, args) {
-  return spawnSync("git", args, { cwd: root, encoding: "utf8" });
+  return runGit(args, { cwd: root, encoding: "utf8" });
 }
 
 /** @param {string} root @param {string | undefined} base */

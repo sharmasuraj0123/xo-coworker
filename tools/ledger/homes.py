@@ -5,6 +5,7 @@ from functools import cache
 from pathlib import Path
 
 from scan import items_of
+from git_environment import run_git
 
 
 SPACE = re.compile(rb"\s+")
@@ -62,8 +63,8 @@ class Homes:
 
     @cache
     def original(self, source):
-        return subprocess.run(
-            ["git", "-C", self.root, "show", f"{self.commit}:{source}"],
+        return run_git(
+            ["show", f"{self.commit}:{source}"], cwd=self.root,
             check=True, capture_output=True,
         ).stdout
 
