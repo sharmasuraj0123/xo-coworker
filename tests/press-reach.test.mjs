@@ -114,7 +114,7 @@ const custom = {
   ".theme": () => track("active", 28),
   ".switch": () => track("active", 28),
   ".tw-act.lp-btn": () => activeFill(".tw-act.lp-btn", "background", "var(--ok-fill-press)"),
-  ".lk:not(.lk-in)": () => has(".lk-out:active", "opacity", ".7"),
+  ".lk:not(.lk-in)": () => declarationsFor(".lk-out:active", "opacity").some(({ value }) => resolveValue(value) === ".7"),
   ":is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all)": () =>
     activeFill(":is(.vw-cut-dl,.wsh-home,.cp-link,.fl-link,.lp-ln,.shl-all)", "opacity", ".7"),
   ".prow": () => has(":root:root .side :is(.nrow,.prow):active", "background-image", pressGradient + ",linear-gradient(var(--hover-fill)")

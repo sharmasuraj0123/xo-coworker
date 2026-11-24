@@ -1,47 +1,75 @@
-// The app's faces: one family token per role, each face served from fonts/ with its licence, sizes left to the type scale.
+// @ts-check
+
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
+import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+import { ORIGIN, sourcePath } from "../tools/conformance/css-publication.mjs";
+import { appDocument } from "../tools/conformance/templates.mjs";
+import { declarationsFor, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const tokens = read("core/ui/tokens.css"), app = sheet(new URL("../css/app.css", import.meta.url)), html = read("index.html");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+const root = new URL("../", import.meta.url);
+const tokens = tokenValuesFor();
 
-t("three family tokens: the interface (Geist), what is read, code", () => {
-  assert.match(tokens, /\n  --sans:"Geist",system-ui,/);
-  assert.match(tokens, /\n  --sans-read:"DM Sans",system-ui,/);
-  assert.match(tokens, /\n  --mono:"JetBrains Mono",ui-monospace,/);
+test("the interface, reading and code have their own font families", () => {
+  assert.match(tokens.get("--sans"), /^"Geist",system-ui,/);
+  assert.match(tokens.get("--sans-read"), /^"DM Sans",system-ui,/);
+  assert.match(tokens.get("--mono"), /^"JetBrains Mono",ui-monospace,/);
 });
-t("every face is local, swaps in, and its file and licence are in fonts/", () => {
-  const faces = [...tokens.matchAll(/@font-face\{([^}]*)\}/g)].map((m) => m[1]);
-  assert.equal(faces.length, 9);
-  for (const f of faces) {
-    assert.match(f, /font-display:swap/);
-    const src = f.match(/src:url\("([^"]+\.woff2)"\)/)?.[1];
-    assert.ok(src, f);
-    const url = new URL(src, new URL("../core/ui/tokens.css", import.meta.url));
-    assert.ok(url.pathname.includes("/fonts/") && existsSync(url), src);
-    assert.ok(["OFL.txt", "LICENSE.txt"].some((l) => existsSync(new URL(l, url))), src);
+
+test("each published font swaps in from a local file with its licence", () => {
+  const faces = new Map();
+  for (const { context, property, value } of stylesheetRows) {
+    const scope = context.at(-1);
+    if (scope?.at !== "font-face") continue;
+    if (!faces.has(scope)) faces.set(scope, new Map());
+    faces.get(scope).set(property, value);
   }
-  assert.doesNotMatch(tokens + app + html, /fonts\.(googleapis|gstatic)|@import url\("https?:/);
+  assert.equal(faces.size, 9);
+  for (const face of faces.values()) {
+    assert.equal(face.get("font-display"), "swap");
+    const src = /^url\("([^"]+\.woff2)"\)/.exec(face.get("src"))?.[1];
+    assert.ok(src);
+    const published = new URL(src, ORIGIN);
+    assert.equal(published.origin, ORIGIN);
+    const path = sourcePath(published);
+    assert.ok(path.startsWith("/fonts/"), path);
+    const local = new URL(path.slice(1), root);
+    assert.ok(existsSync(local), path);
+    assert.ok(["OFL.txt", "LICENSE.txt"].some((name) => existsSync(new URL(name, local))), path);
+  }
 });
-t("one face is preloaded: the body's, and it exists", () => {
-  const pre = [...html.matchAll(/<link rel="preload" href="\.\/(fonts\/[^"]+)" as="font"/g)].map((m) => m[1]);
-  assert.deepEqual(pre, ["fonts/geist/Geist-Variable.woff2"]);
-  assert.ok(existsSync(new URL(`../${pre[0]}`, import.meta.url)));
+
+test("the body font is the only preload", () => {
+  const document = appDocument(fileURLToPath(root));
+  const preloads = [...document.querySelectorAll('link[rel~="preload"][as="font"]')];
+  assert.deepEqual(preloads.map((link) => link.getAttribute("href")), ["./fonts/geist/Geist-Variable.woff2"]);
+  assert.ok(existsSync(new URL(preloads[0].getAttribute("href"), root)));
+  assert.ok([...document.querySelectorAll("link[href]")].every((link) =>
+    !/^fonts\.(?:googleapis|gstatic)\.com$/i.test(new URL(link.href, ORIGIN).hostname)));
 });
-t("what is read takes the reading face and its metrics, a message's headings too", () => {
-  const sw = "font-family:var(--sans-read);--cap-mid:var(--cap-mid-read);--asc:var(--asc-read);--desc:var(--desc-read);";
-  assert.match(app, /\n\.composer textarea\{[^}]*font-family:var\(--sans-read\);/);
-  for (const sel of ["\\.bubble\\{", "\\.prose\\{max-width:none;"]) assert.match(app, new RegExp("\\n" + sel + "[^}]*" + sw.replace(/[()]/g, "\\$&")), sel);
-  assert.doesNotMatch(app, /\.md-h\{[^}]*font-family/);
+
+test("the reading face provides the metrics for the composer, bubbles and message headings", () => {
+  assert.ok(declarationsFor(".composer textarea", "font-family").some(({ value }) => value === "var(--sans-read)"));
+  for (const selector of [".bubble", ".prose"]) {
+    const declarations = new Map(declarationsFor(selector).map(({ property, value }) => [property, value]));
+    assert.equal(declarations.get("font-family"), "var(--sans-read)", selector);
+    for (const property of ["--cap-mid", "--asc", "--desc"]) {
+      assert.equal(declarations.get(property), `var(${property}-read)`, `${selector} ${property}`);
+    }
+  }
+  assert.equal(declarationsFor(".md-h", "font-family").length, 0);
 });
-t("the type scale is untouched: sizes and line heights", () => {
-  assert.match(tokens, /--fs-meta:12px; --fs-ui:14px; --fs-code:14px; --fs-read:16px; --fs-title:16px; --fs-input:16px; --fs-heading:20px; --fs-display:28px; --fs-hero:40px;/);
-  assert.match(tokens, /--lh-meta:16px; --lh-ui:20px; --lh-read:24px; --lh-title:24px; --lh-heading:28px; --lh-display:36px; --lh-hero:44px;/);
+
+test("the shared type scale retains the reading and interface steps", () => {
+  const scale = (prefix, steps) => steps.map((name) => tokens.get(`--${prefix}-${name}`));
+  assert.deepEqual(scale("fs", ["meta", "ui", "code", "read", "title", "input", "heading", "display", "hero"]),
+    ["12px", "14px", "14px", "16px", "16px", "16px", "20px", "28px", "40px"]);
+  assert.deepEqual(scale("lh", ["meta", "ui", "read", "title", "heading", "display", "hero"]),
+    ["16px", "20px", "24px", "24px", "28px", "36px", "44px"]);
 });
-t("a link capsule is sized from the face it sits in", () => {
-  assert.match(read("css/links.css"), /padding:calc\(var\(--cap-mid\) \+ \.735em - var\(--asc\)\) \.6em calc\(\.735em - var\(--cap-mid\) - var\(--desc\)\) \.38em;/);
+
+test("a link capsule fits the font metrics it inherits", () => {
+  const padding = "calc(var(--cap-mid) + .735em - var(--asc)) .6em calc(.735em - var(--cap-mid) - var(--desc)) .38em";
+  assert.ok(valuesFor(".lk-in", "padding").includes(padding));
 });
-console.log(`\n${passed} passed`);

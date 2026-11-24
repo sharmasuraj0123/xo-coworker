@@ -160,12 +160,19 @@
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
   /* Shared gap between an icon and its label. */
   --gap-icon:var(--s-2);
-  --hair:1px; --scrollbar-track:transparent; --measure-turn:66ch;
+  --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch;
   --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
   --s-tool-file-end:14px; --s-tool-file-start:10px; --s-tool-separator-gap:7px; --s-tool-rail-inset:23px;
   --w-tool-count:20px; --h-tool-count:18px; --h-tool-output:240px; --h-tool-status:28px;
   --ic-activity:10px; --ic-tool-file:26px; --w-tool-file-label:260px; --s-tool-icon-inset:1px;
   --h-thread-label:22px; --s-thread-label-inline:9px; --w-thread-label:180px;
+  --palette-transparent:transparent; --fill-link-base:var(--palette-transparent);
+  --mix-link-fill:7%; --mix-link-hover:14%; --mix-link-press:18%; --mix-link-quiet:5%; --mix-link-underline:55%;
+  --s-lk-b:.735em; --s-lk-start:.38em; --s-lk-end:.6em; --s-link-icon-gap:.2em;
+  --s-link-file-start:.4167em; --s-link-file-gap:.3167em; --s-link-arrow-gap:.14em;
+  --ic-link:1em; --ic-link-thread:.86em; --ic-link-arrow:.62em; --offset-link-icon-half:.5em; --offset-link-arrow-half:.31em;
+  --offset-link-arrow-run:1.5px; --offset-link-arrow-rise:-1.5px; --offset-link-underline:3px; --opacity-link-press:.7;
+  --stroke-focus:2px; --offset-link-focus-in:1px; --offset-link-focus-out:2px; --r-link-focus:3px; --size-inline-link-code:.9em;
   /* The dock gap spaces the composer and notices, and the fade provides room above them. */
   --dock-gap:var(--s-3); --cbar-fade:30px;
   --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */

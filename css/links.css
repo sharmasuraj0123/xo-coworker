@@ -1,83 +1,67 @@
-/* Links in messages say where they go by their shape, not by words (js/markdown.js).
-
-   Inside Coworker: a token. A soft capsule, the way Mail and Messages draw a person
-   you've addressed: a thing that lives here, led by its own glyph (a thread's live state,
-   a file's icon from js/fileicons.js). No underline, so it never reads as "a web page".
-   It opens in place.
-
-   Outside: text. Underlined like the web, with a small ↗ after it, the arrow Apple's
-   pages use for a link that leaves the site. It opens a new tab.
-
-   The capsule is drawn with the text's own colour mixed in, so it sits right on any
-   surface in either theme. Loaded after panel.css; nothing else depends on it. */
+/* Internal links use a capsule. External links use an underline and an arrow. */
 
 .lk-in{
   display:inline;
-  padding:calc(var(--cap-mid) + .735em - var(--asc)) .6em calc(.735em - var(--cap-mid) - var(--desc)) .38em;
-  /* a true capsule (round ends), filled, with no ring: a thing that lives here, the way Mail and
-     Messages draw someone you've addressed. The glyph sits as far from the left end as the words
-     from the right (.38 + .2 ≈ .6em). */
+  padding:
+  calc(var(--cap-mid) + var(--s-lk-b) - var(--asc)) var(--s-lk-end) calc(var(--s-lk-b) - var(--cap-mid) - var(--desc)) var(--s-lk-start);
   border-radius:var(--r-pill);
   font-weight:var(--fw-medium);
   color:var(--ink);
   text-decoration:none;
   white-space:nowrap;
-  background:color-mix(in srgb,var(--ink) 7%,transparent);
+  background:color-mix(in srgb,var(--ink) var(--mix-link-fill),var(--fill-link-base));
   -webkit-box-decoration-break:clone;box-decoration-break:clone;
   cursor:pointer;
   transition:background-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease);
 }
 /* a long title may wrap between words; each line keeps a whole capsule */
 .lk-in.is-long{white-space:normal;overflow-wrap:break-word}
-/* a short one is kept whole by an atomic box around it (js/markdown.js fit): the box is as wide as the
-   capsule on one line and moves to the next line whole, but never wider than the line itself; when the
-   capsule is wider than that (a 390 px bubble), it wraps between words inside the box, each line a
-   whole capsule, and a word longer than the line (a file's name) breaks rather than spill out. */
+/* Keep a short capsule intact until it needs more than a full line. */
 .lk-fit{display:inline-block;max-width:100%;vertical-align:baseline;text-indent:0}
 .lk-fit>.lk-in{white-space:normal;overflow-wrap:break-word}
 /* hover is one step deeper (≥ 1.15:1 against rest in both themes), press one more; nothing moves */
-.lk-in:hover{background:color-mix(in srgb,var(--ink) 14%,transparent)}
-.lk-in:active{background:color-mix(in srgb,var(--ink) 18%,transparent)}
-.lk-in:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.lk-in:hover{background:color-mix(in srgb,var(--ink) var(--mix-link-hover),var(--fill-link-base))}
+.lk-in:active{background:color-mix(in srgb,var(--ink) var(--mix-link-press),var(--fill-link-base))}
+.lk-in:focus-visible{outline:var(--stroke-focus) solid var(--focus);outline-offset:var(--offset-link-focus-in)}
 
-/* the glyph's 1em box: an empty inline-block sits on the baseline, so lowering it by half its height less --cap-mid
-   puts its middle on the middle of the capitals (the one rule for an icon beside words, tokens.css). */
-.lk-ic{position:relative;display:inline-block;width:1em;height:1em;margin-right:.2em;vertical-align:calc(var(--cap-mid) - .5em);color:var(--ink-3)}
+/* Center the glyph on the capitals of the inherited font. */
+.lk-ic{
+  position:relative;display:inline-block;width:var(--ic-link);height:var(--ic-link);margin-right:var(--s-link-icon-gap);
+  vertical-align:calc(var(--cap-mid) - var(--offset-link-icon-half));color:var(--ink-3)
+}
 .lk-ic>*{position:absolute;inset:0;margin:auto}
-.lk-ic .g{width:1em;height:1em}
-.lk-ic .lk-tg{width:.86em;height:.86em}
-/* a file's own icon (js/fileicons.js), whichever set it draws. Its drawing fills about 5/6 of the
-   box, a state dot 3/5: the file capsule's padding and gap make up the difference, so the glyph
-   sits .5em from the left edge and .4em from the text in both. */
-.lk-ic .fi{width:1em;height:1em}
-.lk-file{padding-left:.4167em}
-.lk-file .lk-ic{margin-right:.3167em}
+.lk-ic .g{width:var(--ic-link);height:var(--ic-link)}
+.lk-ic .lk-tg{width:var(--ic-link-thread);height:var(--ic-link-thread)}
+/* Compensate for the optical width difference between file icons and thread dots. */
+.lk-ic .fi{width:var(--ic-link);height:var(--ic-link)}
+.lk-file{padding-left:var(--s-link-file-start)}
+.lk-file .lk-ic{margin-right:var(--s-link-file-gap)}
 /* a thread the app doesn't know (another project, not loaded): the same token, quieter */
-.lk-thread.is-unknown{color:var(--ink-2);background:color-mix(in srgb,var(--ink) 5%,transparent)}
-
-/* a working thread: the blue arc shared with task cards (css/app.css .g-working), its stroke scaled with the text */
+.lk-thread.is-unknown{color:var(--ink-2);background:color-mix(in srgb,var(--ink) var(--mix-link-quiet),var(--fill-link-base))}
 
 /* ── outside: text with ↗ ── */
 .lk-out{
   color:var(--ink);
   text-decoration:underline;
-  text-decoration-thickness:1px;
-  text-underline-offset:3px;
-  text-decoration-color:color-mix(in srgb,var(--accent) 55%,transparent);
+  text-decoration-thickness:var(--hair);
+  text-underline-offset:var(--offset-link-underline);
+  text-decoration-color:color-mix(in srgb,var(--accent) var(--mix-link-underline),var(--fill-link-base));
   transition:text-decoration-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease);
 }
 .lk-out:hover{text-decoration-color:var(--accent)}
-/* held, it dims, as a link in a sentence does (css/foundation.css names it out of the press layer for that): it had no
-   press of its own at all (tests/press-reach.test.mjs) */
-.lk-out:active{opacity:.7}
-.lk-out:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
-/* the arrow is centred on the middle of the capitals too (--cap-mid less half its .62em) */
-.lk-ar{display:inline-block;width:.62em;height:.62em;margin-left:.14em;vertical-align:calc(var(--cap-mid) - .31em);color:var(--accent);transition:transform var(--dur-fast) var(--ease)}
-.lk-out:hover .lk-ar{transform:translate(1.5px,-1.5px)}
+.lk-out:active{opacity:var(--opacity-link-press)}
+.lk-out:focus-visible{
+  outline:var(--stroke-focus) solid var(--focus);outline-offset:var(--offset-link-focus-out);border-radius:var(--r-link-focus)
+}
+.lk-ar{
+  display:inline-block;width:var(--ic-link-arrow);height:var(--ic-link-arrow);margin-left:var(--s-link-arrow-gap);
+  vertical-align:calc(var(--cap-mid) - var(--offset-link-arrow-half));color:var(--accent);
+  transition:transform var(--dur-fast) var(--ease)
+}
+.lk-out:hover .lk-ar{transform:translate(var(--offset-link-arrow-run),var(--offset-link-arrow-rise))}
 /* a bare address is shown as people read it (host and path) in the code face */
-.lk-out.is-bare .lk-t{font:var(--fw-regular) .9em/1 var(--mono);letter-spacing:var(--tr-20)}
-/* wrapping (QA F3): an address breaks at its own seams (js/markdown.js puts <wbr> after / - _ and before
-   . ? & = #), never mid-word unless one piece is wider than the line; the last piece and the ↗ never part */
+.lk-out.is-bare .lk-t{font:var(--fw-regular) var(--size-inline-link-code)/1 var(--mono);letter-spacing:var(--tr-20)}
+/* Keep the arrow with the last unbroken part of the address. */
 .lk-out .lk-t{overflow-wrap:break-word;word-break:normal}
 .lk-end{white-space:nowrap}
 
