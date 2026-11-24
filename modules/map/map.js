@@ -55,7 +55,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
   const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
   const headHtml = createMapHead(world, doingLine, verbOf);
   const { load, get: folderAt } = createMapFolders(api, paint);
-  const { folderTree, projectsTree, boxHtml } = createMapTree({ M: /** @type {MapState & { scope: Scope }} */ (M), world, load, folderAt });
+  const { folderTree, projectsTree, boxHtml } = createMapTree(/** @type {Parameters<typeof createMapTree>[0]} */ ({ M, world, load, folderAt }));
   /** @param {Scope} scope */
   function skeleton(scope) {
     /** @type {HTMLElement} */ (el).innerHTML = `<div class="mp-head" data-mp-head></div>` +
