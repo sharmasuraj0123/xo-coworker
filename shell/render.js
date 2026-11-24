@@ -3,6 +3,7 @@ import { $ } from "../core/platform/dom.js";
 import { esc } from "../core/platform/util.js";
 import { XO } from "../core/ui/icons/names.js";
 import { usable } from "../core/ui/a11y/focus.js";
+import { redraw } from "../core/ui/redraw.js";
 import { faviconRender } from "./favicon.js";
 
 /** @param {() => void} render */
@@ -36,7 +37,7 @@ export function createShellRenderer({
     for (const [k, sel] of Object.entries(PAGE_OF)) $(sel).hidden = k !== v;
     $("#conv").hidden = isPage;
     const pbt = isHome ? "Home" : isArts ? "Artifacts" : isLp ? "Launchpad" : "";
-    if ($("#pb-t")._h !== pbt + v) { $("#pb-t").innerHTML = pbt ? esc(pbt) : XO; $("#pb-t")._h = pbt + v; }
+    redraw($("#pb-t"), pbt ? esc(pbt) : XO);
     sideRender(needs);
     if (isHome) { homeRender(needs); MAIN.rendered = "home"; }
     else if (isArts) { REC.artifacts.render(); MAIN.rendered = "artifacts"; }

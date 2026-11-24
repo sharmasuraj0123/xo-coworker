@@ -4936,8 +4936,8 @@
    "home": "tests/ghpage.test.mjs"
   },
   "tests/gone-thread-composer.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/gone-thread-composer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/gone-thread-composer.test.mjs"
   },
   "tests/graph-focus.test.mjs": {
    "status": "planned",

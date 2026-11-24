@@ -7,8 +7,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 489 |
 | vendor | 370 |
 | deleted | 337 |
-| planned | 155 |
-| kept | 60 |
+| planned | 154 |
+| kept | 61 |
 | split | 31 |
 | split-region | 4 |
 
@@ -212,7 +212,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `tests/focusview.test.mjs` | 151 | planned | core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/follow-instance.test.mjs` | 30 | moved | modules/conversation/tests/follow-instance.test.mjs |
 | `tests/ghpage.test.mjs` | 81 | kept | tests/ghpage.test.mjs |
-| `tests/gone-thread-composer.test.mjs` | 33 | planned | modules/composer/tests/gone-thread-composer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/gone-thread-composer.test.mjs` | 33 | kept | tests/gone-thread-composer.test.mjs |
 | `tests/graph-focus.test.mjs` | 48 | planned | core/ui (css guard)/tests/graph-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/grip-ring.test.mjs` | 23 | planned | core/ui (css guard)/tests/grip-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/head-focus.test.mjs` | 26 | planned | modules/files/tests/head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
