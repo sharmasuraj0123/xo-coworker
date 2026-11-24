@@ -1,6 +1,16 @@
 // @ts-check
 
-// Since you left on Home: one quiet line per project that moved while you were away.
+/** @import {SectionContext, SinceNeed} from "./model-types" */
 
-/** @param {{ homeSinceLines: (needs: any[]) => string }} rec @returns {{ id: string, order: number, mount: (el: HTMLElement) => void, render: (el: HTMLElement, c: { needs: any[], patch: (el: HTMLElement, html: string) => boolean }) => void }} */
-export const sinceSection = (rec) => ({ id: "hm-since", order: 10, mount() {}, render: (el, c) => { c.patch(el, rec.homeSinceLines(c.needs)); } });
+/** @param {{ homeSinceLines: (needs: SinceNeed[]) => string }} service */
+export function sinceSection(service) {
+  return {
+    id: "hm-since",
+    order: 10,
+    mount() {},
+    /** @param {HTMLElement} el @param {SectionContext} context */
+    render(el, context) {
+      context.patch(el, service.homeSinceLines(context.needs));
+    },
+  };
+}

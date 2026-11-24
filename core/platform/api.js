@@ -28,6 +28,15 @@ const send = (method, path, body, query) => request(path, { method, body, query 
 /** The largest seq: "the newest page" is the page just before it. */
 export const NEWEST = 9007199254740991;
 
+export const chatActivityApi = {
+  /** @param {AbortSignal} [signal] */
+  chats: (signal) => request("/chat/chats", { signal }),
+  /** @param {string} chat @param {AbortSignal} [signal] */
+  markSeen: (chat, signal) => request(`/chat/chats/${enc(chat)}/seen`, { method: "PUT", body: {}, signal }),
+  /** @param {string | null} [chat] @param {AbortSignal} [signal] */
+  worktrees: (chat, signal) => request("/chat/worktrees", { query: chat ? { chat } : undefined, signal }),
+};
+
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
   status: () => get("/chat/status"),
@@ -53,7 +62,7 @@ export const api = {
   connectRouterModel: (body) => send("POST", "/chat/router/models", body),
   disconnectRouterModel: (provider) => send("DELETE", `/chat/router/models/${enc(provider)}`),
 
-  chats: () => get("/chat/chats"),
+  chats: () => chatActivityApi.chats(),
   chat: (id) => get(`/chat/chats/${enc(id)}`),
   patchChat: (id, body) => send("PATCH", `/chat/chats/${enc(id)}`, body),
   /** {thread?, after_seq?, before_seq?, limit?} → {messages, next_after_seq, next_before_seq?} */
@@ -76,7 +85,7 @@ export const api = {
   made: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/made`, query),
   pinMade: (chat, id, on) => send(on ? "PUT" : "DELETE", `/chat/chats/${enc(chat)}/made/${enc(id)}/pin`),
   /** The person looked at a chat (a newer backend keeps it per person, on every device): {seen: {seen_at, seen_seq}}. */
-  markSeen: (chat) => send("PUT", `/chat/chats/${enc(chat)}/seen`, {}),
+  markSeen: (chat) => chatActivityApi.markSeen(chat),
   memoryFile: (chat, path) => get(`/chat/chats/${enc(chat)}/memory/${enc(path)}`),
 
   /** {shape: object|null, version: "new"|<12 hex>, updated_at}. 404 on an older backend. */
@@ -109,7 +118,7 @@ export const api = {
   stopRun: (id) => send("POST", `/chat/runs/${enc(id)}/stop`),
   stopRuns: (session) => send("POST", `/chat/sessions/${enc(session)}/runs/stop`),
 
-  worktrees: (chat) => get("/chat/worktrees", chat ? { chat } : undefined),
+  worktrees: (chat) => chatActivityApi.worktrees(chat),
   removeWorktree: (chat, ts, confirm) => send("DELETE", `/chat/worktrees/${enc(chat)}/${enc(ts)}`, undefined, confirm ? { confirm } : undefined),
 
   schedules: () => get("/schedules"),

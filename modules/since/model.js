@@ -102,11 +102,12 @@ export function sinceWord(since, now = Date.now()) {
   return formatDate(d, days < 7 ? "fullWeekday" : "monthDay");
 }
 
-/** @param {Pick<Storage, "getItem" | "setItem">} store @param {string} [key] */
-export function createSeen(store, key = "xo-seen") {
+/** @param {import("../../core/platform/storage.js").StorageAccess} [store] @param {string} [key] */
+export function createSeen(store = "local", key = "xo-seen") {
   /** @param {string} raw @returns {Record<string, number>} */
   const parse = (raw) => JSON.parse(raw) || {};
-  let all = read(key, parse, {}, store), pending = {};
+  let all = read(key, parse, {}, store);
+  let pending = {};
   return {
     /** @param {string} place @returns {number | null} */
     get: (place) => all[place] ?? null,
