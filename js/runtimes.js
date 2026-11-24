@@ -6,7 +6,7 @@
 // through the display map below; no logic branches on a runtime's name.
 
 /** How people say a runtime's name. Anything not listed shows as the server names it. */
-const NAME = { claude_code: "Claude Code", codex: "Codex", antigravity: "Antigravity" };
+const NAME = { claude_code: "Claude Code", codex: "Codex", antigravity: "Antigravity", local: "Local model" };
 /** The login command a runtime's CLI takes, where we know it (shown as a fix, never run). */
 const LOGIN = { codex: "codex login" };
 /** A usage window's name as people say it. */

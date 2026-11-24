@@ -16,6 +16,7 @@ import { once, isPending, busyAttrs } from "./pending.js";
 import { redraw } from "./redraw.js";
 import { rovingTab } from "./keynav.js";
 import { MODES, MODE_NAME, MODE_SUB, heldModes, effectiveMode, accountRows, onPaid, creditsWords } from "./paid.js";
+import { createLocalModelSettings } from "./localmodels.js";
 
 const REFRESH_MS = 30000;
 const PREF_MAX = 2000;
@@ -76,6 +77,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   const onScreen = () => { const p = page(); return !!p && !p.hidden && !document.querySelector("#settings").hidden; };
   const rts = () => world.state.runtimes || [];
   const installed = () => rts().filter(isInstalled);
+  const localModels = createLocalModelSettings({ world, announce, draw });
 
   // ── the runtimes, as they are now (F2) ────────────────────────────────────
   function cardHtml(rt, paidRows = []) {
@@ -221,7 +223,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   // ── drawing ───────────────────────────────────────────────────────────────
   function draw() {
     const el = live();
-    if (el) redraw(el, `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + paidHtml() + defaultsHtml());
+    if (el) redraw(el, localModels.html() + `<section class="set-sec" aria-labelledby="rtl-h"><h3 id="rtl-h">On this machine</h3><div class="rt-live">${listHtml()}</div></section>` + paidHtml() + defaultsHtml());
   }
   /** Only the runtimes' cards: a refresh never touches a default under the person's fingers. */
   function drawList() { const l = live()?.querySelector(".rt-live"); if (l) redraw(l, listHtml()); else draw(); }
@@ -288,6 +290,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
     open() {
       R.err = null;
       draw();
+      localModels.open();
       refresh();
       world.act.loadPolicies?.().then(() => { if (onScreen() && R.pref == null) draw(); });
       world.act.loadPaid?.().then(() => { if (onScreen() && R.pref == null) draw(); });

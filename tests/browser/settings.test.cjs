@@ -24,6 +24,7 @@
 // Without them it says so and exits 2: not run is not passed.
 "use strict";
 const assert = require("assert/strict");
+const SHOTS = require("path").join(require("os").tmpdir(), "xo-coworker-settings", "shots");
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";
 let chromium;
 try { ({ chromium } = require(PW)); } catch { console.error(`not run: Playwright core isn't at ${PW} (set PLAYWRIGHT_CORE)`); process.exit(2); }
@@ -56,6 +57,7 @@ function world(over = {}) {
     ],
     runtimes: [{ name: "claude_code", default: true, health: { installed: true, logged_in: true, cli_version: "2.1" } }, { name: "codex", health: { installed: true, logged_in: true, cli_version: "0.9" } }],
     policy: { allowed: null, default: null, preferences: "Use Codex for the audit fixture.", fallback: false },
+    localModel: { enabled: false, base_url: "http://127.0.0.1:8090/v1", model: "", api_key_set: false, models: [], health: { usable: false, why_not: "Disabled" } },
     // paid usage: the advisory's two accounts (Codex can go on to paid usage and is on it now; Claude Code can't) and
     // the founder's modes as XO holds them (a list of intent rows)
     advisory: { accounts: [
@@ -103,6 +105,18 @@ function settingsApi(W) {
       return json({ removed: true, forced: !!u.searchParams.get("confirm") });
     }
     if (p === "/api/chat/runtimes" && m === "GET") return json({ runtimes: W.runtimes });
+    if (p === "/api/chat/local-model" && m === "GET") return json(W.localModel);
+    if (p === "/api/chat/local-model/test" && m === "POST") {
+      const b = q.postDataJSON(); if ((failed = await write("localTest", b))) return failed;
+      return json({ ...b, model: b.model || "qwen-local", models: [{ id: "qwen-local", name: "Qwen Local" }], health: { usable: true, why_not: null } });
+    }
+    if (p === "/api/chat/local-model" && m === "PUT") {
+      const b = q.postDataJSON(); if ((failed = await write("localSave", b))) return failed;
+      W.localModel = { ...W.localModel, ...b, api_key_set: "api_key" in b ? !!b.api_key : W.localModel.api_key_set, models: [{ id: b.model, name: b.model }], health: { usable: !!b.enabled, why_not: null } };
+      delete W.localModel.api_key;
+      if (b.enabled && !W.runtimes.some((r) => r.name === "local")) W.runtimes.push({ name: "local", health: { installed: true, logged_in: true, usable: true } });
+      return json(W.localModel);
+    }
     if (p === "/api/chat/runtime-policy" && m === "GET") return json({ space: W.policy, effective: { ...W.policy, fallback: !!W.policy.fallback } });
     if (p === "/api/chat/runtime-policy" && m === "PUT") { const b = q.postDataJSON(); if ((failed = await write("policy", b))) return failed; W.policy = b; return json({ space: W.policy, effective: { ...W.policy } }); }
     if (p === "/api/chat/review" && m === "GET" && W.review) return json({ items: W.review, next_after_seq: null });
@@ -179,7 +193,7 @@ async function settle(page, ms = 120) { await page.waitForTimeout(ms); }
 async function keyFocus(page, sel) { await page.keyboard.press("Shift"); await page.locator(sel).focus(); }
 const busy = (page, sel) => page.locator(sel).getAttribute("aria-busy");
 /** A picture of the state just reached (DPR 1, so the glass renders whole): /tmp/settings-work/shots. */
-const shot = (page, name) => page.screenshot({ path: `/tmp/settings-work/shots/${page.width}-${page.theme}-${name}.png` });
+const shot = (page, name) => page.screenshot({ path: require("path").join(SHOTS, `${page.width}-${page.theme}-${name}.png`) });
 
 // ── closing Settings, and General's switches ─────────────────────────────────────────────────
 t("C097 Close settings (Enter, Space, a click, Esc) returns the keyboard to what opened Settings", async (ctx) => {
@@ -1441,8 +1455,51 @@ t("Paid usage: an API-key account's question says Continue pays for 24 hours", a
 });
 
 // ── run ──────────────────────────────────────────────────────────────────────────────────
+t("Local model: discover, save once, and expose the runtime without contacting the model in the browser", async (ctx) => {
+  const W = world({ delay: 220 });
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  await page.waitForSelector("[data-local-form]");
+  assert.equal(writes(page, "localSave"), 0, "opening Settings doesn't save a connection");
+  await page.locator('[data-local-field="enabled"]').check();
+  await page.locator("[data-local-test]").click();
+  await page.waitForFunction(() => document.querySelector('[data-local-field="model"]').value === "qwen-local");
+  assert.match(await page.locator("[data-local-form]").innerText(), /Connection works.*Found 1 model/);
+  assert.equal(writes(page, "localSave"), 0, "testing doesn't save");
+  assert.equal(writes(page, "localTest"), 1);
+  await keyFocus(page, "[data-local-save]");
+  await page.keyboard.press("Enter"); await page.keyboard.press("Enter");
+  await page.waitForFunction(() => document.querySelector("[data-local-form]").textContent.includes("Connection saved."));
+  assert.equal(writes(page, "localSave"), 1, "repeat Enter while saving sends once");
+  assert.deepEqual(W.writes.find((w) => w.kind === "localSave").body, { enabled: true, base_url: "http://127.0.0.1:8090/v1", model: "qwen-local" });
+  await page.waitForSelector('[data-rtd-default="local"]');
+  assert.match(await page.locator(".rt-list").innerText(), /Local model/);
+  await done(page);
+});
+
+t("Local model: a refused save keeps the draft and key, then a retry clears the key only after saving", async (ctx) => {
+  const W = world({ fail: { localSave: [err("unavailable", "Model server refused the connection.")] } });
+  const page = await open(W, ctx);
+  await settings(page, "runtimes");
+  await page.waitForSelector("[data-local-form]");
+  await page.locator('[data-local-field="enabled"]').check();
+  await page.locator('[data-local-field="model"]').fill("qwen-local");
+  await page.locator('[data-local-field="api_key"]').fill("test-secret");
+  await page.locator("[data-local-save]").click();
+  await page.waitForSelector("[data-local-form] [role=alert]");
+  assert.equal(await page.locator('[data-local-field="model"]').inputValue(), "qwen-local");
+  assert.equal(await page.locator('[data-local-field="api_key"]').inputValue(), "test-secret");
+  await page.locator("[data-local-save]").click();
+  await page.waitForFunction(() => document.querySelector("[data-local-form]").textContent.includes("Connection saved."));
+  assert.equal(await page.locator('[data-local-field="api_key"]').inputValue(), "");
+  assert.equal(await page.locator("[data-local-form] [role=alert]").count(), 0);
+  assert.equal(writes(page, "localSave"), 2);
+  assert.equal(W.localModel.api_key_set, true);
+  await done(page);
+});
+
 (async () => {
-  require("fs").mkdirSync("/tmp/settings-work/shots", { recursive: true });
+  require("fs").mkdirSync(SHOTS, { recursive: true });
   browser = await launch(chromium);
   if (!browser) { console.error("not run: no Chromium starts here (set CHROMIUM_PATH)"); process.exit(2); }
   server = await serve();
