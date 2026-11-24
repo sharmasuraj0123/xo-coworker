@@ -1,12 +1,13 @@
-import { esc, WAITING } from "./world.js";
+import { esc } from "./world.js";
 import * as Kit from "../modules/decisions/kit.js";
+import { createNeedItems } from "../modules/decisions/needs.js";
 import * as K from "../core/platform/keys.js";
-import { EFFORT, effortOf, rank, evidenceFor, leverageOf, estLine } from "../modules/decisions/rank.js";
+import { EFFORT, rank, evidenceFor, estLine } from "../modules/decisions/rank.js";
 import { ICON, stepMark, xi, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
-import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB } from "../core/services/review.js";
+import { itemParts, itemBody, questionsOf, evidenceOf, isNo, VERB } from "../core/services/review.js";
 import { clientId as newKey } from "../core/platform/http.js";
 import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "../modules/decisions/cardparts.js";
 import { radioKeys } from "./keynav.js";
@@ -14,13 +15,11 @@ import { resetWords, rtName } from "../core/services/runtimes.js";
 import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { redraw } from "./redraw.js";
 
-export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[r] || "Notable";
+export { riskLabel } from "../modules/decisions/needs.js";
 const BIG_CHECK = ICON.stampAllow;
 const BIG_BACK = ICON.stampBack;
 export function createDecisions({ world, P, PROJ, announce, render, back, later, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent, onShown, onGone }) {
   const panel = $("#panel"), stage = $("#pn-stage");
-  const firstSeen = new Map();
-  let seq = 0;
   const sentKeys = new Map();
   const stoppedDone = new Set();
   const log = [];
@@ -32,52 +31,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     const o = id && P.scopes.find((x) => x.id === id);
     return !o ? (P.primary ? P.primary.label : "Allow") : o.scope === "thread" ? "Allow for this thread" : "Allow + rule";
   };
-
-  // ── the needs-you list: every ask, with effort, leverage, idleness, suggestion ──
-  function needItems() {
-    const out = [];
-    for (const t of [...world.state.threads, ...(world.state.hosts || [])]) {
-      // a thread that stopped, was answered and later stops again must come back (P1-7)
-      if (t.state !== "failed") stoppedDone.delete(t.id);
-      if (t.state === "failed") {
-        const key = `stop|${t.id}`;
-        if (stoppedDone.has(t.id) || queue.has(key)) continue;
-        // a stop someone meant (storm's activity "stopped": the owner's, or the coordinator's on the owner's word)
-        // is no failure and asks nothing: the thread says who stopped it, and the owner's next message resumes it.
-        // Only a real failure (activity "failed", or an older backend's bare "failed") offers Try again
-        if (!t.stop) out.push({ key, t, ask: { kind: "stopped", title: t.title, detail: String(t.happened || "").replace(/^Stopped:\s*/i, "Stopped: "), risk: "stopped" }, group: "stopped", risk: "stopped" });
-        // its open review items (an integrity report, a schedule to approve) still need their own answer
-        for (const a of Kit.asksOf(t)) {
-          if (!a.item) continue;
-          const k = Kit.askKey(t, a);
-          if (queue.has(k) || sentKeys.has(k)) continue;
-          out.push({ key: k, t, ask: a, group: Kit.groupOf(t, a), risk: Kit.riskOf(a) });
-        }
-        continue;
-      }
-      // a finished thread can still hold an open item (an integrity report arrives after its turn)
-      if ((t.state === "done" || t.state === "resolved") && !(t.asks || []).some((a) => a.item)) continue;
-      for (const a of Kit.asksOf(t)) {
-        const key = Kit.askKey(t, a);
-        if (queue.has(key) || sentKeys.has(key)) continue;
-        out.push({ key, t, ask: a, group: Kit.groupOf(t, a), risk: Kit.riskOf(a) });
-      }
-    }
-    const now = Date.now();
-    for (const n of out) {
-      if (!firstSeen.has(n.key)) firstSeen.set(n.key, { seq: ++seq, at: now });
-      n.since = firstSeen.get(n.key).seq;
-      n.waitSince = waitSince.get(n.key) ?? waitSince.get(n.t.id) ?? firstSeen.get(n.key).at;
-      n.effort = n.ask.item ? itemEffort(n.ask.item) : effortOf(n);
-      n.lev = leverageOf(n);
-      // idle: its agent isn't working, so nothing moves until you answer. Live threads say so by their
-      // session (a "working" thread whose session sits warm is idle); an item with no thread is idle.
-      n.idle = WAITING(n.t.state) || n.group === "stopped" || !!n.t.host || (n.t.live && n.t.busy === false);
-      n.later = later.has(n.key);
-    }
-    P.classify(out);
-    return rank(out);
-  }
 
   /** Was the item decided by this very request (same idempotency key)? */
   const ownDecision = (part, err) => {
@@ -167,6 +120,8 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
       render();
     },
   });
+
+  const needItems = createNeedItems({ world, P, later, waitSince, stoppedDone, sentKeys, queue });
 
   // ── panel state ───────────────────────────────────────────────────────────
   const F = { open: false, parked: false, order: [], items: new Map(), status: new Map(), cur: null, done: false, hold: null, mode: "all", returnTo: null, swap: 0, open0: {}, vig: false };

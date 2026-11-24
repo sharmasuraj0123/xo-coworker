@@ -8548,15 +8548,8 @@
    "home": "modules/create-project/create.js"
   },
   "js/decide.js::exports::riskLabel": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/needs.js"
   },
   "js/decide.js::exports::createDecisions": {
    "status": "split-region",
