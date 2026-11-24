@@ -41,6 +41,7 @@ import { createConv, createConversationDrawing } from "../modules/conversation/d
 import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
+import { createConversationStarts } from "../modules/conversation/start.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
@@ -707,24 +708,6 @@ function passedTo(m) {
   }
   return null;
 }
-const STARTS = [
-  { ic: "plus", label: "Make something new", say: () => `Start a ${SHAPE.word("thread")} to make ` },
-  { ic: "edit", label: "Fix or change something", say: () => "Fix " },
-  { ic: "search", label: "Explain how this project works", say: () => "Read through this project and explain how it works." },
-  { ic: "clock", label: "Do something on a schedule", say: () => "Every weekday at 9:00, " },
-];
-function startHtml(pid) {
-  return `<div class="m-start"><h2 class="st-h">What should get done in ${esc(PROJ(pid))}?</h2><ul class="st-list">${STARTS.map((o, i) =>
-    `<li><button type="button" class="st-o" data-start="${i}"><span class="st-ic" aria-hidden="true">${ICON[o.ic]}</span>${esc(o.label)}</button></li>`).join("")}</ul></div>`;
-}
-function startDraft(i) {
-  const o = STARTS[i];
-  if (!o || say.value.trim()) return;
-  say.value = o.say();
-  growSay(); saveDraft(); updateComposer(); say.focus();
-  say.setSelectionRange(say.value.length, say.value.length);
-}
-
 function msgItems(conv, needs) {
   drawing = conv;
   try { return msgItemsOf(conv, needs); } finally { drawing = null; }
@@ -1106,6 +1089,7 @@ const say = $("#say"), atList = $("#at-list");
 const MK = { main: true, get view() { return S.view; }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
   tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: atList };
 const { saveDraft, loadDraft } = createDrafts({ S, store, MK, updateComposer });
+const { startHtml, startDraft } = createConversationStarts({ SHAPE, PROJ, say, growSay: () => growSay(), saveDraft, updateComposer });
 /** A thread page's composer, wired: Enter sends (Shift+Enter a new line), Esc leaves the field, Send or Stop. */
 function wireComposer(K) {
   K.say.addEventListener("input", () => { K.at._sel = 0; updateComposer(K); saveDraft(K); });
