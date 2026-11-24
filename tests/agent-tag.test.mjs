@@ -7,7 +7,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const R = new URL("../", import.meta.url);
-const map = readFileSync(new URL("modules/map/map.js", R), "utf8");
+const map = readFileSync(new URL("modules/map/map.js", R), "utf8")
+  .replace(/\/\*\* @type \{HTMLElement \| null\} \*\/ \((t\.closest\("[^"]+"\))\)/g, "$1")
+  .replace("/** @type {string} */ (g.dataset.mpGo)", "g.dataset.mpGo")
+  .replace("/** @type {Scope} */ (M.scope).key", "M.scope.key");
 const layout = readFileSync(new URL("modules/map/layout.js", R), "utf8");
 const css = ["css/app.css", "css/panel.css", "core/ui/tokens.css"].map((f) => readFileSync(new URL(f, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
 let passed = 0;

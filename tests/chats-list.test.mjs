@@ -143,7 +143,7 @@ t("Chats' header line runs the row's width: the project cap only shares a row wi
 t("Chats starts with its composer: under the greeting at the top, the dock back at the foot in a chat", () => {
   const app = read("js/app.js"), html = read("index.html"), css = read("css/app.css");
   assert.match(html, /id="scroller"[^>]*>\s*<h1 class="cs-hi" id="cs-hi" hidden>What can I help with\?<\/h1>\s*<p class="cs-sub" id="cs-sub" hidden>[^<]+<\/p>/);
-  assert.match(app, /dockAtTop\(v === "chats"\);/);
+  assert.match(read("shell/render.js"), /dockAtTop\(v === "chats"\);/);
   assert.match(app, /if \(top\) \$\("#cs-sub"\)\.after\(dock\); else \$\("#drop-veil"\)\.after\(dock\);/);
   assert.match(app, /had\?\.focus\(\{ preventScroll: true \}\)/, "focus in the composer survives the move");
   assert.match(css, /\.dock\.is-top>\.herald\{top:calc\(100% \+ \(var\(--s-10\) - var\(--h-ctl\)\) \/ 2\);bottom:auto\}/, "a notice drops under the composer, never over the greeting or the box");

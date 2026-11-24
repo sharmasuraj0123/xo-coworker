@@ -21,7 +21,7 @@ assert.match(app, /TP\.C = createConv\(\{ view: tpView, msgs: els\.msgs/);
 assert.match(app, /wireComposer\(TP\.K\);/);
 assert.match(app, /decorateConversation\(\{ conv: box, msgs: els\.msgs/);
 // it draws with everything else, as its own conversation; a thread that's gone leaves the panel
-assert.match(app, /if \(TP\.C && TP\.tid && !TP\.wait && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
+assert.match(readFileSync(new URL("../shell/render.js", import.meta.url), "utf8"), /if \(TP\.C && TP\.tid && !TP\.wait && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
 assert.match(app, /drawConv\(TP\.C, needs\);/);
 assert.match(app, /checklistRender\(needs, \$\("#tpthead"\), tpView\(\), "tck-list"\);/);
 assert.match(app, /if \(!t\) \{ STAGE\.closePage\("thread"\); return; \}/);
@@ -104,7 +104,7 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
 assert.match(app, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
 assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
 assert.match(app, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
-assert.match(app, /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
+assert.match(readFileSync(new URL("../modules/threads/editing.js", import.meta.url), "utf8"), /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
 const menuSource = readFileSync(new URL("../modules/threads/menu.js", import.meta.url), "utf8");
 assert.match(menuSource, /where === "page" \? item\(`data-tp-main="\$\{esc\(t\.id\)\}"`, "Open in main chat"\) : item\(`data-tside="\$\{esc\(t\.id\)\}"`, "Open beside its project's chat"\)/);

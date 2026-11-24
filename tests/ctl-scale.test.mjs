@@ -163,7 +163,7 @@ t("a button drawn as a link, standing on its own, has the desktop's 24 floor; on
   // in a sentence: Copy path's (dialog text), Launchpad's lines, Home in the Workspace's sentence
   const words = [".cp-link", ".lp-ln", ".wsh-home"];
   assert.deepEqual([...floor, ...words].sort(), [...links].sort(), "every link-like button is placed: the floor, or words in a sentence");
-  assert.match(readFileSync(new URL("js/app.js", ROOT), "utf8"), /<p class="wsh-p">[^<]*<button type="button" class="wsh-home"/, "Home is a word in the Workspace's sentence");
+  assert.match(readFileSync(new URL("shell/workspace-header.js", ROOT), "utf8"), /<p class="wsh-p">[^<]*<button type="button" class="wsh-home"/, "Home is a word in the Workspace's sentence");
 });
 t("the composer's circles in compact density are the comfortable ones: --comp-ctl is set at the root, compact only moves the column's tokens", () => {
   const shape = readCss(new URL("css/shape.css", ROOT), "utf8");
