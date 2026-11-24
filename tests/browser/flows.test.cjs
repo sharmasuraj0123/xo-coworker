@@ -1236,7 +1236,7 @@ t("S201/S202: the lightbox's end arrow keeps focus at the end", async () => {
   await toDemo(page);
   await page.evaluate(async () => {
     const { mediaItem, mediaHtml } = await import("./js/media.js");
-    const { createLightbox } = await import("./js/lightbox.js");
+    const { createLightbox } = await import("./modules/conversation/lightbox.js");
     const items = ["a", "b", "c"].map((k) => mediaItem({ key: "t:" + k, name: k + ".svg", type: "image/svg+xml", src: "/favicon.svg", w: 64, h: 64 }));
     const root = document.createElement("div"); root.id = "lbx-test"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
     const LB = createLightbox({});
@@ -2168,7 +2168,7 @@ t("S083 (tag words): an agent tag's words read on every agent colour (4.5:1 at t
   if (WIDTH < 600 || THEME !== "dark") skip("the palette and the token are the same in every cell: once");
   const page = await app();
   const worst = await page.evaluate(async () => {
-    const src = await (await fetch("./js/map.js")).text();
+    const src = await (await fetch("./modules/map/layout.js")).text();
     const pal = JSON.parse(src.match(/const PALETTE = (\[[^\]]+\]);/)[1]);
     const ink = getComputedStyle(document.documentElement).getPropertyValue("--on-agent").trim();
     const lum = (h) => { const n = h.replace("#", ""), c = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
@@ -2912,7 +2912,7 @@ t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back 
 // ── xo-select ──
 async function select(page, html) {
   return page.evaluate(async (html) => {
-    await import("./js/dropdown.js");
+    await import("./core/ui/components/xo-select.js");
     const box = document.createElement("div"); box.style.cssText = "position:fixed;left:40px;top:40px;z-index:9999"; box.innerHTML = html; document.body.append(box);
     await new Promise((ok) => requestAnimationFrame(ok));
     return true;
@@ -3349,7 +3349,7 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   // the lightbox, dark in both themes (S080 Open in Files and Next, S201 Previous: light's press ink on its chrome)
   await page.evaluate(async () => {
     const { mediaItem, mediaHtml } = await import("./js/media.js");
-    const { createLightbox } = await import("./js/lightbox.js");
+    const { createLightbox } = await import("./modules/conversation/lightbox.js");
     // the app's mark, a black, a white, a mid grey and a mid green picture: the veil shows over any picture, in both themes
     // (S233 on aba434f: a mid-tone picture under the ink's veil moved 19 RGB-sum in dark)
     const solid = (c) => "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="${c}"/></svg>`);
@@ -3364,7 +3364,7 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   // a message's pictures, before the lightbox covers them (S090: hover and press under the picture)
   await sweep("a message's pictures");
   await page.evaluate(async () => {
-    const { createLightbox } = await import("./js/lightbox.js");
+    const { createLightbox } = await import("./modules/conversation/lightbox.js");
     const root = document.getElementById("lbx-states");
     createLightbox({}).open("t:b", root.querySelector('[data-mx="t:b"]'), root);
   });

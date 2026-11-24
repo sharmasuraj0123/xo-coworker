@@ -1,7 +1,7 @@
 import { createWorld, esc } from "./world.js";
 import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
-import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
+import "../core/ui/components/xo-select.js";
 import { renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
@@ -19,7 +19,7 @@ import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
-import { createLightbox } from "./lightbox.js";
+import { createLightbox } from "../modules/conversation/lightbox.js";
 import { createRunsPanel } from "../modules/runs/panel.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
 import { createRunsReads } from "../modules/runs/read.js";

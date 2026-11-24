@@ -2564,8 +2564,7 @@
   },
   "js/dropdown.js": {
    "status": "moved",
-   "home": "core/ui/components/xo-select.js",
-   "note": "js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets"
+   "home": "core/ui/components/xo-select.js"
   },
   "js/fileicons.js": {
    "status": "moved",
@@ -2676,9 +2675,8 @@
    "status": "split",
    "home": [
     "core/ui/lightbox.js",
-    "modules/conversation (the pictures it lends the lightbox)"
-   ],
-   "note": "the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves"
+    "modules/conversation/lightbox.js"
+   ]
   },
   "js/lpapi.js": {
    "status": "split",
@@ -2703,7 +2701,7 @@
     "core/services/places.js",
     "core/services/agent-activity.js"
    ],
-   "note": "The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services."
+   "note": "The app supplies conversation rendering to the panel map."
   },
   "js/markdown.js": {
    "status": "split",

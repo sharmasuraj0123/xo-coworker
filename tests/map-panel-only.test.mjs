@@ -29,9 +29,10 @@ await t("no sheet styles the standalone Map, nor names its leftover #map at all"
     localStorage: { getItem: (k) => { keys.push(k); return k === "cv-map-mode" ? savedMode : k === "cv-map" ? "1" : null; }, setItem: (k) => keys.push(k) },
   });
   globalThis.removeEventListener ??= () => {};
-  const { createMap } = await import("../js/map.js");
+  const { createMap } = await import("../modules/map/map.js");
+  const { stepLineHtml } = await import("../modules/conversation/blocks/turn.js");
   const world = { state: { threads: [], projects: [], turns: null }, thread: () => null, project: () => null };
-  const options = { world, go() {}, announce() {}, isBusy: () => false, openFile() {} };
+  const options = { world, go() {}, announce() {}, isBusy: () => false, openFile() {}, stepLineHtml };
   const MAP = createMap(options);
 
   await t("Graph is the default, and a saved Diagram is restored", () => {
