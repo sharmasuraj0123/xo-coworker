@@ -158,8 +158,11 @@
   --s-thread-control-inline:10px; --s-thread-menu-offset:6px; --w-thread-menu-floor:180px; --w-thread-rename:200px;
   --s-tool-rail-phone:14px;
   --ic-decision-option:13px; --s-decision-option-text:2px; --s-decision-section:10px; --s-decision-change-inline:14px;
+  --w-run-chip:280px; --w-run-stat-min:88px; --ic-run-sr:1px; --s-run-control-inline:10px; --s-run-text-gap:2px;
+  --s-run-undo-inset:2px; --palette-mask-opaque:#000; --mask-run-tail:linear-gradient(var(--palette-mask-opaque) 60%,var(--fill-clear));
   --mix-rec-hover:22%;
-  --palette-transparent:transparent; --fill-link-base:var(--palette-transparent);
+  --palette-transparent:transparent; --fill-clear:var(--palette-transparent); --fill-link-base:var(--palette-transparent);
+  --mix-run-edge:28%; --mix-run-rest:6%; --mix-run-wait:7%; --mix-run-hover:18%; --mix-run-live:14%; --mix-run-stop-hover:10%;
   --mix-link-fill:7%; --mix-link-hover:14%; --mix-link-press:18%; --mix-link-quiet:5%; --mix-link-underline:55%;
   --s-lk-b:.735em; --s-lk-start:.38em; --s-lk-end:.6em; --s-link-icon-gap:.2em;
   --s-link-file-start:.4167em; --s-link-file-gap:.3167em; --s-link-arrow-gap:.14em;

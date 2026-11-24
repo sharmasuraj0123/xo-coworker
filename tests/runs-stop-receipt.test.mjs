@@ -1,8 +1,8 @@
 // @ts-check
 import assert from "node:assert/strict";
 import { mock } from "node:test";
-import { context, decls, rules } from "./lib/cascade.mjs";
-import { resolveTokens } from "./lib/tokens.mjs";
+import { context } from "./lib/cascade.mjs";
+import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 import { deferred, dom } from "./lib/dom.mjs";
 import { createRunsPanel } from "../modules/runs/panel.js";
 import { createRunsStop } from "../modules/runs/stop.js";
@@ -82,11 +82,11 @@ try {
 }
 
 t("the pending stop reserves the same inset above, below, and after Undo", () => {
-  const styles = rules(new URL("./lib/cascade.mjs", import.meta.url)).filter((rule) => context(rule, 1440).active);
+  const styles = publishedRules().filter((rule) => context(rule, 1440).active);
   const values = (selector) => Object.fromEntries(styles.filter((rule) => rule.sel === selector)
-    .flatMap((rule) => decls(rule.d)).map(({ p, v }) => [p, v]));
+    .flatMap(({ declarations }) => declarations).map(({ p, v }) => [p, resolveValue(v)]));
   assert.equal(values(".rn-stopping").padding, "2px 2px 2px 12px");
-  assert.equal(resolveTokens(values(".rn-stopping")["border-radius"], ["--r"]), "8px");
+  assert.equal(values(".rn-stopping")["border-radius"], "8px");
   assert.equal(values(".rn-stopping>.t-undo").height, "36px");
 });
 {
