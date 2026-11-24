@@ -1,10 +1,8 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { bootPage } from "./lib/page.mjs";
 import { createJumpItems } from "../modules/search/jump-items.js";
 import { stateMark } from "../core/ui/icons/icon.js";
-const ROOT = new URL("../", import.meta.url);
-const src = readFileSync(new URL("js/app.js", ROOT), "utf8"), html = readFileSync(new URL("index.html", ROOT), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -42,9 +40,10 @@ t("a thread keeps its project, state and decision mark in Jump", () => {
   assert.equal(working?.icon, `<span class="j-th">${stateMark("working")}</span>`);
   assert.equal(waiting?.icon, `<span class="j-th">${stateMark("needs_reply")}</span>`);
 });
-t("the sidebar has no find box, and nothing is left of it", () => {
-  assert.ok(!/side-find|pf-in|Find a project/.test(html), "index.html");
-  assert.ok(!/pfind|pfCur|#pf-in|#sf-ic|FIND_AT|pf-none/.test(src), "js/app.js");
-  assert.ok(/id="side-jump"/.test(html), "the top search stays");
+const { document } = await bootPage();
+t("the sidebar offers Jump without a separate project search field", () => {
+  const sidebar = document.getElementById("side");
+  assert.equal(sidebar.querySelector("#side-jump")?.tagName, "BUTTON");
+  assert.equal(sidebar.querySelectorAll('input:not([type="file"]), [role="searchbox"]').length, 0);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

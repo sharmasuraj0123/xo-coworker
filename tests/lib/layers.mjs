@@ -1,9 +1,11 @@
 // Cascade layers against plain load order: which contests a sheet's @layer would turn, for the app's own sheets and the vendored ones it loads.
-import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { spec, cmp } from "./cascade.mjs";
+import { declarationFiles, stylesheetRows } from "./css-snapshot.mjs";
 import { sourcePaths, readSource } from "./sources.mjs";
+import { flattenStyles } from "../../tools/conformance/css-flatten.mjs";
 
-const ROOT = new URL("../../", import.meta.url);
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 export const ORDER = ["reset", "tokens", "foundation", "components", "shell", "modules", "apps", "theme", "density", "phone"];
 const SHORTHANDS = ["margin", "padding", "border", "background", "font", "transition", "animation", "outline", "overflow", "flex", "grid", "gap", "inset", "list-style", "text-decoration", "scroll-margin", "scroll-padding", "mask", "columns", "place-items", "place-content", "place-self"];
 const LONG = { font: ["line-height"], gap: ["row-gap", "column-gap"], inset: ["top", "right", "bottom", "left"], "place-items": ["align-items", "justify-items"], "place-content": ["align-content", "justify-content"], "place-self": ["align-self", "justify-self"] };
@@ -20,55 +22,38 @@ const split = (/** @type {string} */ s) => { const out = []; let d = 0, cur = ""
 
 /** @typedef {{ sheet: string, sel: string, p: string, v: string, imp: boolean, layer: string | null, n: number }} Decl */
 
-/** Every declaration of the page's stylesheets in load order, each with the layer it sits in (null: unlayered). @param {string[]} [extra] vendored sheets loaded later, by path */
+/** @param {string[]} [extra] */
 export function declarations(extra = []) {
-  const html = readFileSync(new URL("index.html", ROOT), "utf8");
-  const links = [...html.matchAll(/<link rel="stylesheet" href="\.\/([^"]+)">/g)].map((m) => m[1]).concat(extra);
+  const files = new WeakMap();
+  const rows = extra.length ? flattenStyles(ROOT, "index.html", (row, path) => files.set(row, path), extra) : stylesheetRows;
   /** @type {Decl[]} */
   const out = [];
-  let n = 0;
-  /** @param {string} path @param {string | null} layer */
-  const read = (path, layer) => {
-    const url = new URL(path, ROOT);
-    let css = readFileSync(url, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    css = css.replace(/@import\s+url\(\s*["']?([^"')]+)["']?\s*\)\s*(?:layer\(([\w.-]+)\))?\s*;/g, (_, href, l) => { read(new URL(href, url).pathname.slice(ROOT.pathname.length), l || layer); return ""; });
-    css = css.replace(/@layer\s+[\w.,\s-]+;/g, "");
-    /** @type {{ pre: string, layer: string | null }[]} */
-    const stack = [];
-    let i = 0, start = 0;
-    while (i < css.length) {
-      const c = css[i];
-      if (c === "{") {
-        const pre = css.slice(start, i).trim();
-        if (/^@(-webkit-)?keyframes|^@font-face|^@property/.test(pre)) { let d = 1, j = i + 1; while (d) { if (css[j] === "{") d++; else if (css[j] === "}") d--; j++; } i = j; start = j; continue; }
-        if (pre.startsWith("@")) { const m = /^@layer\s+([\w.-]+)/.exec(pre); stack.push({ pre, layer: m ? m[1] : null }); start = i + 1; }
-        else {
-          const end = css.indexOf("}", i), body = css.slice(i + 1, end);
-          const at = [...stack].reverse().find((s) => s.layer)?.layer ?? layer;
-          for (const sel of split(pre)) for (const x of body.split(";")) {
-            const k = x.indexOf(":");
-            if (k < 0) continue;
-            const p = x.slice(0, k).trim(), v = x.slice(k + 1).trim();
-            if (p && v) out.push({ sheet: path, sel, p, v: v.replace(/\s*!\s*important\s*$/, ""), imp: /!\s*important\s*$/.test(v), layer: at, n: n++ });
-          }
-          i = end; start = end + 1;
-        }
-      } else if (c === "}") { stack.pop(); start = i + 1; }
-      i++;
+  for (const row of rows) {
+    const selector = row.context.at(-1)?.selector;
+    if (!row.property || !selector || row.context.some(({ at }) => /keyframes$/.test(at ?? ""))) continue;
+    const sheet = (files.get(row) ?? declarationFiles.get(row)).slice(1);
+    const layer = row.context.findLast(({ at }) => at === "layer")?.params ?? null;
+    for (const sel of split(selector)) {
+      out.push({ sheet, sel, p: row.property, v: row.value, imp: row.important, layer, n: out.length });
     }
-  };
-  for (const l of links) read(l, null);
+  }
   return out;
 }
 
 /** What the app draws: the classes it puts together on one element, and the tags each class is drawn on. */
-export function drawn() {
+export function drawn(page) {
   /** @type {Map<string, Set<string>>} */
   const peers = new Map();
   /** @type {Map<string, Set<string>>} */
   const tags = new Map();
   const add = (/** @type {Map<string, Set<string>>} */ m, /** @type {string} */ k, /** @type {string} */ v) => { if (!m.has(k)) m.set(k, new Set()); /** @type {Set<string>} */ (m.get(k)).add(v); };
-  const text = [readFileSync(new URL("index.html", ROOT), "utf8"), ...sourcePaths(".js").map(readSource)].join("\n");
+  const text = sourcePaths(".js").map(readSource).join("\n");
+  for (const element of page.querySelectorAll("[class]")) {
+    for (const name of element.classList) {
+      add(tags, name, element.localName);
+      for (const peer of element.classList) add(peers, name, peer);
+    }
+  }
   const names = (/** @type {string} */ v) => v.split(/\s+|\$\{[^}]*\}/).filter((x) => /^[\w-]+$/.test(x));
   for (const m of text.matchAll(/class(?:Name)?\s*[=:]\s*["'`]([^"'`]*)["'`]/g)) { const ns = names(m[1]); for (const a of ns) for (const b of ns) add(peers, a, b); }
   for (const m of text.matchAll(/<([a-zA-Z][\w-]*)\b[^>]*?\sclass="([^"]*)"/g)) for (const c of names(m[2])) add(tags, c, m[1].toLowerCase());
@@ -76,7 +61,7 @@ export function drawn() {
   for (const m of text.matchAll(/classList\.(?:add|toggle)\(\s*["']([\w-]+)["']/g)) { add(peers, m[1], "*"); add(tags, m[1], "*"); }
   for (const m of text.matchAll(/className\s*=\s*[^;\n]*/g)) for (const c of m[0].match(/[\w-]+/g) || []) add(tags, c, "*");
   for (const set of tags.values()) if (set.size > 1) set.delete("*");
-  return { peers, tags, text };
+  return { peers, tags, text, page };
 }
 
 const subject = (/** @type {string} */ sel) => { const flat = sel.replace(/\((?:[^()]|\([^()]*\))*\)/g, (m) => m.replace(/[\s>+~]/g, "_")); const parts = flat.split(/\s*[\s>+~]\s*/); return parts[parts.length - 1].replace(/_/g, " "); };
@@ -90,10 +75,10 @@ const alternatives = (c) => {
 const tag = (/** @type {string} */ c) => (c.match(/^[a-zA-Z][\w-]*/) || [null])[0];
 const pseudo = (/** @type {string} */ c) => (c.match(/::?(before|after|placeholder|marker|selection|backdrop|-webkit-[\w-]+|first-line|first-letter)/) || [null])[1];
 const marks = (/** @type {string} */ c) => new Set(c.replace(/:(not|has)\((?:[^()]|\([^()]*\))*\)/g, "").match(/[.#][\w-]+/g) || []);
-/** @typedef {{ peers: Map<string, Set<string>>, tags: Map<string, Set<string>>, text: string }} Drawn */
+/** @typedef {{ peers: Map<string, Set<string>>, tags: Map<string, Set<string>>, text: string, page: Document }} Drawn */
 
 /** Does the app ever draw the attribute values a compound asks for (on a tag, the root aside)? @param {string} c @param {Drawn} d */
-const attrsDrawn = (c, d) => !tag(c) || /^(html)$/.test(/** @type {string} */ (tag(c))) || [...c.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").matchAll(/\[([\w-]+)="([^"]*)"\]/g)].every(([, k, v]) => d.text.includes(`${k}="${v}"`) || d.text.includes(`${k}=\\"${v}\\"`) || d.text.includes(`"${k}", "${v}"`));
+const attrsDrawn = (c, d) => !tag(c) || /^(html)$/.test(/** @type {string} */ (tag(c))) || [...c.replace(/:not\((?:[^()]|\([^()]*\))*\)/g, "").matchAll(/\[([\w-]+)="([^"]*)"\]/g)].every(([attr, k, v]) => d.page.querySelector(attr) || d.text.includes(`${k}="${v}"`) || d.text.includes(`${k}=\\"${v}\\"`) || d.text.includes(`"${k}", "${v}"`));
 const isRoot = (/** @type {string} */ c) => /^:root\b|^html\b/.test(c);
 
 /** Could two compounds be the same element? @param {string} a @param {string} b @param {Drawn} d */
@@ -128,7 +113,7 @@ const beatsLayered = (a, b) => {
 };
 
 /** The contests the layers turn: same element, related property, a different value, and a different winner than load order gives. @param {Decl[]} all */
-export function turned(all, d = drawn()) {
+export function turned(all, d) {
   /** @type {Map<string, Decl[]>} */
   const byProp = new Map();
   const family = (/** @type {string} */ p) => { const q = p.replace(/^-(webkit|moz)-/, ""); return SHORTHANDS.find((s) => q === s || related(s, q)) || q; };

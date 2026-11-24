@@ -3,8 +3,10 @@
 import { dom } from "./dom.mjs";
 import { tokenValuesFor } from "./css-snapshot.mjs";
 
-/** @param {{ reduced?: boolean, place?: (view: string) => boolean, threads?: (view: string) => object[] }} [options] */
-export async function stageFixture({ reduced = true, place = (view) => view.startsWith("p:"), threads = null } = {}) {
+/** @typedef {(on: boolean, host?: HTMLElement, view?: string) => void} StageShell */
+
+/** @param {{ reduced?: boolean, place?: (view: string) => boolean, threads?: (view: string) => object[], shell?: StageShell | null }} [options] */
+export async function stageFixture({ reduced = true, place = (view) => view.startsWith("p:"), threads = null, shell = () => {} } = {}) {
   const { document, window } = await dom('<button id="outside">Outside</button><div id="main"></div>');
   const storage = new Map();
   const animations = [];
@@ -35,7 +37,7 @@ export async function stageFixture({ reduced = true, place = (view) => view.star
   let shellsOwnKey = false;
   const panel = createStage({
     files: { changes: () => changed }, viewer: {}, view: () => view, place, threads, go() {}, announce() {},
-    at: () => ({ view }), places, shell() {}, owns: () => shellsOwnKey,
+    at: () => ({ view }), places, shell, owns: () => shellsOwnKey,
     openFiles: () => panel.show("files"),
   });
   const stage = document.querySelector("#stage");

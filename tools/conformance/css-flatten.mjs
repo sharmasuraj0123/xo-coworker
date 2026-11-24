@@ -39,8 +39,8 @@ function rebaseUrls(value, from) {
   return parts.join("") + value.slice(offset);
 }
 
-/** @param {string} root @param {string} [entry] @param {(row: object, path: string) => void} [onDeclaration] */
-export function flattenStyles(root, entry = "index.html", onDeclaration) {
+/** @param {string} root @param {string} [entry] @param {(row: object, path: string) => void} [onDeclaration] @param {string[]} [extra] */
+export function flattenStyles(root, entry = "index.html", onDeclaration, extra = []) {
   const base = new URL(entry, ENTRY);
   const rootPath = resolve(root);
   const { document } = parseHTML(readFileSync(resolve(rootPath, entry), "utf8"));
@@ -92,5 +92,6 @@ export function flattenStyles(root, entry = "index.html", onDeclaration) {
     if (node.localName === "style") emit(cssSyntax(node.textContent, entry, () => {}).nodes, base, context);
     else visit(publishedLink(node.getAttribute("href"), base), context);
   }
+  for (const href of extra) visit(publishedLink(href, base), []);
   return rows;
 }

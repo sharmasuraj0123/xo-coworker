@@ -1,9 +1,6 @@
 // The New project dialog on a DOM, from the page's own markup, with Space's answers set by each test.
 import { dom, settle, deferred } from "../../../tests/lib/dom.mjs";
-import { pageHtml } from "../../../tests/lib/page.mjs";
-
-const html = pageHtml();
-const DIALOG = html.slice(html.indexOf('<dialog class="dlg" id="create-dlg"'), html.indexOf("</dialog>", html.indexOf('id="create-dlg"')) + "</dialog>".length);
+import { OVERLAYS } from "../../../shell/overlays.js";
 
 let dialogs = 0;
 /** Winds the last case's dialog down before the next case's page exists: its clone stops, its GitHub login goes quiet. */
@@ -11,7 +8,7 @@ let retire = async () => {};
 /** Space as the dialog sees it: each route a function the test can replace (GitHub's in `github`); clones answer from `clone`. */
 export async function createDialog() {
   await retire();
-  await dom(`<button id="opener">New project</button>${DIALOG}`);
+  await dom(`<button id="opener">New project</button>${OVERLAYS}`);
   const dlg = document.querySelector("#create-dlg");
   dlg.open = false;
   dlg.showModal = () => { dlg.open = true; dlg.setAttribute("open", ""); };

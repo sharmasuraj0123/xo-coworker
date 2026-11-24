@@ -1,23 +1,27 @@
-// The bar, yours to edit (the owner, 19 Nov 14:29Z: "in the More section, i want the ability to customize the bar:
-// what to keep, what not to keep"). Every place in one order you set; the ones you keep are the sidebar's rows, the
-// rest wait in More; drag or ↑ ↓ on a grip to reorder; Reset to default; kept in your shape (layout.side), so it
-// follows you to every device; what this browser kept before (its own key, More's pins) moves there once.
-//   node tests/side-bar.test.mjs
+// The sidebar reflects the saved order and responds to its customization controls.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { bootPage } from "./lib/page.mjs";
+import { publishedRules } from "./lib/css-snapshot.mjs";
+import { deferred, same } from "./lib/dom.mjs";
+import { createSide } from "../shell/rail/side.js";
 
-const app = readFileSync(new URL("../shell/rail/side.js", import.meta.url), "utf8");
-const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
-const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-
-// the model, run as written: SIDE's bar part with a stand-in for the device's storage
+const { document, window } = await bootPage();
 const store = new Map();
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
-const part = app.slice(app.indexOf('  BAR: "xo-side-bar",'), app.indexOf("  extras: new Map(),"));
-assert.ok(part.length > 1000, "the bar's model is there");
-let mine = {};
-const SHAPE = { get: (k) => mine[k], patchMine: (p) => { for (const [k, v] of Object.entries(p.layout || {})) { mine.layout = { ...(mine.layout || {}) }; if (v === null) delete mine.layout[k]; else mine.layout[k] = v; } return { ok: true }; } };
-const SIDE = new Function("SHAPE", `const ICON = {}; const SIDE = { PINS: "xo-side-pins", ${part} apply() {} }; return SIDE;`)(SHAPE);
+const mine = { layout: {} };
+const synced = deferred();
+let shapeChanged;
+const shape = {
+  synced: synced.promise,
+  get: (key) => mine[key],
+  onChange: (listener) => { shapeChanged = listener; },
+  patchMine({ layout: { side } }) {
+    if (side === null) delete mine.layout.side;
+    else mine.layout.side = side;
+    return { ok: true };
+  },
+};
+const SIDE = createSide({ shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() {} });
 
 const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
@@ -56,25 +60,56 @@ SIDE.reset(); assert.ok(SIDE.isDefault()); assert.equal(mine.layout.side, undefi
 
 // this browser's old copy moves into your shape once (not when your shape already has one)
 store.set("xo-side-bar", JSON.stringify({ order: ids, shown: ["home", "rules"] }));
-SIDE.adopt();
+synced.resolve();
+await synced.promise;
 assert.deepEqual(mine.layout.side.shown, ["home", "rules"]);
 assert.ok(!store.has("xo-side-bar"));
-assert.match(app, /SHAPE\.synced\.then\(\(\) => \{ SIDE\.adopt\(\); SIDE\.apply\(\); \}\);/);
-assert.match(app, /SHAPE\.onChange\(\(\) => SIDE\.apply\(\)\);/, "another device's change follows");
+assert.equal(Boolean(document.querySelector('#side .nav > [data-set-open="rules"]')), true);
+mine.layout.side = { order: ids, shown: ["launchpad"] };
+shapeChanged();
+assert.equal(document.querySelector("#nv-lp").hidden, false);
+assert.equal(document.querySelector("#nv-home").hidden, true);
 
-// the page: More ends with Edit the sidebar…; editing, grips, switches, Reset and Done
-assert.match(app, /data-side-edit><span class="nr-ic">\$\{ICON\.edit\}<\/span><span class="nr-name">Edit the sidebar…<\/span>/);
-assert.match(app, /class="se-grip" data-se-grip="\$\{id\}" aria-label="Move \$\{esc\(p\.name\)\}: up or down arrow"/);
-assert.match(app, /class="switch se-sw" role="switch" data-se-sw="\$\{id\}" aria-checked="\$\{on\}" aria-label="Keep \$\{esc\(p\.name\)\} in the sidebar"/);
-assert.match(app, /data-se-reset\$\{SIDE\.isDefault\(b\) \? " disabled" : ""\}>Reset to default/);
-assert.match(app, /xi\("drag-handle"\)/, "the grip is the owner's drag handle");
-assert.match(app, /pop\.setAttribute\("role", "dialog"\); pop\.setAttribute\("aria-label", "Edit the sidebar"\)/);
-assert.match(app, /e\.key === "ArrowUp" \? -1 : 1/);
-assert.match(app, /addEventListener\("drop"/);
-assert.doesNotMatch(html, /id="nv-pins"/, "kept places sit in the bar itself, in your order");
+const more = document.querySelector("#nv-more");
+const pop = document.querySelector("#side-more");
+const click = (node) => node.dispatchEvent(new window.Event("click", { bubbles: true }));
+more.getBoundingClientRect = () => ({ top: 36, right: 120 });
+click(more);
+const edit = [...pop.querySelectorAll('[role="menuitem"]')].at(-1);
+assert.equal(edit.textContent, "Edit the sidebar…");
+click(edit);
+assert.equal(pop.getAttribute("role"), "dialog");
+assert.equal(pop.getAttribute("aria-label"), "Edit the sidebar");
+const grip = pop.querySelector('[data-se-grip="ws"]');
+assert.equal(grip.getAttribute("aria-label"), "Move Workspace: up or down arrow");
+assert.equal(Boolean(grip.querySelector("svg")), true);
+grip.dispatchEvent(Object.assign(new window.Event("keydown", { bubbles: true }), { key: "ArrowUp" }));
+assert.equal(SIDE.bar().order[0], "ws");
+same(document.activeElement, pop.querySelector('[data-se-grip="ws"]'));
+const target = pop.querySelector('[data-se="arts"]');
+target.getBoundingClientRect = () => ({ top: 20 });
+Object.defineProperty(target, "offsetHeight", { value: 40 });
+target.dispatchEvent(Object.assign(new window.Event("drop", { bubbles: true, cancelable: true }), {
+  clientY: 21, dataTransfer: { getData: (type) => type === "text/x-xo-place" ? "ws" : "" },
+}));
+assert.deepEqual(SIDE.bar().order.slice(0, 4), ["home", "chats", "ws", "arts"]);
+const workspace = pop.querySelector('[data-se-sw="ws"]');
+assert.equal(workspace.getAttribute("role"), "switch");
+assert.equal(workspace.getAttribute("aria-label"), "Keep Workspace in the sidebar");
+assert.equal(workspace.getAttribute("aria-checked"), "false");
+click(workspace);
+assert.equal(pop.querySelector('[data-se-sw="ws"]').getAttribute("aria-checked"), "true");
+assert.equal(document.querySelector("#nv-ws").hidden, false);
+click(pop.querySelector("[data-se-reset]"));
+assert.equal(pop.querySelector("[data-se-reset]").hasAttribute("disabled"), true);
+click(pop.querySelector("[data-se-done]"));
+assert.equal(pop.getAttribute("role"), "menu");
+assert.equal(Boolean(document.querySelector("#nv-pins")), false);
 
-// CSS: tokens only (the 1 px hairline is the system's)
-const block = side.slice(side.search(/^\.sm-sep\{/m));
-assert.ok(block.length > 300);
-assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
+const editorRules = publishedRules().filter(({ sel }) => /^\.(?:sm-sep\b|se-)/.test(sel));
+assert.ok(editorRules.some(({ sel }) => sel === ".se-grip"));
+assert.ok(editorRules.some(({ sel }) => sel === ".sm-sep"));
+for (const { sel, declarations } of editorRules) {
+  for (const { v } of declarations) assert.doesNotMatch(v.replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i, sel);
+}
 console.log("side-bar: ok");

@@ -1,8 +1,8 @@
 // Files (js/files.js): which folder a view shows, and where a file the viewer opened sits in it. No network.
 //   node tests/files.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
+import { bootPage } from "./lib/page.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const { scopeOf, localIn, fileScope, newFileSay } = await import("../modules/files/scope.js");
@@ -65,6 +65,7 @@ t("a new file's name: said under it before Enter (a folder in it, one that's the
   assert.equal(newFileSay("hook", "x", d, true).runs, true, "Space said it runs code (428)");
   assert.equal(newFileSay("settings.json", "docs/.claude", d), null, "only at the top of the place");
 });
+const { document: entry } = await bootPage();
 const { window, document } = await dom('<main id="home"></main><aside id="files"></aside><section id="viewer" tabindex="-1" hidden></section>');
 const storage = new Map([
   ["xo-home-shape", JSON.stringify({ w: 0, parts: [{ id: "hm-made", n: 2 }] })],
@@ -78,11 +79,9 @@ globalThis.localStorage = {
   removeItem: (key) => storage.delete(key),
 };
 
-const index = new URL("../index.html", import.meta.url);
-const entry = new window.DOMParser().parseFromString(readFileSync(index, "utf8"), "text/html");
 const [firstPaint, boot] = entry.querySelectorAll('script[type="module"][src]');
 assert.equal(boot?.getAttribute("src"), "./boot.js", "Home paints before the app module loads");
-await import(new URL(firstPaint.getAttribute("src"), index).href);
+await import(new URL(firstPaint.getAttribute("src"), new URL("../", import.meta.url)).href);
 t("Home paints on entry using the stored shape before the app starts", () => {
   assert.ok(document.querySelector("#home h1")?.textContent.trim());
   assert.ok(document.querySelector("#home .hm-date")?.textContent.trim());

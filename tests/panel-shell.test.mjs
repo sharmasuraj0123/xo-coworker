@@ -1,21 +1,40 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-
-import { panelSrc } from "./lib/panel-src.mjs";
-import { dom } from "./lib/dom.mjs";
+import { clearTimeout, setImmediate, setInterval, setTimeout } from "node:timers";
+import { dom, same } from "./lib/dom.mjs";
+import { bootPage } from "./lib/page.mjs";
+import { stageFixture } from "./lib/stage-fixture.mjs";
+import { publishedRules } from "./lib/css-snapshot.mjs";
+import { mediaHolds } from "./lib/cascade.mjs";
 import { createShellPanel } from "../modules/shells/panel.js";
 import { SHELL_DOCK } from "../shell/overlays.js";
-const stage = panelSrc;
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
-const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const { stage: withoutShells } = await stageFixture({ shell: null });
+assert.equal(Boolean(withoutShells.querySelector("[data-stg-shell]")), false);
+const mounts = [];
+const { stage, panel, window: panelWindow } = await stageFixture({ shell: (...args) => mounts.push(args) });
+const shellButton = stage.querySelector("[data-stg-shell]");
+assert.equal(shellButton.getAttribute("aria-pressed"), "false");
+shellButton.dispatchEvent(new panelWindow.Event("click", { bubbles: true }));
+assert.equal(panel.isShell, true);
+assert.equal(shellButton.getAttribute("aria-pressed"), "true");
+assert.equal(mounts[0][0], true);
+assert.equal(mounts[0][2], "p:one");
+const body = stage.querySelector(".stg-body");
+assert.deepEqual([...body.children].map((el) => el.className), ["stg-frames", "stg-page"]);
+same(mounts[0][1].closest(".stg-page"), body.lastElementChild);
+shellButton.dispatchEvent(new panelWindow.Event("click", { bubbles: true }));
+assert.equal(panel.isShell, false);
+assert.equal(shellButton.getAttribute("aria-pressed"), "false");
+assert.deepEqual(mounts.at(-1), [false]);
 
-// the panel: a Shell button (only when the app gives it a shell), and one host for every page, over the frames
-assert.match(stage, /\$\{shell \? `<button type="button" class="stg-ic stg-shell-b" data-stg-shell aria-pressed="false"/);
-assert.match(stage, /`<div class="stg-body"><div class="stg-frames">`/);
-assert.match(stage, /`<\/div><div class="stg-page"><\/div><\/div>`;/, "the page host sits over the frames, in the same cell");
-assert.match(stage, /if \(t\.closest\("\[data-stg-shell\]"\)\) \{ setShell\(S\.page\?\.name !== "shell"\); return; \}/);
+const { document: entry } = await bootPage();
+const toggle = entry.getElementById("nv-shells");
+assert.ok(toggle, "the sidebar has a Shells toggle");
+assert.equal(toggle.tagName, "BUTTON");
+assert.equal(toggle.getAttribute("aria-label"), "Shells");
+assert.equal(toggle.getAttribute("aria-pressed"), "false");
+assert.equal(toggle.hidden, true);
+assert.deepEqual([...toggle.children].map((child) => child.className), ["gear-ic", "sh-n"]);
 
 // the app: the dock itself moves (no second terminal), a shell opens where it was asked for, and it goes back home
 const { document, window } = await dom(`<main><i id="before"></i>${SHELL_DOCK.trim()}<i id="after"></i></main><aside id="host"></aside>`);
@@ -60,17 +79,88 @@ SH.enabled = false;
 STAGE.isShell = true;
 panelShell(true, host);
 assert.deepEqual(calls.slice(-2), ["off", "Shells aren't on here"]);
-assert.match(app, /shell: \(on, host, where\) => panelShell\(on, host, where\)/);
-
-// the left panel's Shells stay: its toggle and the dock under the page are untouched
-assert.match(html, /<button type="button" class="gear is-ic sh-tog" id="nv-shells" aria-pressed="false" aria-label="Shells" hidden><span class="gear-ic" id="ic-shells"><\/span><span class="sh-n"><\/span><\/button>/);
 assert.equal(dock.getAttribute("aria-label"), "Shells");
 
-// CSS: tokens only; the page over the frames in one cell; a phone keeps its own shells sheet
-const block = css.slice(css.indexOf("── Shell mode"), ((css.indexOf("/* ──", css.indexOf("── Shell mode") + 4) + 1) || css.length + 1) - 1);
-assert.match(block, /\.stg-body>\*\{grid-area:1\/1;min-width:0;min-height:0\}/);
-assert.match(block, /\.stage\.is-covered \.stg-frames\{visibility:hidden;content-visibility:hidden\}/);
-assert.match(block, /@media \(max-width:760px\)\{\.stg-shell-b\{display:none\}\}/);
-assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, "").replace(/@media \([^)]*\)/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b/);
+const rules = publishedRules();
+const propertiesFor = (selector) => Object.fromEntries(rules.filter(({ sel }) => sel === selector)
+  .flatMap(({ declarations }) => declarations.map(({ p, v }) => [p, v])));
+assert.deepEqual(propertiesFor(".stg-body>*"), { "grid-area": "1/1", "min-width": "0", "min-height": "0" });
+assert.deepEqual(propertiesFor(".stage.is-covered .stg-frames"), { visibility: "hidden", "content-visibility": "hidden" });
+const hidesShellButton = (width) => rules.some(({ sel, at, declarations }) => sel === ".stg-shell-b"
+  && at.every((context) => mediaHolds(context, width) !== false)
+  && declarations.some(({ p, v }) => p === "display" && v === "none"));
+assert.equal(hidesShellButton(760), true);
+assert.equal(hidesShellButton(761), false);
+
+await checkAppShellDock();
+
+async function checkAppShellDock() {
+  const { document: app, window: browser } = await bootPage();
+  const storage = { getItem() { return null; }, setItem() {}, removeItem() {} };
+  const matches = browser.Element.prototype.matches;
+  browser.Element.prototype.matches = function (selector) {
+    if (selector === ":focus-within") return this.contains(app.activeElement);
+    if (selector === ":focus-visible") return this === app.activeElement;
+    return matches.call(this, selector);
+  };
+  browser.HTMLElement.prototype.scrollTo = function () {};
+  Object.assign(globalThis, {
+    location: new URL("http://localhost/"),
+    history: { replaceState() {}, pushState() {} },
+    sessionStorage: storage,
+    localStorage: storage,
+    MutationObserver: browser.MutationObserver,
+    ResizeObserver: class { observe() {} disconnect() {} },
+    customElements: browser.customElements,
+    matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
+    addEventListener: browser.addEventListener.bind(browser),
+    removeEventListener: browser.removeEventListener.bind(browser),
+    getComputedStyle: browser.getComputedStyle,
+    requestAnimationFrame: (fn) => setTimeout(() => fn(performance.now()), 0),
+    cancelAnimationFrame: clearTimeout,
+    setInterval: (fn, ms) => setInterval(fn, ms).unref(),
+    setTimeout: (fn, ms) => setTimeout(fn, ms).unref(),
+    EventSource: class { addEventListener() {} close() {} },
+    fetch: async (url) => {
+      const path = new URL(String(url), "http://localhost/").pathname;
+      if (path === "/api/terminal/status") return Response.json({ enabled: true });
+      if (path === "/api/terminal/sessions") {
+        return Response.json({ terminals: [{ id: "workspace-shell", name: "Workspace", scope: "workspace", status: "running" }] });
+      }
+      return Response.json({});
+    },
+  });
+  await import("../boot.js");
+  await new Promise(setImmediate);
+
+  const press = (selector) => {
+    const control = app.querySelector(selector);
+    assert.ok(control, `boot renders ${selector}`);
+    control.dispatchEvent(new browser.Event("click", { bubbles: true, cancelable: true }));
+  };
+  const appDock = app.getElementById("shd");
+  assert.ok(appDock);
+  const parent = appDock.parentNode, next = appDock.nextSibling;
+  press("#nv-ws");
+  await new Promise(setImmediate);
+  press("[data-stage-toggle]");
+  press("[data-stg-shell]");
+  assert.ok(appDock.closest("#stage .stg-page"), "the app moves its existing Shells dock into the Stage page");
+  assert.equal(appDock.hidden, false);
+  assert.equal(app.querySelectorAll("#shd").length, 1);
+  press("[data-stg-shell]");
+  same(appDock.parentNode, parent, "closing the Stage Shells page restores the dock's parent");
+  same(appDock.nextSibling, next, "closing the Stage Shells page restores the dock's position");
+  assert.equal(appDock.hidden, true);
+
+  press('[data-fr-fold="map"]');
+  const map = app.getElementById("fr-body-map");
+  for (const deadline = performance.now() + 1000; !map.querySelector(".dg-edges") && performance.now() < deadline;) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.equal(map.querySelectorAll("svg.dg-edges").length, 1, "the open Map draws its edge layer");
+  assert.equal(map.querySelectorAll('svg[stroke="currentColor"][fill="none"]').length, 0, "Map keeps the pen off SVG roots");
+  press("[data-stage-toggle]");
+}
 
 console.log("panel-shell: ok");
