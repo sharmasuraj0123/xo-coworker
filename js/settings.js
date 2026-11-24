@@ -1,37 +1,46 @@
-// Settings' Routing, Rules and Worktrees pages, wired to #settings: one listener per kind, in the order they've always answered.
+// @ts-check
 
+import { createScope } from "../core/kernel/scope.js";
 import { radioKeys } from "../core/ui/a11y/keynav.js";
 import { createSettingsHost } from "../modules/settings/host.js";
 import { createRoutingPage } from "../modules/routing/page.js";
 import { createRulesPage } from "../modules/rules/page.js";
 import { createWorktreesPage } from "../modules/worktrees/page.js";
 
-export function createSettings({ world, announce, PROJ, onChange }) {
-  const host = createSettingsHost();
-  const routing = createRoutingPage(host, { world, announce, PROJ, onChange });
-  const rules = createRulesPage(host, { world, announce, PROJ });
-  const trees = createWorktreesPage(host, { world, announce, PROJ });
+/** @typedef {Parameters<typeof createRoutingPage>[1] & Parameters<typeof createRulesPage>[1]} RoutingAndRulesOptions */
 
-  const root = document.querySelector("#settings");
-  // every choice group in Settings (Routing, Shape's presets, the usual runtime): arrows move, Space or Enter chooses
-  radioKeys(root, { follow: false });
-  root.addEventListener("click", (e) => {
-    const t = e.target;
-    if (routing.clickFirst(t)) return;
-    // Keep and Cancel wait while their question's answer is on its way: it can't be taken back by closing the question
-    if (t.closest('[aria-disabled="true"]')) return;
-    if (routing.click(t) || rules.click(t)) return;
-    trees.click(t);
+/** @param {RoutingAndRulesOptions & Parameters<typeof createWorktreesPage>[1]} options */
+export function createSettings(options) {
+  const root = document.getElementById("settings");
+  if (!root) throw new Error("Settings root is missing");
+  const scope = createScope();
+  const host = createSettingsHost();
+  const routing = createRoutingPage(host, options);
+  scope.effect(() => routing.dispose);
+  const rules = createRulesPage(host, options);
+  scope.effect(() => rules.dispose);
+  const trees = createWorktreesPage(host, options);
+  scope.effect(() => trees.dispose);
+
+  scope.effect(() => radioKeys(root, { follow: false }));
+  scope.listen(root, "click", ({ target }) => {
+    if (!(target instanceof Element) || routing.clickFirst(target)) return;
+    if (target.closest('[aria-disabled="true"]') || routing.click(target) || rules.click(target)) return;
+    trees.click(target);
   });
-  root.addEventListener("change", (e) => routing.change(e.target));
-  root.addEventListener("submit", (e) => routing.submit(e));
+  scope.listen(root, "change", ({ target }) => {
+    if (target instanceof Element) routing.change(target);
+  });
+  scope.listen(root, "submit", routing.submit);
 
   return {
-    /** A page was opened: read what it shows. */
+    /** @param {string} id */
     open(id) {
+      if (scope.signal.aborted) return;
       if (id === "routing") routing.open();
       else if (id === "rules") rules.open();
       else if (id === "worktrees") trees.open();
     },
+    dispose: scope.dispose,
   };
 }

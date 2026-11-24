@@ -35,7 +35,8 @@ export const rovingTab = (on, first = false) => (on || first ? ' tabindex="0"' :
 
 /** Arrows move through any radiogroup inside root, choosing as they go unless follow is false; Space or Enter choose. @param {Element} root */
 export function radioKeys(root, { follow = true } = {}) {
-  root.addEventListener("keydown", (ev) => {
+  /** @param {Event} ev */
+  const onKey = (ev) => {
     const e = /** @type {KeyboardEvent} */ (ev);
     if (!plain(e) || e.isComposing) return;
     const r = /** @type {HTMLElement | null} */ ((/** @type {Element | null} */ (e.target))?.closest?.(OPTION));
@@ -52,7 +53,9 @@ export function radioKeys(root, { follow = true } = {}) {
     const to = all[j];
     to.focus();
     if (follow && to.getAttribute("aria-checked") !== "true") to.click();
-  });
+  };
+  root.addEventListener("keydown", onKey);
+  return () => root.removeEventListener("keydown", onKey);
 }
 
 /** A mouse moving onto a usable menu item focuses it while focus is in that menu, on its open button, or nowhere. @param {Element} root */
