@@ -116,6 +116,19 @@ press("#nv-ws");
 assert.ok(document.activeElement === element("#scroller"), "touch navigation opens on the conversation landmark");
 assert.equal(say.value, "Keep my Workspace draft");
 
+say.focus();
+say.selectionStart = 3;
+say.setSelectionRange = (start) => { say.selectionStart = start; };
+write("@de");
+const mention = element('#at-list [data-pid="demo"]');
+assert.equal(say.getAttribute("aria-activedescendant"), mention.id);
+mention.dispatchEvent(new window.Event("mousedown", { bubbles: true, cancelable: true }));
+assert.equal(say.value, "@demo ");
+assert.equal(JSON.parse(storage.get("cv-drafts:live")).ws, "@demo ");
+assert.equal(say.getAttribute("aria-expanded"), "false");
+assert.ok(document.activeElement === say, "choosing a target leaves focus in the composer");
+write("Keep my Workspace draft");
+
 const send = element("#send");
 const fileInput = element("#att-input");
 fileInput.files = [new File(["note"], "notes.txt", { type: "text/plain" })];

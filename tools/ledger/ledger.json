@@ -7389,12 +7389,12 @@
    "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::atClose": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2345)"
+   "status": "moved",
+   "home": "modules/conversation/mention.js"
   },
   "js/app.js::functions::pickAt": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
+   "status": "moved",
+   "home": "modules/conversation/mention.js"
   },
   "js/app.js::functions::saveDraft": {
    "status": "moved",
@@ -15447,8 +15447,8 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::atRender": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/mention.js"
   },
   "js/app.js::functions::atKeys": {
    "status": "kept",
