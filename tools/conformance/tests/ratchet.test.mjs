@@ -201,7 +201,7 @@ test("only HTML used solely to boot the DOM harness is exempt", (context) => {
   const setup = 'import { readFileSync } from "node:fs"; import { dom as boot } from "./lib/dom.mjs";';
   const read = 'readFileSync(new URL("../index.html", import.meta.url), "utf8")';
   const root = fixture(context, {
-    "index.html": "<!doctype html>",
+    "index.html": "<!doctype html><html><body><main></main></body></html>",
     "tests/lib/dom.mjs": "export function dom() {}",
     "tests/direct.test.mjs": `${setup} await boot(${read});`,
     "tests/bound.test.mjs": `${setup} const html = ${read}; await boot(html);`,
