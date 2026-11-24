@@ -24,12 +24,12 @@ function walk(rel, visit) {
   }
 }
 for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) {
-  if (existsSync(join(ROOT, d))) walk(d, (p) => { if (/(^|\/)tests\/[^/]+\.test\.mjs$/.test(p)) files.push(p); });
+  if (existsSync(join(ROOT, d))) walk(d, (p) => { if (/(^|\/)tests\/[^/]+$/.test(p) && IS_TEST.test(p)) files.push(p); });
 }
 if (!filter) {
   const discovered = new Set(files.map((f) => f.includes("/") ? f : `tests/${f}`));
   const missing = [];
-  walk("", (p) => { if (p.endsWith(".test.mjs") && !discovered.has(p)) missing.push(p); });
+  walk("", (p) => { if (IS_TEST.test(p) && !discovered.has(p)) missing.push(p); });
   if (missing.length) {
     console.error(`Undiscovered unit tests:\n${missing.sort().join("\n")}`);
     process.exit(1);
