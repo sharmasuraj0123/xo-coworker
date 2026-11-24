@@ -8,6 +8,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
 const mount = fn(app, "function tpMount(box)");
+const markup = read("modules/conversation/thread-page-html.js");
 const editing = read("modules/threads/editing.js");
 
 t("the conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat", () => {
@@ -22,7 +23,7 @@ t("1 · a drop: the app's one drop path hides the veil and adds the files to the
   assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/);
 });
 t("2 · notices: the panel's thread page has its own line, over its own composer, and the line follows you", () => {
-  assert.match(mount, /<div class="dock tp-dock" id="tpdock"><div class="herald" id="tpherald" aria-live="polite"><\/div>/);
+  assert.match(markup, /<div class="dock tp-dock" id="tpdock"><div class="herald" id="tpherald" aria-live="polite"><\/div>/);
   assert.match(app, /const heraldBox = \(\) => \(composerNow\(\) === MK \? \$\("#herald"\) : \$\("#tpherald"\)\);/);
   assert.match(fn(app, "function heraldRender("), /const box = heraldBox\(\);\n\s*for \(const o of \[\$\("#herald"\), \$\("#tpherald"\)\]\) if \(o && o !== box && o\.firstChild\)/, "the other line is emptied");
   assert.match(app, /document\.addEventListener\("focusin", \(\) => \{ const K = composerNow\(\); if \(K !== S\.kNow\) \{ S\.kNow = K; schedule\(\); \} \}\);/);
@@ -61,9 +62,9 @@ t("6 · focus after Retry, Pick back up and a notice's Undo goes to that convers
   assert.match(app, /const inUse = \(sel\) => \(\) => \{ const K = composerNow\(\); return sel === "#send" \? K\.send : K\.main \? \$\(sel\) : TP\.box\.querySelector\(sel\); \};/, "a Stop's notice goes back to its own conversation's controls");
 });
 t("7 · the @ list and the target line: one code for both composers", () => {
-  assert.match(mount, /<ul id="tat-list" class="at-list" role="listbox" aria-label="Projects" hidden><\/ul>/);
-  assert.match(mount, /aria-autocomplete="list" aria-controls="tat-list" aria-expanded="false"/);
-  assert.match(mount, /<button type="button" class="target" id="ttarget" title="Aim at a project \(@\)"><\/button>/);
+  assert.match(markup, /<ul id="tat-list" class="at-list" role="listbox" aria-label="Projects" hidden><\/ul>/);
+  assert.match(markup, /aria-autocomplete="list" aria-controls="tat-list" aria-expanded="false"/);
+  assert.match(markup, /<button type="button" class="target" id="ttarget" title="Aim at a project \(@\)"><\/button>/);
   assert.match(mount, /atList: TP\.K\.at,/, "Enter and Esc in the field leave an open list to it");
   const w = fn(app, "function wireComposer(K)");
   assert.match(w, /if \(atKeys\(e, K\)\) return;/);

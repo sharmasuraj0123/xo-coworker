@@ -199,6 +199,11 @@ press('#stage [data-go="t:thread-1"]');
 await draw();
 await draw();
 assert.ok(document.activeElement === element("#tsay"), "desktop panel entry focuses its composer");
+for (const id of ["tphead", "tpthead", "tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer",
+  "tsay-label", "tatt-tray", "tsay", "tattach", "tatt-input", "ttarget", "tiq", "tsend", "tatt-note"]) {
+  assert.equal(document.querySelectorAll(`#${id}`).length, 1, `${id} appears once beside the main conversation`);
+  assert.ok(element("#tphead").parentElement.contains(element(`#${id}`)), `${id} belongs to the thread page`);
+}
 assert.match(element("#ttarget").textContent, /Reply in this thread/);
 const threadSay = element("#tsay");
 threadSay.placeholder = "";

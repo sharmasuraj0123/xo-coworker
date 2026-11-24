@@ -7916,76 +7916,76 @@
    "home": "modules/threads/editing.js"
   },
   "js/app.js::ids::tphead": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2710)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tpthead": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2710)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tscroller": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2711)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tcolumn": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2711)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tmsgs": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2712)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::ttyping": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2712)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tpdock": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2713)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tptdock": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2713)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tpcomposer": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2713)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tsay-label": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2714)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tatt-tray": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2714)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tsay": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2714)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tattach": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2716)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tatt-input": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2716)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::ttarget": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2717)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tiq": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2717)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tsend": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2717)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tatt-note": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2718)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tdel-q": {
    "status": "moved",

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const markup = readFileSync(new URL("../modules/conversation/thread-page-html.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // registered on the panel's page model at the panel's own width (the owner, 20 Nov), its box built once and kept
@@ -15,7 +16,7 @@ const tsh = app.slice(app.indexOf("function tpShow("), app.indexOf("\n}\n", app.
 assert.match(tsh, /drawThreadPage\(D\.needItems\(\)\);/);
 assert.doesNotMatch(tsh, /\brender\(\)/, "never the whole app");
 // its own elements (unique ids beside the main chat's), its own follower, drawing, composer and decoration
-for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(app, new RegExp(`id="${id}"`), id);
+for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(markup, new RegExp(`id="${id}"`), id);
 assert.match(app, /TP\.follow = createFollow\(els\);/);
 assert.match(app, /TP\.C = createConv\(\{ view: tpView, msgs: els\.msgs/);
 assert.match(app, /wireComposer\(TP\.K\);/);
@@ -124,7 +125,7 @@ assert.match(app, /render\(\); \/\/ drawn now, in the click/);
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
-for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(app, new RegExp(`id="${id}"`), id);
+for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(markup, new RegExp(`id="${id}"`), id);
 assert.match(app, /wireTray\(TP\.K\);/);
 assert.match(app, /wireTray\(MK\);/);
 assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/, "a drop on the page: the app's one drop, into its composer");
