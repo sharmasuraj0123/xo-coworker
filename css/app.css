@@ -31,32 +31,7 @@
 @import url("../shell/control-targets-phone.css");
 @import url("../modules/conversation/notice-phone.css");
 @import url("../modules/chats/send-now.css");
-
-/* Shared file cards open a viewer alongside the conversation or fill a phone screen. */
-.tb-file{display:block;height:auto;padding:0;background:none;border:0;border-radius:0;min-width:0;max-width:100%}
-.tb-fb{
-  display:flex; align-items:center; gap:var(--s-3); min-width:min(var(--w-file-card-min),100%); max-width:100%;
-  height:var(--h-file-card); padding:0 var(--s-3) 0 var(--s-file-card-start); border-radius:var(--r-lg);
-  background:var(--surface); border:var(--hair) solid var(--line); box-shadow:var(--hairline); text-align:left;
-  cursor:pointer;
-  transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)
-}
-.tb-fb:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
-.tb-fb:active{transform:scale(.985)}
-.tb-fb .tb-fi{width:var(--tile-lg);height:var(--tile-lg);border-radius:var(--r-sm);background:var(--fill-2);color:var(--ink-2)}
-.tb-fb .tb-fi svg{width:var(--ic-lg);height:var(--ic-lg)}
-.tb-ft{display:flex;flex-direction:column;gap:var(--s-file-card-label-gap);min-width:0;flex:1}
-.tb-fb .tb-fn{font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
-/* A file's kind and size use the interface face with tabular figures. */
-.tb-fb .tb-fm{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums}
-.tb-fo{
-  flex:none; display:inline-flex; align-items:center; gap:var(--s-file-card-label-gap);
-  margin-left:var(--s-file-card-open-gap); font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);
-  color:var(--ink-4); opacity:.0; transition:opacity var(--d-hover) var(--ease),color var(--d-hover) var(--ease)
-}
-.tb-fo svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(-90deg)}
-.tb-fb:hover .tb-fo,.tb-fb:focus-visible .tb-fo{opacity:1;color:var(--ink-2)}
-@media (hover:none){.tb-fo{opacity:1}}
+@import url("../modules/files/conversation-cards.css");
 
 .viewer{position:absolute;z-index:calc(var(--z-panel) + 2);top:var(--float-inset);right:var(--float-inset);bottom:var(--float-inset);width:var(--vw);display:flex;flex-direction:column;border-radius:var(--r-lg);background:var(--surface);border:var(--hair) solid var(--line-soft);box-shadow:var(--e2);outline:none;overflow:hidden}
 .viewer.is-in{animation:sheet-in var(--d-move) var(--ease) both}
