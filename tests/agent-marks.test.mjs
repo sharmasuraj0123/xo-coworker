@@ -4,7 +4,7 @@
 //   node tests/agent-marks.test.mjs
 import assert from "node:assert/strict";
 import { sheet } from "./lib/cascade.mjs";
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { rtMark, markOf, rtName } from "../core/services/runtimes.js";
 
 let passed = 0;
