@@ -35,10 +35,10 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
 
   /** @param {HTMLElement} host */
   function mount(host) {
-    mounted?.dispose();
+    host.append(pane);
+    if (mounted) return mounted.dispose;
     const scope = createScope();
     mounted = scope;
-    host.append(pane);
     scope.effect(() => () => { mounted = undefined; pane.remove(); });
     files.mount(body, scope);
     files.fold(!treeOpen());
