@@ -39,6 +39,7 @@ import { createLiveConversation } from "../modules/conversation/live.js";
 import { createConversationPaging } from "../modules/conversation/paging.js";
 import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
 import { threadPageHtml } from "../modules/conversation/thread-page-html.js";
+import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
@@ -1602,6 +1603,7 @@ function toMain(id) {
   STAGE.closePage("thread"); go("t:" + id, { panel: true });
 }
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-tp-main]"); if (b) toMain(b.dataset.tpMain); });
+const { saveScroll, showMsg } = createConversationNavigation({ S, pageEl, main: () => MAIN });
 const openFromPanel = createPanelThreadOpener({ S, world, STAGE, TP, go, showMsg });
 
 // ── render ──────────────────────────────────────────────────────────────────
@@ -1658,10 +1660,6 @@ function dockAtTop(top) {
 initFollow();
 
 // ── navigation: back always returns exactly where you were ─────────────────
-function saveScroll() {
-  if (pageEl(S.view)) S.scroll[S.view] = pageEl(S.view).scrollTop;
-  // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
-}
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
 const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ S, world, CH, convThread, chatOf });
 const drawConv = createConversationDrawing({ S, CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender });
@@ -1683,19 +1681,6 @@ function decideKey(key, opts) {
     return;
   }
   D.open(key, opts);
-}
-
-/** After going to a conversation, bring one message into view and mark it for a moment (if it's loaded). */
-function showMsg(id, C = MAIN) {
-  let tries = 0;
-  const look = () => {
-    const el = C.msgs.querySelector(`[data-k="${CSS.escape(S.alias.get(id) || id)}"]`);
-    if (!el) { if (++tries < 20) setTimeout(look, 100); return; }
-    C.follow.toRow(el, true); // through follow.js: following stops, then the row is centred (never scrollIntoView)
-    el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash");
-    setTimeout(() => el.classList.remove("is-flash"), 1800);
-  };
-  setTimeout(look, 120); // after the conversation has drawn and restored its scroll
 }
 
 // ── files on messages (hub #30): the shared-file card, opening in the same viewer ──

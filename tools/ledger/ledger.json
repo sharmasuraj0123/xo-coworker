@@ -7549,8 +7549,8 @@
    "home": "modules/conversation/reading-layout.js"
   },
   "js/app.js::functions::saveScroll": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
+   "status": "moved",
+   "home": "modules/conversation/navigation.js"
   },
   "js/app.js::functions::go": {
    "status": "moved",
@@ -7585,8 +7585,8 @@
    "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
   },
   "js/app.js::functions::showMsg": {
-   "status": "planned",
-   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3243)"
+   "status": "moved",
+   "home": "modules/conversation/navigation.js"
   },
   "js/app.js::functions::fwdSource": {
    "status": "planned",
