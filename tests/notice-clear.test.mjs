@@ -42,7 +42,7 @@ t("the conversation keeps room for the notices' line while it shows over its foo
   // measured where it stands (the dock's observer, and each time the line is drawn); none while it's hidden
   assert.match(mx, /:root\[data-msgx\] \.scroller\{padding-bottom:calc\(var\(--dock-h\) - 18px \+ var\(--herald-room, 0px\)\)\}/);
 });
-const { document } = await dom('<main id="app"><div id="dock"><div id="herald"></div></div></main>');
+const { document, window } = await dom('<main id="app"><div id="dock"><div id="herald"></div></div></main>');
 const herald = document.getElementById("herald"), composer = {};
 herald.getBoundingClientRect = () => ({ top: 60 });
 document.getElementById("dock").getBoundingClientRect = () => ({ top: 100 });
@@ -54,7 +54,7 @@ S.herald = { ...S.herald, n: 2, text: "Updated" };
 line.heraldRender([]);
 const notice = herald.firstElementChild;
 assert.ok(notice.classList.contains("is-in"));
-const changes = new MutationObserver(() => {});
+const changes = new window.MutationObserver(() => {});
 changes.observe(notice, { attributes: true });
 line.heraldRender([]);
 assert.ok(herald.firstElementChild === notice);
