@@ -1,31 +1,37 @@
-import { createWorld, esc } from "./world.js";
+import { createWorld } from "../core/services/world/store.js";
+import { esc } from "../core/platform/util.js";
 import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
-import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
-import { renderInline, setThreadInfo, setWebImages } from "./markdown.js";
+import "../core/ui/components/xo-select.js";
+import { renderInline, setThreadInfo, setWebImages } from "../core/ui/markdown/markdown.js";
 import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
-import { createDecisions } from "./decide.js";
+import { createDecisions } from "../modules/decisions/controller.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { ICON, $, RM, morph, expand } from "./ui.js";
+import { ICON } from "../core/ui/icons/names.js";
+import { $ } from "../core/platform/dom.js";
+import { RM, morph } from "../core/ui/motion.js";
 import { sound } from "../core/services/sound.js";
-import { plainText, heldWords, heldShort } from "./timeline.js";
-import { stepLineHtml } from "./turnview.js";
+import { plainText, heldWords, heldShort, cliName, chatOrder, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
+import { stepLineHtml, turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
 import { nameWith } from "../core/services/comms.js";
-import { mediaHtml, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
+import { mediaHtml, webImagesHtml } from "../core/services/media/render.js";
+import { fromSharedFile, viewerFile } from "../core/services/media/items.js";
+import { wireDragOut } from "../core/services/media/hydrate.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
-import { startRich } from "./rich.js";
-import { createLightbox } from "./lightbox.js";
+import { startRich } from "../core/ui/markdown/rich.js";
+import { createLightbox } from "../modules/conversation/lightbox.js";
 import { createRunsPanel } from "../modules/runs/panel.js";
+import { createRunsEscape } from "../modules/runs/escape.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
 import { createRunsReads } from "../modules/runs/read.js";
 import { createRunsStrip } from "../modules/runs/strip.js";
 import { createRunsStop } from "../modules/runs/stop.js";
 import { createSettings } from "./settings.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
-import { createChats } from "./chats.js";
+import { createChats } from "../modules/chats/chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
@@ -55,7 +61,9 @@ import { createConversationDecisionActions } from "../modules/decisions/conversa
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
-import { createViewer } from "./viewer.js";
+import { createFileViewer } from "../modules/files/viewer.js";
+import { diff, jump as jumpDiff, setTheme as setDiffTheme } from "../modules/changes/diffview.js";
+import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
 import { createMap } from "../modules/map/map.js";
 import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
@@ -64,6 +72,9 @@ import { wireHeaderActions } from "../shell/header.js";
 import { createTopHeader } from "../shell/top-header.js";
 import { createWorkspaceHeader } from "../shell/workspace-header.js";
 import { stackLayers } from "../shell/layers.js";
+import { focusOverlay, mountKeyboardLayers } from "../shell/keyboard-layers.js";
+import { wireGlobalKeys } from "../shell/global-keys.js";
+import { createShortcutsSheet } from "../modules/settings/shortcuts-sheet.js";
 import { wireBack } from "../shell/back.js";
 import { createBackSteps } from "../shell/back-steps.js";
 import { createNavigation } from "../shell/navigation.js";
@@ -92,6 +103,7 @@ import { createThreadResolve } from "../modules/threads/resolve.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { threadsCtl } from "../modules/threads/header.js";
 import { createAllThreads } from "../modules/threads/all.js";
+import { createAllThreadsSheet } from "../modules/threads/all-sheet.js";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadDeleteView } from "../modules/threads/delete-view.js";
 import { createThreadDelete } from "../modules/threads/delete.js";
@@ -101,9 +113,8 @@ import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
-import { setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { createChangesFrame } from "../modules/changes/frame.js";
-import { createTray } from "./attach.js";
+import { createTray } from "../core/services/media/attachment-tray.js";
 import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
 import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
@@ -118,15 +129,15 @@ import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
-import { wireGestures, dockGestures } from "./gestures.js";
+import { wireGestures, dockGestures } from "../shell/gestures.js";
+import { wordsOf } from "../modules/conversation/words.js";
 import { rtName } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
 import { createSettingsFrame, createSettingsSections, createKeysPage, createShapeView, SHAPE_IC } from "../modules/settings/index.js";
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
-import { setWorkMode } from "./turnview.js";
-import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
+import { radioKeys, menuKeys, focusOpened } from "../core/ui/a11y/keynav.js";
 import { createConversationNotices } from "../modules/conversation/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
@@ -135,8 +146,8 @@ import { createDeviceNotice } from "../modules/settings/device-notice.js";
 import { wireSound } from "../modules/settings/sound.js";
 import { createShapeApply } from "../modules/settings/apply-shape.js";
 import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
-import { regionRings } from "./ring.js";
-import { keepFocusInView, usable } from "./focusview.js";
+import { regionRings } from "../core/ui/a11y/ring.js";
+import { keepFocusInView, usable } from "../core/ui/a11y/focus.js";
 
 const world = createWorld();
 const schedule = createShellScheduler(() => render());
@@ -263,11 +274,11 @@ const CH = createChats({
     putBack(text);
     return true;
   },
-});
+}, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
 world.ui = { tbOpen: S.tbOpen }; // turn blocks open or folded, shared with the Chats view
 // what a place changed, from Space's /changes (modules/changes/store.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, api, onChange: () => schedule() });
-const VW = createViewer({
+const VW = createFileViewer({
   announce, onChange: () => schedule(), changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text), compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   // each save (⌘S): its place's changes are read again, once you pause
@@ -281,7 +292,7 @@ const VW = createViewer({
   closed: () => edgeBack(decisionsCard),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
-}); // a file, in the panel's Files page (modules/files/page.js)
+}, { $, diff, jump: jumpDiff, isImageChange, drawImageChange });
 const savedSoon = createSavedSoon(CHG);
 // a file changed on disk (Space's file.version): the open file takes it in, and the place's file list follows
 world.onEvent((e) => {
@@ -302,7 +313,7 @@ const QO = createQuickOpen({
   openFiles: () => VW.openFiles || [],
   layer: { shown: () => syncInert(), hidden: () => syncInert() },
 });
-// a picture opens over the conversation (js/lightbox.js); Open in Files hands it to the viewer, which brings Files up
+// A picture opens over the conversation; Open in Files hands it to the Files viewer.
 const LB = createLightbox({ openFile: (it, from) => VW.open(viewerFile(it), from), announce });
 wireDragOut($("#msgs"));
 // shells (js/shells/): the dock under the main column, the sidebar's Shells row, the top bar's Shell buttons
@@ -317,21 +328,8 @@ REC.view = () => S.view;
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
 const wsHeadRender = createWorkspaceHeader(S, projects);
 const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice({ world, SHAPE });
-const { PICK, pickIcon, closePick } = createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIcon, announce, render: () => render(), wirePickKeys });
+const { PICK, pickIcon, closePick } = createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIcon, announce, render: () => render() });
 
-function wirePickKeys(el, closePick) {
-  el.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePick({ focus: true }); return; }
-    const os = [...el.querySelectorAll(".pk-o")], i = os.indexOf(document.activeElement);
-    if (i < 0) return;
-    const cols = Math.max(1, Math.round(el.querySelector(".pk-grid").clientWidth / os[0].offsetWidth));
-    const d = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os.length - 1 - i }[e.key];
-    if (d == null) return;
-    e.preventDefault();
-    const j = Math.max(0, Math.min(os.length - 1, i + d));
-    os[i].tabIndex = -1; os[j].tabIndex = 0; os[j].focus({ preventScroll: true });
-  });
-}
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-pj-icon]"); if (b) pickIcon(b.dataset.pjIcon, b); });
 document.addEventListener("pointerdown", (e) => { if (PICK.el && !e.target.closest(".pk-pop,[data-pj-icon]")) closePick(); });
 const threadsOf = (pid) => world.state.threads.filter((t) => t.project === pid && t.state !== "resolved");
@@ -464,14 +462,7 @@ const running = createRunningState({ S, world, CH, convThread, chatOf });
 const { stopsHerald, stopRun, interruptRun } = createConversationStops({ S, world, Kit, PROJ, announce, schedule, chatOf, pendingStops, heraldShow, heraldNext, inUse: (selector) => inUse(selector), running, workingRuns });
 const stopsOut = new Set();
 const { runsRender, runsLand, closeRuns, runsGone } = createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller });
-/** ‹ and Esc: from a run to the list, its row in focus; from the list, back to the thread. */
-function runsEscape() {
-  if (RS.view !== "run") { closeRuns(); return; }
-  const id = RS.runId;
-  RS.gen++; RS.view = "list"; RS.runId = null; clearTimeout(RS.pollT); RS.keepScroll = false;
-  runsRender(); STAGE.repaint();
-  runsLand(`[data-run="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
-}
+const runsEscape = createRunsEscape({ RS, closeRuns, runsRender, repaint: () => STAGE.repaint(), runsLand });
 const runsTitle = () => (RS.view === "run" ? (RS.run && /^(background_command|monitor)$/.test(RS.run.kind) ? "Command" : "Sub-agent") : "Sub-agents");
 const { readRunsList, openRun } = createRunsReads({ RS, world, STAGE, runsRender });
 STAGE.page("runs", {
@@ -1047,7 +1038,6 @@ const openNext = createOpenNext({ homeParts, heraldShow, decideKey });
 
 // ── All threads: searchable, filtered; finished ones fold into one line ────
 const allEl = $("#all");
-let allReturn = null;
 const allRender = createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadMark, glyphOf, rtTag, STATE_WORDS });
 radioKeys($("#all-f"));
 const tdelRender = createThreadDeleteView(S);
@@ -1058,80 +1048,10 @@ const conversationHeaderHtml = createConversationHeader({
 const topRender = createTopHeader({ S, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender, REC });
 const deleteThread = createThreadDelete({ S, world, render: () => render(), go, announce, heraldShow, PROJ });
 const { panelShell, openShell } = createShellPanel({ S, STAGE, SH, world, heraldShow });
-/** All threads: from the project's title it drops down under it (the thread switcher); elsewhere a sheet. */
-function openAll(anchor = null) {
-  if (!convProject(S.view) || convProject(S.view) === "workspace") return;
-  allReturn = document.activeElement;
-  const drop = !!anchor && !PHONE.matches;
-  allEl.classList.toggle("is-drop", drop);
-  if (drop) {
-    // under its button, its right edge on the button's
-    const r = anchor.getBoundingClientRect();
-    const w = Math.min(480, innerWidth - 32);
-    allEl.style.setProperty("--dx", `${Math.max(16, Math.round(r.right - w))}px`);
-    allEl.style.setProperty("--dy", `${Math.round(r.bottom + 8)}px`);
-    allEl.style.setProperty("--dw", `${w}px`);
-  }
-  S.allFilter = "all"; S.allDone = false;
-  $("#all-q").value = "";
-  allRender();
-  allEl.hidden = false;
-  $("#all-q").focus();
-  schedule();
-}
-/** All closes back to what opened it; if that control has gone meanwhile (the +N, once everything fits), to the
- *  switcher that's shown now, never the page. */
-function closeAll() {
-  if (allEl.hidden) return;
-  allEl.hidden = true; syncInert();
-  const shown = (el) => el && el.isConnected && el.getClientRects().length > 0;
-  const back = shown(allReturn) ? allReturn : [...document.querySelectorAll("[data-switch]")].find(shown);
-  back?.focus({ preventScroll: true });
-  schedule();
-}
-$("#all-q").addEventListener("input", allRender);
-// The switcher's keys, in one place so a key takes one step (Astra H31: ↓ from the search moved two): from the
-// search, ↓ goes to the first thread and Enter opens it; on the list, ↓ ↑ walk it and ↑ from the first is the
-// search again. An IME composing in the search owns its keys (H32: its Enter opened a thread).
-allEl.addEventListener("keydown", (e) => {
-  if (e.isComposing || e.keyCode === 229) { e.stopPropagation(); return; } // the IME's keys, not the switcher's or the page's
-  if (e.altKey || e.ctrlKey || e.metaKey) return;
-  const inSearch = e.target === $("#all-q");
-  // the same keys as the panel's filter: / goes to the search, Esc in it clears it before it closes anything
-  if (e.key === "/" && !inSearch && !e.target.closest?.("input, textarea, [contenteditable]")) { e.preventDefault(); e.stopPropagation(); $("#all-q").focus(); $("#all-q").select(); return; }
-  if (e.key === "Escape" && inSearch && $("#all-q").value) { e.preventDefault(); e.stopPropagation(); $("#all-q").value = ""; allRender(); return; }
-  if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && !(inSearch && e.key === "Enter")) return;
-  const rows = [...allEl.querySelectorAll(".all-list [data-go]")].filter((b) => b.offsetParent);
-  if (inSearch) {
-    if (!rows.length || e.key === "ArrowUp") return;
-    e.preventDefault();
-    if (e.key === "ArrowDown") rows[0].focus();
-    else { allEl.hidden = true; go(rows[0].dataset.go); }
-    return;
-  }
-  const i = rows.indexOf(document.activeElement);
-  if (i < 0) return;
-  e.preventDefault();
-  if (e.key === "ArrowUp" && i === 0) { $("#all-q").focus(); return; }
-  rows[Math.min(rows.length - 1, Math.max(0, i + (e.key === "ArrowDown" ? 1 : -1)))].focus();
-});
-allEl.addEventListener("click", (e) => {
-  if (e.target === allEl || e.target.closest("[data-close]")) { closeAll(); return; }
-  const f = e.target.closest("[data-af]");
-  if (f) { S.allFilter = f.dataset.af; allRender(); return; }
-  if (e.target.closest("[data-all-done]")) {
-    const box = $(".ar-done");
-    S.allDone = !S.allDone;
-    box.querySelector(".ar-fold").setAttribute("aria-expanded", String(S.allDone));
-    expand(box, box.querySelector(".ar-db"), S.allDone);
-    return;
-  }
-  const g = e.target.closest("[data-go]");
-  if (g) { allEl.hidden = true; go(g.dataset.go); }
-});
+const { openAll, closeAll } = createAllThreadsSheet({ allEl, field: $("#all-q"), phone: PHONE, S, convProject, allRender, schedule, syncInert: () => syncInert(), go });
 
 // ── phone drawer ────────────────────────────────────────────────────────────
-const setDrawer = createDrawer({ phone: PHONE, syncInert });
+const setDrawer = createDrawer({ phone: PHONE, syncInert: () => syncInert() });
 
 // ── Create XO Project (modules/create-project/create.js): start empty or clone a repository ─────
 const CREATE = initCreate({
@@ -1155,49 +1075,8 @@ function jumpActions() {
     ...(!pageEl(S.view) ? [{ name: "Threads, Changes and Map", sub: "Action", icon: ICON.sliders, run: () => STAGE.toggle() }] : []),
   ];
 }
-// Focus an opening overlay now, and again once a native modal still closing (Create's 160 ms) lets go of it.
-function focusOverlay(target) {
-  target.focus({ preventScroll: true });
-  const modal = [...document.querySelectorAll("dialog[open]")].find((d) => d.matches(":modal"));
-  if (modal) modal.addEventListener("close", () => { if (target.isConnected && !target.closest("[hidden]")) target.focus({ preventScroll: true }); }, { once: true });
-}
 const JUMP = createJump({ host: jump, field: $("#jump-q"), list: $("#jump-list"), places: jumpPlaces, actions: jumpActions, more: (q) => REC.jumpItems(q), go: (v) => go(v), announce, focusIn: focusOverlay, onHidden: () => syncInert() });
 
-function syncInert() {
-  // only what this set inert is released here: Files keeps its own inert parts (a railed or folded chat)
-  const hold = (el, on) => { if (on && !el.inert) { el.inert = true; el.dataset.layerInert = ""; } else if (!on && "layerInert" in el.dataset) { el.inert = false; delete el.dataset.layerInert; } };
-  hold($("#app"), [jump, keys, allEl, QO.el].some((el) => !el.hidden));
-  const settings = !setEl.hidden;
-  for (const el of $("#main").children) if (el !== setEl && !el.classList.contains("toast-wrap")) hold(el, settings);
-  // a phone: the sidebar is a drawer; closed, it is off screen and out of reach; open, it covers the main area
-  const drawer = $("#app").classList.contains("drawer");
-  hold($("#side"), PHONE.matches && !drawer);
-  hold($("#main"), PHONE.matches && drawer);
-}
-queueMicrotask(() => { PHONE.addEventListener("change", syncInert); const mo = new MutationObserver(syncInert); for (const el of [jump, keys, allEl, setEl]) mo.observe(el, { attributes: true, attributeFilter: ["hidden"] }); syncInert(); });
-/** The layer that holds the keyboard, the page behind it inert (syncInert): a sheet; on a phone, Settings (it covers
- *  the whole screen there), else the open drawer (the sidebar, over the main area). Null when the page itself does. */
-function keyLayer() {
-  return [keys, allEl, jump].find((el) => !el.hidden) || (PHONE.matches && !setEl.hidden ? setEl : null)
-    || (PHONE.matches && $("#app").classList.contains("drawer") ? $("#side") : null);
-}
-// Tab and Shift+Tab go round the open layer: past its last control is its first, never the page behind it (inert,
-// so Tab fell to BODY: the create-project/Launchpad grader on c055e74, the phone's drawer past Settings).
-// It listens as the event bubbles, after the control the keys are in: a control that takes Tab for itself (Edit as
-// JSON indents with it) claims it with preventDefault, and the layer only turns round a Tab nobody claimed.
-addEventListener("keydown", (e) => {
-  if (e.key !== "Tab" || e.defaultPrevented) return;
-  const top = keyLayer();
-  if (!top) return;
-  // what Tab itself would visit: anything in the tab order (a summary, a field, a link, a roving group's one stop),
-  // drawn and usable; the browser moves between them, and this only turns it round at the sheet's two ends
-  const f = [...top.querySelectorAll("*")].filter((x) => x.tabIndex >= 0 && !x.disabled && !x.closest("[inert]") && x.getClientRects().length > 0);
-  if (!f.length) return;
-  const a = document.activeElement, inside = top.contains(a);
-  const after = inside && f.some((x) => x !== a && a.compareDocumentPosition(x) & Node.DOCUMENT_POSITION_FOLLOWING);
-  const before = inside && f.some((x) => x !== a && x.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
-  if (e.shiftKey ? !before : !after) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
-});
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
@@ -1210,10 +1089,7 @@ const { lookSync } = wireAppearance({ THEME, applyTheme, deviceSaid });
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
 wireChatBubbles(deviceSaid);
 const hopsRender = wireMessageHops(S, SHAPE, deviceSaid);
-keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
-let keysReturn = null;
-function openKeys() { keysSheetRender(); keysReturn = document.activeElement; keys.hidden = false; focusOverlay(keys.querySelector("[data-close]")); }
-function closeKeys() { keys.hidden = true; syncInert(); keysReturn?.focus?.({ preventScroll: true }); }
+const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.querySelector("[data-close]"), keysSheetRender, focusOverlay, syncInert: () => syncInert() });
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
@@ -1257,7 +1133,6 @@ const SIDE = createSide({ shape: SHAPE, keys: K, announce, render, toggleJump: (
 // the Map's toggle, in every conversation's header
 document.addEventListener("click", (e) => { if (e.target.closest?.("[data-stage-toggle]")) STAGE.toggle(); else if (e.target.closest?.("[data-stage-open]")) STAGE.threads(); else { const b = e.target.closest?.("[data-lp-open]"); if (b) { if (LW.isOpen) LW.close(); else LW.open(S.view, b); } } });
 
-// ── global keys ─────────────────────────────────────────────────────────────
 const GLOBAL = {
   shells: () => SH.toggle(),
   jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),
@@ -1267,70 +1142,34 @@ const GLOBAL = {
   map: () => STAGE.toggle(),
   sideFold: () => SIDE.fold(!SIDE.folded),
 };
-addEventListener("keydown", (e) => {
-  if (S.recording) return; // Settings › Keyboard is listening for a new key
-  // a key that's part of a word being composed (an IME: its Escape cancels the word, its arrows move in the
-  // candidates) is the field's, never a page key (Conversation's finding: a composing Escape reached it)
-  if (e.isComposing || e.keyCode === 229) return;
-  // inside a shell every key is the shell's (Esc for vim, Ctrl+K for bash), but the shells' own toggle
-  if (SH.owns(e)) { if (K.hasMod("shells") && K.is(e, "shells")) { e.preventDefault(); GLOBAL.shells(); } return; }
-  const g = K.globalFor(e), taken = e.defaultPrevented && K.typing(e);
-  if (g && K.hasMod(g) && !taken && runGlobal(g)) { e.preventDefault(); return; }
-  if (!jump.hidden || IQ.isOpen) { if (e.key === "Escape") { e.preventDefault(); LAYERS.escape(); } return; }
-  if (CREATE.isOpen()) return;
-  if (e.key === "Escape") {
-    // the layer on top goes first: a sheet, then Settings (it covers the main area), then what it covers
-    if (LAYERS.escape()) return;
-    if (S.view.startsWith("t:")) back();
-    else if (S.view.startsWith("c:")) go("chats");
-    return;
-  }
-  if (K.typing(e) || e.metaKey || e.ctrlKey || e.altKey) return; // typing, even in Pierre's editor (a shadow root)
-  if (!keys.hidden || !allEl.hidden) return;
-  // Only keys that can't be hit by accident: no single letters (a stray keystroke must never
-  // navigate or open something). Decision keys live on a focused decision card only.
-  const s = K.globalFor(e, { typing: false });
-  if (s && !K.hasMod(s) && runGlobal(s)) e.preventDefault();
-});
-/** Run a key that works anywhere; false when it has nothing to do here (the tree's fold away from Files: the key
- *  stays the browser's). */
-function runGlobal(id) {
-  // ⌘B: the panel's file browser folds to its rail (or opens), while Files shows
-  if (id === "treeFold") return FP.toggleTree();
-  // ⌘P, ⌘⇧F: only where the view has files (a project, a thread); elsewhere the browser keeps its keys
-  if (id === "quickOpen") return QO.isOpen ? (QO.close(), true) : QO.open("files");
-  if (id === "findInFiles") return QO.isOpen ? (QO.close(), true) : QO.open("text");
-  if (!GLOBAL[id]) return false;
-  GLOBAL[id]();
-  return true;
-}
 
-// ── the phone's own Back (Android's back gesture, Safari's edge swipe) ──────
 // One history entry of the app's own while there's somewhere to go back to: Back closes the top-most open layer, then goes to a thread's parent, then the places you came through; with nothing left the browser leaves.
 const LAYERS = stackLayers(kernel.layers, [
   { id: "create", open: () => CREATE.isOpen(), close: () => { CREATE.close(); } },
-  { id: "jump", open: () => !jump.hidden, close: () => { JUMP.close(); } },
+  { id: "jump", tab: () => jump, inertsApp: true, watchHidden: jump, open: () => !jump.hidden, close: () => { JUMP.close(); } },
   { id: "intel", open: () => IQ.isOpen, close: () => { IQ.close(); } },
-  { id: "quickopen", open: () => QO.isOpen, close: () => { QO.close(); } },
+  { id: "quickopen", inertsApp: true, open: () => QO.isOpen, close: () => { QO.close(); } },
   { id: "runs", open: () => RS.open, close: () => { runsEscape(); } },
-  { id: "keys", open: () => !keys.hidden, close: () => { closeKeys(); } },
-  { id: "all", open: () => !allEl.hidden, close: () => { closeAll(); } },
+  { id: "keys", tab: () => keys, inertsApp: true, watchHidden: keys, open: () => !keys.hidden, close: () => { closeKeys(); } },
+  { id: "all", tab: () => allEl, inertsApp: true, watchHidden: allEl, open: () => !allEl.hidden, close: () => { closeAll(); } },
   { id: "lightbox", open: () => LB.isOpen, close: () => { LB.close(); }, overlay: false },
-  { id: "settings", open: () => !setEl.hidden, close: () => { closeSettings(); } },
+  { id: "settings", tab: () => PHONE.matches ? setEl : null, watchHidden: setEl, open: () => !setEl.hidden, close: () => { closeSettings(); } },
   { id: "files-page", open: () => FP.isOpen, close: () => { STAGE.back(); } },
   { id: "viewer", open: () => VW.isOpen, close: () => { VW.close({ ask: true }); }, overlay: false },
   { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, close: () => { STAGE.close(); } },
   { id: "shells", open: () => SH.raised, close: () => SH.lower() },
-  { id: "drawer", open: () => $("#app").classList.contains("drawer"), close: () => { setDrawer(false); } },
+  { id: "drawer", tab: () => PHONE.matches ? $("#side") : null, open: () => $("#app").classList.contains("drawer"), close: () => { setDrawer(false); } },
   { id: "decisions", open: () => D.isOpen(), close: () => { D.close(); } },
   { id: "chat-setup", open: () => CH.setupOpen, close: () => { CH.closeSetup(); } },
 ]);
 const placeOk = (v) => v === "ws" || v === "chats" || !!PAGE_OF[v] || (v.startsWith("p:") && !!world.project(v.slice(2))) || (v.startsWith("t:") && !!world.thread(v.slice(2))) || v.startsWith("c:");
+const syncInert = mountKeyboardLayers({ layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl });
+wireGlobalKeys({ S, SH, jump, IQ, CREATE, keys, allEl, GLOBAL, FP, QO, LAYERS, back, go });
 const { canBack, stepBack } = createBackSteps({ S, LAYERS, placeOk, go, back });
 wireBack({ canBack, stepBack });
 
 const resolveFromRow = createRowResolve({ world, resolveThread, allEl, allRender });
-// ── touch: gestures for the same moves (js/gestures.js), and the title back to the top ──
+// ── touch gestures and the title back to the top ──
 wireGestures({
   phone: () => PHONE.matches,
   overlay: () => LAYERS.open({ overlay: true }),
@@ -1355,7 +1194,7 @@ wireGestures({
   threadOf: (id) => world.thread(id),
   resolve: (tid, resolved, li) => resolveFromRow(tid, resolved, li),
   toast: (text) => toastLine(text),
-});
+}, wordsOf);
 $("#pb-t").addEventListener("click", () => {
   (S.view === "home" ? $("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
 });

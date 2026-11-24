@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { deferred, dom, same } from "./lib/dom.mjs";
 import { readFileSync } from "node:fs";
 import { createRunsOpener } from "../modules/runs/controller.js";
+import { createRunsPanel } from "../modules/runs/panel.js";
+import { createRunsEscape } from "../modules/runs/escape.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("js/app.js"), view = read("modules/runs/view.js"), html = read("index.html"), css = read("css/app.css");
@@ -15,7 +17,8 @@ const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name)
   globalThis.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
   globalThis.getSelection = () => null;
   globalThis.innerWidth = 400;
-  const { wireGestures } = await import("../js/gestures.js");
+  const { wireGestures } = await import("../shell/gestures.js");
+  const { wordsOf } = await import("../modules/conversation/words.js");
   const conv = document.getElementById("conv"), runsCard = document.getElementById("runs-card");
   Object.defineProperty(runsCard, "offsetWidth", { value: 400 });
   const calls = [];
@@ -24,7 +27,7 @@ const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name)
     view: () => "t:thread", phone: () => true, overlay: () => false,
     back: () => calls.push("thread"), runsBack: () => calls.push("runs"),
     runsCard, runsDeep: () => runsDeep, sheets: [],
-  });
+  }, wordsOf);
   const swipe = async (target, distance) => {
     const send = (type, clientX, timeStamp) => {
       const event = new window.Event(type, { bubbles: true, cancelable: true });
@@ -59,12 +62,22 @@ t("no sheet: the page's content is built once and mounted in the panel's page bo
   assert.match(app, /STAGE\.page\("runs", \{\n\s*over: true,/);
   assert.match(app, /mount: \(box\) => box\.append\(runsCard\),/);
 });
-t("it opens over the page under it, and ‹ and Esc go up one level the page's own way", () => {
-  assert.match(app, /up: \(\) => \{ runsEscape\(\); return true; \},\n\s*escape: \(\) => \{ runsEscape\(\); return true; \},/);
-  const esc = fn(app, "function runsEscape()");
-  assert.match(esc, /if \(RS\.view !== "run"\) \{ closeRuns\(\); return; \}/, "the list: back to the thread");
-  assert.match(esc, /runsLand\(`\[data-run="\$\{CSS\.escape\(id\)\}"\]`\)/, "a run: back to the list, on its row");
-});
+{
+  const { document } = await dom('<section id="runs"></section>');
+  const runsCard = document.getElementById("runs");
+  const RS = { open: true, view: "run", runId: "agent", session: "team", gen: 1, tree: [{ id: "agent", kind: "subagent", state: "running", title: "Agent" }] };
+  const calls = [];
+  const STAGE = { pageShown: { name: "runs" }, repaint: () => calls.push("repaint"), close: (options) => calls.push(options) };
+  const actions = createRunsPanel({ RS, STAGE, runsCard, S: { tbOpen: {} }, world: { act: {} }, pendingStops: [], stopsOut: new Set() });
+  const runsEscape = createRunsEscape({ RS, ...actions, repaint: () => STAGE.repaint() });
+  t("Runs steps back to the focused agent, then to the thread", () => {
+    runsEscape();
+    assert.equal(RS.view, "list");
+    same(document.activeElement, runsCard.querySelector('[data-run="agent"]'));
+    runsEscape();
+    assert.deepEqual(calls, ["repaint", { restore: false }]);
+  });
+}
 t("from the main chat the panel opens for it and closes with it; from the panel it steps back to the thread page", () => {
   assert.match(panelSource, /if \(!RS\.panelWas && STAGE\.pageShown\?\.name === "runs"\) STAGE\.close\(\{ restore: false \}\); else STAGE\.closePage\("runs"\);/);
   assert.match(app, /backTo: \(\) => \(RS\.view === "run" \? "Sub-agents" : RS\.panelWas \|\| STAGE\.pageShown\?\.name !== "runs" \? "" : "the thread"\),/);
@@ -125,10 +138,6 @@ t("focus goes back to what opened it only when it was in the page; a page that m
   assert.match(g, /const here = runsCard\.contains\(document\.activeElement\) \|\| STAGE\.owns\(document\.activeElement\);/);
   assert.match(g, /RS\.refocus = here \? to : null;\n\s*if \(here\) to\(\);/);
   assert.match(panelSource, /if \(!a \|\| a === document\.body\) RS\.refocus\?\.\(\);/, "a phone's panel gone, then focus");
-});
-t("nothing modal is left: the app isn't made inert for it and it isn't a key layer", () => {
-  assert.match(app, /hold\(\$\("#app"\), \[jump, keys, allEl, QO\.el\]\.some/);
-  assert.match(app, /return \[keys, allEl, jump\]\.find/);
 });
 t("agents first, live then newest; every command at any depth in one Commands group, 8 then Show more", () => {
   assert.match(view, /agents: \(nodes \|\| \[\]\)\.filter\(\(r\) => !isCmd\(r\)\)\.sort\(newest\), cmds: all\.filter\(isCmd\)\.sort\(newest\)/);

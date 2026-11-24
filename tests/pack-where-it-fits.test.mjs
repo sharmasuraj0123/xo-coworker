@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, existsSync } from "node:fs";
 import { cmdIcon, stepIcon } from "../core/services/step-icons.js";
-import { cmdIcon as legacyCmdIcon, stepIcon as legacyStepIcon } from "../js/turnview.js";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 import { panelSrc } from "./lib/panel-src.mjs";
@@ -15,8 +14,6 @@ const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  "
 
 const tv = read("modules/conversation/blocks/turn.js");
 const iconSrc = read("core/services/step-icons.js");
-assert.equal(legacyCmdIcon, cmdIcon);
-assert.equal(legacyStepIcon, stepIcon);
 
 await t("a command row shows the icon of what it does; anything else stays a terminal", () => {
   const want = {

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { turnHtml, turnSegments, segmentTurn } = await import("../js/turnview.js");
+const { turnHtml, turnSegments, segmentTurn } = await import("../modules/conversation/blocks/turn.js");
 const { createTurns } = await import("../core/services/world/turns.js");
 
 let passed = 0;

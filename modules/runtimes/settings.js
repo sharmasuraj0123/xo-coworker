@@ -2,7 +2,7 @@
 
 // Settings › Runtimes: the agents XO runs threads on, their health and usage, the defaults and paid usage.
 
-import { esc } from "../../js/world.js";
+import { esc } from "../../core/platform/util.js";
 import { clockWords, rtName, isInstalled, healthOf, windowsOf, resetWords, allowedOf, defaultOf, errorField } from "../../core/services/runtimes.js";
 import { once, isPending, busyAttrs } from "../../core/platform/index.js";
 import { redraw } from "../../core/ui/redraw.js";

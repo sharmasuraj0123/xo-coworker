@@ -14,16 +14,27 @@ const known = existsSync(KNOWN_PATH) ? JSON.parse(readFileSync(KNOWN_PATH, "utf8
 
 const IS_TEST = /\.test\.(mjs|py)$/;
 const files = readdirSync(DIR).filter((f) => IS_TEST.test(f));
-/** @param {string} rel */
-function walk(rel) {
+/** @param {string} rel @param {(path: string) => void} visit */
+function walk(rel, visit) {
   for (const n of readdirSync(join(ROOT, rel), { withFileTypes: true })) {
-    if (n.name === "node_modules" || n.name === "vendor") continue;
-    const p = `${rel}/${n.name}`;
-    if (n.isDirectory()) walk(p);
-    else if (/(^|\/)tests\/[^/]+\.test\.mjs$/.test(p)) files.push(p);
+    if (n.name === "node_modules" || n.name === "vendor" || n.name === ".git" || n.name === ".xo") continue;
+    const p = rel ? `${rel}/${n.name}` : n.name;
+    if (n.isDirectory()) walk(p, visit);
+    else visit(p);
   }
 }
-for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) if (existsSync(join(ROOT, d))) walk(d);
+for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) {
+  if (existsSync(join(ROOT, d))) walk(d, (p) => { if (/(^|\/)tests\/[^/]+$/.test(p) && IS_TEST.test(p)) files.push(p); });
+}
+if (!filter) {
+  const discovered = new Set(files.map((f) => f.includes("/") ? f : `tests/${f}`));
+  const missing = [];
+  walk("", (p) => { if (IS_TEST.test(p) && !discovered.has(p)) missing.push(p); });
+  if (missing.length) {
+    console.error(`Undiscovered unit tests:\n${missing.sort().join("\n")}`);
+    process.exit(1);
+  }
+}
 files.splice(0, files.length, ...files.filter((f) => f.includes(filter)).sort());
 
 function runOne(file) {

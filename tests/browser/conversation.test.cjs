@@ -1452,7 +1452,7 @@ for (const cpu of [1, 4]) {
 t("redraw: data-own nodes stay where they are (first stays first, last stays last, a focused one keeps focus); the rest follows the HTML", async () => {
   const page = await app();
   const got = await page.evaluate(async () => {
-    const { redraw } = await import("/js/redraw.js");
+    const { redraw } = await import("/core/ui/redraw.js");
     const box = document.createElement("div");
     document.body.append(box);
     box.innerHTML = `<span class="name" data-own>Name</span>old text<b data-x="1">bold</b><i data-x="2">gone</i><div class="acts" data-own><button class="copy">Copy</button></div>`;

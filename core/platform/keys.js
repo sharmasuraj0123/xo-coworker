@@ -44,7 +44,7 @@ export const ACTIONS = [
   { id: "allowAll", scope: "decision", label: "Allow all routine together", def: "shift+a" },
   { id: "auto", scope: "intel", label: "Back to Auto", def: "a" },
   { id: "intelNav", scope: "intel", label: "Model · thinking · done", fixed: "↑ ↓ · ← → · ↵" },
-  // the lightbox (js/lightbox.js) keeps these itself; they're listed so the keys sheet tells the truth
+  // The lightbox handles these keys; the shortcuts sheet lists them.
   { id: "picOpen", scope: "picture", label: "Open a picture in the conversation", fixed: "click · ↵" },
   { id: "picStep", scope: "picture", label: "The previous or next picture in this conversation", fixed: "← →" },
   { id: "picClose", scope: "picture", label: "Put it back where it was (or swipe down)", fixed: "Esc" },

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { turnSegments } = await import("../js/turnview.js");
+const { turnSegments } = await import("../modules/conversation/blocks/turn.js");
 
 const messages = readFileSync(new URL("../modules/conversation/messages.js", import.meta.url), "utf8");
 let passed = 0;

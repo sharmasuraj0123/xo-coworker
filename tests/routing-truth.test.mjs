@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const T = await import("../js/timeline.js");
+const T = await import("../core/services/world/timeline.js");
 const w = (router, own = null) => ({ loaded: true, runtimes: [], pools: {}, router, projects: [{ id: "workspace", routing: null }, { id: "alpha", routing: own }] });
 const OFF = { mode: "off" }, AGENT = { mode: "agent" };
 

@@ -20,7 +20,7 @@ const ARROW_OUT = xi("external-link", "lk-ar");
 const THREAD_G = xi("chat", "lk-tg");
 const STATES = new Set(["working", "idle", "needs_reply", "needs_approval", "done", "failed", "paused", "resolved"]);
 
-/** The "leaves XO" arrow after an outbound link (js/media.js uses it for a web picture that couldn't show). */
+/** The "leaves XO" arrow after an outbound link. */
 export { ARROW_OUT };
 
 /** A web address as people read it: the host and path, no scheme, "www." or trailing slash; long ones keep their ends. @param {unknown} u */
@@ -168,7 +168,7 @@ export function imageLine(line) {
 }
 /** The app's way to show web pictures ({alt, url} list → HTML, or null to keep them links). Set once by app.js. @type {((list: { alt: string, url?: string, file?: string }[]) => string | null) | null} */
 let webImages = null;
-/** Let the app draw pictures from the web (js/media.js); unset, they're links. @param {unknown} fn */
+/** Set the web-picture renderer; when unset, web pictures render as links. @param {unknown} fn */
 export function setWebImages(fn) { webImages = typeof fn === "function" ? /** @type {any} */ (fn) : null; }
 /** @param {{ alt: string, url?: string, file?: string }[]} list */
 export function imagesHtml(list) {

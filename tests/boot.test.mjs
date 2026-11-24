@@ -56,7 +56,7 @@ const policyReads = (asked) => asked.filter((p) => /^\/chat\/chats\/[^/]+\/runti
 
 t("reads wait for the subscription: nothing but the stream is asked before its first frame", async () => {
   const be = fakeBackend(ROUTES);
-  const { createWorld } = await import("../js/world.js?a");
+  const { createWorld } = await import("../core/services/world/store.js?a");
   const world = createWorld();
   await new Promise((r) => realTimeout(r, 60));
   assert.deepEqual(be.asked, ["/chat/stream"]);
@@ -66,7 +66,7 @@ t("reads wait for the subscription: nothing but the stream is asked before its f
 
 t("the first draw never waits for the projects' own policies; they follow it, each read once, a composer's on asking", async () => {
   const be = fakeBackend(ROUTES);
-  const { createWorld } = await import("../js/world.js?b");
+  const { createWorld } = await import("../core/services/world/store.js?b");
   const world = createWorld();
   let atLoaded = null;
   world.subscribe(() => { if (world.state.loaded && atLoaded == null) atLoaded = policyReads(be.asked).length; });
@@ -85,7 +85,7 @@ t("the first draw never waits for the projects' own policies; they follow it, ea
 
 t("a stream that can't connect doesn't hold the first load for a timer: it goes ahead when the stream says so", async () => {
   fakeBackend(ROUTES, { streamDown: true });
-  const { createWorld } = await import("../js/world.js?c");
+  const { createWorld } = await import("../core/services/world/store.js?c");
   const world = createWorld();
   const t0 = Date.now();
   await until(() => world.state.loaded, 3000);

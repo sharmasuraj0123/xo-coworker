@@ -3,7 +3,7 @@
 // Settings › Worktrees: a thread's checkout, removed only after saying what would be lost.
 
 import { api } from "../../core/platform/api.js";
-import { esc } from "../../js/world.js";
+import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { holdButton } from "../../core/ui/components/hold.js";
 import { isPending, busyAttrs } from "../../core/platform/index.js";

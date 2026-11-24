@@ -2,7 +2,7 @@
 
 // What Settings' pages share: their state, where focus lands after an action, and one request at a time per control.
 
-import { esc } from "../../js/world.js";
+import { esc } from "../../core/platform/util.js";
 import { once, isPending } from "../../core/platform/index.js";
 import { redraw } from "../../core/ui/redraw.js";
 

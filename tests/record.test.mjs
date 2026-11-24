@@ -11,7 +11,7 @@ const R = { ...Made, ...Since, ...Git, ...Virtual };
 
 // js/ui.js (through recordview.js) reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { madeNaming } = await import("../js/recordview.js");
+const { madeNaming } = await import("../modules/artifacts/made.js");
 const S = await import("../modules/home/skeleton.js");
 
 let passed = 0;

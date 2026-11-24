@@ -1,7 +1,3 @@
-// Pictures and files in the conversation (js/media.js): the box a picture gets before its pixels, the
-// album's justified rows, the dedupe of a turn's shared files against its messages, and the data that
-// feeds them (attach.js attachmentsOf, timeline.js updateMessage). No network, no browser.
-//   node tests/media.test.mjs
 import assert from "node:assert/strict";
 import { parseHTML } from "linkedom";
 
@@ -9,10 +5,13 @@ const mediaRoot = (html) => parseHTML(`<main>${html}</main>`).document.querySele
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const M = await import("../js/media.js");
-const { attachmentsOf } = await import("../js/attach.js");
-const { uiMsg, updateMessage } = await import("../js/timeline.js");
-const { turnHtml } = await import("../js/turnview.js");
+const { galleryOf } = await import("../core/services/media/hydrate.js");
+const { mediaItemOf } = await import("../core/services/media/stack-data.js");
+const { markWebGone, webGone } = await import("../core/services/media/cache.js");
+const M = { ...await import("../core/services/media/render.js"), ...await import("../core/services/media/items.js"), ...await import("../core/services/media/layout.js"), galleryOf, mediaItemOf, markWebGone, webGone };
+const { attachmentsOf } = await import("../core/services/world/rows.js");
+const { uiMsg, updateMessage } = await import("../core/services/world/timeline.js");
+const { turnHtml } = await import("../modules/conversation/blocks/turn.js");
 const MD = await import("../core/ui/markdown/markdown.js");
 
 let passed = 0;

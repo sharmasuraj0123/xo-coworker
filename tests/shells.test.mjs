@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { registerHooks } from "node:module";
 import { dom, same, settle } from "./lib/dom.mjs";
-import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../js/shells/model.js";
+import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../modules/shells/model.js";
 
 let passed = 0;
 const t = (name, fn) => {
@@ -172,7 +172,7 @@ t("vendored xterm files are the pinned ones", () => {
       return next(url, context);
     },
   });
-  const { createShells } = await import("../js/shells/dock.js").finally(() => hooks.deregister());
+  const { createShells } = await import("../modules/shells/dock.js").finally(() => hooks.deregister());
   const schedule = globalThis.setTimeout;
   globalThis.setTimeout = (callback, delay, ...args) => {
     const timer = schedule(callback, delay, ...args);

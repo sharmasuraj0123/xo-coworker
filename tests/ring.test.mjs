@@ -118,7 +118,7 @@ t("one rule draws it for both regions; no copy per region", () => {
 });
 t("the app starts it once", () => {
   const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-  has(app, /import \{ regionRings \} from "\.\/ring\.js";/);
+  has(app, /import \{ regionRings \} from "\.\.\/core\/ui\/a11y\/ring\.js";/);
   assert.equal((app.match(/\bregionRings\(\)/g) || []).length, 1);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

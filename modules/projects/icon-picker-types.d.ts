@@ -8,5 +8,4 @@ export interface IconPickerDeps {
   forgetIcon: (id: string) => unknown;
   announce: (text: string) => void;
   render: () => void;
-  wirePickKeys: (element: HTMLElement, closePick: (options?: { focus?: boolean }) => void) => void;
 }

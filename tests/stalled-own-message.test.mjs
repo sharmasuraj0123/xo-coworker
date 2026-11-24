@@ -30,7 +30,7 @@ function fakeBackend(routes) {
 const until = async (cond, ms = 3000) => { const t0 = Date.now(); while (!cond()) { if (Date.now() - t0 > ms) throw new Error("timed out"); await new Promise((r) => setTimeout(r, 5)); } };
 const settle = () => new Promise((r) => setTimeout(r, 80));
 
-import { threadState } from "../js/timeline.js";
+import { threadState } from "../core/services/world/timeline.js";
 
 assert.equal(threadState("needs_reply", null, false, false, true), "working", "stalled on your own message");
 assert.equal(threadState("needs_reply", null, false, false, false), "needs_reply", "a stall after the agent spoke");
@@ -48,7 +48,7 @@ const be = fakeBackend({
   "/chat/runtimes": { runtimes: [] },
   "/chat/router": { mode: "agent" },
 });
-const { createWorld } = await import("../js/world.js");
+const { createWorld } = await import("../core/services/world/store.js");
 const world = createWorld();
 be.push("snapshot", { data: { seq: 1, turns: [] } });
 await until(() => world.state.loaded);

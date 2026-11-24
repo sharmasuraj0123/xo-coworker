@@ -5,7 +5,7 @@
   "setTimeout": 7,
   "globalListener": 11,
   "requestAnimationFrame": 7,
-  "observer": 2,
+  "observer": 1,
   "setInterval": 1
  },
  "modules/artifacts/made.js": {
@@ -269,6 +269,9 @@
  "shell/gestures.js": {
   "setTimeout": 3,
   "globalListener": 3
+ },
+ "shell/keyboard-layers.js": {
+  "observer": 1
  },
  "shell/panel/panel.js": {
   "storage": 2,

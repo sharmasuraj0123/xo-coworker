@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../js/sideorder.js";
+import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../shell/sideorder.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { dom } from "./lib/dom.mjs";
 let passed = 0;
@@ -96,7 +96,7 @@ else {
   const { parseHTML } = await import(LD);
   const { window, document } = parseHTML(`<!doctype html><html><body><main id="host"></main></body></html>`);
   Object.assign(globalThis, { window, document, HTMLElement: window.HTMLElement, CustomEvent: window.CustomEvent, Event: window.Event, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), localStorage: { getItem: () => null, setItem() {} } });
-  const { reconcile } = await import("../js/ui.js");
+  const { reconcile } = await import("../core/ui/redraw.js");
   await t("reconcile moves a row with moveBefore where the browser has it, so the row and its line stay", () => {
     const box = document.createElement("nav"); document.getElementById("host").replaceChildren(box);
     const it = (k) => ({ key: k, html: `<button class="prow">${k}<span class="pr-t">line</span></button>` });

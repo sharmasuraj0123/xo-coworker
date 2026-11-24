@@ -194,6 +194,22 @@ assert.deepEqual(stops, [{ session_id: "session-ws" }]);
 phone = false;
 globalThis.innerWidth = 1440;
 press('#side [data-go="p:demo"]');
+const projectComposer = element("#say");
+projectComposer.focus();
+const openQuick = Object.assign(new window.Event("keydown", { cancelable: true }), {
+  key: "p", metaKey: true, altKey: false, shiftKey: false,
+});
+window.dispatchEvent(openQuick);
+const quickOpen = element("#qo");
+const app = element("#app");
+assert.equal(openQuick.defaultPrevented, true, "boot registers the Quick Open shortcut");
+assert.equal(quickOpen.hidden, false);
+assert.ok(document.activeElement === element("#qo-q"), "Quick Open focuses its search");
+assert.equal(app.inert, true, "Quick Open holds the app inert");
+window.dispatchEvent(Object.assign(new window.Event("keydown"), { key: "Escape" }));
+assert.equal(quickOpen.hidden, true, "the app layer closes Quick Open on Escape");
+assert.equal(app.inert, false, "closing Quick Open releases the app");
+assert.ok(document.activeElement === projectComposer, "closing Quick Open restores focus");
 press("[data-stage-open]");
 press('#stage [data-go="t:thread-1"]');
 await draw();

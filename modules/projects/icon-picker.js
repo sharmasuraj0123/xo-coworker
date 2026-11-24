@@ -1,13 +1,13 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { classify, glyph, TOPICS } from "./projicons.js";
+import { wirePickKeys } from "./icon-picker-keys.js";
 
 /** @param {string} k */
 const topicName = (k) => (k === "project" ? "Cube" : k[0].toUpperCase() + k.slice(1));
 
 /** @param {import("./icon-picker-types.d.ts").IconPickerDeps} options */
-export function createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIcon, announce, render, wirePickKeys }) {
+export function createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIcon, announce, render }) {
   /** @type {{ el: HTMLElement | null, pid: string | null, from: HTMLElement | null }} */
   const PICK = { el: null, pid: null, from: null };
 
@@ -38,7 +38,7 @@ export function createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIco
   function closePick({ focus = false } = {}) {
     if (!PICK.el) return;
     PICK.el.remove(); PICK.from?.setAttribute("aria-expanded", "false");
-    const back = $(`[data-pj-icon="${CSS.escape(/** @type {string} */ (PICK.pid))}"]`);
+    const back = /** @type {HTMLElement | null} */ (document.querySelector(`[data-pj-icon="${CSS.escape(/** @type {string} */ (PICK.pid))}"]`));
     PICK.el = null; PICK.pid = null; PICK.from = null;
     if (focus) back?.focus({ preventScroll: true });
   }

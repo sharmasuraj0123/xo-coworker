@@ -1592,7 +1592,7 @@
    ]
   },
   "css/foundation.css": {
-   "status": "split",
+   "status": "split-region",
    "home": [
     "core/ui/foundation.css",
     "modules/* (structure rules)"
@@ -1601,14 +1601,15 @@
   "css/launchpad.css": {
    "status": "split",
    "home": [
+    "css/launchpad.css",
+    "modules/launchpad/window.css",
     "modules/launchpad/launchpad.css",
-    "modules/launchpad/system.css",
-    "modules/launchpad/cover.css"
+    "modules/launchpad/page.css"
    ],
    "note": "css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer"
   },
   "css/light.css": {
-   "status": "split",
+   "status": "split-region",
    "home": [
     "core/ui/tokens.css (light roles)",
     "modules/* (light blocks)"
@@ -1627,7 +1628,7 @@
    "home": "modules/conversation/msgx.css"
   },
   "css/panel.css": {
-   "status": "split",
+   "status": "split-region",
    "home": [
     "shell/panel.css",
     "modules/threads",
@@ -1637,7 +1638,7 @@
    ]
   },
   "css/phone.css": {
-   "status": "split",
+   "status": "split-region",
    "home": [
     "shell/phone.css",
     "modules/* (phone blocks)"
@@ -1649,7 +1650,7 @@
    "home": "core/ui/markdown/rich.css"
   },
   "css/shape.css": {
-   "status": "split",
+   "status": "split-region",
    "home": [
     "modules/settings/shape.css",
     "core/ui (density)"
@@ -2471,8 +2472,7 @@
   },
   "js/accounts.js": {
    "status": "moved",
-   "home": "modules/settings/accounts.js",
-   "note": "js/accounts.js re-exports the Accounts entry points"
+   "home": "modules/settings/accounts.js"
   },
   "js/api.js": {
    "status": "split",
@@ -2480,12 +2480,35 @@
     "core/platform/http.js",
     "core/platform/api.js"
    ],
-   "note": "the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go"
+   "note": "Callers use the owning modules directly."
   },
   "js/app.js": {
    "status": "split",
-   "home": "boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6)",
-   "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance."
+   "home": [
+    "js/app.js",
+    "core/ui/theme.js",
+    "core/ui/redraw.js",
+    "core/services/notices.js",
+    "shell/navigation.js",
+    "shell/layers.js",
+    "shell/keyboard-layers.js",
+    "shell/global-keys.js",
+    "shell/back-steps.js",
+    "modules/conversation/composer.js",
+    "modules/threads/all-sheet.js",
+    "modules/settings/shortcuts-sheet.js"
+   ],
+   "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
+   "evidence": {
+    "core/services/notices.js": {
+     "anchor": "state.herald = { ...h",
+     "reason": "The app's notice queue and current notice now live in the shared notice service."
+    },
+    "shell/layers.js": {
+     "anchor": "back: [\"create\", \"jump\", \"intel\"",
+     "reason": "The former app Back, Escape and Tab order is defined in the shell registry."
+    }
+   }
   },
   "js/attach.js": {
    "status": "split",
@@ -2494,7 +2517,7 @@
     "core/services/media/attachment-tray.js",
     "core/services/world/rows.js"
    ],
-   "note": "js/attach.js re-exports the attachment rules, tray and shared row helpers"
+   "note": "Callers use the owning modules directly."
   },
   "js/blocks.js": {
    "status": "moved",
@@ -2507,18 +2530,15 @@
   },
   "js/changes.js": {
    "status": "moved",
-   "home": "modules/changes/store.js",
-   "note": "fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go"
+   "home": "modules/changes/store.js"
   },
   "js/changesframe.js": {
    "status": "moved",
-   "home": "modules/changes/frame.js",
-   "note": "countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go"
+   "home": "modules/changes/frame.js"
   },
   "js/chart.js": {
    "status": "moved",
-   "home": "core/ui/markdown/chart.js",
-   "note": "js/chart.js re-exports it until the shims go"
+   "home": "core/ui/markdown/chart.js"
   },
   "js/chats.js": {
    "status": "moved",
@@ -2538,7 +2558,16 @@
   },
   "js/decide.js": {
    "status": "split",
-   "home": ["js/decide.js", "modules/decisions/controller.js", "modules/decisions/queue.js", "modules/decisions/needs.js", "modules/decisions/card.js", "modules/decisions/card-events.js", "modules/decisions/panel-view.js", "modules/decisions/keyboard.js", "modules/decisions/toast.js"]
+   "home": [
+    "modules/decisions/controller.js",
+    "modules/decisions/queue.js",
+    "modules/decisions/needs.js",
+    "modules/decisions/card.js",
+    "modules/decisions/card-events.js",
+    "modules/decisions/panel-view.js",
+    "modules/decisions/keyboard.js",
+    "modules/decisions/toast.js"
+   ]
   },
   "js/diffthemes.js": {
    "status": "moved",
@@ -2547,8 +2576,7 @@
   },
   "js/diffview.js": {
    "status": "moved",
-   "home": "modules/changes/diffview.js",
-   "note": "js/diffview.js re-exports modules/changes/diffview.js until the shell renders panel.frame from places and the shims go"
+   "home": "modules/changes/diffview.js"
   },
   "js/doceditor.js": {
    "status": "moved",
@@ -2564,18 +2592,15 @@
   },
   "js/dropdown.js": {
    "status": "moved",
-   "home": "core/ui/components/xo-select.js",
-   "note": "js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets"
+   "home": "core/ui/components/xo-select.js"
   },
   "js/fileicons.js": {
    "status": "moved",
-   "home": "core/ui/icons/fileicons.js",
-   "note": "js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go"
+   "home": "core/ui/icons/fileicons.js"
   },
   "js/files.js": {
    "status": "moved",
-   "home": "modules/files/files.js",
-   "note": "The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/."
+   "home": "modules/files/files.js"
   },
   "js/filespage.js": {
    "status": "split",
@@ -2586,13 +2611,11 @@
   },
   "js/flavours.js": {
    "status": "moved",
-   "home": "core/ui/flavours.js",
-   "note": "js/flavours.js re-exports the palette"
+   "home": "core/ui/flavours.js"
   },
   "js/focusview.js": {
    "status": "moved",
-   "home": "core/ui/a11y/focus.js",
-   "note": "js/focusview.js re-exports core/ui/a11y/focus.js until the shims go"
+   "home": "core/ui/a11y/focus.js"
   },
   "js/follow.js": {
    "status": "moved",
@@ -2604,9 +2627,12 @@
    "note": "every importer points at core/platform/fuzzy.js, so it leaves with no re-export"
   },
   "js/gestures.js": {
-   "status": "moved",
-   "home": "shell/gestures.js",
-   "note": "the drag primitive moved to core/platform/gestures.js and the compatibility entry supplies the conversation text extractor"
+   "status": "split",
+   "home": [
+    "shell/gestures.js",
+    "core/platform/gestures.js"
+   ],
+   "note": "The app passes the conversation text extractor when it wires gestures."
   },
   "js/ghpage.js": {
    "status": "moved",
@@ -2619,8 +2645,7 @@
   },
   "js/highlight.js": {
    "status": "moved",
-   "home": "core/ui/markdown/highlight.js",
-   "note": "js/highlight.js re-exports it until the shims go"
+   "home": "core/ui/markdown/highlight.js"
   },
   "js/hopstate.js": {
    "status": "moved",
@@ -2629,13 +2654,11 @@
   },
   "js/icon.js": {
    "status": "moved",
-   "home": "core/ui/icons/icon.js",
-   "note": "js/icon.js re-exports core/ui/icons/icon.js until the shims go"
+   "home": "core/ui/icons/icon.js"
   },
   "js/imagechange.js": {
    "status": "moved",
-   "home": "modules/changes/imagechange.js",
-   "note": "js/imagechange.js re-exports modules/changes/imagechange.js until the shell renders panel.frame from places and the shims go"
+   "home": "modules/changes/imagechange.js"
   },
   "js/intel.js": {
    "status": "moved",
@@ -2643,17 +2666,12 @@
   },
   "js/keynav.js": {
    "status": "moved",
-   "home": "core/ui/a11y/keynav.js",
-   "note": "js/keynav.js re-exports core/ui/a11y/keynav.js until the shims go"
+   "home": "core/ui/a11y/keynav.js"
   },
   "js/keys.js": {
-   "status": "split",
-   "home": [
-    "core/platform/keys.js",
-    "core/kernel (shortcut place)",
-    "modules/settings/keyboard.js"
-   ],
-   "note": "the engine and its catalogue are in core/platform/keys.js; js/keys.js re-exports it until the shims go; the catalogue becomes the kernel's shortcut place when modules contribute their keys"
+   "status": "moved",
+   "home": "core/platform/keys.js",
+   "note": "The bindings, dispatcher lookup and stored preferences moved together. Settings renders its own shortcuts UI."
   },
   "js/kit.js": {
    "status": "split",
@@ -2679,9 +2697,14 @@
    "status": "split",
    "home": [
     "core/ui/lightbox.js",
-    "modules/conversation (the pictures it lends the lightbox)"
+    "modules/conversation/lightbox.js"
    ],
-   "note": "the lightbox is core/ui/lightbox.js; js/lightbox.js keeps only the conversation pictures it lends it, until the conversation module moves"
+   "evidence": {
+    "modules/conversation/lightbox.js": {
+     "anchor": "const pictures = { mediaItemOf, galleryOf",
+     "reason": "The old lightbox's conversation picture dependencies are supplied here to the shared lightbox."
+    }
+   }
   },
   "js/lpapi.js": {
    "status": "split",
@@ -2702,19 +2725,24 @@
   "js/map.js": {
    "status": "split",
    "home": [
-    "modules/map",
+    "modules/map/map.js",
+    "modules/map/layout.js",
+    "modules/map/diagram.js",
+    "modules/map/folders.js",
+    "modules/map/tree.js",
+    "modules/map/agents.js",
+    "modules/map/icons.js",
     "core/services/places.js",
     "core/services/agent-activity.js"
    ],
-   "note": "The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services."
+   "note": "The app supplies conversation rendering to the panel map."
   },
   "js/markdown.js": {
    "status": "split",
    "home": [
     "core/ui/markdown/markdown.js",
     "core/ui/markdown/inline.js"
-   ],
-   "note": "blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go"
+   ]
   },
   "js/mdlive.js": {
    "status": "moved",
@@ -2736,7 +2764,40 @@
     "core/services/media/picture-load.js",
     "core/services/media/project-images.js"
    ],
-   "note": "js/media.js re-exports the shared media modules"
+   "evidence": {
+    "core/services/media/images.js": {
+     "anchor": "export const cachedSrc = (it)",
+     "reason": "Looks up cached picture sources and assigns fetched sources to their images."
+    },
+    "core/services/media/intersection.js": {
+     "anchor": "export function watchNear(img, start, scope)",
+     "reason": "Starts deferred picture loads when their images approach the scroll viewport."
+    },
+    "core/services/media/cache.js": {
+     "anchor": "export function markWebGone(url)",
+     "reason": "Records web pictures that should render as outbound links after a load failure."
+    },
+    "core/services/media/stack-data.js": {
+     "anchor": "export const mediaItemOf = (key, from)",
+     "reason": "Resolves gallery items by key from the rendered stack instead of a page-wide registry."
+    },
+    "core/services/media/image-scope.js": {
+     "anchor": "export function createImageScope(img)",
+     "reason": "Owns picture load cleanup when an image leaves the document."
+    },
+    "core/services/media/object-urls.js": {
+     "anchor": "export function retire(url)",
+     "reason": "Revokes evicted picture blob URLs once they are no longer displayed."
+    },
+    "core/services/media/picture-load.js": {
+     "anchor": "export function loadPicture(img, item,",
+     "reason": "Starts picture loads and owns image events and the slow-load timer."
+    },
+    "core/services/media/project-images.js": {
+     "anchor": "export function subscribeProjectImage(",
+     "reason": "Shares pending project picture reads while at least one image still needs the response."
+    }
+   }
   },
   "js/merge.js": {
    "status": "moved",
@@ -2749,12 +2810,15 @@
   },
   "js/motion.js": {
    "status": "moved",
-   "home": "core/ui/motion.js",
-   "note": "js/motion.js re-exports core/ui/motion.js until the shims go"
+   "home": "core/ui/motion.js"
   },
   "js/msgx.js": {
-   "status": "moved",
-   "home": "modules/conversation/decoration.js"
+   "status": "split",
+   "home": [
+    "modules/conversation/main-decoration.js",
+    "modules/conversation/decoration.js"
+   ],
+   "note": "The main conversation starts decoration in the same script slot after boot."
   },
   "js/pacing.js": {
    "status": "moved",
@@ -2794,18 +2858,16 @@
     "modules/since/model.js",
     "core/services/git-state.js",
     "core/ui/virtual.js"
-   ],
-   "note": "every piece has moved (modules/artifacts/model.js, modules/since/model.js, core/services/git-state.js, core/ui/virtual.js); record.js only re-exports them until the shims go"
+   ]
   },
   "js/recordview.js": {
    "status": "kept",
    "home": "js/recordview.js",
-   "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
+   "note": "The application composes Since and Made, contributes their sections, and supplies the existing Home skeleton helpers."
   },
   "js/redraw.js": {
    "status": "moved",
-   "home": "core/ui/redraw.js",
-   "note": "js/redraw.js re-exports core/ui/redraw.js until the shims go"
+   "home": "core/ui/redraw.js"
   },
   "js/review.js": {
    "status": "moved",
@@ -2813,13 +2875,11 @@
   },
   "js/rich.js": {
    "status": "moved",
-   "home": "core/ui/markdown/rich.js",
-   "note": "js/rich.js re-exports it until the shims go"
+   "home": "core/ui/markdown/rich.js"
   },
   "js/ring.js": {
    "status": "moved",
-   "home": "core/ui/a11y/ring.js",
-   "note": "js/ring.js re-exports core/ui/a11y/ring.js until the shims go; its two region selectors stay until files and changes contribute them"
+   "home": "core/ui/a11y/ring.js"
   },
   "js/rtsettings.js": {
    "status": "moved",
@@ -2838,16 +2898,21 @@
   "js/settings.js": {
    "status": "split",
    "home": [
+    "js/settings.js",
     "modules/settings/host.js",
     "modules/routing/page.js",
     "modules/rules/page.js",
     "modules/worktrees/page.js"
    ],
-   "note": "js/settings.js keeps only the wiring until the shell's settings.section place takes it"
+   "note": "The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events."
   },
   "js/shape.js": {
-   "status": "moved",
-   "home": "core/services/shape/",
+   "status": "split",
+   "home": [
+    "core/services/shape/model.js",
+    "core/services/shape/changes.js",
+    "core/services/shape/store.js"
+   ],
    "note": "every importer points at the new home, so it leaves with no re-export"
   },
   "js/shapeview.js": {
@@ -2883,15 +2948,14 @@
   "js/stage.js": {
    "status": "split",
    "home": [
-    "shell/panel (panel.js, pages.js, frames.js, width.js, lists.js)",
-    "core/kernel (panel.page/panel.frame places)",
-    "modules/threads (Threads frame)",
-    "modules/changes (frame wiring)",
-    "modules/map (frame wiring)",
-    "modules/launchpad (cover)",
-    "modules/shells (shell page)"
+    "shell/panel/panel.js",
+    "shell/panel/pages.js",
+    "shell/panel/frames.js",
+    "shell/panel/width.js",
+    "shell/panel/lists.js",
+    "modules/launchpad/page.js"
    ],
-   "note": "moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules"
+   "note": "The panel controller, page and frame wiring, list rendering and width management live in shell/panel. Launchpad owns its existing panel cover."
   },
   "js/storm.js": {
    "status": "split",
@@ -2904,17 +2968,49 @@
     "core/services/storm/account.js",
     "core/services/storm/history.js",
     "core/services/storm/hops.js",
-    "core/services/storm/reducers/",
-    "core/services/storm/selectors/",
+    "core/services/storm/reducers/index.js",
+    "core/services/storm/reducers/messages.js",
+    "core/services/storm/reducers/review.js",
+    "core/services/storm/reducers/runs.js",
+    "core/services/storm/reducers/sessions.js",
+    "core/services/storm/reducers/space.js",
+    "core/services/storm/reducers/threads.js",
+    "core/services/storm/selectors/commit.js",
+    "core/services/storm/selectors/sessions.js",
+    "core/services/storm/selectors/threads.js",
     "core/services/storm/commands.js",
-    "core/services/storm/act.js",
-    "core/services/storm/types.d.ts"
+    "core/services/storm/act.js"
    ],
-   "note": "every importer points at core/services/storm, so it leaves with no re-export"
+   "note": "every importer points at core/services/storm, so it leaves with no re-export",
+   "evidence": {
+    "core/services/storm/client.js": {
+     "anchor": "streamUrl: api.streamUrl",
+     "reason": "The storm I/O adapter collects the former directly invoked route methods."
+    },
+    "core/services/storm/reducers/review.js": {
+     "anchor": "\"review.opened\"(ctx, env, d)",
+     "reason": "The review frame handlers moved out of storm's dispatch switch."
+    },
+    "core/services/storm/reducers/runs.js": {
+     "anchor": "\"run.started\"(ctx, env, d)",
+     "reason": "The run frame handlers moved out of storm's dispatch switch."
+    }
+   }
   },
   "js/timeline.js": {
-   "status": "moved",
-   "home": "core/services/world/timeline.js"
+   "status": "split",
+   "home": [
+    "core/services/storm/load.js",
+    "core/services/world/conn.js",
+    "core/services/world/conversation.js",
+    "core/services/world/held.js",
+    "core/services/world/list-time.js",
+    "core/services/world/relay.js",
+    "core/services/world/rows.js",
+    "core/services/world/sessions.js",
+    "core/services/world/threads.js"
+   ],
+   "note": "Timeline functions live in their owning files. The timeline entry re-exports them."
   },
   "js/turnview.js": {
    "status": "moved",
@@ -2923,14 +3019,14 @@
   "js/ui.js": {
    "status": "split",
    "home": [
-    "core/ui/icons",
-    "core/ui/motion",
-    "core/ui/redraw (reconcile)",
-    "core/platform/dom",
-    "core/platform/time",
-    "core/services/sound"
+    "core/ui/icons/names.js",
+    "core/ui/motion.js",
+    "core/ui/redraw.js",
+    "core/platform/dom.js",
+    "core/platform/time.js",
+    "core/services/sound.js"
    ],
-   "note": "reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go"
+   "note": "Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly."
   },
   "js/util.js": {
    "status": "split",
@@ -2938,631 +3034,630 @@
     "core/platform/util.js",
     "core/platform/time.js",
     "core/platform/clipboard.js"
-   ],
-   "note": "js/util.js re-exports core/platform until the shims go"
+   ]
   },
   "js/vendor/agent-marks/README.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/agent-marks/README.md"
   },
   "js/vendor/agent-marks/antigravity.svg": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/agent-marks/antigravity.svg"
   },
   "js/vendor/agent-marks/claude.svg": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/agent-marks/claude.svg"
   },
   "js/vendor/agent-marks/openai.svg": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/agent-marks/openai.svg"
   },
   "js/vendor/codemirror/LICENSES.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/LICENSES.md"
   },
   "js/vendor/codemirror/c/apl-WDIZS52W.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/apl-WDIZS52W.js"
   },
   "js/vendor/codemirror/c/asciiarmor-A6BLF7D6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/asciiarmor-A6BLF7D6.js"
   },
   "js/vendor/codemirror/c/asn1-2LBS3BUG.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/asn1-2LBS3BUG.js"
   },
   "js/vendor/codemirror/c/asterisk-6BH5HWIH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/asterisk-6BH5HWIH.js"
   },
   "js/vendor/codemirror/c/brainfuck-MF2U6KRY.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/brainfuck-MF2U6KRY.js"
   },
   "js/vendor/codemirror/c/chunk-2SNB6XH5.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-2SNB6XH5.js"
   },
   "js/vendor/codemirror/c/chunk-AXLUAIDQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-AXLUAIDQ.js"
   },
   "js/vendor/codemirror/c/chunk-CNYDTQZO.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-CNYDTQZO.js"
   },
   "js/vendor/codemirror/c/chunk-GTGQDGOX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-GTGQDGOX.js"
   },
   "js/vendor/codemirror/c/chunk-IEYLUQ5L.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-IEYLUQ5L.js"
   },
   "js/vendor/codemirror/c/chunk-LOZFZ4PT.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-LOZFZ4PT.js"
   },
   "js/vendor/codemirror/c/chunk-NXZJL534.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-NXZJL534.js"
   },
   "js/vendor/codemirror/c/chunk-PAEODHZI.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-PAEODHZI.js"
   },
   "js/vendor/codemirror/c/chunk-XNKSJU5R.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/chunk-XNKSJU5R.js"
   },
   "js/vendor/codemirror/c/clike-44CNEW4H.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/clike-44CNEW4H.js"
   },
   "js/vendor/codemirror/c/clojure-IIAJUPDR.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/clojure-IIAJUPDR.js"
   },
   "js/vendor/codemirror/c/cmake-S23PUUSN.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/cmake-S23PUUSN.js"
   },
   "js/vendor/codemirror/c/cobol-27OFJMJ6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/cobol-27OFJMJ6.js"
   },
   "js/vendor/codemirror/c/coffeescript-YV2ROPI3.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/coffeescript-YV2ROPI3.js"
   },
   "js/vendor/codemirror/c/commonlisp-SJOK7WCK.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/commonlisp-SJOK7WCK.js"
   },
   "js/vendor/codemirror/c/crystal-W6YI6I77.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/crystal-W6YI6I77.js"
   },
   "js/vendor/codemirror/c/css-4ZEXGIXX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/css-4ZEXGIXX.js"
   },
   "js/vendor/codemirror/c/cypher-NFR5ROM2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/cypher-NFR5ROM2.js"
   },
   "js/vendor/codemirror/c/d-6IEJ3FMV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/d-6IEJ3FMV.js"
   },
   "js/vendor/codemirror/c/diff-3STZBEJI.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/diff-3STZBEJI.js"
   },
   "js/vendor/codemirror/c/dist-26R6JZ2H.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-26R6JZ2H.js"
   },
   "js/vendor/codemirror/c/dist-3AOFVSQZ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-3AOFVSQZ.js"
   },
   "js/vendor/codemirror/c/dist-3H7VD3WU.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-3H7VD3WU.js"
   },
   "js/vendor/codemirror/c/dist-7WUD2ZJP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-7WUD2ZJP.js"
   },
   "js/vendor/codemirror/c/dist-A2TA6P4M.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-A2TA6P4M.js"
   },
   "js/vendor/codemirror/c/dist-CU33U7BS.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-CU33U7BS.js"
   },
   "js/vendor/codemirror/c/dist-D746Q3ZJ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-D746Q3ZJ.js"
   },
   "js/vendor/codemirror/c/dist-DQTN3QM4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-DQTN3QM4.js"
   },
   "js/vendor/codemirror/c/dist-HEER3P65.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-HEER3P65.js"
   },
   "js/vendor/codemirror/c/dist-KVSB4JMY.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-KVSB4JMY.js"
   },
   "js/vendor/codemirror/c/dist-L2JPCDM4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-L2JPCDM4.js"
   },
   "js/vendor/codemirror/c/dist-MHVEMUZ6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-MHVEMUZ6.js"
   },
   "js/vendor/codemirror/c/dist-O5UVQZJV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-O5UVQZJV.js"
   },
   "js/vendor/codemirror/c/dist-OH2W4WE6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-OH2W4WE6.js"
   },
   "js/vendor/codemirror/c/dist-OV5CEEXA.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-OV5CEEXA.js"
   },
   "js/vendor/codemirror/c/dist-QSDUX6Y5.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-QSDUX6Y5.js"
   },
   "js/vendor/codemirror/c/dist-R5TFER2T.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-R5TFER2T.js"
   },
   "js/vendor/codemirror/c/dist-U3H2HL3W.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-U3H2HL3W.js"
   },
   "js/vendor/codemirror/c/dist-Y2MO5DJ2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-Y2MO5DJ2.js"
   },
   "js/vendor/codemirror/c/dist-YTTGY25H.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-YTTGY25H.js"
   },
   "js/vendor/codemirror/c/dist-ZKMG3Y5C.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dist-ZKMG3Y5C.js"
   },
   "js/vendor/codemirror/c/dockerfile-PWBO6ACQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dockerfile-PWBO6ACQ.js"
   },
   "js/vendor/codemirror/c/dtd-22O4DOXQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dtd-22O4DOXQ.js"
   },
   "js/vendor/codemirror/c/dylan-77IVWD3V.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/dylan-77IVWD3V.js"
   },
   "js/vendor/codemirror/c/ebnf-6IDCA4J7.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/ebnf-6IDCA4J7.js"
   },
   "js/vendor/codemirror/c/ecl-WICAYUVQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/ecl-WICAYUVQ.js"
   },
   "js/vendor/codemirror/c/eiffel-L53NJJEC.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/eiffel-L53NJJEC.js"
   },
   "js/vendor/codemirror/c/elm-3RB5DGC7.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/elm-3RB5DGC7.js"
   },
   "js/vendor/codemirror/c/erlang-Q2GQZNEX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/erlang-Q2GQZNEX.js"
   },
   "js/vendor/codemirror/c/factor-X2EE7H7B.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/factor-X2EE7H7B.js"
   },
   "js/vendor/codemirror/c/fcl-CNDTWJXV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/fcl-CNDTWJXV.js"
   },
   "js/vendor/codemirror/c/forth-WDIU4MH2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/forth-WDIU4MH2.js"
   },
   "js/vendor/codemirror/c/fortran-V2AMY5K3.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/fortran-V2AMY5K3.js"
   },
   "js/vendor/codemirror/c/gas-EQP3DVPM.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/gas-EQP3DVPM.js"
   },
   "js/vendor/codemirror/c/gherkin-HLZMEF2L.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/gherkin-HLZMEF2L.js"
   },
   "js/vendor/codemirror/c/groovy-EPBAGFEI.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/groovy-EPBAGFEI.js"
   },
   "js/vendor/codemirror/c/haskell-JJSVL5US.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/haskell-JJSVL5US.js"
   },
   "js/vendor/codemirror/c/haxe-RMBZECDX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/haxe-RMBZECDX.js"
   },
   "js/vendor/codemirror/c/http-TEJL4FRB.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/http-TEJL4FRB.js"
   },
   "js/vendor/codemirror/c/idl-HMPKIHMH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/idl-HMPKIHMH.js"
   },
   "js/vendor/codemirror/c/javascript-BBKDC7FN.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/javascript-BBKDC7FN.js"
   },
   "js/vendor/codemirror/c/julia-6UML5YQH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/julia-6UML5YQH.js"
   },
   "js/vendor/codemirror/c/livescript-Z5IUWFXF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/livescript-Z5IUWFXF.js"
   },
   "js/vendor/codemirror/c/lua-LNZZVBTV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/lua-LNZZVBTV.js"
   },
   "js/vendor/codemirror/c/mathematica-QSKPMNJE.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/mathematica-QSKPMNJE.js"
   },
   "js/vendor/codemirror/c/mbox-5M24JXXG.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/mbox-5M24JXXG.js"
   },
   "js/vendor/codemirror/c/mirc-WBSGLMUN.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/mirc-WBSGLMUN.js"
   },
   "js/vendor/codemirror/c/mllike-LKVMBYHJ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/mllike-LKVMBYHJ.js"
   },
   "js/vendor/codemirror/c/modelica-L3UZRMGL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/modelica-L3UZRMGL.js"
   },
   "js/vendor/codemirror/c/mscgen-KSRWA5YQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/mscgen-KSRWA5YQ.js"
   },
   "js/vendor/codemirror/c/mumps-M7J5AAYC.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/mumps-M7J5AAYC.js"
   },
   "js/vendor/codemirror/c/nginx-5DWW4OHT.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/nginx-5DWW4OHT.js"
   },
   "js/vendor/codemirror/c/nsis-LLAZ27CY.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/nsis-LLAZ27CY.js"
   },
   "js/vendor/codemirror/c/ntriples-2CYIF6HC.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/ntriples-2CYIF6HC.js"
   },
   "js/vendor/codemirror/c/octave-HMKHJROG.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/octave-HMKHJROG.js"
   },
   "js/vendor/codemirror/c/oz-DUJOTWZ6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/oz-DUJOTWZ6.js"
   },
   "js/vendor/codemirror/c/pascal-EQQWMK2C.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/pascal-EQQWMK2C.js"
   },
   "js/vendor/codemirror/c/perl-WQW535WL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/perl-WQW535WL.js"
   },
   "js/vendor/codemirror/c/pig-MTS6NLKZ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/pig-MTS6NLKZ.js"
   },
   "js/vendor/codemirror/c/powershell-NEEJC4LW.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/powershell-NEEJC4LW.js"
   },
   "js/vendor/codemirror/c/properties-AXKDPFVG.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/properties-AXKDPFVG.js"
   },
   "js/vendor/codemirror/c/protobuf-B24LGJB2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/protobuf-B24LGJB2.js"
   },
   "js/vendor/codemirror/c/pug-SCHR77TH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/pug-SCHR77TH.js"
   },
   "js/vendor/codemirror/c/puppet-CBBBRAYM.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/puppet-CBBBRAYM.js"
   },
   "js/vendor/codemirror/c/python-EGTXQAYX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/python-EGTXQAYX.js"
   },
   "js/vendor/codemirror/c/q-SUULM3PC.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/q-SUULM3PC.js"
   },
   "js/vendor/codemirror/c/r-HFZB5IIJ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/r-HFZB5IIJ.js"
   },
   "js/vendor/codemirror/c/rpm-5N7FBF4V.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/rpm-5N7FBF4V.js"
   },
   "js/vendor/codemirror/c/ruby-QOBQUME4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/ruby-QOBQUME4.js"
   },
   "js/vendor/codemirror/c/sas-3KU6GFDV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/sas-3KU6GFDV.js"
   },
   "js/vendor/codemirror/c/scheme-K4AMW6A2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/scheme-K4AMW6A2.js"
   },
   "js/vendor/codemirror/c/shell-YGI2UXMW.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/shell-YGI2UXMW.js"
   },
   "js/vendor/codemirror/c/sieve-VMKCDKWK.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/sieve-VMKCDKWK.js"
   },
   "js/vendor/codemirror/c/smalltalk-2JJWJCY6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/smalltalk-2JJWJCY6.js"
   },
   "js/vendor/codemirror/c/solr-EOYGUCLJ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/solr-EOYGUCLJ.js"
   },
   "js/vendor/codemirror/c/sparql-2UNW6W4O.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/sparql-2UNW6W4O.js"
   },
   "js/vendor/codemirror/c/spreadsheet-S4ITESQF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/spreadsheet-S4ITESQF.js"
   },
   "js/vendor/codemirror/c/sql-CYMBV4IL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/sql-CYMBV4IL.js"
   },
   "js/vendor/codemirror/c/stex-RG3QFSW2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/stex-RG3QFSW2.js"
   },
   "js/vendor/codemirror/c/stylus-MT75ZRUL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/stylus-MT75ZRUL.js"
   },
   "js/vendor/codemirror/c/swift-RUSJRN5T.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/swift-RUSJRN5T.js"
   },
   "js/vendor/codemirror/c/tcl-SU3EVUZ4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/tcl-SU3EVUZ4.js"
   },
   "js/vendor/codemirror/c/textile-GJDHYNHQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/textile-GJDHYNHQ.js"
   },
   "js/vendor/codemirror/c/tiddlywiki-MJF5G2CH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/tiddlywiki-MJF5G2CH.js"
   },
   "js/vendor/codemirror/c/tiki-2SAVLYI6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/tiki-2SAVLYI6.js"
   },
   "js/vendor/codemirror/c/toml-6AXEA3OY.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/toml-6AXEA3OY.js"
   },
   "js/vendor/codemirror/c/troff-F6PHJ5G5.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/troff-F6PHJ5G5.js"
   },
   "js/vendor/codemirror/c/ttcn-FZDXDCB5.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/ttcn-FZDXDCB5.js"
   },
   "js/vendor/codemirror/c/ttcn-cfg-IMMX5NBJ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/ttcn-cfg-IMMX5NBJ.js"
   },
   "js/vendor/codemirror/c/turtle-CF4XY2NI.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/turtle-CF4XY2NI.js"
   },
   "js/vendor/codemirror/c/vb-HIZYQHNB.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/vb-HIZYQHNB.js"
   },
   "js/vendor/codemirror/c/vbscript-HKX7W2Z4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/vbscript-HKX7W2Z4.js"
   },
   "js/vendor/codemirror/c/velocity-M5NSSGPO.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/velocity-M5NSSGPO.js"
   },
   "js/vendor/codemirror/c/verilog-ZBBFBS7R.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/verilog-ZBBFBS7R.js"
   },
   "js/vendor/codemirror/c/vhdl-KLX4YS33.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/vhdl-KLX4YS33.js"
   },
   "js/vendor/codemirror/c/webidl-2RLDUOE5.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/webidl-2RLDUOE5.js"
   },
   "js/vendor/codemirror/c/xquery-2YVB7HFQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/xquery-2YVB7HFQ.js"
   },
   "js/vendor/codemirror/c/yacas-TB6CIIEF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/yacas-TB6CIIEF.js"
   },
   "js/vendor/codemirror/c/z80-VRQRQAML.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/c/z80-VRQRQAML.js"
   },
   "js/vendor/codemirror/cm.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/cm.js"
   },
   "js/vendor/codemirror/manifest.json": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/manifest.json"
   },
   "js/vendor/codemirror/merge.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/codemirror/merge.js"
   },
   "js/vendor/katex/LICENSE": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/LICENSE"
   },
   "js/vendor/katex/README.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/README.md"
   },
   "js/vendor/katex/fonts/KaTeX_AMS-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_AMS-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Main-Bold.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Main-Bold.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Main-Italic.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Main-Italic.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Main-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Main-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Math-Italic.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Math-Italic.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Script-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Script-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Size1-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Size1-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Size2-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Size2-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Size3-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Size3-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Size4-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Size4-Regular.woff2"
   },
   "js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2"
   },
   "js/vendor/katex/katex.min.css": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/katex.min.css"
   },
   "js/vendor/katex/katex.min.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/katex/katex.min.js"
   },
   "js/vendor/lucide/LICENSE": {
@@ -3578,803 +3673,803 @@
    "reason": "no importer anywhere (owner D6)"
   },
   "js/vendor/mermaid/LICENSE": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/LICENSE"
   },
   "js/vendor/mermaid/README.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/README.md"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/architecture-LC7QOZUM-5NGVVLDI.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/architecture-LC7QOZUM-5NGVVLDI.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/architectureDiagram-K7MV6ERW.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/architectureDiagram-K7MV6ERW.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/blockDiagram-O3Z2S55I.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/blockDiagram-O3Z2S55I.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/bpmnIcons-YJSSVMIT.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/bpmnIcons-YJSSVMIT.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/c4Diagram-7J26TYSL.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/c4Diagram-7J26TYSL.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3DCBE5TA.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-3DCBE5TA.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3NO356PZ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-3NO356PZ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-4J7XMMR5.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-4J7XMMR5.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-5LJW3EUZ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-5LJW3EUZ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-6GTQGJNM.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-6GTQGJNM.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-767MNKTJ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-767MNKTJ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-A3LLD7C6.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-A3LLD7C6.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AD2K7U72.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-AD2K7U72.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AEP47HME.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-AEP47HME.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-C7QCCU7L.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-C7QCCU7L.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CG7VIXT6.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-CG7VIXT6.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CPAW7BRR.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-CPAW7BRR.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-DJPHBUKM.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-DJPHBUKM.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EB7S5WDG.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-EB7S5WDG.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EKDPPX6U.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-EKDPPX6U.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ETFDQZFQ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-ETFDQZFQ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FB4HB4A2.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-FB4HB4A2.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FCGY7WDG.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-FCGY7WDG.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FRYFDGAD.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-FRYFDGAD.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-G35KUZXD.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-G35KUZXD.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-H3Y7VZGV.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-H3Y7VZGV.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-IJTDMCXQ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-IJTDMCXQ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-JENJ2NYI.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-JENJ2NYI.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-KNGDTZMA.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-KNGDTZMA.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-MWUZ53VY.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-MWUZ53VY.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-N3CUNPOK.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-N3CUNPOK.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NXZFCOWJ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-NXZFCOWJ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NYALJP3A.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-NYALJP3A.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OO6OXEJO.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-OO6OXEJO.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OWKPCAA4.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-OWKPCAA4.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PHMQW7SG.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-PHMQW7SG.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PNVTB6QF.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-PNVTB6QF.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Q7AU6FSL.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-Q7AU6FSL.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQ4VTD2Z.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-QQ4VTD2Z.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQEUQRS4.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-QQEUQRS4.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-S2SV4DS7.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-S2SV4DS7.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SQB72GJH.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-SQB72GJH.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SVHOGJPR.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-SVHOGJPR.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UCIVM6JH.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-UCIVM6JH.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UGEUIIAL.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-UGEUIIAL.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-V3YWWTDH.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-V3YWWTDH.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VHEAKMU3.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-VHEAKMU3.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VLFMOWSA.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-VLFMOWSA.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XU3RQ3PZ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-XU3RQ3PZ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XWQP5P3V.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-XWQP5P3V.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Z2IEFKAF.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-Z2IEFKAF.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ZJBQKVUR.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/chunk-ZJBQKVUR.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/classDiagram-v2-OX5G5VGB.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/classDiagram-v2-OX5G5VGB.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/cose-bilkent-U4P6ZWTA.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/cose-bilkent-U4P6ZWTA.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/cynefin-SQZ4V6AE-EBUGBJB2.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/cynefin-SQZ4V6AE-EBUGBJB2.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/cynefinDiagram-IQ4ZJOH3.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/cynefinDiagram-IQ4ZJOH3.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/dagre-75NMZP4T.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/dagre-75NMZP4T.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/diagram-5EDX5UH3.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/diagram-5EDX5UH3.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/diagram-733GHHTT.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/diagram-733GHHTT.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/diagram-A5NIFI4L.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/diagram-A5NIFI4L.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/diagram-G5JTDQRA.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/diagram-G5JTDQRA.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/diagram-KC4HS2L5.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/diagram-KC4HS2L5.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/diagram-LXLKFC5Q.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/diagram-LXLKFC5Q.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/ebnfDiagram-R2OZYWV5.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/ebnfDiagram-R2OZYWV5.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/elk-VW7CPVO3.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/elk-VW7CPVO3.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/erDiagram-EZESABAN.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/erDiagram-EZESABAN.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/eventmodeling-QR7CT3BE-GD4POLK5.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/eventmodeling-QR7CT3BE-GD4POLK5.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/flowDiagram-MIYXRJYK.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/flowDiagram-MIYXRJYK.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/ganttDiagram-KOIEMFUK.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/ganttDiagram-KOIEMFUK.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/gitGraph-S4SDYQ5E-BX3VVCOW.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/gitGraph-S4SDYQ5E-BX3VVCOW.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/gitGraphDiagram-A2SMY64T.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/gitGraphDiagram-A2SMY64T.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/info-5BNCTR6C-ODGUMPAX.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/info-5BNCTR6C-ODGUMPAX.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/infoDiagram-CVPKPPGR.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/infoDiagram-CVPKPPGR.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/ishikawaDiagram-EMHLID2X.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/ishikawaDiagram-EMHLID2X.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/journeyDiagram-34ETIHJA.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/journeyDiagram-34ETIHJA.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/kanban-definition-3VVCP34E.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/kanban-definition-3VVCP34E.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/katex-HEAVHIDR.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/katex-HEAVHIDR.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/mindmap-definition-QGXWIBFW.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/mindmap-definition-QGXWIBFW.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/packet-FDJJNMMN-G7IL4JUV.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/packet-FDJJNMMN-G7IL4JUV.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/pegDiagram-TMXEBKVO.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/pegDiagram-TMXEBKVO.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/pie-BMGGJ4DP-PPLMLEAI.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/pie-BMGGJ4DP-PPLMLEAI.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/pieDiagram-A4ONI7YG.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/pieDiagram-A4ONI7YG.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/quadrantDiagram-SUBAGY5T.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/quadrantDiagram-SUBAGY5T.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/radar-4MYH26CV-J7F73TLN.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/radar-4MYH26CV-J7F73TLN.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/railroad-UC74YYTJ-NDW2JIG3.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/railroad-UC74YYTJ-NDW2JIG3.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/railroad-abnf-63ZTAFXO-CNIYIKXO.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/railroad-abnf-63ZTAFXO-CNIYIKXO.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/railroad-ebnf-WVTJNEEQ-DSHHJI4S.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/railroad-ebnf-WVTJNEEQ-DSHHJI4S.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/railroad-peg-W4VBZIEU-7RBE7FRH.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/railroad-peg-W4VBZIEU-7RBE7FRH.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/railroadDiagram-LDGO7TFH.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/railroadDiagram-LDGO7TFH.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/requirementDiagram-AGPKMLJZ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/requirementDiagram-AGPKMLJZ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/sankeyDiagram-BSWYR3MM.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/sankeyDiagram-BSWYR3MM.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/sequenceDiagram-7K4MKO6P.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/sequenceDiagram-7K4MKO6P.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/sizeCapture-56ELNSSC.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/sizeCapture-56ELNSSC.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/stateDiagram-v2-7EDNTZT3.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/stateDiagram-v2-7EDNTZT3.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/swimlanes-VL4ZZWC5.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/swimlanes-VL4ZZWC5.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/swimlanesDiagram-6D5TTVIN.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/swimlanesDiagram-6D5TTVIN.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/timeline-definition-RSFCTRKZ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/timeline-definition-RSFCTRKZ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/treeView-OWB7PY5U-RUKUIZU4.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/treeView-OWB7PY5U-RUKUIZU4.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/treemap-B4MHVWJL-DHMOZ63S.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/treemap-B4MHVWJL-DHMOZ63S.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/usecaseDiagram-KXV27WTT.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/usecaseDiagram-KXV27WTT.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/vennDiagram-WTUZ5ZZJ.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/vennDiagram-WTUZ5ZZJ.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/wardley-ZOP5H4X3-LCQ4757O.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/wardley-ZOP5H4X3-LCQ4757O.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/wardleyDiagram-KARA5GED.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/wardleyDiagram-KARA5GED.mjs"
   },
   "js/vendor/mermaid/chunks/mermaid.esm.min/xychartDiagram-IFGWRUGB.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/chunks/mermaid.esm.min/xychartDiagram-IFGWRUGB.mjs"
   },
   "js/vendor/mermaid/mermaid.esm.min.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/mermaid/mermaid.esm.min.mjs"
   },
   "js/vendor/pierre-diffs/LICENSES.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/LICENSES.md"
   },
   "js/vendor/pierre-diffs/c/c-E6GJF7NI.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/c-E6GJF7NI.js"
   },
   "js/vendor/pierre-diffs/c/chunk-44DXQCPQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-44DXQCPQ.js"
   },
   "js/vendor/pierre-diffs/c/chunk-4IOWYWJK.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-4IOWYWJK.js"
   },
   "js/vendor/pierre-diffs/c/chunk-55MH5PQL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-55MH5PQL.js"
   },
   "js/vendor/pierre-diffs/c/chunk-5B225VTB.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-5B225VTB.js"
   },
   "js/vendor/pierre-diffs/c/chunk-5EAMECPK.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-5EAMECPK.js"
   },
   "js/vendor/pierre-diffs/c/chunk-6DRUME2C.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-6DRUME2C.js"
   },
   "js/vendor/pierre-diffs/c/chunk-B5JCA7FL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-B5JCA7FL.js"
   },
   "js/vendor/pierre-diffs/c/chunk-BK2WVYD3.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-BK2WVYD3.js"
   },
   "js/vendor/pierre-diffs/c/chunk-C4WP6UCZ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-C4WP6UCZ.js"
   },
   "js/vendor/pierre-diffs/c/chunk-COQVLBQQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-COQVLBQQ.js"
   },
   "js/vendor/pierre-diffs/c/chunk-CSVUL5XU.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-CSVUL5XU.js"
   },
   "js/vendor/pierre-diffs/c/chunk-DMZPRWQH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-DMZPRWQH.js"
   },
   "js/vendor/pierre-diffs/c/chunk-FE5RNAGX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-FE5RNAGX.js"
   },
   "js/vendor/pierre-diffs/c/chunk-GDS6EWX4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-GDS6EWX4.js"
   },
   "js/vendor/pierre-diffs/c/chunk-GH32RRK2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-GH32RRK2.js"
   },
   "js/vendor/pierre-diffs/c/chunk-GSLF6MYV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-GSLF6MYV.js"
   },
   "js/vendor/pierre-diffs/c/chunk-IZTSSURO.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-IZTSSURO.js"
   },
   "js/vendor/pierre-diffs/c/chunk-JOVE6I5V.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-JOVE6I5V.js"
   },
   "js/vendor/pierre-diffs/c/chunk-KTO25AQE.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-KTO25AQE.js"
   },
   "js/vendor/pierre-diffs/c/chunk-KVYOQB5X.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-KVYOQB5X.js"
   },
   "js/vendor/pierre-diffs/c/chunk-ODSXUJHG.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-ODSXUJHG.js"
   },
   "js/vendor/pierre-diffs/c/chunk-OLGIO5N2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-OLGIO5N2.js"
   },
   "js/vendor/pierre-diffs/c/chunk-PWFN676X.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-PWFN676X.js"
   },
   "js/vendor/pierre-diffs/c/chunk-Q4NTYJPP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-Q4NTYJPP.js"
   },
   "js/vendor/pierre-diffs/c/chunk-S2YDH2LV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-S2YDH2LV.js"
   },
   "js/vendor/pierre-diffs/c/chunk-SCIXL5K2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-SCIXL5K2.js"
   },
   "js/vendor/pierre-diffs/c/chunk-UFRYVWBF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-UFRYVWBF.js"
   },
   "js/vendor/pierre-diffs/c/chunk-USZMECQA.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-USZMECQA.js"
   },
   "js/vendor/pierre-diffs/c/chunk-VWA6NOV4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-VWA6NOV4.js"
   },
   "js/vendor/pierre-diffs/c/chunk-WRI3QP5R.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-WRI3QP5R.js"
   },
   "js/vendor/pierre-diffs/c/chunk-XX3UT7DY.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-XX3UT7DY.js"
   },
   "js/vendor/pierre-diffs/c/chunk-YJIS2WGN.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-YJIS2WGN.js"
   },
   "js/vendor/pierre-diffs/c/chunk-ZJCWFOS4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/chunk-ZJCWFOS4.js"
   },
   "js/vendor/pierre-diffs/c/core-VVROIH2Y.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/core-VVROIH2Y.js"
   },
   "js/vendor/pierre-diffs/c/cpp-RQHBHALA.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/cpp-RQHBHALA.js"
   },
   "js/vendor/pierre-diffs/c/csharp-MKRDPSCP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/csharp-MKRDPSCP.js"
   },
   "js/vendor/pierre-diffs/c/css-6MBMU5OL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/css-6MBMU5OL.js"
   },
   "js/vendor/pierre-diffs/c/dart-P3RGXNHQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/dart-P3RGXNHQ.js"
   },
   "js/vendor/pierre-diffs/c/diff-T7NG25EN.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/diff-T7NG25EN.js"
   },
   "js/vendor/pierre-diffs/c/docker-XIIWKV2C.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/docker-XIIWKV2C.js"
   },
   "js/vendor/pierre-diffs/c/dotenv-CMUSFK6V.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/dotenv-CMUSFK6V.js"
   },
   "js/vendor/pierre-diffs/c/elixir-DS2QBGHL.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/elixir-DS2QBGHL.js"
   },
   "js/vendor/pierre-diffs/c/engine-javascript-WGSM3T5S.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/engine-javascript-WGSM3T5S.js"
   },
   "js/vendor/pierre-diffs/c/go-5SB7NSJA.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/go-5SB7NSJA.js"
   },
   "js/vendor/pierre-diffs/c/graphql-PWCE6PFX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/graphql-PWCE6PFX.js"
   },
   "js/vendor/pierre-diffs/c/haskell-BBSSOQDS.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/haskell-BBSSOQDS.js"
   },
   "js/vendor/pierre-diffs/c/highlights-CpZm9DAR-L5VU3M23.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/highlights-CpZm9DAR-L5VU3M23.js"
   },
   "js/vendor/pierre-diffs/c/highlights-MJMIXFLK.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/highlights-MJMIXFLK.js"
   },
   "js/vendor/pierre-diffs/c/html-5SOSCFNQ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/html-5SOSCFNQ.js"
   },
   "js/vendor/pierre-diffs/c/ini-IF5UVB7F.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/ini-IF5UVB7F.js"
   },
   "js/vendor/pierre-diffs/c/java-NAPIS6UP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/java-NAPIS6UP.js"
   },
   "js/vendor/pierre-diffs/c/javascript-ZCEZCRIC.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/javascript-ZCEZCRIC.js"
   },
   "js/vendor/pierre-diffs/c/json-SYS7OU3R.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/json-SYS7OU3R.js"
   },
   "js/vendor/pierre-diffs/c/jsonc-MFFBD67V.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/jsonc-MFFBD67V.js"
   },
   "js/vendor/pierre-diffs/c/jsx-UQ5BHUMN.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/jsx-UQ5BHUMN.js"
   },
   "js/vendor/pierre-diffs/c/kotlin-N5GQ32KB.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/kotlin-N5GQ32KB.js"
   },
   "js/vendor/pierre-diffs/c/langs-5KGCJDPZ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/langs-5KGCJDPZ.js"
   },
   "js/vendor/pierre-diffs/c/latex-OQSUTTNG.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/latex-OQSUTTNG.js"
   },
   "js/vendor/pierre-diffs/c/loader-6BPACEYP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/loader-6BPACEYP.js"
   },
   "js/vendor/pierre-diffs/c/lua-KXL4G3GA.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/lua-KXL4G3GA.js"
   },
   "js/vendor/pierre-diffs/c/make-CHGIBE4M.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/make-CHGIBE4M.js"
   },
   "js/vendor/pierre-diffs/c/markdown-DWIMHI7Z.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/markdown-DWIMHI7Z.js"
   },
   "js/vendor/pierre-diffs/c/nginx-SFYOZ5NK.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/nginx-SFYOZ5NK.js"
   },
   "js/vendor/pierre-diffs/c/oniguruma-IXU7JXLS.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/oniguruma-IXU7JXLS.js"
   },
   "js/vendor/pierre-diffs/c/perl-AI7KVWEH.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/perl-AI7KVWEH.js"
   },
   "js/vendor/pierre-diffs/c/php-2SGPQ4A5.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/php-2SGPQ4A5.js"
   },
   "js/vendor/pierre-diffs/c/powershell-GXXOQ3HP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/powershell-GXXOQ3HP.js"
   },
   "js/vendor/pierre-diffs/c/proto-DI3CFL5G.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/proto-DI3CFL5G.js"
   },
   "js/vendor/pierre-diffs/c/python-XMBOHMX6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/python-XMBOHMX6.js"
   },
   "js/vendor/pierre-diffs/c/r-SU5RVNXF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/r-SU5RVNXF.js"
   },
   "js/vendor/pierre-diffs/c/ruby-JRIUYIIZ.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/ruby-JRIUYIIZ.js"
   },
   "js/vendor/pierre-diffs/c/rust-JNCTHA6A.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/rust-JNCTHA6A.js"
   },
   "js/vendor/pierre-diffs/c/scala-J7ONKWUX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/scala-J7ONKWUX.js"
   },
   "js/vendor/pierre-diffs/c/scss-MP6KL4J4.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/scss-MP6KL4J4.js"
   },
   "js/vendor/pierre-diffs/c/shellscript-2QU7FDIP.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/shellscript-2QU7FDIP.js"
   },
   "js/vendor/pierre-diffs/c/shiki-Ci4cdHsM-U4UNITAV.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/shiki-Ci4cdHsM-U4UNITAV.js"
   },
   "js/vendor/pierre-diffs/c/shiki-HQIGNS47.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/shiki-HQIGNS47.js"
   },
   "js/vendor/pierre-diffs/c/sql-F4K6GFK6.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/sql-F4K6GFK6.js"
   },
   "js/vendor/pierre-diffs/c/svelte-R7ATBZQS.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/svelte-R7ATBZQS.js"
   },
   "js/vendor/pierre-diffs/c/swift-FUMICI7N.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/swift-FUMICI7N.js"
   },
   "js/vendor/pierre-diffs/c/terraform-JDOODVTS.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/terraform-JDOODVTS.js"
   },
   "js/vendor/pierre-diffs/c/themes-4UDBBRQT.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/themes-4UDBBRQT.js"
   },
   "js/vendor/pierre-diffs/c/toml-JQUNO2V7.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/toml-JQUNO2V7.js"
   },
   "js/vendor/pierre-diffs/c/tsx-MCB6U7AX.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/tsx-MCB6U7AX.js"
   },
   "js/vendor/pierre-diffs/c/typescript-Y4D3EEH2.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/typescript-Y4D3EEH2.js"
   },
   "js/vendor/pierre-diffs/c/vue-WTJ4E6DF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/vue-WTJ4E6DF.js"
   },
   "js/vendor/pierre-diffs/c/wasm-SMWGFCOR.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/wasm-SMWGFCOR.js"
   },
   "js/vendor/pierre-diffs/c/xml-QIC37UDC.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/xml-QIC37UDC.js"
   },
   "js/vendor/pierre-diffs/c/yaml-5I454EOF.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/c/yaml-5I454EOF.js"
   },
   "js/vendor/pierre-diffs/diffs.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/diffs.js"
   },
   "js/vendor/pierre-diffs/edit.js": {
@@ -4382,53 +4477,56 @@
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6): nothing imported it"
   },
   "js/vendor/pierre-diffs/manifest.json": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/manifest.json"
   },
   "js/vendor/pierre-diffs/worker.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre-diffs/worker.js"
   },
   "js/vendor/pierre/LICENSE.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre/LICENSE.md"
   },
   "js/vendor/pierre/NOTICE.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre/NOTICE.md"
   },
   "js/vendor/pierre/icons.js": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/pierre/icons.js"
   },
   "js/vendor/xterm/LICENSE-addon-fit": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/xterm/LICENSE-addon-fit"
   },
   "js/vendor/xterm/LICENSE-xterm": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/xterm/LICENSE-xterm"
   },
   "js/vendor/xterm/README.md": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/xterm/README.md"
   },
   "js/vendor/xterm/addon-fit.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/xterm/addon-fit.mjs"
   },
   "js/vendor/xterm/xterm.css": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/xterm/xterm.css"
   },
   "js/vendor/xterm/xterm.mjs": {
-   "status": "vendor",
+   "status": "planned",
    "home": "vendor/xterm/xterm.mjs"
   },
   "js/viewer.js": {
-   "status": "moved",
-   "home": "modules/files/viewer.js",
-   "note": "The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle."
+   "status": "split",
+   "home": [
+    "modules/files/viewer.js",
+    "js/app.js"
+   ],
+   "note": "The app supplies the existing Changes renderers directly to Files."
   },
   "js/words.js": {
    "status": "moved",
@@ -4438,14 +4536,18 @@
    "status": "split",
    "home": [
     "core/services/world/store.js",
-    "core/platform/util.js (esc)"
+    "core/platform/util.js"
    ],
-   "note": "js/world.js re-exports the store and the platform's esc until the shims go"
+   "evidence": {
+    "core/platform/util.js": {
+     "anchor": "export function esc(value)",
+     "reason": "The old world entry's HTML escaping helper moved to the platform utility module."
+    }
+   }
   },
   "js/xoicons.js": {
    "status": "moved",
-   "home": "core/ui/icons/xoicons.js",
-   "note": "generated by tools/xoicons/build.mjs; js/xoicons.js re-exports it until the shims go"
+   "home": "core/ui/icons/xoicons.js"
   },
   "perf-2026-11-20/FINDINGS.md": {
    "status": "deleted",
@@ -4882,8 +4984,15 @@
    "home": "tests/jump-projects.test.mjs"
   },
   "tests/key-layer.test.mjs": {
-   "status": "planned",
-   "home": "shell (phone drawer)/tests/key-layer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "shell/tests/key-layer.test.mjs",
+   "note": "The rewritten test exercises Escape, Tab, focus and inert holds through the shell layer stack.",
+   "evidence": {
+    "shell/tests/key-layer.test.mjs": {
+     "anchor": "wraps(keys);",
+     "reason": "The DOM fixture exercises the keyboard layer and verifies forward and backward Tab wrapping."
+    }
+   }
   },
   "tests/keynav.test.mjs": {
    "status": "planned",
@@ -4928,12 +5037,24 @@
   "tests/lp-create-connect-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
-   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)",
+   "evidence": {
+    "modules/create-project/tests/lp-create-connect-focus.test.mjs": {
+     "anchor": "errConnect(D).focus();",
+     "reason": "The DOM test focuses the Connect action in the clone error and verifies focus return."
+    }
+   }
   },
   "tests/lp-create-stop-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
-   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
+   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)",
+   "evidence": {
+    "modules/create-project/tests/lp-create-stop-focus.test.mjs": {
+     "anchor": "D.$(\"#cp-stop\").focus();",
+     "reason": "The DOM test exercises focus on the clone Stop control through the request."
+    }
+   }
   },
   "tests/lp-intel-order.test.mjs": {
    "status": "planned",
@@ -7217,8 +7338,14 @@
    "home": "modules/runs/panel.js"
   },
   "js/app.js::functions::runsEscape": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/runs/escape.js",
+   "evidence": {
+    "modules/runs/escape.js": {
+     "anchor": "return function runsEscape()",
+     "reason": "The app's Runs Escape handler is returned by the Runs module's wiring function."
+    }
+   }
   },
   "js/app.js::functions::openRuns": {
    "status": "moved",
@@ -7298,7 +7425,13 @@
   },
   "js/app.js::functions::heraldPut": {
    "status": "moved",
-   "home": "core/services/notices.js"
+   "home": "core/services/notices.js",
+   "evidence": {
+    "core/services/notices.js": {
+     "anchor": "function put(h, ms)",
+     "reason": "The former heraldPut queues and presents notices as put in the notice service."
+    }
+   }
   },
   "js/app.js::functions::heraldNext": {
    "status": "moved",
@@ -7713,12 +7846,12 @@
    "home": "modules/shells/panel.js"
   },
   "js/app.js::functions::openAll": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::functions::closeAll": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::functions::setDrawer": {
    "status": "moved",
@@ -7734,8 +7867,8 @@
    "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::focusOverlay": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/keyboard-layers.js"
   },
   "js/app.js::functions::openJump": {
    "status": "moved",
@@ -7748,12 +7881,18 @@
    "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::syncInert": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/keyboard-layers.js"
   },
   "js/app.js::functions::keyLayer": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/layer-queries.js",
+   "evidence": {
+    "shell/layer-queries.js": {
+     "anchor": "function keyLayer()",
+     "reason": "The shell's layer queries own the app's Tab layer selector."
+    }
+   }
   },
   "js/app.js::functions::soundRender": {
    "status": "moved",
@@ -7780,12 +7919,12 @@
    "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::openKeys": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/settings/shortcuts-sheet.js"
   },
   "js/app.js::functions::closeKeys": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/settings/shortcuts-sheet.js"
   },
   "js/app.js::functions::shapeApply": {
    "status": "moved",
@@ -7824,8 +7963,8 @@
    "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::functions::runGlobal": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/global-keys.js"
   },
   "js/app.js::functions::canBack": {
    "status": "moved",
@@ -7997,15 +8136,18 @@
    "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::ids::all-list": {
-   "status": "moved",
+   "status": "split",
    "home": [
     "shell/overlays.js",
     "modules/threads/all.js"
    ]
   },
   "js/app.js::storage::cv-theme": {
-   "status": "moved",
-   "home": ["core/ui/theme.js", "modules/settings/appearance.js"]
+   "status": "split",
+   "home": [
+    "core/ui/theme.js",
+    "modules/settings/appearance.js"
+   ]
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "moved",
@@ -8036,24 +8178,24 @@
    "home": "modules/files/search-place.js"
   },
   "js/app.js::keys::Escape": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/global-keys.js"
   },
   "js/app.js::keys::usable": {
    "status": "moved",
    "home": "modules/runtimes/thread.js"
   },
   "js/app.js::keys::ArrowDown": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::ArrowUp": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::Enter": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::transcript_gone": {
    "status": "moved",
@@ -8064,32 +8206,32 @@
    "home": "modules/runs/stop.js"
   },
   "js/app.js::keys::Tab": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/keyboard-layers.js"
   },
   "js/app.js::keys::would_lose_work": {
    "status": "moved",
    "home": "modules/threads/delete.js"
   },
   "js/app.js::keys::/": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::Home": {
    "status": "deleted",
    "reason": "drop (history) (app.js l.3)"
   },
   "js/app.js::keys::End": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker-keys.js"
   },
   "js/app.js::keys::ArrowRight": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker-keys.js"
   },
   "js/app.js::keys::ArrowLeft": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker-keys.js"
   },
   "js/app.js::custom_events::xo:gesture": {
    "status": "moved",
@@ -10581,7 +10723,13 @@
   },
   "js/media.js::functions::cachedSrc": {
    "status": "moved",
-   "home": "core/services/media/images.js"
+   "home": "core/services/media/images.js",
+   "evidence": {
+    "core/services/media/images.js": {
+     "anchor": "export const cachedSrc = (it)",
+     "reason": "Keeps the direct-source and cached blob lookup as an exported arrow function."
+    }
+   }
   },
   "js/media.js::functions::loadSrc": {
    "status": "deleted",
@@ -10589,7 +10737,13 @@
   },
   "js/media.js::functions::watcherFor": {
    "status": "moved",
-   "home": "core/services/media/intersection.js"
+   "home": "core/services/media/intersection.js",
+   "evidence": {
+    "core/services/media/intersection.js": {
+     "anchor": "function createWatcher(root, doc)",
+     "reason": "Creates the shared intersection observer for a scroll root."
+    }
+   }
   },
   "js/media.js::functions::stateOf": {
    "status": "moved",
@@ -10617,11 +10771,23 @@
   },
   "js/media.js::functions::watch": {
    "status": "moved",
-   "home": "core/services/media/picture-load.js"
+   "home": "core/services/media/picture-load.js",
+   "evidence": {
+    "core/services/media/picture-load.js": {
+     "anchor": "export function loadPicture(img, item,",
+     "reason": "Installs and owns the picture load and error listeners and the slow-load timer."
+    }
+   }
   },
   "js/media.js::functions::start": {
    "status": "moved",
-   "home": "core/services/media/picture-load.js"
+   "home": "core/services/media/picture-load.js",
+   "evidence": {
+    "core/services/media/picture-load.js": {
+     "anchor": "export function loadPicture(img, item,",
+     "reason": "Starts source assignment for the image, directly or through viewport observation."
+    }
+   }
   },
   "js/media.js::functions::hydrateMedia": {
    "status": "moved",
@@ -11827,11 +11993,11 @@
   },
   "js/settings.js::exports::createSettings": {
    "status": "kept",
-   "home": "js/settings.js (wiring)"
+   "home": "js/settings.js"
   },
   "js/settings.js::functions::createSettings": {
    "status": "kept",
-   "home": "js/settings.js (wiring)"
+   "home": "js/settings.js"
   },
   "js/settings.js::ids::settings": {
    "status": "split",
@@ -12412,7 +12578,13 @@
   },
   "js/storm.js::routes::/api/chat/*": {
    "status": "moved",
-   "home": "core/services/storm/client.js"
+   "home": "core/platform/api.js",
+   "evidence": {
+    "core/platform/api.js": {
+     "anchor": "streamUrl: () => urlOf(\"/chat/stream\")",
+     "reason": "The old storm route family is built by the platform API, with the chat stream and the chat REST calls."
+    }
+   }
   },
   "js/storm.js::keys::router": {
    "status": "moved",
@@ -13286,7 +13458,7 @@
   },
   "js/world.js::exports::esc": {
    "status": "moved",
-   "home": "core/platform/util.js (the one esc; the same characters)"
+   "home": "core/platform/util.js"
   },
   "js/world.js::functions::createWorld": {
    "status": "moved",
@@ -13298,7 +13470,7 @@
   },
   "js/world.js::functions::esc": {
    "status": "moved",
-   "home": "core/platform/util.js (the one esc; the same characters)"
+   "home": "core/platform/util.js"
   },
   "js/xoicons.js::exports::XI": {
    "status": "moved",
@@ -14211,8 +14383,8 @@
    "home": "modules/changes/tests/changes.test.mjs"
   },
   "tests/conv-sound.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The direct sound test needs localStorage and AudioContext, so its former UI import's media query stub was removed."
   },
   "tests/conv-sound.test.mjs::globals::localStorage": {
    "status": "planned",
@@ -14484,11 +14656,23 @@
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-prog": {
    "status": "moved",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
+   "evidence": {
+    "modules/create-project/tests/lp-create-stop-focus.test.mjs": {
+     "anchor": "D.$(\"#cp-prog\")",
+     "reason": "The behavior test finds the clone progress region through the DOM fixture."
+    }
+   }
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-stop": {
    "status": "moved",
-   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
+   "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
+   "evidence": {
+    "modules/create-project/tests/lp-create-stop-focus.test.mjs": {
+     "anchor": "D.$(\"#cp-stop\").focus()",
+     "reason": "The behavior test exercises focus on the clone Stop control before and after the request."
+    }
+   }
   },
   "tests/lp-intel-order.test.mjs::globals::window": {
    "status": "planned",
@@ -14639,8 +14823,9 @@
    "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/press-reach.test.mjs::exports::PICTURE_FACE": {
-   "status": "planned",
-   "home": "core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js",
+   "note": "The test now exercises pointerover against the real hydrator."
   },
   "tests/project-find-escape.test.mjs::keys::Escape": {
    "status": "deleted",
@@ -15311,40 +15496,40 @@
    "home": "shell/overlays.js"
   },
   "js/accounts.js::exports::missingScopes": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::exports::ghView": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::exports::createAccounts": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::functions::missingScopes": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::functions::ghView": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::functions::createAccounts": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::ids::settings": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::keys::code": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/accounts.js::keys::checking": {
-   "status": "kept",
-   "home": "js/accounts.js"
+   "status": "moved",
+   "home": "modules/settings/accounts.js"
   },
   "js/api.js::routes::/coworker/xo-projects/{}/paths": {
    "status": "moved",
@@ -15451,8 +15636,11 @@
    "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::storage::cv-flavour": {
-   "status": "moved",
-   "home": ["core/ui/theme.js", "modules/settings/appearance.js"]
+   "status": "split",
+   "home": [
+    "core/ui/theme.js",
+    "modules/settings/appearance.js"
+   ]
   },
   "js/app.js::storage::<key>": {
    "status": "kept",
@@ -15559,12 +15747,12 @@
    "home": "modules/chats/setup.js"
   },
   "js/flavours.js::exports::STONE": {
-   "status": "kept",
-   "home": "js/flavours.js"
+   "status": "moved",
+   "home": "core/ui/flavours.js"
   },
   "js/flavours.js::exports::FLAVOURS": {
-   "status": "kept",
-   "home": "js/flavours.js"
+   "status": "moved",
+   "home": "core/ui/flavours.js"
   },
   "js/follow.js::exports::toTop": {
    "status": "moved",
@@ -15739,20 +15927,20 @@
    "home": "shell/panel/width.js"
   },
   "js/timeline.js::exports::dayGroup": {
-   "status": "kept",
-   "home": "js/timeline.js"
+   "status": "moved",
+   "home": "core/services/world/list-time.js"
   },
   "js/timeline.js::exports::rowTime": {
-   "status": "kept",
-   "home": "js/timeline.js"
+   "status": "moved",
+   "home": "core/services/world/list-time.js"
   },
   "js/timeline.js::functions::dayGroup": {
-   "status": "kept",
-   "home": "js/timeline.js"
+   "status": "moved",
+   "home": "core/services/world/list-time.js"
   },
   "js/timeline.js::functions::rowTime": {
-   "status": "kept",
-   "home": "js/timeline.js"
+   "status": "moved",
+   "home": "core/services/world/list-time.js"
   },
   "js/turnview.js::exports::cmdIcon": {
    "status": "moved",
@@ -15763,8 +15951,8 @@
    "home": "core/services/step-icons.js"
   },
   "js/turnview.js::exports::stepLineHtml": {
-   "status": "kept",
-   "home": "js/turnview.js"
+   "status": "moved",
+   "home": "modules/conversation/blocks/turn.js"
   },
   "js/turnview.js::functions::cmdIcon": {
    "status": "moved",
@@ -15775,20 +15963,20 @@
    "home": "core/services/step-icons.js"
   },
   "js/ui.js::exports::stateMark": {
-   "status": "kept",
-   "home": "js/ui.js"
+   "status": "moved",
+   "home": "core/ui/icons/icon.js"
   },
   "js/ui.js::exports::ARC": {
-   "status": "kept",
-   "home": "js/ui.js"
+   "status": "moved",
+   "home": "core/ui/icons/icon.js"
   },
   "js/ui.js::exports::DOTS": {
-   "status": "kept",
-   "home": "js/ui.js"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::exports::stepMark": {
-   "status": "kept",
-   "home": "js/ui.js"
+   "status": "moved",
+   "home": "core/ui/icons/names.js"
   },
   "js/ui.js::functions::move": {
    "status": "moved",

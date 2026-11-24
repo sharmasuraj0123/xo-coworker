@@ -8,7 +8,7 @@
 //   node tests/stopped-on-purpose.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { stopOf, stopWords } from "../js/timeline.js";
+import { stopOf, stopWords } from "../core/services/world/timeline.js";
 import { sheet } from "./lib/cascade.mjs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
@@ -114,7 +114,7 @@ const el = () => new Proxy(function () {}, { get: (_t, k) => (k === "classList" 
 globalThis.document = { querySelector: () => el(), querySelectorAll: () => [], getElementById: () => el(), addEventListener() {}, createElement: () => el(), body: el(), documentElement: el() };
 globalThis.localStorage = { getItem: () => null, setItem() {} };
 await t("Decide: a stop someone meant asks nothing; a crash and an older backend's \"failed\" keep Try again; its open review items still ask", async () => {
-  const { createDecisions } = await import("../js/decide.js");
+  const { createDecisions } = await import("../modules/decisions/controller.js");
   const Kit = await import("../modules/decisions/kit.js");
   const mk = (id, extra) => ({ id, title: id, project: "demo", state: "failed", checklist: { items: [], done: 0, total: 0 }, asks: [], lastAt: 1, happened: "", stop: null, ...extra });
   const item = { id: "rv_1", kind: "approval", title: "Approve the schedule", risk: "notable", item: { id: "rv_1", kind: "approval", title: "Approve the schedule", options: [] } };

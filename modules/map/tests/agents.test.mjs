@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { dom } from "../../../tests/lib/dom.mjs";
 
 await dom('<div id="panel"></div>');
-const { createMap } = await import("../../../js/map.js");
+const { createMap } = await import("../map.js");
 const at = "2026-11-23T18:00:00Z";
 const turns = [
   { session: "worker", status: "running", at },
@@ -26,7 +26,7 @@ const world = {
   act: { coordinatorBusy: (/** @type {string} */ project) => project === "project" ? "coordinator" : null },
   thread: (/** @type {string} */ id) => threads.find((thread) => thread.id === id),
 };
-const map = createMap({ world, go() {}, announce() {}, isBusy: (/** @type {typeof threads[number]} */ thread) => thread.id === "worker", openFile() {} });
+const map = createMap({ world, go() {}, announce() {}, isBusy: (/** @type {typeof threads[number]} */ thread) => thread.id === "worker", openFile() {}, stepLineHtml: () => "" });
 
 const [coordinator, worker] = map.agents("p:project");
 assert.deepEqual([coordinator.id, coordinator.go, coordinator.doing], ["coord:project", "p:project", "waiting for you"]);

@@ -90,9 +90,26 @@ The last stylesheet import started at 64–110 ms in release and 371–458 ms in
 
 For P4 and fix packages A–D, keep the startup cascade explicit through the ordered links in `index.html`, ordered imports and declared layers. Review any path move for unchanged cascade and versioned asset resolution, with styles owned by the surface or shared layer that defines them.
 
+## P4 keyboard and compatibility handoff
+
+- The P3 rollback point is `modular-gate-P3-group-06` (`bb4fef4d`). Shared integration paths include `js/app.js`, `tests/run.mjs`, the ledger and its generated Markdown. P4 remains on the P3 base for review against Package A.
+- The order fixtures match release `d639012b`: Back treats Chats setup and the standalone viewer separately, while Escape gives Settings priority over Files. The shell uses the existing stack for those priorities, Tab order and app-wide inert ownership. Files retains its own inert bookkeeping. The All Threads, shortcuts, Runs and project-icon handlers now live with their surfaces.
+- Deliberate mutations swapped Chats setup and Runs for Back, swapped Settings and Files for Escape, swapped the shortcuts and All Threads Tab order, disabled the application inert hold, removed the IME guard, and removed Runs row focus restoration. The respective focused tests failed before each mutation was reverted.
+- The discovery guard covers JavaScript and Python tests. The keyboard behavior suite lives in `shell/tests/`. The booted-app tests exercise the Jump shortcut, Tab, inert release, Escape, and long-press clipboard text.
+- The static graph resolves from Home, boot and main conversation decoration. Home retains the first module slot, decoration follows boot, and the 18 stylesheet slots match the P3 gate. Static serving checks cover the import map and these entry URLs. The browser execution check belongs to P5.
+- Settings and Home Record still assemble sibling modules at the application boundary. Their former consumers import public helpers from their owners.
+- Keep the P5 lane and the full legacy browser coverage. The P5 cases cover the drawer and Settings Back, Settings Escape focus return, the Threads panel, Home at two viewports, boot, project open, send and draft restoration. They cover only part of the retained browser suites. The deferred Apps cases stay in `e2e/specs/apps.spec.mjs`.
+- `js/app.js` went from 1,388 to 1,227 lines. The extracted modules are keyboard layers (40), layer queries (26), global keys (35), Runs Escape (22), All Threads sheet (80), shortcuts sheet (11), project-icon keyboard (18), conversation lightbox (14), and main conversation decoration (13). The source-size revision keeps existing production files at or below the P3 counts. The runtime upward-import baseline is empty.
+- The ledger keeps 925 obligations open. [Package V](VENDOR-WORK-PACKAGE.md) owns the 367 byte-identical vendor relocations to `vendor/`. The CSS package (J) owns 12 stylesheet and asset entries, including the foundation, light, panel, shape and phone splits. The behavior-test work (C11) owns 283 unit-suite, fixture and test-kit entries. P5 owns 218 browser-suite and probe entries, and tooling package H owns 45. The P5 readiness gate requires evidence for all 925.
+- Settled ledger homes identify repository files. The checker verifies path and source correspondence in both modes. Exact copies, shared code or item names provide evidence. A rewritten destination can record a live source anchor and the reason for its transfer. The booted Settings and Quick Open tests exercise Escape, inert release and focus return, and verify the phone-only Settings Tab trap.
+- The independent review approved P4 at `8e9cb9fb`. The application inert observer moved from `js/app.js` to `shell/keyboard-layers.js`. The lifecycle baseline records one fewer observer in app wiring and the same observer in its new home.
+- Fix B landed at `b7268b5f` with all 321 suites passing on the clean export. Files drag-and-drop now reaches the validated target. Media reads are owned by their images, share a transport while needed and discard stale results. The conversation lightbox adapter imports that same media implementation directly.
+
 ## Findings for the post-P4 fix phase
 
 P3 and P4 preserve release behavior. Bring findings from every package handoff here with file, line and evidence. The references below identify the trees where the evidence was recorded. Recheck the paths and reproduce the findings on the P4 gate before assigning fixes.
+
+The [independent P3 production audit](QUALITY-AUDIT-P3-G6.md) records 22 findings against the P3 tag. Use its identifiers and source evidence alongside the fix plan. Recheck moved paths before implementing a finding. The pre-P5 audit still reviews the integrated fixes and records outstanding findings.
 
 | Finding | Evidence |
 |---|---|

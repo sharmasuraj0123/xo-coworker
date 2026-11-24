@@ -1,7 +1,7 @@
 // A menu opened with a click lights no row until the pointer or a key picks one; opened from a key, its first item is marked.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { focusOpened } from "../js/keynav.js";
+import { focusOpened } from "../core/ui/a11y/keynav.js";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };

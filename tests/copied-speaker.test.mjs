@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 const messages = readFileSync(new URL("../modules/conversation/messages.js", import.meta.url), "utf8");
 const items = readFileSync(new URL("../modules/conversation/message-items.js", import.meta.url), "utf8");
 const css = sheet(new URL("../css/app.css", import.meta.url));
-const { uiMsg } = await import("../js/timeline.js");
+const { uiMsg } = await import("../core/services/world/timeline.js");
 const row = { id: "cmsg_2", chat_id: "chat_b", seq: 9, created_at: "2026-11-21T20:32:00Z", author_kind: "agent", author_id: "project-coordinator", text: "The workspace wants your approval", extra: { forwarded_from: { chat_id: "chat_a", message_id: "cmsg_1", via: ["xo-coworker", "workspace"] } } };
 const m = uiMsg(row);
 assert.equal(m.who, "coord");
