@@ -8,7 +8,7 @@ import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
 import { highlight } from "./highlight.js";
 import { itemParts, itemBody, questionsOf, evidenceOf, itemEffort, isNo, VERB } from "../core/services/review.js";
 import { clientId as newKey } from "../core/platform/http.js";
-import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "./cardparts.js";
+import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "../modules/decisions/cardparts.js";
 import { radioKeys } from "./keynav.js";
 import { resetWords, rtName } from "../core/services/runtimes.js";
 import { paidHtml } from "../modules/decisions/cards/paid.js";

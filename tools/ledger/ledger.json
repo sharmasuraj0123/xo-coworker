@@ -2502,7 +2502,7 @@
    "note": "nothing imports the old path, so it leaves with no re-export"
   },
   "js/cardparts.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cardparts.js"
   },
   "js/changes.js": {
@@ -15522,88 +15522,88 @@
    "home": "js/app.js"
   },
   "js/cardparts.js::exports::cap": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::KINDS": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::kindOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::commandOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::headOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::whyOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::stripOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::chipsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::optionsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::pickKeys": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::isOnePress": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::actsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::goneLine": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::kindOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::commandOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::headOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::whyOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::stripOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::chipsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::optionsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::actsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/chats.js::ids::cs-agent-l": {
    "status": "moved",

@@ -30,7 +30,7 @@ import { createChats } from "./chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
 import { tickElapsed } from "../shell/elapsed.js";
-import { headOf, goneLine } from "./cardparts.js";
+import { headOf, goneLine } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";

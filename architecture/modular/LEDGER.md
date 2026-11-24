@@ -4,14 +4,14 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 482 |
+| moved | 483 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 166 |
+| planned | 165 |
 | kept | 57 |
 | split | 28 |
 
-Items inside first-party files: 2488 (moved 1620, planned 527, kept 198, deleted 128, split-region 14, split 1), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1641, planned 527, kept 177, deleted 128, split-region 14, split 1), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -34,7 +34,7 @@ Items inside first-party files: 2488 (moved 1620, planned 527, kept 198, deleted
 | `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: js/attach.js re-exports the attachment rules, tray and shared row helpers |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
-| `js/cardparts.js` | 255 | planned | modules/decisions/cardparts.js |
+| `js/cardparts.js` | 255 | moved | modules/decisions/cardparts.js |
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |
 | `js/changesframe.js` | 323 | moved | modules/changes/frame.js · next: countsHtml goes to core/ui when core-ui lands; js/changesframe.js re-exports modules/changes/frame.js until the shell renders panel.frame from places and the shims go |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js · next: js/chart.js re-exports it until the shims go |
