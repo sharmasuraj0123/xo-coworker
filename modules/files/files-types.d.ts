@@ -41,5 +41,5 @@ export interface FilesDependencies {
   go?: (view: string) => void;
   onFold?: ((folded: boolean) => void) | null;
   changes?: (NonNullable<TreeDependencies["changes"]> & NonNullable<OperationDependencies["changes"]>) | null;
-  paths?: (NonNullable<OperationDependencies["paths"]> & { of(scope: { project: string; base: string }): ReturnType<NonNullable<TreeDependencies["paths"]>["of"]> & { via?: string } }) | null;
+  paths?: (NonNullable<OperationDependencies["paths"]> & { of(scope: { project: string; base: string }): ReturnType<NonNullable<TreeDependencies["paths"]>["of"]> & { via?: string | null } }) | null;
 }

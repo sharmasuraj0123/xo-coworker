@@ -3,7 +3,7 @@
 import { esc } from "../../core/platform/util.js";
 import { dial, ICON } from "../../core/ui/icons/names.js";
 
-/** @import {HomeViewDeps, HomeViewNeed} from "./view-types.d.ts" */
+/** @import {HomeViewDeps, HomeViewNeed, ThenFields} from "./view-types.d.ts" */
 
 /** @param {number} count */
 function laterButton(count) {
@@ -11,7 +11,7 @@ function laterButton(count) {
     + `${count} later today <span>bring back</span></button>`;
 }
 
-/** @param {HomeViewNeed} need @param {Pick<HomeViewDeps, "EFFORT" | "askTitle" | "PROJ">} options */
+/** @template {HomeViewNeed} N @param {N} need @param {Pick<HomeViewDeps<N>, ThenFields>} options */
 function thenRow(need, { EFFORT, askTitle, PROJ }) {
   const risk = need.risk === "destructive" ? '<span class="risk r-destructive">Destructive</span>'
     : need.group === "stopped" ? '<span class="risk r-stopped">Stopped</span>' : "";
@@ -22,7 +22,7 @@ function thenRow(need, { EFFORT, askTitle, PROJ }) {
     + `<span class="ti-p">${risk}<span class="ti-w">${esc(PROJ(need.t.project))}${coordinator}</span></span>${ICON.right}</button></li>`;
 }
 
-/** @param {ReturnType<HomeViewDeps["homeParts"]>} parts @param {Pick<HomeViewDeps, "EFFORT" | "askTitle" | "PROJ">} options */
+/** @template {HomeViewNeed} N @param {ReturnType<HomeViewDeps<N>["homeParts"]>} parts @param {Pick<HomeViewDeps<N>, ThenFields>} options */
 export function thenHtml(parts, options) {
   const later = parts.later.length ? laterButton(parts.later.length) : "";
   if (!parts.then.length) return later ? `<div class="then-foot solo">${later}</div>` : "";

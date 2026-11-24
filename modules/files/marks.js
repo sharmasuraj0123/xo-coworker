@@ -9,7 +9,7 @@ import { parentOf } from "./scope.js";
 
 /** @import { ScopeThread, FilesScope } from "./scope.js" */
 
-/** @typedef {ScopeThread & {title?: string, sessionId?: string | null}} ActiveThread */
+/** @typedef {ScopeThread & {title?: string, sessionId?: string | null, busy?: boolean, state?: string}} ActiveThread */
 
 /** @typedef {Pick<FileMark, "mark" | "live" | "path" | "seq"> & {local: string | null, project: string, rel: string, who?: string, tid: string, busy: boolean}} Touch */
 

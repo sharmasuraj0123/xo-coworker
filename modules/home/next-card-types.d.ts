@@ -8,12 +8,12 @@ export interface NextCardNeed {
     project: string;
     title: string;
     host?: boolean;
-    chatId?: string;
-    plainSession?: string;
-    asker?: boolean;
+    chatId?: string | null;
+    plainSession?: string | null;
+    asker?: string;
   };
   ask: {
-    kind: string;
+    kind?: string;
     options?: string[];
     item?: object;
     replyOnly?: boolean;
@@ -24,17 +24,17 @@ export interface Evidence {
   preview?: { label: string, css: string, sample?: string }[] | null;
 }
 
-export interface NextCardDeps {
+export interface NextCardDeps<N extends NextCardNeed> {
   D: {
     failedNote: (key: string) => string | null | undefined;
     parts: {
-      chipsHtml: (need: NextCardNeed) => string;
-      effTagHtml: (need: NextCardNeed) => string;
-      leadHtml: (need: NextCardNeed, id: string, heading: string) => string;
+      chipsHtml: (need: N) => string;
+      effTagHtml: (need: N) => string;
+      leadHtml: (need: N, id: string, heading: string) => string;
     };
   };
   Kit: { isBinary: (ask: NextCardNeed["ask"]) => boolean };
-  evidenceFor: (need: NextCardNeed) => Evidence;
+  evidenceFor: (need: N) => Evidence;
   PROJ: (project: string) => string;
   convOfChat: (chat: string) => string;
 }

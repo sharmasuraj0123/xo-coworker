@@ -31,7 +31,7 @@ export function chatListItems(C, { rows, waiting, inTurn, heldOf, heldShort, row
   if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">${empty}</p>` }];
   /** @type {Map<string, ChatRow[]>} */
   const groups = new Map();
-  for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); /** @type {ChatRow[]} */ (groups.get(g)).push(s); }
+  for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at || ""); if (!groups.has(g)) groups.set(g, []); /** @type {ChatRow[]} */ (groups.get(g)).push(s); }
   const row = (/** @type {ChatRow} */ s) => {
     // Working: on a turn, or a sub-agent working on after it (storm's busy rule); waiting on you says so first
     const wait = waiting(s), busy = inTurn(s) || !!(world.act.sessionBusy && world.act.sessionBusy(s.id));
@@ -40,7 +40,7 @@ export function chatListItems(C, { rows, waiting, inTurn, heldOf, heldShort, row
     return `<li><button type="button" class="chl-row" data-go="c:${esc(s.id)}">` +
       `<span class="chl-tile">${rtMark(/** @type {string} */ (s.agent)) || ICON.thread}${state ? stateMark(state) : ""}</span>` +
       `<span class="chl-t">${esc(titleFor(s))}</span>` +
-      `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at))}</span></button></li>`;
+      `<span class="chl-a${wait ? " is-need" : busy ? " is-busy" : ""}">${wait ? "Needs you" : busy ? "Working" : held ? esc(heldShort(held)) : esc(rowTime(s.updated_at || s.created_at || ""))}</span></button></li>`;
   };
   if (!C.all) return [head, { key: "chats-list", html: `<div class="chl chl-few"><ul class="chl-list">${shown.map(row).join("")}</ul></div>` }];
   return [head, { key: "chats-list", html: `<div class="chl">${[...groups].map(([g, list], i) =>

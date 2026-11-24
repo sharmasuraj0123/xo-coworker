@@ -1,19 +1,5 @@
-export interface Run {
-  id: string;
-  state: string;
-  title?: string;
-  kind: string;
-  agent_type?: string;
-  last_activity_at?: string;
-  last_tool?: string;
-  summary?: string;
-  tool_calls?: number;
-  tokens?: number;
-  started_at?: string;
-  ended_at?: string;
-  can_stop?: boolean;
-  children?: Run[];
-}
+import type { Run } from "../../core/services/run-types.d.ts";
+export type { Run } from "../../core/services/run-types.d.ts";
 
 export interface RunCounts { running?: number; waiting?: number; done?: number; failed?: number; stopped?: number }
 

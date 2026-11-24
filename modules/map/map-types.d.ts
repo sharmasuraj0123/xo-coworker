@@ -6,14 +6,14 @@ import type { MapFolder } from "./folders-types";
 import type { TreeDeps, TreeNode } from "./tree-types";
 
 export type Scope =
-  | { kind: "thread"; key: string; t: MapThread & { branch?: string }; fold: MapFolder | null }
+  | { kind: "thread"; key: string; t: MapThread & { branch?: string | null }; fold: MapFolder | null }
   | { kind: "project"; key: string; pid: string; fold: MapFolder }
   | { kind: "all"; key: string };
 
 export interface MapFile { name?: string; path: string; project: string; rel: string }
 
 export interface MapDeps extends MapAgentDeps {
-  world: MapAgentDeps["world"] & TreeDeps["world"] & { thread(id: string): (MapThread & { branch?: string }) | null | undefined };
+  world: MapAgentDeps["world"] & TreeDeps["world"] & { thread(id: string): (MapThread & { branch?: string | null }) | null | undefined };
   go(view: string): void;
   announce(message: string): void;
   openFile(file: MapFile, opener: HTMLElement): void;

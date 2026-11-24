@@ -41,8 +41,10 @@ export function runsStripHtml(live, total) {
 }
 
 const CMD = new Set(["background_command", "monitor"]);
+export const RUN_COMMAND_LIMIT = 8;
 /** @param {Run} r */
 const isCmd = (r) => CMD.has(r.kind);
+export { isCmd as isCommandRun };
 /** @param {Run} r */
 const failedOf = (r) => r.state === "failed" || r.state === "lost";
 /** @param {Run} r */
@@ -91,7 +93,7 @@ function cmdsHtml(cmds, o) {
   if (!cmds.length) return "";
   const f = cmds.filter(failedOf).length, l = cmds.filter((r) => LIVE.has(r.state)).length;
   const sub = [l && `${l} running`, cmds.length - f - l && `${cmds.length - f - l} done`, f && `${f} failed`].filter(Boolean).join(" · ");
-  const open = o.cmdsOpen !== false, max = o.cmdsAll ? cmds.length : 8;
+  const open = o.cmdsOpen !== false, max = o.cmdsAll ? cmds.length : RUN_COMMAND_LIMIT;
   return `<section class="rn-sec"><button type="button" class="rn-grp" data-runs-cmds aria-expanded="${open}">${xi("terminal")}<span class="rn-gt">Commands</span><span class="rn-gs">${esc(sub)}</span><span class="rn-chev">${ICON.chevron}</span></button>` +
     (open ? `<ul class="rn-cmds">${cmds.slice(0, max).map((r) => cmdHtml(r, o)).join("")}</ul>${cmds.length > max ? `<button type="button" class="rn-more" data-runs-more>Show ${cmds.length - max} more</button>` : ""}` : "") + `</section>`;
 }

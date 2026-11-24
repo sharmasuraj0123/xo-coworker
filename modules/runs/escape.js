@@ -1,9 +1,9 @@
 // @ts-check
 
-/** @typedef {Pick<import("./read-types.d.ts").RunsReadDeps["RS"], "view" | "runId" | "gen" | "pollT" | "keepScroll">} RunsEscapeState */
+/** @typedef {Pick<import("./read-types.d.ts").RunsReadDeps["RS"], "view" | "runId" | "gen" | "keepScroll">} RunsEscapeState */
 
-/** @param {{ RS: RunsEscapeState, closeRuns: () => void, runsRender: () => void, repaint: () => void, runsLand: (selector: string) => HTMLElement | undefined }} deps */
-export function createRunsEscape({ RS, closeRuns, runsRender, repaint, runsLand }) {
+/** @param {{ RS: RunsEscapeState, closeRuns: () => void, runsRender: () => void, repaint: () => void, runsLand: (selector: string) => HTMLElement | undefined, cancelDetail?: () => void }} deps */
+export function createRunsEscape({ RS, closeRuns, runsRender, repaint, runsLand, cancelDetail }) {
   return function runsEscape() {
     if (RS.view !== "run") {
       closeRuns();
@@ -13,7 +13,7 @@ export function createRunsEscape({ RS, closeRuns, runsRender, repaint, runsLand 
     RS.gen++;
     RS.view = "list";
     RS.runId = null;
-    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (RS.pollT));
+    cancelDetail?.();
     RS.keepScroll = false;
     runsRender();
     repaint();

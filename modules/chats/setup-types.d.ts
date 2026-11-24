@@ -18,7 +18,7 @@ export interface SetupState {
   pop: { open: boolean; anchor?: HTMLElement; part?: string };
 }
 export interface SetupDependencies {
-  world: { state: { runtimes?: Runtime[]; projects: { id: string; name: string; kind: string }[] } };
+  world: { state: { runtimes?: Runtime[] | null; projects: { id: string; name: string; kind: string }[] } };
   schedule: () => void;
   runtime: (name: string | null) => Runtime | null;
   feature: (runtime: Runtime | null, key: string) => Feature | null;

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createAct } from "../../../core/services/storm/act.js";
+import { createScope } from "../../../core/kernel/scope.js";
 import { createRunsReads } from "../read.js";
 
 /** @type {{ paths: Record<string, string[]> }} */
@@ -19,12 +20,12 @@ globalThis.fetch = async (url, init) => {
 /** @type {import("../read-types.d.ts").RunsReadDeps["RS"]} */
 const RS = { open: true, session: "session/key", opening: 1, gen: 0, title: "Runs", view: "list", runId: null, returnTo: null,
   tree: [], counts: null, said: null, cmdsOpen: true, cmdsAll: false, run: null, anc: null, items: [], cursor: null,
-  children: [], loading: false, error: null, gone: null, pollT: null };
+  children: [], loading: false, error: null, gone: null };
 const state = { runs: new Map() };
 const act = createAct(/** @type {import("../../../core/services/storm/types").Ctx} */ (/** @type {unknown} */ ({
   state, sentAt: () => ({ at: Date.now(), seq: null }), soon() {},
 })));
-const reads = createRunsReads({ RS, world: { state, act }, STAGE: { repaint() {} }, runsRender() {} });
+const reads = createRunsReads({ RS, world: { state, act }, STAGE: { repaint() {} }, runsRender() {}, scope: createScope() });
 assert.equal(await reads.readRunsList("session/key"), true);
 await reads.openRun(run.id);
 assert.deepEqual(calls, [

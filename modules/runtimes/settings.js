@@ -202,7 +202,7 @@ export function createRuntimeSettings({ world, announce, PROJ }) {
   async function refresh() {
     clearTimeout(R.timer);
     if (!onScreen()) return;
-    await world.act.loadRuntimes().catch(globalThis.reportError?.bind(globalThis) ?? console.error);
+    await world.act.loadRuntimes()?.catch(globalThis.reportError?.bind(globalThis) ?? console.error);
     if (!onScreen()) return;
     drawList();
     R.timer = setTimeout(refresh, REFRESH_MS);

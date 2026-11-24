@@ -1,48 +1,50 @@
 // @ts-check
-
-
+import { createScope } from "../../core/kernel/scope.js";
+import { reportFailure } from "../../core/services/notices/failures.js";
 
 /** @import { RecordDeps, IncomingRecord } from "./record-lines-types.d.ts" */
 
-
-
 /** @param {RecordDeps} options */
-
-export function createRecordLines({ S, announce, schedule, heraldShow, heraldNext, placeRegion }) {
-
+export function createRecordLines({ view, localMessages, announce, schedule, heraldShow, dismissRecord, placeRegion }) {
+  const scope = createScope();
   /** @param {string} session @param {IncomingRecord} rec */
   function recordLine(session, rec) {
-    const conv = session;
-    const m = { id: `rec${++S.n}`, who: "rec", at: Date.now(), text: rec.text, refused: !!rec.refused, undo: rec.undo || null, until: Date.now() + 3000 };
-    (S.local[conv] = S.local[conv] || []).push(m);
-    // its Undo goes when its window ends: if it holds focus then, the conversation takes it first (S004)
-    if (rec.undo) setTimeout(() => { recUndoLeaves(m.id); schedule(); }, 3050);
-    if (S.view === "home" || (S.view !== conv)) heraldShow({ kind: "rec", text: rec.text, undo: rec.undo ? m.id : null, undoUntil: rec.undo ? m.until : 0 }, rec.undo ? 3200 : 4200);
+    if (scope.signal.aborted) return;
+    const at = Date.now();
+    const m = localMessages.record(session, { at, text: rec.text, refused: !!rec.refused, undo: rec.undo || null, until: at + 3000 });
+    if (rec.undo) scope.timeout(() => { recUndoLeaves(m.id); m.undo = null; schedule(); }, 3050);
+    const current = view();
+    if (current === "home" || current !== session) heraldShow({ kind: "rec", text: rec.text, undo: rec.undo ? m.id : null, undoUntil: rec.undo ? m.until : 0 }, rec.undo ? 3200 : 4200);
     announce(rec.text);
     schedule();
   }
-
   /** @param {string} id */
   function recUndoLeaves(id) {
     const b = document.activeElement?.closest?.(`[data-rec-undo="${CSS.escape(id)}"]`);
     if (b) placeRegion().focus({ preventScroll: true });
   }
-
   /** @param {string} id */
-  function undoRecord(id) {
-    for (const list of Object.values(S.local)) {
-      const m = list.find((x) => x.id === id);
-      if (m && m.undo && Date.now() < /** @type {number} */ (m.until)) {
-        recUndoLeaves(id);
-        m.undo(); m.undo = null;
-        m.text = `${m.text} · undone`;
-        announce("Undone.");
-        if (S.herald && S.herald.undo === id) { S.herald.until = 0; heraldNext(); }
-        schedule();
-        return;
-      }
+  async function undoRecord(id) {
+    if (scope.signal.aborted) return;
+    const m = localMessages.get(id);
+    if (m?.who !== "rec" || !m.undo || m.until == null || Date.now() >= m.until) return;
+    recUndoLeaves(id);
+    const undo = m.undo;
+    m.undo = null;
+    dismissRecord(id);
+    schedule();
+    try {
+      await undo();
+      if (scope.signal.aborted) return;
+      m.text = `${m.text} · undone`;
+      announce("Undone.");
+    } catch (error) {
+      if (scope.signal.aborted) return;
+      reportFailure(error);
+      m.text = `${m.text} · couldn't undo`;
+      announce("Couldn't undo.");
     }
+    schedule();
   }
-
-  return { recordLine, undoRecord };
+  return { recordLine, undoRecord, dispose: scope.dispose };
 }

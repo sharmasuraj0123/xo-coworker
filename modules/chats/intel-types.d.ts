@@ -1,26 +1,28 @@
-import type { Model, Feature } from "./setup-types.js";
+import type { Model } from "./setup-types.js";
 import type { createIntelCatalog } from "./intel-catalog.js";
+import type { Runtime, RuntimePolicy } from "../../core/services/runtime-types.d.ts";
+import type { WorldRouter } from "../../core/services/world/state-types.d.ts";
 
 export type IntelModel = Model & { default_effort?: string };
-export type IntelRuntime = { name: string; features?: { features?: { effort?: Feature } } };
+export type IntelRuntime = Runtime;
 export type Setting = { agent?: string | null; model?: string | null; effort?: string | null };
-export type Routing = { mode?: string; decision_model?: string };
+export type Routing = WorldRouter;
 export type Draft = { auto: boolean; model?: string | null; effort?: string | null };
-export type Policy = { allowed?: string[] | null; default?: string | null; preferences?: string | null; fallback?: boolean | null };
+export type Policy = RuntimePolicy;
 type ChatPolicy = { project?: Policy; effective?: Policy };
 export type IntelChat = { chatId: string; pin?: Setting; routing?: Routing | null };
-export type IntelThread = { id: string; chatId: string; project: string; state?: string; session?: Setting; pin?: Setting; movedTo?: string };
+export type IntelThread = { id: string; chatId: string; project: string; state?: string; session?: Setting | null; pin?: Setting; movedTo?: object | null };
 export type IntelError = Error & { status?: number; code?: string };
 
 export interface IntelWorld {
   state: {
     router?: Routing | null;
-    runtimes?: IntelRuntime[];
+    runtimes?: IntelRuntime[] | null;
     chatPolicy?: Record<string, ChatPolicy>;
     policy?: { effective?: Policy } | null;
   };
-  project(id: string): IntelChat | null;
-  thread(id: string): IntelThread | null;
+  project(id: string): IntelChat | null | undefined;
+  thread(id: string): IntelThread | null | undefined;
   act: {
     coordinatorAgent?(id: string | undefined): string | null;
     loadChatPolicy?(id: string): void;
@@ -65,7 +67,6 @@ export interface IntelState {
   full: boolean;
   draft: Draft | null;
   more: boolean;
-  req?: number;
   saving?: boolean;
   saveErr?: string | null;
   dms?: { id: string; label: string; connected: boolean }[];

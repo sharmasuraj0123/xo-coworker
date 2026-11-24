@@ -5,7 +5,7 @@ import { api } from "../../core/platform/api.js";
 
 /** @import { ChangeFile, ChangesApi, DiffHandle, DiffOptions, HttpError, Scope } from "../../core/services/change-types.d.ts" */
 
-/** @typedef {{scope: Scope, path: string, base: string, file: ChangeFile}} FileChange */
+/** @typedef {{scope: Scope, path: string, base: string | null, file: ChangeFile}} FileChange */
 
 /** @typedef {{el: HTMLElement | null, handle: DiffHandle | null, img: {drop(): void} | null, key: string | null, gen: number, ask: number, reading: string | null, failed: string | null, pend?: string | null}} DiffState */
 

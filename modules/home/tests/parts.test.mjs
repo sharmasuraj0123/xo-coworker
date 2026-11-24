@@ -1,9 +1,10 @@
 // @ts-check
 import assert from "node:assert/strict";
 import { createHomeParts } from "../parts.js";
+import { createHomeSelection } from "../selection.js";
 
-/** @type {{ pin: string | null }} */
-const state = { pin: "pinned" };
+const selection = createHomeSelection();
+selection.select("pinned");
 const needs = [
   { key: "first", admitted: true, effort: "glance", ask: { kind: "question" }, group: "routine" },
   { key: "later", admitted: true, later: true },
@@ -12,9 +13,8 @@ const needs = [
   { key: "pinned", admitted: true, effort: "glance", ask: { kind: "approval" }, group: "routine" },
   { key: "more", admitted: true },
 ];
-const homeParts = createHomeParts(state, { needItems: () => needs }, {
-  isBinary: (ask) => (/** @type {{ kind?: string } | undefined} */ (ask))?.kind === "approval",
-});
+const isBinary = (ask) => ask?.kind === "approval";
+const homeParts = createHomeParts(selection, () => needs, isBinary);
 const parts = homeParts();
 assert.equal(parts.next?.key, "pinned", "the current eligible card keeps its place");
 assert.deepEqual(parts.then.map(({ key }) => key), ["first", "second"]);
@@ -23,6 +23,6 @@ assert.deepEqual(parts.later.map(({ key }) => key), ["later"]);
 assert.deepEqual(parts.held.map(({ key }) => key), ["held"]);
 assert.deepEqual(parts.glances.map(({ key }) => key), ["pinned"]);
 assert.equal(homeParts(needs.filter(({ key }) => key !== "pinned")).next?.key, "first");
-assert.equal(state.pin, "first");
+assert.equal(selection.current(), "first");
 assert.equal(homeParts([]).next, null);
-assert.equal(state.pin, null);
+assert.equal(selection.current(), null);

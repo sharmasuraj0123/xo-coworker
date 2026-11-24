@@ -1,27 +1,20 @@
-interface HeldNeed {
+export interface HeldNeed {
   key: string;
   t: { project: string };
   heldWhy?: string;
 }
 
-export interface HandledParts {
-  held: HeldNeed[];
-}
+export interface HandledParts<N extends HeldNeed> { held: N[] }
 
-export interface WorkingThread {
-  id: string;
-  project: string;
-  title: string;
-  checklist: { items: { state: string, text: string }[], done: number, total: number };
-}
+export type WorkingThread = Pick<import("../../core/services/world/state-types.d.ts").WorldThread,
+  "id" | "project" | "title" | "checklist" | "state" | "busy" | "session" | "sessionId">;
 
-export interface HandledDeps {
-  S: { handledOpen: boolean };
+export interface HandledDeps<N extends HeldNeed> {
   world: { state: { threads: WorkingThread[] } };
-  homeParts: () => HandledParts;
+  homeParts: () => HandledParts<N>;
   isBusy: (thread: WorkingThread) => boolean;
   num: (value: number) => string;
   PROJ: (project: string) => string;
   threadMark: (thread: WorkingThread, options: { lead: boolean }) => string;
-  askTitle: (need: HeldNeed) => string;
+  askTitle: (need: N) => string;
 }

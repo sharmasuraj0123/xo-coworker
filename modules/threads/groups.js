@@ -5,10 +5,10 @@ import { createSubtitles } from "./subtitles.js";
 
 /** @import { MapAgent, ThreadGroup, ThreadGroupDeps, ThreadInfo, ThreadNeed, ThreadRow } from "./groups-types.d.ts" */
 
-/** @param {ThreadGroupDeps} options */
+/** @template {ThreadNeed} N @param {ThreadGroupDeps<N>} options */
 export function createThreadGroups({ world, D, MAP, convProject, askShort, threadMark, isBusy, isHeld }) {
   const STATE_WORDS = { needs: "Needs you", working: "Working", waiting: "Waiting", done: "Done" };
-  const { active, subtitle, forProject } = createSubtitles({ MAP, askShort, isHeld }, STATE_WORDS);
+  const { active, subtitle } = createSubtitles({ MAP, askShort, isHeld }, STATE_WORDS);
   /** @param {ThreadInfo} t @param {ThreadNeed[]} needs */
   function threadState(t, needs) {
     if (needs.some((n) => n.t.id === t.id && n.admitted && n.group !== "stopped")) return "needs";
@@ -48,6 +48,5 @@ export function createThreadGroups({ world, D, MAP, convProject, askShort, threa
     return c;
   }
 
-  return { STATE_WORDS, threadState, panelThreads, threadCounts,
-    threadSubtitles: (/** @type {string} */ pid, /** @type {ThreadNeed[]} */ needs) => forProject(pid, needs, (t) => threadState(t, needs)) };
+  return { STATE_WORDS, threadState, panelThreads, threadCounts };
 }

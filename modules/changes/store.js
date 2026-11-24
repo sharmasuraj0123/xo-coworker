@@ -1,9 +1,10 @@
 // @ts-check
 
-// What a place changed, from Space: a thread's worktree against its branch point, or a project's checkout against its last commit.
-
 import { folderOf, placeOf } from "../../core/services/places.js";
 import { prefetch } from "./diffview.js";
+/** @import { ChangeThread, ChangesWorld } from "../../core/services/change-types.d.ts" */
+
+/** @import { Turns } from "../../core/services/types.d.ts" */
 /** @import { Scope, PlaceChanges, Activity, ChangeFile, HttpError, ChangesApi } from "./types.d.ts" */
 
 const EDITS = new Set(["create_file", "edit_file", "delete_file"]);
@@ -23,19 +24,19 @@ export function lineRef(text) {
   return a > 0 && b >= a ? { path: m[1], a, b, rest: m[4] } : null;
 }
 
-/** The place a view's changes come from: {key, project, worktree (its folder name) | null, root, tid?}. @param {string | null | undefined} view @param {any} world @returns {Scope | null} */
+/** @param {string | null | undefined} view @param {Pick<ChangesWorld, "thread">} world @returns {Scope | null} */
 export function scopeOf(view, world) {
   if (view && view.startsWith("t:")) {
     const t = world.thread(view.slice(2));
     const f = t && folderOf(t);
-    if (f) return { key: `${f.project}|${f.base}`, project: f.project, worktree: f.base ? f.base.split("/").pop() : null, root: f.root, tid: t.id };
+    if (t && f) return { key: `${f.project}|${f.base}`, project: f.project, worktree: f.base.split("/").pop() || null, root: f.root, tid: t.id };
     return null;
   }
   if (view && view.startsWith("p:")) return { key: `${view.slice(2)}|`, project: view.slice(2), worktree: null, root: null };
   return null;
 }
 
-/** What agents are doing to files in a scope, from the turns on hand: sig (changes when an edit finishes), busy, live (paths being edited now), last (the newest edited path). @param {Scope | null} scope @param {any[]} threads @param {any} turns @returns {Activity} */
+/** @param {Scope | null} scope @param {readonly (ChangeThread | null)[]} threads @param {Turns | null | undefined} turns @returns {Activity} */
 export function activityIn(scope, threads, turns) {
   /** @type {Activity} */
   const out = { sig: "", busy: false, live: new Set(), last: null };
@@ -45,7 +46,7 @@ export function activityIn(scope, threads, turns) {
     if (!t || !t.sessionId) continue;
     const f = folderOf(t);
     if (!f || `${f.project}|${f.base}` !== scope.key) continue;
-    for (const tu of turns.list((/** @type {any} */ x) => x.session === t.sessionId)) {
+    for (const tu of turns.list((x) => x.session === t.sessionId)) {
       const running = tu.status === "running";
       if (running) out.busy = true;
       for (const b of turns.blocksOf(tu)) {
@@ -67,7 +68,7 @@ export function activityIn(scope, threads, turns) {
   return out;
 }
 
-/** @param {{ world: any, api: ChangesApi, onChange?: () => void }} deps */
+/** @param {{ world: ChangesWorld, api: ChangesApi, onChange?: () => void }} deps */
 export function createChanges({ world, api, onChange }) {
   /** @type {Map<string, PlaceChanges>} */
   const P = new Map();
@@ -113,8 +114,9 @@ export function createChanges({ world, api, onChange }) {
     if (!s || !p || !f) return Promise.resolve(null);
     if (f.patch) return Promise.resolve(f.patch);
     if (f.patch_omitted !== "response_budget") return Promise.resolve(null);
-    const k = `${s.key}|${path}|${p.data.computed_at}`;
-    if (!one.has(k)) one.set(k, api.projectChanges(s.project, { ...(s.worktree ? { worktree: s.worktree } : {}), path }).then((/** @type {any} */ d) => (d.files || []).find((/** @type {ChangeFile} */ x) => x.path === path)?.patch || null).catch((e) => { one.delete(k); throw e; }));
+    const k = `${s.key}|${path}|${p.data?.computed_at}`;
+    if (!one.has(k)) one.set(k, api.projectChanges(s.project, { ...(s.worktree ? { worktree: s.worktree } : {}), path })
+      .then((d) => d.files?.find((file) => file.path === path)?.patch || null).catch((e) => { one.delete(k); throw e; }));
     return /** @type {Promise<string | null>} */ (one.get(k));
   }
 
@@ -148,7 +150,8 @@ export function createChanges({ world, api, onChange }) {
       if (!s || !p || p.state !== "ok") return null;
       const at = s.root ? placeOf(s.root, target) : { rel: String(target || "").replace(/^\.\//, "") };
       const rel = at && at.rel;
-      return rel && p.files.has(rel) ? { path: rel, file: p.files.get(rel) } : null;
+      const file = rel ? p.files.get(rel) : null;
+      return rel && file ? { path: rel, file } : null;
     },
     /** git's patch for one file in a view's place: the list's, or read on its own when the list left it out. @param {string} view @param {string} path */
     patch(view, path) { return patchIn(scopeOf(view, world), path); },
@@ -157,8 +160,10 @@ export function createChanges({ world, api, onChange }) {
       const m = /^(\.xo\/worktrees\/[^/]+)\/(.+)$/.exec(String(rel || ""));
       const base = m ? m[1] : "", path = m ? m[2] : String(rel || "");
       const key = `${project}|${base}`, p = P.get(key);
-      if (!p || p.state !== "ok" || !p.files.has(path)) return null;
-      return { scope: { key, project, worktree: base ? base.split("/").pop() : null, base }, path, file: p.files.get(path), base: p.data.base_commit };
+      const file = p?.files.get(path);
+      if (!p || p.state !== "ok" || !file) return null;
+      const scope = { key, project, worktree: base.split("/").pop() || null, base };
+      return { scope, path, file, base: p.data?.base_commit ?? null };
     },
     /** @param {{ scope: Scope, path: string }} c */
     patchAt(c) { return patchIn(c.scope, c.path); },

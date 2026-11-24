@@ -73,7 +73,7 @@ async function mountStage(hold, target, view = "t:thread") {
   document.body.insertAdjacentHTML("beforeend", dockMarkup);
   globalThis.MutationObserver = window.MutationObserver;
   const fx = await mount(document, hold, target);
-  const relocation = createShellPanel({ S: { view }, STAGE: panel, SH: fx.dock,
+  const relocation = createShellPanel({ view: () => view, STAGE: panel, SH: fx.dock,
     world: { thread: () => thread }, heraldShow() {},
   });
   panelShell = relocation.panelShell;

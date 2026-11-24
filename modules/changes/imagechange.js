@@ -1,7 +1,5 @@
 // @ts-check
 
-// An image in a place's changes (the owner, 6 Nov: "when I click on an image, it doesn't show there").
-
 import { esc } from "../../core/platform/index.js";
 /** @import { ChangeFile, HttpError, ChangesApi } from "./types.d.ts" */
 
@@ -92,9 +90,10 @@ export function drawImageChange(host, { project, rel, file, read: api, at = null
   }
 
   for (const k of sides) {
+    if (k === "before" && !at) continue;
     const read = k === "now"
       ? api.projectImage(project, rel, { signal: ctl.signal })
-      : api.projectVersion(project, rel, /** @type {{ commit: string | null, was: any }} */ ({ commit: at, was: file.status === "renamed" ? file.old_path : null }), { signal: ctl.signal });
+      : api.projectVersion(project, rel, { commit: /** @type {string} */ (at), was: file.status === "renamed" ? file.old_path : null }, { signal: ctl.signal });
     read.then((/** @type {Blob} */ blob) => { if (!gone) show(k, blob); }).catch((/** @type {HttpError} */ err) => {
       if (gone || (err && err.name === "AbortError")) return;
       if (k === "before" && noRoute(err)) { missingAt = Date.now(); oneLess(EARLIER); return; }

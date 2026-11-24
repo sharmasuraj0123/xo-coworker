@@ -7,10 +7,11 @@ import { runsListHtml, runViewHtml } from "./view.js";
 /** @import { Run } from "./types.d.ts" */
 
 /** @param {import("./panel-types.d.ts").RunsPanelDeps} options */
-export function createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion, threadScroller }) {
+export function createRunsPanel({ RS, transcriptOpen, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion, threadScroller }) {
+  let previousHtml = "";
   const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
   // this page's own stops still in their Undo, where you acted
-  const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
+  const sheetStops = () => pendingStops.pending().filter((j) => j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
   /** Find a control by its first data attribute. @param {Element | null} e */
   const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !e.attributes) return ""; const a = [...e.attributes].find((x) => x.name.startsWith("data-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
 
@@ -18,15 +19,16 @@ export function createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, s
     if (!RS.open) return;
     const html = RS.view === "list"
       ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: /** @type {string} */ (RS.session), out: [...stopsOut], cmdsOpen: RS.cmdsOpen, cmdsAll: RS.cmdsAll })
-      : runViewHtml(/** @type {Run} */ (RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }), { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen, cmdsOpen: RS.runCmds, cmdsAll: RS.cmdsAll });
-    if (runsCard._h !== html) {
+      : runViewHtml(/** @type {Run} */ (RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }), { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: transcriptOpen(), cmdsOpen: RS.runCmds, cmdsAll: RS.cmdsAll });
+    if (previousHtml !== html) {
       const had = runsCard.contains(document.activeElement);
       const body = runsCard.querySelector(".rn-body");
       const keep = body ? body.scrollTop : 0;
       // the control with focus, found again by its hook if the redraw replaced it
       const hook = runsHook(document.activeElement);
       // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
-      redraw(runsCard, html); runsCard._h = html;
+      redraw(runsCard, html);
+      previousHtml = html;
       const nb = runsCard.querySelector(".rn-body");
       if (nb && RS.keepScroll) nb.scrollTop = keep;
       if (had && !runsCard.contains(document.activeElement)) { const same = hook && runsCard.querySelector(/** @type {string} */ (hook)); (/** @type {HTMLElement} */ (same && usable(same) ? same : runsCard)).focus({ preventScroll: true }); }
@@ -51,8 +53,7 @@ export function createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, s
   function runsGone() {
     if (!RS.open) return;
     const here = runsCard.contains(document.activeElement) || STAGE.owns(document.activeElement);
-    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (RS.pollT));
-    RS.gen++; RS.open = false; runsCard.replaceChildren(); runsCard._h = "";
+    RS.gen++; RS.open = false; runsCard.replaceChildren(); previousHtml = "";
     const was = RS.returnTo;
     /** @param {Element | null} el */
     const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(/** @type {string} */ (el.getAttribute(a)))}"]`); return el.hasAttribute("data-runs") ? RS.head?.querySelector("[data-runs]") : null; };

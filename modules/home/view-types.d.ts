@@ -2,6 +2,7 @@ import type { Places } from "../../core/kernel/types";
 import type { HandledParts, WorkingThread } from "./handled-types";
 import type { NextCardNeed } from "./next-card-types";
 import type { createHomeParts } from "./parts.js";
+import type { createHomeSelection } from "./selection.js";
 
 export interface HomeViewNeed extends NextCardNeed {
   admitted?: boolean;
@@ -12,8 +13,9 @@ export interface HomeViewNeed extends NextCardNeed {
 
 export type HomeChoice = "allow" | "deny" | { option: string };
 
-export interface HomeViewDeps {
-  S: { view: string, pin: string | null, pinAnim?: string | null, homeFocusNext?: boolean };
+export interface HomeViewDeps<N extends HomeViewNeed> {
+  isCurrent: () => boolean;
+  selection: ReturnType<typeof createHomeSelection>;
   D: {
     current: () => string | null | undefined;
     isOpen: () => boolean;
@@ -22,19 +24,20 @@ export interface HomeViewDeps {
   world: { state: { threads: WorkingThread[], error?: unknown, statusError?: unknown } };
   Kit: { READ_MS: number };
   EFFORT: Record<string, { label: string }>;
-  homeParts: ReturnType<typeof createHomeParts<HomeViewNeed>>;
-  nextCardHtml: (need: HomeViewNeed) => string;
-  endRender: (parts: HandledParts, working: WorkingThread[]) => void;
+  homeParts: ReturnType<typeof createHomeParts<N>>;
+  nextCardHtml: (need: N) => string;
+  endRender: (parts: HandledParts<N>, working: WorkingThread[]) => void;
   greeting: () => string;
   today: () => string;
   num: (value: number) => string;
   noun: (word: string) => string;
   plural: (count: number, word: string) => string;
   isBusy: (thread: WorkingThread) => boolean;
-  askTitle: (need: HomeViewNeed) => string;
+  askTitle: (need: N) => string;
   PROJ: (project: string) => string;
   kernel: { places: Places };
   SV: { homeOrder: (body: HTMLElement) => void };
   announce: (message: string) => void;
   schedule: () => void;
 }
+export type ThenFields = "EFFORT" | "askTitle" | "PROJ";

@@ -6,7 +6,7 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 /** @import { ShellPanelDeps } from "./panel-types.d.ts" */
 
 /** @param {ShellPanelDeps} options */
-export function createShellPanel({ S, STAGE, SH, world, heraldShow }) {
+export function createShellPanel({ view, STAGE, SH, world, heraldShow }) {
   const scope = createScope();
   const dock = $("#shd");
   const parent = /** @type {ParentNode} */ (dock.parentNode), next = dock.nextSibling;
@@ -42,7 +42,7 @@ export function createShellPanel({ S, STAGE, SH, world, heraldShow }) {
       intent.abort();
     });
     cancelOpen = finish;
-    const at = where || S.view;
+    const at = where || view();
     const current = () => !intent.signal.aborted && STAGE.isShell;
     try {
       await openShell(at.startsWith("t:") || at.startsWith("p:") ? at : "ws", { signal: intent.signal });

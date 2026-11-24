@@ -7,7 +7,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 
 /** @import { MapFolder } from "./folders-types.d.ts" */
 
-/** @typedef {{ kind: "thread", t: MapThread & { branch?: string }, fold: MapFolder | null } | { kind: "project", pid: string } | { kind: "all" }} HeadScope */
+/** @typedef {{ kind: "thread", t: MapThread & { branch?: string | null }, fold: MapFolder | null } | { kind: "project", pid: string } | { kind: "all" }} HeadScope */
 
 /** @param {number | null} ms */
 const since = (ms) => (Number.isFinite(ms) ? `<span class="elapsed" data-since="${ms}"></span>` : "");

@@ -1,9 +1,9 @@
-import type { ChangeFile, DiffHandle, Scope } from "../../core/services/change-types.d.ts";
+import type { ChangeFile, ChangePage, DiffHandle, Scope } from "../../core/services/change-types.d.ts";
 
 export type { ChangeFile, ChangesApi, DiffHandle, DiffOptions, HttpError, Scope } from "../../core/services/change-types.d.ts";
 export interface Total { add: number; del: number }
 export interface PlaceChanges {
-  state: "idle" | "loading" | "ok" | "error" | "unsupported"; data: any; files: Map<string, ChangeFile>; total: Total;
+  state: "idle" | "loading" | "ok" | "error" | "unsupported"; data: ChangePage | null; files: Map<string, ChangeFile>; total: Total;
   sig: string | null; inflight: boolean; again: boolean; timer: ReturnType<typeof setTimeout> | 0; err?: string | null;
 }
 export interface Activity { sig: string; busy: boolean; live: Set<string>; last: string | null }

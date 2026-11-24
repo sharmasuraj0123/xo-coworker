@@ -1,20 +1,8 @@
-export type ThreadGroup = "needs" | "working" | "waiting" | "done";
-type Hold = Parameters<typeof import("../../core/services/world/held.js").heldWords>[0];
-type Stop = Parameters<typeof import("../../core/services/world/conversation.js").stopWords>[0];
+import type { WorldThread } from "../../core/services/world/state-types.d.ts";
 
-export interface ThreadInfo {
-  id: string;
-  project: string;
-  state: string;
-  lastAt: number;
-  title: string;
-  busy?: boolean;
-  frozen?: boolean;
-  held?: Hold;
-  stop?: Stop;
-  summary?: string;
-  branch?: string;
-}
+export type ThreadGroup = "needs" | "working" | "waiting" | "done";
+type ThreadRowFields = "id" | "project" | "state" | "lastAt" | "title" | "busy" | "frozen" | "held" | "stop" | "summary" | "branch";
+export type ThreadInfo = Pick<WorldThread, ThreadRowFields | "sessionId" | "session">;
 
 export interface ThreadNeed {
   t: { id: string, project?: string, host?: boolean };
@@ -40,18 +28,19 @@ export interface ThreadRow {
   on: boolean;
   coord?: boolean;
   mark?: string;
-  summary?: string;
-  branch?: string;
+  summary?: string | null;
+  branch?: string | null;
   at?: string;
 }
 
-export interface ThreadGroupDeps {
+export interface ThreadGroupDeps<N extends ThreadNeed> {
   world: { state: { threads: ThreadInfo[] } };
-  D: { needItems: () => ThreadNeed[] };
+  D: { needItems: () => N[] };
   MAP: { agents: (view: string) => MapAgent[] };
   convProject: (view: string) => string | null | undefined;
-  askShort: (need: ThreadNeed) => string;
+  askShort: (need: N) => string;
   threadMark: (thread: ThreadInfo) => string;
   isBusy: (thread: ThreadInfo) => boolean;
   isHeld: (thread: ThreadInfo) => boolean;
 }
+export type GroupLabels = Record<ThreadGroup, string>;

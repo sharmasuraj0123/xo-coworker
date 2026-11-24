@@ -2,10 +2,10 @@
 
 import * as K from "../../core/platform/keys.js";
 import { esc } from "../../core/platform/index.js";
-import { api } from "../../core/platform/api.js";
 import { mainRuntime } from "../../core/services/world/sessions.js";
 import { rtName, rtMark, usable, allowedOf, moveTargets, findRt, healthOf, manyRuntimes } from "../../core/services/runtimes.js";
 import { EFFORT_WORD } from "./effort.js";
+import { createModelCatalog } from "./intel-model-catalog.js";
 
 /** @import { CatalogOptions, IntelChat, IntelCurrent, IntelModel, IntelState } from "./intel-types.js" */
 
@@ -13,9 +13,8 @@ import { EFFORT_WORD } from "./effort.js";
 const effortWord = (e) => (e ? EFFORT_WORD[e] || e : "");
 
 /** @param {IntelState} P @param {CatalogOptions} options */
-export function createIntelCatalog(P, { world, PROJ, onChange, simple }) {
-  /** @type {Map<string | null, IntelModel[]>} */
-  const catalogs = new Map(); // runtime → models
+export function createIntelCatalog(P, { world, PROJ, simple }) {
+  const { models: catalogs, read: catalog, warm } = createModelCatalog(() => world.state.runtimes || []);
 
   /** @param {string} s */
   const kindOf = (s) => (s === "ws" ? "workspace" : String(s || "").startsWith("p:") ? "project" : String(s || "").startsWith("t:") ? "thread" : null);
@@ -24,7 +23,7 @@ export function createIntelCatalog(P, { world, PROJ, onChange, simple }) {
   /** @param {string} s */
   const chatOfSession = (s) => world.project(s === "ws" ? "workspace" : s.slice(2));
   /** @param {string} s */
-  const threadOf = (s) => (s.startsWith("t:") ? world.thread(s.slice(2)) : null);
+  const threadOf = (s) => s.startsWith("t:") ? world.thread(s.slice(2)) ?? null : null;
   /** @param {string} s */
   const runtimeOf = (s) => {
     const t = threadOf(s);
@@ -33,27 +32,6 @@ export function createIntelCatalog(P, { world, PROJ, onChange, simple }) {
     const agent = t ? (t.session && t.session.agent) : (/** @type {Partial<IntelChat>} */ (c)).pin?.agent || (world.act.coordinatorAgent ? world.act.coordinatorAgent((/** @type {Partial<IntelChat>} */ (c)).chatId) : null);
     const rts = world.state.runtimes || [];
     return (rts.find((r) => r.name === agent) || mainRuntime(rts) || {}).name || null;
-  };
-  /** A runtime's latest catalog read wins. @type {Map<string, number>} */
-  const reads = new Map();
-  /** @param {string | null} name @returns {Promise<IntelModel[]>} */
-  async function catalog(name, { fresh = false } = {}) {
-    if (!name) return [];
-    if (catalogs.has(name) && !fresh) return (/** @type {IntelModel[]} */ (catalogs.get(name)));
-    const n = (reads.get(name) || 0) + 1;
-    reads.set(name, n);
-    const d = await api.models(name);
-    if (reads.get(name) === n || !catalogs.has(name)) catalogs.set(name, d.models || []);
-    return (/** @type {IntelModel[]} */ (catalogs.get(name)));
-  }
-  /** @type {Set<string>} */
-  const reading = new Set();
-  /** @param {string} s */
-  const warm = (s) => {
-    const name = runtimeOf(s);
-    if (!name || catalogs.has(name) || reading.has(name)) return;
-    reading.add(name);
-    catalog(name).then(() => onChange(), () => {}).finally(() => reading.delete(name));
   };
 
   /** @param {IntelModel | null | undefined} m @param {string} s @param {string | null} [name] */
@@ -82,7 +60,7 @@ export function createIntelCatalog(P, { world, PROJ, onChange, simple }) {
     const space = world.state.router || { mode: "agent" };
     const own = c.routing && c.routing.mode ? c.routing : null;
     const r = own || space;
-    return { pinned: !!(pin.model || pin.effort), model: pin.model || null, effort: pin.effort || null, routing: r, ownRouting: !!own, by: r.mode === "decision" ? r.decision_model : "coordinator" };
+    return { pinned: !!(pin.model || pin.effort), model: pin.model || null, effort: pin.effort || null, routing: r, ownRouting: !!own, by: r.mode === "decision" ? r.decision_model ?? undefined : "coordinator" };
   }
 
   /** What a thread's session is running right now (the router's choice or a pin it already took). @param {string} s */
@@ -107,7 +85,6 @@ export function createIntelCatalog(P, { world, PROJ, onChange, simple }) {
   /** @param {string} s @param {boolean} [phone] */
   function chipHtml(s, phone) {
     if (!live(s)) return "";
-    warm(s);
     const c = current(s);
     const mark = rtMark((/** @type {string} */ (runtimeOf(s))), { lead: true }) || "";
     if (simple() && !phone && !threadOf(s)) { const w = simpleOf(s, c); return `<span class="iq-l">${mark}<span class="${w === "auto" ? "iq-a" : "iq-t"}">${esc(w === "auto" ? "Auto" : w === "deep" ? "Deep" : nameOf(c.model) || "Pinned")}</span></span>`; }
@@ -199,7 +176,7 @@ export function createIntelCatalog(P, { world, PROJ, onChange, simple }) {
     return null;
   }
   return {
-    kindOf, scopeWord, chatOfSession, threadOf, runtimeOf, catalogs, catalog, modelOf, nameOf, current,
+    kindOf, scopeWord, chatOfSession, threadOf, runtimeOf, catalogs, catalog, warm, modelOf, nameOf, current,
     running, live, chipHtml, chipTitle, cap, chatPolicy, runtimeChoice, moving, effortsOf, deepPick,
     shown, simpleOf, pendingOf, effortWord,
   };

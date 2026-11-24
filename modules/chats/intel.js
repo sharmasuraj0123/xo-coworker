@@ -2,11 +2,13 @@
 
 import { space, once } from "../../core/platform/index.js";
 import { api } from "../../core/platform/api.js";
+import { PHONE } from "../../core/platform/viewport.js";
 import { RM } from "../../core/ui/motion.js";
 import { rtName } from "../../core/services/runtimes.js";
 import { EFFORT_WORD } from "./effort.js";
 import { sessionOrder } from "./session-order.js";
 import { createIntelCatalog } from "./intel-catalog.js";
+import { createIntelReads } from "./intel-reads.js";
 import { createIntelView } from "./intel-view.js";
 import { bindIntelInput } from "./intel-input.js";
 
@@ -21,10 +23,12 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
 
   const catalogState = createIntelCatalog(P, { world, PROJ, onChange, simple });
   const {
-    kindOf, scopeWord, chatOfSession, threadOf, runtimeOf, catalogs, catalog, modelOf, nameOf,
+    kindOf, scopeWord, chatOfSession, threadOf, catalogs, modelOf, nameOf,
     current, running, live, chipHtml, chipTitle, cap, chatPolicy, runtimeChoice, moving, effortsOf, deepPick,
   } = catalogState;
   const { render } = createIntelView(P, { pop, world, simple, catalogState, draftOf, draftChanged, place });
+  const reads = createIntelReads(P, catalogState, render, onChange);
+  const loadModels = reads.load;
 
   /** The choice on screen: what you picked while it's open, else what it runs on. {auto, model, effort} @param {string} s @returns {Draft} */
   function draftOf(s) {
@@ -103,7 +107,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   function place() {
     if (!P.anchor) return;
-    if (matchMedia("(max-width: 760px)").matches) { pop.style.left = pop.style.top = pop.style.width = ""; pop.classList.add("is-sheet"); return; }
+    if (PHONE?.matches) { pop.style.left = pop.style.top = pop.style.width = ""; pop.classList.add("is-sheet"); return; }
     pop.classList.remove("is-sheet");
     const r = P.anchor.getBoundingClientRect();
     // a window's edge keeps --s-3, the chip --s-2 (they were 12 and 10 written here)
@@ -112,21 +116,6 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     pop.style.width = `${w}px`;
     pop.style.left = `${Math.max(edge, Math.min(r.right - w + gap, innerWidth - w - edge))}px`;
     pop.style.top = `${Math.max(edge, r.top - pop.offsetHeight - gap)}px`;
-  }
-  /** Read the models the list shows (the runtime it runs on now). @param {string} s */
-  async function loadModels(s) {
-    P.err = null;
-    // each read knows what it was for: a late answer for another runtime (or an older read) is dropped
-    const req = (P.req = (P.req || 0) + 1);
-    const name = runtimeOf(s);
-    const stale = () => !P.open || P.session !== s || P.req !== req || runtimeOf(s) !== name;
-    try {
-      if (catalogs.has(name)) { P.models = (/** @type {IntelModel[]} */ (catalogs.get(name))); render(); }
-      const [models, dms] = await Promise.all([catalog(name, { fresh: true }), kindOf(s) === "thread" ? null : api.routerModels().then((d) => d.models || []).catch(() => [])]);
-      if (stale()) return;
-      P.models = models; if (dms) P.dms = dms;
-    } catch (err) { if (stale()) return; P.err = (/** @type {IntelError} */ (err)).status === 503 ? "The models can't be read right now." : (/** @type {IntelError} */ (err)).message; }
-    render();
   }
   /** A thread looks at continuing on `name`: its models there, read with a deadline (Default never waits). @param {string | null} name */
   function lookAt(name) {
@@ -139,11 +128,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     render();
     // the move view takes the runtime choice's place: focus goes to its first choice (a model, or Cancel while
     if (had && P.mv && !pop.contains(document.activeElement)) (pop.querySelector('[data-mvm][tabindex="0"]') || pop.querySelector("[data-mv-cancel]") || pop).focus({ preventScroll: true });
-    if (!P.mv || (/** @type {IntelMove} */ (P.mv)).models) return;
-    const mv = P.mv, mine = () => P.open && P.mv === mv;
-    const late = new Promise((_, no) => setTimeout(() => no(new Error("slow")), 20000));
-    Promise.race([catalog(name), late]).then((m) => { if (mine()) { mv.models = m; render(); } },
-      (err) => { if (mine()) { mv.modelsErr = (/** @type {IntelError} */ (err)).message === "slow" ? `${rtName(name)}'s models are slow to read; its default still works.` : `${rtName(name)}'s models can't be read now; its default still works.`; render(); } });
+    void reads.move(name);
   }
   function stepBack() {
     P.more = true;
@@ -152,7 +137,8 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   }
   /** opts.rt: open a thread's picker looking at continuing on that runtime (the thread menu's way in). @param {string} s @param {HTMLElement | null} anchor @param {{rt?: string}} [opts] */
   async function open(s, anchor, opts = {}) {
-    if (!live(s)) return;
+    if (!live(s) || reads.effects.signal.aborted) return;
+    reads.open();
     P.gen++;
     P.open = true; P.session = s; P.anchor = anchor; P.returnTo = /** @type {HTMLElement | null} */ (document.activeElement); P.err = null; P.models = null; P.busy = false; P.rt = null; P.mv = null; P.full = false; P.draft = null; P.more = false;
     P.saving = false;
@@ -168,13 +154,13 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
   function close({ restore = true, apply = true } = {}) {
     if (!P.open) return;
     if (apply && !P.mv && !P.saving) commit((/** @type {string} */ (P.session))); else P.draft = null;
-    P.req = (P.req || 0) + 1; // a read still in flight belongs to this opening only
+    reads.close();
     P.gen++; // and so does a save: its result won't close or change what opens next
     P.rt = null; P.mv = null;
     P.open = false;
     P.anchor?.setAttribute("aria-expanded", "false");
     if (RM.matches) pop.hidden = true;
-    else { pop.classList.add("is-out"); setTimeout(() => { if (!P.open) { pop.hidden = true; pop.classList.remove("is-out"); } }, 140); }
+    else { pop.classList.add("is-out"); reads.hide(() => { pop.hidden = true; pop.classList.remove("is-out"); }); }
     if (restore) (P.returnTo && P.returnTo.isConnected ? P.returnTo : P.anchor)?.focus?.({ preventScroll: true });
   }
 
@@ -191,7 +177,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       await patch(s, body);
       await world.act.refresh?.();
       onChange();
-      record(s, { text, undo: undoBody ? async () => { try { await patch(s, undoBody); await world.act.refresh?.(); onChange(); } catch (err) { record(s, { text: `Couldn't undo: ${(/** @type {IntelError} */ (err)).message}`, refused: true }); } } : null });
+      record(s, { text, undo: undoBody ? async () => { await patch(s, undoBody); await world.act.refresh?.(); onChange(); } : null });
       return true;
     } catch (err) {
       record(s, { text: `Nothing changed: ${(/** @type {IntelError} */ (err)).message}`, refused: true });
@@ -246,7 +232,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     const agent = id === "auto" ? null : id;
     P.busy = true; render();
     try {
-      // a model belongs to its runtime: a new runtime starts on its own default model. This is a write to the
+      // A new runtime starts on its own default model.
       await order(s, async () => {
         await api.patchChat(c.chatId, { agent, model: null, effort: null });
         if (pol0) await world.act.setPolicy(c.chatId, { ...pol0, default: agent });
@@ -257,8 +243,7 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
       record(s, {
         text: kind === "project" ? (agent ? `${who} runs on ${rtName(agent)}: its coordinator from its next pause, and its new threads` : `${who} is on Auto: its coordinator picks a runtime for each new thread`) : `The Workspace coordinator runs on ${rtName(agent)} from its next pause`,
         undo: async () => {
-          try { await api.patchChat(c.chatId, pin0); if (pol0) await world.act.setPolicy(c.chatId, pol0); await world.act.refresh?.(); onChange(); }
-          catch (err) { record(s, { text: `Couldn't undo: ${(/** @type {IntelError} */ (err)).message}`, refused: true }); }
+          await api.patchChat(c.chatId, pin0); if (pol0) await world.act.setPolicy(c.chatId, pol0); await world.act.refresh?.(); onChange();
         },
       });
     } catch (err) { record(s, { text: `Nothing changed: ${(/** @type {IntelError} */ (err)).message}`, refused: true }); }
@@ -288,13 +273,13 @@ export function createIntel({ world, PROJ, onChange, record, onMoved, simple = (
     }
   }
 
-  bindIntelInput(P, {
+  bindIntelInput(P, reads.effects, {
     pop, threadOf, deepPick, save, close, render, lookAt, setRuntime, stepBack, moveGo,
     pickMove, route, done, pickModel, pickEffort, place,
   });
 
   return {
-    current, chipHtml, chipTitle, open, close,
+    current, chipHtml, chipTitle, open, close, activate: reads.activate, dispose: reads.effects.dispose,
     routed: () => null, spawnSetup: () => null, set: () => {}, setRouting: () => {},
     get isOpen() { return P.open; },
     /** Did this tab continue that thread elsewhere (so the stream's frame for it needs no herald)? */

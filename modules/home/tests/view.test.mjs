@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { createPlaces } from "../../../core/kernel/places.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createHomeParts } from "../parts.js";
+import { createHomeSelection } from "../selection.js";
 import { thenHtml } from "../then.js";
 
-const { document } = await dom('<main id="home"></main>');
+const { document } = await dom('<main id="home"></main><button id="elsewhere">Other control</button>');
 /** @type {FrameRequestCallback[]} */
 const frames = [];
 Object.assign(globalThis, {
@@ -21,8 +22,7 @@ const needs = ["a", "b", "c", "d"].map((key) => ({
   t: { id: key, project: "project", title: key },
   ask: { kind: "question" },
 }));
-/** @type {{ view: string, pin: string | null }} */
-const S = { view: "home", pin: null };
+const selection = createHomeSelection();
 /** @type {string | null} */
 let panel = null;
 /** @type {string[]} */
@@ -39,12 +39,13 @@ places.contribute("home.section", {
   render(/** @type {HTMLElement} */ el) { el.textContent = "Since you left"; },
 }, "test");
 const { homeRender, nextDecide } = createHomeView({
-  S,
+  selection,
+  isCurrent: () => true,
   D: { current: () => panel, isOpen: () => !!panel, decideNow: (key) => { decided.push(key); return true; } },
   world: { state: { threads: [] } },
   Kit: { READ_MS: 300 },
   EFFORT: { think: { label: "Think" } },
-  homeParts: createHomeParts(S, { needItems: () => needs }, { isBinary: () => false }),
+  homeParts: createHomeParts(selection, () => needs, () => false),
   nextCardHtml: (need) => `<article class="next r-notable" data-key="${need.key}" tabindex="-1"></article>`,
   endRender() {},
   greeting: () => "Hello",
@@ -68,6 +69,15 @@ assert.equal(document.querySelector("[data-open-all]").textContent, "+1 more");
 assert.equal(document.querySelector("#hm-next .next").dataset.key, "a");
 assert.equal(document.querySelector("#hm-since").textContent, "Since you left");
 
+const elsewhere = document.getElementById("elsewhere");
+elsewhere.focus();
+selection.requestFocus();
+homeRender(needs);
+assert.ok(document.activeElement === document.querySelector("#hm-next .next"), "the next draw handles the focus request");
+elsewhere.focus();
+homeRender(needs);
+assert.ok(document.activeElement === elsewhere, "a used focus request cannot steal focus on the next draw");
+
 panel = "a";
 homeRender(needs);
 assert.equal(mounted, 1, "live renders leave mounted Home sections in place");
@@ -84,7 +94,7 @@ now = 1000;
 await nextDecide("allow");
 assert.deepEqual(decided, ["a"]);
 assert.equal(scheduled, 1);
-assert.equal(S.pin, null);
+assert.equal(selection.current(), null);
 while (frames.length) for (const frame of frames.splice(0)) frame(now);
 assert.ok(document.activeElement === document.querySelector("#hm-next .next"), "focus returns to the current card");
 

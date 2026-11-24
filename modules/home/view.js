@@ -11,12 +11,14 @@ import { thenHtml } from "./then.js";
 
 /** @import { HomeChoice, HomeViewDeps, HomeViewNeed } from "./view-types.d.ts" */
 
-/** @param {HomeViewDeps} options */
-export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today, num, noun, plural, isBusy, askTitle, PROJ, kernel, SV, announce, schedule }) {
+/** @template {HomeViewNeed} N @param {HomeViewDeps<N>} options */
+export function createHomeView(options) {
+  const { selection, isCurrent, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today } = options;
+  const { num, noun, plural, isBusy, askTitle, PROJ, kernel, SV, announce, schedule } = options;
   const built = new WeakSet(), busy = new WeakSet();
   let nextKey = /** @type {string | null} */ (null), nextSeen = 0;
 
-  /** @param {HomeViewNeed[]} needs */
+  /** @param {N[]} needs */
   function homeRender(needs) {
     const box = $("#home");
     if (!built.has(box)) {
@@ -52,8 +54,8 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
       const html = `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p>` + nextCardHtml(P0.next);
       if (redraw(nb, html) && changed) {
         const card = nb.querySelector(".next");
-        if (nextKey && !RM.matches) card.classList.add(S.pinAnim === "undo" ? "in-undo" : "in-next");
-        S.pinAnim = null;
+        const undo = selection.takeUndoAnimation();
+        if (nextKey && !RM.matches) card.classList.add(undo ? "in-undo" : "in-next");
       }
       nextKey = key;
     } else {
@@ -62,8 +64,7 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
       if (down) redraw(nb, `<div class="calm is-down"><div class="calm-mark">${XO}</div><h2>Can't reach XO.</h2><p>Retrying every few seconds. Nothing you write is lost; sending waits until it's back.</p></div>`);
       else redraw(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
     }
-    if (S.homeFocusNext || (nextHad && !nb.contains(document.activeElement))) {
-      S.homeFocusNext = false;
+    if (selection.takeFocus() || (nextHad && !nb.contains(document.activeElement))) {
       const nc = nb.querySelector(".next");
       if (nc) nc.focus({ preventScroll: true }); else { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
     }
@@ -87,9 +88,12 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
     card.focus({ preventScroll: true });
     if (!D.decideNow(key, choice, note)) { busy.delete(card); return; }
     if (!RM.matches) { card.classList.add(choice === "deny" ? "st-back" : "st-allow"); await wait(choice === "deny" ? 260 : 300); }
-    S.pin = null;
+    selection.select(null);
     schedule();
-    requestAnimationFrame(() => requestAnimationFrame(() => { const nc = $("#hm-next .next"); if (nc && S.view === "home" && !D.isOpen()) nc.focus({ preventScroll: true }); }));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const control = $("#hm-next .next");
+      if (control && isCurrent() && !D.isOpen()) control.focus({ preventScroll: true });
+    }));
   }
 
   return { homeRender, nextDecide };

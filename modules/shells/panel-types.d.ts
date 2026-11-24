@@ -8,7 +8,7 @@ interface ShellThread {
 }
 
 export interface ShellPanelDeps {
-  S: { view: string };
+  view: () => string;
   STAGE: { isShell: boolean; shellOff: () => void };
   SH: ReturnType<typeof createShellOpeners> & {
     enabled: boolean;

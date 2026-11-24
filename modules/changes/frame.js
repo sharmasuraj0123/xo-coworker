@@ -188,7 +188,7 @@ export function createChangesFrame({ host, changes, view, openFile, onChange }) 
 
     // a long list draws its first SHOWN rows (and the chosen one); the rest on asking.
     const rows = st.all || files.length <= SHOWN ? files : files.filter((f, i) => i < SHOWN || f.path === st.sel);
-    const all = "data" in c && c.data && c.data.total_files > files.length ? c.data.total_files : files.length;
+    const all = Math.max(files.length, "data" in c ? c.data?.total_files ?? 0 : 0);
     const more = all - rows.length;
     set("list", list, rows.map((f) => rowHtml(f, act.live)).join("") +
       (more > 0 ? `<li role="presentation"><button type="button" class="cx-more"${rows.length < files.length ? " data-cx-all" : " disabled"}>${rows.length < files.length ? `${(files.length - rows.length).toLocaleString()} more files · Show them` : `${more.toLocaleString()} more files, too many to list here`}</button></li>` : ""));

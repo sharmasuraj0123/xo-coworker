@@ -6,10 +6,10 @@ export interface MapThread {
   title: string;
   project: string;
   state: string;
-  sessionId?: string;
+  sessionId?: string | null;
   held?: Hold;
-  worktree?: string;
-  cwd?: string;
+  worktree?: string | null;
+  cwd?: string | null;
 }
 
 export interface MapStep extends ActivityRow {

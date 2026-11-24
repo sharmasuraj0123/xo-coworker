@@ -1,12 +1,6 @@
 import type { RunsState } from "./controller-types";
 import type { Ancestry, Run, RunCounts, TranscriptItem } from "./types";
 
-export interface RunError extends Error {
-  code?: string;
-  summary?: string;
-  status?: number;
-}
-
 export interface RunsReadDeps {
   RS: RunsState & {
     gen: number;
@@ -19,16 +13,20 @@ export interface RunsReadDeps {
     loading: boolean;
     error: string | null;
     gone: string | null;
-    pollT: ReturnType<typeof setTimeout> | null;
   };
   world: {
     state: { runs: Map<string, Run> };
     act: {
-      listRuns(session: string): Promise<{ runs?: Run[]; counts?: RunCounts }>;
-      run(id: string): Promise<Run & { ancestry?: Ancestry }>;
-      transcript(id: string, cursor: string | null): Promise<{ items?: TranscriptItem[]; next?: string | null }>;
+      listRuns(session: string, options?: ReadOptions): Promise<{ runs?: Run[]; counts?: RunCounts }>;
+      run(id: string, options?: ReadOptions): Promise<Run & { ancestry?: Ancestry }>;
+      transcript(id: string, cursor: string | null, options?: ReadOptions): Promise<{ items?: TranscriptItem[]; next?: string | null }>;
     };
   };
   STAGE: { repaint: () => void };
   runsRender: () => void;
+  scope: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+}
+
+interface ReadOptions {
+  signal: AbortSignal;
 }

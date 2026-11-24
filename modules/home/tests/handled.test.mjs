@@ -8,8 +8,7 @@ const { createHandled } = await import("../handled.js");
 
 const working = [{ project: "project", id: "thread", title: "Thread", checklist: { items: [{ state: "doing", text: "Checking the change" }], done: 1, total: 2 } }];
 const parts = { held: [{ key: "waiting", t: { project: "project" }, heldWhy: "Waiting for memory" }] };
-const { endRender, setHandled } = createHandled({
-  S: { handledOpen: false },
+const { endRender, toggleHandled } = createHandled({
   world: { state: { threads: working } },
   homeParts: () => parts,
   isBusy: () => true,
@@ -26,7 +25,7 @@ assert.equal(button.getAttribute("aria-expanded"), "false");
 assert.equal(body.hidden, true);
 assert.match(button.textContent, /one working · one can wait/);
 
-setHandled(true);
+toggleHandled();
 assert.equal(button.getAttribute("aria-expanded"), "true");
 assert.equal(body.hidden, false);
 const row = body.querySelector('[data-go="t:thread"]');
@@ -35,6 +34,6 @@ assert.equal(row.querySelector(".mini").getAttribute("aria-label"), "1 of 2");
 assert.equal(body.querySelector('[data-bring-in="waiting"]').textContent, "Bring in");
 endRender(parts, working);
 assert.ok(body.querySelector('[data-go="t:thread"]') === row, "a live render keeps the row in place");
-setHandled(false);
+toggleHandled();
 assert.equal(button.getAttribute("aria-expanded"), "false");
 assert.equal(body.hidden, true);

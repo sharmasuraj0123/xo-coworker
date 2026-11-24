@@ -6,7 +6,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 
 /** @import { Evidence, NextCardDeps, NextCardNeed } from "./next-card-types.d.ts" */
 
-/** @param {NextCardDeps} options */
+/** @template {NextCardNeed} N @param {NextCardDeps<N>} options */
 export function createNextCard({ D, Kit, evidenceFor, PROJ, convOfChat }) {
   /** @param {string} o @param {number} i @param {Evidence} ev */
   function optHtml(o, i, ev) {
@@ -14,7 +14,7 @@ export function createNextCard({ D, Kit, evidenceFor, PROJ, convOfChat }) {
     return `<button type="button" class="b b-opt${pv ? " has-pv" : ""}" data-fid="opt${i}" data-nx-opt="${i}" title="Answer “${esc(o)}”">${pv ? `<span class="o-pv" aria-hidden="true"><span class="o-s" style="${esc(pv.css)}">${esc(pv.sample || o)}</span></span>` : ""}<span class="o-l">${esc(o)}</span></button>`;
   }
 
-  /** @param {NextCardNeed} n */
+  /** @param {N} n */
   function nextActHtml(n) {
     const a = n.ask;
     const binary = Kit.isBinary(a);
@@ -39,7 +39,7 @@ export function createNextCard({ D, Kit, evidenceFor, PROJ, convOfChat }) {
     return html;
   }
 
-  /** @param {NextCardNeed} n */
+  /** @param {N} n */
   return function nextCardHtml(n) {
     const t = n.t, P = D.parts;
     const where = t.host

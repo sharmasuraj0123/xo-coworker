@@ -44,7 +44,7 @@ export async function createDialog() {
   const { initCreate } = await import("../create.js");
   const ctx = {
     world: { state: { projects: [] }, act: { refresh: async () => {} } },
-    S: { desc: {}, local: {}, n: 0 }, go: () => {}, heraldShow: (h) => heralds.push(h), announce: (s) => said.push(s), setDrawer: () => {}, onPhoneClose: () => {},
+    welcome() {}, go: () => {}, heraldShow: (h) => heralds.push(h), announce: (s) => said.push(s), setDrawer: () => {}, onPhoneClose: () => {},
   };
   const C = initCreate(ctx);
   retire = async () => {

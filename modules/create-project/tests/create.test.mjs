@@ -1,8 +1,6 @@
 // The new-project dialog: what the Repository field means (as Space reads it) and the folder a name makes; pure, no network.
 import assert from "node:assert/strict";
-
-globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { parseRepo, slugify } = await import("../create.js");
+import { parseRepo, slugify } from "../project-input.js";
 
 let passed = 0;
 const t = (name, fn) => {

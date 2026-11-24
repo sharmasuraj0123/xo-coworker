@@ -40,7 +40,7 @@ export interface SettingsWorld {
   act: {
     setPolicy(chat: null, policy: RuntimePolicy): Promise<unknown>;
     setPaid(scope: string, pool: string, value: string | null): Promise<unknown>;
-    loadRuntimes(): Promise<unknown>;
+    loadRuntimes(): Promise<unknown> | null;
     loadPolicies?(): Promise<unknown>;
     loadPaid?(): Promise<unknown>;
   };

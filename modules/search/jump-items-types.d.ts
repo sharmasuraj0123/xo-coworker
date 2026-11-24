@@ -1,4 +1,4 @@
-export interface JumpThread { id: string; title: string }
+export interface JumpThread { id: string; title: string; state: string }
 export interface JumpItemsDeps {
   D: { needItems: () => { t: { id: string; project: string }; admitted?: boolean; later?: boolean }[] };
   projects: () => { id: string; name: string }[];

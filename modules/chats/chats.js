@@ -20,7 +20,7 @@ import { createScope } from "../../core/kernel/scope.js";
 const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
 
 /** @param {Session} a @param {Session} b */
-const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at);
+const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at || "") - Date.parse(a.updated_at || a.created_at || "");
 /** @param {ChatDeps} deps @param {Conversation} conversation */
 export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
   const scope = createScope();
@@ -69,7 +69,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   /** What a gate holds this chat for (the usage limit…), or null: it waits, nothing runs. @param {Session | null} s */
   const heldOf = (s) => (s && s.state === "queued" && world.act.sessionHeld ? world.act.sessionHeld(s.id) : null);
   /** A turn in progress: its status says so, or it says queued and the stream has seen it work since. @param {Session | null} s */
-  const inTurn = (s) => !!s && (BUSY.has(s.state) || (s.state === "queued" && !!(world.act.onTurn && world.act.onTurn(s.id))));
+  const inTurn = (s) => !!s?.state && (BUSY.has(s.state) || (s.state === "queued" && !!(world.act.onTurn && world.act.onTurn(s.id))));
 
   scope.effect(() => world.subscribe?.(() => {
     titleList.noteSessions();
@@ -282,7 +282,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   return {
     dispose: scope.dispose, leaveList: titleList.stop,
     /** @param {string} v */
-    isChats: (v) => v === "chats" || (v && v.startsWith("c:")),
+    isChats: (v) => v === "chats" || v?.startsWith("c:") === true,
     /** @param {string} v */
     open(v) { if (v === "chats") loadList(); else if (v.startsWith("c:")) loadChat(v.slice(2)); },
     /** @param {string} v */

@@ -4,12 +4,12 @@ import * as K from "../../core/platform/keys.js";
 
 /** @import { InputOptions, IntelMove, IntelPop, IntelState, IntelTarget } from "./intel-types.js" */
 
-/** @param {IntelState} P @param {InputOptions} options */
-export function bindIntelInput(P, {
+/** @param {IntelState} P @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope @param {InputOptions} options */
+export function bindIntelInput(P, scope, {
   pop, threadOf, deepPick, save, close, render, lookAt, setRuntime, stepBack, moveGo,
   pickMove, route, done, pickModel, pickEffort, place,
 }) {
-  pop.addEventListener("click", /** @type {(event: MouseEvent) => void} */ ((/** @type {MouseEvent & {target: IntelTarget}} */ e) => {
+  scope.listen(pop, "click", /** @type {EventListener} */ ((/** @type {MouseEvent & {target: IntelTarget}} */ e) => {
     const sm = e.target.closest("[data-lsimple]");
     if (sm) {
       if (sm.getAttribute("aria-disabled") === "true" || sm.getAttribute("aria-checked") === "true") return;
@@ -47,7 +47,7 @@ export function bindIntelInput(P, {
     if (de && (waiting || P.saving)) return;
     if (de) { pickEffort(de.dataset.deffort); pop.querySelector(`[data-deffort="${CSS.escape(de.dataset.deffort)}"]`)?.focus({ preventScroll: true }); }
   }));
-  pop.addEventListener("keydown", /** @type {(event: KeyboardEvent) => void} */ ((/** @type {KeyboardEvent & {target: IntelTarget}} */ e) => {
+  scope.listen(pop, "keydown", /** @type {EventListener} */ ((/** @type {KeyboardEvent & {target: IntelTarget}} */ e) => {
     if (e.key === "Tab") {
       const f = [...pop.querySelectorAll('button:not([disabled]),[tabindex="0"]')].filter((x) => x.offsetParent);
       const i = (/** @type {Element[]} */ (f)).indexOf(/** @type {Element} */ (document.activeElement));
@@ -96,7 +96,7 @@ export function bindIntelInput(P, {
     // Esc steps back out of continuing elsewhere first, then closes
     if (P.mv && !P.mv.busy) stepBack(); else if (!(P.mv && P.mv.busy)) close({ apply: false });
   }));
-  document.addEventListener("pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains((/** @type {Node} */ (e.target))) && !P.anchor?.contains((/** @type {Node} */ (e.target)))) close({ restore: false }); });
-  addEventListener("resize", () => { if (P.open) place(); });
+  scope.listen(document, "pointerdown", (e) => { if (P.open && !(P.mv && P.mv.busy) && !pop.contains((/** @type {Node} */ (e.target))) && !P.anchor?.contains((/** @type {Node} */ (e.target)))) close({ restore: false }); });
+  scope.listen(window, "resize", () => { if (P.open) place(); });
 
 }

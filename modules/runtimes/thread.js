@@ -3,13 +3,13 @@ import { esc } from "../../core/platform/util.js";
 import { rtName, rtMark, manyRuntimes, findRt, healthOf, canMove, untilWords } from "../../core/services/runtimes.js";
 import { heldClock } from "../../core/services/world/held.js";
 
-/** @import { RuntimeThread, ThreadRuntimeDeps } from "./thread-types.d.ts" */
+/** @import { AgentThread, RuntimeThread, ThreadRuntimeDeps } from "./thread-types.d.ts" */
 
 /** @param {ThreadRuntimeDeps} options */
 export function createThreadRuntime({ world, SHAPE, isHeld }) {
-  /** @param {RuntimeThread | null | undefined} t */
+  /** @param {AgentThread | null | undefined} t */
   const agentOf = (t) => (t && ((t.session && t.session.agent) || (t.sessionId && world.state.sessions[t.sessionId]?.agent))) || null;
-  /** @param {RuntimeThread} t @param {Parameters<typeof rtMark>[1]} [opts] */
+  /** @param {AgentThread} t @param {Parameters<typeof rtMark>[1]} [opts] */
   const threadMark = (t, opts) => { const a = agentOf(t); return a && manyRuntimes(world.state.runtimes) ? rtMark(a, opts) || "" : ""; };
   /** @type {Record<string, string>} */
   const RT_EFFORT = { low: "Quick", medium: "Balanced", high: "Deep", xhigh: "Deeper", max: "Deepest" };
@@ -43,7 +43,7 @@ export function createThreadRuntime({ world, SHAPE, isHeld }) {
     return cls === "ar" ? `<span class="ar-r${warn}" title="${esc(tip)}">${rtMark(agent) || esc(rtName(agent))}<span aria-hidden="true"> · </span></span>`
       : `<button type="button" class="tw-rt${warn}" data-set-open="runtimes" title="${esc(tip)}" aria-label="${esc(tip)} Open Runtimes in Settings.">${rtMark(agent, { withName: true }) || esc(rtName(agent))}</button>`;
   }
-  /** @param {RuntimeThread | null | undefined} t */
+  /** @param {AgentThread | null | undefined} t */
   const sendWhileRunning = (t) => {
     const rt = findRt(world.state.runtimes, agentOf(t)); const f = rt && rt.features && rt.features.features && rt.features.features.send_while_running;
     return (f && f.behaviour) || null;

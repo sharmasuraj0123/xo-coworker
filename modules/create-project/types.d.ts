@@ -1,7 +1,7 @@
 export interface Repo { url: string; label: string; name: string | undefined; github: boolean }
 export interface CreateCtx {
   world: { act: { refresh(): Promise<unknown> }; state: { projects: { id: string }[] } };
-  S: { desc: Record<string, string>; local: Record<string, object[]>; n: number };
+  welcome(id: string, description: string, text: string): void;
   go: (view: string, o?: { focus?: boolean }) => void;
   heraldShow: (notice: object, ms?: number) => void;
   announce: (text: string) => void;

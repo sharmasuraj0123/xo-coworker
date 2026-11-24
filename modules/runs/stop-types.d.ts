@@ -4,17 +4,8 @@ export interface RunStopResult {
   stopping?: unknown;
 }
 
-interface PendingRunStop {
-  what: string;
-  key: string;
-  session: string | null;
-  until: number;
-  cancelled: boolean;
-  sent: boolean;
-}
-
 export interface RunsStopOptions {
-  pendingStops: PendingRunStop[];
+  pendingStops: ReturnType<typeof import("../../core/services/run-stops.js").createPendingRunStops>;
   stopsOut: Set<string>;
   stopsHerald(): void;
   runsRender(): void;
@@ -22,4 +13,5 @@ export interface RunsStopOptions {
   heraldShow(notice: Omit<Said, "key">, duration: number): void;
   readRunsList(session: string | null): Promise<boolean>;
   commitMs: number;
+  scope: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
 }

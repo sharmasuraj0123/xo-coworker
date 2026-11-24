@@ -1,14 +1,12 @@
-import type { Feature, Runtime as PickerRuntime, SetupState } from "./setup-types";
+import type { SetupState } from "./setup-types";
 import type { Sent } from "../../core/services/storm/types.d.ts";
-
-export interface Runtime extends PickerRuntime {
-  features?: { features?: Record<string, Feature & { behaviour?: string }> };
-}
+import type { Runtime } from "../../core/services/runtime-types.d.ts";
+export type { Runtime } from "../../core/services/runtime-types.d.ts";
 export interface Session {
   id: string;
-  role: string;
-  state: string;
-  created_at: string;
+  role?: string;
+  state?: string;
+  created_at?: string;
   updated_at?: string;
   retired_at?: string | null;
   native_id?: string | null;
@@ -53,16 +51,16 @@ export interface History {
 }
 
 interface Held { for?: string; until?: string }
-interface Turn { id: string; session: string; status?: string; started_at?: string; trigger?: unknown }
+type Turns = import("../../core/services/types.d.ts").Turns;
 interface World {
   state: {
     sessions: Record<string, Session>;
-    runtimes?: Runtime[];
+    runtimes?: Runtime[] | null;
     projects: { id: string; name: string; kind: string }[];
-    turns?: { list: (predicate: (turn: Turn) => boolean) => Turn[]; blocksOf: (turn: Turn) => unknown[] };
+    turns?: Turns;
   };
   ui?: { tbOpen?: Record<string, boolean> };
-  project: (path: string) => { name?: string } | null;
+  project: (path: string) => { name?: string } | null | undefined;
   subscribe?: (callback: () => void) => (() => void) | void;
   onEvent: (callback: (event: { kind: string; session?: string; wakes?: string[] }) => void) => (() => void) | void;
   act: {
@@ -73,7 +71,7 @@ interface World {
     onTurn?: (id: string) => boolean;
     takeTrimmed?: (id: string) => boolean;
     loadTurns?: (id: string) => unknown;
-    agentHeld?: (id: string | null) => boolean;
+    agentHeld?: (id: string | null) => ReturnType<typeof import("../../core/services/world/sessions.js").heldOf>;
   };
 }
 export interface ChatDeps {
@@ -85,7 +83,7 @@ export interface ChatDeps {
   view?: () => string;
   listRoot?: Element;
   transcriptOpen?: () => Readonly<Record<string, boolean>>;
-  restore?: (text: string, options?: { force: boolean }) => boolean;
+  restore?: (text: string, options?: { force?: boolean }) => boolean;
 }
 export interface Conversation {
   turnHtml: (turn: Turn, blocks: unknown[], options: { open?: Record<string, boolean> }) => string;
