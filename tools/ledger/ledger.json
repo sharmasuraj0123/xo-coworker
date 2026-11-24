@@ -7409,20 +7409,20 @@
    "home": "modules/composer (+ chats provides target/send-now via places) (app.js l.2428)"
   },
   "js/app.js::functions::stopLive": {
-   "status": "planned",
-   "home": "core/services stops (shared by composer, runs, thread menu) (app.js l.2441)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::stopsHerald": {
-   "status": "planned",
-   "home": "core/services stops (shared by composer, runs, thread menu) (app.js l.2493)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::stopRun": {
-   "status": "planned",
-   "home": "modules/runs (shares the \"pending stops\" herald with composer stop: core/services stops) (app.js l.1650)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::interruptRun": {
-   "status": "planned",
-   "home": "core/services stops (shared by composer, runs, thread menu) (app.js l.2516)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::lift": {
    "status": "planned",

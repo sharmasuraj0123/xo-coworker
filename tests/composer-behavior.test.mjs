@@ -9,6 +9,7 @@ const storage = new Map([["cv-drafts:live", JSON.stringify({ ws: "Workspace draf
 const posts = [];
 const stops = [];
 const uploads = [];
+const thread = { ts: "thread-1", chat_id: "chat-demo", title: "Composer fixture", state: "working" };
 const timers = [];
 let phone = false;
 const frames = new Map();
@@ -43,7 +44,7 @@ Object.assign(globalThis, {
     setRequestHeader() {}
     send() { uploads.at(-1).complete = () => this.onload(); }
   },
-  matchMedia: (query) => ({ get matches() { return query === "(max-width: 760px)" && phone; }, addEventListener() {}, removeEventListener() {} }),
+  matchMedia: (query) => ({ get matches() { return query === "(prefers-reduced-motion: reduce)" || (query === "(max-width: 760px)" && phone); }, addEventListener() {}, removeEventListener() {} }),
   requestAnimationFrame: (fn) => { frames.set(++frameId, fn); return frameId; },
   cancelAnimationFrame: (id) => frames.delete(id),
   setInterval: (fn, ms) => interval(fn, ms).unref(),
@@ -54,7 +55,9 @@ Object.assign(globalThis, {
   fetch: async (input, options) => {
     const path = new URL(String(input), location.href).pathname;
     if (path === "/api/chat/stream") return new Response(stream, { headers: { "content-type": "text/event-stream" } });
-    if (path === "/api/chat/chats") return Response.json({ chats: [{ kind: "workspace", id: "chat-ws" }] });
+    if (path === "/api/chat/chats") return Response.json({ chats: [{ kind: "workspace", id: "chat-ws" }, { kind: "project", id: "chat-demo", project: "demo" }] });
+    if (path === "/api/chat/chats/chat-demo/threads") return Response.json({ threads: [thread] });
+    if (path === "/api/chat/chats/chat-demo/threads/thread-1") return Response.json(thread);
     if (path === "/api/chat/sessions") return Response.json({ sessions: [{ id: "session-ws", chat_id: "chat-ws", role: "workspace-coordinator", state: "running" }] });
     if (path === "/api/chat/active") return Response.json({ turns: [{ turn_id: "turn-ws", session_id: "session-ws", chat_id: "chat-ws" }] });
     if (path === "/api/chat/abort") {
@@ -84,8 +87,9 @@ function element(selector) {
   assert.ok(node, selector);
   return node;
 }
-function press(selector) {
-  element(selector).dispatchEvent(new window.Event("click", { bubbles: true, cancelable: true }));
+function press(selector, pointerType = "mouse") {
+  const event = new window.Event("click", { bubbles: true, cancelable: true });
+  element(selector).dispatchEvent(Object.assign(event, { pointerType }));
 }
 function submit() {
   element("#composer").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
@@ -162,6 +166,31 @@ await draw();
 assert.deepEqual(stops, [], "Stop waits for its Undo window");
 assert.equal(element("[data-herald-undo]").textContent, "Undo");
 assert.equal(timers.length, beforeStop + 1);
+press("[data-herald-undo]");
+await timers.at(-1)();
+await draw();
+assert.deepEqual(stops, [], "Undo cancels the pending Stop");
+
+submit();
+await draw();
+assert.equal(timers.length, beforeStop + 2);
 await timers.at(-1)();
 await draw();
 assert.deepEqual(stops, [{ session_id: "session-ws" }]);
+
+phone = false;
+globalThis.innerWidth = 1440;
+press('#side [data-go="p:demo"]');
+press("[data-stage-open]");
+press('#stage [data-go="t:thread-1"]');
+await draw();
+await draw();
+assert.ok(document.activeElement === element("#tsay"), "desktop panel entry focuses its composer");
+press("[data-stg-sections]");
+phone = true;
+globalThis.innerWidth = 390;
+press("[data-stage-open]", "touch");
+press('#stage [data-go="t:thread-1"]', "touch");
+await draw();
+await draw();
+assert.ok(document.activeElement === element("#tsay"), "touch panel entry currently focuses its composer");
