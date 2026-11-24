@@ -2538,13 +2538,7 @@
   },
   "js/decide.js": {
    "status": "split",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ]
+   "home": ["js/decide.js", "modules/decisions/controller.js", "modules/decisions/queue.js", "modules/decisions/needs.js", "modules/decisions/card.js", "modules/decisions/card-events.js", "modules/decisions/panel-view.js", "modules/decisions/keyboard.js", "modules/decisions/toast.js"]
   },
   "js/diffthemes.js": {
    "status": "moved",
@@ -8548,26 +8542,12 @@
    "home": "modules/decisions/needs.js"
   },
   "js/decide.js::exports::createDecisions": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/controller.js"
   },
   "js/decide.js::functions::createDecisions": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/controller.js"
   },
   "js/decide.js::ids::card": {
    "status": "moved",

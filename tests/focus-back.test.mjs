@@ -22,7 +22,8 @@ await t("one helper says a control can take focus: no file keeps its own copy", 
   assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
   const copies = sourcePaths(".js").filter((f) => f !== "core/ui/a11y/focus.js" && /closest\("\[inert\], \[hidden\]"\)/.test(readSource(f)));
   assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
-  for (const f of ["app.js", "decide.js"]) assert.match(read(`js/${f}`), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/, `${f} takes it from focusview.js`);
+  assert.match(read("js/app.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\/focusview\.js";/);
+  assert.match(read("modules/decisions/controller.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/);
   assert.match(read("modules/files/viewer.js"), /import \{ usable \} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/);
   assert.match(read("modules/create-project/create.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/, "create.js takes it from core/ui");
   assert.match(read("shell/panel/panel.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/, "the panel takes it from core/ui");
@@ -41,9 +42,9 @@ await t("hookOf names a control so the redraw's copy is found: its id, else its 
 });
 
 await t("the decisions panel's close: its opener now if it's here, else the same control in the next draw, else the place", () => {
-  const d = read("js/decide.js");
+  const d = read("modules/decisions/controller.js");
   const close = d.slice(d.indexOf("function close({ restore = true } = {})"), d.indexOf("function sync()"));
-  assert.match(close, /if \(restore && was\) \{ if \(usable\(r\)\) r\.focus\(\{ preventScroll: true \}\); else back && back\(\[hookOf\(r\)\]\.filter\(Boolean\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
+  assert.match(close, /if \(restore && was\) \{ if \(usable\(r\)\)[^\n]+r\)\)\.focus\(\{ preventScroll: true \}\); else back && back\([^\n]+\[hookOf\(r\)\]\.filter\(Boolean\)\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
   assert.doesNotMatch(close, /r\.isConnected && r !== document\.body\) r\.focus/, "not a node that may be gone");
   assert.match(d, /export function createDecisions\(\{[^}]*\bback\b/);
   const app = read("js/app.js");

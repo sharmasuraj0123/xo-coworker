@@ -5,7 +5,7 @@ import { createKernel } from "../core/kernel/index.js";
 import { stackLayers } from "../shell/layers.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("js/app.js"), dec = read("js/decide.js"), vw = read("modules/files/viewer.js");
+const app = read("js/app.js"), dec = read("modules/decisions/controller.js"), vw = read("modules/files/viewer.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 

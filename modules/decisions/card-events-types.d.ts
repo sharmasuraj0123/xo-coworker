@@ -1,4 +1,4 @@
-import type { CardNeed as RenderedNeed } from "./card-types.d.ts";
+import type { CardNeed as RenderedNeed, ScopeParts } from "./card-types.d.ts";
 import type { holdButton } from "./kit.js";
 
 type Hold = ReturnType<typeof holdButton>;
@@ -10,6 +10,7 @@ export type CardChoice = "allow" | "deny" | {
   answers?: Record<string, string | string[]>;
   name?: string;
   resolve?: boolean;
+  scope?: ScopeParts["scopes"][number];
 };
 
 export type CardSurface = {
