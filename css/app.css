@@ -100,14 +100,6 @@
   .vw-sub span:first-of-type::before{content:none}
 }
 
-:root{(1100px 520px at 10% -12%,rgba(var(--accent-rgb),.07),transparent 62%),
-    radial-gradient(900px 600px at 96% -16%,color-mix(in srgb,var(--info) 9%,transparent),transparent 62%);
-
-}
-:root[data-theme="light"]{(1100px 520px at 10% -12%,rgba(var(--accent-rgb),.045),transparent 62%),
-    radial-gradient(900px 600px at 96% -16%,color-mix(in srgb,var(--info) 5%,transparent),transparent 62%);
-
-}
 .settings{background:var(--canvas)}
 :is(.card,.next,.dock-fold).r-notable{--state:var(--warn)}
 :is(.card,.next,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
