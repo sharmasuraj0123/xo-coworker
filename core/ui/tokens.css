@@ -32,17 +32,16 @@
   --row-line:rgba(255,255,255,.05); --row-line-hover:rgba(255,255,255,.09); --row-hi:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.035);
   /* frosted bars and toasts */
   --herald-bg:rgba(27,27,27,.9); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
-  --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.35); --comp-hi:rgba(255,255,255,.04);
+  --comp-bg:var(--float); --line-composer-focus:var(--line-strong);
   /* Floating surfaces pair a contact shadow with a short ambient shadow. */
-  --e1:none;
   --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
   --edge-sidebar-active:rgba(var(--black-rgb),.06); --shadow-switch-track:inset 0 0 0 var(--hair) var(--sb-line);
   --fill-switch-knob:var(--ink-2); --ink-switch-knob:var(--sb-side); --shadow-switch-knob:none;
-  --e-composer-idle:0 1px 2px rgba(var(--black-rgb),.04),0 3px 10px -4px rgba(var(--black-rgb),.07);
-  --e-composer-focused:0 1px 2px rgba(var(--black-rgb),.05),0 4px 14px -6px rgba(var(--black-rgb),.1);
+  --e-composer-idle:0 8px 24px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.04) inset; --e-composer-focused:var(--e-composer-idle);
+  --e-composer-compact:0 2px 10px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.04) inset;
   --dot-map-core:1px; --dot-map-feather:1.2px; --blur-map-label:3px;
   --fill-map-canvas:var(--fill-1); --edge-map-canvas:var(--line-faint); --ink-map-grid:var(--fill-3); --ink-map-connection:var(--ink-5);
-  --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24); --shadow-md:var(--e2); --shadow-lg:var(--e2);
+  --e1:none; --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24); --shadow-md:var(--e2); --shadow-lg:var(--e2);
   --fill-tool-output:var(--surface); --edge-tool-output:var(--line-faint); --edge-empty-state:var(--line-faint);
   --edge-home-handled:var(--line-faint); --fill-home-handled-badge:rgba(var(--accent-rgb),.12); --shadow-empty-state:none;
   --fill-home-handled-hover:color-mix(in srgb,var(--ink) 7%,var(--surface));
@@ -218,7 +217,9 @@
   --row-bg:rgba(255,255,255,.5); --row-bg-hover:rgba(255,255,255,.85); --row-on:#FFFFFF;
   --row-line:rgba(0,0,0,.05); --row-line-hover:rgba(0,0,0,.09); --row-hi:transparent; --row-hover:rgba(0,0,0,.04);
   --herald-bg:rgba(255,255,255,.92); --toast-bg:rgba(28,28,28,.96); --stamp-bg:rgba(255,255,255,.95);
-  --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.05); --comp-hi:transparent;
+  --e-composer-idle:0 1px 2px rgba(var(--black-rgb),.04),0 3px 10px -4px rgba(var(--black-rgb),.07);
+  --e-composer-focused:0 1px 2px rgba(var(--black-rgb),.05),0 4px 14px -6px rgba(var(--black-rgb),.1);
+  --e-composer-compact:var(--e-composer-idle); --line-composer-focus:var(--line-hover);
   --e2:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.10);
   --lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02);
   --lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08);
@@ -226,8 +227,7 @@
   --shadow-md:var(--lift-2); --shadow-lg:var(--lift-3);
   --fill-tool-output:var(--fill-1); --edge-tool-output:var(--line-soft);
   --edge-home-handled:var(--line-soft); --edge-empty-state:var(--line-soft); --shadow-empty-state:var(--lift-1);
-  --hairline:0 0 #0000;
-  --scrim:rgba(18,18,18,.16); --sha:.28;
+  --hairline:0 0 #0000; --scrim:rgba(18,18,18,.16); --sha:.28;
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 7%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 10%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 13%,transparent);
   --danger-fill:color-mix(in srgb,var(--err-ink) 10%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 15%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 20%,transparent);

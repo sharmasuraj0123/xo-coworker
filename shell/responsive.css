@@ -63,7 +63,7 @@
   .wsh-stats>div+div{padding-left:12px}
   .cbar{padding:var(--cbar-fade) 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--canvas) 26px)}
   .herald{left:var(--gut-min);right:var(--gut-min)}
-  .composer{box-shadow:0 2px 10px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+  .composer{box-shadow:var(--e-composer-compact)}
   /* The dock notice aligns with the viewport gutter on phones. */
   .dock>.herald{margin-left:0;margin-right:0}
   .target .muted{display:none}

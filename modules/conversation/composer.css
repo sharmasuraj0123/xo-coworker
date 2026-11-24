@@ -44,7 +44,9 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .hr-ev .hr-ic .tk{animation-delay:var(--dur-fast)}
 .hr-ev.k-sent .hr-t{color:var(--ink-2)}
 
-.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+.composer{position:relative;display:grid;grid-template-columns:minmax(0,1fr);width:var(--col-w);margin-left:var(--col-x);
+  padding:calc(var(--comp-in) + var(--s-1) - 1px) calc(var(--comp-in) - 1px) calc(var(--comp-in) - 1px);
+  border:1px solid transparent;border-radius:var(--r-card);background:var(--comp-bg);box-shadow:var(--e-composer-idle)}
 
 /* the lines a message is about, above the composer's field (Ask about this, from a file) */
 .cref{display:flex;align-items:center;gap:4px;padding:8px 8px 0 12px}
@@ -54,7 +56,7 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .cref-x:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
 .cref-x svg{width:var(--ic-sm);height:var(--ic-sm)}
 .cref-x:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
-.composer:focus-within{border-color:var(--line-strong);box-shadow:0 8px 24px var(--comp-shadow),0 1px 0 var(--comp-hi) inset}
+.composer:focus-within{border-color:var(--line-composer-focus);box-shadow:var(--e-composer-focused)}
 /* attach and Send are --comp-ctl circles --comp-in from the edge (concentric with --r-card); the text starts on the paperclip's glyph */
 .composer-field{position:relative;padding-left:calc((var(--comp-ctl) - var(--ic)) / 2)}
 /* #14: no scrollbar; it grows with what you write */
@@ -85,18 +87,18 @@ button.hr:hover .hr-go{background:var(--btn-fill-hover)}
 .send.is-stop{--stop:var(--fill-4);--ring-in:var(--focus);background:var(--stop);color:var(--ink)}
 :root[data-theme="light"] .send.is-stop{--stop:var(--fill-3)}
 .send.is-stop:hover{background:color-mix(in srgb,var(--ink) 9%,var(--stop))}
-/* the owner's stop is a 12 square on its 24 grid: drawn at --ic-lg it is a 10 px square in the 40 disc */
+/* The stop glyph renders as a 10 px square in the large control. */
 .send.is-stop svg{width:var(--ic-lg);height:var(--ic-lg)}
 .send.fired{animation:fire var(--d-move) var(--ease)}
 @keyframes fire{from{transform:scale(.9)}}
 /* the @ list: the composer popovers' list height, its own scroll, never past the top bar (app.js sets --at-room) */
 .at-list{max-height:min(var(--pop-list-h),var(--at-room,100dvh) - var(--h-bar) - var(--s-3));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;position:absolute;left:calc(-1 * var(--halo));bottom:100%;margin-bottom:var(--s-3);z-index:6;list-style:none;min-width:260px;--nest-r:var(--r-lg);--nest-in:7px;padding:6px;border-radius:var(--nest-r);border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-lg);animation:msg-in var(--d-out) var(--ease)}
-/* a row: 40 on a desktop (10 + its 20 px line + 10; it was 36: grader B on ba93c9b, C058) */
+/* A desktop row gives its 20 px line 10 px of space above and below. */
 .at-list li{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:calc(var(--nest-r) - var(--nest-in));font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);cursor:pointer}
 .at-ic{flex:none;display:grid;place-items:center;color:var(--ink-4)}
 .at-ic svg{width:var(--ic);height:var(--ic)}
 .at-s{margin-left:auto;font:var(--fw-regular) var(--fs-meta) var(--sans);color:var(--ink-4)}
-/* one active row: the keyboard's, which the mouse moves too (app.js); hover never paints a second one (C058) */
+/* Pointer movement and keyboard navigation share a single active row. */
 .at-list li[aria-selected="true"]{background:var(--fill-2);color:var(--ink)}
 .at-list li[aria-selected="true"] .at-ic{color:var(--ink-3)}
 
