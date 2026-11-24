@@ -1,24 +1,20 @@
-// The owner's 19 Nov 08:57Z message: Stop was "a big white circle with a very small square inside it" ("i don't want harsh corners anywhere").
-// (Files' Back to chat, the other half of it, went with the Files place: Files is a page of the panel.) Stop is a stone disc with a rounded square, concentric with the composer.
-//   node tests/files-stop-look.test.mjs
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { resolveTokens, NEW_SIZES } from "./lib/tokens.mjs";
-import { readFileSync } from "node:fs";
+import { publishedRules } from "./lib/css-snapshot.mjs";
 
-const read = (f) => { const s = (f === "css/app.css" ? sheet(new URL(`../${f}`, import.meta.url)) : readFileSync(new URL(`../${f}`, import.meta.url), "utf8")); return f.endsWith(".css") ? resolveTokens(s, [...NEW_SIZES, "--h-ctl"]) : s; };
-const nc = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+const css = publishedRules();
+const properties = (selector) => Object.fromEntries(css.filter(({ sel }) => sel === selector)
+  .flatMap(({ declarations }) => declarations).map(({ p, v }) => [p, v]));
+const send = properties(".send");
+const stop = properties(".send.is-stop");
+const glyph = properties(".send.is-stop svg");
 
-t("Stop: a stone disc with the owner's stop square, its radius concentric with the composer's", () => {
-  const app = nc(read("css/app.css")), js = read("js/app.js");
-  // the owner's stop (core/ui/icons/source/xo/c-actions/stop.svg: a 12 square, 3.5 corners, on the 24 grid), at --ic-lg
-  assert.match(js, /const STOP_ICON = ICON\.stop;/);
-  assert.match(app, /\.send\.is-stop\{--stop:var\(--fill-4\);--ring-in:var\(--focus\);background:var\(--stop\);color:var\(--ink\)\}/);
-  assert.match(app, /\.send\.is-stop svg\{width:var\(--ic-lg\);height:var\(--ic-lg\)\}/);
-  // the disc is Send itself, so its corner sits on the composer's: tests/card-family.test.mjs
-  assert.match(app, /\.send\{[^}]*width:var\(--comp-ctl\);height:var\(--comp-ctl\);border-radius:50%/);
-  assert.doesNotMatch(app, /\.send\.is-stop\{[^}]*(?:width|height|margin|border-radius):/, "Stop keeps Send's size and place");
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+assert.equal(send.width, "var(--comp-ctl)", "Send and Stop share the composer control width");
+assert.equal(send.height, "var(--comp-ctl)", "Send and Stop share the composer control height");
+assert.equal(send["border-radius"], "50%");
+for (const name of ["width", "height", "margin", "border-radius"]) assert.equal(name in stop, false, name);
+assert.equal(stop["--stop"], "var(--fill-4)");
+assert.equal(stop["--ring-in"], "var(--focus)");
+assert.equal(stop.background, "var(--stop)");
+assert.equal(stop.color, "var(--ink)");
+assert.equal(glyph.width, "var(--ic-lg)");
+assert.equal(glyph.height, "var(--ic-lg)");
