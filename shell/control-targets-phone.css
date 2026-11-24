@@ -1,0 +1,14 @@
+/* Phone: every target at least 36 px tall. Kept last so it wins over the base sizes above. */
+@media (max-width:760px){
+  .side-x{width:var(--h-touch);height:var(--h-touch)}
+  .target{height:var(--h-touch)}
+  .tc-dec{height:var(--h-touch)}
+  .dock-hide{height:var(--h-touch);min-width:var(--h-touch)}
+  .c-top{min-height:var(--h-touch)}
+  .dis-h{min-height:var(--h-touch)}
+  .tb-h{min-height:var(--h-touch)}
+  .m-turn{--tb-line:var(--h-touch);--av-h:var(--ic-turn-mark-phone)}
+  .rn-chip,.rn-log,.rn-stopall{height:var(--h-touch)}
+  .composer-field>textarea{min-height:var(--h-touch)}
+  .kr-k{min-height:var(--h-touch)}
+}
