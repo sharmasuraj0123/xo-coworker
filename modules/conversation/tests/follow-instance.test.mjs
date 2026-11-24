@@ -4,7 +4,18 @@
 
 import assert from "node:assert/strict";
 globalThis.matchMedia = () => ({ matches: false });
-globalThis.ResizeObserver = class { constructor(fn) { this.fn = fn; } observe() {} disconnect() {} };
+const observers = [];
+const failure = new Error("Cannot observe the scroller");
+let failTarget;
+globalThis.ResizeObserver = class {
+  targets = new Set();
+  constructor() { observers.push(this); }
+  observe(target) {
+    if (target === failTarget) throw failure;
+    this.targets.add(target);
+  }
+  disconnect() { this.targets.clear(); }
+};
 globalThis.document = { getElementById: () => null };
 const { createFollow, initFollow, toLatest, isPinned } = await import("../follow.js");
 
@@ -24,8 +35,34 @@ B.unpin(null);
 assert.equal(B.isPinned(), false);
 A.toLatest();
 assert.ok(A.isPinned() && !B.isPinned());
-// destroy takes its listener away
-B.destroy(); assert.equal(b.scroller.ls.length, 0);
+B.destroy();
+assert.equal(b.scroller.ls.length, 0, "destroy removes the retained scroller listener");
+assert.equal(observers[1].targets.size, 0, "destroy disconnects both observed nodes");
+
+const first = { scroller: scroller(), column, msgs };
+const next = { scroller: scroller(), column, msgs };
+let current = first;
+const repeated = createFollow({ scroller: () => current.scroller, column, msgs });
+repeated.init();
+const firstObserver = observers.at(-1);
+current = next;
+repeated.init();
+assert.equal(first.scroller.ls.length, 0, "reinit removes the first scroller listener");
+assert.equal(firstObserver.targets.size, 0, "reinit disconnects the first observer");
+assert.equal(next.scroller.ls.length, 1, "reinit binds the replacement scroller once");
+repeated.destroy();
+assert.equal(next.scroller.ls.length, 0);
+
+const retrying = createFollow(first);
+failTarget = first.scroller;
+assert.throws(() => retrying.init(), (error) => error === failure);
+assert.equal(first.scroller.ls.length, 0, "failed init rolls back the scroller listener");
+assert.equal(observers.at(-1).targets.size, 0, "failed init rolls back the partially started observer");
+failTarget = undefined;
+retrying.init();
+assert.equal(first.scroller.ls.length, 1, "init can retry after rollback");
+retrying.destroy();
+A.destroy();
 // the main one: the old exports, its own instance
 assert.equal(typeof initFollow, "function"); assert.equal(typeof toLatest, "function"); assert.equal(isPinned(), true);
 console.log("follow-instance: ok");

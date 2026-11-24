@@ -1,6 +1,7 @@
 // @ts-check
 
 import { RM } from "../../core/ui/motion.js";
+import { createScope } from "../../core/kernel/scope.js";
 
 // The one owner of a conversation's scroll: pinned at the latest, or reading where you are, read from the position itself.
 
@@ -89,11 +90,10 @@ export function createFollow(els) {
     if (Math.abs(d) >= 1) { s.scrollTop += d; lastTop = s.scrollTop; }
   }
 
-  /** @type {ResizeObserver | null} */
-  let ro = null;
-  /** @type {(() => void) | null} */
-  let removeScroll = null;
+  /** @type {ReturnType<typeof createScope> | undefined} */
+  let lifetime;
   function init() {
+    destroy();
     const s = sc(), column = required("column");
     lastTop = s.scrollTop;
     let seenW = column.clientWidth;
@@ -107,18 +107,26 @@ export function createFollow(els) {
       lastTop = top;
       if (!pinned && !(held && ours)) { held = false; notePlace(); }
     };
-    s.addEventListener("scroll", onScroll, { passive: true });
-    removeScroll = () => s.removeEventListener("scroll", onScroll);
     const keep = () => {
       if (pinned) { if (fromLatest() > 0.5) { s.scrollTop = s.scrollHeight; lastTop = s.scrollTop; } width = column.clientWidth; return; }
       if (column.clientWidth !== width) { width = column.clientWidth; keepPlace(); }
       if (!held) notePlace();
     };
     width = column.clientWidth;
-    ro = new ResizeObserver(keep);
-    ro.observe(column); ro.observe(s);
+    const scope = createScope();
+    try {
+      scope.listen(s, "scroll", onScroll, { passive: true });
+      const ro = new ResizeObserver(keep);
+      scope.observe(ro);
+      ro.observe(column);
+      ro.observe(s);
+      lifetime = scope;
+    } catch (error) {
+      scope.dispose();
+      throw error;
+    }
   }
-  function destroy() { ro?.disconnect(); ro = null; removeScroll?.(); removeScroll = null; }
+  function destroy() { lifetime?.dispose(); lifetime = undefined; }
   return { fromLatest, fromTop, isPinned, toLatest, toTop, unpin, toRow, init, destroy };
 }
 
