@@ -44,20 +44,27 @@ function bindings(tree, file) {
   return { readers, namespaces, values, names, parents, harnesses };
 }
 
-/** @param {object} node @param {string} file @param {Map<string, object>} values @param {Set<object>} [seen] */
-function pathValue(node, file, values, seen = new Set()) {
+/** @typedef {{ name: string, value: string }} MapInput */
+
+/** @param {object} node @param {string} file @param {Map<string, object>} values @param {MapInput} [input] @param {Set<object>} [seen] */
+function pathValue(node, file, values, input, seen = new Set()) {
   if (!node || seen.has(node)) return undefined;
   const visited = new Set(seen).add(node);
   const atom = literal(node);
   if (typeof atom === "string") return atom;
   if (node.type === "TemplateLiteral") {
-    return node.quasis.map((part, index) => {
-      const value = part.tail ? "" : pathValue(node.expressions[index], file, values, visited) ?? "*";
-      return part.value.cooked + value;
-    }).join("");
+    const parts = node.expressions.map((expression) => {
+      if (expression.type === "Identifier" && expression.name === input?.name) return input.value;
+      const value = literal(expression);
+      return typeof value === "string" ? value : "*";
+    });
+    return node.quasis.map((part, index) => part.value.cooked + (parts[index] ?? "")).join("");
   }
-  if (node.type === "Identifier") return pathValue(values.get(node.name), file, values, visited);
-  const read = (part) => pathValue(part, file, values, visited);
+  if (node.type === "Identifier") {
+    if (node.name === input?.name) return input.value;
+    return pathValue(values.get(node.name), file, values, undefined, visited);
+  }
+  const read = (part) => pathValue(part, file, values, input, visited);
   if (node.type === "BinaryExpression" && node.operator === "+") {
     return (read(node.left) ?? "*") + (read(node.right) ?? "*");
   }
@@ -91,7 +98,7 @@ function mappedArray(receiver, { values, names, parents }) {
 
 /** @param {object} tree @param {ReturnType<typeof bindings>} refs */
 function literalMaps(tree, refs) {
-  const inputs = new WeakMap();
+  const inputs = /** @type {WeakMap<object, MapInput[]>} */ (new WeakMap());
   walk(tree, (node) => {
     if (node.type !== "CallExpression" || member(node.callee) !== "map") return;
     const array = mappedArray(node.callee.object, refs);
@@ -102,7 +109,7 @@ function literalMaps(tree, refs) {
     const body = fn.body.type === "BlockStatement" && fn.body.body.length === 1 && fn.body.body[0].type === "ReturnStatement"
       ? fn.body.body[0].argument : fn.body;
     if (parameter?.type !== "Identifier" || body?.type !== "CallExpression") return;
-    inputs.set(body, array.elements.map((item) => new Map(refs.values).set(parameter.name, item)));
+    inputs.set(body, array.elements.map((item) => ({ name: parameter.name, value: literal(item) })));
   });
   return inputs;
 }
@@ -139,7 +146,7 @@ export function sourceReads(file, tree, files, report) {
     const isRead = readers.has(callee.name)
       || (READ.test(member(callee) ?? "") && namespaces.has(callee.object?.name));
     if (!isRead) return;
-    const paths = (inputs.get(node) ?? [values]).map((input) => pathValue(node.arguments[0], file, input));
+    const paths = (inputs.get(node) ?? [undefined]).map((input) => pathValue(node.arguments[0], file, values, input));
     const production = paths.filter((path) => !path || !(FIXTURE.test(path) || (/\.[\w]+$/.test(path) && !SOURCE_EXTENSION.test(path))));
     if (!production.length) return;
     if (production.every((path) => path && /\.html$/i.test(path)) && bootsDom(node, refs)) return;

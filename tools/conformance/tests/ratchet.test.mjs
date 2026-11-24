@@ -187,12 +187,14 @@ test("a map over a literal list reports only the files that can be read", (conte
     "tests/constant.test.mjs": `${reader}const files = ${entries}; files.map((name) => name.length); files.${map};`,
     "tests/computed.test.mjs": `${reader}[...otherFiles, 'decoration'].${map};`,
     "tests/mutated.test.mjs": `${reader}const files = ${entries}; files.push(extra); files.${map};`,
+    "tests/shadowed.test.mjs": reader + 'const name = "decoration"; function inspect(name) { ' +
+      'readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url)); }',
   });
   const findings = inventory(root);
   for (const name of ["literal", "constant"]) {
     assert.deepEqual(target(findings, `tests/${name}.test.mjs`), wanted.map((entry) => `modules/conversation/${entry}.js`));
   }
-  for (const name of ["computed", "mutated"]) {
+  for (const name of ["computed", "mutated", "shadowed"]) {
     assert.deepEqual(target(findings, `tests/${name}.test.mjs`), files.map((entry) => `modules/conversation/${entry}.js`));
   }
 });
