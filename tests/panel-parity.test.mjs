@@ -8,6 +8,7 @@ const app = read("js/app.js"), msgx = read("modules/conversation/decoration.js")
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
+const notices = read("modules/conversation/notice-line.js").replace(/^ {2}/gm, "");
 const page = read("modules/conversation/thread-page.js").replace(/^ {2}/gm, "");
 const mount = fn(page, "function tpMount(box)");
 const markup = read("modules/conversation/thread-page-html.js");
@@ -26,13 +27,13 @@ t("1 · a drop: the app's one drop path hides the veil and adds the files to the
 });
 t("2 · notices: the panel's thread page has its own line, over its own composer, and the line follows you", () => {
   assert.match(markup, /<div class="dock tp-dock" id="tpdock"><div class="herald" id="tpherald" aria-live="polite"><\/div>/);
-  assert.match(app, /const heraldBox = \(\) => \(composerNow\(\) === MK \? \$\("#herald"\) : \$\("#tpherald"\)\);/);
-  assert.match(fn(app, "function heraldRender("), /const box = heraldBox\(\);\n\s*for \(const o of \[\$\("#herald"\), \$\("#tpherald"\)\]\) if \(o && o !== box && o\.firstChild\)/, "the other line is emptied");
+  assert.match(notices, /const heraldBox = \(\) => \(composerNow\(\) === MK \? \$\("#herald"\) : \$\("#tpherald"\)\);/);
+  assert.match(fn(notices, "function heraldRender("), /const box = heraldBox\(\);\n\s*for \(const o of \[\$\("#herald"\), \$\("#tpherald"\)\]\) if \(o && o !== box && o\.firstChild\)/, "the other line is emptied");
   assert.match(app, /document\.addEventListener\("focusin", \(\) => \{ const K = composerNow\(\); if \(K !== S\.kNow\) \{ S\.kNow = K; schedule\(\); \} \}\);/);
   assert.match(mount, /herald: \$\("#tpherald"\)/, "its back-to-latest button moves with its line");
   assert.match(pcss, /body\.stage-covers \.herald:not\(\.tp \.herald\)\{position:fixed/, "only the chat's line rises over a covering panel");
   assert.match(acss, /body:not\(\.stage-covers\) \.dock\.is-stacked>\.herald,\.tp \.dock\.is-stacked>\.herald\{/, "over a card docked in the panel it stands above it, covering or not");
-  assert.match(app, /connLine\(world\.state, box === \$\("#herald"\) \? connDest\(\) : \{ thread: true \}\)/, "routing Off is never said over a thread's reply");
+  assert.match(notices, /connLine\(world\.state, box === \$\("#herald"\) \? connDest\(\) : \{ thread: true \}\)/, "routing Off is never said over a thread's reply");
 });
 t("3 · a decision's Undo in the panel's dock ends its done line at once, as the chat's does", () => {
   assert.match(app, /onUndone: \(key\) => \{[^\n]*for \(const d of \[TD, TP\.dock\?\.TD\]\) if \(d\?\.undone && d\.undone\.key === key\) d\.undone\.end\(\); \},/);
@@ -58,7 +59,7 @@ t("6 · focus after Retry, Pick back up and a notice's Undo goes to that convers
   assert.match(r, /if \(had\) K\.say\.focus\(\{ preventScroll: true \}\);/);
   assert.match(editing, /const K = composerAt\(btn\); S\.focusNext = \[\(\) => K\.say, \(\) => K\.conv\.scroller\];/);
   assert.match(app, /const K = composerNow\(\); S\.focusNext = \[\.\.\.\(\(h && h\.back\) \|\| \[\]\), \(\) => K\.say\];/);
-  assert.match(app, /function heraldBack\(h\) \{ return \[[^\n]*composerNow\(\)\.say\]\.find\(usable\)/);
+  assert.match(notices, /function heraldBack\(h\) \{ return \[[^\n]*composerNow\(\)\.say\]\.find\(usable\)/);
   assert.match(app, /S\.focusNext = \[\(\) => heraldBox\(\)\?\.querySelector\("\[data-herald-undo\]"\)\];/, "Interrupt's Undo, in the line where it shows");
   assert.doesNotMatch(app, /"#herald \[data-herald-undo\]"|S\.focusNext = \["#say"|"#send"\]/);
   assert.match(app, /const inUse = \(sel\) => \(\) => \{ const K = composerNow\(\); return sel === "#send" \? K\.send : K\.main \? \$\(sel\) : TP\.box\.querySelector\(sel\); \};/, "a Stop's notice goes back to its own conversation's controls");
@@ -80,8 +81,8 @@ t("7 · the @ list and the target line: one code for both composers", () => {
 });
 t("8 · the room under the last message is each conversation's own", () => {
   assert.match(mcss, /:root\[data-msgx\] :is\(\.app\.has-tdock \.scroller:not\(\.tp \.scroller\),\.tp\.has-tdock \.scroller\)\{/);
-  const room = fn(app, "function heraldRoom()");
-  assert.match(room, /\[\[\$\("#herald"\), \$\("#dock"\), \$\("#app"\)\], \[\$\("#tpherald"\), \$\("#tpdock"\), TP\.box\]\]/, "the panel sets its own, never inherits the chat's");
+  const room = fn(notices, "function heraldRoom()");
+  assert.match(room, /\[\[\$\("#herald"\), \$\("#dock"\), \$\("#app"\)\], \[\$\("#tpherald"\), \$\("#tpdock"\), panelHost\(\)\]\]/, "the panel sets its own, never inherits the chat's");
   assert.match(page, /TP\.dockRO = watchDock\(els\.dock, box\);/, "its dock measured as the chat's is (is-stacked too)");
 });
 t("9 · a link in the panel keeps the message it points at, and a thread link opens the panel's way", () => {

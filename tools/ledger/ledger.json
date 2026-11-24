@@ -7275,40 +7275,40 @@
    "home": "shell/elapsed.js"
   },
   "js/app.js::functions::HER": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1964)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldShow": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1967)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldFor": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1969)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldPut": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1970)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/app.js::functions::heraldNext": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1971)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldDrop": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1973)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldRender": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1974)"
+   "status": "moved",
+   "home": "modules/conversation/notice-line.js"
   },
   "js/app.js::functions::heraldRoom": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2015)"
+   "status": "moved",
+   "home": "modules/conversation/notice-line.js"
   },
   "js/app.js::functions::heraldBack": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
+   "status": "moved",
+   "home": "modules/conversation/notice-line.js"
   },
   "js/app.js::functions::recordLine": {
    "status": "moved",

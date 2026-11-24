@@ -15,6 +15,7 @@ const ROOT = new URL("../", import.meta.url);
 const read = (f) => readFileSync(new URL(f, ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 const app = sheet(new URL("../css/app.css", import.meta.url)), mx = read("modules/conversation/msgx.css"), html = readFileSync(new URL("index.html", ROOT), "utf8").replace(/<!--[\s\S]*?-->/g, "");
 const js = readFileSync(new URL("js/app.js", ROOT), "utf8");
+const notices = readFileSync(new URL("modules/conversation/notice-line.js", ROOT), "utf8");
 const all = rules(new URL("tests/lib/x.mjs", ROOT));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -62,8 +63,8 @@ t("anything docked is measured, in the dock's own observer, before the frame is 
 });
 t("the conversation keeps room for the notices' line while it shows over its foot (it never covers the last bubble)", () => {
   // measured where it stands (the dock's observer, and each time the line is drawn); none while it's hidden
-  assert.match(js, /function heraldRoom\(\) \{[\s\S]*?getClientRects\(\)\.length > 0[\s\S]*?setProperty\("--herald-room"/);
-  assert.match(js, /box\._line = h;\s*heraldRoom\(\);/);
+  assert.match(notices, /function heraldRoom\(\) \{[\s\S]*?getClientRects\(\)\.length > 0[\s\S]*?setProperty\("--herald-room"/);
+  assert.match(notices, /box\._line = h;\s*heraldRoom\(\);/);
   assert.match(mx, /:root\[data-msgx\] \.scroller\{padding-bottom:calc\(var\(--dock-h\) - 18px \+ var\(--herald-room, 0px\)\)\}/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

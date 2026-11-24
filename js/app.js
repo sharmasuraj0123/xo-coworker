@@ -1,7 +1,7 @@
 import { createWorld, esc, WAITING } from "./world.js";
 import { copyText, COPY_REFUSED, clock, dayOf, short } from "../core/platform/index.js";
 import { redraw } from "../core/ui/redraw.js";
-import { patch } from "../core/ui/patch.js";
+import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "../modules/decisions/kit.js";
@@ -12,7 +12,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON, stateMark, XO, $, RM, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
-import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, pageFloor, inPage, heldWords, heldShort, heldBadge } from "./timeline.js";
+import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, pageFloor, inPage, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, fromAttachment, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
@@ -126,7 +126,8 @@ import { createSettingsFrame, createSettingsSections, createKeysPage, createShap
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
 import { setWorkMode } from "./turnview.js";
 import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
-import { createHerald, noticeFor } from "../core/services/notices.js";
+import { noticeFor } from "../core/services/notices.js";
+import { createConversationNotices } from "../modules/conversation/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
 import { wireAppearance, wireChatBubbles, wireMessageHops, wireWebPictures } from "../modules/settings/appearance.js";
@@ -207,6 +208,7 @@ const S = {
   trail: [],               // places visited before this one, for the phone's Back (a thread's own Back is its parent)
   n: 0,
 };
+const { heraldShow, heraldFor, heraldNext, heraldDrop } = createConversationNotices({ S, schedule });
 const waitSince = new Map();
 const announce = createAnnouncer($("#live"));
 
@@ -935,65 +937,8 @@ function toastLine(text) { announce(text); heraldShow({ kind: "done", text }, 16
 // only a clock whose words changed is written (a rewrite is a mutation every layer reacts to)
 setInterval(tickElapsed, 1000);
 
-// ── the dock line: one calm labelled line (no glow on the composer, ever) ───
-// the herald's lines (core/services/notices.js): made on first use (S is the app's state), so a line asked for while the app is
-// still starting has it
-function HER() { return S._her || (S._her = createHerald({ state: S, schedule: () => schedule() })); }
 regionRings(); // the keyboard's ring over a file's or a change's region (js/ring.js)
 keepFocusInView(); // focus a script hands on is never left out of sight (js/focusview.js)
-function heraldShow(h, ms) { return HER().show(h, ms); }
-/** A message's own notice, set in place (on screen, or still waiting): see core/services/notices.js */
-function heraldFor(mid, make, ms) { return HER().forMsg(mid, make, ms); }
-function heraldNext() { return HER().next(); }
-/** A subject's notice that's no longer true goes, on screen or waiting (core/services/notices.js drop). */
-function heraldDrop(mid) { return HER().drop(mid); }
-/** The notices' line of the conversation in use (the panel's thread page has its own); the other one is empty. */
-const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
-function heraldRender(needs) {
-  const box = heraldBox();
-  for (const o of [$("#herald"), $("#tpherald")]) if (o && o !== box && o.firstChild) { if (o.contains(document.activeElement)) heraldBack(o._line)?.focus({ preventScroll: true }); patch(o, ""); o._line = null; o._h = null; }
-  const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
-  let html;
-  if (h) {
-    const ic = h.kind === "stopped" ? `<span class="hr-ic k-stopped">${ICON.close}</span>` : h.kind === "sent" ? `<i class="dash" aria-hidden="true"></i>` : h.kind === "ping" ? `<span class="hr-ic k-ping"><i class="hr-dot"></i></span>` : h.kind === "calm" || h.kind === "halt" ? `<span class="hr-ic k-calm">${h.kind === "halt" ? STOP_ICON : ICON.pause}</span>` : h.kind === "rec" ? `<span class="hr-ic k-calm">${ICON.router}</span>` : `<span class="hr-ic k-ok">${ICON.check}</span>`;
-    const inner = `${ic}<span class="hr-t">${esc(h.text)}</span>${h.sub ? `<span class="hr-s">${esc(h.sub)}</span>` : ""}${h.open ? `<span class="hr-go">Open ${ICON.arrow}</span>` : h.decide ? `<span class="hr-go">Look ${ICON.arrow}</span>` : ""}`;
-    html = h.open ? `<button type="button" class="hr hr-ev k-${h.kind}" data-go="${esc(h.open)}" data-hn="${h.n}">${inner}</button>`
-      : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`
-      : h.undo ? `<div class="hr hr-ev has-undo k-${h.kind}" data-hn="${h.n}">${inner}<button type="button" class="hr-undo" data-herald-undo>${esc(h.undoLabel || "Undo")}</button></div>`
-      : `<div class="hr hr-ev k-${h.kind}" data-hn="${h.n}">${inner}</div>`;
-  } else if (connLine(world.state, box === $("#herald") ? connDest() : { thread: true })) {
-    // an honest, persistent line when XO can't be reached, can't run, or waits on a limit (P0-8); routing Off only
-    // for where the composer's draft goes, the send gate's own destination: never beside a thread's reply
-    const c = connLine(world.state, box === $("#herald") ? connDest() : { thread: true });
-    html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
-  } else if (S.view === "home" || convThread(S.view)) html = "";
-  else {
-    // Only when something is worth your time. The quiet state ("Nothing needs you")
-    // are already said by the sidebar's Home row and by Home, so no line sits here for them.
-    html = ""; // what needs you is said once: the sidebar's Home row, then Home
-  }
-  const was = box._h;
-  // the line with the control you're on goes (its Undo's window ended): focus goes on first, to what it acted on,
-  // else the message box, never the page (Astra RUN-5)
-  const fa = document.activeElement;
-  if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(box._line)?.focus({ preventScroll: true });
-  if (patch(box, html) && was != null && html) box.firstElementChild?.classList.add("is-in");
-  box._line = h;
-  heraldRoom();
-}
-function heraldRoom() {
-  for (const [box, dock, host] of [[$("#herald"), $("#dock"), $("#app")], [$("#tpherald"), $("#tpdock"), TP.box]]) {
-    if (!box) continue;
-    const line = box.firstElementChild;
-    const shown = line && line.getClientRects().length > 0;
-    const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
-    const v = px ? `${px + 8}px` : "0px";
-    if (host.style.getPropertyValue("--herald-room") !== v) host.style.setProperty("--herald-room", v);
-  }
-}
-/** Where focus goes when a notice's line goes from under it: the control the notice acts on (h.back: selectors,
- *  e.g. the thread's Resolve, or Interrupt), else the message box, else the place's own region. */
-function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof sel === "function" ? sel() : $(sel))), composerNow().say].find(usable) || placeRegion(); }
 /** A notice's control in the conversation in use: its Send, or one in its own page. */
 const inUse = (sel) => () => { const K = composerNow(); return sel === "#send" ? K.send : K.main ? $(sel) : TP.box.querySelector(sel); };
 
@@ -1020,6 +965,9 @@ const { trayRender, addFiles, insertText, wireTray, dropThumb } = createComposer
 const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack, editFailed } = createDelivery({
   S, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt: (node) => composerAt(node),
   filesHere, tray, dropThumb, saveDraft, updateComposer: (K) => updateComposer(K), growSay: (K) => growSay(K), announce, heraldShow, heraldFor, schedule, render: () => render(), go,
+});
+const { heraldBox, heraldRender, heraldRoom, heraldBack } = createNoticeLine({
+  S, world, MK, composerNow, panelHost: () => TP.box, convThread, connDest, placeRegion: () => placeRegion(), STOP_ICON,
 });
 const { targetLineRender, syncPlaceholder } = createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, convProject, liveBlock, isBusy, sendWhileRunning, noun });
 const { chipRender, sendRender, chatTargetRender } = createComposerControls({ MK, S, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock });
