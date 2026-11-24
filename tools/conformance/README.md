@@ -18,8 +18,8 @@ follows re-exports and treats namespace or dynamic imports as potentially readin
 any export.
 
 For stylesheet moves, compare `node tools/conformance/css-resolve.mjs --flat <root>`
-for the two trees. It follows links and imports, preserves cascade order and
-conditions, and compares relative asset URLs by their resolved paths.
+for the two trees. It follows links and imports, preserves layer registration,
+declaration order and conditions, and distinguishes versioned and root asset paths.
 
 For token migrations, compare `node tools/conformance/css-resolve.mjs --resolved
 <root>`. It folds root tokens where the supported theme, flavour, width and

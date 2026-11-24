@@ -38,7 +38,7 @@ function rootDefinition(row) {
   let layer;
   const media = [];
   for (const scope of row.context.slice(0, -1)) {
-    if (scope.at === "layer" && scope.params && !layer) layer = scope.params;
+    if (scope.at === "layer" && scope.params && !scope.params.includes(".") && !layer) layer = scope.params;
     else if (scope.at === "media") {
       const tests = mediaTests(scope.params);
       if (!tests) return undefined;
