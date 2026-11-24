@@ -467,6 +467,7 @@ This updates the 23 November integration plan (`git show 539ddcd8:architecture/2
 - **Scope.** Reproduce the recorded bugs and accessibility findings and confirm the impact of the performance findings. Give each fix a named commit with the root cause and a regression through the public API or DOM that fails before the fix. For performance fixes, record comparable measurements before and after. Review each change for readable code, module boundaries and token use. Bring any visual or behavior decision beyond the reported repair to the coordinator.
 - **Exit gate.** Each finding has a verified repair or a disposition agreed with the coordinator. The clean-export full check and final ledger pass, and an independent reviewer checks the fixes. Then audit the whole codebase before P5. Revert an individual fix or return to the P4 tag if the phase cannot pass.
 - **P5.** Bring release changes forward and check parity against current release, accounting for the recorded fixes. Deployment still requires the owner's approval.
+- **Blazing-fast UI after P5.** Package E owns serve-time stylesheet bundling and mask asset caching. The [P3 measurements](HANDOFF.md#p3-exit-evidence) supply the baseline. Through P5, keep stylesheet link and import order explicit and verify the declared cascade and versioned asset resolution whenever a path moves.
 
 ### Original architecture milestones
 
