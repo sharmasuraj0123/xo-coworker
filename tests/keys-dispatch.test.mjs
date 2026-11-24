@@ -5,7 +5,8 @@
 // typing when it hasn't; and app.js asks globalFor, not a list of its own. Also: ⌥ alone is refused (it types).
 //   node tests/keys-dispatch.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import { wireGlobalKeys } from "../shell/global-keys.js";
 
 const K = await import("../core/platform/keys.js");
 let passed = 0;
@@ -66,22 +67,64 @@ t("⌥ alone (it types a character of its own) is refused for an Anywhere action
   assert.equal(K.set("keys", "mod+alt+j").ok, true, "with ⌘/Ctrl it's fine");
   K.resetAll();
 });
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-t("the page asks the one rule, not a list of its own", () => {
-  assert.doesNotMatch(app, /for \(const id of \["jump", "intel", "shells", "map"\]\)/, "the four-action list is gone");
-  assert.match(app, /const g = K\.globalFor\(e\), taken = e\.defaultPrevented && K\.typing\(e\);\s*if \(g && K\.hasMod\(g\) && !taken && runGlobal\(g\)\)/, "⌘/Ctrl keys: the one rule, everywhere but a key the field took");
-  assert.match(app, /const s = K\.globalFor\(e, \{ typing: false \}\);\s*if \(s && !K\.hasMod\(s\) && runGlobal\(s\)\)/, "symbol keys: the one rule, not while typing");
-  assert.match(app, /function runGlobal\(id\) \{[\s\S]*?treeFold[\s\S]*?GLOBAL\[id\]\(\);/, "every Anywhere action runs from it, the tree's fold included");
-  for (const id of ["jump", "intel", "write", "keys", "shells", "map"]) assert.match(app, new RegExp(`^  ${id}: \\(\\) =>`, "m"), `GLOBAL.${id}`);
+const { document, window } = await dom('<button id="page"></button><textarea></textarea><div id="jump" hidden></div><div id="keys" hidden></div><div id="all" hidden></div>');
+const page = document.querySelector("#page"), editor = document.querySelector("textarea");
+const S = { view: "t:thread", recording: false }, jump = document.querySelector("#jump");
+const calls = [];
+let terminal = false, modal = false, handlesEscape = false;
+wireGlobalKeys({
+  S, jump, keys: document.querySelector("#keys"), allEl: document.querySelector("#all"),
+  SH: { owns: () => terminal }, IQ: { isOpen: false }, CREATE: { isOpen: () => modal },
+  GLOBAL: Object.fromEntries(GLOBAL.map((id) => [id, () => calls.push(id)])),
+  LAYERS: { escape() { calls.push("escape"); return handlesEscape; } },
+  FP: { toggleTree() { calls.push("treeFold"); return true; } },
+  QO: { isOpen: false, open(mode) { calls.push(mode); return true; } },
+  back: () => calls.push("back"), go: (view) => calls.push(view),
 });
-t("a ⌘/Ctrl key the field took stays the field's: ⌘B in a Markdown page bolds, it doesn't fold the tree", () => {
-  // mdlive's keymap answers Mod-b first (CodeMirror preventDefaults what it runs); the page sees it taken
-  assert.match(readFileSync(new URL("../modules/files/markdown-page.js", import.meta.url), "utf8"), /\{ key: "Mod-b", run: wrap\("\*\*"\) \}/);
+function press(target, combo, composing = false) {
+  const props = keydown(combo);
+  delete props.composedPath;
+  const event = new window.Event("keydown", { bubbles: true, cancelable: true });
+  Object.assign(event, props, { isComposing: composing });
+  target.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+t("custom chords, symbol shortcuts and Files keys dispatch through the live listener", () => {
+  assert.equal(K.set("keys", "mod+shift+j").ok, true);
+  assert.equal(press(editor, "mod+shift+j"), true);
   K.resetAll();
-  const ed = { matches: (q) => q.includes("[contenteditable]") }, e = { ...keydown("mod+b"), defaultPrevented: true, target: ed, composedPath: () => [ed] };
-  assert.equal(K.globalFor(e), "treeFold", "⌘B is still the tree's key");
-  assert.equal(K.typing(e), true, "the editor is a field");
-  // outside a field (or a field that let the key go), ⌘B folds the tree as before
-  assert.equal(K.typing({ ...e, target: {}, composedPath: () => [{ matches: () => false }] }), false);
+  assert.equal(press(editor, "?"), false);
+  assert.equal(press(page, "?"), true);
+  assert.equal(press(page, "mod+b"), true);
+  assert.equal(press(page, "mod+p"), true);
+  assert.deepEqual(calls.splice(0), ["keys", "keys", "treeFold", "files"]);
+});
+t("editor, recording, native modal, composition and terminal retain their keys", () => {
+  editor.addEventListener("keydown", (e) => e.preventDefault(), { once: true });
+  press(editor, "mod+b");
+  S.recording = true;
+  press(page, "mod+k");
+  S.recording = false;
+  modal = true;
+  press(page, "Escape");
+  modal = false;
+  press(editor, "Escape", true);
+  terminal = true;
+  press(page, "Escape");
+  press(page, "mod+k");
+  assert.deepEqual(calls.splice(0), []);
+  press(page, K.binding("shells"));
+  assert.deepEqual(calls.splice(0), ["shells"]);
+  terminal = false;
+});
+t("Escape falls through to thread Back or Chats when the shell has no closing layer", () => {
+  press(page, "Escape");
+  S.view = "c:chat";
+  press(page, "Escape");
+  handlesEscape = true;
+  press(page, "Escape");
+  jump.hidden = false;
+  assert.equal(press(page, "Escape"), true);
+  assert.deepEqual(calls.splice(0), ["escape", "back", "escape", "chats", "escape", "escape"]);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -7206,8 +7206,8 @@
    "home": "modules/runs/panel.js"
   },
   "js/app.js::functions::runsEscape": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/runs/panel.js"
   },
   "js/app.js::functions::openRuns": {
    "status": "moved",
@@ -7702,12 +7702,12 @@
    "home": "modules/shells/panel.js"
   },
   "js/app.js::functions::openAll": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::functions::closeAll": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::functions::setDrawer": {
    "status": "moved",
@@ -7723,8 +7723,8 @@
    "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::focusOverlay": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/keyboard-layers.js"
   },
   "js/app.js::functions::openJump": {
    "status": "moved",
@@ -7737,12 +7737,12 @@
    "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
   },
   "js/app.js::functions::syncInert": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/keyboard-layers.js"
   },
   "js/app.js::functions::keyLayer": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/layers.js"
   },
   "js/app.js::functions::soundRender": {
    "status": "moved",
@@ -7769,12 +7769,12 @@
    "home": "modules/settings/appearance.js"
   },
   "js/app.js::functions::openKeys": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/settings/shortcuts-sheet.js"
   },
   "js/app.js::functions::closeKeys": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/settings/shortcuts-sheet.js"
   },
   "js/app.js::functions::shapeApply": {
    "status": "moved",
@@ -7813,8 +7813,8 @@
    "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::functions::runGlobal": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/global-keys.js"
   },
   "js/app.js::functions::canBack": {
    "status": "moved",
@@ -8025,24 +8025,24 @@
    "home": "modules/files/search-place.js"
   },
   "js/app.js::keys::Escape": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/global-keys.js"
   },
   "js/app.js::keys::usable": {
    "status": "moved",
    "home": "modules/runtimes/thread.js"
   },
   "js/app.js::keys::ArrowDown": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::ArrowUp": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::Enter": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::transcript_gone": {
    "status": "moved",
@@ -8053,32 +8053,32 @@
    "home": "modules/runs/stop.js"
   },
   "js/app.js::keys::Tab": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "shell/keyboard-layers.js"
   },
   "js/app.js::keys::would_lose_work": {
    "status": "moved",
    "home": "modules/threads/delete.js"
   },
   "js/app.js::keys::/": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/threads/all-sheet.js"
   },
   "js/app.js::keys::Home": {
    "status": "deleted",
    "reason": "drop (history) (app.js l.3)"
   },
   "js/app.js::keys::End": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker-keys.js"
   },
   "js/app.js::keys::ArrowRight": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker-keys.js"
   },
   "js/app.js::keys::ArrowLeft": {
-   "status": "planned",
-   "home": "P4: keyboard and overlay layers (currently js/app.js)"
+   "status": "moved",
+   "home": "modules/projects/icon-picker-keys.js"
   },
   "js/app.js::custom_events::xo:gesture": {
    "status": "moved",

@@ -9,7 +9,6 @@ import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
 import { dom } from "./lib/dom.mjs";
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const header = readFileSync(new URL("../modules/conversation/header.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
 
@@ -43,7 +42,7 @@ const opener = document.querySelector("[data-pj-icon]");
 const changes = [];
 const picker = createProjectIconPicker({
   world, SHAPE: { patchMine: (change) => changes.push(change) }, PROJ: () => "Research",
-  ownIcon, forgetIcon, announce() {}, render() {}, wirePickKeys() {},
+  ownIcon, forgetIcon, announce() {}, render() {},
 });
 for (const selected of ["mobile", ""]) {
   picker.pickIcon("a", opener);
@@ -58,8 +57,23 @@ for (const selected of ["mobile", ""]) {
 assert.deepEqual(changes, [{ layout: { icons: { a: "mobile" } } }, { layout: { icons: { a: null } } }]);
 // the header tile opens it, a dialog of radios with one Tab stop; arrows walk the grid, Esc closes back to the tile
 assert.match(header, /class="pj-pick" data-pj-icon="\$\{esc\(pid\)\}" aria-haspopup="dialog"/);
-assert.match(app, /\{ ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os\.length - 1 - i \}/);
-assert.match(app, /if \(e\.key === "Escape"\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); closePick\(\{ focus: true \}\); return; \}/);
+picker.pickIcon("a", opener);
+const grid = document.querySelector(".pk-grid");
+const options = [...grid.children];
+Object.defineProperty(grid, "clientWidth", { value: 80 });
+Object.defineProperty(options[0], "offsetWidth", { value: 20 });
+for (const [key, position] of [["ArrowRight", 1], ["ArrowDown", 5], ["ArrowLeft", 4], ["ArrowUp", 0], ["End", options.length - 1], ["Home", 0]]) {
+  const event = new window.Event("keydown", { bubbles: true, cancelable: true });
+  event.key = key;
+  document.activeElement.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true);
+  assert.ok(document.activeElement === options[position], key);
+}
+const escape = new window.Event("keydown", { bubbles: true, cancelable: true });
+escape.key = "Escape";
+document.activeElement.dispatchEvent(escape);
+assert.equal(grid.isConnected, false);
+assert.ok(document.activeElement === opener);
 
 // CSS: tokens only
 const block = side.slice(side.search(/^\.pj-pick\{/m));
