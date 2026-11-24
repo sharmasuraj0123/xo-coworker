@@ -14,10 +14,10 @@ export function createPreviewQueue(scope, distance, fail) {
   let running = 0;
   scope.effect(() => () => { for (const job of waiting.splice(0)) job.done(); });
 
-  /** @param {string} key @param {() => Promise<void>} run */
+  /** @param {string} key @param {() => Promise<void>} run @returns {Promise<void>} */
   function enqueue(key, run) {
     if (signal.aborted) return Promise.resolve();
-    return new Promise((done) => { waiting.push({ key, run, done }); pump(); });
+    return new Promise((resolve) => { waiting.push({ key, run, done: () => resolve() }); pump(); });
   }
 
   function pump() {
