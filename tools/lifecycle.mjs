@@ -1,6 +1,8 @@
 // @ts-check
 
 import { parse } from "acorn";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 const globals = new Set(["document", "window", "globalThis", "self"]);
 const observers = new Set(["ResizeObserver", "IntersectionObserver", "MutationObserver"]);
@@ -56,4 +58,24 @@ export function lifecycleCounts(source) {
 
   visit(tree);
   return counts;
+}
+
+/** @param {string[]} files @param {string} root @param {string} basePath @param {boolean} update */
+export function checkLifecycle(files, root, basePath, update) {
+  if (!existsSync(basePath)) return "Missing lifecycle baseline";
+  const base = JSON.parse(readFileSync(basePath, "utf8"));
+  const errors = [];
+  /** @type {Record<string, Record<string, number>>} */
+  const smaller = {};
+  for (const file of files.filter(checksLifecycle).sort()) {
+    const current = lifecycleCounts(readFileSync(join(root, file), "utf8"));
+    for (const [kind, count] of Object.entries(current)) {
+      const allowed = base[file]?.[kind] || 0;
+      if (count > allowed) errors.push(`  ${file}: ${kind} grew from ${allowed} to ${count}`);
+      if (allowed) (smaller[file] ||= {})[kind] = Math.min(count, allowed);
+    }
+  }
+  if (errors.length) return `Use lifecycle scopes, shared storage, or explicit error handling:\n${errors.join("\n")}`;
+  if (update) writeFileSync(basePath, JSON.stringify(smaller, null, 1) + "\n");
+  return null;
 }

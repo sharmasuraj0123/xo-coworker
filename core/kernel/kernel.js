@@ -32,7 +32,7 @@ export function createKernel(opts = {}) {
   const newScope = () => createScope({ timers: opts.timers, warn });
   const places = createPlaces(warn), bus = createBus(warn), layers = createLayers(warn);
   const scheduler = createScheduler({ request: opts.request, warn });
-  /** @type {Map<string, { def: ModuleDef, status: ModuleStatus, error?: string, scope?: ReturnType<typeof createScope>, order: number }>} */
+  /** @type {Map<string, { def: ModuleDef, status: ModuleStatus, error?: string, activation?: { scope: ReturnType<typeof createScope>, done: Promise<void> }, order: number }>} */
   const mods = new Map();
   /** @type {Map<string, { api: unknown, owner: string }>} */
   const services = new Map();
@@ -50,8 +50,7 @@ export function createKernel(opts = {}) {
       const c = m.contributes || [];
       return c.includes(place) || c.includes(`${place}:${entryId}`);
     };
-    /** @type {ModuleContext} */
-    const ctx = {
+    return {
       id, kernelVersion: KERNEL_VERSION,
       use(svc) {
         if (!(m.needs || []).includes(svc)) throw new Error(`${id}: ctx.use("${svc}") but "${svc}" is not in its manifest's needs`);
@@ -84,29 +83,34 @@ export function createKernel(opts = {}) {
       places: { entries: places.entries, get: places.get, first: places.first, watch: (p, fn) => U.effect(() => places.watch(p, fn)), has: places.has },
       log: (...a) => log(`[${id}]`, ...a),
     };
-    return ctx;
   }
 
   /** @param {string} id */
-  async function activate(id) {
+  function activate(id) {
     const rec = mods.get(id);
-    if (!rec || rec.scope || off.has(id) || (safe && !rec.def.manifest.core)) return;
+    if (!rec || off.has(id) || (safe && !rec.def.manifest.core)) return;
+    if (rec.activation) return rec.activation.done;
     if (missing(rec.def.manifest).length) { rec.status = "waiting"; return; }
-    const scope = rec.scope = newScope();
-    try {
-      await rec.def.activate(contextFor(rec.def.manifest, scope));
-      if (scope.signal.aborted) return;
-      rec.status = "active";
-      rec.error = undefined;
-      bus.emit("kernel:module-active", { id });
-    } catch (e) {
-      if (scope.signal.aborted) return;
-      rec.status = "failed";
-      scope.dispose();
-      rec.scope = undefined;
-      rec.error = String(/** @type {any} */ (e)?.message || e);
-      warn(`module ${id} failed to activate:`, e);
-      bus.emit("kernel:module-failed", { id, error: rec.error });
+    const scope = newScope(), { promise, resolve, reject } = /** @type {PromiseWithResolvers<void>} */ (Promise.withResolvers());
+    rec.activation = { scope, done: promise };
+    run().then(resolve, reject);
+    return promise;
+    async function run() {
+      try {
+        await rec.def.activate(contextFor(rec.def.manifest, scope));
+        if (scope.signal.aborted) return;
+        rec.status = "active";
+        rec.error = undefined;
+        bus.emit("kernel:module-active", { id });
+      } catch (e) {
+        if (scope.signal.aborted) return;
+        rec.status = "failed";
+        scope.dispose();
+        rec.activation = undefined;
+        rec.error = String(/** @type {any} */ (e)?.message || e);
+        warn(`module ${id} failed to activate:`, e);
+        bus.emit("kernel:module-failed", { id, error: rec.error });
+      }
     }
   }
   async function settle() {
@@ -136,7 +140,7 @@ export function createKernel(opts = {}) {
     const provides = mods.get(id)?.def.manifest.provides || [];
     for (const r of mods.values()) {
       const rid = r.def.manifest.id;
-      if (seen.has(rid) || !r.scope) continue;
+      if (seen.has(rid) || !r.activation) continue;
       if ((r.def.manifest.needs || []).some((s) => provides.includes(s))) {
         seen.add(rid);
         out.push(...dependents(rid, seen), rid);
@@ -148,8 +152,8 @@ export function createKernel(opts = {}) {
   function deactivate(id, to) {
     const rec = mods.get(id);
     if (!rec) return;
-    rec.scope?.dispose();
-    rec.scope = undefined;
+    rec.activation?.scope.dispose();
+    rec.activation = undefined;
     rec.status = to;
     bus.emit("kernel:module-inactive", { id, status: to });
   }
@@ -195,7 +199,7 @@ export function createKernel(opts = {}) {
       return [...down, id];
     },
     status: (id) => mods.get(id)?.status,
-    live: (id) => mods.get(id)?.scope?.size ?? 0,
+    live: (id) => mods.get(id)?.activation?.scope.size ?? 0,
     modules: () => [...mods.values()].sort((a, b) => a.order - b.order).map((r) => ({ id: r.def.manifest.id, status: r.status, error: r.error, manifest: r.def.manifest })),
   };
 }

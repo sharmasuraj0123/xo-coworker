@@ -65,3 +65,29 @@ test("a disabled activation cannot publish into the next activation", async () =
   assert.equal(signals[1].aborted, true);
   assert.equal(kernel.live("xo.scope"), 0);
 });
+
+for (const method of ["start", "enable"]) {
+  test(`concurrent ${method} calls join the same activation`, async () => {
+    const kernel = createKernel();
+    const id = "xo.join";
+    const gate = Promise.withResolvers();
+    let activations = 0;
+    kernel.register({
+      manifest: { id, kernel: "^1", version: "1.0.0" },
+      async activate() {
+        activations++;
+        await gate.promise;
+      },
+    });
+    if (method === "enable") await kernel.start({ disabled: [id] });
+    const run = () => method === "start" ? kernel.start() : kernel.enable(id);
+    const first = run();
+    const second = run();
+    const early = await Promise.race([second, new Promise((resolve) => setImmediate(() => resolve(null)))]);
+    gate.resolve();
+    const reports = await Promise.all([first, second]);
+    assert.equal(early, null, "the second caller waits for activation");
+    assert.equal(activations, 1);
+    for (const report of reports) assert.deepEqual(report.active, [id]);
+  });
+}

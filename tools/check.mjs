@@ -1,12 +1,10 @@
-// node tools/check.mjs [--fast] [--update-baselines] [--accept-upstream <ref>]: lint, types, ratchets, comments, layers, places, ledger, tests; --fast skips types and tests.
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { checksLifecycle, lifecycleCounts } from "./lifecycle.mjs";
+import { checkLifecycle } from "./lifecycle.mjs";
 
-const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const FAST = process.argv.includes("--fast");
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url))), FAST = process.argv.includes("--fast");
 const UPDATE = process.argv.includes("--update-baselines");
 const UPSTREAM = process.argv.includes("--accept-upstream") ? process.argv[process.argv.indexOf("--accept-upstream") + 1] : null;
 const BASE_DIR = join(ROOT, "tools/baselines");
@@ -197,25 +195,7 @@ step("layers", () => {
   return fresh.length ? `layers: a file imports upward or from another module (talk through services, places or the bus):\n${fresh.map((k) => `  ${k}`).join("\n")}` : null;
 });
 
-step("lifecycle", () => {
-  const basePath = join(BASE_DIR, "lifecycle.json");
-  const base = readJson(basePath, null);
-  if (!base) return "Missing lifecycle baseline";
-  const errors = [];
-  const smaller = {};
-  for (const file of sourceFiles().filter(checksLifecycle).sort()) {
-    const current = lifecycleCounts(readFileSync(join(ROOT, file), "utf8"));
-    for (const [kind, count] of Object.entries(current)) {
-      const allowed = base[file]?.[kind] || 0;
-      if (count > allowed) errors.push(`  ${file}: ${kind} grew from ${allowed} to ${count}`);
-      if (allowed) (smaller[file] ||= {})[kind] = Math.min(count, allowed);
-    }
-  }
-  if (errors.length) return `Use lifecycle scopes, shared storage, or explicit error handling:\n${errors.join("\n")}`;
-  if (UPDATE) writeJson(basePath, smaller);
-  return null;
-});
-
+step("lifecycle", () => checkLifecycle(sourceFiles(), ROOT, join(BASE_DIR, "lifecycle.json"), UPDATE));
 step("places", () => {
   const r = run(process.execPath, ["tools/places-md.mjs", "--check"]);
   return r.status === 0 ? null : (r.stderr || r.stdout).trim();
