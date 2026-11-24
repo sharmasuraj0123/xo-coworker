@@ -7191,8 +7191,8 @@
    "note": "Shell owns the header host and action ordering. Conversation title markup remains in js/app.js with the conversation holdback."
   },
   "js/app.js::functions::checklistRender": {
-   "status": "planned",
-   "home": "modules/threads (thread head) (app.js l.1439)"
+   "status": "moved",
+   "home": "modules/conversation/checklist.js"
   },
   "js/app.js::functions::workingRuns": {
    "status": "moved",
