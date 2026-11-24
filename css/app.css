@@ -36,13 +36,22 @@
 @import url("../modules/files/viewer.css");
 @import url("../modules/decisions/risk-states.css");
 
-.top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:2px;border-radius:0 0 2px 2px;pointer-events:none;opacity:0;transition:opacity var(--dur-slow) var(--ease)}
-.top[data-state="need"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--warn) 20%,var(--warn) 80%,transparent)}
-.top[data-state="stop"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--err-ink) 20%,var(--err-ink) 80%,transparent)}
-.top[data-state="done"]::before{opacity:.55;background:linear-gradient(90deg,transparent,var(--accent-fill) 20%,var(--accent-fill) 80%,transparent)}
-.top[data-state="busy"]::before{opacity:.8;background:linear-gradient(90deg,transparent 0%,color-mix(in srgb,var(--info) 35%,transparent) 30%,var(--info) 50%,color-mix(in srgb,var(--info) 35%,transparent) 70%,transparent 100%) 0 0/50% 100% no-repeat;animation:sl-sweep 2.8s var(--ease-loop) infinite}
+.top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:2px;
+  border-radius:0 0 2px 2px;pointer-events:none;opacity:0;
+  transition:opacity var(--dur-slow) var(--ease)}
+.top[data-state="need"]::before{opacity:.8;
+  background:linear-gradient(90deg,transparent,var(--warn) 20%,var(--warn) 80%,transparent)}
+.top[data-state="stop"]::before{opacity:.8;
+  background:linear-gradient(90deg,transparent,var(--err-ink) 20%,var(--err-ink) 80%,transparent)}
+.top[data-state="done"]::before{opacity:.55;
+  background:linear-gradient(90deg,transparent,var(--accent-fill) 20%,var(--accent-fill) 80%,transparent)}
+.top[data-state="busy"]::before{opacity:.8;
+  background:linear-gradient(90deg,transparent 0%,color-mix(in srgb,var(--info) 35%,transparent) 30%,var(--info) 50%,
+    color-mix(in srgb,var(--info) 35%,transparent) 70%,transparent 100%) 0 0/50% 100% no-repeat;
+  animation:sl-sweep 2.8s var(--ease-loop) infinite}
 @keyframes sl-sweep{from{background-position:-100% 0}to{background-position:200% 0}}
-@media (prefers-reduced-motion:reduce){.top[data-state="busy"]::before{animation:none;background:linear-gradient(90deg,transparent,var(--info) 20%,var(--info) 80%,transparent)}}
+@media (prefers-reduced-motion:reduce){.top[data-state="busy"]::before{animation:none;
+  background:linear-gradient(90deg,transparent,var(--info) 20%,var(--info) 80%,transparent)}}
 .md-code{background:var(--term-bg)}
 .ck-n,.pn-count,.tc-st{font-family:var(--sans);font-variant-numeric:tabular-nums}
 .nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:var(--tr-20)}   /* the sidebar's, as it is */
