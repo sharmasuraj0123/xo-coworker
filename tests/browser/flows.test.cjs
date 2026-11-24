@@ -718,11 +718,13 @@ t("S023: after Reset all (by the keyboard, from the foot of the list), the first
 t("S139 (waiting): the file's Try again says it's trying while the renderer loads, then the file draws", async () => {
   const ctx = { mode: "fail", gate: null };
   // the renderer's module, from startup (its prefetch too): refused until the case says, then held
-  const page = await app({ files: { "a.js": FILE() }, beforeLoad: (p) => p.route("**/js/vendor/pierre-diffs/diffs.js", async (r) => {
-    if (ctx.mode === "fail") return r.abort("failed");
-    await ctx.gate;
-    return r.fallback();
-  }) });
+  const page = await app({ files: { "a.js": FILE() }, beforeLoad: (p) => p.route(
+    "http://*/{vendor,v/*/vendor}/pierre-diffs/diffs.js", async (r) => {
+      if (ctx.mode === "fail") return r.abort("failed");
+      await ctx.gate;
+      return r.fallback();
+    },
+  ) });
   await toDemo(page);
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
   const retry = page.locator("#viewer [data-vw-retry]");
@@ -935,7 +937,10 @@ t("S139: a file whose renderer failed, tried again, shows the file and not the o
   let once = true;
   const page = await app({ files: { "a.js": FILE() } });
   // the renderer's library fails to load once (a dropped connection), then loads
-  await page.route("**/js/vendor/pierre-diffs/diffs.js", (r) => { if (once) { once = false; return r.abort(); } return r.fallback(); });
+  await page.route("http://*/{vendor,v/*/vendor}/pierre-diffs/diffs.js", (r) => {
+    if (once) { once = false; return r.abort(); }
+    return r.fallback();
+  });
   await toDemo(page);
   await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
   const retry = page.locator("#viewer [data-vw-retry]");

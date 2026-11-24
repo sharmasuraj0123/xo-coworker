@@ -1,13 +1,13 @@
 // @ts-check
 
-// Diffs drawn by @pierre/diffs (js/vendor/pierre-diffs, 1.6.4), loaded on first need, coloured in one worker: the one adapter between XO and the library.
+// Pierre loads on the first diff and uses a shared highlighting worker.
 
 /** @import { DiffOptions } from "./types.d.ts" */
 
 /** @import { DiffWorkerPool, PierreDiffs, RenderedDiff } from "./pierre-types.d.ts" */
 
-const LIB = new URL("../../js/vendor/pierre-diffs/diffs.js", import.meta.url).href;
-const WORKER = new URL("../../js/vendor/pierre-diffs/worker.js", import.meta.url).href;
+const LIB = new URL("../../vendor/pierre-diffs/diffs.js", import.meta.url).href;
+const WORKER = new URL("../../vendor/pierre-diffs/worker.js", import.meta.url).href;
 const THEMES = { dark: "xo-dark", light: "xo-light" };
 
 /** ── languages: what the vendored build carries (tools/diffview/vendor.mjs LANGS) ───────────── @type {Record<string, string>} */

@@ -1,7 +1,3 @@
-// Diffs and files (modules/changes/diffview.js): the vendored library is the one
-// pinned and hashed, the syntax theme still matches XO's code tokens, every language the adapter asks for is
-// one the build carries, and nothing loads the library on the app's first load. No network, no browser.
-//   node tests/diffview.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { registerHooks } from "node:module";
@@ -11,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { codeColors, moduleSource, rootProps, color } from "../tools/diffview/theme.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const VENDOR = join(ROOT, "js/vendor/pierre-diffs");
+const VENDOR = join(ROOT, "vendor/pierre-diffs");
 const manifest = JSON.parse(readFileSync(join(VENDOR, "manifest.json"), "utf8"));
 
 let passed = 0;
@@ -21,7 +17,7 @@ const t = async (name, fn) => {
 };
 
 await t("the Changes adapter loads Pierre and starts its module worker on the first diff", async () => {
-  const library = new URL("../js/vendor/pierre-diffs/diffs.js", import.meta.url).href;
+  const library = new URL("../vendor/pierre-diffs/diffs.js", import.meta.url).href;
   const worker = new URL("worker.js", library).href;
   const loads = [];
   const workers = [];

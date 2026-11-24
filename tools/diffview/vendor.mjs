@@ -1,19 +1,4 @@
-// Vendors @pierre/diffs into js/vendor/pierre-diffs/: ES modules the page imports as they are, with no
-// build step at run time. Development only; nothing here runs in the app.
-//
-//   mkdir /tmp/pv && cd /tmp/pv && npm init -y && npm i --ignore-scripts @pierre/diffs@1.6.4 esbuild@0.28.2
-//   node tools/diffview/vendor.mjs /tmp/pv/node_modules
-//
-// What it makes:
-//   diffs.js    FileDiff, File, parsePatchFiles, registerCustomTheme, the worker pool (modules/changes/diffview.js)
-//   worker.js   the highlighting worker (a module worker; languages and themes arrive from the page)
-//   c/*.js      shared chunks and one chunk per language, each fetched on first use
-//   manifest.json  the versions and a sha256 per file (tests/diffview.test.mjs checks them)
-//   LICENSES.md the licence of every package inside the bundle
-//
-// What it leaves out, on purpose: every bundled colour theme (XO registers its own two, modules/changes/diffthemes.js),
-// Shiki's WebAssembly engine (the JavaScript regex engine needs none), the Highlights backend and its
-// theme catalogue (XO uses Shiki), and all but the languages below.
+// Build the Pierre views and their highlighting worker with shared, lazy language chunks.
 
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
@@ -44,7 +29,7 @@ const esbuild = require("esbuild");
 const { bundledLanguagesInfo } = await import(pathToFileURL(join(nm, "shiki/dist/langs.mjs")).href);
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const OUT = join(ROOT, "js/vendor/pierre-diffs");
+const OUT = join(ROOT, "vendor/pierre-diffs");
 const tmp = mkdtempSync(join(tmpdir(), "pierre-diffs-"));
 
 // the entries: only what modules/changes/diffview.js uses
@@ -126,5 +111,5 @@ rmSync(tmp, { recursive: true, force: true });
 
 const size = (f) => statSync(join(OUT, f)).size;
 const total = Object.keys(files).reduce((a, f) => a + size(f), 0);
-console.log(`js/vendor/pierre-diffs: ${Object.keys(files).length} files, ${(total / 1024).toFixed(0)} KB`);
+console.log(`vendor/pierre-diffs: ${Object.keys(files).length} files, ${(total / 1024).toFixed(0)} KB`);
 for (const f of ["diffs.js", "worker.js"]) console.log(`  ${f}  ${(size(f) / 1024).toFixed(1)} KB`);
