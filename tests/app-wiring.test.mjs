@@ -137,7 +137,7 @@ Object.assign(globalThis, {
   setInterval: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setInterval(fn, ms).unref(),
   setTimeout: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setTimeout(fn, ms).unref(),
   fetch: async (input, init) => {
-    const path = new URL(String(input), location.href).pathname;
+    const { pathname: path, searchParams } = new URL(String(input), location.href);
     const resource = path.split("/").at(-1);
     if (path === "/api/chat/stream") return new Response(streamBody);
     if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "ready" });
@@ -183,6 +183,12 @@ Object.assign(globalThis, {
       { ts: "boot-thread", chat_id: "project-chat", title: "Thread from the panel", state: "working", session_id: "boot-session", pin: { model: "codex-fixture" }, runs: { total: 1 }, can_delete: true },
       { ts: "failed-thread", chat_id: "project-chat", title: "Review the draft", state: "failed" },
     ].map((thread) => ({ ...thread, created_at: new Date(lastHomeVisit).toISOString(), updated_at: new Date(lastHomeVisit).toISOString() })) });
+    if (path === "/api/chat/chats/project-chat/messages" && searchParams.get("thread") === "boot-thread") {
+      return Response.json({ messages: [{
+        id: "queued-reply", chat_id: "project-chat", author_kind: "owner", seq: 4,
+        created_at: new Date().toISOString(), text: "Read this next",
+      }] });
+    }
     if (path === "/api/chat/sessions") return Response.json({ sessions: [
       { id: "boot-session", agent: "codex" },
       { id: "plain-chat", role: "plain", agent: "codex", title: "Draft ideas", created_at: new Date(lastHomeVisit).toISOString() },
@@ -568,6 +574,13 @@ function togglePicker(selector) {
 togglePicker("#iq");
 dropFile(document.querySelector("#say"), "main.txt");
 assert.match(document.querySelector("#att-tray").textContent, /main\.txt/);
+const runningTurn = {
+  type: "turn.started", seq: 2, session_id: "boot-session", thread_ts: "boot-thread",
+  chat_id: "project-chat", turn_id: "boot-turn", ts: new Date().toISOString(), data: { origin: "person" },
+};
+stream.enqueue(encoder.encode(`id: 2\nevent: turn.started\ndata: ${JSON.stringify(runningTurn)}\n\n`));
+const runningSession = { type: "session", seq: 3, session_id: "boot-session", data: { status: "running" } };
+stream.enqueue(encoder.encode(`id: 3\nevent: session\ndata: ${JSON.stringify(runningSession)}\n\n`));
 press("[data-stage-toggle]", 1, "touch");
 const panelThread = '#stage .ag-r[data-go="t:boot-thread"]';
 for (const [detail, pointerType, expected] of [[1, "touch", "[data-page-heading]"], [1, "mouse", "#tsay"], [0, "", "#tsay"]]) {
@@ -600,6 +613,57 @@ for (const [detail, pointerType, expected] of [[1, "touch", "[data-page-heading]
     key("Escape");
 
     const messages = document.querySelector("#stage #tmsgs");
+    const interrupt = "#stage #tmsgs [data-interrupt]";
+    for (let attempt = 0; attempt < 30 && !document.querySelector(interrupt); attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      flushFrames();
+    }
+    assert.ok(document.querySelector(interrupt), `the queued reply to a running turn offers Interrupt: ${messages.textContent}`);
+    document.querySelector(interrupt).focus();
+    press(interrupt);
+    flushFrames();
+    const undoInterrupt = "#tpherald [data-herald-undo]";
+    assert.ok(document.querySelector(undoInterrupt), "Interrupt draws Undo in the panel notice line");
+    assert.ok(document.activeElement === document.querySelector(undoInterrupt), "Interrupt focuses the panel's Undo");
+    assert.ok(!document.querySelector("#herald [data-herald-undo]"), "the main notice line stays clear");
+    press(undoInterrupt);
+    flushFrames();
+    assert.ok(!document.querySelector(undoInterrupt), "Undo clears the panel notice");
+    assert.ok(document.activeElement === document.querySelector(interrupt) || document.activeElement === reply,
+      "Undo returns to a control in the same thread conversation");
+
+    const panelReview = {
+      type: "review.opened", seq: 5, chat_id: "project-chat", thread_ts: "boot-thread",
+      data: {
+        id: "panel-review", kind: "permission", risk: "routine", thread_ts: "boot-thread", chat_id: "project-chat",
+        title: "Read the project notes", detail: { command: "cat README.md" },
+        options: [{ id: "once", decision: "allow", label: "Allow once", scope: "once" }],
+      },
+    };
+    stream.enqueue(encoder.encode(`id: 5\nevent: review.opened\ndata: ${JSON.stringify(panelReview)}\n\n`));
+    const allow = '#tptdock [data-act="allow"]';
+    for (let attempt = 0; attempt < 30 && !document.querySelector(allow); attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      flushFrames();
+    }
+    const allowButton = document.querySelector(allow);
+    assert.ok(allowButton, "the review opens in the thread's own decision dock");
+    const { READ_MS } = await import("../modules/decisions/kit.js");
+    await new Promise((resolve) => setTimeout(resolve, READ_MS));
+    allowButton.focus();
+    press(allow);
+    const undoDecision = "#tptdock [data-dock-undo]";
+    assert.ok(document.querySelector(undoDecision), "Allow leaves an Undo receipt in the thread dock");
+    assert.ok(document.activeElement === document.querySelector(undoDecision), "the decision receipt gets focus");
+    press(undoDecision);
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.ok(!document.querySelector(undoDecision), "app decision Undo immediately clears the panel receipt");
+    assert.ok(document.querySelector(allow), "the original decision returns to the panel dock");
+    stream.enqueue(encoder.encode('id: 6\nevent: review.decided\ndata: {"type":"review.decided","seq":6,"data":{"id":"panel-review"}}\n\n'));
+    await new Promise(setImmediate);
+    flushFrames();
+
     const panelMessage = document.createElement("div");
     panelMessage.className = "m-them";
     panelMessage.innerHTML = '<div class="mb"><div class="prose"><p>Panel reply</p></div></div>';
