@@ -23,7 +23,8 @@ const copied = [];
 Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (t) => { copied.push(t); } } });
 g.getSelection = () => ({ isCollapsed: true, toString: () => "" });
 
-const { decorateConversation } = await import("../js/msgx.js");
+await import("../modules/conversation/main-decoration.js");
+const { decorateConversation } = await import("../modules/conversation/decoration.js");
 const $ = (s, r = document) => r.querySelector(s);
 let view = "t:one";
 const viewSubs = [];

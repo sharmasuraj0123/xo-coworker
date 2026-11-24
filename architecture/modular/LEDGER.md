@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 483 |
+| moved | 482 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 165 |
 | kept | 57 |
-| split | 28 |
+| split | 29 |
 
 Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted 131, split 3), in `ledger.json` as `path::kind::name`.
 
@@ -79,7 +79,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |
-| `js/msgx.js` | 918 | moved | modules/conversation/decoration.js |
+| `js/msgx.js` | 918 | split | modules/conversation/main-decoration.js, modules/conversation/decoration.js · next: The main conversation starts decoration in the same script slot after boot. |
 | `js/pacing.js` | 67 | moved | modules/decisions/pacing.js |
 | `js/paid.js` | 152 | moved | core/services/world/paid.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/paidview.js` | 21 | moved | modules/decisions/cards/paid.js |

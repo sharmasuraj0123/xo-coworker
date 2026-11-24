@@ -1,8 +1,6 @@
 // @ts-check
-import { decorateConversation } from "../modules/conversation/decoration.js";
-import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "../modules/conversation/follow.js";
-
-export { decorateConversation };
+import { decorateConversation } from "./decoration.js";
+import { toLatest as mainToLatest, fromLatest as mainFromLatest } from "./follow.js";
 
 const $ = (/** @type {string} */ s) => /** @type {HTMLElement} */ (document.querySelector(s));
 
