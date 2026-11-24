@@ -8,8 +8,7 @@
 @font-face{font-family:"JetBrains Mono";font-style:italic;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"JetBrains Mono";font-style:italic;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 
-/* Surface and line roles share an elevation scale. Interactive states use translucent fills. */
-/* Dark: a deep neutral canvas (#141414); every step keeps the same relative lift. */
+/* Dark surfaces and lines share an elevation scale from the neutral canvas. Interactive states use translucent fills. */
 :root{
   color-scheme:dark;
   --sunken:#111111; --canvas:#141414; --surface:#1B1B1B; --float:#1E1E1E;
@@ -128,9 +127,8 @@
   --edge-text:var(--s-3); /* words or a bare glyph at a bar's end sit this far inside its line; a filled control nests concentric instead */
   --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
-  /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-9:36px; --s-10:40px; --s-12:48px;
-  --gap-icon:var(--s-2);
+  --gap-icon:var(--s-2); /* Spacing follows a 4 px grid. */
   --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch;
   --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
   --s-tool-file-end:14px; --s-tool-file-start:10px; --s-tool-separator-gap:7px; --s-tool-rail-inset:23px;
@@ -163,6 +161,8 @@
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
   --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
+  --slide-undo-entry:-24px; --slide-confirm-exit:-8px; --slide-cancel-exit:-18px; --shift-hover-chevron:3px;
+  --ic-approval-stamp:84px; --w-effort-label:96px; --w-decision-attribution:84px; --w-empty-state-mark:58px;
   --s-touch-extension:-8px; --s-notice-touch-extension:-12px; --h-folder-touch-action:28px;
   --s-model-chip-phone:6px; --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
   --r-segment-inset:2px; --offset-inside-focus-ring:-2px;

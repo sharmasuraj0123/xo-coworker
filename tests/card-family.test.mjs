@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { list } from "postcss";
-import { declarationsFor, stylesheetRows, tokenValuesFor } from "./lib/css-snapshot.mjs";
+import { declarationsFor, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
 const base = Object.fromEntries(tokenValuesFor());
 const phoneOverrides = stylesheetRows.filter((row) => row.context.at(-1)?.selector === ":root" && row.property?.startsWith("--")
@@ -57,7 +57,8 @@ test("Home's next card is the same card: the 24 corner, controls --card-in in, n
   const r = rule(".next");
   assert.deepEqual(nest(r), { "--nest-r": "var(--r-card)", "--nest-in": "var(--card-in)" });
   assert.equal(prop(r, "border-radius"), "var(--nest-r)");
-  assert.equal(prop(r, "border"), "1px solid transparent"); assert.equal(prop(r, "box-shadow"), prop(rule(".card"), "box-shadow"));
+  assert.deepEqual(valuesFor(".next", "border"), ["1px solid transparent"]);
+  assert.equal(prop(r, "box-shadow"), prop(rule(".card"), "box-shadow"));
   assert.ok(!r.has("padding"));
   const resize = declarationsFor((selector) => list.comma(selector).some((part) => /^\.next(?![\w-])/.test(part)))
     .filter((row) => /^--nest-(?:r|pad|in)$/.test(row.property));
