@@ -1573,12 +1573,14 @@
    "home": "core/ui/foundation.css"
   },
   "css/diffs.css": {
-   "status": "planned",
-   "home": "modules/changes/diffs.css"
+   "status": "kept",
+   "home": "css/diffs.css",
+   "note": "The existing versioned stylesheet stays in its current link slot for the separate CSS package."
   },
   "css/docs.css": {
-   "status": "planned",
-   "home": "modules/files/editor/docs.css"
+   "status": "kept",
+   "home": "css/docs.css",
+   "note": "The existing versioned stylesheet stays in its current link slot with its pinned cascade."
   },
   "css/dropdown.css": {
    "status": "moved",
@@ -1615,8 +1617,9 @@
    ]
   },
   "css/links.css": {
-   "status": "planned",
-   "home": "modules/conversation/links.css"
+   "status": "kept",
+   "home": "css/links.css",
+   "note": "The existing versioned stylesheet stays in its current link slot for the separate CSS package."
   },
   "css/media.css": {
    "status": "moved",
@@ -2409,8 +2412,9 @@
    "home": "e2e/fixtures/mockspace-harness.cjs"
   },
   "favicon.svg": {
-   "status": "planned",
-   "home": "core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs)"
+   "status": "kept",
+   "home": "favicon.svg",
+   "note": "Serve the existing artwork at the pinned path; generating it from the icon pack would change its bytes."
   },
   "fonts/dm-sans/OFL.txt": {
    "status": "vendor",
@@ -2433,16 +2437,19 @@
    "home": "fonts/dm-sans/dm-sans-latin-wght-normal.woff2"
   },
   "fonts/geist/Geist-Variable.woff2": {
-   "status": "planned",
-   "home": "core/ui/fonts/geist/Geist-Variable.woff2"
+   "status": "kept",
+   "home": "fonts/geist/Geist-Variable.woff2",
+   "note": "The first-paint preload and Geist face resolve here."
   },
   "fonts/geist/GeistMono-Variable.woff2": {
-   "status": "planned",
-   "home": "core/ui/fonts/geist/GeistMono-Variable.woff2"
+   "status": "kept",
+   "home": "fonts/geist/GeistMono-Variable.woff2",
+   "note": "Retained with the shipped Geist font assets."
   },
   "fonts/geist/LICENSE.txt": {
-   "status": "planned",
-   "home": "core/ui/fonts/geist/LICENSE.txt"
+   "status": "kept",
+   "home": "fonts/geist/LICENSE.txt",
+   "note": "The shipped Geist license stays beside its font files."
   },
   "fonts/jetbrains-mono/OFL.txt": {
    "status": "vendor",
@@ -4469,24 +4476,29 @@
    "home": "tests/active-turns.test.mjs"
   },
   "tests/agent-marks.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (agent marks)/tests/agent-marks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/agent-marks.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/agent-tag.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/agent-tag.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/agent-tag.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/app-ctl-scale.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/app-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/app-ctl-scale.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/artifacts-preview.test.mjs": {
-   "status": "planned",
-   "home": "modules/artifacts/tests/artifacts-preview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/artifacts-preview.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/attach.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/attach.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/back-to-where.test.mjs": {
    "status": "kept",
@@ -4497,58 +4509,59 @@
    "home": "tests/boot.test.mjs"
   },
   "tests/browser/chat-read-order.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/chat-read-order.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/chat-read-order.test.cjs",
+   "note": "The retained legacy browser suite has cases outside the P5 fast lane."
   },
   "tests/browser/conversation.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs",
+   "note": "The P5 lane covers project open, send and draft restoration; the broader conversation cases remain here."
   },
   "tests/browser/coordinator-busy.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/coordinator-busy.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/coordinator-busy.test.cjs",
+   "note": "The retained legacy browser suite has cases outside the P5 fast lane."
   },
   "tests/browser/flows.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs",
+   "note": "The P5 lane covers phone Back and a Threads panel smoke case; the broader legacy interaction cases remain here."
   },
   "tests/browser/harness.cjs": {
-   "status": "planned",
-   "home": "e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs",
-   "note": "its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs",
+   "note": "The legacy cases still use this harness; the P5 lane has its own seeded Space and settle helpers."
   },
   "tests/browser/held-contract.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/held-contract.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/held-contract.test.cjs",
+   "note": "The retained legacy browser suite has cases outside the P5 fast lane."
   },
   "tests/browser/held-waiting.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/held-waiting.test.cjs",
+   "note": "The retained legacy browser suite has cases outside the P5 fast lane."
   },
   "tests/browser/lpshell.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs",
+   "note": "Keep the legacy cases alongside e2e/worlds/lp-shell.cjs until their coverage can be compared in the browser lane."
   },
   "tests/browser/settings.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs",
+   "note": "The P5 shell case covers Settings open and Escape focus return; the settings suite retains its additional cases."
   },
   "tests/browser/smoke.test.cjs": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "status": "kept",
+   "home": "tests/browser/smoke.test.cjs",
+   "note": "The P5 lane covers Home on desktop and phone and first-frame boot; the broader smoke cases remain here."
   },
   "tests/busy.test.mjs": {
-   "status": "planned",
-   "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/busy.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/button-fill.test.mjs": {
    "status": "kept",
@@ -4563,8 +4576,9 @@
    "home": "tests/card-family.test.mjs"
   },
   "tests/card-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/card-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/card-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/cardparts.test.mjs": {
    "status": "kept",
@@ -4579,12 +4593,14 @@
    "home": "tests/chats-list.test.mjs"
   },
   "tests/checklist-empty.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/checklist-empty.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/checklist-empty.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/codemirror-vendor.test.mjs": {
-   "status": "planned",
-   "home": "modules/vendor/tests/codemirror-vendor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/codemirror-vendor.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/composer-popover-height.test.mjs": {
    "status": "kept",
@@ -4599,40 +4615,48 @@
    "home": "tests/concentric.test.mjs"
   },
   "tests/conn-line.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/conn-line.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conn-line.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/conv-ctl-scale.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/conv-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conv-ctl-scale.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/conv-find-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/conv-find-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conv-find-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/conv-herald-resolve.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/conv-herald-resolve.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conv-herald-resolve.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/conv-sound.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conv-sound.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/coord-colour.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/coord-colour.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/copied-speaker.test.mjs": {
    "status": "kept",
    "home": "tests/copied-speaker.test.mjs"
   },
   "tests/copy-path-fail.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/copy-path-fail.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/cover-inert.test.mjs": {
-   "status": "planned",
-   "home": "shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/cover-inert.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/create-busy-honest.test.mjs": {
    "status": "moved",
@@ -4644,48 +4668,56 @@
    "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/css-wellformed.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/ctl-heights.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ctl-heights.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/ctl-scale.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ctl-scale.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/design-budget.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/design-budget.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/details-toggle.test.mjs": {
    "status": "kept",
    "home": "tests/details-toggle.test.mjs"
   },
   "tests/diff-redraw-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/diff-redraw-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/diff-redraw-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/diffview.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/diffview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/diffview.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/disclosure-corners.test.mjs": {
    "status": "kept",
    "home": "tests/disclosure-corners.test.mjs"
   },
   "tests/dock-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/decisions/tests/dock-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/dock-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/dock-reset.test.mjs": {
    "status": "kept",
    "home": "tests/dock-reset.test.mjs"
   },
   "tests/docs.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/docs.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/done-line.test.mjs": {
    "status": "kept",
@@ -4696,20 +4728,23 @@
    "home": "tests/dots-motion.test.mjs"
   },
   "tests/drafts.test.mjs": {
-   "status": "planned",
-   "home": "core/services/tests/drafts.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/drafts.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/dropdown-held.test.mjs": {
-   "status": "planned",
-   "home": "core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/dropdown-held.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/edge-card.test.mjs": {
    "status": "kept",
    "home": "tests/edge-card.test.mjs"
   },
   "tests/edge-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/edge-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/editor-caret.test.mjs": {
    "status": "deleted",
@@ -4720,32 +4755,38 @@
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test tested diffview's exitKeys, which only that editor used; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/edits.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/edits.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/event-lines.test.mjs": {
    "status": "kept",
    "home": "tests/event-lines.test.mjs"
   },
   "tests/field-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/field-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/file-cache.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/file-cache.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/file-cache.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/files-stop-look.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/files-stop-look.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/files-tree-scroll-fold.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/files-tree-scroll-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/files-tree-scroll-fold.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/files.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/files.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/find-bar.test.mjs": {
    "status": "deleted",
@@ -4756,28 +4797,32 @@
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-key handling and its vendored source; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/fixtures/plain-turn.sse": {
-   "status": "planned",
-   "home": "core/platform/tests/fixtures/plain-turn.sse"
+   "status": "kept",
+   "home": "tests/fixtures/plain-turn.sse",
+   "note": "The retained test reads this fixture at its current path."
   },
   "tests/fixtures/storm-held-contract.json": {
-   "status": "planned",
-   "home": "e2e/fixtures/storm-held-contract.json"
+   "status": "kept",
+   "home": "tests/fixtures/storm-held-contract.json",
+   "note": "The retained test reads this fixture at its current path."
   },
   "tests/flavours.test.mjs": {
    "status": "kept",
    "home": "tests/flavours.test.mjs"
   },
   "tests/focus-back.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focus-back.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/focus-fields.test.mjs": {
    "status": "kept",
    "home": "tests/focus-fields.test.mjs"
   },
   "tests/focusview.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focusview.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/follow-instance.test.mjs": {
    "status": "moved",
@@ -4788,40 +4833,49 @@
    "home": "tests/ghpage.test.mjs"
   },
   "tests/gone-thread-composer.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/gone-thread-composer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/gone-thread-composer.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/graph-focus.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/graph-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/graph-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/grip-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/grip-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/grip-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/head-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/head-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/head-narrow.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/head-narrow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/head-narrow.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/head-redraw.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/head-redraw.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/head-redraw.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/herald.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/herald.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/herald.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/hover-census.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/hover-census.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/hover-census.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/hover-inks.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/hover-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/hover-inks.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/hover-rings.test.mjs": {
    "status": "kept",
@@ -4832,20 +4886,23 @@
    "home": "tests/hover-veil.test.mjs"
   },
   "tests/icon-gap.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/icon-gap.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/image-text-mode.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/image-text-mode.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/image-text-mode.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/imagechange.test.mjs": {
    "status": "moved",
    "home": "modules/changes/tests/imagechange.test.mjs"
   },
   "tests/inverse-toast.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/inverse-toast.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/iq-one-path.test.mjs": {
    "status": "kept",
@@ -4856,16 +4913,19 @@
    "home": "tests/jump-projects.test.mjs"
   },
   "tests/key-layer.test.mjs": {
-   "status": "planned",
-   "home": "shell (phone drawer)/tests/key-layer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/key-layer.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/keynav.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/keynav.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/keys-dispatch.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/keys-dispatch.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/keys.test.mjs": {
    "status": "moved",
@@ -4876,28 +4936,34 @@
    "home": "modules/launchpad/tests/launchpad.test.mjs"
   },
   "tests/layout-reads.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/layout-reads.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/lib/cascade.mjs": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/lib/tokens.mjs": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/link-buttons.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/link-buttons.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/links-css.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/links-css.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/logic.test.mjs": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/lp-create-connect-focus.test.mjs": {
    "status": "moved",
@@ -4910,12 +4976,14 @@
    "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)"
   },
   "tests/lp-intel-order.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/lp-intel-order.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/lp-phone-links.test.mjs": {
-   "status": "planned",
-   "home": "core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/lp-phone-links.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/lp-stop-notice.test.mjs": {
    "status": "moved",
@@ -4923,96 +4991,115 @@
    "note": "still reads app.js's notice() source; its rewrite as a behaviour test is owed"
   },
   "tests/main-clip.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/main-clip.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/map-focus-reveal.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map-focus-reveal.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map-focus-reveal.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/map-follow-cursor.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map-follow-cursor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map-follow-cursor.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/map-follow.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map-follow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map-follow.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/map-reach.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map-reach.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/map-tag-press.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/map-tag-press.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map-tag-press.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/map.test.mjs": {
-   "status": "planned",
-   "home": "modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/md-headings.test.mjs": {
    "status": "kept",
    "home": "tests/md-headings.test.mjs"
   },
   "tests/mdlive.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/mdlive.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/media.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/media.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/menu-focus-fill.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/menu-focus-fill.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/menu-focus-fill.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/menu-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/menu-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/menu-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/menu-motion.test.mjs": {
    "status": "kept",
    "home": "tests/menu-motion.test.mjs"
   },
   "tests/menu-one-active.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/menu-one-active.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/menu-open-unlit.test.mjs": {
    "status": "kept",
    "home": "tests/menu-open-unlit.test.mjs"
   },
   "tests/menu-successor.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (menus, all modules)/tests/menu-successor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/menu-successor.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/menu-type.test.mjs": {
    "status": "kept",
    "home": "tests/menu-type.test.mjs"
   },
   "tests/merge.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/merge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/merge.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/names.test.mjs": {
-   "status": "planned",
-   "home": "modules/repo/tests/names.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/names.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/no-offedge.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/no-offedge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/no-offedge.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/notice-clear.test.mjs": {
-   "status": "planned",
-   "home": "shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/notice-clear.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/notice-kind.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/notice-kind.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/notice-kind.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/one-active.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (lists)/tests/one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/one-active.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/pack-marks.test.mjs": {
    "status": "kept",
@@ -5023,84 +5110,102 @@
    "home": "tests/pack-where-it-fits.test.mjs"
   },
   "tests/page-no-hover.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/page-no-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/page-no-hover.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/paging.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/paging.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/paging.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/paid.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/paid.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/paid.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/paint-a11y.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/paint-a11y.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/paint-a11y.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/panel-parity.test.mjs": {
    "status": "kept",
    "home": "tests/panel-parity.test.mjs"
   },
   "tests/panel-shell.test.mjs": {
-   "status": "planned",
-   "home": "shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/panel-shell.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/panel-threads.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/panel-threads.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/path-copy-inline.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/path-copy-inline.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/path-copy-inline.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/pending.test.mjs": {
-   "status": "planned",
-   "home": "core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/pending.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/phone-cascade.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/phone-cascade.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-cascade.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/phone-floor.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/phone-floor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-floor.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/phone-hit-area.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/phone-hit-area.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-hit-area.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/phone-panel-go.test.mjs": {
-   "status": "planned",
-   "home": "shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/phone-panel-go.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/picker-keys.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/picker-keys.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/pierre-find-focus.test.mjs": {
    "status": "deleted",
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test checked the local patch to the vendored edit.js; tests/diffview.test.mjs checks the adapter offers no editor"
   },
   "tests/press-inks.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/press-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-inks.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/press-keeps-node.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/press-reach.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-reach.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/project-icons.test.mjs": {
-   "status": "planned",
-   "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/project-icons.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/quickopen.test.mjs": {
-   "status": "planned",
-   "home": "modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/quickopen.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/rail-badge.test.mjs": {
    "status": "kept",
@@ -5112,60 +5217,73 @@
    "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/rec-undo-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/rec-undo-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/reconcile-focus.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/reconcile-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/record.test.mjs": {
-   "status": "planned",
-   "home": "modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/record.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/reduced-motion.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/reduced-motion.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/reduced-motion.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/refusal-mark.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/refusal-mark.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/refusal-mark.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/refused.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/refused.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/refused.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/region-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/region-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/region-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/render-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/render-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/render-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/retry-waiting.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/retry-waiting.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/reveal-focus.test.mjs": {
    "status": "moved",
    "home": "modules/changes/tests/reveal-focus.test.mjs"
   },
   "tests/rich-markdown.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/rich-markdown.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/ring-room.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring-room.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/ring.test.mjs": {
-   "status": "planned",
-   "home": "core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/routing-truth.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/routing-truth.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/routing-words.test.mjs": {
    "status": "moved",
@@ -5189,12 +5307,14 @@
    "home": "tests/runs-page.test.mjs"
   },
   "tests/runs-stop-receipt.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/runs-stop-receipt.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/runtimes.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/runtimes.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/saved-truth.test.mjs": {
    "status": "moved",
@@ -5202,36 +5322,43 @@
    "note": "rewritten as a behaviour test: Settings › Runtimes driven on a DOM (tests/lib/dom.mjs), its saves answered by the test"
   },
   "tests/scroller-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/scroller-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/seg-fold.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/seg-fold.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/seg-ring.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/seg-ring.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/send-calm.test.mjs": {
    "status": "kept",
    "home": "tests/send-calm.test.mjs"
   },
   "tests/send-gate.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/send-gate.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/send-gate.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/send-notice.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/send-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/send-notice.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/serve.test.py": {
-   "status": "planned",
-   "home": "modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/serve.test.py",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/settings-css.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/settings-css.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/shape-held.test.mjs": {
    "status": "moved",
@@ -5244,36 +5371,43 @@
    "note": "rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs)"
   },
   "tests/shape.test.mjs": {
-   "status": "planned",
-   "home": "core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/shape.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/shell-grip.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/shell-grip.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/shells.test.mjs": {
-   "status": "planned",
-   "home": "shells/tests/shells.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/shells.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/side-bar.test.mjs": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-bar.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/side-calm-order.test.mjs": {
    "status": "kept",
    "home": "tests/side-calm-order.test.mjs"
   },
   "tests/side-fold.test.mjs": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-fold.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/side-spacing.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/side-spacing.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-spacing.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/sidebar-hover.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/sidebar-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/sidebar-hover.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/space-scale.test.mjs": {
    "status": "kept",
@@ -5288,64 +5422,76 @@
    "home": "tests/stage-head-back.test.mjs"
   },
   "tests/stage-inplace.test.mjs": {
-   "status": "planned",
-   "home": "shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stage-inplace.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/stage-list-edge.test.mjs": {
    "status": "kept",
    "home": "tests/stage-list-edge.test.mjs"
   },
   "tests/stage-pages.test.mjs": {
-   "status": "planned",
-   "home": "shell (panel host)/tests/stage-pages.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stage-pages.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/stale-pass.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/stale-pass.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stale-pass.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/stalled-own-message.test.mjs": {
    "status": "kept",
    "home": "tests/stalled-own-message.test.mjs"
   },
   "tests/start-centred.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/start-centred.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/start-centred.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/state-hover.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard, all modules)/tests/state-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/state-hover.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/step-line-face.test.mjs": {
    "status": "kept",
    "home": "tests/step-line-face.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/storm.test.mjs": {
-   "status": "planned",
-   "home": "core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/storm.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/target-bounded.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/target-bounded.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/targets-css.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/targets-css.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/thread-filter.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-filter.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/thread-menu.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-menu.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-menu.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/thread-page.test.mjs": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-page.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/thread-spawn-session.test.mjs": {
    "status": "kept",
@@ -5356,8 +5502,9 @@
    "home": "tests/turn-split-notes.test.mjs"
   },
   "tests/turnview.test.mjs": {
-   "status": "planned",
-   "home": "modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/turnview.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/type-faces.test.mjs": {
    "status": "kept",
@@ -5368,20 +5515,24 @@
    "home": "tests/type-roles.test.mjs"
   },
   "tests/viewer-busy.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/viewer-busy.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/viewer-errors.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-errors.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/viewer-errors.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/viewer-head-focus.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/viewer-head-focus.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/viewer-hooks.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-hooks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/viewer-hooks.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tests/words.test.mjs": {
    "status": "moved",
@@ -5389,12 +5540,14 @@
    "note": "still reads the source for the two imports; its rewrite as a behaviour test is owed"
   },
   "tests/xoicons.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/xoicons.test.mjs",
+   "note": "The test runner continues to discover this suite at its current path."
   },
   "tools/codemirror/vendor.mjs": {
-   "status": "planned",
-   "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/codemirror/vendor.mjs",
+   "note": "The existing generator remains at its tooling entry."
   },
   "tools/diffview/astra-recheck.cjs": {
    "status": "deleted",
@@ -5477,12 +5630,14 @@
    "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/theme.mjs": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs",
+   "note": "The existing generator remains at its tooling entry."
   },
   "tools/diffview/vendor.mjs": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs",
+   "note": "The existing generator remains at its tooling entry."
   },
   "tools/files/space-e2e-reset.sh": {
    "status": "deleted",
@@ -13279,244 +13434,245 @@
    "home": "core/ui/icons/xoicons.js"
   },
   "tests/attach.test.mjs::exports::f": {
-   "status": "planned",
-   "home": "modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/attach.test.mjs"
   },
   "tests/attach.test.mjs::functions::fakeUpload": {
-   "status": "planned",
-   "home": "modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/attach.test.mjs"
   },
   "tests/browser/chat-read-order.test.cjs::ids::send": {
-   "status": "planned",
-   "home": "e2e/specs/chat-read-order.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/chat-read-order.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::convApi": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::app": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::watchFocus": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::menuOpen": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::renameTo": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::openAllSheet": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::failSend": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::chatOpen": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::swipeRow": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::longPress": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::lpPage": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::attach": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::replyPage": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::chosenAnswer": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::functions::liveTurn": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::conv-title": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::tw-edit": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::all-f": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::cs-pop": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::all-list": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::msgs": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::scroller": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::herald": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::all-q": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::say": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::at-list": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::att-tray": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::target": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::live": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::ids::tdock": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::storage::__seeded": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::storage::<k>": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs",
+   "note": "The seeded browser state supplies dynamic keys to localStorage.setItem."
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/chats/chat_demo/threads": {
-   "status": "planned",
-   "home": "e2e/specs/threads.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/chats/chat_demo/messages": {
-   "status": "planned",
-   "home": "e2e/specs/messages.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/runtimes": {
-   "status": "planned",
-   "home": "e2e/specs/runtimes.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/sessions": {
-   "status": "planned",
-   "home": "e2e/specs/sessions.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::routes::/api/chat/prompt": {
-   "status": "planned",
-   "home": "e2e/specs/prompt.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__focusDrops": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__ck": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__af": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__rb": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__ask": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__u": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__copied": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__op": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__x": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__mb": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__row": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__cp": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__tick": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::globals::__b": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/conversation.test.cjs::custom_events::DOMContentLoaded": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/conversation.test.cjs"
   },
   "tests/browser/coordinator-busy.test.cjs::ids::send": {
-   "status": "planned",
-   "home": "e2e/specs/coordinator-busy.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/coordinator-busy.test.cjs"
   },
   "tests/browser/coordinator-busy.test.cjs::ids::projects": {
-   "status": "planned",
-   "home": "e2e/specs/coordinator-busy.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/coordinator-busy.test.cjs"
   },
   "tests/browser/coordinator-busy.test.cjs::routes::/api/chat/abort": {
-   "status": "planned",
-   "home": "e2e/specs/abort.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/coordinator-busy.test.cjs"
   },
   "tests/browser/flows.test.cjs::exports::line$": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::editing": {
    "status": "deleted",
@@ -13527,20 +13683,20 @@
    "reason": "a helper only the flow cases on the removed Edit/Save editor used; it went with them"
   },
   "tests/browser/flows.test.cjs::functions::copyCase": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::panelOpen": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::filesOpen": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::ringSides": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::choose": {
    "status": "deleted",
@@ -13551,389 +13707,388 @@
    "reason": "a helper only the flow cases on the removed Edit/Save editor used; it went with them"
   },
   "tests/browser/flows.test.cjs::functions::keysPage": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::diffOpen": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::movePicker": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::toThread": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::turnChip": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::bigMap": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::graphStill": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::hopRace": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::select": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::picker": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::dockAsk": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::homeAsk": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::decisions": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::functions::ctxDone": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::rd-in": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::main": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::stage": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::stage-map-tree": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::viewer": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::fv": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::msgs": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::scroller": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::rule-sr": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::rule-real": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::rule-box": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::app": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::side": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::herald": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-body": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::arts": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::cp-stop": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::create-dlg": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::runs": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::drop-veil": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::set-side": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::settings": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::live": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::vw-h": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::iq-pop": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::iq": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::stage-map-graph": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::jump": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::jump-list": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-pj": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::arts-f": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::say": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::typing": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::t-sel": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::at-list": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::send": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::composer": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::tdock": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::lbx-states": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::hm-next": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::ids::card": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::storage::cv-keys": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::storage::cv-shape-device": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__copied": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__fl": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__rule": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::requestAnimationFrame": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__seen": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__look": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__cp": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::__cpq": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::calls": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::globals::d": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/flows.test.cjs::custom_events::focusbrought": {
-   "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/flows.test.cjs"
   },
   "tests/browser/harness.cjs::functions::serve": {
-   "status": "planned",
-   "home": "e2e/lib/space.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::mockApi": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::hooks": {
-   "status": "planned",
-   "home": "none: e2e/ injects nothing into the app",
-   "note": "goes with harness.cjs once its suites are ported"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::openApp": {
-   "status": "planned",
-   "home": "e2e/run.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::launch": {
-   "status": "planned",
-   "home": "e2e/lib/browser.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::pngPixels": {
-   "status": "planned",
-   "home": "e2e/lib/sweeps.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::visible": {
-   "status": "planned",
-   "home": "e2e/lib/sweeps.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::functions::stateSweep": {
-   "status": "planned",
-   "home": "e2e/lib/sweeps.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "e2e/run.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/chats": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/status": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/shape": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/terminal/status": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/terminal/sessions": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/sessions": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/review": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/runtimes": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/runtime-policy": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/router": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/deploy/": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/chat/stream": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/xo-projects": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/config/workspace": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/files/mkdir": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/connectors/github/status": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::routes::/api/connectors/github/cli/start": {
-   "status": "planned",
-   "home": "e2e/lib/store.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::globals::__ED": {
    "status": "deleted",
@@ -13944,225 +14099,224 @@
    "reason": "the hook patched viewer.js's startEdit(), gone since the Files editor moved to CodeMirror; the 29 flow cases that read it tested the removed Edit/Save/Tell editor and went with it, and tests/browser-hooks.test.mjs fails when a hook's anchor goes"
   },
   "tests/browser/harness.cjs::globals::__storm": {
-   "status": "planned",
-   "home": "none: e2e/ injects nothing into the app",
-   "note": "goes with harness.cjs once its suites are ported"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::globals::__focusDrops": {
-   "status": "planned",
-   "home": "e2e/lib/settle.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/harness.cjs::custom_events::DOMContentLoaded": {
-   "status": "planned",
-   "home": "e2e/lib/settle.mjs"
+   "status": "kept",
+   "home": "tests/browser/harness.cjs"
   },
   "tests/browser/held-contract.test.cjs::ids::typing": {
-   "status": "planned",
-   "home": "e2e/specs/held-contract.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/held-contract.test.cjs"
   },
   "tests/browser/held-waiting.test.cjs::functions::world": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/held-waiting.test.cjs"
   },
   "tests/browser/held-waiting.test.cjs::ids::typing": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/held-waiting.test.cjs"
   },
   "tests/browser/held-waiting.test.cjs::ids::herald": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/held-waiting.test.cjs"
   },
   "tests/browser/held-waiting.test.cjs::ids::msgs": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/held-waiting.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::functions::done": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-name": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::ids::live": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-size": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::ids::shd": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/lpshell.test.cjs::routes::/api/terminal/sessions": {
-   "status": "planned",
-   "home": "e2e/specs/sessions.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/lpshell.test.cjs"
   },
   "tests/browser/settings.test.cjs::functions::world": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::functions::settingsApi": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::functions::open": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::functions::settings": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::functions::settle": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::functions::keyFocus": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::ids::pb-menu": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::ids::app": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::ids::settings": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::ids::hm-body": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-theme": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-device": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-unsynced": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-keys": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::storage::cv-shape-mine": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::storage::[data-wt=": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/router": {
-   "status": "planned",
-   "home": "e2e/specs/router.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/router/models": {
-   "status": "planned",
-   "home": "e2e/specs/models.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/chats": {
-   "status": "planned",
-   "home": "e2e/specs/chats.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/rules": {
-   "status": "planned",
-   "home": "e2e/specs/rules.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/worktrees": {
-   "status": "planned",
-   "home": "e2e/specs/worktrees.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/runtimes": {
-   "status": "planned",
-   "home": "e2e/specs/runtimes.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/runtime-policy": {
-   "status": "planned",
-   "home": "e2e/specs/runtime-policy.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/review": {
-   "status": "planned",
-   "home": "e2e/specs/review.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/advisory": {
-   "status": "planned",
-   "home": "e2e/specs/advisory.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/intent": {
-   "status": "planned",
-   "home": "e2e/specs/intent.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/intent/paid": {
-   "status": "planned",
-   "home": "e2e/specs/paid.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::routes::/api/chat/shape": {
-   "status": "planned",
-   "home": "e2e/specs/shape.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::keys::paid": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/settings.test.cjs::globals::__taBlurs": {
-   "status": "planned",
-   "home": "e2e/specs/settings.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/settings.test.cjs"
   },
   "tests/browser/smoke.test.cjs::ids::stage": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/smoke.test.cjs"
   },
   "tests/browser/smoke.test.cjs::ids::theme": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/smoke.test.cjs"
   },
   "tests/browser/smoke.test.cjs::ids::say": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/smoke.test.cjs"
   },
   "tests/browser/smoke.test.cjs::ids::keys-reset-all": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/smoke.test.cjs"
   },
   "tests/browser/smoke.test.cjs::ids::main": {
-   "status": "planned",
-   "home": "e2e/specs/smoke.spec.mjs"
+   "status": "kept",
+   "home": "tests/browser/smoke.test.cjs"
   },
   "tests/busy.test.mjs::functions::fakeBackend": {
-   "status": "planned",
-   "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/busy.test.mjs"
   },
   "tests/busy.test.mjs::globals::addEventListener": {
-   "status": "planned",
-   "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/busy.test.mjs"
   },
   "tests/busy.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/busy.test.mjs"
   },
   "tests/busy.test.mjs::globals::setInterval": {
-   "status": "planned",
-   "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/busy.test.mjs"
   },
   "tests/busy.test.mjs::globals::fetch": {
-   "status": "planned",
-   "home": "core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/busy.test.mjs"
   },
   "tests/changes.test.mjs::functions::store": {
    "status": "moved",
@@ -14185,68 +14339,68 @@
    "home": "modules/changes/tests/changes.test.mjs"
   },
   "tests/conv-sound.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The direct sound test needs localStorage and AudioContext, so its former UI import's media query stub was removed."
   },
   "tests/conv-sound.test.mjs::globals::localStorage": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conv-sound.test.mjs"
   },
   "tests/conv-sound.test.mjs::globals::AudioContext": {
-   "status": "planned",
-   "home": "core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/conv-sound.test.mjs"
   },
   "tests/create.test.mjs::globals::matchMedia": {
    "status": "moved",
    "home": "modules/create-project/tests/create.test.mjs"
   },
   "tests/css-wellformed.test.mjs::functions::uncomment": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/css-wellformed.test.mjs"
   },
   "tests/design-budget.test.mjs::functions::declarations": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/design-budget.test.mjs"
   },
   "tests/docs.test.mjs::functions::fakeClock": {
-   "status": "planned",
-   "home": "modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/docs.test.mjs"
   },
   "tests/docs.test.mjs::functions::fakeSpace": {
-   "status": "planned",
-   "home": "modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/docs.test.mjs"
   },
   "tests/docs.test.mjs::functions::fakeView": {
-   "status": "planned",
-   "home": "modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/docs.test.mjs"
   },
   "tests/editor-exit.test.mjs::globals::matchMedia": {
    "status": "deleted",
    "reason": "Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); the test went with it"
   },
   "tests/edits.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/edits.test.mjs"
   },
   "tests/files.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/files.test.mjs"
   },
   "tests/focus-back.test.mjs::exports::usable": {
-   "status": "planned",
-   "home": "core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focus-back.test.mjs"
   },
   "tests/focus-back.test.mjs::exports::createDecisions": {
-   "status": "planned",
-   "home": "core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focus-back.test.mjs"
   },
   "tests/focus-back.test.mjs::globals::CSS": {
-   "status": "planned",
-   "home": "core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focus-back.test.mjs"
   },
   "tests/focusview.test.mjs::functions::standIn": {
-   "status": "planned",
-   "home": "core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focusview.test.mjs"
   },
   "tests/follow-instance.test.mjs::globals::matchMedia": {
    "status": "moved",
@@ -14261,200 +14415,200 @@
    "home": "modules/conversation/tests/follow-instance.test.mjs"
   },
   "tests/keynav.test.mjs::globals::document": {
-   "status": "planned",
-   "home": "core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/keynav.test.mjs"
   },
   "tests/launchpad.test.mjs::globals::fetch": {
    "status": "moved",
    "home": "modules/launchpad/tests/launchpad.test.mjs"
   },
   "tests/layout-reads.test.mjs::exports::initFollow": {
-   "status": "planned",
-   "home": "modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/layout-reads.test.mjs"
   },
   "tests/lib/cascade.mjs::exports::ORDER": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::rules": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::decls": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::spec": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::cmp": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::mediaHolds": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::context": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::isPhone": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::overlaps": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::reaches": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::reach": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::lost": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::losers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::chain": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::covers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::px": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::exports::shrunk": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::rules": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::splitList": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::decls": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::spec": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::mediaHolds": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::context": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::overlaps": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::reaches": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::reach": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::lost": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::losers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::chain": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::simples": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::covers": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::px": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/cascade.mjs::functions::shrunk": {
-   "status": "planned",
-   "home": "core/ui/test-kit/cascade.mjs"
+   "status": "kept",
+   "home": "tests/lib/cascade.mjs"
   },
   "tests/lib/tokens.mjs::exports::tokens": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/lib/tokens.mjs::exports::NEW_SIZES": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/lib/tokens.mjs::exports::resolveTokens": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/lib/tokens.mjs::functions::resolveTokens": {
-   "status": "planned",
-   "home": "core/ui/test-kit/tokens.mjs"
+   "status": "kept",
+   "home": "tests/lib/tokens.mjs"
   },
   "tests/logic.test.mjs::routes::/chat/chats/x/messages": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::routes::/chat/status": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::routes::/api/chat": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::routes::/chats": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::routes::/runtimes": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::routes::/chats/{}/messages": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::routes::/chats/{}/threads": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::keys::timeout": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/logic.test.mjs::globals::fetch": {
-   "status": "planned",
-   "home": "core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/logic.test.mjs"
   },
   "tests/lp-create-stop-focus.test.mjs::ids::cp-prog": {
    "status": "moved",
@@ -14465,12 +14619,12 @@
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs"
   },
   "tests/lp-intel-order.test.mjs::globals::window": {
-   "status": "planned",
-   "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/lp-intel-order.test.mjs"
   },
   "tests/lp-intel-order.test.mjs::globals::sessionStorage": {
-   "status": "planned",
-   "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/lp-intel-order.test.mjs"
   },
   "tests/lp-stop-notice.test.mjs::functions::world": {
    "status": "moved",
@@ -14481,148 +14635,149 @@
    "home": "modules/launchpad/tests/lp-stop-notice.test.mjs"
   },
   "tests/map.test.mjs::functions::store": {
-   "status": "planned",
-   "home": "modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map.test.mjs"
   },
   "tests/map.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/map.test.mjs"
   },
   "tests/mdlive.test.mjs::functions::blocks": {
-   "status": "planned",
-   "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/mdlive.test.mjs"
   },
   "tests/mdlive.test.mjs::globals::document": {
-   "status": "planned",
-   "home": "modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/mdlive.test.mjs"
   },
   "tests/media.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/media.test.mjs"
   },
   "tests/menu-one-active.test.mjs::functions::paints": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/menu-one-active.test.mjs"
   },
   "tests/notice-clear.test.mjs::ids::dock": {
-   "status": "planned",
-   "home": "shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/notice-clear.test.mjs"
   },
   "tests/notice-clear.test.mjs::ids::herald": {
-   "status": "planned",
-   "home": "shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/notice-clear.test.mjs"
   },
   "tests/notice-kind.test.mjs::functions::calls": {
-   "status": "planned",
-   "home": "modules/conversation/tests/notice-kind.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/notice-kind.test.mjs"
   },
   "tests/notice-kind.test.mjs::functions::says": {
-   "status": "planned",
-   "home": "modules/conversation/tests/notice-kind.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/notice-kind.test.mjs"
   },
   "tests/panel-shell.test.mjs::ids::nv-shells": {
-   "status": "planned",
-   "home": "shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/panel-shell.test.mjs"
   },
   "tests/panel-shell.test.mjs::ids::shd": {
-   "status": "planned",
-   "home": "shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/panel-shell.test.mjs"
   },
   "tests/panel-threads.test.mjs::ids::conv-title": {
-   "status": "planned",
-   "home": "modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/panel-threads.test.mjs"
   },
   "tests/picker-keys.test.mjs::ids::iq-ro-l": {
-   "status": "planned",
-   "home": "modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/picker-keys.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::inSight": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::bringWhole": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::esc": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::copyText": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::COPY_REFUSED": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::space": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::ICON": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::calls": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::api": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::MARKS": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::activityOf": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::folderOf": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::fileIcon": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::folderIcon": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::countsHtml": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::RUNS": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::exports::pointerFollows": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::ids::host": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::ids::viewer": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-reach.test.mjs::exports::PICTURE_FACE": {
-   "status": "planned",
-   "home": "core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/services/media/hydrate.js",
+   "note": "The test now exercises pointerover against the real hydrator."
   },
   "tests/project-find-escape.test.mjs::keys::Escape": {
    "status": "deleted",
    "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "tests/project-icons.test.mjs::keys::Escape": {
-   "status": "planned",
-   "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/project-icons.test.mjs"
   },
   "tests/rail-order.test.mjs::functions::dom": {
    "status": "moved",
@@ -14633,160 +14788,160 @@
    "home": "core/ui/redraw.js"
   },
   "tests/record.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/record.test.mjs"
   },
   "tests/ring-room.test.mjs::exports::room": {
-   "status": "planned",
-   "home": "core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring-room.test.mjs"
   },
   "tests/ring-room.test.mjs::exports::ringsOf": {
-   "status": "planned",
-   "home": "core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring-room.test.mjs"
   },
   "tests/ring-room.test.mjs::exports::decoration": {
-   "status": "planned",
-   "home": "core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring-room.test.mjs"
   },
   "tests/ring-room.test.mjs::exports::bring": {
-   "status": "planned",
-   "home": "core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring-room.test.mjs"
   },
   "tests/ring-room.test.mjs::exports::bringWhole": {
-   "status": "planned",
-   "home": "core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring-room.test.mjs"
   },
   "tests/ring.test.mjs::functions::standIn": {
-   "status": "planned",
-   "home": "core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/ring.test.mjs"
   },
   "tests/runs-stop-receipt.test.mjs::exports::saidHtml": {
-   "status": "planned",
-   "home": "modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/runs-stop-receipt.test.mjs"
   },
   "tests/saved-truth.test.mjs::globals::matchMedia": {
    "status": "moved",
    "home": "modules/runtimes/tests/saved-truth.test.mjs"
   },
   "tests/shape.test.mjs::functions::test_store_more": {
-   "status": "planned",
-   "home": "core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/shape.test.mjs"
   },
   "tests/shape.test.mjs::functions::fakeStorm": {
-   "status": "planned",
-   "home": "core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/shape.test.mjs"
   },
   "tests/side-bar.test.mjs::ids::nv-pins": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-bar.test.mjs"
   },
   "tests/side-bar.test.mjs::keys::ArrowUp": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-bar.test.mjs"
   },
   "tests/side-bar.test.mjs::globals::localStorage": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-bar.test.mjs"
   },
   "tests/side-fold.test.mjs::ids::theme": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-fold.test.mjs"
   },
   "tests/side-fold.test.mjs::ids::set-side": {
-   "status": "planned",
-   "home": "shell (sidebar)/tests/side-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/side-fold.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::functions::fakeBackend": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::globals::addEventListener": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::globals::setInterval": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::globals::fetch": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::globals::document": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/stopped-on-purpose.test.mjs::globals::localStorage": {
-   "status": "planned",
-   "home": "modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/stopped-on-purpose.test.mjs"
   },
   "tests/storm.test.mjs::functions::fakeServer": {
-   "status": "planned",
-   "home": "core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/storm.test.mjs"
   },
   "tests/targets-css.test.mjs::functions::rulesOf": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/targets-css.test.mjs"
   },
   "tests/thread-filter.test.mjs::keys::Escape": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-filter.test.mjs"
   },
   "tests/thread-filter.test.mjs::keys::\\/": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-filter.test.mjs"
   },
   "tests/thread-menu.test.mjs::ids::tdel": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-menu.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-menu.test.mjs"
   },
   "tests/thread-menu.test.mjs::keys::would_lose_work": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-menu.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-menu.test.mjs"
   },
   "tests/thread-page.test.mjs::exports::dockGestures": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-page.test.mjs"
   },
   "tests/thread-page.test.mjs::exports::wireGestures": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-page.test.mjs"
   },
   "tests/thread-page.test.mjs::exports::decorateConversation": {
-   "status": "planned",
-   "home": "modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/thread-page.test.mjs"
   },
   "tests/turnview.test.mjs::globals::matchMedia": {
-   "status": "planned",
-   "home": "modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/turnview.test.mjs"
   },
   "tests/viewer-head-focus.test.mjs::ids::viewer": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/viewer-head-focus.test.mjs"
   },
   "tests/words.test.mjs::globals::getComputedStyle": {
    "status": "moved",
    "home": "modules/conversation/tests/words.test.mjs"
   },
   "tests/xoicons.test.mjs::exports::ICON": {
-   "status": "planned",
-   "home": "core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/xoicons.test.mjs"
   },
   "tests/xoicons.test.mjs::ids::c": {
-   "status": "planned",
-   "home": "core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/xoicons.test.mjs"
   },
   "tools/codemirror/vendor.mjs::exports::${keep.join(\"": {
-   "status": "planned",
-   "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/codemirror/vendor.mjs"
   },
   "tools/codemirror/vendor.mjs::exports::\")": {
-   "status": "planned",
-   "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/codemirror/vendor.mjs"
   },
   "tools/diffview/astra-recheck.cjs::ids::stage": {
    "status": "deleted",
@@ -14937,144 +15092,144 @@
    "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/theme.mjs::exports::rootProps": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::color": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::codeColors": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::textmate": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::moduleSource": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::XO_DARK": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::XO_LIGHT": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::sheets": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::topRules": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::rootSel": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::rootProps": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::parseHex": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::color": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::codeColors": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::textmate": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::moduleSource": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/vendor.mjs::exports::LANGS": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::FileDiff": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::File": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::VirtualizedFile": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::Virtualizer": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::UnresolvedFile": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::parsePatchFiles": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::parseDiffFromFile": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::registerCustomTheme": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::getSharedHighlighter": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::getOrCreateWorkerPoolSingleton": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledLanguages": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledLanguagesInfo": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::themes": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledThemes": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledThemesInfo": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::createOnigurumaEngine": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::LiveTokenizer": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::codeToTokens": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/files/space-e2e.mjs::routes::/api/chat/stream": {
    "status": "deleted",
@@ -15201,24 +15356,24 @@
    "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/xoicons/build.mjs::exports::clean": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::exports::build": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::exports::XI": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::functions::clean": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::functions::build": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "css/app.css::ids::msgs": {
    "status": "kept",

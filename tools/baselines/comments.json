@@ -1,14 +1,10 @@
 {
  "js/app.js": {
-  "extra": 168,
-  "refs": 2
- },
- "js/decide.js": {
-  "extra": 19,
+  "extra": 44,
   "refs": 0
  },
  "css/app.css": {
-  "extra": 144,
+  "extra": 66,
   "refs": 0
  },
  "css/diffs.css": {
@@ -267,10 +263,6 @@
   "extra": 5,
   "refs": 0
  },
- "tests/key-layer.test.mjs": {
-  "extra": 4,
-  "refs": 0
- },
  "tests/keynav.test.mjs": {
   "extra": 3,
   "refs": 0
@@ -449,10 +441,6 @@
  },
  "tests/quickopen.test.mjs": {
   "extra": 2,
-  "refs": 0
- },
- "tests/rec-undo-focus.test.mjs": {
-  "extra": 5,
   "refs": 0
  },
  "tests/reconcile-focus.test.mjs": {

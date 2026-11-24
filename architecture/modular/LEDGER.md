@@ -7,11 +7,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 480 |
 | vendor | 377 |
 | deleted | 336 |
-| planned | 165 |
-| kept | 57 |
+| kept | 222 |
 | split | 31 |
 
-Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted 131, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1792, kept 561, deleted 132, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -20,7 +19,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `.gitignore` |  | kept | .gitignore · next: ignores node_modules and the design work kept outside git |
 | `PR_DESCRIPTION.md` | 284 | deleted | moved to the design archive (owner D4) |
 | `README.md` | 192 | kept | README.md · next: rewritten: what the app does, the layout by folder and layer, and how to run the checks, the unit tests and the UI lane |
-| `favicon.svg` | 6 | planned | core/ui/icons/favicon.svg, generated from the icon pack (owner D7: today a hand-made copy that differs) |
+| `favicon.svg` | 6 | kept | favicon.svg · next: Serve the existing artwork at the pinned path; generating it from the icon pack would change its bytes. |
 | `index.html` | 299 | split | index.html, shell/overlays.js · next: The visible frame stays in the HTML for first paint; the existing shell mount inserts hidden regions before app startup. |
 | `serve.py` | 714 | kept | serve.py |
 | `start.sh` | 29 | kept | start.sh · next: unchanged |
@@ -123,14 +122,14 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `css/app.css` | 3148 | split | core/ui/app-controls.css, shell/frame.css, modules/home/home.css, modules/home/next.css, modules/conversation/conversation.css, modules/conversation/composer.css, modules/threads/intelligence.css, modules/since/notice.css, modules/conversation/return-pill.css, modules/decisions/decisions.css, modules/home/handled.css, modules/conversation/dock.css, shell/dialogs.css, modules/threads/all.css, shell/pickers.css, modules/settings/settings.css, shell/responsive.css, modules/conversation/history.css, css/app.css · next: The compatibility entry loads the moved regions in their original order. |
 | `css/artifacts.css` | 126 | moved | modules/artifacts/artifacts.css |
 | `css/base.css` | 58 | moved | core/ui/foundation.css |
-| `css/diffs.css` | 243 | planned | modules/changes/diffs.css |
-| `css/docs.css` | 143 | planned | modules/files/editor/docs.css |
+| `css/diffs.css` | 243 | kept | css/diffs.css · next: The existing versioned stylesheet stays in its current link slot for the separate CSS package. |
+| `css/docs.css` | 143 | kept | css/docs.css · next: The existing versioned stylesheet stays in its current link slot with its pinned cascade. |
 | `css/dropdown.css` | 51 | moved | core/ui/components/xo-select.css |
 | `css/flavours.css` | 477 | split | css/flavours.css, css/flavour-swatches.css |
 | `css/foundation.css` | 246 | split | core/ui/foundation.css, modules/* (structure rules) |
 | `css/launchpad.css` | 291 | split | modules/launchpad/launchpad.css, modules/launchpad/system.css, modules/launchpad/cover.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
 | `css/light.css` | 67 | split | core/ui/tokens.css (light roles), modules/* (light blocks) |
-| `css/links.css` | 97 | planned | modules/conversation/links.css |
+| `css/links.css` | 97 | kept | css/links.css · next: The existing versioned stylesheet stays in its current link slot for the separate CSS package. |
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
 | `css/panel.css` | 681 | split | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
@@ -146,247 +145,247 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 |---|---:|---|---|
 | `tests/accounts.test.mjs` | 69 | kept | tests/accounts.test.mjs |
 | `tests/active-turns.test.mjs` | 35 | kept | tests/active-turns.test.mjs |
-| `tests/agent-marks.test.mjs` | 47 | planned | core/ui (agent marks)/tests/agent-marks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/agent-tag.test.mjs` | 51 | planned | modules/map/tests/agent-tag.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/app-ctl-scale.test.mjs` | 44 | planned | core/ui (css guard)/tests/app-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/artifacts-preview.test.mjs` | 62 | planned | modules/artifacts/tests/artifacts-preview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/attach.test.mjs` | 208 | planned | modules/composer/tests/attach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/agent-marks.test.mjs` | 47 | kept | tests/agent-marks.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/agent-tag.test.mjs` | 51 | kept | tests/agent-tag.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/app-ctl-scale.test.mjs` | 44 | kept | tests/app-ctl-scale.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/artifacts-preview.test.mjs` | 62 | kept | tests/artifacts-preview.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/attach.test.mjs` | 208 | kept | tests/attach.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/back-to-where.test.mjs` | 26 | kept | tests/back-to-where.test.mjs |
 | `tests/boot.test.mjs` | 101 | kept | tests/boot.test.mjs |
-| `tests/busy.test.mjs` | 471 | planned | core/services (world/timeline)/tests/busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/busy.test.mjs` | 471 | kept | tests/busy.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/button-fill.test.mjs` | 62 | kept | tests/button-fill.test.mjs |
 | `tests/captions.test.mjs` | 24 | kept | tests/captions.test.mjs |
 | `tests/card-family.test.mjs` | 158 | kept | tests/card-family.test.mjs |
-| `tests/card-ring.test.mjs` | 33 | planned | core/ui (css guard)/tests/card-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/card-ring.test.mjs` | 33 | kept | tests/card-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/cardparts.test.mjs` | 154 | kept | tests/cardparts.test.mjs |
 | `tests/changes.test.mjs` | 215 | moved | modules/changes/tests/changes.test.mjs |
 | `tests/chats-list.test.mjs` | 152 | kept | tests/chats-list.test.mjs |
-| `tests/checklist-empty.test.mjs` | 27 | planned | modules/threads/tests/checklist-empty.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/codemirror-vendor.test.mjs` | 97 | planned | modules/vendor/tests/codemirror-vendor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/checklist-empty.test.mjs` | 27 | kept | tests/checklist-empty.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/codemirror-vendor.test.mjs` | 97 | kept | tests/codemirror-vendor.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/composer-popover-height.test.mjs` | 26 | kept | tests/composer-popover-height.test.mjs |
 | `tests/composer-row-size.test.mjs` | 34 | kept | tests/composer-row-size.test.mjs |
 | `tests/concentric.test.mjs` | 53 | kept | tests/concentric.test.mjs |
-| `tests/conn-line.test.mjs` | 33 | planned | modules/composer/tests/conn-line.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-ctl-scale.test.mjs` | 77 | planned | core/ui (css guard)/tests/conv-ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-find-ring.test.mjs` | 14 | planned | core/ui (css guard)/tests/conv-find-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-herald-resolve.test.mjs` | 73 | planned | modules/threads/tests/conv-herald-resolve.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/conv-sound.test.mjs` | 110 | planned | core/platform (sounds) + settings/tests/conv-sound.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/coord-colour.test.mjs` | 46 | planned | modules/conversation/tests/coord-colour.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/conn-line.test.mjs` | 33 | kept | tests/conn-line.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/conv-ctl-scale.test.mjs` | 77 | kept | tests/conv-ctl-scale.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/conv-find-ring.test.mjs` | 14 | kept | tests/conv-find-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/conv-herald-resolve.test.mjs` | 73 | kept | tests/conv-herald-resolve.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/conv-sound.test.mjs` | 110 | kept | tests/conv-sound.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/coord-colour.test.mjs` | 46 | kept | tests/coord-colour.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/copied-speaker.test.mjs` | 21 | kept | tests/copied-speaker.test.mjs |
-| `tests/copy-path-fail.test.mjs` | 57 | planned | modules/files/tests/copy-path-fail.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/cover-inert.test.mjs` | 28 | planned | shell (panel host)/tests/cover-inert.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/copy-path-fail.test.mjs` | 57 | kept | tests/copy-path-fail.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/cover-inert.test.mjs` | 28 | kept | tests/cover-inert.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/create-busy-honest.test.mjs` | 33 | moved | modules/create-project/tests/create-busy-honest.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs); its two app-wide ARIA rules stay source checks |
 | `tests/create.test.mjs` | 51 | moved | modules/create-project/tests/create.test.mjs |
-| `tests/css-wellformed.test.mjs` | 80 | planned | core/ui (css guard)/tests/css-wellformed.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ctl-heights.test.mjs` | 25 | planned | core/ui (css guard)/tests/ctl-heights.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ctl-scale.test.mjs` | 180 | planned | core/ui (css guard, all modules)/tests/ctl-scale.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/design-budget.test.mjs` | 160 | planned | core/ui (css guard)/tests/design-budget.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/css-wellformed.test.mjs` | 80 | kept | tests/css-wellformed.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/ctl-heights.test.mjs` | 25 | kept | tests/ctl-heights.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/ctl-scale.test.mjs` | 180 | kept | tests/ctl-scale.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/design-budget.test.mjs` | 160 | kept | tests/design-budget.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/details-toggle.test.mjs` | 22 | kept | tests/details-toggle.test.mjs |
-| `tests/diff-redraw-focus.test.mjs` | 43 | planned | modules/files/tests/diff-redraw-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/diffview.test.mjs` | 82 | planned | modules/files/tests/diffview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/diff-redraw-focus.test.mjs` | 43 | kept | tests/diff-redraw-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/diffview.test.mjs` | 82 | kept | tests/diffview.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/disclosure-corners.test.mjs` | 20 | kept | tests/disclosure-corners.test.mjs |
-| `tests/dock-focus.test.mjs` | 62 | planned | modules/decisions/tests/dock-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/dock-focus.test.mjs` | 62 | kept | tests/dock-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/dock-reset.test.mjs` | 34 | kept | tests/dock-reset.test.mjs |
-| `tests/docs.test.mjs` | 348 | planned | modules/files/tests/docs.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/docs.test.mjs` | 348 | kept | tests/docs.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/done-line.test.mjs` | 27 | kept | tests/done-line.test.mjs |
 | `tests/dots-motion.test.mjs` | 21 | kept | tests/dots-motion.test.mjs |
-| `tests/drafts.test.mjs` | 77 | planned | core/services/tests/drafts.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/dropdown-held.test.mjs` | 27 | planned | core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/drafts.test.mjs` | 77 | kept | tests/drafts.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/dropdown-held.test.mjs` | 27 | kept | tests/dropdown-held.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/edge-card.test.mjs` | 48 | kept | tests/edge-card.test.mjs |
-| `tests/edge-ring.test.mjs` | 18 | planned | core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/edge-ring.test.mjs` | 18 | kept | tests/edge-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/editor-caret.test.mjs` | 28 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read the source of that editor's caret handling; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/editor-exit.test.mjs` | 52 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test tested diffview's exitKeys, which only that editor used; tests/diffview.test.mjs checks the adapter offers no editor |
-| `tests/edits.test.mjs` | 50 | planned | modules/files/tests/edits.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/edits.test.mjs` | 50 | kept | tests/edits.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/event-lines.test.mjs` | 25 | kept | tests/event-lines.test.mjs |
-| `tests/field-ring.test.mjs` | 41 | planned | core/platform/tests/field-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/file-cache.test.mjs` | 25 | planned | modules/files/tests/file-cache.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/files-stop-look.test.mjs` | 23 | planned | modules/composer/tests/files-stop-look.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/files-tree-scroll-fold.test.mjs` | 54 | planned | modules/files/tests/files-tree-scroll-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/files.test.mjs` | 66 | planned | modules/files/tests/files.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/field-ring.test.mjs` | 41 | kept | tests/field-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/file-cache.test.mjs` | 25 | kept | tests/file-cache.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/files-stop-look.test.mjs` | 23 | kept | tests/files-stop-look.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/files-tree-scroll-fold.test.mjs` | 54 | kept | tests/files-tree-scroll-fold.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/files.test.mjs` | 66 | kept | tests/files.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/find-bar.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-bar stylesheet (FIND_CSS); tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/find-race.test.mjs` | 38 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read that editor's find-key handling and its vendored source; tests/diffview.test.mjs checks the adapter offers no editor |
 | `tests/flavours.test.mjs` | 128 | kept | tests/flavours.test.mjs |
-| `tests/focus-back.test.mjs` | 55 | planned | core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/focus-back.test.mjs` | 55 | kept | tests/focus-back.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/focus-fields.test.mjs` | 33 | kept | tests/focus-fields.test.mjs |
-| `tests/focusview.test.mjs` | 151 | planned | core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/focusview.test.mjs` | 151 | kept | tests/focusview.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/follow-instance.test.mjs` | 30 | moved | modules/conversation/tests/follow-instance.test.mjs |
 | `tests/ghpage.test.mjs` | 81 | kept | tests/ghpage.test.mjs |
-| `tests/gone-thread-composer.test.mjs` | 33 | planned | modules/composer/tests/gone-thread-composer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/graph-focus.test.mjs` | 48 | planned | core/ui (css guard)/tests/graph-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/grip-ring.test.mjs` | 23 | planned | core/ui (css guard)/tests/grip-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/head-focus.test.mjs` | 26 | planned | modules/files/tests/head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/head-narrow.test.mjs` | 33 | planned | modules/files/tests/head-narrow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/head-redraw.test.mjs` | 37 | planned | modules/files/tests/head-redraw.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/herald.test.mjs` | 65 | planned | modules/conversation/tests/herald.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/hover-census.test.mjs` | 55 | planned | core/ui (css guard)/tests/hover-census.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/hover-inks.test.mjs` | 33 | planned | core/ui (css guard)/tests/hover-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/gone-thread-composer.test.mjs` | 33 | kept | tests/gone-thread-composer.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/graph-focus.test.mjs` | 48 | kept | tests/graph-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/grip-ring.test.mjs` | 23 | kept | tests/grip-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/head-focus.test.mjs` | 26 | kept | tests/head-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/head-narrow.test.mjs` | 33 | kept | tests/head-narrow.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/head-redraw.test.mjs` | 37 | kept | tests/head-redraw.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/herald.test.mjs` | 65 | kept | tests/herald.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/hover-census.test.mjs` | 55 | kept | tests/hover-census.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/hover-inks.test.mjs` | 33 | kept | tests/hover-inks.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/hover-rings.test.mjs` | 41 | kept | tests/hover-rings.test.mjs |
 | `tests/hover-veil.test.mjs` | 42 | kept | tests/hover-veil.test.mjs |
-| `tests/icon-gap.test.mjs` | 24 | planned | core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/image-text-mode.test.mjs` | 28 | planned | modules/files/tests/image-text-mode.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/icon-gap.test.mjs` | 24 | kept | tests/icon-gap.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/image-text-mode.test.mjs` | 28 | kept | tests/image-text-mode.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/imagechange.test.mjs` | 34 | moved | modules/changes/tests/imagechange.test.mjs |
-| `tests/inverse-toast.test.mjs` | 56 | planned | core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/inverse-toast.test.mjs` | 56 | kept | tests/inverse-toast.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/iq-one-path.test.mjs` | 22 | kept | tests/iq-one-path.test.mjs |
 | `tests/jump-projects.test.mjs` | 47 | kept | tests/jump-projects.test.mjs |
-| `tests/key-layer.test.mjs` | 20 | planned | shell (phone drawer)/tests/key-layer.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/keynav.test.mjs` | 185 | planned | core/platform/tests/keynav.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/keys-dispatch.test.mjs` | 87 | planned | core/platform/tests/keys-dispatch.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/key-layer.test.mjs` | 20 | kept | tests/key-layer.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/keynav.test.mjs` | 185 | kept | tests/keynav.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/keys-dispatch.test.mjs` | 87 | kept | tests/keys-dispatch.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/keys.test.mjs` | 48 | moved | core/platform/tests/keys.test.mjs |
 | `tests/launchpad.test.mjs` | 330 | moved | modules/launchpad/tests/launchpad.test.mjs |
-| `tests/layout-reads.test.mjs` | 25 | planned | modules/conversation/tests/layout-reads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/links-css.test.mjs` | 44 | planned | modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/logic.test.mjs` | 550 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/layout-reads.test.mjs` | 25 | kept | tests/layout-reads.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/link-buttons.test.mjs` | 47 | kept | tests/link-buttons.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/links-css.test.mjs` | 44 | kept | tests/links-css.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/logic.test.mjs` | 550 | kept | tests/logic.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs) |
 | `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs) |
-| `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-phone-links.test.mjs` | 84 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/lp-intel-order.test.mjs` | 74 | kept | tests/lp-intel-order.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/lp-phone-links.test.mjs` | 84 | kept | tests/lp-phone-links.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/lp-stop-notice.test.mjs` | 171 | moved | modules/launchpad/tests/lp-stop-notice.test.mjs · next: still reads app.js's notice() source; its rewrite as a behaviour test is owed |
-| `tests/main-clip.test.mjs` | 19 | planned | core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map-focus-reveal.test.mjs` | 38 | planned | modules/map/tests/map-focus-reveal.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map-follow-cursor.test.mjs` | 26 | planned | modules/map/tests/map-follow-cursor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map-follow.test.mjs` | 35 | planned | modules/map/tests/map-follow.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map-reach.test.mjs` | 33 | planned | modules/map/tests/map-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map-tag-press.test.mjs` | 22 | planned | core/ui (css guard)/tests/map-tag-press.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/map.test.mjs` | 108 | planned | modules/map/tests/map.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/main-clip.test.mjs` | 19 | kept | tests/main-clip.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/map-focus-reveal.test.mjs` | 38 | kept | tests/map-focus-reveal.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/map-follow-cursor.test.mjs` | 26 | kept | tests/map-follow-cursor.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/map-follow.test.mjs` | 35 | kept | tests/map-follow.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/map-reach.test.mjs` | 33 | kept | tests/map-reach.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/map-tag-press.test.mjs` | 22 | kept | tests/map-tag-press.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/map.test.mjs` | 108 | kept | tests/map.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/md-headings.test.mjs` | 30 | kept | tests/md-headings.test.mjs |
-| `tests/mdlive.test.mjs` | 108 | planned | modules/files/tests/mdlive.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/media.test.mjs` | 369 | planned | modules/conversation/tests/media.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/menu-focus-fill.test.mjs` | 35 | planned | core/ui (css guard)/tests/menu-focus-fill.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/menu-focus.test.mjs` | 33 | planned | modules/files/tests/menu-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/mdlive.test.mjs` | 108 | kept | tests/mdlive.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/media.test.mjs` | 369 | kept | tests/media.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/menu-focus-fill.test.mjs` | 35 | kept | tests/menu-focus-fill.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/menu-focus.test.mjs` | 33 | kept | tests/menu-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/menu-motion.test.mjs` | 20 | kept | tests/menu-motion.test.mjs |
-| `tests/menu-one-active.test.mjs` | 45 | planned | core/ui (css guard)/tests/menu-one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-one-active.test.mjs` | 45 | kept | tests/menu-one-active.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/menu-open-unlit.test.mjs` | 35 | kept | tests/menu-open-unlit.test.mjs |
-| `tests/menu-successor.test.mjs` | 42 | planned | core/ui (menus, all modules)/tests/menu-successor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/menu-successor.test.mjs` | 42 | kept | tests/menu-successor.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/menu-type.test.mjs` | 32 | kept | tests/menu-type.test.mjs |
-| `tests/merge.test.mjs` | 81 | planned | modules/files/tests/merge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/names.test.mjs` | 24 | planned | modules/repo/tests/names.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/no-offedge.test.mjs` | 33 | planned | core/ui (css guard)/tests/no-offedge.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/notice-clear.test.mjs` | 70 | planned | shell (app.js)/tests/notice-clear.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/notice-kind.test.mjs` | 65 | planned | modules/conversation/tests/notice-kind.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/one-active.test.mjs` | 23 | planned | core/ui (lists)/tests/one-active.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/merge.test.mjs` | 81 | kept | tests/merge.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/names.test.mjs` | 24 | kept | tests/names.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/no-offedge.test.mjs` | 33 | kept | tests/no-offedge.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/notice-clear.test.mjs` | 70 | kept | tests/notice-clear.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/notice-kind.test.mjs` | 65 | kept | tests/notice-kind.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/one-active.test.mjs` | 23 | kept | tests/one-active.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/pack-marks.test.mjs` | 58 | kept | tests/pack-marks.test.mjs |
 | `tests/pack-where-it-fits.test.mjs` | 135 | kept | tests/pack-where-it-fits.test.mjs |
-| `tests/page-no-hover.test.mjs` | 28 | planned | core/ui (css guard)/tests/page-no-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/paging.test.mjs` | 94 | planned | modules/conversation/tests/paging.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/paid.test.mjs` | 86 | planned | modules/settings/tests/paid.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/paint-a11y.test.mjs` | 40 | planned | modules/files/tests/paint-a11y.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/page-no-hover.test.mjs` | 28 | kept | tests/page-no-hover.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/paging.test.mjs` | 94 | kept | tests/paging.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/paid.test.mjs` | 86 | kept | tests/paid.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/paint-a11y.test.mjs` | 40 | kept | tests/paint-a11y.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/panel-parity.test.mjs` | 100 | kept | tests/panel-parity.test.mjs |
-| `tests/panel-shell.test.mjs` | 61 | planned | shells + shell (panel host)/tests/panel-shell.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/panel-threads.test.mjs` | 103 | planned | modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/path-copy-inline.test.mjs` | 24 | planned | modules/files/tests/path-copy-inline.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/pending.test.mjs` | 37 | planned | core/services/tests/pending.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/phone-cascade.test.mjs` | 27 | planned | core/ui (css guard)/tests/phone-cascade.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/phone-floor.test.mjs` | 140 | planned | core/ui (css guard)/tests/phone-floor.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/phone-hit-area.test.mjs` | 34 | planned | core/ui (css guard)/tests/phone-hit-area.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/phone-panel-go.test.mjs` | 40 | planned | shell (phone panel)/tests/phone-panel-go.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/picker-keys.test.mjs` | 34 | planned | modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/panel-shell.test.mjs` | 61 | kept | tests/panel-shell.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/panel-threads.test.mjs` | 103 | kept | tests/panel-threads.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/path-copy-inline.test.mjs` | 24 | kept | tests/path-copy-inline.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/pending.test.mjs` | 37 | kept | tests/pending.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/phone-cascade.test.mjs` | 27 | kept | tests/phone-cascade.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/phone-floor.test.mjs` | 140 | kept | tests/phone-floor.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/phone-hit-area.test.mjs` | 34 | kept | tests/phone-hit-area.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/phone-panel-go.test.mjs` | 40 | kept | tests/phone-panel-go.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/picker-keys.test.mjs` | 34 | kept | tests/picker-keys.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/pierre-find-focus.test.mjs` | 36 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test checked the local patch to the vendored edit.js; tests/diffview.test.mjs checks the adapter offers no editor |
-| `tests/press-inks.test.mjs` | 55 | planned | core/ui (css guard)/tests/press-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/press-keeps-node.test.mjs` | 250 | planned | core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/press-reach.test.mjs` | 113 | planned | core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/project-icons.test.mjs` | 40 | planned | modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/quickopen.test.mjs` | 103 | planned | modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/press-inks.test.mjs` | 55 | kept | tests/press-inks.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/press-keeps-node.test.mjs` | 250 | kept | tests/press-keeps-node.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/press-reach.test.mjs` | 113 | kept | tests/press-reach.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/project-icons.test.mjs` | 40 | kept | tests/project-icons.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/quickopen.test.mjs` | 103 | kept | tests/quickopen.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/rail-badge.test.mjs` | 17 | kept | tests/rail-badge.test.mjs |
 | `tests/rail-order.test.mjs` | 49 | moved | modules/settings/tests/rail-order.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
-| `tests/rec-undo-focus.test.mjs` | 26 | planned | modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/reconcile-focus.test.mjs` | 32 | planned | core/platform (redraw/focus)/tests/reconcile-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/record.test.mjs` | 280 | planned | modules/artifacts/tests/record.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/reduced-motion.test.mjs` | 25 | planned | core/ui (css guard)/tests/reduced-motion.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/refusal-mark.test.mjs` | 26 | planned | modules/files/tests/refusal-mark.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/refused.test.mjs` | 57 | planned | modules/composer/tests/refused.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/region-focus.test.mjs` | 28 | planned | modules/files/tests/region-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/render-focus.test.mjs` | 22 | planned | modules/files/tests/render-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/retry-waiting.test.mjs` | 34 | planned | modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rec-undo-focus.test.mjs` | 26 | kept | tests/rec-undo-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/reconcile-focus.test.mjs` | 32 | kept | tests/reconcile-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/record.test.mjs` | 280 | kept | tests/record.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/reduced-motion.test.mjs` | 25 | kept | tests/reduced-motion.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/refusal-mark.test.mjs` | 26 | kept | tests/refusal-mark.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/refused.test.mjs` | 57 | kept | tests/refused.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/region-focus.test.mjs` | 28 | kept | tests/region-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/render-focus.test.mjs` | 22 | kept | tests/render-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/retry-waiting.test.mjs` | 34 | kept | tests/retry-waiting.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/reveal-focus.test.mjs` | 20 | moved | modules/changes/tests/reveal-focus.test.mjs |
-| `tests/rich-markdown.test.mjs` | 133 | planned | modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/routing-truth.test.mjs` | 45 | planned | modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/rich-markdown.test.mjs` | 133 | kept | tests/rich-markdown.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/ring-room.test.mjs` | 67 | kept | tests/ring-room.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/ring.test.mjs` | 124 | kept | tests/ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/routing-truth.test.mjs` | 45 | kept | tests/routing-truth.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/routing-words.test.mjs` | 26 | moved | modules/routing/tests/routing-words.test.mjs · next: rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test |
 | `tests/row-insets.test.mjs` | 54 | kept | tests/row-insets.test.mjs |
 | `tests/rows-in-place.test.mjs` | 52 | kept | tests/rows-in-place.test.mjs |
 | `tests/rtsettings.test.mjs` | 81 | moved | modules/runtimes/tests/rtsettings.test.mjs |
 | `tests/runs-page.test.mjs` | 59 | kept | tests/runs-page.test.mjs |
-| `tests/runs-stop-receipt.test.mjs` | 69 | planned | modules/threads/tests/runs-stop-receipt.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/runtimes.test.mjs` | 126 | planned | modules/settings/runtimes/tests/runtimes.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/runs-stop-receipt.test.mjs` | 69 | kept | tests/runs-stop-receipt.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/runtimes.test.mjs` | 126 | kept | tests/runtimes.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/saved-truth.test.mjs` | 43 | moved | modules/runtimes/tests/saved-truth.test.mjs · next: rewritten as a behaviour test: Settings › Runtimes driven on a DOM (tests/lib/dom.mjs), its saves answered by the test |
-| `tests/scroller-ring.test.mjs` | 174 | planned | core/ui (css guard)/tests/scroller-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/seg-fold.test.mjs` | 32 | planned | modules/files/tests/seg-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/seg-ring.test.mjs` | 16 | planned | core/ui (css guard)/tests/seg-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/scroller-ring.test.mjs` | 174 | kept | tests/scroller-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/seg-fold.test.mjs` | 32 | kept | tests/seg-fold.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/seg-ring.test.mjs` | 16 | kept | tests/seg-ring.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/send-calm.test.mjs` | 23 | kept | tests/send-calm.test.mjs |
-| `tests/send-gate.test.mjs` | 36 | planned | modules/composer/tests/send-gate.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/send-notice.test.mjs` | 36 | planned | modules/composer/tests/send-notice.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/serve.test.py` | 615 | planned | modules/root:/tests/serve.test.py  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/settings-css.test.mjs` | 20 | planned | core/ui (css guard)/tests/settings-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/send-gate.test.mjs` | 36 | kept | tests/send-gate.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/send-notice.test.mjs` | 36 | kept | tests/send-notice.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/serve.test.py` | 615 | kept | tests/serve.test.py · next: The test runner continues to discover this suite at its current path. |
+| `tests/settings-css.test.mjs` | 20 | kept | tests/settings-css.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/shape-held.test.mjs` | 42 | moved | modules/settings/tests/shape-held.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
 | `tests/shape-unkept.test.mjs` | 29 | moved | modules/settings/tests/shape-unkept.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
-| `tests/shape.test.mjs` | 957 | planned | core/services/tests/shape.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shell-grip.test.mjs` | 35 | planned | core/ui (css guard)/tests/shell-grip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/shells.test.mjs` | 125 | planned | shells/tests/shells.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/side-bar.test.mjs` | 80 | planned | shell (sidebar)/tests/side-bar.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/shape.test.mjs` | 957 | kept | tests/shape.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/shell-grip.test.mjs` | 35 | kept | tests/shell-grip.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/shells.test.mjs` | 125 | kept | tests/shells.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/side-bar.test.mjs` | 80 | kept | tests/side-bar.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/side-calm-order.test.mjs` | 100 | kept | tests/side-calm-order.test.mjs |
-| `tests/side-fold.test.mjs` | 45 | planned | shell (sidebar)/tests/side-fold.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/side-spacing.test.mjs` | 14 | planned | core/ui (css guard)/tests/side-spacing.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/sidebar-hover.test.mjs` | 27 | planned | core/ui (css guard)/tests/sidebar-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/side-fold.test.mjs` | 45 | kept | tests/side-fold.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/side-spacing.test.mjs` | 14 | kept | tests/side-spacing.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/sidebar-hover.test.mjs` | 27 | kept | tests/sidebar-hover.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/space-scale.test.mjs` | 38 | kept | tests/space-scale.test.mjs |
 | `tests/speaker-names.test.mjs` | 72 | kept | tests/speaker-names.test.mjs |
 | `tests/stage-head-back.test.mjs` | 51 | kept | tests/stage-head-back.test.mjs |
-| `tests/stage-inplace.test.mjs` | 23 | planned | shell (panel host)/tests/stage-inplace.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/stage-inplace.test.mjs` | 23 | kept | tests/stage-inplace.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/stage-list-edge.test.mjs` | 22 | kept | tests/stage-list-edge.test.mjs |
-| `tests/stage-pages.test.mjs` | 137 | planned | shell (panel host)/tests/stage-pages.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/stale-pass.test.mjs` | 47 | planned | core/ui (css guard)/tests/stale-pass.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/stage-pages.test.mjs` | 137 | kept | tests/stage-pages.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/stale-pass.test.mjs` | 47 | kept | tests/stale-pass.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/stalled-own-message.test.mjs` | 77 | kept | tests/stalled-own-message.test.mjs |
-| `tests/start-centred.test.mjs` | 23 | planned | core/ui (css guard)/tests/start-centred.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/state-hover.test.mjs` | 127 | planned | core/ui (css guard, all modules)/tests/state-hover.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/start-centred.test.mjs` | 23 | kept | tests/start-centred.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/state-hover.test.mjs` | 127 | kept | tests/state-hover.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/step-line-face.test.mjs` | 15 | kept | tests/step-line-face.test.mjs |
-| `tests/stopped-on-purpose.test.mjs` | 145 | planned | modules/decisions/tests/stopped-on-purpose.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/storm.test.mjs` | 401 | planned | core/platform (sse) + core/services (timeline)/tests/storm.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/target-bounded.test.mjs` | 29 | planned | core/ui (css guard)/tests/target-bounded.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/targets-css.test.mjs` | 74 | planned | core/ui (css guard)/tests/targets-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/thread-filter.test.mjs` | 55 | planned | modules/threads/tests/thread-filter.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/thread-menu.test.mjs` | 43 | planned | modules/threads/tests/thread-menu.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/thread-page.test.mjs` | 166 | planned | modules/threads/tests/thread-page.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/stopped-on-purpose.test.mjs` | 145 | kept | tests/stopped-on-purpose.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/storm.test.mjs` | 401 | kept | tests/storm.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/target-bounded.test.mjs` | 29 | kept | tests/target-bounded.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/targets-css.test.mjs` | 74 | kept | tests/targets-css.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/thread-filter.test.mjs` | 55 | kept | tests/thread-filter.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/thread-menu.test.mjs` | 43 | kept | tests/thread-menu.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/thread-page.test.mjs` | 166 | kept | tests/thread-page.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/thread-spawn-session.test.mjs` | 69 | kept | tests/thread-spawn-session.test.mjs |
 | `tests/turn-split-notes.test.mjs` | 30 | kept | tests/turn-split-notes.test.mjs |
-| `tests/turnview.test.mjs` | 307 | planned | modules/conversation/tests/turnview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/turnview.test.mjs` | 307 | kept | tests/turnview.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/type-faces.test.mjs` | 46 | kept | tests/type-faces.test.mjs |
 | `tests/type-roles.test.mjs` | 70 | kept | tests/type-roles.test.mjs |
-| `tests/viewer-busy.test.mjs` | 43 | planned | modules/files/tests/viewer-busy.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/viewer-errors.test.mjs` | 25 | planned | modules/files/tests/viewer-errors.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/viewer-head-focus.test.mjs` | 18 | planned | modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/viewer-hooks.test.mjs` | 37 | planned | modules/files/tests/viewer-hooks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/viewer-busy.test.mjs` | 43 | kept | tests/viewer-busy.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/viewer-errors.test.mjs` | 25 | kept | tests/viewer-errors.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/viewer-head-focus.test.mjs` | 18 | kept | tests/viewer-head-focus.test.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/viewer-hooks.test.mjs` | 37 | kept | tests/viewer-hooks.test.mjs · next: The test runner continues to discover this suite at its current path. |
 | `tests/words.test.mjs` | 47 | moved | modules/conversation/tests/words.test.mjs · next: still reads the source for the two imports; its rewrite as a behaviour test is owed |
-| `tests/xoicons.test.mjs` | 114 | planned | core/ui (icons) + tools/xoicons/tests/xoicons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/xoicons.test.mjs` | 114 | kept | tests/xoicons.test.mjs · next: The test runner continues to discover this suite at its current path. |
 
 ## tests-browser (10)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/browser/chat-read-order.test.cjs` | 100 | planned | e2e/specs/chat-read-order.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/conversation.test.cjs` | 1495 | planned | e2e/specs/conversation.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/flows.test.cjs` | 4372 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: its in-page mock world becomes the fake Space and seeds; it goes when the last suite is a case in e2e/specs |
-| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/smoke.test.cjs` | 115 | planned | e2e/specs/smoke.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/chat-read-order.test.cjs` | 100 | kept | tests/browser/chat-read-order.test.cjs · next: The retained legacy browser suite has cases outside the P5 fast lane. |
+| `tests/browser/conversation.test.cjs` | 1495 | kept | tests/browser/conversation.test.cjs · next: The P5 lane covers project open, send and draft restoration; the broader conversation cases remain here. |
+| `tests/browser/coordinator-busy.test.cjs` | 80 | kept | tests/browser/coordinator-busy.test.cjs · next: The retained legacy browser suite has cases outside the P5 fast lane. |
+| `tests/browser/flows.test.cjs` | 4372 | kept | tests/browser/flows.test.cjs · next: The P5 lane covers phone Back and a Threads panel smoke case; the broader legacy interaction cases remain here. |
+| `tests/browser/harness.cjs` | 444 | kept | tests/browser/harness.cjs · next: The legacy cases still use this harness; the P5 lane has its own seeded Space and settle helpers. |
+| `tests/browser/held-contract.test.cjs` | 99 | kept | tests/browser/held-contract.test.cjs · next: The retained legacy browser suite has cases outside the P5 fast lane. |
+| `tests/browser/held-waiting.test.cjs` | 151 | kept | tests/browser/held-waiting.test.cjs · next: The retained legacy browser suite has cases outside the P5 fast lane. |
+| `tests/browser/lpshell.test.cjs` | 1008 | kept | tests/browser/lpshell.test.cjs · next: Keep the legacy cases alongside e2e/worlds/lp-shell.cjs until their coverage can be compared in the browser lane. |
+| `tests/browser/settings.test.cjs` | 1464 | kept | tests/browser/settings.test.cjs · next: The P5 shell case covers Settings open and Escape focus return; the settings suite retains its additional cases. |
+| `tests/browser/smoke.test.cjs` | 115 | kept | tests/browser/smoke.test.cjs · next: The P5 lane covers Home on desktop and phone and first-frame boot; the broader smoke cases remain here. |
 
 ## tests-lib (2)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/lib/cascade.mjs` | 248 | planned | core/ui/test-kit/cascade.mjs |
-| `tests/lib/tokens.mjs` | 20 | planned | core/ui/test-kit/tokens.mjs |
+| `tests/lib/cascade.mjs` | 248 | kept | tests/lib/cascade.mjs · next: The test runner continues to discover this suite at its current path. |
+| `tests/lib/tokens.mjs` | 20 | kept | tests/lib/tokens.mjs · next: The test runner continues to discover this suite at its current path. |
 
 ## tests-fixtures (2)
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tests/fixtures/plain-turn.sse` | 92 | planned | core/platform/tests/fixtures/plain-turn.sse |
-| `tests/fixtures/storm-held-contract.json` | 307 | planned | e2e/fixtures/storm-held-contract.json |
+| `tests/fixtures/plain-turn.sse` | 92 | kept | tests/fixtures/plain-turn.sse · next: The retained test reads this fixture at its current path. |
+| `tests/fixtures/storm-held-contract.json` | 307 | kept | tests/fixtures/storm-held-contract.json · next: The retained test reads this fixture at its current path. |
 
 ## presets (2)
 
@@ -404,9 +403,9 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-ext-wght-normal.woff2 |
 | `fonts/dm-sans/dm-sans-latin-wght-italic.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-wght-italic.woff2 |
 | `fonts/dm-sans/dm-sans-latin-wght-normal.woff2` |  | vendor | fonts/dm-sans/dm-sans-latin-wght-normal.woff2 |
-| `fonts/geist/Geist-Variable.woff2` |  | planned | core/ui/fonts/geist/Geist-Variable.woff2 |
-| `fonts/geist/GeistMono-Variable.woff2` |  | planned | core/ui/fonts/geist/GeistMono-Variable.woff2 |
-| `fonts/geist/LICENSE.txt` | 92 | planned | core/ui/fonts/geist/LICENSE.txt |
+| `fonts/geist/Geist-Variable.woff2` |  | kept | fonts/geist/Geist-Variable.woff2 · next: The first-paint preload and Geist face resolve here. |
+| `fonts/geist/GeistMono-Variable.woff2` |  | kept | fonts/geist/GeistMono-Variable.woff2 · next: Retained with the shipped Geist font assets. |
+| `fonts/geist/LICENSE.txt` | 92 | kept | fonts/geist/LICENSE.txt · next: The shipped Geist license stays beside its font files. |
 | `fonts/jetbrains-mono/OFL.txt` | 93 | vendor | fonts/jetbrains-mono/OFL.txt |
 | `fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2 |
 | `fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2` |  | vendor | fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-normal.woff2 |
@@ -1498,7 +1497,7 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/codemirror/vendor.mjs` | 175 | planned | tools/codemirror/vendor.mjs (vendor hash manifests) |
+| `tools/codemirror/vendor.mjs` | 175 | kept | tools/codemirror/vendor.mjs · next: The existing generator remains at its tooling entry. |
 
 ## tools/diffview (22)
 
@@ -1524,8 +1523,8 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `tools/diffview/rows.cjs` | 50 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/sandbox-preview.cjs` | 61 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/sandbox.cjs` | 24 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
-| `tools/diffview/theme.mjs` | 156 | planned | tools/diffview/ (generates the diff themes) |
-| `tools/diffview/vendor.mjs` | 132 | planned | tools/diffview/vendor.mjs (vendor hash manifests) |
+| `tools/diffview/theme.mjs` | 156 | kept | tools/diffview/theme.mjs · next: The existing generator remains at its tooling entry. |
+| `tools/diffview/vendor.mjs` | 132 | kept | tools/diffview/vendor.mjs · next: The existing generator remains at its tooling entry. |
 
 ## tools/files (2)
 
