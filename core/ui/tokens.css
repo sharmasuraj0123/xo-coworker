@@ -134,7 +134,6 @@
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-10:40px; --s-12:48px;
-  /* Shared gap between an icon and its label. */
   --gap-icon:var(--s-2);
   --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch;
   --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
@@ -164,6 +163,9 @@
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
   --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;
+  --s-touch-extension:-8px; --s-notice-touch-extension:-12px; --h-folder-touch-action:28px;
+  --s-model-chip-phone:6px; --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
+  --r-segment-inset:2px; --offset-inside-focus-ring:-2px;
   --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
   --s-viewer-head-top:14px; --s-viewer-button-end:11px; --s-viewer-button-start:9px; --s-viewer-segment-in:3px; --s-viewer-seg-inline:10px;
   --r-viewer-segment-inset:4px; --s-viewer-code-top:14px; --s-viewer-code-line-start:14px; --s-viewer-path-offset:22px;
@@ -175,13 +177,11 @@
   --ic-link:1em; --ic-link-thread:.86em; --ic-link-arrow:.62em; --offset-link-icon-half:.5em; --offset-link-arrow-half:.31em;
   --offset-link-arrow-run:1.5px; --offset-link-arrow-rise:-1.5px; --offset-link-underline:3px; --opacity-link-press:.7;
   --stroke-focus:2px; --offset-link-focus-in:1px; --offset-link-focus-out:2px; --r-link-focus:3px; --size-inline-link-code:.9em;
-  /* The dock gap spaces the composer and notices, and the fade provides room above them. */
   --dock-gap:var(--s-3); --cbar-fade:30px;
   --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
 
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
-
   /* Hover starts faster than it releases. Floating surfaces leave faster than they enter. */
   --ease:cubic-bezier(.2,.8,.2,1);
   --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */

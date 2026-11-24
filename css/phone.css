@@ -1,135 +1,81 @@
 @import url("../shell/phone.css");
 
-/* A finger needs about 44 px: on touch, the small controls keep their look and get a larger hit area
-   around it (QA #22: New project 60×24, Artifacts' filters 28 tall, pins 28×28, "Show all of it" 20 tall) */
+/* Expand touch targets without changing their layout. */
 @media (pointer:coarse){
-  /* the pin is already absolute (and so anchors its own hit area): made relative it joined the card's flow and
-     grew it 28 px past the height the virtual grid measures, so rows overlapped (Astra) */
   :root:root :is(.side-plus,[data-arts-kind],.ev-asked>.ev-t){position:relative}
-  :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:-8px}
-  /* (where a layout makes one of them static, its ::after would anchor to the card and cover it: the Artifacts list's
-     pin, a full-height 44 px column and so already a target, draws none; a tap on the card's thread pinned it: the
-     create-project grader on c8f4c45, C066) */
+  :root:root :is(.side-plus,.md-pin,[data-arts-kind])::after{content:"";position:absolute;inset:var(--s-touch-extension)}
+  /* Static pins already fill their target and must leave the card clickable. */
   :root:root .arts:not(.is-pics) .ar-grid .md-pin::after{content:none}
-  /* (the panel's Made list too: its pin is static in its column, at the phone's 36 px floor) */
   :root:root .md-pane .md-pin::after{content:none}
-  :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:-12px 0}
-  /* a finger's menus: the file's ⋯ and a folder's ⋯ (44 px items), and the folder's ⋯ itself (32 px) */
+  :root:root .ev-asked>.ev-t::after{content:"";position:absolute;inset:var(--s-notice-touch-extension) 0}
   :root:root :is(.vw-menu [role=menuitem],.fl-menu button){height:var(--h-hit)}
   :root:root .side-pop[role=menu] .nrow{min-height:var(--h-hit)}
-  :root:root .fl-more{width:var(--h-ctl);height:28px;margin-top:0}
+  :root:root .fl-more{width:var(--h-ctl);height:var(--h-folder-touch-action);margin-top:0}
 }
 
-/* A narrow phone's folded checklist has room for the count, not the step: it showed two letters of it
-   ("1 of 9 ✱ Re…"). The step's mark stays; the open list has every step in full (QA #23). */
+/* Give the count room on narrow collapsed checklists. */
 @media (max-width:400px){
   :root:root .thead .ckbar:not(.is-open) .ck-now>span:last-child{display:none}
 }
 
-/* On a phone the right panel covers the whole view, so the conversation behind it keeps its own width.
-   foundation.css's room-taking (padding-right: the panel's width) out-ranked app.css's phone rule, so the
-   conversation was laid out 54 px wide behind the panel and re-wrapped on the way back: closing the panel
-   moved what you were reading by up to 1,400 px. */
+/* Preserve the conversation width behind a covering panel. */
 @media (max-width:760px){
   :root:root body.stage-open .home{padding-right:var(--s-4)}
   :root:root body.stage-open :is(.dock,.toast-wrap){right:0}
 }
-/* the composer's target on a phone: just where it goes (the arrow or the thread mark says "to"); the words
-   around it gave way to an ellipsis before the name did */
+/* Keep the target mark and the model visible together. */
 @media (max-width:760px){
   :root:root .target :is(.tg-w,.muted){display:none}
-  /* the field's placeholder already says where it goes ('Reply to the agent…', 'Message xo-coworker…'), so on a phone
-     the target is its mark alone and the model and thinking the thread runs keep their room */
   :root:root .target b{display:none}
-  /* paused (routing Off, can't reach XO …): only its mark here; its words are the banner right above, and the model
-     chip keeps its whole word ("Au…" beside 202 px of the same words: the create-project grader on 65e84b7, C111) */
   :root:root .target:has(> .tg-warn) > span:not(.tg-warn){display:none}
-  :root:root .iq{padding:0 6px}
-  :root:root .iq-sep{margin:0 4px}
+  :root:root .iq{padding:0 var(--s-model-chip-phone)}
+  :root:root .iq-sep{margin:0 var(--s-1)}
 }
-/* the narrowest phones (≤ 340): the field's placeholder says where a message goes, so the target steps aside and
-   the model and thinking the thread runs stay whole */
+/* On the narrowest phones the field's placeholder identifies the recipient. */
 @media (max-width:340px){ :root:root .target{display:none} :root:root .iq{margin-left:auto} }
 
-/* ── targets on a phone, after every sheet that sizes them ──────────────────────────────────────────────
-   app.css's phone block comes before these controls' own rules, so there they lost (Files' Try again kept 32, its
-   back to the projects 24); here they win. The phone's floor is 36 (Astra S061, S062 on 2354917). */
 @media (max-width:760px){
   .fl-link{min-height:var(--h-touch)}
   .fl-up{width:var(--h-touch);height:var(--h-touch)}
-  /* the file's segment: the scale's top size (40) holding buttons at the phone's floor (36), concentric: 1 px of
-     border and 1 of padding around them, their radius the segment's less those 2 */
-  .vw-seg{height:var(--h-lg);padding:1px}
-  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r-sm) - 2px)}
+  .vw-seg{height:var(--h-lg);padding:var(--hair)}
+  .vw-seg button{height:var(--h-touch);border-radius:calc(var(--r-sm) - var(--r-segment-inset))}
   @container flpv (max-width:520px){.vw-seg button{width:var(--h-touch)}}
 }
 
-/* ── phone declarations a later or stronger rule undid where they were (tests/phone-cascade.test.mjs finds them):
-   here, last, they win by order. Those a later design restyles at every width (foundation's type, panel and grid,
-   msgx's messages) were dropped where they were instead: the phone keeps that design ── */
 @media (max-width:760px){
-  /* the file's buttons at the phone's 40, its title a step up (panel.css drew them 28 and base-size) */
   .vw-btn{width:var(--h-lg)}
   .vw-t h2{font-size:var(--fs-title)}
-  /* the file's head stays on the grid, 40 like the phone's other bars, and its 40 px buttons fill it: the viewer clips
-     at its edge, so there's no room outside them for the ring (the controls grader on e55c2d8, C092: a focused Copied's
-     ring reached 4.5 px above the viewer and was cut). The head's rule is drawn inside it at every width (panel.css),
-     and here the ring is drawn inside its controls: the same 2 px of the focus colour, inset, as the grips'
-     (foundation.css) */
-  .vw-top :focus-visible{outline-offset:-2px;outline-color:var(--ring-in,var(--focus))}
-  /* a full-screen file and the panel's bar clear a notch: the 40 px head grows by the top inset (none in a browser
-     window, where they're as drawn) */
-  .viewer:not(.stage .viewer) .vw-top{height:calc(40px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
-  .stg-bar{height:calc(40px + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
-  /* Launchpad's field buttons (the eye beside a secret) at the phone's 40, and its read-only rows with the fields' room */
+  /* The viewer clips outside rings and its full-screen header clears the notch. */
+  .vw-top :focus-visible{outline-offset:var(--offset-inside-focus-ring);outline-color:var(--ring-in,var(--focus))}
+  .viewer:not(.stage .viewer) .vw-top{height:calc(var(--h-lg) + env(safe-area-inset-top, 0px));
+    padding-top:env(safe-area-inset-top, 0px)}
+  .stg-bar{height:calc(var(--h-lg) + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px)}
   .lp-pair .lp-ib{width:var(--h-lg);height:var(--h-lg)}
-  .lp-ro{padding:10px 0}
+  .lp-ro{padding:var(--s-launchpad-readonly-phone) 0}
 }
 
-/* ── sizes a modifier or a context made smaller than the phone's floor, answered here for that subset
-   (tests/phone-cascade.test.mjs; Astra on 0689984: the Changes · File words kept 22 px) ── */
 @media (max-width:760px){
-  /* Changes · File: words in the 40 px segment, at the phone's 36 like Preview · Source */
   .vw-seg.is-words button{height:var(--h-touch)}
-  /* a turn's rows (msgx's 28 and 32, compact density's 32) at the phone's floor */
   :root[data-msgx] .m-turn .turn>.tb>.tb-h,
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail>.tb>.tb-h,
   [data-density="compact"] .tb-h{min-height:var(--h-touch)}
-  /* and the line the avatar centres on with them (compact density's 32 outranked the phone's 36) */
-  [data-density="compact"] .m-turn{--tb-line:36px}
+  [data-density="compact"] .m-turn{--tb-line:var(--h-touch)}
 }
 
-/* ── every control at least 36 px tall (and 36 wide: a short word's button was 32, the controls grader on 1ed50f6 at
-   320) on a phone: one rule (the owner's choice, 9 Nov). :where keeps it weightless,
-   so a control's own height still shapes it (a min-height outranks a height); a control's own smaller min-height is
-   answered just below; tests/phone-floor.test.mjs holds it, with its written exceptions (the Map's boxes and nodes
-   scale with its zoom; an Artifacts row is its 108 px row; the phone bar's quiet path line, put to the owner) ── */
+/* Give controls a shared floor with zero specificity. */
 @media (max-width:760px){
-  /* a label that holds a checkbox or a radio is the control you press (Runtimes' allow/deny: 34 px, the grader's C115) */
-  /* a link drawn as a control is a control too: every link with a class of its own, but a link in text (a message's
-     file or web link, Launchpad's host line and its links in a sentence, Create's) (grader B on 05d76ca, S267: Open in
-     Launchpad was 161×32 at 390; the lightbox's Open the original 36×28) */
   :where(button,[role=button],[role=tab],[role=option],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=switch],summary,select,label:has(>input[type=checkbox],>input[type=radio]),a[class]):where(:not(.dg-n,.gn,.dg-tag,.pj-s *,.tw-rt,.lk,.lp-ln,.cp-link)){min-height:var(--h-touch);min-width:var(--h-touch)}
-  /* a text field is a control too (the controls grader on 1ed50f6: a refused path's field was 24 px, and the floor
-     left every text input out): every one at least 36 tall; one that fills its box (a search box) leaves the floor to
-     the box, which takes it; Files' new-name row grows with its field */
+  /* A boxed field gets its minimum height from the box. */
   :where(input:not([type=checkbox],[type=radio],[type=range],[type=hidden],[type=file],[type=color],[type=image],[type=submit],[type=button],[type=reset])):where(:not(:is(.fl-q,.ar-q,.all-q,.jump-field) input)){min-height:var(--h-touch)}
   :where(.fl-q,.ar-q,.all-q,.fl-new-r){min-height:var(--h-touch)}
-  /* the square icon buttons stay square at the floor, and so do those whose words hide on a phone (Edit, Runs code,
-     the header's and the map's actions): the browser pass at 320/390 found Edit 28 wide, Open in Files 28, New file 32 */
   :where(.x,.vw-x,.vw-btn,.fr-ib,.stg-x,.lbx-btn,.cref-x,.side-x,.sl-x,.md-pin,.shd-tx,.mx-r-x,.lp-ib,.fl-up,.stg-ic,.fl-back,.xd-runs,.vw-tab-x,.cx-ofi,.fl-add,.tw-act){min-width:var(--h-touch)}
-  /* controls whose own min-height was smaller: Files' rows, a turn's step rows, a stop's notice with its Undo */
   .fl-r,.tb-rh{min-height:var(--h-touch)}
   :root[data-msgx] .m-turn .tb-work.is-open .tb-rail .tb-rows>.tb-row>.tb-rh,
   :root[data-msgx] .m-turn .turn>.tb.tb-act.is-unfolded>.tb-rows>.tb-row>.tb-rh{min-height:var(--h-touch)}
-  /* a phone's rows on the 8 px steps too (the owner, 11 Nov 05:42Z, with the coordinator's recommendation): the sidebar's
-     rows, Handled's, All threads', 40; a record's lines and an open tool disclosure, 48; the panel's agents and changes,
-     the desktop's 48 (their own 44 is gone). Chats' rows are the desktop's 56: their 58 floor drew 66, 1 + 10 + 20 + 4 +
-     20 + 10 + 1 (the controls grader on 8aa58d3, C048, by the standard S052 was fixed to) */
-  .nrow,.prow{min-height:var(--h-lg);padding-top:5px;padding-bottom:5px}
+  .nrow,.prow{min-height:var(--h-lg);padding-top:var(--s-sidebar-row-phone);padding-bottom:var(--s-sidebar-row-phone)}
   .side-pop[role=menu] .nrow{min-height:var(--menu-row)}
   .hd-r{min-height:var(--h-lg)}
   :is(.ar,.ar-fold,.ar-undo){min-height:var(--h-lg)}
   :root[data-msgx] .m-turn .turn>.tb-work.is-open>.tb-h,
-  :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:48px}
+  :root[data-msgx] .m-turn .turn>.tb:is(.tb-think,.tb-act,.tb-plan).is-unfolded>.tb-h{min-height:var(--h-row-act)}
 }
