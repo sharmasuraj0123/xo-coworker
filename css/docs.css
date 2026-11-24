@@ -49,8 +49,9 @@
 .cm-md-block{margin:var(--s-2) 0;padding:var(--s-1) 0;border-radius:var(--r);cursor:text;font-family:var(--sans)}
 .cm-md-imath{cursor:text}
 .vw-doc .cm-xo-tint{background:color-mix(in srgb,var(--info) 14%,var(--fill-clear))}
-.vw-doc .cm-changedLine,.vw-doc .cm-inlineChangedLine{background:var(--code-add-bg) !important}
-.vw-doc .cm-deletedChunk{background:var(--code-del-bg) !important;padding-left:var(--s-2)}
+.vw-doc .cm-editor .cm-line:is(.cm-changedLine,.cm-inlineChangedLine){background:var(--code-add-bg)}
+.vw-doc .cm-editor .cm-deletedChunk{background:var(--code-del-bg)}
+.vw-doc .cm-deletedChunk{padding-left:var(--s-2)}
 .vw-doc .cm-deletedChunk .cm-chunkButtons{display:inline-flex;gap:var(--s-1);margin:var(--s-1) 0}
 .vw-doc .cm-xo-chunk{height:var(--h-sm);padding:0 var(--s-doc-action);font:var(--fw-medium) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .vw-doc .cm-changeGutter{width:var(--w-doc-change-bar);padding:0}
@@ -63,7 +64,6 @@
 .xd-state.is-done{animation:rise-in var(--d-in) var(--ease)}
 .xd-state.is-need{color:var(--warn)}
 .xd-state.is-need i{background:var(--warn)}
-
 .vw-tabs{
   display:flex;gap:var(--s-file-tab-gap);min-height:var(--h-ctl);padding:var(--s-1) var(--s-2) 0;overflow-x:auto;
   scrollbar-width:none;border-bottom:var(--hair) solid var(--line-faint)
