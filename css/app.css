@@ -35,7 +35,6 @@
 @import url("../modules/files/conversation-cards.css");
 @import url("../modules/files/viewer.css");
 
-.settings{background:var(--canvas)}
 :is(.card,.next,.dock-fold).r-notable{--state:var(--warn)}
 :is(.card,.next,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
 :is(.card,.next):is(.r-notable,.r-destructive,.r-stopped)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
@@ -52,7 +51,6 @@
 .md-code{background:var(--term-bg)}
 .ck-n,.pn-count,.tc-st{font-family:var(--sans);font-variant-numeric:tabular-nums}
 .nr-n,.pr-w{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:var(--tr-20)}   /* the sidebar's, as it is */
-.settings .set-top{background:transparent}
 
 /* Attachments on drafts and sent messages. */
 .attach{flex:none;display:grid;place-items:center;width:var(--comp-ctl);height:var(--comp-ctl);border-radius:50%;color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
