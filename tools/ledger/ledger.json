@@ -4490,15 +4490,15 @@
    "home": "vendor/pierre-diffs/worker.js"
   },
   "js/vendor/pierre/LICENSE.md": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/pierre/LICENSE.md"
   },
   "js/vendor/pierre/NOTICE.md": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/pierre/NOTICE.md"
   },
   "js/vendor/pierre/icons.js": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/pierre/icons.js"
   },
   "js/vendor/xterm/LICENSE-addon-fit": {

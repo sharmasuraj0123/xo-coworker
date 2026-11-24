@@ -300,7 +300,7 @@ def max_body(method: str, path: str) -> int:
     return MAX_UPLOAD if method == "POST" and UPLOAD.match(path.split("?", 1)[0]) else MAX_BODY
 
 
-VERSIONED_DIRS = ("js", "css", "fonts", "presets", "assets", "core", "shell", "modules", "apps-host")
+VERSIONED_DIRS = ("js", "css", "fonts", "presets", "assets", "core", "shell", "modules", "apps-host", "vendor")
 VERSIONED_FILES = ("boot.js", "favicon.svg")
 STATIC_PATH = r"(?:%s)/[^\"]+|(?:%s)" % ("|".join(VERSIONED_DIRS), "|".join(map(re.escape, VERSIONED_FILES)))
 VERSION_PATH = re.compile(r"^/v/([0-9a-f]{12})(/(?:%s))$" % STATIC_PATH)

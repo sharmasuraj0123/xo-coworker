@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 523 |
+| planned | 520 |
 | moved | 487 |
 | deleted | 336 |
 | kept | 57 |
 | split | 28 |
-| vendor | 10 |
+| vendor | 13 |
 | split-region | 5 |
 
 Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted 150, split 3), in `ledger.json` as `path::kind::name`.
@@ -780,9 +780,9 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `js/vendor/pierre-diffs/edit.js` | 68 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6): nothing imported it |
 | `js/vendor/pierre-diffs/manifest.json` | 187 | planned | vendor/pierre-diffs/manifest.json |
 | `js/vendor/pierre-diffs/worker.js` | 1 | planned | vendor/pierre-diffs/worker.js |
-| `js/vendor/pierre/LICENSE.md` | 189 | planned | vendor/pierre/LICENSE.md |
-| `js/vendor/pierre/NOTICE.md` | 35 | planned | vendor/pierre/NOTICE.md |
-| `js/vendor/pierre/icons.js` | 5 | planned | vendor/pierre/icons.js |
+| `js/vendor/pierre/LICENSE.md` | 189 | vendor | vendor/pierre/LICENSE.md |
+| `js/vendor/pierre/NOTICE.md` | 35 | vendor | vendor/pierre/NOTICE.md |
+| `js/vendor/pierre/icons.js` | 5 | vendor | vendor/pierre/icons.js |
 | `js/vendor/xterm/LICENSE-addon-fit` |  | planned | vendor/xterm/LICENSE-addon-fit |
 | `js/vendor/xterm/LICENSE-xterm` |  | planned | vendor/xterm/LICENSE-xterm |
 | `js/vendor/xterm/README.md` | 20 | planned | vendor/xterm/README.md |

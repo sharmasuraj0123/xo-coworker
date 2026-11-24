@@ -1,8 +1,6 @@
 // @ts-check
 
-// File icons, one resolver everywhere: Pierre's filename and extension rules and colours (js/vendor/pierre), the owner's plain kinds and folders.
-
-import { PIERRE } from "../../../js/vendor/pierre/icons.js";
+import { PIERRE } from "../../../vendor/pierre/icons.js";
 import { xi } from "./icon.js";
 import { XI } from "./xoicons.js";
 
@@ -10,7 +8,7 @@ import { XI } from "./xoicons.js";
 const { symbols, names, exts, overrides, colors } = PIERRE;
 const GRAY = colors.default || ["#84848a", "#adadb1"];
 
-/** Pierre's plain kinds → the owner's file icons; the rest of Pierre's tokens are other projects' marks. @type {Record<string, string>} */
+/** @type {Record<string, string>} */
 const OWN = { default: "file-default", text: "file-text", html: "file-code-html", json: "file-json", yml: "file-yaml",
   bash: "file-shell", image: "file-image", svg: "file-svg", font: "file-font", table: "file-table", database: "file-database",
   markdown: "file-markdown", zip: "file-archive", archive: "file-archive", pdf: "file-pdf", audio: "file-audio",

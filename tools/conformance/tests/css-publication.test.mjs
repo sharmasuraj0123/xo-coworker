@@ -27,7 +27,7 @@ test("stylesheet publication uses the exact server path grammar and catches a di
   assert.equal(result.status, 0, result.error?.message ?? result.stderr);
   const policy = JSON.parse(result.stdout);
   assertPublicationParity(PUBLISHED_PATH, policy);
-  const drifted = PUBLISHED_PATH.replace("apps-host", "apps-host|vendor");
+  const drifted = PUBLISHED_PATH.replace("|vendor", "");
   assert.throws(() => assertPublicationParity(drifted, policy), /publication policies differ/);
 });
 

@@ -646,6 +646,18 @@ class StaticCaching(unittest.TestCase):
                 fh.write("22")
             self.assertNotEqual(serve.tree_version(d), v1)
 
+    def test_vendor_content_changes_the_version(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+
+        with TemporaryDirectory() as root:
+            asset = Path(root, "vendor", "icons.js")
+            asset.parent.mkdir()
+            asset.write_bytes(b"export {};")
+            version = serve.tree_version(root)
+            asset.write_bytes(b"export const icon = 'text';")
+            self.assertNotEqual(serve.tree_version(root), version)
+
 
 class Gzip(unittest.TestCase):
     def test_static_text_is_gzipped_when_accepted(self):
