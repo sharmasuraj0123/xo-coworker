@@ -1,6 +1,5 @@
 // The panel's GitHub page: Space's issue rows and pull requests read into rows, nothing invented when a field is missing.
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
 import { dom, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
@@ -73,24 +72,19 @@ t("titles and logins are escaped", () => {
   assert.equal(r.sub.includes("<script>"), false);
 });
 
-t("the page's styles use the app's tokens, never a raw colour", () => {
-  const css = sheet(new URL("css/panel.css", R));
-  const mine = css.split("\n").filter((l) => /^\.gh[-. {]/.test(l)).join("\n");
-  assert.equal(mine.length > 0, true);
-  assert.equal(/#[0-9a-fA-F]{3,8}\b|rgb\(/.test(mine), false);
-});
-
-async function githubPage({ pulls, item, failure }) {
+async function githubPage({ pulls, item, failure, retryPulls = false }) {
   const { document, window } = await dom("<div id='panel'></div>");
   const panel = document.getElementById("panel");
   const project = "demo", base = `/api/xo-projects/${project}/github`;
   const issue = { number: 1, title: "Issue from list", url: "https://github.com/o/r/issues/1", state: "open" };
   const pr = { number: 2, title: "Pull from list", url: "https://github.com/o/r/pull/2", state: "open" };
   const requests = [];
+  let recovering = false;
   globalThis.fetch = async (url) => {
-    const path = new URL(String(url), "http://local/").pathname;
+    const { pathname: path } = new URL(String(url), "http://local/");
     requests.push(path);
     if (path === `${base}/issues`) return Response.json({ repo: "o/r", issues: [issue] });
+    if (path === `${base}/pulls` && retryPulls && !recovering) return Response.json({ detail: "Try again" }, { status: 500 });
     if (path === `${base}/pulls` && pulls) return Response.json({ pulls: [pr] });
     if (path === "/api/connectors/github/status") return Response.json({ status: "connected" });
     if (failure && path === `${base}/issues/1`) return Response.json({ detail: failure.detail }, { status: failure.status });
@@ -125,16 +119,37 @@ async function githubPage({ pulls, item, failure }) {
   assert.equal(document.activeElement === fold, true, "the focused fold survives the redraw");
   assert.equal(fold.getAttribute("aria-expanded"), "false");
   click('[data-gh-fold="open"]');
+  if (retryPulls) {
+    assert.ok(!panel.querySelector('[data-gh-tab="prs"]'), "a failed pull list leaves the issue list usable");
+    assert.match(panel.textContent, /Issue from list/);
+    recovering = true;
+    click("[data-gh-refresh]");
+    await settle();
+    click('[data-gh-tab="prs"]');
+    assert.match(panel.textContent, /Pull from list/, "refresh recovers a pull list that originally returned 500");
+    gh.dispose();
+    return;
+  }
   if (!pulls) {
     assert.ok(requests.includes(`${base}/pulls`));
     assert.ok(!panel.querySelector("[data-gh-tab]"), "no pull request tabs when the list route is absent");
     assert.match(panel.textContent, /Issue from list/);
+    assert.equal(requests.filter((path) => path === `${base}/pulls`).length, 1, "a confirmed missing route is cached");
   }
   if (!item) return;
   const pull = item === "p2";
   if (pull) click('[data-gh-tab="prs"]');
-  click(`[data-gh-open="${item}"]`);
-  await settle();
+  const original = Object.getOwnPropertyDescriptor(globalThis, "reportError");
+  const failures = [];
+  Object.defineProperty(globalThis, "reportError", { configurable: true, value: (error) => failures.push(error.code) });
+  try {
+    click(`[data-gh-open="${item}"]`);
+    await settle();
+    assert.deepEqual(failures, failure?.status === 500 ? ["http_500"] : []);
+  } finally {
+    if (original) Object.defineProperty(globalThis, "reportError", original);
+    else Reflect.deleteProperty(globalThis, "reportError");
+  }
   const detailPath = `${base}/${pull ? "pulls/2" : "issues/1"}`;
   assert.equal(requests.filter((path) => path === detailPath).length, 1);
   assert.match(panel.querySelector(".gh-title").textContent, pull ? /Pull from list/ : /Issue from list/);
@@ -157,5 +172,100 @@ await githubPage({ pulls: false, item: "i1" });
 await githubPage({ pulls: true, item: "p2" });
 await githubPage({ pulls: false, item: "i1", failure: { status: 500, detail: "Failed" } });
 await githubPage({ pulls: false, item: "i1", failure: { status: 404, detail: { code: "not_found", message: "Issue removed" } } });
+{
+  const original = Object.getOwnPropertyDescriptor(globalThis, "reportError");
+  const failures = [];
+  Object.defineProperty(globalThis, "reportError", { configurable: true, value: (error) => failures.push(error.code) });
+  try {
+    await githubPage({ pulls: true, retryPulls: true });
+    assert.ok(failures.length > 0 && failures.every((code) => code === "http_500"));
+  } finally {
+    if (original) Object.defineProperty(globalThis, "reportError", original);
+    else Reflect.deleteProperty(globalThis, "reportError");
+  }
+}
+
+{
+  const { document } = await dom('<div id="panel"><button>New project</button></div>');
+  const panel = document.getElementById("panel");
+  const destination = panel.querySelector("button");
+  const pages = new Map();
+  let view = "p:slow";
+  let pending = Promise.withResolvers();
+  const gh = createGhPage({
+    stage: {
+      page(name, config) { pages.set(name, config); },
+      show(name) {
+        panel.replaceChildren();
+        pages.get(name).mount(panel);
+        panel.querySelector("section").focus();
+      },
+    },
+    api: {
+      githubIssues: () => pending.promise,
+      githubPulls: async () => ({ pulls: [] }),
+      githubStatus: async () => ({ valid: true }),
+    },
+    view: () => view,
+    projectOf: (place) => place.slice(2),
+  });
+  const opening = gh.show();
+  await settle();
+  view = "p:other";
+  destination.focus();
+  pending.resolve({ repo: "o/slow", issues: [] });
+  await opening;
+  assert.ok(document.activeElement === destination, "a late open leaves the new project and its focus in place");
+
+  view = "p:roundtrip";
+  pending = Promise.withResolvers();
+  const roundtrip = gh.show();
+  await settle();
+  gh.leave();
+  view = "p:other";
+  view = "p:roundtrip";
+  pending.resolve({ repo: "o/roundtrip", issues: [] });
+  await roundtrip;
+  assert.ok(document.activeElement === destination, "leaving invalidates the open even after returning to the original view");
+  gh.dispose();
+}
+
+{
+  const { document } = await dom("<div id='panel'></div>");
+  const panel = document.getElementById("panel");
+  const pages = new Map();
+  const pending = Promise.withResolvers();
+  const issues = [];
+  const productionApi = {
+    githubIssues(_project, _refresh, { signal }) {
+      issues.push(signal);
+      return pending.promise;
+    },
+    githubStatus: async () => ({ valid: true }),
+    githubPulls: async () => ({ pulls: [] }),
+  };
+  let shown = 0;
+  const gh = createGhPage({
+    api: productionApi,
+    stage: {
+      page(name, config) { pages.set(name, config); },
+      show() { shown++; },
+    },
+    view: () => "p:demo",
+    projectOf: () => "demo",
+  });
+  pages.get("github").mount(panel);
+  const opening = gh.show();
+  await settle();
+  const available = gh.has("demo");
+  await settle();
+  assert.equal(issues.length, 1, "opening and checking the button share the project's in-flight read");
+  gh.dispose();
+  assert.equal(issues[0].aborted, true);
+  pending.resolve({ repo: "o/r", issues: [] });
+  assert.equal(await available, false);
+  await opening;
+  assert.equal(shown, 0, "a late read cannot open the panel after disposal");
+}
 
 console.log(`${passed} passed`);

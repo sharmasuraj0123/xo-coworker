@@ -92,10 +92,10 @@ export interface Api {
   cloneProject(clone: { id: string; url: string; displayName?: string; description?: string }): Json;
   cloneStatus(cloneId: Id): Json;
   cancelClone(cloneId: Id): Json;
-  githubStatus(): Json;
-  githubIssues(project: Id, refresh?: boolean): Json;
+  githubStatus(options?: ReadOptions): Json;
+  githubIssues(project: Id, refresh?: boolean, options?: ReadOptions): Json;
   githubIssue(project: Id, number: Id | number, signal?: AbortSignal): Json;
-  githubPulls(project: Id): Json;
+  githubPulls(project: Id, options?: ReadOptions): Json;
   githubPull(project: Id, number: Id | number, signal?: AbortSignal): Json;
   githubConnect(fresh?: boolean): Json;
   githubConnectPoll(sessionId: Id): Json;

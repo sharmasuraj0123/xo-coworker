@@ -4,17 +4,18 @@ import { createScope } from "../../core/kernel/scope.js";
 import { createLru } from "../../core/platform/cache.js";
 import { ApiError, missingRoute } from "../../core/platform/http.js";
 import { latest } from "../../core/platform/latest.js";
+import { requestFailureMessage } from "../../core/services/notices/failures.js";
+
+/** @import {Detail, DetailApi} from "./types" */
 
 const DETAIL_CACHE_SIZE = 64;
 const FAILED = "Couldn't read this item from GitHub.";
-
-/** @typedef {Pick<import("../../core/platform/api-types.d.ts").Api, "githubIssue" | "githubPull">} DetailApi */
 
 /** @typedef {(project: string, key: string) => boolean} IsCurrent */
 
 /** @param {DetailApi} api @param {IsCurrent} current @param {() => void} paint @param {(message: string) => void} announce */
 export function createItemReads(api, current, paint, announce) {
-  /** @type {ReturnType<typeof createLru<string, import("./types.d.ts").Detail>>} */
+  /** @type {ReturnType<typeof createLru<string, Detail>>} */
   const details = createLru({ max: DETAIL_CACHE_SIZE });
   const unsupported = new Set();
   const owner = {};
@@ -39,8 +40,8 @@ export function createItemReads(api, current, paint, announce) {
       });
     } catch (error) {
       if (signal.aborted) return;
-      if (!(error instanceof ApiError)) throw error;
       if (missingRoute(error)) { unsupported.add(kind); return; }
+      if (!(error instanceof ApiError && error.code === "not_found")) requestFailureMessage(error, FAILED);
       if (current(project, key)) { failed = k; paint(); announce(FAILED); }
       return;
     }

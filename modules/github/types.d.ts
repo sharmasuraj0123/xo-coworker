@@ -1,3 +1,17 @@
+import type { Api } from "../../core/platform/api-types";
+
+export type GithubApi = Pick<Api, "githubIssues" | "githubPulls" | "githubIssue" | "githubPull" | "githubStatus">;
+export type DetailApi = Pick<GithubApi, "githubIssue" | "githubPull">;
+export type ListApi = Pick<GithubApi, "githubIssues" | "githubPulls" | "githubStatus">;
+export interface GithubPageOptions {
+  stage: Stage;
+  api: GithubApi;
+  view: () => string;
+  projectOf: (view: string) => string;
+  work?: (project: string, item: ReturnType<typeof import("./page").issueOf> | ReturnType<typeof import("./page").prOf>) => void;
+  announce?: (message: string) => void;
+}
+
 type Count = number | { total_count?: number } | null;
 export type Person = string | { login?: string; avatar_url?: string; avatarUrl?: string } | null;
 export interface Issue {
@@ -38,7 +52,7 @@ export interface Pull extends Issue {
 }
 export interface PageData {
   issues: { repo?: string | null; state?: string; issues?: Issue[]; error?: { message?: string }; fetched_at?: string };
-  pulls: { pulls?: Pull[] } | null;
+  pulls?: { pulls?: Pull[] } | null;
   status: { valid?: boolean } | null;
 }
 export interface Detail {

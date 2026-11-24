@@ -179,10 +179,11 @@ export const api = {
   /** Stops a clone; Space removes what it had fetched. */
   cancelClone: (cloneId) => send("DELETE", `/xo-projects/clones/${enc(cloneId)}`),
   /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
-  githubStatus: () => get("/connectors/github/status"),
-  githubIssues: (project, refresh = false) => get(`/xo-projects/${enc(project)}/github/issues`, refresh ? { refresh: "true" } : undefined),
+  githubStatus: ({ signal } = {}) => get("/connectors/github/status", undefined, signal),
+  githubIssues: (project, refresh = false, { signal } = {}) =>
+    get(`/xo-projects/${enc(project)}/github/issues`, refresh ? { refresh: "true" } : undefined, signal),
   githubIssue: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/issues/${enc(n)}`, undefined, signal),
-  githubPulls: (project) => get(`/xo-projects/${enc(project)}/github/pulls`),
+  githubPulls: (project, { signal } = {}) => get(`/xo-projects/${enc(project)}/github/pulls`, undefined, signal),
   githubPull: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/pulls/${enc(n)}`, undefined, signal),
   /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
   githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
