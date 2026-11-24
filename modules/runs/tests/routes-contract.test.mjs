@@ -21,7 +21,9 @@ const RS = { open: true, session: "session/key", opening: 1, gen: 0, title: "Run
   tree: [], counts: null, said: null, cmdsOpen: true, cmdsAll: false, run: null, anc: null, items: [], cursor: null,
   children: [], loading: false, error: null, gone: null, pollT: null };
 const state = { runs: new Map() };
-const act = createAct(/** @type {import("../../../core/services/storm/types").Ctx} */ (/** @type {unknown} */ ({ state, soon() {} })));
+const act = createAct(/** @type {import("../../../core/services/storm/types").Ctx} */ (/** @type {unknown} */ ({
+  state, sentAt: () => ({ at: Date.now(), seq: null }), soon() {},
+})));
 const reads = createRunsReads({ RS, world: { state, act }, STAGE: { repaint() {} }, runsRender() {} });
 assert.equal(await reads.readRunsList("session/key"), true);
 await reads.openRun(run.id);

@@ -60,7 +60,7 @@ export interface Api {
   addRule(body: object): Json;
   revokeRule(id: Id): Json;
 
-  runs(session: Id, query?: Query): Json;
+  runs(session: Id, query?: Query, options?: ReadOptions): Json;
   run(id: Id): Json;
   transcript(id: Id, query?: Query): Json;
   stopRun(id: Id): Json;

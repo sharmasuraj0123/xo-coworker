@@ -5,10 +5,32 @@ import { commsLine, commsHeader, commsText } from "../comms.js";
 import { AWAIT_CAP_MS } from "./config.js";
 import { createCommands } from "./commands.js";
 
-/** @typedef {import("./types").Row} Row */
-/** @param {import("./types").Ctx} ctx */
+/** @import {Ctx, Row} from "./types" */
+
+/** @type {WeakMap<Ctx, { revision: number, rows: WeakMap<import("../run-types").StoredRun, number> }>} */
+const runOrders = new WeakMap();
+
+/** @param {Ctx} ctx */
+function orderFor(ctx) {
+  const current = runOrders.get(ctx);
+  if (current) return current;
+  const order = { revision: 0, rows: new WeakMap() };
+  runOrders.set(ctx, order);
+  return order;
+}
+
+/** @param {Ctx} ctx @param {import("../run-types").StoredRun} record */
+export function publishStreamRun(ctx, record) {
+  const order = orderFor(ctx);
+  ctx.state.runs.set(record.id, record);
+  order.rows.set(record, ++order.revision);
+  ctx.soon();
+}
+
+/** @param {Ctx} ctx */
 export function createAct(ctx) {
   const { state, watched, trimmed } = ctx;
+  const order = orderFor(ctx);
   return {
     live: true,
     storm: true,
@@ -71,14 +93,30 @@ export function createAct(ctx) {
       if (last.type === "activity") { const rows = last.rows || []; const run = rows.filter((/** @type {Row} */ r) => r.status === "running").pop(); const said = run ? commsLine(run) : commsHeader(rows); if (said) return said; }
       return commsText(last.header) || (last.type === "text" ? "Writing" : null);
     },
-    /** @param {string} session */
-    listRuns: async (session) => {
-      const d = await client.runs(session, { tree: "true", depth: 3, limit: 200 });
-      /** @param {Row[]} nodes */
-      const walk = (nodes) => { for (const n of nodes || []) { state.runs.set(n.id, { ...(state.runs.get(n.id) || {}), id: n.id, session, parent: n.parent_run_id || null, state: n.state, title: n.title || n.agent_type || "Sub-agent", kind: n.kind, background: !!n.background, depth: n.depth, spawn: n.spawn_call_id || null, started_at: n.started_at, ended_at: n.ended_at, summary: n.summary, tokens: n.tokens, tool_calls: n.tool_calls, last_tool: n.last_tool, can_stop: n.can_stop, seen: Date.now() }); walk(n.children); } };
-      walk(d.runs);
+    /** @param {string} session @param {{ signal?: AbortSignal }} [options] */
+    listRuns: async (session, { signal } = {}) => {
+      const readOrder = ++order.revision;
+      const d = await client.runs(session, { tree: "true", depth: 3, limit: 200 }, { signal });
+      signal?.throwIfAborted();
+      /** @param {Row} run @returns {Row} */
+      const publish = (run) => {
+        const current = state.runs.get(run.id);
+        const children = run.children?.map(publish);
+        if (current && (order.rows.get(current) ?? 0) > readOrder) return { ...run, ...current, children };
+        const record = {
+          ...current, id: run.id, session, parent: run.parent_run_id || null, state: run.state,
+          title: run.title || run.agent_type || "Sub-agent", kind: run.kind, background: !!run.background,
+          depth: run.depth, spawn: run.spawn_call_id || null, started_at: run.started_at, ended_at: run.ended_at,
+          summary: run.summary, tokens: run.tokens, tool_calls: run.tool_calls, last_tool: run.last_tool,
+          can_stop: run.can_stop, seen: Date.now(),
+        };
+        state.runs.set(run.id, record);
+        order.rows.set(record, readOrder);
+        return children ? { ...run, children } : run;
+      };
+      const ordered = d.runs?.map(publish);
       ctx.soon();
-      return d;
+      return { ...d, runs: ordered };
     },
     /** What a session's runtime offers (its feature list), never decided by agent name. @param {string} session @param {string} key */
     feature: (session, key) => {

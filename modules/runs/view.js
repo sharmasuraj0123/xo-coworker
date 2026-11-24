@@ -28,7 +28,7 @@ const dur = (a, b) => {
 /** @param {string} st */
 const glyph = (st) => (st === "running" ? "working" : st === "waiting" ? "needs_reply" : st === "finished" ? "done" : st === "failed" || st === "lost" ? "failed" : "resolved");
 
-/** The thread's own line about its sub-agents: the ones working now, else the log count. @param {Run[]} live @param {number} total */
+/** @param {readonly Pick<Run, "id" | "state" | "title">[]} live @param {number} total */
 export function runsStripHtml(live, total) {
   if (live.length) {
     const n = live.length, wait = live.filter((r) => r.state === "waiting").length;

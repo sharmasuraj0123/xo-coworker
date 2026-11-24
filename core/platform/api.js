@@ -123,7 +123,7 @@ export const api = {
   addRule: (body) => send("POST", "/chat/rules", body),
   revokeRule: (id) => ruleApi.revokeRule(id),
 
-  runs: (session, query = {}) => get(`/chat/sessions/${enc(session)}/runs`, query),
+  runs: (session, query = {}, { signal } = {}) => get(`/chat/sessions/${enc(session)}/runs`, query, signal),
   run: (id) => get(`/chat/runs/${enc(id)}`),
   transcript: (id, query = {}) => get(`/chat/runs/${enc(id)}/transcript`, query),
   stopRun: (id) => send("POST", `/chat/runs/${enc(id)}/stop`),
