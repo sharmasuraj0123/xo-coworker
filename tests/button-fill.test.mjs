@@ -1,62 +1,97 @@
+// @ts-check
+
 import assert from "node:assert/strict";
-import { cssNames, readSource } from "./lib/sources.mjs";
-const read = (f) => readSource(`css/${f}`).replace(/\/\*[\s\S]*?\*\//g, "");
-const all = cssNames().map(read).join("\n");
-const tok = read("../core/ui/tokens.css");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const rule = (sel) => { const i = all.indexOf("\n" + sel + "{"); assert.ok(i >= 0, sel); return all.slice(i + sel.length + 2, all.indexOf("}", i)); };
+import { test } from "node:test";
+import { publishedRules, resolveValue, stylesheetRows } from "./lib/css-snapshot.mjs";
 
-t("a gray button's fill is the ink at 14/18/22% in dark and 7/10/13% in light, translucent on any surface", () => {
-  assert.equal((tok.match(/--btn-fill:color-mix\(in srgb,var\(--ink\) 14%,transparent\); --btn-fill-hover:color-mix\(in srgb,var\(--ink\) 18%,transparent\); --btn-fill-press:color-mix\(in srgb,var\(--ink\) 22%,transparent\)/g) || []).length, 2);
-  assert.match(tok, /--btn-fill:color-mix\(in srgb,var\(--ink\) 7%,transparent\); --btn-fill-hover:color-mix\(in srgb,var\(--ink\) 10%,transparent\); --btn-fill-press:color-mix\(in srgb,var\(--ink\) 13%,transparent\)/);
+const rules = publishedRules();
+const declarations = (selector) => {
+  const rows = rules.filter((rule) => rule.sel === selector);
+  assert.ok(rows.length, `Missing rule for ${selector}`);
+  return rows.flatMap((rule) => rule.declarations);
+};
+const role = (selector, property, value) => {
+  assert.ok(declarations(selector).some((row) => row.p === property && row.v === value), `${selector} ${property}: ${value}`);
+};
+const noBorderColor = (selector) => assert.ok(declarations(selector).every((row) => row.p !== "border-color"), selector);
+const transparentBorder = (selector) => {
+  const values = declarations(selector).filter((row) => row.p === "border-color").map((row) => resolveValue(row.v));
+  assert.ok(values.length > 0 && values.every((value) => value === "transparent"), selector);
+};
+
+function tintSteps(name, color, expected) {
+  const roles = ["", "-hover", "-press"].map((suffix) => `--${name}-fill${suffix}`);
+  const keys = new Set(roles);
+  const contexts = new Map();
+  for (const row of stylesheetRows) {
+    if (!keys.has(row.property)) continue;
+    const selector = row.context.at(-1)?.selector;
+    assert.ok(selector?.startsWith(":root"), `${row.property} must be a root role`);
+    const values = contexts.get(selector) ?? new Map();
+    const match = /^color-mix\(in srgb,(.+) (\d+)%,(.+)\)$/.exec(row.value);
+    assert.ok(match, row.property);
+    assert.equal(match[1], `var(--${color})`);
+    assert.equal(resolveValue(match[3]), "transparent");
+    values.set(row.property, Number(match[2]));
+    contexts.set(selector, values);
+  }
+  const allSteps = [...contexts.values()].map((values) => roles.map((key) => values.get(key)));
+  assert.deepEqual(allSteps.sort(), expected.sort());
+}
+
+test("neutral, positive and destructive fills have their intended opacity steps", () => {
+  tintSteps("btn", "ink", [[14, 18, 22], [7, 10, 13], [14, 18, 22]]);
+  tintSteps("ok", "accent-fill", [[16, 22, 28]]);
+  tintSteps("danger", "err-ink", [[14, 20, 26], [10, 15, 20], [14, 20, 26]]);
 });
 
-t("every gray button draws its shape with the fill: a transparent border, no outline colour, no lift", () => {
-  for (const sel of [".b", ".btn", ".gear", ".tw-act", ".stg-btn", ".create", ".side-plus"]) {
-    const r = rule(sel);
-    assert.match(r, /background:var\(--btn-fill\)/, sel);
-    assert.doesNotMatch(r, /border:1px solid var\(/, sel);
-    assert.doesNotMatch(r, /(^|;)box-shadow:/, sel);
+test("neutral controls get their shape from a fill and keep the border clear through interaction", () => {
+  for (const selector of [".b", ".btn", ".gear", ".tw-act", ".stg-btn", ".create", ".side-plus"]) {
+    role(selector, "background", "var(--btn-fill)");
+    const rows = declarations(selector);
+    assert.ok(rows.filter((row) => row.p === "border").every((row) => String(resolveValue(row.v)).endsWith(" transparent")), selector);
+    assert.ok(rows.every((row) => row.p !== "box-shadow"), selector);
+  }
+  for (const selector of [".b:hover", ".tw-act:hover", ".stg-btn:hover", ".create:hover", ".gear:hover"]) {
+    role(selector, "background", "var(--btn-fill-hover)");
+    noBorderColor(selector);
+  }
+  assert.ok(rules.every(({ sel, declarations: rows }) => !rows.some(({ p, v }) => p === "border-color"
+    && (/\.b-(allow|back|reply|done)\b/.test(sel) && v === "var(--line-strong)"
+      || /data-theme="light"\]\s+\.gear\b/.test(sel)))));
+});
+
+test("Deploy, Done and Allow use the positive tint, and destructive buttons keep the danger tint", () => {
+  role(".tw-act.lp-btn", "background", "var(--ok-fill)");
+  transparentBorder(".tw-act.lp-btn");
+  noBorderColor(".tw-act.lp-btn:hover");
+  for (const selector of [".b-allow", ".b-done"]) {
+    role(selector, "background", "var(--ok-fill)");
+    role(`${selector}:hover`, "background", "var(--ok-fill-hover)");
+  }
+  role(".btn-danger", "background", "var(--danger-fill)");
+  transparentBorder(".btn-danger");
+});
+
+test("card details use the UI text role", () => {
+  role(".dt .prose", "font-size", "var(--fs-ui)");
+  role(".dt .prose", "font-weight", "var(--fw-regular)");
+  role(".dt .prose", "line-height", "var(--lh-ui)");
+});
+
+test("state tints do not bring back a coloured rim", () => {
+  const allowed = /\.btn-pri|\.is-pri|\.xd-send|\.lp-f\.is-bad|aria-invalid|\.av-w|\.drop-veil|\.dg-|\.sc-dot|\.m-you\.is-failed|\.pr-ic/;
+  const coloured = /--warn|--err|--danger|--accent|accent-rgb|245 166 35|230 131 136/;
+  const rims = rules.filter(({ sel, declarations: rows }) => !allowed.test(sel)
+    && rows.some(({ p, v }) => /^(border|border-color)$/.test(p) && coloured.test(v)));
+  assert.deepEqual(rims.map(({ sel }) => sel), []);
+});
+
+test("keyboard focus uses an accent outline and soft halo", () => {
+  role(":focus-visible", "outline", "3px solid var(--focus)");
+  role(":focus-visible", "outline-offset", "0");
+  for (const [name, opacity] of [["--focus", ".4"], ["--focus-halo", ".2"]]) {
+    assert.deepEqual(stylesheetRows.filter((row) => row.property === name).map(({ value }) => value),
+      [`rgba(var(--accent-rgb),${opacity})`, `rgba(var(--accent-rgb),${opacity})`]);
   }
 });
-
-t("hover and press go one fill step deeper and never bring a border back", () => {
-  for (const sel of [".b:hover", ".tw-act:hover", ".stg-btn:hover", ".create:hover", ".gear:hover"]) {
-    const r = rule(sel);
-    assert.match(r, /background:var\(--btn-fill-hover\)/, sel);
-    assert.doesNotMatch(r, /border-color/, sel);
-  }
-  assert.doesNotMatch(all, /\.b-(allow|back|reply|done)[^{]*\{[^}]*border-color:var\(--line-strong\)/);
-  assert.doesNotMatch(all, /data-theme="light"\] \.gear[^{]*\{[^}]*border-color/);
-});
-
-t("Deploy, Done and Allow are Apple's tinted style: the status green at 16/22/28% with no rim, one token set for every flavour", () => {
-  assert.match(tok, /--ok-fill:color-mix\(in srgb,var\(--accent-fill\) 16%,transparent\); --ok-fill-hover:color-mix\(in srgb,var\(--accent-fill\) 22%,transparent\); --ok-fill-press:color-mix\(in srgb,var\(--accent-fill\) 28%,transparent\)/);
-  assert.match(rule(".tw-act.lp-btn"), /background:var\(--ok-fill\);border-color:transparent/);
-  assert.doesNotMatch(rule(".tw-act.lp-btn:hover"), /border-color/);
-  assert.match(rule(".b-allow,.b-done"), /background:var\(--ok-fill\)/);
-  assert.match(rule(".b-allow:hover,.b-done:hover"), /background:var\(--ok-fill-hover\)/);
-});
-
-t("text in a card's Details reads the ui role, as the card's line and its buttons do", () => {
-  assert.match(rule(".dt .prose"), /font-size:var\(--fs-ui\);font-weight:var\(--fw-regular\);line-height:var\(--lh-ui\)/);
-});
-
-t("no state draws a coloured rim: needs, failed, chosen, destructive and their boxes say it with a tint", () => {
-  const rims = [...all.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter(([, sel, body]) => /(^|;)border(-color)?:[^;]*(--warn|--err|--danger|--accent|accent-rgb|245 166 35|230 131 136)/.test(body)
-    && !/\.btn-pri|\.is-pri|\.xd-send|\.lp-f\.is-bad|aria-invalid|\.av-w|\.drop-veil|\.dg-|\.sc-dot|\.m-you\.is-failed|\.pr-ic/.test(sel));
-  assert.deepEqual(rims.map(([, sel]) => sel.trim()), []);
-});
-
-t("a destructive button is a red fill, deeper on hover and press, with no outline", () => {
-  assert.match(rule(".btn-danger"), /background:var\(--danger-fill\);border-color:transparent/);
-  assert.equal((tok.match(/--danger-fill:color-mix\(in srgb,var\(--err-ink\) \d+%,transparent\); --danger-fill-hover:[^;]+; --danger-fill-press:[^;]+;/g) || []).length, 3);
-});
-
-t("keyboard focus is a soft accent ring hugging the control", () => {
-  assert.match(read("../core/ui/foundation.css"), /(^|\n):focus-visible\{outline:3px solid var\(--focus\);outline-offset:0\}/);
-  assert.equal((tok.match(/--focus:rgba\(var\(--accent-rgb\),\.4\); --focus-halo:rgba\(var\(--accent-rgb\),\.2\);/g) || []).length, 2);
-});
-
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
