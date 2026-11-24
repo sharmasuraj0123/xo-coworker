@@ -1,14 +1,14 @@
-
-.stage{container:stage / inline-size;--pe:12px;--pn:36px}
-
-.stg-bar{position:relative;z-index:2;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:var(--s-1);height:var(--h-lg);padding:0 var(--s-2) 0 var(--pe);box-shadow:inset 0 -1px 0 var(--panel-line,var(--line-faint));background:inherit}
+.stage{container:stage / inline-size;--pe:var(--s-3);--pn:var(--s-9)}
+.stg-bar{position:relative;z-index:var(--z-raised);flex:none;box-sizing:border-box;display:flex;align-items:center;
+  gap:var(--s-1);height:var(--h-lg);padding:0 var(--s-2) 0 var(--pe);
+  box-shadow:inset 0 var(--offset-inset-divider) 0 var(--panel-line,var(--line-faint));background:inherit}
 .stage[data-stg-page] .stg-bar{padding-left:var(--s-1)}
 .stg-acts{flex:none;display:flex;align-items:center;gap:var(--s-1)}
 .stg-pa{display:contents}
-.stg-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.stg-ic{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);
+  color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .stg-ic svg{width:var(--ic);height:var(--ic)}
 .stg-ic:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
-
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
 body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
 body.stage-over .stage{box-shadow:var(--e2)}
@@ -28,9 +28,7 @@ body.stage-over .stage{box-shadow:var(--e2)}
 
 /* ── Files: the tree on Pierre's grid. A row is 28 px; one 16 px column at 12 px (+16 a level) holds a
    folder's chevron or a file's icon; every name starts on the name column ──────────────────────────── */
-/* whole rows (Astra, 5 Nov): rows, headings and notes are all 28 px, the list is a whole number of them tall
-   (js/files.js fitList) with no foot inside its scroller, and it settles on a row when a scroll ends (not CSS
-   scroll snapping: thousands of snap areas made a 2,000-row tree four times slower to click and scroll) */
+/* Files fits whole rows when scrolling ends, avoiding the cost of a snap area for every file. */
 .fl-list{padding:0 6px}
 .fl-sec{box-sizing:border-box;height:var(--h-ctl);margin:0;padding:0 6px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
 .fl-sec:first-child{padding-top:0}
@@ -74,8 +72,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-menu{position:fixed;z-index:var(--z-popover);display:flex;flex-direction:column;min-width:168px;padding:var(--menu-pad);border-radius:var(--r-menu);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--e2)}
 .fl-menu[hidden]{display:none}
 .fl-menu button{display:flex;align-items:center;gap:8px;height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
-/* one active item: the focused one, whichever hand moved it (the mouse moves focus: keynav.js pointerFollows); :hover
-   never paints a second (Astra on e1f8666: mouse onto an item, then ↓, left two looking active) */
+/* Pointer movement and keyboard navigation share one active item through focus. */
 .fl-menu svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
 .fl-new-r{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 calc(6px + var(--d) * 16px)}
 .fl-new-r input{flex:1;min-width:0;height:var(--h-sm);margin-left:calc(-1 * var(--halo));padding:0 calc(var(--halo) - 1px);border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--fill-1);outline:none;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
@@ -88,13 +85,9 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 
 /* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
    then its kind and size as one quiet run on the same baseline; actions are 28 px icon buttons ───── */
-/* a 40 px bar draws its rule inside it, so its whole 40 holds a 32 px control and the ring's 4 px above and below it
-   (4 + 32 + 4): a 1 px border left 39, and where the bar meets a box that clips (the viewer's top), the ring of a
-   focused control lost half a pixel (the controls grader on f93345a and 0f51890, C092 at 1440: Copied's ring cut 0.5) */
+/* Paint the divider inside the header so controls have room for their full focus rings. */
 .vw-top{height:var(--h-lg);padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint);container:vwtop / inline-size}
-/* a narrow head keeps one row (the owner's choice, 9 Nov): the name keeps a readable width; the view switch, Edit (or
-   Cancel · Save), ⋯ and × stay; Ask about this, Updated · Show, Your draft · Discard and Runs code fold into ⋯ below
-   560 px, and with both switches in one head the file's own (Preview · Source, Fit · Actual size) folds below 400 */
+/* Fold secondary actions into the menu as the header narrows to keep room for the file name. */
 .vw-t{min-width:64px}
 .vw-top .vw-menu .vw-fold,.vw-top .vw-mw.only-folds{display:none} /* (over the menu's own display:flex for its items) */
 .vw-menu .vw-fold[aria-disabled="true"]{color:var(--ink-3);cursor:default}
@@ -247,8 +240,7 @@ button .spin,.btn .spin{color:inherit}
 .ty-b .elapsed:not(:empty)::before{content:"·";margin-right:8px}
 .mp-now .elapsed{font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 .typing{animation:none}
-/* the thread's working line at the top of the window sweeps again (the owner, 4 Nov: "I liked the blue accent on
-   top that used to move"): it is the one loop that says an agent works right now (app.css, sl-sweep) */
+/* The thread's header carries the working animation. */
 @media (prefers-reduced-motion:reduce){.arc>svg,.spin{animation:none}}
 
 /* no blue dots: "being edited now" and a folder an agent is in read in the text's own colour */
@@ -377,8 +369,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr-ib{border-radius:var(--r)}
 .stage :is(.fr-ib,.stg-ic):hover{background:var(--panel-hover)}
 .stage .fr-gut{background:transparent}
-/* the gutter between frames keeps the ring's room at the panel's sides: its ring (1 px out) was cut left and right by
-   the panel's own clip (the RINGCLIP sweep on 1855692); its line stays 12 px in from the sides */
+/* Leave room for the gutter's focus ring inside the panel. */
 .stage .fr-gut{margin:0 var(--ring-room)}
 .stage .fr-gut::before{content:"";position:absolute;inset:0 calc(12px - var(--ring-room));background:var(--panel-line);transition:background var(--d-hover) var(--ease)}
 .stage .fr-gut:hover::before,.stage .fr-gut:focus-visible::before,body.stage-vsizing .stage .fr-gut::before{background:var(--line-hover)}
@@ -436,11 +427,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr[data-fr="map"] .dg:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 /* a region you scroll with the keys (a file, a diff) says when the keyboard is in it, with the one ring */
 :is(.vw-body,.cx-pd):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
-/* a file you're typing in draws no ring: the caret is the mark (the owner, 19 Nov 10:59Z: "this green highlight around the
-   canvas looks horrendous. remove it.") */
-/* one ring for both regions, above what the renderer paints inside them: js/ring.js draws it just after the region,
-   over its box (its own outline sat under the drawing: Astra C087 on dd15034, the diff; C096 on cb7afe7, the file).
-   The outline stays as the fallback where the ring can't be placed */
+/* Draw the ring above the rendered region and keep the outline as a fallback. */
 .region-ring{position:absolute;z-index:var(--z-raised);box-shadow:inset 0 0 0 2px var(--focus);pointer-events:none}
 /* the region keeps what the renderer paints inside it to itself, so the ring just after it is always above */
 :is(.vw-body,.cx-pd){isolation:isolate}
@@ -473,10 +460,7 @@ body.viewer-open .fv~.dock{display:none}
 :root[data-theme="light"] .stage .map-host .dg-cur:not(.is-idle) .dg-arrow path{stroke:color-mix(in srgb,var(--c) 62%,#000);stroke-width:1}
 .stage .map-host .gn-l{text-shadow:0 0 3px var(--panel-canvas),0 0 3px var(--panel-canvas)}
 
-/* every control in the panel's bars (its own bar, a frame's head, a change's head) draws its ring inside it, not a
-   list of the ones known: the frames clip (overflow:hidden), and on a phone the floor makes a head's control 36 tall in
-   its 40 px head, so a ring outside it lost its top and bottom (grader B on 24be023, C076: Launchpad's Deploy, which
-   the list didn't name) */
+/* Inset focus rings so the frame can clip its contents without cutting off a control's ring. */
 .stage :is(.ag-r,.ch-r,.fr-t,.fr-ib,.stg-ic,:is(.stg-bar,.fr-h,.cx-ph) :is(button,a[href],[role=tab])):focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-2px}
 @media (prefers-reduced-motion:reduce){.stage :is(.fr-t,.fr-gut::before,.ag-r,.ch-r){transition:none}}
 
@@ -498,17 +482,13 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .stage .ag-need{color:var(--need)}
 .stage .ag-done{color:var(--go)}
 
-/* ── An agent's mark, said quietly (the owner, 19 Nov 13:42Z): small (--mark-sm), under the row's time in its right
-   column, so the agent is known without shouting. The time sits on the title's line, the mark on the summary's line
-   (each line's own height), both at the column's right edge; the title and summary keep the left. */
+/* Align the timestamp with the title and the agent mark with the summary. */
 .stage .ag-tm{display:flex;flex-direction:column;align-items:flex-end}
 .stage .ag-tm .ag-when{line-height:var(--lh-ui);min-height:var(--lh-ui)}
 .stage .ag-mk{display:flex;align-items:center;height:var(--lh-meta)}
 .stage .ag-mk .agm{width:var(--mark-sm);height:var(--mark-sm);vertical-align:baseline;margin:0}
 
-/* ── Shell mode: the shells' own dock in the panel, in place of its frames (the owner, 19 Nov) ─────────────────
-   The same dock (its tabs, its sessions), filling the panel under its bar; its drag grip has nothing to size here.
-   A phone keeps its shells sheet: the panel's Shell button isn't there. */
+/* The shell dock fills the panel below the header. Phones use the separate shell sheet. */
 .stg-body{flex:1;min-height:0;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr)}
 .stg-body>*{grid-area:1/1;min-width:0;min-height:0}
 .stg-page{display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);pointer-events:none}
@@ -520,9 +500,7 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .shd.in-panel .shd-grip{display:none}
 @media (max-width:760px){.stg-shell-b{display:none}}
 
-/* ── Threads' filter (the owner, 19 Nov 14:44Z): once a place has more than 12 threads, a 32 field over the list,
-   held at the top while the list scrolls under it; "/" in the panel focuses it. It matches the title, the summary
-   and the branch; while it filters every group shows all it matches; nothing found says so, with Clear. */
+/* The thread filter stays visible while the grouped results scroll. */
 .stage .tg-q{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:var(--s-2);padding:0 var(--s-3) var(--s-2);background:var(--sunken)}
 .tg-qf{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3);border-radius:var(--r);border:1px solid var(--line-soft);background:var(--fill-1);color:var(--ink-4)}
 .tg-qf:focus-within{border-color:var(--line-strong);color:var(--ink-3)}
@@ -536,13 +514,12 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .stage .tg-clear{color:var(--accent);font:inherit;text-decoration:underline;text-underline-offset:var(--s-1)}
 .stage .tg-clear:hover{color:var(--accent-hover)}
 
-/* the header's Threads answers even when Threads already shows: its head glows once (the owner, 19 Nov 14:50Z) */
+/* Flash the list header when the Threads button is pressed while the list is already visible. */
 .stage .fr.is-flash>.fr-h{animation:fr-flash var(--d-long) var(--ease)}
 @keyframes fr-flash{from{background:var(--hover-fill)}}
 @media (prefers-reduced-motion:reduce){.stage .fr.is-flash>.fr-h{animation:none}}
 
-/* a page's bar leads with ‹ (a 32 control): the title centres on it as the bar's own buttons do (the owner, 19 Nov
-   18:00Z: it sat 4 px low, aligned to the button's baseline); the words-only bar keeps its baseline pair */
+/* Center the title against the back button and keep the text baseline in the words-only header. */
 .stage .stg-t:has(.pg-back){align-items:center;gap:var(--s-1)}
 /* each page kind's own box, made once and kept (a thread's conversation, a file's editor and caret live on) */
 .stage .stg-pg{min-height:0;display:flex;flex-direction:column}
@@ -552,12 +529,7 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .stage .pg-lead[aria-pressed="true"]{color:var(--ink-2)}
 .stage .pg-dot{position:absolute;top:calc((var(--h-ctl) - var(--ic)) / 2);right:calc((var(--h-ctl) - var(--ic)) / 2);width:var(--badge-dot);height:var(--badge-dot);border-radius:50%;background:var(--need, var(--warn))}
 
-/* ── The Thread page (P2, the owner chose the proper build, 19 Nov 15:20Z): a thread beside the coordinator's chat,
-   its conversation drawn by the same code as the chat's, in the panel's own reading column (inset --s-5 each
-   side), its composer docked at its foot on the panel's ground. */
-/* one reading column for everything in the page, its messages and its dock alike: the page is the container, and
-   its dock (a .dock, which sets its own column from its own box: css/app.css) is given the same one, so the asks
-   line, the composer and the rows share their edges (the owner, 19 Nov 16:09Z: "it's misaligned") */
+/* Panel messages, notices and the composer share one reading column. */
 .stage .tp{position:relative;container-type:inline-size;--dock-h:var(--s-12)}
 /* the panel's page reads at the chat's own column, at any panel width */
 .stage .tp,.stage .tp .dock{--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
@@ -575,10 +547,7 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .stage .tp-acts{display:inline-flex}
 .stage:not([data-stg-page="thread"]) .tp-acts{display:none}
 .stage .tp-menu-w{position:relative;display:inline-flex}
-/* The list snaps row by row (scroll-snap-type: y mandatory), and its filter sits on top of it (sticky). The top of
-   the list (the filter, the first group's head) wasn't a place it could rest, so scrolling up to "Needs you" snapped
-   back down 40 px with its head under the filter (the owner, 19 Nov 18:57Z). The filter is a resting place, and
-   every row rests below it, never under it. */
+/* The filter is a snap destination and reserves room so the topmost row stays visible. */
 .stage .tg-q{scroll-snap-align:start}
 .stage .fr[data-fr="agents"] .fr-b:has(>.tg-q:not([hidden])){scroll-padding-top:calc(var(--h-ctl) + var(--s-2))}
 .gh{flex:1;min-height:0;height:100%;display:flex;flex-direction:column;min-width:0;background:var(--sunken);--pe:var(--s-3)}

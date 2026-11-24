@@ -54,6 +54,18 @@ await import("../boot.js");
 await new Promise((resolve) => setImmediate(resolve));
 for (const frame of frames.splice(0)) frame(performance.now());
 
+const ringFixture = document.createElement("section");
+ringFixture.innerHTML = '<div class="vw-body vw-diff" tabindex="0"></div>';
+document.body.append(ringFixture);
+const ringRegion = ringFixture.firstElementChild;
+Object.defineProperty(ringRegion, "offsetParent", { value: ringFixture });
+ringRegion.focus();
+for (const frame of frames.splice(0)) frame(performance.now());
+assert.equal(ringFixture.querySelectorAll(".region-ring").length, 1, "boot installs one keyboard region ring");
+ringRegion.blur();
+assert.ok(!ringFixture.querySelector(".region-ring"), "boot clears the region ring when focus leaves");
+ringFixture.remove();
+
 const recipients = document.querySelector("#at-list");
 recipients.innerHTML = '<li id="at-0" role="option" aria-selected="true">First</li>'
   + '<li id="at-1" role="option" aria-selected="false">Second</li>';

@@ -129,7 +129,7 @@
   --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
-  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-10:40px; --s-12:48px;
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-9:36px; --s-10:40px; --s-12:48px;
   --gap-icon:var(--s-2);
   --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch;
   --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
@@ -159,7 +159,7 @@
   --w-stage-default:360px; --h-foundation-row:36px; --slide-panel-in:12px; --edge-panel-flush:rgba(0,0,0,.08);
   --w-panel-grip-line:2px; --w-artifact-grid-card:148px; --w-header-xo-mark:20px; --h-header-xo-mark:8px;
   --s-artifact-pane-seam:2px; --s-artifact-pane-tools:10px; --r-sidebar-focus:6px; --offset-workspace-link-ring:1px;
-  --offset-field-ring:-1px; --r-grip-ring:3px; --spread-field-halo:3px;
+  --offset-field-ring:-1px; --r-grip-ring:3px; --spread-field-halo:3px; --offset-inset-divider:-1px;
   --stroke-setting-choice-off:1.5px; --stroke-setting-choice-on:5px; --ic-rule-status:6px; --offset-rule-mark:7px;
   --h-chat-picker-max:640px; --w-chat-confirm-max:720px; --s-chat-confirm-end:10px; --s-chat-confirm-block:14px;
   --mix-chat-confirm:7%; --ic-turn-mark-phone:26px; --s-herald-edge-pair:2px;

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createAllThreadsSheet } from "../modules/threads/all-sheet.js";
 import { dom, same } from "./lib/dom.mjs";
-import { sheet } from "./lib/cascade.mjs";
+import { declarationsFor, valuesFor } from "./lib/css-snapshot.mjs";
 import { threadStage } from "./lib/thread-stage.mjs";
 
 const stopped = { id: "stopped", project: "p", state: "done", title: "Former design", summary: "kept a record", lastAt: 0 };
@@ -81,7 +81,8 @@ pressAll("Enter");
 assert.deepEqual(destinations, ["t:one"]);
 assert.equal(allEl.hidden, true);
 
-const css = sheet(new URL("../css/panel.css", import.meta.url));
-assert.match(css, /\.stage \.fr\[data-fr="agents"\] \.fr-b\{[^}]*scroll-snap-type:y mandatory/);
-assert.match(css, /\.stage \.tg-q\{scroll-snap-align:start\}/);
-assert.match(css, /\.stage \.fr\[data-fr="agents"\] \.fr-b:has\(>\.tg-q:not\(\[hidden\]\)\)\{scroll-padding-top:calc\(var\(--h-ctl\) \+ var\(--s-2\)\)\}/);
+const agentList = '.stage .fr[data-fr="agents"] .fr-b';
+assert.ok(valuesFor(agentList, "scroll-snap-type").includes("y mandatory"));
+assert.ok(valuesFor(".stage .tg-q", "scroll-snap-align").includes("start"));
+const searchPadding = declarationsFor(agentList + ":has(>.tg-q:not([hidden]))", "scroll-padding-top");
+assert.ok(searchPadding.some(({ value }) => value === "calc(var(--h-ctl) + var(--s-2))"));

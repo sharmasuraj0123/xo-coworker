@@ -1,29 +1,28 @@
-// The keyboard's ring on a region you scroll with the keys, one rule for both: a file in the viewer (.vw-body) and a
-// change's diff (.cx-pd). The region's own inset outline sat under what the renderer paints inside it (Astra C087 on
-// dd15034, the diff; C096 on cb7afe7, the file: focused and unfocused pixel-identical). The ring is one layer just
-// after the region, over its box (core/ui/a11y/ring.js, css .region-ring). The real placing runs here on a stand-in page; the
-// drawn pixels in all four cells are the flows case's.
-//   node tests/ring.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import * as ring from "../core/ui/a11y/ring.js";
+import { createChangesFrame } from "../modules/changes/frame.js";
+import { createViewerDiff } from "../modules/files/viewer-diff.js";
+import { createViewerText } from "../modules/files/viewer-text.js";
+import { declarationsFor, publishedRules } from "./lib/css-snapshot.mjs";
+import { dom } from "./lib/dom.mjs";
 
-let ring = {};
-try { ring = await import("../core/ui/a11y/ring.js"); } catch (e) { console.error("  (no core/ui/a11y/ring.js: " + e.code + ")"); }
 let passed = 0;
-// a pattern in a whole file: says which, not the file
-const has = (src, re, msg) => assert.ok(re.test(src), msg ? `${msg} (${re})` : String(re));
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
-t("one list of regions: the file and the diff, each the element made to take the keys", () => {
-  assert.ok(ring.REGIONS, "core/ui/a11y/ring.js REGIONS");
-  const list = ring.REGIONS.split(",").map((s) => s.trim()).sort();
-  assert.deepEqual(list, [".cx-pd", ".vw-body"]);
-  const viewer = ["../modules/files/viewer.js", "../modules/files/viewer-text.js", "../modules/files/viewer-diff.js"].map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
-  const frame = readFileSync(new URL("../modules/changes/frame.js", import.meta.url), "utf8");
-  // a text file's keys go to its editor (its text is the tab stop); its body holds focus only when what was in it goes
-  has(viewer, /className = "vw-body vw-file vw-doc"; TX\.el\.tabIndex = -1;/, "the file's region can hold focus");
-  has(viewer, /className = "vw-body vw-diff"; DF\.el\.tabIndex = 0;/, "so does a change's, in the viewer");
-  has(frame, /<div class="cx-pd" tabindex="0"/, "the diff's region takes focus");
+const { document } = await dom('<div id="changes"></div>');
+t("text can hold focus and both diff regions are tab stops", () => {
+  const { textBody } = createViewerText({ TX: {} });
+  const { diffBody } = createViewerDiff({});
+  const host = document.querySelector("#changes");
+  createChangesFrame({ host });
+  const text = textBody();
+  const viewerDiff = diffBody();
+  const changesDiff = host.querySelector(".cx-pd");
+  assert.ok(text.matches(ring.REGIONS) && viewerDiff.matches(ring.REGIONS) && changesDiff.matches(ring.REGIONS));
+  assert.ok(text.matches(".vw-file.vw-doc"), "editable text follows the editor focus policy");
+  assert.equal(text.getAttribute("tabindex"), "-1", "text can hold focus outside the tab order");
+  assert.equal(viewerDiff.getAttribute("tabindex"), "0", "the viewer diff is in the tab order");
+  assert.equal(changesDiff.getAttribute("tabindex"), "0", "the Changes diff is in the tab order");
 });
 
 t("the ring's box: the region's own, its corners following a rounded parent's inside where they meet it", () => {
@@ -102,23 +101,23 @@ t("a click's focus (not the keyboard's) draws nothing; nor where the parent does
   assert.ok(!B.region.cls.has("has-ring"), "its outline is the ring then");
 });
 
-const panel = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 t("one rule draws it for both regions; no copy per region", () => {
-  const rules = panel.match(/(?:^|[}\s])\.region-ring\{[^}]*\}/g) || [];
+  const published = publishedRules();
+  const rules = published.filter(({ sel }) => sel === ".region-ring");
   assert.equal(rules.length, 1, "one .region-ring rule");
-  const b = rules[0];
-  assert.match(b, /position:absolute/, "placed in the region's parent, so it scrolls and clips with it");
-  assert.match(b, /box-shadow:inset 0 0 0 2px var\(--focus\)/, "the one ring: 2 px of the focus colour, inset");
-  assert.match(b, /pointer-events:none/, "it never takes the pointer");
-  assert.match(b, /z-index:/, "above the region");
-  has(panel, /:is\(\.vw-body,\.cx-pd\)\{isolation:isolate\}/, "what the renderer paints stays inside the region, under the ring");
-  has(panel, /:is\(\.vw-body,\.cx-pd\)\.has-ring:focus-visible\{outline:none\}/, "the outline stands down only where the ring is");
-  has(panel, /:is\(\.vw-body,\.cx-pd\):focus-visible\{outline:2px solid var\(--ring-in,var\(--focus\)\);outline-offset:-2px\}/, "and stays as the fallback");
-  assert.ok(!/\.cx-pane:has\(>\.cx-pd:focus-visible\)::after/.test(panel), "the diff's own copy (its 35 px guess at the head) is gone");
-});
-t("the app starts it once", () => {
-  const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-  has(app, /import \{ regionRings \} from "\.\.\/core\/ui\/a11y\/ring\.js";/);
-  assert.equal((app.match(/\bregionRings\(\)/g) || []).length, 1);
+  const ringPaint = new Map(rules[0].declarations.map(({ p, v }) => [p, v]));
+  assert.equal(ringPaint.get("position"), "absolute");
+  assert.equal(ringPaint.get("box-shadow"), "inset 0 0 0 2px var(--focus)");
+  assert.equal(ringPaint.get("pointer-events"), "none");
+  assert.ok(ringPaint.get("z-index"));
+  const regions = ":is(.vw-body,.cx-pd)";
+  const check = (selector, property, expected) => {
+    assert.ok(declarationsFor(selector, property).some(({ value }) => value === expected), selector + " " + property);
+  };
+  check(regions, "isolation", "isolate");
+  check(regions + ".has-ring:focus-visible", "outline", "none");
+  check(regions + ":focus-visible", "outline", "2px solid var(--ring-in,var(--focus))");
+  check(regions + ":focus-visible", "outline-offset", "-2px");
+  assert.ok(!published.some(({ sel }) => sel === ".cx-pane:has(>.cx-pd:focus-visible)::after"));
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

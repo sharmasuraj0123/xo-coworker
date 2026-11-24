@@ -1,9 +1,9 @@
-// Marks are the owner's pack icons, never text characters (■ ◆ ✱ ✓ ○ draw with the font's rough edges).
+// Status marks use the shared icon pack for consistent rendering.
 import assert from "node:assert/strict";
 import { xi } from "../core/ui/icons/icon.js";
 import { ICON, stepMark } from "../core/ui/icons/names.js";
-import { sheet } from "./lib/cascade.mjs";
-import { readSource, sourcePaths, sourceText } from "./lib/sources.mjs";
+import { declarationsFor, publishedRules, tokenValuesFor } from "./lib/css-snapshot.mjs";
+import { readSource, sourcePaths } from "./lib/sources.mjs";
 
 const icon = "core/ui/icons/icon.js";
 const src = sourcePaths(".js").filter((f) => !f.endsWith("/xoicons.js")).map((f) => [f, readSource(f)]);
@@ -25,20 +25,37 @@ t("a step's mark comes from the pack: check, step-doing, state-idle", () => {
 });
 t("a state mark is the pack's state-* icon, never a CSS-drawn box, ring or diamond", () => {
   for (const [f, s] of src) if (f !== icon) assert.doesNotMatch(s, /<i class="g /, f);
-  const css = sourceText(".css");
-  assert.doesNotMatch(css, /(^|\n|\})\.g(-[a-z_]+)?(,\.g-[a-z_]+)*\{[^}]*(border|background|rotate)/);
+  for (const { sel, declarations } of publishedRules()) {
+    if (/^\.g(-[a-z_]+)?$/.test(sel)) {
+      assert.ok(declarations.every(({ p, v }) => !/border|background|rotate/.test(p + " " + v)), sel);
+    }
+  }
 });
 t("spinners, needs-you marks and status dots draw from the pack's files, not CSS borders, rotations or rounded boxes", () => {
-  const tok = readSource("core/ui/tokens.css");
-  for (const [k, f] of [["working", "e-state-marks/state-working.svg"], ["needs", "e-state-marks/state-needs-you.svg"], ["dot", "d-things-and-kinds/step-dot.svg"], ["stop", "c-actions/stop.svg"], ["warn", "d-things-and-kinds/warning.svg"], ["next", "b-arrows-and-chevrons/arrow-right.svg"]])
-    assert.match(tok, new RegExp(`--mask-${k}:url\\(/core/ui/icons/source/xo/${f.replace(/\./g, "\\.")}\\)`), k);
-  const all = sheet(new URL("../css/app.css", import.meta.url)) + "\n" + sourceText(".css");
-  const rule = (sel) => { const i = all.indexOf("\n" + sel + "{"); assert.ok(i >= 0, sel); return all.slice(i, all.indexOf("}", i)); };
-  for (const sel of [".spin", ".tb-live", ".lp-arc::before"]) assert.match(rule(sel), /mask:var\(--mask-working\)/, sel);
-  assert.doesNotMatch(all, /\.arc::before/, "the corner badge is the pack's badge mark (icon.js ARC), not a mask");
-  for (const sel of [".nv-dot", ".pr-d", ".hr-dot", ".tb-m.is-wait"]) { assert.match(rule(sel), /mask:var\(--mask-needs\)/, sel); assert.doesNotMatch(rule(sel), /rotate/, sel); }
-  for (const sel of [".dd-dot", ".shd-dot", ".dg-dot", ".fl-who i", ".stage .cx-pill i", ".xd-state i", ".fl-rb em", ".lp-st>i:not(.lp-arc)"]) assert.match(rule(sel), /mask:var\(--mask-dot\)/, sel);
-  assert.doesNotMatch(all, /content:"→/);
+  const tokens = tokenValuesFor();
+  const files = [
+    ["working", "e-state-marks/state-working.svg"], ["needs", "e-state-marks/state-needs-you.svg"],
+    ["dot", "d-things-and-kinds/step-dot.svg"], ["stop", "c-actions/stop.svg"],
+    ["warn", "d-things-and-kinds/warning.svg"], ["next", "b-arrows-and-chevrons/arrow-right.svg"],
+  ];
+  for (const [name, path] of files) {
+    assert.ok(tokens.get(`--mask-${name}`)?.startsWith(`url("/core/ui/icons/source/xo/${path}")`), name);
+  }
+  const rules = publishedRules();
+  const check = (selector, role, rotates = true) => {
+    const matches = rules.filter(({ sel }) => sel === selector);
+    const declarations = matches.flatMap((rule) => rule.declarations);
+    assert.ok(declarations.some(({ p, v }) => p.endsWith("mask") && v === `var(--mask-${role})`), selector);
+    if (!rotates) assert.ok(declarations.every(({ p, v }) => !/rotate/.test(p + " " + v)), selector);
+  };
+  for (const sel of [".spin", ".tb-live", ".lp-arc::before"]) check(sel, "working");
+  assert.ok(!rules.some(({ sel }) => /\.arc::before/.test(sel)), "the corner badge draws its SVG");
+  for (const sel of [".nv-dot", ".pr-d", ".hr-dot", ".tb-m.is-wait"]) check(sel, "needs", false);
+  const dots = [".dd-dot", ".shd-dot", ".dg-dot", ".fl-who i", ".stage .cx-pill i", ".xd-state i", ".fl-rb em", ".lp-st>i:not(.lp-arc)"];
+  for (const sel of dots) check(sel, "dot");
+  for (const { sel, declarations } of rules) {
+    assert.ok(declarations.every(({ p, v }) => p !== "content" || !/^["']→/.test(v)), sel);
+  }
 });
 t("the Undo ring is the pack's undo-countdown; key caps show the pack's key icons", () => {
   assert.match(readSource("modules/decisions/toast.js"), /xi\("undo-countdown", "t-ring"\)/);
@@ -50,8 +67,9 @@ t("the Undo ring is the pack's undo-countdown; key caps show the pack's key icon
 t("something at work on an icon wears the pack's badge-working mark, one helper everywhere", () => {
   assert.match(readSource(icon), /export const ARC = `<i class="arc" aria-hidden="true">\$\{xi\("badge-working"\)\}<\/i>`/);
   for (const [f, s] of src) if (f !== icon) assert.doesNotMatch(s, /<i class="arc"/, f);
-  const panel = readSource("css/panel.css");
-  assert.match(panel, /\.arc\{[^}]*width:var\(--ic-sm\);height:var\(--ic-sm\)/);
-  assert.match(panel, /\.arc>svg>g:first-child>circle\{fill:none\}/);
+  for (const dimension of ["width", "height"]) {
+    assert.ok(declarationsFor(".arc", dimension).some(({ value }) => value === "var(--ic-sm)"), dimension);
+  }
+  assert.ok(declarationsFor(".arc>svg>g:first-child>circle", "fill").some(({ value }) => value === "none"));
 });
 console.log(`\n${passed} passed`);
