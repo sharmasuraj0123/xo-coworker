@@ -1,9 +1,10 @@
 // @ts-check
 
+import { PHONE_MAX_WIDTH } from "../../core/platform/viewport.js";
 import { closingParen, valueTokens } from "./css-values.mjs";
 
 const TOKEN_FILE = new Set(["core/ui/tokens.css", "css/flavours.css"]);
-const PHONE_QUERIES = new Set(["max-width:760px", "min-width:761px"]);
+const PHONE_QUERIES = new Set([`max-width:${PHONE_MAX_WIDTH}px`, `min-width:${PHONE_MAX_WIDTH + 1}px`]);
 const COLOR_FN = /^(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|device-cmyk|light-dark)$/i;
 const HEX = /^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i;
 const PX = /^([+-]?(?:\d*\.\d+|\d+)(?:e[+-]?\d+)?)px$/i;

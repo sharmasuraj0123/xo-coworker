@@ -84,6 +84,8 @@ const cssCases = [
   ["important", "a { color: var(--text) !important; }"],
   ["themeSelector", 'a:is([data-theme="light"], [data-other="light"]) { display: none; }'],
   ["widthMediaQuery", "@media (700px < width) { a { display: none; } }"],
+  ["widthMediaQuery", "@media (max-width: 759px) { a { display: none; } }"],
+  ["widthMediaQuery", "@media (min-width: 762px) { a { display: none; } }"],
   ["px-spacing", "a { padding-inline: -4px; }"],
   ["px-size", "a { width: calc(100% - 1e1px); }"],
   ["px-radius", "a { border-top-left-radius: 3px; }"],
@@ -116,6 +118,8 @@ test("parsed comments, CSS values and types ignore source lookalikes", (context)
     "core/platform/types.d.ts": 'type Mode = "any"; interface Config { any: string }',
     "css/test.css": `
       @media (max-width: 760px) { a { margin: 0px 1px; } }
+      @media (max-width:760px) { a { display: none; } }
+      @media (min-width:761px) and (max-height:820px) { a { display: none; } }
       a { content: "10px red #fff !important"; background: url(/icons/#abc); color: var(--red); }
     `,
     "core/ui/tokens.css": ':root[data-theme="light"] { --text: #fff; --tile: 4px; }',
