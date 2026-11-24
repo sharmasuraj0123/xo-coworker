@@ -1,0 +1,15 @@
+export type Change = { label: string; lang: string; text: string };
+
+type Checklist = { items: { state: string; text: string }[]; done: number; total: number };
+type Thread = { checklist: Checklist; branch?: string; host?: boolean };
+
+export type EvidenceNeed = { t: Thread & { messages: { who: string; at: number; text: string }[] } };
+
+export type ItemNeed = {
+  t: Thread;
+  ask: { item: { annotations?: { by: string; note: string }[] } };
+};
+
+export type LimitItem = {
+  limit: { resetsAt?: string; moveTo?: string; threads: { ts: string; title?: string; stays?: boolean }[] };
+};

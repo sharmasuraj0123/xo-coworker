@@ -3,15 +3,15 @@ import * as Kit from "../modules/decisions/kit.js";
 import { createNeedItems } from "../modules/decisions/needs.js";
 import * as K from "../core/platform/keys.js";
 import { EFFORT, rank, evidenceFor, estLine } from "../modules/decisions/rank.js";
-import { ICON, stepMark, xi, $, RM, clock, sound, dial, wait, morph, expand } from "./ui.js";
+import { ICON, stepMark, $, RM, sound, dial, wait, morph, expand } from "./ui.js";
 import { usable, hookOf } from "./focusview.js";
 import { renderMarkdown, renderInline, excerptMarkdown } from "./markdown.js";
-import { highlight } from "./highlight.js";
-import { itemParts, itemBody, questionsOf, evidenceOf, isNo, VERB } from "../core/services/review.js";
+import { itemParts, itemBody, questionsOf, isNo, VERB } from "../core/services/review.js";
 import { clientId as newKey } from "../core/platform/http.js";
 import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "../modules/decisions/cardparts.js";
 import { radioKeys } from "./keynav.js";
-import { resetWords, rtName } from "../core/services/runtimes.js";
+import { detailsHtml, optHtml, itemDetailsHtml, limitHtml } from "../modules/decisions/cards/evidence.js";
+import { createDecisionToast } from "../modules/decisions/toast.js";
 import { paidHtml } from "../modules/decisions/cards/paid.js";
 import { redraw } from "./redraw.js";
 
@@ -354,29 +354,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   function undo() { return !!queue.undo(); }
 
   // ── the card (shared by the panel and the thread's own decision) ─────────
-  function changeBlock(c) {
-    if (!c) return "";
-    const hl = c.lang !== "diff" ? highlight(c.text, c.lang) : null;
-    if (hl != null) return `<figure class="chg"><figcaption>${ICON.doc}<span>${esc(c.label)}</span></figcaption><pre><code class="hl">${hl}</code></pre></figure>`;
-    const lines = esc(c.text).split("\n").map((l) => {
-      const cls = c.lang === "diff" ? (l.startsWith("+") ? "dl-add" : l.startsWith("-") ? "dl-del" : "") : "";
-      return `<span class="${cls}">${l || " "}</span>`;
-    }).join("\n");
-    return `<figure class="chg"><figcaption>${ICON.doc}<span>${esc(c.label)}</span></figcaption><pre><code>${lines}</code></pre></figure>`;
-  }
-
-  function detailsHtml(n, ev) {
-    const t = n.t;
-    const msgs = t.messages.slice(-2);
-    const ck = t.checklist.items.map((i) => `<li class="ck ck-${i.state}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
-    return `<div class="dt">` +
-      `<div class="dt-main">${changeBlock(ev.change)}` +
-      `<p class="dt-why">${esc(ev.why)}</p>` +
-      `<ol class="ev-msgs">${msgs.map((m) => `<li><b>${m.who === "you" ? "You" : "Agent"}</b><span>${esc(m.text)}</span><time>${clock(m.at)}</time></li>`).join("")}</ol></div>` +
-      `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>` +
-      (t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : "") + `</div></div>`;
-  }
-
   function waitingDetailsHtml(n) {
     const t = n.t, a = n.ask;
     const { md, more } = excerptMarkdown(a.full || a.detail || "", 600);
@@ -385,35 +362,6 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     const main = md ? `<div class="prose dt-ex${more ? " is-more" : ""}">${renderMarkdown(md)}</div>${more ? `<button type="button" class="dt-more" data-act="thread" title="Open the thread${K.hint("open")}">The rest is in the thread ${ICON.chevron}</button>` : ""}` : `<p class="dt-why">Open the thread to see what it needs.</p>`;
     return `<div class="dt"><div class="dt-main">${main}</div>` +
       (items.length ? `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>${t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : ""}</div>` : "") + `</div>`;
-  }
-
-  /** An answer button. A preview, when there is one, sits in a small swatch so the button never looks disabled. */
-  function optHtml(o, i, ev) {
-    const pv = ev.preview ? ev.preview.find((p) => p.label === o) : null;
-    return `<button type="button" class="b b-opt${pv ? " has-pv" : ""}" data-opt="${i}" title="Answer “${esc(o)}” (${i + 1})">${pv ? `<span class="o-pv" aria-hidden="true"><span class="o-s" style="${esc(pv.css)}">${esc(pv.sample || o)}</span></span>` : ""}<span class="o-l">${esc(o)}</span></button>`;
-  }
-
-  /** A storm item's evidence: the exact detail the server sent, never our prose. */
-  function itemDetailsHtml(n) {
-    const it = n.ask.item;
-    const ev = evidenceOf(it);
-    const blocks = ev.blocks.map((b) => b.lang === "md"
-      ? `<figure class="chg is-md"><figcaption>${ICON.doc}<span>${esc(b.label)}</span></figcaption><div class="prose chg-md">${renderMarkdown(b.text)}</div></figure>`
-      : changeBlock({ label: b.label, lang: b.lang, text: b.text })).join("");
-    const notes = (it.annotations || []).map((a) => `<p class="dt-sug"><b>${a.by === "coordinator" ? "The coordinator" : "The agent"}:</b> ${esc(a.note)}</p>`).join("");
-    const facts = ev.facts.length ? `<ul class="dt-facts">${ev.facts.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>` : "";
-    const t = n.t;
-    const ck = t.checklist.items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${esc(i.text)}</span></li>`).join("");
-    return `<div class="dt"><div class="dt-main">${blocks}${facts}${notes}</div>` +
-      (t.host ? "" : `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>${t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : ""}</div>`) + `</div>`;
-  }
-
-  /** A usage limit (F5): when it opens again, and the threads waiting on it (a link each). */
-  function limitHtml(it) {
-    const L = it.limit;
-    const when = L.resetsAt ? resetWords(L.resetsAt) : "";
-    return `<div class="lim">${when ? `<p class="lim-when">${ICON.clock}<span>Opens again ${esc(when)}</span></p>` : ""}` +
-      `<ul class="lim-ts" aria-label="Waiting threads">${L.threads.map((x) => `<li><button type="button" class="rt-go" data-go="t:${esc(x.ts)}" title="Open “${esc(x.title || "the thread")}”"><b>${esc(x.title || "A thread")}</b></button>${x.stays ? `<span class="lim-stay">stays: its project doesn't allow ${esc(rtName(L.moveTo))}</span>` : ""}</li>`).join("")}</ul></div>`;
   }
 
   /** A button from the card's parts (js/cardparts.js actsOf): its key, its icon, the item's own words. */
@@ -945,26 +893,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   });
   $("#pn-x").addEventListener("click", () => close());
 
-  // ── undo toast ────────────────────────────────────────────────────────────
-  const toast = $("#toast");
-  let toastItem = null;
-  function toastRender() {
-    const it = [...queue.queued].reverse().find((x) => !x.meta.inline);
-    if (!it) {
-      if (toastItem) { toast.classList.add("bye"); setTimeout(() => { if (!queue.queued.length) { toast.hidden = true; toast.classList.remove("bye"); } }, 200); }
-      toastItem = null;
-      return;
-    }
-    if (toastItem === it) return;
-    toastItem = it;
-    const deny = !!it.meta.deny;
-    const left = Math.max(0, it.due - Date.now());
-    toast.className = `toast t-${deny ? "back" : "allow"}`;
-    toast.hidden = false;
-    toast.innerHTML = `<span class="t-ic">${deny ? ICON.rewind : ICON.check}</span><span class="t-m"><b>${esc(it.meta.verb)}</b> <span>${esc(it.meta.label)}</span></span>` +
-      `<button type="button" class="t-undo" title="Undo">${xi("undo-countdown", "t-ring").replace("<path ", `<path pathLength="1" style="animation-duration:${left}ms" `)}Undo</button>`;
-    toast.querySelector(".t-undo").addEventListener("click", () => queue.undo(it.id));
-  }
+  const toastRender = createDecisionToast(queue);
 
   // ── keys on a card (panel or dock) ────────────────────────────────────────
   function cardKeys(e, card, { onEsc, inPanel }) {

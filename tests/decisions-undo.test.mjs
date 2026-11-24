@@ -48,6 +48,8 @@ const cardView = document.createElement("div");
 cardView.innerHTML = card;
 assert.equal(cardView.querySelector(".c-h").textContent, "Run a command");
 assert.equal(cardView.querySelector(".c-ev code").textContent, "npm test");
+assert.match(cardView.querySelector(".dt-why").textContent, /The agent is waiting on you/);
+assert.equal(cardView.querySelector(".dt-side h4").textContent, "Checklist 0 of 0");
 assert.match(card, /data-act="allow" title="Allow \(A\)"/); assert.match(card, /data-act="back" title="Send back with a note \(D\)"/);
 assert.match(cardView.querySelector(".teach-q").textContent, /Standing rule for demo: you may run "npm test" without asking\./);
 
@@ -62,7 +64,9 @@ assert.equal(D.queued("perm_1|Run: npm test"), true, "held in the commit window"
 assert.match(said.at(-1), /^Allowed\. Undo for 3 seconds\.$/);
 assert.equal(D.decideNow("perm_1|Run: npm test", "allow"), false, "one decision per ask");
 assert.equal(D.decide(n1, "allow"), null, "a second press on the same card does nothing");
-assert.equal(D.undo(), true);
+const toastUndo = document.querySelector("#toast .t-undo");
+assert.ok(toastUndo);
+toastUndo.click();
 assert.deepEqual(undone, ["perm_1|Run: npm test"]);
 assert.match(said.at(-1), /^Undone\. Nothing was sent; the ask is back\.$/);
 assert.deepEqual(keys(), ["perm_1|Run: npm test", "perm_2|Run: git push --force"], "the ask is back");
