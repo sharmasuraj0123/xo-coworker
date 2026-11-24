@@ -57,8 +57,8 @@
 .hm-quiet.is-glance .dial{color:var(--e-glance)}
 
 .calm{
-  display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3);padding:var(--s-8) var(--s-8) var(--s-8);
-  margin-top:var(--s-8);border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line-faint)
+  display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3);padding:var(--s-8) var(--s-8) var(--s-8);margin-top:var(--s-8);
+  border-radius:var(--r-2xl);background:var(--surface);border:var(--hair) solid var(--edge-empty-state);box-shadow:var(--shadow-empty-state)
 }
 .calm-mark .xo-mark{display:block;width:var(--w-empty-state-mark);height:var(--h-sm);opacity:.9}
 .calm h2{margin-top:var(--s-3);font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20)}

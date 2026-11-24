@@ -24,7 +24,6 @@
 :root[data-theme="light"] .composer{box-shadow:var(--e-composer-idle)}
 :root[data-theme="light"] .composer:focus-within{border-color:var(--line-hover);box-shadow:var(--e-composer-focused)}
 
-:root[data-theme="light"] .calm{border-color:var(--line-soft);box-shadow:var(--lift-1)}
 :root[data-theme="light"] .md-it{background:var(--surface);border-color:var(--line-soft)}
 :root[data-theme="light"] .md-it:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root[data-theme="light"] .md-it:has(.md-open:hover){background:color-mix(in srgb,var(--ink) 8%,var(--surface))}
