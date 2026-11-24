@@ -4,7 +4,7 @@ import { createScope } from "../../kernel/scope.js";
 import { api } from "../../platform/api.js";
 import { createLru } from "../../platform/cache.js";
 import { once } from "../../platform/pending.js";
-import { MEDIA_CACHE_MAX } from "./render.js";
+import { MEDIA_CACHE_MAX } from "./cache.js";
 
 /** @typedef {ReturnType<typeof import("./items.js").mediaItem>} MediaItem */
 

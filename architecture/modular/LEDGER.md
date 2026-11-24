@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 483 |
+| moved | 482 |
 | vendor | 377 |
 | deleted | 336 |
 | planned | 165 |
 | kept | 57 |
-| split | 28 |
+| split | 29 |
 
 Items inside first-party files: 2488 (moved 1769, planned 409, kept 172, deleted 135, split 3), in `ledger.json` as `path::kind::name`.
 
@@ -51,7 +51,7 @@ Items inside first-party files: 2488 (moved 1769, planned 409, kept 172, deleted
 | `js/dropdown.js` | 321 | moved | core/ui/components/xo-select.js · next: js/dropdown.js imports core/ui/components/xo-select.js until the shims go; css/dropdown.css follows with the stylesheets |
 | `js/fileicons.js` | 83 | moved | core/ui/icons/fileicons.js · next: js/fileicons.js re-exports core/ui/icons/fileicons.js until the shims go |
 | `js/files.js` | 940 | moved | modules/files/files.js · next: The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/. |
-| `js/filespage.js` | 134 | moved | modules/files/page.js |
+| `js/filespage.js` | 134 | split | modules/files/page.js, modules/files/tree-width.js |
 | `js/flavours.js` | 20 | moved | core/ui/flavours.js · next: js/flavours.js re-exports the palette |
 | `js/focusview.js` | 138 | moved | core/ui/a11y/focus.js · next: js/focusview.js re-exports core/ui/a11y/focus.js until the shims go |
 | `js/follow.js` | 156 | moved | modules/conversation/follow.js |
@@ -75,7 +75,7 @@ Items inside first-party files: 2488 (moved 1769, planned 409, kept 172, deleted
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
-| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js, core/services/media/images.js, core/services/media/intersection.js · next: js/media.js re-exports the shared media modules |
+| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js, core/services/media/images.js, core/services/media/intersection.js, core/services/media/cache.js, core/services/media/stack-data.js · next: js/media.js re-exports the shared media modules |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |

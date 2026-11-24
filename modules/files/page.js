@@ -5,8 +5,8 @@
 import { createScope } from "../../core/kernel/scope.js";
 import { read, write } from "../../core/platform/storage.js";
 import { ICON } from "../../core/ui/icons/names.js";
+import { createTreeWidth } from "./tree-width.js";
 
-const TW_KEY = "xo-files-tree", TW_DEF = 240, TW_MIN = 160, TW_MAX = 420;
 const FOLD_KEY = "xo-files-folds"; // {tree: "open" | "folded"}: what you chose, per browser
 
 /** @param {{ stage: any, files: any, viewer: any, view: () => string, announce?: (s: string) => void }} deps */
@@ -20,14 +20,7 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
   /** @type {ReturnType<typeof createScope> | undefined} */
   let mounted;
 
-  // the tree's width: dragged, keyboard (← →), double-click for the default; kept per browser
-  let tw = read(TW_KEY, (raw) => Number(raw) || TW_DEF, TW_DEF);
-  const setTw = (/** @type {number} */ w, save = false) => {
-    tw = Math.round(Math.max(TW_MIN, Math.min(TW_MAX, w)));
-    pane.style.setProperty("--tw", `${tw}px`);
-    if (save) write(TW_KEY, String(tw));
-  };
-  setTw(tw);
+  const wireWidth = createTreeWidth(pane, body);
   // folded or open: your choice, kept per browser (open until you fold it)
   const folds = read(FOLD_KEY, (raw) => JSON.parse(raw) || {}, {});
   const treeOpen = () => folds.tree !== "folded";
@@ -42,29 +35,7 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
     scope.effect(() => () => { mounted = undefined; pane.remove(); });
     files.mount(body, scope);
     files.fold(!treeOpen());
-    const line = /** @type {HTMLElement | null} */ (body.querySelector(".fl-split"));
-    if (!line) return scope.dispose;
-    scope.listen(line, "pointerdown", (event) => {
-      const e = /** @type {PointerEvent} */ (event);
-      if (e.button !== 0) return;
-      e.preventDefault();
-      line.setPointerCapture(e.pointerId);
-      document.body.classList.add("fv-sizing");
-      const left = body.getBoundingClientRect().left; // read once, at the press
-      const move = (/** @type {Event} */ ev) => setTw(/** @type {PointerEvent} */ (ev).clientX - left);
-      const stopMove = scope.listen(line, "pointermove", move);
-      const clearSizing = scope.effect(() => () => document.body.classList.remove("fv-sizing"));
-      const up = () => { stopMove(); stopUp(); stopCancel(); clearSizing(); setTw(tw, true); };
-      const stopUp = scope.listen(line, "pointerup", up);
-      const stopCancel = scope.listen(line, "pointercancel", up);
-    });
-    scope.listen(line, "dblclick", () => { setTw(TW_DEF, true); });
-    scope.listen(line, "keydown", (event) => {
-      const e = /** @type {KeyboardEvent} */ (event);
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-      e.preventDefault();
-      setTw(tw + (e.key === "ArrowRight" ? 16 : -16), true);
-    });
+    wireWidth(scope);
     return scope.dispose;
   }
 

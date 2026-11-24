@@ -9,6 +9,7 @@ import { createFilesTree } from "./tree.js";
 import { apiRel, createFolderReads } from "./folder-reads.js";
 import { createFileOperations } from "./operations.js";
 import { wireFileDrag } from "./drag.js";
+import { createFilesMenu } from "./menu-elements.js";
 import { createSectionFolds } from "./section-folds.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { pointerFollows } from "../../core/ui/a11y/keynav.js";
@@ -337,13 +338,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       host.innerHTML = `<div class="fl"><nav class="fl-rail" aria-label="Files, folded"><button type="button" class="fl-rb" data-fl-rail="changes">${CHANGED_IC}<em hidden></em></button><button type="button" class="fl-rb" data-fl-rail="all" title="All files">${ICON.folder}</button><button type="button" class="fl-rb" data-fl-rail="find" title="Find a file">${ICON.search}</button></nav>` +
         `<div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       if (vw) /** @type {HTMLElement} */ (host.querySelector(".fl-view")).appendChild(vw);
-      M.btn = document.createElement("button");
-      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "More: new, rename, delete, copy path"; M.btn.setAttribute("data-own", "");
-      M.btn.setAttribute("aria-haspopup", "menu"); M.btn.setAttribute("aria-expanded", "false");
-      M.btn.innerHTML = ICON.more;
-      M.menu = document.createElement("div");
-      M.menu.className = "fl-menu"; M.menu.setAttribute("role", "menu"); /** @type {HTMLElement} */ (M.menu).hidden = true;
-      const menu = M.menu;
+      const { button, menu } = createFilesMenu();
+      M.btn = button;
+      M.menu = menu;
       document.body.appendChild(menu);
       scope.effect(() => () => {
         closeMenu(); moreAt(null); menu.remove();

@@ -6,7 +6,9 @@ import { deferred, dom, settle } from "./lib/dom.mjs";
 
 const { window, document } = await dom("<main></main>");
 globalThis.MutationObserver = window.MutationObserver;
-const { mediaHtml, mediaItemOf, webGone, markWebGone } = await import("../core/services/media/render.js");
+const { mediaHtml } = await import("../core/services/media/render.js");
+const { mediaItemOf } = await import("../core/services/media/stack-data.js");
+const { webGone, markWebGone } = await import("../core/services/media/cache.js");
 const { galleryOf, hydrateMedia, pictureTone } = await import("../core/services/media/hydrate.js");
 const { showSrc, cachedSrc } = await import("../core/services/media/images.js");
 const { mediaItem } = await import("../core/services/media/items.js");

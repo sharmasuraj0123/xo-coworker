@@ -4,7 +4,9 @@ import { createScope } from "../../kernel/scope.js";
 import { createLru } from "../../platform/cache.js";
 import { fadeImage, EASE, MOVE, still } from "../../ui/motion.js";
 import { labelOf } from "./items.js";
-import { MEDIA_CACHE_MAX, mediaItemOf, stackItems, markWebGone, webLinkHtml } from "./render.js";
+import { MEDIA_CACHE_MAX, markWebGone } from "./cache.js";
+import { mediaItemOf, stackItems, setStackItems } from "./stack-data.js";
+import { webLinkHtml } from "./render.js";
 import { cachedSrc, forgetSrc, showSrc } from "./images.js";
 import { watchNear } from "./intersection.js";
 
@@ -71,9 +73,7 @@ function webFailed(box, it) {
   const stack = box && /** @type {HTMLElement | null} */ (box.closest(".mx-stack"));
   if (!stack || /** @type {MediaBox} */ (box)._mxGone) return;
   /** @type {MediaBox} */ (box)._mxGone = true;
-  const remaining = stackItems(stack).filter((item) => item.key !== it.key);
-  stack.dataset.mxItems = JSON.stringify(remaining);
-  stack.dataset.key = JSON.stringify(remaining.filter((item) => item.kind === "image").map((item) => item.key));
+  setStackItems(stack, stackItems(stack).filter((item) => item.key !== it.key));
   let line = stack.querySelector(":scope > .mx-weblinks");
   const fresh = !line;
   if (fresh) { line = document.createElement("p"); line.className = "mx-weblinks"; }

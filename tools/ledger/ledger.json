@@ -2578,8 +2578,11 @@
    "note": "The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/."
   },
   "js/filespage.js": {
-   "status": "moved",
-   "home": "modules/files/page.js"
+   "status": "split",
+   "home": [
+    "modules/files/page.js",
+    "modules/files/tree-width.js"
+   ]
   },
   "js/flavours.js": {
    "status": "moved",
@@ -2725,7 +2728,9 @@
     "core/services/media/render.js",
     "core/services/media/hydrate.js",
     "core/services/media/images.js",
-    "core/services/media/intersection.js"
+    "core/services/media/intersection.js",
+    "core/services/media/cache.js",
+    "core/services/media/stack-data.js"
    ],
    "note": "js/media.js re-exports the shared media modules"
   },
@@ -8972,7 +8977,7 @@
   },
   "js/filespage.js::storage::xo-files-tree": {
    "status": "moved",
-   "home": "modules/files/page.js"
+   "home": "modules/files/tree-width.js"
   },
   "js/filespage.js::storage::xo-files-folds": {
    "status": "moved",
@@ -8980,7 +8985,7 @@
   },
   "js/filespage.js::keys::ArrowRight": {
    "status": "moved",
-   "home": "modules/files/page.js"
+   "home": "modules/files/tree-width.js"
   },
   "js/focusview.js::exports::usable": {
    "status": "moved",
@@ -10392,7 +10397,7 @@
   },
   "js/media.js::exports::mediaItemOf": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/stack-data.js"
   },
   "js/media.js::exports::mediaItem": {
    "status": "moved",
@@ -10408,11 +10413,11 @@
   },
   "js/media.js::exports::webGone": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/cache.js"
   },
   "js/media.js::exports::markWebGone": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/cache.js"
   },
   "js/media.js::exports::webImagesHtml": {
    "status": "moved",
@@ -10524,7 +10529,7 @@
   },
   "js/media.js::functions::markWebGone": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/cache.js"
   },
   "js/media.js::functions::webImagesHtml": {
    "status": "moved",

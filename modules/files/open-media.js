@@ -1,6 +1,6 @@
 // @ts-check
 import { retryMedia } from "../../core/services/media/hydrate.js";
-import { mediaItemOf } from "../../core/services/media/render.js";
+import { mediaItemOf } from "../../core/services/media/stack-data.js";
 import { viewerFile } from "../../core/services/media/items.js";
 
 /** @param {{ msgsEl: HTMLElement; LB: {open(key: string, from: HTMLElement, root: HTMLElement): unknown}; VW: {open(file: ReturnType<typeof viewerFile>, from: HTMLElement): unknown} }} options */
