@@ -1,6 +1,7 @@
 // @ts-check
-
 import { esc, space } from "../../core/platform/index.js";
+import { read, write } from "../../core/platform/storage.js";
+import { PHONE } from "../../core/platform/viewport.js";
 import { api } from "../../core/platform/api.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -21,13 +22,12 @@ export const MODE_WORDS = {
 const MODE_ORDER = Object.keys(MODE_WORDS);
 
 const PREFS = "cv-chat-prefs";
-export const store = { get() { try { return JSON.parse(localStorage.getItem(PREFS) || "{}"); } catch { return {}; } }, set(/** @type {Record<string, string | null>} */ v) { try { localStorage.setItem(PREFS, JSON.stringify(v)); } catch { /* private */ } } };
+export const store = { get: () => read(PREFS, JSON.parse, {}), set: (/** @type {Record<string, string | null>} */ v) => write(PREFS, JSON.stringify(v)) };
 
 /** @param {SetupState} C @param {SetupDependencies} deps */
 export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
   /** The modes a runtime offers (never "bypass": plain chat refuses it). @param {Runtime | null} rt */
   const modesOf = (rt) => ((feature(rt, "permissions.mode") || {}).values || []).filter((m) => m !== "bypass");
-  /** The new chat's setup: your last choices, kept only where the chosen runtime still offers them. */
   function setup() {
     const p = C.prefs;
     const rt = runtime(p.agent) || runtime(null);
@@ -121,7 +121,7 @@ export function createSetup(C, { world, schedule, runtime, feature, cliName }) {
     // in place (js/redraw.js): a choice made, a catalog arriving, keep the row you're on
     redraw(pop, html);
     const a = C.pop.anchor;
-    if (a && !matchMedia("(max-width: 760px)").matches) {
+    if (a && PHONE?.matches === false) {
       // on the chip's outer edge, opening to the side of it with more room, never past the screen
       pop.classList.remove("is-sheet");
       const r = a.getBoundingClientRect(), edge = space("--s-3"), gap = space("--s-2"); const w = Math.min(360, innerWidth - 2 * edge);

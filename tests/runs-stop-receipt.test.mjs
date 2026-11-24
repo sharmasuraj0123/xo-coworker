@@ -1,21 +1,12 @@
-// What a sub-agent Stop's answer says is only what it confirms, said in the Runs sheet where you acted as well as in
-// the notice, with focus kept on the Stop (the create-project grader on 2a8d278, S100/S101/S239, runs-stop):
-// - an answer that confirms no stop ({}, {ok:false}, {stopping:null}) said "Stopping";
-// - Stop all's [] said "already finished", but stop_all also answers [] when no live process runs them;
-// - a refusal (503) was said only in #herald, behind the open sheet;
-// - after the answer focus went to the sheet, though its Stop was still there;
-// - the Undo inside its line: 6 px corners in a 6 px line, insets 3 and 4 (never concentric).
-//   node tests/runs-stop-receipt.test.mjs
+// @ts-check
 import assert from "node:assert/strict";
 import { mock } from "node:test";
+import { context, decls, rules } from "./lib/cascade.mjs";
 import { resolveTokens } from "./lib/tokens.mjs";
-import { readFileSync } from "node:fs";
 import { deferred, dom } from "./lib/dom.mjs";
 import { createRunsPanel } from "../modules/runs/panel.js";
 import { createRunsStop } from "../modules/runs/stop.js";
 
-const view = readFileSync(new URL("../modules/runs/view.js", import.meta.url), "utf8");
-const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -90,20 +81,13 @@ try {
   mock.timers.reset();
 }
 
-t("it's said in the page, where you acted, as well as in the notice", () => {
-  assert.match(view, /export function saidHtml\(said, key\)/);
-  assert.match(view, /role="\$\{said\.kind === "halt" \? "status" : "alert"\}"/);
-  assert.match(view, /saidHtml\(o\.saidFor, `run:\$\{r\.id\}`\)/, "a run's own Stop: under its row");
-  assert.match(view, /saidHtml\(saidFor, `all:/, "Stop all: at the top of the list");
-});
-t("the Undo in its line: an even 2 px inset, and the line's corners its own plus the inset (6 + 2 = 8)", () => {
-  assert.match(css, /\.rn-stopping\{[^}]*padding:2px 2px 2px 12px;[^}]*border-radius:var\(--r\);/);
-  assert.match(css, /\.rn-stopping>\.t-undo\{height:36px\}/);
-});
-t("a stop on its way: the sheet renders its busy state", () => {
-  assert.match(view, /const busy = out\.includes\(`run:\$\{r\.id\}`\);/);
-  assert.match(view, /\$\{busy \? ' aria-busy="true" aria-disabled="true"' : ""\}>\$\{ICON\.stop\}<span>\$\{busy \? "Stopping…" : "Stop"\}<\/span>/);
-  assert.match(view, /out\.includes\(`all:\$\{session\}`\)/, "Stop all too");
+t("the pending stop reserves the same inset above, below, and after Undo", () => {
+  const styles = rules(new URL("./lib/cascade.mjs", import.meta.url)).filter((rule) => context(rule, 1440).active);
+  const values = (selector) => Object.fromEntries(styles.filter((rule) => rule.sel === selector)
+    .flatMap((rule) => decls(rule.d)).map(({ p, v }) => [p, v]));
+  assert.equal(values(".rn-stopping").padding, "2px 2px 2px 12px");
+  assert.equal(resolveTokens(values(".rn-stopping")["border-radius"], ["--r"]), "8px");
+  assert.equal(values(".rn-stopping>.t-undo").height, "36px");
 });
 {
   const { document } = await dom('<section id="runs"></section>');
@@ -130,6 +114,8 @@ t("a stop on its way: the sheet renders its busy state", () => {
   runsRender();
   const run = panel.querySelector(".rn-row");
   assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-busy"), "true");
+  assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-disabled"), "true");
+  assert.equal(run.querySelector("[data-run-stop]").textContent.trim(), "Stopping…");
   assert.match(run.querySelector("[role=status]").textContent, /Sending the stop/);
   assert.ok(document.activeElement === run.querySelector("[data-run-stop]"), "a busy redraw keeps the Stop control in focus");
   stopsOut.clear();
@@ -137,6 +123,17 @@ t("a stop on its way: the sheet renders its busy state", () => {
   runsRender();
   assert.equal(panel.querySelector("[data-run-stop]").hasAttribute("aria-busy"), false);
   assert.match(panel.querySelector(".rn-row [role=alert]").textContent, /Not confirmed.*Stop again/);
+  const all = "all:team";
+  RS.tree = [...runs, { id: "other", kind: "subagent", state: "running", title: "Read another list" }];
+  stopsOut.add(all);
+  RS.said = { key: all, kind: "halt", text: "Sending the stop…" };
+  runsRender();
+  const stopAll = panel.querySelector("[data-runs-stop]");
+  assert.equal(stopAll?.getAttribute("aria-busy"), "true");
+  assert.equal(stopAll?.getAttribute("aria-disabled"), "true");
+  assert.match(panel.querySelector("[role=status]")?.textContent ?? "", /Sending the stop/);
+  assert.equal(panel.querySelector(".rn-row [role=status]") === null, true);
+  stopsOut.clear();
   const opener = runsLand();
   const alternate = document.createElement("a");
   alternate.setAttribute("data-run", "agent");

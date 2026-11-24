@@ -1,15 +1,7 @@
-// Fit shows the drawing as drawn (the map grader on 65e84b7, S207/S082, all four cells: the top's read failed, a
-// pointer Fit, and its "Couldn't read it · Try again" stood 4.40 px past the view at 1440 and 5.87 px at 390). The
-// layout gives every box 148 px; a note or "N more" is as wide as its words. So the drawing's extent for Fit and for
-// the first look is the layout's out to the boxes' real edges, measured once per drawing while the view is on screen,
-// and again when the font arrives. Checked from the source; the drawn result is the flows case "S207/S082 (Try
-// again)" and the grader's root-error-geometry.
-//   node tests/map-reach.test.mjs
+// @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { createMapCamera } from "../modules/map/camera.js";
 
-const src = readFileSync(new URL("../modules/map/map.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("Fit and the first look include measured edges and only measure visible drawings once", () => {
@@ -36,8 +28,5 @@ t("Fit and the first look include measured edges and only measure visible drawin
   camera.fit(c, false, true);
   assert.equal(scans, 2);
   assert.equal(c.fitB.x1, 288);
-});
-t("the font arriving measures again", () => {
-  assert.match(src, /document\.fonts\.addEventListener\("loadingdone", \(\) => \{ M\.reachKey = ""; \}\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

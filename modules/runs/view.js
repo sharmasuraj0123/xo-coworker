@@ -1,8 +1,7 @@
 // @ts-check
 
-// Sub-agents as a page in the right panel: pure HTML builders over storm's runs and transcripts.
-
 import { esc } from "../../core/platform/util.js";
+import { count, plural } from "../../core/platform/words.js";
 import { ICON, stepMark } from "../../core/ui/icons/names.js";
 import { xi, stateMark } from "../../core/ui/icons/icon.js";
 import { stepIcon } from "../../core/services/step-icons.js";
@@ -32,15 +31,13 @@ const glyph = (st) => (st === "running" ? "working" : st === "waiting" ? "needs_
 /** The thread's own line about its sub-agents: the ones working now, else the log count. @param {Run[]} live @param {number} total */
 export function runsStripHtml(live, total) {
   if (live.length) {
-    // a phone's checklist row has no room for the chips: there, one count opens the list (css/phone.css)
     const n = live.length, wait = live.filter((r) => r.state === "waiting").length;
-    const word = `${n} sub-agent${n === 1 ? "" : "s"} working${wait ? `, ${wait} waiting on you` : ""}`;
-    const count = `<button type="button" class="rn-live" data-runs title="${word}" aria-label="${word}">${stateMark(wait ? "needs_reply" : "working")}<b class="rn-n">${n}</b></button>`;
-    return count + `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
-      // each chip is a button in its own list item: role=listitem on the button itself took its button role away (Astra C047)
+    const word = `${count(n, "sub-agent")} working${wait ? `, ${wait} waiting on you` : ""}`;
+    const button = `<button type="button" class="rn-live" data-runs title="${word}" aria-label="${word}">${stateMark(wait ? "needs_reply" : "working")}<b class="rn-n">${n}</b></button>`;
+    return button + `<div class="rn-strip" role="list" aria-label="Sub-agents working now">${live.map((r) =>
       `<div class="rn-it" role="listitem"><button type="button" class="rn-chip st-${esc(r.state)}" data-run="${esc(r.id)}" title="Open: ${esc(r.title)}">${stateMark(glyph(r.state))}<span>${esc(r.title)}</span>${r.state === "waiting" ? `<em>waiting on you</em>` : ""}</button></div>`).join("")}</div>`;
   }
-  return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.agent}<span>${total} sub-agent${total === 1 ? "" : "s"} ran</span></button>` : "";
+  return total ? `<button type="button" class="rn-log" data-runs data-n="${total}" title="What its sub-agents did">${ICON.agent}<span>${count(total, "sub-agent")} ran</span></button>` : "";
 }
 
 const CMD = new Set(["background_command", "monitor"]);
@@ -60,9 +57,6 @@ const looksCmd = (t) => /&&|\|\s|;\s|^\s*(?:cd|git|node|python3?|npm|npx|curl|ba
 const toolWord = (t) => String(t || "").replace(/^mcp__\w+__/, "").replace(/_/g, " ");
 /** @param {Run} r */
 const cmdIcon = (r) => stepIcon({ kind: "command", target: r.title, line: r.title });
-/** @param {number} n @param {string} w */
-const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
-
 /** A live run's Stop: busy, taking no repeat, while its stop is on its way. @param {Run} r @param {boolean} canStop @param {string[]} out */
 function stopHtml(r, canStop, out) {
   if (!canStop || !LIVE.has(r.state) || r.can_stop === false) return "";
@@ -74,7 +68,7 @@ function stopHtml(r, canStop, out) {
 function agentHtml(r, o, depth = 0) {
   const live = LIVE.has(r.state);
   const meta = [r.agent_type && r.agent_type !== "general-purpose" ? r.agent_type : KIND_WORD[r.kind] !== "Sub-agent" ? KIND_WORD[r.kind] : "", live ? STATE_WORD[r.state] : failedOf(r) || r.state === "stopped" ? STATE_WORD[r.state] : "",
-    r.tool_calls ? plural(r.tool_calls, "step") : "", r.tokens ? `${num(r.tokens)} tokens` : "", dur(r.started_at, end(r))].filter(Boolean).join(" · ");
+    r.tool_calls ? count(r.tool_calls, "step") : "", r.tokens ? `${num(r.tokens)} tokens` : "", dur(r.started_at, end(r))].filter(Boolean).join(" · ");
   const kids = (r.children || []).filter((c) => !isCmd(c)).sort(newest);
   const cmds = flat(r.children).filter(isCmd).length;
   const now = live && r.last_tool ? `<span class="rn-now">${xi("step-doing")}<span>${esc(toolWord(r.last_tool))}</span></span>` : "";
@@ -82,7 +76,7 @@ function agentHtml(r, o, depth = 0) {
   return `<li class="rn-row st-${esc(r.state)}"><div class="rn-line"><button type="button" class="rn-open" data-run="${esc(r.id)}">` +
     `<span class="rn-tile">${xi("agent")}<i class="rn-dot">${stateMark(glyph(r.state))}</i></span>` +
     `<span class="rn-main"><span class="rn-t">${esc(r.title || "Sub-agent")}</span>${meta ? `<span class="rn-m">${esc(meta)}</span>` : ""}${now}${sum}</span>` +
-    (cmds ? `<span class="rn-kids" title="${plural(cmds, "command")}">${xi("terminal")}${cmds}</span>` : "") + `<span class="rn-chev">${ICON.right}</span></button>${stopHtml(r, o.canStop, o.out)}</div>` +
+    (cmds ? `<span class="rn-kids" title="${count(cmds, "command")}">${xi("terminal")}${cmds}</span>` : "") + `<span class="rn-chev">${ICON.right}</span></button>${stopHtml(r, o.canStop, o.out)}</div>` +
     saidHtml(o.saidFor, `run:${r.id}`) +
     (kids.length ? `<ul class="rn-list is-sub">${kids.map((c) => agentHtml(c, o, depth + 1)).join("")}</ul>` : "") + `</li>`;
 }
@@ -121,7 +115,7 @@ export function runsListHtml(tree, counts, { canStop, stops = [], state = "ok", 
     ? `<button type="button" class="rn-stopall" data-runs-stop title="Sending the stop…" aria-busy="true" aria-disabled="true">Stopping…</button>`
     : `<button type="button" class="rn-stopall" data-runs-stop title="Stop every sub-agent; the thread's own agent keeps working">Stop all ${top.length}</button>`) : "";
   const pills = all.length ? `<div class="rn-stats">${[live.length && `<span class="is-live"><b>${live.length}</b> working</span>`, `<span><b>${nAgents}</b> agent${nAgents === 1 ? "" : "s"}</span>`,
-    cmds.length && `<span><b>${cmds.length}</b> command${cmds.length === 1 ? "" : "s"}</span>`, tokens && `<span><b>${num(tokens)}</b> tokens</span>`, failed && `<span class="is-err"><b>${failed}</b> failed</span>`].filter(Boolean).join("")}${stopAll}</div>` : "";
+    cmds.length && `<span><b>${cmds.length}</b> ${plural(cmds.length, "command")}</span>`, tokens && `<span><b>${num(tokens)}</b> tokens</span>`, failed && `<span class="is-err"><b>${failed}</b> failed</span>`].filter(Boolean).join("")}${stopAll}</div>` : "";
   return `<div class="rn-body">` + stopsHtml(stops) + saidHtml(saidFor, `all:${session}`) + pills + said +
     (agents.length ? `<h3 class="rn-k">Agents</h3><ul class="rn-list">${agents.map((r) => agentHtml(r, o)).join("")}</ul>` : "") + cmdsHtml(cmds, o) + `</div>`;
 }

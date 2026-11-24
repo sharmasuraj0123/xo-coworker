@@ -8603,7 +8603,13 @@
   },
   "js/chats.js::storage::cv-chat-prefs": {
    "status": "moved",
-   "home": "modules/chats/setup.js"
+   "home": "modules/chats/setup.js",
+   "evidence": {
+    "modules/chats/setup.js": {
+     "anchor": "const PREFS = \"cv-chat-prefs\"",
+     "reason": "Chat setup still reads and writes this exact storage key through the shared storage service."
+    }
+   }
   },
   "js/chats.js::keys::would_stop_runs": {
    "status": "moved",
