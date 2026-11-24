@@ -1,61 +1,49 @@
-// A filter for long thread lists (the owner, 19 Nov 14:44Z: "the filter for long thread list can be made"): in the
-// panel's Threads once a place has more than 12, and in All threads. It matches the title, the summary and the
-// branch, every word; / focuses it (in the panel, and in All threads), Esc clears it first; nothing found says so.
-//   node tests/thread-filter.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { panelSrc } from "./lib/panel-src.mjs";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createAllThreadsSheet } from "../modules/threads/all-sheet.js";
 import { dom, same } from "./lib/dom.mjs";
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const stage = panelSrc, panel = read("css/panel.css"), found = read("css/foundation.css");
+import { sheet } from "./lib/cascade.mjs";
+import { threadStage } from "./lib/thread-stage.mjs";
 
-// the match, run as written
-const m = /const matchesQ = (\(r, q\) => \{[^\n]*\});/.exec(stage);
-assert.ok(m, "one match rule");
-const matchesQ = eval(m[1]);
-const row = { title: "Design proposal: threads", sub: "running a command", summary: "the panel and the rail", branch: "xo/thread-305201" };
-assert.ok(matchesQ(row, "design"));
-assert.ok(matchesQ(row, "rail panel"), "every word, any order");
-assert.ok(matchesQ(row, "305201"), "the branch");
-assert.ok(!matchesQ(row, "design files"));
-
-// the panel: the field over the list (built once, kept), shown past 12 or while it filters; groups show all they match
-assert.match(stage, /const FILTER_AT = 12;/);
-assert.match(stage, /qBox\.hidden = !\(tg && \(total > FILTER_AT \|\| tq \|\| S\.tqOpen\)\);/, "past 12, while it filters, or when asked");
-// the search button and / open it here and focus it (the owner, 19 Nov 15:04Z: "can't it search within?")
-assert.match(stage, /if \(t\.closest\("\[data-tg-find\]"\)\) \{ findThreads\(\); return; \}/);
-assert.match(stage, /S\.tqOpen = true; paint\(\);\s*const q = el\.querySelector\("\[data-tg-q\]"\); q\.focus\(\{ preventScroll: true \}\); q\.select\(\);/);
-assert.match(stage, /if \(e\.key === "Escape" && S\.tqOpen\)/, "empty, Esc puts it away again");
-assert.match(stage, /set\("agents", body\("agents"\)\.querySelector\("\.tg-box"\), tg \? threadsHtml\(tg, tq, \{ folds: fr\.agents\.groups, more: S\.tgMore \}\) : agentsHtml\(ag, v\)\);/);
-assert.match(stage, /No thread matches “\$\{esc\(q\)\}”\. <button type="button" class="tg-clear" data-tg-clear>Clear the filter<\/button>/);
-assert.match(stage, /const g = q \? \{\} : folds \|\| \{\}, more = q \? \{ needs: 1, working: 1, waiting: 1, done: 1 \} : shownMore \|\| \{\};/);
-// keys: / in the panel, Esc clears first, ↓ and Enter go to the first match
-assert.match(stage, /if \(e\.key === "\/" && !e\.metaKey && !e\.ctrlKey && !e\.altKey && !e\.target\.closest\?\.\("input, textarea, \[contenteditable\]"\)\)/);
-assert.match(stage, /if \(!S\.page && !fr\.agents\.folded && el\.querySelector\('\[data-fr="agents"\]:not\(\[hidden\]\)'\)\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); findThreads\(\); return; \}/);
-assert.match(stage, /if \(e\.key === "Escape" && inp\.value\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); inp\.value = ""; S\.tq = ""; paint\(\); return; \}/);
-assert.match(stage, /aria-keyshortcuts="\/"/);
-// the rows carry what it matches
+const stopped = { id: "stopped", project: "p", state: "done", title: "Former design", summary: "kept a record", lastAt: 0 };
+const row = { id: "thread", project: "p", state: "working", title: "Design proposal", summary: "the panel and rail", branch: "xo/thread-305201", lastAt: 1 };
+const threads = [row, stopped];
 const { panelThreads } = createThreadGroups({
-  world: { state: { threads: [{ ...row, id: "thread", project: "p", state: "working", lastAt: 0 }] } },
-  D: { needItems: () => [] },
-  MAP: { agents: () => [] },
-  convProject: () => "p",
-  askShort: () => "",
-  threadMark: () => "Runtime mark",
-  isBusy: () => true,
-  isHeld: () => false,
+  world: { state: { threads } }, D: { needItems: () => [] }, MAP: { agents: () => [{ go: "t:thread", doing: "Running checks", since: null }] },
+  convProject: () => "p", askShort: () => "", threadMark: () => "Runtime mark", isBusy: (t) => t.id === "thread", isHeld: () => false,
 });
-const panelRow = panelThreads("p:p")[0].rows[0];
-assert.equal(panelRow.mark, "Runtime mark");
-assert.equal(panelRow.summary, row.summary);
-assert.equal(panelRow.branch, row.branch);
-assert.ok(matchesQ(panelRow, "rail 305201"), "the grouped row carries its summary and branch into search");
+const panel = await threadStage(panelThreads);
+const { stage, press } = panel;
+const search = stage.querySelector("[data-tg-q]"), toggle = stage.querySelector("[data-tg-find]");
+const rows = () => [...stage.querySelectorAll(".tg-box [data-go]")].map((button) => button.dataset.go);
+function type(value) {
+  search.value = value;
+  search.dispatchEvent(new panel.window.Event("input", { bubbles: true }));
+}
+assert.equal(search.parentElement.parentElement.hidden, true);
+toggle.click();
+same(panel.document.activeElement, search);
+assert.equal(toggle.getAttribute("aria-keyshortcuts"), "/");
+for (const q of ["design checks", "305201", "rail panel"]) { type(q); assert.deepEqual(rows(), ["t:thread"], q); }
+type("record");
+assert.deepEqual(rows(), ["t:stopped"], "search includes folded rows");
+type("no such thread");
+assert.deepEqual(rows(), []);
+stage.querySelector("[data-tg-clear]").click();
+assert.equal(search.value, "");
+type("checks");
+assert.equal(press(search, "ArrowDown"), true);
+same(panel.document.activeElement, stage.querySelector('[data-go="t:thread"]'));
+assert.equal(press(panel.document.activeElement, "/"), true);
+assert.equal(press(search, "Escape"), true);
+assert.equal(search.value, "");
+assert.equal(press(search, "Escape"), true);
+same(panel.document.activeElement, toggle);
+assert.equal(search.parentElement.parentElement.hidden, true);
+threads.push(...Array.from({ length: 11 }, (_, i) => ({ ...stopped, id: `extra-${i}` })));
+panel.panel.repaint();
+assert.equal(search.parentElement.parentElement.hidden, false, "long lists expose the filter immediately");
 
-// All threads: the same match, the same keys
-const allSource = readFileSync(new URL("../modules/threads/all.js", import.meta.url), "utf8");
-assert.match(allSource, /const s = `\$\{t\.title\} \$\{t\.summary \|\| ""\} \$\{t\.branch \|\| ""\}`\.toLowerCase\(\); return q\.split\(\/\\s\+\/\)\.every\(\(w\) => s\.includes\(w\)\);/);
 const { document, window } = await dom('<button id="opener">Threads</button><section id="all" hidden><input><div class="all-list"><button data-go="t:one">First result</button></div></section>');
 const allEl = document.querySelector("#all"), opener = document.querySelector("#opener");
 const field = allEl.querySelector("input"), result = allEl.querySelector("[data-go]");
@@ -66,43 +54,34 @@ const { openAll, closeAll } = createAllThreadsSheet({
   allEl, field, phone: { matches: false }, S: { view: "p:project" }, convProject: () => "project",
   allRender() {}, syncInert() {}, schedule() {}, go: (view) => destinations.push(view),
 });
-const press = (key) => {
-  const e = new window.Event("keydown", { bubbles: true, cancelable: true });
-  e.key = key;
-  document.activeElement.dispatchEvent(e);
-  assert.equal(e.defaultPrevented, true, key);
-};
+function pressAll(key) {
+  const event = new window.Event("keydown", { bubbles: true, cancelable: true });
+  event.key = key;
+  document.activeElement.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, true, key);
+}
 opener.focus();
 openAll();
 same(document.activeElement, field);
-press("ArrowDown");
+pressAll("ArrowDown");
 same(document.activeElement, result);
-press("ArrowUp");
+pressAll("ArrowUp");
 same(document.activeElement, field);
 result.focus();
-press("/");
+pressAll("/");
 same(document.activeElement, field);
 field.value = "query";
-press("Escape");
+pressAll("Escape");
 assert.equal(field.value, "");
 assert.equal(allEl.hidden, false);
 closeAll();
 same(document.activeElement, opener);
 openAll();
-press("Enter");
+pressAll("Enter");
 assert.deepEqual(destinations, ["t:one"]);
 assert.equal(allEl.hidden, true);
 
-// CSS: tokens only; the field's box takes the one focus ring
-const block = panel.slice(panel.indexOf("── Threads' filter"), ((panel.indexOf("/* ──", panel.indexOf("── Threads' filter") + 4) + 1) || panel.length + 1) - 1);
-assert.ok(block.length > 300);
-assert.doesNotMatch(block.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\b1px solid\b/g, ""), /\b\d+(\.\d+)?(px|rem|ms)\b|#[0-9a-f]{3,8}\b/i);
-assert.match(found, /\.tg-qf\):has\(:is\(input,textarea\):focus-visible\)/);
-console.log("thread-filter: ok");
-// the list snaps row by row under a sticky filter: its top is a resting place and rows rest below the filter, so
-// scrolling up to "Needs you" stays there (19 Nov 18:57Z: it snapped back 40 px, its head under the filter)
-{ const p3 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
-  assert.match(p3, /\.stage \.fr\[data-fr="agents"\] \.fr-b\{[^}]*scroll-snap-type:y mandatory/);
-  assert.match(p3, /\.stage \.tg-q\{scroll-snap-align:start\}/);
-  assert.match(p3, /\.stage \.fr\[data-fr="agents"\] \.fr-b:has\(>\.tg-q:not\(\[hidden\]\)\)\{scroll-padding-top:calc\(var\(--h-ctl\) \+ var\(--s-2\)\)\}/);
-  console.log("thread-filter snap: ok"); }
+const css = sheet(new URL("../css/panel.css", import.meta.url));
+assert.match(css, /\.stage \.fr\[data-fr="agents"\] \.fr-b\{[^}]*scroll-snap-type:y mandatory/);
+assert.match(css, /\.stage \.tg-q\{scroll-snap-align:start\}/);
+assert.match(css, /\.stage \.fr\[data-fr="agents"\] \.fr-b:has\(>\.tg-q:not\(\[hidden\]\)\)\{scroll-padding-top:calc\(var\(--h-ctl\) \+ var\(--s-2\)\)\}/);

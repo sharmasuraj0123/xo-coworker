@@ -1,7 +1,10 @@
 // @ts-check
 import { api } from "../../core/platform/api.js";
 import { elapsed } from "../../core/platform/index.js";
+import { read, write } from "../../core/platform/storage.js";
+import { PHONE } from "../../core/platform/viewport.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { createScope } from "../../core/kernel/scope.js";
 import { folderOf } from "../../core/services/places.js";
 import { PAD, layoutOf } from "./layout.js";
 import { MAP_ICON, TOOL } from "./icons.js";
@@ -13,25 +16,22 @@ import { createMapCamera, READABLE } from "./camera.js";
 import { createMapDrawing } from "./drawing.js";
 import { createMapDiagram } from "./diagram.js";
 import { createMapHead } from "./head.js";
-
 /** @import { MapController, MapDeps, MapDrawAgent, MapFile, MapNode, MapState, PointerStart, Scope } from "./map-types.d.ts" */
-
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
-
 /** @param {number} v @param {number} a @param {number} b */
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
 /** @param {MapDeps} options @returns {MapController} */
 export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml }) {
   let el = /** @type {HTMLElement | null} */ (null);
+  let mountScope = createScope();
+  let folders = createMapFolders(api, paint, mountScope);
+  let cancelWake = () => {};
   /** @type {MapState} */
   const M = {
     open: false, view: "home",
-    opened: new Map(),   // scope key → folders you unfolded
-    closed: new Map(),   // scope key → folders you folded (even with an agent inside)
-    more: new Map(),     // scope key → folders showing every box
-    shown: new Map(),    // scope key → boxes that have been on screen (they stay, so nothing reshuffles)
+    opened: new Map(),
+    closed: new Map(), more: new Map(), shown: new Map(),
     autoOpen: new Map(), // scope key → folders that unfolded by themselves (kept, unless the panel is too narrow)
     cams: new Map(),     // scope key → {x, y, s, user, follow, target}
     refs: new Map(),     // box id → what a click on it does
@@ -43,8 +43,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     gpos: new Map(),     // scope key → Map box id → {x, y, vx, vy}: the graph keeps its shape across redraws
     gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
-  try { if (localStorage.getItem(MODE_KEY) === "tree") M.mode = "tree"; } catch { /* private mode */ }
-  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", () => { M.reachKey = ""; });
+  if (read(MODE_KEY, String, "") === "tree") M.mode = "tree";
   const tagW = () => 22;
   /** @param {string} v @returns {Scope} */
   function scopeOf(v) {
@@ -54,7 +53,8 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
   }
   const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
   const headHtml = createMapHead(world, doingLine, verbOf);
-  const { load, get: folderAt } = createMapFolders(api, paint);
+  const load = (/** @type {Parameters<typeof folders.load>} */ ...args) => folders.load(...args);
+  const folderAt = (/** @type {Parameters<typeof folders.get>} */ ...args) => folders.get(...args);
   const { folderTree, projectsTree, boxHtml } = createMapTree(/** @type {Parameters<typeof createMapTree>[0]} */ ({ M, world, load, folderAt }));
   /** @param {Scope} scope */
   function skeleton(scope) {
@@ -84,8 +84,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
   const { spotOf, cursors, paintGraph } = createMapDrawing({ M, host: () => /** @type {HTMLElement} */ (el), verbOf, tagW, focusNode, camOf, frame, clamp });
   const paintDiagram = createMapDiagram({ M, host: () => /** @type {HTMLElement} */ (el), view, tagW, camOf, holdStill, focusNode, cursors, boxHtml });
   const PRESS_PX = 24;
-  const PHONE = typeof matchMedia === "function" ? matchMedia("(max-width:760px)") : null;
-  const onPhone = () => !!(PHONE && PHONE.matches);
+  const onPhone = () => PHONE?.matches === true;
   const pressMin = () => (onPhone() ? 36 : PRESS_PX);
   /** @param {HTMLElement} b @param {number} s */
   const tooSmall = (b, s, anyScale = false) => (onPhone() ? pressPx(b, s) < 36 : (anyScale || s < READABLE) && pressPx(b, s) < PRESS_PX);
@@ -100,9 +99,9 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
   }
   /** @param {HTMLElement} nb */
   function nodePt(nb) {
-    let tx = 0, ty = 0;
-    try { if (nb.style.transform) { const m = new DOMMatrixReadOnly(nb.style.transform); tx = m.e; ty = m.f; } } catch { /* no move */ }
-    return { x: tx + nb.offsetLeft + nb.offsetWidth / 2, y: ty + nb.offsetTop + nb.offsetHeight / 2 };
+    const transform = nb.style.transform;
+    const matrix = transform && typeof DOMMatrixReadOnly === "function" ? new DOMMatrixReadOnly(transform) : null;
+    return { x: (matrix?.e ?? 0) + nb.offsetLeft + nb.offsetWidth / 2, y: (matrix?.f ?? 0) + nb.offsetTop + nb.offsetHeight / 2 };
   }
   /** @param {Element} t */
   function reveal(t) {
@@ -162,7 +161,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     /** @param {PointerEvent} e */
     const up = (e) => {
       pts.delete(e.pointerId);
-      if (start && start.moved) { M.dragged = true; setTimeout(() => { M.dragged = false; }, 0); }
+      if (start && start.moved) { M.dragged = true; mountScope.timeout(() => { M.dragged = false; }, 0); }
       v.classList.remove("is-drag");
       if (!pts.size) start = null; else { const c = camOf(/** @type {Scope} */ (M.scope)); start = { pts: new Map(pts), x: c.x, y: c.y, s: c.s, moved: true }; }
     };
@@ -198,7 +197,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       if (M.mode === what) return;
       M.mode = what;
       { const c0 = camOf(/** @type {Scope} */ (M.scope)); if (!c0.user || c0.fitAll) { c0.done = false; c0.settleUntil = 0; c0.target = null; c0.fitB = null; } }
-      try { localStorage.setItem(MODE_KEY, what); } catch { /* private mode */ }
+      write(MODE_KEY, what);
       /** @type {HTMLElement} */ (el).dataset.scope = "";
       paint();
       if (focus) view()?.focus({ preventScroll: true });
@@ -262,10 +261,10 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     M.loading = flat.some((n) => n.kind === "note" && !n.btn && n.name === "Reading…");
     if (M.mode === "graph") paintGraph(scope, /** @type {import("./drawing-types.d.ts").GraphItem[]} */ (flat), ags, at);
     else paintDiagram(scope, tree, ags, at, lit);
-    const kd = /** @type {(HTMLElement & { _h?: string }) | null} */ (el.querySelector("[data-dg-key]"));
+    const kd = /** @type {HTMLElement | null} */ (el.querySelector("[data-dg-key]"));
     const kinds = new Set([...marks.values()].map((m) => m.mark).filter((m) => m !== "read"));
     const kh = kinds.size ? ["new", "edited", "deleted"].filter((k) => kinds.has(/** @type {"new" | "edited" | "deleted"} */ (k))).map((k) => `<span class="m-${k}"><i></i>${k}</span>`).join("") : "";
-    if (kd && kd._h !== kh) { kd.innerHTML = kh; kd._h = kh; kd.hidden = !kh; }
+    if (kd) { redraw(kd, kh); kd.hidden = !kh; }
     frame(camOf(scope));
   }
   /** @param {string} v */
@@ -275,12 +274,11 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     if (s.kind === "project") return world.state.threads.some((t) => t.project === s.pid && isBusy(t));
     return world.state.threads.some(isBusy);
   }
-  const bound = new WeakSet();
   /** @param {HTMLElement} node */
   function bind(node) {
-    if (!node || bound.has(node)) return;
-    bound.add(node);
-    node.addEventListener("click", (e) => {
+    if (document.fonts) mountScope.listen(document.fonts, "loadingdone", () => { M.reachKey = ""; });
+    mountScope.listen(node, "click", (event) => {
+      const e = /** @type {MouseEvent} */ (event);
       const t = /** @type {HTMLElement} */ (e.target);
       const tl = /** @type {HTMLElement | null} */ (t.closest("[data-dg]"));
       if (tl && tl.dataset.dg) { tool(tl.dataset.dg); return; }
@@ -336,7 +334,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     });
     if (typeof ResizeObserver === "function") {
       let w0 = 0, h0 = 0;
-      new ResizeObserver(() => {
+      const observer = new ResizeObserver(() => {
         const v = view();
         if (!M.open || !v || !M.scope) return;
         const w = v.clientWidth, h = v.clientHeight;
@@ -346,14 +344,16 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
         if (was && c.fitAll) { fit(c, false, true); return; } // you asked to see it all: keep it all in view
         if (was && !c.user) { c.done = false; c.settleUntil = 0; c.target = null; } // the frame changed size: a fresh fit
         frame(c);
-      }).observe(node);
+      });
+      observer.observe(node); mountScope.observe(observer);
     }
   }
   return {
-    mount(host) {
+    mount(host, scope) {
       if (!host) return;
       if (el !== host) {
-        M.open = false;
+        this.unmount();
+        mountScope = scope ?? createScope(); folders = createMapFolders(api, paint, mountScope);
         el = host; bind(host);
         host.classList.add("map-host");
         /** @type {HTMLElement} */ (el).dataset.scope = ""; M.head = "";
@@ -367,20 +367,18 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       M.open = true;
       if (!view() || el.dataset.scope !== scopeOf(M.view).key + "|" + M.mode) { el.dataset.scope = ""; M.lastScope = null; }
       if (was) { paint(); return; }
-      M.head = "";
-      M.waking = true;
-      const my = (M.wakeGen = (M.wakeGen || 0) + 1);
-      afterPause(() => {
-        if (my !== M.wakeGen || !M.open) return;
+      M.head = ""; M.waking = true;
+      cancelWake = mountScope.effect(() => afterPause(() => {
+        cancelWake();
         M.waking = false;
         paint();
         const c = M.scope && camOf(/** @type {Scope} */ (M.scope));
-        if (c) requestAnimationFrame(() => { if (M.open && !M.waking) { paint(); frame(c); } }); // its size may have changed while hidden
-      });
+        if (c) mountScope.frame(() => { if (M.open && !M.waking) { paint(); frame(c); } });
+      }));
     },
-    hide() { M.open = false; M.waking = false; M.wakeGen = (M.wakeGen || 0) + 1; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
-    unmount() { this.hide(); },
-    live: (v) => liveIn(v),
+    hide() { cancelWake(); M.open = M.waking = false; if (M.raf) { cancelAnimationFrame(M.raf); M.raf = 0; } },
+    unmount() { this.hide(); mountScope.dispose(); el = null; M.dragged = false; },
+    live: liveIn,
     agents(v) {
       const s = scopeOf(v || M.view);
       const list = s.kind === "thread" ? [agentOf(s.t)] : agentsIn(s.kind === "project" ? s.pid : null);

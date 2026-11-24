@@ -12,7 +12,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | vendor | 10 |
 | split-region | 5 |
 
-Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted 145, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted 150, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -110,7 +110,7 @@ Items inside first-party files: 2488 (moved 1799, planned 389, kept 152, deleted
 | `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/index.js, core/services/storm/reducers/messages.js, core/services/storm/reducers/review.js, core/services/storm/reducers/runs.js, core/services/storm/reducers/sessions.js, core/services/storm/reducers/space.js, core/services/storm/reducers/threads.js, core/services/storm/selectors/commit.js, core/services/storm/selectors/sessions.js, core/services/storm/selectors/threads.js, core/services/storm/commands.js, core/services/storm/act.js · next: every importer points at core/services/storm, so it leaves with no re-export |
 | `js/timeline.js` | 840 | split | core/services/storm/load.js, core/services/world/conn.js, core/services/world/conversation.js, core/services/world/held.js, core/services/world/list-time.js, core/services/world/relay.js, core/services/world/rows.js, core/services/world/sessions.js, core/services/world/threads.js · next: Timeline functions live in their owning files. The timeline entry re-exports them. |
 | `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
-| `js/ui.js` | 412 | split | core/ui/icons/names.js, core/ui/motion.js, core/ui/redraw.js, core/platform/dom.js, core/platform/time.js, core/services/sound.js · next: Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly. |
+| `js/ui.js` | 412 | split | core/ui/icons/names.js, core/ui/motion.js, core/ui/redraw.js, core/ui/reconcile.js, core/platform/dom.js, core/platform/time.js, core/services/sound.js · next: Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly. |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
 | `js/viewer.js` | 1158 | split | modules/files/viewer.js, js/app.js · next: The app supplies the existing Changes renderers directly to Files. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |

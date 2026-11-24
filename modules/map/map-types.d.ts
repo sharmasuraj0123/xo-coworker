@@ -20,7 +20,7 @@ export interface MapDeps extends MapAgentDeps {
 }
 
 export interface MapController {
-  mount(host: HTMLElement | null): void;
+  mount(host: HTMLElement | null, scope?: ReturnType<typeof import("../../core/kernel/scope.js").createScope>): void;
   show(view?: string): void;
   hide(): void;
   unmount(): void;
@@ -39,7 +39,6 @@ export type MapState =
     head: string;
     dragged: boolean;
     waking?: boolean;
-    wakeGen?: number;
     lastScope?: string | null;
     fit?: { key: string; fold: boolean };
   };

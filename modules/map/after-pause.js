@@ -1,13 +1,20 @@
 // @ts-check
-
+import { createScope } from "../../core/kernel/scope.js";
 const PAUSE_MS = 120, MAX_MS = 700;
 /** @param {() => void} fn */
 export function afterPause(fn) {
-  let last = performance.now();
-  const start = last, seen = () => { last = performance.now(); };
-  const evs = ["keydown", "pointerdown", "wheel", "touchstart"];
-  for (const ev of evs) addEventListener(ev, seen, { capture: true, passive: true });
-  const go = () => { for (const ev of evs) removeEventListener(ev, seen, { capture: true }); fn(); };
-  const check = () => { const now = performance.now(); if (now - last >= PAUSE_MS || now - start >= MAX_MS) go(); else setTimeout(check, PAUSE_MS - (now - last)); };
-  requestAnimationFrame(() => setTimeout(check, 0));
+  const scope = createScope();
+  const start = performance.now();
+  let last = start;
+  const seen = () => { last = performance.now(); };
+  for (const event of ["keydown", "pointerdown", "wheel", "touchstart"]) {
+    scope.listen(globalThis, event, seen, { capture: true, passive: true });
+  }
+  const check = () => {
+    const now = performance.now();
+    if (now - last >= PAUSE_MS || now - start >= MAX_MS) { scope.dispose(); fn(); }
+    else scope.timeout(check, PAUSE_MS - (now - last));
+  };
+  scope.frame(() => scope.timeout(check, 0));
+  return scope.dispose;
 }

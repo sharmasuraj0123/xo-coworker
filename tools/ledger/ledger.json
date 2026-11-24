@@ -3022,11 +3022,16 @@
     "core/ui/icons/names.js",
     "core/ui/motion.js",
     "core/ui/redraw.js",
+    "core/ui/reconcile.js",
     "core/platform/dom.js",
     "core/platform/time.js",
     "core/services/sound.js"
    ],
-   "note": "Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly."
+   "note": "Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly.",
+   "evidence": {
+    "core/ui/redraw.js": { "anchor": "export function redraw(el, html, { preserve } = {})", "reason": "Owns incremental DOM updates and focus recovery." },
+    "core/ui/reconcile.js": { "anchor": "export function reconcileRows(redraw, box, items", "reason": "Owns the keyed list reconciliation formerly in js/ui.js." }
+   }
   },
   "js/util.js": {
    "status": "split",
@@ -7257,8 +7262,8 @@
    "home": "core/ui/landing.js"
   },
   "js/app.js::functions::patch": {
-   "status": "moved",
-   "home": "core/ui/patch.js"
+   "status": "deleted",
+   "reason": "Its focus recovery and unchanged-markup guard are part of redraw."
   },
   "js/app.js::functions::homeParts": {
    "status": "moved",
@@ -8241,7 +8246,8 @@
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "moved",
-   "home": "modules/settings/appearance.js"
+   "home": "modules/settings/appearance.js",
+   "evidence": { "modules/settings/appearance.js": { "anchor": "write(\"cv-bubbles\", on ?", "reason": "The existing preference key uses the shared storage layer." } }
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "moved",
@@ -10419,7 +10425,8 @@
   },
   "js/map.js::storage::cv-map-mode": {
    "status": "moved",
-   "home": "modules/map/map.js"
+   "home": "modules/map/map.js",
+   "evidence": { "modules/map/map.js": { "anchor": "\"cv-map-mode\"", "reason": "The Map continues to persist its mode under the existing key." } }
   },
   "js/map.js::keys::Escape": {
    "status": "deleted",
@@ -10427,7 +10434,8 @@
   },
   "js/map.js::custom_events::loadingdone": {
    "status": "moved",
-   "home": "modules/map/map.js"
+   "home": "modules/map/map.js",
+   "evidence": { "modules/map/map.js": { "anchor": "mountScope.listen(document.fonts, \"loadingdone\"", "reason": "The Map listens for font loading through its mount scope." } }
   },
   "js/markdown.js::exports::setThreadInfo": {
    "status": "moved",
@@ -11038,8 +11046,8 @@
    "home": "core/ui/motion.js"
   },
   "js/motion.js::exports::setHtml": {
-   "status": "moved",
-   "home": "core/ui/motion.js"
+   "status": "deleted",
+   "reason": "Callers draw through the shared redraw export."
   },
   "js/motion.js::exports::setText": {
    "status": "moved",
@@ -11058,8 +11066,8 @@
    "home": "core/ui/motion.js"
   },
   "js/motion.js::functions::setHtml": {
-   "status": "moved",
-   "home": "core/ui/motion.js"
+   "status": "deleted",
+   "reason": "Redraw owns incremental HTML updates."
   },
   "js/motion.js::functions::setText": {
    "status": "moved",
@@ -13490,7 +13498,8 @@
   },
   "js/ui.js::functions::reconcile": {
    "status": "moved",
-   "home": "core/ui/redraw.js"
+   "home": "core/ui/reconcile.js",
+   "evidence": { "core/ui/reconcile.js": { "anchor": "export function reconcileRows(redraw, box, items", "reason": "The keyed list implementation retains the public reconcile entry through redraw." } }
   },
   "js/ui.js::functions::keepTurning": {
    "status": "moved",
@@ -13502,7 +13511,7 @@
   },
   "js/ui.js::custom_events::redrawn": {
    "status": "moved",
-   "home": "core/ui/redraw.js"
+   "home": "core/ui/reconcile.js"
   },
   "js/util.js::exports::space": {
    "status": "moved",
@@ -16036,12 +16045,12 @@
    "home": "shell/gestures.js"
   },
   "js/ghpage.js::exports::since": {
-   "status": "moved",
-   "home": "modules/github/page.js"
+   "status": "deleted",
+   "reason": "The GitHub rows use the shared relativeShort export."
   },
   "js/ghpage.js::exports::longAgo": {
-   "status": "moved",
-   "home": "modules/github/page.js"
+   "status": "deleted",
+   "reason": "GitHub details use the shared relativeWords export."
   },
   "js/ghpage.js::exports::issueOf": {
    "status": "moved",
@@ -16065,11 +16074,13 @@
   },
   "js/ghpage.js::functions::since": {
    "status": "moved",
-   "home": "modules/github/page.js"
+   "home": "core/platform/relative-time.js",
+   "evidence": { "core/platform/relative-time.js": { "anchor": "export function relativeShort(iso, now = Date.now())", "reason": "Formats the existing compact GitHub age units." } }
   },
   "js/ghpage.js::functions::longAgo": {
    "status": "moved",
-   "home": "modules/github/page.js"
+   "home": "core/platform/relative-time.js",
+   "evidence": { "core/platform/relative-time.js": { "anchor": "export function relativeWords(iso, now = Date.now())", "reason": "Formats the existing GitHub age sentence." } }
   },
   "js/ghpage.js::functions::person": {
    "status": "moved",
@@ -16249,9 +16260,9 @@
   },
   "js/ui.js::functions::move": {
    "status": "moved",
-   "home": "core/ui/redraw.js",
+   "home": "core/ui/reconcile.js",
    "evidence": {
-    "core/ui/redraw.js": {
+    "core/ui/reconcile.js": {
      "anchor": "function moveRow(box, row, before)",
      "reason": "The renamed redraw helper moves the existing row node within its parent."
     }

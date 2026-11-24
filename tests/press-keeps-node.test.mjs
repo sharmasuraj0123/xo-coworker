@@ -1,19 +1,5 @@
-// A press still clicks while live data redraws around it (the owner, 19 Nov: Back needed several clicks; a folder
-// needed a second). Chromium dispatches a click only if the node the press began on is still in the page when it
-// ends (mouse_event_manager.cc), and while agents work the app redraws regions several times a second. The rule
-// these check: a data update never replaces a control. It changes the control's text and attributes in place, and
-// the node under a press (as the one with focus) is never moved or replaced while the new HTML still has it.
-//
-// On a real DOM (linkedom): node identity across redraws (core/ui/redraw.js), rows under a press in keyed lists
-// (its reconcile), and the Files tree (js/files.js) while an agent's marks change, with a press held across each
-// redraw. Then the write paths themselves, read from the source: no region on the render path is drawn anew.
-//   node tests/press-keeps-node.test.mjs   (linkedom, a dev-only tool: npm ci)
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join, dirname, relative, resolve } from "node:path";
 import { dom } from "./lib/dom.mjs";
-import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 let passed = 0;
 const t = async (name, fn) => {
@@ -21,34 +7,7 @@ const t = async (name, fn) => {
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
 };
 
-// ── the write paths, from the source (no DOM needed) ─────────────────────────
-await t("Back is written through patch(): only when its name changes, in place", () => {
-  const header = readSource("shell/top-header.js");
-  assert.doesNotMatch(header, /back\.innerHTML\s*=/);
-  assert.equal((header.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
-});
-await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
-  const m = ["map.js", "drawing.js", "diagram.js"].map((f) => readSource(`modules/map/${f}`)).join("\n");
-  assert.doesNotMatch(m, /nodes\.innerHTML\s*=/);
-  assert.match(m, /redraw\(nodes, html\)/, "the graph");
-  assert.match(m, /redraw\(nodes, nodesHtml\)/, "the tree");
-  assert.match(m, /redraw\(hd, h\); M\.head = h;/, "the head");
-  assert.match(m, /redraw\(\/\*\* @type \{HTMLButtonElement\} \*\/ \(c\.el\.querySelector\("\.dg-tag"\)\), tag\)/, "a cursor's tag");
-});
-await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
-  assert.match(readSource("modules/decisions/panel-view.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
-  const lp = readFileSync(new URL("../modules/launchpad/launchpad.js", import.meta.url), "utf8");
-  assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.nav, nav\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
-  assert.doesNotMatch(sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n"), /S\.body\.innerHTML\s*=/);
-  assert.match(readFileSync(new URL("../modules/files/viewer-head.js", import.meta.url), "utf8"), /redrawNode\(top, head\(\)\);/);
-  const composer = readSource("modules/conversation/composer-controls.js");
-  assert.match(composer, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);
-  assert.match(composer, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);
-  const rail = readSource("shell/rail/rows.js");
-  assert.match(rail, /redraw\(hn, hnHtml\)/); assert.match(rail, /redraw\(wn, wnHtml\)/);
-});
 
-// ── on a DOM ──────────────────────────────────────────────────────────────────
 {
   const { window } = await dom(`<main id="host"></main><div id="viewer"></div>`);
   Object.assign(globalThis, { innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} } });
@@ -59,20 +18,19 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
   const pressAcross = async (node, fn) => { ev(node, "pointerdown"); await fn(); const kept = node.isConnected; ev(node, "pointerup"); ev(node, "click"); return kept; };
 
   const { redraw, redrawNode, pressedNode } = await import("../core/ui/redraw.js");
-  const { patch } = await import("../core/ui/patch.js");
   const { landed } = await import("../core/ui/landing.js");
   const host = document.getElementById("host");
 
-  await t("patch keeps matching controls and focuses the replacement when a control changes tag", () => {
-    assert.equal(patch(host, '<button data-fid="back">Back</button>'), true);
+  await t("redraw keeps matching controls and focuses the replacement when a control changes tag", () => {
+    assert.equal(redraw(host, '<button data-fid="back">Back</button>'), true);
     const back = host.firstElementChild;
     back.focus();
     const renamed = '<button data-fid="back">Back to Home</button>';
-    assert.equal(patch(host, renamed), true);
+    assert.equal(redraw(host, renamed), true);
     assert.ok(host.firstElementChild === back, "changing the label keeps the control");
     assert.equal(back.textContent, "Back to Home");
-    assert.equal(patch(host, renamed), false, "the same markup is skipped");
-    patch(host, '<a href="/" data-fid="back">Back to Home</a>');
+    assert.equal(redraw(host, renamed), false, "the same markup is skipped");
+    redraw(host, '<a href="/" data-fid="back">Back to Home</a>');
     assert.ok(host.firstElementChild !== back, "the link replaces the button");
     assert.ok(document.activeElement === host.firstElementChild, "focus follows the replacement");
   });
@@ -156,57 +114,33 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
     assert.ok(!a.classList.contains("is-on") && box.lastElementChild.classList.contains("is-on"), "where you are moved");
   });
 
-  // Files: js/files.js on its real redraw, with its other imports stood in for (a folder of copies, as the app has them)
-  const dir = mkdtempSync(join(tmpdir(), "files-press-"));
-  try {
-    // a folder laid out as the repo is: js/files.js, the pure modules it uses as they are, the rest stood in for
-    const filesSrc = readFileSync(new URL("../modules/files/files.js", import.meta.url), "utf8");
-    const specs = [...filesSrc.matchAll(/^import [^;]* from "([^"]+)";$/gm)].map((m) => m[1]);
-    const STUB = {
-      "focusview.js": "export const inSight = () => true; export const bringWhole = () => {};",
-      "core/ui/a11y/focus.js": "export const inSight = () => true; export const bringWhole = () => {}; export const usable = () => true;",
-      "core/platform/index.js": 'export const esc = (s) => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); export const copyText = async () => true; export const COPY_REFUSED = ""; export const space = () => 0; export { rank, marked } from "./fuzzy.js";',
-      "ui.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
-      "core/platform/api.js": "export const calls = []; export const missingRoute = () => false; export const api = { projectTree: (project, rel) => new Promise((res) => calls.push({ project, rel, res })) };",
-      "core/services/agent-activity.js": 'export const MARKS = { files: new Map() }; export const activityOf = () => ({ files: MARKS.files });',
-      "core/services/places.js": 'export const folderOf = () => ({ root: "/w/p", base: "", project: "p", projectRoot: "/w/p" });',
-      "fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
-      "core/ui/components/counts.js": 'export const countsHtml = () => "";',
-      "core/ui/icons/names.js": 'export const ICON = new Proxy({}, { get: () => "<i></i>" });',
-      "core/ui/icons/fileicons.js": 'export const fileIcon = () => "<i></i>"; export const folderIcon = () => "<i></i>";',
-      "viewer.js": "export const RUNS = /^(\\.git|\\.claude)\\//;",
-      "keynav.js": "export const pointerFollows = () => {};",
+  {
+    const { createFiles } = await import("../modules/files/files.js");
+    const calls = [];
+    globalThis.fetch = (url) => new Promise((res) => {
+      const path = new URL(String(url), "https://local.test/");
+      assert.match(path.pathname, /\/xo-projects\/p\/tree$/);
+      calls.push({ rel: path.searchParams.get("relative_path") || "", res });
+    });
+    globalThis.removeEventListener = (...args) => window.removeEventListener(...args);
+    const activity = new Map();
+    const turn = { session: "s", status: "running" };
+    const world = {
+      state: {
+        turns: { list: (filter) => [turn].filter(filter), blocksOf: () => [{ type: "activity", rows: [...activity.values()] }] },
+        threads: [{ id: "t1", project: "p", cwd: "/w/p", sessionId: "s", title: "Agent" }],
+        projects: [{ id: "p", name: "P" }],
+      },
+      thread: () => null,
     };
-    const ROOT = new URL("../", import.meta.url).pathname;
-    const repoRel = (from, spec) => relative(ROOT, resolve(ROOT, dirname(from), spec));
-    const place = (rel, text) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); writeFileSync(join(dir, rel), text); };
-    const stubFor = (rel) => STUB[rel] ?? STUB[rel.replace(/^js\//, "")];
-    writeFileSync(join(dir, "package.json"), '{"type":"module"}');
-    const todo = ["modules/files/files.js"], seen = new Set();
-    while (todo.length) {
-      const rel = todo.pop();
-      if (seen.has(rel)) continue;
-      seen.add(rel);
-      const stub = stubFor(rel);
-      if (stub != null) { place(rel, stub); for (const m of stub.matchAll(/export [^;]* from "([^"]+)";/g)) todo.push(repoRel(rel, m[1])); continue; }
-      const text = readFileSync(join(ROOT, rel), "utf8");
-      place(rel, text);
-      for (const m of text.matchAll(/^(?:import|export) [^;]* from "([^"]+)";$/gm)) todo.push(repoRel(rel, m[1]));
-    }
-    assert.ok(specs.length > 5, "files.js's imports were read");
-    // the copy registers its own press listener on the same document: both see the same presses
-    const { createFiles } = await import(join(dir, "modules/files/files.js"));
-    const { calls } = await import(join(dir, "core/platform/api.js"));
-    const { MARKS } = await import(join(dir, "core/services/agent-activity.js"));
-    const world = { state: { turns: [], threads: [{ id: "t1", project: "p", sessionId: "s", title: "Agent" }], projects: [{ id: "p", name: "P" }] }, thread: () => null };
     const viewer = { hasFile: false, file: null, open() {}, close() {} };
     const FILES = createFiles({ world, viewer, isBusy: () => true, PROJ: (id) => id.toUpperCase(), go() {} });
     const fh = document.createElement("div"); host.replaceChildren(fh); fh.getBoundingClientRect = () => ({ width: 400 });
     FILES.mount(fh); FILES.show("p:p");
     const tick = () => new Promise((r) => setTimeout(r, 0));
-    const answer = async (rel, dirs, files) => { const c = calls.find((x) => x.rel === rel && !x.done); c.done = 1; c.res({ dirs: dirs.map((n) => ({ name: n.split("/").pop(), relative_path: n })), files: files.map((n) => ({ name: n.split("/").pop(), relative_path: n, size_bytes: 1 })) }); await tick(); await tick(); };
+    const answer = async (rel, dirs, files) => { const c = calls.find((x) => x.rel === rel && !x.done); c.done = 1; c.res(Response.json({ dirs: dirs.map((n) => ({ name: n.split("/").pop(), relative_path: n })), files: files.map((n) => ({ name: n.split("/").pop(), relative_path: n, size_bytes: 1 })) })); await tick(); await tick(); };
     const row = (p) => fh.querySelector(`.fl-list [data-fl-dir="${p}"]`);
-    const mark = (path, live) => { MARKS.files = new Map([[path, { path, mark: live ? "read" : "edited", live, seq: 1 }]]); FILES.render("p:p"); };
+    const mark = (path, live) => { activity.clear(); activity.set(path, { target: `/w/p/${path}`, kind: "edit_file", status: live ? "running" : "completed" }); FILES.render("p:p"); };
     await answer("", ["a", "b", "c"], ["README.md"]);
 
     await t("Files: an agent's mark changing in a folder keeps every row above it the same node", () => {
@@ -245,9 +179,6 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.equal(fh.querySelectorAll('[data-fl-g="c"]').length, 1);
       assert.ok(row("c").nextElementSibling === fh.querySelector('[data-fl-g="c"]'));
     });
-    // the owner, 19 Nov: a folder stuck on "Reading…" until clicked again. A file opened from elsewhere (Changed, a chip)
-    // opens every folder down to it and reads them one after another; the app renders between the reads, and each render
-    // gives F.scope a new object, so a "same place?" check by identity stopped after the first read
     await t("Files: a file opened from elsewhere reads every folder down to it, the app rendering around each read", async () => {
       const rev = FILES.reveal({ project: "p", rel: "b/q/r/s.md", name: "s.md" });
       for (const [rel, dirs, files] of [["b", ["b/q"], []], ["b/q", ["b/q/r"], []], ["b/q/r", [], ["b/q/r/s.md"]]]) {
@@ -263,13 +194,6 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
         assert.doesNotMatch(fh.querySelector(`[data-fl-g="${p}"]`).textContent, /Reading/, `${p} shows its rows`);
       }
       assert.ok(fh.querySelector('[data-fl-g="b/q/r"] [data-fl-file="b/q/r/s.md"]'), "the file is there to be marked");
-    });
-    await t("Files: an open folder that nothing has read starts its read where it's drawn, so Reading… always has a read", () => {
-      const f = readFileSync(new URL("../modules/files/files.js", import.meta.url), "utf8");
-      const tree = readFileSync(new URL("../modules/files/tree.js", import.meta.url), "utf8");
-      const i = tree.indexOf("function sync(s, local, g, ctx) {"), body = tree.slice(i, tree.indexOf("\n  }\n", i));
-      assert.match(body, /if \(!dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
-      assert.doesNotMatch(f, /F\.scope !== s\b/, "a place is the same place by its key, never by the object");
     });
     await t("Files keeps the More button and naming field across live redraws", async () => {
       row("c").focus();
@@ -294,6 +218,6 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       assert.equal(document.activeElement === input, true);
       assert.equal(input.value, "draft.md");
     });
-  } finally { rmSync(dir, { recursive: true, force: true }); }
+  }
 }
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

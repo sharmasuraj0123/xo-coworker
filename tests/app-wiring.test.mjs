@@ -175,7 +175,9 @@ assert.equal(document.querySelector('#mode-seg [data-mode="light"]').getAttribut
 
 blockedStorage.add("cv-theme");
 press('#mode-seg [data-mode="dark"]');
-assert.equal(document.documentElement.dataset.theme, "light", "the theme stays on its stored mode when a write fails");
+assert.equal(document.documentElement.dataset.theme, "dark", "the chosen theme stays active for the session");
+assert.equal(storage.get("cv-theme"), "light", "refusal leaves the persisted preference alone");
+assert.equal(document.querySelector('#mode-seg [data-mode="dark"]').getAttribute("aria-checked"), "true");
 const modeRow = document.querySelector("#mode-seg").closest(".set-row");
 assert.match(modeRow.querySelector('.set-err[role="alert"]').textContent, /this browser won't keep it after a reload/);
 blockedStorage.delete("cv-theme");

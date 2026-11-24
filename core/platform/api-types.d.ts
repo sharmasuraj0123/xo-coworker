@@ -1,4 +1,4 @@
-type Json = Promise<any>;
+type Json = ReturnType<typeof import("./http.js").request>;
 type Query = Record<string, unknown>;
 type Id = string;
 interface BlobOptions { signal?: AbortSignal; ms?: number }
@@ -82,7 +82,7 @@ export interface Api {
   mkdirProject(project: Id, relativePath: string): Json;
   undoProjectEdit(project: Id, editId: Id): Json;
   projectChanges(project: Id, opts?: { worktree?: string | null; path?: string | null }): Json;
-  projectTree(project: Id, relativePath?: string | null): Json;
+  projectTree(project: Id, relativePath?: string | null, signal?: AbortSignal): Json;
   projectImage(project: Id, relativePath: string, opts?: BlobOptions): Promise<Blob>;
   projectVersion(project: Id, relativePath: string, at: { commit: string; was?: string | null }, opts?: BlobOptions): Promise<Blob>;
   projectDownload(project: Id, relativePath: string): Promise<Blob>;
@@ -93,9 +93,9 @@ export interface Api {
   cancelClone(cloneId: Id): Json;
   githubStatus(): Json;
   githubIssues(project: Id, refresh?: boolean): Json;
-  githubIssue(project: Id, number: Id | number): Json;
+  githubIssue(project: Id, number: Id | number, signal?: AbortSignal): Json;
   githubPulls(project: Id): Json;
-  githubPull(project: Id, number: Id | number): Json;
+  githubPull(project: Id, number: Id | number, signal?: AbortSignal): Json;
   githubConnect(fresh?: boolean): Json;
   githubConnectPoll(sessionId: Id): Json;
   githubConnectCancel(sessionId: Id): Json;

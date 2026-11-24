@@ -1,31 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { homedir } from "node:os";
-
-const ui = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
-const src = ["js/app.js", "modules/chats/chats.js", "modules/conversation/blocks/turn.js"].map((f) => [f, readFileSync(new URL(`../${f}`, import.meta.url), "utf8")]);
+import { dom } from "./lib/dom.mjs";
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const i = ui.indexOf("export function reconcile("), body = ui.slice(i, ui.indexOf("\n}\n", i));
-
-t("reconcile updates every changed row in place; only a row whose tag changes is drawn anew", () => {
-  assert.match(body, /if \(fresh && fresh\.tagName === el\.tagName\) \{/);
-  assert.match(body, /redraw\(el, fresh\.innerHTML\);/);
-});
-t("no list or row has to ask for it", () => {
-  assert.ok(!/inPlace: always|it\.inPlace/.test(body), "reconcile still reads a flag");
-  for (const [f, s] of src) assert.ok(!/inPlace: true|turnItem/.test(s), f + " still asks");
-});
-
-const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f));
-if (!LD) console.log("  skip the DOM case: linkedom isn't installed (npm i linkedom in ~/.cache/xo-test-deps, or set LINKEDOM)");
-else {
-  const { parseHTML } = await import(LD);
-  const { window, document } = parseHTML(`<!doctype html><html><body><div id="box"></div></body></html>`);
-  Object.assign(globalThis, { window, document, HTMLElement: window.HTMLElement, CustomEvent: window.CustomEvent, Event: window.Event,
-    CSS: { escape: (x) => String(x) }, requestAnimationFrame: (f) => setTimeout(f, 0), matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
-    innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} } });
+{
+  const { document } = await dom('<div id="box"></div>');
   const { reconcile } = await import("../core/ui/redraw.js");
     const turn = (n) => `<div class="m m-turn"><div class="mb">${Array.from({ length: n }, (_, i) => `<div class="st" data-st="${i}"><span class="tick"></span>Step ${i}</div>`).join("")}<span>${n} steps</span></div></div>`;
   t("a step landing keeps the turn's node and every finished step's tick, with no flag", () => {

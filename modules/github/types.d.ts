@@ -51,6 +51,7 @@ interface Page {
   title: (key: string) => string;
   mount: (host: HTMLElement) => void;
   onShow: (key: string) => unknown;
+  onHide?: () => void;
   backTo?: () => string;
   over?: boolean;
 }

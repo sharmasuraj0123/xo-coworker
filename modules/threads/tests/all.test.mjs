@@ -13,15 +13,16 @@ const world = { state: { threads: [
   { ...common, id: "done", title: "Former notes", state: "resolved" },
 ] } };
 const D = { needItems: () => [] }, convProject = () => "project", isHeld = () => false;
-const { STATE_WORDS, threadState } = createThreadGroups({ world, D, convProject, isHeld, isBusy: (thread) => !!thread.busy,
-  MAP: { agents: () => [] }, askShort: () => "", threadMark: () => "",
+const { STATE_WORDS, threadState, threadSubtitles } = createThreadGroups({ world, D, convProject, isHeld, isBusy: (thread) => !!thread.busy,
+  MAP: { agents: () => [{ go: "t:live", doing: "Running checks", since: null }] }, askShort: () => "", threadMark: () => "",
 });
 const render = createAllThreads({ S, world, D, SHAPE: { word: () => "threads" }, PROJ: () => "Project", convProject,
-  STATE_WORDS, threadState, threadMark: () => '<i class="test-mark"></i>', glyphOf: (thread) => thread.state, rtTag: () => "",
+  STATE_WORDS, threadState, threadSubtitles, threadMark: () => '<i class="test-mark"></i>', glyphOf: (thread) => thread.state, rtTag: () => "",
 });
 const input = document.getElementById("all-q");
 render();
 const row = document.querySelector('[data-go="t:live"]');
+assert.deepEqual([...document.querySelectorAll("[data-af]")].map((b) => b.firstChild.textContent), ["All", "Needs you", "Working", "Waiting", "Done"]);
 assert.equal(document.getElementById("all-h").textContent, "All threads · Project");
 assert.equal(document.querySelector(".ar-fold").getAttribute("aria-expanded"), "false");
 assert.equal(row.classList.contains("has-mk"), true);
@@ -31,6 +32,9 @@ input.value = "publish verify";
 render();
 assert.ok(document.querySelector('[data-go="t:live"]') === row);
 assert.ok(document.querySelector('[data-go="t:done"]') === null, "the completed thread stays folded");
+input.value = "checks";
+render();
+assert.ok(document.querySelector('[data-go="t:live"]') === row, "All threads matches the activity subtitle");
 S.allFilter = "waiting";
 render();
 assert.match(document.querySelector(".ar-none").textContent, /Nothing matches/);

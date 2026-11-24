@@ -1,60 +1,35 @@
-// Focus goes back to a control a person can be on, by one helper, and a panel's opener that a redraw took away is
-// found again in the draw that brings it back (the controls grader on 05d76ca, S142, 12/12: Home's next card's
-// Details opens the decisions panel; Close decisions put focus on the page, BODY at 450 ms, for Enter, Space and a
-// press, in all four cells. The panel focused the node it was opened from, but Home had drawn its card again
-// meanwhile: while the panel shows that ask, the card gives way to "Open in the panel", so that node was gone).
-//
-// The rule: a control still here takes focus now; one redrawn takes it in the draw that brings it back, found by its
-// identity (hookOf: its id, else its tag and data- hooks), else the place. Never a node that's gone, never the page.
-// "Here" is one test (usable), where five files each had their own copy.
-//   node tests/focus-back.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { dom, same } from "./lib/dom.mjs";
+import { hookOf, usable } from "../core/ui/a11y/focus.js";
+import { redraw, reconcile } from "../core/ui/redraw.js";
 
-const ROOT = new URL("../", import.meta.url);
-const read = (f) => readFileSync(new URL(f, ROOT), "utf8");
-let passed = 0;
-const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+const { document } = await dom('<button id="fallback">Back</button><div id="list"></div><div id="controls"></div>');
+const list = document.getElementById("list"), controls = document.getElementById("controls");
+const fallback = document.getElementById("fallback");
+const row = (key) => ({ key, html: `<li><button data-open="${key}">${key}</button></li>` });
+assert.equal(usable(fallback), true);
+assert.equal(usable(document.body), false);
+assert.equal(usable(document.createElement("button")), false);
+fallback.hidden = true;
+assert.equal(usable(fallback), false);
+fallback.hidden = false;
+reconcile(list, [row("a"), row("b"), row("c")]);
+list.querySelector('[data-open="b"]').focus();
+reconcile(list, [row("a"), row("c")]);
+same(document.activeElement, list.querySelector('[data-open="a"]'));
+reconcile(list, [], { fallback: () => fallback });
+same(document.activeElement, fallback);
 
-await t("one helper says a control can take focus: no file keeps its own copy", () => {
-  const fv = read("core/ui/a11y/focus.js");
-  assert.match(fv, /export const usable = \(el\) => !!el && el !== document\.body && el\.isConnected && !el\.closest\("\[inert\], \[hidden\]"\) && el\.getClientRects\(\)\.length > 0;/);
-  const copies = sourcePaths(".js").filter((f) => f !== "core/ui/a11y/focus.js" && /closest\("\[inert\], \[hidden\]"\)/.test(readSource(f)));
-  assert.deepEqual(copies, [], `own copies of the test: ${copies.join(", ")}`);
-  assert.match(read("js/app.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/core\/ui\/a11y\/focus\.js";/);
-  assert.match(read("modules/decisions/controller.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/);
-  assert.match(read("modules/files/viewer.js"), /import \{ usable \} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/);
-  assert.match(read("modules/create-project/create.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/, "create.js takes it from core/ui");
-  assert.match(read("shell/panel/panel.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\.\/\.\.\/core\/ui\/a11y\/focus\.js";/, "the panel takes it from core/ui");
-  assert.match(read("core/ui/redraw.js"), /import \{[^}]*\busable\b[^}]*\} from "\.\/a11y\/focus\.js";/, "reconcile takes it from a11y/focus.js");
-});
-
-await t("hookOf names a control so the redraw's copy is found: its id, else its tag and data- hooks, a count aside", async () => {
-  globalThis.CSS = { escape: (s) => String(s).replace(/["\\]/g, "\\$&") };
-  const { hookOf } = await import(new URL("core/ui/a11y/focus.js", ROOT));
-  const el = (tag, attrs, id = "") => ({ tagName: tag.toUpperCase(), id, attributes: Object.entries(attrs).map(([name, value]) => ({ name, value })), getAttribute: (n) => attrs[n] ?? null });
-  assert.equal(hookOf(el("button", { class: "b b-ghost b-later", "data-fid": "ev", "data-decide": "t1:ask" })), 'button[data-fid="ev"][data-decide="t1:ask"]', "Home's Details");
-  assert.equal(hookOf(el("button", { class: "x", "data-runs": "", "data-n": "45" })), "button[data-runs]", "a count isn't its identity");
-  assert.equal(hookOf(el("button", { "data-x": "1" }, "pn-x")), "#pn-x", "an id first");
-  assert.equal(hookOf(el("button", { class: "plain" })), null, "no identity: no selector");
-  assert.equal(hookOf(null), null);
-});
-
-await t("the decisions panel's close: its opener now if it's here, else the same control in the next draw, else the place", () => {
-  const d = read("modules/decisions/controller.js");
-  const close = d.slice(d.indexOf("function close({ restore = true } = {})"), d.indexOf("function sync()"));
-  assert.match(close, /if \(restore && was\) \{ if \(usable\(r\)\)[^\n]+r\)\)\.focus\(\{ preventScroll: true \}\); else back && back\([^\n]+\[hookOf\(r\)\]\.filter\(Boolean\)\)\); \}/, "opened from nowhere in particular too: never left on the card that goes");
-  assert.doesNotMatch(close, /r\.isConnected && r !== document\.body\) r\.focus/, "not a node that may be gone");
-  assert.match(d, /export function createDecisions\(\{[^}]*\bback\b/);
-  const app = read("js/app.js");
-  assert.match(app, /back: \(sels\) => \{ const here = placeRegion\(\); if \(usable\(here\)\) here\.focus\(\{ preventScroll: true \}\); S\.focusNext = \[\.\.\.sels, placeRegion\]; schedule\(\); \},/, "the place at once, before the panel goes (never the page), then the control in the draw that brings it back");
-  assert.match(read("shell/render.js"), /if \(S\.focusNext\) \{ const to = S\.focusNext\.map\(\(sel\) => \(typeof sel === "function" \? sel\(\) : \$\(sel\)\)\)\.find\(usable\);/, "a landing may name the place itself");
-});
-
-await t("Runs' close takes the shared test (its own copy is gone)", () => {
-  const runs = read("modules/runs/panel.js");
-  assert.doesNotMatch(runs, /usable = \(/);
-  assert.match(runs, /\[was, like\(was\), head\?\.querySelector\("\[data-runs\]"\), head === \$\("#tpthead"\) \? threadScroller\(\) : placeRegion\(\)\]\.find\(usable\)/);
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
+redraw(controls, '<button data-runs data-n="45">Runs</button>');
+const button = controls.querySelector("button");
+button.focus();
+const hook = hookOf(button);
+assert.equal(hook, "button[data-runs]");
+redraw(controls, '<button data-runs data-n="46">Runs</button>');
+same(document.activeElement, controls.querySelector(hook));
+redraw(controls, '<button id="mode">Change mode</button>');
+controls.firstElementChild.focus();
+assert.equal(hookOf(document.activeElement), "#mode");
+redraw(controls, '<a id="mode" href="?mode">Change mode</a>');
+same(document.activeElement, controls.querySelector("#mode"));
+assert.equal(hookOf(null), null);

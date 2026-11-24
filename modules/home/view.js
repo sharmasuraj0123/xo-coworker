@@ -5,22 +5,22 @@ import { esc } from "../../core/platform/util.js";
 import { dial, ICON, NEXT_GLYPH, XO } from "../../core/ui/icons/names.js";
 import { RM, wait } from "../../core/ui/motion.js";
 import { landed } from "../../core/ui/landing.js";
-import { patch } from "../../core/ui/patch.js";
+import { redraw } from "../../core/ui/redraw.js";
 import { drawSections } from "./sections.js";
 
 /** @import { HomeChoice, HomeViewDeps, HomeViewNeed } from "./view-types.d.ts" */
 
 /** @param {HomeViewDeps} options */
 export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today, num, noun, plural, isBusy, askTitle, PROJ, kernel, SV, announce, schedule }) {
-  /** @type {Map<string, number>} */
-  const NEXT_SEEN = new Map();
+  const built = new WeakSet(), busy = new WeakSet();
+  let nextKey = /** @type {string | null} */ (null), nextSeen = 0;
 
   /** @param {HomeViewNeed[]} needs */
   function homeRender(needs) {
     const box = $("#home");
-    if (!box._built) {
+    if (!built.has(box)) {
       box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
-      box._built = true;
+      built.add(box);
     }
     const P0 = homeParts(needs);
     const working = world.state.threads.filter(isBusy);
@@ -32,7 +32,7 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
     const down = (world.state.error || world.state.statusError) && !world.state.threads.length;
     if (down) sub = "XO can't be reached right now.";
     const hello = greeting();
-    patch($("#hm-head"), `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${esc(date)}</p><h1 class="hm-h" id="home-h">${hello}.<span> ${sub}</span></h1></div>` +
+    redraw($("#hm-head"), `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${esc(date)}</p><h1 class="hm-h" id="home-h">${hello}.<span> ${sub}</span></h1></div>` +
       `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span class="cr-l">Create XO Project</span><span class="cr-s">New project</span></button></header>`);
     landed($("#hm-head"), [$("#home-h span"), $("#hm-head .create")]);
 
@@ -40,26 +40,26 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
     const card0 = nb.querySelector(".next");
     const nextHad = nb.contains(document.activeElement);
     const inPanel = P0.next && D.current() === P0.next.key;
-    if (card0 && (card0.classList.contains("noting") || card0._busy) && P0.next && card0.dataset.key === P0.next.key) { /* don't disturb a note in progress */ }
+    if (card0 && (card0.classList.contains("noting") || busy.has(card0)) && P0.next && card0.dataset.key === P0.next.key) { /* Keep the draft in place. */ }
     else if (P0.next && inPanel) {
-      nb._key = null;
-      patch(nb, `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p><p class="in-panel">${ICON.arrow}<span>Open in the panel</span></p>`);
+      nextKey = null;
+      redraw(nb, `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p><p class="in-panel">${ICON.arrow}<span>Open in the panel</span></p>`);
     } else if (P0.next) {
       const key = P0.next.key;
-      const changed = nb._key !== key;
-      if (changed) NEXT_SEEN.set(key, performance.now());
+      const changed = nextKey !== key;
+      if (changed) nextSeen = performance.now();
       const html = `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p>` + nextCardHtml(P0.next);
-      if (patch(nb, html) && changed) {
+      if (redraw(nb, html) && changed) {
         const card = nb.querySelector(".next");
-        if (nb._key && !RM.matches) card.classList.add(S.pinAnim === "undo" ? "in-undo" : "in-next");
+        if (nextKey && !RM.matches) card.classList.add(S.pinAnim === "undo" ? "in-undo" : "in-next");
         S.pinAnim = null;
       }
-      nb._key = key;
+      nextKey = key;
     } else {
-      nb._key = null;
+      nextKey = null;
       const w = working.length;
-      if (down) patch(nb, `<div class="calm is-down"><div class="calm-mark">${XO}</div><h2>Can't reach XO.</h2><p>Retrying every few seconds. Nothing you write is lost; sending waits until it's back.</p></div>`);
-      else patch(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
+      if (down) redraw(nb, `<div class="calm is-down"><div class="calm-mark">${XO}</div><h2>Can't reach XO.</h2><p>Retrying every few seconds. Nothing you write is lost; sending waits until it's back.</p></div>`);
+      else redraw(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
     }
     if (S.homeFocusNext || (nextHad && !nb.contains(document.activeElement))) {
       S.homeFocusNext = false;
@@ -82,9 +82,9 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
       if (foot.length) then += `<div class="then-foot">${foot.join("")}</div>`;
       then += `</section>`;
     } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
-    patch($("#hm-then"), then);
+    redraw($("#hm-then"), then);
     landed($("#hm-then"));
-    drawSections(kernel.places, $("#hm-body"), { needs, patch });
+    drawSections(kernel.places, $("#hm-body"), { needs, patch: redraw });
 
     endRender(P0, working);
     SV.homeOrder($("#hm-body"));
@@ -93,13 +93,12 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
   /** @param {HomeChoice} choice @param {string} [note] */
   async function nextDecide(choice, note) {
     const card = $("#hm-next .next");
-    if (!card || card._busy) return;
+    if (!card || busy.has(card)) return;
     const key = card.dataset.key;
-    const seen = NEXT_SEEN.get(/** @type {string} */ (key));
-    if (seen == null || performance.now() - seen < Kit.READ_MS) { if (card.classList.contains("r-notable")) announce("A beat to read it first."); return; }
-    card._busy = true;
+    if (key !== nextKey || performance.now() - nextSeen < Kit.READ_MS) { if (card.classList.contains("r-notable")) announce("A beat to read it first."); return; }
+    busy.add(card);
     card.focus({ preventScroll: true });
-    if (!D.decideNow(key, choice, note)) { card._busy = false; return; }
+    if (!D.decideNow(key, choice, note)) { busy.delete(card); return; }
     if (!RM.matches) { card.classList.add(choice === "deny" ? "st-back" : "st-allow"); await wait(choice === "deny" ? 260 : 300); }
     S.pin = null;
     schedule();

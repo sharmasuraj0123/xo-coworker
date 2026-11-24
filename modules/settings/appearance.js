@@ -2,11 +2,12 @@
 
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
+import { write } from "../../core/platform/storage.js";
 import { radioKeys } from "../../core/ui/a11y/keynav.js";
 import { STONE, FLAVOURS } from "../../core/ui/flavours.js";
 
 /** @param {import("./appearance-types.d.ts").AppearanceDeps} deps */
-export function wireAppearance({ THEME, applyTheme, deviceSaid }) {
+export function wireAppearance({ THEME, deviceSaid }) {
   const MODES = [["dark", "Dark"], ["light", "Light"], ["system", "System"]];
   const LOOKS = [[STONE.id, STONE.name], ...FLAVOURS.map((f) => [f.id, f.name])];
   $("#mode-seg").innerHTML = MODES.map(([v, n]) => `<button type="button" role="radio" aria-checked="false" data-mode="${v}">${esc(n)}</button>`).join("");
@@ -17,13 +18,11 @@ export function wireAppearance({ THEME, applyTheme, deviceSaid }) {
       for (const b of $(id).querySelectorAll('[role="radio"]')) { const on = (b.dataset.mode || b.dataset.flavour) === now; b.setAttribute("aria-checked", String(on)); b.classList.toggle("is-on", on); b.tabIndex = on ? 0 : -1; }
     }
   }
-  /** @param {string} key @param {string} v */
+  /** @param {"cv-theme" | "cv-flavour"} key @param {string} v */
   function lookSet(key, v) {
-    let kept = true;
-    try { localStorage.setItem(key, v); } catch { kept = false; }
-    applyTheme(THEME.get());
+    const result = THEME.set(key, v);
     lookSync();
-    return { kept };
+    return result;
   }
   $("#mode-seg").addEventListener("click", (/** @type {MouseEvent} */ e) => {
     const b = /** @type {(HTMLElement & { dataset: { mode: string } }) | null} */ ((/** @type {HTMLElement} */ (e.target)).closest("[data-mode]"));
@@ -68,9 +67,7 @@ export function wireChatBubbles(deviceSaid) {
   function setChatBubbles(on) {
     const r = document.documentElement;
     if (on) { r.dataset.msgx = "bubbles"; r.dataset.msgxTails = ""; } else { delete r.dataset.msgx; delete r.dataset.msgxTails; }
-    let kept = true;
-    try { localStorage.setItem("cv-bubbles", on ? "on" : "off"); } catch { kept = false; }
-    return { on, kept };
+    return { on, ...write("cv-bubbles", on ? "on" : "off") };
   }
   function bubblesRender() { $("#bubbles-tog").setAttribute("aria-checked", String(chatBubbles())); }
   $("#bubbles-tog").addEventListener("click", (/** @type {Event} */ e) => {

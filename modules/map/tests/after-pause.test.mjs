@@ -18,6 +18,7 @@ Object.assign(globalThis, {
     events.removeEventListener(type, listener, options);
   },
   requestAnimationFrame: (/** @type {FrameRequestCallback} */ callback) => frames.push(callback),
+  cancelAnimationFrame() {},
 });
 Object.defineProperty(globalThis, "performance", { value: { now: () => Date.now() } });
 
@@ -35,6 +36,11 @@ try {
   mock.timers.tick(1);
   assert.equal(calls, 1);
   assert.equal(armed.size, 0, "temporary listeners are removed");
+  const cancel = afterPause(() => { calls++; });
+  cancel();
+  assert.equal(armed.size, 0, "cancellation removes every input listener");
+  mock.timers.tick(800);
+  assert.equal(calls, 1, "cancellation prevents the pending work");
 } finally {
   mock.timers.reset();
 }

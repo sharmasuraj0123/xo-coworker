@@ -1,18 +1,10 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
 import { dom } from "./lib/dom.mjs";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createThreadDeleteView } from "../modules/threads/delete-view.js";
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const header = readFileSync(new URL("../modules/conversation/header.js", import.meta.url), "utf8");
-const all = readFileSync(new URL("../modules/threads/all.js", import.meta.url), "utf8");
-
-// the menu: ⋯, not ✎; built from the thread's state
-assert.match(header, /class="tw-act tw-more" data-tmenu="\$\{esc\(t\.id\)\}"[^`]*aria-label="Thread actions">\$\{ICON\.more\}<\/button>/);
 const earlier = { id: "earlier", project: "project", state: "working", busy: true, title: "Earlier", lastAt: 2, branch: "branch&name", label: "Work", canDelete: true };
 const later = { id: "later", project: "project", state: "resolved", busy: false, title: "Later", lastAt: 1 };
 const world = { state: { threads: [later, earlier] } };
@@ -99,15 +91,5 @@ assert.deepEqual(requests, [[earlier.id, { keepBranch: true, confirm: null }], [
 assert.deepEqual(places, ["p:" + earlier.project]);
 await notices[0].undo();
 assert.deepEqual(restored, [[earlier.id, { chat_id: "chat" }]]);
-assert.match(html, /<div class="tdel" id="tdel" hidden><\/div>/);
-
-// one vocabulary
-assert.doesNotMatch(app.replace(/\/\/[^\n]*/g, "") + readFileSync(new URL("../modules/chats/chats.js", import.meta.url), "utf8"), /"Idle"/, "nothing reads Idle");
-assert.match(all, /const ALL_F = \[\["all", "All"\], \["needs", "Needs you"\], \["working", "Working"\], \["waiting", "Waiting"\], \["done", "Done"\]\];/);
-assert.match(all, /const cat = \(t\) => threadState\(t, needs\);/);
-
-// the Now strip is gone, with everything that was its own
-assert.doesNotMatch(app + html, /now-wrap|nowRender|nowEdges|fitChips/);
-assert.ok(!existsSync(new URL("../js/nowfit.js", import.meta.url)), "js/nowfit.js is gone");
 
 console.log("thread-menu: ok");

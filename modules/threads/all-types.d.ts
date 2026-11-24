@@ -13,6 +13,7 @@ export interface AllThreadsDeps {
   PROJ: (project: string | null | undefined) => string;
   convProject: (view: string) => string | null | undefined;
   threadState: (thread: ThreadInfo, needs: ThreadNeed[]) => ThreadGroup;
+  threadSubtitles?: (project: string, needs: ThreadNeed[]) => (thread: ThreadInfo) => string;
   threadMark: (thread: AllThread) => string;
   glyphOf: (thread: AllThread) => string;
   rtTag: (thread: AllThread, target: string) => string;

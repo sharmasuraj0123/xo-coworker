@@ -4,24 +4,12 @@
 import { ICON } from "../../core/ui/icons/names.js";
 import { ARC, xi } from "../../core/ui/icons/icon.js";
 import { esc } from "../../core/platform/util.js";
+import { relativeShort as since, relativeWords as longAgo } from "../../core/platform/relative-time.js";
+import { redraw } from "../../core/ui/redraw.js";
 import { renderMarkdown } from "../../core/ui/markdown/markdown.js";
+import { createItemReads } from "./item-reads.js";
 
-/** @typedef {import('./types').PageData} PageData @typedef {import('./types').Detail} Detail @typedef {import('./types').Person} Person @typedef {import('./types').Issue} Issue @typedef {import('./types').Pull} Pull */
-const DAY = 86400000;
-/** @param {string | null} [iso] */
-export function since(iso, now = Date.now()) {
-  const t = Date.parse(iso || "");
-  if (!Number.isFinite(t)) return "";
-  const d = Math.max(0, now - t) / DAY;
-  return d < 1 / 24 ? `${Math.max(1, Math.round(d * 1440))}m` : d < 1 ? `${Math.round(d * 24)}h` : d < 14 ? `${Math.round(d)}d` : d < 60 ? `${Math.round(d / 7)}w` : `${Math.round(d / 30)}mo`;
-}
-/** @type {Record<string, string>} */
-const WORDS = { m: "minute", h: "hour", d: "day", w: "week", mo: "month" };
-/** @param {string | null} [iso] */
-export function longAgo(iso, now = Date.now()) {
-  const m = /^(\d+)(mo|m|h|d|w)$/.exec(since(iso, now));
-  return m ? `${m[1]} ${WORDS[m[2]]}${m[1] === "1" ? "" : "s"} ago` : "";
-}
+/** @typedef {import('./types').PageData} PageData @typedef {import('./types').Person} Person @typedef {import('./types').Issue} Issue @typedef {import('./types').Pull} Pull */
 const IC = { open: xi("state-idle"), closed: xi("check-circle"), pr: xi("pull-request"), merged: xi("merge"), ok: xi("check"), fail: xi("x-circle"), run: xi("spinner"),
   comment: xi("comment"), ext: xi("external-link"), sync: xi("sync"), thread: xi("thread"), eye: xi("eye"), thumbs: xi("thumbs-up"), back: xi("send-back"), conflict: xi("git-compare"), draft: xi("edit") };
 
@@ -97,8 +85,9 @@ export function prRow(p) {
 
 /** @param {{ stage: import('./types').Stage, api: Pick<typeof import('../../core/platform/api.js').api, 'githubIssues' | 'githubPulls' | 'githubIssue' | 'githubPull' | 'githubStatus'>, view: () => string, projectOf: (view: string) => string, work?: (project: string, item: ReturnType<typeof issueOf> | ReturnType<typeof prOf>) => void, announce?: (message: string) => void }} deps */
 export function createGhPage({ stage, api, view, projectOf, work = () => {}, announce = () => {} }) {
-  /** @type {{ tab: string, data: Map<string, PageData>, folds: Record<string, boolean>, item: string | null, detail: Map<string, Detail>, noDetail: boolean, busy: boolean, more?: string }} */
-  const G = { tab: "issues", data: new Map(), folds: { closed: true, pdone: true }, item: null, detail: new Map(), noDetail: false, busy: false };
+  /** @type {{ tab: string, data: Map<string, PageData>, folds: Record<string, boolean>, item: string | null, busy: boolean, more?: string }} */
+  const G = { tab: "issues", data: new Map(), folds: { closed: true, pdone: true }, item: null, busy: false };
+  const items = createItemReads(api, (p, key) => project() === p && G.item === key, paintItem, announce);
   const pane = document.createElement("section");
   pane.className = "gh";
   pane.setAttribute("aria-label", "Issues and pull requests");
@@ -194,7 +183,7 @@ export function createGhPage({ stage, api, view, projectOf, work = () => {}, ann
     const n = Number(key.slice(1)), isPr = key[0] === "p";
     const it = /** @type {(ReturnType<typeof issueOf> & Partial<ReturnType<typeof prOf>>) | undefined} */ (isPr ? (prsOf(d) || []).find((p) => p.number === n) : issuesOf(d).find((i) => i.number === n));
     if (!it) return `<p class="fr-none">GitHub no longer lists ${isPr ? "pull request" : "issue"} #${n} here.</p>`;
-    const more = G.detail.get(`${project()}|${key}`) || null;
+    const more = items.get(project(), key);
     const st = it.state, word = st === "merged" ? "Merged" : st === "open" ? (it.draft ? "Draft" : "Open") : "Closed";
     const badge = `<span class="badge gh-st is-${st}">${st === "merged" ? IC.merged : isPr ? IC.pr : st === "open" ? IC.open : IC.closed}${word}</span>`;
     const by = it.author ? `${dot}<span class="gh-by">${avatar(it.author)}${esc(it.author.login)}</span>` : "";
@@ -219,15 +208,11 @@ export function createGhPage({ stage, api, view, projectOf, work = () => {}, ann
       `<div class="gh-acts">${act}<a class="btn" href="${esc(it.url)}" target="_blank" rel="noopener">${IC.ext}Open on GitHub</a></div></div>` + status + changes + body + list;
   }
 
-  function paint() { pane.innerHTML = listHtml(G.data.get(project())); }
-  function paintItem() { const d = G.data.get(project()); detail.innerHTML = `<div class="fr-b gh-b gh-db">${d && G.item ? itemHtml(d, G.item) : ""}</div>`; }
-  /** @param {string} p @param {string} key */
-  async function more(p, key) {
-    const k = `${p}|${key}`;
-    if (G.noDetail || G.detail.has(k)) return;
-    try { G.detail.set(k, await (key[0] === "p" ? api.githubPull(p, Number(key.slice(1))) : api.githubIssue(p, Number(key.slice(1))))); }
-    catch (e) { if ((/** @type {import('../../core/platform/http.js').ApiError} */ (e))?.status === 404 || (/** @type {import('../../core/platform/http.js').ApiError} */ (e))?.status === 405) G.noDetail = true; return; }
-    if (G.item === key && project() === p) paintItem();
+  function paint() { redraw(pane, listHtml(G.data.get(project()))); }
+  function paintItem() {
+    const d = G.data.get(project());
+    const body = d && G.item ? itemHtml(d, G.item) : "";
+    redraw(detail, `<div class="fr-b gh-b gh-db">${body}${items.failure(project(), G.item)}</div>`);
   }
 
   pane.addEventListener("click", async (e) => {
@@ -240,7 +225,7 @@ export function createGhPage({ stage, api, view, projectOf, work = () => {}, ann
       G.busy = true; paint();
       const p = project();
       await load(p, { refresh: true });
-      G.busy = false; G.detail.clear();
+      G.busy = false; items.clear();
       if (project() === p) { paint(); announce("Read GitHub again."); }
       return;
     }
@@ -263,7 +248,8 @@ export function createGhPage({ stage, api, view, projectOf, work = () => {}, ann
     title: (key) => `${key[0] === "p" ? "Pull request" : "Issue"} #${key.slice(1)}`,
     backTo: () => repoOf(project()) || "GitHub",
     mount: (host) => host.append(detail),
-    onShow: (key) => { G.item = key; paintItem(); more(project(), key); },
+    onShow: (key) => { G.item = key; return items.show(project(), key); },
+    onHide: items.hide,
   });
 
   return {

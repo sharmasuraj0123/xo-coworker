@@ -5,12 +5,15 @@ import { createMapFolders } from "../folders.js";
 const scope = { project: "project", base: "worktree" };
 /** @type {string[][]} */
 const reads = [];
+/** @type {AbortSignal[]} */
+const signals = [];
 let redraws = 0;
 /** @type {PromiseWithResolvers<import("../folders-types.d.ts").MapTree>} */
 let pending = Promise.withResolvers();
 const folders = createMapFolders({
-  projectTree(project, rel) {
+  projectTree(project, rel, signal) {
     reads.push([project, rel]);
+    signals.push(signal);
     return pending.promise;
   },
 }, () => { redraws++; });
@@ -39,3 +42,26 @@ assert.deepEqual(folders.get(scope, "source"), loaded, "existing boxes remain vi
 pending.resolve({});
 await refresh;
 assert.deepEqual(folders.get(scope, "source"), { state: "ok", dirs: [], files: [] });
+
+const stale = pending = Promise.withResolvers();
+const older = folders.load(scope, "source", { again: true });
+await Promise.resolve();
+const olderSignal = signals.at(-1);
+pending = Promise.withResolvers();
+const newer = folders.load(scope, "source", { again: true });
+pending.resolve({ files: [{ name: "latest" }] });
+await newer;
+assert.equal(olderSignal?.aborted, true);
+stale.resolve({ files: [{ name: "stale" }] });
+await older;
+assert.deepEqual(folders.get(scope, "source"), { state: "ok", dirs: [], files: [{ name: "latest", path: "latest" }] });
+assert.equal(redraws, 4);
+
+pending = Promise.withResolvers();
+const abandoned = folders.load(scope, "source", { again: true });
+await Promise.resolve();
+folders.dispose();
+assert.equal(signals.at(-1)?.aborted, true);
+pending.resolve({ files: [{ name: "disposed" }] });
+await abandoned;
+assert.equal(redraws, 4);

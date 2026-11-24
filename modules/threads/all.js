@@ -5,18 +5,16 @@ import { short } from "../../core/platform/time.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { stateMark } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
+import { matchesThread } from "../../core/services/world/match-thread.js";
 
-/** @import { AllThread, AllThreadsDeps } from "./all-types.d.ts" */
-
-/** @import { ThreadGroup } from "./groups-types.d.ts" */
-
-/** @param {AllThreadsDeps} options */
-export function createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadMark, glyphOf, rtTag, STATE_WORDS }) {
+/** @import { AllThread, AllThreadsDeps } from "./all-types.d.ts" @param {AllThreadsDeps} options */
+export function createAllThreads({ S, world, D, SHAPE, PROJ, convProject, threadState, threadSubtitles, threadMark, glyphOf, rtTag,
+  STATE_WORDS }) {
   function allRender() {
     const pid = convProject(S.view);
     const q = (/** @type {HTMLInputElement} */ ($("#all-q"))).value.trim().toLowerCase();
     const needs = D.needItems();
-    const ts = world.state.threads.filter((t) => t.project === pid);
+    const ts = world.state.threads.filter((t) => t.project === pid), words = q ? q.split(/\s+/) : [];
     /** @param {AllThread} t */
     const cat = (t) => threadState(t, needs);
     const counts = { all: ts.length, needs: 0, working: 0, waiting: 0, done: 0 };
@@ -25,7 +23,8 @@ export function createAllThreads({ S, world, D, SHAPE, PROJ, convProject, thread
     $("#all-h").textContent = `All ${SHAPE.word("threads")} · ${PROJ(pid)}`;
     $("#all-h").title = SHAPE.word("threads") === "threads" ? "" : "XO's word: threads";
     $("#all-q").placeholder = `Search ${SHAPE.word("threads")}`;
-    let list = ts.filter((t) => { if (!q) return true; const s = `${t.title} ${t.summary || ""} ${t.branch || ""}`.toLowerCase(); return q.split(/\s+/).every((w) => s.includes(w)); });
+    const subtitle = q && pid ? threadSubtitles?.(pid, needs) : undefined;
+    let list = q ? ts.filter((t) => matchesThread(t, words, subtitle?.(t))) : ts;
     if (S.allFilter !== "all") list = list.filter((t) => cat(t) === S.allFilter);
     const order = { needs: 0, working: 1, waiting: 2, done: 3 };
     list.sort((a, b) => order[cat(a)] - order[cat(b)] || b.lastAt - a.lastAt);
@@ -45,12 +44,12 @@ export function createAllThreads({ S, world, D, SHAPE, PROJ, convProject, thread
     redraw($("#all-list"), html);
   }
   const ALL_F = [["all", "All"], ["needs", "Needs you"], ["working", "Working"], ["waiting", "Waiting"], ["done", "Done"]];
-  /** @param {Record<ThreadGroup | 'all', number>} counts */
+  /** @param {Record<AllThreadsDeps["S"]["allFilter"], number>} counts */
   function allFilterRender(counts) {
     const box = $("#all-f");
     if (box.children.length !== ALL_F.length) box.innerHTML = ALL_F.map(([k, w]) => `<button type="button" role="radio" data-af="${k}">${w}<span></span></button>`).join("");
     for (const b of /** @type {HTMLCollectionOf<HTMLButtonElement>} */ (box.children)) {
-      const k = /** @type {ThreadGroup | 'all'} */ (b.dataset.af), on = S.allFilter === k, n = String(counts[k]);
+      const k = /** @type {AllThreadsDeps["S"]["allFilter"]} */ (b.dataset.af), on = S.allFilter === k, n = String(counts[k]);
       if (b.getAttribute("aria-checked") !== String(on)) b.setAttribute("aria-checked", String(on));
       if (b.tabIndex !== (on ? 0 : -1)) b.tabIndex = on ? 0 : -1;
       b.disabled = !on && k !== "all" && !counts[k];

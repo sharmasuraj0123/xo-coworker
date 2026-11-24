@@ -17,8 +17,9 @@ export function focusOpened(menu, event) {
 /** @param {KeyboardEvent} e */
 const plain = (e) => !e.altKey && !e.ctrlKey && !e.metaKey;
 
-/** Can it take focus and a choice: not disabled (either way) and drawn. @param {any} el @returns {boolean} */
-export const usable = (el) => !!el && !el.disabled && el.getAttribute("aria-disabled") !== "true" && el.getClientRects().length > 0;
+/** @param {Element | null | undefined} el */
+export const usable = (el) =>
+  !!el && !el.matches(":disabled") && el.getAttribute("aria-disabled") !== "true" && el.getClientRects().length > 0;
 
 /** From index i (or -1, or n), the first index dir (±1) steps away, wrapping round n items, that ok() accepts; -1 if none. @param {number} n @param {number} i @param {number} dir @param {(j: number) => boolean} ok */
 export function step(n, i, dir, ok) {
@@ -30,23 +31,22 @@ export function step(n, i, dir, ok) {
 }
 
 /** Only the chosen option, else the first, is in the Tab order. @param {unknown} on */
-export const rovingTab = (on, first = false) => (on || first ? "" : ' tabindex="-1"');
+export const rovingTab = (on, first = false) => (on || first ? ' tabindex="0"' : ' tabindex="-1"');
 
 /** Arrows move through any radiogroup inside root, choosing as they go unless follow is false; Space or Enter choose. @param {Element} root */
 export function radioKeys(root, { follow = true } = {}) {
   root.addEventListener("keydown", (ev) => {
     const e = /** @type {KeyboardEvent} */ (ev);
     if (!plain(e) || e.isComposing) return;
-    const r = /** @type {any} */ (e.target).closest?.(OPTION);
+    const r = /** @type {HTMLElement | null} */ ((/** @type {Element | null} */ (e.target))?.closest?.(OPTION));
     const group = r && r.closest('[role="radiogroup"]');
-    if (!group || !root.contains(group)) return;
+    if (!r || !group || !root.contains(group)) return;
     const choose = e.key === " " ? r.tagName !== "BUTTON" : e.key === "Enter" ? !follow && r.tagName !== "BUTTON" : false;
     if (choose) { e.preventDefault(); if (usable(r) && r.getAttribute("aria-checked") !== "true") r.click(); return; }
     const dir = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0;
     if (!dir) return;
     e.preventDefault();
-    /** @type {HTMLElement[]} */
-    const all = [...group.querySelectorAll(OPTION)];
+    const all = /** @type {HTMLElement[]} */ ([...group.querySelectorAll(OPTION)]);
     const j = step(all.length, all.indexOf(r), dir, (k) => usable(all[k]));
     if (j < 0 || all[j] === r) return;
     const to = all[j];
@@ -58,9 +58,9 @@ export function radioKeys(root, { follow = true } = {}) {
 /** A mouse moving onto a usable menu item focuses it while focus is in that menu, on its open button, or nowhere. @param {Element} root */
 export function pointerFollows(root, sel = ITEM) {
   root.addEventListener("pointermove", (ev) => {
-    const e = /** @type {PointerEvent} */ (ev), tg = /** @type {any} */ (e.target);
+    const e = /** @type {PointerEvent} */ (ev), tg = /** @type {Element | null} */ (e.target);
     if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
-    const it = tg && tg.closest ? tg.closest(sel) : null, menu = it && it.closest('[role="menu"]');
+    const it = /** @type {HTMLElement | null} */ (tg?.closest?.(sel)), menu = it && it.closest('[role="menu"]');
     if (!it || !menu || !root.contains(it) || !usable(it)) return;
     const a = typeof document !== "undefined" ? document.activeElement : null;
     if (a === it) return;
@@ -74,21 +74,20 @@ export function pointerFollows(root, sel = ITEM) {
 export function menuKeys(root, { close } = {}) {
   pointerFollows(root);
   root.addEventListener("keydown", (ev) => {
-    const e = /** @type {KeyboardEvent} */ (ev), tg = /** @type {any} */ (e.target);
+    const e = /** @type {KeyboardEvent} */ (ev), tg = /** @type {HTMLElement | null} */ (e.target);
     if (!plain(e) || e.isComposing) return;
-    const menu = tg.closest?.('[role="menu"]');
-    if (!menu || !root.contains(menu)) return;
+    const menu = tg?.closest?.('[role="menu"]');
+    if (!tg || !menu || !root.contains(menu)) return;
     if (e.key === "Escape" || e.key === "Tab") {
       if (!close) return;
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); }
       close(menu, e.key);
       return;
     }
-    /** @type {HTMLElement[]} */
-    const items = [...menu.querySelectorAll(ITEM)];
+    const items = /** @type {HTMLElement[]} */ ([...menu.querySelectorAll(ITEM)]);
     const n = items.length;
     const ok = (/** @type {number} */ k) => usable(items[k]);
-    const i = items.indexOf(tg.closest(ITEM));
+    const i = items.findIndex((item) => item === tg.closest(ITEM));
     let j;
     if (e.key === "ArrowDown") j = step(n, i, 1, ok);
     else if (e.key === "ArrowUp") j = step(n, i < 0 ? n : i, -1, ok);

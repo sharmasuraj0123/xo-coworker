@@ -1,7 +1,7 @@
-// node modules/artifacts/tests/previews.test.mjs (a fake api): previews read through one queue, three at a time, nearest the view first; a failed one keeps its icon.
 import assert from "node:assert/strict";
 
 globalThis.requestAnimationFrame = (f) => setTimeout(f, 0);
+globalThis.cancelAnimationFrame = clearTimeout;
 const open = [], log = [];
 const ask = (project, rel) => new Promise((resolve) => { log.push(`${project}/${rel}`); open.push({ rel, resolve }); });
 const api = { projectFile: (project, rel) => ask(project, rel), projectImage: (project, rel) => ask(project, rel).then(() => new Blob(["x"])) };

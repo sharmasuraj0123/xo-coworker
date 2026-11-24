@@ -1,9 +1,11 @@
 // @ts-check
-import { syncList, setText } from "../../core/ui/motion.js";
+import { createScope } from "../../core/kernel/scope.js";
+import { syncList, seedList, listSeeded, setText } from "../../core/ui/motion.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { radioKeys, rovingTab } from "../../core/ui/a11y/keynav.js";
 import * as R from "./model.js";
 import { createPreviews } from "./previews.js";
+import { createMadeThumbnails } from "./made-thumbnails.js";
 import { createCards, KIND_IC } from "./cards.js";
 import { createMadeStore } from "./store.js";
 import { createArtifactsPage } from "./page.js";
@@ -30,14 +32,11 @@ export function madeNaming(m, max = 28) {
   };
 }
 
-/** @typedef {{_h?: string | null, _keys?: boolean, _scope?: string, _seeded?: boolean, _built?: boolean, _sk?: boolean}} RenderState */
-
-/** @typedef {{world: {thread: (id: string | null) => {project?: string, worktree?: string, cwd?: string} | null | undefined, project: (id: string) => unknown}, go: (view: string) => void, VW: {open: (file: {path: string, name: string, type: string, bytes: number | null, project?: string, rel?: string, why?: string}, from: Element | null) => void}, PROJ: (id: string) => string, schedule: () => void, announce: (words: string) => void, skTile: (where: boolean | "page", i?: number) => string, skBar: (w?: string, cls?: string) => string, rememberedMade: () => number | null | undefined}} MadeDeps */
-
-/** @param {MadeDeps} deps */
-export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, skBar, rememberedMade }) {
+/** @param {import("./page-types.d.ts").MadeDeps} deps */
+export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, skBar, rememberedMade, scope = createScope() }) {
   /** @type {{pid: string | null, kind: string, q: string, host: HTMLElement | null, built: boolean}} */
   const M = { pid: null, kind: "all", q: "", host: null, built: false };
+  let filterKey = "";
   /** @type {{isOpen?: boolean} | null} */
   let panel = null;
   const shown = () => !!(M.host && !M.host.hidden && panel && panel.isOpen);
@@ -47,10 +46,13 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
   const { madeOf, madePending, togglePin } = MS;
   /** @param {string | null} pid */
   const madeCount = (pid) => madeOf(pid).length;
-  const PV = createPreviews({ world, api, sharedFileRoute, box: () => AP.box(), landed: () => { schedule(); if (shown()) madeRender(); } });
+  const PV = createPreviews({ world, api, sharedFileRoute, scope, box: () => AP.box(),
+    landed: () => { schedule(); if (shown()) madeRender(); } });
 
   const { syncCards } = createCards({ PV, PROJ, naming: madeNaming });
   const tpl = document.createElement("template");
+  const recent = new WeakSet();
+  const showThumbs = createMadeThumbnails(scope, PV);
 
   function madeRender() {
     if (!M.host) return;
@@ -59,50 +61,49 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     const counts = Object.fromEntries(R.KINDS.map(([k]) => [k, k === "all" ? items.length : items.filter((m) => m.kind === k).length]));
     const list = R.filterMade(items, { kind: M.kind, q: M.q });
     const groups = R.madeGroups(list);
-    PV.loadThumbs(list.slice(0, 48)); // the first screens' worth; the queue takes them nearest first
     const h = M.host;
     if (!M.built) {
       h.innerHTML = `<div class="md-pane"><header class="md-h"><h2 id="made-h"></h2><p id="made-sub"></p></header>` +
         `<div class="all-tools md-tools"><div class="all-q"><span>${ICON.search}</span><input id="made-q" placeholder="Find something made" autocomplete="off" aria-label="Find something made"></div>` +
         `<div class="all-f" id="made-f" role="radiogroup" aria-label="Show"></div></div><div class="md-body" id="made-body"></div></div>`;
       M.built = true;
+      radioKeys(/** @type {HTMLElement} */ (h.querySelector("#made-f")));
     }
     (/** @type {HTMLElement} */ (h.querySelector("#made-h"))).textContent = pid ? PROJ(pid) : "All projects";
     const kept = items.some((m) => m.server);
     (/** @type {HTMLElement} */ (h.querySelector("#made-sub"))).textContent = `${items.length} ${kept ? (items.length === 1 ? "thing" : "things") : (items.length === 1 ? "file" : "files")}, newest first`;
     const f = R.KINDS.filter(([k]) => k === "all" || counts[k]).map(([k, w]) => `<button type="button" role="radio" data-made-kind="${k}" aria-checked="${M.kind === k}"${rovingTab(M.kind === k)}>${w}<span>${counts[k]}</span></button>`).join("");
-    const fe = (/** @type {HTMLElement & RenderState} */ (h.querySelector("#made-f")));
-    if (fe._h !== f) { redraw(fe, f); fe._h = f; }
-    if (!fe._keys) { fe._keys = true; radioKeys(fe); }
-    const be = (/** @type {HTMLElement & RenderState} */ (h.querySelector("#made-body")));
-    const scope = `${pid}|${M.kind}|${M.q}`;
-    if (be._scope !== scope) { be.innerHTML = ""; be._seeded = false; be._h = null; be._scope = scope; }
+    redraw(h.querySelector("#made-f"), f);
+    const be = /** @type {HTMLElement} */ (h.querySelector("#made-body"));
+    const nextKey = JSON.stringify([pid, M.kind, M.q]);
+    if (filterKey !== nextKey) { redraw(be, ""); seedList(be, false); filterKey = nextKey; }
     if (!groups.length) {
       const none = `<p class="md-none">${items.length ? `Nothing made matches “${esc(M.q)}”.` : `<b>Nothing made yet.</b> Files ${pid ? "its" : "your"} threads share show up here, newest first.`}</p>`;
-      if (be._h !== none) { be.innerHTML = none; be._h = none; be._seeded = false; }
+      redraw(be, none); seedList(be, false);
+      showThumbs(be, []);
       return;
     }
-    be._h = null;
-    const seeded = !!be._seeded;
+    const seeded = listSeeded(be);
     syncList(be, groups.map((g) => ({ key: g.id, g })), {
       make: ({ g }) => { const sec = document.createElement("section"); sec.className = "md-g"; sec.innerHTML = `<h3 class="md-gh">${esc(g.label)}</h3><ul class="md-grid"></ul>`; return sec; },
       update: (sec, { g }) => setText(sec.querySelector(".md-gh"), g.label),
     });
     for (const g of groups) {
-      const ul = (/** @type {HTMLElement & RenderState} */ (be.querySelector(`[data-k="${CSS.escape(g.id)}"] .md-grid`)));
-      if (seeded && !ul._seeded) ul._seeded = true;
+      const ul = /** @type {HTMLElement} */ (be.querySelector(`[data-k="${CSS.escape(g.id)}"] .md-grid`));
+      if (seeded) seedList(ul, true);
       syncCards(ul, g.items, !pid);
     }
+    showThumbs(be, list);
   }
   /** @param {HTMLElement} el */
   function mount(el) {
     M.host = el;
-    el.addEventListener("click", (e) => {
+    scope.listen(el, "click", (e) => {
       const k = (/** @type {Element} */ (e.target)).closest("[data-made-kind]");
       if (k) { M.kind = (/** @type {string} */ ((/** @type {HTMLElement} */ (k)).dataset.madeKind)); madeRender(); }
     });
-    el.addEventListener("input", (e) => { if ((/** @type {HTMLInputElement} */ (e.target)).id === "made-q") { M.q = (/** @type {HTMLInputElement} */ (e.target)).value; madeRender(); } });
-    el.addEventListener("keydown", (e) => { if (e.key === "Escape" && (/** @type {HTMLInputElement} */ (e.target)).id === "made-q" && (/** @type {HTMLInputElement} */ (e.target)).value) { e.preventDefault(); e.stopPropagation(); (/** @type {HTMLInputElement} */ (e.target)).value = ""; M.q = ""; madeRender(); } });
+    scope.listen(el, "input", (e) => { if ((/** @type {HTMLInputElement} */ (e.target)).id === "made-q") { M.q = (/** @type {HTMLInputElement} */ (e.target)).value; madeRender(); } });
+    scope.listen(el, "keydown", (event) => { const e = /** @type {KeyboardEvent} */ (event); if (e.key === "Escape" && (/** @type {HTMLInputElement} */ (e.target)).id === "made-q" && (/** @type {HTMLInputElement} */ (e.target)).value) { e.preventDefault(); e.stopPropagation(); (/** @type {HTMLInputElement} */ (e.target)).value = ""; M.q = ""; madeRender(); } });
   }
   /** @param {string | null} view */
   function showMade(view) {
@@ -126,24 +127,22 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
   /** @param {number} n */
   const skItems = (n) => Array.from({ length: n }, (_, i) => ({ key: `~sk${i}`, sk: true, i }));
 
-  /** @param {HTMLElement & RenderState} box */
+  /** @param {HTMLElement} box */
   function homeMade(box) {
     const pending = madePending(null);
     const items = pending ? [] : madeOf(null);
-    if (!box._built) {
+    if (!recent.has(box)) {
       box.innerHTML = `<section class="md-recent" aria-labelledby="md-recent-h" hidden><h2 class="hm-lbl" id="md-recent-h">${ICON.spark}Recently made</h2><ul class="md-grid is-strip"></ul></section>`;
-      box._built = true;
+      recent.add(box);
     }
     const sec = (/** @type {HTMLElement} */ (box.querySelector(".md-recent")));
-    const ul = (/** @type {HTMLElement & RenderState} */ (sec.querySelector(".md-grid")));
+    const ul = /** @type {HTMLElement} */ (sec.querySelector(".md-grid"));
     if (pending) {
       const n = Math.min(RECENT, rememberedMade() ?? 0);
       sec.hidden = !n;
       syncList(ul, skItems(n), { make: skEl(true), update: () => {} });
-      box._sk = false;
       return;
     }
-    if (box._sk) { box._sk = false; ul._seeded = true; }
     sec.hidden = !items.length;
     if (!items.length) return;
     const list = [...items.filter((m) => m.pinned), ...items.filter((m) => !m.pinned)].slice(0, RECENT);
@@ -161,7 +160,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
       .map((m) => ({ name: m.title || madeNaming(m, 48).file, sub: [m.title ? madeNaming(m, 32).file : "", `Made in ${PROJ(m.project)}`, m.threadTitle].filter(Boolean).join(" · "), icon: KIND_IC[m.kind] || ICON.doc, run: () => { if (m.kind !== "link" && m.tid) go("t:" + m.tid); openFile(m.key, null); } }));
   }
 
-  document.addEventListener("click", (e) => {
+  scope.listen(document, "click", (e) => {
     const t = (/** @type {Element} */ (e.target));
     const pin = t.closest("[data-made-pin]");
     if (pin) { togglePin((/** @type {string} */ ((/** @type {HTMLElement} */ (pin)).dataset.madePin))); return; }
@@ -177,7 +176,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     if (g) { go((/** @type {string} */ ((/** @type {HTMLElement} */ (g)).dataset.madeGo))); return; }
   });
   return {
-    homeMade, madeCount, jumpItems,
+    homeMade, madeCount, jumpItems, dispose: scope.dispose,
     /** @param {string} tid @param {string | null} project */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
     artifacts: { render: AP.render, count: () => (madePending(null) ? 0 : madeOf(null).length) },

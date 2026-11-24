@@ -1,17 +1,11 @@
-// A stop someone meant is no failure (the owner, 19 Nov 08:57Z and 09:16Z: after asking for a stop, a red card
-// said "Try again" · "Tell it what to try"; the root cause, not a dismiss). Storm gives a thread two words
-// (xo-space a868f6c, chats/thread_status.py): `state`, the API's seven, and `activity`, the true one. A thread
-// stopped on purpose (the founder's Stop intent, or its task stopped: the coordinator's stop_thread, talk.py)
-// is activity "stopped" with state "failed"; a crash or an API error is activity "failed". xo-coworker read only
-// `state`. Now: a stop someone meant asks nothing and says who stopped it, quietly; a real failure keeps its Try
-// again; an older backend (no activity) stays as it was.
-//   node tests/stopped-on-purpose.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { stopOf, stopWords } from "../core/services/world/timeline.js";
 import { sheet } from "./lib/cascade.mjs";
+import { dom } from "./lib/dom.mjs";
+import { createChecklistRenderer } from "../modules/conversation/checklist.js";
+import { createThreadGroups } from "../modules/threads/groups.js";
+import { createTopHeader } from "../shell/top-header.js";
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e.message)); process.exitCode = 1; } };
 
@@ -102,7 +96,6 @@ await t("storm: activity and wait_reason are kept; t.stop only for a stop someon
   await settle();
   assert.equal(stopWords(T("task").stop), "Stopped by the coordinator · Owner asked for Opus instead of Fable.");
 
-  // the owner writes: the task reopens and storm says it works again; nothing stopped any more
   be.push("thread", { seq: 21, ts: at, chat_id: "chat_p", thread_ts: "task", data: { ts: "task", chat_id: "chat_p", state: "working", activity: "working", wait_reason: null } });
   await settle();
   assert.equal(T("task").stop, null);
@@ -129,15 +122,27 @@ await t("Decide: a stop someone meant asks nothing; a crash and an older backend
 });
 
 // ── the thread says it quietly ────────────────────────────────────────────
-await t("the header, the sidebar row, the badge and the checklist line: quiet ink, who and why; the red only for a failure", () => {
-  const app = read("js/app.js"), css = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(app, /const glyphOf = \(t\) => \([^\n]*t\.stop \? "stopped" : t\.state\);/);
-  assert.match(app, /const stOf = \(t\) => \([^\n]*t\.stop \? "stopped" : t\.state\);/);
-  // (the chat's own head beside a file, and its badge, went with the docked chat: Files is a panel page now)
-  assert.match(read("modules/conversation/header.js"), /<span class="badge st-\$\{stOf\(t\)\}">/, "the thread's badge keeps the stop's colour");
-  assert.match(read("shell/top-header.js"), /t\.state === "failed" && !t\.stop \? "stop" : isBusy\(t\)/, "no red line along the header");
-  assert.match(read("modules/conversation/checklist.js"), /else if \(t\.stop\) \{ mode = "stopped"; nowHtml = `<span class="ck-m">\$\{ICON\.stop\}<\/span><span>\$\{esc\(stopWords\(t\.stop\)\)\}<\/span>`; \}\n\s+else if \(t\.state === "failed"\)/);
-  assert.match(read("modules/threads/groups.js"), /t\.stop \? stopWords\(t\.stop\) : t\.summary \|\| \(t\.state === "failed" \? "Stopped"/, "the panel's Threads row says the stop quietly");
+await t("A requested stop retains its explanation across the header, checklist and panel", async () => {
+  const { document } = await dom('<header id="top"><button id="top-back"></button><div id="top-who"></div><div id="top-end"></div></header><div id="thead"></div>');
+  const thread = { id: "t", project: "p", title: "Test", state: "failed", lastAt: 0,
+    stop: { by: "you", reason: "Finishing for today" }, checklist: { total: 1, done: 0, items: [{ state: "doing", text: "First task" }] } };
+  const S = { view: "t:t", parent: {}, ckOpen: {}, ckSeen: {} };
+  const convThread = () => thread, isBusy = () => false;
+  const checklistRender = createChecklistRenderer({ S, convThread, SHAPE: { on: () => false }, runsStrip: () => "", schedule() {} });
+  const header = createTopHeader({ S, convThread, isBusy, checklistRender, CH: { isChats: () => false }, STAGE: { button: () => "" },
+    PROJ: () => "Project", conversationHeaderHtml: () => "<h1>Test</h1>", LP: { ensure() {} }, tdelRender() {}, REC: { sinceLine() {} } });
+  const { panelThreads } = createThreadGroups({ world: { state: { threads: [thread] } }, D: { needItems: () => [] }, MAP: { agents: () => [] },
+    convProject: () => "p", askShort: () => "", threadMark: () => "", isBusy, isHeld: () => false });
+  header([]);
+  assert.equal(document.getElementById("top").dataset.state, "");
+  assert.equal(document.querySelector(".ck-now").dataset.mode, "stopped");
+  assert.equal(document.querySelector(".ck-now").textContent, "Stopped by you · Finishing for today");
+  assert.equal(panelThreads("t:t")[0].rows[0].sub, "Stopped by you · Finishing for today");
+  thread.stop = null;
+  header([]);
+  assert.equal(document.getElementById("top").dataset.state, "stop");
+  assert.equal(document.querySelector(".ck-now").dataset.mode, "failed");
+  const css = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(css, /\.g-stopped,\.g-resolved,\.g-held,\.g-idle\{color:var\(--ink-4\)\}/);
   assert.match(css, /\.st-stopped\{--st:var\(--ink-4\)\}/);
 });

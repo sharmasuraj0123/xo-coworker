@@ -2,34 +2,37 @@
 
 // Brings a region's DOM to new HTML in place, keyed by id, data-key or data- hooks, so focus, caret and a press survive.
 
-import { inSight, bringWhole, usable } from "./a11y/focus.js";
+import { inSight, bringWhole, hookOf } from "./a11y/focus.js";
+import { pressedNode } from "./press.js";
+import { reconcileRows } from "./reconcile.js";
+export { pressedNode } from "./press.js";
+export const reconcile = reconcileRows.bind(null, redraw);
+/** @type {WeakMap<Element, { html: string, first: ChildNode | null, last: ChildNode | null }>} */
+const markup = new WeakMap();
 
-/** @typedef {any} Node_ */
-
-/** Redraws el's children to html in place; true if anything changed. A focused control the new HTML drops is its caller's to hand on. @param {Element} el @param {string} html */
-export function redraw(el, html) {
+/** @param {Element | null | undefined} el @param {string} html @param {import("./redraw-types.d.ts").RedrawOptions} [options] */
+export function redraw(el, html, { preserve } = {}) {
+  if (!el) return false;
+  const prior = markup.get(el);
+  if (prior?.html === html && prior.first === el.firstChild && prior.last === el.lastChild) return false;
   const tpl = document.createElement("template");
   tpl.innerHTML = html;
   const focus = deepActive();
-  // a control wholly in sight stays so when what's drawn above it grows
   const seen = !!focus && el.contains(focus) && inSight(focus);
-  const changed = syncChildren(el, tpl.content, focus, [focus, pressedNode()].filter(Boolean));
-  if (changed && seen && focus.isConnected && !inSight(focus)) bringWhole(focus);
+  const recover = focus && el.contains(focus) && focus !== el ? focusSelector(focus) : null;
+  const changed = syncChildren(el, tpl.content, focus, [focus, pressedNode()], preserve && ((node) => own(node) || preserve(node)));
+  markup.set(el, { html, first: el.firstChild, last: el.lastChild });
+  if (focus?.isConnected) {
+    if (changed && seen && !inSight(focus)) bringWhole(focus);
+  } else if (recover) (/** @type {HTMLElement | null} */ (el.querySelector(recover)))?.focus({ preventScroll: true });
   return changed;
 }
 
-/** The node under a pressed pointer until its click: Chromium drops the click when it leaves the page, so a redraw keeps it. @type {any} */
-let pressed = null;
-/** @type {ReturnType<typeof setTimeout> | undefined} */
-let pressEnd;
-if (typeof document !== "undefined" && document.addEventListener) {
-  document.addEventListener("pointerdown", (e) => { clearTimeout(pressEnd); pressed = e.target; }, true);
-  document.addEventListener("pointerup", () => { clearTimeout(pressEnd); pressEnd = setTimeout(() => { pressed = null; }, 600); }, true); // a touch's click can come a moment after the finger lifts
-  document.addEventListener("pointercancel", () => { pressed = null; }, true);
-  document.addEventListener("click", () => { clearTimeout(pressEnd); pressed = null; }, true);
+/** @param {Element} node */
+function focusSelector(node) {
+  const fid = node.getAttribute("data-fid");
+  return fid ? `[data-fid="${CSS.escape(fid)}"]` : hookOf(node);
 }
-/** The node a pointer is pressing now (null when none, or it already left the page). @returns {Element | null} */
-export const pressedNode = () => (pressed && pressed.isConnected ? pressed : null);
 
 /** Brings node itself to the one element html draws, in place when tag and key match, else replaced; returns the node now in the page. @param {Element} node @param {string} html */
 export function redrawNode(node, html) {
@@ -39,16 +42,16 @@ export function redrawNode(node, html) {
   if (!want) return node;
   if (!same(node, want)) { node.replaceWith(want); return want; }
   const focus = deepActive();
-  syncNode(node, want, focus, [focus, pressedNode()].filter(Boolean));
+  if (syncNode(node, want, focus, [focus, pressedNode()].filter(Boolean))) markup.delete(node);
   return node;
 }
 
 const VOLATILE = /^data-(inv|inv-now)$/;
 /** @returns {Element | null} */
 function deepActive() { let a = document.activeElement; while (a && a.shadowRoot && a.shadowRoot.activeElement) a = a.shadowRoot.activeElement; return a; }
-/** @param {Node_} n */
+/** @param {Node} n */
 function keyOf(n) {
-  if (n.nodeType !== 1) return null;
+  if (!(n instanceof Element)) return null;
   if (n.id) return "#" + n.id;
   const k = n.getAttribute("data-key");
   if (k != null) return "k:" + k;
@@ -56,121 +59,60 @@ function keyOf(n) {
   for (const a of n.attributes) if (a.name.startsWith("data-") && !VOLATILE.test(a.name)) hooks += `[${a.name}=${a.value}]`;
   return hooks || null;
 }
-/** @param {Node_} a @param {Node_} b */
-const same = (a, b) => a.nodeType === b.nodeType && (a.nodeType !== 1 || (a.tagName === b.tagName && keyOf(a) === keyOf(b)));
-
-/** A node the page's own script added (data-own) is never matched, moved or removed. @param {Node_} n */
-const own = (n) => n.nodeType === 1 && n.hasAttribute("data-own");
-/** @param {Node_} from @param {Node_} to @param {Element | null} focus @param {Node_[]} [hold] @returns {boolean} */
-function syncChildren(from, to, focus, hold = []) {
+/** @param {Node} a @param {Node} b */
+const same = (a, b) => a.nodeType === b.nodeType && (!(a instanceof Element) ||
+  (b instanceof Element && a.tagName === b.tagName && keyOf(a) === keyOf(b)));
+/** @param {Node} n */
+const own = (n) => n instanceof Element && n.hasAttribute("data-own");
+/** @param {Node} from @param {Node} to @param {Element | null} focus @param {(Node | null)[]} hold */
+function syncChildren(from, to, focus, hold, skip = own) {
   let changed = false;
   let cur = from.firstChild;
-  while (cur && own(cur)) cur = cur.nextSibling; // own nodes at the start stay first
+  while (cur && skip(cur)) cur = cur.nextSibling;
   for (const want of [...to.childNodes]) {
     let match = null;
-    for (let c = cur; c; c = c.nextSibling) if (!own(c) && same(c, want)) { match = c; break; }
+    for (let c = cur; c; c = c.nextSibling) if (!skip(c) && same(c, want)) { match = c; break; }
     if (match) {
       // one holding focus or a press isn't moved: what's in between moves instead
       if (match !== cur) {
-        if (hold.some((h) => match.contains(h))) { while (cur && cur !== match) { const next = cur.nextSibling; if (!own(cur)) from.appendChild(cur); cur = next; } changed = true; }
-        else { from.insertBefore(match, cur); changed = true; }
+        if (hold.some((h) => match.contains(h))) {
+          while (cur && cur !== match) {
+            const next = cur.nextSibling;
+            if (!skip(cur)) from.appendChild(cur);
+            cur = next;
+          }
+        } else from.insertBefore(match, cur);
+        changed = true;
       }
       if (syncNode(match, want, focus, hold)) changed = true;
       cur = match.nextSibling;
     } else {
-      from.insertBefore(want, cur); // adopted from the template: it's new
+      from.insertBefore(want, cur);
       changed = true;
     }
   }
-  while (cur) { const next = cur.nextSibling; if (!own(cur)) { from.removeChild(cur); changed = true; } cur = next; }
+  while (cur) { const next = cur.nextSibling; if (!skip(cur)) { from.removeChild(cur); changed = true; } cur = next; }
   return changed;
 }
 
-/** @param {Node_} node @param {Node_} want @param {Element | null} focus @param {Node_[]} hold @returns {boolean} */
+/** @param {Node} node @param {Node} want @param {Element | null} focus @param {(Node | null)[]} hold @returns {boolean} */
 function syncNode(node, want, focus, hold) {
   if (node.nodeType === 3 || node.nodeType === 8) {
-    if (node.nodeValue !== want.nodeValue) { node.nodeValue = want.nodeValue; return true; }
+    if (node.textContent !== want.textContent) { node.textContent = want.textContent; return true; }
     return false;
   }
-  if (node.nodeType !== 1) return false;
+  if (!(node instanceof Element) || !(want instanceof Element)) return false;
+  markup.delete(node);
   let changed = false;
   for (const a of [...node.attributes]) if (!want.hasAttribute(a.name) && !VOLATILE.test(a.name)) { node.removeAttribute(a.name); changed = true; }
   for (const a of want.attributes) if (node.getAttribute(a.name) !== a.value) { node.setAttribute(a.name, a.value); changed = true; }
-  const tag = node.tagName;
-  // a box or a radio has no draft: it always shows what the new HTML says
-  if (tag === "INPUT" && (node.type === "checkbox" || node.type === "radio")) {
-    if (node.checked !== want.hasAttribute("checked")) { node.checked = want.hasAttribute("checked"); changed = true; }
+  const tag = node.tagName, field = /** @type {HTMLInputElement} */ (node);
+  if (tag === "INPUT" && (field.type === "checkbox" || field.type === "radio")) {
+    if (field.checked !== want.hasAttribute("checked")) { field.checked = want.hasAttribute("checked"); changed = true; }
   } else if ((tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") && node !== focus) {
-    const v = tag === "TEXTAREA" ? want.textContent : want.getAttribute("value"); // a field keeps what's typed while the person is in it
-    if (v != null && node.value !== v) { node.value = v; changed = true; }
+    const v = tag === "TEXTAREA" ? want.textContent : want.getAttribute("value");
+    if (v != null && field.value !== v) { field.value = v; changed = true; }
   }
-  if (tag === "TEXTAREA") return changed;
-  if (tag.includes("-")) return changed; // a custom element draws its own insides
+  if (node.tagName === "TEXTAREA" || node.tagName.includes("-")) return changed;
   return syncChildren(node, want, focus, hold) || changed;
-}
-
-/** Where focus can land in a row: its controls, in order. */
-const LANDING = 'button:not(:disabled), a[href], input:not([type="hidden"]):not(:disabled), textarea:not(:disabled), [tabindex="0"]';
-/** @param {HTMLElement} box @param {HTMLElement} row @param {Element | null} before */
-function moveRow(box, row, before) {
-  if (row.isConnected && typeof box.moveBefore === "function") try { box.moveBefore(row, before); return; } catch { /* Fall back when the move is unsupported for this row. */ }
-  box.insertBefore(row, before);
-}
-
-/** Keyed rows update in place when the row tag matches; returns the new rows. @param {HTMLElement} box @param {{ key: string, html: string }[]} items @param {{ quiet?: boolean, fallback?: (() => any) | null }} [opts] */
-export function reconcile(box, items, { quiet = false, fallback = null } = {}) {
-  /** @type {Map<string, any>} */
-  const old = new Map();
-  for (const el of /** @type {HTMLCollectionOf<HTMLElement>} */ (box.children)) if (el.dataset.k) old.set(el.dataset.k, el);
-  /** @type {any[]} */
-  const added = [];
-  const tpl = document.createElement("template");
-  /** @type {any[]} */
-  const inPlace = [];
-  const active = document.activeElement;
-  // a row that's going while it holds focus hands it to the nearest row that stays, before it, else after it, else the fallback
-  const keep = new Set(items.map((it) => it.key));
-  const rows = /** @type {HTMLElement[]} */ ([...box.children]);
-  const going = rows.find((el) => el.dataset.k && !keep.has(el.dataset.k) && el.contains(active));
-  /** @type {any} */
-  let near = null;
-  if (going) {
-    for (let s = /** @type {HTMLElement | null} */ (going.previousElementSibling); s && !near; s = /** @type {HTMLElement | null} */ (s.previousElementSibling)) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
-    for (let s = /** @type {HTMLElement | null} */ (going.nextElementSibling); s && !near; s = /** @type {HTMLElement | null} */ (s.nextElementSibling)) if (s.dataset.k && keep.has(s.dataset.k)) near = s.dataset.k;
-  }
-  items.forEach((it, i) => {
-    let el = old.get(it.key);
-    if (el && el._h !== it.html) {
-      tpl.innerHTML = it.html.trim();
-      const fresh = /** @type {any} */ (tpl.content.firstElementChild);
-      if (fresh && fresh.tagName === el.tagName) {
-        for (const a of [...el.attributes]) if (a.name !== "data-k" && !fresh.hasAttribute(a.name)) el.removeAttribute(a.name);
-        for (const a of fresh.attributes) if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value);
-        redraw(el, fresh.innerHTML);
-        el._h = it.html;
-        inPlace.push(el);
-      } else {
-        fresh.dataset.k = it.key; fresh._h = it.html;
-        const had = el === active;
-        el.replaceWith(fresh); el = fresh;
-        if (had && fresh.tabIndex >= 0) fresh.focus({ preventScroll: true });
-      }
-    } else if (!el) {
-      tpl.innerHTML = it.html.trim();
-      el = tpl.content.firstElementChild;
-      el.dataset.k = it.key; el._h = it.html;
-      if (!quiet) { el.classList.add("is-new"); added.push(el); }
-    }
-    old.delete(it.key);
-    const at = box.children[i];
-    if (at !== el) moveRow(box, el, at || null);
-  });
-  if (going) {
-    near = near && /** @type {HTMLElement[]} */ ([...box.children]).find((el) => el.dataset.k === near);
-    const to = (near && [...near.querySelectorAll(LANDING)].find(usable)) || (fallback && fallback());
-    if (to && to.focus) to.focus({ preventScroll: true });
-  }
-  for (const el of old.values()) el.remove();
-  for (const el of inPlace) if (el.isConnected) el.dispatchEvent(new CustomEvent("redrawn", { bubbles: true })); // once the list is in its final order
-  return added;
 }

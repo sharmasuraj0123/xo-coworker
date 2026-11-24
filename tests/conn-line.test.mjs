@@ -1,14 +1,8 @@
-// The line above the composer and the send gate are one rule (Launchpad grader on 83929bb): both ask about where the
-// draft goes (composerDest()). A reply in a thread is never routed, so no routing-Off line shows beside its Send; a
-// draft naming a chat whose routing is off shows it; a real connection or runtime failure shows wherever you are.
-// No browser.
-//   node tests/conn-line.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { dom } from "./lib/dom.mjs";
+import { createNoticeLine } from "../modules/conversation/notice-line.js";
 
 const T = await import("../core/services/world/timeline.js");
-const notices = readFileSync(new URL("../modules/conversation/notice-line.js", import.meta.url), "utf8");
-const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
 const w = (router, own = null, extra = {}) => ({ loaded: true, runtimes: [], pools: {}, router, projects: [{ id: "workspace", routing: null }, { id: "alpha", routing: own }], ...extra });
 const OFF = { mode: "off" }, AGENT = { mode: "agent" };
 let passed = 0;
@@ -27,8 +21,17 @@ t("a real failure shows wherever you are, a thread's reply too", () => {
   assert.equal(T.connLine(w(AGENT, null, { conn: "down" }), { thread: true }).kind, "down");
   assert.match(T.connLine(w(AGENT, null, { runtimes: [{ name: "claude_code", cli: { logged_in: false } }] }), { thread: true }).text, /isn't connected/);
 });
-t("the app draws the line for the composer's destination (the gate's), not this place's chat", () => {
-  assert.match(notices, /connLine\(world\.state, box === \$\("#herald"\) \? connDest\(\) : \{ thread: true \}\)/, "the chat's line asks about connDest(); the panel's thread page's is a thread's reply");
-  assert.match(delivery, /function connDest\(\) \{[^}]*composerDest\(\)/, "which is composerDest(), the gate's");
+const { document } = await dom('<main id="app"><div id="dock"><div id="herald"></div></div></main><div id="panel"><div id="tpdock"><div id="tpherald"></div></div></div>');
+const main = {}, reply = {};
+let composer = main;
+const line = createNoticeLine({
+  S: { view: "home", herald: null }, world: { state: w(AGENT, OFF) }, MK: main, composerNow: () => composer,
+  panelHost: () => document.getElementById("panel"), connDest: () => ({ pid: "alpha" }), placeRegion: () => null,
 });
+line.heraldRender([]);
+assert.match(document.getElementById("herald").textContent, /off for this chat/i);
+composer = reply;
+line.heraldRender([]);
+assert.equal(document.getElementById("tpherald").textContent, "");
+assert.equal(document.getElementById("herald").textContent, "");
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

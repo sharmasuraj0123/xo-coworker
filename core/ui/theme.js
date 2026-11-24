@@ -1,18 +1,19 @@
 // @ts-check
 
-import { $ } from "../platform/dom.js";
 import { ICON } from "./icons/names.js";
+import { redraw } from "./redraw.js";
+import { createThemePreference } from "./theme-preference.js";
 
 /** @param {(theme: "light" | "dark") => void} setDiffTheme */
 export function createTheme(setDiffTheme) {
   const LIGHT_OS = matchMedia("(prefers-color-scheme: light)");
-  const THEME = {
-    pref() { try { const t = localStorage.getItem("cv-theme"); return t === "light" || t === "system" ? t : "dark"; } catch { return "dark"; } },
-    get() { const p = THEME.pref(); return p === "system" ? (LIGHT_OS.matches ? "light" : "dark") : p; },
-    flavour() { try { const f = localStorage.getItem("cv-flavour"); return f && /^[a-z-]+$/.test(f) ? f : "stone"; } catch { return "stone"; } },
-  };
-  /** @param {"light" | "dark"} t */
-  function applyTheme(t) {
+  const preference = createThemePreference(LIGHT_OS);
+  const THEME = { ...preference, set: (/** @type {Parameters<typeof preference.save>} */ ...args) => {
+    const result = preference.save(...args); applyTheme(preference.get()); return result;
+  } };
+  /** @param {"light" | "dark"} t @param {boolean} [persist] */
+  function applyTheme(t, persist = false) {
+    if (persist) return THEME.set("cv-theme", t);
     document.documentElement.dataset.theme = t;
     const f = THEME.flavour();
     if (f === "stone") delete document.documentElement.dataset.flavour; else document.documentElement.dataset.flavour = f;
@@ -20,11 +21,11 @@ export function createTheme(setDiffTheme) {
     document.querySelector('meta[name="color-scheme"]')?.setAttribute("content", t);
     const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
     if (canvas) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", canvas);
-    const b = /** @type {(HTMLButtonElement & { _ic?: string }) | null} */ ($("#theme"));
+    const b = document.getElementById("theme");
     if (b) {
       b.setAttribute("aria-checked", String(t === "light")); b.title = t === "light" ? "Light mode is on. Switch to dark" : "Switch to light mode";
       const ic = `<span class="gear-ic" aria-hidden="true">${t === "light" ? ICON.moon : ICON.sun}</span>`;
-      if (b._ic !== ic) { b.innerHTML = ic; b._ic = ic; }
+      redraw(b, ic);
     }
   }
   applyTheme(THEME.get());
@@ -34,10 +35,9 @@ export function createTheme(setDiffTheme) {
 
 /** @param {ReturnType<typeof createTheme>["applyTheme"]} applyTheme @param {() => void} lookSync @param {(message: string) => void} announce */
 export function wireThemeToggle(applyTheme, lookSync, announce) {
-  $("#theme").addEventListener("click", () => {
+  document.getElementById("theme")?.addEventListener("click", () => {
     const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
-    try { localStorage.setItem("cv-theme", t); } catch { /* private */ }
-    applyTheme(t);
+    applyTheme(t, true);
     lookSync();
     announce(t === "light" ? "Light mode" : "Dark mode");
   });

@@ -1,6 +1,5 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { mock } from "node:test";
 import { dom } from "./lib/dom.mjs";
 import { createRecordLines } from "../modules/chats/record-lines.js";
@@ -35,6 +34,3 @@ try {
 } finally {
   mock.timers.reset();
 }
-
-const redraw = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
-assert.doesNotMatch(redraw, /around\.find|place\.focus/, "redraw leaves successor focus to the caller");

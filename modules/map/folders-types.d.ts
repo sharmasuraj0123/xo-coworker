@@ -24,5 +24,5 @@ export interface MapTree {
 }
 
 export interface TreeReader {
-  projectTree: (project: string, rel: string) => Promise<MapTree>;
+  projectTree: (project: string, rel: string, signal: AbortSignal) => Promise<MapTree>;
 }

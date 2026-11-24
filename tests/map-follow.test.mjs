@@ -5,9 +5,9 @@ import { dom } from "./lib/dom.mjs";
 
 const { window, document } = await dom('<div id="tree"></div><div id="graph"></div>');
 const frames = new Map();
-let frameId = 0, mode = "tree", boxWidth = 100;
+let frameId = 0, mode = "tree", boxWidth = 100, phone = false;
 let target = "/home/coder/project/one.js";
-const dimensions = { clientWidth: 520, clientHeight: 400, offsetWidth: 100, offsetHeight: 32, offsetLeft: 0, offsetTop: 0 };
+const dimensions = { clientWidth: 520, clientHeight: 400, clientLeft: 0, clientTop: 0, offsetWidth: 100, offsetHeight: 32, offsetLeft: 0, offsetTop: 0 };
 for (const [key, value] of Object.entries(dimensions)) {
   Object.defineProperty(window.HTMLElement.prototype, key, {
     configurable: true,
@@ -19,6 +19,7 @@ Object.assign(globalThis, {
   removeEventListener: (...args) => window.removeEventListener(...args),
   localStorage: { getItem: () => mode, setItem: () => {} },
   getComputedStyle: window.getComputedStyle,
+  matchMedia: () => ({ get matches() { return phone; }, addEventListener() {}, removeEventListener() {} }),
   requestAnimationFrame(callback) { frames.set(++frameId, callback); return frameId; },
   cancelAnimationFrame(id) { frames.delete(id); },
   fetch: async () => Response.json({ dirs: [], files: ["one.js", "two.js", "three.js"].map((name) => ({ name })) }),
@@ -49,8 +50,8 @@ try {
     mode = view;
     target = "/home/coder/project/one.js";
     const host = document.getElementById(view);
-    const spoken = [];
-    const map = createMap({ world, go() {}, announce: (text) => spoken.push(text), isBusy: () => true, openFile() {}, stepLineHtml: () => "" });
+    const spoken = [], opened = [];
+    const map = createMap({ world, go: (place) => opened.push(place), announce: (text) => spoken.push(text), isBusy: () => true, openFile() {}, stepLineHtml: () => "" });
     map.render("t:worker");
     map.mount(host);
     withFrame();
@@ -74,6 +75,18 @@ try {
     assert.equal(spoken.at(-1), "Following the agent.");
     assert.notEqual(canvas.style.transform, beforeFollow, `${view} pans to the agent`);
     assert.equal(scale(), zoomed, `${view} retains the user's zoom when Follow starts`);
+    const viewport = host.querySelector(".dg");
+    const tag = host.querySelector(".dg-tag");
+    viewport.getBoundingClientRect = () => ({ left: 0, right: 520, top: 0, bottom: 400 });
+    tag.getBoundingClientRect = () => ({ left: -1200, right: -1100, top: 60, bottom: 92, width: 100, height: 32 });
+    const centered = canvas.style.transform;
+    tag.focus();
+    assert.notEqual(canvas.style.transform, centered, "focus reveals an offscreen tag at once");
+    assert.equal(canvas.classList.contains("is-glide"), false);
+    assert.equal(follow.getAttribute("aria-pressed"), "true");
+    const revealed = canvas.style.transform;
+    follow.focus();
+    assert.notEqual(canvas.style.transform, revealed, "leaving the drawing restores Follow");
     target = "/home/coder/project/two.js";
     map.render("t:worker");
     for (let n = 0; n < 40; n++) { mock.timers.tick(16); withFrame(); }
@@ -92,8 +105,19 @@ try {
       press("fit");
       assert.ok(scale() < fitted, "a loaded font makes Fit account for the wider drawing");
       boxWidth = 100;
+      const act = () => tag.dispatchEvent(Object.assign(new window.Event("click", { bubbles: true }), { detail: 1 }));
+      for (let i = 0; i < 10; i++) press("out");
+      phone = true;
+      const small = scale();
+      act();
+      assert.equal(opened.length, 0, "the first press brings a small tag closer");
+      assert.match(spoken.at(-1), /press it again to open it/);
+      assert.ok(scale() > small);
+      act();
+      assert.deepEqual(opened, ["t:worker"]);
+      phone = false;
     }
-    map.hide();
+    map.unmount();
   }
 } finally {
   mock.timers.reset();

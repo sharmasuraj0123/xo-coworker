@@ -1,12 +1,10 @@
 // @ts-check
 
-// One motion system on the platform's curve and reduced-motion query: things arrive, glide and leave, never pop or jump.
-
 import { EASE, RM } from "../platform/motion.js";
+import { IN, MOVE, OUT } from "./tokens.js";
 
-export { EASE, RM };
-export const IN = 280, MOVE = 320, OUT = 160;
-export const EXPAND_MS = 320;
+export { EASE, RM, IN, MOVE, OUT };
+export const EXPAND_MS = MOVE;
 export const still = () => RM.matches || typeof Element === "undefined" || typeof Element.prototype.animate !== "function";
 
 /** An animation's time: none under reduced motion. Never for time a person needs to act (see hold). @param {number} ms */
@@ -31,15 +29,20 @@ export function fadeImage(img) {
   img.addEventListener("error", () => { img.style.opacity = ""; }, { once: true });
 }
 
-/** A list's children kept in step with items without redrawing what stayed: new ones arrive, pushed ones glide (FLIP), gone ones leave. @template {{ key: string }} T @param {any} box @param {T[]} items @param {{ make: (it: T) => HTMLElement, update: (el: HTMLElement, it: T) => void }} fns */
+const seededLists = new WeakSet();
+export function seedList(/** @type {Element} */ box, /** @type {boolean} */ seeded) {
+  if (seeded) seededLists.add(box); else seededLists.delete(box);
+}
+export const listSeeded = (/** @type {Element} */ box) => seededLists.has(box);
+
+/** @template {{key: string}} T @param {HTMLElement} box @param {T[]} items @param {import("./motion-types.d.ts").ListDraw<T>} fns */
 export function syncList(box, items, { make, update }) {
-  /** @type {HTMLElement[]} */
-  const kids = [...box.children];
-  const old = new Map(kids.filter((el) => el.dataset.k).map((el) => [/** @type {string} */ (el.dataset.k), el]));
-  for (const el of kids) if (!el.dataset.k) el.remove();
-  const first = !box._seeded;
+  const kids = /** @type {HTMLElement[]} */ ([...box.children]);
+  const old = new Map();
+  for (const el of kids) if (el.dataset.k) old.set(el.dataset.k, el); else el.remove();
+  const first = !listSeeded(box);
   const same = kids.length === items.length && items.every((it, i) => kids[i].dataset.k === it.key); // only patch in place
-  if (same) { items.forEach((it, i) => update(kids[i], it)); box._seeded = true; return []; }
+  if (same) { items.forEach((it, i) => update(kids[i], it)); seedList(box, true); return []; }
   const animate = !first && !still() && box.isConnected && box.getClientRects().length > 0;
   const before = animate ? new Map([...old].map(([k, el]) => [k, el.getBoundingClientRect()])) : null;
   /** @type {HTMLElement[]} */
@@ -56,7 +59,7 @@ export function syncList(box, items, { make, update }) {
     if (at !== el) box.insertBefore(el, at || null);
     prev = el;
   }
-  box._seeded = true;
+  seedList(box, true);
   if (!before) return fresh;
   fresh.forEach((el, i) => arrive(el, { delay: Math.min(i, 4) * 40 }));
   for (const [k, r0] of before) {
@@ -65,20 +68,17 @@ export function syncList(box, items, { make, update }) {
     const r1 = el.getBoundingClientRect();
     const dx = r0.left - r1.left, dy = r0.top - r1.top;
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
-    // along its row it glides; to another row it settles in place
     if (Math.abs(dy) > 1) el.animate([{ opacity: 0, transform: "translateY(6px) scale(.985)" }, { opacity: 1, transform: "none" }], { duration: IN, delay: 60, easing: EASE, fill: "backwards" });
     else el.animate([{ transform: `translate(${dx}px,0)` }, { transform: "none" }], { duration: MOVE, easing: EASE });
   }
   return fresh;
 }
 
-/** Sets innerHTML only when it changed. @param {any} el @param {string} html */
-export function setHtml(el, html) { if (el && el._h !== html) { el.innerHTML = html; el._h = html; return true; } return false; }
 /** Sets text only when it changed. @param {Element | null | undefined} el @param {string} text */
 export function setText(el, text) { if (el && el.textContent !== text) el.textContent = text; }
 
 /** A smooth height change: measure, mutate, measure, animate the height while the new content cross-fades in. @param {Element | null | undefined} el @param {() => void} mutate @param {{ duration?: number, fade?: Element | null }} [opts] */
-export function morph(el, mutate, { duration = 320, fade = null } = {}) {
+export function morph(el, mutate, { duration = MOVE, fade = null } = {}) {
   if (!el) { mutate(); return; }
   const h0 = el.getBoundingClientRect().height;
   mutate();
@@ -92,17 +92,18 @@ export function morph(el, mutate, { duration = 320, fade = null } = {}) {
   if (fade) fade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.8), easing: EASE, delay: Math.round(duration * 0.15), fill: "backwards" });
 }
 
-/** A smooth disclosure: box carries .is-open, body's height moves while its contents cross-fade; closed, body is hidden. @param {any} box @param {any} body @param {boolean} open @param {{ onStep?: (() => void) | null, frame?: any }} [opts] */
+const closing = new WeakSet();
+/** @param {Element | null} box @param {HTMLElement | null} body @param {boolean} open @param {import("./motion-types.d.ts").ExpandOptions} [opts] */
 export function expand(box, body, open, { onStep = null, frame = null } = {}) {
   if (!box || !body) return;
-  if (frame) { expandFrame(box, body, open, frame, onStep); return; }
+  if (frame) { expandFrame(box, body, open, /** @type {HTMLElement} */ (frame), onStep); return; }
   const was = box.classList.contains("is-open");
-  if (was === open && !body._closing) return;
+  if (was === open && !closing.has(body)) return;
   const rm = RM.matches;
   body.getAnimations?.().forEach((/** @type {Animation} */ a) => a.cancel());
   const inner = body.firstElementChild;
   const h0 = was && !body.hidden ? body.getBoundingClientRect().height : 0;
-  body._closing = false;
+  closing.delete(body);
   if (open) {
     body.hidden = false;
     box.classList.add("is-open");
@@ -115,16 +116,16 @@ export function expand(box, body, open, { onStep = null, frame = null } = {}) {
   } else {
     box.classList.remove("is-open");
     if (rm || !h0) { body.hidden = true; return; }
-    body._closing = true;
+    closing.add(body);
     body.style.overflow = "hidden";
-    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: EASE, fill: "forwards" });
+    if (inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: OUT, easing: EASE, fill: "forwards" });
     const a = body.animate([{ height: `${h0}px` }, { height: "0px" }], { duration: EXPAND_MS - 40, easing: EASE });
-    a.onfinish = () => { if (body._closing) { body.hidden = true; body._closing = false; } body.style.overflow = ""; inner?.getAnimations?.().forEach((/** @type {Animation} */ x) => x.cancel()); };
+    a.onfinish = () => { if (closing.delete(body)) body.hidden = true; body.style.overflow = ""; inner?.getAnimations?.().forEach((x) => x.cancel()); };
   }
   if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 }
 
-/** The same for a card with a capped height: its frame animates, so the motion stays continuous once its body scrolls. @param {any} box @param {any} body @param {boolean} open @param {any} frame @param {(() => void) | null} onStep */
+/** @param {Element} box @param {HTMLElement} body @param {boolean} open @param {HTMLElement} frame @param {(() => void) | null} onStep */
 function expandFrame(box, body, open, frame, onStep) {
   const rm = RM.matches;
   frame.getAnimations?.().forEach((/** @type {Animation} */ a) => a.id === "xf" && a.cancel());
@@ -139,12 +140,11 @@ function expandFrame(box, body, open, frame, onStep) {
   const a = frame.animate([{ height: `${h0}px` }, { height: `${h1}px` }], { duration: EXPAND_MS, easing: EASE });
   a.id = "xf";
   if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
-  if (!open && inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: "forwards" });
+  if (!open && inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: OUT, fill: "forwards" });
   a.onfinish = a.oncancel = () => { frame.style.overflow = ""; if (!box.classList.contains("is-open")) body.hidden = true; inner?.getAnimations?.().forEach((/** @type {Animation} */ x) => x.cancel()); };
   if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 }
 
-/** Keeps every spinner, arc and shimmer turning in step, set once anything holding one is added, before the frame paints. */
 export function keepTurning() {
   if (typeof document === "undefined" || !document.getAnimations) return;
   const sync = () => {

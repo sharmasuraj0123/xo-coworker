@@ -1,13 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
 import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../shell/sideorder.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { dom } from "./lib/dom.mjs";
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const ui = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
 const R = (active = [], urgent = []) => ["a", "b", "c", "d"].map((id) => ({ id, active: active.includes(id) || urgent.includes(id), urgent: urgent.includes(id) }));
 
 await t("the first draw puts what is active on top at once, in the list's order", () => {
@@ -90,12 +86,8 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   assert.equal(document.getElementById("nv-home").getAttribute("aria-current"), "page");
 });
 
-const LD = process.env.LINKEDOM || [join(homedir(), ".cache/xo-test-deps/node_modules/linkedom/esm/index.js"), "/tmp/dom/node_modules/linkedom/esm/index.js"].find((f) => existsSync(f));
-if (!LD) console.log("  skip the DOM case: linkedom isn't installed");
-else {
-  const { parseHTML } = await import(LD);
-  const { window, document } = parseHTML(`<!doctype html><html><body><main id="host"></main></body></html>`);
-  Object.assign(globalThis, { window, document, HTMLElement: window.HTMLElement, CustomEvent: window.CustomEvent, Event: window.Event, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), localStorage: { getItem: () => null, setItem() {} } });
+{
+  const { document } = await dom('<main id="host"></main>');
   const { reconcile } = await import("../core/ui/redraw.js");
   await t("reconcile moves a row with moveBefore where the browser has it, so the row and its line stay", () => {
     const box = document.createElement("nav"); document.getElementById("host").replaceChildren(box);
@@ -117,5 +109,4 @@ else {
     assert.deepEqual([...box.children].map((x) => x.dataset.k), ["b", "a"]);
   });
 }
-assert.match(ui, /if \(at !== el\) moveRow\(box, el, at \|\| null\);/, "reconcile places rows through moveRow()");
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

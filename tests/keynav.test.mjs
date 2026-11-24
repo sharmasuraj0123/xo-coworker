@@ -17,7 +17,7 @@ class El {
   }
   getAttribute(n) { return n in this.attrs ? String(this.attrs[n]) : null; }
   setAttribute(n, v) { this.attrs[n] = String(v); }
-  matches(sel) { return sel.split(",").some((s) => { const m = /^\[role="([^"]+)"\]$/.exec(s.trim()); return !!m && this.attrs.role === m[1]; }); }
+  matches(sel) { return sel === ":disabled" ? this.disabled : sel.split(",").some((s) => { const m = /^\[role="([^"]+)"\]$/.exec(s.trim()); return !!m && this.attrs.role === m[1]; }); }
   closest(sel) { for (let el = this; el; el = el.parent) if (el.matches(sel)) return el; return null; }
   *walk() { for (const c of this.children) { yield c; yield* c.walk(); } }
   querySelectorAll(sel) { return [...this.walk()].filter((e) => e.matches(sel)); }
@@ -55,8 +55,8 @@ t("usable: not disabled, not aria-disabled, drawn", () => {
 });
 
 t("rovingTab: only the chosen option, or the first when none is, is in the Tab order", () => {
-  assert.equal(rovingTab(true), "");
-  assert.equal(rovingTab(false, true), "");
+  assert.equal(rovingTab(true), ' tabindex="0"');
+  assert.equal(rovingTab(false, true), ' tabindex="0"');
   assert.equal(rovingTab(false), ' tabindex="-1"');
 });
 
@@ -147,8 +147,6 @@ t("menu: Escape and Tab call close(menu, key); Escape stops there, Tab goes on; 
   assert.equal(e.prevented, false); assert.equal(e.stopped, false);
 });
 
-// ── the pointer and the keyboard: one active item (Astra C058 on 517af1c: hover painted a second item like the
-// keyboard's, and Enter chose the one not pointed at) ──
 globalThis.document = doc;
 const move = (root, target, pointerType = "mouse") => { for (const fn of root.on.pointermove || []) fn({ target, pointerType }); };
 t("pointerFollows: a mouse moving onto a menu's item, while focus is in that menu, focuses it (Enter and the arrows go on from there)", () => {

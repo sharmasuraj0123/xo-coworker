@@ -1,10 +1,4 @@
-// Focus is never somewhere you can't see it (the create-project/Launchpad grader on c055e74, S023: Settings › Keyboard's
-// Reset all put focus on the first shortcut 972 px above the screen, desktop, 1097 on a phone). core/ui/a11y/focus.js runs
-// here on stand-in elements: a focused element wholly out of the box it scrolls in is brought in (nearest); one in
-// view, a 1 px hidden one, or one that lost focus before the check is left; a Tab's or a press's isn't checked.
-//   node tests/focusview.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 
 let F = {};
 try { F = await import("../core/ui/a11y/focus.js"); } catch (e) { console.error("  (no core/ui/a11y/focus.js: " + e.code + ")"); }
@@ -94,17 +88,10 @@ t("content that grows above the control under the keyboard: it was in sight, so 
   assert.equal(F.inSight(P.el, P.win), false);
   F.bringWhole(P.el, P.win);
   assert.equal(P.scroller.scrollTop, 2000 + 76, "the least distance: its foot to the box's foot");
-  const red = readFileSync(new URL("../core/ui/redraw.js", import.meta.url), "utf8");
-  assert.ok(/const seen = !!focus && el\.contains\(focus\) && inSight\(focus\);[^]*?const changed = syncChildren\(el, tpl\.content, focus(?:, [^;]*)?\);\s*if \(changed && seen && focus\.isConnected && !inSight\(focus\)\) bringWhole\(focus\);/.test(red), "redraw keeps it: in sight before, so in sight after");
+
 });
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-t("the app starts it once", () => {
-  assert.match(app, /import \{ keepFocusInView(, [\w, ]+)? \} from "\.\.\/core\/ui\/a11y\/focus\.js";/);
-  assert.equal((app.match(/\bkeepFocusInView\(\)/g) || []).length, 1);
-});
-// the ring has room (the create-project grader on 65e84b7, S111/S112: brought flush with its scroller's foot, the
-// ring's 2 px past its 2 px gap was cut off): a control is brought in with its scroll-margin (base.css: the ring's
-// room) clear of the edge, as the browser's own scrollIntoView keeps it; above or below
+
+
 t("a control is brought in with its ring's room (its scroll-margin) clear of the scroller's edge", () => {
   assert.equal(typeof F.keepFocusInView, "function");
   for (const [top, want, why] of [[1400, 2000 + (1400 + 36 - 600) + 6, "below: its foot 6 px above the box's foot"], [-972, 2000 - 972 - 6, "above: its top 6 px below the box's top"]]) {
@@ -121,9 +108,6 @@ t("a control is brought in with its ring's room (its scroll-margin) clear of the
   F.bringWhole(Q.el, Q.win);
   assert.equal(Q.scroller.scrollTop, 2000 + (580 + 36 - 600) + 6, "whole, its foot 6 px above the box's foot");
 });
-// what focus draws, whoever draws it (the create-project grader on e55c2d8, C115 on a phone: the allow/deny label flush
-// with the screen's foot, its ring, 2 px at a 1 px gap, 3 px cut): a checkbox's label that draws the ring is measured
-// with the ring, and brought in until it's whole, by a Tab's focus as by a script's
 t("a label that draws its checkbox's ring is brought in with the ring whole (C115), by a Tab's focus too", () => {
   assert.equal(typeof F.decoration, "function", "decoration(el)");
   const P = standIn(580, { size: 13 }); // the native box, 13 px, its foot at 593 in a 600 px box

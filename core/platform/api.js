@@ -1,7 +1,5 @@
 // @ts-check
 
-// XO Space's routes, as the UI calls them through serve.py; the server owns every decision, this client only carries it.
-
 import { request, blob, signedUrl, socketUrl, text, upload, urlOf, exchange, coderHeaders, ApiError } from "./http.js";
 import { readJsonEvents } from "./sse.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
@@ -22,8 +20,8 @@ export const attachmentText = (chat, id, { signal } = {}) => text(attPath(chat, 
 /** Upload one file's raw bytes to a chat: {promise → {id, name, type, bytes}, abort()}. @param {string} chat @param {Blob} blob @param {string} name @param {{ onProgress?: (sent: number, total: number) => void }} [opts] */
 export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => upload(`/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`, blob, { onProgress });
 
-/** @param {string} path @param {Record<string, unknown>} [query] */
-const get = (path, query) => request(path, { query });
+/** @param {string} path @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
+const get = (path, query, signal) => request(path, { query, signal });
 /** @param {string} method @param {string} path @param {unknown} [body] @param {Record<string, unknown>} [query] */
 const send = (method, path, body, query) => request(path, { method, body, query });
 
@@ -141,7 +139,8 @@ export const api = {
   /** What changed in a project (Space): a thread's worktree against where its branch left the default branch, uncommitted work included, or the project's own checkout against its HEAD. {root, base_commit, head_commit, computed_at, truncated, files: [{path, old_path?, status, additions, deletions, binary, version, patch, patch_omitted?}]}. path: one file (up to 1 MB). */
   projectChanges: (project, { worktree, path } = {}) => get(`/xo-projects/${enc(project)}/changes`, { ...(worktree ? { worktree } : {}), ...(path ? { path } : {}) }),
   /** One folder of a project, a level at a time (a thread's worktree is `.xo/worktrees/<name>`): {dirs, files}. hidden files too (.env, .gitignore, .github/…): you can read and edit everything in a project */
-  projectTree: (project, relativePath) => get(`/xo-projects/${enc(project)}/tree`, { ...(relativePath ? { relative_path: relativePath } : {}), hidden: "true" }),
+  projectTree: (project, relativePath, signal) =>
+    get(`/xo-projects/${enc(project)}/tree`, { relative_path: relativePath || undefined, hidden: "true" }, signal),
   /** An image inside a project, as a Blob for the image viewer (fetched, so it carries the Coder header and errors read as words). */
   projectImage: (project, relativePath, opts) => blob(`/xo-projects/${enc(project)}/image?relative_path=${enc(relativePath)}`, opts),
   /** A project file as a commit had it (the coworker service's version route): the Changes view's "Before" of a changed or deleted image (commit: /changes' base_commit). relativePath: the file now, project-relative (it may be gone); was: its name at that commit when it was renamed since (/changes' old_path, relative to the worktree). Images come inline. 404 version_not_found when the commit hadn't it. */
@@ -162,9 +161,9 @@ export const api = {
   /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
   githubStatus: () => get("/connectors/github/status"),
   githubIssues: (project, refresh = false) => get(`/xo-projects/${enc(project)}/github/issues`, refresh ? { refresh: "true" } : undefined),
-  githubIssue: (project, n) => get(`/xo-projects/${enc(project)}/github/issues/${enc(n)}`),
+  githubIssue: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/issues/${enc(n)}`, undefined, signal),
   githubPulls: (project) => get(`/xo-projects/${enc(project)}/github/pulls`),
-  githubPull: (project, n) => get(`/xo-projects/${enc(project)}/github/pulls/${enc(n)}`),
+  githubPull: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/pulls/${enc(n)}`, undefined, signal),
   /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
   githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
   githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
