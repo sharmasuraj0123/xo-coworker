@@ -32,6 +32,7 @@ import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
 import { createReadingLayout } from "../modules/conversation/reading-layout.js";
 import { createConversationStops } from "../modules/conversation/stops.js";
+import { createRunningState } from "../modules/conversation/running.js";
 import { createDelivery } from "../modules/conversation/delivery.js";
 import { createComposerTarget } from "../modules/conversation/target.js";
 import { createMentionList } from "../modules/conversation/mention.js";
@@ -863,6 +864,7 @@ runsCard.setAttribute("role", "region");
 runsCard.setAttribute("aria-label", "Sub-agents");
 const RS = { cmdsOpen: true, cmdsAll: false, said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
 const pendingStops = [];
+const running = createRunningState({ S, world, CH, convThread, chatOf });
 const { stopsHerald, stopRun, interruptRun } = createConversationStops({ S, world, Kit, PROJ, announce, schedule, chatOf, pendingStops, heraldShow, heraldNext, inUse: (selector) => inUse(selector), running, workingRuns });
 const stopsOut = new Set();
 const { runsRender, runsLand, closeRuns, runsGone } = createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller });
@@ -1181,20 +1183,6 @@ function growSay(K = MK) {
   const h = K.say.scrollHeight;
   K.say.style.height = Math.min(h, 200) + "px";
   K.say.classList.toggle("is-capped", h > 200);
-}
-/** What would Stop stop here? The coordinator replying, or this thread's agent working. */
-// (P1: each conversation's own: view defaults to the main chat's, a thread page in the panel passes its own)
-function running(view = S.view) {
-  // a thread whose session works, or the coordinator of this chat while it works
-  // nothing more to stop where a Stop waits out its Undo or is on its way, or the session is stopping
-  const live = (run) => (run && !S.stops.has(run.session) && world.act.sessionState(run.session) !== "stopping" ? run : null);
-  const t = convThread(view);
-  if (t) return t.busy && t.sessionId ? live({ kind: "thread", t, session: t.sessionId }) : null;
-  if (view.startsWith("c:")) return CH.busy(view) ? live({ kind: "chat", session: view.slice(2) }) : null;
-  if (view === "chats") return null;
-  const chat = chatOf(view);
-  const sid = chat && world.act.coordinatorBusy ? world.act.coordinatorBusy(chat) : null;
-  return sid ? live({ kind: "coord", conv: view, session: sid }) : null;
 }
 function sendRender(K = MK) {
   const btn = K.send;

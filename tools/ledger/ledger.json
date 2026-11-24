@@ -7355,8 +7355,8 @@
    "home": "modules/composer (+ stop service) (app.js l.2230)"
   },
   "js/app.js::functions::running": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2238)"
+   "status": "moved",
+   "home": "modules/conversation/running.js"
   },
   "js/app.js::functions::sendRender": {
    "status": "planned",
