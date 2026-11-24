@@ -1,7 +1,8 @@
 // @ts-check
 
-import { api, clientId, NEWEST } from "../../core/platform/api.js";
+import { api, clientId } from "../../core/platform/api.js";
 import { esc, once } from "../../core/platform/index.js";
+import { reportFailure } from "../../core/services/notices/failures.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { stateMark, xi } from "../../core/ui/icons/icon.js";
 import { BUSY_STATES, mainRuntime } from "../../core/services/world/sessions.js";
@@ -9,20 +10,29 @@ import { rtMark, rtName } from "../../core/services/runtimes.js";
 import { EFFORT_WORD } from "./effort.js";
 import { createSetup, MODE_WORDS, store } from "./setup.js";
 import { chatListItems } from "./list.js";
+import { createChatTitles } from "./titles.js";
+import { createChatReads } from "./reads.js";
+import { promptFailure } from "./prompt-failure.js";
+import { createScope } from "../../core/kernel/scope.js";
 
-/** @typedef {import("../../core/platform/http.js").ApiError & { count?: number }} ChatSendError */
-
-/** @typedef {import("./types").ChatState} ChatState @typedef {import("./types").ChatDeps} ChatDeps @typedef {import("./types").Conversation} Conversation @typedef {import("./types").Session} Session @typedef {import("./types").LocalPrompt} LocalPrompt @typedef {import("./types").Observed} Observed @typedef {import("./types").Runtime} Runtime */
+/** @typedef {import("./types").ChatState} ChatState @typedef {import("./types").ChatDeps} ChatDeps @typedef {import("./types").Conversation} Conversation @typedef {import("./types").Session} Session @typedef {import("./types").LocalPrompt} LocalPrompt @typedef {import("./types").Runtime} Runtime */
 
 const BUSY = new Set([...BUSY_STATES, "waiting_on_person"]);
+
+/** @param {Session} a @param {Session} b */
+const recentFirst = (a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at);
 /** @param {ChatDeps} deps @param {Conversation} conversation */
-export function createChats({ world, announce, heraldShow, go, schedule, view, restore }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+export function createChats({ world, announce, heraldShow, go, schedule, view, restore, listRoot, transcriptOpen }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime }) {
+  const scope = createScope();
   /** @type {ChatState} */
-  const C = { list: null, loading: false, err: null, titles: new Map(), hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
+  const C = { list: null, loading: false, err: null, hist: new Map(), local: new Map(), prefs: { ...store.get() }, models: new Map(), read: new Set(), failed: new Map(), pop: { open: false }, confirm: new Map(), q: "", all: false };
 
   const sessions = () => Object.values(world.state.sessions || {}).filter((s) => s.role === "plain" && !s.retired_at);
   /** @param {string} sid */
   const session = (sid) => (world.state.sessions || {})[sid] || null;
+  const listHost = listRoot ?? (typeof document === "undefined" ? undefined : document.getElementById("msgs")) ?? undefined;
+  const titleList = createChatTitles(listHost, session, () => { if (C.q) schedule(); });
+  scope.effect(() => titleList.stop);
   /** @param {string | null} [name] @returns {Runtime | null} */
   const runtime = (name) => (world.state.runtimes || []).find((r) => r.name === name) || (!name ? /** @type {Runtime | null} */ (mainRuntime(world.state.runtimes)) : null) || null;
   /** @param {Runtime | null} rt @param {string} key */
@@ -32,35 +42,9 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
 
   const { setup, effortsFor, ensureModels, openSetup, closeSetup, setPref, renderSetup, toggleSetup } = createSetup(C, { world, schedule, runtime, feature, cliName });
 
-  async function loadList() {
-    if (C.loading) return;
-    C.loading = true;
-    try {
-      // the read stands where it was sent in the stream's order, so a status frame that lands meanwhile stays
-      const sent = world.act.sentAt();
-      const d = await api.sessions({ role: "plain", before_seq: NEWEST, limit: 100 });
-      for (const s of d.sessions || []) world.act.noteSession(s, sent);
-      C.list = true; C.err = null;
-      for (const a of new Set(sessions().map((x) => x.agent).filter(Boolean))) ensureModels(/** @type {string} */ (a));
-      // titles: the first thing you asked, read from the chat's own history (a few at a time)
-      const todo = sessions().filter((s) => s.native_id && !C.titles.has(s.id)).slice(0, 24);
-      await Promise.all(todo.map((s) => titleOf(s)));
-    } catch (err) { C.err = (/** @type {Error} */ (err)).message; }
-    C.loading = false;
-    schedule();
-  }
+  const { loadList, loadChat } = createChatReads(C, { world, sessions, session, schedule, ensureModels, titles: titleList, signal: scope.signal });
   /** @param {Session} s */
-  async function titleOf(s) {
-    C.titles.set(s.id, null);
-    try {
-      const d = /** @type {{ messages?: Observed[] }} */ (await api.observedMessages(/** @type {string} */ (s.native_id), { offset: 0, limit: 5 }));
-      const first = (d.messages || []).find((m) => m.data && m.data.role === "user");
-      const text = first ? (first.parts || []).map((p) => (p.data && p.data.type === "text" ? p.data.text : "")).join(" ").trim() : "";
-      C.titles.set(s.id, text ? text.replace(/\s+/g, " ").slice(0, 120) : null);
-    } catch { /* stays untitled */ }
-  }
-  /** @param {Session} s */
-  const titleFor = (s) => C.titles.get(s.id) || `A chat in ${folderWord(s.cwd)}`;
+  const titleFor = (s) => titleList.get(s) || `A chat in ${folderWord(s.cwd)}`;
   /** @param {string | null | undefined} cwd */
   const folderWord = (cwd) => (!cwd ? "your projects folder" : cwd.replace(/^\/home\/[^/]+\/?/, "~/").replace(/^~\/$/, "~"));
   /** @param {string} t */
@@ -87,54 +71,17 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   /** A turn in progress: its status says so, or it says queued and the stream has seen it work since. @param {Session | null} s */
   const inTurn = (s) => !!s && (BUSY.has(s.state) || (s.state === "queued" && !!(world.act.onTurn && world.act.onTurn(s.id))));
 
-  /** @param {string} sid */
-  async function loadChat(sid) {
-    const h = C.hist.get(sid) || { loading: false, loaded: false, user: [], error: null, turns: false };
-    C.hist.set(sid, h);
-    if (h.loading) { h.again = true; return; }
-    h.loading = true; schedule();
-    try {
-      let s = session(sid);
-      if (s && s.agent) ensureModels(s.agent); // model names in words in the header
-      if (!s || !s.native_id || s.cwd === undefined) {
-        const sent = world.act.sentAt(); // as the list's read: it stands where it was sent
-        const full = await api.session(sid).catch(() => null);
-        if (full) { world.act.noteSession(full, sent); s = session(sid); }
-      }
-      if (!s) throw new Error("This chat isn't here any more.");
-      const trimmed = world.act.takeTrimmed ? world.act.takeTrimmed(sid) : false;
-      h.tried = s.native_id || null; // tried once for this id, whatever the answer
-      const [m] = await Promise.all([
-        // whole: observation pages only from an offset, oldest first, so a limit would drop the newest prompts
-        s.native_id ? /** @type {Promise<{ messages?: Observed[] }>} */ (api.observedMessages(s.native_id)) : null,
-        (!h.turns || trimmed) && world.act.loadTurns ? world.act.loadTurns(sid) : null,
-      ]);
-      h.turns = true;
-      if (m) {
-        h.user = (m.messages || []).filter((x) => x.data && x.data.role === "user").map((x) => ({ id: x.id, at: Date.parse(x.time_created) || 0, text: (x.parts || []).map((p) => (p.data && p.data.type === "text" ? p.data.text : "")).join("\n").trim() })).filter((x) => x.text);
-        h.loaded = true;
-        if (!C.titles.get(sid) && h.user[0]) C.titles.set(sid, h.user[0].text.replace(/\s+/g, " ").slice(0, 120));
-      }
-      h.error = null;
-    } catch (err) { h.error = (/** @type {Error} */ (err)).message; }
-    h.loading = false; schedule();
-    if (h.again) { h.again = false; loadChat(sid); }
-  }
-  /** @type {Map<string, number>} */
-  const turnCount = new Map();
-  if (world.subscribe) world.subscribe(() => {
+  scope.effect(() => world.subscribe?.(() => {
+    titleList.noteSessions();
     // a "send now" chosen for a turn ends with that turn, wherever you are when it ends
     if (C.now && !inTurn(session(C.now))) C.now = null;
     const v = view && view();
+    if (v && v !== "chats") titleList.stop();
     if (!v || !v.startsWith("c:")) return;
     const sid = v.slice(2);
-    const n = world.state.turns ? world.state.turns.list((t) => t.session === sid).length : 0;
-    const before = turnCount.get(sid);
-    turnCount.set(sid, n);
-    if (before != null && n > before) setTimeout(() => loadChat(sid), 1500);
     const s = session(sid), h = C.hist.get(sid);
-    if (s && s.native_id && h && !h.loaded && !h.loading && h.tried !== s.native_id) loadChat(sid);
-  });
+    if (s?.native_id && h && h.tried !== s.native_id) loadChat(sid, { afterTurn: true });
+  }));
   /** @param {string} sid */
   function chatItems(sid) {
     const s = session(sid);
@@ -158,7 +105,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
           : m.added ? `<div class="meta"><span>Added to the turn in progress, not sent now</span>${inTurn(s) ? `<button type="button" class="meta-btn" data-chat-stop>${ICON.stop}Stop the turn</button>` : ""}</div>` : "";
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
-        const inner = turnHtml(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t), { open: world.ui ? world.ui.tbOpen : {} });
+        const inner = turnHtml(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t), { open: transcriptOpen?.() ?? world.ui?.tbOpen });
         if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t)) : `<div class="av av-t">${rtMark(/** @type {string} */ (s.agent)) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }
@@ -267,44 +214,40 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
   function deliver(local, sid) { return once(`chat-send:${local.cid}`, () => post(local, sid)); }
   /** @param {LocalPrompt} local @param {string | null} sid */
   async function post(local, sid) {
+    if (scope.signal.aborted) return;
     local.status = "sending";
+    let r;
     try {
-      const r = await api.prompt(local.body);
-      local.status = "sent";
+      r = await api.prompt(local.body);
+    } catch (error) {
+      if (scope.signal.aborted) return;
+      promptFailure(C.confirm, { restore, heraldShow }, local, sid, error);
+      schedule();
+      return;
+    }
+    if (scope.signal.aborted) return;
+    local.status = "sent";
+    if (local.body.delivery === "now") C.now = null;
+    try {
       if (!sid) {
         const old = /** @type {Partial<Session> | undefined} */ (world.state.sessions[r.session_id]);
         const agent = local.body.agent || (mainRuntime(world.state.runtimes) || {}).name || null;
         const heldNow = !!(world.act.agentHeld && world.act.agentHeld(agent));
-        world.state.sessions[r.session_id] = { id: r.session_id, role: "plain", state: heldNow ? "queued" : "starting", statusAt: Date.now(), statusSeq: world.state.lastSeq ?? null, agent: local.body.agent || agent, model: local.body.model || null, effort: local.body.effort || null, permission_mode: local.body.permission_mode || null, cwd: local.body.cwd || null, created_at: new Date().toISOString(), ...(old || {}) };
-        C.titles.set(r.session_id, local.body.text.replace(/\s+/g, " ").slice(0, 120));
+        titleList.optimistic(r.session_id, local.body.text);
         C.local.set(r.session_id, [local]);
+        world.act.noteSession({
+          id: r.session_id, role: "plain", state: heldNow ? "queued" : "starting",
+          agent: local.body.agent || agent, model: local.body.model || null, effort: local.body.effort || null,
+          permission_mode: local.body.permission_mode || null, cwd: local.body.cwd || null,
+          created_at: new Date().toISOString(), ...old,
+        }, world.act.sentAt());
         // open it, unless the person has gone somewhere else meanwhile
         if (!view || view() === "chats") go("c:" + r.session_id);
         else announce("Your new chat started. It's in Chats.");
       }
-      if (local.body.delivery === "now") C.now = null;
       announce("Sent.");
-    } catch (err) {
-      const sendError = /** @type {ChatSendError} */ (err);
-      if (sendError.code === "would_stop_runs") {
-        // say what "now" would stop; resend the same request (same client_id) only if the person agrees
-        const count = Number(sendError.count);
-        C.confirm.set(sid, { local, sid, count: Number.isInteger(count) && count >= 0 ? count : 0 });
-        local.status = "held";
-      } else {
-        local.status = "failed";
-        local.errTitle = sendError.code === "auth_required" ? "The agent isn't connected"
-          : sendError.code === "timeout" ? "No answer from XO"
-          : sendError.status === 501 ? "This agent can't chat yet"
-          : sendError.status === 0 || sendError.status === 502 ? "Can't reach XO" : "Not sent";
-        local.err = sendError.message;
-        // a new chat has nowhere to show a failed message: your words go back into the composer
-        if (!sid) {
-          const back = restore ? restore(local.body.text) : false;
-          if (back) heraldShow({ kind: "stopped", text: local.errTitle, sub: `${sendError.message} Your message is back in the box.` }, 7000);
-          else heraldShow({ kind: "stopped", text: local.errTitle, sub: sendError.message, undo: () => restore && restore(local.body.text, { force: true }), undoLabel: "Put my message back" }, 12000);
-        }
-      }
+    } catch (error) {
+      reportFailure(error);
     }
     schedule();
   }
@@ -326,19 +269,29 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     deliver(c.local, c.sid);
   }
 
-  world.onEvent((e) => {
+  scope.effect(() => world.onEvent((e) => {
+    if (e.kind === "chat_turn_finished" && e.session) {
+      titleList.invalidateEmpty(e.session);
+      if (view?.() === "c:" + e.session) void loadChat(e.session, { afterTurn: true });
+    }
     if (e.kind !== "now_became_add") return;
     for (const list of C.local.values()) for (const l of list) if ((e.wakes || []).includes(`msg:prompt:${l.cid}`)) l.added = true;
     schedule();
-  });
+  }));
 
   return {
+    dispose: scope.dispose, leaveList: titleList.stop,
     /** @param {string} v */
     isChats: (v) => v === "chats" || (v && v.startsWith("c:")),
     /** @param {string} v */
     open(v) { if (v === "chats") loadList(); else if (v.startsWith("c:")) loadChat(v.slice(2)); },
     /** @param {string} v */
-    items: (v) => (v === "chats" ? chatListItems(C, { sessions, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime }) : chatItems(v.slice(2))),
+    items: (v) => {
+      if (v !== "chats") { titleList.stop(); return chatItems(v.slice(2)); }
+      const rows = sessions().sort(recentFirst);
+      const searching = !scope.signal.aborted && titleList.observe(rows, C.all ? C.q.trim().toLowerCase() : "");
+      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
+    },
     headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm, nowState,
     /** @param {string} v */
     placeholder: (v) => (v === "chats" ? "Ask anything to start a chat…" : session(v.slice(2))?.retired_at ? "This chat has ended" : "Reply in this chat…"),
@@ -360,7 +313,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     /** @param {string} v */
     toggleNow: (v) => { const sid = v.slice(2); const s = session(sid); if (!s || !offers(runtime(s.agent), "interrupt")) return; C.now = C.now === sid ? null : sid; schedule(); },
     /** @param {string} id */
-    retry(id) { for (const [sid, list] of C.local) { const l = list.find((x) => x.id === id); if (l) { deliver(l, sid); return; } } },
+    retry(id) { for (const [sid, list] of C.local) { const l = list.find((x) => x.id === id && x.status === "failed"); if (l) { deliver(l, sid); return; } } },
     /** A failed message taken back to edit: it leaves the chat and its text is returned. @param {string} id */
     edit(id) {
       for (const list of C.local.values()) {

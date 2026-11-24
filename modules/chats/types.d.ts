@@ -1,4 +1,5 @@
 import type { Feature, Runtime as PickerRuntime, SetupState } from "./setup-types";
+import type { Sent } from "../../core/services/storm/types.d.ts";
 
 export interface Runtime extends PickerRuntime {
   features?: { features?: Record<string, Feature & { behaviour?: string }> };
@@ -41,7 +42,7 @@ interface PromptBody {
   confirm_stop_runs?: number;
 }
 export interface LocalPrompt extends Prompt { cid: string; body: PromptBody }
-interface History {
+export interface History {
   loading?: boolean;
   loaded?: boolean;
   turns?: boolean;
@@ -50,12 +51,7 @@ interface History {
   user?: Prompt[];
   error?: string | null;
 }
-export interface Observed {
-  id: string;
-  time_created: string;
-  data?: { role?: string };
-  parts?: { data?: { type?: string; text?: string } }[];
-}
+
 interface Held { for?: string; until?: string }
 interface Turn { id: string; session: string; status?: string; started_at?: string; trigger?: unknown }
 interface World {
@@ -63,16 +59,15 @@ interface World {
     sessions: Record<string, Session>;
     runtimes?: Runtime[];
     projects: { id: string; name: string; kind: string }[];
-    lastSeq?: number | null;
     turns?: { list: (predicate: (turn: Turn) => boolean) => Turn[]; blocksOf: (turn: Turn) => unknown[] };
   };
   ui?: { tbOpen?: Record<string, boolean> };
   project: (path: string) => { name?: string } | null;
-  subscribe?: (callback: () => void) => void;
-  onEvent: (callback: (event: { kind: string; wakes?: string[] }) => void) => void;
+  subscribe?: (callback: () => void) => (() => void) | void;
+  onEvent: (callback: (event: { kind: string; session?: string; wakes?: string[] }) => void) => (() => void) | void;
   act: {
-    sentAt: () => number | null;
-    noteSession: (session: Session, sequence: number | null) => void;
+    sentAt: () => Sent;
+    noteSession: (session: Session, sent: Sent) => void;
     sessionHeld?: (id: string) => Held | null;
     sessionBusy?: (id: string) => boolean;
     onTurn?: (id: string) => boolean;
@@ -88,6 +83,8 @@ export interface ChatDeps {
   go: (view: string) => void;
   schedule: () => void;
   view?: () => string;
+  listRoot?: Element;
+  transcriptOpen?: () => Readonly<Record<string, boolean>>;
   restore?: (text: string, options?: { force: boolean }) => boolean;
 }
 export interface Conversation {
@@ -104,7 +101,6 @@ export interface ChatState extends SetupState {
   list: boolean | null;
   loading: boolean;
   err: string | null;
-  titles: Map<string, string | null>;
   hist: Map<string, History>;
   local: Map<string, LocalPrompt[]>;
   confirm: Map<string | null, { local: LocalPrompt; sid: string | null; count: number }>;

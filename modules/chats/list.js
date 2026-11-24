@@ -11,13 +11,12 @@ const RECENT = 3;
 
 /** @typedef {{ for?: string, until?: string }} Hold */
 
-/** @typedef {{ list: boolean | null, err: string | null, all: boolean, q: string }} ListState */
+/** @typedef {{ list: boolean | null, err: string | null, all: boolean, q: string, searching: boolean }} ListState */
 
-/** @typedef {{ sessions: () => ChatRow[], waiting: (row: ChatRow) => boolean, inTurn: (row: ChatRow) => boolean, heldOf: (row: ChatRow) => Hold | null, heldShort: (held: Hold) => string, rowLine: (row: ChatRow) => string, titleFor: (row: ChatRow) => string, world: { act: { sessionBusy?: (id: string) => boolean } }, dayGroup: (iso: string) => string, rowTime: (iso: string) => string }} ListDeps */
+/** @typedef {{ rows: ChatRow[], waiting: (row: ChatRow) => boolean, inTurn: (row: ChatRow) => boolean, heldOf: (row: ChatRow) => Hold | null, heldShort: (held: Hold) => string, rowLine: (row: ChatRow) => string, titleFor: (row: ChatRow) => string, world: { act: { sessionBusy?: (id: string) => boolean } }, dayGroup: (iso: string) => string, rowTime: (iso: string) => string }} ListDeps */
 
 /** @param {ListState} C @param {ListDeps} deps */
-export function chatListItems(C, { sessions, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime }) {
-  const rows = sessions().sort((a, b) => Date.parse(b.updated_at || b.created_at) - Date.parse(a.updated_at || a.created_at));
+export function chatListItems(C, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime }) {
   if (!C.list && !rows.length) return [{ key: "chats-load", html: `<p class="m-note">${C.err ? `Couldn't read your chats: ${esc(C.err)}` : "Reading your chats…"}</p>` }];
   if (!rows.length) return [{ key: "chats-none", html: `<div class="calm chl-calm"><div class="calm-mark">${ICON.thread}</div><h2>No chats yet.</h2><p>Your first question starts one. No project needed.</p></div>` }];
   // at rest a few of the latest under the composer; all of them, searchable and by day, a click away
@@ -28,7 +27,8 @@ export function chatListItems(C, { sessions, waiting, inTurn, heldOf, heldShort,
   const head = { key: `chats-head-${C.all ? "all" : "few"}`, html: C.all
     ? `<div class="chl-top"><h2 class="chl-k">All chats</h2><label class="tg-qf chl-q">${ICON.search}<input type="search" data-chl-q placeholder="Search your chats" aria-label="Search your chats by title, model or folder" autocomplete="off" spellcheck="false"></label><button type="button" class="chl-more" data-chl-all="0">Show less</button></div>`
     : `<div class="chl-top"><h2 class="chl-k">Recent</h2>${more}</div>` };
-  if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">No chats match “${esc(C.q.trim())}”.</p>` }];
+  const empty = C.searching ? "Searching chat titles…" : `No chats match “${esc(C.q.trim())}”.`;
+  if (!shown.length) return [head, { key: "chats-nomatch", html: `<p class="m-note">${empty}</p>` }];
   /** @type {Map<string, ChatRow[]>} */
   const groups = new Map();
   for (const s of shown) { const g = dayGroup(s.updated_at || s.created_at); if (!groups.has(g)) groups.set(g, []); /** @type {ChatRow[]} */ (groups.get(g)).push(s); }

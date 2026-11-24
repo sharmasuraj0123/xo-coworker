@@ -1,4 +1,5 @@
 // @ts-check
+import { scopedIntersection } from "./intersection.js";
 
 /** @typedef {ReturnType<typeof import("../kernel/scope.js").createScope>} Scope */
 
@@ -25,7 +26,7 @@ export function createInViewQueue({ scope, concurrency, read }) {
       }).then(() => {
         waiting.delete(node);
         observed.delete(node);
-        observer.unobserve(node);
+        observer?.unobserve(node);
       }, (error) => {
         if (!signal.aborted) console.error(error);
       }).finally(() => {
@@ -36,14 +37,13 @@ export function createInViewQueue({ scope, concurrency, read }) {
     }
   }
 
-  const observer = new IntersectionObserver((entries) => {
+  const observer = scopedIntersection(scope, (entries) => {
     for (const { target, isIntersecting } of entries) {
       if (isIntersecting && observed.has(target)) waiting.add(target);
       else waiting.delete(target);
     }
     drain();
   });
-  scope.observe(observer);
   scope.effect(() => () => { waiting.clear(); observed.clear(); });
 
   /** @param {Iterable<Element>} nodes candidates that still need a read */
@@ -52,14 +52,14 @@ export function createInViewQueue({ scope, concurrency, read }) {
     const current = new Set(nodes);
     for (const node of observed) {
       if (current.has(node)) continue;
-      observer.unobserve(node);
+      observer?.unobserve(node);
       observed.delete(node);
       waiting.delete(node);
     }
     for (const node of current) {
       if (observed.has(node)) continue;
       observed.add(node);
-      observer.observe(node);
+      observer?.observe(node);
     }
   };
 }

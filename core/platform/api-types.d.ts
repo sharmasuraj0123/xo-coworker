@@ -43,13 +43,13 @@ export interface Api {
   shape(): Json;
   putShape(body: object): Json;
 
-  sessions(query?: Query): Json;
-  session(id: Id): Json;
+  sessions(query?: Query, options?: ReadOptions): Json;
+  session(id: Id, options?: ReadOptions): Json;
   patchSession(id: Id, body: object): Json;
   active(): Json;
   events(query?: Query): Json;
 
-  observedMessages(nativeId: string, query?: Query): Json;
+  observedMessages(nativeId: string, query?: Query, options?: ReadOptions): Json;
   prompt(body: object): Json;
   abort(sessionId: Id): Json;
 

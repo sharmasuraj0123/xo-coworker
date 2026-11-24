@@ -2560,8 +2560,22 @@
    "home": "core/ui/markdown/chart.js"
   },
   "js/chats.js": {
-   "status": "moved",
-   "home": "modules/chats/chats.js"
+   "status": "split",
+   "home": [
+    "modules/chats/chats.js",
+    "modules/chats/reads.js",
+    "modules/chats/titles.js"
+   ],
+   "evidence": {
+    "modules/chats/reads.js": {
+     "anchor": "await api.sessions({ role: \"plain\", before_seq: NEWEST, limit: CHAT_LIST_LIMIT }, { signal })",
+     "reason": "The scoped reads owner loads plain sessions and their histories."
+    },
+    "modules/chats/titles.js": {
+     "anchor": "await api.observedMessages(native, { offset: 0, limit: 5 }, { signal })",
+     "reason": "The visible-row owner reads the first prompt as each chat's title."
+    }
+   }
   },
   "js/comms.js": {
    "status": "moved",
@@ -8726,15 +8740,33 @@
   },
   "js/chats.js::keys::would_stop_runs": {
    "status": "moved",
-   "home": "modules/chats/chats.js"
+   "home": "modules/chats/prompt-failure.js",
+   "evidence": {
+    "modules/chats/prompt-failure.js": {
+     "anchor": "if (code === \"would_stop_runs\")",
+     "reason": "A typed prompt rejection opens the confirmation for stopping the running turn."
+    }
+   }
   },
   "js/chats.js::keys::auth_required": {
    "status": "moved",
-   "home": "modules/chats/chats.js"
+   "home": "modules/chats/prompt-failure.js",
+   "evidence": {
+    "modules/chats/prompt-failure.js": {
+     "anchor": "code === \"auth_required\" ? \"The agent isn't connected\"",
+     "reason": "The typed prompt rejection still says when the agent is disconnected."
+    }
+   }
   },
   "js/chats.js::keys::timeout": {
    "status": "moved",
-   "home": "modules/chats/chats.js"
+   "home": "modules/chats/prompt-failure.js",
+   "evidence": {
+    "modules/chats/prompt-failure.js": {
+     "anchor": "code === \"timeout\"",
+     "reason": "A timed-out prompt keeps its own receipt text."
+    }
+   }
   },
   "js/comms.js::exports::nameWith": {
    "status": "moved",

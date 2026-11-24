@@ -104,15 +104,15 @@ export const api = {
   /** {shape: object|null, if_version}: compare-and-set; a stale if_version is 409 shape_changed with `current`. */
   putShape: (body) => send("PUT", "/chat/shape", body),
 
-  sessions: (query = {}) => get("/chat/sessions", query),
-  session: (id) => get(`/chat/sessions/${enc(id)}`),
+  sessions: (query = {}, { signal } = {}) => get("/chat/sessions", query, signal),
+  session: (id, { signal } = {}) => get(`/chat/sessions/${enc(id)}`, undefined, signal),
   patchSession: (id, body) => send("PATCH", `/chat/sessions/${enc(id)}`, body),
   active: () => get("/chat/active"),
   /** Stored frames, for history and resumes beyond the stream's reach. */
   events: (query = {}) => get("/chat/events", query),
 
   /** A plain chat's history lives in its CLI transcript, read by observation. */
-  observedMessages: (nativeId, query = {}) => get(`/messages/${enc(nativeId)}`, query),
+  observedMessages: (nativeId, query = {}, { signal } = {}) => get(`/messages/${enc(nativeId)}`, query, signal),
   prompt: (body) => send("POST", "/chat/prompt", body),
   abort: (sessionId) => send("POST", "/chat/abort", { session_id: sessionId }),
 

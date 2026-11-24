@@ -8,6 +8,20 @@ const turnFrames = (be, session, id, seq, extra = {}) => {
   be.push("turn.finished", { session_id: session, chat_id: "chat_p", turn_id: id, seq: seq + 1, data: { status: "finished" } }, seq + 1);
 };
 
+t("finishing a plain chat emits one completion for that session", async () => {
+  const be = fakeBackend({
+    "GET /chat/sessions": { sessions: [coord("coord", 1), { id: "plain", role: "plain", state: "warm" }] },
+  });
+  const { events } = await boot(be);
+  be.push("turn.started", { session_id: "plain", turn_id: "chat-turn", seq: 10, data: {} }, 10);
+  await settle();
+  assert.equal(events.some((event) => event.kind === "chat_turn_finished"), false);
+  turnFrames(be, "coord", "coord-turn", 11);
+  be.push("turn.finished", { session_id: "plain", turn_id: "chat-turn", seq: 13, data: { status: "finished" } }, 13);
+  await settle();
+  assert.deepEqual(events.filter((event) => event.kind === "chat_turn_finished").map((event) => event.session), ["plain"]);
+});
+
 t("a chat's coordinator is its newest live one by seq, chosen before activity: an older one's work never makes it busy", async () => {
   const be = fakeBackend({ "GET /chat/sessions": { sessions: [coord("cse_old", 1, { state: "running" }), coord("cse_new", 5), coord("cse_gone", 9, { retired_at: "2026-11-19T09:00:00Z", state: "running" })] } });
   const { world } = await boot(be);

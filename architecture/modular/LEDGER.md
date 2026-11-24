@@ -4,12 +4,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 487 |
+| moved | 486 |
 | vendor | 376 |
 | deleted | 337 |
 | planned | 147 |
 | kept | 61 |
-| split | 35 |
+| split | 36 |
 | split-region | 3 |
 
 Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept 153, split 3), in `ledger.json` as `path::kind::name`.
@@ -39,7 +39,7 @@ Items inside first-party files: 2488 (moved 1791, planned 385, deleted 156, kept
 | `js/changes.js` | 194 | moved | modules/changes/store.js |
 | `js/changesframe.js` | 323 | moved | modules/changes/frame.js |
 | `js/chart.js` | 176 | moved | core/ui/markdown/chart.js |
-| `js/chats.js` | 523 | moved | modules/chats/chats.js |
+| `js/chats.js` | 523 | split | modules/chats/chats.js, modules/chats/reads.js, modules/chats/titles.js |
 | `js/comms.js` | 173 | moved | core/services/comms.js |
 | `js/content.js` | 70 | moved | modules/decisions/rank.js |
 | `js/create.js` | 364 | moved | modules/create-project/create.js |

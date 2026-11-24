@@ -17,7 +17,7 @@ export function installSessionReads(ctx) {
     // and so does any word a frame said since (paused, resumed); a retirement is never undone by a read
     if (old && old.frameSeq != null && sent.seq != null && old.frameSeq > sent.seq) next.paused = old.paused ?? null;
     if (old && old.retired_at && !next.retired_at) next.retired_at = old.retired_at;
-    state.sessions[s.id] = /** @type {any} */ (next);
+    state.sessions[s.id] = /** @type {import("../types").Session} */ (next);
   };
   // the coordinator went quiet; if it answered, the message frame already cleared this
   ctx.settleAwaiting = (chatId) => {
@@ -35,7 +35,7 @@ export const sessions = {
     const id = env.session_id;
     if (!id) return;
     const old = state.sessions[id] || { id };
-    /** seq is the session's own creation place, given only to a session first known from the stream; frameSeq is where the stream last spoke of it. @type {any} */
+    /** @type {import("../types").Session} */
     const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: d.status || old.state, seq: old.seq ?? env.seq ?? null, frameSeq: env.seq ?? state.lastSeq };
     // what a gate holds it for, while queued; any other status ends the wait
     if (d.status) {
@@ -55,14 +55,14 @@ export const sessions = {
     if (COORD.has(next.role) && !BUSY.has(next.state)) ctx.settleAwaiting(next.chat_id);
     ctx.soon();
   },
-  // a turn under a session still said to be queued is work seen after it: the threads are rebuilt so it reads Working
   "turn.started"(ctx, env) {
     if (env.session_id && (ctx.state.sessions[env.session_id] || {}).state === "queued") ctx.soon();
   },
-  "turn.finished"(ctx, env, d, tid) {
+  "turn.finished"(ctx, _env, d, tid) {
     const { state } = ctx;
     const t = tid && state.turns.get(tid);
     if (!t) return;
+    if (t.session && state.sessions[t.session]?.role === "plain") ctx.event({ kind: "chat_turn_finished", session: t.session });
     const project = ctx.projectOf(t.chat);
     const aw = project && state.awaiting[project];
     const wake = aw && `msg:${aw.id}`;
