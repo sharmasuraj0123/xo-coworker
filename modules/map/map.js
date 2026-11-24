@@ -1,3 +1,4 @@
+// @ts-check
 import { api } from "../../core/platform/api.js";
 import { elapsed } from "../../core/platform/index.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -13,13 +14,18 @@ import { createMapDrawing } from "./drawing.js";
 import { createMapDiagram } from "./diagram.js";
 import { createMapHead } from "./head.js";
 
+/** @import { MapController, MapDeps, MapDrawAgent, MapFile, MapNode, MapState, PointerStart, Scope } from "./map-types.d.ts" */
+
 export { MAP_ICON };
 const MODE_KEY = "cv-map-mode";
 
+/** @param {number} v @param {number} a @param {number} b */
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+/** @param {MapDeps} options @returns {MapController} */
 export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml }) {
-  let el = null;
+  let el = /** @type {HTMLElement | null} */ (null);
+  /** @type {MapState} */
   const M = {
     open: false, view: "home",
     opened: new Map(),   // scope key → folders you unfolded
@@ -38,10 +44,9 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     gkey: "", gnodes: [], gedges: [], alpha: 0, raf: 0, gags: [], glit: new Map(),
   };
   try { if (localStorage.getItem(MODE_KEY) === "tree") M.mode = "tree"; } catch { /* private mode */ }
-  // a box's words change width when the font arrives: measure the drawing again
   if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", () => { M.reachKey = ""; });
   const tagW = () => 22;
-
+  /** @param {string} v @returns {Scope} */
   function scopeOf(v) {
     if (v.startsWith("t:")) { const t = world.thread(v.slice(2)); if (t) return { kind: "thread", t, key: v, fold: folderOf(t) }; }
     if (v.startsWith("p:")) return { kind: "project", pid: v.slice(2), key: v, fold: { project: v.slice(2), base: "" } };
@@ -49,12 +54,11 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
   }
   const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
   const headHtml = createMapHead(world, doingLine, verbOf);
-
   const { load, get: folderAt } = createMapFolders(api, paint);
-  const { folderTree, projectsTree, boxHtml } = createMapTree({ M, world, load, folderAt });
-
+  const { folderTree, projectsTree, boxHtml } = createMapTree({ M: /** @type {MapState & { scope: Scope }} */ (M), world, load, folderAt });
+  /** @param {Scope} scope */
   function skeleton(scope) {
-    el.innerHTML = `<div class="mp-head" data-mp-head></div>` +
+    /** @type {HTMLElement} */ (el).innerHTML = `<div class="mp-head" data-mp-head></div>` +
       `<div class="dg" data-dg tabindex="0" role="group" aria-label="The diagram: drag to move around, ⌘ or Ctrl and scroll to zoom">` +
       `<div class="dg-world k-${M.mode}"><svg class="dg-edges" aria-hidden="true"></svg><div class="dg-nodes"></div><div class="dg-curs"></div></div>` +
       `<div class="dg-tools" role="toolbar" aria-label="View">` +
@@ -64,42 +68,47 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       (scope.kind !== "all" ? `<button type="button" data-dg="follow" title="Follow the agent (F)" aria-label="Follow the agent" aria-pressed="false">${TOOL.follow}</button>` : "") + `</div>` +
       `<div class="dg-key" data-dg-key></div></div>`;
     M.head = ""; M.layoutKey = ""; M.reachKey = ""; M.curs = new Map(); M.gkey = ""; M.gnodes = []; M.gedges = [];
-    el.dataset.scope = scope.key + "|" + M.mode;
-    wire(el.querySelector("[data-dg]"));
+    /** @type {HTMLElement} */ (el).dataset.scope = scope.key + "|" + M.mode;
+    wire(/** @type {HTMLElement} */ (/** @type {HTMLElement} */ (el).querySelector("[data-dg]")));
   }
-  const view = () => el.querySelector("[data-dg]");
+  const view = () => /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (el).querySelector("[data-dg]"));
+  /** @param {HTMLElement} nodes @param {string} fid */
   function focusNode(nodes, fid) {
     let id = fid, to = null;
-    while (!to && id) { to = nodes.querySelector(`[data-node="${CSS.escape(id)}"]`); id = id.includes("/") ? id.replace(/\/[^/]*$/, "") : ""; }
+    while (!to && id) { to = /** @type {HTMLElement | null} */ (nodes.querySelector(`[data-node="${CSS.escape(id)}"]`)); id = id.includes("/") ? id.replace(/\/[^/]*$/, "") : ""; }
     (to || view())?.focus({ preventScroll: true });
   }
-  const world$ = () => el.querySelector(".dg-world");
-
+  const world$ = () => /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (el).querySelector(".dg-world"));
   const { applyCam, camOf, centerOn, fit, frame, holdStill, keepInView, reframe, zoomAt } =
-    createMapCamera({ M, host: () => el, view, world$, tagW, clamp });
-  const { spotOf, cursors, paintGraph } = createMapDrawing({ M, host: () => el, verbOf, tagW, focusNode, camOf, frame, clamp });
-  const paintDiagram = createMapDiagram({ M, host: () => el, view, tagW, camOf, holdStill, focusNode, cursors, boxHtml });
+    createMapCamera({ M, host: () => /** @type {HTMLElement} */ (el), view, world$, tagW, clamp });
+  const { spotOf, cursors, paintGraph } = createMapDrawing({ M, host: () => /** @type {HTMLElement} */ (el), verbOf, tagW, focusNode, camOf, frame, clamp });
+  const paintDiagram = createMapDiagram({ M, host: () => /** @type {HTMLElement} */ (el), view, tagW, camOf, holdStill, focusNode, cursors, boxHtml });
   const PRESS_PX = 24;
   const PHONE = typeof matchMedia === "function" ? matchMedia("(max-width:760px)") : null;
   const onPhone = () => !!(PHONE && PHONE.matches);
   const pressMin = () => (onPhone() ? 36 : PRESS_PX);
+  /** @param {HTMLElement} b @param {number} s */
   const tooSmall = (b, s, anyScale = false) => (onPhone() ? pressPx(b, s) < 36 : (anyScale || s < READABLE) && pressPx(b, s) < PRESS_PX);
+  /** @param {HTMLElement} b @param {number} s */
   const pressScale = (b, s, anyScale = false) => Math.min(2.4, Math.max(READABLE, ...(onPhone() || anyScale ? [s, pressMin() / Math.max(1, Math.min(b.offsetWidth, b.offsetHeight))] : [])));
+  /** @param {HTMLElement} nb @param {number} s */
   function pressPx(nb, s) {
     const b = getComputedStyle(nb, "::before"), hit = b.content !== "none" && b.position === "absolute";
+    /** @param {string} v */
     const grow = (v) => (hit ? Math.max(0, -parseFloat(v) || 0) : 0);
     return Math.min(nb.offsetWidth + 2 * grow(b.left), nb.offsetHeight + 2 * grow(b.top)) * s;
   }
+  /** @param {HTMLElement} nb */
   function nodePt(nb) {
     let tx = 0, ty = 0;
     try { if (nb.style.transform) { const m = new DOMMatrixReadOnly(nb.style.transform); tx = m.e; ty = m.f; } } catch { /* no move */ }
     return { x: tx + nb.offsetLeft + nb.offsetWidth / 2, y: ty + nb.offsetTop + nb.offsetHeight / 2 };
   }
-
+  /** @param {Element} t */
   function reveal(t) {
     const v = view();
     if (!v || !v.clientWidth) return;
-    const c = camOf(M.scope), b = v.getBoundingClientRect(), r = t.getBoundingClientRect();
+    const c = camOf(/** @type {Scope} */ (M.scope)), b = v.getBoundingClientRect(), r = t.getBoundingClientRect();
     const m = 12, W = v.clientWidth, H = v.clientHeight - 44;
     const x0 = r.left - b.left - v.clientLeft, y0 = r.top - b.top - v.clientTop, x1 = x0 + r.width, y1 = y0 + r.height;
     let dx = 0, dy = 0;
@@ -108,28 +117,30 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     if (!dx && !dy) return;
     c.x += dx; c.y += dy; c.user = true; c.fitAll = false; applyCam(c, false);
   }
+  /** @param {HTMLElement} v */
   function wire(v) {
+    /** @type {PointerStart["pts"]} */
     const pts = new Map();
+    /** @type {PointerStart | null} */
     let start = null;
-    v.addEventListener("focusin", (e) => { if (e.target !== v && e.target.closest(".dg-world")) reveal(e.target); });
+    v.addEventListener("focusin", (e) => { if (e.target !== v && /** @type {Element} */ (e.target).closest(".dg-world")) reveal(/** @type {Element} */ (e.target)); });
     v.addEventListener("focusout", (e) => {
-      const to = e.relatedTarget;
-      if (!e.target.closest(".dg-world") || (to && to.closest && to.closest(".dg-world"))) return;
-      // unfold in place: the box you clicked stays under your pointer, at the same size
-      const c = camOf(M.scope);
+      const to = /** @type {Element | null} */ (e.relatedTarget);
+      if (!/** @type {Element} */ (e.target).closest(".dg-world") || (to && to.closest && to.closest(".dg-world"))) return;
+      const c = camOf(/** @type {Scope} */ (M.scope));
       if (c.follow && M.lead) keepInView(c, M.lead);
     });
     v.addEventListener("pointerdown", (e) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
-      if (e.target.closest(".dg-tools, .dg-key, .dg-tag")) return;
+      if (/** @type {Element} */ (e.target).closest(".dg-tools, .dg-key, .dg-tag")) return;
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      const c = camOf(M.scope);
+      const c = camOf(/** @type {Scope} */ (M.scope));
       start = { pts: new Map(pts), x: c.x, y: c.y, s: c.s, moved: false };
     });
     v.addEventListener("pointermove", (e) => {
       if (!pts.has(e.pointerId) || !start) return;
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      const c = camOf(M.scope);
+      const c = camOf(/** @type {Scope} */ (M.scope));
       const [a, b] = [...pts.values()];
       const [a0, b0] = [...start.pts.values()];
       if (pts.size === 1 && a0) {
@@ -148,23 +159,24 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       c.user = true; c.follow = false; c.fitAll = false;
       applyCam(c, false);
     });
+    /** @param {PointerEvent} e */
     const up = (e) => {
       pts.delete(e.pointerId);
       if (start && start.moved) { M.dragged = true; setTimeout(() => { M.dragged = false; }, 0); }
       v.classList.remove("is-drag");
-      if (!pts.size) start = null; else { const c = camOf(M.scope); start = { pts: new Map(pts), x: c.x, y: c.y, s: c.s, moved: true }; }
+      if (!pts.size) start = null; else { const c = camOf(/** @type {Scope} */ (M.scope)); start = { pts: new Map(pts), x: c.x, y: c.y, s: c.s, moved: true }; }
     };
     v.addEventListener("pointerup", up);
     v.addEventListener("pointercancel", up);
     v.addEventListener("wheel", (e) => {
       e.preventDefault();
-      const c = camOf(M.scope);
+      const c = camOf(/** @type {Scope} */ (M.scope));
       if (e.ctrlKey || e.metaKey) { const r = v.getBoundingClientRect(); zoomAt(c, Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top); }
       else { c.x -= e.deltaX; c.y -= e.deltaY; c.user = true; c.follow = false; c.fitAll = false; applyCam(c, false); }
     }, { passive: false });
     v.addEventListener("keydown", (e) => {
       if (e.target !== v || e.metaKey || e.ctrlKey || e.altKey) return;
-      const c = camOf(M.scope), mid = () => [v.clientWidth / 2, v.clientHeight / 2];
+      const c = camOf(/** @type {Scope} */ (M.scope)), mid = () => /** @type {[number, number]} */ ([v.clientWidth / 2, v.clientHeight / 2]);
       const k = e.key;
       if (k === "+" || k === "=") zoomAt(c, 1.2, ...mid());
       else if (k === "-" || k === "_") zoomAt(c, 1 / 1.2, ...mid());
@@ -176,18 +188,18 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       e.preventDefault();
     });
   }
-
+  /** @param {string} what */
   function tool(what, { focus = true } = {}) {
-    const c = camOf(M.scope), v = view();
+    const c = camOf(/** @type {Scope} */ (M.scope)), v = view();
     if (!v) return;
     if (what === "in" || what === "out") zoomAt(c, what === "in" ? 1.25 : 0.8, v.clientWidth / 2, v.clientHeight / 2);
     else if (what === "fit") { c.user = true; c.follow = false; c.fitAll = true; fit(c, true, true); }
     else if (what === "tree" || what === "graph") {
       if (M.mode === what) return;
       M.mode = what;
-      { const c0 = camOf(M.scope); if (!c0.user || c0.fitAll) { c0.done = false; c0.settleUntil = 0; c0.target = null; c0.fitB = null; } }
+      { const c0 = camOf(/** @type {Scope} */ (M.scope)); if (!c0.user || c0.fitAll) { c0.done = false; c0.settleUntil = 0; c0.target = null; c0.fitB = null; } }
       try { localStorage.setItem(MODE_KEY, what); } catch { /* private mode */ }
-      el.dataset.scope = "";
+      /** @type {HTMLElement} */ (el).dataset.scope = "";
       paint();
       if (focus) view()?.focus({ preventScroll: true });
       announce(what === "graph" ? "Graph view." : "Diagram view.");
@@ -196,11 +208,10 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       c.follow = !c.follow;
       if (c.follow) c.fitAll = false;
       if (c.follow && M.lead) { c.target = M.lead.key; centerOn(c, M.lead.pt, true); }
-      el.querySelector('[data-dg="follow"]')?.setAttribute("aria-pressed", String(!!c.follow));
+      /** @type {HTMLElement} */ (el).querySelector('[data-dg="follow"]')?.setAttribute("aria-pressed", String(!!c.follow));
       announce(c.follow ? "Following the agent." : "Not following.");
     }
   }
-
   function paint() {
     if (!M.open || !el || M.waking) return;
     const scope = scopeOf(M.view);
@@ -208,7 +219,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     if (M.lastScope !== sk) { M.lastScope = sk; reframe(scope); }
     M.scope = scope;
     if (el.dataset.scope !== scope.key + "|" + M.mode || !view()) skeleton(scope);
-    let ags, tree, marks = new Map();
+    let /** @type {MapDrawAgent[]} */ ags, /** @type {Omit<MapNode, "parent">} */ tree, marks = /** @type {MapDrawAgent["act"]["files"]} */ (new Map());
     M.refs = new Map();
     if (scope.kind === "thread") {
       ags = [agentOf(scope.t)];
@@ -216,7 +227,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     } else ags = agentsIn(scope.kind === "project" ? scope.pid : null);
     if (scope.kind === "all") tree = projectsTree(ags);
     else if (scope.fold) {
-      const hot = new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean));
+      const hot = /** @type {Set<string>} */ (new Set(ags.filter((a) => scope.kind === "thread" || a.fold).flatMap((a) => [a.path, ...(a.spots || []), a.busy ? a.prev : null]).filter(Boolean)));
       tree = folderTree(scope, scope.fold, marks, hot, true);
       const v = view();
       if (M.mode === "tree" && M.fit?.key !== sk && v && v.clientWidth) {
@@ -225,16 +236,18 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
       }
       if (M.mode === "tree" && M.fit?.key === sk && M.fit.fold) { M.refs = new Map(); tree = folderTree(scope, scope.fold, marks, hot, false); }
     }
-    else tree = { id: "", kind: "root", name: scope.t.title, sub: "its folder isn't one XO can show", children: [] };
+    else tree = { id: "", kind: "root", name: /** @type {Extract<Scope, { kind: "thread" }>} */ (scope).t.title, sub: "its folder isn't one XO can show", children: [] };
     const h = headHtml(scope, ags);
     if (h !== M.head) {
-      const hd = el.querySelector("[data-mp-head]");
-      const a = document.activeElement, fid = a && hd.contains(a) ? a.dataset.mpFocus || a.dataset.mpGo : null;
+      const hd = /** @type {HTMLElement} */ (el.querySelector("[data-mp-head]"));
+      const a = /** @type {HTMLElement | null} */ (document.activeElement), fid = a && hd.contains(a) ? a.dataset.mpFocus || a.dataset.mpGo : null;
       redraw(hd, h); M.head = h; // in place: the legend's buttons stay the same nodes as the agents' verbs change
-      for (const x of hd.querySelectorAll(".elapsed[data-since]")) x.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +x.dataset.since) / 1000)));
-      if (fid) hd.querySelector(`[data-mp-focus="${CSS.escape(fid)}"]`)?.focus({ preventScroll: true });
+      for (const x of hd.querySelectorAll(".elapsed[data-since]")) x.textContent = elapsed(Math.max(0, Math.floor((Date.now() - +/** @type {string} */ (/** @type {HTMLElement} */ (x).dataset.since)) / 1000)));
+      if (fid) /** @type {HTMLElement | null} */ (hd.querySelector(`[data-mp-focus="${CSS.escape(fid)}"]`))?.focus({ preventScroll: true });
     }
+    /** @type {MapNode[]} */
     const flat = [];
+    /** @param {Omit<MapNode, "parent">} n @param {string | null} parent */
     const walk = (n, parent) => { flat.push({ ...n, parent }); for (const c of n.children || []) walk(c, n.id); };
     walk(tree, null);
     const ids = new Set(flat.map((n) => n.id)), parentById = new Map(flat.map((n) => [n.id, n.parent]));
@@ -243,37 +256,37 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
     for (const a of ags) {
       if (!a.busy || a.nid == null) continue;
       if (!at.has(a.nid)) at.set(a.nid, a.color);
-      for (let id = a.nid; id != null && parentById.get(id) != null; id = parentById.get(id)) if (!lit.has(id)) lit.set(id, a.color);
+      for (let /** @type {string | null | undefined} */ id = a.nid; id != null && parentById.get(id) != null; id = parentById.get(id)) if (!lit.has(id)) lit.set(id, a.color);
     }
     M.glit = lit;
     M.loading = flat.some((n) => n.kind === "note" && !n.btn && n.name === "Reading…");
-    if (M.mode === "graph") paintGraph(scope, flat, ags, at);
+    if (M.mode === "graph") paintGraph(scope, /** @type {import("./drawing-types.d.ts").GraphItem[]} */ (flat), ags, at);
     else paintDiagram(scope, tree, ags, at, lit);
-    const kd = el.querySelector("[data-dg-key]");
+    const kd = /** @type {(HTMLElement & { _h?: string }) | null} */ (el.querySelector("[data-dg-key]"));
     const kinds = new Set([...marks.values()].map((m) => m.mark).filter((m) => m !== "read"));
-    const kh = kinds.size ? ["new", "edited", "deleted"].filter((k) => kinds.has(k)).map((k) => `<span class="m-${k}"><i></i>${k}</span>`).join("") : "";
+    const kh = kinds.size ? ["new", "edited", "deleted"].filter((k) => kinds.has(/** @type {"new" | "edited" | "deleted"} */ (k))).map((k) => `<span class="m-${k}"><i></i>${k}</span>`).join("") : "";
     if (kd && kd._h !== kh) { kd.innerHTML = kh; kd._h = kh; kd.hidden = !kh; }
     frame(camOf(scope));
   }
-
+  /** @param {string} v */
   function liveIn(v) {
     const s = scopeOf(v);
     if (s.kind === "thread") return isBusy(s.t);
     if (s.kind === "project") return world.state.threads.some((t) => t.project === s.pid && isBusy(t));
     return world.state.threads.some(isBusy);
   }
-
   const bound = new WeakSet();
+  /** @param {HTMLElement} node */
   function bind(node) {
     if (!node || bound.has(node)) return;
     bound.add(node);
     node.addEventListener("click", (e) => {
-      const t = e.target;
-      const tl = t.closest("[data-dg]");
+      const t = /** @type {HTMLElement} */ (e.target);
+      const tl = /** @type {HTMLElement | null} */ (t.closest("[data-dg]"));
       if (tl && tl.dataset.dg) { tool(tl.dataset.dg); return; }
-      const g = t.closest("[data-mp-go]");
+      const g = /** @type {HTMLElement | null} */ (t.closest("[data-mp-go]"));
       if (g) {
-        const cg = camOf(M.scope), cur = g.closest(".dg-cur");
+        const cg = camOf(/** @type {Scope} */ (M.scope)), cur = /** @type {HTMLElement | null} */ (g.closest(".dg-cur"));
         const m = cur && /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur.style.transform);
         if (e.detail > 0 && m && tooSmall(g, cg.s, true)) {
           cg.user = true; cg.follow = false; cg.fitAll = false;
@@ -281,11 +294,11 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
           announce(`Closer to ${g.textContent.trim() || "it"}: press it again to open it.`);
           return;
         }
-        go(g.dataset.mpGo); return;
+        go(/** @type {string} */ (g.dataset.mpGo)); return;
       }
-      const fc = t.closest("[data-mp-focus]");
+      const fc = /** @type {HTMLElement | null} */ (t.closest("[data-mp-focus]"));
       if (fc) {
-        const c = camOf(M.scope), cur = M.curs.get(fc.dataset.mpFocus);
+        const c = camOf(/** @type {Scope} */ (M.scope)), cur = M.curs.get(/** @type {string} */ (fc.dataset.mpFocus));
         if (cur) {
           const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(cur.el.style.transform);
           if (m) { c.user = true; c.follow = false; c.fitAll = false; centerOn(c, { x: +m[1], y: +m[2] }, true, Math.max(c.s, 0.9)); }
@@ -293,11 +306,11 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
         }
         return;
       }
-      const nb = t.closest("[data-node]");
+      const nb = /** @type {HTMLElement | null} */ (t.closest("[data-node]"));
       if (!nb || M.dragged) return;
-      const r = M.refs.get(nb.dataset.node);
+      const r = M.refs.get(/** @type {string} */ (nb.dataset.node));
       if (!r) return;
-      const cz = camOf(M.scope);
+      const cz = camOf(/** @type {Scope} */ (M.scope));
       if (e.detail > 0 && tooSmall(nb, cz.s)) {
         cz.user = true; cz.follow = false; cz.fitAll = false;
         const pt = nodePt(nb);
@@ -305,23 +318,22 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
         announce(`Closer to ${nb.textContent.trim() || "it"}: press it again to open it.`);
         return;
       }
-      const key = M.scope.key;
+      const key = /** @type {Scope} */ (M.scope).key;
       if (r.toggle != null || r.more != null) {
-        const c = camOf(M.scope);
-        M.anchorId = nb.dataset.node;
+        const c = camOf(/** @type {Scope} */ (M.scope));
+        M.anchorId = /** @type {string} */ (nb.dataset.node);
         c.user = true;
         if (r.more != null) setOf(M.more, key).add(r.more);
         else {
           const opened = setOf(M.opened, key), closed = setOf(M.closed, key);
-          if (r.open) { opened.delete(r.toggle); closed.add(r.toggle); } else { closed.delete(r.toggle); opened.add(r.toggle); }
+          if (r.open) { opened.delete(/** @type {string} */ (r.toggle)); closed.add(/** @type {string} */ (r.toggle)); } else { closed.delete(/** @type {string} */ (r.toggle)); opened.add(/** @type {string} */ (r.toggle)); }
         }
         paint();
       }
-      else if (r.retry != null) load(r.fold, r.retry, { again: true });
+      else if (r.retry != null) load(/** @type {import("./folders-types.d.ts").MapFolder} */ (r.fold), r.retry, { again: true });
       else if (r.go) go(r.go);
-      else if (r.open) openFile(r.open, nb);
+      else if (r.open) openFile(/** @type {MapFile} */ (r.open), nb);
     });
-    // the panel's size changes with the window: frame it again unless you've moved it
     if (typeof ResizeObserver === "function") {
       let w0 = 0, h0 = 0;
       new ResizeObserver(() => {
@@ -330,14 +342,13 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
         const w = v.clientWidth, h = v.clientHeight;
         if (w === w0 && h === h0) return;
         const was = w0; w0 = w; h0 = h;
-        const c = camOf(M.scope);
+        const c = camOf(/** @type {Scope} */ (M.scope));
         if (was && c.fitAll) { fit(c, false, true); return; } // you asked to see it all: keep it all in view
         if (was && !c.user) { c.done = false; c.settleUntil = 0; c.target = null; } // the frame changed size: a fresh fit
         frame(c);
       }).observe(node);
     }
   }
-
   return {
     mount(host) {
       if (!host) return;
@@ -345,7 +356,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
         M.open = false;
         el = host; bind(host);
         host.classList.add("map-host");
-        el.dataset.scope = ""; M.head = "";
+        /** @type {HTMLElement} */ (el).dataset.scope = ""; M.head = "";
       }
       if (host.isConnected && host.getClientRects().length) this.show();
     },
@@ -363,7 +374,7 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
         if (my !== M.wakeGen || !M.open) return;
         M.waking = false;
         paint();
-        const c = M.scope && camOf(M.scope);
+        const c = M.scope && camOf(/** @type {Scope} */ (M.scope));
         if (c) requestAnimationFrame(() => { if (M.open && !M.waking) { paint(); frame(c); } }); // its size may have changed while hidden
       });
     },
