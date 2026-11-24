@@ -155,8 +155,10 @@ export function keepTurning() {
   };
   const MOVING = ".arc, .g-working, .spin, .shimmer, .tb-live, .dots";
   const moving = (/** @type {Node} */ n) => n.nodeType === 1 && (/** @type {Element} */ (n).matches(MOVING) || !!(/** @type {Element} */ (n)).querySelector(MOVING));
-  new MutationObserver((recs) => {
+  const observer = new MutationObserver((recs) => {
     for (const r of recs) for (const n of r.addedNodes) if (moving(n)) { sync(); return; }
-  }).observe(document.body, { childList: true, subtree: true });
+  });
   sync();
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
 }
