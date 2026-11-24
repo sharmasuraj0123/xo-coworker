@@ -2904,6 +2904,7 @@
     "js/settings.js",
     "modules/settings/host.js",
     "modules/routing/page.js",
+    "modules/routing/actions.js",
     "modules/rules/page.js",
     "modules/worktrees/page.js"
    ],
@@ -5323,8 +5324,8 @@
    "home": "core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/routing-truth.test.mjs": {
-   "status": "planned",
-   "home": "modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/routing/tests/routing-truth.test.mjs"
   },
   "tests/routing-words.test.mjs": {
    "status": "moved",
@@ -12258,7 +12259,7 @@
   },
   "js/settings.js::keys::invalid_key": {
    "status": "moved",
-   "home": "modules/routing/page.js"
+   "home": "modules/routing/actions.js"
   },
   "js/settings.js::keys::would_lose_work": {
    "status": "moved",

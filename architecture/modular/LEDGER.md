@@ -4,8 +4,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 518 |
-| moved | 487 |
+| planned | 517 |
+| moved | 488 |
 | deleted | 337 |
 | kept | 57 |
 | split | 30 |
@@ -97,7 +97,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `js/rtsettings.js` | 296 | moved | modules/runtimes/settings.js · next: the whole page moved, Paid usage rows with it: they become modules/runtimes/paid when Paid is its own settings.section |
 | `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
-| `js/settings.js` | 407 | split | js/settings.js, modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events. |
+| `js/settings.js` | 407 | split | js/settings.js, modules/settings/host.js, modules/routing/page.js, modules/routing/actions.js, modules/rules/page.js, modules/worktrees/page.js · next: The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events. |
 | `js/shape.js` | 731 | split | core/services/shape/model.js, core/services/shape/changes.js, core/services/shape/store.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | moved | modules/shells/dock.js |
@@ -303,7 +303,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `tests/rich-markdown.test.mjs` | 133 | planned | modules/conversation/tests/rich-markdown.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/ring.test.mjs` | 124 | planned | core/platform/tests/ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/routing-truth.test.mjs` | 45 | planned | modules/settings/tests/routing-truth.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/routing-truth.test.mjs` | 45 | moved | modules/routing/tests/routing-truth.test.mjs |
 | `tests/routing-words.test.mjs` | 26 | moved | modules/routing/tests/routing-words.test.mjs · next: rewritten as a behaviour test: Settings › Routing driven on a DOM (tests/lib/dom.mjs), api answered by the test |
 | `tests/row-insets.test.mjs` | 54 | kept | tests/row-insets.test.mjs |
 | `tests/rows-in-place.test.mjs` | 52 | kept | tests/rows-in-place.test.mjs |

@@ -67,15 +67,15 @@ export const api = {
   intents: () => get("/chat/intent"),
   /** The founder's paid-usage mode: {scope: "space", scope_id: "", value} or {scope: "pool", scope_id: poolId, value | null (null: follow the Space)}. */
   setPaid: (body) => send("POST", "/chat/intent/paid", body),
-  router: () => get("/chat/router"),
-  setRouter: (body) => send("PUT", "/chat/router", body),
-  routerModels: () => get("/chat/router/models"),
-  connectRouterModel: (body) => send("POST", "/chat/router/models", body),
-  disconnectRouterModel: (provider) => send("DELETE", `/chat/router/models/${enc(provider)}`),
+  router: ({ signal } = {}) => get("/chat/router", undefined, signal),
+  setRouter: (body, { signal } = {}) => request("/chat/router", { method: "PUT", body, signal }),
+  routerModels: ({ signal } = {}) => get("/chat/router/models", undefined, signal),
+  connectRouterModel: (body, { signal } = {}) => request("/chat/router/models", { method: "POST", body, signal }),
+  disconnectRouterModel: (provider, { signal } = {}) => request(`/chat/router/models/${enc(provider)}`, { method: "DELETE", signal }),
 
   chats: () => chatActivityApi.chats(),
   chat: (id) => get(`/chat/chats/${enc(id)}`),
-  patchChat: (id, body) => send("PATCH", `/chat/chats/${enc(id)}`, body),
+  patchChat: (id, body, { signal } = {}) => request(`/chat/chats/${enc(id)}`, { method: "PATCH", body, signal }),
   /** {thread?, after_seq?, before_seq?, limit?} → {messages, next_after_seq, next_before_seq?} */
   messages: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/messages`, query),
   /** attachments: ids uploaded to this same chat (uploadAttachment); text may be "" when there are some. */

@@ -2,6 +2,7 @@ type Json = ReturnType<typeof import("./http.js").request>;
 type Query = Record<string, unknown>;
 type Id = string;
 interface BlobOptions { signal?: AbortSignal; ms?: number }
+interface ReadOptions { signal?: AbortSignal }
 type SignInRoute = "claude-code" | "codex" | "antigravity";
 
 export interface Api {
@@ -15,15 +16,15 @@ export interface Api {
   advisory(): Json;
   intents(): Json;
   setPaid(body: object): Json;
-  router(): Json;
-  setRouter(body: object): Json;
-  routerModels(): Json;
-  connectRouterModel(body: object): Json;
-  disconnectRouterModel(provider: string): Json;
+  router(options?: ReadOptions): Json;
+  setRouter(body: object, options?: ReadOptions): Json;
+  routerModels(options?: ReadOptions): Json;
+  connectRouterModel(body: object, options?: ReadOptions): Json;
+  disconnectRouterModel(provider: string, options?: ReadOptions): Json;
 
   chats(): Json;
   chat(id: Id): Json;
-  patchChat(id: Id, body: object): Json;
+  patchChat(id: Id, body: object, options?: ReadOptions): Json;
   messages(chat: Id, query?: Query): Json;
   post(chat: Id, message: { text?: string; threadTs?: string | null; clientId?: string; attachments?: string[] }): Json;
   threads(chat: Id): Json;
