@@ -5,7 +5,6 @@ import { fileColor } from "../../core/ui/icons/fileicons.js";
 import { gstep, RAD } from "./graph-physics.js";
 import { ARROW } from "./icons.js";
 import { parentOf } from "./tree.js";
-
 /** @import { CameraScope } from "./camera-types.d.ts" */
 
 /** @import { Position } from "./graph-physics.js" */
@@ -110,7 +109,6 @@ export function createMapDrawing({ M, host, verbOf, tagW, focusNode, camOf, fram
       svg.innerHTML = M.gnodes.filter((g) => g.par).map(() => "<line/>").join("");
       M.gedges = [.../** @type {HTMLCollectionOf<GraphEdge>} */ (svg.children)];
       M.layoutKey = html;
-      // the first layout settles from scratch; later dots join gently without shaking the rest
       if (shape !== M.gkey) { M.alpha = Math.max(M.alpha, M.gkey ? 0.25 : 0.9); M.gkey = shape; }
       if (fid != null) focusNode(nodes, fid);
     }
@@ -119,11 +117,14 @@ export function createMapDrawing({ M, host, verbOf, tagW, focusNode, camOf, fram
     if (M.alpha > 0.02) gkick();
   }
   function gdraw() {
+    for (const g of M.gnodes) if (g.el && !g.ext && g.el.offsetWidth) {
+      const css = getComputedStyle(g.el), l = parseFloat(css.marginLeft) || 0, t = parseFloat(css.marginTop) || 0;
+      g.ext = { l, t, r: l + g.el.offsetWidth, b: t + g.el.offsetHeight };
+    }
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const g of M.gnodes) {
       const { x, y } = g.p;
       if (g.el) g.el.style.transform = `translate(${x}px,${y}px)`;
-      if (g.el && !g.ext && g.el.offsetWidth) { const cs = getComputedStyle(g.el); const ml = parseFloat(cs.marginLeft) || 0, mt = parseFloat(cs.marginTop) || 0; g.ext = { l: ml, t: mt, r: ml + g.el.offsetWidth, b: mt + g.el.offsetHeight }; }
       const e = g.ext || { l: -8, t: -8, r: 8, b: 8 };
       if (x + e.l < x0) x0 = x + e.l; if (y + e.t < y0) y0 = y + e.t; if (x + e.r > x1) x1 = x + e.r; if (y + e.b > y1) y1 = y + e.b;
     }
@@ -137,7 +138,6 @@ export function createMapDrawing({ M, host, verbOf, tagW, focusNode, camOf, fram
       e.setAttribute("class", lit ? "is-lit" : g.n.kind === "file" ? "k-file" : "");
       e.style.stroke = lit || "";
     }
-    // a quiet margin all round; a cursor's name tag only when an agent is in the drawing
     const tag = M.gags && M.gags.length ? tagW() * 0.6 : 0;
     if (M.gnodes.length) { M.bounds = { x0: x0 - 12, y0: y0 - 12, x1: x1 + 12 + tag, y1: y1 + 12 }; M.rootPt = { x: 0, y: 0 }; }
     const at = new Map(M.gnodes.map((g) => [g.n.id, g]));
