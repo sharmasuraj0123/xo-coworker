@@ -152,7 +152,10 @@ test("the edge light: one --state per risk (amber notable, red destructive or st
   assert.equal(prop(rule(risk + ":is(.r-destructive,.r-stopped)"), "--state"), "var(--err-ink)");
   const edge = rule(":is(.card,.next):is(.r-notable,.r-destructive,.r-stopped)::before");
   assert.equal(prop(edge, "z-index"), "-1");
-  assert.ok([...edge.values()].some((value) => value.includes("top/100% 1px no-repeat")));
+  const [, positionAndWidth, height, repeat] = parts(list.comma(prop(edge, "background"))[0]);
+  assert.equal(positionAndWidth, "top/100%");
+  assert.equal(repeat, "no-repeat");
+  for (const env of Object.values(SCREENS)) assert.equal(px(height, env), 1, "The edge light is 1 px high");
   assert.deepEqual(declarationsFor((selector) => /^\.(?:card|next)::before$/.test(selector)), []);
 });
 test("the lines are glass: the composer's fill tinted by --state, blurred, no edge light", () => {

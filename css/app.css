@@ -38,9 +38,9 @@
 :is(.card,.next,.dock-fold).r-notable{--state:var(--warn)}
 :is(.card,.next,.dock-fold):is(.r-destructive,.r-stopped){--state:var(--err-ink)}
 :is(.card,.next):is(.r-notable,.r-destructive,.r-stopped)::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
-  background:linear-gradient(90deg,transparent 10%,color-mix(in srgb,var(--state) 85%,transparent),transparent 90%)
-    top/100% 1px no-repeat,
-    radial-gradient(60% var(--s-12) at 50% 0,color-mix(in srgb,var(--state) 10%,transparent),transparent)}
+  background:linear-gradient(90deg,var(--fill-clear) 10%,color-mix(in srgb,var(--state) 85%,var(--fill-clear)),var(--fill-clear) 90%)
+    top/100% var(--hair) no-repeat,
+    radial-gradient(60% var(--s-12) at 50% 0,color-mix(in srgb,var(--state) 10%,var(--fill-clear)),var(--fill-clear))}
 
 .top[data-kind="thread"]::before{content:"";position:absolute;top:0;left:var(--hg);right:var(--hg);height:2px;border-radius:0 0 2px 2px;pointer-events:none;opacity:0;transition:opacity var(--dur-slow) var(--ease)}
 .top[data-state="need"]::before{opacity:.8;background:linear-gradient(90deg,transparent,var(--warn) 20%,var(--warn) 80%,transparent)}
