@@ -5743,8 +5743,9 @@
    "home": "tests/xoicons.test.mjs"
   },
   "tools/codemirror/vendor.mjs": {
-   "status": "planned",
-   "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/codemirror/vendor.mjs",
+   "note": "Generates the shared editor and merge bundle in vendor/codemirror. tests/codemirror-vendor.test.mjs checks exports, hashes and lazy loading."
   },
   "tools/diffview/astra-recheck.cjs": {
    "status": "deleted",
@@ -5827,12 +5828,14 @@
    "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/theme.mjs": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs",
+   "note": "Generates modules/changes/diffthemes.js from the published sheets. tests/diffview.test.mjs verifies the generated themes."
   },
   "tools/diffview/vendor.mjs": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs",
+   "note": "Generates the renderer, worker and language chunks in vendor/pierre-diffs. tests/diffview.test.mjs verifies the inventory and mounted adapter."
   },
   "tools/files/space-e2e-reset.sh": {
    "status": "deleted",
@@ -15585,12 +15588,12 @@
    "home": "tests/xoicons.test.mjs"
   },
   "tools/codemirror/vendor.mjs::exports::${keep.join(\"": {
-   "status": "planned",
-   "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/codemirror/vendor.mjs"
   },
   "tools/codemirror/vendor.mjs::exports::\")": {
-   "status": "planned",
-   "home": "tools/codemirror/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/codemirror/vendor.mjs"
   },
   "tools/diffview/astra-recheck.cjs::ids::stage": {
    "status": "deleted",
@@ -15741,144 +15744,144 @@
    "reason": "a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6)"
   },
   "tools/diffview/theme.mjs::exports::rootProps": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::color": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::codeColors": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::textmate": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::moduleSource": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::XO_DARK": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::exports::XO_LIGHT": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::sheets": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::topRules": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::rootSel": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::rootProps": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::parseHex": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::color": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::codeColors": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::textmate": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/theme.mjs::functions::moduleSource": {
-   "status": "planned",
-   "home": "tools/diffview/ (generates the diff themes)"
+   "status": "kept",
+   "home": "tools/diffview/theme.mjs"
   },
   "tools/diffview/vendor.mjs::exports::LANGS": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::FileDiff": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::File": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::VirtualizedFile": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::Virtualizer": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::UnresolvedFile": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::parsePatchFiles": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::parseDiffFromFile": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::registerCustomTheme": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::getSharedHighlighter": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::getOrCreateWorkerPoolSingleton": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledLanguages": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledLanguagesInfo": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::themes": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledThemes": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::bundledThemesInfo": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::createOnigurumaEngine": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::LiveTokenizer": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/diffview/vendor.mjs::exports::codeToTokens": {
-   "status": "planned",
-   "home": "tools/diffview/vendor.mjs (vendor hash manifests)"
+   "status": "kept",
+   "home": "tools/diffview/vendor.mjs"
   },
   "tools/files/space-e2e.mjs::routes::/api/chat/stream": {
    "status": "deleted",
@@ -16005,24 +16008,24 @@
    "reason": "its file, a one-off probe (owner D6), is deleted"
   },
   "tools/xoicons/build.mjs::exports::clean": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::exports::build": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::exports::XI": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::functions::clean": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "tools/xoicons/build.mjs::functions::build": {
-   "status": "planned",
-   "home": "tools/xoicons/ (generates core/ui/icons/xoicons.js)"
+   "status": "kept",
+   "home": "tools/xoicons/build.mjs"
   },
   "css/app.css::ids::msgs": {
    "status": "kept",

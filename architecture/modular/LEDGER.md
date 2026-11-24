@@ -7,12 +7,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 488 |
 | vendor | 376 |
 | deleted | 337 |
-| planned | 137 |
-| kept | 66 |
+| planned | 134 |
+| kept | 69 |
 | split | 39 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1773, planned 373, deleted 194, kept 145, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1773, planned 331, deleted 194, kept 187, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -1499,7 +1499,7 @@ Items inside first-party files: 2488 (moved 1773, planned 373, deleted 194, kept
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `tools/codemirror/vendor.mjs` | 175 | planned | tools/codemirror/vendor.mjs (vendor hash manifests) |
+| `tools/codemirror/vendor.mjs` | 175 | kept | tools/codemirror/vendor.mjs · next: Generates the shared editor and merge bundle in vendor/codemirror. tests/codemirror-vendor.test.mjs checks exports, hashes and lazy loading. |
 
 ## tools/diffview (22)
 
@@ -1525,8 +1525,8 @@ Items inside first-party files: 2488 (moved 1773, planned 373, deleted 194, kept
 | `tools/diffview/rows.cjs` | 50 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/sandbox-preview.cjs` | 61 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
 | `tools/diffview/sandbox.cjs` | 24 | deleted | a one-off browser probe with machine paths; the fast UI lane in e2e/ replaces such probes (owner D6) |
-| `tools/diffview/theme.mjs` | 156 | planned | tools/diffview/ (generates the diff themes) |
-| `tools/diffview/vendor.mjs` | 132 | planned | tools/diffview/vendor.mjs (vendor hash manifests) |
+| `tools/diffview/theme.mjs` | 156 | kept | tools/diffview/theme.mjs · next: Generates modules/changes/diffthemes.js from the published sheets. tests/diffview.test.mjs verifies the generated themes. |
+| `tools/diffview/vendor.mjs` | 132 | kept | tools/diffview/vendor.mjs · next: Generates the renderer, worker and language chunks in vendor/pierre-diffs. tests/diffview.test.mjs verifies the inventory and mounted adapter. |
 
 ## tools/files (2)
 
