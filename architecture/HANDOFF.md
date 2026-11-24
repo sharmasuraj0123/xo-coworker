@@ -73,6 +73,21 @@ The first forward merge of release `f0144d5f` is committed at `c7bc7dbc` on `mod
 - Group 6 integrates at `bd73625e`. It closes 133 ledger obligations and leaves 574 open, including the 18 P4 app keys. The revision removes the sibling-module type imports and makes the layer check scan declarations and JSDoc imports. An independent AST comparison verified that the type revision preserves all ten changed application files at runtime.
 - At the P3 gate the owner approved the fast browser lane and paired screenshots against release `d639012b`. Run the capped full check first, release its lease, then take the browser lease separately. Compare the tested integration tree and pinned release through their own `serve.py` with the same fake Space seed, on Home, conversation, the panel, Settings and Accounts in both themes on desktop and phone. Record mismatches as findings and leave approved snapshots untouched. Tag `modular-gate-P3-group-06` with the gate evidence. The coordinator starts the independent read-only quality audit from that tag alongside P4. Fold its file-and-line findings into the post-P4 fix phase and keep the later pre-P5 audit.
 
+### P3 exit evidence
+
+The clean archive at `modular-gate-P3-group-06` (`bb4fef4d`) passed all 312 test files in 81.4 seconds. The final ledger check reported 574 open items for P4. The browser lane passed 16 cases in 24.1 seconds, with the two Apps cases still reserved for their own gate. All 20 paired screenshots matched byte for byte against `d639012b`, with no page errors or stylesheet response failures. Both leases were released.
+
+These are single cold navigations in fresh Chromium contexts against each tree's local `serve.py` and the same seeded fake Space. First paint and first contentful paint coincided in each run. Chromium Resource Timing recorded 18 direct stylesheets in both trees and 2 imported stylesheets in release versus 27 in P3.
+
+| Viewport and theme | Release paint (ms) | P3 paint (ms) | Release last CSS response (ms) | P3 last CSS response (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| Desktop dark | 380 | 860 | 322.9 | 839.0 |
+| Desktop light | 376 | 864 | 350.7 | 829.3 |
+| Phone dark | 304 | 844 | 280.0 | 809.6 |
+| Phone light | 368 | 804 | 318.9 | 788.7 |
+
+The last stylesheet import started at 64–110 ms in release and 371–458 ms in P3, when the final direct stylesheet finished. First paint was 436–540 ms later in these local samples. Keep the CSS bundling work in the fix phase and repeat the cold-navigation measurements there.
+
 ## Findings for the post-P4 fix phase
 
 P3 and P4 preserve release behavior. Bring findings from every package handoff here with file, line and evidence. The references below identify the trees where the evidence was recorded. Recheck the paths and reproduce the findings on the P4 gate before assigning fixes.
@@ -105,7 +120,7 @@ P3 and P4 preserve release behavior. Bring findings from every package handoff h
 | A thrown record Undo callback leaves the record active | Group 4 review revision `2beded2d`, `modules/chats/record-lines.js:35–37`. The inherited Undo callback runs before the record is cleared and the next render is scheduled. Reproduce with a callback that throws. |
 | The decision panel's focus fallback targets an unfocusable section | Group 5 base `312186c3`, `js/decide.js:234–239` and `index.html:121`. Unparking focuses `#panel` when there is no `#card`, but the panel section has no `tabindex`. Reproduce by restoring an open decision panel with no card and checking where focus lands. |
 | Opening a thread beside a conversation by touch focuses the composer | Group 6 base `0ef1bf97`, `modules/threads/open-panel-thread.js:10` and `js/app.js:2049,2054`. The panel open passes `{ focus: true }` for pointer and touch alike, and both rendering paths focus the textarea. Reproduce the keyboard opening on a touch device before implementing touch focus on a landmark. Cover desktop entry and explicit composer focus as well. |
-| Group 6 increases the startup stylesheet graph | Group 6 checkpoint `adf511bf`, `index.html:14–31` and `css/app.css:1–18`. The same 18 direct links lead to 45 distinct stylesheets, up from 30 at the Group 5 gate and 20 in release `d639012b`. Imported styles start after their parent sheet is read and can block rendering. At the P3 browser gate, compare cold navigation first paint, first contentful paint and the stylesheet waterfall with release. Use those results to assess bundling in the post-P4 or performance phase. |
+| Group 6 increases the startup stylesheet graph | Group 6 checkpoint `adf511bf`, `index.html:14–31` and `css/app.css:1–18`. The same 18 direct links lead to 45 distinct stylesheets, up from 30 at the Group 5 gate and 20 in release `d639012b`. The P3 exit measurements above show the late import requests and the first-paint delay. Repeat the measurement against those baselines during CSS bundling. |
 | The decision dock renders card markup twice on open | Group 6 review `1c12c1d7`, `modules/decisions/dock.js:60,78`. The first render parses a heading. The second renders the card when open. Measure this path and verify the folded heading and rendered card before reducing the work. |
 | The side-thread page retains its subscriptions while closed | Group 6 review `1c12c1d7`, `modules/conversation/thread-page.js:51–55,82–87`. Closing keeps the mounted page, decoration, resize observer and scroll listener. Check idle work while closed and lifetime if the page is disposed. |
 | A pending message jump can run after a view switch | Group 6 review `1c12c1d7`, `modules/conversation/navigation.js:12–21`. Delayed retries query the shared conversation without checking the original view. Reproduce by jumping to a missing message and switching conversations on the same surface. |
