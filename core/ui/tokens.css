@@ -127,7 +127,7 @@
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-9:36px; --s-10:40px; --s-12:48px;
   --gap-icon:var(--s-2); /* Spacing follows a 4 px grid. */
-  --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch;
+  --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch; --h-thread-state-mark:2px;
   --s-turn-gap:14px; --s-tool-count-inset:5px; --s-tool-output-block:10px; --s-tool-work-gap:2px; --s-tool-row-gap:1px;
   --s-tool-file-end:14px; --s-tool-file-start:10px; --s-tool-separator-gap:7px; --s-tool-rail-inset:23px;
   --w-tool-count:20px; --h-tool-count:18px; --h-tool-output:240px; --h-tool-status:28px;
@@ -163,7 +163,7 @@
   --ic-approval-stamp:84px; --w-effort-label:96px; --w-decision-attribution:84px; --w-empty-state-mark:58px;
   --s-touch-extension:-8px; --s-notice-touch-extension:-12px; --h-folder-touch-action:28px;
   --s-model-chip-phone:6px; --s-launchpad-readonly-phone:10px; --s-sidebar-row-phone:5px;
-  --r-segment-inset:2px; --offset-inside-focus-ring:-2px;
+  --r-segment-inset:2px; --offset-inside-focus-ring:-2px; --r-thread-state-mark:var(--h-thread-state-mark);
   --w-file-card-min:260px; --h-file-card:56px; --s-file-card-start:10px; --s-file-card-label-gap:2px; --s-file-card-open-gap:6px;
   --s-viewer-head-top:14px; --s-viewer-button-end:11px; --s-viewer-button-start:9px; --s-viewer-segment-in:3px; --s-viewer-seg-inline:10px;
   --r-viewer-segment-inset:4px; --s-viewer-path-offset:22px; --fill-viewer-embedded:var(--fill-clear);
@@ -187,7 +187,7 @@
   --ease:cubic-bezier(.2,.8,.2,1);
   --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
   --ease-out:var(--ease);
-  --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms;
+  --dur-fast:120ms; --dur-base:180ms; --dur-slow:280ms; --dur-thread-state-sweep:2.8s;
   --d-hover:200ms; --d-hover-in:120ms; --d-press:60ms; --d-pop:180ms; --d-pop-out:140ms; --d-sheet:240ms;
   --d-in:280ms; --d-move:320ms; --d-long:480ms; --d-out:160ms; --d-land:600ms; --d-loop:2.4s; --d-wait:400ms;
   --press-scale:.97;
