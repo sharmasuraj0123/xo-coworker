@@ -30,6 +30,7 @@ import { createChats } from "./chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
 import { createDrafts, DRAFTS } from "../modules/conversation/drafts.js";
+import { createReadingLayout } from "../modules/conversation/reading-layout.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf, goneLine } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
@@ -97,7 +98,7 @@ import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
-import { arrive, still, EASE, MOVE } from "../core/ui/motion.js";
+import { arrive } from "../core/ui/motion.js";
 import { wireGestures, dockGestures, conversationGestures } from "./gestures.js";
 import { rtName, untilWords } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
@@ -2102,6 +2103,7 @@ function createConv({ view, msgs, scroller: sc, column, typing, follow, main = f
 }
 const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
   follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } });
+const { readingPlace, holdPlace, foldsBefore, workMotion } = createReadingLayout({ S, MAIN });
 // the oldest message on screen; day lines don't count, since older messages of the same day land below theirs
 // Where the view is has one owner, modules/conversation/follow.js (QA #9): pinned at the latest, or reading where you are.
 // Here: opening a conversation goes to the latest; a redraw while you read puts what you read back where it
@@ -2166,75 +2168,6 @@ function drawConv(C, needs) {
   if (opening) { C.rendered = v; if (v === "chats") C.follow.toTop(); else C.follow.toLatest(false); }
 }
 
-// ── what you're reading stays put; the agent's work moves, never jumps ─────────────────────────────
-const isMessageRow = (k) => k !== "hist" && k !== "note" && k !== "empty" && !k.startsWith("day|");
-function readingPlace(C = MAIN) {
-  const top = C.scroller.getBoundingClientRect().top;
-  for (const el of C.msgs.children) {
-    const k = el.dataset.k;
-    if (!k || !isMessageRow(k)) continue;
-    const r = el.getBoundingClientRect();
-    if (r.height && r.bottom > top + 1) return { k, top: r.top };
-  }
-  return null;
-}
-const childOf = (C, k) => { for (const el of C.msgs.children) if (el.dataset.k === k) return el; return null; };
-function holdPlace(C, a) {
-  const el = childOf(C, a.k);
-  if (!el) return;
-  const d = el.getBoundingClientRect().top - a.top;
-  if (Math.abs(d) >= 1) { C.scroller.scrollTop += d; }
-}
-/** Something here already moves to its own CSS animation (another layer's): motion is never stacked on it. */
-function stirred(el, root) {
-  for (let x = el; x && x !== root.parentElement; x = x.parentElement) if (getComputedStyle(x).animationName !== "none") return true;
-  return false;
-}
-function foldsBefore(C, items) {
-  const out = [];
-  const now = new Map();
-  for (const el of C.msgs.children) if (el.dataset.k) now.set(el.dataset.k, el);
-  for (const it of items) {
-    const el = now.get(it.key);
-    if (!el || el._h === it.html || !el.querySelector("[data-tb]")) continue;
-    const parts = new Map();
-    if (el.classList.contains("m-turn")) for (const x of el.querySelectorAll("[data-b],[data-r]")) parts.set(x.dataset.b ? `b:${x.dataset.b}` : `r:${x.dataset.r}`, x.offsetHeight);
-    else parts.set("self", el.offsetHeight);
-    out.push({ k: it.key, parts });
-  }
-  return out;
-}
-function workMotion(C, folds) {
-  // the fold you toggled is the one in this conversation (a click remembers where it was, S.tbToggled.in)
-  const toggled = S.tbToggled && (!S.tbToggled.in || S.tbToggled.in === C.msgs) ? S.tbToggled : null;
-  if (toggled) S.tbToggled = null;
-  if (toggled && toggled.focus) C.msgs.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.focus({ preventScroll: true });
-  if (still() || !folds.length) return;
-  const top = C.scroller.getBoundingClientRect().top, bottom = top + C.scroller.clientHeight;
-  const seen = (r) => r.bottom > top && r.top < bottom;
-  for (const f of folds) {
-    const el = childOf(C, f.k);
-    if (!el || !seen(el.getBoundingClientRect())) continue;
-    const opened = toggled ? el.querySelector(`[data-tb="${CSS.escape(toggled.k)}"]`)?.closest("[data-b],[data-r]") : null;
-    const glide = (x, h0) => {
-      const h1 = x.offsetHeight;
-      if (!h0 || !h1 || Math.abs(h1 - h0) < 1 || x.getBoundingClientRect().top < top || stirred(x, el)) return;
-      x.animate([{ height: `${h0}px`, overflow: "hidden" }, { height: `${h1}px`, overflow: "hidden" }], { duration: MOVE, easing: EASE });
-    };
-    if (f.parts.has("self")) { glide(el, f.parts.get("self")); continue; }
-    for (const x of el.querySelectorAll("[data-b],[data-r]")) {
-      const id = x.dataset.b ? `b:${x.dataset.b}` : `r:${x.dataset.r}`;
-      if (f.parts.has(id)) { glide(x, f.parts.get(id)); continue; }
-      // new: a step, a block of its work (not its answer: words are the message layer's to bring in)
-      if ((opened && opened.contains(x)) || x.matches(".tb-answer, .tb-text, .tb-files") || !seen(x.getBoundingClientRect()) || stirred(x, el)) continue;
-      if (x.parentElement.closest("[data-r]") || (x.parentElement.closest("[data-b]") && !f.parts.has(`b:${x.parentElement.closest("[data-b]").dataset.b}`))) continue; // its parent arrives with it
-      arrive(x);
-    }
-    // the chevron of what you opened turns, as it would had it not been redrawn
-    const chev = opened && opened.querySelector(`[data-tb="${CSS.escape(toggled.k)}"] .tb-chev`);
-    if (chev) chev.animate([{ transform: toggled.open ? "none" : "rotate(180deg)" }, { transform: toggled.open ? "rotate(180deg)" : "none" }], { duration: MOVE, easing: EASE });
-  }
-}
 // what scrolling asks of the page (an older page near the top, the header's edge): once a frame, not once an event
 let scrollRaf = 0;
 scroller.addEventListener("scroll", () => {
