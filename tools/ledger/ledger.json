@@ -1561,7 +1561,7 @@
   },
   "css/app.css": {
    "status": "split",
-   "home": ["core/ui/app-controls.css", "shell/frame.css", "modules/home/home.css", "css/app.css"],
+   "home": ["core/ui/app-controls.css", "shell/frame.css", "modules/home/home.css", "modules/home/next.css", "modules/conversation/conversation.css", "modules/conversation/composer.css", "modules/threads/intelligence.css", "modules/since/notice.css", "modules/conversation/return-pill.css", "modules/decisions/decisions.css", "modules/home/handled.css", "modules/conversation/dock.css", "shell/dialogs.css", "modules/threads/all.css", "shell/pickers.css", "modules/settings/settings.css", "shell/responsive.css", "modules/conversation/history.css", "css/app.css"],
    "note": "The compatibility entry loads the moved regions in their original order."
   },
   "css/artifacts.css": {
@@ -2502,7 +2502,7 @@
    "note": "nothing imports the old path, so it leaves with no re-export"
   },
   "js/cardparts.js": {
-   "status": "planned",
+   "status": "moved",
    "home": "modules/decisions/cardparts.js"
   },
   "js/changes.js": {
@@ -2538,13 +2538,7 @@
   },
   "js/decide.js": {
    "status": "split",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ]
+   "home": ["js/decide.js", "modules/decisions/controller.js", "modules/decisions/queue.js", "modules/decisions/needs.js", "modules/decisions/card.js", "modules/decisions/card-events.js", "modules/decisions/panel-view.js", "modules/decisions/keyboard.js", "modules/decisions/toast.js"]
   },
   "js/diffthemes.js": {
    "status": "moved",
@@ -5993,29 +5987,24 @@
    "reason": "Release removed the sidebar Find a project field in favour of global Jump"
   },
   "css/app.css::ids::hm-body": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/home/handled.css"
   },
   "css/app.css::ids::iq-pop": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/responsive.css"
   },
   "css/app.css::ids::cs-pop": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "shell/responsive.css"
   },
   "css/app.css::ids::composer": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/conversation/history.css"
   },
   "css/app.css::ids::say": {
-   "status": "split-region",
-   "home": "core/ui + shell + modules/* by region (analysis/6-css-tests-tools.md, app.css region map)",
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "deleted",
+   "reason": "No #say rule at the Group 5 gate. The composer textarea uses the shared rules in modules/conversation/composer.css."
   },
   "css/launchpad.css::ids::fr-body-launch": {
    "status": "moved",
@@ -7072,8 +7061,8 @@
    "home": "modules/runtimes/thread.js"
   },
   "js/app.js::functions::threadTargetHtml": {
-   "status": "planned",
-   "home": "Group 6: composer target presentation in js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::pings": {
    "status": "moved",
@@ -7132,52 +7121,52 @@
    "home": "modules/home/handled.js"
   },
   "js/app.js::functions::convHost": {
-   "status": "planned",
-   "home": "core/services (conversation addressing) (app.js l.855)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::messagesOf": {
-   "status": "planned",
-   "home": "modules/conversation (model, pure) → core/services conversation selector; event sources (decisions, threads) should register `conversation.event` providers (app.js l.863)"
+   "status": "moved",
+   "home": "modules/conversation/messages.js"
   },
   "js/app.js::functions::proseHtml": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.1057)"
+   "status": "moved",
+   "home": "modules/conversation/message-items.js"
   },
   "js/app.js::functions::threadCardHtml": {
-   "status": "planned",
-   "home": "modules/threads (`conversation.block` \"thread-card\") (app.js l.1061)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::queuedMeta": {
-   "status": "planned",
-   "home": "modules/conversation (+ composer stop API) (app.js l.1084)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::nameOf": {
-   "status": "planned",
-   "home": "modules/conversation (+ composer stop API) (app.js l.1097)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::moveBannerHtml": {
-   "status": "planned",
-   "home": "modules/runtimes (`conversation.block` \"move\") (app.js l.1104)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::passedTo": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.1136)"
+   "status": "moved",
+   "home": "modules/conversation/message-details.js"
   },
   "js/app.js::functions::startHtml": {
-   "status": "planned",
-   "home": "modules/projects (`conversation.empty` place) using the composer API (app.js l.1158)"
+   "status": "moved",
+   "home": "modules/conversation/start.js"
   },
   "js/app.js::functions::startDraft": {
-   "status": "planned",
-   "home": "modules/projects (`conversation.empty` place) using the composer API (app.js l.1162)"
+   "status": "moved",
+   "home": "modules/conversation/start.js"
   },
   "js/app.js::functions::msgItems": {
-   "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1170)"
+   "status": "moved",
+   "home": "modules/conversation/message-items.js"
   },
   "js/app.js::functions::msgItemsOf": {
-   "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
+   "status": "moved",
+   "home": "modules/conversation/message-items.js"
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "moved",
@@ -7192,8 +7181,8 @@
    "home": "modules/threads/header.js"
   },
   "js/app.js::functions::hostNeedHtml": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1340)"
+   "status": "moved",
+   "home": "modules/conversation/header.js"
   },
   "js/app.js::functions::topRender": {
    "status": "moved",
@@ -7201,8 +7190,8 @@
    "note": "Shell owns the header host and action ordering. Conversation title markup remains in js/app.js with the conversation holdback."
   },
   "js/app.js::functions::checklistRender": {
-   "status": "planned",
-   "home": "modules/threads (thread head) (app.js l.1439)"
+   "status": "moved",
+   "home": "modules/conversation/checklist.js"
   },
   "js/app.js::functions::workingRuns": {
    "status": "moved",
@@ -7253,28 +7242,28 @@
    "home": "modules/runs/stop.js"
   },
   "js/app.js::functions::createDock": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1718)"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::dockSwap": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1725)"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::fitDock": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1740)"
+   "status": "moved",
+   "home": "modules/decisions/dock-layout.js"
   },
   "js/app.js::functions::dockEdges": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1759)"
+   "status": "moved",
+   "home": "modules/decisions/dock-layout.js"
   },
   "js/app.js::functions::dockRender": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1775)"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::openAsk": {
-   "status": "planned",
-   "home": "modules/conversation (typing) (app.js l.1886)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::typingRender": {
    "status": "moved",
@@ -7285,40 +7274,40 @@
    "home": "shell/elapsed.js"
   },
   "js/app.js::functions::HER": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1964)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldShow": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1967)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldFor": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1969)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldPut": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1970)"
+   "status": "moved",
+   "home": "core/services/notices.js"
   },
   "js/app.js::functions::heraldNext": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1971)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldDrop": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1973)"
+   "status": "moved",
+   "home": "modules/conversation/notices.js"
   },
   "js/app.js::functions::heraldRender": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.1974)"
+   "status": "moved",
+   "home": "modules/conversation/notice-line.js"
   },
   "js/app.js::functions::heraldRoom": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2015)"
+   "status": "moved",
+   "home": "modules/conversation/notice-line.js"
   },
   "js/app.js::functions::heraldBack": {
-   "status": "planned",
-   "home": "core/platform notices service (API: show/forMsg/drop/next) + shell renders it; `regionRings`/`keepFocusInView` → core/ui boot (app.js l.2025)"
+   "status": "moved",
+   "home": "modules/conversation/notice-line.js"
   },
   "js/app.js::functions::recordLine": {
    "status": "moved",
@@ -7333,180 +7322,180 @@
    "home": "modules/chats/record-lines.js"
   },
   "js/app.js::functions::chipRender": {
-   "status": "planned",
-   "home": "modules/intel (`composer.tool` + `conversation.local-row`) (app.js l.2059)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::wireComposer": {
-   "status": "planned",
-   "home": "modules/composer (factory `createComposer`) (app.js l.2087)"
+   "status": "moved",
+   "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::chipHtml": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2112)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::trayRender": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2129)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::addFiles": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2150)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::insertText": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2166)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::wireTray": {
-   "status": "planned",
-   "home": "modules/composer (attachments sub-module) (app.js l.2174)"
+   "status": "moved",
+   "home": "modules/conversation/composer-attachments.js"
   },
   "js/app.js::functions::growSay": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2230)"
+   "status": "moved",
+   "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::running": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2238)"
+   "status": "moved",
+   "home": "modules/conversation/running.js"
   },
   "js/app.js::functions::sendRender": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2250)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::chatTargetRender": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2267)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::targetLineRender": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2280)"
+   "status": "moved",
+   "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::updateComposer": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2294)"
+   "status": "moved",
+   "home": "modules/conversation/composer.js"
   },
   "js/app.js::functions::syncPlaceholder": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2336)"
+   "status": "moved",
+   "home": "modules/conversation/target.js"
   },
   "js/app.js::functions::atClose": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2345)"
+   "status": "moved",
+   "home": "modules/conversation/mention.js"
   },
   "js/app.js::functions::pickAt": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2355)"
+   "status": "moved",
+   "home": "modules/conversation/mention.js"
   },
   "js/app.js::functions::saveDraft": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2365)"
+   "status": "moved",
+   "home": "modules/conversation/drafts.js"
   },
   "js/app.js::functions::loadDraft": {
-   "status": "planned",
-   "home": "modules/composer; @-mention → `composer.mention` provider from modules/projects; drafts → core/services drafts (app.js l.2366)"
+   "status": "moved",
+   "home": "modules/conversation/drafts.js"
   },
   "js/app.js::functions::sendNowRender": {
-   "status": "planned",
-   "home": "modules/composer (+ chats provides target/send-now via places) (app.js l.2428)"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js"
   },
   "js/app.js::functions::stopLive": {
-   "status": "planned",
-   "home": "core/services stops (shared by composer, runs, thread menu) (app.js l.2441)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::stopsHerald": {
-   "status": "planned",
-   "home": "core/services stops (shared by composer, runs, thread menu) (app.js l.2493)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::stopRun": {
-   "status": "planned",
-   "home": "modules/runs (shares the \"pending stops\" herald with composer stop: core/services stops) (app.js l.1650)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::interruptRun": {
-   "status": "planned",
-   "home": "core/services stops (shared by composer, runs, thread menu) (app.js l.2516)"
+   "status": "moved",
+   "home": "modules/conversation/stops.js"
   },
   "js/app.js::functions::lift": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2521)"
+   "status": "deleted",
+   "reason": "Absent at the Group 5 gate. The send-calm suite checks that Send has no lift."
   },
   "js/app.js::functions::liveBlock": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2529)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::blockFor": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2537)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::refuse": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2543)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::connDest": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2548)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::composerDest": {
-   "status": "planned",
-   "home": "modules/composer (send gate → core/services send) (app.js l.2551)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::sendLive": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2557)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::deliverLive": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2596)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::postLive": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2597)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::postWithFiles": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2627)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::send": {
-   "status": "planned",
-   "home": "modules/composer (+ stop service) (app.js l.2250)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::retry": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2662)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::putBack": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2681)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::editFailed": {
-   "status": "planned",
-   "home": "core/services send (outbox: optimistic rows, alias, retry) + modules/composer UI (app.js l.2689)"
+   "status": "moved",
+   "home": "modules/conversation/delivery.js"
   },
   "js/app.js::functions::tpMount": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2707)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::tpShow": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2743)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::tpUnmount": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2756)"
+   "status": "deleted",
+   "reason": "Absent at the Group 5 gate. The panel retains the mounted thread page, covered by the thread-page suite."
   },
   "js/app.js::functions::tpHead": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2781)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::drawThreadPage": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2791)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::openFromPanel": {
    "status": "moved",
    "home": "modules/threads/open-panel-thread.js"
   },
   "js/app.js::functions::createConv": {
-   "status": "planned",
-   "home": "core/kernel (scheduler + render pass that calls each registered module's `render(ctx)`), shell (page host switching) (app.js l.2820)"
+   "status": "moved",
+   "home": "modules/conversation/draw.js"
   },
   "js/app.js::functions::schedule": {
    "status": "moved",
@@ -7521,40 +7510,40 @@
    "home": "shell/favicon.js"
   },
   "js/app.js::functions::loadAhead": {
-   "status": "planned",
-   "home": "`placeRegion` → shell (focus fallback); favicon → shell (tab status) (app.js l.2921)"
+   "status": "moved",
+   "home": "modules/conversation/paging.js"
   },
   "js/app.js::functions::loadOlderNow": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.2937)"
+   "status": "moved",
+   "home": "modules/conversation/paging.js"
   },
   "js/app.js::functions::drawConv": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.2953)"
+   "status": "moved",
+   "home": "modules/conversation/draw.js"
   },
   "js/app.js::functions::readingPlace": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2986)"
+   "status": "moved",
+   "home": "modules/conversation/reading-layout.js"
   },
   "js/app.js::functions::holdPlace": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.2997)"
+   "status": "moved",
+   "home": "modules/conversation/reading-layout.js"
   },
   "js/app.js::functions::stirred": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3004)"
+   "status": "moved",
+   "home": "modules/conversation/reading-layout.js"
   },
   "js/app.js::functions::foldsBefore": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3013)"
+   "status": "moved",
+   "home": "modules/conversation/reading-layout.js"
   },
   "js/app.js::functions::workMotion": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3033)"
+   "status": "moved",
+   "home": "modules/conversation/reading-layout.js"
   },
   "js/app.js::functions::saveScroll": {
-   "status": "planned",
-   "home": "modules/conversation (scroll/motion); dock measuring → shell (app.js l.3087)"
+   "status": "moved",
+   "home": "modules/conversation/navigation.js"
   },
   "js/app.js::functions::go": {
    "status": "moved",
@@ -7565,44 +7554,44 @@
    "home": "shell/return-pill.js"
   },
   "js/app.js::functions::liveReady": {
-   "status": "planned",
-   "home": "core/platform router (places/router: `go`, parent, trail) + shell (transitions, focus); module hooks `onLeave`/`onEnter` (app.js l.3180)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::follow": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3187)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::loadChatHops": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3200)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::ensureRoot": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3208)"
+   "status": "moved",
+   "home": "modules/conversation/live.js"
   },
   "js/app.js::functions::back": {
    "status": "moved",
    "home": "shell/navigation.js"
   },
   "js/app.js::functions::decideKey": {
-   "status": "planned",
-   "home": "router enter-hook per page (conversation/chats); `back` → router (app.js l.3227)"
+   "status": "moved",
+   "home": "modules/decisions/conversation-actions.js"
   },
   "js/app.js::functions::showMsg": {
-   "status": "planned",
-   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3243)"
+   "status": "moved",
+   "home": "modules/conversation/navigation.js"
   },
   "js/app.js::functions::fwdSource": {
-   "status": "planned",
-   "home": "modules/decisions (`decideKey`), modules/conversation (`showMsg`) (app.js l.3257)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::reactionsHtml": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.3264)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::reactorName": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.3272)"
+   "status": "moved",
+   "home": "modules/conversation/message-context.js"
   },
   "js/app.js::functions::openMedia": {
    "status": "moved",
@@ -7617,36 +7606,36 @@
    "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::youText": {
-   "status": "planned",
-   "home": "modules/files (route resolution), called from conversation (app.js l.3320)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::openLineRef": {
    "status": "moved",
    "home": "modules/files/conversation-files.js"
   },
   "js/app.js::functions::askPlace": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3339)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::askAboutLines": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3351)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::composeAbout": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3358)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::askAboutFile": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3371)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::lrefRender": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3383)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::sendAbout": {
-   "status": "planned",
-   "home": "modules/files (ask-about) using composer API (`composer.attachment` \"line-ref\") and send service (app.js l.3392)"
+   "status": "moved",
+   "home": "modules/conversation/file-question.js"
   },
   "js/app.js::functions::resolveThread": {
    "status": "moved",
@@ -7792,8 +7781,8 @@
    "home": "modules/settings/apply-shape.js"
   },
   "js/app.js::functions::decideLimit": {
-   "status": "planned",
-   "home": "modules/runtimes (app.js l.4233)"
+   "status": "moved",
+   "home": "modules/decisions/conversation-actions.js"
   },
   "js/app.js::functions::unfreeze": {
    "status": "moved",
@@ -7908,84 +7897,84 @@
    "home": "modules/home/handled.js"
   },
   "js/app.js::ids::conv-title": {
-   "status": "planned",
-   "home": "modules/threads (`header.action` \"threads\"); modules/decisions (`header.title` need) (app.js l.1350)"
+   "status": "moved",
+   "home": "modules/conversation/header.js"
   },
   "js/app.js::ids::tw-edit": {
    "status": "moved",
    "home": "modules/threads/editing.js"
   },
   "js/app.js::ids::tphead": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2710)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tpthead": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2710)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tscroller": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2711)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tcolumn": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2711)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tmsgs": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2712)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::ttyping": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2712)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tpdock": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2713)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tptdock": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2713)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tpcomposer": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2713)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tsay-label": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2714)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tatt-tray": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2714)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tsay": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2714)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tattach": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2716)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tatt-input": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2716)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::ttarget": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2717)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tiq": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2717)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tsend": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2717)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tatt-note": {
-   "status": "planned",
-   "home": "modules/threads (registers `panel.page` \"thread\"), built from conversation + composer + decisions factories (app.js l.2718)"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tdel-q": {
    "status": "moved",
@@ -8548,103 +8537,40 @@
    "home": "modules/create-project/create.js"
   },
   "js/decide.js::exports::riskLabel": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/needs.js"
   },
   "js/decide.js::exports::createDecisions": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/controller.js"
   },
   "js/decide.js::functions::createDecisions": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/controller.js"
   },
   "js/decide.js::ids::card": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/panel-view.js"
   },
   "js/decide.js::ids::vig-h": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/panel-view.js"
   },
   "js/decide.js::ids::cf-h": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/panel-view.js"
   },
   "js/decide.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "split",
+   "home": ["modules/decisions/card-events.js", "modules/decisions/keyboard.js"]
   },
   "js/decide.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "split",
+   "home": ["modules/decisions/card-events.js", "modules/decisions/keyboard.js"]
   },
   "js/decide.js::keys:: ": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/keyboard.js"
   },
   "js/diffthemes.js::exports::XO_DARK": {
    "status": "moved",
@@ -15442,8 +15368,8 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::goneRender": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::toastLine": {
    "status": "kept",
@@ -15454,8 +15380,8 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::atRender": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/mention.js"
   },
   "js/app.js::functions::atKeys": {
    "status": "kept",
@@ -15478,8 +15404,8 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::tpClose": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::toMain": {
    "status": "kept",
@@ -15506,12 +15432,12 @@
    "home": "modules/settings/appearance.js"
   },
   "js/app.js::ids::tpherald": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::ids::tat-list": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::storage::cv-flavour": {
    "status": "moved",
@@ -15522,88 +15448,88 @@
    "home": "js/app.js"
   },
   "js/cardparts.js::exports::cap": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::KINDS": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::kindOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::commandOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::headOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::whyOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::stripOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::chipsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::optionsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::pickKeys": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::isOnePress": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::actsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::exports::goneLine": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::kindOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::commandOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::headOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::whyOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::stripOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::chipsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::optionsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/cardparts.js::functions::actsOf": {
-   "status": "kept",
-   "home": "js/cardparts.js"
+   "status": "moved",
+   "home": "modules/decisions/cardparts.js"
   },
   "js/chats.js::ids::cs-agent-l": {
    "status": "moved",

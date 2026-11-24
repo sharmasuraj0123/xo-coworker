@@ -3,7 +3,7 @@
 import { esc } from "../../core/platform/index.js";
 import { api } from "../../core/platform/api.js";
 
-/** @import { ChangeFile, ChangesApi, DiffHandle, DiffOptions, HttpError, Scope } from "../changes/types.d.ts" */
+/** @import { ChangeFile, ChangesApi, DiffHandle, DiffOptions, HttpError, Scope } from "../../core/services/change-types.d.ts" */
 
 /** @typedef {{scope: Scope, path: string, base: string, file: ChangeFile}} FileChange */
 

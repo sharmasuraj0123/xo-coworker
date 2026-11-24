@@ -10,6 +10,7 @@ import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
 import { dom } from "./lib/dom.mjs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const header = readFileSync(new URL("../modules/conversation/header.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
 
 assert.equal(TOPICS.length, 31);
@@ -56,7 +57,7 @@ for (const selected of ["mobile", ""]) {
 }
 assert.deepEqual(changes, [{ layout: { icons: { a: "mobile" } } }, { layout: { icons: { a: null } } }]);
 // the header tile opens it, a dialog of radios with one Tab stop; arrows walk the grid, Esc closes back to the tile
-assert.match(app, /class="pj-pick" data-pj-icon="\$\{esc\(pid\)\}" aria-haspopup="dialog"/);
+assert.match(header, /class="pj-pick" data-pj-icon="\$\{esc\(pid\)\}" aria-haspopup="dialog"/);
 assert.match(app, /\{ ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os\.length - 1 - i \}/);
 assert.match(app, /if \(e\.key === "Escape"\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); closePick\(\{ focus: true \}\); return; \}/);
 

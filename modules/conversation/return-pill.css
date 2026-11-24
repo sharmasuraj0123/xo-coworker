@@ -1,0 +1,5 @@
+/* return to where you were: a quiet pill at the top of the conversation, pointing up to the message you left from */
+.mx-return{position:absolute;z-index:var(--z-sticky);left:0;right:0;width:max-content;margin:0 auto;display:flex;align-items:center;gap:8px;height:var(--h-ctl);padding:0 12px 0 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--float);box-shadow:var(--e2);color:var(--ink-2);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);animation:float-in-down var(--d-pop) var(--ease)}
+.mx-return svg{width:var(--ic-sm);height:var(--ic-sm);transform:rotate(-90deg);color:var(--ink-3)}
+.mx-return:hover{background-image:linear-gradient(var(--hover-fill),var(--hover-fill));color:var(--ink)}
+.mx-return[hidden]{display:none}

@@ -3,7 +3,8 @@
 // beside the mark where there's room. Pure: node only.
 //   node tests/agent-marks.test.mjs
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { sheet } from "./lib/cascade.mjs";
+import { existsSync } from "node:fs";
 import { rtMark, markOf, rtName } from "../core/services/runtimes.js";
 
 let passed = 0;
@@ -29,7 +30,7 @@ t("a runtime without a mark: null, so its name stays text", () => {
   assert.equal(rtName("other"), "other");
 });
 t("every mark is a local file the stylesheet draws", () => {
-  const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  const css = sheet(new URL("../css/app.css", import.meta.url));
   for (const m of ["claude", "openai", "antigravity"]) {
     assert.ok(existsSync(new URL(`../js/vendor/agent-marks/${m}.svg`, import.meta.url)), m);
     assert.match(css, new RegExp(`\\.agm-${m}\\{[^}]*url\\(\\.\\./js/vendor/agent-marks/${m}\\.svg\\)`), m);
@@ -38,7 +39,7 @@ t("every mark is a local file the stylesheet draws", () => {
   assert.match(css, /\.agm-openai\{background-color:currentColor;-webkit-mask:/);
 });
 t("a mark centres on its words' capitals at the one icon size, and a picker's choice never squeezes below its mark and name", () => {
-  const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  const css = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(css, /\.agm\{[^}]*width:var\(--ic\);height:var\(--ic\);vertical-align:calc\(var\(--cap-mid\) - var\(--ic\) \/ 2\)/);
   const btn = css.match(/\.iq-route button\{([^}]*)\}/)[1];
   assert.doesNotMatch(btn, /min-width:0/);

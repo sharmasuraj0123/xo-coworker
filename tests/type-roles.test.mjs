@@ -1,5 +1,6 @@
 // Every text in the app takes a type role from tokens.css: no other size, line height or weight anywhere.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { cssNames, readSource } from "./lib/sources.mjs";
 
 const tokenSheet = "../core/ui/tokens.css";
@@ -24,7 +25,7 @@ t("reading is the full ink at the regular weight, on dark and light alike", () =
   assert.doesNotMatch(tokens, /--fw-read:3\d\d|--ink-read:color-mix/);
 });
 t("a thread's page title is the title role, as every top bar's", () => {
-  const app = sheets.find(([f]) => f === "app.css")[1];
+  const app = sheet(new URL("../css/app.css", import.meta.url));
   for (const sel of [".tw-h{", ".tw-t h1{", ".tw-in{"]) assert.match(app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel))), /var\(--fs-title\)\/var\(--lh-title\)/, sel);
 });
 t("no stylesheet uses a size, line height or weight outside the roles", () => {
@@ -48,7 +49,7 @@ t("small text is never bold", () => {
   assert.deepEqual(bad, []);
 });
 t("the chat's words, the composer's text and tables read in the read role", () => {
-  const app = sheets.find(([f]) => f === "app.css")[1];
+  const app = sheet(new URL("../css/app.css", import.meta.url));
   for (const sel of [".prose{", ".bubble{", ".composer textarea{", ".md-table table{"]) {
     const r = app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel)));
     assert.match(r, /font-size:var\(--fs-read\)/, sel); assert.match(r, /font-weight:var\(--fw-read\)/, sel);
@@ -61,7 +62,7 @@ t("menus and the model picker read the ui and meta roles only; the picker's rows
     const sel = m[2].trim(); if (!MENU.test(sel)) continue;
     for (const v of m[3].matchAll(/(?:font-size:|font:[^;]*?)(var\(--fs-[\w-]+\)|\d+(?:\.\d+)?px)/g)) assert.match(v[1], /^var\(--fs-(ui|meta)\)$/, `${sel}: ${v[1]}`);
   }
-  const app = sheets.find(([f]) => f === "app.css")[1];
+  const app = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(app, /:is\(\.target,\.iq\)\{[^}]*font-size:var\(--fs-meta\)/);
   for (const sel of [".iq-n{", ".iq-more{"]) { const r = app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel))); assert.match(r, /var\(--fs-meta\)\/var\(--lh-meta\)/, sel); }
   for (const sel of [".iq-row{", ".iq-more{"]) { const r = app.slice(app.indexOf(sel), app.indexOf("}", app.indexOf(sel))); assert.match(r, /height:var\(--menu-row\)/, sel); }

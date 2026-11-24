@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
-const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
+const css = (f) => (f === "app.css" ? sheet(new URL(`../css/${f}`, import.meta.url)) : readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 const rule = (f, sel) => { const s = css(f), i = s.indexOf("\n" + sel + "{"); assert.ok(i >= 0, sel); return s.slice(i, s.indexOf("}", i)); };

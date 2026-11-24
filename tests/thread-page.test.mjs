@@ -1,8 +1,12 @@
 // A thread beside the coordinator's chat (the owner chose the proper build, 19 Nov 15:20Z): the panel's Thread page.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const page = readFileSync(new URL("../modules/conversation/thread-page.js", import.meta.url), "utf8");
+const rows = readFileSync(new URL("../modules/conversation/message-items.js", import.meta.url), "utf8");
+const markup = readFileSync(new URL("../modules/conversation/thread-page-html.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
 // registered on the panel's page model at the panel's own width (the owner, 20 Nov), its box built once and kept
@@ -11,22 +15,22 @@ assert.doesNotMatch(tps, /width:|single:/, "no width of its own: a thread opens 
 assert.match(tps, /mount: \(box\) => tpMount\(box\),\n\s*onShow: \(key, o\) => tpShow\(key, o\),/);
 assert.match(tps, /close: \(\) => tpClose\(\),/);
 // opening draws only the page: the chat beside it doesn't change
-const tsh = app.slice(app.indexOf("function tpShow("), app.indexOf("\n}\n", app.indexOf("function tpShow(")));
+const tsh = page.slice(page.indexOf("function tpShow("), page.indexOf("\n  }\n", page.indexOf("function tpShow(")));
 assert.match(tsh, /drawThreadPage\(D\.needItems\(\)\);/);
 assert.doesNotMatch(tsh, /\brender\(\)/, "never the whole app");
 // its own elements (unique ids beside the main chat's), its own follower, drawing, composer and decoration
-for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(app, new RegExp(`id="${id}"`), id);
-assert.match(app, /TP\.follow = createFollow\(els\);/);
-assert.match(app, /TP\.C = createConv\(\{ view: tpView, msgs: els\.msgs/);
-assert.match(app, /wireComposer\(TP\.K\);/);
-assert.match(app, /decorateConversation\(\{ conv: box, msgs: els\.msgs/);
+for (const id of ["tscroller", "tcolumn", "tmsgs", "ttyping", "tpdock", "tptdock", "tpcomposer", "tsay", "tsend"]) assert.match(markup, new RegExp(`id="${id}"`), id);
+assert.match(page, /TP\.follow = createFollow\(els\);/);
+assert.match(page, /TP\.C = createConv\(\{ view: tpView, msgs: els\.msgs/);
+assert.match(page, /wireComposer\(TP\.K\);/);
+assert.match(page, /decorateConversation\(\{ conv: box, msgs: els\.msgs/);
 // it draws with everything else, as its own conversation; a thread that's gone leaves the panel
 assert.match(readFileSync(new URL("../shell/render.js", import.meta.url), "utf8"), /if \(TP\.C && TP\.tid && !TP\.wait && STAGE\.pageShown\?\.name === "thread"\) drawThreadPage\(needs\);/);
-assert.match(app, /drawConv\(TP\.C, needs\);/);
-assert.match(app, /checklistRender\(needs, \$\("#tpthead"\), tpView\(\), "tck-list"\);/);
-assert.match(app, /if \(!t\) \{ STAGE\.closePage\("thread"\); return; \}/);
+assert.match(page, /drawConv\(\/\*\* @type \{Conversation\} \*\/ \(TP\.C\), needs\);/);
+assert.match(page, /checklistRender\(needs, \$\("#tpthead"\), tpView\(\), "tck-list"\);/);
+assert.match(page, /if \(!t\) \{ STAGE\.closePage\("thread"\); return; \}/);
 // watched beside the main thread (storm keeps both)
-assert.match(app, /world\.act\.watchSideThread\?\.\(key\);/);
+assert.match(page, /world\.act\.watchSideThread\?\.\(key\);/);
 // opening: beside a chat, from the panel's rows; ⌘/Ctrl-click or elsewhere: today's full page
 const ofp = readFileSync(new URL("../modules/threads/open-panel-thread.js", import.meta.url), "utf8");
 assert.match(ofp, /const besideChat = S\.view === "ws" \|\| S\.view\.startsWith\("p:"\),/);
@@ -35,7 +39,7 @@ assert.match(ofp, /STAGE\.show\("thread", v\.slice\(2\), \{ focus: true \}\); if
 assert.match(app, /const STAGE = createStage\(\{[^\n]*go: \(v, e\) => openFromPanel\(v, e\)/);
 assert.match(app, /if \(g && !t\.closest\("#all"\) && !t\.closest\("#stage"\)\)/, "the panel's own links are the panel's");
 // Open full width: its own page, as today
-assert.match(app, /data-tp-main="\$\{esc\(t\.id\)\}"/);
+assert.match(page, /data-tp-main="\$\{esc\(t\.id\)\}"/);
 // CSS: the panel's reading column, tokens only
 const block = css.slice(css.indexOf("── The Thread page"));
 assert.ok(block.length > 300);
@@ -54,10 +58,10 @@ console.log("thread-page: ok");
   // what it asks you: decided in place, the chat's own card docked over its composer, with its Undo
   // what it asks you: the chat's own dock over the page's element (one code path, the owner 19 Nov 17:52Z): its
   // card, its fold to a slim line and back (⌄, a drag), its Undo
-  assert.match(a, /TP\.dock\.render\(needs\);/);
-  assert.match(a, /TP\.dock = createDock\(\{ el: \$\("#tptdock"\), view: tpView, region: \(\) => TP\.C\.scroller \}\);/);
+  assert.match(page, /\(TP\.dock\)\)\.render\(needs\);/);
+  assert.match(page, /TP\.dock = createDock\(\{ el: \$\("#tptdock"\), view: tpView, region: \(\) => .*TP\.C.*\.scroller \}, dockDeps\);/);
   assert.match(a, /const MDOCK = createDock\(\{ el: tdock, view: \(\) => S\.view, region: \(\) => placeRegion\(\)/);
-  const cd = a.slice(a.indexOf("function createDock("), a.indexOf("const MDOCK = createDock("));
+  const cd = readFileSync(new URL("../modules/decisions/dock.js", import.meta.url), "utf8");
   assert.match(cd, /tpl\.innerHTML = D\.cardHtml\(n, "dock"\)\.trim\(\);/);
   assert.match(cd, /data-fold="\$\{esc\(n\.key\)\}"/, "the fold control");
   assert.match(cd, /bar\.dataset\.unfold = n\.key;/, "folded: a slim line that opens it again");
@@ -83,7 +87,7 @@ console.log("thread-page: ok");
   console.log("thread-page column and width: ok"); }
 
 // a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
-assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
+assert.match(rows, /route: \(p\) => fileRoute\(p, conv\), by:/);
 {
   const opened = [];
   const { fileRoute, openSharedFile } = createConversationFiles({
@@ -101,9 +105,9 @@ assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
 
 // its ⋯ is THE thread menu (the owner, 19 Nov 18:59Z): the full header's, opened in the page; its hover and keys
 // (menuKeys on the page's head), drawn in the click; a choice acts there or goes to its own page with it started
-assert.match(app, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
-assert.match(app, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
-assert.match(app, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
+assert.match(page, /data-tmenu="\$\{esc\(t\.id\)\}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="\$\{open\}"/);
+assert.match(page, /\$\{open \? threadMenuHtml\(t, "page"\) : ""\}/);
+assert.match(page, /STAGE\.slot\.append\(acts\);\n\s*menuKeys\(acts, \{ close: \(\) => closeThreadMenu\(\) \}\);/, "its ⋯ in the panel's head, its keys there");
 assert.match(readFileSync(new URL("../modules/threads/editing.js", import.meta.url), "utf8"), /const opener = S\.tMenuIn === "page" \? "#tpacts \[data-tmenu\]" : "#top-who \[data-tmenu\]";/);
 assert.doesNotMatch(app, /tpMenuHtml|data-tp-menu|TP\.menu/, "no second menu");
 const menuSource = readFileSync(new URL("../modules/threads/menu.js", import.meta.url), "utf8");
@@ -111,11 +115,11 @@ assert.match(menuSource, /where === "page" \? item\(`data-tp-main="\$\{esc\(t\.i
 assert.match(app, /render\(\); \/\/ drawn now, in the click/);
 // one ⤢ in the head (the panel's full size); the thread's own page is "Open as its own page" in its ⋯ (the owner, 20 Nov:
 // two ⤢ did different things)
-{ const th = app.slice(app.indexOf("function tpHead("), app.indexOf("\n}\n", app.indexOf("function tpHead(")));
+{ const th = page.slice(page.indexOf("function tpHead("), page.indexOf("\n  }\n", page.indexOf("function tpHead(")));
   assert.doesNotMatch(th, /tp-full/);
   assert.match(th, /redraw\(head, html\); redraw\(acts, menu\);/); }
 // at full size only the chat's own dock hides under the panel; the Thread page's reply box and decision stay
-{ const a3 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+{ const a3 = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(a3, /body\.stage-full \.dock:not\(\.stage \.dock\),body\.stage-full \.tdock:not\(\.stage \.tdock\)\{visibility:hidden\}/);
   assert.doesNotMatch(a3, /body\.stage-full \.dock,body\.stage-full \.tdock\{/, "never every dock");
   // and at full size the page reads at the chat's own column, centred (it ran edge to edge)
@@ -124,16 +128,16 @@ assert.match(app, /render\(\); \/\/ drawn now, in the click/);
 console.log("thread-page menu: ok");
 
 // its composer has files (the paperclip, a paste, a drop on the page) and its model chip, the chat's own code
-for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(app, new RegExp(`id="${id}"`), id);
-assert.match(app, /wireTray\(TP\.K\);/);
+for (const id of ["tatt-tray", "tattach", "tatt-input", "tiq", "tatt-note"]) assert.match(markup, new RegExp(`id="${id}"`), id);
+assert.match(page, /wireTray\(TP\.K\);/);
 assert.match(app, /wireTray\(MK\);/);
 assert.match(app, /const on = !veil\.hidden, K = composerAt\(e\.target\); hide\(\); if \(on && takes\(K\)\) addFiles\(e\.dataTransfer\.files, K\);/, "a drop on the page: the app's one drop, into its composer");
-assert.match(app, /trayRender\(K\); chipRender\(false, K\);/);
-assert.match(app, /toggleIq\(sessionOf\(tpView\(\)\), TP\.K\.iq\)/);
+assert.match(readFileSync(new URL("../modules/conversation/composer.js", import.meta.url), "utf8"), /trayRender\(K\); chipRender\(false, K\);/);
+assert.match(page, /toggleIq\(sessionOf\(tpView\(\)\), .*TP\.K.*\.iq\)/);
 console.log("thread-page files and model: ok");
 // a step of space over the checklist strip, the same in a thread's page and the panel's Thread page (the owner,
 // 19 Nov 16:19Z); the page gives the strip the header gutter it uses (undefined, it voided the strip's padding)
-{ const a2 = readFileSync(new URL("../css/app.css", import.meta.url), "utf8"), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
+{ const a2 = sheet(new URL("../css/app.css", import.meta.url)), p2 = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
   assert.match(a2, /\n\.thead\{flex:none;padding:var\(--s-1\) var\(--hg\) var\(--s-2\);/);
   assert.doesNotMatch(a2, /\n\s+grader on 8aa58d3, C024[^\n]*\*\/\n/, "no stray comment ending voids the rule after it");
   assert.match(p2, /\.stage \.tp-thead\{--hg:var\(--s-4\)\}/);
@@ -141,7 +145,7 @@ console.log("thread-page files and model: ok");
 
 // msgx can take down what it hung on the page (its document listeners, its timer, its quote button and sheets); the
 // Thread page is built once and kept, so nothing is hung twice
-{ const mx = ["decoration", "working-turn", "message-reply"].map((name) => readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url), "utf8")).join("\n"), ap = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+{ const mx = ["decoration", "working-turn", "message-reply"].map((name) => readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url), "utf8")).join("\n"), ap = page;
   const code = mx.replace(/\/\*\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
   const body = code.slice(code.indexOf("export function decorateConversation(E) {"));
   assert.doesNotMatch(body.replace(/const onDoc = [^\n]*/, ""), /document\.addEventListener\(/, "every document listener goes through onDoc, so destroy() removes it");
@@ -157,9 +161,9 @@ console.log("thread-page files and model: ok");
 // Open in main chat, left of the state badge (the owner, 21 Nov): the header's filled control, the owner's icon from the pack;
 // the thread takes the main chat with its usual entrance and the panel's page goes back
 { const ui = readFileSync(new URL("../core/ui/icons/names.js", import.meta.url), "utf8");
-  const appCss = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+  const appCss = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(ui, /toMain: xi\("open-in-main"\),/);
-  assert.match(app, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
+  assert.match(page, /const html = `<button type="button" class="stg-btn tp-main" data-tp-main="\$\{esc\(t\.id\)\}" title="Open in main chat" aria-label="Open in main chat">\$\{ICON\.toMain\}<\/button><span class="badge/);
   assert.match(readFileSync(new URL("../shell/navigation.js", import.meta.url), "utf8"), /if \(!still\) el\.classList\.add\(/);
   assert.match(app, /function toMain\(id\) \{\n  closeThreadMenu\(\{ focus: false \}\);\n  STAGE\.closePage\("thread"\); go\("t:" \+ id, \{ panel: true \}\);\n\}/);
   assert.doesNotMatch(app, /startViewTransition/, "no pictures of the thread are morphed: nothing zooms or seems to scroll");

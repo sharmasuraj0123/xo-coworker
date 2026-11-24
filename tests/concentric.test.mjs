@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readSource, sourceText } from "./lib/sources.mjs";
 
-const app = readSource("css/app.css"), side = readSource("shell/sidebar.css"), art = readSource("modules/artifacts/artifacts.css"), tok = readSource("core/ui/tokens.css");
+const app = sheet(new URL("../css/app.css", import.meta.url)), side = readSource("shell/sidebar.css"), art = readSource("modules/artifacts/artifacts.css"), tok = readSource("core/ui/tokens.css");
 const NEST = "calc\\(var\\(--nest-r\\) - var\\(--nest-in\\)\\)";
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

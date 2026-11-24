@@ -1,18 +1,21 @@
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
+const messages = readFileSync(new URL("../modules/conversation/message-items.js", import.meta.url), "utf8");
 const typing = readFileSync(new URL("../modules/conversation/typing.js", import.meta.url), "utf8");
-const css = readFileSync(new URL("../css/app.css", import.meta.url), "utf8");
+const css = sheet(new URL("../css/app.css", import.meta.url));
 const { echoes } = await import("../js/timeline.js");
-assert.doesNotMatch(app, /function lift\(/, "no flight from the composer's corner");
-assert.match(app, /else \{ render\(\); K\.conv\.follow\.toLatest\(false\); arrive\(K\.conv\.msgs\.querySelector\(`\[data-k="\$\{m\.id\}"\]`\)\); \}/);
-assert.match(app, /meta = `<div class="meta is-sending"><i class="spin" aria-hidden="true"><\/i>Sending<\/div>`/);
+assert.doesNotMatch(`${app}\n${delivery}`, /function lift\(/, "no flight from the composer's corner");
+assert.match(delivery, /else \{ render\(\); K\.conv\.follow\.toLatest\(false\); arrive\(K\.conv\.msgs\.querySelector\(`\[data-k="\$\{m\.id\}"\]`\)\); \}/);
+assert.match(messages, /meta = `<div class="meta is-sending"><i class="spin" aria-hidden="true"><\/i>Sending<\/div>`/);
 assert.match(css, /\.meta\.is-sending\{animation:fade var\(--d-in\) var\(--ease\) var\(--d-wait\) both\}/, "said only once sending is slow");
 assert.match(css, /\.m-you\.is-pending \.bubble\{animation:pend var\(--d-in\) var\(--ease\) var\(--d-wait\) forwards\}/);
 assert.match(css, /\.sent\{[^}]*animation:fade var\(--d-in\) var\(--ease\)\}/, "the receipt fades in place, it never rises");
 assert.match(app, /const sendingTo = \(chat\) => \(S\.local\[convOfChat\(chat\)\] \|\| \[\]\)\.find\(\(m\) => m\.status === "sending" && m\.target === chat\) \|\| null;/);
 assert.match(typing, /world\.act\.replying\(chat\) \|\| sendingTo\(chat\)/);
-const post = app.slice(app.indexOf("async function postLive("), app.indexOf("async function postWithFiles("));
+const post = delivery.slice(delivery.indexOf("async function postLive("), delivery.indexOf("async function postWithFiles("));
 assert.doesNotMatch(post, /m\.merged = true/, "the bubble stays until the server's copy is drawn");
 // the server's copy is found again by its words once drawn, so the bubble is never shown twice
 const at = Date.now();

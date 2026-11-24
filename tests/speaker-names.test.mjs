@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { hopNotes } from "../js/timeline.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const js = read("js/app.js"), rich = read("core/ui/markdown/rich.css").replace(/\/\*[\s\S]*?\*\//g, "");
+const js = read("modules/conversation/message-items.js").replace(/^ {2}/gm, ""), rich = read("core/ui/markdown/rich.css").replace(/\/\*[\s\S]*?\*\//g, "");
 let failed = 0;
 const t = (name, fn) => { try { fn(); console.log(`  ok  ${name}`); } catch (e) { failed++; console.log(`  FAIL ${name}\n${e.message}`); } };
 
@@ -38,15 +38,15 @@ t("words under the line that introduces them are one exchange: no name line, 8 u
   const [q, a] = hopNotes(th, hops);
   assert.equal(a.cause, "q");
   assert.equal(q.dir, "up");
-  const app = read("js/app.js");
-  assert.match(app, /who: "asked", text: n\.text, hop: n\.id/);
-  assert.match(app, /role: n\.kind, cause: n\.cause/);
-  assert.match(app, /const under = !!\(above && \(\(m\.cause && above\.who === "asked" && above\.hop === m\.cause\) \|\| \(m\.lead && above\.key === m\.lead\)\)\);/);
-  assert.match(app, /prev = above = m;/, "a turn that draws nothing leaves the line above as it was");
-  assert.match(app, /prev = null; above = null; spoke = null;/, "a new day breaks an exchange");
-  assert.match(app, /x\.who === "coord" && !x\.lead && x\.key\.startsWith\("hopn:"\) && x\.seq > c\.seq && x\.at - c\.at >= 0 && x\.at - c\.at < 10000/, "a note already delivered by one steer is never another's");
-  assert.match(app, /x\.ctl\.action === "steer" && x\.seq != null\)\.sort\(\(a, b\) => a\.seq - b\.seq\)/, "steers pair in order");
-  assert.match(app, /prev\.who === m\.who && prev\.name === m\.name/, "the Workspace coordinator after the project's is a new speaker");
+  const projection = read("modules/conversation/messages.js").replace(/\(\/\*\* @type [^\n]*?\*\/ \(([\w.]+)\)\)/g, "$1");
+  assert.match(projection, /who: "asked", text: n\.text, hop: n\.id/);
+  assert.match(projection, /role: n\.kind, cause: n\.cause/);
+  assert.match(js, /const under = !!\(above && \(\(m\.cause && above\.who === "asked" && above\.hop === m\.cause\) \|\| \(m\.lead && above\.key === m\.lead\)\)\);/);
+  assert.match(js, /prev = above = m;/, "a turn that draws nothing leaves the line above as it was");
+  assert.match(js, /prev = null; above = null; spoke = null;/, "a new day breaks an exchange");
+  assert.match(projection, /x\.who === "coord" && !x\.lead && x\.key\.startsWith\("hopn:"\) && x\.seq > c\.seq && x\.at - c\.at >= 0 && x\.at - c\.at < 10000/, "a note already delivered by one steer is never another's");
+  assert.match(projection, /x\.ctl\.action === "steer" && x\.seq != null\)\.sort\(\(a, b\) => a\.seq - b\.seq\)/, "steers pair in order");
+  assert.match(js, /prev\.who === m\.who && prev\.name === m\.name/, "the Workspace coordinator after the project's is a new speaker");
   assert.match(rich, /\.ev\.is-lead\{margin-bottom:var\(--s-2\)\}/);
   assert.doesNotMatch(rich, /:has\(\+\.m-under\)/, "marked when drawn, never found with :has()");
   assert.match(rich, /\.ev\+\.m\.m-under\{margin-top:var\(--s-2\)\}/);

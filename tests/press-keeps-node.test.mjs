@@ -20,7 +20,6 @@ const t = async (name, fn) => {
   try { await fn(); passed++; console.log("  ok  " + name); }
   catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; }
 };
-const src = (f) => readFileSync(new URL(`../js/${f}`, import.meta.url), "utf8");
 
 // ── the write paths, from the source (no DOM needed) ─────────────────────────
 await t("Back is written through patch(): only when its name changes, in place", () => {
@@ -48,14 +47,14 @@ await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
   assert.match(m, /redraw\(\/\*\* @type \{HTMLButtonElement\} \*\/ \(c\.el\.querySelector\("\.dg-tag"\)\), tag\)/, "a cursor's tag");
 });
 await t("the other live regions draw in place: away line, Follow, decisions foot, Launchpad, the file's head, send, chip, counts", () => {
-  assert.match(src("decide.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
+  assert.match(readSource("modules/decisions/panel-view.js"), /redraw\(foot, F\.done \|\| F\.vig \? "" :/);
   const lp = readFileSync(new URL("../modules/launchpad/launchpad.js", import.meta.url), "utf8");
   assert.match(lp, /redraw\(S\.hs, hs\)/); assert.match(lp, /redraw\(S\.nav, nav\)/); assert.match(lp, /redraw\(S\.body, `<div class="lp/);
   assert.doesNotMatch(sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n"), /S\.body\.innerHTML\s*=/);
   assert.match(readFileSync(new URL("../modules/files/viewer-head.js", import.meta.url), "utf8"), /redrawNode\(top, head\(\)\);/);
-  const app = src("app.js");
-  assert.match(app, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);
-  assert.match(app, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);
+  const composer = readSource("modules/conversation/composer-controls.js");
+  assert.match(composer, /redraw\(btn, run \? STOP_ICON : ICON\.send\)/);
+  assert.match(composer, /const swap = \(\) => \{ redraw\(chip, html\); chip\._h = html; \}/);
   const rail = readSource("shell/rail/rows.js");
   assert.match(rail, /redraw\(hn, hnHtml\)/); assert.match(rail, /redraw\(wn, wnHtml\)/);
 });

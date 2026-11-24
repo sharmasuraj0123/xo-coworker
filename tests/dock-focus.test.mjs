@@ -16,7 +16,11 @@ import { rules, context, decls } from "./lib/cascade.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 const app = readFileSync(new URL("js/app.js", ROOT), "utf8");
-const body = (from, to) => { const i = app.indexOf(from); assert.ok(i >= 0, `${from} is in app.js`); const j = app.indexOf(to, i); assert.ok(j > i, `${to} follows it`); return app.slice(i, j); };
+const dock = readFileSync(new URL("modules/decisions/dock.js", ROOT), "utf8")
+  .replace(/\(\/\*\* @type \{HTMLElement(?: \| null)?\} \*\/ \(((?:tdock|frame)\.querySelector\("[^"]+"\))\)\)/g, "$1")
+  .replace(/\/\*\* @type \{Promise<void>\} \*\/ \((new Promise[^\n]+)\);/, "$1;")
+  .replace(/^ {2}/gm, "");
+const body = (from, to) => { const i = dock.indexOf(from); assert.ok(i >= 0, `${from} is in the dock`); const j = dock.indexOf(to, i); assert.ok(j > i, `${to} follows it`); return dock.slice(i, j); };
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -48,7 +52,7 @@ t("S014: an undo ends the done line at once and draws the card again (it took fo
   assert.match(dr, /TD\.key = "__settling";\s*dockSwap\(\(\) => \{ tdock\.innerHTML = ""; \}, null, \{ duration: 320 \}\);/, "the window over: the dock empties and focus on its Undo goes to the place");
 });
 t("S240: Unfold focuses the card in the step that draws it, not a frame later", () => {
-  const unfold = body('const u = e.target.closest("[data-unfold]");', "\n  if (e.target.closest(\"[data-dock-undo]\"))");
+  const unfold = body('.closest("[data-unfold]"));', '.closest("[data-dock-undo]")');
   assert.match(unfold, /dockRender\(D\.needItems\(\)\); tdock\.querySelector\("\.card"\)\?\.focus\(\{ preventScroll: true \}\); return;/);
   assert.doesNotMatch(unfold, /requestAnimationFrame/);
 });

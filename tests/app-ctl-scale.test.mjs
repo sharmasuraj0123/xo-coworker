@@ -4,10 +4,10 @@
 // and As text 26; a phone keeps its 36 floor). Their corners and insets in the dock family: tests/card-family.test.mjs.
 //   node tests/app-ctl-scale.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { resolveTokens } from "./lib/tokens.mjs";
-import { readFileSync } from "node:fs";
 
-const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
+const css = resolveTokens(sheet(new URL("../css/app.css", import.meta.url)));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const rule = (sel) => { const m = new RegExp(`(?:^|[}\\n])${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\{([^}]*)\\}`).exec(css); assert.ok(m, sel); return m[1]; };

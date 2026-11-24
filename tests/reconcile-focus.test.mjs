@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dom } from "./lib/dom.mjs";
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
+const drawConv = readFileSync(new URL("../modules/conversation/draw.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -37,6 +37,6 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
   });
 }
 t("the conversation's fallback is its message box", () => {
-  assert.match(app, /reconcile\(C\.msgs, items, \{ quiet, fallback: \(\) => \(C\.main \? \$\("#say"\) : C\.scroller\) \}\);/);
+  assert.match(drawConv, /reconcile\(C\.msgs, items, \{ quiet, fallback: \(\) => \(C\.main \? \$\("#say"\) : C\.scroller\) \}\);/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

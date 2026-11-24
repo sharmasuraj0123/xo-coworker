@@ -93,7 +93,7 @@ t("number keys follow the order shown and skip the recommended answer; the card 
   const o = optionsOf({ options: [{ label: "A" }, { label: "B", description: "why", recommended: true }, { label: "C" }] });
   assert.deepEqual(pickKeys(o), [0, 1, 2], "B leads with no key; A is 1, C is 2");
   assert.deepEqual(pickKeys(optionsOf({ options: Array.from({ length: 11 }, (_, i) => ({ label: String(i) })) })).slice(8), [9, 0, 0]);
-  const src = readFileSync(new URL("../js/decide.js", import.meta.url), "utf8");
+  const src = readFileSync(new URL("../modules/decisions/keyboard.js", import.meta.url), "utf8");
   assert.match(src, /querySelector\(`button\[data-pick="\$\{k\}"\]`\)/);
   assert.doesNotMatch(src, /querySelector\(`\[data-iopt="\$\{\+k - 1\}"\]`\)/, "a key never takes an answer by its index");
   assert.doesNotMatch(src, /c-sug|suggestFor/, "the old suggestion line is gone");

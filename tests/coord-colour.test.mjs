@@ -8,7 +8,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const tokens = read("core/ui/tokens.css"), msgx = read("modules/conversation/msgx.css"), rich = read("core/ui/markdown/rich.css"), js = read("js/app.js");
+const tokens = read("core/ui/tokens.css"), msgx = read("modules/conversation/msgx.css"), rich = read("core/ui/markdown/rich.css"), items = read("modules/conversation/message-items.js");
+const projection = read("modules/conversation/messages.js");
 let failed = 0;
 const t = (name, fn) => { try { fn(); console.log(`  ok  ${name}`); } catch (e) { failed++; console.log(`  FAIL ${name}\n${e.message}`); } };
 
@@ -28,18 +29,18 @@ t("bubbles and the chat view both take them", () => {
 });
 t("only in a thread: a coordinator's note to it and its messages relayed into it; its own chat stays neutral", () => {
   // the owner, 19 Nov 14:46Z: "why is the xo-coordinator purple in the main coordinator chat!?"
-  assert.match(js, /<div class="m m-them\$\{\(m\.who === "coord" \|\| m\.coord\) && convThread\(conv\) \? " m-coord" : ""\}/);
-  assert.equal((js.match(/" m-coord"/g) || []).length, 1, "nothing else marks a message as the coordinator's");
+  assert.match(items, /<div class="m m-them\$\{\(m\.who === "coord" \|\| m\.coord\) && convThread\(conv\) \? " m-coord" : ""\}/);
+  assert.equal((items.match(/" m-coord"/g) || []).length, 1, "nothing else marks a message as the coordinator's");
   // the real decision, run for both places: a project's or the Workspace's chat stays neutral, a thread marks it
-  const expr = js.match(/\$\{(\(m\.who === "coord" \|\| m\.coord\) && convThread\(conv\) \? " m-coord" : "")\}/)[1];
+  const expr = items.match(/\$\{(\(m\.who === "coord" \|\| m\.coord\) && convThread\(conv\) \? " m-coord" : "")\}/)[1];
   const mark = new Function("m", "conv", "convThread", `return ${expr}`), thread = (c) => (c.startsWith("t:") ? { id: c.slice(2) } : null);
   assert.equal(mark({ who: "coord" }, "p:xo-coworker", thread), "", "the project chat: neutral");
   assert.equal(mark({ who: "coord" }, "ws", thread), "", "the Workspace chat: neutral");
   assert.equal(mark({ who: "coord" }, "t:x", thread), " m-coord", "its note in a thread: violet");
   assert.equal(mark({ who: "agent", coord: true }, "t:x", thread), " m-coord", "its message relayed into a thread: violet");
   assert.equal(mark({ who: "agent" }, "t:x", thread), "", "the thread's own agent: neutral");
-  assert.match(js, /who: "coord", text: n\.text, name: n\.from === "workspace"/, "a coordinator's note to a thread is the coordinator's");
-  assert.match(js, /\{ name: who\(m\.role\), role: "passed on", coord: true \}/, "a coordinator's message relayed into a thread");
+  assert.match(projection, /who: "coord", text: n\.text, name: n\.from === "workspace"/, "a coordinator's note to a thread is the coordinator's");
+  assert.match(projection, /\{ name: who\(m\.role\), role: "passed on", coord: true \}/, "a coordinator's message relayed into a thread");
 });
 
 if (failed) { console.log(`${failed} failed`); process.exit(1); }

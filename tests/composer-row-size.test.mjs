@@ -1,9 +1,10 @@
 // The composer row's words are one size: the target ("Reply in this thread", "To the … coordinator") and the model chip.
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
-const app = read("app.css"), phone = read("phone.css"), panel = read("panel.css");
+const app = sheet(new URL("../css/app.css", import.meta.url)), phone = read("phone.css"), panel = read("panel.css");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 const rule = (css, sel) => { const i = css.indexOf(sel + "{"); assert.ok(i >= 0, sel); return css.slice(i + sel.length + 1, css.indexOf("}", i)); };

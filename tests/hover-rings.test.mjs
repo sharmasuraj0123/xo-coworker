@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 import { readSource } from "./lib/sources.mjs";
 
@@ -30,7 +31,7 @@ t("no hover rule draws a ring: border, outline or ring shadow", () => {
   assert.deepEqual(bad, [], `hover rings:\n  ${bad.join("\n  ")}`);
 });
 t("the herald's hover is its fill alone: the lines' hover over its glass", () => {
-  const app = sheets.find(([f]) => f === "app.css")[1];
+  const app = sheet(new URL("../css/app.css", import.meta.url));
   assert.match(app, /\nbutton\.hr:hover\{background:linear-gradient\(var\(--hover-fill\),var\(--hover-fill\)\),var\(--glass\)\}/);
 });
 t("keyboard focus keeps the soft ring, on :focus-visible", () => {

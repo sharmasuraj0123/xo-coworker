@@ -13,14 +13,15 @@
 //   node tests/ctl-scale.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { rules, context, decls, px } from "./lib/cascade.mjs";
+import { sheet, rules, context, decls, px } from "./lib/cascade.mjs";
 import { sourcePaths, readSource } from "./lib/sources.mjs";
 
 const ROOT = new URL("../", import.meta.url);
 // The type scale's tokens (core/ui/tokens.css, 19 Nov) read back as the values these checks were written against, so a
 // size measured here is the same size whether a rule spells it or names its token
 const TYPE = { "var(--fw-regular)": "400", "var(--fw-medium)": "500", "var(--fw-strong)": "600", "var(--lh-meta)": "16px", "var(--lh-ui)": "20px", "var(--lh-read)": "24px", "var(--lh-title)": "24px", "var(--lh-heading)": "28px", "var(--lh-display)": "36px", "var(--lh-hero)": "44px" };
-const readCss = (u, enc) => readFileSync(u, enc).replace(/var\(--(?:fw-[a-z]+|lh-(?:meta|ui|read|title|heading|display|hero))\)/g, (m) => TYPE[m] || m);
+const normalizeType = (css) => css.replace(/var\(--(?:fw-[a-z]+|lh-(?:meta|ui|read|title|heading|display|hero))\)/g, (m) => TYPE[m] || m);
+const readCss = (u, enc) => normalizeType(readFileSync(u, enc));
 const tokensCss = readCss(new URL("core/ui/tokens.css", ROOT), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 // the desktop's tokens: the :root block, not a phone's media query below it
 const desk = tokensCss.replace(/@media[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "");
@@ -80,7 +81,7 @@ t("rows from the tokens: 40 one line, 48 with an action, 56 a two-line list row;
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px;/);
   // and its controls on the scale: 24, not 28 (C106, the Compact switch 46×28; the owner, 11 Nov 05:42Z)
   assert.match(readCss(new URL("css/shape.css", ROOT), "utf8"), /:root\[data-density="compact"\] :is\(\.main,\.sheet,\.iq-pop\)\{\s*--h-row:32px; --h-ctl:var\(--h-sm\);/);
-  const app = readCss(new URL("css/app.css", ROOT), "utf8"), frame = readCss(new URL("shell/frame.css", ROOT), "utf8");
+  const app = sheet(new URL("css/app.css", ROOT)), frame = readCss(new URL("shell/frame.css", ROOT), "utf8");
   assert.match(frame, /\.nrow,\.prow\{[^}]*--nest-in:calc\(\(var\(--h-row\) - var\(--tile-sm\)\) \/ 2\);min-height:var\(--h-row\);padding:calc\(var\(--nest-in\) - 1px\) 10px calc\(var\(--nest-in\) - 1px\) calc\(var\(--nest-in\) - 1px\);/, "the sidebar's rows 40: 1 + 5 + its 28 px tile + 5 + 1, the same inset on its left");
   // the rows as drawn, not only their floor: the words inside them fill the step exactly (the row measurement on
   // f93345a: Chats' rows were 64, their two lines 20 + 4 + 20 over a 56 floor; a project's two lines 49.1, 18.2 + 2 +
@@ -118,7 +119,7 @@ t("a phone's rows are on its steps (36 one line, 40, 48, 56), but those listed f
 });
 t("a control sized by its words and padding is on the scale too: the decision's where line, 24 (S157: 104×26)", () => {
   // the census reads declared heights; one drawn by its padding (3 + 20 + 3) escaped it (the controls grader on f93345a)
-  assert.match(readCss(new URL("css/app.css", ROOT), "utf8"), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 var\(--halo\);/);
+  assert.match(sheet(new URL("css/app.css", ROOT)), /\.c-where\{[^}]*height:var\(--h-sm\);[^}]*padding:0 var\(--halo\);/);
 });
 t("a row-type control's one line fits its row: border, padding and line no taller than its floor, so only words that wrap grow it", () => {
   // a row's floor (min-height 40/48/56) hides a height its padding and line make: one 2 px over made Home's answers
@@ -148,10 +149,10 @@ t("a row-type control's one line fits its row: border, padding and line no talle
 });
 t("a button's label sits on one line: the meta line's buttons never wrap or shrink (S045: Stop the turn on a phone)", () => {
   // the browser sweep (harness.cjs ringClips) checks every one-line control in view for a label on two lines
-  assert.match(readCss(new URL("css/app.css", ROOT), "utf8"), /\.meta-btn\{flex:none;white-space:nowrap;display:inline-flex;/);
+  assert.match(sheet(new URL("css/app.css", ROOT)), /\.meta-btn\{flex:none;white-space:nowrap;display:inline-flex;/);
 });
 t("an answer is a row: one line 40, with its description line 56 (S025, S052)", () => {
-  const app = readCss(new URL("css/app.css", ROOT), "utf8");
+  const app = normalizeType(sheet(new URL("css/app.css", ROOT)));
   assert.match(app, /\.b-opt\{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:var\(--h-lg\);padding:9px 14px;[^}]*line-height:20px;/, "1 + 9 + 20 + 9 + 1 = 40");
   assert.match(app, /\.o-l\{font:500 var\(--fs-ui\)\/20px/);
   assert.match(app, /\.o-d\{display:block;margin-top:0;font:400 var\(--fs-meta\)\/16px/, "+ 16 = 56, no gap between the lines");
@@ -172,7 +173,7 @@ t("the composer's circles in compact density are the comfortable ones: --comp-ct
 });
 t("a segment's buttons are 24 inside its 32 (1 + 3 of inset, their corners 6 − 4), folded to a 24 square", () => {
   for (const f of ["app.css", "panel.css"]) {
-    const css = readFileSync(new URL(`css/${f}`, ROOT), "utf8");
+    const css = sheet(new URL(`css/${f}`, ROOT));
     assert.match(css, /\.vw-seg\{[^}]*padding:3px;/, `${f}: the segment's inset`);
     assert.match(css, /\.vw-seg button\{height:var\(--h-sm\);[^}]*border-radius:calc\(var\(--r-sm\) - 4px\)/, `${f}: its buttons`);
   }

@@ -5,10 +5,11 @@
 // chip on a phone).
 //   node tests/target-bounded.test.mjs
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
 const phone = readFileSync(new URL("../css/phone.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-const app = readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const app = sheet(new URL("../css/app.css", import.meta.url));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 t("the target shrinks first, to nothing if it must, and cuts its words short; the chip only leaves Attach and Send their room", () => {

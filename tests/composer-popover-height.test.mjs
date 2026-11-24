@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
+import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("css/app.css"), tokens = read("core/ui/tokens.css"), js = read("js/app.js");
+const app = sheet(new URL("../css/app.css", import.meta.url)), tokens = read("core/ui/tokens.css"), js = read("modules/conversation/mention.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
 const rule = (sel) => { const i = app.indexOf("\n" + sel + "{"); assert.ok(i >= 0, sel); return app.slice(i + sel.length + 2, app.indexOf("}", i)); };
@@ -18,6 +19,6 @@ t("the @ list never reaches past the top bar", () => {
 });
 t("the keyboard's row is kept in view by the list's own scroll, never scrollIntoView", () => {
   assert.match(js, /if \(li\.offsetTop < at\.scrollTop\) at\.scrollTop = li\.offsetTop;/);
-  assert.doesNotMatch(js.slice(js.indexOf("const li = at.children[at._sel]"), js.indexOf("function syncPlaceholder")), /scrollIntoView\(/);
+  assert.doesNotMatch(js.slice(js.indexOf("const li = at.children[at._sel]"), js.indexOf("function atClose")), /scrollIntoView\(/);
 });
 console.log(`\n${passed} passed`);
