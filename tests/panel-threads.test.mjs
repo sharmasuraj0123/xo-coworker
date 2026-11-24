@@ -37,9 +37,9 @@ assert.deepEqual([...stage.querySelectorAll("[data-gut]")].map((node) => node.da
 assert.match(stage.querySelector("#fr-title-agents").textContent, /^Threads4$/);
 assert.equal(stage.querySelector('[data-fr-fold="map"]').getAttribute("aria-expanded"), "false");
 assert.equal(stage.querySelector('[data-tg-fold="done"]').getAttribute("aria-expanded"), "false");
-assert.equal(stage.querySelector('[data-go="t:c"]'), null);
+assert.ok(!stage.querySelector('[data-go="t:c"]'));
 assert.ok(stage.querySelector('[data-go="t:a"] .ag-tm .ag-mk .agm'));
-assert.equal(stage.querySelector('[data-go="t:a"] .ag-t .agm'), null);
+assert.ok(!stage.querySelector('[data-go="t:a"] .ag-t .agm'));
 
 const changeFold = stage.querySelector('[data-fr-fold="changes"]');
 changeFold.click();
@@ -60,11 +60,11 @@ assert.equal(control.getAttribute("aria-label"), "4 threads, 1 needs you. Open t
 assert.equal(control.querySelector(".th-w")?.textContent, "Threads");
 assert.equal(control.querySelector(".th-n")?.textContent, "4");
 assert.equal(control.querySelector(".is-need .pj-k")?.textContent, "1");
-assert.equal(control.querySelector(".is-work"), null);
+assert.ok(!control.querySelector(".is-work"));
 const running = threadCounts("p", []);
 header.innerHTML = threadsCtl(running.all, running);
 assert.equal(header.querySelector(".is-work .pj-k")?.textContent, "1");
-assert.equal(header.querySelector(".is-need"), null);
+assert.ok(!header.querySelector(".is-need"));
 assert.equal(threadsCtl(0, running), "");
 
 panel.page("sample", { title: "Sample", mount() {} });

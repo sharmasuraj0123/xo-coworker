@@ -56,4 +56,4 @@ link.click();
 assert.deepEqual(visits, ["t:made"], "disposal removes the delegated document listener");
 pending.resolve(new Response(new Blob(["image"])));
 await settle();
-assert.equal(card.querySelector("img"), null, "a late answer leaves the disposed surface alone");
+assert.ok(!card.querySelector("img"), "a late answer leaves the disposed surface alone");

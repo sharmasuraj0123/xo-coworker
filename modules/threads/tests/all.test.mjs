@@ -37,7 +37,7 @@ render();
 assert.ok(document.querySelector('[data-go="t:live"]') === row, "All threads matches the activity subtitle");
 input.value = "null";
 render();
-assert.equal(document.querySelector('#all-list [data-go="t:done"]'), null, "missing fields don't become searchable words");
+assert.ok(!document.querySelector('#all-list [data-go="t:done"]'), "missing fields don't become searchable words");
 input.value = "checks";
 S.allFilter = "waiting";
 render();
