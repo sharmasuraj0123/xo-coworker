@@ -20,6 +20,12 @@ export function scopeOf(view, { thread, project }) {
   return { key: "all" };
 }
 
+/** @param {Parameters<typeof scopeOf>[0]} view @param {Parameters<typeof scopeOf>[1]} deps */
+export function filePlace(view, deps) {
+  const s = scopeOf(view, deps);
+  return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") };
+}
+
 /** The folder a file lives in, as a scope: its thread's worktree when it's in one, else its project. @param {FileLocation | null | undefined} f @param {{threads?: readonly (ScopeThread | null)[], project: (id: string) => string}} deps @returns {FilesScope | null} */
 export function fileScope(f, { threads, project }) {
   if (!f || !f.project || !f.rel) return null;

@@ -60,3 +60,23 @@ export function wireMessageHops(S, SHAPE, deviceSaid) {
   hopsRender();
   return hopsRender;
 }
+
+/** @param {DeviceNotice} deviceSaid */
+export function wireChatBubbles(deviceSaid) {
+  const chatBubbles = () => document.documentElement.dataset.msgx === "bubbles";
+  /** @param {boolean} on */
+  function setChatBubbles(on) {
+    const r = document.documentElement;
+    if (on) { r.dataset.msgx = "bubbles"; r.dataset.msgxTails = ""; } else { delete r.dataset.msgx; delete r.dataset.msgxTails; }
+    let kept = true;
+    try { localStorage.setItem("cv-bubbles", on ? "on" : "off"); } catch { kept = false; }
+    return { on, kept };
+  }
+  function bubblesRender() { $("#bubbles-tog").setAttribute("aria-checked", String(chatBubbles())); }
+  $("#bubbles-tog").addEventListener("click", (/** @type {Event} */ e) => {
+    const r = setChatBubbles(!chatBubbles());
+    bubblesRender();
+    deviceSaid(/** @type {Element} */ (e.currentTarget), r, r.on ? "Messages show in bubbles." : "Replies read as full-width documents.");
+  });
+  bubblesRender();
+}

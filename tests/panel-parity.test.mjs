@@ -8,6 +8,7 @@ let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
 const mount = fn(app, "function tpMount(box)");
+const editing = read("modules/threads/editing.js");
 
 t("the conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat", () => {
   const now = fn(app, "function composerNow()");
@@ -52,7 +53,7 @@ t("6 · focus after Retry, Pick back up and a notice's Undo goes to that convers
   const r = fn(app, "function retry(id)");
   assert.match(r, /K = composerAt\(document\.activeElement\);/);
   assert.match(r, /if \(had\) K\.say\.focus\(\{ preventScroll: true \}\);/);
-  assert.match(fn(app, "async function unfreeze("), /const K = composerAt\(btn\); S\.focusNext = \[\(\) => K\.say, \(\) => K\.conv\.scroller\];/);
+  assert.match(editing, /const K = composerAt\(btn\); S\.focusNext = \[\(\) => K\.say, \(\) => K\.conv\.scroller\];/);
   assert.match(app, /const K = composerNow\(\); S\.focusNext = \[\.\.\.\(\(h && h\.back\) \|\| \[\]\), \(\) => K\.say\];/);
   assert.match(app, /function heraldBack\(h\) \{ return \[[^\n]*composerNow\(\)\.say\]\.find\(usable\)/);
   assert.match(app, /S\.focusNext = \[\(\) => heraldBox\(\)\?\.querySelector\("\[data-herald-undo\]"\)\];/, "Interrupt's Undo, in the line where it shows");

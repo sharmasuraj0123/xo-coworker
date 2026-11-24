@@ -1,5 +1,5 @@
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, space, clock, dayOf, short, elapsed, once, isPending, busyAttrs } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED, clock, dayOf, short, once, busyAttrs } from "../core/platform/index.js";
 import { patch, redraw } from "../core/ui/redraw.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
 import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
@@ -9,16 +9,16 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { ICON, stepMark, stateMark, XO, $, $$, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
+import { ICON, stepMark, stateMark, XO, $, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, parseTarget as targetOf, stripTarget, sendErrorTitle, connLine, sendBlock, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
-import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, mediaItemOf, viewerFile, retryMedia, wireDragOut, webImagesHtml } from "./media.js";
+import { mediaHtml, fromAttachment, fromSharedFile, hydrateMedia, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
-import { runsListHtml, runViewHtml } from "../modules/runs/view.js";
+import { createRunsPanel } from "../modules/runs/panel.js";
 import { createRunsOpener } from "../modules/runs/controller.js";
 import { createRunsReads } from "../modules/runs/read.js";
 import { createRunsStrip } from "../modules/runs/strip.js";
@@ -28,6 +28,7 @@ import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChats } from "./chats.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest, createFollow } from "../modules/conversation/follow.js";
 import { createTyping } from "../modules/conversation/typing.js";
+import { tickElapsed } from "../shell/elapsed.js";
 import { headOf, goneLine } from "./cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
 import { decorateConversation } from "./msgx.js";
@@ -37,10 +38,13 @@ import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
 import { createTopHeader, headerActionsHtml, wireHeaderActions } from "../shell/header.js";
+import { createWorkspaceHeader } from "../shell/workspace-header.js";
 import { stackLayers } from "../shell/layers.js";
 import { createBackSteps, wireBack } from "../shell/back.js";
 import { createNavigation } from "../shell/navigation.js";
-import { faviconRender } from "../shell/favicon.js";
+import { createReturnPill } from "../shell/return-pill.js";
+import { createDecisionPings } from "../shell/decision-pings.js";
+import { createShellRenderer, createShellScheduler } from "../shell/render.js";
 import { createDrawer } from "../shell/phone.js";
 import { drawPlaceIcons, drawFrameIcons } from "../shell/frame-icons.js";
 import { startShell } from "../shell/start.js";
@@ -48,7 +52,8 @@ import { createLaunchpad } from "../modules/launchpad/launchpad.js";
 import { createLpApi } from "../modules/launchpad/client.js";
 import { createFiles } from "../modules/files/files.js";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
-import { fileScope, localIn, scopeOf as filesScopeOf } from "../modules/files/scope.js";
+import { createMediaOpener } from "../modules/files/open-media.js";
+import { filePlace, fileScope, localIn } from "../modules/files/scope.js";
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createJump } from "../modules/search/jump.js";
@@ -63,6 +68,8 @@ import { threadsCtl } from "../modules/threads/header.js";
 import { createAllThreads } from "../modules/threads/all.js";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadDeleteView } from "../modules/threads/delete-view.js";
+import { createThreadDelete } from "../modules/threads/delete.js";
+import { createThreadEditing, threadTitleInput, threadLabelInput } from "../modules/threads/editing.js";
 import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js";
 import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
@@ -73,12 +80,14 @@ import { createChangesFrame } from "../modules/changes/frame.js";
 import { createTray, fmtSize, kindOf, isLargePaste, pasteLabel, uploadErrorText, FINAL, MAX_FILES } from "./attach.js";
 import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
-import { classify, glyph, TOPICS } from "../modules/projects/projicons.js";
+import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
 import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createShells } from "../modules/shells/dock.js";
 import { createShellPanel } from "../modules/shells/panel.js";
 import { createRecord } from "./recordview.js";
+import { createRecordLines } from "../modules/chats/record-lines.js";
 import { createHomeParts } from "../modules/home/parts.js";
+import { createOpenNext } from "../modules/home/open-next.js";
 import { createNextCard } from "../modules/home/next-card.js";
 import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
@@ -95,14 +104,16 @@ import { radioKeys, menuKeys, focusOpened } from "./keynav.js";
 import { createHerald, noticeFor, refusedNotice } from "../core/services/notices.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
-import { wireAppearance, wireMessageHops, wireWebPictures } from "../modules/settings/appearance.js";
+import { wireAppearance, wireChatBubbles, wireMessageHops, wireWebPictures } from "../modules/settings/appearance.js";
 import { createDeviceNotice } from "../modules/settings/device-notice.js";
 import { wireSound } from "../modules/settings/sound.js";
+import { createShapeApply } from "../modules/settings/apply-shape.js";
 import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 import { regionRings } from "./ring.js";
 import { keepFocusInView, usable } from "./focusview.js";
 
 const world = createWorld();
+const schedule = createShellScheduler(() => render());
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
 const CAP = {};
 // mine is Storm's where it keeps shapes (GET/PUT /api/chat/shape): read on load, written only on your change,
@@ -257,7 +268,7 @@ world.onEvent((e) => {
 // every file in a place (core/services/paths.js), for ⌘P and the tree's Find; ⌘P and ⌘⇧F themselves (modules/search/quickopen.js)
 const PATHS = createPaths({ api, onChange: () => { QO.refresh(); FILES.pathsChanged && FILES.pathsChanged(); } });
 /** The place the view shows files of (a thread's worktree, a project's folder), or null. */
-const placeNow = () => { const s = filesScopeOf(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) }); return s.key === "all" ? null : { project: s.project, base: s.base || "", label: s.label + (s.sub ? ` · ${s.sub}` : "") }; };
+const placeNow = () => filePlace(S.view, { thread: (id) => world.thread(id), project: (id) => PROJ(id) });
 const QO = createQuickOpen({
   paths: PATHS, api, place: placeNow, announce,
   openFile: (rel, { line }) => VW.open({ path: rel, name: rel.split("/").pop(), project: placeNow().project, rel, ...(line ? { lines: [line, line] } : {}) }, null),
@@ -277,30 +288,11 @@ REC.view = () => S.view;
 
 // ── world helpers ───────────────────────────────────────────────────────────
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
+const wsHeadRender = createWorkspaceHeader(S, projects);
 const { ownIcon, projectIcon, forgetIcon } = createProjectIconChoice({ world, SHAPE });
-/** The project icon picker: its header tile opens it; a grid of the owner's topics and the cube, "Automatic" first
- *  (its own guess, from its name and threads); arrows walk it, Enter or a click chooses, Esc closes. */
-const PICK = { el: null, pid: null, from: null };
-const topicName = (k) => (k === "project" ? "Cube" : k[0].toUpperCase() + k.slice(1));
-function pickIcon(pid, from) {
-  if (PICK.el && PICK.pid === pid) { closePick(); return; }
-  closePick();
-  const own = ownIcon(pid), name = PROJ(pid);
-  const guess = classify((world.project(pid) || {}).name || pid, world.state.threads.filter((t) => t.project === pid).map((t) => t.title || "")).icon;
-  const opt = (k, label, svg, on) => `<button type="button" class="pk-o${on ? " is-on" : ""}" role="radio" aria-checked="${on}" data-pk="${k}" title="${esc(label)}" aria-label="${esc(label)}" tabindex="${on ? 0 : -1}">${svg}</button>`;
-  const el = document.createElement("div");
-  el.className = "side-pop pk-pop"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", `${name}'s icon`);
-  el.innerHTML = `<div class="se-h"><b>${esc(name)}'s icon</b><span>Kept on every device you use. Automatic picks one from its name and threads.</span></div>` +
-    `<div class="pk-grid" role="radiogroup" aria-label="Icons">${opt("", `Automatic (${topicName(guess)})`, `<span class="pk-auto">${glyph(guess)}<i>A</i></span>`, !own)}` +
-    [...TOPICS, "project"].map((k) => opt(k, topicName(k), glyph(k), own === k)).join("") + `</div>`;
-  document.body.append(el);
-  const r = from.getBoundingClientRect();
-  el.style.setProperty("--pop-x", `${Math.round(r.left - 8)}px`); el.style.setProperty("--pop-y", `${Math.round(r.bottom + 8 + 8)}px`);
-  el.hidden = false;
-  PICK.el = el; PICK.pid = pid; PICK.from = from;
-  from.setAttribute("aria-expanded", "true");
-  el.querySelector('.pk-o[tabindex="0"]').focus({ preventScroll: true });
-  el.addEventListener("click", (e) => { const o = e.target.closest("[data-pk]"); if (o) chooseIcon(pid, o.dataset.pk); });
+const { PICK, pickIcon, closePick } = createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIcon, announce, render: () => render(), wirePickKeys });
+
+function wirePickKeys(el, closePick) {
   el.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePick({ focus: true }); return; }
     const os = [...el.querySelectorAll(".pk-o")], i = os.indexOf(document.activeElement);
@@ -312,20 +304,6 @@ function pickIcon(pid, from) {
     const j = Math.max(0, Math.min(os.length - 1, i + d));
     os[i].tabIndex = -1; os[j].tabIndex = 0; os[j].focus({ preventScroll: true });
   });
-}
-function closePick({ focus = false } = {}) {
-  if (!PICK.el) return;
-  PICK.el.remove(); PICK.from?.setAttribute("aria-expanded", "false");
-  const back = $(`[data-pj-icon="${CSS.escape(PICK.pid)}"]`);
-  PICK.el = null; PICK.pid = null; PICK.from = null;
-  if (focus) back?.focus({ preventScroll: true });
-}
-function chooseIcon(pid, k) {
-  SHAPE.patchMine({ layout: { icons: { [pid]: k || null } } });
-  forgetIcon(pid);
-  closePick({ focus: true });
-  announce(k ? `${PROJ(pid)} wears ${topicName(k)}` : `${PROJ(pid)}'s icon is automatic again`);
-  render();
 }
 document.addEventListener("click", (e) => { const b = e.target.closest?.("[data-pj-icon]"); if (b) pickIcon(b.dataset.pjIcon, b); });
 document.addEventListener("pointerdown", (e) => { if (PICK.el && !e.target.closest(".pk-pop,[data-pj-icon]")) closePick(); });
@@ -432,18 +410,7 @@ world.onEvent((e) => {
 
 const short1 = (text) => { const s = String(text || "").replace(/[*_`#>]+/g, "").replace(/\s+/g, " ").trim(); return s.length > 64 ? s.slice(0, 63).replace(/\s+\S*$/, "") + "…" : s; };
 
-/** Leverage-gated pings: only a newly arrived ask that frees ≥ 1 h of agent work may speak, once. */
-function pings(needs) {
-  if (!S.seen) { S.seen = new Set(needs.map((n) => n.key)); return; }
-  for (const n of needs) {
-    if (S.seen.has(n.key)) continue;
-    S.seen.add(n.key);
-    if (n.group === "stopped" || n.ask.stopByYou || !P.mayPing(n)) continue;
-    // never the same ask twice on one screen: Home lists it, and its own thread shows it above the composer
-    if (S.view === "home" || S.view === `t:${n.t.id}`) continue;
-    heraldShow({ kind: "ping", text: `${PROJ(n.t.project)} · worth a look`, sub: askShort(n), decide: n.key }, 7000);
-  }
-}
+const pings = createDecisionPings({ S, P, PROJ, askShort, heraldShow });
 
 const sideRender = createSideRows({ S, world, CH, REC, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded });
 
@@ -899,16 +866,6 @@ function msgItemsOf(conv, needs) {
 }
 
 // ── headers: Workspace, project (title + one sentence + the Now shelf), thread (+ checklist) ──
-/** hub #28, thinned: the Workspace is the conversation with your coordinator,
- *  so the top of its history only says what this place is. The counts are one line in the header; what
- *  needs you lives on Home, and the header's Next move opens it. Nothing here repeats Home. */
-function wsHeadRender() {
-  const box = $("#ws-head");
-  if (S.view !== "ws") { box.hidden = true; return; }
-  box.hidden = false;
-  patch(box, `<div class="wsh"><div class="wsh-mark">${XO}</div><h2 class="wsh-h">Workspace</h2>` +
-    `<p class="wsh-p">Your coordinator, across all ${projects().length} projects. Tell it what should get done; it routes the work. What needs you waits on <button type="button" class="wsh-home" data-go="home">Home</button>.</p></div>`);
-}
 
 /** The title bar's count line, set as type: each figure a shade brighter than its word, in
  *  tabular figures so a count that changes never shifts the line, and a quiet dot between; a narrow
@@ -958,10 +915,10 @@ function conversationHeaderHtml(v, t, needs) {
     // the field shows what was typed (kept through a refusal), and says it's waiting while it saves
     const edVal = ed ? S.tEdit.value : "", edBusy = ed && S.tEdit.busy ? ' aria-busy="true" readonly' : "";
     const title = ed === "title"
-      ? `<input class="tw-in tw-in-t" id="tw-edit" data-tedit="title" maxlength="120" value="${esc(edVal)}" aria-label="Thread name"${edBusy}>`
+      ? threadTitleInput(edVal, edBusy)
       : `<h1 class="tw-h" id="conv-title">${esc(t.title)}</h1>`;
     const label = ed === "label"
-      ? `<input class="tw-in tw-in-l" id="tw-edit" data-tedit="label" maxlength="32" value="${esc(edVal)}" placeholder="A short label" aria-label="Label"${edBusy}>`
+      ? threadLabelInput(edVal, edBusy)
       : t.label ? `<span class="tw-label" title="Label">${esc(t.label)}</span>` : "";
     const resolved = t.state === "resolved";
     const acts = world.act.storm ? `<span class="tw-acts"><button type="button" class="tw-act" data-key="tw-resolve" data-resolve="${esc(t.id)}" data-to="${resolved ? "open" : "resolve"}"${busyAttrs(`resolve:${t.id}`)} title="${resolved ? "Reopen it: its agent can pick it up again" : "Mark it resolved: nothing more is owed"}">${resolved ? ICON.retry : ICON.check}<span>${resolved ? "Reopen" : "Resolve"}</span></button>` +
@@ -1030,29 +987,9 @@ Object.assign(runsCard, { id: "runs-card", className: "runs-pg", tabIndex: -1 })
 runsCard.setAttribute("role", "region");
 runsCard.setAttribute("aria-label", "Sub-agents");
 const RS = { cmdsOpen: true, cmdsAll: false, said: null, gen: 0, opening: 0, open: false, session: null, title: "", view: "list", tree: [], counts: null, runId: null, run: null, anc: null, items: [], cursor: null, children: [], loading: false, error: null, gone: null, pollT: null, returnTo: null };
-const canStopRuns = () => !!(RS.session && world.act.feature && world.act.feature(RS.session, "runs.stop"));
-// this page's own stops still in their Undo, where you acted
-const sheetStops = () => pendingStops.filter((j) => !j.cancelled && !j.sent && j.session === RS.session).map((j) => ({ key: j.key, what: j.what }));
-/** A control in the Sub-agents page as a selector, by its first data- hook's name and value ([data-run-stop="a1"]). */
-const runsHook = (e) => { if (!e || !runsCard.contains(e) || e === runsCard || !e.attributes) return ""; const a = [...e.attributes].find((x) => x.name.startsWith("data-")); return a ? (a.value ? `[${a.name}="${CSS.escape(a.value)}"]` : `[${a.name}]`) : ""; };
-function runsRender() {
-  if (!RS.open) return;
-  const html = RS.view === "list"
-    ? runsListHtml(RS.tree, RS.counts, { canStop: canStopRuns(), stops: sheetStops(), state: RS.listState, error: RS.listErr, saidFor: RS.said, session: RS.session, out: [...stopsOut], cmdsOpen: RS.cmdsOpen, cmdsAll: RS.cmdsAll })
-    : runViewHtml(RS.run || { id: RS.runId, title: "Sub-agent", state: "running" }, { anc: RS.anc, items: RS.items, children: RS.children, canStop: canStopRuns(), gone: RS.gone, error: RS.error, loading: RS.loading, stops: sheetStops(), saidFor: RS.said, out: [...stopsOut], open: S.tbOpen, cmdsOpen: RS.runCmds, cmdsAll: RS.cmdsAll });
-  if (runsCard._h !== html) {
-    const had = runsCard.contains(document.activeElement);
-    const body = runsCard.querySelector(".rn-body");
-    const keep = body ? body.scrollTop : 0;
-    // the control with focus, found again by its hook if the redraw replaced it
-    const hook = runsHook(document.activeElement);
-    // in place: the control with focus (a Stop that gains its Undo line, a row) stays the same node
-    redraw(runsCard, html); runsCard._h = html;
-    const nb = runsCard.querySelector(".rn-body");
-    if (nb && RS.keepScroll) nb.scrollTop = keep;
-    if (had && !runsCard.contains(document.activeElement)) { const same = hook && runsCard.querySelector(hook); (same && usable(same) ? same : runsCard).focus({ preventScroll: true }); }
-  }
-}
+const pendingStops = [];
+const stopsOut = new Set();
+const { runsRender, runsLand, closeRuns, runsGone } = createRunsPanel({ RS, S, world, STAGE, runsCard, pendingStops, stopsOut, placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller });
 /** ‹ and Esc: from a run to the list, its row in focus; from the list, back to the thread. */
 function runsEscape() {
   if (RS.view !== "run") { closeRuns(); return; }
@@ -1077,36 +1014,6 @@ const openRuns = createRunsOpener(RS, {
   STAGE, readRunsList, openRun, runsRender, runsLand,
   headFor: (el) => (convAt(el) === MAIN ? $("#thead") : $("#tpthead")),
 });
-/** Where focus lands in Sub-agents once its list is drawn: Try again after a refusal, else the first run, else the page. */
-function runsLand(...first) {
-  const order = [...first, RS.listState === "error" ? "[data-runs-retry]" : null, ".rn-open", ".rn-cmd-b", "[data-runs-retry]"];
-  return order.filter(Boolean).map((sel) => runsCard.querySelector(sel)).find(usable) || runsCard;
-}
-/** Back to the thread: the page steps back, or the panel closes if it opened for it. */
-function closeRuns() {
-  if (!RS.open) return;
-  if (!RS.panelWas && STAGE.pageShown?.name === "runs") STAGE.close({ restore: false }); else STAGE.closePage("runs");
-  // a phone's panel covers the chat: what opened it takes focus once the panel is gone
-  const a = document.activeElement;
-  if (!a || a === document.body) RS.refocus?.();
-  RS.refocus = null;
-}
-// the page is gone (back, another place, the panel closed): focus, if it was here, goes back to what opened it
-function runsGone() {
-  if (!RS.open) return;
-  const here = runsCard.contains(document.activeElement) || STAGE.owns(document.activeElement);
-  clearTimeout(RS.pollT);
-  RS.gen++; RS.open = false; runsCard.replaceChildren(); runsCard._h = "";
-  const was = RS.returnTo;
-  const like = (el) => { if (!el || !el.getAttribute) return null; for (const a of ["data-run-call", "data-run"]) if (el.hasAttribute(a)) return document.querySelector(`[${a}="${CSS.escape(el.getAttribute(a))}"]`); return el.hasAttribute("data-runs") ? RS.head?.querySelector("[data-runs]") : null; };
-  RS.returnTo = null;
-  const head = RS.head, to = () => [was, like(was), head?.querySelector("[data-runs]"), head === $("#tpthead") ? TP.C?.scroller : placeRegion()].find(usable)?.focus({ preventScroll: true });
-  RS.refocus = here ? to : null;
-  if (here) to();
-}
-// Stops waiting out their Undo. One herald shows them all, so a second stop never hides the first's Undo.
-const pendingStops = [];
-const stopsOut = new Set(); // stop requests sent and not yet answered, by key
 const stopRunsUndo = createRunsStop(RS, { pendingStops, stopsOut, stopsHerald, runsRender, announce, heraldShow, readRunsList, commitMs: Kit.COMMIT_MS });
 runsCard.addEventListener("click", (e) => {
   if (e.target.closest("[data-runs-cmds]")) { if (RS.view === "run") RS.runCmds = !RS.runCmds; else RS.cmdsOpen = !RS.cmdsOpen; RS.keepScroll = true; runsRender(); return; }
@@ -1331,7 +1238,6 @@ let TYPING = null;
 function typingRender(C = MAIN) { return (TYPING ||= createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, sendingTo, schedule: () => schedule(), tick: () => tickElapsed() })).render(C); }
 function toastLine(text) { announce(text); heraldShow({ kind: "done", text }, 1600); }
 // only a clock whose words changed is written (a rewrite is a mutation every layer reacts to)
-function tickElapsed() { for (const el of $$(".elapsed[data-since]")) { const t = elapsed(Math.max(0, Math.floor((Date.now() - +el.dataset.since) / 1000))); if (el.textContent !== t) el.textContent = t; } }
 setInterval(tickElapsed, 1000);
 
 // ── the dock line: one calm labelled line (no glow on the composer, ever) ───
@@ -1397,37 +1303,7 @@ function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof s
 const inUse = (sel) => () => { const K = composerNow(); return sel === "#send" ? K.send : K.main ? $(sel) : TP.box.querySelector(sel); };
 
 // ── intelligence: the record line and the chip ─────────────────────────────
-function recordLine(session, rec) {
-  const conv = session;
-  const m = { id: `rec${++S.n}`, who: "rec", at: Date.now(), text: rec.text, refused: !!rec.refused, undo: rec.undo || null, until: Date.now() + 3000 };
-  (S.local[conv] = S.local[conv] || []).push(m);
-  // its Undo goes when its window ends: if it holds focus then, the conversation takes it first (S004)
-  if (rec.undo) setTimeout(() => { recUndoLeaves(m.id); schedule(); }, 3050);
-  if (S.view === "home" || (S.view !== conv)) heraldShow({ kind: "rec", text: rec.text, undo: rec.undo ? m.id : null, undoUntil: rec.undo ? m.until : 0 }, rec.undo ? 3200 : 4200);
-  announce(rec.text);
-  schedule();
-}
-/** A record line's Undo is drawn only while it can undo: when it goes (pressed, or its window over) and holds focus,
- *  the conversation it's in takes focus first, before the line is drawn again without it, never the page (the
- *  create-project grader on 24be023, S004: Undo pressed, the line said "undone", focus on BODY) */
-function recUndoLeaves(id) {
-  const b = document.activeElement?.closest?.(`[data-rec-undo="${CSS.escape(id)}"]`);
-  if (b) placeRegion().focus({ preventScroll: true });
-}
-function undoRecord(id) {
-  for (const list of Object.values(S.local)) {
-    const m = list.find((x) => x.id === id);
-    if (m && m.undo && Date.now() < m.until) {
-      recUndoLeaves(id);
-      m.undo(); m.undo = null;
-      m.text = `${m.text} · undone`;
-      announce("Undone.");
-      if (S.herald && S.herald.undo === id) { S.herald.until = 0; heraldNext(); }
-      schedule();
-      return;
-    }
-  }
-}
+const { recordLine, undoRecord } = createRecordLines({ S, announce, schedule, heraldShow, heraldNext, placeRegion: () => placeRegion() });
 function chipRender(fade = false, K = MK) {
   const chip = K.iq;
   if (!chip) return;
@@ -2224,69 +2100,11 @@ function createConv({ view, msgs, scroller: sc, column, typing, follow, main = f
 const MAIN = createConv({ view: () => S.view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
   follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } });
 // the oldest message on screen; day lines don't count, since older messages of the same day land below theirs
-let raf = 0;
-function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
 // Where the view is has one owner, modules/conversation/follow.js (QA #9): pinned at the latest, or reading where you are.
 // Here: opening a conversation goes to the latest; a redraw while you read puts what you read back where it
 // stood (holdPlace). The browser's scroll anchoring usually has, so nothing is written; it can't when the
 // row you're reading is itself redrawn (a thread's first fill redraws most of them), or has none (Safari).
 
-function render() {
-  if (!world.state.loaded) return;
-  const needs = D.needItems();
-  pings(needs);
-  const v = S.view;
-  const isHome = v === "home";
-  const isArts = v === "artifacts", isLp = v === "launchpad", isPage = !!PAGE_OF[v];
-  // written only when they change: every write is a mutation other layers react to. data-conv names the
-  // conversation itself (its id), so nothing has to infer "a new conversation opened" from what's on screen
-  const appEl = $("#app"), kind = isPage ? v : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
-  if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
-  if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
-  dockAtTop(v === "chats");
-  // a thread that isn't here (gone with a reset, or a link older than this Space) offers no message box: there's
-  // nothing to write to (the create-project grader on 131d146: its composer stayed, "Message undefined…")
-  const gone = v.startsWith("t:") && !convThread(v);
-  if (appEl.hasAttribute("data-gone") !== gone) appEl.toggleAttribute("data-gone", gone);
-  for (const [k, sel] of Object.entries(PAGE_OF)) $(sel).hidden = k !== v;
-  $("#conv").hidden = isPage;
-  const pbt = isHome ? "Home" : isArts ? "Artifacts" : isLp ? "Launchpad" : "";
-  if ($("#pb-t")._h !== pbt + v) { $("#pb-t").innerHTML = pbt ? esc(pbt) : XO; $("#pb-t")._h = pbt + v; }
-  sideRender(needs);
-  if (isHome) { homeRender(needs); MAIN.rendered = "home"; }
-  else if (isArts) { REC.artifacts.render(); MAIN.rendered = "artifacts"; }
-  else if (isLp) { LPP.render(); MAIN.rendered = "launchpad"; }
-  else {
-    topRender(needs);
-    wsHeadRender(needs);
-    drawConv(MAIN, needs);
-    // focus in the composer as it goes with its thread: to Go to Home, else the conversation, never the page
-    if (gone && document.activeElement === say) ([...msgsEl.querySelectorAll('.calm-act [data-go="home"]')].find(usable) || placeRegion()).focus({ preventScroll: true });
-  }
-  if (!isPage) requestAnimationFrame(() => loadAhead(MAIN));
-  if (TP.C && TP.tid && !TP.wait && STAGE.pageShown?.name === "thread") drawThreadPage(needs);
-  dockRender(needs);
-  heraldRender(needs);
-  // the line above the composer follows the world on every view: a thread's follows its agent's turn
-  // (F7) unless you are aiming the message elsewhere, and a paused line clears the moment it stops
-  // being true (a cold Home used to keep "Connecting to XO…" until you typed)
-  if (!chatTargetRender()) targetLineRender();
-  syncPlaceholder();
-  sendRender();
-  chipRender();
-  D.sync();
-  MAP.render(v);
-  VW.notice();
-  STAGE.sync();
-  LW.sync();
-  FP.sync();
-  const nd = needs.filter((n) => n.admitted && !n.later).length;
-  document.title = Kit.titleFor(nd, "XO Space");
-  faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);
-  // a control that asked for focus to land on what this draw makes (Interrupt → its Undo, Undo → Interrupt
-  // again): its named destination, once, in the same step as the draw that took the control away
-  if (S.focusNext) { const to = S.focusNext.map((sel) => (typeof sel === "function" ? sel() : $(sel))).find(usable); S.focusNext = null; to?.focus({ preventScroll: true }); }
-}
 /** Where you carry on when the control you were on goes and nothing more particular is named: the place's own
  *  region (Home, Artifacts, else the conversation). */
 const placeRegion = () => pageEl(S.view) || scroller;
@@ -2455,47 +2273,9 @@ function saveScroll() {
   if (pageEl(S.view)) S.scroll[S.view] = pageEl(S.view).scrollTop;
   // a conversation always opens at the latest (the owner, 5 Nov), so its place isn't kept
 }
-const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render, returnPill, convThread });
+const returnPill = createReturnPill({ msgsEl, scroller, toRow });
+const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread });
 function go(v, options) { return navigate(v, options); }
-/** Return to where you were (Astra's I1): coming back to a conversation still lands at its latest (the owner's
-    rule), and when the message you left from is above, a quiet pill offers the way back to it, deliberately. */
-function returnPill(target) {
-  let pill = $("#mx-return");
-  // the message is held by its key, never its node: a redraw replaces nodes, and the key finds the one now drawn
-  const row = target && target.closest ? target.closest("#msgs > [data-k]") : null;
-  const key = row ? row.dataset.k : null;
-  if (!key) { if (pill) pill.hidden = true; return; }
-  const find = () => msgsEl.querySelector(`:scope > [data-k="${CSS.escape(key)}"]`);
-  const inSight = (el) => { const a = el.getBoundingClientRect(), b = scroller.getBoundingClientRect(); return a.bottom > b.top + 40 && a.top < b.bottom - 120; };
-  requestAnimationFrame(() => {
-    const el = find();
-    if (!el || inSight(el)) { if (pill) pill.hidden = true; return; }
-    if (!pill) {
-      pill = document.createElement("button");
-      pill.type = "button"; pill.id = "mx-return"; pill.className = "mx-return";
-      $("#conv").append(pill);
-      pill.addEventListener("click", () => {
-        pill.hidden = true;
-        const el = pill._find && pill._find();
-        if (!el) return; // it isn't drawn any more: nothing to go back to
-        toRow(el, true);
-        // the control you left from (the card or link that opened the thread), else the first one in the message
-        const back = el.querySelector("[data-go]") || [...el.querySelectorAll("button, a[href]")].find((b) => b.offsetParent);
-        back?.focus({ preventScroll: true });
-        el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash"); setTimeout(() => el.classList.remove("is-flash"), 1800);
-      });
-      scroller.addEventListener("scroll", () => {
-        if (pill.hidden || !pill._find) return;
-        const el = pill._find();
-        if (!el || pill._seen(el)) pill.hidden = true; // gone, or you've reached it
-      }, { passive: true });
-    }
-    pill._find = find; pill._seen = inSight;
-    pill.style.top = `${scroller.offsetTop + space("--s-3")}px`; // --s-3 under the header, whatever its height
-    pill.innerHTML = `${ICON.arrow}<span>Back to where you were</span>`;
-    pill.hidden = false;
-  });
-}
 /** Has this conversation's real content arrived (timeline or thread detail)? */
 function liveReady(v) {
   const t = convThread(v);
@@ -2590,16 +2370,7 @@ function reactorName(sessionId) {
   if (s.role === "project-coordinator") return p && p !== "workspace" ? `The ${PROJ(p)} coordinator` : "The coordinator";
   return p && p !== "workspace" ? `A ${PROJ(p)} agent` : "An agent";
 }
-function openMedia(el, e) {
-  if (retryMedia(el)) return;
-  const it = mediaItemOf(el.dataset.mx);
-  if (!it) return;
-  // ← → walk the conversation's pictures; a picture elsewhere (an ask's words, a document) walks its own set
-  const root = msgsEl.contains(el) ? msgsEl : el.closest(".mx-stack")?.parentElement || msgsEl;
-  // ⇧ opens a file in the viewer; a web picture has no file here, so it's the lightbox either way
-  if (it.kind === "image" && (!e.shiftKey || it.web)) LB.open(it.key, el, root);
-  else VW.open(viewerFile(it), el);
-}
+const openMedia = createMediaOpener({ msgsEl, LB, VW });
 
 let drawing = null;
 
@@ -2688,58 +2459,8 @@ function sendAbout(f, text) {
 
 // ── a thread's own header: resolve and reopen with Undo (R1), rename, label ──
 const resolveThread = createThreadResolve({ world, schedule, announce, heraldFor, heraldShow, heraldDrop });
-/** The header's ⋯ menu closed: Escape, Tab, a choice made, a click elsewhere. Focus goes back to ⋯ when it was
- *  in the menu (Tab then goes on from ⋯). */
-function closeThreadMenu({ focus = true } = {}) {
-  if (!S.tMenu) return;
-  const back = focus && !!document.activeElement?.closest?.(".tw-menu");
-  const opener = S.tMenuIn === "page" ? "#tpacts [data-tmenu]" : "#top-who [data-tmenu]";
-  S.tMenu = null; S.tMenuIn = null; $("#top-who")._h = null; if ($("#tphead")) $("#tphead")._h = "";
-  if (!back) { schedule(); return; }
-  render();
-  $(opener)?.focus({ preventScroll: true });
-}
+const { closeThreadMenu, startThreadEdit, endThreadEdit, saveThreadField, unfreeze } = createThreadEditing({ S, world, render: () => render(), schedule, announce, heraldShow, composerAt: (el) => composerAt(el) });
 menuKeys($("#top"), { close: () => closeThreadMenu() });
-function startThreadEdit(tid, field) {
-  const t = world.thread(tid);
-  if (!t) return;
-  S.tEdit = { tid, field, value: field === "title" ? t.title : t.label || "" };
-  $("#top-who")._h = null;
-  render();
-  const inp = $("#tw-edit");
-  if (inp) { inp.focus(); inp.select(); }
-}
-/** The field closes (saved, unchanged, or Escape): the header shows the name again and, if focus was in the
- *  field, it goes to ⋯, where the rename came from. Only the edit that is still open closes. */
-function endThreadEdit(edit) {
-  if (S.tEdit !== edit) return;
-  const had = document.activeElement?.id === "tw-edit";
-  S.tEdit = null; $("#top-who")._h = null; render();
-  if (had) $("[data-tmenu]")?.focus({ preventScroll: true });
-}
-function saveThreadField(tid, field, value) {
-  const edit = S.tEdit && S.tEdit.tid === tid && S.tEdit.field === field ? S.tEdit : null;
-  const t = world.thread(tid);
-  if (!t) { if (edit) endThreadEdit(edit); return Promise.resolve(); }
-  const v = String(value || "").trim();
-  if ((field === "title" && (!v || v === t.title)) || (field === "label" && v === (t.label || ""))) { if (edit) endThreadEdit(edit); return Promise.resolve(); }
-  return once(`thread-edit:${tid}:${field}`, async () => {
-    if (edit) { edit.value = value; edit.busy = true; }
-    const inp = edit && $("#tw-edit");
-    if (inp) { inp.readOnly = true; inp.setAttribute("aria-busy", "true"); }
-    try {
-      await world.act.editThread(tid, field === "title" ? { title: v.slice(0, 120) } : { label: v ? v.slice(0, 32) : null });
-    } catch (err) {
-      if (edit) { edit.busy = false; edit.failed = value; }
-      if (inp && inp.isConnected) { inp.readOnly = false; inp.removeAttribute("aria-busy"); }
-      announce(`${field === "title" ? "Couldn't rename it" : "Couldn't change the label"}. ${err.message} What you typed is kept.`);
-      heraldShow({ kind: "stopped", text: field === "title" ? "Couldn't rename it" : "Couldn't change the label", sub: err.message }, 6000);
-      return;
-    }
-    announce(field === "title" ? `Renamed to ${v}.` : v ? `Labelled ${v}.` : "Label removed.");
-    if (edit) endThreadEdit(edit);
-  });
-}
 // "Coordinator needs you" in a chat's header: the card above the composer, unfolded and in focus
 $("#top").addEventListener("click", (e) => {
   const b = e.target.closest("[data-dock-open]");
@@ -3004,11 +2725,7 @@ $("#home").addEventListener("keydown", (e) => {
   else if (K.is(e, "back") && n.effort === "glance") { e.preventDefault(); e.stopPropagation(); card.querySelector("[data-nx-back]")?.click(); }
   else if (K.is(e, "details") || e.key === "Enter") { e.preventDefault(); e.stopPropagation(); decideKey(n.key); }
 });
-function openNext() {
-  const P0 = homeParts();
-  if (!P0.next) { heraldShow({ kind: "calm", text: "Nothing needs you right now" }, 2400); return; }
-  decideKey(P0.next.key);
-}
+const openNext = createOpenNext({ homeParts, heraldShow, decideKey });
 
 // ── All threads: searchable, filtered; finished ones fold into one line ────
 const allEl = $("#all");
@@ -3017,26 +2734,7 @@ const allRender = createAllThreads({ S, world, D, SHAPE, PROJ, convProject, thre
 radioKeys($("#all-f"));
 const tdelRender = createThreadDeleteView(S);
 const topRender = createTopHeader({ S, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender, REC });
-async function deleteThread(tid) {
-  const t = world.thread(tid);
-  if (!t || !world.act.deleteThread) return;
-  const pid = t.project;
-  try {
-    if (isPending(`tdel:${tid}`)) return; // already on its way
-    const p = once(`tdel:${tid}`, () => world.act.deleteThread(tid, { keepBranch: true, confirm: S.tDelLose?.confirm || null }));
-    render();
-    const res = await p;
-    S.tDel = null; S.tDelLose = null;
-    go("p:" + pid);
-    heraldShow({ kind: "done", text: `“${t.title}” deleted`, sub: t.branch ? `Its branch ${t.branch} is kept` : PROJ(pid),
-      undo: () => world.act.restoreThread(tid, res.row).then(() => announce("Thread back"), () => heraldShow({ kind: "stopped", text: "Couldn't bring it back", sub: t.title, force: true }, 6000)),
-      undoUntil: res.undo_until ? Date.parse(res.undo_until) : Date.now() + 10000, ownFocus: true }, 10000);
-  } catch (err) {
-    // work kept nowhere else: say what, and ask again (the next press sends Space's confirm token)
-    if (err && err.code === "would_lose_work") { S.tDelLose = { summary: err.what?.summary || null, confirm: err.confirm || err.what?.confirm || null }; $("#top-who")._h = null; render(); return; }
-    heraldShow({ kind: "stopped", text: "Couldn't delete the thread", sub: String(err && err.message || err), force: true }, 6000);
-  }
-}
+const deleteThread = createThreadDelete({ S, world, render: () => render(), go, announce, heraldShow, PROJ });
 const { panelShell, openShell } = createShellPanel({ S, STAGE, SH, world, heraldShow });
 /** All threads: from the project's title it drops down under it (the thread switcher); elsewhere a sheet. */
 function openAll(anchor = null) {
@@ -3188,21 +2886,7 @@ const { lookSync } = wireAppearance({ THEME, applyTheme, deviceSaid });
 // Settings › Appearance › Chat bubbles: this device's choice (localStorage cv-bubbles, read before the first paint in
 // index.html). Off (the default), the conversation reads as a document; on, in bubbles (css/msgx.css keys off
 // <html data-msgx="bubbles"> and data-msgx-tails). Nothing is redrawn: the same rows take the other look.
-const chatBubbles = () => document.documentElement.dataset.msgx === "bubbles";
-function setChatBubbles(on) {
-  const r = document.documentElement;
-  if (on) { r.dataset.msgx = "bubbles"; r.dataset.msgxTails = ""; } else { delete r.dataset.msgx; delete r.dataset.msgxTails; }
-  let kept = true;
-  try { localStorage.setItem("cv-bubbles", on ? "on" : "off"); } catch { kept = false; }
-  return { on, kept };
-}
-function bubblesRender() { $("#bubbles-tog").setAttribute("aria-checked", String(chatBubbles())); }
-$("#bubbles-tog").addEventListener("click", (e) => {
-  const r = setChatBubbles(!chatBubbles());
-  bubblesRender();
-  deviceSaid(e.currentTarget, r, r.on ? "Messages show in bubbles." : "Replies read as full-width documents.");
-});
-bubblesRender();
+wireChatBubbles(deviceSaid);
 const hopsRender = wireMessageHops(S, SHAPE, deviceSaid);
 keys.addEventListener("click", (e) => { if (e.target === keys || e.target.closest("[data-close]")) closeKeys(); });
 let keysReturn = null;
@@ -3216,18 +2900,7 @@ const RTSET = createRuntimeSettings({ world, announce, PROJ });
 const ACCTS = createAccounts({ announce });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
 const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
-/** The shape changed (only ever by the person's choice): everything that reads it is drawn again, now. */
-function shapeApply({ boot = false } = {}) {
-  SV.apply();
-  setWorkMode(SHAPE.opts("xo:thread/work").mode);
-  hopsRender();
-  webpicsRender();
-  if (boot) return; // the first render draws the rest
-  if (S.showHops) { const t = convThread(S.view); if (t && world.act.loadHops) world.act.loadHops(t.id); else if (!t) loadChatHops(S.view); }
-  SH.redraw();
-  STAGE.reshape();
-  schedule();
-}
+const shapeApply = createShapeApply({ S, SV, SHAPE, setWorkMode, hopsRender, webpicsRender, convThread, world, loadChatHops, SH, STAGE, schedule });
 SHAPE.onChange(() => shapeApply());
 shapeApply({ boot: true });
 /** F5: wait for the limit, or move every waiting thread, from the card on a thread (the same item as in Needs you). */
@@ -3238,20 +2911,6 @@ async function decideLimit(id, decision) {
     announce(decision === "move" ? "Moving the waiting threads. Each one says where it went." : "They wait for the limit to open.");
   } catch (err) { S.limitErr = { id, text: err.gone ? "It was already decided, or the limit opened." : err.message }; }
   S.limitBusy = null; schedule();
-}
-/** Pick a continued thread back up (F4): it un-freezes; sending a message in it does the same. */
-async function unfreeze(tid, btn) {
-  const th = world.thread(tid);
-  if (!th || btn?.getAttribute("aria-busy") === "true") return;
-  // aria-disabled while it asks (a disabled button drops focus to the page); picked up, its button goes with the
-  // frozen state: focus goes to the message box, to write to it; refused, it stays on the button (Astra RUN-5)
-  if (btn) { btn.setAttribute("aria-disabled", "true"); btn.setAttribute("aria-busy", "true"); }
-  try {
-    await world.act.editThread(th.id, { paused: false });
-    if (btn && btn.isConnected && btn === document.activeElement) { const K = composerAt(btn); S.focusNext = [() => K.say, () => K.conv.scroller]; }
-    announce("Picked back up. Its agent can carry on here.");
-    schedule();
-  } catch (err) { announce(`Couldn't pick it back up: ${err.message}`); if (btn) { btn.removeAttribute("aria-disabled"); btn.removeAttribute("aria-busy"); } }
 }
 const SECTIONS = createSettingsSections({ places: kernel.places, nav: setEl.querySelector(".set-nav"), pages: setEl.querySelector(".set-page").parentElement, at: () => ({ project: S.view.startsWith("p:") ? S.view.slice(2) : convThread(S.view)?.project }), pick: (id) => SETF.setPage(id), isOpen: () => !setEl.hidden, onTabs: () => SV.apply() });
 const SETF = createSettingsFrame({
@@ -3273,6 +2932,13 @@ KP.render();
 wireThemeToggle(applyTheme, lookSync, announce);
 
 // ── the sidebar: folds to its rail; More holds every further place ─────────────
+const render = createShellRenderer({
+  world, D, S, PAGE_OF, MAIN, pings, dockAtTop, convThread, sideRender, homeRender, REC, LPP,
+  topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
+  dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
+  MAP, VW, LW, FP, titleFor: Kit.titleFor, isBusy,
+});
+
 const SIDE = createSide({ shape: SHAPE, keys: K, announce, render, toggleJump: () => (jump.hidden ? JUMP.open() : JUMP.close()) });
 
 // the Map's toggle, in every conversation's header

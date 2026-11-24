@@ -11,11 +11,9 @@ import { mock } from "node:test";
 import { resolveTokens } from "./lib/tokens.mjs";
 import { readFileSync } from "node:fs";
 import { deferred, dom } from "./lib/dom.mjs";
-import { redraw } from "../core/ui/redraw.js";
-import { runsListHtml } from "../js/runsview.js";
+import { createRunsPanel } from "../modules/runs/panel.js";
 import { createRunsStop } from "../modules/runs/stop.js";
 
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const view = readFileSync(new URL("../modules/runs/view.js", import.meta.url), "utf8");
 const css = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8"));
 let passed = 0;
@@ -93,24 +91,16 @@ try {
 }
 
 t("it's said in the page, where you acted, as well as in the notice", () => {
-  assert.match(app, /saidFor: RS\.said/, "the sheet is drawn with it");
   assert.match(view, /export function saidHtml\(said, key\)/);
   assert.match(view, /role="\$\{said\.kind === "halt" \? "status" : "alert"\}"/);
   assert.match(view, /saidHtml\(o\.saidFor, `run:\$\{r\.id\}`\)/, "a run's own Stop: under its row");
   assert.match(view, /saidHtml\(saidFor, `all:/, "Stop all: at the top of the list");
-});
-t("a redraw keeps focus on the same control, found by its hook's name and value; the page only if it's gone", () => {
-  const r = app.slice(app.indexOf("function runsRender()"), app.indexOf("\n}\n", app.indexOf("function runsRender()")));
-  assert.match(r, /const hook = runsHook\(document\.activeElement\);/);
-  assert.match(r, /const same = hook && runsCard\.querySelector\(hook\);/);
-  assert.match(r, /\(same && usable\(same\) \? same : runsCard\)\.focus\(\{ preventScroll: true \}\);/);
 });
 t("the Undo in its line: an even 2 px inset, and the line's corners its own plus the inset (6 + 2 = 8)", () => {
   assert.match(css, /\.rn-stopping\{[^}]*padding:2px 2px 2px 12px;[^}]*border-radius:var\(--r\);/);
   assert.match(css, /\.rn-stopping>\.t-undo\{height:36px\}/);
 });
 t("a stop on its way: the sheet renders its busy state", () => {
-  assert.match(app, /out: \[\.\.\.stopsOut\]/, "the sheet knows what's on its way");
   assert.match(view, /const busy = out\.includes\(`run:\$\{r\.id\}`\);/);
   assert.match(view, /\$\{busy \? ' aria-busy="true" aria-disabled="true"' : ""\}>\$\{ICON\.stop\}<span>\$\{busy \? "Stopping…" : "Stop"\}<\/span>/);
   assert.match(view, /out\.includes\(`all:\$\{session\}`\)/, "Stop all too");
@@ -120,20 +110,44 @@ t("a stop on its way: the sheet renders its busy state", () => {
   const panel = document.getElementById("runs");
   const key = "run:agent";
   const runs = [{ id: "agent", kind: "subagent", state: "running", title: "Read the list" }];
-  const paint = (options) => redraw(panel, runsListHtml(runs, null, { canStop: true, ...options }));
-  paint({ state: "loading" });
+  const RS = { open: true, view: "list", session: "team", listState: "loading", tree: runs, said: null };
+  const pendingStops = [], stopsOut = new Set();
+  const { runsRender, runsLand } = createRunsPanel({ RS, S: { tbOpen: {} }, world: { act: { feature: () => true } },
+    runsCard: panel, pendingStops, stopsOut, STAGE: {}, placeRegion: () => panel, threadScroller: () => undefined });
+  runsRender();
   assert.match(panel.querySelector("[role=status]").textContent, /Reading its sub-agents/);
-  paint({ stops: [{ key, what: "Read the list" }] });
+  RS.listState = "ok";
+  pendingStops.push({ key, what: "Read the list", session: "team" });
+  runsRender();
   const undo = panel.querySelector("[data-runs-undo]");
   assert.equal(undo.dataset.runsUndo, key);
   assert.equal(undo.textContent, "Undo");
-  paint({ out: [key], saidFor: { key, kind: "halt", text: "Sending the stop…" } });
+  const stop = panel.querySelector("[data-run-stop]");
+  stop.focus();
+  pendingStops.length = 0;
+  stopsOut.add(key);
+  RS.said = { key, kind: "halt", text: "Sending the stop…" };
+  runsRender();
   const run = panel.querySelector(".rn-row");
   assert.equal(run.querySelector("[data-run-stop]").getAttribute("aria-busy"), "true");
   assert.match(run.querySelector("[role=status]").textContent, /Sending the stop/);
-  paint({ saidFor: { key, kind: "stopped", text: "Not confirmed", sub: "Stop again if it keeps working." } });
+  assert.ok(document.activeElement === run.querySelector("[data-run-stop]"), "a busy redraw keeps the Stop control in focus");
+  stopsOut.clear();
+  RS.said = { key, kind: "stopped", text: "Not confirmed", sub: "Stop again if it keeps working." };
+  runsRender();
   assert.equal(panel.querySelector("[data-run-stop]").hasAttribute("aria-busy"), false);
   assert.match(panel.querySelector(".rn-row [role=alert]").textContent, /Not confirmed.*Stop again/);
+  const opener = runsLand();
+  const alternate = document.createElement("a");
+  alternate.setAttribute("data-run", "agent");
+  opener.replaceWith(alternate);
+  alternate.focus();
+  RS.said = null;
+  runsRender();
+  assert.ok(document.activeElement === runsLand(), "a replaced control is found by the same hook");
+  RS.tree = [];
+  runsRender();
+  assert.ok(document.activeElement === panel, "focus returns to the page if the control is gone");
 }
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -63,8 +63,12 @@ const press = (/** @type {string} */ selector) => {
 };
 press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
+assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
+assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 0 projects/);
 press("#nv-home");
 assert.equal(document.querySelector("#nv-home").getAttribute("aria-current"), "page", "Home navigation restores Home");
+assert.equal(document.querySelector("#app").dataset.conv, "home", "the shell tracks Home after navigation");
+assert.ok(document.querySelector("#ws-head").closest("[hidden]"), "Home hides the Workspace conversation");
 
 press("#set-side");
 assert.equal(document.querySelector("#settings").hidden, false, "sidebar opens Settings");
@@ -79,6 +83,15 @@ assert.equal(document.querySelector('#mode-seg [data-mode="dark"]').getAttribute
 press('#flavour-seg [data-flavour="stone"]');
 assert.equal(document.documentElement.dataset.flavour, undefined, "Stone removes the flavour override");
 assert.equal(storage.get("cv-flavour"), "stone", "choosing Stone persists it");
+press("#bubbles-tog");
+assert.equal(document.documentElement.dataset.msgx, "bubbles");
+assert.equal(document.documentElement.dataset.msgxTails, "");
+assert.equal(storage.get("cv-bubbles"), "on");
+assert.equal(document.querySelector("#bubbles-tog").getAttribute("aria-checked"), "true");
+press("#bubbles-tog");
+assert.equal(document.documentElement.dataset.msgx, undefined);
+assert.equal(document.documentElement.dataset.msgxTails, undefined);
+assert.equal(storage.get("cv-bubbles"), "off");
 
 press("#theme");
 assert.equal(document.documentElement.dataset.theme, "light", "the theme switch applies Light");

@@ -5,6 +5,7 @@ import { createRunsOpener } from "../modules/runs/controller.js";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
 const app = read("js/app.js"), view = read("modules/runs/view.js"), html = read("index.html"), css = read("css/app.css");
+const panelSource = read("modules/runs/panel.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const fn = (src, name) => { const i = src.indexOf(name); assert.ok(i >= 0, name); return src.slice(i, src.indexOf("\n}\n", i)); };
@@ -65,7 +66,7 @@ t("it opens over the page under it, and ‹ and Esc go up one level the page's o
   assert.match(esc, /runsLand\(`\[data-run="\$\{CSS\.escape\(id\)\}"\]`\)/, "a run: back to the list, on its row");
 });
 t("from the main chat the panel opens for it and closes with it; from the panel it steps back to the thread page", () => {
-  assert.match(fn(app, "function closeRuns()"), /if \(!RS\.panelWas && STAGE\.pageShown\?\.name === "runs"\) STAGE\.close\(\{ restore: false \}\); else STAGE\.closePage\("runs"\);/);
+  assert.match(panelSource, /if \(!RS\.panelWas && STAGE\.pageShown\?\.name === "runs"\) STAGE\.close\(\{ restore: false \}\); else STAGE\.closePage\("runs"\);/);
   assert.match(app, /backTo: \(\) => \(RS\.view === "run" \? "Sub-agents" : RS\.panelWas \|\| STAGE\.pageShown\?\.name !== "runs" \? "" : "the thread"\),/);
 });
 {
@@ -120,10 +121,10 @@ t("from the main chat the panel opens for it and closes with it; from the panel 
   });
 }
 t("focus goes back to what opened it only when it was in the page; a page that moved focus keeps it there", () => {
-  const g = fn(app, "function runsGone()");
+  const g = panelSource.slice(panelSource.indexOf("function runsGone()"));
   assert.match(g, /const here = runsCard\.contains\(document\.activeElement\) \|\| STAGE\.owns\(document\.activeElement\);/);
   assert.match(g, /RS\.refocus = here \? to : null;\n\s*if \(here\) to\(\);/);
-  assert.match(fn(app, "function closeRuns()"), /if \(!a \|\| a === document\.body\) RS\.refocus\?\.\(\);/, "a phone's panel gone, then focus");
+  assert.match(panelSource, /if \(!a \|\| a === document\.body\) RS\.refocus\?\.\(\);/, "a phone's panel gone, then focus");
 });
 t("nothing modal is left: the app isn't made inert for it and it isn't a key layer", () => {
   assert.match(app, /hold\(\$\("#app"\), \[jump, keys, allEl, QO\.el\]\.some/);

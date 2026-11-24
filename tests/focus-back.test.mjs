@@ -48,13 +48,12 @@ await t("the decisions panel's close: its opener now if it's here, else the same
   assert.match(d, /export function createDecisions\(\{[^}]*\bback\b/);
   const app = read("js/app.js");
   assert.match(app, /back: \(sels\) => \{ const here = placeRegion\(\); if \(usable\(here\)\) here\.focus\(\{ preventScroll: true \}\); S\.focusNext = \[\.\.\.sels, placeRegion\]; schedule\(\); \},/, "the place at once, before the panel goes (never the page), then the control in the draw that brings it back");
-  assert.match(app, /if \(S\.focusNext\) \{ const to = S\.focusNext\.map\(\(sel\) => \(typeof sel === "function" \? sel\(\) : \$\(sel\)\)\)\.find\(usable\);/, "a landing may name the place itself");
+  assert.match(read("shell/render.js"), /if \(S\.focusNext\) \{ const to = S\.focusNext\.map\(\(sel\) => \(typeof sel === "function" \? sel\(\) : \$\(sel\)\)\)\.find\(usable\);/, "a landing may name the place itself");
 });
 
 await t("Runs' close takes the shared test (its own copy is gone)", () => {
-  const app = read("js/app.js");
-  const runs = app.slice(app.indexOf("function closeRuns()"), app.indexOf("/** Stop one sub-agent"));
+  const runs = read("modules/runs/panel.js");
   assert.doesNotMatch(runs, /usable = \(/);
-  assert.match(runs, /\[was, like\(was\), head\?\.querySelector\("\[data-runs\]"\), head === \$\("#tpthead"\) \? TP\.C\?\.scroller : placeRegion\(\)\]\.find\(usable\)/);
+  assert.match(runs, /\[was, like\(was\), head\?\.querySelector\("\[data-runs\]"\), head === \$\("#tpthead"\) \? threadScroller\(\) : placeRegion\(\)\]\.find\(usable\)/);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

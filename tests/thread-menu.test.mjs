@@ -21,7 +21,7 @@ const { panelThreads } = createThreadGroups({ world, isBusy, isHeld: () => false
   askShort: () => "", threadMark: () => "",
 });
 const menu = createThreadMenu({ panelThreads, SH: { enabled: true }, isBusy, movable: (thread) => thread.id === earlier.id });
-const { document } = await dom('<section id="main"></section><section id="page"></section><div id="tdel" hidden></div>');
+const { document } = await dom('<section id="main"></section><section id="page"></section><div id="top-who"></div><div id="tdel" hidden></div>');
 const main = document.getElementById("main");
 const page = document.getElementById("page");
 assert.ok(main && page);
@@ -53,8 +53,8 @@ assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no k
   await api.restoreThread("c/1", "t 1");
   assert.deepEqual(sent, [["DELETE", "api/chat/chats/c%2F1/threads/t%201", '{"keep_branch":true}'], ["POST", "api/chat/chats/c%2F1/threads/t%201/restore", "{}"]]);
 }
-const del = app.slice(app.indexOf("async function deleteThread("), app.indexOf("/** A Shell button: \"ws\""));
-/** @type {{ tDel: string | null, tDelLose: { summary: string } | null }} */
+const { createThreadDelete } = await import("../modules/threads/delete.js");
+/** @type {{ tDel: string | null, tDelLose: { summary: string | null; confirm: string | null } | null }} */
 const decision = { tDel: null, tDelLose: null };
 const renderDelete = createThreadDeleteView(decision);
 const dialog = document.getElementById("tdel");
@@ -67,16 +67,37 @@ assert.equal(dialog.hidden, false);
 assert.equal(dialog.querySelector("button")?.textContent, "Keep it", "Keep it comes first");
 assert.match(dialog.textContent, /Its branch branch&name is kept/);
 assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete thread");
-decision.tDelLose = { summary: "One unpublished commit" };
+decision.tDelLose = { summary: "One unpublished commit", confirm: "confirm-token" };
 renderDelete(earlier);
 assert.match(dialog.textContent, /One unpublished commit/);
 assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
 renderDelete(later);
 assert.equal(dialog.hidden, true);
 assert.equal(dialog.children.length, 0);
-assert.match(del, /keepBranch: true/, "its branch is kept");
-assert.match(del, /undo: \(\) => world\.act\.restoreThread\(tid, res\.row\)/);
-assert.match(del, /err\.code === "would_lose_work"/, "work kept nowhere else is named and asked again");
+decision.tDel = earlier.id;
+decision.tDelLose = null;
+const requests = [], restored = [], places = [], notices = [];
+const remove = createThreadDelete({
+  S: decision, PROJ: () => "Project", announce() {}, render: () => renderDelete(earlier),
+  go: (view) => places.push(view), heraldShow: (notice) => notices.push(notice),
+  world: { thread: () => earlier, act: {
+    async deleteThread(id, options) {
+      requests.push([id, options]);
+      if (!options.confirm) throw Object.assign(new Error("Unpublished"), { code: "would_lose_work", confirm: "confirm-token", what: { summary: "One unpublished commit" } });
+      return { row: { chat_id: "chat" } };
+    },
+    async restoreThread(id, row) { restored.push([id, row]); },
+  } },
+});
+await remove(earlier.id);
+assert.equal(dialog.querySelector("[data-tdel-yes]")?.textContent, "Delete anyway");
+assert.match(dialog.textContent, /One unpublished commit/);
+assert.deepEqual(places, []);
+await remove(earlier.id);
+assert.deepEqual(requests, [[earlier.id, { keepBranch: true, confirm: null }], [earlier.id, { keepBranch: true, confirm: "confirm-token" }]]);
+assert.deepEqual(places, ["p:" + earlier.project]);
+await notices[0].undo();
+assert.deepEqual(restored, [[earlier.id, { chat_id: "chat" }]]);
 assert.match(html, /<div class="tdel" id="tdel" hidden><\/div>/);
 
 // one vocabulary

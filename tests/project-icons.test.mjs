@@ -6,7 +6,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { TOPICS, glyph } from "../modules/projects/projicons.js";
 import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
+import { createProjectIconPicker } from "../modules/projects/icon-picker.js";
 import { hasIcon } from "../core/ui/icons/icon.js";
+import { dom } from "./lib/dom.mjs";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const side = readFileSync(new URL("../shell/sidebar.css", import.meta.url), "utf8");
 
@@ -35,11 +37,26 @@ world.state.threads[0].title = "finance";
 assert.equal(projectIcon("a"), glyph("research"), "the automatic icon is cached while the thread count holds");
 forgetIcon("a");
 assert.equal(projectIcon("a"), glyph("finance"), "forgetting a choice clears the cached icon");
-// kept in your shape; Automatic removes it
-assert.match(app, /SHAPE\.patchMine\(\{ layout: \{ icons: \{ \[pid\]: k \|\| null \} \} \}\);/);
+const { document, window } = await dom('<button data-pj-icon="a"></button>');
+const opener = document.querySelector("[data-pj-icon]");
+const changes = [];
+const picker = createProjectIconPicker({
+  world, SHAPE: { patchMine: (change) => changes.push(change) }, PROJ: () => "Research",
+  ownIcon, forgetIcon, announce() {}, render() {}, wirePickKeys() {},
+});
+for (const selected of ["mobile", ""]) {
+  picker.pickIcon("a", opener);
+  const popover = document.querySelector('.pk-pop[role="dialog"]');
+  assert.ok(popover);
+  assert.equal(opener.getAttribute("aria-expanded"), "true");
+  assert.equal(popover.querySelectorAll('[role="radio"][tabindex="0"]').length, 1);
+  popover.querySelector(`[role="radio"][data-pk="${selected}"]`).dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.equal(opener.getAttribute("aria-expanded"), "false");
+  assert.ok(document.activeElement === opener, "choosing restores focus to the opener");
+}
+assert.deepEqual(changes, [{ layout: { icons: { a: "mobile" } } }, { layout: { icons: { a: null } } }]);
 // the header tile opens it, a dialog of radios with one Tab stop; arrows walk the grid, Esc closes back to the tile
 assert.match(app, /class="pj-pick" data-pj-icon="\$\{esc\(pid\)\}" aria-haspopup="dialog"/);
-assert.match(app, /role="radio" aria-checked="\$\{on\}" data-pk="\$\{k\}"/);
 assert.match(app, /\{ ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -i, End: os\.length - 1 - i \}/);
 assert.match(app, /if \(e\.key === "Escape"\) \{ e\.preventDefault\(\); e\.stopPropagation\(\); closePick\(\{ focus: true \}\); return; \}/);
 
