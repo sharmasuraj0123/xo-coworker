@@ -8582,37 +8582,16 @@
    "home": "modules/decisions/panel-view.js"
   },
   "js/decide.js::keys::Enter": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "split",
+   "home": ["modules/decisions/card-events.js", "modules/decisions/keyboard.js"]
   },
   "js/decide.js::keys::Escape": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "split",
+   "home": ["modules/decisions/card-events.js", "modules/decisions/keyboard.js"]
   },
   "js/decide.js::keys:: ": {
-   "status": "split-region",
-   "home": [
-    "modules/decisions/needs.js",
-    "modules/decisions/queue.js",
-    "modules/decisions/card.js",
-    "modules/decisions/panel.js",
-    "modules/decisions/toast.js"
-   ],
-   "note": "assign to its region's home when this file moves (see its analysis)"
+   "status": "moved",
+   "home": "modules/decisions/keyboard.js"
   },
   "js/diffthemes.js::exports::XO_DARK": {
    "status": "moved",

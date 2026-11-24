@@ -1,6 +1,6 @@
 import type { RankedNeed } from "./needs.js";
 
-export type OpenOptions = { only?: string[] | null; teach?: string | null };
+export type OpenOptions = { only?: "glance" | string[] | null; teach?: string | null };
 export type DecisionError = Error & { gone?: string };
 
 export type ActionDeps = {
