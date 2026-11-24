@@ -2,11 +2,12 @@
 
 import { $ } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
-import { dial, ICON, NEXT_GLYPH, XO } from "../../core/ui/icons/names.js";
+import { ICON, NEXT_GLYPH, XO } from "../../core/ui/icons/names.js";
 import { RM, wait } from "../../core/ui/motion.js";
 import { landed } from "../../core/ui/landing.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { drawSections } from "./sections.js";
+import { thenHtml } from "./then.js";
 
 /** @import { HomeChoice, HomeViewDeps, HomeViewNeed } from "./view-types.d.ts" */
 
@@ -68,21 +69,7 @@ export function createHomeView({ S, D, world, Kit, EFFORT, homeParts, nextCardHt
     }
     landed(nb);
 
-    let then = "";
-    if (P0.then.length) {
-      then = `<section class="then" aria-labelledby="then-h"><h2 class="hm-lbl" id="then-h">Then</h2><ol>` +
-        P0.then.map((n) => `<li><button type="button" class="then-i r-${n.risk}" data-fid="then-${esc(n.key)}" data-decide="${esc(n.key)}">` +
-          `<span class="eff e-${n.effort}">${dial(n.effort)}<b>${EFFORT[n.effort].label}</b></span>` +
-          `<span class="ti-t">${askTitle(n)}</span>` +
-          `<span class="ti-p">${n.risk === "destructive" ? `<span class="risk r-destructive">Destructive</span>` : n.group === "stopped" ? `<span class="risk r-stopped">Stopped</span>` : ""}<span class="ti-w">${esc(PROJ(n.t.project))}${n.t.asker ? " coordinator" : ""}</span></span>${ICON.right}</button></li>`).join("") + `</ol>`;
-      const foot = [];
-      if (P0.more.length) foot.push(`<button type="button" class="hm-quiet" data-fid="more" data-open-all>+${P0.more.length} more</button>`);
-      if (P0.glances.length >= 2) foot.push(`<button type="button" class="hm-quiet is-glance" data-fid="glances" data-glances>${dial("glance")}Clear ${P0.glances.length} glances together</button>`);
-      if (P0.later.length) foot.push(`<button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button>`);
-      if (foot.length) then += `<div class="then-foot">${foot.join("")}</div>`;
-      then += `</section>`;
-    } else if (P0.later.length) then = `<div class="then-foot solo"><button type="button" class="hm-quiet is-later" data-fid="bring" data-bring>${ICON.clock}${P0.later.length} later today <span>bring back</span></button></div>`;
-    redraw($("#hm-then"), then);
+    redraw($("#hm-then"), thenHtml(P0, { EFFORT, askTitle, PROJ }));
     landed($("#hm-then"));
     drawSections(kernel.places, $("#hm-body"), { needs, patch: redraw });
 

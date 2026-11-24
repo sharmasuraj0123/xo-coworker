@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createPlaces } from "../../../core/kernel/places.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createHomeParts } from "../parts.js";
+import { thenHtml } from "../then.js";
 
 const { document } = await dom('<main id="home"></main>');
 /** @type {FrameRequestCallback[]} */
@@ -86,3 +87,16 @@ assert.equal(scheduled, 1);
 assert.equal(S.pin, null);
 while (frames.length) for (const frame of frames.splice(0)) frame(now);
 assert.ok(document.activeElement === document.querySelector("#hm-next .next"), "focus returns to the current card");
+
+const queue = document.createElement("div");
+const options = { EFFORT: { think: { label: "Think" } }, askTitle: (need) => need.key, PROJ: () => "Demo & Tests" };
+const next = { ...needs[1], risk: "destructive", t: { ...needs[1].t, asker: true } };
+queue.innerHTML = thenHtml({ then: [next], later: [needs[0]], more: [needs[2]], glances: [needs[2], needs[3]] }, options);
+assert.equal(queue.querySelector(".ti-p .risk").textContent, "Destructive");
+assert.equal(queue.querySelector(".ti-w").textContent, "Demo & Tests coordinator");
+assert.deepEqual([...queue.querySelectorAll(".then-foot button")].map((button) => button.textContent.trim()), [
+  "+1 more", "Clear 2 glances together", "1 later today bring back",
+]);
+queue.innerHTML = thenHtml({ then: [], later: [needs[0]], more: [], glances: [] }, options);
+assert.equal(queue.querySelector(".then-foot.solo [data-bring]")?.textContent.trim(), "1 later today bring back");
+assert.ok(queue.querySelector("ol") === null);

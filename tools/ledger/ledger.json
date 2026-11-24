@@ -8130,7 +8130,7 @@
   },
   "js/app.js::ids::then-h": {
    "status": "moved",
-   "home": "modules/home/view.js"
+   "home": "modules/home/then.js"
   },
   "js/app.js::ids::handled": {
    "status": "moved",
