@@ -11,7 +11,7 @@ for p, e in L["files"].items(): by[G.get(p, "other")].append((p, e))
 order = ["root", "js", "css", "tests-unit", "tests-browser", "tests-lib", "tests-fixtures", "presets", "fonts", "vendor", "assets", "ui-mockups", "design-research"]
 groups = order + sorted(g for g in by if g not in order)
 out = [f"# Ledger: every file of xo-coworker at {L['commit'][:7]} and its new home", "",
-       "Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not edit by hand. Statuses: **planned** (one home), **split** (several homes; the items inside carry their own), **vendor** (kept as-is), **decide** (waits for the owner), and once the move runs **moved**, **kept**, **deleted** (with a reason). `tools/ledger/check_ledger.py` fails if a file of the base commit is missing here or has no home; `--final` fails until nothing is planned or undecided.", "",
+       "Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not edit by hand. **Planned**, **split-region**, and **decide** are open. Settled entries are **moved**, **kept**, **split**, **vendor** (unchanged bytes), or **deleted** (with a reason). Settled homes must be repository files with evidence of the transfer. `--final` requires every entry to be settled.", "",
        "| Status | Files |", "|---|---:|"]
 for k, v in Counter(e["status"] for e in L["files"].values()).most_common(): out.append(f"| {k} | {v} |")
 ic = Counter(e["status"] for e in L["items"].values())

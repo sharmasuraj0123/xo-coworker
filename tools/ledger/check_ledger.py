@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Checks coverage of the base commit and verifies every settled destination."""
 import json, os, subprocess, sys
-from pathlib import Path
+from homes import Homes
 def opt(name, default):
     return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
 repo = opt("--repo", ".")
@@ -17,7 +17,7 @@ for p in sorted(set(L["files"]) - tracked): errors.append(f"ledger names an untr
 FINAL = "--final" in sys.argv
 SETTLED = {"moved", "split", "kept", "vendor"}
 OK = SETTLED | {"deleted"} | (set() if FINAL else {"planned", "split-region", "decide"})
-root = Path(repo).resolve()
+homes = Homes(repo, commit)
 decides = []
 def check(kind, key, e):
     s = e.get("status")
@@ -25,12 +25,8 @@ def check(kind, key, e):
     elif s not in OK: errors.append(f"status {s!r} not allowed{' in --final' if FINAL else ''}: {key}")
     elif s == "deleted" and not e.get("reason"): errors.append(f"deleted without reason: {key}")
     elif s != "deleted" and not e.get("home"): errors.append(f"{s} without home: {key}")
-    elif s in SETTLED:
-        home = e["home"]
-        for path in home if isinstance(home, list) else [home]:
-            if not isinstance(path, str) or not path or Path(path).is_absolute() or ".." in Path(path).parts or not (root / path).exists():
-                errors.append(f"{s} home does not exist in the repository: {key} -> {path}")
-    elif FINAL and s == "deleted" and kind == "file" and (root / key).exists():
+    elif s in SETTLED: errors.extend(homes.problems(key, e, tracked))
+    elif FINAL and s == "deleted" and kind == "file" and os.path.exists(os.path.join(repo, key)):
         errors.append(f"deleted but still present: {key}")
     if s == "decide": decides.append(key)
 for k, e in L["files"].items(): check("file", k, e)

@@ -1,17 +1,18 @@
 # Ledger: every file of xo-coworker at f0144d5 and its new home
 
-Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not edit by hand. Statuses: **planned** (one home), **split** (several homes; the items inside carry their own), **vendor** (kept as-is), **decide** (waits for the owner), and once the move runs **moved**, **kept**, **deleted** (with a reason). `tools/ledger/check_ledger.py` fails if a file of the base commit is missing here or has no home; `--final` fails until nothing is planned or undecided.
+Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not edit by hand. **Planned**, **split-region**, and **decide** are open. Settled entries are **moved**, **kept**, **split**, **vendor** (unchanged bytes), or **deleted** (with a reason). Settled homes must be repository files with evidence of the transfer. `--final` requires every entry to be settled.
 
 | Status | Files |
 |---|---:|
-| moved | 481 |
-| vendor | 377 |
+| planned | 531 |
+| moved | 480 |
 | deleted | 336 |
-| planned | 164 |
 | kept | 57 |
-| split | 31 |
+| split | 27 |
+| vendor | 10 |
+| split-region | 5 |
 
-Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted 132, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1809, planned 389, kept 152, deleted 132, split 6), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -31,7 +32,7 @@ Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted
 |---|---:|---|---|
 | `js/accounts.js` | 134 | moved | modules/settings/accounts.js |
 | `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: Callers use the owning modules directly. |
-| `js/app.js` | 5060 | split | boot.js, js/app.js, core/kernel, core/platform, core/ui, core/services, shell, modules · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
+| `js/app.js` | 5060 | split | js/app.js, core/ui/theme.js, core/ui/redraw.js, core/services/notices.js, shell/navigation.js, shell/layers.js, shell/keyboard-layers.js, shell/global-keys.js, shell/back-steps.js, modules/conversation/composer.js, modules/threads/all-sheet.js, modules/settings/shortcuts-sheet.js · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: Callers use the owning modules directly. |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | moved | modules/decisions/cardparts.js |
@@ -65,14 +66,14 @@ Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted
 | `js/imagechange.js` | 120 | moved | modules/changes/imagechange.js |
 | `js/intel.js` | 749 | moved | modules/chats/intel.js |
 | `js/keynav.js` | 118 | moved | core/ui/a11y/keynav.js |
-| `js/keys.js` | 182 | split | core/platform/keys.js, shell/places.js, modules/settings/keys-page.js, modules/settings/keys-sheet.js |
+| `js/keys.js` | 182 | moved | core/platform/keys.js · next: The bindings, dispatcher lookup and stored preferences moved together. Settings renders its own shortcuts UI. |
 | `js/kit.js` | 265 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
 | `js/launchpad.js` | 1144 | split | modules/launchpad/launchpad.js, modules/launchpad/store.js, modules/launchpad/views.js, modules/launchpad/system.js, modules/launchpad/actions.js, modules/launchpad/words.js · next: moved whole into modules/launchpad/, typed and split under 400 lines; app.js still calls createLaunchpad and hands the section to the panel until the shell hosts panel.frame and header.action |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation/lightbox.js |
 | `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
 | `js/lppage.js` | 48 | moved | modules/launchpad/page.js |
 | `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
-| `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |
+| `js/map.js` | 1360 | split | modules/map/map.js, modules/map/layout.js, modules/map/diagram.js, modules/map/folders.js, modules/map/tree.js, modules/map/agents.js, modules/map/icons.js, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
 | `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js |
@@ -97,7 +98,7 @@ Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted
 | `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | js/settings.js, modules/settings/host.js, modules/routing/page.js, modules/rules/page.js, modules/worktrees/page.js · next: The application composes Routing, Rules, and Worktrees into their existing Settings host and delegates its events. |
-| `js/shape.js` | 731 | moved | core/services/shape/ · next: every importer points at the new home, so it leaves with no re-export |
+| `js/shape.js` | 731 | split | core/services/shape/model.js, core/services/shape/changes.js, core/services/shape/store.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | moved | modules/shells/dock.js |
 | `js/shells/model.js` | 128 | moved | modules/shells/model.js |
@@ -105,11 +106,11 @@ Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted
 | `js/sideorder.js` | 28 | moved | shell/sideorder.js |
 | `js/skeleton.js` | 105 | moved | modules/home/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
-| `js/stage.js` | 731 | split | shell/panel, core/kernel/places.js, shell/places.js, modules/threads, modules/changes, modules/map, modules/launchpad, modules/shells · next: Callers use the owning modules directly. |
-| `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |
-| `js/timeline.js` | 840 | moved | core/services/world/timeline.js |
+| `js/stage.js` | 731 | split | shell/panel/panel.js, shell/panel/pages.js, shell/panel/frames.js, shell/panel/width.js, shell/panel/lists.js, modules/launchpad/page.js · next: The panel controller, page and frame wiring, list rendering and width management live in shell/panel. Launchpad owns its existing panel cover. |
+| `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/index.js, core/services/storm/reducers/messages.js, core/services/storm/reducers/review.js, core/services/storm/reducers/runs.js, core/services/storm/reducers/sessions.js, core/services/storm/reducers/space.js, core/services/storm/reducers/threads.js, core/services/storm/selectors/commit.js, core/services/storm/selectors/sessions.js, core/services/storm/selectors/threads.js, core/services/storm/commands.js, core/services/storm/act.js · next: every importer points at core/services/storm, so it leaves with no re-export |
+| `js/timeline.js` | 840 | split | core/services/storm/load.js, core/services/world/conn.js, core/services/world/conversation.js, core/services/world/held.js, core/services/world/list-time.js, core/services/world/relay.js, core/services/world/rows.js, core/services/world/sessions.js, core/services/world/threads.js · next: Timeline functions live in their owning files. The timeline entry re-exports them. |
 | `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
-| `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion.js, core/ui/redraw.js, core/platform/dom.js, core/platform/time.js, core/services/sound.js · next: Callers use the owning modules directly. |
+| `js/ui.js` | 412 | split | core/ui/icons/names.js, core/ui/motion.js, core/ui/redraw.js, core/platform/dom.js, core/platform/time.js, core/services/sound.js · next: Named icon aliases live in names.js, which re-exports the separate icon renderer. Callers use the owning modules directly. |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js |
 | `js/viewer.js` | 1158 | split | modules/files/viewer.js, js/app.js · next: The app supplies the existing Changes renderers directly to Files. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |
@@ -127,16 +128,16 @@ Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted
 | `css/docs.css` | 143 | planned | modules/files/editor/docs.css |
 | `css/dropdown.css` | 51 | moved | core/ui/components/xo-select.css |
 | `css/flavours.css` | 477 | split | css/flavours.css, css/flavour-swatches.css |
-| `css/foundation.css` | 246 | split | css/foundation.css, core/ui/foundation.css |
+| `css/foundation.css` | 246 | split-region | core/ui/foundation.css, modules/* (structure rules) |
 | `css/launchpad.css` | 291 | split | css/launchpad.css, modules/launchpad/window.css, modules/launchpad/launchpad.css, modules/launchpad/page.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
-| `css/light.css` | 67 | split | css/light.css, core/ui/tokens.css |
+| `css/light.css` | 67 | split-region | core/ui/tokens.css (light roles), modules/* (light blocks) |
 | `css/links.css` | 97 | planned | modules/conversation/links.css |
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
-| `css/panel.css` | 681 | split | css/panel.css, modules/threads, modules/changes, modules/map, modules/files |
-| `css/phone.css` | 286 | split | shell/phone.css, css/phone.css · next: The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css. |
+| `css/panel.css` | 681 | split-region | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |
+| `css/phone.css` | 286 | split-region | shell/phone.css, modules/* (phone blocks) · next: The leading phone header rules moved in place to shell/phone.css through the first import. The remaining blocks stay in css/phone.css. |
 | `css/rich.css` | 229 | moved | core/ui/markdown/rich.css |
-| `css/shape.css` | 68 | split | modules/settings/shape.css, css/shape.css · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
+| `css/shape.css` | 68 | split-region | modules/settings/shape.css, core/ui (density) · next: Settings › Shape and its rail label moved to modules/settings/shape.css, which css/shape.css imports first (same cascade place); density and the two composer and thread rules stay for core/ui |
 | `css/side.css` | 158 | moved | shell/sidebar.css |
 | `css/tokens.css` | 301 | moved | core/ui/tokens.css |
 
@@ -417,377 +418,377 @@ Items inside first-party files: 2488 (moved 1812, planned 389, kept 152, deleted
 
 | File | Lines | Status | New home |
 |---|---:|---|---|
-| `js/vendor/agent-marks/README.md` | 13 | vendor | js/vendor/agent-marks/README.md |
-| `js/vendor/agent-marks/antigravity.svg` | 1 | vendor | js/vendor/agent-marks/antigravity.svg |
-| `js/vendor/agent-marks/claude.svg` | 1 | vendor | js/vendor/agent-marks/claude.svg |
-| `js/vendor/agent-marks/openai.svg` | 1 | vendor | js/vendor/agent-marks/openai.svg |
-| `js/vendor/codemirror/LICENSES.md` | 1347 | vendor | js/vendor/codemirror/LICENSES.md |
-| `js/vendor/codemirror/c/apl-WDIZS52W.js` | 1 | vendor | js/vendor/codemirror/c/apl-WDIZS52W.js |
-| `js/vendor/codemirror/c/asciiarmor-A6BLF7D6.js` | 1 | vendor | js/vendor/codemirror/c/asciiarmor-A6BLF7D6.js |
-| `js/vendor/codemirror/c/asn1-2LBS3BUG.js` | 1 | vendor | js/vendor/codemirror/c/asn1-2LBS3BUG.js |
-| `js/vendor/codemirror/c/asterisk-6BH5HWIH.js` | 1 | vendor | js/vendor/codemirror/c/asterisk-6BH5HWIH.js |
-| `js/vendor/codemirror/c/brainfuck-MF2U6KRY.js` | 1 | vendor | js/vendor/codemirror/c/brainfuck-MF2U6KRY.js |
-| `js/vendor/codemirror/c/chunk-2SNB6XH5.js` | 1 | vendor | js/vendor/codemirror/c/chunk-2SNB6XH5.js |
-| `js/vendor/codemirror/c/chunk-AXLUAIDQ.js` | 1 | vendor | js/vendor/codemirror/c/chunk-AXLUAIDQ.js |
-| `js/vendor/codemirror/c/chunk-CNYDTQZO.js` | 14 | vendor | js/vendor/codemirror/c/chunk-CNYDTQZO.js |
-| `js/vendor/codemirror/c/chunk-GTGQDGOX.js` | 1 | vendor | js/vendor/codemirror/c/chunk-GTGQDGOX.js |
-| `js/vendor/codemirror/c/chunk-IEYLUQ5L.js` | 13 | vendor | js/vendor/codemirror/c/chunk-IEYLUQ5L.js |
-| `js/vendor/codemirror/c/chunk-LOZFZ4PT.js` | 6 | vendor | js/vendor/codemirror/c/chunk-LOZFZ4PT.js |
-| `js/vendor/codemirror/c/chunk-NXZJL534.js` | 1 | vendor | js/vendor/codemirror/c/chunk-NXZJL534.js |
-| `js/vendor/codemirror/c/chunk-PAEODHZI.js` | 1 | vendor | js/vendor/codemirror/c/chunk-PAEODHZI.js |
-| `js/vendor/codemirror/c/chunk-XNKSJU5R.js` | 1 | vendor | js/vendor/codemirror/c/chunk-XNKSJU5R.js |
-| `js/vendor/codemirror/c/clike-44CNEW4H.js` | 1 | vendor | js/vendor/codemirror/c/clike-44CNEW4H.js |
-| `js/vendor/codemirror/c/clojure-IIAJUPDR.js` | 1 | vendor | js/vendor/codemirror/c/clojure-IIAJUPDR.js |
-| `js/vendor/codemirror/c/cmake-S23PUUSN.js` | 1 | vendor | js/vendor/codemirror/c/cmake-S23PUUSN.js |
-| `js/vendor/codemirror/c/cobol-27OFJMJ6.js` | 1 | vendor | js/vendor/codemirror/c/cobol-27OFJMJ6.js |
-| `js/vendor/codemirror/c/coffeescript-YV2ROPI3.js` | 1 | vendor | js/vendor/codemirror/c/coffeescript-YV2ROPI3.js |
-| `js/vendor/codemirror/c/commonlisp-SJOK7WCK.js` | 1 | vendor | js/vendor/codemirror/c/commonlisp-SJOK7WCK.js |
-| `js/vendor/codemirror/c/crystal-W6YI6I77.js` | 1 | vendor | js/vendor/codemirror/c/crystal-W6YI6I77.js |
-| `js/vendor/codemirror/c/css-4ZEXGIXX.js` | 1 | vendor | js/vendor/codemirror/c/css-4ZEXGIXX.js |
-| `js/vendor/codemirror/c/cypher-NFR5ROM2.js` | 1 | vendor | js/vendor/codemirror/c/cypher-NFR5ROM2.js |
-| `js/vendor/codemirror/c/d-6IEJ3FMV.js` | 1 | vendor | js/vendor/codemirror/c/d-6IEJ3FMV.js |
-| `js/vendor/codemirror/c/diff-3STZBEJI.js` | 1 | vendor | js/vendor/codemirror/c/diff-3STZBEJI.js |
-| `js/vendor/codemirror/c/dist-26R6JZ2H.js` | 1 | vendor | js/vendor/codemirror/c/dist-26R6JZ2H.js |
-| `js/vendor/codemirror/c/dist-3AOFVSQZ.js` | 1 | vendor | js/vendor/codemirror/c/dist-3AOFVSQZ.js |
-| `js/vendor/codemirror/c/dist-3H7VD3WU.js` | 1 | vendor | js/vendor/codemirror/c/dist-3H7VD3WU.js |
-| `js/vendor/codemirror/c/dist-7WUD2ZJP.js` | 1 | vendor | js/vendor/codemirror/c/dist-7WUD2ZJP.js |
-| `js/vendor/codemirror/c/dist-A2TA6P4M.js` | 1 | vendor | js/vendor/codemirror/c/dist-A2TA6P4M.js |
-| `js/vendor/codemirror/c/dist-CU33U7BS.js` | 1 | vendor | js/vendor/codemirror/c/dist-CU33U7BS.js |
-| `js/vendor/codemirror/c/dist-D746Q3ZJ.js` | 1 | vendor | js/vendor/codemirror/c/dist-D746Q3ZJ.js |
-| `js/vendor/codemirror/c/dist-DQTN3QM4.js` | 1 | vendor | js/vendor/codemirror/c/dist-DQTN3QM4.js |
-| `js/vendor/codemirror/c/dist-HEER3P65.js` | 1 | vendor | js/vendor/codemirror/c/dist-HEER3P65.js |
-| `js/vendor/codemirror/c/dist-KVSB4JMY.js` | 3 | vendor | js/vendor/codemirror/c/dist-KVSB4JMY.js |
-| `js/vendor/codemirror/c/dist-L2JPCDM4.js` | 1 | vendor | js/vendor/codemirror/c/dist-L2JPCDM4.js |
-| `js/vendor/codemirror/c/dist-MHVEMUZ6.js` | 1 | vendor | js/vendor/codemirror/c/dist-MHVEMUZ6.js |
-| `js/vendor/codemirror/c/dist-O5UVQZJV.js` | 1 | vendor | js/vendor/codemirror/c/dist-O5UVQZJV.js |
-| `js/vendor/codemirror/c/dist-OH2W4WE6.js` | 1 | vendor | js/vendor/codemirror/c/dist-OH2W4WE6.js |
-| `js/vendor/codemirror/c/dist-OV5CEEXA.js` | 2 | vendor | js/vendor/codemirror/c/dist-OV5CEEXA.js |
-| `js/vendor/codemirror/c/dist-QSDUX6Y5.js` | 1 | vendor | js/vendor/codemirror/c/dist-QSDUX6Y5.js |
-| `js/vendor/codemirror/c/dist-R5TFER2T.js` | 1 | vendor | js/vendor/codemirror/c/dist-R5TFER2T.js |
-| `js/vendor/codemirror/c/dist-U3H2HL3W.js` | 1 | vendor | js/vendor/codemirror/c/dist-U3H2HL3W.js |
-| `js/vendor/codemirror/c/dist-Y2MO5DJ2.js` | 1 | vendor | js/vendor/codemirror/c/dist-Y2MO5DJ2.js |
-| `js/vendor/codemirror/c/dist-YTTGY25H.js` | 7 | vendor | js/vendor/codemirror/c/dist-YTTGY25H.js |
-| `js/vendor/codemirror/c/dist-ZKMG3Y5C.js` | 1 | vendor | js/vendor/codemirror/c/dist-ZKMG3Y5C.js |
-| `js/vendor/codemirror/c/dockerfile-PWBO6ACQ.js` | 1 | vendor | js/vendor/codemirror/c/dockerfile-PWBO6ACQ.js |
-| `js/vendor/codemirror/c/dtd-22O4DOXQ.js` | 1 | vendor | js/vendor/codemirror/c/dtd-22O4DOXQ.js |
-| `js/vendor/codemirror/c/dylan-77IVWD3V.js` | 1 | vendor | js/vendor/codemirror/c/dylan-77IVWD3V.js |
-| `js/vendor/codemirror/c/ebnf-6IDCA4J7.js` | 1 | vendor | js/vendor/codemirror/c/ebnf-6IDCA4J7.js |
-| `js/vendor/codemirror/c/ecl-WICAYUVQ.js` | 1 | vendor | js/vendor/codemirror/c/ecl-WICAYUVQ.js |
-| `js/vendor/codemirror/c/eiffel-L53NJJEC.js` | 1 | vendor | js/vendor/codemirror/c/eiffel-L53NJJEC.js |
-| `js/vendor/codemirror/c/elm-3RB5DGC7.js` | 1 | vendor | js/vendor/codemirror/c/elm-3RB5DGC7.js |
-| `js/vendor/codemirror/c/erlang-Q2GQZNEX.js` | 1 | vendor | js/vendor/codemirror/c/erlang-Q2GQZNEX.js |
-| `js/vendor/codemirror/c/factor-X2EE7H7B.js` | 1 | vendor | js/vendor/codemirror/c/factor-X2EE7H7B.js |
-| `js/vendor/codemirror/c/fcl-CNDTWJXV.js` | 1 | vendor | js/vendor/codemirror/c/fcl-CNDTWJXV.js |
-| `js/vendor/codemirror/c/forth-WDIU4MH2.js` | 1 | vendor | js/vendor/codemirror/c/forth-WDIU4MH2.js |
-| `js/vendor/codemirror/c/fortran-V2AMY5K3.js` | 1 | vendor | js/vendor/codemirror/c/fortran-V2AMY5K3.js |
-| `js/vendor/codemirror/c/gas-EQP3DVPM.js` | 1 | vendor | js/vendor/codemirror/c/gas-EQP3DVPM.js |
-| `js/vendor/codemirror/c/gherkin-HLZMEF2L.js` | 1 | vendor | js/vendor/codemirror/c/gherkin-HLZMEF2L.js |
-| `js/vendor/codemirror/c/groovy-EPBAGFEI.js` | 1 | vendor | js/vendor/codemirror/c/groovy-EPBAGFEI.js |
-| `js/vendor/codemirror/c/haskell-JJSVL5US.js` | 1 | vendor | js/vendor/codemirror/c/haskell-JJSVL5US.js |
-| `js/vendor/codemirror/c/haxe-RMBZECDX.js` | 1 | vendor | js/vendor/codemirror/c/haxe-RMBZECDX.js |
-| `js/vendor/codemirror/c/http-TEJL4FRB.js` | 1 | vendor | js/vendor/codemirror/c/http-TEJL4FRB.js |
-| `js/vendor/codemirror/c/idl-HMPKIHMH.js` | 1 | vendor | js/vendor/codemirror/c/idl-HMPKIHMH.js |
-| `js/vendor/codemirror/c/javascript-BBKDC7FN.js` | 1 | vendor | js/vendor/codemirror/c/javascript-BBKDC7FN.js |
-| `js/vendor/codemirror/c/julia-6UML5YQH.js` | 1 | vendor | js/vendor/codemirror/c/julia-6UML5YQH.js |
-| `js/vendor/codemirror/c/livescript-Z5IUWFXF.js` | 1 | vendor | js/vendor/codemirror/c/livescript-Z5IUWFXF.js |
-| `js/vendor/codemirror/c/lua-LNZZVBTV.js` | 1 | vendor | js/vendor/codemirror/c/lua-LNZZVBTV.js |
-| `js/vendor/codemirror/c/mathematica-QSKPMNJE.js` | 1 | vendor | js/vendor/codemirror/c/mathematica-QSKPMNJE.js |
-| `js/vendor/codemirror/c/mbox-5M24JXXG.js` | 1 | vendor | js/vendor/codemirror/c/mbox-5M24JXXG.js |
-| `js/vendor/codemirror/c/mirc-WBSGLMUN.js` | 1 | vendor | js/vendor/codemirror/c/mirc-WBSGLMUN.js |
-| `js/vendor/codemirror/c/mllike-LKVMBYHJ.js` | 1 | vendor | js/vendor/codemirror/c/mllike-LKVMBYHJ.js |
-| `js/vendor/codemirror/c/modelica-L3UZRMGL.js` | 1 | vendor | js/vendor/codemirror/c/modelica-L3UZRMGL.js |
-| `js/vendor/codemirror/c/mscgen-KSRWA5YQ.js` | 1 | vendor | js/vendor/codemirror/c/mscgen-KSRWA5YQ.js |
-| `js/vendor/codemirror/c/mumps-M7J5AAYC.js` | 1 | vendor | js/vendor/codemirror/c/mumps-M7J5AAYC.js |
-| `js/vendor/codemirror/c/nginx-5DWW4OHT.js` | 1 | vendor | js/vendor/codemirror/c/nginx-5DWW4OHT.js |
-| `js/vendor/codemirror/c/nsis-LLAZ27CY.js` | 1 | vendor | js/vendor/codemirror/c/nsis-LLAZ27CY.js |
-| `js/vendor/codemirror/c/ntriples-2CYIF6HC.js` | 1 | vendor | js/vendor/codemirror/c/ntriples-2CYIF6HC.js |
-| `js/vendor/codemirror/c/octave-HMKHJROG.js` | 1 | vendor | js/vendor/codemirror/c/octave-HMKHJROG.js |
-| `js/vendor/codemirror/c/oz-DUJOTWZ6.js` | 1 | vendor | js/vendor/codemirror/c/oz-DUJOTWZ6.js |
-| `js/vendor/codemirror/c/pascal-EQQWMK2C.js` | 1 | vendor | js/vendor/codemirror/c/pascal-EQQWMK2C.js |
-| `js/vendor/codemirror/c/perl-WQW535WL.js` | 1 | vendor | js/vendor/codemirror/c/perl-WQW535WL.js |
-| `js/vendor/codemirror/c/pig-MTS6NLKZ.js` | 1 | vendor | js/vendor/codemirror/c/pig-MTS6NLKZ.js |
-| `js/vendor/codemirror/c/powershell-NEEJC4LW.js` | 1 | vendor | js/vendor/codemirror/c/powershell-NEEJC4LW.js |
-| `js/vendor/codemirror/c/properties-AXKDPFVG.js` | 1 | vendor | js/vendor/codemirror/c/properties-AXKDPFVG.js |
-| `js/vendor/codemirror/c/protobuf-B24LGJB2.js` | 1 | vendor | js/vendor/codemirror/c/protobuf-B24LGJB2.js |
-| `js/vendor/codemirror/c/pug-SCHR77TH.js` | 1 | vendor | js/vendor/codemirror/c/pug-SCHR77TH.js |
-| `js/vendor/codemirror/c/puppet-CBBBRAYM.js` | 1 | vendor | js/vendor/codemirror/c/puppet-CBBBRAYM.js |
-| `js/vendor/codemirror/c/python-EGTXQAYX.js` | 1 | vendor | js/vendor/codemirror/c/python-EGTXQAYX.js |
-| `js/vendor/codemirror/c/q-SUULM3PC.js` | 1 | vendor | js/vendor/codemirror/c/q-SUULM3PC.js |
-| `js/vendor/codemirror/c/r-HFZB5IIJ.js` | 1 | vendor | js/vendor/codemirror/c/r-HFZB5IIJ.js |
-| `js/vendor/codemirror/c/rpm-5N7FBF4V.js` | 1 | vendor | js/vendor/codemirror/c/rpm-5N7FBF4V.js |
-| `js/vendor/codemirror/c/ruby-QOBQUME4.js` | 1 | vendor | js/vendor/codemirror/c/ruby-QOBQUME4.js |
-| `js/vendor/codemirror/c/sas-3KU6GFDV.js` | 1 | vendor | js/vendor/codemirror/c/sas-3KU6GFDV.js |
-| `js/vendor/codemirror/c/scheme-K4AMW6A2.js` | 1 | vendor | js/vendor/codemirror/c/scheme-K4AMW6A2.js |
-| `js/vendor/codemirror/c/shell-YGI2UXMW.js` | 1 | vendor | js/vendor/codemirror/c/shell-YGI2UXMW.js |
-| `js/vendor/codemirror/c/sieve-VMKCDKWK.js` | 1 | vendor | js/vendor/codemirror/c/sieve-VMKCDKWK.js |
-| `js/vendor/codemirror/c/smalltalk-2JJWJCY6.js` | 1 | vendor | js/vendor/codemirror/c/smalltalk-2JJWJCY6.js |
-| `js/vendor/codemirror/c/solr-EOYGUCLJ.js` | 1 | vendor | js/vendor/codemirror/c/solr-EOYGUCLJ.js |
-| `js/vendor/codemirror/c/sparql-2UNW6W4O.js` | 1 | vendor | js/vendor/codemirror/c/sparql-2UNW6W4O.js |
-| `js/vendor/codemirror/c/spreadsheet-S4ITESQF.js` | 1 | vendor | js/vendor/codemirror/c/spreadsheet-S4ITESQF.js |
-| `js/vendor/codemirror/c/sql-CYMBV4IL.js` | 1 | vendor | js/vendor/codemirror/c/sql-CYMBV4IL.js |
-| `js/vendor/codemirror/c/stex-RG3QFSW2.js` | 1 | vendor | js/vendor/codemirror/c/stex-RG3QFSW2.js |
-| `js/vendor/codemirror/c/stylus-MT75ZRUL.js` | 1 | vendor | js/vendor/codemirror/c/stylus-MT75ZRUL.js |
-| `js/vendor/codemirror/c/swift-RUSJRN5T.js` | 1 | vendor | js/vendor/codemirror/c/swift-RUSJRN5T.js |
-| `js/vendor/codemirror/c/tcl-SU3EVUZ4.js` | 1 | vendor | js/vendor/codemirror/c/tcl-SU3EVUZ4.js |
-| `js/vendor/codemirror/c/textile-GJDHYNHQ.js` | 1 | vendor | js/vendor/codemirror/c/textile-GJDHYNHQ.js |
-| `js/vendor/codemirror/c/tiddlywiki-MJF5G2CH.js` | 1 | vendor | js/vendor/codemirror/c/tiddlywiki-MJF5G2CH.js |
-| `js/vendor/codemirror/c/tiki-2SAVLYI6.js` | 1 | vendor | js/vendor/codemirror/c/tiki-2SAVLYI6.js |
-| `js/vendor/codemirror/c/toml-6AXEA3OY.js` | 1 | vendor | js/vendor/codemirror/c/toml-6AXEA3OY.js |
-| `js/vendor/codemirror/c/troff-F6PHJ5G5.js` | 1 | vendor | js/vendor/codemirror/c/troff-F6PHJ5G5.js |
-| `js/vendor/codemirror/c/ttcn-FZDXDCB5.js` | 1 | vendor | js/vendor/codemirror/c/ttcn-FZDXDCB5.js |
-| `js/vendor/codemirror/c/ttcn-cfg-IMMX5NBJ.js` | 1 | vendor | js/vendor/codemirror/c/ttcn-cfg-IMMX5NBJ.js |
-| `js/vendor/codemirror/c/turtle-CF4XY2NI.js` | 1 | vendor | js/vendor/codemirror/c/turtle-CF4XY2NI.js |
-| `js/vendor/codemirror/c/vb-HIZYQHNB.js` | 1 | vendor | js/vendor/codemirror/c/vb-HIZYQHNB.js |
-| `js/vendor/codemirror/c/vbscript-HKX7W2Z4.js` | 1 | vendor | js/vendor/codemirror/c/vbscript-HKX7W2Z4.js |
-| `js/vendor/codemirror/c/velocity-M5NSSGPO.js` | 1 | vendor | js/vendor/codemirror/c/velocity-M5NSSGPO.js |
-| `js/vendor/codemirror/c/verilog-ZBBFBS7R.js` | 1 | vendor | js/vendor/codemirror/c/verilog-ZBBFBS7R.js |
-| `js/vendor/codemirror/c/vhdl-KLX4YS33.js` | 1 | vendor | js/vendor/codemirror/c/vhdl-KLX4YS33.js |
-| `js/vendor/codemirror/c/webidl-2RLDUOE5.js` | 1 | vendor | js/vendor/codemirror/c/webidl-2RLDUOE5.js |
-| `js/vendor/codemirror/c/xquery-2YVB7HFQ.js` | 1 | vendor | js/vendor/codemirror/c/xquery-2YVB7HFQ.js |
-| `js/vendor/codemirror/c/yacas-TB6CIIEF.js` | 1 | vendor | js/vendor/codemirror/c/yacas-TB6CIIEF.js |
-| `js/vendor/codemirror/c/z80-VRQRQAML.js` | 1 | vendor | js/vendor/codemirror/c/z80-VRQRQAML.js |
-| `js/vendor/codemirror/cm.js` | 2 | vendor | js/vendor/codemirror/cm.js |
-| `js/vendor/codemirror/manifest.json` | 581 | vendor | js/vendor/codemirror/manifest.json |
-| `js/vendor/codemirror/merge.js` | 3 | vendor | js/vendor/codemirror/merge.js |
-| `js/vendor/katex/LICENSE` |  | vendor | js/vendor/katex/LICENSE |
-| `js/vendor/katex/README.md` | 3 | vendor | js/vendor/katex/README.md |
-| `js/vendor/katex/fonts/KaTeX_AMS-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_AMS-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-Bold.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Main-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-Italic.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Main-Italic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Main-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Main-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Math-Italic.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Math-Italic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2 |
-| `js/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2 |
-| `js/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Script-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Script-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size1-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Size1-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size2-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Size2-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size3-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Size3-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Size4-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Size4-Regular.woff2 |
-| `js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2` |  | vendor | js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2 |
-| `js/vendor/katex/katex.min.css` | 1 | vendor | js/vendor/katex/katex.min.css |
-| `js/vendor/katex/katex.min.js` | 1 | vendor | js/vendor/katex/katex.min.js |
+| `js/vendor/agent-marks/README.md` | 13 | planned | vendor/agent-marks/README.md |
+| `js/vendor/agent-marks/antigravity.svg` | 1 | planned | vendor/agent-marks/antigravity.svg |
+| `js/vendor/agent-marks/claude.svg` | 1 | planned | vendor/agent-marks/claude.svg |
+| `js/vendor/agent-marks/openai.svg` | 1 | planned | vendor/agent-marks/openai.svg |
+| `js/vendor/codemirror/LICENSES.md` | 1347 | planned | vendor/codemirror/LICENSES.md |
+| `js/vendor/codemirror/c/apl-WDIZS52W.js` | 1 | planned | vendor/codemirror/c/apl-WDIZS52W.js |
+| `js/vendor/codemirror/c/asciiarmor-A6BLF7D6.js` | 1 | planned | vendor/codemirror/c/asciiarmor-A6BLF7D6.js |
+| `js/vendor/codemirror/c/asn1-2LBS3BUG.js` | 1 | planned | vendor/codemirror/c/asn1-2LBS3BUG.js |
+| `js/vendor/codemirror/c/asterisk-6BH5HWIH.js` | 1 | planned | vendor/codemirror/c/asterisk-6BH5HWIH.js |
+| `js/vendor/codemirror/c/brainfuck-MF2U6KRY.js` | 1 | planned | vendor/codemirror/c/brainfuck-MF2U6KRY.js |
+| `js/vendor/codemirror/c/chunk-2SNB6XH5.js` | 1 | planned | vendor/codemirror/c/chunk-2SNB6XH5.js |
+| `js/vendor/codemirror/c/chunk-AXLUAIDQ.js` | 1 | planned | vendor/codemirror/c/chunk-AXLUAIDQ.js |
+| `js/vendor/codemirror/c/chunk-CNYDTQZO.js` | 14 | planned | vendor/codemirror/c/chunk-CNYDTQZO.js |
+| `js/vendor/codemirror/c/chunk-GTGQDGOX.js` | 1 | planned | vendor/codemirror/c/chunk-GTGQDGOX.js |
+| `js/vendor/codemirror/c/chunk-IEYLUQ5L.js` | 13 | planned | vendor/codemirror/c/chunk-IEYLUQ5L.js |
+| `js/vendor/codemirror/c/chunk-LOZFZ4PT.js` | 6 | planned | vendor/codemirror/c/chunk-LOZFZ4PT.js |
+| `js/vendor/codemirror/c/chunk-NXZJL534.js` | 1 | planned | vendor/codemirror/c/chunk-NXZJL534.js |
+| `js/vendor/codemirror/c/chunk-PAEODHZI.js` | 1 | planned | vendor/codemirror/c/chunk-PAEODHZI.js |
+| `js/vendor/codemirror/c/chunk-XNKSJU5R.js` | 1 | planned | vendor/codemirror/c/chunk-XNKSJU5R.js |
+| `js/vendor/codemirror/c/clike-44CNEW4H.js` | 1 | planned | vendor/codemirror/c/clike-44CNEW4H.js |
+| `js/vendor/codemirror/c/clojure-IIAJUPDR.js` | 1 | planned | vendor/codemirror/c/clojure-IIAJUPDR.js |
+| `js/vendor/codemirror/c/cmake-S23PUUSN.js` | 1 | planned | vendor/codemirror/c/cmake-S23PUUSN.js |
+| `js/vendor/codemirror/c/cobol-27OFJMJ6.js` | 1 | planned | vendor/codemirror/c/cobol-27OFJMJ6.js |
+| `js/vendor/codemirror/c/coffeescript-YV2ROPI3.js` | 1 | planned | vendor/codemirror/c/coffeescript-YV2ROPI3.js |
+| `js/vendor/codemirror/c/commonlisp-SJOK7WCK.js` | 1 | planned | vendor/codemirror/c/commonlisp-SJOK7WCK.js |
+| `js/vendor/codemirror/c/crystal-W6YI6I77.js` | 1 | planned | vendor/codemirror/c/crystal-W6YI6I77.js |
+| `js/vendor/codemirror/c/css-4ZEXGIXX.js` | 1 | planned | vendor/codemirror/c/css-4ZEXGIXX.js |
+| `js/vendor/codemirror/c/cypher-NFR5ROM2.js` | 1 | planned | vendor/codemirror/c/cypher-NFR5ROM2.js |
+| `js/vendor/codemirror/c/d-6IEJ3FMV.js` | 1 | planned | vendor/codemirror/c/d-6IEJ3FMV.js |
+| `js/vendor/codemirror/c/diff-3STZBEJI.js` | 1 | planned | vendor/codemirror/c/diff-3STZBEJI.js |
+| `js/vendor/codemirror/c/dist-26R6JZ2H.js` | 1 | planned | vendor/codemirror/c/dist-26R6JZ2H.js |
+| `js/vendor/codemirror/c/dist-3AOFVSQZ.js` | 1 | planned | vendor/codemirror/c/dist-3AOFVSQZ.js |
+| `js/vendor/codemirror/c/dist-3H7VD3WU.js` | 1 | planned | vendor/codemirror/c/dist-3H7VD3WU.js |
+| `js/vendor/codemirror/c/dist-7WUD2ZJP.js` | 1 | planned | vendor/codemirror/c/dist-7WUD2ZJP.js |
+| `js/vendor/codemirror/c/dist-A2TA6P4M.js` | 1 | planned | vendor/codemirror/c/dist-A2TA6P4M.js |
+| `js/vendor/codemirror/c/dist-CU33U7BS.js` | 1 | planned | vendor/codemirror/c/dist-CU33U7BS.js |
+| `js/vendor/codemirror/c/dist-D746Q3ZJ.js` | 1 | planned | vendor/codemirror/c/dist-D746Q3ZJ.js |
+| `js/vendor/codemirror/c/dist-DQTN3QM4.js` | 1 | planned | vendor/codemirror/c/dist-DQTN3QM4.js |
+| `js/vendor/codemirror/c/dist-HEER3P65.js` | 1 | planned | vendor/codemirror/c/dist-HEER3P65.js |
+| `js/vendor/codemirror/c/dist-KVSB4JMY.js` | 3 | planned | vendor/codemirror/c/dist-KVSB4JMY.js |
+| `js/vendor/codemirror/c/dist-L2JPCDM4.js` | 1 | planned | vendor/codemirror/c/dist-L2JPCDM4.js |
+| `js/vendor/codemirror/c/dist-MHVEMUZ6.js` | 1 | planned | vendor/codemirror/c/dist-MHVEMUZ6.js |
+| `js/vendor/codemirror/c/dist-O5UVQZJV.js` | 1 | planned | vendor/codemirror/c/dist-O5UVQZJV.js |
+| `js/vendor/codemirror/c/dist-OH2W4WE6.js` | 1 | planned | vendor/codemirror/c/dist-OH2W4WE6.js |
+| `js/vendor/codemirror/c/dist-OV5CEEXA.js` | 2 | planned | vendor/codemirror/c/dist-OV5CEEXA.js |
+| `js/vendor/codemirror/c/dist-QSDUX6Y5.js` | 1 | planned | vendor/codemirror/c/dist-QSDUX6Y5.js |
+| `js/vendor/codemirror/c/dist-R5TFER2T.js` | 1 | planned | vendor/codemirror/c/dist-R5TFER2T.js |
+| `js/vendor/codemirror/c/dist-U3H2HL3W.js` | 1 | planned | vendor/codemirror/c/dist-U3H2HL3W.js |
+| `js/vendor/codemirror/c/dist-Y2MO5DJ2.js` | 1 | planned | vendor/codemirror/c/dist-Y2MO5DJ2.js |
+| `js/vendor/codemirror/c/dist-YTTGY25H.js` | 7 | planned | vendor/codemirror/c/dist-YTTGY25H.js |
+| `js/vendor/codemirror/c/dist-ZKMG3Y5C.js` | 1 | planned | vendor/codemirror/c/dist-ZKMG3Y5C.js |
+| `js/vendor/codemirror/c/dockerfile-PWBO6ACQ.js` | 1 | planned | vendor/codemirror/c/dockerfile-PWBO6ACQ.js |
+| `js/vendor/codemirror/c/dtd-22O4DOXQ.js` | 1 | planned | vendor/codemirror/c/dtd-22O4DOXQ.js |
+| `js/vendor/codemirror/c/dylan-77IVWD3V.js` | 1 | planned | vendor/codemirror/c/dylan-77IVWD3V.js |
+| `js/vendor/codemirror/c/ebnf-6IDCA4J7.js` | 1 | planned | vendor/codemirror/c/ebnf-6IDCA4J7.js |
+| `js/vendor/codemirror/c/ecl-WICAYUVQ.js` | 1 | planned | vendor/codemirror/c/ecl-WICAYUVQ.js |
+| `js/vendor/codemirror/c/eiffel-L53NJJEC.js` | 1 | planned | vendor/codemirror/c/eiffel-L53NJJEC.js |
+| `js/vendor/codemirror/c/elm-3RB5DGC7.js` | 1 | planned | vendor/codemirror/c/elm-3RB5DGC7.js |
+| `js/vendor/codemirror/c/erlang-Q2GQZNEX.js` | 1 | planned | vendor/codemirror/c/erlang-Q2GQZNEX.js |
+| `js/vendor/codemirror/c/factor-X2EE7H7B.js` | 1 | planned | vendor/codemirror/c/factor-X2EE7H7B.js |
+| `js/vendor/codemirror/c/fcl-CNDTWJXV.js` | 1 | planned | vendor/codemirror/c/fcl-CNDTWJXV.js |
+| `js/vendor/codemirror/c/forth-WDIU4MH2.js` | 1 | planned | vendor/codemirror/c/forth-WDIU4MH2.js |
+| `js/vendor/codemirror/c/fortran-V2AMY5K3.js` | 1 | planned | vendor/codemirror/c/fortran-V2AMY5K3.js |
+| `js/vendor/codemirror/c/gas-EQP3DVPM.js` | 1 | planned | vendor/codemirror/c/gas-EQP3DVPM.js |
+| `js/vendor/codemirror/c/gherkin-HLZMEF2L.js` | 1 | planned | vendor/codemirror/c/gherkin-HLZMEF2L.js |
+| `js/vendor/codemirror/c/groovy-EPBAGFEI.js` | 1 | planned | vendor/codemirror/c/groovy-EPBAGFEI.js |
+| `js/vendor/codemirror/c/haskell-JJSVL5US.js` | 1 | planned | vendor/codemirror/c/haskell-JJSVL5US.js |
+| `js/vendor/codemirror/c/haxe-RMBZECDX.js` | 1 | planned | vendor/codemirror/c/haxe-RMBZECDX.js |
+| `js/vendor/codemirror/c/http-TEJL4FRB.js` | 1 | planned | vendor/codemirror/c/http-TEJL4FRB.js |
+| `js/vendor/codemirror/c/idl-HMPKIHMH.js` | 1 | planned | vendor/codemirror/c/idl-HMPKIHMH.js |
+| `js/vendor/codemirror/c/javascript-BBKDC7FN.js` | 1 | planned | vendor/codemirror/c/javascript-BBKDC7FN.js |
+| `js/vendor/codemirror/c/julia-6UML5YQH.js` | 1 | planned | vendor/codemirror/c/julia-6UML5YQH.js |
+| `js/vendor/codemirror/c/livescript-Z5IUWFXF.js` | 1 | planned | vendor/codemirror/c/livescript-Z5IUWFXF.js |
+| `js/vendor/codemirror/c/lua-LNZZVBTV.js` | 1 | planned | vendor/codemirror/c/lua-LNZZVBTV.js |
+| `js/vendor/codemirror/c/mathematica-QSKPMNJE.js` | 1 | planned | vendor/codemirror/c/mathematica-QSKPMNJE.js |
+| `js/vendor/codemirror/c/mbox-5M24JXXG.js` | 1 | planned | vendor/codemirror/c/mbox-5M24JXXG.js |
+| `js/vendor/codemirror/c/mirc-WBSGLMUN.js` | 1 | planned | vendor/codemirror/c/mirc-WBSGLMUN.js |
+| `js/vendor/codemirror/c/mllike-LKVMBYHJ.js` | 1 | planned | vendor/codemirror/c/mllike-LKVMBYHJ.js |
+| `js/vendor/codemirror/c/modelica-L3UZRMGL.js` | 1 | planned | vendor/codemirror/c/modelica-L3UZRMGL.js |
+| `js/vendor/codemirror/c/mscgen-KSRWA5YQ.js` | 1 | planned | vendor/codemirror/c/mscgen-KSRWA5YQ.js |
+| `js/vendor/codemirror/c/mumps-M7J5AAYC.js` | 1 | planned | vendor/codemirror/c/mumps-M7J5AAYC.js |
+| `js/vendor/codemirror/c/nginx-5DWW4OHT.js` | 1 | planned | vendor/codemirror/c/nginx-5DWW4OHT.js |
+| `js/vendor/codemirror/c/nsis-LLAZ27CY.js` | 1 | planned | vendor/codemirror/c/nsis-LLAZ27CY.js |
+| `js/vendor/codemirror/c/ntriples-2CYIF6HC.js` | 1 | planned | vendor/codemirror/c/ntriples-2CYIF6HC.js |
+| `js/vendor/codemirror/c/octave-HMKHJROG.js` | 1 | planned | vendor/codemirror/c/octave-HMKHJROG.js |
+| `js/vendor/codemirror/c/oz-DUJOTWZ6.js` | 1 | planned | vendor/codemirror/c/oz-DUJOTWZ6.js |
+| `js/vendor/codemirror/c/pascal-EQQWMK2C.js` | 1 | planned | vendor/codemirror/c/pascal-EQQWMK2C.js |
+| `js/vendor/codemirror/c/perl-WQW535WL.js` | 1 | planned | vendor/codemirror/c/perl-WQW535WL.js |
+| `js/vendor/codemirror/c/pig-MTS6NLKZ.js` | 1 | planned | vendor/codemirror/c/pig-MTS6NLKZ.js |
+| `js/vendor/codemirror/c/powershell-NEEJC4LW.js` | 1 | planned | vendor/codemirror/c/powershell-NEEJC4LW.js |
+| `js/vendor/codemirror/c/properties-AXKDPFVG.js` | 1 | planned | vendor/codemirror/c/properties-AXKDPFVG.js |
+| `js/vendor/codemirror/c/protobuf-B24LGJB2.js` | 1 | planned | vendor/codemirror/c/protobuf-B24LGJB2.js |
+| `js/vendor/codemirror/c/pug-SCHR77TH.js` | 1 | planned | vendor/codemirror/c/pug-SCHR77TH.js |
+| `js/vendor/codemirror/c/puppet-CBBBRAYM.js` | 1 | planned | vendor/codemirror/c/puppet-CBBBRAYM.js |
+| `js/vendor/codemirror/c/python-EGTXQAYX.js` | 1 | planned | vendor/codemirror/c/python-EGTXQAYX.js |
+| `js/vendor/codemirror/c/q-SUULM3PC.js` | 1 | planned | vendor/codemirror/c/q-SUULM3PC.js |
+| `js/vendor/codemirror/c/r-HFZB5IIJ.js` | 1 | planned | vendor/codemirror/c/r-HFZB5IIJ.js |
+| `js/vendor/codemirror/c/rpm-5N7FBF4V.js` | 1 | planned | vendor/codemirror/c/rpm-5N7FBF4V.js |
+| `js/vendor/codemirror/c/ruby-QOBQUME4.js` | 1 | planned | vendor/codemirror/c/ruby-QOBQUME4.js |
+| `js/vendor/codemirror/c/sas-3KU6GFDV.js` | 1 | planned | vendor/codemirror/c/sas-3KU6GFDV.js |
+| `js/vendor/codemirror/c/scheme-K4AMW6A2.js` | 1 | planned | vendor/codemirror/c/scheme-K4AMW6A2.js |
+| `js/vendor/codemirror/c/shell-YGI2UXMW.js` | 1 | planned | vendor/codemirror/c/shell-YGI2UXMW.js |
+| `js/vendor/codemirror/c/sieve-VMKCDKWK.js` | 1 | planned | vendor/codemirror/c/sieve-VMKCDKWK.js |
+| `js/vendor/codemirror/c/smalltalk-2JJWJCY6.js` | 1 | planned | vendor/codemirror/c/smalltalk-2JJWJCY6.js |
+| `js/vendor/codemirror/c/solr-EOYGUCLJ.js` | 1 | planned | vendor/codemirror/c/solr-EOYGUCLJ.js |
+| `js/vendor/codemirror/c/sparql-2UNW6W4O.js` | 1 | planned | vendor/codemirror/c/sparql-2UNW6W4O.js |
+| `js/vendor/codemirror/c/spreadsheet-S4ITESQF.js` | 1 | planned | vendor/codemirror/c/spreadsheet-S4ITESQF.js |
+| `js/vendor/codemirror/c/sql-CYMBV4IL.js` | 1 | planned | vendor/codemirror/c/sql-CYMBV4IL.js |
+| `js/vendor/codemirror/c/stex-RG3QFSW2.js` | 1 | planned | vendor/codemirror/c/stex-RG3QFSW2.js |
+| `js/vendor/codemirror/c/stylus-MT75ZRUL.js` | 1 | planned | vendor/codemirror/c/stylus-MT75ZRUL.js |
+| `js/vendor/codemirror/c/swift-RUSJRN5T.js` | 1 | planned | vendor/codemirror/c/swift-RUSJRN5T.js |
+| `js/vendor/codemirror/c/tcl-SU3EVUZ4.js` | 1 | planned | vendor/codemirror/c/tcl-SU3EVUZ4.js |
+| `js/vendor/codemirror/c/textile-GJDHYNHQ.js` | 1 | planned | vendor/codemirror/c/textile-GJDHYNHQ.js |
+| `js/vendor/codemirror/c/tiddlywiki-MJF5G2CH.js` | 1 | planned | vendor/codemirror/c/tiddlywiki-MJF5G2CH.js |
+| `js/vendor/codemirror/c/tiki-2SAVLYI6.js` | 1 | planned | vendor/codemirror/c/tiki-2SAVLYI6.js |
+| `js/vendor/codemirror/c/toml-6AXEA3OY.js` | 1 | planned | vendor/codemirror/c/toml-6AXEA3OY.js |
+| `js/vendor/codemirror/c/troff-F6PHJ5G5.js` | 1 | planned | vendor/codemirror/c/troff-F6PHJ5G5.js |
+| `js/vendor/codemirror/c/ttcn-FZDXDCB5.js` | 1 | planned | vendor/codemirror/c/ttcn-FZDXDCB5.js |
+| `js/vendor/codemirror/c/ttcn-cfg-IMMX5NBJ.js` | 1 | planned | vendor/codemirror/c/ttcn-cfg-IMMX5NBJ.js |
+| `js/vendor/codemirror/c/turtle-CF4XY2NI.js` | 1 | planned | vendor/codemirror/c/turtle-CF4XY2NI.js |
+| `js/vendor/codemirror/c/vb-HIZYQHNB.js` | 1 | planned | vendor/codemirror/c/vb-HIZYQHNB.js |
+| `js/vendor/codemirror/c/vbscript-HKX7W2Z4.js` | 1 | planned | vendor/codemirror/c/vbscript-HKX7W2Z4.js |
+| `js/vendor/codemirror/c/velocity-M5NSSGPO.js` | 1 | planned | vendor/codemirror/c/velocity-M5NSSGPO.js |
+| `js/vendor/codemirror/c/verilog-ZBBFBS7R.js` | 1 | planned | vendor/codemirror/c/verilog-ZBBFBS7R.js |
+| `js/vendor/codemirror/c/vhdl-KLX4YS33.js` | 1 | planned | vendor/codemirror/c/vhdl-KLX4YS33.js |
+| `js/vendor/codemirror/c/webidl-2RLDUOE5.js` | 1 | planned | vendor/codemirror/c/webidl-2RLDUOE5.js |
+| `js/vendor/codemirror/c/xquery-2YVB7HFQ.js` | 1 | planned | vendor/codemirror/c/xquery-2YVB7HFQ.js |
+| `js/vendor/codemirror/c/yacas-TB6CIIEF.js` | 1 | planned | vendor/codemirror/c/yacas-TB6CIIEF.js |
+| `js/vendor/codemirror/c/z80-VRQRQAML.js` | 1 | planned | vendor/codemirror/c/z80-VRQRQAML.js |
+| `js/vendor/codemirror/cm.js` | 2 | planned | vendor/codemirror/cm.js |
+| `js/vendor/codemirror/manifest.json` | 581 | planned | vendor/codemirror/manifest.json |
+| `js/vendor/codemirror/merge.js` | 3 | planned | vendor/codemirror/merge.js |
+| `js/vendor/katex/LICENSE` |  | planned | vendor/katex/LICENSE |
+| `js/vendor/katex/README.md` | 3 | planned | vendor/katex/README.md |
+| `js/vendor/katex/fonts/KaTeX_AMS-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_AMS-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_Fraktur-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Fraktur-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-BoldItalic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-Italic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-Italic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Main-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Main-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Math-BoldItalic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Math-Italic.woff2` |  | planned | vendor/katex/fonts/KaTeX_Math-Italic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2` |  | planned | vendor/katex/fonts/KaTeX_SansSerif-Bold.woff2 |
+| `js/vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2` |  | planned | vendor/katex/fonts/KaTeX_SansSerif-Italic.woff2 |
+| `js/vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_SansSerif-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Script-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Script-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size1-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size1-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size2-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size2-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size3-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size3-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Size4-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Size4-Regular.woff2 |
+| `js/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2` |  | planned | vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2 |
+| `js/vendor/katex/katex.min.css` | 1 | planned | vendor/katex/katex.min.css |
+| `js/vendor/katex/katex.min.js` | 1 | planned | vendor/katex/katex.min.js |
 | `js/vendor/lucide/LICENSE` |  | deleted | no importer anywhere (owner D6) |
 | `js/vendor/lucide/files.js` | 25 | deleted | no importer anywhere (owner D6) |
 | `js/vendor/lucide/projects.js` | 38 | deleted | no importer anywhere (owner D6) |
-| `js/vendor/mermaid/LICENSE` |  | vendor | js/vendor/mermaid/LICENSE |
-| `js/vendor/mermaid/README.md` | 3 | vendor | js/vendor/mermaid/README.md |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/architecture-LC7QOZUM-5NGVVLDI.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/architecture-LC7QOZUM-5NGVVLDI.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/architectureDiagram-K7MV6ERW.mjs` | 36 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/architectureDiagram-K7MV6ERW.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/blockDiagram-O3Z2S55I.mjs` | 140 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/blockDiagram-O3Z2S55I.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/bpmnIcons-YJSSVMIT.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/bpmnIcons-YJSSVMIT.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/c4Diagram-7J26TYSL.mjs` | 38 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/c4Diagram-7J26TYSL.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3DCBE5TA.mjs` | 62 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3DCBE5TA.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3NO356PZ.mjs` | 10 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3NO356PZ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-4J7XMMR5.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-4J7XMMR5.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-5LJW3EUZ.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-5LJW3EUZ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-6GTQGJNM.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-6GTQGJNM.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-767MNKTJ.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-767MNKTJ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-A3LLD7C6.mjs` | 15 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-A3LLD7C6.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AD2K7U72.mjs` | 88 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AD2K7U72.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AEP47HME.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AEP47HME.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-C7QCCU7L.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-C7QCCU7L.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CG7VIXT6.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CG7VIXT6.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CPAW7BRR.mjs` | 339 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CPAW7BRR.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-DJPHBUKM.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-DJPHBUKM.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EB7S5WDG.mjs` | 2 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EB7S5WDG.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EKDPPX6U.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EKDPPX6U.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ETFDQZFQ.mjs` | 2 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ETFDQZFQ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FB4HB4A2.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FB4HB4A2.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FCGY7WDG.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FCGY7WDG.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FRYFDGAD.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FRYFDGAD.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-G35KUZXD.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-G35KUZXD.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-H3Y7VZGV.mjs` | 14 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-H3Y7VZGV.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-IJTDMCXQ.mjs` | 32 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-IJTDMCXQ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-JENJ2NYI.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-JENJ2NYI.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-KNGDTZMA.mjs` | 70 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-KNGDTZMA.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-MWUZ53VY.mjs` | 136 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-MWUZ53VY.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-N3CUNPOK.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-N3CUNPOK.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NXZFCOWJ.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NXZFCOWJ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NYALJP3A.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NYALJP3A.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OO6OXEJO.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OO6OXEJO.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OWKPCAA4.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OWKPCAA4.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PHMQW7SG.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PHMQW7SG.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PNVTB6QF.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PNVTB6QF.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Q7AU6FSL.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Q7AU6FSL.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQ4VTD2Z.mjs` | 2 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQ4VTD2Z.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQEUQRS4.mjs` | 2 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQEUQRS4.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-S2SV4DS7.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-S2SV4DS7.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SQB72GJH.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SQB72GJH.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SVHOGJPR.mjs` | 213 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SVHOGJPR.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UCIVM6JH.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UCIVM6JH.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UGEUIIAL.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UGEUIIAL.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-V3YWWTDH.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-V3YWWTDH.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VHEAKMU3.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VHEAKMU3.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VLFMOWSA.mjs` | 135 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VLFMOWSA.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XU3RQ3PZ.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XU3RQ3PZ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XWQP5P3V.mjs` | 3 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XWQP5P3V.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Z2IEFKAF.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Z2IEFKAF.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ZJBQKVUR.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ZJBQKVUR.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/classDiagram-v2-OX5G5VGB.mjs` | 217 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/classDiagram-v2-OX5G5VGB.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/cose-bilkent-U4P6ZWTA.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/cose-bilkent-U4P6ZWTA.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/cynefin-SQZ4V6AE-EBUGBJB2.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/cynefin-SQZ4V6AE-EBUGBJB2.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/cynefinDiagram-IQ4ZJOH3.mjs` | 62 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/cynefinDiagram-IQ4ZJOH3.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/dagre-75NMZP4T.mjs` | 4 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/dagre-75NMZP4T.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-5EDX5UH3.mjs` | 200 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/diagram-5EDX5UH3.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-733GHHTT.mjs` | 41 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/diagram-733GHHTT.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-A5NIFI4L.mjs` | 3 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/diagram-A5NIFI4L.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-G5JTDQRA.mjs` | 24 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/diagram-G5JTDQRA.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-KC4HS2L5.mjs` | 24 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/diagram-KC4HS2L5.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-LXLKFC5Q.mjs` | 30 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/diagram-LXLKFC5Q.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/ebnfDiagram-R2OZYWV5.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/ebnfDiagram-R2OZYWV5.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/elk-VW7CPVO3.mjs` | 25 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/elk-VW7CPVO3.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/erDiagram-EZESABAN.mjs` | 99 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/erDiagram-EZESABAN.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/eventmodeling-QR7CT3BE-GD4POLK5.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/eventmodeling-QR7CT3BE-GD4POLK5.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/flowDiagram-MIYXRJYK.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/flowDiagram-MIYXRJYK.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/ganttDiagram-KOIEMFUK.mjs` | 292 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/ganttDiagram-KOIEMFUK.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/gitGraph-S4SDYQ5E-BX3VVCOW.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/gitGraph-S4SDYQ5E-BX3VVCOW.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/gitGraphDiagram-A2SMY64T.mjs` | 106 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/gitGraphDiagram-A2SMY64T.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/info-5BNCTR6C-ODGUMPAX.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/info-5BNCTR6C-ODGUMPAX.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/infoDiagram-CVPKPPGR.mjs` | 2 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/infoDiagram-CVPKPPGR.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/ishikawaDiagram-EMHLID2X.mjs` | 70 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/ishikawaDiagram-EMHLID2X.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/journeyDiagram-34ETIHJA.mjs` | 139 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/journeyDiagram-34ETIHJA.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/kanban-definition-3VVCP34E.mjs` | 89 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/kanban-definition-3VVCP34E.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/katex-HEAVHIDR.mjs` | 257 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/katex-HEAVHIDR.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/mindmap-definition-QGXWIBFW.mjs` | 98 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/mindmap-definition-QGXWIBFW.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/packet-FDJJNMMN-G7IL4JUV.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/packet-FDJJNMMN-G7IL4JUV.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/pegDiagram-TMXEBKVO.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/pegDiagram-TMXEBKVO.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/pie-BMGGJ4DP-PPLMLEAI.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/pie-BMGGJ4DP-PPLMLEAI.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/pieDiagram-A4ONI7YG.mjs` | 39 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/pieDiagram-A4ONI7YG.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/quadrantDiagram-SUBAGY5T.mjs` | 7 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/quadrantDiagram-SUBAGY5T.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/radar-4MYH26CV-J7F73TLN.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/radar-4MYH26CV-J7F73TLN.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-UC74YYTJ-NDW2JIG3.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/railroad-UC74YYTJ-NDW2JIG3.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-abnf-63ZTAFXO-CNIYIKXO.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/railroad-abnf-63ZTAFXO-CNIYIKXO.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-ebnf-WVTJNEEQ-DSHHJI4S.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/railroad-ebnf-WVTJNEEQ-DSHHJI4S.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-peg-W4VBZIEU-7RBE7FRH.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/railroad-peg-W4VBZIEU-7RBE7FRH.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/railroadDiagram-LDGO7TFH.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/railroadDiagram-LDGO7TFH.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/requirementDiagram-AGPKMLJZ.mjs` | 84 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/requirementDiagram-AGPKMLJZ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/sankeyDiagram-BSWYR3MM.mjs` | 40 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/sankeyDiagram-BSWYR3MM.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/sequenceDiagram-7K4MKO6P.mjs` | 169 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/sequenceDiagram-7K4MKO6P.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/sizeCapture-56ELNSSC.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/sizeCapture-56ELNSSC.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/stateDiagram-v2-7EDNTZT3.mjs` | 291 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/stateDiagram-v2-7EDNTZT3.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/swimlanes-VL4ZZWC5.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/swimlanes-VL4ZZWC5.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/swimlanesDiagram-6D5TTVIN.mjs` | 8 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/swimlanesDiagram-6D5TTVIN.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/timeline-definition-RSFCTRKZ.mjs` | 120 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/timeline-definition-RSFCTRKZ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/treeView-OWB7PY5U-RUKUIZU4.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/treeView-OWB7PY5U-RUKUIZU4.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/treemap-B4MHVWJL-DHMOZ63S.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/treemap-B4MHVWJL-DHMOZ63S.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/usecaseDiagram-KXV27WTT.mjs` | 370 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/usecaseDiagram-KXV27WTT.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/vennDiagram-WTUZ5ZZJ.mjs` | 34 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/vennDiagram-WTUZ5ZZJ.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/wardley-ZOP5H4X3-LCQ4757O.mjs` | 1 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/wardley-ZOP5H4X3-LCQ4757O.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/wardleyDiagram-KARA5GED.mjs` | 78 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/wardleyDiagram-KARA5GED.mjs |
-| `js/vendor/mermaid/chunks/mermaid.esm.min/xychartDiagram-IFGWRUGB.mjs` | 7 | vendor | js/vendor/mermaid/chunks/mermaid.esm.min/xychartDiagram-IFGWRUGB.mjs |
-| `js/vendor/mermaid/mermaid.esm.min.mjs` | 14 | vendor | js/vendor/mermaid/mermaid.esm.min.mjs |
-| `js/vendor/pierre-diffs/LICENSES.md` | 1044 | vendor | js/vendor/pierre-diffs/LICENSES.md |
-| `js/vendor/pierre-diffs/c/c-E6GJF7NI.js` | 1 | vendor | js/vendor/pierre-diffs/c/c-E6GJF7NI.js |
-| `js/vendor/pierre-diffs/c/chunk-44DXQCPQ.js` | 12 | vendor | js/vendor/pierre-diffs/c/chunk-44DXQCPQ.js |
-| `js/vendor/pierre-diffs/c/chunk-4IOWYWJK.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-4IOWYWJK.js |
-| `js/vendor/pierre-diffs/c/chunk-55MH5PQL.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-55MH5PQL.js |
-| `js/vendor/pierre-diffs/c/chunk-5B225VTB.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-5B225VTB.js |
-| `js/vendor/pierre-diffs/c/chunk-5EAMECPK.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-5EAMECPK.js |
-| `js/vendor/pierre-diffs/c/chunk-6DRUME2C.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-6DRUME2C.js |
-| `js/vendor/pierre-diffs/c/chunk-B5JCA7FL.js` | 6 | vendor | js/vendor/pierre-diffs/c/chunk-B5JCA7FL.js |
-| `js/vendor/pierre-diffs/c/chunk-BK2WVYD3.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-BK2WVYD3.js |
-| `js/vendor/pierre-diffs/c/chunk-C4WP6UCZ.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-C4WP6UCZ.js |
-| `js/vendor/pierre-diffs/c/chunk-COQVLBQQ.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-COQVLBQQ.js |
-| `js/vendor/pierre-diffs/c/chunk-CSVUL5XU.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-CSVUL5XU.js |
-| `js/vendor/pierre-diffs/c/chunk-DMZPRWQH.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-DMZPRWQH.js |
-| `js/vendor/pierre-diffs/c/chunk-FE5RNAGX.js` | 4 | vendor | js/vendor/pierre-diffs/c/chunk-FE5RNAGX.js |
-| `js/vendor/pierre-diffs/c/chunk-GDS6EWX4.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-GDS6EWX4.js |
-| `js/vendor/pierre-diffs/c/chunk-GH32RRK2.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-GH32RRK2.js |
-| `js/vendor/pierre-diffs/c/chunk-GSLF6MYV.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-GSLF6MYV.js |
-| `js/vendor/pierre-diffs/c/chunk-IZTSSURO.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-IZTSSURO.js |
-| `js/vendor/pierre-diffs/c/chunk-JOVE6I5V.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-JOVE6I5V.js |
-| `js/vendor/pierre-diffs/c/chunk-KTO25AQE.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-KTO25AQE.js |
-| `js/vendor/pierre-diffs/c/chunk-KVYOQB5X.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-KVYOQB5X.js |
-| `js/vendor/pierre-diffs/c/chunk-ODSXUJHG.js` | 4 | vendor | js/vendor/pierre-diffs/c/chunk-ODSXUJHG.js |
-| `js/vendor/pierre-diffs/c/chunk-OLGIO5N2.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-OLGIO5N2.js |
-| `js/vendor/pierre-diffs/c/chunk-PWFN676X.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-PWFN676X.js |
-| `js/vendor/pierre-diffs/c/chunk-Q4NTYJPP.js` | 13 | vendor | js/vendor/pierre-diffs/c/chunk-Q4NTYJPP.js |
-| `js/vendor/pierre-diffs/c/chunk-S2YDH2LV.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-S2YDH2LV.js |
-| `js/vendor/pierre-diffs/c/chunk-SCIXL5K2.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-SCIXL5K2.js |
-| `js/vendor/pierre-diffs/c/chunk-UFRYVWBF.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-UFRYVWBF.js |
-| `js/vendor/pierre-diffs/c/chunk-USZMECQA.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-USZMECQA.js |
-| `js/vendor/pierre-diffs/c/chunk-VWA6NOV4.js` | 5 | vendor | js/vendor/pierre-diffs/c/chunk-VWA6NOV4.js |
-| `js/vendor/pierre-diffs/c/chunk-WRI3QP5R.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-WRI3QP5R.js |
-| `js/vendor/pierre-diffs/c/chunk-XX3UT7DY.js` | 9 | vendor | js/vendor/pierre-diffs/c/chunk-XX3UT7DY.js |
-| `js/vendor/pierre-diffs/c/chunk-YJIS2WGN.js` | 1 | vendor | js/vendor/pierre-diffs/c/chunk-YJIS2WGN.js |
-| `js/vendor/pierre-diffs/c/chunk-ZJCWFOS4.js` | 2 | vendor | js/vendor/pierre-diffs/c/chunk-ZJCWFOS4.js |
-| `js/vendor/pierre-diffs/c/core-VVROIH2Y.js` | 1 | vendor | js/vendor/pierre-diffs/c/core-VVROIH2Y.js |
-| `js/vendor/pierre-diffs/c/cpp-RQHBHALA.js` | 1 | vendor | js/vendor/pierre-diffs/c/cpp-RQHBHALA.js |
-| `js/vendor/pierre-diffs/c/csharp-MKRDPSCP.js` | 1 | vendor | js/vendor/pierre-diffs/c/csharp-MKRDPSCP.js |
-| `js/vendor/pierre-diffs/c/css-6MBMU5OL.js` | 1 | vendor | js/vendor/pierre-diffs/c/css-6MBMU5OL.js |
-| `js/vendor/pierre-diffs/c/dart-P3RGXNHQ.js` | 1 | vendor | js/vendor/pierre-diffs/c/dart-P3RGXNHQ.js |
-| `js/vendor/pierre-diffs/c/diff-T7NG25EN.js` | 1 | vendor | js/vendor/pierre-diffs/c/diff-T7NG25EN.js |
-| `js/vendor/pierre-diffs/c/docker-XIIWKV2C.js` | 1 | vendor | js/vendor/pierre-diffs/c/docker-XIIWKV2C.js |
-| `js/vendor/pierre-diffs/c/dotenv-CMUSFK6V.js` | 1 | vendor | js/vendor/pierre-diffs/c/dotenv-CMUSFK6V.js |
-| `js/vendor/pierre-diffs/c/elixir-DS2QBGHL.js` | 1 | vendor | js/vendor/pierre-diffs/c/elixir-DS2QBGHL.js |
-| `js/vendor/pierre-diffs/c/engine-javascript-WGSM3T5S.js` | 141 | vendor | js/vendor/pierre-diffs/c/engine-javascript-WGSM3T5S.js |
-| `js/vendor/pierre-diffs/c/go-5SB7NSJA.js` | 1 | vendor | js/vendor/pierre-diffs/c/go-5SB7NSJA.js |
-| `js/vendor/pierre-diffs/c/graphql-PWCE6PFX.js` | 1 | vendor | js/vendor/pierre-diffs/c/graphql-PWCE6PFX.js |
-| `js/vendor/pierre-diffs/c/haskell-BBSSOQDS.js` | 1 | vendor | js/vendor/pierre-diffs/c/haskell-BBSSOQDS.js |
-| `js/vendor/pierre-diffs/c/highlights-CpZm9DAR-L5VU3M23.js` | 1 | vendor | js/vendor/pierre-diffs/c/highlights-CpZm9DAR-L5VU3M23.js |
-| `js/vendor/pierre-diffs/c/highlights-MJMIXFLK.js` | 1 | vendor | js/vendor/pierre-diffs/c/highlights-MJMIXFLK.js |
-| `js/vendor/pierre-diffs/c/html-5SOSCFNQ.js` | 1 | vendor | js/vendor/pierre-diffs/c/html-5SOSCFNQ.js |
-| `js/vendor/pierre-diffs/c/ini-IF5UVB7F.js` | 1 | vendor | js/vendor/pierre-diffs/c/ini-IF5UVB7F.js |
-| `js/vendor/pierre-diffs/c/java-NAPIS6UP.js` | 1 | vendor | js/vendor/pierre-diffs/c/java-NAPIS6UP.js |
-| `js/vendor/pierre-diffs/c/javascript-ZCEZCRIC.js` | 1 | vendor | js/vendor/pierre-diffs/c/javascript-ZCEZCRIC.js |
-| `js/vendor/pierre-diffs/c/json-SYS7OU3R.js` | 1 | vendor | js/vendor/pierre-diffs/c/json-SYS7OU3R.js |
-| `js/vendor/pierre-diffs/c/jsonc-MFFBD67V.js` | 1 | vendor | js/vendor/pierre-diffs/c/jsonc-MFFBD67V.js |
-| `js/vendor/pierre-diffs/c/jsx-UQ5BHUMN.js` | 1 | vendor | js/vendor/pierre-diffs/c/jsx-UQ5BHUMN.js |
-| `js/vendor/pierre-diffs/c/kotlin-N5GQ32KB.js` | 1 | vendor | js/vendor/pierre-diffs/c/kotlin-N5GQ32KB.js |
-| `js/vendor/pierre-diffs/c/langs-5KGCJDPZ.js` | 1 | vendor | js/vendor/pierre-diffs/c/langs-5KGCJDPZ.js |
-| `js/vendor/pierre-diffs/c/latex-OQSUTTNG.js` | 1 | vendor | js/vendor/pierre-diffs/c/latex-OQSUTTNG.js |
-| `js/vendor/pierre-diffs/c/loader-6BPACEYP.js` | 1 | vendor | js/vendor/pierre-diffs/c/loader-6BPACEYP.js |
-| `js/vendor/pierre-diffs/c/lua-KXL4G3GA.js` | 1 | vendor | js/vendor/pierre-diffs/c/lua-KXL4G3GA.js |
-| `js/vendor/pierre-diffs/c/make-CHGIBE4M.js` | 1 | vendor | js/vendor/pierre-diffs/c/make-CHGIBE4M.js |
-| `js/vendor/pierre-diffs/c/markdown-DWIMHI7Z.js` | 1 | vendor | js/vendor/pierre-diffs/c/markdown-DWIMHI7Z.js |
-| `js/vendor/pierre-diffs/c/nginx-SFYOZ5NK.js` | 1 | vendor | js/vendor/pierre-diffs/c/nginx-SFYOZ5NK.js |
-| `js/vendor/pierre-diffs/c/oniguruma-IXU7JXLS.js` | 1 | vendor | js/vendor/pierre-diffs/c/oniguruma-IXU7JXLS.js |
-| `js/vendor/pierre-diffs/c/perl-AI7KVWEH.js` | 1 | vendor | js/vendor/pierre-diffs/c/perl-AI7KVWEH.js |
-| `js/vendor/pierre-diffs/c/php-2SGPQ4A5.js` | 1 | vendor | js/vendor/pierre-diffs/c/php-2SGPQ4A5.js |
-| `js/vendor/pierre-diffs/c/powershell-GXXOQ3HP.js` | 1 | vendor | js/vendor/pierre-diffs/c/powershell-GXXOQ3HP.js |
-| `js/vendor/pierre-diffs/c/proto-DI3CFL5G.js` | 1 | vendor | js/vendor/pierre-diffs/c/proto-DI3CFL5G.js |
-| `js/vendor/pierre-diffs/c/python-XMBOHMX6.js` | 1 | vendor | js/vendor/pierre-diffs/c/python-XMBOHMX6.js |
-| `js/vendor/pierre-diffs/c/r-SU5RVNXF.js` | 1 | vendor | js/vendor/pierre-diffs/c/r-SU5RVNXF.js |
-| `js/vendor/pierre-diffs/c/ruby-JRIUYIIZ.js` | 1 | vendor | js/vendor/pierre-diffs/c/ruby-JRIUYIIZ.js |
-| `js/vendor/pierre-diffs/c/rust-JNCTHA6A.js` | 1 | vendor | js/vendor/pierre-diffs/c/rust-JNCTHA6A.js |
-| `js/vendor/pierre-diffs/c/scala-J7ONKWUX.js` | 1 | vendor | js/vendor/pierre-diffs/c/scala-J7ONKWUX.js |
-| `js/vendor/pierre-diffs/c/scss-MP6KL4J4.js` | 1 | vendor | js/vendor/pierre-diffs/c/scss-MP6KL4J4.js |
-| `js/vendor/pierre-diffs/c/shellscript-2QU7FDIP.js` | 1 | vendor | js/vendor/pierre-diffs/c/shellscript-2QU7FDIP.js |
-| `js/vendor/pierre-diffs/c/shiki-Ci4cdHsM-U4UNITAV.js` | 1 | vendor | js/vendor/pierre-diffs/c/shiki-Ci4cdHsM-U4UNITAV.js |
-| `js/vendor/pierre-diffs/c/shiki-HQIGNS47.js` | 1 | vendor | js/vendor/pierre-diffs/c/shiki-HQIGNS47.js |
-| `js/vendor/pierre-diffs/c/sql-F4K6GFK6.js` | 1 | vendor | js/vendor/pierre-diffs/c/sql-F4K6GFK6.js |
-| `js/vendor/pierre-diffs/c/svelte-R7ATBZQS.js` | 1 | vendor | js/vendor/pierre-diffs/c/svelte-R7ATBZQS.js |
-| `js/vendor/pierre-diffs/c/swift-FUMICI7N.js` | 1 | vendor | js/vendor/pierre-diffs/c/swift-FUMICI7N.js |
-| `js/vendor/pierre-diffs/c/terraform-JDOODVTS.js` | 1 | vendor | js/vendor/pierre-diffs/c/terraform-JDOODVTS.js |
-| `js/vendor/pierre-diffs/c/themes-4UDBBRQT.js` | 1 | vendor | js/vendor/pierre-diffs/c/themes-4UDBBRQT.js |
-| `js/vendor/pierre-diffs/c/toml-JQUNO2V7.js` | 1 | vendor | js/vendor/pierre-diffs/c/toml-JQUNO2V7.js |
-| `js/vendor/pierre-diffs/c/tsx-MCB6U7AX.js` | 1 | vendor | js/vendor/pierre-diffs/c/tsx-MCB6U7AX.js |
-| `js/vendor/pierre-diffs/c/typescript-Y4D3EEH2.js` | 1 | vendor | js/vendor/pierre-diffs/c/typescript-Y4D3EEH2.js |
-| `js/vendor/pierre-diffs/c/vue-WTJ4E6DF.js` | 1 | vendor | js/vendor/pierre-diffs/c/vue-WTJ4E6DF.js |
-| `js/vendor/pierre-diffs/c/wasm-SMWGFCOR.js` | 1 | vendor | js/vendor/pierre-diffs/c/wasm-SMWGFCOR.js |
-| `js/vendor/pierre-diffs/c/xml-QIC37UDC.js` | 1 | vendor | js/vendor/pierre-diffs/c/xml-QIC37UDC.js |
-| `js/vendor/pierre-diffs/c/yaml-5I454EOF.js` | 1 | vendor | js/vendor/pierre-diffs/c/yaml-5I454EOF.js |
-| `js/vendor/pierre-diffs/diffs.js` | 157 | vendor | js/vendor/pierre-diffs/diffs.js |
+| `js/vendor/mermaid/LICENSE` |  | planned | vendor/mermaid/LICENSE |
+| `js/vendor/mermaid/README.md` | 3 | planned | vendor/mermaid/README.md |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/abnfDiagram-7WIW2FYK.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/architecture-LC7QOZUM-5NGVVLDI.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/architecture-LC7QOZUM-5NGVVLDI.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/architectureDiagram-K7MV6ERW.mjs` | 36 | planned | vendor/mermaid/chunks/mermaid.esm.min/architectureDiagram-K7MV6ERW.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/blockDiagram-O3Z2S55I.mjs` | 140 | planned | vendor/mermaid/chunks/mermaid.esm.min/blockDiagram-O3Z2S55I.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/bpmnIcons-YJSSVMIT.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/bpmnIcons-YJSSVMIT.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/c4Diagram-7J26TYSL.mjs` | 38 | planned | vendor/mermaid/chunks/mermaid.esm.min/c4Diagram-7J26TYSL.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3DCBE5TA.mjs` | 62 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-3DCBE5TA.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-3NO356PZ.mjs` | 10 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-3NO356PZ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-4J7XMMR5.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-4J7XMMR5.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-5LJW3EUZ.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-5LJW3EUZ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-6GTQGJNM.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-6GTQGJNM.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-767MNKTJ.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-767MNKTJ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-A3LLD7C6.mjs` | 15 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-A3LLD7C6.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AD2K7U72.mjs` | 88 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-AD2K7U72.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-AEP47HME.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-AEP47HME.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-C7QCCU7L.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-C7QCCU7L.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CG7VIXT6.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-CG7VIXT6.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-CPAW7BRR.mjs` | 339 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-CPAW7BRR.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-DJPHBUKM.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-DJPHBUKM.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EB7S5WDG.mjs` | 2 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-EB7S5WDG.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-EKDPPX6U.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-EKDPPX6U.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ETFDQZFQ.mjs` | 2 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-ETFDQZFQ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FB4HB4A2.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-FB4HB4A2.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FCGY7WDG.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-FCGY7WDG.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-FRYFDGAD.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-FRYFDGAD.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-G35KUZXD.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-G35KUZXD.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-H3Y7VZGV.mjs` | 14 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-H3Y7VZGV.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-IJTDMCXQ.mjs` | 32 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-IJTDMCXQ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-JENJ2NYI.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-JENJ2NYI.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-KNGDTZMA.mjs` | 70 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-KNGDTZMA.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-MWUZ53VY.mjs` | 136 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-MWUZ53VY.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-N3CUNPOK.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-N3CUNPOK.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NXZFCOWJ.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-NXZFCOWJ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-NYALJP3A.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-NYALJP3A.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OO6OXEJO.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-OO6OXEJO.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-OWKPCAA4.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-OWKPCAA4.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PHMQW7SG.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-PHMQW7SG.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-PNVTB6QF.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-PNVTB6QF.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Q7AU6FSL.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-Q7AU6FSL.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQ4VTD2Z.mjs` | 2 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-QQ4VTD2Z.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-QQEUQRS4.mjs` | 2 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-QQEUQRS4.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-S2SV4DS7.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-S2SV4DS7.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SQB72GJH.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-SQB72GJH.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-SVHOGJPR.mjs` | 213 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-SVHOGJPR.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UCIVM6JH.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-UCIVM6JH.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-UGEUIIAL.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-UGEUIIAL.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-V3YWWTDH.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-V3YWWTDH.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VHEAKMU3.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-VHEAKMU3.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-VLFMOWSA.mjs` | 135 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-VLFMOWSA.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XU3RQ3PZ.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-XU3RQ3PZ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-XWQP5P3V.mjs` | 3 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-XWQP5P3V.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-Z2IEFKAF.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-Z2IEFKAF.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/chunk-ZJBQKVUR.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/chunk-ZJBQKVUR.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/classDiagram-v2-OX5G5VGB.mjs` | 217 | planned | vendor/mermaid/chunks/mermaid.esm.min/classDiagram-v2-OX5G5VGB.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/cose-bilkent-U4P6ZWTA.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/cose-bilkent-U4P6ZWTA.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/cynefin-SQZ4V6AE-EBUGBJB2.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/cynefin-SQZ4V6AE-EBUGBJB2.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/cynefinDiagram-IQ4ZJOH3.mjs` | 62 | planned | vendor/mermaid/chunks/mermaid.esm.min/cynefinDiagram-IQ4ZJOH3.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/dagre-75NMZP4T.mjs` | 4 | planned | vendor/mermaid/chunks/mermaid.esm.min/dagre-75NMZP4T.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-5EDX5UH3.mjs` | 200 | planned | vendor/mermaid/chunks/mermaid.esm.min/diagram-5EDX5UH3.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-733GHHTT.mjs` | 41 | planned | vendor/mermaid/chunks/mermaid.esm.min/diagram-733GHHTT.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-A5NIFI4L.mjs` | 3 | planned | vendor/mermaid/chunks/mermaid.esm.min/diagram-A5NIFI4L.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-G5JTDQRA.mjs` | 24 | planned | vendor/mermaid/chunks/mermaid.esm.min/diagram-G5JTDQRA.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-KC4HS2L5.mjs` | 24 | planned | vendor/mermaid/chunks/mermaid.esm.min/diagram-KC4HS2L5.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/diagram-LXLKFC5Q.mjs` | 30 | planned | vendor/mermaid/chunks/mermaid.esm.min/diagram-LXLKFC5Q.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/ebnfDiagram-R2OZYWV5.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/ebnfDiagram-R2OZYWV5.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/elk-VW7CPVO3.mjs` | 25 | planned | vendor/mermaid/chunks/mermaid.esm.min/elk-VW7CPVO3.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/erDiagram-EZESABAN.mjs` | 99 | planned | vendor/mermaid/chunks/mermaid.esm.min/erDiagram-EZESABAN.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/eventmodeling-QR7CT3BE-GD4POLK5.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/eventmodeling-QR7CT3BE-GD4POLK5.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/flowDiagram-MIYXRJYK.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/flowDiagram-MIYXRJYK.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/ganttDiagram-KOIEMFUK.mjs` | 292 | planned | vendor/mermaid/chunks/mermaid.esm.min/ganttDiagram-KOIEMFUK.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/gitGraph-S4SDYQ5E-BX3VVCOW.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/gitGraph-S4SDYQ5E-BX3VVCOW.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/gitGraphDiagram-A2SMY64T.mjs` | 106 | planned | vendor/mermaid/chunks/mermaid.esm.min/gitGraphDiagram-A2SMY64T.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/info-5BNCTR6C-ODGUMPAX.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/info-5BNCTR6C-ODGUMPAX.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/infoDiagram-CVPKPPGR.mjs` | 2 | planned | vendor/mermaid/chunks/mermaid.esm.min/infoDiagram-CVPKPPGR.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/ishikawaDiagram-EMHLID2X.mjs` | 70 | planned | vendor/mermaid/chunks/mermaid.esm.min/ishikawaDiagram-EMHLID2X.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/journeyDiagram-34ETIHJA.mjs` | 139 | planned | vendor/mermaid/chunks/mermaid.esm.min/journeyDiagram-34ETIHJA.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/kanban-definition-3VVCP34E.mjs` | 89 | planned | vendor/mermaid/chunks/mermaid.esm.min/kanban-definition-3VVCP34E.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/katex-HEAVHIDR.mjs` | 257 | planned | vendor/mermaid/chunks/mermaid.esm.min/katex-HEAVHIDR.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/mindmap-definition-QGXWIBFW.mjs` | 98 | planned | vendor/mermaid/chunks/mermaid.esm.min/mindmap-definition-QGXWIBFW.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/packet-FDJJNMMN-G7IL4JUV.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/packet-FDJJNMMN-G7IL4JUV.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/pegDiagram-TMXEBKVO.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/pegDiagram-TMXEBKVO.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/pie-BMGGJ4DP-PPLMLEAI.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/pie-BMGGJ4DP-PPLMLEAI.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/pieDiagram-A4ONI7YG.mjs` | 39 | planned | vendor/mermaid/chunks/mermaid.esm.min/pieDiagram-A4ONI7YG.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/quadrantDiagram-SUBAGY5T.mjs` | 7 | planned | vendor/mermaid/chunks/mermaid.esm.min/quadrantDiagram-SUBAGY5T.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/radar-4MYH26CV-J7F73TLN.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/radar-4MYH26CV-J7F73TLN.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-UC74YYTJ-NDW2JIG3.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/railroad-UC74YYTJ-NDW2JIG3.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-abnf-63ZTAFXO-CNIYIKXO.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/railroad-abnf-63ZTAFXO-CNIYIKXO.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-ebnf-WVTJNEEQ-DSHHJI4S.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/railroad-ebnf-WVTJNEEQ-DSHHJI4S.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/railroad-peg-W4VBZIEU-7RBE7FRH.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/railroad-peg-W4VBZIEU-7RBE7FRH.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/railroadDiagram-LDGO7TFH.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/railroadDiagram-LDGO7TFH.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/requirementDiagram-AGPKMLJZ.mjs` | 84 | planned | vendor/mermaid/chunks/mermaid.esm.min/requirementDiagram-AGPKMLJZ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/sankeyDiagram-BSWYR3MM.mjs` | 40 | planned | vendor/mermaid/chunks/mermaid.esm.min/sankeyDiagram-BSWYR3MM.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/sequenceDiagram-7K4MKO6P.mjs` | 169 | planned | vendor/mermaid/chunks/mermaid.esm.min/sequenceDiagram-7K4MKO6P.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/sizeCapture-56ELNSSC.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/sizeCapture-56ELNSSC.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/stateDiagram-v2-7EDNTZT3.mjs` | 291 | planned | vendor/mermaid/chunks/mermaid.esm.min/stateDiagram-v2-7EDNTZT3.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/swimlanes-VL4ZZWC5.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/swimlanes-VL4ZZWC5.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/swimlanesDiagram-6D5TTVIN.mjs` | 8 | planned | vendor/mermaid/chunks/mermaid.esm.min/swimlanesDiagram-6D5TTVIN.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/timeline-definition-RSFCTRKZ.mjs` | 120 | planned | vendor/mermaid/chunks/mermaid.esm.min/timeline-definition-RSFCTRKZ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/treeView-OWB7PY5U-RUKUIZU4.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/treeView-OWB7PY5U-RUKUIZU4.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/treemap-B4MHVWJL-DHMOZ63S.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/treemap-B4MHVWJL-DHMOZ63S.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/usecaseDiagram-KXV27WTT.mjs` | 370 | planned | vendor/mermaid/chunks/mermaid.esm.min/usecaseDiagram-KXV27WTT.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/vennDiagram-WTUZ5ZZJ.mjs` | 34 | planned | vendor/mermaid/chunks/mermaid.esm.min/vennDiagram-WTUZ5ZZJ.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/wardley-ZOP5H4X3-LCQ4757O.mjs` | 1 | planned | vendor/mermaid/chunks/mermaid.esm.min/wardley-ZOP5H4X3-LCQ4757O.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/wardleyDiagram-KARA5GED.mjs` | 78 | planned | vendor/mermaid/chunks/mermaid.esm.min/wardleyDiagram-KARA5GED.mjs |
+| `js/vendor/mermaid/chunks/mermaid.esm.min/xychartDiagram-IFGWRUGB.mjs` | 7 | planned | vendor/mermaid/chunks/mermaid.esm.min/xychartDiagram-IFGWRUGB.mjs |
+| `js/vendor/mermaid/mermaid.esm.min.mjs` | 14 | planned | vendor/mermaid/mermaid.esm.min.mjs |
+| `js/vendor/pierre-diffs/LICENSES.md` | 1044 | planned | vendor/pierre-diffs/LICENSES.md |
+| `js/vendor/pierre-diffs/c/c-E6GJF7NI.js` | 1 | planned | vendor/pierre-diffs/c/c-E6GJF7NI.js |
+| `js/vendor/pierre-diffs/c/chunk-44DXQCPQ.js` | 12 | planned | vendor/pierre-diffs/c/chunk-44DXQCPQ.js |
+| `js/vendor/pierre-diffs/c/chunk-4IOWYWJK.js` | 1 | planned | vendor/pierre-diffs/c/chunk-4IOWYWJK.js |
+| `js/vendor/pierre-diffs/c/chunk-55MH5PQL.js` | 1 | planned | vendor/pierre-diffs/c/chunk-55MH5PQL.js |
+| `js/vendor/pierre-diffs/c/chunk-5B225VTB.js` | 1 | planned | vendor/pierre-diffs/c/chunk-5B225VTB.js |
+| `js/vendor/pierre-diffs/c/chunk-5EAMECPK.js` | 1 | planned | vendor/pierre-diffs/c/chunk-5EAMECPK.js |
+| `js/vendor/pierre-diffs/c/chunk-6DRUME2C.js` | 1 | planned | vendor/pierre-diffs/c/chunk-6DRUME2C.js |
+| `js/vendor/pierre-diffs/c/chunk-B5JCA7FL.js` | 6 | planned | vendor/pierre-diffs/c/chunk-B5JCA7FL.js |
+| `js/vendor/pierre-diffs/c/chunk-BK2WVYD3.js` | 1 | planned | vendor/pierre-diffs/c/chunk-BK2WVYD3.js |
+| `js/vendor/pierre-diffs/c/chunk-C4WP6UCZ.js` | 1 | planned | vendor/pierre-diffs/c/chunk-C4WP6UCZ.js |
+| `js/vendor/pierre-diffs/c/chunk-COQVLBQQ.js` | 1 | planned | vendor/pierre-diffs/c/chunk-COQVLBQQ.js |
+| `js/vendor/pierre-diffs/c/chunk-CSVUL5XU.js` | 1 | planned | vendor/pierre-diffs/c/chunk-CSVUL5XU.js |
+| `js/vendor/pierre-diffs/c/chunk-DMZPRWQH.js` | 1 | planned | vendor/pierre-diffs/c/chunk-DMZPRWQH.js |
+| `js/vendor/pierre-diffs/c/chunk-FE5RNAGX.js` | 4 | planned | vendor/pierre-diffs/c/chunk-FE5RNAGX.js |
+| `js/vendor/pierre-diffs/c/chunk-GDS6EWX4.js` | 1 | planned | vendor/pierre-diffs/c/chunk-GDS6EWX4.js |
+| `js/vendor/pierre-diffs/c/chunk-GH32RRK2.js` | 1 | planned | vendor/pierre-diffs/c/chunk-GH32RRK2.js |
+| `js/vendor/pierre-diffs/c/chunk-GSLF6MYV.js` | 1 | planned | vendor/pierre-diffs/c/chunk-GSLF6MYV.js |
+| `js/vendor/pierre-diffs/c/chunk-IZTSSURO.js` | 1 | planned | vendor/pierre-diffs/c/chunk-IZTSSURO.js |
+| `js/vendor/pierre-diffs/c/chunk-JOVE6I5V.js` | 1 | planned | vendor/pierre-diffs/c/chunk-JOVE6I5V.js |
+| `js/vendor/pierre-diffs/c/chunk-KTO25AQE.js` | 1 | planned | vendor/pierre-diffs/c/chunk-KTO25AQE.js |
+| `js/vendor/pierre-diffs/c/chunk-KVYOQB5X.js` | 1 | planned | vendor/pierre-diffs/c/chunk-KVYOQB5X.js |
+| `js/vendor/pierre-diffs/c/chunk-ODSXUJHG.js` | 4 | planned | vendor/pierre-diffs/c/chunk-ODSXUJHG.js |
+| `js/vendor/pierre-diffs/c/chunk-OLGIO5N2.js` | 1 | planned | vendor/pierre-diffs/c/chunk-OLGIO5N2.js |
+| `js/vendor/pierre-diffs/c/chunk-PWFN676X.js` | 1 | planned | vendor/pierre-diffs/c/chunk-PWFN676X.js |
+| `js/vendor/pierre-diffs/c/chunk-Q4NTYJPP.js` | 13 | planned | vendor/pierre-diffs/c/chunk-Q4NTYJPP.js |
+| `js/vendor/pierre-diffs/c/chunk-S2YDH2LV.js` | 1 | planned | vendor/pierre-diffs/c/chunk-S2YDH2LV.js |
+| `js/vendor/pierre-diffs/c/chunk-SCIXL5K2.js` | 1 | planned | vendor/pierre-diffs/c/chunk-SCIXL5K2.js |
+| `js/vendor/pierre-diffs/c/chunk-UFRYVWBF.js` | 1 | planned | vendor/pierre-diffs/c/chunk-UFRYVWBF.js |
+| `js/vendor/pierre-diffs/c/chunk-USZMECQA.js` | 1 | planned | vendor/pierre-diffs/c/chunk-USZMECQA.js |
+| `js/vendor/pierre-diffs/c/chunk-VWA6NOV4.js` | 5 | planned | vendor/pierre-diffs/c/chunk-VWA6NOV4.js |
+| `js/vendor/pierre-diffs/c/chunk-WRI3QP5R.js` | 1 | planned | vendor/pierre-diffs/c/chunk-WRI3QP5R.js |
+| `js/vendor/pierre-diffs/c/chunk-XX3UT7DY.js` | 9 | planned | vendor/pierre-diffs/c/chunk-XX3UT7DY.js |
+| `js/vendor/pierre-diffs/c/chunk-YJIS2WGN.js` | 1 | planned | vendor/pierre-diffs/c/chunk-YJIS2WGN.js |
+| `js/vendor/pierre-diffs/c/chunk-ZJCWFOS4.js` | 2 | planned | vendor/pierre-diffs/c/chunk-ZJCWFOS4.js |
+| `js/vendor/pierre-diffs/c/core-VVROIH2Y.js` | 1 | planned | vendor/pierre-diffs/c/core-VVROIH2Y.js |
+| `js/vendor/pierre-diffs/c/cpp-RQHBHALA.js` | 1 | planned | vendor/pierre-diffs/c/cpp-RQHBHALA.js |
+| `js/vendor/pierre-diffs/c/csharp-MKRDPSCP.js` | 1 | planned | vendor/pierre-diffs/c/csharp-MKRDPSCP.js |
+| `js/vendor/pierre-diffs/c/css-6MBMU5OL.js` | 1 | planned | vendor/pierre-diffs/c/css-6MBMU5OL.js |
+| `js/vendor/pierre-diffs/c/dart-P3RGXNHQ.js` | 1 | planned | vendor/pierre-diffs/c/dart-P3RGXNHQ.js |
+| `js/vendor/pierre-diffs/c/diff-T7NG25EN.js` | 1 | planned | vendor/pierre-diffs/c/diff-T7NG25EN.js |
+| `js/vendor/pierre-diffs/c/docker-XIIWKV2C.js` | 1 | planned | vendor/pierre-diffs/c/docker-XIIWKV2C.js |
+| `js/vendor/pierre-diffs/c/dotenv-CMUSFK6V.js` | 1 | planned | vendor/pierre-diffs/c/dotenv-CMUSFK6V.js |
+| `js/vendor/pierre-diffs/c/elixir-DS2QBGHL.js` | 1 | planned | vendor/pierre-diffs/c/elixir-DS2QBGHL.js |
+| `js/vendor/pierre-diffs/c/engine-javascript-WGSM3T5S.js` | 141 | planned | vendor/pierre-diffs/c/engine-javascript-WGSM3T5S.js |
+| `js/vendor/pierre-diffs/c/go-5SB7NSJA.js` | 1 | planned | vendor/pierre-diffs/c/go-5SB7NSJA.js |
+| `js/vendor/pierre-diffs/c/graphql-PWCE6PFX.js` | 1 | planned | vendor/pierre-diffs/c/graphql-PWCE6PFX.js |
+| `js/vendor/pierre-diffs/c/haskell-BBSSOQDS.js` | 1 | planned | vendor/pierre-diffs/c/haskell-BBSSOQDS.js |
+| `js/vendor/pierre-diffs/c/highlights-CpZm9DAR-L5VU3M23.js` | 1 | planned | vendor/pierre-diffs/c/highlights-CpZm9DAR-L5VU3M23.js |
+| `js/vendor/pierre-diffs/c/highlights-MJMIXFLK.js` | 1 | planned | vendor/pierre-diffs/c/highlights-MJMIXFLK.js |
+| `js/vendor/pierre-diffs/c/html-5SOSCFNQ.js` | 1 | planned | vendor/pierre-diffs/c/html-5SOSCFNQ.js |
+| `js/vendor/pierre-diffs/c/ini-IF5UVB7F.js` | 1 | planned | vendor/pierre-diffs/c/ini-IF5UVB7F.js |
+| `js/vendor/pierre-diffs/c/java-NAPIS6UP.js` | 1 | planned | vendor/pierre-diffs/c/java-NAPIS6UP.js |
+| `js/vendor/pierre-diffs/c/javascript-ZCEZCRIC.js` | 1 | planned | vendor/pierre-diffs/c/javascript-ZCEZCRIC.js |
+| `js/vendor/pierre-diffs/c/json-SYS7OU3R.js` | 1 | planned | vendor/pierre-diffs/c/json-SYS7OU3R.js |
+| `js/vendor/pierre-diffs/c/jsonc-MFFBD67V.js` | 1 | planned | vendor/pierre-diffs/c/jsonc-MFFBD67V.js |
+| `js/vendor/pierre-diffs/c/jsx-UQ5BHUMN.js` | 1 | planned | vendor/pierre-diffs/c/jsx-UQ5BHUMN.js |
+| `js/vendor/pierre-diffs/c/kotlin-N5GQ32KB.js` | 1 | planned | vendor/pierre-diffs/c/kotlin-N5GQ32KB.js |
+| `js/vendor/pierre-diffs/c/langs-5KGCJDPZ.js` | 1 | planned | vendor/pierre-diffs/c/langs-5KGCJDPZ.js |
+| `js/vendor/pierre-diffs/c/latex-OQSUTTNG.js` | 1 | planned | vendor/pierre-diffs/c/latex-OQSUTTNG.js |
+| `js/vendor/pierre-diffs/c/loader-6BPACEYP.js` | 1 | planned | vendor/pierre-diffs/c/loader-6BPACEYP.js |
+| `js/vendor/pierre-diffs/c/lua-KXL4G3GA.js` | 1 | planned | vendor/pierre-diffs/c/lua-KXL4G3GA.js |
+| `js/vendor/pierre-diffs/c/make-CHGIBE4M.js` | 1 | planned | vendor/pierre-diffs/c/make-CHGIBE4M.js |
+| `js/vendor/pierre-diffs/c/markdown-DWIMHI7Z.js` | 1 | planned | vendor/pierre-diffs/c/markdown-DWIMHI7Z.js |
+| `js/vendor/pierre-diffs/c/nginx-SFYOZ5NK.js` | 1 | planned | vendor/pierre-diffs/c/nginx-SFYOZ5NK.js |
+| `js/vendor/pierre-diffs/c/oniguruma-IXU7JXLS.js` | 1 | planned | vendor/pierre-diffs/c/oniguruma-IXU7JXLS.js |
+| `js/vendor/pierre-diffs/c/perl-AI7KVWEH.js` | 1 | planned | vendor/pierre-diffs/c/perl-AI7KVWEH.js |
+| `js/vendor/pierre-diffs/c/php-2SGPQ4A5.js` | 1 | planned | vendor/pierre-diffs/c/php-2SGPQ4A5.js |
+| `js/vendor/pierre-diffs/c/powershell-GXXOQ3HP.js` | 1 | planned | vendor/pierre-diffs/c/powershell-GXXOQ3HP.js |
+| `js/vendor/pierre-diffs/c/proto-DI3CFL5G.js` | 1 | planned | vendor/pierre-diffs/c/proto-DI3CFL5G.js |
+| `js/vendor/pierre-diffs/c/python-XMBOHMX6.js` | 1 | planned | vendor/pierre-diffs/c/python-XMBOHMX6.js |
+| `js/vendor/pierre-diffs/c/r-SU5RVNXF.js` | 1 | planned | vendor/pierre-diffs/c/r-SU5RVNXF.js |
+| `js/vendor/pierre-diffs/c/ruby-JRIUYIIZ.js` | 1 | planned | vendor/pierre-diffs/c/ruby-JRIUYIIZ.js |
+| `js/vendor/pierre-diffs/c/rust-JNCTHA6A.js` | 1 | planned | vendor/pierre-diffs/c/rust-JNCTHA6A.js |
+| `js/vendor/pierre-diffs/c/scala-J7ONKWUX.js` | 1 | planned | vendor/pierre-diffs/c/scala-J7ONKWUX.js |
+| `js/vendor/pierre-diffs/c/scss-MP6KL4J4.js` | 1 | planned | vendor/pierre-diffs/c/scss-MP6KL4J4.js |
+| `js/vendor/pierre-diffs/c/shellscript-2QU7FDIP.js` | 1 | planned | vendor/pierre-diffs/c/shellscript-2QU7FDIP.js |
+| `js/vendor/pierre-diffs/c/shiki-Ci4cdHsM-U4UNITAV.js` | 1 | planned | vendor/pierre-diffs/c/shiki-Ci4cdHsM-U4UNITAV.js |
+| `js/vendor/pierre-diffs/c/shiki-HQIGNS47.js` | 1 | planned | vendor/pierre-diffs/c/shiki-HQIGNS47.js |
+| `js/vendor/pierre-diffs/c/sql-F4K6GFK6.js` | 1 | planned | vendor/pierre-diffs/c/sql-F4K6GFK6.js |
+| `js/vendor/pierre-diffs/c/svelte-R7ATBZQS.js` | 1 | planned | vendor/pierre-diffs/c/svelte-R7ATBZQS.js |
+| `js/vendor/pierre-diffs/c/swift-FUMICI7N.js` | 1 | planned | vendor/pierre-diffs/c/swift-FUMICI7N.js |
+| `js/vendor/pierre-diffs/c/terraform-JDOODVTS.js` | 1 | planned | vendor/pierre-diffs/c/terraform-JDOODVTS.js |
+| `js/vendor/pierre-diffs/c/themes-4UDBBRQT.js` | 1 | planned | vendor/pierre-diffs/c/themes-4UDBBRQT.js |
+| `js/vendor/pierre-diffs/c/toml-JQUNO2V7.js` | 1 | planned | vendor/pierre-diffs/c/toml-JQUNO2V7.js |
+| `js/vendor/pierre-diffs/c/tsx-MCB6U7AX.js` | 1 | planned | vendor/pierre-diffs/c/tsx-MCB6U7AX.js |
+| `js/vendor/pierre-diffs/c/typescript-Y4D3EEH2.js` | 1 | planned | vendor/pierre-diffs/c/typescript-Y4D3EEH2.js |
+| `js/vendor/pierre-diffs/c/vue-WTJ4E6DF.js` | 1 | planned | vendor/pierre-diffs/c/vue-WTJ4E6DF.js |
+| `js/vendor/pierre-diffs/c/wasm-SMWGFCOR.js` | 1 | planned | vendor/pierre-diffs/c/wasm-SMWGFCOR.js |
+| `js/vendor/pierre-diffs/c/xml-QIC37UDC.js` | 1 | planned | vendor/pierre-diffs/c/xml-QIC37UDC.js |
+| `js/vendor/pierre-diffs/c/yaml-5I454EOF.js` | 1 | planned | vendor/pierre-diffs/c/yaml-5I454EOF.js |
+| `js/vendor/pierre-diffs/diffs.js` | 157 | planned | vendor/pierre-diffs/diffs.js |
 | `js/vendor/pierre-diffs/edit.js` | 68 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6): nothing imported it |
-| `js/vendor/pierre-diffs/manifest.json` | 187 | vendor | js/vendor/pierre-diffs/manifest.json |
-| `js/vendor/pierre-diffs/worker.js` | 1 | vendor | js/vendor/pierre-diffs/worker.js |
-| `js/vendor/pierre/LICENSE.md` | 189 | vendor | js/vendor/pierre/LICENSE.md |
-| `js/vendor/pierre/NOTICE.md` | 35 | vendor | js/vendor/pierre/NOTICE.md |
-| `js/vendor/pierre/icons.js` | 5 | vendor | js/vendor/pierre/icons.js |
-| `js/vendor/xterm/LICENSE-addon-fit` |  | vendor | js/vendor/xterm/LICENSE-addon-fit |
-| `js/vendor/xterm/LICENSE-xterm` |  | vendor | js/vendor/xterm/LICENSE-xterm |
-| `js/vendor/xterm/README.md` | 20 | vendor | js/vendor/xterm/README.md |
-| `js/vendor/xterm/addon-fit.mjs` | 18 | vendor | js/vendor/xterm/addon-fit.mjs |
-| `js/vendor/xterm/xterm.css` | 285 | vendor | js/vendor/xterm/xterm.css |
-| `js/vendor/xterm/xterm.mjs` | 53 | vendor | js/vendor/xterm/xterm.mjs |
+| `js/vendor/pierre-diffs/manifest.json` | 187 | planned | vendor/pierre-diffs/manifest.json |
+| `js/vendor/pierre-diffs/worker.js` | 1 | planned | vendor/pierre-diffs/worker.js |
+| `js/vendor/pierre/LICENSE.md` | 189 | planned | vendor/pierre/LICENSE.md |
+| `js/vendor/pierre/NOTICE.md` | 35 | planned | vendor/pierre/NOTICE.md |
+| `js/vendor/pierre/icons.js` | 5 | planned | vendor/pierre/icons.js |
+| `js/vendor/xterm/LICENSE-addon-fit` |  | planned | vendor/xterm/LICENSE-addon-fit |
+| `js/vendor/xterm/LICENSE-xterm` |  | planned | vendor/xterm/LICENSE-xterm |
+| `js/vendor/xterm/README.md` | 20 | planned | vendor/xterm/README.md |
+| `js/vendor/xterm/addon-fit.mjs` | 18 | planned | vendor/xterm/addon-fit.mjs |
+| `js/vendor/xterm/xterm.css` | 285 | planned | vendor/xterm/xterm.css |
+| `js/vendor/xterm/xterm.mjs` | 53 | planned | vendor/xterm/xterm.mjs |
 
 ## assets (386)
 
