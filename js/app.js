@@ -10,7 +10,7 @@ import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { ICON, stepMark, stateMark, XO, $, RM, reconcile, wait, hold, morph, expand } from "./ui.js";
+import { ICON, stepMark, stateMark, XO, $, RM, reconcile, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
 import { stopWords, uiMsg, forwardOrigin, echoes, threadAnchors, connLine, plainText, hopLine, relayedInto, waitsForTurn, hopNotes, reactionGroups, pageFloor, inPage, canPageOlder, heldWords, heldShort, heldBadge } from "./timeline.js";
 import { turnHtml, turnAv, turnSegments, segmentTurn, stepLineHtml } from "./turnview.js";
@@ -35,9 +35,9 @@ import { createConversationStops } from "../modules/conversation/stops.js";
 import { createDelivery } from "../modules/conversation/delivery.js";
 import { createComposerTarget } from "../modules/conversation/target.js";
 import { createMentionList } from "../modules/conversation/mention.js";
-import { fitDock, dockEdges } from "../modules/decisions/dock-layout.js";
+import { createDock } from "../modules/decisions/dock.js";
 import { tickElapsed } from "../shell/elapsed.js";
-import { headOf, goneLine } from "../modules/decisions/cardparts.js";
+import { headOf } from "../modules/decisions/cardparts.js";
 import { createAccounts } from "../modules/settings/accounts.js";
 import { decorateConversation } from "./msgx.js";
 import { createViewer } from "./viewer.js";
@@ -1045,146 +1045,8 @@ runsCard.addEventListener("click", (e) => {
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
-function createDock({ el: tdock, view, region, TD = { key: null, item: null, busy: false, undone: null, gen: 0 } }) {
-  const placeRegion = region;
-function dockSwap(fill, to = null, opts = null) {
-  const had = tdock.contains(document.activeElement);
-  const run = () => {
-    fill();
-    if (had && !tdock.contains(document.activeElement)) (to && usable(to) ? to : placeRegion()).focus({ preventScroll: true });
-  };
-  if (opts) morph(tdock, run, opts); else run();
-}
-/** Another conversation in this dock: what it showed goes with the state that drew it, and work still running for it stops. */
-function reset() {
-  Object.assign(TD, { key: null, item: null, busy: false, undone: null, gen: TD.gen + 1 });
-  tdock._ch = "";
-  dockRO.disconnect();
-  dockSwap(() => tdock.replaceChildren());
-}
-  const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
-const GONE_FRESH = 5000; // a withdrawal older than this was not what just emptied the dock
-const dockRO = new ResizeObserver(() => { const f = tdock.querySelector(".card.is-dock"); if (f) fitDock(f); });
-tdock.addEventListener("scroll", () => { const f = tdock.querySelector(".card.is-dock"); if (f) dockEdges(f); }, { capture: true, passive: true });
-function dockRender(needs) {
-  // a chat: its "send now" question first, else its own open decision (the chat's host), as a thread docks one
-  const hc = CH.isChats(view()) ? CH.confirmHtml(view()) : "";
-  if (hc) { if (tdock._ch !== hc) { dockSwap(() => { tdock.innerHTML = hc; }); tdock._ch = hc; TD.key = null; } return; }
-  if (tdock._ch) { tdock._ch = ""; dockSwap(() => { tdock.innerHTML = ""; }); TD.key = null; }
-  if (view() === "chats") { if (TD.key) { TD.key = null; dockSwap(() => { tdock.innerHTML = ""; }); } return; }
-  const t = convThread(view()) || convHost(view());
-  const n = t && !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
-  // Folded: the person chose to read the thread first. The ask waits as one slim line, and the
-  // conversation isn't dimmed. A new ask on this thread docks open again.
-  const folded = !!(n && S.dockFold[n.key]);
-  const key = n ? n.key + (folded ? "|fold" : "") : null;
-  if (TD.busy || key === TD.key) return;
-  const prev = TD.key, gone = !n && prev ? world.state.gone.get(TD.item) : null;
-  TD.key = key;
-  TD.item = n && n.ask.item ? n.ask.item.id : null;
-  if (!n) {
-    if (!prev) { dockSwap(() => { tdock.innerHTML = ""; }); return; }
-    if (gone && Date.now() - gone.at < GONE_FRESH) { goneRender(gone); return; }
-    dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 300 });
-    return;
-  }
-  const head = (() => { const tp = document.createElement("template"); tp.innerHTML = D.cardHtml(n, "dock").trim(); return tp.content.querySelector(".c-h")?.textContent.trim() || askShort(n); })();
-  if (folded) {
-    const E = EFFORT[n.effort];
-    const bar = document.createElement("button");
-    bar.type = "button";
-    bar.className = `dock-fold r-${n.risk}`;
-    bar.dataset.unfold = n.key;
-    bar.title = "Open the decision";
-    bar.innerHTML = `${stateMark(n.group === "stopped" ? "failed" : "needs_reply")}<span class="df-t">${esc(head)}</span><span class="df-e">${esc(E.label)} ${esc(E.time)}</span><span class="df-go">Open ${ICON.chevron}</span>`;
-    dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(bar); }, bar, { duration: 300 });
-    return;
-  }
-  const frame = document.createElement("article");
-  frame.className = `card is-dock r-${n.risk} e-${n.effort}`;
-  frame.tabIndex = -1;
-  frame.setAttribute("aria-roledescription", "decision");
-  frame.innerHTML = `<div class="stamp stamp-allow" aria-hidden="true">${ICON.stampAllow}</div><div class="stamp stamp-back" aria-hidden="true">${ICON.stampBack}</div>`;
-  const tpl = document.createElement("template");
-  tpl.innerHTML = D.cardHtml(n, "dock").trim();
-  const inner = tpl.content.firstElementChild;
-  frame.appendChild(inner);
-  frame.setAttribute("aria-labelledby", inner.querySelector(".c-h").id);
-  const what = t.host ? "chat" : "thread";
-  // it sits in the card's own top row, on the effort label's line (hub #27), not floating over it
-  (inner.querySelector(".c-top") || frame).insertAdjacentHTML("beforeend", `<button type="button" class="dock-hide" data-fold="${esc(n.key)}" title="Fold it away and read the ${what} first">${ICON.chevron}<span>Read the ${what} first</span></button>`);
-  dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(frame); fitDock(frame); }, frame, { duration: prev ? 300 : 360, fade: frame });
-  dockRO.disconnect();
-  for (const el of [frame, frame.querySelector(".c-body"), frame.querySelector(".c-act")]) if (el) dockRO.observe(el);
-  D.wireCard(frame, inner, n, {
-    surface: "dock",
-    onStep: keepBottom,
-    after: async (how) => {
-      TD.busy = true;
-      const gen = TD.gen;
-      if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380); if (TD.gen !== gen) return; }
-      if (how !== "later") {
-        // one calm line in place of the card, then it folds away
-        const e = D.decisions()[0];
-        const verb = e && e.verb === "Answered" ? `Answered “${e.said}”` : e ? e.verb : "Done";
-        // the control pressed (Allow, an option, Send) goes with the card: focus goes to this line's Undo, at once
-        const had = frame.contains(document.activeElement);
-        morph(frame, () => {
-          frame.className = "card is-dock r-done"; frame.innerHTML = `<p class="tp-done${how === "back" ? " is-back" : ""}" role="status"><span class="tp-done-ic">${how === "back" ? ICON.rewind : ICON.check}</span><span title="${esc(verb)}."><b>${esc(verb)}.</b> ${how === "back" ? "It's taking another route." : "It's back at work."}</span><button type="button" class="tp-done-u" data-dock-undo>Undo</button></p>`;
-          if (had && !frame.contains(document.activeElement)) frame.querySelector("[data-dock-undo]").focus({ preventScroll: true });
-        }, { duration: 300 });
-        // the only Undo for this decision now: it stays for the whole 3 s window, in real time (hold, not wait:
-        // reduced motion cuts the stamp's animation, never the time to Undo). Undone, the line ends there and then:
-        // the card is back at once, and focus with it if it was on the Undo
-        let undone = false;
-        await new Promise((end) => { TD.undone = { key: n.key, end: () => { undone = true; end(); } }; hold(RM.matches ? 3000 : 2700).then(end); });
-        if (TD.gen !== gen) return;
-        TD.undone = null;
-        if (undone) { TD.busy = false; TD.key = null; dockRender(D.needItems()); schedule(); return; }
-      }
-      TD.busy = false;
-      TD.key = "__settling";
-      dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 320 });
-      TD.key = null;
-      schedule();
-    },
-  });
-}
-/** The item withdrawn or expired under the dock: one line says so for 3 s, in Space's words, then the dock clears. */
-async function goneRender(g) {
-  const L = goneLine(g);
-  const line = document.createElement("article");
-  line.className = "card is-dock r-done";
-  line.innerHTML = `<p class="tp-done is-gone" role="status"><span class="tp-done-ic">${ICON.clock}</span><span title="${esc(`${L.head}. ${L.text}`)}"><b>${esc(L.head)}.</b> ${esc(L.text)}</span></p>`;
-  TD.busy = true;
-  dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(line); }, null, { duration: 300 });
-  const gen = TD.gen;
-  await hold(3000);
-  if (TD.gen !== gen) return;
-  TD.busy = false;
-  TD.key = "__settling";
-  dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 320 });
-  TD.key = null;
-  schedule();
-}
-tdock.addEventListener("click", (e) => {
-  if (e.target.closest("[data-dock-more]")) { tdock.querySelector(".card.is-dock .c-act")?.scrollIntoView({ block: "end", behavior: RM.matches ? "auto" : "smooth" }); return; }
-  const f = e.target.closest("[data-fold]");
-  if (f) { S.dockFold[f.dataset.fold] = true; dockRender(D.needItems()); placeRegion().focus({ preventScroll: true }); return; }
-  const u = e.target.closest("[data-unfold]");
-  // the card takes focus in the step that draws it, not a frame later: the line pressed is gone by then (S240)
-  if (u) { delete S.dockFold[u.dataset.unfold]; dockRender(D.needItems()); tdock.querySelector(".card")?.focus({ preventScroll: true }); return; }
-  if (e.target.closest("[data-dock-undo]")) D.undo();
-});
-tdock.addEventListener("keydown", (e) => {
-  const card = tdock.querySelector(".card");
-  if (!card) return;
-  D.cardKeys(e, card, {});
-});
-  dockGestures(tdock);
-  return { render: dockRender, reset, TD, el: tdock };
-}
-const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, item: null, busy: false, undone: null, gen: 0 } });
+const dockDeps = { CH, D, S, world, convThread, convHost, askShort, schedule, dockGestures };
+const MDOCK = createDock({ el: tdock, view: () => S.view, region: () => placeRegion(), TD: { key: null, item: null, busy: false, undone: null, gen: 0 } }, dockDeps);
 const TD = MDOCK.TD;
 const dockRender = (needs) => MDOCK.render(needs);
 
@@ -1659,7 +1521,7 @@ function tpMount(box) {
     tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
   wireComposer(TP.K);
   wireTray(TP.K);
-  TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller });
+  TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => TP.C.scroller }, dockDeps);
   // its ⋯ lives in the panel's head
   const acts = document.createElement("span");
   acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";

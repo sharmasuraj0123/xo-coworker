@@ -7253,12 +7253,12 @@
    "home": "modules/runs/stop.js"
   },
   "js/app.js::functions::createDock": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1718)"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::dockSwap": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1725)"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::fitDock": {
    "status": "moved",
@@ -7269,8 +7269,8 @@
    "home": "modules/decisions/dock-layout.js"
   },
   "js/app.js::functions::dockRender": {
-   "status": "planned",
-   "home": "modules/decisions (`dock.card` place renderer); chat confirm via a `dock.card` priority-chain (chats first) (app.js l.1775)"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::openAsk": {
    "status": "planned",
@@ -15435,8 +15435,8 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::goneRender": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::toastLine": {
    "status": "kept",

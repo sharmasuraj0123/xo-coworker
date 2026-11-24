@@ -55,9 +55,9 @@ console.log("thread-page: ok");
   // what it asks you: the chat's own dock over the page's element (one code path, the owner 19 Nov 17:52Z): its
   // card, its fold to a slim line and back (⌄, a drag), its Undo
   assert.match(a, /TP\.dock\.render\(needs\);/);
-  assert.match(a, /TP\.dock = createDock\(\{ el: \$\("#tptdock"\), view: tpView, region: \(\) => TP\.C\.scroller \}\);/);
+  assert.match(a, /TP\.dock = createDock\(\{ el: \$\("#tptdock"\), view: tpView, region: \(\) => TP\.C\.scroller \}, dockDeps\);/);
   assert.match(a, /const MDOCK = createDock\(\{ el: tdock, view: \(\) => S\.view, region: \(\) => placeRegion\(\)/);
-  const cd = a.slice(a.indexOf("function createDock("), a.indexOf("const MDOCK = createDock("));
+  const cd = readFileSync(new URL("../modules/decisions/dock.js", import.meta.url), "utf8");
   assert.match(cd, /tpl\.innerHTML = D\.cardHtml\(n, "dock"\)\.trim\(\);/);
   assert.match(cd, /data-fold="\$\{esc\(n\.key\)\}"/, "the fold control");
   assert.match(cd, /bar\.dataset\.unfold = n\.key;/, "folded: a slim line that opens it again");
