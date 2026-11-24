@@ -132,11 +132,8 @@ export function createWorkingTurn(E, scope) {
       const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: text });
       wt.append(line);
     }
-    let pv = msgs.lastElementChild;
-    while (pv && (pv === el || pv.classList.contains("mx-live"))) pv = pv.previousElementSibling;
     const said = el.classList.contains("has-said");
     w.classList.add("is-them");
-    w.classList.toggle("mx-tail", !said && !(pv && pv.matches(".m-them:not(.mx-other)")));
     w.classList.toggle("mx-under", said && !!el.querySelector(":scope > .mb > .turn > .tb-work"));
     /** @type {Working} */
     const st = Object.assign(was || {}, { text, pill: w, since, swapped: !was || was.text !== text ? now : was.swapped });
@@ -263,5 +260,15 @@ export function createWorkingTurn(E, scope) {
     if (el.contains(a) && !shown(a)) { const w = el.querySelector(":scope > .mb > .mx-work"); if (shown(w)) w.focus({ preventScroll: true }); }
   }
 
-  return { working, restoreFocus, updateOrder };
+  function updateTails() {
+    if (!active.size) return;
+    let previous = msgs.lastElementChild;
+    while (previous?.classList.contains("mx-live")) previous = previous.previousElementSibling;
+    const continuesAgent = previous?.matches(".m-them:not(.mx-other)");
+    for (const [row, { pill }] of active) {
+      if (row.parentNode === msgs) pill.classList.toggle("mx-tail", !continuesAgent && !row.classList.contains("has-said"));
+    }
+  }
+
+  return { working, restoreFocus, updateOrder, updateTails };
 }

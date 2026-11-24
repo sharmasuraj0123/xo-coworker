@@ -61,11 +61,22 @@ function turn(list) {
   list.append(row);
   return row;
 }
+function agent(key, name, text, main = false) {
+  const row = document.createElement("div");
+  row.className = "m m-them";
+  row.dataset.k = key;
+  row.innerHTML = '<span class="av"></span><div class="mb"><div class="mh"><b></b></div><div class="prose"></div></div>';
+  row.querySelector(".av").classList.toggle("av-t", main);
+  row.querySelector(".mh b").textContent = name;
+  row.querySelector(".prose").textContent = text;
+  row.getBoundingClientRect = rect;
+  return row;
+}
 const first = message("first"), duplicate = message("duplicate");
 first.getBoundingClientRect = () => ({ top: 900, bottom: 920, height: 20 });
 duplicate.getBoundingClientRect = () => ({ top: 1800, bottom: 1820, height: 20 });
 const history = [first, duplicate, ...Array.from({ length: 498 }, (_, i) => message(`old-${i}`))];
-one.msgs.append(...history);
+one.msgs.append(...history, agent("primary", "Main", "Earlier message", true), agent("other", "Coordinator", "A unique historical source"));
 const firstTurn = turn(one.msgs), secondTurn = turn(two.msgs);
 let oldVisits = 0;
 for (const row of history) {
@@ -76,7 +87,17 @@ for (const row of history) {
   };
 }
 const A = one.mount(), B = two.mount();
+await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+const pill = firstTurn.querySelector(".mx-work");
+assert.ok(pill.classList.contains("mx-tail"), "classified coordinator leaves a tail on the live pill");
+let workingReads = 0;
+firstTurn.getBoundingClientRect = () => { workingReads++; return rect(); };
+oldVisits = 0;
+one.msgs.append(agent("more", "Main", "A unique historical source", true));
 await settle();
+assert.equal(oldVisits, 0);
+assert.equal(workingReads, 0, "appending only updates the active pill's tail");
+assert.ok(!pill.classList.contains("mx-tail"), `the same agent continues into the live pill with ${oldVisits} old row decorations`);
 const start = performance.now();
 const added = message("new", "A new message");
 one.msgs.append(added);
@@ -85,6 +106,7 @@ await settle();
 console.log(`decoration append to 500 rows: ${(performance.now() - start).toFixed(1)} ms, ${oldVisits} old row decorations`);
 assert.equal(oldVisits, 0);
 assert.ok(added.querySelector(".mx-swipe"));
+assert.ok(pill.classList.contains("mx-tail"), "a user message breaks the pill's run");
 const replacement = added.firstElementChild;
 replacement.textContent = "🙂";
 added.dispatchEvent(new window.Event("redrawn", { bubbles: true }));
@@ -105,6 +127,18 @@ click(jump);
 assert.ok(!one.follow.isPinned());
 assert.ok(first.classList.contains("mx-flash"));
 assert.ok(!duplicate.classList.contains("mx-flash"));
+
+const historicalSource = one.msgs.querySelector('[data-k="other"]');
+const historical = message("historical", "> **Coordinator**\n> unique historical source\n\nOld reply");
+const ambiguous = message("ambiguous", "> **You**\n> Repeated\n\nAnother old reply");
+one.msgs.append(historical, ambiguous);
+await settle();
+one.follow.toLatest();
+click(ambiguous.querySelector(".mx-qc"));
+assert.ok(one.follow.isPinned(), "duplicate excerpts by the same author leave the view alone");
+click(historical.querySelector(".mx-qc"));
+assert.ok(!one.follow.isPinned());
+assert.ok(historicalSource.classList.contains("mx-flash"), "the attributed excerpt selects the unique earlier row");
 
 const [tickOne] = intervals;
 assert.equal(intervals.size, 2);

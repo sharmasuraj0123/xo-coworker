@@ -17,7 +17,12 @@ g.MutationObserver = class extends window.MutationObserver {
 };
 g.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 const store = new Map();
-g.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
+let refusesRating = false;
+g.localStorage = {
+  getItem: (k) => store.get(k) ?? null,
+  setItem: (k, v) => { if (refusesRating) throw new Error("Storage refused the write"); store.set(k, String(v)); },
+  removeItem: (k) => store.delete(k),
+};
 g.isSecureContext = true;
 const copied = [];
 Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (t) => { copied.push(t); } } });
@@ -79,6 +84,13 @@ assert.equal(good.getAttribute("aria-pressed"), "false"); assert.equal(bad.getAt
 click(bad);
 assert.equal(bad.getAttribute("aria-pressed"), "false");
 assert.deepEqual(JSON.parse(store.get("xo-msg-rating")), {}, "taken back");
+refusesRating = true;
+click(good);
+assert.equal(good.getAttribute("aria-pressed"), "true", "a refused write keeps the selected rating in memory");
+assert.deepEqual(JSON.parse(store.get("xo-msg-rating")), {});
+click(good);
+assert.equal(good.getAttribute("aria-pressed"), "false", "the rejected write can still be toggled back");
+refusesRating = false;
 
 // Copy under a reply copies the whole run the speaker said, each message a paragraph
 const c1 = add(them("c1", "First part.")), c2 = add(them("c2", "Second part.", { cont: true }));

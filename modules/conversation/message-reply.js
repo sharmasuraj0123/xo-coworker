@@ -29,6 +29,9 @@ export function wireMessageReply(E, scope, { nameIn, textOf, runText, rate }) {
   /** @param {string} s */
   const clip = (s, n = 220) => { s = s.replace(/\s+/g, " ").trim(); return s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, "") + "…" : s; };
 
+  /** @param {HTMLElement} row */
+  const sourceText = (row) => textOf(row) || (row.querySelector(".mx-stack, .tb-files") ? "A picture" : "");
+
   const convNow = () => (E.view ? E.view() : (/** @type {HTMLElement} */ (document.getElementById("app"))).dataset.conv || "");
   /** @param {Reply | null} r @param {boolean} [animate] */
   function showReply(r, animate) {
@@ -44,7 +47,7 @@ export function wireMessageReply(E, scope, { nameIn, textOf, runText, rate }) {
   /** @param {HTMLElement} m @param {string} [text] */
   function startReply(m, text) {
     const who = nameIn(m);
-    const excerpt = text ? text.trim() : clip(textOf(m) || (m.querySelector(".mx-stack, .tb-files") ? "A picture" : ""));
+    const excerpt = text ? text.trim() : clip(sourceText(m));
     const r = { who, text: excerpt, conv: convNow(), source: m.dataset.k };
     replies.set(r.conv, r);
     showReply(r, true);
@@ -77,6 +80,22 @@ export function wireMessageReply(E, scope, { nameIn, textOf, runText, rate }) {
   }, true);
   scope.listen(document, "submit", (e) => { if (e.target === composer && E.send.dataset.mode !== "stop") withQuote(); }, true);
 
+  /** @param {HTMLElement} quote @param {Element} replyRow */
+  function legacySource(quote, replyRow) {
+    const author = quote.dataset.mxQuoteAuthor;
+    const excerpt = quote.querySelector("span")?.textContent;
+    if (!author || !excerpt) return null;
+    let source = null;
+    for (let row = replyRow.previousElementSibling; row; row = row.previousElementSibling) {
+      if (!(row instanceof HTMLElement) || !row.matches(".m[data-k]:not(.m-card)") || nameIn(row) !== author) continue;
+      const text = sourceText(row).replace(/\s+/g, " ").trim();
+      if (clip(text) !== excerpt && !text.includes(excerpt)) continue;
+      if (source) return null;
+      source = row;
+    }
+    return source;
+  }
+
   scope.listen(msgs, "click", async (e) => {
     const g = (/** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest("[data-mx-rate]")));
     if (g) { rate(g); return; }
@@ -98,17 +117,16 @@ export function wireMessageReply(E, scope, { nameIn, textOf, runText, rate }) {
       else { c.innerHTML = IC.copy; say(COPY_REFUSED); }
       return;
     }
-    const q = (/** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest("[data-mx-jump]")));
-    if (q) {
-      const key = q.dataset.mxJump;
-      if (!key) return;
-      const hit = msgs.querySelector(`:scope > .m[data-k="${CSS.escape(key)}"]`);
-      if (!hit || hit === q.closest(".m")) return;
-      E.follow.toRow(hit, true);
-      hit.classList.remove("mx-flash");
-      void (/** @type {HTMLElement} */ (hit)).offsetWidth;
-      hit.classList.add("mx-flash");
-    }
+    const q = /** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest("[data-mx-jump], [data-mx-quote-author]"));
+    const replyRow = q?.closest(".m");
+    if (!q || replyRow?.parentElement !== msgs) return;
+    const key = q.dataset.mxJump;
+    const hit = key ? msgs.querySelector(`:scope > .m[data-k="${CSS.escape(key)}"]`) : legacySource(q, replyRow);
+    if (!hit || hit === replyRow) return;
+    E.follow.toRow(hit, true);
+    hit.classList.remove("mx-flash");
+    void (/** @type {HTMLElement} */ (hit)).offsetWidth;
+    hit.classList.add("mx-flash");
   });
 
   const qpop = document.createElement("button");

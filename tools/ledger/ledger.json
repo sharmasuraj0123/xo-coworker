@@ -11243,7 +11243,13 @@
   },
   "js/msgx.js::storage::xo-msg-rating": {
    "status": "moved",
-   "home": "modules/conversation/decoration.js"
+   "home": "modules/conversation/decoration.js",
+   "evidence": {
+    "modules/conversation/decoration.js": {
+     "anchor": "const RATE_KEY = \"xo-msg-rating\";",
+     "reason": "Conversation decoration retains the rating key and uses the shared storage boundary."
+    }
+   }
   },
   "js/msgx.js::routes::/api/chat/chats/{}/messages/{}/rating": {
    "status": "deleted",

@@ -1,6 +1,7 @@
 // @ts-check
 import { createScope } from "../../core/kernel/scope.js";
 import { createScheduler } from "../../core/kernel/scheduler.js";
+import { read, write } from "../../core/platform/storage.js";
 import { wordsOf } from "./words.js";
 import { IC } from "./decoration-icons.js";
 import { mountLatestButton } from "./latest-button.js";
@@ -81,14 +82,11 @@ export function decorateConversation(E) {
       card.type = "button"; card.className = "mx-qc"; card.title = "Go to the message"; card.dataset.own = "";
       card.innerHTML = `<b></b><span></span>`;
     }
-    if (source) {
-      card.dataset.mxJump = source;
-      card.title = "Go to the message";
-    } else {
-      delete card.dataset.mxJump;
-      card.removeAttribute("title");
-    }
-    card.disabled = !source;
+    const legacy = who && said && !attribution?.[2] ? who : "";
+    if (source) card.dataset.mxJump = source; else delete card.dataset.mxJump;
+    if (legacy) card.dataset.mxQuoteAuthor = legacy; else delete card.dataset.mxQuoteAuthor;
+    card.disabled = !source && !legacy;
+    card.title = card.disabled ? "" : "Go to the message";
     (/** @type {HTMLElement} */ (card.querySelector("b"))).textContent = who || "Quote";
     (/** @type {HTMLElement} */ (card.querySelector("span"))).textContent = said;
     tn.nodeValue = rest;
@@ -139,6 +137,7 @@ export function decorateConversation(E) {
     const kids = [.../** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children)];
     updateOrder();
     markAuthors(kids);
+    updateTails();
     for (const el of kids) {
       if (!el.classList.contains("m")) continue;
       const b = bubbleOf(el);
@@ -187,8 +186,7 @@ export function decorateConversation(E) {
   const ROWS = new Map(); // row key → its action row element
   const RATE_KEY = "xo-msg-rating";
   /** @type {Map<string | undefined, unknown>} */
-  let RATED;
-  try { RATED = new Map(Object.entries(JSON.parse(localStorage.getItem(RATE_KEY) || "{}"))); } catch { RATED = new Map(); }
+  const RATED = read(RATE_KEY, (raw) => new Map(Object.entries(JSON.parse(raw))), new Map());
   /** @param {HTMLElement} el */
   function rowFor(el) {
     const k = el.dataset.k;
@@ -242,9 +240,7 @@ export function decorateConversation(E) {
     if (!k) return;
     const want = btn.dataset.mxRate, rating = RATED.get(k) === want ? null : want;
     if (rating) RATED.set(k, rating); else RATED.delete(k);
-    try { localStorage.setItem(RATE_KEY, JSON.stringify(Object.fromEntries(RATED))); } catch (error) {
-      if (!(error instanceof DOMException)) throw error;
-    }
+    write(RATE_KEY, JSON.stringify(Object.fromEntries(RATED)));
     for (const b of (/** @type {NodeListOf<HTMLElement>} */ ((/** @type {HTMLElement} */ (btn.closest(".mx-actrow"))).querySelectorAll("[data-mx-rate]")))) b.setAttribute("aria-pressed", String(b.dataset.mxRate === rating));
     const live = document.getElementById("live");
     if (live) { live.textContent = ""; scope.timeout(() => { live.textContent = rating ? `Marked as a ${rating} response.` : "Rating taken back."; }, 40); }
@@ -289,7 +285,7 @@ export function decorateConversation(E) {
   scope.observe(typingSize);
   typingSize.observe(E.typing);
 
-  const { working, restoreFocus, updateOrder } = createWorkingTurn(E, scope);
+  const { working, restoreFocus, updateOrder, updateTails } = createWorkingTurn(E, scope);
   scope.effect(() => scheduler.onFlush("list", decorateList));
 
   /** @param {Iterable<HTMLElement>} rows */
