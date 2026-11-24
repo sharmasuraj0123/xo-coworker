@@ -26,7 +26,7 @@ else {
   Object.assign(globalThis, { window, document, HTMLElement: window.HTMLElement, CustomEvent: window.CustomEvent, Event: window.Event,
     CSS: { escape: (x) => String(x) }, requestAnimationFrame: (f) => setTimeout(f, 0), matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
     innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} } });
-  const { reconcile } = await import("../js/ui.js");
+  const { reconcile } = await import("../core/ui/redraw.js");
     const turn = (n) => `<div class="m m-turn"><div class="mb">${Array.from({ length: n }, (_, i) => `<div class="st" data-st="${i}"><span class="tick"></span>Step ${i}</div>`).join("")}<span>${n} steps</span></div></div>`;
   t("a step landing keeps the turn's node and every finished step's tick, with no flag", () => {
     const box = document.getElementById("box"), items = (n) => [{ key: "u:1", html: "<div>hi</div>" }, { key: "turn:1", html: turn(n) }];

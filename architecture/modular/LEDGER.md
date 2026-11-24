@@ -30,9 +30,9 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `js/accounts.js` | 134 | moved | modules/settings/accounts.js · next: js/accounts.js re-exports the Accounts entry points |
-| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go |
+| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: Callers use the owning modules directly. |
 | `js/app.js` | 5060 | split | boot.js + core/* + shell + modules/* by region (analysis/1-app-index.md §2.6) · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
-| `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: js/attach.js re-exports the attachment rules, tray and shared row helpers |
+| `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: Callers use the owning modules directly. |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
 | `js/cardparts.js` | 255 | moved | modules/decisions/cardparts.js |
 | `js/changes.js` | 194 | moved | modules/changes/store.js · next: fileRef, lineRef and FILE_MARK go to the conversation, scopeOf and activityIn to core/services, when those land; js/changes.js re-exports modules/changes/store.js until the shell renders panel.frame from places and the shims go |
@@ -105,11 +105,11 @@ Items inside first-party files: 2488 (moved 1791, planned 391, kept 172, deleted
 | `js/sideorder.js` | 28 | moved | shell/sideorder.js |
 | `js/skeleton.js` | 105 | moved | modules/home/skeleton.js |
 | `js/sse.js` | 190 | moved | core/platform/sse.js · next: every importer points at core/platform/sse.js, so it leaves with no re-export |
-| `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules |
+| `js/stage.js` | 731 | split | shell/panel (panel.js, pages.js, frames.js, width.js, lists.js), core/kernel (panel.page/panel.frame places), modules/threads (Threads frame), modules/changes (frame wiring), modules/map (frame wiring), modules/launchpad (cover), modules/shells (shell page) · next: Callers use the owning modules directly. |
 | `js/storm.js` | 1283 | split | core/services/storm/index.js, core/services/storm/config.js, core/services/storm/client.js, core/services/storm/stream.js, core/services/storm/load.js, core/services/storm/account.js, core/services/storm/history.js, core/services/storm/hops.js, core/services/storm/reducers/, core/services/storm/selectors/, core/services/storm/commands.js, core/services/storm/act.js, core/services/storm/types.d.ts · next: every importer points at core/services/storm, so it leaves with no re-export |
 | `js/timeline.js` | 840 | moved | core/services/world/timeline.js |
 | `js/turnview.js` | 395 | moved | modules/conversation/blocks/turn.js |
-| `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go |
+| `js/ui.js` | 412 | split | core/ui/icons, core/ui/motion, core/ui/redraw (reconcile), core/platform/dom, core/platform/time, core/services/sound · next: Callers use the owning modules directly. |
 | `js/util.js` | 112 | split | core/platform/util.js, core/platform/time.js, core/platform/clipboard.js · next: js/util.js re-exports core/platform until the shims go |
 | `js/viewer.js` | 1158 | moved | modules/files/viewer.js · next: The legacy adapter supplies the Changes inputs. Files owns the viewer, head, editor, reads, events and diff lifecycle. |
 | `js/words.js` | 48 | moved | modules/conversation/words.js |

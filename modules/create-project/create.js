@@ -2,9 +2,11 @@
 
 // Create XO Project: start empty or clone a Git repository (a Space clone job, polled and stoppable) into a new project.
 import { esc } from "../../js/world.js";
-import { ICON, $ as query, RM } from "../../js/ui.js";
+import { ICON } from "../../core/ui/icons/names.js";
+import { $ as query } from "../../core/platform/dom.js";
+import { RM } from "../../core/ui/motion.js";
 import { api } from "../../core/platform/api.js";
-import { fmtSize } from "../../js/attach.js";
+import { fmtSize } from "../../core/services/media/attachment-rules.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { copyText, COPY_REFUSED } from "../../core/platform/index.js";

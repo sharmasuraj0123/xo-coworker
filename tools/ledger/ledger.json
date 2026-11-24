@@ -2480,7 +2480,7 @@
     "core/platform/http.js",
     "core/platform/api.js"
    ],
-   "note": "the transport is in core/platform/http.js and the routes in core/platform/api.js; js/api.js re-exports it until the shims go"
+   "note": "Callers use the owning modules directly."
   },
   "js/app.js": {
    "status": "split",
@@ -2494,7 +2494,7 @@
     "core/services/media/attachment-tray.js",
     "core/services/world/rows.js"
    ],
-   "note": "js/attach.js re-exports the attachment rules, tray and shared row helpers"
+   "note": "Callers use the owning modules directly."
   },
   "js/blocks.js": {
    "status": "moved",
@@ -2880,7 +2880,7 @@
     "modules/launchpad (cover)",
     "modules/shells (shell page)"
    ],
-   "note": "moved into shell/panel/ whole; js/stage.js re-exports createStage until the shims go; lists.js (the frames' contents) and the shell page still go to their modules"
+   "note": "Callers use the owning modules directly."
   },
   "js/storm.js": {
    "status": "split",
@@ -2919,7 +2919,7 @@
     "core/platform/time",
     "core/services/sound"
    ],
-   "note": "reconcile in core/ui/redraw.js, the motion in core/ui/motion.js, the icon names in core/ui/icons/names.js, the time words in core/platform; ui.js keeps $, $$, plain and the sounds, and re-exports the rest until the shims go"
+   "note": "Callers use the owning modules directly."
   },
   "js/util.js": {
    "status": "split",
