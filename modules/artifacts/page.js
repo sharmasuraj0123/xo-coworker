@@ -8,6 +8,7 @@ import { radioKeys, rovingTab } from "../../core/ui/a11y/keynav.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { galleryLines, linesIn } from "../../core/ui/virtual.js";
 import { artsView, KINDS } from "./model.js";
+import { artsMetrics } from "./gallery-metrics.js";
 
 /** @import { GalleryState, GalleryDeps } from "./page-types.d.ts" */
 
@@ -15,20 +16,6 @@ import { artsView, KINDS } from "./model.js";
 export function createArtifactsPage({ MS, PV, syncCards, PROJ, sk }) {
   const A = /** @type {GalleryState} */ ({ kind: "all", pid: "", q: "", els: new Map(), byKey: new Map() });
   const observed = new WeakSet();
-  const tracks = (/** @type {Element} */ ul) => getComputedStyle(ul).gridTemplateColumns.split(" ").filter(Boolean).length;
-  /** The gallery's sizes, read from a hidden heading and stand-in card (so they follow the CSS, the width and the phone). */
-  function artsMetrics(/** @type {HTMLElement} */ be) {
-    let p = be.querySelector(":scope > .ar-probe");
-    if (!p) {
-      p = document.createElement("div");
-      p.className = "ar-probe";
-      p.setAttribute("aria-hidden", "true");
-      p.innerHTML = `<h2 class="ar-gh">Today</h2><ul class="md-grid ar-grid">${sk.tile("page")}</ul>`;
-      be.prepend(p);
-    }
-    const ul = /** @type {HTMLElement} */ (p.querySelector("ul"));
-    return { cols: Math.max(1, tracks(ul)), gap: parseFloat(getComputedStyle(ul).rowGap) || 0, headH: (/** @type {HTMLElement} */ (p.firstElementChild)).offsetHeight, cardH: (/** @type {HTMLElement} */ (ul.firstElementChild)).offsetHeight };
-  }
   /** Draw the lines within a screen of view, let the others go. */
   function artsPlace() {
     A.placeT = 0;
@@ -98,21 +85,33 @@ export function createArtifactsPage({ MS, PV, syncCards, PROJ, sk }) {
     const box = A.box || (A.box = document.getElementById("arts"));
     if (!box || box.hidden) return; // nothing is measured or drawn unseen
     if (!A.built) {
-      box.innerHTML = `<header class="ar-head"><span class="tw-ic" aria-hidden="true">${ICON.stack}</span><span class="tw-t"><h1 id="arts-h">Artifacts</h1><p class="pj-s ar-sub" id="arts-sub"></p></span></header><div class="ar-wrap">` +
+      box.innerHTML = `<header class="ar-head"><span class="tw-ic" aria-hidden="true">${ICON.stack}</span><span class="tw-t"><h1 id="arts-h" tabindex="-1">Artifacts</h1><p class="pj-s ar-sub" id="arts-sub"></p></span></header><div class="ar-wrap">` +
         `<div class="ar-tools"><label class="ar-q">${ICON.search}<span class="sr-only">Find an artifact</span><input id="arts-q" placeholder="Find an artifact" autocomplete="off" spellcheck="false"></label>` +
         `<label class="ar-pj"><span class="sr-only">Project</span><xo-select id="arts-pj"></xo-select></label></div>` +
-        `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div class="ar-body" id="arts-body"></div></div>`;
+        `<div class="ar-kinds" id="arts-f" role="radiogroup" aria-label="Show"></div><div data-arts-history hidden></div><div class="ar-body" id="arts-body"></div></div>`;
       A.built = true;
       radioKeys(/** @type {HTMLElement} */ (box.querySelector("#arts-f")));
       box.addEventListener("input", (e) => { const t = /** @type {HTMLInputElement} */ (e.target); if (t.id === "arts-q") { A.q = t.value; artsRender(); } });
       box.addEventListener("change", (e) => { const t = /** @type {HTMLSelectElement} */ (e.target); if (t.id === "arts-pj") { A.pid = t.value; artsRender(); } });
-      box.addEventListener("click", (e) => { const k = (/** @type {Element} */ (e.target)).closest("[data-arts-kind]"); if (k) { A.kind = k.getAttribute("data-arts-kind") || "all"; artsRender(); } });
+      box.addEventListener("click", (e) => {
+        if (!(e.target instanceof Element)) return;
+        const retry = e.target.closest("[data-arts-retry]");
+        if (retry && MS.olderPages(true)) {
+          if (document.activeElement === retry) box.querySelector("h1")?.focus({ preventScroll: true });
+          artsRender();
+        }
+        const kind = e.target.closest("[data-arts-kind]");
+        if (kind) { A.kind = kind.getAttribute("data-arts-kind") || "all"; artsRender(); }
+      });
       box.addEventListener("keydown", (e) => { const t = /** @type {HTMLInputElement} */ (e.target); if (e.key === "Escape" && t.id === "arts-q" && t.value) { e.preventDefault(); e.stopPropagation(); t.value = ""; A.q = ""; artsRender(); } });
       artsWatch(box);
     }
     const pending = MS.madePending(null);
     const all = pending ? [] : MS.madeOf(null);
     if (!pending) MS.olderPages(); // what's older than each chat's newest page, read in the background
+    const history = /** @type {HTMLElement} */ (box.querySelector("[data-arts-history]"));
+    history.hidden = !MS.olderFailed();
+    redraw(history, history.hidden ? "" : '<button type="button" class="btn" data-arts-retry>Retry older artifacts</button>');
     const v = artsView(all, { pid: A.pid, kind: A.kind, q: A.q });
     redraw(box.querySelector("#arts-sub"), pending ? sk.bar("18em") : all.length ? esc(`${all.length} ${all.length === 1 ? "thing" : "things"} your threads made, newest first`) : "What your threads make shows up here");
     const made = new Set(all.map((m) => m.project));
@@ -138,7 +137,7 @@ export function createArtifactsPage({ MS, PV, syncCards, PROJ, sk }) {
       return;
     }
     if (A.placeholder) { redraw(be, ""); A.placeholder = ""; A.els.clear(); }
-    const M = (A.M = artsMetrics(be));
+    const M = (A.M = artsMetrics(be, sk.tile));
     A.byKey = new Map();
     for (const g of v.groups) for (const m of g.items) A.byKey.set(m.key, m);
     const reading = MS.olderLeft();

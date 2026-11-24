@@ -11692,7 +11692,7 @@
   },
   "js/recordview.js::ids::md-recent-h": {
    "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "home": "modules/artifacts/recent.js"
   },
   "js/recordview.js::ids::arts-body": {
    "status": "moved",
@@ -11724,7 +11724,13 @@
   },
   "js/recordview.js::storage::xo-made-pins": {
    "status": "moved",
-   "home": "modules/artifacts/store.js"
+   "home": "modules/artifacts/store.js",
+   "evidence": {
+    "modules/artifacts/store.js": {
+     "anchor": "const PINS = \"xo-made-pins\";",
+     "reason": "The shared storage adapter still loads and writes pins under the existing key."
+    }
+   }
   },
   "js/recordview.js::keys::Escape": {
    "status": "moved",

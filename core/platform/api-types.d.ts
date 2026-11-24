@@ -35,7 +35,7 @@ export interface Api {
   continueThread(chat: Id, ts: string, body: object): Json;
   hops(chat: Id, query?: Query): Json;
   memory(chat: Id): Json;
-  made(chat: Id, query?: Query): Json;
+  made(chat: Id, query?: Query, options?: ReadOptions): Json;
   pinMade(chat: Id, id: Id, on: boolean): Json;
   markSeen(chat: Id): Json;
   memoryFile(chat: Id, path: string): Json;

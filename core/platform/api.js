@@ -93,7 +93,7 @@ export const api = {
   hops: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/hops`, query),
   memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
   /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */
-  made: (chat, query = {}) => get(`/chat/chats/${enc(chat)}/made`, query),
+  made: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/made`, query, signal),
   pinMade: (chat, id, on) => send(on ? "PUT" : "DELETE", `/chat/chats/${enc(chat)}/made/${enc(id)}/pin`),
   /** The person looked at a chat (a newer backend keeps it per person, on every device): {seen: {seen_at, seen_seq}}. */
   markSeen: (chat) => chatActivityApi.markSeen(chat),

@@ -9,13 +9,12 @@ import { createMadeThumbnails } from "./made-thumbnails.js";
 import { createCards, KIND_IC } from "./cards.js";
 import { createMadeStore } from "./store.js";
 import { createArtifactsPage } from "./page.js";
+import { createRecentMade } from "./recent.js";
 import { api } from "../../core/platform/api.js";
 import { esc } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { sharedFileRoute } from "../../core/services/world/relay.js";
 import { midName, midNameHtml } from "../../core/services/media/items.js";
-
-const RECENT = 6;           // Recently made on Home
 
 /** @typedef {import("./types.d.ts").Made} Made */
 
@@ -42,7 +41,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
   const shown = () => !!(M.host && !M.host.hidden && panel && panel.isOpen);
   /** @param {string | null} v */
   const pidOf = (v) => (!v ? null : v.startsWith("p:") ? v.slice(2) : v.startsWith("t:") ? world.thread(v.slice(2))?.project || null : null);
-  const MS = createMadeStore({ world, api, schedule, announce, changed: () => { if (shown()) madeRender(); } });
+  const MS = createMadeStore({ world, api, scope, schedule, announce, changed: () => { if (shown()) madeRender(); } });
   const { madeOf, madePending, togglePin } = MS;
   /** @param {string | null} pid */
   const madeCount = (pid) => madeOf(pid).length;
@@ -50,8 +49,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     landed: () => { schedule(); if (shown()) madeRender(); } });
 
   const { syncCards } = createCards({ PV, PROJ, naming: madeNaming });
-  const tpl = document.createElement("template");
-  const recent = new WeakSet();
+  const homeMade = createRecentMade({ MS, PV, syncCards, skTile, rememberedMade });
   const showThumbs = createMadeThumbnails(scope, PV);
 
   function madeRender() {
@@ -122,34 +120,6 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     VW.open({ path: m.path, name: m.name, type: m.type, bytes: m.bytes, ...route }, from);
   }
 
-  /** @param {boolean} where */
-  const skEl = (where) => /** @param {{i: number}} item */ ({ i }) => { tpl.innerHTML = skTile(where, i); return (/** @type {HTMLElement} */ (tpl.content.firstElementChild)); };
-  /** @param {number} n */
-  const skItems = (n) => Array.from({ length: n }, (_, i) => ({ key: `~sk${i}`, sk: true, i }));
-
-  /** @param {HTMLElement} box */
-  function homeMade(box) {
-    const pending = madePending(null);
-    const items = pending ? [] : madeOf(null);
-    if (!recent.has(box)) {
-      box.innerHTML = `<section class="md-recent" aria-labelledby="md-recent-h" hidden><h2 class="hm-lbl" id="md-recent-h">${ICON.spark}Recently made</h2><ul class="md-grid is-strip"></ul></section>`;
-      recent.add(box);
-    }
-    const sec = (/** @type {HTMLElement} */ (box.querySelector(".md-recent")));
-    const ul = /** @type {HTMLElement} */ (sec.querySelector(".md-grid"));
-    if (pending) {
-      const n = Math.min(RECENT, rememberedMade() ?? 0);
-      sec.hidden = !n;
-      syncList(ul, skItems(n), { make: skEl(true), update: () => {} });
-      return;
-    }
-    sec.hidden = !items.length;
-    if (!items.length) return;
-    const list = [...items.filter((m) => m.pinned), ...items.filter((m) => !m.pinned)].slice(0, RECENT);
-    PV.loadThumbs(list); PV.loadTexts(list);
-    syncCards(ul, list, true);
-  }
-
   const AP = createArtifactsPage({ MS, PV, syncCards, PROJ, sk: { tile: skTile, bar: skBar } });
 
   /** @param {string} q */
@@ -157,7 +127,16 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     if (!q) return [];
     const w = q.toLowerCase();
     return madeOf(null).filter((m) => `${m.title || ""} ${m.name} ${m.path}`.toLowerCase().includes(w)).slice(0, 8)
-      .map((m) => ({ name: m.title || madeNaming(m, 48).file, sub: [m.title ? madeNaming(m, 32).file : "", `Made in ${PROJ(m.project)}`, m.threadTitle].filter(Boolean).join(" · "), icon: KIND_IC[m.kind] || ICON.doc, run: () => { if (m.kind !== "link" && m.tid) go("t:" + m.tid); openFile(m.key, null); } }));
+      .map((m) => ({
+        name: m.title || madeNaming(m, 48).file,
+        sub: [m.title ? madeNaming(m, 32).file : "", m.project ? `Made in ${PROJ(m.project)}` : "", m.threadTitle]
+          .filter(Boolean).join(" · "),
+        icon: KIND_IC[m.kind] || ICON.doc,
+        run() {
+          if (m.kind !== "link" && m.tid) go("t:" + m.tid);
+          openFile(m.key, null);
+        },
+      }));
   }
 
   scope.listen(document, "click", (e) => {

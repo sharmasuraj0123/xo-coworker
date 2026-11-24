@@ -34,9 +34,8 @@ export interface GalleryDeps {
 
 export interface MadeDeps {
   scope?: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
-  world: {
+  world: import("./read-types.d.ts").MadeWorld & {
     thread: (id: string | null) => { project?: string; worktree?: string; cwd?: string } | null | undefined;
-    project: (id: string) => unknown;
   };
   go: (view: string) => void;
   VW: { open: (file: MadeFile, from: Element | null) => void };
