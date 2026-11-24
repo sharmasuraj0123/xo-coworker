@@ -4,11 +4,11 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| planned | 519 |
+| planned | 518 |
 | moved | 487 |
 | deleted | 337 |
 | kept | 57 |
-| split | 29 |
+| split | 30 |
 | vendor | 13 |
 | split-region | 4 |
 
@@ -131,7 +131,7 @@ Items inside first-party files: 2488 (moved 1794, planned 389, kept 152, deleted
 | `css/foundation.css` | 246 | split-region | core/ui/foundation.css, modules/* (structure rules) |
 | `css/launchpad.css` | 291 | split | css/launchpad.css, modules/launchpad/window.css, modules/launchpad/launchpad.css, modules/launchpad/page.css · next: css/launchpad.css keeps their @imports, in its place in the cascade, and the reduced-motion rule with its !important until the sheet gets its @layer |
 | `css/light.css` | 67 | split-region | core/ui/tokens.css (light roles), modules/* (light blocks) |
-| `css/links.css` | 97 | planned | modules/conversation/links.css |
+| `css/links.css` | 97 | split | modules/conversation/links.css, css/links.css · next: The entry stylesheet imports the conversation links in their original cascade position. |
 | `css/media.css` | 129 | moved | modules/conversation/media/media.css |
 | `css/msgx.css` | 407 | moved | modules/conversation/msgx.css |
 | `css/panel.css` | 681 | split-region | shell/panel.css, modules/threads, modules/changes, modules/map, modules/files |

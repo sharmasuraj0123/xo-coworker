@@ -1616,8 +1616,9 @@
    ]
   },
   "css/links.css": {
-   "status": "planned",
-   "home": "modules/conversation/links.css"
+   "status": "split",
+   "home": ["modules/conversation/links.css", "css/links.css"],
+   "note": "The entry stylesheet imports the conversation links in their original cascade position."
   },
   "css/media.css": {
    "status": "moved",
