@@ -42,7 +42,8 @@ const phone = (row) => row.context.some((scope) => scope.at === "media" && scope
 const matchesFloor = (row) => phone(row) && resolveValue(row.value) === "36px";
 const floor = declarationsFor((selector) => selector.startsWith(":where(button,") && selector.includes("a[class]"), "min-height")
   .find(matchesFloor);
-const subjectsOf = (row) => row.context.at(-1).selector;
+const normalizeList = (selector) => selector.replace(/,\s+/g, ",");
+const subjectsOf = (row) => normalizeList(row.context.at(-1).selector);
 const sharedSelectors = /^:where\((.*)\):where\(:not\((.*)\)\)$/;
 
 test("the phone has one low-specificity height and width floor for controls", () => {
@@ -54,7 +55,7 @@ test("the phone has one low-specificity height and width floor for controls", ()
     "[role=menuitemcheckbox]", "[role=switch]", "summary", "select", "label:has(>input[type=checkbox],>input[type=radio])",
     "a[class]",
   ]);
-  assert.ok(declarationsFor(subjectsOf(floor), "min-width").some(matchesFloor));
+  assert.ok(declarationsFor(selector => normalizeList(selector) === subjectsOf(floor), "min-width").some(matchesFloor));
 });
 
 test("a control's own min or max height preserves the phone floor", () => {
@@ -131,7 +132,7 @@ test("boxed links share the floor and links in sentences are excluded", () => {
     assert.ok(links.has(selector), selector);
     assert.ok(!excluded.includes(selector), selector);
   }
-  const ownFloors = published.filter((rule) => rule.f !== "/css/phone.css" && /a\.[\w-]+/.test(rule.sel)
+  const ownFloors = published.filter((rule) => normalizeList(rule.sel) !== subjectsOf(floor) && /a\.[\w-]+/.test(rule.sel)
     && ["min-width", "min-height"].every((property) =>
       rule.declarations.some((declaration) => declaration.p === property && localWidth(declaration.v) === 36)));
   assert.deepEqual(ownFloors, []);
@@ -142,7 +143,7 @@ test("a text field has a 36 px floor on itself or its box", () => {
   const boxes = [".fl-q", ".ar-q", ".all-q", ".jump-field"];
   const typeSelectors = types.map((type) => "[type=" + type + "]").join(",");
   const field = ":where(input:not(" + typeSelectors + ")):where(:not(:is(" + boxes.join(",") + ") input))";
-  assert.ok(declarationsFor(field, "min-height").some(matchesFloor));
+  assert.ok(declarationsFor(selector => normalizeList(selector) === field, "min-height").some(matchesFloor));
   const box = ":where(" + boxes.slice(0, -1).concat(".fl-new-r").join(",") + ")";
   assert.ok(declarationsFor(box, "min-height").some(matchesFloor));
   assert.ok(inputs.filter((input) => !types.includes(input.getAttribute("type"))).length >= 15);
