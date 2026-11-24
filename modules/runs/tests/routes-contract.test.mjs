@@ -35,3 +35,28 @@ assert.deepEqual(calls, [
 assert.deepEqual(RS.counts, { done: 1 });
 assert.equal(RS.run?.title, "Review");
 assert.deepEqual(RS.items.map((item) => item.id), ["line"]);
+
+/** @type {Array<[(signal: AbortSignal) => Promise<unknown>, string]>} */
+const cancelledReads = [
+  [(signal) => act.run(run.id, { signal }), "/api/chat/runs/run%2Fkey"],
+  [(signal) => act.transcript(run.id, "next/key", { signal }),
+    "/api/chat/runs/run%2Fkey/transcript?after=next%2Fkey&limit=200"],
+];
+for (const [read, path] of cancelledReads) {
+  const owner = new AbortController();
+  let received;
+  globalThis.fetch = (url, init) => {
+    const request = new URL(String(url), "http://local");
+    received = { route: request.pathname + request.search, signal: init?.signal };
+    return new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+    });
+  };
+  const pending = read(owner.signal);
+  const outcome = pending.catch((error) => error);
+  assert.equal(received?.route, path);
+  assert.equal(received?.signal?.aborted, false);
+  owner.abort();
+  assert.equal(received?.signal?.aborted, true, `caller abort reaches ${path}`);
+  assert.equal((await outcome).name, "AbortError");
+}

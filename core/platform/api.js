@@ -124,8 +124,8 @@ export const api = {
   revokeRule: (id) => ruleApi.revokeRule(id),
 
   runs: (session, query = {}, { signal } = {}) => get(`/chat/sessions/${enc(session)}/runs`, query, signal),
-  run: (id) => get(`/chat/runs/${enc(id)}`),
-  transcript: (id, query = {}) => get(`/chat/runs/${enc(id)}/transcript`, query),
+  run: (id, { signal } = {}) => get(`/chat/runs/${enc(id)}`, undefined, signal),
+  transcript: (id, query = {}, { signal } = {}) => get(`/chat/runs/${enc(id)}/transcript`, query, signal),
   stopRun: (id) => send("POST", `/chat/runs/${enc(id)}/stop`),
   stopRuns: (session) => send("POST", `/chat/sessions/${enc(session)}/runs/stop`),
 

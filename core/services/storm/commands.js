@@ -4,8 +4,16 @@ import { mergeRows } from "../world/rows.js";
 import { mapLimit } from "./load.js";
 import { paidBody } from "../world/paid.js";
 import { LOAD_CAP } from "./config.js";
+import { ApiError } from "../../platform/http.js";
+import { requestFailureMessage } from "../notices/failures.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row @typedef {{ clientId?: string, attachments?: string[] }} SendOpts */
+
+/** @template T @param {unknown} error @param {T} fallback */
+function keepLastRead(error, fallback) {
+  if (!(error instanceof ApiError && error.status === 404)) requestFailureMessage(error, "Couldn't refresh the saved state.");
+  return fallback;
+}
 
 /** The writes: they happen only here, only when the person acts. @param {Ctx} ctx */
 export function createCommands(ctx) {
@@ -101,20 +109,17 @@ export function createCommands(ctx) {
         const it = await client.decide(id, { ...body, idempotency_key: body.idempotency_key || newClientId() });
         if (it && it.state && it.state !== "open") { state.review.delete(id); ctx.soon(); }
         return it;
-      } catch (/** @type {any} */ err) {
-        if (!err.status) throw err; // never reached XO: the item is as it was
-        let now = null;
-        try { now = await client.reviewItem(id); } catch { /* gone, or unreadable: the code says enough */ }
+      } catch (err) {
+        if (!(err instanceof ApiError) || !err.status) throw err;
+        const now = await client.reviewItem(id).catch((error) => keepLastRead(error, null));
         const gone = err.code === "already_decided" || err.code === "withdrawn" || err.code === "expired" || err.code === "review_not_found" || !!(now && now.state && now.state !== "open");
         if (gone) state.review.delete(id);
         else if (now) state.review.set(id, { ...(state.review.get(id) || {}), ...now });
         ctx.soon();
-        err.item = now;
-        if (gone) err.gone = err.code || (now && now.state) || "gone";
-        throw err;
+        throw Object.assign(err, { item: now }, gone ? { gone: err.code || (now && now.state) || "gone" } : {});
       }
     },
-    /** The Space's paid-usage mode (scope "space"), or an account's (scope "pool"; value null follows the Space). @param {string} scope @param {string} id @param {any} value */
+    /** @param {string} scope @param {string} id @param {string | null} value */
     setPaid: async (scope, id, value) => {
       const r = await client.setPaid(paidBody(scope, id, value));
       await ctx.loadPaid();
@@ -122,16 +127,21 @@ export function createCommands(ctx) {
     },
     /** Replace the Space's runtime policy, or a project's (chat) override; the answer is kept. @param {string | null} chat @param {Row} policy */
     setPolicy: async (chat, policy) => {
-      if (!chat) { state.policy = await client.setRuntimePolicy(policy); for (const c of Object.keys(state.chatPolicy)) { try { state.chatPolicy[c] = await client.chatRuntimePolicy(c); } catch { /* keep */ } } }
+      if (!chat) {
+        state.policy = await client.setRuntimePolicy(policy);
+        for (const c of Object.keys(state.chatPolicy)) {
+          state.chatPolicy[c] = await client.chatRuntimePolicy(c).catch((error) => keepLastRead(error, state.chatPolicy[c]));
+        }
+      }
       else state.chatPolicy[chat] = await client.setChatRuntimePolicy(chat, policy);
       emit();
       return chat ? state.chatPolicy[chat] : state.policy;
     },
     refresh: async () => { await ctx.loadChats(); await mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads); ctx.commit(); emit(); },
-    /** @param {string} id */
-    run: (id) => client.run(id),
-    /** @param {string} id @param {any} [after] */
-    transcript: (id, after) => client.transcript(id, after ? { after, limit: 200 } : { limit: 200 }),
+    /** @param {string} id @param {{ signal?: AbortSignal }} [options] */
+    run: (id, options) => client.run(id, options),
+    /** @param {string} id @param {string | null} [after] @param {{ signal?: AbortSignal }} [options] */
+    transcript: (id, after, options) => client.transcript(id, { after, limit: 200 }, options),
     /** @param {string} id */
     stopRun: (id) => client.stopRun(id),
     /** @param {string} session */

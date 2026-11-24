@@ -61,8 +61,8 @@ export interface Api {
   revokeRule(id: Id): Json;
 
   runs(session: Id, query?: Query, options?: ReadOptions): Json;
-  run(id: Id): Json;
-  transcript(id: Id, query?: Query): Json;
+  run(id: Id, options?: ReadOptions): Json;
+  transcript(id: Id, query?: Query, options?: ReadOptions): Json;
   stopRun(id: Id): Json;
   stopRuns(session: Id): Json;
 
