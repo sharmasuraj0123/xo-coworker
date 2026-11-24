@@ -1,18 +1,12 @@
-// On a phone the panel covers the page: a place opened from it is shown, so the panel goes, before focus is placed
-// there (grader B on 5f52deb and 7137115, S193: Launchpad's asked-thread row, Enter, Space or a tap at 390, and focus
-// was on BODY once the thread showed: the panel stayed over the thread, the page under it inert, so go()'s focus on the
-// conversation didn't take, and the row pressed went hidden with Launchpad's section for a thread). The trace on
-// 7137115: focus() on #scroller left it on the row; 14 ms later the row lost it to nothing, the panel still shown.
-// The browser check is grader B's r36 contract (gradeB.test.cjs S193), in four cells.
-//   node tests/phone-panel-go.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { dom } from "./lib/dom.mjs";
-import { createNavigation } from "../shell/navigation.js";
+globalThis.matchMedia = (query) => ({ matches: query === "(max-width: 760px)", addEventListener() {}, removeEventListener() {} });
+const { installActions } = await import("../modules/launchpad/actions.js");
+const { createPanelThreadOpener } = await import("../modules/threads/open-panel-thread.js");
+const { createNavigation } = await import("../shell/navigation.js");
 
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = read("js/app.js"), lp = sourcePaths(".js").filter((p) => p.startsWith("modules/launchpad/")).map(readSource).join("\n");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 
@@ -50,20 +44,141 @@ t("Back uses a thread’s recorded parent and leaves the place trail untouched",
   assert.deepEqual(S.trail, ["home"]);
   assert.equal(S.retrace, false);
 });
-t("only a place opened from the panel: the Map and the panel's own links pass panel; a place changed from elsewhere leaves it covering (lpshell LP21)", () => {
-  for (const m of ["const MAP = createMap(", "const STAGE = createStage("]) {
-    const i = app.indexOf(m); assert.ok(i >= 0, m);
-    // (the panel's own rows open a thread as its Thread page beside a chat, else navigate as the panel: openFromPanel)
-    assert.match(app.slice(i, app.indexOf("\n", i)), /go: \(v(, e)?\) => (go\(v, \{ panel: true \}\)|openFromPanel\(v, e\))/, `${m} navigates as the panel`);
-  }
-  assert.match(read("shell/navigation.js"), /function go\(v, \{ from, row = null, focus = false, carry = false, panel = false, still = false \} = \{\}\) \{/);
+t("a panel route opens a thread beside its chat or hands off to global navigation", () => {
+  const S = { view: "p:demo" };
+  const calls = [];
+  const open = createPanelThreadOpener({
+    S, world: { thread: (id) => id === "thread" }, TP: {},
+    STAGE: { show: (page, id, options) => calls.push([page, id, options]) }, go: (...args) => calls.push(args),
+  });
+  open("t:thread");
+  S.view = "home";
+  open("t:thread");
+  assert.deepEqual(calls, [["thread", "thread", { focus: true }], ["t:thread", { panel: true }]]);
 });
 t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wait of its own for the conversation", () => {
-  assert.match(lp, /case "thread": go && go\(el\.dataset\.go\); return;/);
-  assert.doesNotMatch(lp, /requestAnimationFrame\(land\)/);
+  const scroller = document.querySelector("#scroller");
+  const action = document.createElement("button");
+  action.dataset.go = "t:thread";
+  const actions = {
+    S: { v: "p:demo" }, projectOf: () => "demo", proj: () => ({}),
+    go: (place) => { assert.equal(place, "t:thread"); scroller.focus(); },
+  };
+  installActions(actions);
+  document.querySelector("#say").focus();
+  actions.act("thread", action);
+  assert.ok(document.activeElement === scroller, "opening the thread places focus synchronously");
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 
-// openFromPanel: what isn't a thread page beside a chat still goes as the panel's own link
-{ const f = read("modules/threads/open-panel-thread.js");
-  if (!/go\(v, \{ panel: true \}\);/.test(f)) { console.error("  FAIL openFromPanel passes panel"); process.exitCode = 1; } }
+const markup = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const { document: app, window } = await dom(markup, { wholeDocument: true });
+const frames = [];
+const storage = new Map();
+const encoder = new TextEncoder();
+let stream;
+const body = new ReadableStream({ start(controller) {
+  stream = controller;
+  stream.enqueue(encoder.encode("event: heartbeat\ndata: {}\n\n"));
+} });
+let sequence = 0;
+function addThread(ts, title) {
+  const seq = ++sequence;
+  const data = { ts, title, chat_id: "project-chat", state: "open", session_id: ts + "-session" };
+  stream.enqueue(encoder.encode(`id: ${seq}\nevent: thread\ndata: ${JSON.stringify({ type: "thread", seq, data })}\n\n`));
+}
+Object.assign(globalThis, {
+  location: new URL("http://localhost/"),
+  innerWidth: 390,
+  history: { replaceState() {}, pushState() {} },
+  localStorage: { getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
+  sessionStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
+  MutationObserver: window.MutationObserver,
+  ResizeObserver: class { observe() {} disconnect() {} },
+  customElements: window.customElements,
+  addEventListener: window.addEventListener.bind(window),
+  removeEventListener: window.removeEventListener.bind(window),
+  requestAnimationFrame: (callback) => frames.push(callback),
+  cancelAnimationFrame() {},
+  setInterval: (callback, ms) => setInterval(callback, ms).unref(),
+  setTimeout: (callback, ms) => setTimeout(callback, ms).unref(),
+  async fetch(input) {
+    const path = new URL(input, location.href).pathname;
+    if (path === "/api/chat/stream") return new Response(body);
+    if (path === "/api/chat/chats") return Response.json({ chats: [
+      { id: "workspace-chat", kind: "workspace" },
+      { id: "project-chat", kind: "project", project: "demo", name: "Demo" },
+    ] });
+    return Response.json({});
+  },
+});
+const matches = window.Element.prototype.matches;
+window.Element.prototype.matches = function (selector) {
+  if (selector === ":focus-within") return this.contains(app.activeElement);
+  if (selector === ":focus-visible") return this === app.activeElement;
+  return matches.call(this, selector);
+};
+window.HTMLElement.prototype.scrollTo = function () {};
+window.HTMLElement.prototype.getAnimations = function () { return []; };
+window.HTMLElement.prototype.animate = function () { return { finished: Promise.resolve(), cancel() {} }; };
+await import("../boot.js");
+
+function press(selector) {
+  const target = app.querySelector(selector);
+  assert.ok(target, selector);
+  target.focus();
+  target.click();
+}
+async function paint() {
+  await new Promise((resolve) => setImmediate(resolve));
+  for (const callback of frames.splice(0)) callback(performance.now());
+}
+async function until(selector) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    await paint();
+    if (app.querySelector(selector)) return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.fail(`Expected mounted control ${selector}`);
+}
+const stage = app.querySelector("#stage");
+const scroller = app.querySelector("#scroller");
+function handoff(selector, name) {
+  assert.equal(stage.hidden, false, `${name} starts with the Stage open`);
+  const cover = scroller.closest("[data-stage-inert]");
+  assert.ok(cover?.inert, `${name} starts with the covered conversation inert`);
+  const seen = [];
+  scroller.addEventListener("focus", () => seen.push([stage.hidden, cover.inert]), { once: true });
+  press(selector);
+  assert.deepEqual(seen, [[true, false]], `${name} closes the Stage and clears its cover before focus`);
+  assert.ok(app.activeElement === scroller, `${name} focuses the main conversation`);
+}
+
+await until("#side [data-go='p:demo']");
+press("#nv-ws");
+await paint();
+press("[data-stage-toggle]");
+press("[data-map-mode='tree']");
+const mapProject = '#fr-body-map [data-node="p:demo"]';
+await until(mapProject);
+handoff(mapProject, "the Map project action");
+await paint();
+
+addThread("first", "First thread");
+addThread("second", "Second thread");
+press("[data-stage-toggle]");
+press("#nv-ws");
+assert.equal(stage.hidden, false, "navigation from outside the Stage keeps it open");
+press("#side [data-go='p:demo']");
+const first = '#stage .tg-box [data-go="t:first"]';
+const second = '#stage .tg-box [data-go="t:second"]';
+await until(first);
+press(first);
+assert.equal(stage.hidden, false, "a Stage thread row opens beside the project chat");
+await until('#stage [data-tp-main="first"]');
+press('#stage [data-tp-main="first"]');
+await paint();
+press("[data-stage-toggle]");
+await until(second);
+handoff(second, "the Stage row from a thread");
+stream.close();
