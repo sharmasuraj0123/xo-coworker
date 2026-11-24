@@ -28,6 +28,10 @@
 - Size limits: a new file may not pass 400 lines; an old file may shrink, never grow.
 - Styles: tokens only, no literal colours or sizes. Every visual change goes through shared tokens, app-wide. No `!important`: use `@layer`.
 - Every storage key keeps its name, or gets a migration.
+- Own listeners on shared nodes, observers and timers with `createScope()`. Each mount's test checks that disposal leaves its scope empty.
+- Bound caches with `createLru()`. Prune registries to their owners' lifetime or use weak keys.
+- Deduplicate reads with `once()`, or use `latest()` for refreshes that replace older reads. Pass the scope signal and use the HTTP timeout.
+- Use shared storage. Handle expected failures explicitly and report or rethrow unexpected failures.
 - A module that calls a backend route checks it in its own `modules/<m>/tests/routes-contract.test.mjs` against xo-space's OpenAPI snapshot, as Launchpad's does (`node tools/openapi/snapshot.mjs` refreshes it).
 
 ## The owner's standing rules

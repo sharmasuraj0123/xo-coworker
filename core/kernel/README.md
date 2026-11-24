@@ -10,6 +10,7 @@
 | `places.js` | Named places in the UI and their entries. Kinds: `single`, `list`, `keyed`, `chain`. Scopes: `app`, `project`, `conversation`. |
 | `kernel.js` | Modules: manifest checks, the kernel version range, activation ordered by `needs`, an error boundary per module. Disable takes dependents down first. Safe mode starts only the core modules. |
 | `undo.js` | The bag of undos behind every registration. |
+| `scope.js` | Owns resources and aborts its signal on disposal. |
 | `bus.js` | Synchronous topics. A listener that throws never stops the others. |
 | `scheduler.js` | Batched redraws. `invalidate(key)` leads to one flush per frame, in registration order. |
 | `layers.js` | One stack for Esc, phone Back, inert and the Tab trap. |
@@ -32,7 +33,7 @@ After `kernel.disable(id)`, `kernel.live(id)` must be `0`. Every module's tests 
 
 ## Versioning
 
-`KERNEL_VERSION` (1.0.0) is semver.
+`KERNEL_VERSION` (1.1.0) is semver.
 - Adding a place, an optional field or a ctx method is a minor version.
 - Changing or removing one is a major version, after one minor version of deprecation.
 

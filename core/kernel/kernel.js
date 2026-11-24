@@ -1,6 +1,6 @@
 // @ts-check
 
-import { createUndos } from "./undo.js";
+import { createScope } from "./scope.js";
 import { createBus } from "./bus.js";
 import { createPlaces } from "./places.js";
 import { createScheduler } from "./scheduler.js";
@@ -9,7 +9,7 @@ import { satisfies } from "./semver.js";
 
 /** @typedef {import("./types").Kernel} Kernel @typedef {import("./types").ModuleDef} ModuleDef @typedef {import("./types").ModuleManifest} ModuleManifest @typedef {import("./types").ModuleContext} ModuleContext @typedef {import("./types").ModuleStatus} ModuleStatus @typedef {import("./types").StartReport} StartReport */
 
-export const KERNEL_VERSION = "1.0.0";
+export const KERNEL_VERSION = "1.1.0";
 const MODULE_ID = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
 
 /** @param {any} m @returns {string[]} */
@@ -29,10 +29,10 @@ export function manifestProblems(m) {
 export function createKernel(opts = {}) {
   const warn = opts.warn || console.error;
   const log = opts.log || console.log;
-  const T = opts.timers || globalThis;
+  const newScope = () => createScope({ timers: opts.timers, warn });
   const places = createPlaces(warn), bus = createBus(warn), layers = createLayers(warn);
   const scheduler = createScheduler({ request: opts.request, warn });
-  /** @type {Map<string, { def: ModuleDef, status: ModuleStatus, error?: string, undos: ReturnType<typeof createUndos>, order: number }>} */
+  /** @type {Map<string, { def: ModuleDef, status: ModuleStatus, error?: string, scope?: ReturnType<typeof createScope>, order: number }>} */
   const mods = new Map();
   /** @type {Map<string, { api: unknown, owner: string }>} */
   const services = new Map();
@@ -43,9 +43,9 @@ export function createKernel(opts = {}) {
   const provider = (/** @type {string} */ svc) => [...mods.values()].find((r) => (r.def.manifest.provides || []).includes(svc));
   const missing = (/** @type {ModuleManifest} */ m) => (m.needs || []).filter((s) => !services.has(s));
 
-  /** @param {ReturnType<typeof mods.get> & {}} rec @returns {ModuleContext} */
-  function contextFor(rec) {
-    const m = rec.def.manifest, U = rec.undos, id = m.id;
+  /** @param {ModuleManifest} m @param {ReturnType<typeof createScope>} U @returns {ModuleContext} */
+  function contextFor(m, U) {
+    const id = m.id;
     const allowed = (/** @type {string} */ place, /** @type {string} */ entryId) => {
       const c = m.contributes || [];
       return c.includes(place) || c.includes(`${place}:${entryId}`);
@@ -60,37 +60,28 @@ export function createKernel(opts = {}) {
         return /** @type {any} */ (s.api);
       },
       has: (svc) => services.has(svc),
-      provide(name, api) {
+      provide: (name, api) => U.effect(() => {
         if (!(m.provides || []).includes(name)) throw new Error(`${id}: ctx.provide("${name}") but "${name}" is not in its manifest's provides`);
         if (services.has(name)) throw new Error(`${id}: service "${name}" is already provided by ${services.get(name)?.owner}`);
         services.set(name, { api, owner: id });
-        return U.add(() => { if (services.get(name)?.owner === id) services.delete(name); });
-      },
-      contribute(place, entry) {
+        return () => { if (services.get(name)?.owner === id) services.delete(name); };
+      }),
+      contribute: (place, entry) => U.effect(() => {
         if (!allowed(place, entry && entry.id)) throw new Error(`${id}: contributes to "${place}:${entry && entry.id}" but its manifest's contributes doesn't list it`);
-        return U.add(places.contribute(place, entry, id));
-      },
-      definePlace(def) {
+        return places.contribute(place, entry, id);
+      }),
+      definePlace: (def) => U.effect(() => {
         if (!(m.defines || []).includes(def.id)) throw new Error(`${id}: defines place "${def.id}" but its manifest's defines doesn't list it`);
-        return U.add(places.define(def, id));
-      },
-      effect: (fn) => U.add(fn() || undefined),
-      on: (topic, fn) => U.add(bus.on(topic, fn)),
+        return places.define(def, id);
+      }),
+      effect: U.effect,
+      on: (topic, fn) => U.effect(() => bus.on(topic, fn)),
       emit: (topic, payload) => bus.emit(topic, payload),
-      listen(target, type, fn, o) { target.addEventListener(type, fn, o); return U.add(() => target.removeEventListener(type, fn, o)); },
-      timeout(fn, ms) { const t = T.setTimeout(() => { undo(); fn(); }, ms); const undo = U.add(() => T.clearTimeout(t)); return undo; },
-      interval(fn, ms) { const t = T.setInterval(fn, ms); return U.add(() => T.clearInterval(t)); },
-      frame(fn) {
-        if (typeof requestAnimationFrame !== "function") return ctx.timeout(() => fn(Date.now()), 16);
-        const r = requestAnimationFrame((t) => { undo(); fn(t); });
-        const undo = U.add(() => cancelAnimationFrame(r));
-        return undo;
-      },
-      observe: (o) => U.add(() => o.disconnect()),
-      onFlush: (key, fn) => U.add(scheduler.onFlush(key, fn)),
+      listen: U.listen, timeout: U.timeout, interval: U.interval, frame: U.frame, observe: U.observe, signal: U.signal,
+      onFlush: (key, fn) => U.effect(() => scheduler.onFlush(key, fn)),
       invalidate: (key) => scheduler.invalidate(key),
-      pushLayer: (layer) => U.add(layers.push(layer, id)),
-      places: { entries: places.entries, get: places.get, first: places.first, watch: (p, fn) => U.add(places.watch(p, fn)), has: places.has },
+      pushLayer: (layer) => U.effect(() => layers.push(layer, id)),
+      places: { entries: places.entries, get: places.get, first: places.first, watch: (p, fn) => U.effect(() => places.watch(p, fn)), has: places.has },
       log: (...a) => log(`[${id}]`, ...a),
     };
     return ctx;
@@ -99,16 +90,20 @@ export function createKernel(opts = {}) {
   /** @param {string} id */
   async function activate(id) {
     const rec = mods.get(id);
-    if (!rec || rec.status === "active" || off.has(id) || (safe && !rec.def.manifest.core)) return;
+    if (!rec || rec.scope || off.has(id) || (safe && !rec.def.manifest.core)) return;
     if (missing(rec.def.manifest).length) { rec.status = "waiting"; return; }
+    const scope = rec.scope = newScope();
     try {
-      await rec.def.activate(contextFor(rec));
+      await rec.def.activate(contextFor(rec.def.manifest, scope));
+      if (scope.signal.aborted) return;
       rec.status = "active";
       rec.error = undefined;
       bus.emit("kernel:module-active", { id });
     } catch (e) {
-      rec.undos.dispose();
+      if (scope.signal.aborted) return;
       rec.status = "failed";
+      scope.dispose();
+      rec.scope = undefined;
       rec.error = String(/** @type {any} */ (e)?.message || e);
       warn(`module ${id} failed to activate:`, e);
       bus.emit("kernel:module-failed", { id, error: rec.error });
@@ -141,7 +136,7 @@ export function createKernel(opts = {}) {
     const provides = mods.get(id)?.def.manifest.provides || [];
     for (const r of mods.values()) {
       const rid = r.def.manifest.id;
-      if (seen.has(rid) || r.status !== "active") continue;
+      if (seen.has(rid) || !r.scope) continue;
       if ((r.def.manifest.needs || []).some((s) => provides.includes(s))) {
         seen.add(rid);
         out.push(...dependents(rid, seen), rid);
@@ -153,7 +148,8 @@ export function createKernel(opts = {}) {
   function deactivate(id, to) {
     const rec = mods.get(id);
     if (!rec) return;
-    rec.undos.dispose();
+    rec.scope?.dispose();
+    rec.scope = undefined;
     rec.status = to;
     bus.emit("kernel:module-inactive", { id, status: to });
   }
@@ -168,7 +164,7 @@ export function createKernel(opts = {}) {
       if (typeof def.activate !== "function") throw new Error(`module ${m.id}: activate(ctx) is missing`);
       if (!satisfies(KERNEL_VERSION, m.kernel)) throw new Error(`module ${m.id} needs kernel ${m.kernel}; this is ${KERNEL_VERSION}`);
       for (const s of m.provides || []) { const p2 = provider(s); if (p2) throw new Error(`module ${m.id} provides "${s}", which ${p2.def.manifest.id} already provides`); }
-      mods.set(m.id, { def, status: "registered", undos: createUndos(warn), order: order++ });
+      mods.set(m.id, { def, status: "registered", order: order++ });
     },
     async start(o = {}) {
       safe = !!o.safe;
@@ -199,7 +195,7 @@ export function createKernel(opts = {}) {
       return [...down, id];
     },
     status: (id) => mods.get(id)?.status,
-    live: (id) => mods.get(id)?.undos.size ?? 0,
+    live: (id) => mods.get(id)?.scope?.size ?? 0,
     modules: () => [...mods.values()].sort((a, b) => a.order - b.order).map((r) => ({ id: r.def.manifest.id, status: r.status, error: r.error, manifest: r.def.manifest })),
   };
 }

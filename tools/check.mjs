@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checksLifecycle, lifecycleCounts } from "./lifecycle.mjs";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const FAST = process.argv.includes("--fast");
@@ -194,6 +195,25 @@ step("layers", () => {
   const fresh = Object.keys(now).filter((k) => !base[k]);
   if (UPDATE) writeJson(basePath, Object.fromEntries(Object.keys(base).filter((k) => now[k]).map((k) => [k, 1])));
   return fresh.length ? `layers: a file imports upward or from another module (talk through services, places or the bus):\n${fresh.map((k) => `  ${k}`).join("\n")}` : null;
+});
+
+step("lifecycle", () => {
+  const basePath = join(BASE_DIR, "lifecycle.json");
+  const base = readJson(basePath, null);
+  if (!base) return "Missing lifecycle baseline";
+  const errors = [];
+  const smaller = {};
+  for (const file of sourceFiles().filter(checksLifecycle).sort()) {
+    const current = lifecycleCounts(readFileSync(join(ROOT, file), "utf8"));
+    for (const [kind, count] of Object.entries(current)) {
+      const allowed = base[file]?.[kind] || 0;
+      if (count > allowed) errors.push(`  ${file}: ${kind} grew from ${allowed} to ${count}`);
+      if (allowed) (smaller[file] ||= {})[kind] = Math.min(count, allowed);
+    }
+  }
+  if (errors.length) return `Use lifecycle scopes, shared storage, or explicit error handling:\n${errors.join("\n")}`;
+  if (UPDATE) writeJson(basePath, smaller);
+  return null;
 });
 
 step("places", () => {
