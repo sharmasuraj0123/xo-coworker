@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { sheet } from "./lib/cascade.mjs";
 import { readFileSync, readdirSync } from "node:fs";
-import { renderMarkdown } from "../js/markdown.js";
+import { renderMarkdown } from "../core/ui/markdown/markdown.js";
 
 const dir = new URL("../css/", import.meta.url);
 const app = sheet(new URL("app.css", dir));

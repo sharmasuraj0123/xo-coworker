@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const T = await import("../js/timeline.js");
+const T = await import("../core/services/world/timeline.js");
 const notices = readFileSync(new URL("../modules/conversation/notice-line.js", import.meta.url), "utf8");
 const delivery = readFileSync(new URL("../modules/conversation/delivery.js", import.meta.url), "utf8");
 const w = (router, own = null, extra = {}) => ({ loaded: true, runtimes: [], pools: {}, router, projects: [{ id: "workspace", routing: null }, { id: "alpha", routing: own }], ...extra });

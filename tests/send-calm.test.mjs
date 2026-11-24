@@ -6,7 +6,7 @@ const delivery = readFileSync(new URL("../modules/conversation/delivery.js", imp
 const messages = readFileSync(new URL("../modules/conversation/message-items.js", import.meta.url), "utf8");
 const typing = readFileSync(new URL("../modules/conversation/typing.js", import.meta.url), "utf8");
 const css = sheet(new URL("../css/app.css", import.meta.url));
-const { echoes } = await import("../js/timeline.js");
+const { echoes } = await import("../core/services/world/timeline.js");
 assert.doesNotMatch(`${app}\n${delivery}`, /function lift\(/, "no flight from the composer's corner");
 assert.match(delivery, /else \{ render\(\); K\.conv\.follow\.toLatest\(false\); arrive\(K\.conv\.msgs\.querySelector\(`\[data-k="\$\{m\.id\}"\]`\)\); \}/);
 assert.match(messages, /meta = `<div class="meta is-sending"><i class="spin" aria-hidden="true"><\/i>Sending<\/div>`/);

@@ -134,7 +134,7 @@ t("Copy allowed: both say copied, and the text is what was shown", async () => {
 t("redraw: a region redrawn keeps the focused control, what's typed, and applies everything else", async () => {
   const page = await app();
   const r = await page.evaluate(async () => {
-    const { redraw } = await import("./js/redraw.js");
+    const { redraw } = await import("./core/ui/redraw.js");
     const box = document.createElement("div"); document.body.append(box);
     box.innerHTML = `<p>Old words</p><button type="button" data-rule-off="a">Revoke a</button><button type="button" data-rule-off="b">Revoke b</button><input id="rd-in" value="saved">`;
     const b = box.querySelector('[data-rule-off="b"]'); b.focus();

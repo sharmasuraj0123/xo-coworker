@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { refusal, sortFiles, isLargePaste, pasteExt, pasteName, pasteLabel, kindOf, typeWord, fmtSize, uploadErrorText, MAX_BYTES, MAX_FILES, FINAL } from "../core/services/media/attachment-rules.js";
 import { createTray } from "../core/services/media/attachment-tray.js";
 import { attachmentsOf } from "../core/services/world/rows.js";
-import { uiMsg, echoes, hopLine } from "../js/timeline.js";
+import { uiMsg, echoes, hopLine } from "../core/services/world/timeline.js";
 
 let passed = 0;
 const pending = [];

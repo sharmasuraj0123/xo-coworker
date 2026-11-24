@@ -1,6 +1,6 @@
 // Settings' Routing, Rules and Worktrees pages, wired to #settings: one listener per kind, in the order they've always answered.
 
-import { radioKeys } from "./keynav.js";
+import { radioKeys } from "../core/ui/a11y/keynav.js";
 import { createSettingsHost } from "../modules/settings/host.js";
 import { createRoutingPage } from "../modules/routing/page.js";
 import { createRulesPage } from "../modules/rules/page.js";

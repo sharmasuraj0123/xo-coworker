@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { createParser, SSEStream } from "../core/platform/sse.js";
 import { createTurns } from "../core/services/world/turns.js";
 import { itemParts, itemBody, questionsOf, itemEffort, evidenceOf, hostOf, askedBy, isNo, holdWords } from "../core/services/review.js";
-import { askingState } from "../js/timeline.js";
+import { askingState } from "../core/services/world/timeline.js";
 import { hopRank, furtherState, mergeHop } from "../core/services/world/hops.js";
 
 let passed = 0;

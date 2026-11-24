@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 const M = await import("../js/media.js");
 const { attachmentsOf } = await import("../core/services/world/rows.js");
-const { uiMsg, updateMessage } = await import("../js/timeline.js");
+const { uiMsg, updateMessage } = await import("../core/services/world/timeline.js");
 const { turnHtml } = await import("../js/turnview.js");
 const MD = await import("../core/ui/markdown/markdown.js");
 

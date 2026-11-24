@@ -1,7 +1,7 @@
 // Runtimes, the pure part (core/services/runtimes.js): names, health, usage windows, the runtime policy, moves.
 //   node tests/runtimes.test.mjs        (no network)
 import assert from "node:assert/strict";
-import { stormAsks, uiMsg } from "../js/timeline.js";
+import { stormAsks, uiMsg } from "../core/services/world/timeline.js";
 import { asksOf } from "../modules/decisions/kit.js";
 import { humanize, limitItem, isLimitItem } from "../core/services/runtimes.js";
 import { rtName, manyRuntimes, healthOf, windowsOf, allowedOf, defaultOf, policyWords, moveTargets, canMove, policyErrors, errorField, untilWords, isInstalled } from "../core/services/runtimes.js";

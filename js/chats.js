@@ -2,7 +2,7 @@
 
 import { createChats as createChatsModule } from "../modules/chats/chats.js";
 import { turnHtml, turnAv } from "./turnview.js";
-import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "./timeline.js";
+import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
 
 /** @param {Parameters<typeof createChatsModule>[0]} deps */
 export function createChats(deps) {

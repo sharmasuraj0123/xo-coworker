@@ -6,7 +6,7 @@
 // sent anywhere, and nothing but GETs is asked.
 //   node tests/busy.test.mjs
 import assert from "node:assert/strict";
-import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState, statusLater } from "../js/timeline.js";
+import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState, statusLater } from "../core/services/world/timeline.js";
 const sp = (x) => String(x).replace(/\u00a0/g, " "); // the time is one phrase (no-break spaces); read as plain spaces
 
 let passed = 0;

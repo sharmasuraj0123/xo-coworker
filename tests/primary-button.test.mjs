@@ -13,7 +13,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
 t("the primary tokens are the accent's by default", () => {
   assert.match(tokens, /--pri-fill:var\(--accent-fill\); --pri-fill-hover:var\(--accent-hover\); --pri-fill-press:var\(--accent-press\); --pri-ink:var\(--accent-ink\);/);
 });
-const { FLAVOURS } = await import("../js/flavours.js");
+const { FLAVOURS } = await import("../core/ui/flavours.js");
 t("a flavour with primary ink fills its main actions with the ink, and no other flavour does", () => {
   const fl = readFileSync(new URL("flavours.css", dir), "utf8");
   const ink = FLAVOURS.filter((f) => f.primary === "ink").map((f) => f.id);

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../js/sideorder.js";
+import { createCalmOrder, JOIN_MS, LEAVE_MS } from "../shell/sideorder.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { dom } from "./lib/dom.mjs";
 let passed = 0;

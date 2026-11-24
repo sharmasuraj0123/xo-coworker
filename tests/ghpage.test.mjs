@@ -5,7 +5,7 @@ import { dom, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
 const R = new URL("../", import.meta.url);
-const { createGhPage, since, longAgo, issueOf, prOf, issueRow, prRow } = await import(new URL("js/ghpage.js", R));
+const { createGhPage, since, longAgo, issueOf, prOf, issueRow, prRow } = await import(new URL("modules/github/page.js", R));
 const { api } = await import("../core/platform/api.js");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { sheet } from "./lib/cascade.mjs";
 import { readFileSync } from "node:fs";
-import { dayGroup, rowTime } from "../js/timeline.js";
+import { dayGroup, rowTime } from "../core/services/world/timeline.js";
 import { dom, same } from "./lib/dom.mjs";
 import { createChats } from "../js/chats.js";
 

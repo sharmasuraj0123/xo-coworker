@@ -8,7 +8,7 @@
 //   node tests/stopped-on-purpose.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { stopOf, stopWords } from "../js/timeline.js";
+import { stopOf, stopWords } from "../core/services/world/timeline.js";
 import { sheet } from "./lib/cascade.mjs";
 
 const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
