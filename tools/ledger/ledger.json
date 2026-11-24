@@ -2723,7 +2723,9 @@
     "core/services/media/items.js",
     "core/services/media/layout.js",
     "core/services/media/render.js",
-    "core/services/media/hydrate.js"
+    "core/services/media/hydrate.js",
+    "core/services/media/images.js",
+    "core/services/media/intersection.js"
    ],
    "note": "js/media.js re-exports the shared media modules"
   },
@@ -10434,11 +10436,11 @@
   },
   "js/media.js::exports::cachedSrc": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/images.js"
   },
   "js/media.js::exports::loadSrc": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "showSrc assigns object URLs directly to the image that uses them"
   },
   "js/media.js::exports::PICTURE_FACE": {
    "status": "moved",
@@ -10561,24 +10563,24 @@
    "home": "core/services/media/render.js"
   },
   "js/media.js::functions::touch": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "The shared LRU owns cache recency"
   },
   "js/media.js::functions::evict": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "The shared LRU evicts entries and calls the object URL cleanup"
   },
   "js/media.js::functions::cachedSrc": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/images.js"
   },
   "js/media.js::functions::loadSrc": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "showSrc assigns object URLs directly to the image that uses them"
   },
   "js/media.js::functions::watcherFor": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/intersection.js"
   },
   "js/media.js::functions::stateOf": {
    "status": "moved",

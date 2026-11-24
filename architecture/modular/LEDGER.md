@@ -11,7 +11,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | kept | 57 |
 | split | 28 |
 
-Items inside first-party files: 2488 (moved 1773, planned 409, kept 172, deleted 131, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1769, planned 409, kept 172, deleted 135, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -75,7 +75,7 @@ Items inside first-party files: 2488 (moved 1773, planned 409, kept 172, deleted
 | `js/map.js` | 1360 | split | modules/map, core/services/places.js, core/services/agent-activity.js · next: The panel controller and drawing live in modules/map; js/map.js keeps the legacy entry point. Shared places and activity live in core/services. |
 | `js/markdown.js` | 519 | split | core/ui/markdown/markdown.js, core/ui/markdown/inline.js · next: blocks in markdown.js, inline text, links, pictures and the rich hooks in inline.js; js/markdown.js re-exports markdown.js until the shims go |
 | `js/mdlive.js` | 331 | moved | modules/files/markdown-page.js |
-| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js · next: js/media.js re-exports the shared media modules |
+| `js/media.js` | 612 | split | core/services/media/items.js, core/services/media/layout.js, core/services/media/render.js, core/services/media/hydrate.js, core/services/media/images.js, core/services/media/intersection.js · next: js/media.js re-exports the shared media modules |
 | `js/merge.js` | 101 | moved | core/platform/diff.js · next: every importer points at core/platform/diff.js, so it leaves with no re-export |
 | `js/model.js` | 34 | moved | core/services/world/checklist.js |
 | `js/motion.js` | 82 | moved | core/ui/motion.js · next: js/motion.js re-exports core/ui/motion.js until the shims go |

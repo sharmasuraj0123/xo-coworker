@@ -6,4 +6,6 @@ export { madeIds, dedupeByMade, TAIL, splitExt, midName, midNameHtml, labelOf, i
 
 export { LIMITS, TINY, LONG, BANNER, GAP, MAX_TILES, FRAME, dim, safeTint, fitImage, albumLayout } from "../core/services/media/layout.js";
 
-export { cachedSrc, loadSrc, PICTURE_FACE, pictureTone, hydrateMedia, retryMedia, galleryOf, slotOf, wireDragOut } from "../core/services/media/hydrate.js";
+export { cachedSrc, showSrc } from "../core/services/media/images.js";
+
+export { PICTURE_FACE, pictureTone, hydrateMedia, retryMedia, galleryOf, slotOf, wireDragOut } from "../core/services/media/hydrate.js";

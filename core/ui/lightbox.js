@@ -7,7 +7,7 @@ import { ARROW_OUT } from "./markdown/inline.js";
 import { ICON } from "./icons/names.js";
 import { still, EASE } from "./motion.js";
 
-/** @typedef {{ mediaItemOf: (key: string) => any, galleryOf: (root: any) => any[], slotOf: (root: any, key: string) => any, cachedSrc: (it: any) => string | null, loadSrc: (it: any) => Promise<string>, labelOf: (it: any) => string, midName: (name: string, max?: number) => string, midNameHtml: (name: string) => string, typeWord: (type: string, name: string) => string, fmtSize: (n: unknown) => string, attachmentUrl: (chat: string, id: string) => string, projectDownload: (project: string, rel: string) => Promise<Blob> }} Pictures */
+/** @typedef {{ mediaItemOf: (key: string, from: Element | null) => any, galleryOf: (root: any) => any[], slotOf: (root: any, key: string) => any, showSrc: (img: HTMLImageElement, it: any) => Promise<void>, labelOf: (it: any) => string, midName: (name: string, max?: number) => string, midNameHtml: (name: string) => string, typeWord: (type: string, name: string) => string, fmtSize: (n: unknown) => string, attachmentUrl: (chat: string, id: string) => string, projectDownload: (project: string, rel: string) => Promise<Blob> }} Pictures */
 
 // The flight back is a touch quicker than the flight out: --d-hover (200) and --d-in (280) met halfway.
 const BACK_MS = 240;
@@ -34,7 +34,7 @@ const box = (/** @type {Element} */ el) => { const r = el.getBoundingClientRect(
 
 /** Opens a picture over the page, grown from its spot, stepping through its gallery; pictures is what the pictures' owner lends it. @param {{ openFile?: ((it: any, from: any) => void) | null, announce?: (words: string) => void, pictures: Pictures }} opts */
 export function createLightbox({ openFile = null, announce = () => {}, pictures }) {
-  const { mediaItemOf, galleryOf, slotOf, cachedSrc, loadSrc, labelOf, midName, midNameHtml, typeWord, fmtSize, attachmentUrl, projectDownload } = pictures;
+  const { mediaItemOf, galleryOf, slotOf, showSrc, labelOf, midName, midNameHtml, typeWord, fmtSize, attachmentUrl, projectDownload } = pictures;
   /** @type {{ open: boolean, items: any[], i: number, root: any, returnTo: any, frame: any, busy: any, drag: any }} */
   const L = { open: false, items: [], i: 0, root: null, returnTo: null, frame: null, busy: null, drag: null };
   /** @type {any} */
@@ -114,9 +114,7 @@ export function createLightbox({ openFile = null, announce = () => {}, pictures 
     img.addEventListener("error", () => { f.classList.add("is-err"); f.dataset.err = `Couldn't load ${labelOf(it)}`; }, { once: true });
     f.appendChild(img);
     el.querySelector(".lbx-stage").appendChild(f);
-    const u = cachedSrc(it);
-    if (u) img.src = u;
-    else loadSrc(it).then((url) => { img.src = url; }, () => { f.classList.add("is-err"); f.dataset.err = `Couldn't load ${labelOf(it)}`; });
+    showSrc(img, it).catch(() => { f.classList.add("is-err"); f.dataset.err = `Couldn't load ${labelOf(it)}`; });
     // a picture whose size we didn't know says it once decoded, and settles to its own shape
     img.addEventListener("load", () => {
       if (L.frame !== f || (it.w && it.h)) return;
@@ -175,10 +173,10 @@ export function createLightbox({ openFile = null, announce = () => {}, pictures 
   /** Open the picture drawn under `key`. from: the element pressed (its tile, or the album's "+N"); root: the conversation whose pictures ← → walk through. @param {string} key @param {any} from @param {any} root */
   function open(key, from, root) {
     build();
-    const it0 = mediaItemOf(key);
-    if (!it0) return;
     const items = galleryOf(root);
-    L.items = items.length ? items : [it0];
+    const it0 = mediaItemOf(key, from) || items.find((it) => it.key === key);
+    if (!it0) return;
+    L.items = items.some((it) => it.key === key) ? items : [it0];
     L.i = Math.max(0, L.items.findIndex((x) => x.key === key));
     L.root = root;
     L.returnTo = from || document.activeElement;

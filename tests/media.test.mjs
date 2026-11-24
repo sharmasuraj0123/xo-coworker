@@ -3,6 +3,9 @@
 // feeds them (attach.js attachmentsOf, timeline.js updateMessage). No network, no browser.
 //   node tests/media.test.mjs
 import assert from "node:assert/strict";
+import { parseHTML } from "linkedom";
+
+const mediaRoot = (html) => parseHTML(`<main>${html}</main>`).document.querySelector("main");
 
 // js/ui.js reads the reduced-motion setting when it loads
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
@@ -179,12 +182,13 @@ t("mediaHtml: six pictures → an album of four tiles, the fourth +3, the lightb
   assert.equal((html.match(/class="mx-tile"/g) || []).length, 4);
   assert.match(html, /<span class="mx-more" aria-hidden="true">\+3<\/span>/);
   assert.match(html, /aria-label="Open p3\.png and 2 more pictures"/);
-  const keys = JSON.parse(html.match(/data-mx-keys="([^"]+)"/)[1].replace(/&quot;/g, '"'));
+  const root = mediaRoot(html);
+  const keys = M.galleryOf(root).map((it) => it.key);
   assert.deepEqual(keys, ["p0", "p1", "p2", "p3", "p4", "p5"]);
   assert.match(html, /class="tb-fb" data-mx="f1"/);
   assert.match(html, /<span class="tb-fm">Markdown · 2 KB<\/span>/);
   assert.match(html, /data-fi=/); // Pierre's coloured icon, not the plain doc glyph
-  assert.equal(M.mediaItemOf("p4").name, "p4.png"); // registered for the lightbox and the click handler
+  assert.equal(M.mediaItemOf("f1", root.querySelector(".tb-fb")).name, "notes.md");
   assert.equal(M.mediaHtml([]), "");
 });
 
@@ -316,13 +320,13 @@ t("web pictures: no referrer, lazy, async, no crossorigin; the 16:10 frame (size
   assert.ok(!/crossorigin/i.test(one));
   assert.match(one, /aria-label="Open The loft, living room, image"/);
   assert.match(one, /title="The loft, living room · ex\.com"/);
-  const it = M.mediaItemOf("web:https://ex.com/p/loft.jpg");
+  const it = M.mediaItemOf("web:https://ex.com/p/loft.jpg", mediaRoot(one).querySelector("button"));
   assert.deepEqual([it.kind, it.name, it.title, it.by, it.web.host, it.w, it.h], ["image", "loft.jpg", "The loft, living room", "ex.com", "ex.com", null, null]);
   const album = M.webImagesHtml([1, 2, 3].map((i) => ({ alt: `Room ${i}`, url: `https://www.ex.com/r${i}.jpg` })));
   assert.match(album, /class="mx-album"/);
   assert.equal((album.match(/class="mx-tile"/g) || []).length, 3);
   assert.equal(M.fromWebImage({ alt: "", url: "https://www.ex.com/" }).name, "ex.com", "no file name: its host");
-  assert.equal(M.mediaItemOf("web:https://www.ex.com/r1.jpg").by, "ex.com");
+  assert.equal(M.galleryOf(mediaRoot(album))[0].by, "ex.com");
 });
 t("a web picture that can't show becomes its outbound link (alt or host, ↗), no broken image; it isn't tried again", () => {
   const titled = M.fromWebImage({ alt: "The loft", url: "https://ex.com/gone.jpg" });
@@ -337,7 +341,7 @@ t("a web picture that can't show becomes its outbound link (alt or host, ↗), n
   assert.ok(!/data-mx-img="web:https:\/\/ex\.com\/gone\.jpg"/.test(html), "the failed one isn't drawn as a picture again");
   assert.match(html, /class="mx-one is-frame" data-mx="web:https:\/\/ex\.com\/pool\.jpg"/);
   assert.match(html, /<p class="mx-weblinks"><a href="https:\/\/ex\.com\/gone\.jpg"[^>]*><span class="lk-t">The <\/span><span class="lk-end"><span class="lk-t">loft<\/span>/);
-  assert.deepEqual(JSON.parse(html.match(/data-mx-keys="([^"]+)"/)[1].replace(/&quot;/g, '"')), ["web:https://ex.com/pool.jpg"], "the lightbox walks only what shows");
+  assert.deepEqual(M.galleryOf(mediaRoot(html)).map((it) => it.key), ["web:https://ex.com/pool.jpg"], "the lightbox walks only what shows");
   // all of them gone: only their links
   assert.equal(M.webImagesHtml([{ alt: "The loft", url: "https://ex.com/gone.jpg" }]).includes("<img"), false);
 });

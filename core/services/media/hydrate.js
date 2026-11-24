@@ -1,9 +1,12 @@
 // @ts-check
 
-import { api } from "../../platform/api.js";
+import { createScope } from "../../kernel/scope.js";
+import { createLru } from "../../platform/cache.js";
 import { fadeImage, EASE, MOVE, still } from "../../ui/motion.js";
 import { labelOf } from "./items.js";
-import { REG, markWebGone, webLinkHtml } from "./render.js";
+import { MEDIA_CACHE_MAX, mediaItemOf, stackItems, markWebGone, webLinkHtml } from "./render.js";
+import { cachedSrc, forgetSrc, showSrc } from "./images.js";
+import { watchNear } from "./intersection.js";
 
 /** @typedef {ReturnType<typeof import("./items.js").mediaItem>} MediaItem */
 
@@ -13,57 +16,9 @@ import { REG, markWebGone, webLinkHtml } from "./render.js";
 
 /** @typedef {HTMLElement & {_mxDrag?: boolean}} MediaRoot */
 
-/** @typedef {{url: string | null, p: Promise<string> | null}} ImageLoad */
-
-const CACHE_MAX = 200;
-
-/** @type {Map<string, ImageLoad>} */
-const blobs = new Map();
-/** @template K, V @param {Map<K, V>} map @param {K} key @param {V} val */
-function touch(map, key, val) { map.delete(key); map.set(key, val); }
-function evict() {
-  while (blobs.size > CACHE_MAX) {
-    const [k, e] = /** @type {[string, ImageLoad]} */ (blobs.entries().next().value);
-    blobs.delete(k);
-    if (e.url && !document.querySelector(`img[src="${CSS.escape(e.url)}"]`)) URL.revokeObjectURL(e.url);
-  }
-}
-/** The URL a picture shows from right now, or null until it has been fetched. @param {MediaItem | undefined | null} it */
-export function cachedSrc(it) {
-  return it ? it.src || (/** @type {Partial<ImageLoad>} */ (blobs.get(it.key) || {})).url || null : null;
-}
-/** The URL a picture shows from: direct, or its project file fetched once into an object URL. @param {MediaItem | undefined | null} it */
-export function loadSrc(it) {
-  if (!it) return Promise.reject(new Error("No picture"));
-  if (it.src) return Promise.resolve(it.src);
-  let e = blobs.get(it.key);
-  if (e) { touch(blobs, it.key, e); return /** @type {Promise<string>} */ (e.p); }
-  e = { url: null, p: null };
-  e.p = api.projectImage(/** @type {string} */ (it.project), /** @type {string} */ (it.rel)).then((b) => { e.url = URL.createObjectURL(b); return e.url; }, (err) => { blobs.delete(it.key); throw err; });
-  blobs.set(it.key, e);
-  evict();
-  return /** @type {Promise<string>} */ (e.p);
-}
-
-/** @type {Map<string, MediaImage>} */
-const shown = new Map(); // key → the last decoded <img>
+/** @type {ReturnType<typeof createLru<string, MediaImage>>} */
+const shown = createLru({ max: MEDIA_CACHE_MAX });
 const SLOW_MS = 3000;
-
-/** @type {Map<Element | null, IntersectionObserver>} */
-const watchers = new Map();
-/** @param {HTMLElement} root */
-function watcherFor(root) {
-  if (typeof IntersectionObserver !== "function") return null;
-  const sc = root.closest(".scroller") || null;
-  let io = watchers.get(sc);
-  if (!io) {
-    io = new IntersectionObserver((ents) => {
-      for (const e of ents) if (e.isIntersecting) { /** @type {IntersectionObserver} */ (io).unobserve(e.target); start(/** @type {MediaImage} */ (e.target)); }
-    }, { root: sc, rootMargin: "800px 0px" });
-    watchers.set(sc, io);
-  }
-  return io;
-}
 
 /** @param {Element | null} box @param {string | null} cls @param {string} [text] */
 function stateOf(box, cls, text) {
@@ -79,8 +34,7 @@ function landed(img, box, key) {
   stateOf(box, null);
   box && box.classList.add("is-in");
   if (box && box.classList.contains("mx-one") && box.classList.contains("is-frame")) settle(img, box);
-  touch(shown, key, img);
-  while (shown.size > CACHE_MAX) shown.delete(/** @type {string} */ (shown.keys().next().value));
+  shown.set(key, img);
 }
 /** @param {MediaImage} img @param {HTMLElement} box */
 function settle(img, box) {
@@ -104,7 +58,7 @@ function settle(img, box) {
   box.addEventListener("transitionend", (e) => { if (e.propertyName === "height") done(); }, { once: true });
   setTimeout(done, MOVE + 80);
 }
-/** @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem} [it] */
+/** @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem | null} [it] */
 function failed(img, box, it) {
   clearTimeout(img._mxSlow);
   img.style.opacity = "0";
@@ -117,10 +71,9 @@ function webFailed(box, it) {
   const stack = box && /** @type {HTMLElement | null} */ (box.closest(".mx-stack"));
   if (!stack || /** @type {MediaBox} */ (box)._mxGone) return;
   /** @type {MediaBox} */ (box)._mxGone = true;
-  try {
-    const ks = JSON.parse(stack.dataset.mxKeys || "[]").filter((/** @type {string} */ k) => k !== it.key);
-    if (ks.length) stack.dataset.mxKeys = JSON.stringify(ks); else delete stack.dataset.mxKeys;
-  } catch { /* not ours */ }
+  const remaining = stackItems(stack).filter((item) => item.key !== it.key);
+  stack.dataset.mxItems = JSON.stringify(remaining);
+  stack.dataset.key = JSON.stringify(remaining.filter((item) => item.kind === "image").map((item) => item.key));
   let line = stack.querySelector(":scope > .mx-weblinks");
   const fresh = !line;
   if (fresh) { line = document.createElement("p"); line.className = "mx-weblinks"; }
@@ -134,23 +87,25 @@ function webFailed(box, it) {
   else if (fresh) album.after(/** @type {Element} */ (line));
 }
 
+const page = createScope();
 if (typeof document !== "undefined") {
-  document.addEventListener("error", (e) => {
+  page.listen(document, "error", (e) => {
     const img = /** @type {MediaImage | null} */ (e.target);
     if (!img || !img.matches || !img.matches("img[data-mx-web]")) return;
-    const it = REG.get(img.dataset.mxImg);
+    const it = mediaItemOf(img.dataset.mxImg, img);
     if (it) failed(img, /** @type {MediaBox | null} */ (img.closest(".mx-one,.mx-tile")), it);
   }, true);
 }
 
 export const PICTURE_FACE = ".mx-one, .mx-tile, button.att-ic.is-img";
-/** @type {Map<string, string>} */
-const TONE = new Map();
+/** @type {ReturnType<typeof createLru<string, string>>} */
+const tones = createLru({ max: MEDIA_CACHE_MAX });
 /** @param {Partial<HTMLImageElement>} img */
 export function pictureTone(img) {
   const k = img.currentSrc || img.src;
   if (!k || !img.complete || !img.naturalWidth) return "";
-  if (TONE.has(k)) return /** @type {string} */ (TONE.get(k));
+  const tone = tones.get(k);
+  if (tone !== undefined) return tone;
   let t = "";
   try {
     const c = document.createElement("canvas"); c.width = c.height = 8;
@@ -159,11 +114,14 @@ export function pictureTone(img) {
     const d = g.getImageData(0, 0, 8, 8).data; let sum = 0, n = 0;
     for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 16) continue; sum += d[i] + d[i + 1] + d[i + 2]; n++; }
     if (n) t = sum / n < 382.5 ? "dark" : "light";
-  } catch { /* a picture from elsewhere taints the canvas: the ink's veil */ }
-  TONE.set(k, t); return t;
+  } catch (err) {
+    if (!(err instanceof DOMException) || err.name !== "SecurityError") throw err;
+  }
+  tones.set(k, t);
+  return t;
 }
 if (typeof document !== "undefined") {
-  document.addEventListener("pointerover", (e) => {
+  page.listen(document, "pointerover", (e) => {
     const target = /** @type {HTMLElement | null} */ (e.target);
     const face = target && target.closest && /** @type {HTMLElement | null} */ (target.closest(PICTURE_FACE));
     if (!face) return;
@@ -171,7 +129,7 @@ if (typeof document !== "undefined") {
     if (t) { if (face.dataset.tone !== t) face.dataset.tone = t; } else if (face.dataset.tone) delete face.dataset.tone;
   }, true);
 }
-/** Show an <img> once it has decoded (motion.js fadeImage); one already decoded (cached) shows at once. @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem} [it] */
+/** Show an <img> once it has decoded (motion.js fadeImage); one already decoded (cached) shows at once. @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem | null} [it] */
 function watch(img, box, it) {
   const key = img.dataset.mxImg;
   if (img.complete && img.naturalWidth) { landed(img, box, key); return; }
@@ -182,31 +140,29 @@ function watch(img, box, it) {
 /** A picture near the screen starts loading; one that takes over 3 s says so (never a spinner). @param {MediaImage} img */
 function start(img) {
   const box = /** @type {MediaBox | null} */ (img.closest(".mx-one,.mx-tile"));
-  const it = REG.get(img.dataset.mxImg);
+  const it = mediaItemOf(img.dataset.mxImg, img);
   if (img.complete && img.naturalWidth) return;
   img._mxSlow = setTimeout(() => { if (!(img.complete && img.naturalWidth) && !/** @type {MediaBox} */ (box).classList.contains("is-err")) stateOf(box, "is-slow", "Loading…"); }, SLOW_MS);
   if (img.getAttribute("src")) return;
-  loadSrc(it).then((u) => { img.src = u; watch(img, box, it); }, () => failed(img, box, it));
+  showSrc(img, it).then(() => { if (img.isConnected) watch(img, box, it); }, () => { if (img.isConnected) failed(img, box, it); });
 }
 
 /** @param {HTMLElement | null | undefined} root */
 export function hydrateMedia(root) {
   if (!root || typeof document === "undefined") return;
-  const io = watcherFor(root);
   for (const img of /** @type {NodeListOf<MediaImage>} */ (root.querySelectorAll("img.mx-img"))) {
     if (img._mx) continue;
     img._mx = true;
     const key = img.dataset.mxImg;
-    const it = REG.get(key);
+    const it = mediaItemOf(key, img);
     const box = /** @type {MediaBox | null} */ (img.closest(".mx-one,.mx-tile"));
-    const old = shown.get(key);
-    const same = old && !old.isConnected && old.complete && old.naturalWidth && (!img.getAttribute("src") || old.src === img.src);
+    const old = shown.get(key), u = cachedSrc(it);
+    const same = old && !old.isConnected && old.complete && old.naturalWidth && (img.getAttribute("src") || u) === old.getAttribute("src");
     if (same) { old.className = img.className; img.replaceWith(old); box && box.classList.add("is-in"); continue; }
-    const u = cachedSrc(it);
     if (u && !img.getAttribute("src")) img.src = u;
     if (img.getAttribute("src")) watch(img, box, it);
     else img.style.opacity = "0";
-    if (io) io.observe(img); else start(img);
+    watchNear(img, () => start(img));
   }
 }
 
@@ -215,10 +171,10 @@ export function retryMedia(el) {
   const box = el && /** @type {MediaBox | null} */ (el.closest(".mx-one,.mx-tile"));
   if (!box || !box.classList.contains("is-err")) return false;
   const img = /** @type {MediaImage} */ (box.querySelector("img.mx-img"));
-  const it = REG.get(img.dataset.mxImg);
+  const it = mediaItemOf(img.dataset.mxImg, img);
   stateOf(box, null);
-  if (it && !it.src) blobs.delete(it.key);
   img.removeAttribute("src"); img.style.opacity = "0";
+  if (it && !it.src) forgetSrc(it);
   if (it && it.src) { img.src = it.src + (it.src.includes("?") ? "&" : "?") + "r=" + Date.now(); watch(img, box, it); }
   else start(img);
   return true;
@@ -226,15 +182,14 @@ export function retryMedia(el) {
 
 /** Every picture under `root`, in the order they're drawn, the ones behind "+N" too (the lightbox's list). @param {ParentNode | null | undefined} root */
 export function galleryOf(root) {
-  /** @type {string[]} */
-  const keys = [];
-  for (const el of root ? /** @type {NodeListOf<HTMLElement & {dataset: {mxKeys: string}}>} */ (root.querySelectorAll("[data-mx-keys]")) : []) {
-    /** @type {string[]} */
-    let ks = [];
-    try { ks = JSON.parse(el.dataset.mxKeys); } catch { /* not ours */ }
-    for (const k of ks) if (!keys.includes(k)) keys.push(k);
+  /** @type {Map<string, MediaItem>} */
+  const items = new Map();
+  for (const stack of root?.querySelectorAll("[data-mx-items]") || []) {
+    for (const it of stackItems(stack)) {
+      if (it.kind === "image" && !items.has(it.key)) items.set(it.key, it);
+    }
   }
-  return keys.map((k) => REG.get(k)).filter(Boolean);
+  return [...items.values()];
 }
 
 /** Where a picture sits on screen (its tile or frame), or null when it's behind "+N" or gone. @param {ParentNode | null | undefined} root @param {string} key */
@@ -249,7 +204,7 @@ export function wireDragOut(root) {
   root.addEventListener("dragstart", (e) => {
     const target = /** @type {Element} */ (e.target);
     const img = target.closest && /** @type {MediaImage | null} */ (target.closest("img.mx-img"));
-    const it = img && REG.get(img.dataset.mxImg);
+    const it = img && mediaItemOf(img.dataset.mxImg, img);
     if (!it || !/** @type {MediaImage} */ (img).src || !e.dataTransfer) return;
     try { e.dataTransfer.setData("DownloadURL", `${it.type || "image/png"}:${it.name}:${new URL(/** @type {MediaImage} */ (img).src, location.href).href}`); } catch { /* not supported */ }
   });
