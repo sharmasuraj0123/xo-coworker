@@ -14,6 +14,7 @@ from hashlib import sha256
 import importlib.util
 import json
 import os
+from pathlib import Path
 import socket
 import threading
 import time
@@ -626,6 +627,21 @@ class StaticCaching(unittest.TestCase):
                                      (200, serve.IMMUTABLE, digest))
                     if path.endswith(".js"):
                         self.assertEqual(headers.get("content-type"), "text/javascript")
+
+    def test_versioned_mermaid_modules(self):
+        prefix = f"/v/{serve.tree_version()}"
+        root = Path(ROOT)
+        bundle = root / "vendor/mermaid"
+        entry = bundle / "mermaid.esm.min.mjs"
+        for path in [entry, *sorted((bundle / "chunks").rglob("*.mjs"))]:
+            relative = path.relative_to(root).as_posix()
+            with self.subTest(path=relative):
+                status, headers, body = fetch(f"{prefix}/{relative}")
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, "text/javascript", serve.IMMUTABLE))
+                self.assertEqual(sha256(body).hexdigest(), sha256(path.read_bytes()).hexdigest())
+        relative = entry.relative_to(root).as_posix()
+        self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
 
     def test_versioned_agent_mark_svgs(self):
         prefix = f"/v/{serve.tree_version()}"

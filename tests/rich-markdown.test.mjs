@@ -1,5 +1,6 @@
 // Markdown rendering and interactive charts in a Node DOM.
 import assert from "node:assert/strict";
+import { registerHooks } from "node:module";
 import { dom } from "./lib/dom.mjs";
 import { renderMarkdown, renderInline, setRich, imageLine } from "../core/ui/markdown/markdown.js";
 import { chartHtml, readChart, niceTicks, fmt } from "../core/ui/markdown/chart.js";
@@ -130,8 +131,41 @@ t("![alt](relative.png) is a picture in the conversation's folder", () => {
 
 const { document, window } = await dom(`${chartHtml(JSON.stringify(SPEC))}<button>Outside the chart</button>`);
 globalThis.MutationObserver = class { observe() {} };
-const { startRich } = await import("../core/ui/markdown/rich.js");
+globalThis.getComputedStyle = window.getComputedStyle;
+Object.getPrototypeOf(document.createElement("canvas")).getContext = () => ({
+  clearRect() {}, fillRect() {}, getImageData() { return { data: [0, 0, 0, 255] }; },
+});
+const mermaidEntry = new URL("../vendor/mermaid/mermaid.esm.min.mjs", import.meta.url).href;
+const mermaidLoads = [];
+const hooks = registerHooks({
+  load(url, context, next) {
+    const module = next(url, context);
+    if (url !== mermaidEntry) return module;
+    mermaidLoads.push(url);
+    return { ...module, source: `
+      let renders = 0;
+      export default {
+        initialize() {},
+        async render() { return { svg: '<svg data-render="' + ++renders + '"></svg>' }; },
+      };
+    ` };
+  },
+});
+const { drawDiagram, startRich } = await import("../core/ui/markdown/rich.js");
 startRich();
+const loadedAtStartup = [...mermaidLoads];
+const diagramSource = "flowchart LR\n  A --> B";
+const [diagram] = await Promise.allSettled([drawDiagram(diagramSource)]);
+const [redraw] = await Promise.allSettled([drawDiagram(diagramSource)]);
+hooks.deregister();
+t("the first diagram loads the published Mermaid module and redraw reuses its output", () => {
+  assert.deepEqual(loadedAtStartup, []);
+  assert.deepEqual(mermaidLoads, [mermaidEntry]);
+  if (diagram.status === "rejected") throw diagram.reason;
+  if (redraw.status === "rejected") throw redraw.reason;
+  assert.equal(diagram.value, '<svg data-render="1"></svg>');
+  assert.equal(redraw.value, diagram.value);
+});
 t("chart hover follows the nearest values and clears when the pointer leaves", () => {
   const plot = document.querySelector(".mc-plot");
   plot.getBoundingClientRect = () => ({ left: 20, width: 100 });

@@ -138,7 +138,7 @@ function hexOf(css, fallback) {
 }
 /** @param {string} th */
 async function mermaidFor(th) {
-  mermaidP ||= import("../../../js/vendor/mermaid/mermaid.esm.min.mjs").then((m) => m.default);
+  mermaidP ||= import("../../../vendor/mermaid/mermaid.esm.min.mjs").then((m) => m.default);
   const mermaid = await mermaidP;
   if (mermaidTheme !== th) {
     // XO's own tokens, so a diagram reads as part of the page in either theme: stone nodes, hairline edges, ink text
