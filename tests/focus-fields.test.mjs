@@ -1,33 +1,38 @@
-// A text field shows it is active by its accent caret and a thin accent edge with a soft glow, never the ring; keyboard focus elsewhere is a soft ring hugging the control.
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
-import { readSource } from "./lib/sources.mjs";
+import { test } from "node:test";
+import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
 
-const dir = new URL("../css/", import.meta.url);
-const sheets = readdirSync(dir).filter((f) => f.endsWith(".css")).map((f) => [f, readFileSync(new URL(f, dir), "utf8")]);
-const css = (f) => sheets.find(([n]) => n === f)[1];
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+test("text fields use the accent caret and suppress their outline", () => {
+  const excluded = ["checkbox", "radio", "range", "button", "submit", "reset", "file", "color", "image"]
+    .map((type) => "[type=" + type + "]").join(",");
+  const focused = ":is(input:not(" + excluded + "),textarea,[contenteditable]):focus-visible";
+  assert.deepEqual(valuesFor(focused, "outline"), ["none"]);
+  assert.deepEqual(valuesFor(":is(input,textarea,[contenteditable])", "caret-color"), [resolveValue("var(--accent)")]);
+});
 
-t("every text field drops the ring and takes the accent caret", () => {
-  const f = css("foundation.css");
-  assert.match(f, /\n:is\(input:not\(\[type=checkbox\],\[type=radio\],\[type=range\],\[type=button\],\[type=submit\],\[type=reset\],\[type=file\],\[type=color\],\[type=image\]\),textarea,\[contenteditable\]\):focus-visible\{outline:none\}/);
-  assert.match(f, /\n:is\(input,textarea,\[contenteditable\]\)\{caret-color:var\(--accent\)\}/);
+test("bordered fields draw an accent edge and soft glow", () => {
+  const fields = ".field input,.field textarea,.lp-in,.shd-in,.c-note textarea,.tw-in,.c-q-in,.c-name-in";
+  const focused = ":is(" + fields + "):focus";
+  assert.deepEqual(valuesFor(focused, "border-color"), [resolveValue("var(--field-line-focus)")]);
+  assert.deepEqual(valuesFor(focused, "box-shadow"), [resolveValue("0 0 0 3px var(--focus-halo)")]);
+
+  for (const [token, alpha] of [["--field-line-focus", ".8"], ["--focus-halo", ".2"]]) {
+    const palette = stylesheetRows.filter((row) => row.property === token && row.context[0]?.params === "tokens");
+    assert.equal(palette.length, 2, token);
+    for (const row of palette) assert.equal(row.value, "rgba(var(--accent-rgb)," + alpha + ")");
+  }
 });
-t("a bordered field typed in takes the accent edge and the soft glow outside it, both tokens", () => {
-  assert.match(css("foundation.css"), /\n:is\(\.field input,\.field textarea,\.lp-in,\.shd-in,\.c-note textarea,\.tw-in,\.c-q-in,\.c-name-in\):focus\{border-color:var\(--field-line-focus\);box-shadow:0 0 0 3px var\(--focus-halo\)\}/);
-  const tok = readSource("core/ui/tokens.css");
-  assert.equal((tok.match(/--field-line-focus:rgba\(var\(--accent-rgb\),\.8\);/g) || []).length, 2);
-  assert.equal((tok.match(/--focus-halo:rgba\(var\(--accent-rgb\),\.2\);/g) || []).length, 2);
-});
-t("no field draws its own ring, and no focus rule writes a colour of its own", () => {
+
+test("focus rules keep field outlines off and use named effects", () => {
   const bad = [];
-  for (const [f, s] of sheets) {
-    for (const m of s.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      if (/(textarea|\.field input|\.(tw|c-q|c-name|lp|shd|lq)-in)[^,{]*:focus\b/.test(m[1]) && /outline:\s*\d/.test(m[2])) bad.push(`${f}: ${m[1].trim().slice(0, 60)}`);
-      if (/:focus/.test(m[1]) && /(outline|box-shadow)[^;]*(--accent\b|accent-rgb)/.test(m[2])) bad.push(`${f}: ${m[1].trim().slice(0, 60)}`);
-    }
+  for (const row of stylesheetRows) {
+    const selector = row.context.at(-1)?.selector ?? "";
+    if (!selector.includes(":focus")) continue;
+    const field = /(?:textarea|\.field input|\.(?:tw|c-q|c-name|lp|shd|lq)-in)[^,{]*:focus\b/.test(selector);
+    if (field && row.property === "outline" && /^\d/.test(row.value)) bad.push(selector);
+    if (/^(?:outline|box-shadow)/.test(row.property) && /--accent\b|accent-rgb/.test(row.value)) bad.push(selector);
   }
   assert.deepEqual(bad, []);
 });
-console.log(`\n${passed} passed`);

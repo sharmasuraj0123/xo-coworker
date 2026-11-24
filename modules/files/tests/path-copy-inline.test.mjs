@@ -7,11 +7,18 @@ import { unavailable, viewerFixture } from "./viewer-fixture.mjs";
 
 const { viewer, host, clipboard, click } = await viewerFixture();
 const pending = deferred();
-clipboard.writeText = () => pending.promise;
+const copied = [];
+clipboard.writeText = (text) => {
+  copied.push(text);
+  return pending.promise;
+};
 const pathCopy = () => host.querySelector(".vw-path button[data-vw-copy-path]");
 mock.timers.enable({ apis: ["setTimeout"] });
 try {
   viewer.open(unavailable());
+  assert.ok(pathCopy().classList.contains("vw-path-copy"));
+  assert.ok(!pathCopy().classList.contains("vw-btn"));
+  assert.equal(pathCopy().type, "button");
   assert.equal(pathCopy().textContent.trim(), "Copy the path");
   click(".vw-path button");
   assert.equal(pathCopy().textContent.trim(), "Copy the path", "the pending label is delayed for a quick copy");
@@ -21,6 +28,7 @@ try {
   pending.resolve();
   await Promise.resolve();
   assert.equal(pathCopy().textContent.trim(), "Copied");
+  assert.deepEqual(copied, [unavailable().path]);
   assert.equal(pathCopy().hasAttribute("aria-busy"), false);
   assert.ok(declarationsFor(".vw-path-copy svg", "width").some((row) => row.value === "var(--ic-sm)"));
   assert.ok(declarationsFor(".vw-path-copy svg", "height").some((row) => row.value === "var(--ic-sm)"));

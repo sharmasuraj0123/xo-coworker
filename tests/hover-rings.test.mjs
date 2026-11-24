@@ -1,40 +1,40 @@
+// @ts-check
+
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync, readdirSync } from "node:fs";
-import { readSource } from "./lib/sources.mjs";
+import { test } from "node:test";
+import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
 
-const dir = new URL("../css/", import.meta.url);
-const sheets = readdirSync(dir).filter((f) => f.endsWith(".css") && f !== "flavours.css").map((f) => [f, readFileSync(new URL(f, dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")]);
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-
-const rings = (body) => {
-  const d = Object.fromEntries(body.split(";").map((x) => x.split(/:(.*)/s).map((y) => (y || "").trim())).filter(([k]) => k));
-  const out = [];
-  for (const [k, v] of Object.entries(d)) {
-    if (/^border(-\w+)?-color$/.test(k) && !/transparent/.test(v) && v !== d.background && v !== d["background-color"]) out.push(`${k}:${v}`);
-    if (/^outline(-color)?$/.test(k) && !/^(none|0)$/.test(v)) out.push(`${k}:${v}`);
-    if (k === "box-shadow" && v !== "none" && (/inset/.test(v) || /(^|,)\s*0 0 0 \d/.test(v))) out.push(`${k}:${v}`);
+test("hover rules do not draw a border, outline or ring shadow", () => {
+  const byRule = new Map();
+  for (const row of stylesheetRows) {
+    const selector = row.context.at(-1)?.selector;
+    if (!row.property || !selector?.includes(":hover")) continue;
+    const enabledSelector = selector.replace(/:not\([^)]*\)/g, "");
+    if (/:disabled|\[aria-disabled="true"\]/.test(enabledSelector)) continue;
+    const values = byRule.get(row.context) ?? new Map();
+    values.set(row.property, row.value);
+    byRule.set(row.context, values);
   }
-  return out;
-};
-
-t("no hover rule draws a ring: border, outline or ring shadow", () => {
-  const bad = [];
-  for (const [f, css] of sheets) for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const sel = m[1].trim().split("\n").pop().trim();
-    if (sel.startsWith("@") || !sel.includes(":hover")) continue;
-    if (/:disabled|\[aria-disabled="true"\]/.test(sel.replace(/:not\([^)]*\)/g, "").replace(/:where\(:not\([^)]*\)\)/g, ""))) continue;
-    const r = rings(m[2]);
-    if (r.length) bad.push(`${f}  ${sel}  ${r.join("; ")}`);
+  const rings = [];
+  for (const [context, values] of byRule) {
+    for (const [property, value] of values) {
+      const border = /^border(-\w+)?-color$/.test(property) && !value.includes("transparent")
+        && value !== values.get("background") && value !== values.get("background-color");
+      const outline = /^outline(-color)?$/.test(property) && !["none", "0"].includes(value);
+      const shadow = property === "box-shadow" && value !== "none" && /inset|(^|,)\s*0 0 0 \d/.test(value);
+      if (border || outline || shadow) rings.push({ selector: context.at(-1).selector, property, value });
+    }
   }
-  assert.deepEqual(bad, [], `hover rings:\n  ${bad.join("\n  ")}`);
+  assert.deepEqual(rings, []);
 });
-t("the herald's hover is its fill alone: the lines' hover over its glass", () => {
-  const app = sheet(new URL("../css/app.css", import.meta.url));
-  assert.match(app, /\nbutton\.hr:hover\{background:linear-gradient\(var\(--hover-fill\),var\(--hover-fill\)\),var\(--glass\)\}/);
+
+test("the herald's hover uses its fill over the glass", () => {
+  const fill = "linear-gradient(var(--hover-fill),var(--hover-fill)),var(--glass)";
+  assert.deepEqual(valuesFor("button.hr:hover", "background"), [resolveValue(fill)]);
 });
-t("keyboard focus keeps the soft ring, on :focus-visible", () => {
-  assert.match(readSource("core/ui/foundation.css"), /:focus-visible\{outline:3px solid var\(--focus\);outline-offset:0\}/);
+
+test("keyboard focus keeps the soft ring", () => {
+  assert.ok(valuesFor(":focus-visible", "outline").some((value) =>
+    JSON.stringify(value) === JSON.stringify(resolveValue("3px solid var(--focus)"))));
+  assert.ok(valuesFor(":focus-visible", "outline-offset").includes("0"));
 });
-console.log(`\n${passed} passed`);

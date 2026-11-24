@@ -1,42 +1,64 @@
-// A field inside a box shows the one focus ring on its box: a box whose field has its own ring turned off (outline:none
-// for the box's look) has nothing but a border shift to show focus, too faint (the controls grader on 8aa58d3, C053:
-// the message box, 1 px of border 48→60 in dark). The census: every box whose input or textarea turns its ring off is
-// one the shared rule draws the ring on.
-//   node tests/field-ring.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { cssNames } from "./lib/sources.mjs";
-const css = cssNames().map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const shared = /:is\(([^)]*)\):has\(:is\(input,textarea\):focus-visible\),\.fl-new-r input:focus-visible\{outline:none\}/.exec(css);
-// the owner, 11 Nov 07:52Z: a message or search box draws no ring of its own ("remove the current border of textbox")
-t("one rule: no message or search box draws a ring while its field has focus", () => assert.ok(shared, "the shared rule"));
-t("every box whose field turns its own ring off is one that rule reaches, and nothing else draws one on a field's box", () => {
-  const boxes = shared[1].split(",");
-  const off = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => /(^|;)outline:(none|0)(;|$)/.test(m[2]) && /(textarea|input)/.test(m[1].split(",").pop()) && !/:focus/.test(m[1]))
-    .map((m) => m[1].trim().replace(/\s+(textarea|input)[^\s]*$/, "").split(/\s+/).pop());
-  const missing = [...new Set(off)].filter((b) => !boxes.includes(b) && b !== ".fl-new-r");
-  assert.deepEqual(missing, [], `boxes not in the rule: ${missing.join(", ")}`);
-  const ringed = [...css.matchAll(/([^{}]*:has\(:is\(input,textarea\):focus-visible\)[^{}]*)\{([^}]*)\}/g)].filter((m) => /outline:\s*[0-9]|outline-color|box-shadow/.test(m[2])).map((m) => m[1].trim());
-  assert.deepEqual(ringed, [], "a field's box ringed");
+import { test } from "node:test";
+import { regionRings } from "../core/ui/a11y/ring.js";
+import { stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
+import { dom } from "./lib/dom.mjs";
+
+const focusedChild = ":has(:is(input,textarea):focus-visible)";
+const sharedOutline = /^:is\(([^)]*)\):has\(:is\(input,textarea\):focus-visible\),\.fl-new-r input:focus-visible$/;
+
+test("field wrappers covered by the shared focus rule have no extra ring", () => {
+  const shared = stylesheetRows.filter((row) => row.property === "outline" && row.value === "none"
+    && sharedOutline.test(row.context.at(-1)?.selector ?? ""));
+  assert.equal(shared.length, 1);
+  const sharedSelector = shared[0].context.at(-1).selector;
+  const wrappers = new Set(sharedOutline.exec(sharedSelector)[1].split(",").concat(".fl-new-r"));
+  for (const row of stylesheetRows) {
+    const selector = row.context.at(-1)?.selector ?? "";
+    if (selector.includes(focusedChild)) {
+      assert.ok(row.property !== "outline-color" && row.property !== "box-shadow", selector);
+      if (row.property === "outline") assert.equal(row.value, "none", selector);
+    }
+    if (row.property !== "outline" || !["none", "0"].includes(row.value) || selector.includes(":focus")) continue;
+    if (!/(?:textarea|input)/.test(selector.split(",").at(-1))) continue;
+    const wrapper = selector.replace(/\s+(?:textarea|input)[^\s]*$/, "").split(/\s+/).at(-1);
+    assert.ok(wrappers.has(wrapper), selector);
+  }
 });
-// a field with its own border shows focus as one edge, on its border: the base ring stood 2 px outside it, two borders
-// with the page between (the owner, 11 Nov 08:00Z, Create XO Project)
-t("every bordered field (text inputs, textareas, selects, the dropdown's button) draws its focus on its own edge, not 2 px out", () => {
-  assert.match(css, /:is\(input:not\(\[type=checkbox\],\[type=radio\],\[type=range\],\[type=button\],\[type=submit\],\[type=reset\],\[type=file\],\[type=color\],\[type=image\]\),textarea,select,\.dd-btn\):focus-visible\{outline-offset:-1px\}/);
-  // and no field rule puts a ring back outside its edge
-  const out = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(([, sel, body]) => !/:has\(/.test(sel) && /(^|[\s,(>])(input|textarea|select)\b[^,]*:focus/.test(sel) && /outline-offset:\s*[1-9]/.test(body)).map(([, sel]) => sel.trim().slice(0, 80));
-  assert.deepEqual(out, [], "a field ringed outside its edge");
+
+test("bordered fields draw keyboard focus on their own edge", () => {
+  const fieldTypes = ["checkbox", "radio", "range", "button", "submit", "reset", "file", "color", "image"];
+  const except = fieldTypes.map((type) => `[type=${type}]`).join(",");
+  const selector = `:is(input:not(${except}),textarea,select,.dd-btn):focus-visible`;
+  assert.deepEqual(valuesFor(selector, "outline-offset"), ["-1px"]);
+  const fields = (candidate) => !candidate.includes(":has(")
+    && /(^|[\s,(>])(?:input|textarea|select)\b[^,]*:focus/.test(candidate);
+  for (const offset of valuesFor(fields, "outline-offset").flat()) {
+    assert.ok(!/^[1-9]/.test(offset), offset);
+  }
 });
-// the file's editor (CodeMirror, modules/files/editor.js) draws no ring, around its box or over it: the caret is the mark (the
-// owner, 19 Nov 10:59Z: "this green highlight around the canvas looks horrendous. remove it.")
-t("a file you're typing in draws no ring", () => {
-  assert.doesNotMatch(css, /#viewer:has\([^)]*cm-focused[^)]*\)::after/, "no ring over the file");
-  assert.doesNotMatch(css, /\.vw-body:focus-within\{outline/, "none on its box");
-  assert.match(css, /\.vw-doc>\.cm-editor\.cm-focused\{outline:none\}/, "nor CodeMirror's own");
-  assert.match(css, /\.vw-body\.vw-doc:focus-visible\{outline:none\}/, "the scroll regions' ring leaves the editor out");
-  const ring = readFileSync(new URL("../core/ui/a11y/ring.js", import.meta.url), "utf8");
-  assert.match(ring, /classList\.contains\("vw-doc"\)\) return;/, "and ring.js draws none over it");
+
+test("editing a Markdown file leaves only its caret as the focus mark", async () => {
+  const overEditor = (selector) => /#viewer:has\([^)]*cm-focused[^)]*\)::after/.test(selector);
+  assert.deepEqual(valuesFor(overEditor), []);
+  assert.deepEqual(valuesFor(".vw-body:focus-within", "outline"), []);
+  assert.deepEqual(valuesFor(".vw-doc>.cm-editor.cm-focused", "outline"), ["none"]);
+  assert.deepEqual(valuesFor(".vw-body.vw-doc:focus-visible", "outline"), ["none"]);
+
+  const { document, window } = await dom('<main><div class="vw-body"></div><div class="vw-body vw-doc"></div></main>');
+  const [viewer, editor] = document.querySelectorAll(".vw-body");
+  for (const element of [viewer, editor]) {
+    const matches = element.matches.bind(element);
+    element.matches = (selector) => selector === ":focus-visible" || matches(selector);
+    Object.defineProperty(element, "offsetParent", { value: element.parentElement });
+  }
+  window.requestAnimationFrame = (run) => run();
+  regionRings(document, window);
+  viewer.focus();
+  assert.ok(document.querySelector(".region-ring"));
+  editor.focus();
+  assert.ok(!document.querySelector(".region-ring"), "the focus ring was removed");
+  assert.equal(editor.classList.contains("has-ring"), false);
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

@@ -1,42 +1,57 @@
 // @ts-check
+
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync, readdirSync } from "node:fs";
+import { test } from "node:test";
+import { FLAVOURS } from "../core/ui/flavours.js";
+import { resolveValue, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
-const dir = new URL("../css/", import.meta.url);
-const sheets = readdirSync(dir).filter((f) => f.endsWith(".css") && f !== "flavours.css").map((f) => [f, readFileSync(new URL(f, dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")]);
-const tokens = readFileSync(new URL("../core/ui/tokens.css", import.meta.url), "utf8");
-const css = (f) => sheets.find(([n]) => n === f)[1];
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+test("primary actions default to the accent colours", () => {
+  const roles = tokenValuesFor();
+  for (const [role, accent] of [
+    ["--pri-fill", "var(--accent-fill)"], ["--pri-fill-hover", "var(--accent-hover)"],
+    ["--pri-fill-press", "var(--accent-press)"], ["--pri-ink", "var(--accent-ink)"],
+  ]) assert.equal(roles.get(role), accent, role);
+});
 
-t("the primary tokens are the accent's by default", () => {
-  assert.match(tokens, /--pri-fill:var\(--accent-fill\); --pri-fill-hover:var\(--accent-hover\); --pri-fill-press:var\(--accent-press\); --pri-ink:var\(--accent-ink\);/);
-});
-const { FLAVOURS } = await import("../core/ui/flavours.js");
-t("a flavour with primary ink fills its main actions with the ink, and no other flavour does", () => {
-  const fl = readFileSync(new URL("flavours.css", dir), "utf8");
-  const ink = FLAVOURS.filter((f) => f.primary === "ink").map((f) => f.id);
-  assert.ok(ink.length > 0 && ink.length < FLAVOURS.length);
-  const set = [...fl.matchAll(/:root\[data-flavour="([a-z]+)"\]\{\s*--pri-fill:var\(--ink\); --pri-fill-hover:var\(--ink-hi\); --pri-fill-press:color-mix\(in srgb,var\(--ink\) 76%,var\(--canvas\)\); --pri-ink:var\(--on-ink\)\s*\}/g)].map((m) => m[1]);
-  assert.deepEqual(set, ink);
-  assert.equal((fl.match(/--pri-fill:/g) || []).length, ink.length);
-});
-t("every main action takes them: .btn-pri, .xd-btn.is-pri and the round sends; a card's Send and the picker's Done stay the ink", () => {
-  const app = sheet(new URL("../css/app.css", import.meta.url)), diffs = css("diffs.css");
-  assert.match(app, /\n\.btn-pri\{background:var\(--pri-fill\);border-color:var\(--pri-fill\);color:var\(--pri-ink\)\}/);
-  assert.match(diffs, /\n\.xd-btn\.is-pri\{background:var\(--pri-fill\);border-color:var\(--pri-fill\);color:var\(--pri-ink\)\}/);
-  assert.match(app, /\n\.b-go\{background:var\(--ink\);color:var\(--on-ink\);border-color:var\(--ink\)\}/);
-  assert.match(app, /\n\.iq-done\{[^}]*background:var\(--ink\);color:var\(--on-ink\)/);
-  assert.match(app, /\n\.send\{[^}]*background:var\(--pri-fill\);color:var\(--pri-ink\)/);
-  assert.match(diffs, /\n\.xd-q \.xd-send\{[^}]*background:var\(--pri-fill\);color:var\(--pri-ink\)/);
-  for (const [f, s] of sheets) assert.doesNotMatch(s, /(\.btn-pri|\.xd-btn\.is-pri|\.b-go|\.iq-done|\.send|\.xd-send)[^{,]*\{[^}]*var\(--accent-(fill|hover|press)\)/, f);
-});
-t("a scoped rule for links in words never reaches a classed link (a link drawn as a button)", () => {
-  const bad = [];
-  for (const [f, s] of sheets) for (const m of s.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    for (const sel of m[1].split(",")) if (/\s a(:hover|:visited)?$/.test(sel.trim()) && /(^|;)(color|text-decoration)/.test(m[2])) bad.push(`${f}: ${sel.trim()}`);
+test("only ink-primary flavours switch all four primary action roles", () => {
+  const expected = FLAVOURS.filter((flavour) => flavour.primary === "ink").map((flavour) => flavour.id);
+  assert.ok(expected.length > 0 && expected.length < FLAVOURS.length);
+  const overrides = stylesheetRows.filter((row) => row.property === "--pri-fill"
+    && row.context.at(-1)?.selector !== ":root");
+  const selectors = expected.map((flavour) => ':root[data-flavour="' + flavour + '"]');
+  assert.deepEqual(overrides.map((row) => row.context.at(-1).selector), selectors);
+  for (const selector of selectors) {
+    const roles = new Map(stylesheetRows.filter((row) => row.property && row.context.at(-1)?.selector === selector)
+      .map((row) => [row.property, row.value.trim()]));
+    assert.equal(roles.get("--pri-fill"), "var(--ink)");
+    assert.equal(roles.get("--pri-fill-hover"), "var(--ink-hi)");
+    assert.equal(roles.get("--pri-fill-press"), "color-mix(in srgb,var(--ink) 76%,var(--canvas))");
+    assert.equal(roles.get("--pri-ink"), "var(--on-ink)");
   }
-  assert.deepEqual(bad, []);
 });
-console.log(`\n${passed} passed`);
+
+test("main actions use primary roles while Send on a card and picker Done use ink", () => {
+  const specifications = [
+    [".btn-pri", "var(--pri-fill)", "var(--pri-ink)", true],
+    [".xd-btn.is-pri", "var(--pri-fill)", "var(--pri-ink)", true],
+    [".send", "var(--pri-fill)", "var(--pri-ink)", false],
+    [".xd-q .xd-send", "var(--pri-fill)", "var(--pri-ink)", false],
+    [".b-go", "var(--ink)", "var(--on-ink)", true],
+    [".iq-done", "var(--ink)", "var(--on-ink)", false],
+  ];
+  for (const [selector, fill, ink, edge] of specifications) {
+    assert.deepEqual(valuesFor(selector, "background"), [resolveValue(fill)]);
+    assert.deepEqual(valuesFor(selector, "color"), [resolveValue(ink)]);
+    if (edge) assert.deepEqual(valuesFor(selector, "border-color"), [resolveValue(fill)]);
+  }
+  const rawAccent = stylesheetRows.filter((row) => row.property && row.value
+    && /(?:\.btn-pri|\.xd-btn\.is-pri|\.b-go|\.iq-done|\.send|\.xd-send)[^,]*$/.test(row.context.at(-1)?.selector ?? "")
+    && /var\(--accent-(?:fill|hover|press)\)/.test(row.value));
+  assert.deepEqual(rawAccent, []);
+});
+
+test("prose link colours and decorations only target unclassed links", () => {
+  const rules = stylesheetRows.filter((row) => /^(?:color|text-decoration)/.test(row.property ?? "")
+    && (row.context.at(-1)?.selector ?? "").split(",").some((selector) => /\s a(?::hover|:visited)?$/.test(selector.trim())));
+  assert.deepEqual(rules, []);
+});

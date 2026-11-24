@@ -1,30 +1,27 @@
-// A message's headings are never smaller than its text: they take the message's own size and line, in bold.
+// @ts-check
+
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync, readdirSync } from "node:fs";
+import { test } from "node:test";
 import { renderMarkdown } from "../core/ui/markdown/markdown.js";
+import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
 
-const dir = new URL("../css/", import.meta.url);
-const app = sheet(new URL("app.css", dir));
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-
-t("the renderer's levels are unchanged: # to #### draw h3 to h6, each .md-h", () => {
+test("Markdown heading levels render as message headings", () => {
   const html = renderMarkdown("# a\n\n## b\n\n### c\n\n#### d");
-  for (const [n, x] of [[3, "a"], [4, "b"], [5, "c"], [6, "d"]]) assert.ok(html.includes(`<h${n} class="md-h">${x}</h${n}>`), `h${n}`);
-});
-t("one rule sizes them: the message's own size and line, strong, in ink", () => {
-  assert.match(app, /\n\.prose :is\(h3,h4,h5,h6\)\.md-h\{font-size:inherit;line-height:inherit;font-weight:var\(--fw-strong\);letter-spacing:0;color:var\(--ink\)\}/);
-});
-t("nothing else sizes a message heading", () => {
-  const bad = [];
-  for (const f of readdirSync(dir).filter((f) => f.endsWith(".css"))) {
-    const css = readFileSync(new URL(f, dir), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      const sel = m[1].trim();
-      if (/h[1-6]\.md-h|\.prose[^,{]*\bh[1-6]\b/.test(sel) && !sel.endsWith(".prose :is(h3,h4,h5,h6).md-h") && /font/.test(m[2])) bad.push(`${f}: ${sel}`);
-    }
+  for (const [level, label] of [[3, "a"], [4, "b"], [5, "c"], [6, "d"]]) {
+    assert.ok(html.includes(`<h${level} class="md-h">${label}</h${level}>`));
   }
-  assert.deepEqual(bad, []);
 });
-console.log(`\n${passed} passed`);
+
+test("message headings use the body's size and line height with strong ink", () => {
+  const heading = ".prose :is(h3,h4,h5,h6).md-h";
+  assert.deepEqual(valuesFor(heading, "font-size"), ["inherit"]);
+  assert.deepEqual(valuesFor(heading, "line-height"), ["inherit"]);
+  assert.deepEqual(valuesFor(heading, "font-weight"), [resolveValue("var(--fw-strong)")]);
+  assert.deepEqual(valuesFor(heading, "letter-spacing"), ["0"]);
+  assert.deepEqual(valuesFor(heading, "color"), [resolveValue("var(--ink)")]);
+
+  const otherHeadings = (selector) => selector !== heading && /h[1-6]\.md-h|\.prose[^,{]*\bh[1-6]\b/.test(selector);
+  for (const property of ["font", "font-size", "font-weight", "font-family"]) {
+    assert.deepEqual(valuesFor(otherHeadings, property), [], property);
+  }
+});

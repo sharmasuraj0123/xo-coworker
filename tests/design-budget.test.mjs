@@ -1,37 +1,24 @@
-// The design budget ("Plan F"): every stylesheet is built from
-// the one scale in core/ui/tokens.css, and this test fails the moment a new literal size, weight, radius,
-// curve or heavy shadow sneaks back in. It counts what the CSS declares, outside the left sidebar
-// (which keeps its own look, the owner's decision) and outside the token file itself.
-// No network, no browser.
-//   node tests/design-budget.test.mjs
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { cssNames, sourcePaths, readSource } from "./lib/sources.mjs";
+// @ts-check
 
-const DIR = new URL("../css/", import.meta.url);
+import assert from "node:assert/strict";
+import { sourcePaths, readSource } from "./lib/sources.mjs";
+import { declarationFiles, stylesheetRows, tokenValuesFor } from "./lib/css-snapshot.mjs";
+
 const SIDEBAR = /\.side\b|\.side-|\.brand|\.nrow|\.nr-|\.prow|\.pr-|\.projects|#projects|\.gear|\.theme\b|\.th-(?:track|knob)|\.sc-|\.sf-|\.nv-|#nv-|\.pf-|#side|\.nav\b|#set-side/;
-const FRAME = /^\s*(?:from|to|[\d.]+%)(?:\s*,\s*(?:from|to|[\d.]+%))*\s*$/;
+const componentDeclarations = stylesheetRows.filter((row) =>
+  row.property && !declarationFiles.get(row)?.includes("/vendor/")
+  && !row.context.some((scope) => scope.at === "layer" && scope.params === "tokens"));
 
 /** Every declaration outside the sidebar, token blocks, @font-face and keyframe frames. */
 function declarations() {
-  const out = [];
-  for (const f of cssNames().filter((n) => !["../core/ui/tokens.css", "flavours.css"].includes(n))) {
-    const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    for (const m of css.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
-      const sel = m[1].trim();
-      if (!sel || sel.startsWith("@font-face") || FRAME.test(sel) || /^:root(\[[^\]]*\])?(:not\([^)]*\))?$/.test(sel) || SIDEBAR.test(sel)) continue;
-      for (const d of m[2].split(/;(?![^(]*\))/)) {
-        const i = d.indexOf(":");
-        if (i > 0) out.push({ file: f, sel, prop: d.slice(0, i).trim(), value: d.slice(i + 1).trim() });
-      }
-    }
-  }
-  return out;
+  return componentDeclarations.filter((row) => !row.context.some((scope) => scope.at === "keyframes"))
+    .map((row) => ({ sel: row.context.at(-1)?.selector, prop: row.property, value: row.value }))
+    .filter(({ sel }) => sel && !/^:root(\[[^\]]*\])?(:not\([^)]*\))?$/.test(sel) && !SIDEBAR.test(sel));
 }
 const D = declarations();
 if (process.env.VERBOSE) console.log(`  ${D.length} declarations checked`);
 const literal = (re) => [...new Set(D.flatMap((d) => [...(d.prop + ":" + d.value).matchAll(re)].map((m) => m[1])))];
-const where = (pred) => D.filter(pred).slice(0, 5).map((d) => `${d.file}: ${d.sel.slice(0, 60)} { ${d.prop}: ${d.value.slice(0, 60)} }`).join("\n    ");
+const where = (pred) => D.filter(pred).slice(0, 5).map((d) => `${d.sel.slice(0, 60)} { ${d.prop}: ${d.value.slice(0, 60)} }`).join("\n    ");
 
 let passed = 0;
 const t = (name, fn) => {
@@ -60,7 +47,6 @@ t("line heights are whole pixels", () => {
 
 // Radii: the tokens, 50%/999px for round things, and 1–3 px hairline details (segments, carets).
 t("radii come from the scale", () => {
-  const vals = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.split(/\s+/));
   // a nested corner may be computed from its container's: calc(var(--r-lg) - 1px) is inner = outer − inset
   const vals2 = literal(/border-radius:\s*([^;]+)/g).flatMap((v) => v.replace(/calc\(var\(--nest-r\)\s*-\s*var\(--nest-in\)\)/g, "var(--r)").replace(/calc\(var\(--r(?:-[\w]+)?\)\s*-\s*\d+px\)/g, "var(--r)").split(/\s+/));
   const bad = [...new Set(vals2.filter((v) => !/^var\(--(?:r|nest-r)(?:-[\w-]+)?\)$|^0$|^50%$|^999px$|^[123](?:\.5)?px$|^inherit$/.test(v)))];
@@ -70,12 +56,13 @@ t("radii come from the scale", () => {
 t("one motion curve (and nothing overshoots)", () => {
   const curves = literal(/cubic-bezier\(([^)]+)\)/g);
   assert.deepEqual(curves, [], `literal curves outside tokens.css: ${curves.join(" | ")}`);
-  const tokens = readFileSync(new URL("../core/ui/tokens.css", DIR), "utf8");
-  for (const m of tokens.matchAll(/cubic-bezier\(([^)]+)\)/g)) {
-    const [, y1, , y2] = m[1].split(",").map(Number);
-    assert.ok(y1 <= 1 && y2 <= 1, `an overshooting curve in tokens.css: ${m[0]}`);
+  for (const value of tokenValuesFor().values()) {
+    for (const match of value.matchAll(/cubic-bezier\(([^)]+)\)/g)) {
+      const [, y1, , y2] = match[1].split(",").map(Number);
+      assert.ok(y1 <= 1 && y2 <= 1, `an overshooting curve: ${match[0]}`);
+    }
+    assert.doesNotMatch(value, /\blinear\(/, "no overshooting linear() curve");
   }
-  assert.doesNotMatch(tokens, /linear\(/, "no overshooting linear() curve");
 });
 
 t("no heavy shadows: floating things use var(--e2)", () => {
@@ -89,22 +76,18 @@ t("no malformed var() (a broken value drops its whole declaration without a word
 });
 
 
-// The theme is core/ui/tokens.css's two blocks. Surfaces, lines and ink are named by role (canvas, surface, float,
-// fill-1…4, line-faint … line-hover, ink … ink-5); no stylesheet keeps a palette of its own, and nothing is
-// named after its hex (the old --g14 … --g72 ramp). The left sidebar's frozen copies (--sb-*) are the one
-// exception, until the owner decides otherwise. A state may point one role at another (a pressed control's meta inks at
-// the second, so they keep 4.5:1 on the press fill: C048): a var() of another role, never a colour of its own.
+// State declarations may alias one colour role to another.
 const ROLE = /^--(?:canvas|sunken|surface|float|fill-\d|line(?:-faint|-soft|-strong|-hover)?|ink(?:-\d)?|accent(?:-[\w]+)?|err(?:-ink)?|warn|info|violet|bg(?:-\d|-head)?|hair|raised|side|pop-(?:bg|line)|comp-line(?:-hi)?)$/;
 t("the palette lives in tokens.css alone", () => {
   const all = [];
-  for (const f of cssNames().filter((n) => !["../core/ui/tokens.css", "flavours.css"].includes(n))) {
-    const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    for (const m of css.matchAll(/(--[\w-]+)\s*:\s*([^;}]*)/g)) {
-      const to = /^var\((--[\w-]+)\)$/.exec(m[2].trim());
-      if (to && ROLE.test(m[1]) && ROLE.test(to[1])) continue; // a role pointed at another role
-      if (ROLE.test(m[1]) || /^--g[0-9A-F]{2}$/.test(m[1])) all.push(`${f}: ${m[1]}`);
+  for (const { context, property, value } of componentDeclarations) {
+    const selector = context.at(-1)?.selector;
+    if (context.some((scope) => scope.selector?.includes("[data-flavour="))) continue;
+    const to = /^var\((--[\w-]+)\)$/.exec(value);
+    if (!(to && ROLE.test(property) && ROLE.test(to[1])) && (ROLE.test(property) || /^--g[0-9A-F]{2}$/.test(property))) {
+      all.push(`${selector}: ${property}`);
     }
-    for (const m of css.matchAll(/var\(--g[0-9A-F]{2}\)/g)) all.push(`${f}: ${m[0]}`);
+    for (const match of value.matchAll(/var\(--g[0-9A-F]{2}\)/g)) all.push(`${selector}: ${match[0]}`);
   }
   assert.deepEqual(all, [], `palette defined outside tokens.css:\n    ${all.slice(0, 8).join("\n    ")}`);
 });
@@ -127,8 +110,7 @@ t("scripts use the one curve and the loop curve", () => {
   assert.deepEqual(odd, [], `curves in js/: ${odd.join(" | ")}`);
 });
 
-// One focus ring: 2 px of --focus following the element's radius. Two deliberate exceptions: white on a
-// picture (the lightbox), and the plum of "← Back to chat" (its own colour, the owner's pick).
+// The lightbox uses a white ring and Back to chat uses its link colour.
 t("one focus ring", () => {
   const bad = D.filter((d) => d.prop === "outline" && /^2px solid/.test(d.value) && !/var\(--focus\)|rgb\(255 255 255|var\(--ret-ink\)/.test(d.value));
   assert.equal(bad.length, 0, `other rings:\n    ${where((d) => bad.includes(d))}`);
@@ -138,20 +120,23 @@ t("one focus ring", () => {
 // (no scale above 1 — a pop or a bounce) and nothing shakes (a translate that reverses direction in one animation).
 t("keyframes neither overshoot nor shake", () => {
   const bad = [];
-  for (const f of cssNames()) {
-    const css = readFileSync(new URL(f, DIR), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    for (const m of css.matchAll(/@keyframes\s+([\w-]+)\s*\{((?:[^{}]|\{[^{}]*\})*)\}/g)) {
-      const [, name, body] = m;
-      const scales = [...body.matchAll(/scale[XY]?\(\s*([\d.]+)/g)].map((x) => +x[1]);
-      if (scales.some((v) => v > 1)) bad.push(`${f}: @keyframes ${name} scales to ${Math.max(...scales)}`);
-      for (const axis of ["X", "Y"]) {
-        const tr = [...body.matchAll(new RegExp(`translate${axis}\\(\\s*(-?[\\d.]+)`, "g"))].map((x) => +x[1]);
-        const tr2 = axis === "X" ? [...body.matchAll(/translate\(\s*(-?[\d.]+)px/g)].map((x) => +x[1]) : [];
-        // a shake reverses direction; a sweep (an indeterminate bar) only ever moves one way
-        const seq = [...tr, ...tr2];
-        const d = seq.slice(1).map((v, i) => Math.sign(v - seq[i])).filter(Boolean);
-        if (d.some((x, i) => i && x !== d[i - 1])) bad.push(`${f}: @keyframes ${name} swings both ways on ${axis}`);
-      }
+  const animations = new Map();
+  for (const row of stylesheetRows) {
+    const keyframes = row.context.find((scope) => scope.at === "keyframes");
+    if (!keyframes || row.property !== "transform") continue;
+    if (!animations.has(keyframes)) animations.set(keyframes, []);
+    animations.get(keyframes).push(row.value);
+  }
+  for (const [keyframes, frames] of animations) {
+    const body = frames.join(" ");
+    const scales = [...body.matchAll(/scale[XY]?\(\s*([\d.]+)/g)].map((x) => +x[1]);
+    if (scales.some((v) => v > 1)) bad.push(`@keyframes ${keyframes.params} scales to ${Math.max(...scales)}`);
+    for (const axis of ["X", "Y"]) {
+      const tr = [...body.matchAll(new RegExp(`translate${axis}\\(\\s*(-?[\\d.]+)`, "g"))].map((x) => +x[1]);
+      const tr2 = axis === "X" ? [...body.matchAll(/translate\(\s*(-?[\d.]+)px/g)].map((x) => +x[1]) : [];
+      const seq = [...tr, ...tr2];
+      const d = seq.slice(1).map((v, i) => Math.sign(v - seq[i])).filter(Boolean);
+      if (d.some((x, i) => i && x !== d[i - 1])) bad.push(`@keyframes ${keyframes.params} swings both ways on ${axis}`);
     }
   }
   assert.deepEqual(bad, [], bad.join("\n    "));

@@ -1,10 +1,12 @@
+// @ts-check
+
 import assert from "node:assert/strict";
 import { dom } from "./lib/dom.mjs";
-import { sheet } from "./lib/cascade.mjs";
+import { tokenValuesFor } from "./lib/css-snapshot.mjs";
 
 const { document } = await dom("");
-const css = sheet(new URL("../core/ui/tokens.css", import.meta.url));
-const token = (name) => css.match(new RegExp(`${name}:([^;]+);`))[1].trim();
+const tokens = tokenValuesFor();
+const token = (name) => tokens.get(name);
 let styleReads = 0;
 globalThis.getComputedStyle = (node) => {
   assert.equal(node === document.documentElement, true);

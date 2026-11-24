@@ -1,33 +1,62 @@
-// The file's name keeps its room in a narrow head while ⋯ says Copying…, Downloading… or Copied (the controls grader on
-// 1ed50f6 at 320 dark, V96S: More grew to 95 px with its word and the name shrank to a 19 px "a…"). Where the head is
-// narrower than its controls with that word (under 360 px of content: a 375 or 320 phone; a 390 phone has 370 and shows the word), ⋯ keeps its 36 px and says it by its icon (the spinner, the
-// check), with the word as its name and title; wider, the word shows beside the icon as before.
-//   node tests/head-narrow.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { resolveTokens } from "./lib/tokens.mjs";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { createViewerHead } from "../modules/files/viewer-head.js";
+import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
+import { dom } from "./lib/dom.mjs";
 
-const css = ["panel.css", "diffs.css"].map((f) => resolveTokens(readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""))).join("\n");
-const src = readFileSync(new URL("../modules/files/viewer-head.js", import.meta.url), "utf8");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+test("the narrow file header keeps a 36px state control and a 16px spinner", () => {
+  const state = ".vw-top .vw-more:is(.is-done,.is-busy)";
+  const spinner = ".vw-top .vw-more.is-busy .spin";
+  const expected = [
+    [state + " span", "display", "none"],
+    [state, "width", "36px"],
+    [state, "padding", "0"],
+    [spinner, "width", "16px"],
+    [spinner, "height", "16px"],
+  ];
+  for (const [selector, property, value] of expected) {
+    const rows = stylesheetRows.filter((row) => row.property === property
+      && row.context.at(-1)?.selector === selector
+      && row.context.some((scope) => scope.at === "container" && scope.params === "vwtop (max-width:360px)"));
+    assert.deepEqual(rows.map((row) => resolveValue(row.value)), [value], selector + " " + property);
+  }
+});
 
-t("in a head under 360 px, ⋯ with a state keeps its square and shows the state by its icon", () => {
-  const q = css.match(/@container vwtop \(max-width:360px\)\{([\s\S]*?)\n\}/);
-  assert.ok(q, "the narrow head's query");
-  assert.match(q[1], /\.vw-top \.vw-more:is\(\.is-done,\.is-busy\) span\{display:none\}/, "the word steps aside");
-  assert.match(q[1], /\.vw-top \.vw-more:is\(\.is-done,\.is-busy\)\{width:36px;padding:0\}/, "the square stays");
-  assert.match(q[1], /\.vw-top \.vw-more\.is-busy \.spin\{width:16px;height:16px\}/, "the spinner alone at the icons' 16 px");
+test("More keeps an accessible name and a state icon even when the visible label is hidden", async () => {
+  const { document } = await dom('<section id="viewer"></section>');
+  const el = document.querySelector("#viewer");
+  const V = { file: { name: "a.md" } };
+  const { head } = createViewerHead({
+    V, el, doc: () => null, canSave: () => true, chg: () => null,
+    showsDiff: () => false, runsCode: () => false,
+  });
+  el.innerHTML = head();
+  const button = () => el.querySelector("[data-vw-more]");
+  assert.equal(button().getAttribute("aria-label"), "More: copy, download");
+  assert.equal(button().getAttribute("title"), "Copy, download");
+
+  for (const [kind, word] of [["copy", "Copying…"], ["download", "Downloading…"]]) {
+    V.busy = { kind, shown: true };
+    el.innerHTML = head();
+    assert.equal(button().getAttribute("aria-label"), word);
+    assert.equal(button().getAttribute("title"), word);
+    assert.equal(button().querySelector(".spin")?.getAttribute("aria-hidden"), "true");
+  }
+  V.busy = null;
+  V.copied = true;
+  el.innerHTML = head();
+  assert.equal(button().getAttribute("aria-label"), "Copied");
+  assert.equal(button().getAttribute("title"), "Copied");
+  assert.ok(button().classList.contains("is-done"));
+  assert.ok(button().querySelector("svg"));
+  assert.ok(!button().querySelector(".spin"), "the finished action has no spinner");
 });
-t("the state stays said: the word is ⋯'s name and title, the icon a spinner or a check", () => {
-  assert.match(src, /title="\$\{word \|\| "Copy, download"\}" aria-label="\$\{word \|\| "More: copy, download"\}"/);
-  assert.match(src, /\$\{done \? ICON\.check : busy \? `<i class="spin" aria-hidden="true"><\/i>` : MORE_IC\}/);
+
+test("the busy More control retains the full secondary ink", () => {
+  const otherBusy = (selector) => selector.endsWith(':is(.vw-cut-dl,.vw-btn:not(.vw-more))[aria-busy="true"]');
+  assert.deepEqual(valuesFor(otherBusy, "opacity"), [".6"]);
+  assert.deepEqual(valuesFor(otherBusy, "cursor"), ["progress"]);
+  assert.deepEqual(valuesFor(".vw-more.is-busy", "color"), [resolveValue("var(--ink-2)")]);
 });
-// where the word steps aside the spinner alone says Copying… / Downloading…, so it's drawn in full ink: the busy ⋯ is
-// never dimmed (the controls grader at 320: the spinner too faint, ink-3 at .6 opacity is 2.8:1 on the dark head)
-t("the busy ⋯ isn't dimmed, and its spinner is drawn in the second ink (9.9:1 dark, 10:1 light)", () => {
-  const app = resolveTokens(readFileSync(new URL("../css/app.css", import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""));
-  assert.match(app, /:is\(\.vw-cut-dl,\.vw-btn:not\(\.vw-more\)\)\[aria-busy="true"\]\{opacity:\.6;cursor:progress\}/, "the dimming leaves ⋯ out");
-  assert.match(css, /\.vw-more\.is-busy\{color:var\(--ink-2\)\}/, "its spinner in the second ink");
-});
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

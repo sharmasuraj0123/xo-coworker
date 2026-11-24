@@ -68,8 +68,7 @@
   /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
      scrolls a control into view (core/ui/foundation.css) */
   --ring-room:6px;
-  /* words on an agent's own colour (its Map tag): the colours are bright, so dark ink reads on every one of them,
-     6.0:1 at the least (#4C8DFF) where white read 1.7–3.3:1 (the controls grader on e55c2d8, S083) */
+  /* Dark ink maintains contrast on every agent colour. */
   --on-agent:#0B0B0C;
 
   /* Who speaks: the coordinator in violet, a decision in ink, a glance in green. */
@@ -85,8 +84,7 @@
   --ok-text:var(--accent); --danger-ink:color-mix(in srgb,var(--err-ink) 85%,var(--ink));   /* words on a green or a red tint */
 
   --e-glance:var(--accent); --e-decide:#D6D6D6; --e-think:var(--violet); --coord:var(--violet);
-  /* the coordinator's speaker colour, as the bubbles first set it, for every view: its name in violet over the
-     label's grey, its mark's ring in violet over the line (the owner, 19 Nov: keep the purple in the chat view) */
+  /* Coordinator names and marks use the same violet in every view. */
   --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
 
   /* The three lights. Green: done or go. Blue: working now. Amber: needs you. Red: real, irreversible danger.
@@ -143,19 +141,13 @@
   --note-h:var(--h-ctl); --note-btn:var(--h-sm); /* the notice over the composer: a pill a control tall, and its button's height inside it */
   --pop-x:10px;   /* a popover's inner inset inside its 5 px frame: where its head, labels and rows start */
   --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
-  /* Rows sit on 8 px steps, one grid with the controls: 40 a one-line row (the sidebar's, Settings', a tool
-     disclosure) · 48 a row with an action or a second line (Handled) · 56 a two-line list row (Chats). Compact
-     density steps a one-line row down to 32 (css/shape.css). A phone keeps its rows as they were: one-line rows
-     at its 36 floor, below. */
-  --h-row:40px; --h-row-act:48px; --h-row-list:56px;
-  /* The rest of the size scale, so no box writes its own px (the owner, 19 Nov, after Apple's guides: one place to
-     change a size, everywhere it's used). Controls: --h-sm 24 · --h-ctl 32 (compact: 24) · --h-lg 40 · --h-touch 36
-     (a phone's floor for anything pressed) · --h-hit 44 (a full touch row or target). Boxes that don't follow density
-     (an avatar, an icon or file tile, an orb, a fade): --tile 32 · --tile-lg 36 · --tile-xl 44. */
+  /* Rows share the control grid with separate heights for compact, action and two-line rows. */
+  --h-row:40px; --h-row-compact:32px; --h-row-act:48px; --h-row-list:56px;
+  /* Tile sizes are independent of control density. */
   --h-touch:36px; --h-hit:44px; --tile-sm:28px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
-  /* an agent's mark where a list row says it quietly, under the row's time (the owner, 19 Nov 13:42Z) */
+  /* Agent mark in list metadata. */
   --mark-sm:var(--s-3);
-  /* icons (the owner's pack, on its 24 grid): 16 by default, 12 and 14 in chips and meta lines, 20 on the phone bar */
+  /* Icons use the standard size, with smaller metadata and larger phone-bar sizes. */
   --mask-working:url(/core/ui/icons/source/xo/e-state-marks/state-working.svg) center/contain no-repeat; --mask-load:url(/core/ui/icons/source/xo/n-people-status-and-time/spinner.svg) center/contain no-repeat; --mask-needs:url(/core/ui/icons/source/xo/e-state-marks/state-needs-you.svg) center/contain no-repeat;
   --mask-done:url(/core/ui/icons/source/xo/e-state-marks/state-done.svg) center/contain no-repeat; --mask-failed:url(/core/ui/icons/source/xo/e-state-marks/state-failed.svg) center/contain no-repeat;
   --mask-dot:url(/core/ui/icons/source/xo/d-things-and-kinds/step-dot.svg) center/480% no-repeat; --mask-stop:url(/core/ui/icons/source/xo/c-actions/stop.svg) center/200% no-repeat;
@@ -166,15 +158,9 @@
   --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
   /* Space: a 4 px grid. */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
-  /* The space between an icon and its label, said once for every place one sits beside words: a state glyph and
-     a thread's title, an agent's mark and its name, a button's icon and its word (the owner, 19 Nov: the Now
-     strip's glyph had drifted away from its title). */
+  /* Shared gap between an icon and its label. */
   --gap-icon:var(--s-2);
-  /* The space between the things stacked over the message box (the notices' line, the put-away file's chip, the
-     thread's decision) and between each and the box: one gap, wherever the box is (the owner, 19 Nov: the notice
-     sat on the box with none, in the chat beside Files). --cbar-fade is the room the box's bar keeps over the box
-     for the conversation to fade under (22 on a phone and beside Files); the line is placed from it, never from a
-     number of its own. */
+  /* The dock gap spaces the composer and notices, and the fade provides room above them. */
   --dock-gap:var(--s-3); --cbar-fade:30px;
   --edge-fade:var(--s-8); /* a scrolling list's foot fades over this while more of it is below */
 
@@ -243,13 +229,7 @@
   --sb-lift-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.02); --sb-lift-2:0 1px 2px rgba(0,0,0,.04),0 4px 12px -4px rgba(0,0,0,.08)}
 @media (prefers-contrast: more){:root,:root[data-theme="light"]{--sb-line:var(--line); --sb-line-hover:var(--line-hover)}}
 
-/* An inverse surface: the toast is dark in both themes (--toast-bg), so in light everything on it takes the dark
-   palette's roles: ink, fills, lines, hover and press, the accent's hue and the focus ring. Its words, Undo, Tell and
-   its × read on it as they do in dark (the controls grader on d79d37e, S138: the Saved notice's × took light's
-   --ink-3, #575757, on the dark toast). The values are the dark block's own (tests/inverse-toast.test.mjs). */
-/* the lightbox keeps its dark chrome in both themes too, so it's an inverse surface the same way: its press and hover
-   fills are dark's (the controls grader on 8aa58d3, S080/S201 in light: light's press ink on its dark chrome added
-   nothing, 0.0% of pixels) */
+/* Toasts and lightboxes retain the dark surface roles in light mode. */
 :root[data-theme="light"] :is(.toast,.lbx){
   color-scheme:dark; color:var(--ink);
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;

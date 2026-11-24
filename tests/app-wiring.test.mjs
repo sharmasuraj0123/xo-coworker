@@ -1,13 +1,15 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
+import { fileURLToPath } from "node:url";
 import { STONE, FLAVOURS } from "../core/ui/flavours.js";
 import { xi } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
+import { appDocument } from "../tools/conformance/templates.mjs";
 import { dom } from "./lib/dom.mjs";
 
-const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
+const markup = appDocument(fileURLToPath(new URL("../", import.meta.url)));
+const { window, document } = await dom(markup.documentElement.outerHTML);
 const storage = new Map([["cv-theme", "light"], ["cv-flavour", "onyx"]]);
 const blockedStorage = new Set();
 let phone = false;
@@ -19,6 +21,7 @@ const matches = window.Element.prototype.matches;
 window.HTMLElement.prototype.scrollTo = function () {};
 window.Element.prototype.matches = function (/** @type {string} */ selector) {
   if (selector === ":focus-within") return this.contains(document.activeElement);
+  if (selector === ":focus-visible") return this === document.activeElement;
   return matches.call(this, selector);
 };
 Object.assign(globalThis, {
@@ -51,6 +54,16 @@ await import("../boot.js");
 await new Promise((resolve) => setImmediate(resolve));
 for (const frame of frames.splice(0)) frame(performance.now());
 
+const recipients = document.querySelector("#at-list");
+recipients.innerHTML = '<li id="at-0" role="option" aria-selected="true">First</li>'
+  + '<li id="at-1" role="option" aria-selected="false">Second</li>';
+recipients.lastElementChild.dispatchEvent(new window.Event("pointermove", { bubbles: true }));
+assert.equal(document.querySelector("#say").getAttribute("aria-activedescendant"), "at-1");
+assert.deepEqual(Array.from(recipients.querySelectorAll('[aria-selected="true"]'), (node) => node.id), ["at-1"]);
+recipients.firstElementChild.dispatchEvent(new window.Event("pointermove", { bubbles: true }));
+recipients.replaceChildren();
+document.querySelector("#say").removeAttribute("aria-activedescendant");
+
 for (const id of ["arts", "lpp", "panel", "pn-h", "pn-count", "pn-x", "pn-rail", "pn-stage", "pn-foot", "viewer", "toast", "shd"]) {
   assert.equal(document.querySelectorAll(`#${id}`).length, 1, `boot mounts exactly one #${id}`);
 }
@@ -78,15 +91,38 @@ assert.equal(document.querySelector("#home").hidden, false, "boot starts on Home
 assert.equal(document.documentElement.dataset.theme, "light", "boot restores the stored mode");
 assert.equal(document.documentElement.dataset.flavour, "onyx", "boot restores the stored flavour");
 
-const press = (/** @type {string} */ selector) => {
+const press = (/** @type {string} */ selector, detail = 0) => {
   const button = document.querySelector(selector);
   assert.ok(button, selector);
-  button.dispatchEvent(new window.Event("click", { bubbles: true, cancelable: true }));
+  button.dispatchEvent(Object.assign(new window.Event("click", { bubbles: true, cancelable: true }), { detail }));
 };
 const fold = document.querySelector("#side-fold");
 fold.focus();
 assert.ok(document.activeElement === fold, "the sidebar toolbar still has a focusable fold control");
 fold.blur();
+const sidebarMore = document.querySelector("#side-more");
+press("#nv-more", 1);
+assert.ok(document.activeElement === sidebarMore, "a pointer opens More with focus on the menu");
+const moreItem = sidebarMore.querySelector("[role=menuitem]");
+moreItem.dispatchEvent(new window.Event("pointermove", { bubbles: true }));
+assert.ok(document.activeElement === moreItem, "moving onto a More item focuses it");
+press("#nv-more");
+press("#nv-more");
+assert.ok(document.activeElement === sidebarMore.querySelector("[role=menuitem]"), "keyboard opening focuses the first More item");
+press("#nv-more");
+
+const threadActions = document.createElement("div");
+threadActions.innerHTML = '<button data-tmenu="fixture-thread">Actions</button>'
+  + '<div role="menu" class="tw-menu"><button role="menuitem">Move thread</button></div>';
+document.querySelector("#app").append(threadActions);
+press("[data-tmenu=fixture-thread]", 1);
+assert.ok(document.activeElement === threadActions.lastElementChild, "a pointer opens thread actions with focus on the menu");
+press("[data-tmenu=fixture-thread]");
+press("[data-tmenu=fixture-thread]");
+assert.ok(document.activeElement === threadActions.querySelector("[role=menuitem]"), "keyboard opening focuses the first thread action");
+press("[data-tmenu=fixture-thread]");
+threadActions.remove();
+
 press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
@@ -121,6 +157,11 @@ const key = (/** @type {string} */ name, mods = {}) => {
   window.dispatchEvent(event);
   return event;
 };
+assert.equal(key("b", { metaKey: true, shiftKey: true }).defaultPrevented, true);
+assert.ok(app.classList.contains("side-folded"));
+assert.equal(fold.getAttribute("aria-expanded"), "false");
+key("b", { metaKey: true, shiftKey: true });
+assert.ok(!app.classList.contains("side-folded"));
 assert.equal(key("k", { metaKey: true }).defaultPrevented, true, "boot registers the Jump shortcut");
 assert.equal(jump.hidden, false);
 await new Promise((resolve) => setImmediate(resolve));

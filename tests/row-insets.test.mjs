@@ -1,52 +1,89 @@
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { sheet } from "./lib/cascade.mjs";
+import { test } from "node:test";
+import { resolveValue, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
-const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
-const app = sheet(new URL("../css/app.css", import.meta.url)), tokens = css("../core/ui/tokens.css"), phone = sheet(new URL("../css/phone.css", import.meta.url));
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-const rule = (sel) => { const m = app.match(new RegExp("\\n" + sel.replace(/[.()*+?[\]|]/g, "\\$&") + "\\{([^}]*)\\}")); assert.ok(m, sel); return m[1]; };
-const pad = (body) => { const m = body.match(/;padding:0 (.+?) 0 (.+?);/); assert.ok(m, body); return { end: m[1], start: m[2] }; };
+const tokens = tokenValuesFor();
 
-t("glyph margins are tokens, read off the pack's 24 grid", () => {
-  assert.match(tokens, /--ic-ink:\.15; --ic-ink-chev:\.21; --mark-ink:calc\(2 \/ 24\);/);
+/** @param {string} selector @param {string} property @param {string} expected */
+function containsValue(selector, property, expected) {
+  const values = valuesFor(selector, property);
+  const resolved = resolveValue(expected);
+  if (typeof resolved === "string") assert.ok(values.includes(resolved), selector + " " + property);
+  else assert.ok(values.some((value) => Array.isArray(value)
+    && value.length === resolved.length && value.every((entry, index) => entry === resolved[index])));
+}
+
+/** @param {string} property @param {string} value */
+function phoneToken(property, value) {
+  assert.ok(stylesheetRows.some((row) => row.property === property && row.value === value
+    && row.context.at(-1)?.selector === ":root"
+    && row.context.some((scope) => scope.at === "media" && scope.params === "(max-width:760px)")), property);
+}
+
+test("icon ink margins use the shared glyph proportions", () => {
+  assert.equal(tokens.get("--ic-ink"), ".15");
+  assert.equal(tokens.get("--ic-ink-chev"), ".21");
+  assert.equal(tokens.get("--mark-ink"), "calc(2 / 24)");
 });
-t("the folded ask and the done line are one bar: same height, inset and button, from the same tokens", () => {
-  assert.match(app, /\n:is\(\.dock-fold,\.card\.is-dock\.r-done\)\{--nest-r:var\(--r-card\);--nest-in:calc\(\(var\(--dock-bar\) - var\(--dock-btn\)\) \/ 2 \+ 1px\);border-radius:var\(--nest-r\)\}/);
-  assert.match(rule(".tp-done"), /min-height:var\(--dock-bar\)/);
-  assert.match(rule(".dock-fold"), /min-height:calc\(var\(--dock-bar\) \+ 2px\)/);
-  for (const b of [".tp-done-u", ".df-go"]) assert.match(rule(b), /height:var\(--dock-btn\);[^}]*border-radius:calc\(var\(--nest-r\) - var\(--nest-in\)\)/, b);
-  assert.match(phone, /:root\{--dock-bar:var\(--h-hit\);--dock-btn:var\(--h-touch\);/);
-  assert.doesNotMatch(app, /\.tp-done[^{]*\{[^}]*white-space:normal/);
-  assert.match(rule(".tp-done>span:not(.tp-done-ic)"), /white-space:nowrap/, "one line, so the bar never grows past the one it replaced");
+
+test("folded asks and completed notices use concentric controls in the same bar", () => {
+  const bars = ":is(.dock-fold,.card.is-dock.r-done)";
+  containsValue(bars, "--nest-r", "var(--r-card)");
+  containsValue(bars, "--nest-in", "calc((var(--dock-bar) - var(--dock-btn)) / 2 + 1px)");
+  containsValue(bars, "border-radius", "var(--nest-r)");
+  containsValue(".tp-done", "min-height", "var(--dock-bar)");
+  containsValue(".dock-fold", "min-height", "calc(var(--dock-bar) + 2px)");
+  for (const button of [".tp-done-u", ".df-go"]) {
+    containsValue(button, "height", "var(--dock-btn)");
+    containsValue(button, "border-radius", "calc(var(--nest-r) - var(--nest-in))");
+  }
+  phoneToken("--dock-bar", "var(--h-hit)");
+  phoneToken("--dock-btn", "var(--h-touch)");
+  assert.ok(!valuesFor((selector) => selector.includes(".tp-done"), "white-space").includes("normal"));
+  containsValue(".tp-done>span:not(.tp-done-ic)", "white-space", "nowrap");
 });
-t("a filled control at an end nests concentric; words or a bare glyph (less its margin) sit --edge-text in", () => {
-  assert.match(tokens, /--edge-text:var\(--s-3\);/);
-  const cases = [
-    [".tp-done", "calc(var(--nest-in) - 1px)", "calc(var(--edge-text) - var(--ic) * var(--ic-ink))"],
-    [".dock-fold", "calc(var(--nest-in) - 1px)", "calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))"],
-    [".hr", "calc(var(--edge-text) - 1px)", "calc(var(--edge-text) - 1px)"],
-    [".ck-tog", "calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev))", "var(--edge-text)"],
-  ];
-  for (const [sel, end, start] of cases) assert.deepEqual(pad(rule(sel)), { end, start }, sel);
+
+test("row edges preserve concentric control and glyph insets", () => {
+  assert.equal(tokens.get("--edge-text"), "var(--s-3)");
+  containsValue(".tp-done", "padding", "0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic) * var(--ic-ink))");
+  containsValue(".dock-fold", "padding", "0 calc(var(--nest-in) - 1px) 0 calc(var(--edge-text) - var(--ic-sm) * var(--mark-ink))");
+  containsValue(".hr", "padding", "0 calc(var(--edge-text) - 1px) 0 calc(var(--edge-text) - 1px)");
+  containsValue(".ck-tog", "padding", "0 calc(var(--edge-text) - var(--ic) * var(--ic-ink-chev)) 0 var(--edge-text)");
 });
-t("the notice is a pill a control tall: its icon bare, Open and Undo pills nested --note-in from its end", () => {
-  assert.match(tokens, /--note-h:var\(--h-ctl\); --note-btn:var\(--h-sm\);/);
-  assert.match(phone, /:root\{[^}]*--note-h:var\(--h-touch\);/);
-  assert.match(rule(".hr"), /^--note-in:calc\(\(var\(--note-h\) - var\(--note-btn\)\) \/ 2\);[^}]*height:calc\(var\(--note-h\) \+ 2px\);[^}]*border-radius:var\(--r-pill\);background:var\(--glass\);border:1px solid transparent;/);
-  assert.match(app, /\n\.hr:has\(>:is\(\.hr-go,\.hr-undo\)\)\{padding-right:calc\(var\(--note-in\) - 1px\)\}/, "a button at the end nests by the same inset top and side");
-  assert.doesNotMatch(rule(".hr-ic"), /background|border-radius|width/, "no disc");
-  for (const sel of [".hr-go", ".hr-undo"]) assert.match(rule(sel), /height:var\(--note-btn\);[^}]*border-radius:var\(--r-pill\)/, sel);
-  assert.match(app, /\.hr:has\(>\.hr-undo\)\{--note-btn:var\(--h-touch\);--note-h:calc\(var\(--note-btn\) \+ 2 \* var\(--s-1\)\)\}/, "on a phone Undo keeps a finger's height");
-  assert.doesNotMatch(app, /\.hr(?:-ev)?[^{]*\{[^}]*(?:min-height:38px|padding:5px)/, "no fixed sizes");
+
+test("herald notices use the pill dimensions with a bare icon and nested controls", () => {
+  assert.equal(tokens.get("--note-h"), "var(--h-ctl)");
+  assert.equal(tokens.get("--note-btn"), "var(--h-sm)");
+  phoneToken("--note-h", "var(--h-touch)");
+  containsValue(".hr", "--note-in", "calc((var(--note-h) - var(--note-btn)) / 2)");
+  containsValue(".hr", "height", "calc(var(--note-h) + 2px)");
+  containsValue(".hr", "border-radius", "var(--r-pill)");
+  containsValue(".hr", "background", "var(--glass)");
+  containsValue(".hr", "border", "1px solid transparent");
+  containsValue(".hr:has(>:is(.hr-go,.hr-undo))", "padding-right", "calc(var(--note-in) - 1px)");
+  for (const property of ["background", "border-radius", "width"]) assert.deepEqual(valuesFor(".hr-ic", property), []);
+  for (const button of [".hr-go", ".hr-undo"]) {
+    containsValue(button, "height", "var(--note-btn)");
+    containsValue(button, "border-radius", "var(--r-pill)");
+  }
+  containsValue(".hr:has(>.hr-undo)", "--note-btn", "var(--h-touch)");
+  containsValue(".hr:has(>.hr-undo)", "--note-h", "calc(var(--note-btn) + 2 * var(--s-1))");
+  const herald = (selector) => /\.hr(?:-ev)?\b/.test(selector);
+  assert.ok(!valuesFor(herald, "min-height").flat().includes("38px"));
+  assert.ok(!valuesFor(herald, "padding").flat().some((value) => /^5px\b/.test(value)));
 });
-t("a long notice ellipses its words, never its buttons: the subline gives way first, then the title", () => {
-  assert.match(rule(".hr"), /max-width:100%;/);
-  assert.match(rule(".hr-t"), /^min-width:0;overflow:hidden;text-overflow:ellipsis;/);
-  assert.match(rule(".hr-s"), /^flex-shrink:1000;[^}]*overflow:hidden;text-overflow:ellipsis/);
-  assert.doesNotMatch(app, /\.hr-t\{[^}]*flex:none/, "a title that can't shrink pushes Open out of the pill");
-  for (const sel of [".hr-go", ".hr-undo"]) assert.match(rule(sel), /^flex:none;/, sel);
-  assert.match(app, /\n  \.hr-ev\.k-stopped \.hr-t\{flex:1 1 0\}/, "on a phone a stopped title keeps the icon's line instead of wrapping under it");
+
+test("the herald truncates its title and subline while preserving button widths", () => {
+  containsValue(".hr", "max-width", "100%");
+  containsValue(".hr-t", "min-width", "0");
+  containsValue(".hr-s", "flex-shrink", "1000");
+  for (const text of [".hr-t", ".hr-s"]) {
+    containsValue(text, "overflow", "hidden");
+    containsValue(text, "text-overflow", "ellipsis");
+  }
+  assert.ok(!valuesFor(".hr-t", "flex").includes("none"));
+  for (const button of [".hr-go", ".hr-undo"]) containsValue(button, "flex", "none");
+  containsValue(".hr-ev.k-stopped .hr-t", "flex", "1 1 0");
 });
-console.log(`\n${passed} passed`);

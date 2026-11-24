@@ -1,54 +1,87 @@
-// Files' tree (js/files.js): its list scrolls to its end and stays there, and its sections fold.
-// The owner, 19 Nov 13:03Z: "i am not able to scroll till bottom, its coming back automatically" and "all files and
-// changed files should be minimizable".
-//   node tests/files-tree-scroll-fold.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { api } from "../core/platform/api.js";
+import { createFiles } from "../modules/files/files.js";
+import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
+import { dom, settle } from "./lib/dom.mjs";
 
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.stack); process.exitCode = 1; } };
-const src = ["files.js", "tree.js", "drag.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
-const folds = readFileSync(new URL("../modules/files/section-folds.js", import.meta.url), "utf8");
-const css = ["panel.css", "foundation.css"].map((f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
+test("Files keeps scroll position and the fold state for each project", async (context) => {
+  const { window, document } = await dom('<aside id="files"></aside>');
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const storage = new Map();
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value) },
+  });
+  context.after(() => {
+    if (originalStorage) Object.defineProperty(globalThis, "localStorage", originalStorage);
+    else Reflect.deleteProperty(globalThis, "localStorage");
+  });
+  context.mock.method(api, "projectTree", async () => ({ files: [{ name: "a.md", relative_path: "a.md" }] }));
 
-// the old rule, kept here as the evidence: every scroll that ended was settled to the nearest multiple of 28 px, but
-// rows are 32 (var(--h-ctl)), headings 28 and the list ends in 14 px of padding, so its end sat off that grid
-const oldSettle = (top, max) => { const t = Math.round(top / 28) * 28; return Math.abs(t - top) >= 1 && t <= max ? t : top; };
+  const files = createFiles({
+    world: { state: { threads: [] } },
+    viewer: { hasFile: false },
+    changes: {
+      of: () => ({ state: "ok", files: new Map([["a.md", { path: "a.md", binary: true }]]) }),
+      activity: () => ({ live: new Set() }),
+    },
+    isBusy: () => false,
+    PROJ: (id) => id,
+    go() {},
+  });
+  const host = document.querySelector("#files");
+  host.getBoundingClientRect = () => ({ width: 400 });
+  context.after(files.mount(host));
+  files.show("p:one");
+  await settle();
 
-t("the cause: for about half of all window heights, the old rule pulled a scroll to the end back by up to 14 px", () => {
-  const content = 2 * 28 + 21 * 32 + 6 * 32 + 14; // the screenshot's tree: two headings, 21 changed files, 6 folders, padding
-  let pulled = 0, most = 0;
-  for (let view = 400; view < 900; view++) {
-    const max = content - view, at = oldSettle(max, max);
-    if (at !== max) { pulled++; most = Math.max(most, max - at); }
-  }
-  assert.ok(pulled > 200, `${pulled} of 500 heights`);
-  assert.ok(most > 0 && most <= 14, `pulled back by up to ${most} px`);
+  const click = (selector) => host.querySelector(selector).dispatchEvent(new window.Event("click", { bubbles: true }));
+  const changed = '[data-fl-sec="changed"]';
+  const all = '[data-fl-sec="all"]';
+  const expanded = (selector) => host.querySelector(selector).getAttribute("aria-expanded");
+
+  assert.equal(host.querySelector(changed).tagName, "BUTTON");
+  assert.equal(host.querySelector(all).tagName, "BUTTON");
+  assert.match(host.querySelector(changed).textContent, /Changed here/);
+  assert.match(host.querySelector(all).textContent, /All files/);
+
+  const list = host.querySelector(".fl-list");
+  Object.defineProperties(list, { scrollHeight: { value: 714 }, clientHeight: { value: 400 } });
+  list.scrollTop = 314;
+  list.dispatchEvent(new window.Event("scroll", { bubbles: true }));
+  list.dispatchEvent(new window.Event("scrollend", { bubbles: true }));
+  await settle();
+  assert.equal(list.scrollTop, 314);
+
+  click(changed);
+  assert.equal(expanded(changed), "false");
+  assert.ok(!host.querySelector("[data-fl-change]"), "the removed change action is absent");
+  click('[data-fl-rail="changes"]');
+  assert.equal(expanded(changed), "true");
+  assert.ok(host.querySelector("[data-fl-change]"));
+
+  click(all);
+  assert.equal(expanded(all), "false");
+  assert.equal(host.querySelector(".fl-list > .fl-g").hidden, true);
+  assert.deepEqual(JSON.parse(storage.get("xo-files-secs")), { one: { all: true } });
+  files.show("p:two");
+  await settle();
+  assert.equal(expanded(all), "true");
+  files.show("p:one");
+  assert.equal(expanded(all), "false");
+  click('[data-fl-rail="all"]');
+  assert.equal(expanded(all), "true");
+  assert.equal(host.querySelector(".fl-list > .fl-g").hidden, false);
 });
 
-t("the fix: no snapping to a fixed row height, and no whole-row height on the list", () => {
-  assert.doesNotMatch(src, /const ROW = 28/);
-  assert.doesNotMatch(src, /Math\.round\(l\.scrollTop \/ ROW\)/, "no settling of a scroll");
-  assert.doesNotMatch(src, /function fitList/, "the list's height isn't cut to whole rows");
-  assert.doesNotMatch(src, /scrollend/, "nothing listens for a scroll's end to move it");
+test("the Files section heading uses the panel's control size, chevron, ring and hover ink", () => {
+  assert.deepEqual(valuesFor('.fl-sec[aria-expanded="true"] .fl-c svg', "transform"), ["rotate(90deg)"]);
+  assert.deepEqual(valuesFor(".fl-sec", "box-sizing"), ["border-box"]);
+  assert.deepEqual(valuesFor(".fl-sec", "height"), [resolveValue("var(--h-ctl)")]);
+  const ringed = (selector) => selector.startsWith(":is(.fl-r,.fl-sec,") && selector.endsWith(":focus-visible");
+  assert.deepEqual(valuesFor(ringed, "outline-color"), [resolveValue("var(--ring-in,var(--focus))")]);
+  assert.deepEqual(valuesFor("button.fl-sec:hover", "color"), [resolveValue("var(--ink-2)")]);
 });
-
-t("Changed and All files fold from their heads, remembered per project", () => {
-  assert.match(src, /<button type="button" class="fl-sec" data-fl-sec="\$\{part\}" aria-expanded="\$\{open\}"/, "a head is a button that says whether it's open");
-  assert.match(src, /secHead\(s, "changed", `Changed \$\{s\.base \? "in this thread" : "here"\}`/);
-  assert.match(src, /secHead\(s, "all", "All files"\)/);
-  assert.match(folds, /const SECS_KEY = "xo-files-secs"/, "kept in this browser");
-  assert.match(folds, /const p = secState\[\/\*\* @type \{string\} \*\/ \(s\.project\)\]/, "by project");
-  assert.match(src, /if \(rootG && rootG\.hidden !== allFolded\) rootG\.hidden = allFolded;/, "All files folded hides the tree, kept as it was");
-  assert.match(src, /if \(folded\(s, "changed"\)\) return secHead/, "Changed folded leaves its rows out");
-  assert.match(src, /if \(F\.scope && F\.scope\.project && folded\(F\.scope, which\)\) \{ setFolded\(F\.scope, which, false\)/, "the rail's Changed or All files opens a folded section");
-});
-
-t("the heads use the panel's own fold look and tokens: the chevron turns, a control's height, the one ring", () => {
-  assert.match(css, /\.fl-sec\[aria-expanded="true"\] \.fl-c svg\{transform:rotate\(90deg\)\}/);
-  assert.match(css, /\.fl-sec\{box-sizing:border-box;height:var\(--h-ctl\)/);
-  assert.match(css, /:is\(\.fl-r,\.fl-sec,/, "the rows' focus ring");
-  assert.match(css, /button\.fl-sec:hover\{color:var\(--ink-2\)/, "answers the pointer");
-});
-
-console.log(`${passed} passed`);

@@ -1,19 +1,19 @@
 @import url("../modules/settings/shape.css");
-/* The shape per person (core/services/shape): compact density and the simple model choice, from tokens only; never the sidebar. */
+/* Shape preferences for the main surface and overlays. */
 
-/* Compact density: each size one step down the scale (rows 32, controls 24, reading 14/20); older parts are named until they move onto the tokens. */
+/* Compact density steps down the control heights and reading scale. */
 :root[data-density="compact"] :is(.main,.sheet,.iq-pop){
-  --h-row:32px; --h-ctl:var(--h-sm);
+  --h-row:var(--h-row-compact); --h-ctl:var(--h-sm);
   --fs-title:var(--fs-ui); --lh-title:var(--lh-ui); --fs-read:var(--fs-ui); --lh-read:var(--lh-ui); --fw-read:var(--fw-regular);
 }
 [data-density="compact"] :is(.iq,.stg-btn,.all-btn,.target){height:var(--h-ctl)}
-[data-density="compact"] :is(.attach,.send){align-self:flex-end}   /* a taller row (a phone's 36 px targets) mustn't lift them off the corner */
+[data-density="compact"] :is(.attach,.send){align-self:flex-end}
 [data-density="compact"] :is(.ck-tog,.ag-r,.set-nav button){height:var(--h-row)}
 [data-density="compact"] :is(.hd-r,.ar){min-height:var(--h-row)}
 [data-density="compact"] .tb-h{min-height:var(--h-ctl)}
 
-/* ── The simple model choice (xo:composer/intel "simple") ───────────────────────────────────────── */
+/* The simple model choice. */
 .iq-simple button[aria-disabled="true"]{color:var(--ink-4);cursor:default}
 
-/* ── A turn's work in words (xo:thread/work "words"): a step that didn't work is said, not shown ── */
-.tb-wbad{margin:4px 0 0 24px}
+/* Failed steps in the text summary. */
+.tb-wbad{margin:var(--s-1) 0 0 var(--s-6)}

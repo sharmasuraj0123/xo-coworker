@@ -1,26 +1,53 @@
-// An event line ("Allowed · …", "Asked the coordinator: …") is a quiet note: a bare mark at the icon size, no disc, and lines in a row sit close.
-import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync } from "node:fs";
-const css = (f) => readFileSync(new URL(`../css/${f}`, import.meta.url), "utf8");
-const appCss = sheet(new URL("../css/app.css", import.meta.url));
-const messages = readFileSync(new URL("../modules/conversation/messages.js", import.meta.url), "utf8");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+// @ts-check
 
-t("the mark is bare, at --ic, in every look", () => {
-  assert.match(appCss, /\n\.ev-ic\{flex:none;display:grid;place-items:center;width:var\(--ic\);height:var\(--ic\);margin:0 4px;color:var\(--accent\)\}/);
-  const evRules = [...appCss.matchAll(/[^}\n]*\.ev-ic\{[^}]*\}/g)].map((m) => m[0]);
-  assert.equal(evRules.some((r) => /background|border-radius/.test(r)), false, evRules.join("\n"));
-  assert.match(css("../modules/conversation/msgx.css"), />\.ev>\.ev-ic\{width:var\(--ic\);margin:0 6px\}/);
-  assert.match(css("../core/ui/markdown/rich.css"), />\.ev>\.ev-ic\{margin:0 var\(--s-1\)\}/);
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { createConversationMessages } from "../modules/conversation/messages.js";
+import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
+
+test("event lines use a bare icon in both message views", () => {
+  const size = resolveValue("var(--ic)");
+  for (const [property, value] of Object.entries({
+    flex: "none", display: "grid", "place-items": "center", width: size, height: size,
+    margin: "0 4px", color: resolveValue("var(--accent)"),
+  })) assert.deepEqual(valuesFor(".ev-ic", property), [value], property);
+
+  const icon = (selector) => selector.endsWith(".ev-ic");
+  for (const property of ["background", "background-color", "border-radius"]) {
+    assert.deepEqual(valuesFor(icon, property), [], property);
+  }
+  const bubble = ":root[data-msgx] .msgs>.ev>.ev-ic";
+  const reading = ":root:not([data-msgx]) .msgs>.ev>.ev-ic";
+  assert.deepEqual(valuesFor(bubble, "width"), [size]);
+  assert.deepEqual(valuesFor(bubble, "margin"), ["0 6px"]);
+  assert.deepEqual(valuesFor(reading, "margin"), ["0 4px"]);
 });
-t("event lines in a row sit 8 px apart", () => {
-  assert.match(css("../core/ui/markdown/rich.css"), />\.ev:has\(\+\.ev\)\{margin-bottom:var\(--s-2\)\}/);
-  assert.match(css("../core/ui/markdown/rich.css"), />\.ev\+\.ev\{margin-top:var\(--s-2\)\}/);
+
+test("adjacent event lines have 8px before and after", () => {
+  const reading = ":root:not([data-msgx]) .msgs";
+  assert.deepEqual(valuesFor(`${reading}>.ev:has(+.ev)`, "margin-bottom"), ["8px"]);
+  assert.deepEqual(valuesFor(`${reading}>.ev+.ev`, "margin-top"), ["8px"]);
 });
-t("a decision line starts with its verb, not \"You\"", () => {
-  assert.match(messages, /text: `\$\{d\.verb\} · \$\{d\.said \|\| d\.label\}`/);
-  assert.doesNotMatch(messages, /`You \$\{d\.verb\.toLowerCase\(\)\}/);
+
+test("decision events begin with their verb and prefer the supplied wording", () => {
+  const messages = createConversationMessages({
+    S: { local: {}, alias: new Map(), showHops: false },
+    world: { state: { hist: {}, timeline: { project: [] }, threads: [] }, act: {} },
+    D: {
+      decisions: () => [
+        { id: "allow", project: "project", at: 1, verb: "Allowed", label: "Use this", said: "Read the file", choice: "allow" },
+        { id: "deny", project: "project", at: 2, verb: "Denied", label: "Change the rules", choice: "deny" },
+      ],
+      notSent: () => [],
+    },
+    PROJ: (id) => id,
+    convThread: () => undefined,
+    chatOf: () => "project",
+    convProject: () => "project",
+    threadsOf: () => [],
+  });
+  assert.deepEqual(messages("p:project").filter((row) => row.who === "event").map((row) => row.text), [
+    "Allowed · Read the file",
+    "Denied · Change the rules",
+  ]);
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

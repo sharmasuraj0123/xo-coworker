@@ -1,49 +1,49 @@
-// A Graph dot the keyboard is on shows the ring, whatever else the dot is (the map grader on 65e84b7, S082, all four
-// cells: focus-visible was true but the dot's paint didn't change, because the folded folder's rule and the panel's
-// rule each set the whole box-shadow, and outweighed the focus rule). By design, not by weight: the dot's paint is one
-// shadow of four named layers, and every state sets only its own layer, so none can take the focus ring away.
-// Checked from the source; the drawn ring is the grader's case graph-focus-paint (closed folder, open folder, file).
-//   node tests/graph-focus.test.mjs
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { cssNames } from "./lib/sources.mjs";
+import { test } from "node:test";
+import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
 
-const R = new URL("../", import.meta.url);
-const css = cssNames().map((f) => readFileSync(new URL(`css/${f}`, R), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")).join("\n");
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
-// every rule whose selector paints the dot, with its declarations
-const rules = [...css.matchAll(/([^{}]*\.gn-d[^{}]*)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
-const LAYERS = "box-shadow:var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),var(--gn-halo,0 0 #0000)";
+const dot = (selector) => /\.gn-d\b/.test(selector);
+const focusDot = (selector) => /\.gn:focus-visible \.gn-d$/.test(selector);
+const shadow = [
+  "var(--gn-in,inset 0 0 #0000)", "0 0 0 2px var(--gn-gap)",
+  "var(--gn-focus,0 0 #0000)", "var(--gn-halo,0 0 #0000)",
+];
 
-t("the dot's paint is one shadow of four named layers", () => {
-  const base = rules.filter((r) => r.sel === ".gn-d");
-  assert.equal(base.length, 1, "one base rule");
-  assert.ok(base[0].body.includes(LAYERS), `the base composes the layers: ${base[0].body}`);
-  assert.ok(base[0].body.includes("--gn-gap:var(--canvas)"), "the gap is the canvas by default");
+test("a graph dot composes its shadow from four independent layers", () => {
+  assert.deepEqual(valuesFor(".gn-d", "box-shadow"), [resolveValue(shadow.join(","))]);
+  assert.deepEqual(valuesFor(".gn-d", "--gn-gap"), [resolveValue("var(--canvas)")]);
+  assert.deepEqual(valuesFor((selector) => selector !== ".gn-d" && dot(selector), "box-shadow"), []);
 });
-t("no state sets the whole shadow: each sets its own layer", () => {
-  const whole = rules.filter((r) => r.sel !== ".gn-d" && /(^|;)\s*box-shadow:/.test(r.body)).map((r) => r.sel);
-  assert.deepEqual(whole, [], "rules that would replace every layer, the focus ring with them");
+
+test("keyboard focus is the only state that sets the graph focus layer", () => {
+  assert.deepEqual(valuesFor(focusDot, "--gn-focus"), [resolveValue("0 0 0 4px var(--focus)")]);
+  assert.deepEqual(valuesFor((selector) => dot(selector) && !focusDot(selector), "--gn-focus"), []);
 });
-t("focus sets the focus layer: the one ring, 2 px of the focus colour under the 2 px gap", () => {
-  const f = rules.filter((r) => /\.gn:focus-visible \.gn-d$/.test(r.sel));
-  assert.equal(f.length, 1, "one focus rule");
-  assert.equal(f[0].body.trim(), "--gn-focus:0 0 0 4px var(--focus)");
-  assert.ok(!rules.some((r) => !/focus-visible/.test(r.sel) && r.body.includes("--gn-focus:")), "and nothing else touches it");
+
+test("graph dot states contribute to their own layer", () => {
+  const states = [
+    [".gn.k-dir:not(.is-open) .gn-d", "--gn-in", "inset 0 0 0 1.5px var(--ink-3)"],
+    [".gn.is-here .gn-d", "--gn-halo", "0 0 0 5px color-mix(in srgb,var(--c) 25%,transparent)"],
+    [".stage .map-host .gn-d", "--gn-gap", "var(--panel-canvas)"],
+    [
+      ':root[data-theme="light"] .stage .map-host .gn.is-here .gn-d',
+      "--gn-in", "inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,#000)",
+    ],
+  ];
+  for (const [selector, property, value] of states) {
+    assert.deepEqual(valuesFor(selector, property), [resolveValue(value)], selector);
+  }
 });
-t("the states keep their looks, each in its own layer", () => {
-  const has = (sel, decl) => assert.ok(rules.some((r) => r.sel === sel && r.body.includes(decl)), `${sel} { ${decl} }`);
-  has(".gn.k-dir:not(.is-open) .gn-d", "--gn-in:inset 0 0 0 1.5px var(--ink-3)");
-  has(".gn.is-here .gn-d", "--gn-halo:0 0 0 5px color-mix(in srgb,var(--c) 25%,transparent)");
-  has(".stage .map-host .gn-d", "--gn-gap:var(--panel-canvas)");
-  has(':root[data-theme="light"] .stage .map-host .gn.is-here .gn-d', "--gn-in:inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,#000)");
-});
-t("the hit pulse keeps the layers too (an animation outweighs every rule while it runs)", () => {
-  const k = css.match(/@keyframes gn-hit\{([\s\S]*?\})\}/);
-  assert.ok(k, "the pulse");
-  const frames = [...k[1].matchAll(/box-shadow:([^}]*)\}/g)].map((m) => m[1]);
+
+test("both hit pulse frames preserve the inset, gap and focus layers", () => {
+  const frames = stylesheetRows.filter((row) => row.property === "box-shadow"
+    && row.context.some((scope) => scope.at === "keyframes" && scope.params === "gn-hit"));
   assert.equal(frames.length, 2);
-  for (const f of frames) assert.ok(f.startsWith("var(--gn-in,inset 0 0 #0000),0 0 0 2px var(--gn-gap),var(--gn-focus,0 0 #0000),"), `a frame keeps the gap and the ring: ${f}`);
+  const shared = resolveValue(shadow.slice(0, 3).join(",") + ",");
+  assert.equal(typeof shared, "string");
+  for (const frame of frames) {
+    for (const value of [resolveValue(frame.value)].flat()) assert.ok(value.startsWith(shared));
+  }
 });
-console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

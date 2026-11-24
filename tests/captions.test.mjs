@@ -1,24 +1,25 @@
-// A caption is small print: one rule sizes and inks every caption under a picture, a set or a diagram.
+// @ts-check
+
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { test } from "node:test";
+import { resolveValue, valuesFor } from "./lib/css-snapshot.mjs";
 
-const dir = new URL("../css/", import.meta.url);
-const mediaPath = "../modules/conversation/media/media.css";
-const sheets = [...readdirSync(dir).filter((f) => f.endsWith(".css")), mediaPath].map((f) => [f, readFileSync(new URL(f, dir), "utf8")]);
-const media = sheets.find(([f]) => f === mediaPath)[1];
-let passed = 0;
-const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
+const captions = [".mx-cap", ".ximg-cap", ".md-dg-why"];
 
-t("the caption rule: meta size and line, regular, a quieter ink", () => {
-  assert.match(media, /\n:is\(\.mx-cap,\.ximg-cap,\.md-dg-why\)\{font:var\(--fw-regular\) var\(--fs-meta\)\/var\(--lh-meta\) var\(--sans\);color:var\(--ink-3\)\}/);
-  assert.match(media, /\n\.mx-cap\{max-width:66ch;margin-bottom:var\(--s-2\)\}/);
+test("captions share the meta type and quiet ink across themes", () => {
+  const selector = `:is(${captions.join(",")})`;
+  assert.deepEqual(valuesFor(selector, "font"), [
+    resolveValue("var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)"),
+  ]);
+  assert.deepEqual(valuesFor(selector, "color"), [resolveValue("var(--ink-3)")]);
+  assert.deepEqual(valuesFor(".mx-cap", "max-width"), ["66ch"]);
+  assert.deepEqual(valuesFor(".mx-cap", "margin-bottom"), [resolveValue("var(--s-2)")]);
 });
-t("no other rule sizes or inks a caption", () => {
-  const bad = [];
-  for (const [f, css] of sheets) for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const sel = m[1].trim();
-    if ([".mx-cap", ".ximg-cap", ".md-dg-why"].includes(sel) && /(^|;)\s*(font|font-size|color):/.test(m[2])) bad.push(`${f}: ${sel}`);
+
+test("individual captions have no type or ink override", () => {
+  for (const caption of captions) {
+    for (const property of ["font", "font-size", "color"]) {
+      assert.deepEqual(valuesFor(caption, property), [], `${caption} ${property}`);
+    }
   }
-  assert.deepEqual(bad, []);
 });
-console.log(`\n${passed} passed`);
