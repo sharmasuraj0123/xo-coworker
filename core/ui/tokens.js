@@ -1,5 +1,4 @@
 // @ts-check
-
 import { rootToken } from "../platform/style-token.js";
 
 /** @param {string} name */
