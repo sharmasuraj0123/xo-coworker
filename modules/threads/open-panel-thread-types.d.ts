@@ -1,14 +1,16 @@
 export interface PanelThreadPress {
-  target?: { closest?: (selector: string) => { dataset: { goMsg?: string } } | null } | null;
+  target?: EventTarget | null;
+  detail?: number;
+  pointerType?: string;
   metaKey?: boolean;
   ctrlKey?: boolean;
 }
 
 export interface PanelThreadDeps<C> {
-  S: { view: string };
+  view(): string;
   world: { thread: (tid: string) => unknown };
-  STAGE: { show: (page: string, id: string, options: { focus: boolean }) => void };
-  TP: { C: C };
+  STAGE: { show: (page: string, id: string, options: { focus: boolean; input: import("../../core/ui/a11y/focus.js").EntryInput }) => void };
+  TP: { C: C | null };
   go: (view: string, opts: { panel: boolean }) => void;
   showMsg: (message: string, conversation?: C) => void;
 }

@@ -6,8 +6,35 @@ import { createScope } from "../../kernel/scope.js";
 
 /** @typedef {{ top: number, bottom: number, left: number, right: number }} Box */
 
+/** @typedef {"touch" | "pointer" | "keyboard"} EntryInput */
+
+const PRESS_WINDOW_MS = 400;
+/** @type {WeakMap<Document, {at: number, target: EventTarget, input: EntryInput}>} */
+const lastPress = new WeakMap();
+
 /** A control a person can be on: drawn, here, not inside anything hidden or inert, and not the page itself. @param {Element | null | undefined} el */
 export const usable = (el) => !!el && el !== document.body && el.isConnected && !el.closest("[inert], [hidden]") && el.getClientRects().length > 0;
+
+/** @param {{ target?: unknown, detail?: number, pointerType?: string } | undefined} event @param {Document} owner @returns {EntryInput} */
+export function entryInput(event, owner = document) {
+  if (!event) return "keyboard";
+  if (event.pointerType) return event.pointerType === "touch" ? "touch" : "pointer";
+  if (!event.detail) return "keyboard";
+  const target = event.target, win = owner.defaultView;
+  if (!win || !(target instanceof win.Node)) return "pointer";
+  const press = lastPress.get(owner);
+  if (press?.target instanceof win.Node && (target.contains(press.target) || press.target.contains(target))
+    && win.performance.now() - press.at < PRESS_WINDOW_MS) return press.input;
+  return "pointer";
+}
+
+/** @param {HTMLElement | null} field @param {HTMLElement | null} landmark @param {EntryInput} [input] */
+export function focusEntry(field, landmark, input = "keyboard") {
+  const target = input === "touch" || !usable(field) ? landmark : field;
+  if (!target || !usable(target)) return false;
+  target.focus({ preventScroll: true });
+  return true;
+}
 
 /** A control's identity as a selector, to find it again after a redraw: its id, else its tag and data- hooks, counts aside. @param {Element | null | undefined} el */
 export function hookOf(el) {
@@ -99,13 +126,18 @@ export function bringWhole(el, win = window) {
 /** Checks every focus but a press's own once the moment's layout has settled, and brings it into sight. */
 export function keepFocusInView(doc = document, win = window) {
   const scope = createScope();
-  /** @type {{ at: number, t: EventTarget | null } | null} */
-  let press = null;
-  scope.listen(doc, "pointerdown", (e) => { press = { at: win.performance.now(), t: e.target }; }, true);
+  scope.effect(() => () => lastPress.delete(doc));
+  scope.listen(doc, "pointerdown", (event) => {
+    const target = event.target;
+    if (!target) return;
+    const input = "pointerType" in event && event.pointerType === "touch" ? "touch" : "pointer";
+    lastPress.set(doc, { at: win.performance.now(), target, input });
+  }, true);
   /** @param {Element} el */
   const pressed = (el) => {
-    if (!press || win.performance.now() - press.at >= 400) return false;
-    return el === press.t || (typeof win.Node === "function" && press.t instanceof win.Node && el.contains(press.t));
+    const press = lastPress.get(doc);
+    return !!press && win.performance.now() - press.at < PRESS_WINDOW_MS
+      && (el === press.target || (typeof win.Node === "function" && press.target instanceof win.Node && el.contains(press.target)));
   };
   scope.listen(doc, "focusin", (e) => {
     const el = /** @type {Element} */ (e.target);

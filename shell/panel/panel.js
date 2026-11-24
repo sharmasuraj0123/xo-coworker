@@ -8,7 +8,7 @@ import { read, write } from "../../core/platform/storage.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
-import { usable } from "../../core/ui/a11y/focus.js";
+import { entryInput, usable } from "../../core/ui/a11y/focus.js";
 import { ORDER, MAP_H, ROW, createFrames } from "./frames.js";
 import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
@@ -263,7 +263,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     if (t.closest("[data-stg-close]")) { requestClose(); return; }
     if (t.closest("[data-stg-full]")) { setFull(!S.full); return; }
     if (t.closest("[data-stg-shell]")) { setShell(S.page?.name !== "shell"); return; }
-    if (t.closest("[data-stg-sections]")) { if (!(S.page && PAGES.get(S.page.name)?.up?.(S.page.key) === true)) back(); return; }
+    if (t.closest("[data-stg-sections]")) { if (!(S.page && PAGES.get(S.page.name)?.up?.(S.page.key) === true)) back(entryInput(e)); return; }
     const pa = closest("[data-stg-act]");
     if (pa?.dataset.stgAct && S.page) { PAGES.get(S.page.name)?.act?.(pa.dataset.stgAct, pa); return; }
     const id = closest("[data-fr-fold]")?.dataset.frFold;
@@ -274,7 +274,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     const mode = closest("[data-map-mode]")?.dataset.mapMode;
     if (mode) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mode); paint(); return; }
     if (t.closest("[data-open-gh]")) { if (S.page?.name === "github" || S.page?.name === "ghitem") dropPages(); else github?.show(); return; }
-    if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(); else openFiles && openFiles(); return; }
+    if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(entryInput(e)); else openFiles && openFiles(); return; }
     if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
     const ch = closest("[data-change]"), rel = ch?.dataset.change;
     if (rel) { viewer.open({ path: rel, name: rel.split("/").pop(), project: ch?.dataset.changeProject, rel }, ch); return; }

@@ -5,6 +5,7 @@ import { dom } from "./lib/dom.mjs";
 globalThis.matchMedia = (query) => ({ matches: query === "(max-width: 760px)", addEventListener() {}, removeEventListener() {} });
 const { createPanelThreadOpener } = await import("../modules/threads/open-panel-thread.js");
 const { createNavigation } = await import("../shell/navigation.js");
+const { createNavigationState } = await import("../shell/navigation-state.js");
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -18,12 +19,12 @@ for (const focus of [true, false]) {
     const onFocus = () => calls.push("focus");
     target.addEventListener("focus", onFocus, { once: true });
     const { go } = createNavigation({
-      S: { view: "home", tEdit: null, tMenu: null, retrace: false, trail: [], parent: {}, backTo: {}, scroll: {} },
+      location: createNavigationState(),
       VW: { editing: false, leave() {} },
       STAGE: { isOpen: true, leave() {}, close(options) { calls.push(options); } },
       IQ: { close() {} }, PHONE: { matches: true }, REC: { leave() {} },
-      TD: { key: null }, tdock: document.querySelector("#tdock"), say, scroller,
-      closeSettings() {}, setDrawer() {}, saveScroll() {}, saveDraft() {}, follow() {},
+      clearDock() {}, clearThreadEdit() {}, say, scroller,
+      closeSettings() {}, setDrawer() {}, saveDraft() {}, follow() {},
       pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => null,
     });
     go("ws", { panel: true, focus });
@@ -32,28 +33,35 @@ for (const focus of [true, false]) {
   });
 }
 t("Back uses a thread’s recorded parent and leaves the place trail untouched", () => {
-  const S = { view: "t:thread", tEdit: null, tMenu: null, retrace: false, trail: ["home"], parent: { "t:thread": "ws" }, backTo: {}, scroll: {} };
-  const { back } = createNavigation({ S, VW: { editing: false, leave() {} }, STAGE: { isOpen: false, leave() {}, close() {} },
-    IQ: { close() {} }, PHONE: { matches: false }, REC: { leave() {} }, TD: { key: null }, tdock: document.querySelector("#tdock"),
-    say: document.querySelector("#say"), scroller: document.querySelector("#scroller"), closeSettings() {}, setDrawer() {}, saveScroll() {},
+  const location = createNavigationState();
+  location.visit("ws", {});
+  location.visit("t:thread", {});
+  let confirmLeave;
+  const viewer = { editing: true, leave(next) { confirmLeave = next; } };
+  const { back } = createNavigation({ location, VW: viewer, STAGE: { isOpen: false, leave() {}, close() {} },
+    IQ: { close() {} }, PHONE: { matches: false }, REC: { leave() {} }, clearDock() {}, clearThreadEdit() {},
+    say: document.querySelector("#say"), scroller: document.querySelector("#scroller"), closeSettings() {}, setDrawer() {},
     saveDraft() {}, follow() {}, pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => ({ project: "project" }),
   });
   back();
-  assert.equal(S.view, "ws");
-  assert.deepEqual(S.trail, ["home"]);
-  assert.equal(S.retrace, false);
+  assert.equal(location.view(), "t:thread", "Back waits for the open editor's confirmation");
+  viewer.editing = false;
+  confirmLeave();
+  assert.equal(location.view(), "ws");
+  assert.equal(location.previousPlace(() => true), "home", "a deferred Back leaves the place trail untouched");
+  assert.equal(location.hasTrail(), false);
 });
 t("a panel route opens a thread beside its chat or hands off to global navigation", () => {
-  const S = { view: "p:demo" };
+  const state = { view: "p:demo" };
   const calls = [];
   const open = createPanelThreadOpener({
-    S, world: { thread: (id) => id === "thread" }, TP: {},
+    view: () => state.view, world: { thread: (id) => id === "thread" }, TP: {},
     STAGE: { show: (page, id, options) => calls.push([page, id, options]) }, go: (...args) => calls.push(args),
   });
   open("t:thread");
-  S.view = "home";
+  state.view = "home";
   open("t:thread");
-  assert.deepEqual(calls, [["thread", "thread", { focus: true }], ["t:thread", { panel: true }]]);
+  assert.deepEqual(calls, [["thread", "thread", { focus: true, input: "keyboard" }], ["t:thread", { panel: true }]]);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 

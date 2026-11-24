@@ -1,114 +1,132 @@
 // @ts-check
 
 import { $ as query } from "../../core/platform/dom.js";
-import { esc } from "../../core/platform/util.js";
-import { ICON } from "../../core/ui/icons/names.js";
-import { stateMark } from "../../core/ui/icons/icon.js";
-import { redraw } from "../../core/ui/redraw.js";
-import { menuKeys } from "../../core/ui/a11y/keynav.js";
-import { heldBadge } from "../../core/services/world/held.js";
+import { focusEntry } from "../../core/ui/a11y/focus.js";
+import { createScope } from "../../core/kernel/scope.js";
 import { conversationGestures as bindConversation } from "../../shell/gestures.js";
 import { decorateConversation } from "./decoration.js";
 import { createFollow } from "./follow.js";
 import { createConv } from "./draw.js";
 import { threadPageHtml } from "./thread-page-html.js";
+import { createThreadPageHead } from "./thread-page-head.js";
 import { wordsOf } from "./words.js";
 
 /** @import { Conversation } from "./draw-types.d.ts" */
 
-/** @import { DockNeed, PanelComposer, Thread, ThreadPage, ThreadPageDeps } from "./thread-page-types.d.ts" */
+/** @import { DockNeed, PanelComposer, ThreadPage, ThreadPageDeps } from "./thread-page-types.d.ts" */
 
-/** @template DockDeps @param {ThreadPageDeps<DockDeps>} deps */
+/** @template DockDeps @template {DockNeed} N @param {ThreadPageDeps<DockDeps, N>} deps */
 export function createThreadPage({
-  STAGE, S, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu, addFiles, toggleIq, sessionOf,
+  STAGE, threadControls, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu, addFiles, toggleIq, sessionOf,
   convProject, watchDock, toastLine, loadAhead, returnPill, saveDraft, loadDraft, convThread, stOf, glyphOf,
   isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv, updateComposer, sendRender, targetLineRender,
 }) {
-  /** @type {ThreadPage} */
+  /** @type {ReturnType<typeof createScope> | undefined} */
+  let mounted;
+  /** @type {ThreadPage<N>} */
   const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
   const $ = (/** @type {string} */ selector) => query(selector, /** @type {HTMLElement} */ (TP.box));
-  const acts = document.createElement("span");
-  let headMarkup = "";
+  const head = createThreadPageHead({ STAGE, threadControls, closeThreadMenu, stOf, glyphOf, isHeld, wordOf, rtTag, threadMenuHtml });
+  let cancelDraw = () => {};
   const tpView = () => (TP.tid ? "t:" + TP.tid : "");
   /** @param {HTMLElement} box */
   function tpMount(box) {
+    const scope = createScope();
+    mounted = scope;
     TP.box = box;
     box.classList.add("tp");
     box.innerHTML = threadPageHtml(query);
-    headMarkup = "";
     const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
     TP.follow = createFollow(els);
     TP.follow.init();
+    const follow = TP.follow;
+    scope.effect(() => follow.destroy);
     TP.C = createConv({ ...els, view: tpView, typing: $("#ttyping"), follow: TP.follow });
     TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
       tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
-    wireComposer(TP.K);
-    wireTray(TP.K);
+    wireComposer(TP.K, scope);
+    wireTray(TP.K, scope);
     TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => els.scroller }, dockDeps);
 
-    acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
-    STAGE.slot.append(acts);
-    menuKeys(acts, { close: () => closeThreadMenu() });
-    TP.K.attach.addEventListener("click", () => (/** @type {PanelComposer} */ (TP.K)).input.click());
-    TP.K.input.addEventListener("change", () => { addFiles((/** @type {PanelComposer} */ (TP.K)).input.files, /** @type {PanelComposer} */ (TP.K)); (/** @type {PanelComposer} */ (TP.K)).input.value = ""; });
-    TP.K.iq.addEventListener("click", () => toggleIq(sessionOf(tpView()), (/** @type {PanelComposer} */ (TP.K)).iq));
-    TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: TP.K.at,
-      dock: els.dock, tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => { TP.viewSubs.add(fn); return () => TP.viewSubs.delete(fn); } });
-    TP.dockRO = watchDock(els.dock, box);
-    bindConversation({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) }, wordsOf);
-    els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(/** @type {Conversation} */ (TP.C)); }); }, { passive: true });
+    scope.effect(head.mount);
+    const composer = TP.K;
+    scope.listen(composer.attach, "click", () => composer.input.click());
+    scope.listen(composer.input, "change", () => { addFiles(composer.input.files, composer); composer.input.value = ""; });
+    scope.listen(composer.iq, "click", () => toggleIq(sessionOf(tpView()), composer.iq));
+    const decoration = decorateConversation({
+      ...els, conv: box, typing: $("#ttyping"), composer: composer.form, say: composer.say, send: composer.send, atList: composer.at,
+      tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow, isThread: () => true,
+      view: tpView, onView: (fn) => { TP.viewSubs.add(fn); return () => TP.viewSubs.delete(fn); },
+    });
+    scope.effect(() => decoration.destroy);
+    scope.observe(watchDock(els.dock, box));
+    bindConversation({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) }, wordsOf, scope);
+    let scrollQueued = false;
+    scope.listen(els.scroller, "scroll", () => {
+      if (scrollQueued) return;
+      scrollQueued = true;
+      scope.frame(() => { scrollQueued = false; if (TP.C) loadAhead(TP.C); });
+    }, { passive: true });
+    return () => {
+      if (TP.tid) tpClose();
+      scope.dispose();
+      TP.dock?.reset({ restoreFocus: false });
+      Object.assign(TP, { box: null, C: null, K: null, follow: null, dock: undefined });
+      TP.viewSubs.clear();
+      mounted = undefined;
+    };
   }
   /** @param {string} key */
-  function tpShow(key, { focus = false } = {}) {
+  function tpShow(key) {
+    const scope = mounted;
+    if (!scope) return;
     if (TP.tid !== key) {
+      cancelDraw();
       returnPill(null);
       if (TP.tid && TP.K) saveDraft(TP.K);
       TP.tid = key;
       (/** @type {Conversation} */ (TP.C)).rendered = null; (/** @type {Conversation} */ (TP.C)).filled = null;
       (/** @type {Conversation} */ (TP.C)).msgs.replaceChildren(); $("#tpthead").hidden = true;
-      (/** @type {NonNullable<ThreadPage['dock']>} */ (TP.dock)).reset();
+      TP.dock?.reset();
       world.act.watchSideThread?.(key);
       loadDraft(/** @type {PanelComposer} */ (TP.K));
       TP.viewSubs.forEach((fn) => fn());
       const t = convThread(tpView());
-      if (t) tpHead(t);
+      if (t) head.draw($("#tphead"), t);
       TP.wait = true;
-      requestAnimationFrame(() => setTimeout(() => {
-        TP.wait = false;
-        if (TP.tid === key && STAGE.pageShown?.name === "thread") drawThreadPage(D.needItems());
-        if (focus && TP.tid === key) (/** @type {PanelComposer} */ (TP.K)).say.focus({ preventScroll: true });
-      }, 0));
+      cancelDraw = scope.frame(() => {
+        cancelDraw = scope.timeout(() => {
+          TP.wait = false;
+          if (TP.tid === key && STAGE.pageShown?.name === "thread") drawThreadPage(D.needItems());
+        }, 0);
+      });
       return;
     }
     drawThreadPage(D.needItems());
-    if (focus) requestAnimationFrame(() => (/** @type {PanelComposer} */ (TP.K)).say.focus({ preventScroll: true }));
+  }
+  /** @param {HTMLElement | null} heading @param {import("../../core/ui/a11y/focus.js").EntryInput} input */
+  function tpFocus(heading, input) {
+    focusEntry(TP.K?.say ?? null, heading, input);
   }
   function tpClose() {
+    cancelDraw();
+    TP.wait = false;
     if (TP.K && TP.tid) saveDraft(TP.K);
-    if (S.tMenuIn === "page") { S.tMenu = null; S.tMenuIn = null; }
+    threadControls.clearMenu("page");
     world.act.watchSideThread?.(null);
     TP.tid = null;
   }
 
-  /** @param {Thread} t */
-  function tpHead(t) {
-    const head = $("#tphead");
-    const open = S.tMenu === t.id && S.tMenuIn === "page";
-    const html = `<button type="button" class="stg-btn tp-main" data-tp-main="${esc(t.id)}" title="Open in main chat" aria-label="Open in main chat">${ICON.toMain}</button><span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
-      `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
-    const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
-    if (headMarkup !== html + menu) { redraw(head, html); redraw(acts, menu); headMarkup = html + menu; }
-  }
-  /** @param {DockNeed[]} needs */
+  /** @param {N[]} needs */
   function drawThreadPage(needs) {
     const t = convThread(tpView());
     if (!t) { STAGE.closePage("thread"); return; }
-    tpHead(t);
+    head.draw($("#tphead"), t);
     checklistRender(needs, $("#tpthead"), tpView(), "tck-list");
     drawConv(/** @type {Conversation} */ (TP.C), needs);
-    (/** @type {NonNullable<ThreadPage['dock']>} */ (TP.dock)).render(needs);
+    TP.dock?.render(needs);
     if (document.activeElement !== (/** @type {PanelComposer} */ (TP.K)).say) updateComposer(/** @type {PanelComposer} */ (TP.K)); else { sendRender(/** @type {PanelComposer} */ (TP.K)); targetLineRender(/** @type {PanelComposer} */ (TP.K)); }
   }
 
-  return { TP, tpMount, tpShow, tpClose, drawThreadPage };
+  return { TP, tpMount, tpShow, tpFocus, tpClose, drawThreadPage };
 }

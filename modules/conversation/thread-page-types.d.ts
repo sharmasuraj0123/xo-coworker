@@ -1,40 +1,41 @@
 import type { RankedNeed } from "../../core/services/decision-types.d.ts";
-import type { ChecklistDeps, ChecklistNeed } from "./checklist-types.d.ts";
+import type { ChecklistNeed } from "./checklist-types.d.ts";
 import type { Composer } from "./composer-types.d.ts";
 import type { Conversation } from "./draw-types.d.ts";
 import type { Follow } from "./follow.js";
-import type { decorateConversation } from "./decoration.js";
-import type { heldBadge } from "../../core/services/world/held.js";
+import type { WorldThread } from "../../core/services/world/state-types.d.ts";
+import type { createScope } from "../../core/kernel/scope.js";
 
-type Thread = NonNullable<ReturnType<ChecklistDeps["convThread"]>> & { held?: Parameters<typeof heldBadge>[0] };
+type Thread = WorldThread;
 type PanelComposer = Composer & { iq: HTMLElement };
-export type DockNeed = RankedNeed & { ask: { item?: { id: string } } };
+export type DockNeed = RankedNeed;
 type DockMount = { el: HTMLElement; view(): string; region(): HTMLElement };
-type Dock = { reset(): void; render(needs: DockNeed[]): void };
+type Dock<N extends DockNeed> = {
+  reset(options?: { restoreFocus?: boolean }): void;
+  render(needs: N[]): void;
+  undoReceipt(key: string): void;
+};
 
-export type ThreadPage = {
+export type ThreadPage<N extends DockNeed> = {
   box: HTMLElement | null;
   C: Conversation | null;
   K: PanelComposer | null;
   tid: string | null;
   follow: Follow | null;
   viewSubs: Set<() => void>;
-  dock?: Dock;
-  deco?: ReturnType<typeof decorateConversation>;
-  dockRO?: ResizeObserver;
-  scrollRaf?: number;
+  dock?: Dock<N>;
   wait?: boolean;
 };
 
-export type ThreadPageDeps<DockDeps> = {
+export type ThreadPageDeps<DockDeps, N extends DockNeed> = {
   STAGE: { slot: HTMLElement; pageShown: { name: string } | null; closePage(name: string): unknown };
-  S: { tMenu?: string | null; tMenuIn?: string | null };
+  threadControls: { clearMenu(location: "page"): void; menuOpen(id: string, location: "page"): boolean };
   world: { act: { watchSideThread?: (key: string | null) => unknown } };
-  D: { needItems(): DockNeed[] };
-  createDock(mount: DockMount, deps: DockDeps): Dock;
+  D: { needItems(): N[] };
+  createDock(mount: DockMount, deps: DockDeps): Dock<N>;
   dockDeps: DockDeps;
-  wireComposer(composer: Composer): void;
-  wireTray(composer: Composer): void;
+  wireComposer(composer: Composer, scope: ReturnType<typeof createScope>): void;
+  wireTray(composer: Composer, scope: ReturnType<typeof createScope>): void;
   closeThreadMenu(): void;
   addFiles(files: FileList | null, composer: Composer): void;
   toggleIq(session: string, chip: HTMLElement): void;

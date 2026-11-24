@@ -8,7 +8,9 @@ import { RM } from "../../core/ui/motion.js";
 
 /** @typedef {import("../../core/kernel/types").At} At */
 
-/** @typedef {{ title?: string | ((key: string) => string), backTo?: (key: string) => string, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount?: (host: HTMLElement, at: At & { key: string }) => void | (() => void), onShow?: (key: string, opts: { focus: boolean }) => void, onHide?: (key: string) => void, close?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, up?: (key: string) => boolean, escape?: (key: string) => boolean, over?: boolean }} PageSpec */
+/** @typedef {import("../../core/ui/a11y/focus.js").EntryInput} EntryInput */
+
+/** @typedef {{ title?: string | ((key: string) => string), backTo?: (key: string) => string, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount?: (host: HTMLElement, at: At & { key: string }) => void | (() => void), onShow?: (key: string, opts: { focus: boolean }) => void, focusEntry?: (heading: HTMLElement | null, input: EntryInput) => void, onHide?: (key: string) => void, close?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, up?: (key: string) => boolean, escape?: (key: string) => boolean, over?: boolean }} PageSpec */
 
 /** @typedef {{ el: HTMLElement, S: { page: Page | null, under: Page | null, open: boolean }, places: import("../../core/kernel/types").Kernel["places"], at: () => At, view: () => string, threads: ((view: string) => { k: string, rows: unknown[] }[]) | null, shell: ((on: boolean, host?: HTMLElement, view?: string) => void) | null, nameOf: () => (view: string) => string, placeless: () => boolean, open: (opts?: { focus?: boolean }) => void, close: () => void, paint: () => void, onChange?: () => void }} PagesDeps */
 
@@ -101,8 +103,13 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     spec?.close?.(entry.key);
   }
 
-  /** @param {string} name @param {string} [key] @param {{ focus?: boolean, at?: At }} [options] */
-  function show(name, key = name, { focus = false, at: from = {} } = {}) {
+  /** @param {PageSpec | undefined} spec @param {EntryInput} input */
+  function focusPage(spec, input) {
+    spec?.focusEntry?.(el.querySelector("[data-page-heading]"), input);
+  }
+
+  /** @param {string} name @param {string} [key] @param {{ focus?: boolean, at?: At, input?: EntryInput }} [options] */
+  function show(name, key = name, { focus = false, at: from = {}, input = "keyboard" } = {}) {
     const spec = PAGES.get(name);
     if (!spec || placeless()) return false;
     const next = { name, key: String(key) };
@@ -112,6 +119,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
       S.page = next;
       spec.onShow?.(next.key, { focus });
       pageChanged();
+      if (focus && S.page === next) focusPage(spec, input);
       return true;
     }
     const prev = S.page;
@@ -137,10 +145,12 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     if (fresh || RM.matches) settle();
     else { box.style.zIndex = "1"; slide(box, "in", settle); }
     pageChanged();
+    if (focus && S.page === next) focusPage(spec, input);
     return true;
   }
 
-  function back() {
+  /** @param {EntryInput} [input] */
+  function back(input = "keyboard") {
     if (!S.page) return;
     const entry = S.page, under = S.under, box = boxFor(entry.name);
     const from = document.activeElement, had = el.contains(from);
@@ -155,6 +165,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     const gone = () => { box.style.zIndex = ""; if (S.page?.name !== entry.name) box.hidden = true; };
     if (RM.matches) gone(); else slide(box, "out", gone);
     pageChanged();
+    if (keepFocus && under && S.page === under) focusPage(PAGES.get(under.name), input);
     if (keepFocus && !under && S.open) el.focus({ preventScroll: true });
   }
 
@@ -215,7 +226,8 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     const need = !S.under && threads?.(view()).some((group) => group.k === "needs" && group.rows.length);
     const back = `<button type="button" class="stg-ic pg-back" data-stg-sections title="Back to ${esc(to)} (Esc)" aria-label="Back to ${esc(to)}${need ? ", something needs you" : ""}">${ICON.back}${need ? '<i class="pg-dot" aria-hidden="true"></i>' : ""}</button>`;
     const lead = spec?.lead?.(S.page.key) || "";
-    return `${back}${lead}<b class="stg-name" title="${esc(title)}">${esc(title)}</b>`;
+    const heading = spec?.focusEntry ? ' data-page-heading role="heading" aria-level="2" tabindex="-1"' : "";
+    return `${back}${lead}<b class="stg-name"${heading} title="${esc(title)}">${esc(title)}</b>`;
   }
 
   return { PAGES, page, show, back, closePage, dropPages, requestClose, setShell, reflect, titleHtml };
