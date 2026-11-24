@@ -41,6 +41,13 @@ export const chatActivityApi = {
   }),
 };
 
+export const ruleApi = {
+  /** @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
+  rules: (query, signal) => request("/chat/rules", { query, signal }),
+  /** @param {string} id @param {AbortSignal} [signal] */
+  revokeRule: (id, signal) => request(`/chat/rules/${enc(id)}`, { method: "DELETE", signal }),
+};
+
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
   status: () => get("/chat/status"),
@@ -112,9 +119,9 @@ export const api = {
   review: (query = {}) => get("/chat/review", query),
   reviewItem: (id) => get(`/chat/review/${enc(id)}`),
   decide: (id, body) => send("POST", `/chat/review/${enc(id)}/decision`, body),
-  rules: (query = {}) => get("/chat/rules", query),
+  rules: (query) => ruleApi.rules(query),
   addRule: (body) => send("POST", "/chat/rules", body),
-  revokeRule: (id) => send("DELETE", `/chat/rules/${enc(id)}`),
+  revokeRule: (id) => ruleApi.revokeRule(id),
 
   runs: (session, query = {}) => get(`/chat/sessions/${enc(session)}/runs`, query),
   run: (id) => get(`/chat/runs/${enc(id)}`),
