@@ -116,7 +116,8 @@
 .btn-danger:hover:where(:not(:disabled,[aria-disabled="true"],[aria-busy="true"])){background:var(--danger-fill-hover)}
 .btn-danger:active{background:var(--danger-fill-press)}
 .btn-danger[aria-busy="true"]:active{background:var(--danger-fill)}
-:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]),:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]):is(:hover,:active){
+:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]),
+:is(.set-fa,.rl-c) .btn[aria-disabled="true"]:not([aria-busy="true"]):is(:hover,:active){
   opacity:.55;cursor:progress;background:none;border-color:var(--line);color:var(--ink-2);transform:none
 }
 /* One card with hairline dividers. Each confirmation spans its row. */
