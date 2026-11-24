@@ -109,9 +109,7 @@ async function drawMath(tex, display = false) {
   return html;
 }
 
-/** @typedef {{initialize(options: Record<string, unknown>): void, render(id: string, source: string): Promise<{svg: string}>}} Mermaid */
-
-/** @type {Promise<Mermaid> | null} */
+/** @type {Promise<typeof import("../../../vendor/mermaid/mermaid.esm.min.mjs").default> | null} */
 let mermaidP = null;
 /** @type {string | null} */
 let mermaidTheme = null;
