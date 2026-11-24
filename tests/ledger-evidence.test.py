@@ -47,10 +47,17 @@ class TransferEvidence(unittest.TestCase):
         for body in (
             "function factory() {\n  function moveMe() { return 42; }\n  return moveMe;\n}\n",
             "export const moveMe = () => 42;\n",
+            "function factory() { return function moveMe() { return 42; }; }\n",
+            "function factory() { return async function moveMe() { return 42; }; }\n",
         ):
             with self.subTest(body=body):
                 self.write(self.home, body)
                 self.assertEqual(self.check(self.key), [])
+
+    def test_return_function_lookalikes_do_not_prove_a_move(self):
+        self.write(self.home, 'const text = "return async function moveMe() {}";\n'
+                              '// return function moveMe() {}\n')
+        self.assertTrue(self.check(self.key))
 
     def test_anchor_must_be_meaningful_and_unique(self):
         definition = "function trackTransfer() { return 42; }\n"

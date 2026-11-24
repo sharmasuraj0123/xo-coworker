@@ -1,3 +1,4 @@
+import json
 import re
 import subprocess
 from functools import cache
@@ -10,12 +11,7 @@ SPACE = re.compile(rb"\s+")
 NON_CODE = (b"//", b"# ", b"/*", b"* ", b"import ")
 IDENTIFIER = re.compile(r"[\w$]+")
 MIN_ANCHOR_CHARACTERS = 8
-FUNCTION = re.compile(
-    r"^\s*(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s*\*?\s+([\w$]+)\s*\("
-    r"|^\s*(?:export\s+)?(?:const|let|var)\s+([\w$]+)\s*=\s*(?:async\s+)?"
-    r"(?:function\b|\([^;]*?\)\s*=>|[\w$]+\s*=>)",
-    re.MULTILINE,
-)
+SCRIPTS = {".js", ".mjs", ".cjs"}
 
 
 def verified_anchor(evidence, data):
@@ -62,11 +58,29 @@ class Homes:
     @cache
     def items(self, path):
         source = self.contents(path).decode("utf-8", "replace")
-        items = items_of(path, source)
-        if Path(path).suffix in {".js", ".mjs", ".cjs"}:
-            code = re.sub(r"/\*[\s\S]*?\*/", "", source)
-            items["functions"] = {left or right for left, right in FUNCTION.findall(code)}
-        return items
+        return items_of(path, source)
+
+    def parse_functions(self, paths):
+        tool = Path(__file__).with_name("function-homes.mjs")
+        result = subprocess.run(["node", tool, self.root], input=json.dumps(paths),
+                                text=True, capture_output=True, check=True)
+        return json.loads(result.stdout)
+
+    @cache
+    def function_index(self):
+        result = subprocess.run(
+            ["git", "-C", self.root, "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            capture_output=True, text=True, check=True,
+        )
+        paths = {path for path in result.stdout.split("\0") if Path(path).suffix in SCRIPTS}
+        return self.parse_functions(sorted(paths))
+
+    @cache
+    def functions(self, path):
+        if Path(path).suffix not in SCRIPTS:
+            return ()
+        indexed = self.function_index()
+        return indexed[path] if path in indexed else self.parse_functions([path])[path]
 
     def problems(self, key, entry, tracked):
         source, *item = key.split("::", 2)
@@ -110,7 +124,8 @@ class Homes:
             return "moved home is still its source"
         if item:
             kind, name = item
-            if name in self.items(path).get(kind, ()):
+            candidates = self.functions(path) if kind == "functions" else self.items(path).get(kind, ())
+            if name in candidates:
                 return None
         elif path == source or self.related(source, path):
             return None
