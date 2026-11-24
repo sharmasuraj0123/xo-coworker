@@ -1,21 +1,21 @@
 import { createWorld, esc, WAITING } from "./world.js";
-import { copyText, COPY_REFUSED, clock, dayOf } from "../core/platform/index.js";
+import { copyText, COPY_REFUSED } from "../core/platform/index.js";
 import { redraw } from "../core/ui/redraw.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import "./dropdown.js"; // <xo-select>: the one dropdown, in place of the browser's <select>
-import { renderMarkdown, renderInline, setThreadInfo, setWebImages } from "./markdown.js";
+import { renderInline, setThreadInfo, setWebImages } from "./markdown.js";
 import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
 import { createDecisions } from "./decide.js";
 import { createPacing } from "../modules/decisions/pacing.js";
 import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
-import { ICON, stateMark, XO, $, RM, morph, expand } from "./ui.js";
+import { ICON, $, RM, morph, expand } from "./ui.js";
 import { sound } from "../core/services/sound.js";
 import { plainText, heldWords, heldShort } from "./timeline.js";
-import { turnHtml, turnAv, stepLineHtml } from "./turnview.js";
+import { stepLineHtml } from "./turnview.js";
 import { nameWith } from "../core/services/comms.js";
-import { mediaHtml, fromAttachment, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
+import { mediaHtml, fromSharedFile, viewerFile, wireDragOut, webImagesHtml } from "./media.js";
 // math and diagrams in a reply, drawn between keystrokes (KaTeX, Mermaid: vendored, loaded only when needed)
 import { startRich } from "./rich.js";
 import { createLightbox } from "./lightbox.js";
@@ -41,6 +41,7 @@ import { createConversationPaging } from "../modules/conversation/paging.js";
 import { createConv, createConversationDrawing } from "../modules/conversation/draw.js";
 import { createConversationMessages } from "../modules/conversation/messages.js";
 import { createMessageDetails } from "../modules/conversation/message-details.js";
+import { createMessageItems } from "../modules/conversation/message-items.js";
 import { createThreadPage } from "../modules/conversation/thread-page.js";
 import { createConversationNavigation } from "../modules/conversation/navigation.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
@@ -120,7 +121,7 @@ import { createHandled } from "../modules/home/handled.js";
 import { createHomeView } from "../modules/home/view.js";
 import { greeting, today } from "../modules/home/skeleton.js"; // Home's shell, drawn before this module graph arrives
 import { wireGestures, dockGestures } from "./gestures.js";
-import { rtName, untilWords } from "../core/services/runtimes.js";
+import { rtName } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 // the UI's shape per person: which surfaces show, in what order, how dense, in which words (core/services/shape)
 import { createShapeStore } from "../core/services/shape/index.js";
@@ -452,167 +453,6 @@ const { homeRender, nextDecide } = createHomeView({
 const messagesOf = createConversationMessages({ S, world, D, PROJ, convThread, chatOf, convProject, threadsOf });
 
 
-/** A message's words. One that holds a table is the wide kind of bubble: the whole text column, so a
- *  table gets the room it needs (QA #5; a prose bubble stops at 560 px, 88 % of the column). */
-function proseHtml(text) {
-  const html = renderMarkdown(text);
-  return `<div class="prose${html.includes('<div class="md-table') ? " has-table" : ""}">${html}</div>`;
-}
-const HS_THEM = (n) => `<div class="hs-them" aria-hidden="true"><i class="hs-av"></i><div class="hs-b"><i class="hs-bar hs-name"></i>${"<i class=\"hs-bar\"></i>".repeat(n)}</div></div>`;
-const HIST_SKEL = `<div class="hist-skel" role="status"><span class="sr-only">Loading earlier messages</span>${HS_THEM(2)}` +
-  `<div class="hs-you" aria-hidden="true"><i class="hs-bub"><i class="hs-bar"></i></i></div>${HS_THEM(1)}</div>`;
-/** Has anyone answered after your message? A message from the coordinator or an agent, or a finished turn that
-    said something (a running turn, or one that only used tools, hasn't answered yet). Then its receipt is done. */
-const answeredAfter = (list, m) => {
-  const i = list.indexOf(m);
-  return i >= 0 && list.slice(i + 1).some((x) => x.who === "coord" || x.who === "agent" ||
-    (x.who === "turn" && x.turn && x.turn.status !== "running" && Array.from(x.blocks || []).some((b) => b && (b.type === "answer" || b.type === "text") && String(b.text || "").trim())));
-};
-function msgItems(conv, needs) {
-  drawing = conv;
-  try { return msgItemsOf(conv, needs); } finally { drawing = null; }
-}
-function msgItemsOf(conv, needs) {
-  if (CH.isChats(conv)) return CH.items(conv);
-  if (conv.startsWith("t:") && !convThread(conv)) {
-    // a link to a thread that isn't here (removed, or from before a reset): said plainly, never an empty page
-    const known = projects().length > 0;
-    return [{ key: "gone", html: known
-      ? `<div class="calm"><div class="calm-mark">${ICON.thread}</div><h2>This thread isn't here.</h2><p>It may have been removed, or the link is older than this Space. Everything else is where you left it.</p><div class="calm-act"><button type="button" class="btn" data-go="home">Go to Home</button></div></div>`
-      : `<div class="calm"><div class="calm-mark">${ICON.thread}</div><h2>Looking for this thread…</h2></div>` }];
-  }
-  const list = messagesOf(conv);
-  const items = [];
-  let day = "", prev = null, above = null;
-  // who spoke last: a thread names a speaker only when it changes (its agent's turn counts as the agent); a
-  // project's or the Workspace's chat names no one
-  const named = !!convThread(conv);
-  let spoke = null;
-  const lastYou = [...list].reverse().find((m) => m.who === "you");
-  // your newest message the agent hasn't read yet: Interrupt stops the turn so it reads it next
-  const lastQueued = [...list].reverse().find((m) => m.queued);
-  // a changed file's chip carries its +/− counts, and reads as chosen while the panel shows its diff
-  // the chosen file: the one beside the chat when a file is open there (the middle), else the panel's
-  const chosen = STAGE.chosen(conv);
-  const changed = (target) => { const c = CHG.forTarget(conv, target); return c ? { additions: c.file.additions, deletions: c.file.deletions, binary: c.file.binary, on: c.path === chosen } : null; };
-  for (const m of list) {
-    const d = Number.isFinite(m.at) ? dayOf(m.at) : day;
-    if (d !== day) { items.push({ key: "day|" + d, html: `<div class="day" role="separator"><span>${esc(d)}</span></div>` }); day = d; prev = null; above = null; spoke = null; }
-    const cont = prev && prev.who === m.who && prev.name === m.name && m.at - prev.at < 5 * 60000 && (prev.fwd?.chatId || null) === (m.fwd?.chatId || null) && (m.who === "you" || m.who === "coord" || m.who === "agent");
-    let html = "";
-    if (m.who === "you") {
-      spoke = "you";
-      let meta = "";
-      if (m.status === "sending") meta = `<div class="meta is-sending"><i class="spin" aria-hidden="true"></i>Sending</div>`;
-      else if (m.status === "failed") meta = `<div class="meta is-err"><span${m.err ? ` title="${esc(m.err.text)}"` : ""}>${m.err ? esc(m.err.title) : "Not sent"}</span><button type="button" class="meta-btn" data-retry="${esc(m.id)}">${ICON.retry}Retry</button><button type="button" class="meta-btn" data-edit="${esc(m.id)}">${ICON.edit}Edit</button></div>`;
-      else if (m === lastQueued) meta = queuedMeta(conv, answeredAfter(list, m));
-      else if (m === lastYou && (m.status === "sent" || m.sent) && !answeredAfter(list, m)) {
-        // a receipt that follows the message only as far as the record proves: received by XO, then handed to a
-        // thread (a relay or brief hop that names this message); it goes once an answer is on screen
-        const to = passedTo(m);
-        meta = `<div class="meta"><time>${clock(m.at)}</time><span class="sent">${to ? `Passed to <b>${esc(to)}</b>` : "Received by XO"} ${ICON.check}</span></div>`;
-      }
-      let route = "";
-      if (m.waiting) route = `<div class="route-row"><i class="dash" aria-hidden="true"></i>Sent to <b>${esc(m.target === "workspace" ? "the coordinator" : PROJ(m.target))}</b> · waiting for a thread</div>`;
-      else if (m.relay) {
-        // passed on into this thread: say from where, and go back there (to the message itself)
-        const r = m.relay, P = PROJ(r.project);
-        const when = r.at ? ` at ${clock(r.at)}` : "";
-        route = r.fwd
-          ? `<div class="route-row">${ICON.arrow}<span>You, in the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(r.fwd.id)}" title="Where you wrote it"><b>Workspace</b></button> · passed on${when} by ${esc(P)}'s coordinator</span></div>`
-          : `<div class="route-row">${ICON.arrow}<span>You, in <button type="button" class="rt-go" data-go="p:${esc(r.project)}" data-go-msg="${esc(r.id)}" title="Where you wrote it"><b>${esc(P)}'s chat</b></button> · passed on${when} by the coordinator</span></div>`;
-      }
-      else if (m.fwd) {
-        // work one project handed another: "from sys via the Workspace", back to where you wrote it
-        const src = fwdSource(m.fwd);
-        route = src
-          ? `<div class="route-row">${ICON.arrow}<span>From <button type="button" class="rt-go" data-go="p:${esc(src)}" data-go-msg="${esc(m.fwd.id)}" title="Where you wrote it"><b>${esc(PROJ(src))}</b></button> via the Workspace</span></div>`
-          : `<div class="route-row">${ICON.arrow}<span>Forwarded by the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(m.fwd.id)}" title="Where you wrote it"><b>Workspace</b></button></span></div>`;
-      }
-      else if (m.routed && m.routed.length) route = `<div class="route-row">${ICON.arrow}<span>Routed to ${[...new Set(m.routed.map((r) => r.chat))].map((c) => `<button type="button" class="rt-go" data-go="p:${esc(c)}"><b>${esc(PROJ(c))}</b></button>`).join(", ")}</span></div>`;
-      // your pictures sit above your words, right-aligned (js/media.js); other files as cards
-      const files = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: "You", at: m.at })), { side: "you" }) : "";
-      html = `<div class="m m-you${cont ? " cont" : ""}${m.relay ? " is-relay" : ""}${m.status === "failed" ? " is-failed" : ""}${m.status === "sending" ? " is-pending" : ""}">${files}${m.text ? `<div class="bubble" title="${esc(clock(m.wrote ?? m.at))}">${youText(m.text)}</div>` : ""}${reactionsHtml(m.reactions)}${meta}${route}</div>`;
-    } else if (m.who === "coord" || m.who === "agent") {
-      // a copy from another chat is that chat's speaker, named for it, and closed by a ruled line saying so
-      const word = m.who === "coord" ? "coordinator" : "agent", src = m.fwd ? fwdSource(m.fwd) : null;
-      const [name, role] = m.name ? [m.name, m.role || ""] : src ? [`${PROJ(src)} ${word}`, ""] : nameOf(conv, m.who);
-      const copy = !m.fwd ? "" : `<div class="route-row is-copy">${ICON.arrow}<span>Copied from ${src
-        ? `<button type="button" class="rt-go" data-go="p:${esc(src)}" data-go-msg="${esc(m.fwd.id)}" title="Where it was written"><b>${esc(PROJ(src))}</b></button>'s ${word}<span class="via"> · via the Workspace</span>`
-        : `the <button type="button" class="rt-go" data-go="ws" data-go-msg="${esc(m.fwd.id)}" title="Where it was written"><b>Workspace</b></button>`}</span></div>`;
-      const av = m.who === "coord" ? `<div class="av">${XO}</div>` : `<div class="av av-t">${ICON.thread}</div>`;
-      // the coordinator's violet (.m-coord) sets it apart only where it steps into a thread, beside the thread's own
-      // agent, as bubbles always did; in its own chat it is the one speaking and stays neutral (the owner, 19 Nov 14:46Z)
-      const tid = m.thread || m.threadId;
-      const iq = m.iq ? `<span class="m-iq" title="${m.iq.src === "pinned" ? "Pinned for this conversation" : `Chosen by the ${esc(m.iq.src)}`}">${esc(m.iq.name)} ${m.iq.pips} · ${esc(m.iq.src)}</span>` : "";
-      // what an agent shares on its message shows under its words, on its text column
-      const media = m.files && m.files.length ? mediaHtml(m.files.map((f) => fromAttachment(f, { chat: m.chatId, by: name, at: m.at })), { side: "them" }) : "";
-      // words right under the line that introduces them (the question they answer, the steer that delivered them) are one exchange: that line already says who
-      const under = !!(above && ((m.cause && above.who === "asked" && above.hop === m.cause) || (m.lead && above.key === m.lead)));
-      const anon = !named || spoke === name || under;
-      spoke = name;
-      if (under) items[items.length - 1].html = items[items.length - 1].html.replace(/^<div class="ev /, '<div class="ev is-lead ');
-      html = `<div class="m m-them${(m.who === "coord" || m.coord) && convThread(conv) ? " m-coord" : ""}${cont ? " cont" : ""}${anon ? " m-anon" : ""}${under ? " m-under" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
-        (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
-        `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${copy}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
-    } else if (m.who === "turn") {
-      const inner = turnHtml(m.turn, m.blocks, { open: S.tbOpen, hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
-      if (!inner) { prev = m; continue; }
-      // is-folded: running with nothing pressed open and no step waiting on you (the working bubble shows)
-      const live = m.turn.status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
-      // has-said: while it works it has already said something (words, files) that shows above its bubble
-      const said = live && !unfolded && /class="turn[^"]*\bis-said\b/.test(inner);
-      spoke = nameOf(conv, "agent")[0];
-      html = `<div class="m m-them m-turn${live ? " is-live" : ""}${live && !unfolded ? " is-folded" : ""}${said ? " has-said" : ""}">${turnAv(m.turn, m.blocks)}<div class="mb">${inner}</div></div>`;
-    } else if (m.who === "card") {
-      html = `<div class="m m-them m-card"><div class="av av-gap"></div><div class="mb">${threadCardHtml(m.thread, needs)}</div></div>`;
-    } else if (m.who === "system" && m.back) {
-      // a copy of your own earlier message in this chat, handed back by a forward: a quote of it, never a second bubble
-      const b = m.back, q = b.text.replace(/\s+/g, " ").trim(), via = (b.via || []).find((v) => v !== "workspace" && v !== "project" && world.project(v));
-      html = `<div class="ev ev-sys ev-back"><span class="ev-ic">${ICON.arrow}</span><span class="ev-t">Your earlier message <button type="button" class="rt-go" data-go="p:${esc(convProject(conv))}" data-go-msg="${esc(b.id)}" title="Where you wrote it">“${esc(q.length > 40 ? q.slice(0, 39) + "…" : q)}”</button> came back${via ? ` via ${esc(PROJ(via))}` : ""}</span><time>${clock(m.at)}</time></div>`;
-    } else if (m.who === "system" && m.passedOn) {
-      // XO's line: this project's work went on to another project, through the Workspace (always shown)
-      const p = m.passedOn;
-      html = `<div class="ev ev-sys ev-pass"><span class="ev-ic">${ICON.arrow}</span><span class="ev-t">Passed to <button type="button" class="rt-go" data-go="p:${esc(p.project)}"${p.to ? ` data-go-msg="${esc(p.to)}"` : ""} title="Open ${esc(PROJ(p.project))}'s chat"><b>${esc(PROJ(p.project))}</b></button> through the Workspace</span><time>${clock(m.at)}</time></div>`;
-    } else if (m.who === "control") {
-      const c = m.ctl;
-      const who = c.by === "workspace-coordinator" ? "The workspace coordinator" : "The coordinator";
-      const text = c.action === "steer" ? `${who} added to the running turn` : c.action === "interrupt" ? `${who} interrupted the turn` : `${who} stopped the thread${c.reason ? `: ${c.reason}` : ""}`;
-      html = `<div class="ev ev-sys ev-ctl is-${esc(c.action)}"${c.reason && c.action !== "stop" ? ` title="${esc(c.reason)}"` : ""}><span class="ev-ic">${c.action === "steer" ? ICON.arrow : c.action === "interrupt" ? ICON.pause : ICON.close}</span><span class="ev-t">${esc(text)}</span><time>${clock(m.at)}</time></div>`;
-    } else if (m.who === "limit") {
-      const it = m.item, L = it.limit;
-      const opts = (it.options || []).map((o) => `<button type="button" class="${o.decision === "move" ? "btn btn-pri" : "btn"}" data-limit="${esc(it.id)}" data-limit-d="${esc(o.decision)}"${S.limitBusy === it.id ? " disabled" : ""}>${esc(o.label)}</button>`).join("");
-      html = `<div class="lim-ban" role="group" aria-labelledby="lim-h-${esc(it.id)}"><p class="lim-h" id="lim-h-${esc(it.id)}">${ICON.clock}<span>${esc(it.title)}${L.resetsAt && untilWords(L.resetsAt) ? ` <em>${esc(untilWords(L.resetsAt))}</em>` : ""}</span></p>` +
-        (it.why ? `<p class="lim-why">${esc(it.why)}</p>` : "") + (S.limitErr && S.limitErr.id === it.id ? `<p class="rt-ferr" role="alert">${esc(S.limitErr.text)}</p>` : "") + `<div class="lim-acts">${opts}</div></div>`;
-    } else if (m.who === "system" && (m.continuedIn || m.continuedFrom)) {
-      html = moveBannerHtml(m, convThread(conv));
-    } else if (m.who === "asked") {
-      // the thread's own message to its coordinator: one quiet line, the whole text on a press
-      const open = !!S.tbOpen[m.key];
-      html = `<div class="ev ev-sys ev-asked${open ? " is-open" : ""}"><span class="ev-ic">${ICON.arrow}</span><button type="button" class="ev-t" data-tb="${esc(m.key)}" aria-expanded="${open}" title="${open ? "Fold" : "Show all of it"}">Asked the coordinator: ${esc(m.text)}</button><time>${clock(m.at)}</time></div>`;
-    } else if (m.who === "system") {
-      html = `<div class="ev ev-sys" title="${esc(m.text)}"><span class="ev-ic">${ICON.router}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
-    } else if (m.who === "note") {
-      html = m.load ? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"></i><span class="sr-only">${esc(m.load)}</span></div>` : `<p class="m-note">${esc(m.text)}</p>`;
-    } else if (m.who === "start") {
-      html = startHtml(m.pid);
-    } else if (m.who === "hist") {
-      const h = m.h;
-      // older messages on their way: the shapes of messages where they will land, never a spinner
-      html = h.loading ? HIST_SKEL
-        : `<div class="day hist" role="separator">${h.all ? `<span>${h.capped ? "Showing the latest 1,000 messages" : "Beginning of the conversation"}</span>` : h.olderError ? `<span>Couldn't load earlier messages</span><button type="button" class="hist-more" data-older>Try again</button>` : `<button type="button" class="hist-more" data-older>Earlier messages</button>`}</div>`;
-    } else if (m.who === "event") {
-      html = `<div class="ev ev-${m.tone || "ok"}"><span class="ev-ic">${m.tone === "back" ? ICON.rewind : m.tone === "stop" ? ICON.close : m.tone === "sys" ? ICON.pause : ICON.check}</span><span class="ev-t">${esc(m.text)}</span><time>${clock(m.at)}</time></div>`;
-    } else if (m.who === "rec") {
-      const canUndo = m.undo && Date.now() < m.until;
-      html = `<div class="ev ev-rec${m.refused ? " is-refused" : ""}"><span class="ev-ic">${m.refused ? ICON.close : ICON.router}</span><span class="ev-t">${esc(m.text)}</span>${canUndo ? `<button type="button" class="ev-undo" data-rec-undo="${esc(m.id)}">Undo</button>` : ""}<time>${clock(m.at)}</time></div>`;
-    }
-    items.push({ key: m.key, html });
-    prev = above = m;
-  }
-  return items;
-}
-
 const { runsStrip, workingRuns } = createRunsStrip({ world, SHAPE, schedule });
 const checklistRender = createChecklistRenderer({ S, SHAPE, convThread, runsStrip, schedule });
 // Sub-agents: a page in the right panel, over the thread page it was opened from
@@ -915,9 +755,13 @@ initFollow();
 // ── navigation: back always returns exactly where you were ─────────────────
 const returnPill = createReturnPill({ msgsEl, scroller, toRow });
 const { liveReady, follow, loadChatHops, ensureRoot } = createLiveConversation({ S, world, CH, convThread, chatOf });
-const { threadCardHtml, queuedMeta, nameOf, moveBannerHtml, passedTo } = createMessageDetails({
+const messageDetails = createMessageDetails({
   S, world, REC, SHAPE, PROJ, convThread, convProject, isBusy, isHeld, stOf, glyphOf, wordOf,
   askTitle, threadMark, noun, sendWhileRunning, running, workingRuns, agentOf,
+});
+const { msgItems, drawingView } = createMessageItems({
+  S, world, CH, CHG, STAGE, PROJ, projects, convThread, convProject, messagesOf, fwdSource, reactionsHtml,
+  youText: (text) => youText(text), startHtml, fileRoute: (path, conv) => fileRoute(path, conv), ...messageDetails,
 });
 const drawConv = createConversationDrawing({ S, CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender });
 const { go: navigate, back } = createNavigation({ S, VW, STAGE, IQ, PHONE, REC, TD, tdock, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open), saveScroll, saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread });
@@ -927,7 +771,6 @@ $("#top-back").addEventListener("click", back);
 // ── files on messages (hub #30): the shared-file card, opening in the same viewer ──
 const openMedia = createMediaOpener({ msgsEl, LB, VW });
 
-let drawing = null;
 
 const { youText, askPlace, askAboutLines, composeAbout, askAboutFile, lrefRender } = createFileQuestion({
   S, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
@@ -983,7 +826,7 @@ $("#top").addEventListener("focusout", (e) => {
 // ── clicks ──────────────────────────────────────────────────────────────────
 /** The conversation a control is in (P1 step 8): the panel's thread page, else the main chat. */
 const convAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.C : MAIN);
-const { fileRoute, openSharedFile, openLineRef } = createConversationFiles({ currentView: () => drawing || S.view, convThread, convAt, CHG, VW });
+const { fileRoute, openSharedFile, openLineRef } = createConversationFiles({ currentView: () => drawingView() || S.view, convThread, convAt, CHG, VW });
 const composerAt = (el) => (TP.box && el && TP.box.contains(el) ? TP.K : MK);
 /** The conversation in use: the panel's thread page while focus is in it or it covers the chat, else the main chat. */
 function composerNow() {

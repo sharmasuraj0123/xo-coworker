@@ -7130,8 +7130,8 @@
    "home": "modules/conversation/messages.js"
   },
   "js/app.js::functions::proseHtml": {
-   "status": "planned",
-   "home": "modules/conversation (app.js l.1057)"
+   "status": "moved",
+   "home": "modules/conversation/message-items.js"
   },
   "js/app.js::functions::threadCardHtml": {
    "status": "moved",
@@ -7162,12 +7162,12 @@
    "home": "modules/conversation/start.js"
   },
   "js/app.js::functions::msgItems": {
-   "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1170)"
+   "status": "moved",
+   "home": "modules/conversation/message-items.js"
   },
   "js/app.js::functions::msgItemsOf": {
-   "status": "planned",
-   "home": "modules/conversation renderer with a **keyed `conversation.block` registry** (kind → renderer); limit → runtimes, control → threads, turn → conversation/turns (app.js l.1174)"
+   "status": "moved",
+   "home": "modules/conversation/message-items.js"
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "moved",

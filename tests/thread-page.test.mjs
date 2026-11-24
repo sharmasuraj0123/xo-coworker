@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
 const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
 const page = readFileSync(new URL("../modules/conversation/thread-page.js", import.meta.url), "utf8");
+const rows = readFileSync(new URL("../modules/conversation/message-items.js", import.meta.url), "utf8");
 const markup = readFileSync(new URL("../modules/conversation/thread-page-html.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../css/panel.css", import.meta.url), "utf8");
 
@@ -86,7 +87,7 @@ console.log("thread-page: ok");
   console.log("thread-page column and width: ok"); }
 
 // a file chip clicked in the thread page opens that thread's file (its worktree), not the main chat's project's
-assert.match(app, /route: \(p\) => fileRoute\(p, conv\), by:/);
+assert.match(rows, /route: \(p\) => fileRoute\(p, conv\), by:/);
 {
   const opened = [];
   const { fileRoute, openSharedFile } = createConversationFiles({
