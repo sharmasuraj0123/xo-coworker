@@ -184,7 +184,7 @@ test("a map over a literal list reports only the files that can be read", (conte
   const root = fixture(context, {
     ...scripts,
     "tests/literal.test.mjs": `${reader}${entries}.${map};`,
-    "tests/constant.test.mjs": `${reader}const files = ${entries}; files.${map};`,
+    "tests/constant.test.mjs": `${reader}const files = ${entries}; files.map((name) => name.length); files.${map};`,
     "tests/computed.test.mjs": `${reader}[...otherFiles, 'decoration'].${map};`,
     "tests/mutated.test.mjs": `${reader}const files = ${entries}; files.push(extra); files.${map};`,
   });

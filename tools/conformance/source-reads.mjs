@@ -76,13 +76,25 @@ function pathValue(node, file, values, seen = new Set()) {
   }
 }
 
-/** @param {object} tree @param {Map<string, object>} values @param {Map<string, object[]>} names */
-function literalMaps(tree, values, names) {
+/** @param {object} receiver @param {ReturnType<typeof bindings>} refs */
+function mappedArray(receiver, { values, names, parents }) {
+  if (receiver.type !== "Identifier") return receiver;
+  const array = values.get(receiver.name);
+  const declaration = array && parents.get(array);
+  if (!declaration || !names.get(receiver.name).every((use) => {
+    if (use === declaration.id) return true;
+    const property = parents.get(use), call = property && parents.get(property);
+    return property?.object === use && member(property) === "map" && call?.type === "CallExpression" && call.callee === property;
+  })) return undefined;
+  return array;
+}
+
+/** @param {object} tree @param {ReturnType<typeof bindings>} refs */
+function literalMaps(tree, refs) {
   const inputs = new WeakMap();
   walk(tree, (node) => {
     if (node.type !== "CallExpression" || member(node.callee) !== "map") return;
-    const receiver = node.callee.object;
-    const array = receiver.type === "Identifier" && names.get(receiver.name)?.length === 2 ? values.get(receiver.name) : receiver;
+    const array = mappedArray(node.callee.object, refs);
     if (array?.type !== "ArrayExpression" || array.elements.some((item) => typeof literal(item) !== "string")) return;
     const [fn] = node.arguments;
     if (!["ArrowFunctionExpression", "FunctionExpression"].includes(fn?.type)) return;
@@ -90,7 +102,7 @@ function literalMaps(tree, values, names) {
     const body = fn.body.type === "BlockStatement" && fn.body.body.length === 1 && fn.body.body[0].type === "ReturnStatement"
       ? fn.body.body[0].argument : fn.body;
     if (parameter?.type !== "Identifier" || body?.type !== "CallExpression") return;
-    inputs.set(body, array.elements.map((item) => new Map(values).set(parameter.name, item)));
+    inputs.set(body, array.elements.map((item) => new Map(refs.values).set(parameter.name, item)));
   });
   return inputs;
 }
@@ -119,8 +131,8 @@ function bootsDom(read, { parents, names, harnesses }) {
 /** @param {string} file @param {object} tree @param {Set<string>} files @param {Function} report */
 export function sourceReads(file, tree, files, report) {
   const refs = bindings(tree, file);
-  const { readers, namespaces, values, names } = refs;
-  const inputs = literalMaps(tree, values, names);
+  const { readers, namespaces, values } = refs;
+  const inputs = literalMaps(tree, refs);
   walk(tree, (node) => {
     if (node.type !== "CallExpression") return;
     const { callee } = node;
