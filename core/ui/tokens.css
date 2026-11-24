@@ -36,8 +36,8 @@
   /* Floating surfaces pair a contact shadow with a short ambient shadow. */
   --e1:none;
   --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
-  --edge-sidebar-active:rgba(var(--black-rgb),.06); --edge-switch-track:rgba(var(--black-rgb),.04);
-  --e-switch-knob:0 1px 2px rgba(var(--black-rgb),.18),0 0 0 .5px rgba(var(--black-rgb),.06);
+  --edge-sidebar-active:rgba(var(--black-rgb),.06); --shadow-switch-track:inset 0 0 0 var(--hair) var(--sb-line);
+  --fill-switch-knob:var(--ink-2); --ink-switch-knob:var(--sb-side); --shadow-switch-knob:none;
   --e-composer-idle:0 1px 2px rgba(var(--black-rgb),.04),0 3px 10px -4px rgba(var(--black-rgb),.07);
   --e-composer-focused:0 1px 2px rgba(var(--black-rgb),.05),0 4px 14px -6px rgba(var(--black-rgb),.1);
   --dot-map-core:1px; --dot-map-feather:1.2px; --blur-map-label:3px;
@@ -61,7 +61,7 @@
   --ring-room:6px;
   --s-keycap-block:2px; --s-keycap-inline:5px; --stroke-keycap-base:2px; --stroke-outline-icon:1.5px;
   --on-agent:#0B0B0C; /* Dark ink maintains contrast on agent colours. */
-  --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3);
+  --knob:#FFFFFF; --knob-go:#487620; --track:var(--sb-bg-3); --fill-theme-track-on:var(--switch-on);
   --map-dot:var(--fill-4);   /* a folder's dot on the Map */
   --switch-on:color-mix(in srgb,var(--accent-fill) 55%,var(--sb-bg-3));
   --field-bg:var(--fill-1); --field-line:var(--line); --field-line-focus:rgba(var(--accent-rgb),.8); --field-px:var(--s-3);
@@ -200,14 +200,15 @@
   --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
   --menu-focus:#EEEEEE;
   --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD;
-  --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E;
-  --on-ink:#FFFFFF; --ink-hi:#000000;
+  --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E; --on-ink:#FFFFFF; --ink-hi:#000000;
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
-  --err:#C42B2B; --err-ink:#B42323;
-  --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
+  --err:#C42B2B; --err-ink:#B42323; --warn:#A15800; --info:#1F63C7; --violet:#7041C2;
   --live-l:.53; --live-c:.15;
   --mark-x:#151515; --mark-o:#83D63A;
   --knob-go:var(--accent); --track:#E2E2E2; --switch-on:#6FBF2C; --map-dot:#B9B9B6;
+  --fill-theme-track-on:var(--track); --fill-switch-knob:var(--knob); --ink-switch-knob:initial;
+  --shadow-switch-track:inset 0 0 0 var(--hair) rgba(var(--black-rgb),.04);
+  --shadow-switch-knob:0 1px 2px rgba(var(--black-rgb),.18),0 0 0 .5px rgba(var(--black-rgb),.06);
   --field-bg:var(--surface); --field-line:#D6D6D6; --field-line-focus:rgba(var(--accent-rgb),.8);
   --warn-text:#8A4B0B; --need-text:#5E3507; --ink-project-attention:var(--need-text); --add-text:#2F5A12; --del-text:#9B1C22;
   --danger-text:#9B1C22; --ok-text:color-mix(in srgb,var(--accent) 80%,var(--ink)); --danger-ink:var(--err-ink);
@@ -225,8 +226,7 @@
   --fill-tool-output:var(--fill-1); --edge-tool-output:var(--line-soft);
   --edge-home-handled:var(--line-soft); --edge-empty-state:var(--line-soft); --shadow-empty-state:var(--lift-1);
   --hairline:0 0 #0000;
-  --scrim:rgba(18,18,18,.16);
-  --sha:.28;
+  --scrim:rgba(18,18,18,.16); --sha:.28;
   --hover-fill:rgba(0,0,0,.065); --press-fill:rgba(0,0,0,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 7%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 10%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 13%,transparent);
   --danger-fill:color-mix(in srgb,var(--err-ink) 10%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 15%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 20%,transparent);

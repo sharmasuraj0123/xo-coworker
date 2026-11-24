@@ -12,14 +12,6 @@
 :root[data-theme="light"] .prow.is-on{box-shadow:var(--sb-lift-1)}
 :root[data-theme="light"] .prow.is-on .pr-busy{background:var(--surface)}
 
-/* switches: a white knob on a grey track, green when on (no dark puck on paper) */
-:root[data-theme="light"] .th-track{box-shadow:inset 0 0 0 var(--hair) var(--edge-switch-track)}
-:root[data-theme="light"] .th-knob{background:var(--knob);color:var(--ink-3);box-shadow:var(--e-switch-knob)}
-/* the theme switch is a preference, not a feature turned on: it stays neutral */
-:root[data-theme="light"] .theme[aria-checked="true"] .th-track{background:var(--track)}
-:root[data-theme="light"] .theme[aria-checked="true"] .th-knob{color:var(--warn)}
-:root[data-theme="light"] .switch[aria-checked="true"] .th-knob{color:var(--knob-go)}
-
 /* ── composer: crisp edge, a contact shadow, no halo ── */
 :root[data-theme="light"] .composer{box-shadow:var(--e-composer-idle)}
 :root[data-theme="light"] .composer:focus-within{border-color:var(--line-hover);box-shadow:var(--e-composer-focused)}
