@@ -7,8 +7,8 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 489 |
 | vendor | 346 |
 | deleted | 337 |
-| planned | 181 |
-| kept | 59 |
+| planned | 180 |
+| kept | 60 |
 | split | 30 |
 | split-region | 4 |
 
@@ -287,7 +287,7 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `tests/press-keeps-node.test.mjs` | 250 | planned | core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/press-reach.test.mjs` | 113 | planned | core/ui (css guard, all modules)/tests/press-reach.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/project-icons.test.mjs` | 40 | planned | modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/quickopen.test.mjs` | 103 | planned | modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/quickopen.test.mjs` | 103 | kept | tests/quickopen.test.mjs |
 | `tests/rail-badge.test.mjs` | 17 | kept | tests/rail-badge.test.mjs |
 | `tests/rail-order.test.mjs` | 49 | moved | modules/settings/tests/rail-order.test.mjs · next: rewritten as a behaviour test: the Shape page driven on a DOM (modules/settings/tests/shape-fixture.mjs, tests/lib/dom.mjs) |
 | `tests/rec-undo-focus.test.mjs` | 26 | planned | modules/conversation/tests/rec-undo-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

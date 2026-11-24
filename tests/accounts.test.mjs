@@ -1,8 +1,9 @@
 // Settings › Accounts: GitHub's row says Space's state in words and offers the actions that state allows.
 import assert from "node:assert/strict";
+import { createScope } from "../core/kernel/scope.js";
 import { SETTINGS } from "../shell/overlays.js";
 import { createAccounts, ghView, missingScopes, rtView, deviceCode, SIGN_IN } from "../modules/settings/accounts.js";
-import { dom, settle } from "./lib/dom.mjs";
+import { dom, same, settle } from "./lib/dom.mjs";
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -156,5 +157,113 @@ t("a missing code callback returns to the paste step and explains the error", ()
   assert.equal(callbackAgent.querySelector('[type="submit"]').textContent, "Sign in");
 });
 callbackAgent.querySelector('[data-agent="cancel"]').click();
+
+{
+  const frame = await dom(SETTINGS + '<button data-outside>Other view</button>');
+  const timers = new Map();
+  let timerId = 0;
+  const scope = createScope({ timers: {
+    setInterval,
+    clearInterval,
+    setTimeout(callback) { timers.set(++timerId, callback); return timerId; },
+    clearTimeout(id) { timers.delete(id); },
+  } });
+  const notices = [];
+  const polls = [];
+  const cancelled = [];
+  const signedIn = { status: "connected", username: "sample" };
+  const signedOut = { status: "needs_auth" };
+  let status = signedOut;
+  let statusReply;
+  let nextSession = 0;
+  globalThis.fetch = async (url, init) => {
+    if (url === "api/chat/runtimes") return Response.json({ runtimes: [] });
+    if (url === "api/connectors/github/status") {
+      return statusReply?.promise ?? Response.json(status);
+    }
+    if (new URL(url, "https://space.invalid/").pathname === "/api/connectors/github/cli/start") {
+      return Response.json({ session_id: `fixture-${++nextSession}`, user_code: "0000", verification_uri: "https://sign-in.example" });
+    }
+    if (url === "api/connectors/github/cli/poll") {
+      const reply = Promise.withResolvers();
+      polls.push({ signal: init.signal, reply });
+      return reply.promise;
+    }
+    if (url === "api/connectors/github/cli/cancel") {
+      cancelled.push(JSON.parse(init.body).session_id);
+      return Response.json({ status: "cancelled" });
+    }
+    if (url === "api/connectors/github/disconnect") {
+      status = signedOut;
+      return Response.json(signedOut);
+    }
+    throw new Error(`Unexpected request for ${url}`);
+  };
+  const accounts = createAccounts({ announce: (message) => notices.push(message), scope });
+  accounts.open();
+  await settle();
+  const control = (id) => frame.document.querySelector(`[data-acct="${id}"]`);
+  const start = async (id) => {
+    control(id).click();
+    await settle();
+    assert.equal(timers.size, 1);
+  };
+  const tick = async () => {
+    timers.values().next().value();
+    await settle();
+    return polls.at(-1);
+  };
+  await start("in");
+  const settings = frame.document.getElementById("settings");
+  settings.hidden = true;
+  const hidden = await tick();
+  assert.ok(hidden, "GitHub polling continues while Settings is hidden");
+  status = signedIn;
+  hidden.reply.resolve(Response.json(signedIn));
+  await settle();
+  t("GitHub sign-in finishes while Settings is hidden", () => {
+    assert.equal(hidden.signal?.aborted, false);
+    assert.deepEqual(notices, ["GitHub signed in as @sample."]);
+  });
+
+  settings.hidden = false;
+  await start("again");
+  const abandoned = await tick();
+  control("cancel").click();
+  abandoned.reply.resolve(Response.json({ ...signedIn, username: "late" }));
+  await settle();
+  t("Cancel aborts an active GitHub poll and ignores its late result", () => {
+    assert.equal(abandoned.signal?.aborted, true);
+    assert.deepEqual(cancelled, ["fixture-2"]);
+    assert.deepEqual(notices, ["GitHub signed in as @sample."]);
+  });
+
+  statusReply = Promise.withResolvers();
+  control("out").click();
+  control("out-yes").focus();
+  control("out-yes").click();
+  await settle();
+  const outside = frame.document.querySelector("[data-outside]");
+  outside.focus();
+  statusReply.resolve(Response.json(signedOut));
+  await settle();
+  t("GitHub sign-out keeps focus where the user moved during the read", () => {
+    assert.equal(control("in")?.textContent, "Sign in");
+    same(frame.document.activeElement, outside);
+  });
+  statusReply = undefined;
+
+  await start("in");
+  const retired = await tick();
+  accounts.dispose();
+  retired.reply.resolve(Response.json({ ...signedIn, username: "retired" }));
+  await settle();
+  t("Disposal aborts an active poll and releases the account scope", () => {
+    assert.equal(retired.signal?.aborted, true);
+    assert.equal(timers.size, 0);
+    assert.equal(scope.size, 0);
+    assert.deepEqual(notices, ["GitHub signed in as @sample.", "Signed out of GitHub."]);
+  });
+}
 
 console.log(`${passed} passed`);

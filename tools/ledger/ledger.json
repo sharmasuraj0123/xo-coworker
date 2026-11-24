@@ -5260,8 +5260,8 @@
    "home": "modules/projects/tests/project-icons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/quickopen.test.mjs": {
-   "status": "planned",
-   "home": "modules/search/tests/quickopen.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/quickopen.test.mjs"
   },
   "tests/rail-badge.test.mjs": {
    "status": "kept",

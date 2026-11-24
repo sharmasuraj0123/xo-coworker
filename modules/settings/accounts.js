@@ -2,17 +2,22 @@
 
 // Settings › Accounts: the accounts XO works with for you, one control row each (state, then its one or two actions).
 
+import { createScope } from "../../core/kernel/scope.js";
 import { api } from "../../core/platform/api.js";
+import { missingRoute } from "../../core/platform/http.js";
 import { esc } from "../../core/platform/util.js";
 import { xi } from "../../core/ui/icons/icon.js";
 import { redraw } from "../../core/ui/redraw.js";
-import { once, isPending, busyAttrs } from "../../core/platform/pending.js";
+import { busyAttrs, latest } from "../../core/platform/pending.js";
 import { rtName, markOf } from "../../core/services/runtimes.js";
+import { requestFailureMessage } from "../../core/services/notices/failures.js";
+import { createGithubAccount } from "./github-account.js";
+import { wireAccounts } from "./account-controls.js";
+import { canRestoreFocus } from "./control-focus.js";
 
-/** @import { Action, View, GitHubStatus, GitHubFlow, Agent, AgentFlow, SignInEvent, AccountsState, SignIn } from "./accounts-types" */
+/** @import { Action, View, GitHubStatus, GitHubFlow, Agent, AgentFlow, SignInEvent, AccountsState, GithubAccountState, SignIn } from "./accounts-types" */
 
 const NEEDS = ["repo", "workflow"];
-const POLL_MS = 5000;
 
 /** @param {unknown} scopes */
 export function missingScopes(scopes) {
@@ -82,128 +87,105 @@ export function rtView(rt, flow = null, { missing = false } = {}) {
   return { key: "out", tone: "warn", line: `Not signed in. XO can't run ${name} until it is.`, actions: [{ id: "in", label: "Sign in", pri: true }] };
 }
 
-/** @param {{ announce: (text: string) => void }} deps */
-export function createAccounts({ announce }) {
+/** @param {Agent} rt @param {AccountsState} state */
+function agentHtml(rt, state) {
+  const n = rt.name, f = state.f[n] || null, v = rtView(rt, f, { missing: !!state.missing[n] }), err = state.e[n] || "";
+  const mark = markOf(n);
+  const btn = (/** @type {Action} */ a) => a.id === "open"
+    ? `<a class="btn${a.pri ? " btn-pri" : ""}" href="${esc(f.url)}" target="_blank" rel="noopener" data-agent="open" data-rt="${esc(n)}">${esc(a.label)}</a>`
+    : `<button type="button" class="btn${a.pri ? " btn-pri" : ""}" data-agent="${a.id}" data-rt="${esc(n)}"${a.busy ? ' aria-busy="true" aria-disabled="true"' : ""}>${esc(a.label)}</button>`;
+  const code = v.key === "code" ? `<p class="acct-code"><b class="cp-code">${esc(f.code)}</b><span class="set-note"><i class="spin" aria-hidden="true"></i> Waiting for ${esc(rtName(n))}…</span></p>` : "";
+  const log = v.key === "installing" && f.log ? `<p class="set-note acct-log">${esc(f.log)}</p>` : "";
+  const sending = v.key === "sending";
+  const paste = v.key === "paste" || sending
+    ? `<form class="acct-paste" data-agent-form="${esc(n)}" autocomplete="off"><label class="field"><span>Code from the sign-in page</span><input name="code" required spellcheck="false" autocomplete="off" placeholder="Paste the code"${sending ? " readonly" : ""}></label>` +
+      `<div class="set-fa"><button type="submit" class="btn btn-pri"${sending ? ' aria-busy="true" aria-disabled="true"' : ""}>${sending ? "Signing in…" : "Sign in"}</button></div></form>`
+    : "";
+  return `<div class="set-row acct" data-key="agent:${esc(n)}">` +
+    `<div class="acct-top"><div class="set-l"><b>${mark ? `<i class="agm agm-${mark}" aria-hidden="true"></i>` : ""}${esc(rtName(n))}${rt.default ? `<span class="badge acct-rec">Recommended</span>` : ""}</b>` +
+    `<span class="acct-s t-${v.tone || "none"}" role="status">${v.key === "checking" || v.key === "starting" || v.key === "installing" ? `<i class="spin" aria-hidden="true"></i> ` : ""}${esc(v.line)}</span></div>` +
+    (v.actions.length ? `<div class="set-fa">${v.actions.map(btn).join("")}</div>` : "") + `</div>` +
+    code + log + paste + (err ? `<p class="set-err" role="alert">${esc(err)}</p>` : "") + `</div>`;
+}
+/** @param {AccountsState} state */
+function agentsHtml(state) {
+  const rts = (state.rts || []).filter((r) => SIGN_IN[r.name]);
+  const body = state.rts == null
+    ? (state.rtErr ? `<p class="set-err" role="alert">${esc(state.rtErr)}</p>` : `<div class="set-row"><span class="set-note"><i class="spin" aria-hidden="true"></i> Checking…</span></div>`)
+    : rts.length ? rts.map((runtime) => agentHtml(runtime, state)).join("") : `<p class="set-note">No agents on this Space.</p>`;
+  return `<section class="set-sec" aria-labelledby="acct-ag-h"><h3 id="acct-ag-h">Agents</h3>${body}</section>`;
+}
+
+/** @param {Readonly<GithubAccountState>} state */
+function rowHtml(state) {
+  const v = ghView(state.gh, state.flow);
+  const btn = (/** @type {Action} */ a) => a.id === "open"
+    ? `<a class="btn btn-pri" href="${esc(/** @type {GitHubFlow} */ (state.flow).uri)}" target="_blank" rel="noopener" data-acct="open">${esc(a.label)}</a>`
+    : `<button type="button" class="btn${a.pri ? " btn-pri" : ""}" data-acct="${a.id}"${a.busy ? ' aria-busy="true" aria-disabled="true"' : busyAttrs(`acct:${a.id}`)}>${esc(a.label)}</button>`;
+  const ask = state.confirm
+    ? `<p class="acct-q">Sign out of GitHub? XO stops cloning private repositories and deploying until you sign in again.</p><div class="set-fa"><button type="button" class="btn" data-acct="keep">Stay signed in</button><button type="button" class="btn btn-danger" data-acct="out-yes"${busyAttrs("acct:out")}>Sign out</button></div>`
+    : "";
+  const code = v.key === "code" ? `<p class="acct-code"><b class="cp-code">${esc(/** @type {GitHubFlow} */ (state.flow).code)}</b><span class="set-note"><i class="spin" aria-hidden="true"></i> Waiting for GitHub…</span></p>` : "";
+  return `<div class="set-row acct${ask || code ? " is-stack" : ""}" data-key="acct:github">` +
+    `<div class="acct-top"><div class="set-l"><b><span class="acct-ic" aria-hidden="true">${xi("github")}</span>GitHub</b><span class="acct-s t-${v.tone || "none"}" role="status">${v.key === "checking" ? `<i class="spin" aria-hidden="true"></i> ` : ""}${esc(v.line)}</span></div>` +
+    (ask ? "" : `<div class="set-fa">${v.actions.map(btn).join("")}</div>`) + `</div>` +
+    code + ask + (state.err ? `<p class="set-err" role="alert">${esc(state.err)}</p>` : "") + `</div>`;
+}
+/** @param {{announce: (text: string) => void, scope?: ReturnType<typeof createScope>}} options */
+export function createAccounts({ announce, scope = createScope() }) {
   /** @type {AccountsState} */
-  const S = { gh: null, flow: null, err: "", confirm: false, timer: null, rts: null, rtErr: "", f: {}, e: {}, missing: {} };
-  const box = () => document.querySelector('[data-page="accounts"] .set-live');
-  const draw = () => { const el = box(); if (el) redraw(el, html()); };
-
-  async function read() {
-    try { S.gh = await api.githubStatus(); }
-    catch (err) { S.gh = { status: "failed", error: /** @type {Error} */ (err).message }; }
-    draw();
-  }
-  async function readRts() {
-    try { S.rts = (await api.runtimes()).runtimes || []; S.rtErr = ""; }
-    catch (err) { S.rtErr = /** @type {Error} */ (err).message; }
-    draw();
-  }
-
-  /** @param {Agent} rt */
-  function agentHtml(rt) {
-    const n = rt.name, f = S.f[n] || null, v = rtView(rt, f, { missing: !!S.missing[n] }), err = S.e[n] || "";
-    const mark = markOf(n);
-    const btn = (/** @type {Action} */ a) => a.id === "open"
-      ? `<a class="btn${a.pri ? " btn-pri" : ""}" href="${esc(f.url)}" target="_blank" rel="noopener" data-agent="open" data-rt="${esc(n)}">${esc(a.label)}</a>`
-      : `<button type="button" class="btn${a.pri ? " btn-pri" : ""}" data-agent="${a.id}" data-rt="${esc(n)}"${a.busy ? ' aria-busy="true" aria-disabled="true"' : ""}>${esc(a.label)}</button>`;
-    const code = v.key === "code" ? `<p class="acct-code"><b class="cp-code">${esc(f.code)}</b><span class="set-note"><i class="spin" aria-hidden="true"></i> Waiting for ${esc(rtName(n))}…</span></p>` : "";
-    const log = v.key === "installing" && f.log ? `<p class="set-note acct-log">${esc(f.log)}</p>` : "";
-    const sending = v.key === "sending";
-    const paste = v.key === "paste" || sending
-      ? `<form class="acct-paste" data-agent-form="${esc(n)}" autocomplete="off"><label class="field"><span>Code from the sign-in page</span><input name="code" required spellcheck="false" autocomplete="off" placeholder="Paste the code"${sending ? " readonly" : ""}></label>` +
-        `<div class="set-fa"><button type="submit" class="btn btn-pri"${sending ? ' aria-busy="true" aria-disabled="true"' : ""}>${sending ? "Signing in…" : "Sign in"}</button></div></form>`
-      : "";
-    return `<div class="set-row acct" data-key="agent:${esc(n)}">` +
-      `<div class="acct-top"><div class="set-l"><b>${mark ? `<i class="agm agm-${mark}" aria-hidden="true"></i>` : ""}${esc(rtName(n))}${rt.default ? `<span class="badge acct-rec">Recommended</span>` : ""}</b>` +
-      `<span class="acct-s t-${v.tone || "none"}" role="status">${v.key === "checking" || v.key === "starting" || v.key === "installing" ? `<i class="spin" aria-hidden="true"></i> ` : ""}${esc(v.line)}</span></div>` +
-      (v.actions.length ? `<div class="set-fa">${v.actions.map(btn).join("")}</div>` : "") + `</div>` +
-      code + log + paste + (err ? `<p class="set-err" role="alert">${esc(err)}</p>` : "") + `</div>`;
-  }
-  const agentsHtml = () => {
-    const rts = (S.rts || []).filter((r) => SIGN_IN[r.name]);
-    const body = S.rts == null
-      ? (S.rtErr ? `<p class="set-err" role="alert">${esc(S.rtErr)}</p>` : `<div class="set-row"><span class="set-note"><i class="spin" aria-hidden="true"></i> Checking…</span></div>`)
-      : rts.length ? rts.map(agentHtml).join("") : `<p class="set-note">No agents on this Space.</p>`;
-    return `<section class="set-sec" aria-labelledby="acct-ag-h"><h3 id="acct-ag-h">Agents</h3>${body}</section>`;
+  const state = { rts: null, rtErr: "", f: {}, e: {}, missing: {} };
+  const runtimeKey = Symbol("settings:runtime-status");
+  const box = () => document.getElementById("settings")?.querySelector('[data-page="accounts"] .set-live') ?? null;
+  const draw = () => {
+    const el = box();
+    if (!el || scope.signal.aborted) return;
+    redraw(el, agentsHtml(state) + `<section class="set-sec" aria-labelledby="acct-gh-h"><h3 id="acct-gh-h">Connectors</h3>`
+      + rowHtml(github.get()) + "</section>");
   };
 
-  function rowHtml() {
-    const v = ghView(S.gh, S.flow);
-    const btn = (/** @type {Action} */ a) => a.id === "open"
-      ? `<a class="btn btn-pri" href="${esc(/** @type {GitHubFlow} */ (S.flow).uri)}" target="_blank" rel="noopener" data-acct="open">${esc(a.label)}</a>`
-      : `<button type="button" class="btn${a.pri ? " btn-pri" : ""}" data-acct="${a.id}"${a.busy ? ' aria-busy="true" aria-disabled="true"' : busyAttrs(`acct:${a.id}`)}>${esc(a.label)}</button>`;
-    const ask = S.confirm
-      ? `<p class="acct-q">Sign out of GitHub? XO stops cloning private repositories and deploying until you sign in again.</p><div class="set-fa"><button type="button" class="btn" data-acct="keep">Stay signed in</button><button type="button" class="btn btn-danger" data-acct="out-yes"${busyAttrs("acct:out")}>Sign out</button></div>`
-      : "";
-    const code = v.key === "code" ? `<p class="acct-code"><b class="cp-code">${esc(/** @type {GitHubFlow} */ (S.flow).code)}</b><span class="set-note"><i class="spin" aria-hidden="true"></i> Waiting for GitHub…</span></p>` : "";
-    return `<div class="set-row acct${ask || code ? " is-stack" : ""}" data-key="acct:github">` +
-      `<div class="acct-top"><div class="set-l"><b><span class="acct-ic" aria-hidden="true">${xi("github")}</span>GitHub</b><span class="acct-s t-${v.tone || "none"}" role="status">${v.key === "checking" ? `<i class="spin" aria-hidden="true"></i> ` : ""}${esc(v.line)}</span></div>` +
-      (ask ? "" : `<div class="set-fa">${v.actions.map(btn).join("")}</div>`) + `</div>` +
-      code + ask + (S.err ? `<p class="set-err" role="alert">${esc(S.err)}</p>` : "") + `</div>`;
-  }
-  const html = () => agentsHtml() + `<section class="set-sec" aria-labelledby="acct-gh-h"><h3 id="acct-gh-h">Connectors</h3>${rowHtml()}</section>`;
-
-  /** @param {string} sel */
-  const focus = (sel) => (/** @type {HTMLElement | null | undefined} */ (box()?.querySelector(sel)))?.focus({ preventScroll: true });
-  function stop() { clearTimeout(/** @type {ReturnType<typeof setTimeout> | undefined} */ (S.timer)); S.timer = null; }
-
-  /** @param {boolean} fresh */
-  async function signIn(fresh) {
-    if (S.flow) return;
-    stop(); S.err = ""; S.flow = { starting: true }; draw();
-    let s;
-    try { s = await api.githubConnect(fresh); }
-    catch (err) { S.flow = null; S.err = /** @type {Error} */ (err).message || "GitHub didn't start a sign-in."; draw(); focus('[data-acct="in"],[data-acct="again"]'); return; }
-    if (s.status === "connected") { S.flow = null; S.gh = s; announce(`GitHub signed in as @${s.username}${s.imported ? ", with this machine's gh login" : ""}.`); draw(); focus('[data-acct="again"]'); read(); return; }
-    S.flow = { code: s.user_code, uri: s.verification_uri, id: s.session_id, until: Date.now() + (s.expires_in || 900) * 1000 };
-    draw(); focus('[data-acct="open"]');
-    const poll = async () => {
-      if (!S.flow || S.flow.id !== s.session_id) return;
-      let r;
-      try { r = await api.githubConnectPoll(s.session_id); }
-      catch (err) { r = { status: "failed", error: /** @type {import('../../core/platform/http.js').ApiError} */ (err).status === 404 ? "That code expired." : /** @type {Error} */ (err).message }; }
-      if (!S.flow || S.flow.id !== s.session_id) return;
-      if (r.status === "pending" && Date.now() < /** @type {number} */ (S.flow.until)) { S.timer = setTimeout(poll, POLL_MS); return; }
-      S.flow = null;
-      if (r.status === "connected") { S.gh = r; announce(`GitHub signed in as @${r.username}.`); }
-      else S.err = r.status === "pending" ? "That code expired. Sign in to get a new one." : r.error || "GitHub didn't sign in.";
-      draw(); read();
-    };
-    S.timer = setTimeout(poll, POLL_MS);
-  }
-  function cancel() {
-    const id = S.flow && S.flow.id;
-    stop(); S.flow = null; draw();
-    if (id) api.githubConnectCancel(id).catch(() => {});
-    focus('[data-acct="in"],[data-acct="again"]');
-  }
-  async function signOut() {
-    if (isPending("acct:out")) return;
-    const p = once("acct:out", async () => {
-      try { await api.githubDisconnect(); S.confirm = false; S.err = ""; announce("Signed out of GitHub."); return true; }
-      catch (err) { S.err = /** @type {Error} */ (err).message; return false; }
-    });
+  async function readRts() {
+    try {
+      await latest(runtimeKey, (signal) => api.runtimes({ signal }), {
+        signal: scope.signal,
+        commit(reply) {
+          state.rts = reply.runtimes || [];
+          state.rtErr = "";
+        },
+      });
+    } catch (error) {
+      if (scope.signal.aborted || (error instanceof Error && error.name === "AbortError")) return;
+      state.rtErr = requestFailureMessage(error, "Couldn't read the agents.");
+    }
     draw();
-    if (await p) { await read(); focus('[data-acct="in"]'); } else draw();
   }
+
+  /** @param {string} sel @param {Element} [from] */
+  function focus(sel, from) {
+    const target = box()?.querySelector(sel);
+    if (!(target instanceof HTMLElement)) return;
+    if (from && (target.closest("[hidden], [inert]") || !canRestoreFocus(from))) return;
+    target.focus({ preventScroll: true });
+  }
+  const github = createGithubAccount({ scope, announce, draw, focus });
+  scope.effect(() => () => { for (const flow of Object.values(state.f)) flow.ctl.abort(); });
 
   /** @param {string} n @param {boolean} force */
   async function agentIn(n, force) {
     const how = SIGN_IN[n];
-    if (!how || S.f[n]) return;
+    if (!how || state.f[n]) return;
     const ctl = new AbortController(), lines = /** @type {string[]} */ ([]);
-    const f = S.f[n] = /** @type {AgentFlow} */ ({ phase: "starting", ctl, abortable: how.kind === "device" || n === "antigravity" });
-    S.e[n] = ""; draw();
-    const mine = () => S.f[n] === f;
+    const f = state.f[n] = /** @type {AgentFlow} */ ({ phase: "starting", ctl, abortable: how.kind === "device" || n === "antigravity" });
+    state.e[n] = ""; draw();
+    const mine = () => !scope.signal.aborted && state.f[n] === f;
     let ended = false;
     /** @param {boolean} ok @param {string} msg */
     const end = (ok, msg) => {
       if (ended) return; ended = true;
       if (!mine()) return;
-      delete S.f[n]; ctl.abort();
+      delete state.f[n]; ctl.abort();
       if (ok) announce(msg);
-      else S.e[n] = msg;
+      else state.e[n] = msg;
       draw(); readRts();
     };
     const on = (/** @type {SignInEvent} */ ev) => {
@@ -211,7 +193,7 @@ export function createAccounts({ announce }) {
       switch (ev.type) {
         case "session": f.session = ev.session_id; return;
         case "auth_url": f.url = ev.url; if (f.phase === "starting") { f.phase = "paste"; draw(); focus(`[data-agent-form="${n}"] input`); } return;
-        case "code_rejected": f.phase = "paste"; S.e[n] = "That code wasn't accepted. Copy it again from the sign-in page and paste it."; draw(); return;
+        case "code_rejected": f.phase = "paste"; state.e[n] = "That code wasn't accepted. Copy it again from the sign-in page and paste it."; draw(); return;
         case "installing": f.phase = "installing"; draw(); return;
         case "install_log": f.log = ev.line; draw(); return;
         case "stdout": {
@@ -232,60 +214,52 @@ export function createAccounts({ announce }) {
       await api.signInStream(how.route, /** @type {Parameters<typeof api.signInStream>[1]} */ ({ force: force || how.route === "claude-code", signal: ctl.signal, on }));
       end(false, `${rtName(n)}'s sign-in stopped before it finished. Sign in to try again.`);
     } catch (err) {
-      if (/** @type {Error} */ (err).name === "AbortError") return;
-      if (/** @type {import('../../core/platform/http.js').ApiError} */ (err).status === 404) { S.missing[n] = true; ended = true; if (mine()) delete S.f[n]; draw(); return; }
-      end(false, /** @type {Error} */ (err).message || `${rtName(n)}'s sign-in didn't start.`);
+      if (!mine() || (err instanceof Error && err.name === "AbortError")) return;
+      if (missingRoute(err)) {
+        state.missing[n] = true;
+        ended = true;
+        delete state.f[n];
+        draw();
+        return;
+      }
+      end(false, requestFailureMessage(err, `${rtName(n)}'s sign-in didn't start.`));
     }
   }
   /** @param {string} n */
   function agentCancel(n) {
-    const f = S.f[n]; if (!f) return;
-    delete S.f[n]; f.ctl.abort(); S.e[n] = ""; draw();
-    if (SIGN_IN[n].cancel) api.signInCancel(SIGN_IN[n].route).catch(() => {});
+    const f = state.f[n]; if (!f) return;
+    delete state.f[n]; f.ctl.abort(); state.e[n] = ""; draw();
+    if (SIGN_IN[n].cancel) {
+      void api.signInCancel(SIGN_IN[n].route).catch((error) => {
+        if (!missingRoute(error)) requestFailureMessage(error, "Couldn't cancel sign-in.");
+      });
+    }
     focus(`[data-agent="in"][data-rt="${n}"],[data-agent="again"][data-rt="${n}"]`);
   }
   /** @param {string} n @param {string} code */
   async function agentCode(n, code) {
-    const f = S.f[n]; if (!f || f.phase !== "paste" || !code) return;
-    f.phase = "sending"; S.e[n] = ""; draw();
+    const f = state.f[n]; if (!f || f.phase !== "paste" || !code) return;
+    f.phase = "sending"; state.e[n] = ""; draw();
     try { await api.signInCode(/** @type {"claude-code" | "antigravity"} */ (SIGN_IN[n].route), /** @type {string} */ (f.session), code); }
-    catch (err) { if (S.f[n] === f) { f.phase = "paste"; S.e[n] = /** @type {Error} */ (err).message; draw(); } }
+    catch (error) {
+      if (scope.signal.aborted || state.f[n] !== f) return;
+      f.phase = "paste";
+      state.e[n] = missingRoute(error)
+        ? (error instanceof Error ? error.message : "This Space doesn't accept a sign-in code.")
+        : requestFailureMessage(error, "Couldn't send the sign-in code.");
+      draw();
+    }
   }
 
-  /** @type {HTMLElement} */ (document.querySelector("#settings")).addEventListener("submit", (e) => {
-    const form = /** @type {(HTMLFormElement & { elements: { code: HTMLInputElement }, dataset: { agentForm: string } }) | null} */ ((/** @type {HTMLElement} */ (e.target)).closest("[data-agent-form]"));
-    if (!form || !box()?.contains(form)) return;
-    e.preventDefault();
-    agentCode(form.dataset.agentForm, form.elements.code.value.trim());
-  });
-
-  /** @type {HTMLElement} */ (document.querySelector("#settings")).addEventListener("click", (e) => {
-    const a = /** @type {(HTMLElement & { dataset: { rt: string, agent: string } }) | null} */ ((/** @type {HTMLElement} */ (e.target)).closest("[data-agent]"));
-    if (a && box()?.contains(a)) {
-      const n = a.dataset.rt, id = a.dataset.agent, f = S.f[n];
-      if (id === "open") { if (f && f.code) { navigator.clipboard?.writeText(f.code).catch(() => {}); announce("Code copied."); } if (f && !f.opened) { f.opened = true; setTimeout(draw); } return; }
-      if (a.getAttribute("aria-disabled") === "true") { e.preventDefault(); return; }
-      if (id === "in") agentIn(n, false);
-      else if (id === "again") agentIn(n, true);
-      else if (id === "cancel") agentCancel(n);
-      return;
-    }
-    const b = /** @type {HTMLElement | null} */ ((/** @type {HTMLElement} */ (e.target)).closest("[data-acct]"));
-    if (!b || !box()?.contains(b)) return;
-    const id = b.dataset.acct;
-    if (id === "open") { navigator.clipboard?.writeText(S.flow ? /** @type {string} */ (S.flow.code) : "").catch(() => {}); announce("Code copied."); return; }
-    if (b.getAttribute("aria-disabled") === "true") { e.preventDefault(); return; }
-    if (id === "in") signIn(false);
-    else if (id === "again") signIn(true);
-    else if (id === "cancel") cancel();
-    else if (id === "check") { S.gh = null; S.err = ""; draw(); read(); }
-    else if (id === "out") { S.confirm = true; S.err = ""; draw(); focus('[data-acct="keep"]'); }
-    else if (id === "keep") { S.confirm = false; draw(); focus('[data-acct="out"]'); }
-    else if (id === "out-yes") signOut();
-  });
+  wireAccounts({ scope, box, state, github, agentIn, agentCancel, agentCode, draw, focus, announce });
 
   return {
     /** The page was opened: read GitHub's state again (a sign-in under way keeps its code). */
-    open() { if (!S.flow) read(); else draw(); if (!Object.keys(S.f).length) readRts(); },
+    open() {
+      if (!github.get().flow) void github.read();
+      else draw();
+      if (!Object.keys(state.f).length) void readRts();
+    },
+    dispose: scope.dispose,
   };
 }

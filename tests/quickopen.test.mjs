@@ -1,7 +1,5 @@
-// Finding a file by a few letters (core/platform/fuzzy.js) and every file in a place (core/services/paths.js: Space's /paths, or a walk
-// of /tree on today's Space). Pure; Space is a stand-in.
-//   node tests/quickopen.test.mjs
 import assert from "node:assert/strict";
+import { api as platformApi } from "../core/platform/api.js";
 import { score, rank, marked, lineOf } from "../core/platform/fuzzy.js";
 import { createPaths } from "../core/services/paths.js";
 
@@ -89,12 +87,26 @@ t("a 404 with a code is the route's own answer, not a Space without the route", 
   assert.equal(P.routeMissing, false);
 });
 
-t("/paths and /search are Space's coworker routes", async () => {
-  const { readFileSync } = await import("node:fs");
-  const api = readFileSync(new URL("../core/platform/api.js", import.meta.url), "utf8");
-  assert.match(api, /get\(`\/coworker\/xo-projects\/\$\{enc\(project\)\}\/paths`/);
-  assert.match(api, /get\(`\/coworker\/xo-projects\/\$\{enc\(project\)\}\/search`/);
-  assert.doesNotMatch(api, /`\/xo-projects\/\$\{enc\(project\)\}\/(paths|search)`/);
+t("quick open uses the coworker routes and sends the active worktree and search query", async () => {
+  const requests = [];
+  const fetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input), "https://example.test/");
+    requests.push({ method: init.method, path: url.pathname, query: Object.fromEntries(url.searchParams) });
+    return Response.json({});
+  };
+  try {
+    await platformApi.projectPaths("front end", { worktree: "work/one", stamp: "latest" });
+    await platformApi.projectSearch("front end", { q: "my file", worktree: "work/one", regex: true, glob: "*.js", limit: 20 });
+    assert.deepEqual(requests, [
+      { method: "GET", path: "/api/coworker/xo-projects/front%20end/paths", query: { worktree: "work/one", stamp: "latest" } },
+      { method: "GET", path: "/api/coworker/xo-projects/front%20end/search", query: {
+        q: "my file", worktree: "work/one", regex: "true", case: "false", word: "false", glob: "*.js", limit: "20",
+      } },
+    ]);
+  } finally {
+    globalThis.fetch = fetch;
+  }
 });
 
 for (const [name, fn] of queue) {

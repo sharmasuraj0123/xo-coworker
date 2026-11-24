@@ -51,7 +51,7 @@ export const ruleApi = {
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
   status: () => get("/chat/status"),
-  runtimes: () => get("/chat/runtimes"),
+  runtimes: ({ signal } = {}) => get("/chat/runtimes", undefined, signal),
   models: (runtime) => get(`/chat/runtimes/${enc(runtime)}/models`),
   /** {space, effective}: the Space's runtime policy */
   runtimePolicy: () => get("/chat/runtime-policy"),
@@ -187,7 +187,8 @@ export const api = {
   githubPull: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/pulls/${enc(n)}`, undefined, signal),
   /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
   githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
-  githubConnectPoll: (sessionId) => send("POST", "/connectors/github/cli/poll", { session_id: sessionId }),
+  githubConnectPoll: (id, { signal } = {}) =>
+    request("/connectors/github/cli/poll", { method: "POST", body: { session_id: id }, signal }),
   githubConnectCancel: (sessionId) => send("POST", "/connectors/github/cli/cancel", { session_id: sessionId }),
   githubDisconnect: () => send("POST", "/connectors/github/disconnect", {}),
   signInStream: async (route, { force = false, signal, on }) => {

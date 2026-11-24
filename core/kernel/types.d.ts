@@ -92,12 +92,16 @@ export interface ModuleDef {
   activate(ctx: ModuleContext): void | Promise<void>;
 }
 
+export interface Services {}
+
+export type ServiceValue<Name extends string> = Name extends keyof Services ? Services[Name] : unknown;
+
 export interface ModuleContext {
   readonly id: string;
   readonly kernelVersion: string;
-  use<T = unknown>(service: string): T;
+  use<Name extends string>(service: Name): ServiceValue<Name>;
   has(service: string): boolean;
-  provide<T>(name: string, api: T): Undo;
+  provide<Name extends string>(name: Name, api: ServiceValue<Name>): Undo;
   contribute<E extends Entry>(place: string, entry: E): Undo;
   definePlace<E extends Entry>(def: PlaceDef<E>): Undo;
   effect(fn: () => Undo | void): Undo;

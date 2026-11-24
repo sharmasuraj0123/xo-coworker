@@ -7,7 +7,7 @@ type SignInRoute = "claude-code" | "codex" | "antigravity";
 
 export interface Api {
   status(): Json;
-  runtimes(): Json;
+  runtimes(options?: ReadOptions): Json;
   models(runtime: string): Json;
   runtimePolicy(): Json;
   setRuntimePolicy(policy: object): Json;
@@ -98,7 +98,7 @@ export interface Api {
   githubPulls(project: Id, options?: ReadOptions): Json;
   githubPull(project: Id, number: Id | number, signal?: AbortSignal): Json;
   githubConnect(fresh?: boolean): Json;
-  githubConnectPoll(sessionId: Id): Json;
+  githubConnectPoll(sessionId: Id, options?: ReadOptions): Json;
   githubConnectCancel(sessionId: Id): Json;
   githubDisconnect(): Json;
   signInStream(route: SignInRoute, options: { force?: boolean; signal: AbortSignal; on: (event: unknown) => void }): Promise<void>;

@@ -6,25 +6,11 @@ import { createPlaces } from "./places.js";
 import { createScheduler } from "./scheduler.js";
 import { createLayers } from "./layers.js";
 import { satisfies } from "./semver.js";
+import { manifestProblems } from "./manifest.js";
 
-/** @typedef {import("./types").Kernel} Kernel @typedef {import("./types").ModuleDef} ModuleDef @typedef {import("./types").ModuleManifest} ModuleManifest @typedef {import("./types").ModuleContext} ModuleContext @typedef {import("./types").ModuleStatus} ModuleStatus @typedef {import("./types").StartReport} StartReport */
+/** @import {Kernel, ModuleContext, ModuleDef, ModuleManifest, ModuleStatus, ServiceValue, StartReport} from "./types" */
 
 export const KERNEL_VERSION = "1.1.0";
-const MODULE_ID = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
-
-/** @param {any} m @returns {string[]} */
-export function manifestProblems(m) {
-  const out = [];
-  if (!m || typeof m !== "object") return ["the manifest is missing"];
-  if (!MODULE_ID.test(m.id || "")) out.push(`id must look like "xo.files" (got "${m.id}")`);
-  if (!/^\d+\.\d+\.\d+/.test(m.version || "")) out.push(`version must be semver like "1.0.0" (got "${m.version}")`);
-  if (typeof m.kernel !== "string" || !m.kernel) out.push(`kernel must name the kernel API range, e.g. "^1"`);
-  for (const k of ["needs", "provides", "contributes", "defines", "routes", "storage", "styles", "vendor"]) {
-    if (m[k] !== undefined && !(Array.isArray(m[k]) && m[k].every((/** @type {unknown} */ x) => typeof x === "string"))) out.push(`${k} must be a list of strings`);
-  }
-  return out;
-}
-
 /** @param {{ warn?: (...a: unknown[]) => void, log?: (...a: unknown[]) => void, request?: (fn: () => void) => unknown, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} [opts] @returns {Kernel} */
 export function createKernel(opts = {}) {
   const warn = opts.warn || console.error;
@@ -56,7 +42,7 @@ export function createKernel(opts = {}) {
         if (!(m.needs || []).includes(svc)) throw new Error(`${id}: ctx.use("${svc}") but "${svc}" is not in its manifest's needs`);
         const s = services.get(svc);
         if (!s) throw new Error(`${id}: service "${svc}" is not available`);
-        return /** @type {any} */ (s.api);
+        return /** @type {ServiceValue<typeof svc>} */ (s.api);
       },
       has: (svc) => services.has(svc),
       provide: (name, api) => U.effect(() => {
@@ -107,7 +93,7 @@ export function createKernel(opts = {}) {
         rec.status = "failed";
         scope.dispose();
         rec.activation = undefined;
-        rec.error = String(/** @type {any} */ (e)?.message || e);
+        rec.error = String((e && typeof e === "object" && "message" in e && e.message) || e);
         warn(`module ${id} failed to activate:`, e);
         bus.emit("kernel:module-failed", { id, error: rec.error });
       }
