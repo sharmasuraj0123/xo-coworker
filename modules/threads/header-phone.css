@@ -1,0 +1,11 @@
+@media (max-width:760px){
+  .tw-act span{display:none}
+  .tw-act{width:var(--h-touch);height:var(--h-touch);padding:0;justify-content:center}
+  /* On phones, the title has its own two-line row above the state, runtime and actions. */
+  .top[data-kind="thread"] .top-who{flex-wrap:wrap;row-gap:var(--s-2)}
+  .top[data-kind="thread"] .tw-h{
+    flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:clip
+  }
+  .top[data-kind="thread"] .tw-acts{margin-left:auto}
+  .top .stg-btn,.top .tw-more{width:var(--h-touch);height:var(--h-touch)}
+}

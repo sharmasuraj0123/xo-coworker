@@ -1,0 +1,36 @@
+.tw-acts{position:relative;flex:none;display:flex;align-items:center;gap:var(--s-2)}
+.tw-act{
+  display:inline-flex;align-items:center;gap:var(--s-2);height:var(--h-ctl);padding:0 var(--s-3) 0 var(--s-thread-control-inline);
+  border-radius:var(--r-sm);border:var(--hair) solid var(--palette-transparent);background:var(--btn-fill);color:var(--ink);
+  font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);
+  transition:
+    background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),var(--tx-press-transform)
+}
+.tw-act svg{width:var(--ic);height:var(--ic)}
+.tw-act:hover{background:var(--btn-fill-hover);color:var(--ink)}
+.tw-act:active{background:var(--btn-fill-press);transform:scale(var(--press-scale))}
+.tw-more{width:var(--h-ctl);padding:0;justify-content:center}
+.tw-menu{
+  position:absolute;right:0;top:calc(100% + var(--s-thread-menu-offset));z-index:var(--z-panel);display:flex;flex-direction:column;
+  min-width:var(--w-thread-menu-floor);padding:var(--menu-pad);border-radius:var(--r-menu);border:var(--hair) solid var(--line-soft);
+  background:var(--float);box-shadow:var(--e2)
+}
+.tw-menu button{
+  height:var(--menu-row);padding:0 var(--s-2);border-radius:var(--r-pop-row);text-align:left;
+  font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2)
+}
+/* one line each, the menu as wide as its longest (it wrapped "Open a shell in its worktree" onto two) */
+.tw-menu{min-width:var(--menu-w)}
+.tw-menu button{white-space:nowrap}
+/* Keep the title field aligned with the other header controls. */
+.tw-in{
+  flex:1;min-width:0;height:var(--h-ctl);padding:0 var(--s-thread-control-inline);border-radius:var(--r-sm);
+  border:var(--hair) solid var(--line-strong);background:var(--surface);
+  font:var(--fw-strong) var(--fs-title)/var(--lh-title) var(--sans);color:var(--ink)
+}
+.tw-in-l{flex:0 1 var(--w-thread-rename);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
+.ar-l{
+  flex:none;max-width:var(--w-thread-list-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:0 var(--s-thread-list-label-inline);height:var(--h-thread-list-label);line-height:var(--lh-meta);
+  border-radius:var(--r-sm);background:var(--fill-2);font-size:var(--fs-meta);color:var(--ink-3)
+}
