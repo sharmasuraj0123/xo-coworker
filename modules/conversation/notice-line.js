@@ -13,14 +13,14 @@ import { usable } from "../../core/ui/a11y/focus.js";
 
 /** @param {NoticeLineDeps} deps */
 export function createNoticeLine({ S, world, MK, composerNow, panelHost, connDest, placeRegion, STOP_ICON }) {
-  /** @type {WeakMap<HTMLElement, Notice | null>} */
+  /** @type {WeakMap<HTMLElement, { notice: Notice | null, html: string }>} */
   const lines = new WeakMap();
   const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
   /** @param {unknown} needs */
   function heraldRender(needs) {
     const box = heraldBox();
     for (const o of [$("#herald"), $("#tpherald")]) if (o && o !== box && o.firstChild) {
-      if (o.contains(document.activeElement)) heraldBack(lines.get(o))?.focus({ preventScroll: true });
+      if (o.contains(document.activeElement)) heraldBack(lines.get(o)?.notice)?.focus({ preventScroll: true });
       redraw(o, ""); lines.delete(o);
     }
     const h = S.herald && S.herald.until > Date.now() ? S.herald : null;
@@ -36,11 +36,11 @@ export function createNoticeLine({ S, world, MK, composerNow, panelHost, connDes
     } else if (c) {
       html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
     } else html = "";
-    const was = lines.has(box);
+    const prior = lines.get(box);
     const fa = document.activeElement;
-    if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(lines.get(box))?.focus({ preventScroll: true });
-    if (redraw(box, html) && was && html) box.firstElementChild?.classList.add("is-in");
-    lines.set(box, h);
+    if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(prior?.notice)?.focus({ preventScroll: true });
+    if (prior?.html !== html && redraw(box, html) && prior && html) box.firstElementChild?.classList.add("is-in");
+    lines.set(box, { notice: h, html });
     heraldRoom();
   }
   function heraldRoom() {

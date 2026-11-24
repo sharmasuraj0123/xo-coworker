@@ -7,21 +7,16 @@ import { pressedNode } from "./press.js";
 import { reconcileRows } from "./reconcile.js";
 export { pressedNode } from "./press.js";
 export const reconcile = reconcileRows.bind(null, redraw);
-/** @type {WeakMap<Element, { html: string, first: ChildNode | null, last: ChildNode | null }>} */
-const markup = new WeakMap();
 
 /** @param {Element | null | undefined} el @param {string} html @param {import("./redraw-types.d.ts").RedrawOptions} [options] */
 export function redraw(el, html, { preserve } = {}) {
   if (!el) return false;
-  const prior = markup.get(el);
-  if (prior?.html === html && prior.first === el.firstChild && prior.last === el.lastChild) return false;
   const tpl = document.createElement("template");
   tpl.innerHTML = html;
   const focus = deepActive();
   const seen = !!focus && el.contains(focus) && inSight(focus);
   const recover = focus && el.contains(focus) && focus !== el ? focusSelector(focus) : null;
   const changed = syncChildren(el, tpl.content, focus, [focus, pressedNode()], preserve && ((node) => own(node) || preserve(node)));
-  markup.set(el, { html, first: el.firstChild, last: el.lastChild });
   if (focus?.isConnected) {
     if (changed && seen && !inSight(focus)) bringWhole(focus);
   } else if (recover) (/** @type {HTMLElement | null} */ (el.querySelector(recover)))?.focus({ preventScroll: true });
@@ -42,7 +37,7 @@ export function redrawNode(node, html) {
   if (!want) return node;
   if (!same(node, want)) { node.replaceWith(want); return want; }
   const focus = deepActive();
-  if (syncNode(node, want, focus, [focus, pressedNode()].filter(Boolean))) markup.delete(node);
+  syncNode(node, want, focus, [focus, pressedNode()].filter(Boolean));
   return node;
 }
 
@@ -102,7 +97,6 @@ function syncNode(node, want, focus, hold) {
     return false;
   }
   if (!(node instanceof Element) || !(want instanceof Element)) return false;
-  markup.delete(node);
   let changed = false;
   for (const a of [...node.attributes]) if (!want.hasAttribute(a.name) && !VOLATILE.test(a.name)) { node.removeAttribute(a.name); changed = true; }
   for (const a of want.attributes) if (node.getAttribute(a.name) !== a.value) { node.setAttribute(a.name, a.value); changed = true; }

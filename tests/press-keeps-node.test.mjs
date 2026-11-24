@@ -29,10 +29,43 @@ const t = async (name, fn) => {
     assert.equal(redraw(host, renamed), true);
     assert.ok(host.firstElementChild === back, "changing the label keeps the control");
     assert.equal(back.textContent, "Back to Home");
-    assert.equal(redraw(host, renamed), false, "the same markup is skipped");
+    assert.equal(redraw(host, renamed), false, "the matching DOM needs no changes");
     redraw(host, '<a href="/" data-fid="back">Back to Home</a>');
     assert.ok(host.firstElementChild !== back, "the link replaces the button");
     assert.ok(document.activeElement === host.firstElementChild, "focus follows the replacement");
+  });
+
+  await t("redraw restores nested text drift from identical markup without moving focus", () => {
+    const html = "<section><button>Saved</button></section>";
+    redraw(host, html);
+    const section = host.firstElementChild, button = section.firstElementChild;
+    button.focus();
+    button.textContent = "Stale";
+    assert.equal(redraw(host, html), true);
+    assert.equal(button.textContent, "Saved");
+    assert.ok(host.firstElementChild === section && section.firstElementChild === button);
+    assert.ok(document.activeElement === button);
+  });
+
+  await t("redraw reapplies live control state from identical markup", () => {
+    const html = '<input type="checkbox" checked>';
+    redraw(host, html);
+    const input = host.firstElementChild;
+    input.checked = false;
+    assert.equal(redraw(host, html), true);
+    assert.ok(host.firstElementChild === input);
+    assert.equal(input.checked, true);
+  });
+
+  await t("redraw reevaluates which nodes to preserve when markup is identical", () => {
+    const html = "<p>Saved</p>";
+    host.innerHTML = "<aside>Keep for now</aside>";
+    const aside = host.firstElementChild;
+    redraw(host, html, { preserve: (node) => node === aside });
+    assert.ok(aside.isConnected);
+    const paragraph = host.lastElementChild;
+    assert.equal(redraw(host, html, { preserve: () => false }), true);
+    assert.ok(!aside.isConnected && host.firstElementChild === paragraph);
   });
 
   await t("landed staggers the arrival of a skeleton's children once", () => {

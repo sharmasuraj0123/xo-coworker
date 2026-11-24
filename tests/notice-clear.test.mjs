@@ -50,6 +50,17 @@ const S = { view: "home", herald: { text: "Saved", kind: "done", n: 1, until: In
 const line = createNoticeLine({ S, world: { state: {} }, MK: composer, composerNow: () => composer, panelHost: () => null, connDest: () => ({}) });
 line.heraldRender([]);
 assert.equal(document.getElementById("app").style.getPropertyValue("--herald-room"), "48px");
+S.herald = { ...S.herald, n: 2, text: "Updated" };
+line.heraldRender([]);
+const notice = herald.firstElementChild;
+assert.ok(notice.classList.contains("is-in"));
+const changes = new MutationObserver(() => {});
+changes.observe(notice, { attributes: true });
+line.heraldRender([]);
+assert.ok(herald.firstElementChild === notice);
+assert.ok(notice.classList.contains("is-in"));
+assert.equal(changes.takeRecords().length, 0, "an unchanged notice does not replay its entrance");
+changes.disconnect();
 S.herald = null;
 line.heraldRender([]);
 assert.equal(document.getElementById("app").style.getPropertyValue("--herald-room"), "0px");
