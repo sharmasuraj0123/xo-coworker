@@ -4,7 +4,7 @@ import { esc } from "../../core/platform/util.js";
 import * as K from "../../core/platform/keys.js";
 import { itemParts, questionsOf } from "../../core/services/review.js";
 import { ICON, dial } from "../../core/ui/icons/names.js";
-import { renderInline } from "../../core/ui/markdown/markdown.js";
+import { inlineText, renderInline } from "../../core/ui/markdown/inline.js";
 import * as Kit from "./kit.js";
 import { EFFORT, evidenceFor, estLine } from "./rank.js";
 import { KINDS, kindOf, commandOf, headOf, whyOf, stripOf, chipsOf, optionsOf, pickKeys, actsOf, isOnePress } from "./cardparts.js";
@@ -20,6 +20,17 @@ export const scopeWords = (P, id) => {
   const o = id && P.scopes.find((x) => x.id === id);
   return !o ? (P.primary ? P.primary.label : "Allow") : o.scope === "thread" ? "Allow for this thread" : "Allow + rule";
 };
+
+/** @param {CardNeed} n */
+function cardTitle(n) {
+  const head = headOf(n);
+  return headingText(head, head.md ? inlineText : String).trim();
+}
+
+/** @param {ReturnType<typeof headOf>} head @param {(text: string) => string} format @param {(verb: string) => string} [verbFormat] */
+function headingText(head, format, verbFormat = String) {
+  return (head.verb ? verbFormat(head.verb) + " " : "") + format(head.text);
+}
 
 /** @param {CardDeps} options */
 export function createDecisionCard({ world, PROJ, F, teach, noSecret }) {
@@ -113,7 +124,8 @@ export function createDecisionCard({ world, PROJ, F, teach, noSecret }) {
   /** @param {CardNeed} n @param {string} idp @param {string} h */
   function leadHtml(n, idp, h) {
     const head = headOf(n), line = whyOf(n), it = n.ask.item;
-    return `<${h} class="c-h" id="${idp}-h">${head.verb ? `<span class="h-verb">${esc(head.verb)}</span> ` : ""}${head.md ? renderInline(head.text, true) : esc(head.text)}</${h}>` +
+    const title = headingText(head, head.md ? (text) => renderInline(text, true) : esc, (verb) => `<span class="h-verb">${esc(verb)}</span>`);
+    return `<${h} class="c-h" id="${idp}-h">${title}</${h}>` +
       (line ? `<p class="c-line" id="${idp}-why">${esc(line)}</p>` : "") +
       (it && it.parked ? `<p class="c-park">${ICON.pause}<span>Parked: the agent was told to wait; an answer wakes it</span></p>` : "") +
       stripHtml(/** @type {Strip | null} */ (stripOf(n))) + (it && it.limit ? limitHtml(/** @type {import('./cards/evidence-types.d.ts').LimitItem} */ (it)) : paidHtml(it));
@@ -169,5 +181,5 @@ export function createDecisionCard({ world, PROJ, F, teach, noSecret }) {
       `<div class="c-act">${act}<p class="c-hint" aria-live="polite"></p></div></div>`;
   }
 
-  return { cardHtml, effTagHtml, leadHtml, chipsHtml };
+  return { cardHtml, cardTitle, effTagHtml, leadHtml, chipsHtml };
 }

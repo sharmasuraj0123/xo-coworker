@@ -11,10 +11,10 @@ const HTTP_HREF = /^https?:\/\/[^\s<>"'`]+$/i;
 // a relative path to a file in the conversation's folder: no scheme, no "..", with a name that has an extension
 const FILE_HREF = /^(?:\.\/)?(?!\/)(?![a-z][a-z0-9+.-]*:)((?:[\w@~+-][\w@~+.-]*\/)*[\w@~+-][\w@~+.-]*\.[A-Za-z0-9]{1,10})(?:#L\d+(?:-L?\d+)?)?$/;
 
-/** How the app describes a thread it knows: {state, word, title}. Set once by app.js; the renderer stays pure without it. @type {((id: string) => { state?: string, word?: string, title?: string } | null) | null} */
+/** @type {((id: string) => { state?: string, word?: string, title?: string } | null) | null} */
 let threadInfo = null;
-/** Let the app tell the renderer about threads it knows (their live state), for thread tokens. @param {unknown} fn */
-export function setThreadInfo(fn) { threadInfo = typeof fn === "function" ? /** @type {any} */ (fn) : null; }
+/** @param {unknown} fn */
+export function setThreadInfo(fn) { threadInfo = typeof fn === "function" ? /** @type {NonNullable<typeof threadInfo>} */ (fn) : null; }
 
 const ARROW_OUT = xi("external-link", "lk-ar");
 const THREAD_G = xi("chat", "lk-tg");
@@ -166,10 +166,10 @@ export function imageLine(line) {
   }
   return out.length ? out : null;
 }
-/** The app's way to show web pictures ({alt, url} list → HTML, or null to keep them links). Set once by app.js. @type {((list: { alt: string, url?: string, file?: string }[]) => string | null) | null} */
+/** @type {((list: { alt: string, url?: string, file?: string }[]) => string | null) | null} */
 let webImages = null;
 /** Set the web-picture renderer; when unset, web pictures render as links. @param {unknown} fn */
-export function setWebImages(fn) { webImages = typeof fn === "function" ? /** @type {any} */ (fn) : null; }
+export function setWebImages(fn) { webImages = typeof fn === "function" ? /** @type {NonNullable<typeof webImages>} */ (fn) : null; }
 /** @param {{ alt: string, url?: string, file?: string }[]} list */
 export function imagesHtml(list) {
   const shown = webImages && webImages(list);
@@ -195,6 +195,19 @@ const INLINE = [
 
 /** Render inline markdown. `noLinks` disables links (used inside link text). @param {unknown} text @returns {string} */
 export function renderInline(text, noLinks = false) {
+  return formatInline(text, noLinks, false);
+}
+
+/** @param {unknown} text */
+export function inlineText(text) {
+  return formatInline(text, true, true);
+}
+
+/** @param {unknown} text @param {boolean} noLinks @param {boolean} plain */
+function formatInline(text, noLinks, plain) {
+  const literal = plain ? String : esc;
+  /** @param {string} tag @param {string} content */
+  const wrap = (tag, content) => plain ? content : `<${tag}>${content}</${tag}>`;
   let out = "";
   let rest = String(text ?? "");
   let guard = 0;
@@ -206,32 +219,32 @@ export function renderInline(text, noLinks = false) {
       if (m && (best === null || m.index < best.m.index)) best = { p, m };
     }
     if (!best) {
-      out += esc(rest);
+      out += literal(rest);
       break;
     }
     const { p, m } = best;
-    out += esc(rest.slice(0, m.index));
+    out += literal(rest.slice(0, m.index));
     switch (p.name) {
       case "code":
-        out += `<code>${esc(m[2].replace(/^ (.*) $/, "$1"))}</code>`;
+        out += wrap("code", literal(m[2].replace(/^ (.*) $/, "$1")));
         break;
       case "dollar":
         out += "$";
         break;
       case "dmath":
-        out += noLinks ? esc(m[0]) : mathHtml(m[1] ?? m[2], true);
+        out += noLinks ? literal(m[0]) : mathHtml(m[1] ?? m[2], true);
         break;
       case "math":
-        out += noLinks ? esc(m[0]) : mathHtml(m[1] ?? m[2], false);
+        out += noLinks ? literal(m[0]) : mathHtml(m[1] ?? m[2], false);
         break;
       case "link": {
-        const label = renderInline(m[1], true);
+        const label = formatInline(m[1], true, plain);
         out += linkHtml(m[2], label) ?? label;
         break;
       }
       case "img": {
         // a picture inside a sentence stays a link (its alt as words, else its address); inside a link, its alt
-        const label = renderInline(m[1], true);
+        const label = formatInline(m[1], true, plain);
         const url = noLinks ? null : webImageUrl(m[2]);
         out += url ? linkHtml(url, label || null) : label;
         break;
@@ -240,13 +253,13 @@ export function renderInline(text, noLinks = false) {
         out += linkHtml(m[0], null) ?? esc(m[0]);
         break;
       case "bold":
-        out += `<strong>${renderInline(m[1] ?? m[2], noLinks)}</strong>`;
+        out += wrap("strong", formatInline(m[1] ?? m[2], noLinks, plain));
         break;
       case "strike":
-        out += `<del>${renderInline(m[1], noLinks)}</del>`;
+        out += wrap("del", formatInline(m[1], noLinks, plain));
         break;
       case "em":
-        out += `<em>${renderInline(m[1] ?? m[2], noLinks)}</em>`;
+        out += wrap("em", formatInline(m[1] ?? m[2], noLinks, plain));
         break;
     }
     rest = rest.slice(m.index + m[0].length);

@@ -7,7 +7,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { morph, RM, wait, hold } from "../../core/ui/motion.js";
 import { EFFORT } from "./rank.js";
 import { goneLine } from "./cardparts.js";
-import { dockEdges, fitDock } from "./dock-layout.js";
+import { dockEdges, fitDock, revealDockAnswers } from "./dock-layout.js";
 
 /** @import { Mount, DockDeps, Thread, Need, Gone } from "./dock-types.d.ts" */
 
@@ -16,6 +16,7 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
   CH, D, S, world, convThread, convHost, askShort, schedule, dockGestures,
 }) {
   const placeRegion = region;
+  let chatConfirmation = "";
   /** @param {() => void} fill @param {HTMLElement | null} [to] @param {Parameters<typeof morph>[2] | null} [opts] */
   function dockSwap(fill, to = null, opts = null) {
     const had = tdock.contains(document.activeElement);
@@ -27,7 +28,7 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
   }
   function reset() {
     Object.assign(TD, { key: null, item: null, busy: false, undone: null, gen: TD.gen + 1 });
-    tdock._ch = "";
+    chatConfirmation = "";
     dockRO.disconnect();
     dockSwap(() => tdock.replaceChildren());
   }
@@ -39,8 +40,8 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
   function dockRender(needs) {
     // a chat: its "send now" question first, else its own open decision (the chat's host), as a thread docks one
     const hc = CH.isChats(view()) ? CH.confirmHtml(view()) : "";
-    if (hc) { if (tdock._ch !== hc) { dockSwap(() => { tdock.innerHTML = hc; }); tdock._ch = hc; TD.key = null; } return; }
-    if (tdock._ch) { tdock._ch = ""; dockSwap(() => { tdock.innerHTML = ""; }); TD.key = null; }
+    if (hc) { if (chatConfirmation !== hc || !tdock.firstElementChild) { dockSwap(() => { tdock.innerHTML = hc; }); chatConfirmation = hc; TD.key = null; } return; }
+    if (chatConfirmation) { chatConfirmation = ""; dockSwap(() => { tdock.innerHTML = ""; }); TD.key = null; }
     if (view() === "chats") { if (TD.key) { TD.key = null; dockSwap(() => { tdock.innerHTML = ""; }); } return; }
     const t = convThread(view()) || convHost(view());
     const n = t && !D.isOpen() ? needs.find((x) => x.t.id === t.id && !x.later && (x.admitted || x.held)) : null;
@@ -57,8 +58,9 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
       dockSwap(() => { tdock.innerHTML = ""; }, null, { duration: 300 });
       return;
     }
-    const head = (() => { const tp = document.createElement("template"); tp.innerHTML = D.cardHtml(n, "dock").trim(); return (/** @type {HTMLElement | null} */ (tp.content.querySelector(".c-h")))?.textContent.trim() || askShort(n); })();
+
     if (folded) {
+      const head = D.cardTitle(n) || askShort(n);
       const E = EFFORT[n.effort];
       const bar = document.createElement("button");
       bar.type = "button";
@@ -134,7 +136,9 @@ export function createDock({ el: tdock, view, region, TD = { key: null, item: nu
     schedule();
   }
   tdock.addEventListener("click", (e) => {
-    if ((/** @type {Element} */ (e.target)).closest("[data-dock-more]")) { tdock.querySelector(".card.is-dock .c-act")?.scrollIntoView({ block: "end", behavior: RM.matches ? "auto" : "smooth" }); return; }
+    const more = (/** @type {Element} */ (e.target)).closest("[data-dock-more]");
+    const frame = more?.closest(".card.is-dock");
+    if (frame) { revealDockAnswers(frame, RM.matches ? "instant" : "smooth"); return; }
     const f = /** @type {(HTMLButtonElement & { dataset: { fold: string } }) | null} */ ((/** @type {Element} */ (e.target)).closest("[data-fold]"));
     if (f) { S.dockFold[f.dataset.fold] = true; dockRender(D.needItems()); placeRegion().focus({ preventScroll: true }); return; }
     const u = /** @type {(HTMLButtonElement & { dataset: { unfold: string } }) | null} */ ((/** @type {Element} */ (e.target)).closest("[data-unfold]"));

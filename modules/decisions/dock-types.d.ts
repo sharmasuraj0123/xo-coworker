@@ -14,7 +14,7 @@ export type DockState = {
 };
 
 export type Mount = {
-  el: HTMLElement & { _ch?: string };
+  el: HTMLElement;
   view: () => string;
   region: () => HTMLElement;
   TD?: DockState;
@@ -25,6 +25,7 @@ export type DockDeps = {
   D: {
     isOpen(): boolean;
     cardHtml(need: Need, surface: "dock"): string;
+    cardTitle(need: Need): string;
     wireCard(frame: HTMLElement, inner: Element, need: Need, options: {
       surface: "dock"; onStep(): void; after(how: string): Promise<void>;
     }): void;

@@ -8,13 +8,13 @@ import { dom, settle } from "./lib/dom.mjs";
 const skeleton = (p) => `<div id="${p}conv"><div id="${p}scroller"><div id="${p}column"><div id="${p}msgs"></div></div></div><div id="${p}typing"></div>` +
   `<form id="${p}composer"><div class="composer-field"><textarea id="${p}say"></textarea></div><button id="${p}send"></button></form><div id="${p}dock"></div><div id="${p}tdock"></div></div>`;
 const { window, document } = await dom(`<div id="app" data-conv="p:demo">${skeleton("")}</div><div id="tp">${skeleton("t")}</div><div id="live"></div>`);
-const g = /** @type {any} */ (globalThis);
+const g = /** @type {Record<string, unknown>} */ (globalThis);
+g.cancelAnimationFrame = clearTimeout;
 // linkedom tells a childList observer about its children's attribute changes; a browser doesn't
 g.MutationObserver = class extends window.MutationObserver {
-  constructor(/** @type {Function} */ cb) { super((/** @type {any[]} */ rs, /** @type {any} */ o) => { const own = rs.filter((r) => r.type !== "attributes" || o._attrs); if (own.length) cb(own, o); }); }
-  observe(/** @type {any} */ el, /** @type {any} */ opts) { if (opts.attributes || opts.attributeFilter) /** @type {any} */ (this)._attrs = true; super.observe(el, opts); }
+  constructor(/** @type {Function} */ cb) { super((/** @type {MutationRecord[]} */ rs, /** @type {{ _attrs?: boolean }} */ o) => { const own = rs.filter((r) => r.type !== "attributes" || o._attrs); if (own.length) cb(own, o); }); }
+  observe(/** @type {Node} */ el, /** @type {MutationObserverInit} */ opts) { if (opts.attributes || opts.attributeFilter) /** @type {{ _attrs?: boolean }} */ (this)._attrs = true; super.observe(el, opts); }
 };
-Object.getPrototypeOf(document.createElement("canvas")).getContext = () => ({ font: "", measureText: (/** @type {string} */ t) => ({ width: t.length * 7 }) });
 g.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 const store = new Map();
 g.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) };
@@ -30,10 +30,10 @@ let view = "t:one";
 const viewSubs = [];
 const E = decorateConversation({
   conv: $("#tp"), msgs: $("#tmsgs"), scroller: $("#tscroller"), typing: $("#ttyping"), composer: $("#tcomposer"), say: $("#tsay"), send: $("#tsend"),
-  atList: null, dock: $("#tdock"), tdock: $("#ttdock"), herald: null, host: $("#tp"), follow: { toLatest() {}, fromLatest: () => 0 },
-  isThread: () => true, view: () => view, onView: (fn) => viewSubs.push(fn),
+  atList: null, dock: $("#tdock"), tdock: $("#ttdock"), herald: null, host: $("#tp"), follow: { toLatest() {}, fromLatest: () => 0, toRow() {} },
+  isThread: () => true, view: () => view, onView: (fn) => { viewSubs.push(fn); return () => viewSubs.splice(viewSubs.indexOf(fn), 1); },
 });
-const msgs = $("#tmsgs"), say = /** @type {any} */ ($("#tsay"));
+const msgs = $("#tmsgs"), say = /** @type {HTMLTextAreaElement} */ ($("#tsay"));
 const click = (el) => el.dispatchEvent(new window.Event("click", { bubbles: true }));
 const key = (el, k) => { const e = new window.Event("keydown", { bubbles: true, cancelable: true }); Object.assign(e, { key: k, shiftKey: false, isComposing: false, keyCode: 13 }); el.dispatchEvent(e); return e; };
 const them = (k, text, { name = "Coordinator", cont = false } = {}) =>
@@ -65,7 +65,7 @@ assert.ok(ended.classList.contains("mx-latest") && !a1.classList.contains("mx-la
 
 // drawn again in its place (a live redraw), the row is the same element: a press across it lands on the same button
 const a1b = document.createElement("template"); a1b.innerHTML = them("a1", "Started a thread for it: Tidy the README.");
-const fresh = /** @type {any} */ (a1b.content.firstElementChild);
+const fresh = /** @type {HTMLElement} */ (a1b.content.firstElementChild);
 a1.replaceWith(fresh); await settle();
 assert.ok(fresh.querySelector(":scope > .mb > .mx-actrow") === row, "the same action row moves into the row drawn in its place");
 
@@ -89,14 +89,14 @@ assert.equal(copied.pop(), "First part.\n\nSecond part.");
 
 // Reply: the chip names who you answer, the field takes focus, and Enter sends the quote first, as Markdown
 click(fresh.querySelector(".mx-actrow [data-mx-reply]"));
-const chip = /** @type {any} */ ($("#tcomposer > .mx-reply"));
+const chip = /** @type {HTMLElement} */ ($("#tcomposer > .mx-reply"));
 assert.ok(chip && !chip.hidden, "the reply chip shows above the field");
 assert.ok(chip.nextElementSibling === $("#tcomposer > .composer-field"), "the reply chip sits just before the field");
 assert.equal(chip.querySelector("b").textContent, "Coordinator");
 assert.ok(document.activeElement === say, "Reply focuses the composer field");
 say.value = "Thanks";
 key(say, "Enter");
-assert.equal(say.value, "> **Coordinator**\n> Started a thread for it: Tidy the README.\n\nThanks", "the quote goes first, read synchronously by send");
+assert.equal(say.value, "> **Coordinator** [↩](#xo-message-a1)\n> Started a thread for it: Tidy the README.\n\nThanks", "the quote goes first, read synchronously by send");
 await settle();
 assert.equal(say.value, "Thanks", "not sent (the field kept the quote): the quote comes back off");
 assert.ok(!chip.hidden, "and the reply waits");
@@ -139,12 +139,12 @@ key(say, "Escape");
 
 // teardown: what it put on the page goes, and its document keys stop
 const heads = () => [...document.head.querySelectorAll("style")].map((s) => s.id);
-assert.ok(heads().includes("mx-hold-tmsgs") && heads().includes("mx-order-tmsgs"));
+assert.deepEqual(heads(), [], "no per-conversation stylesheets are injected");
 assert.equal(document.querySelectorAll("body > .mx-qpop").length, 2, "one quote button per conversation");
 E.destroy();
-assert.ok(!heads().includes("mx-hold-tmsgs") && !heads().includes("mx-order-tmsgs"), "its sheets go");
+assert.equal(E.activeEffects, 0);
 assert.equal(document.querySelectorAll("body > .mx-qpop").length, 1, "its quote button goes");
-assert.ok(heads().includes("mx-hold") && heads().includes("mx-order"), "the main chat's stay");
+assert.equal(viewSubs.length, 0, "the disposed conversation is unsubscribed");
 click(fresh.querySelector(".mx-actrow [data-mx-reply]"));
 say.value = "After"; key(say, "Enter");
 assert.equal(say.value, "After", "its keys no longer quote");

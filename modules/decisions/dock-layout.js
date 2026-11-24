@@ -23,6 +23,15 @@ export function fitDock(frame) {
   } else if (!one && more) more.remove();
   dockEdges(frame);
 }
+/** @param {Element} frame @param {ScrollBehavior} behavior */
+export function revealDockAnswers(frame, behavior) {
+  const scroller = frame.querySelector(".card-in");
+  const answers = scroller?.querySelector(".c-act");
+  if (!scroller || !answers) return;
+  const bottom = scroller.getBoundingClientRect().top + scroller.clientTop + scroller.clientHeight;
+  scroller.scrollTo({ top: scroller.scrollTop + answers.getBoundingClientRect().bottom - bottom, behavior });
+}
+
 /** @param {Element} frame */
 export function dockEdges(frame) {
   const sc = frame.classList.contains("is-one") ? frame.querySelector(".card-in") : frame.querySelector(".c-body");

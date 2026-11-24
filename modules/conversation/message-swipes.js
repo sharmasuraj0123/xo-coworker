@@ -1,14 +1,15 @@
 // @ts-check
 
-/** @param {HTMLElement} msgs @param {HTMLElement} scroller @param {(message: HTMLElement) => void} startReply */
-export function wireMessageSwipes(msgs, scroller, startReply) {
+/** @type {import("./swipes-types.d.ts").WireMessageSwipes} */
+export function wireMessageSwipes(msgs, scroller, startReply, scope) {
   const REPLY_AT = 56, REPLY_MAX = 72, TIME_MAX = 64;
   /** @typedef {{kind: 'reply', m: HTMLElement, raw: number} | {kind: 'time', m: null, raw: number}} Gesture */
 
   /** @type {Gesture | null} */
-  let g = null, idle = 0;
+  let g = null;
+  let cancelIdle = () => {};
   /** @param {number} raw @param {number} max */
-  const band = (raw, max) => (raw <= max ? raw : max + (raw - max) * 0.15); // past the end it only gives a little
+  const band = (raw, max) => (raw <= max ? raw : max + (raw - max) * 0.15);
   /** @param {number} dx */
   function gMove(dx) {
     if ((/** @type {NonNullable<typeof g>} */ (g)).kind === "reply") {
@@ -38,11 +39,13 @@ export function wireMessageSwipes(msgs, scroller, startReply) {
     g = /** @type {Gesture} */ ({ kind, m, raw: 0 });
     if (kind === "reply") (/** @type {HTMLElement} */ (m)).classList.add("mx-dragging"); else msgs.classList.add("mx-pulling");
   }
+  scope.effect(() => () => gEnd(false));
   let lastV = 0;
   const SIDEWAYS = ".md-table, .md-code pre";
   /** @param {Element | null} t */
   const ownsSideways = (t) => { const el = t && t.closest && t.closest(SIDEWAYS); return !!el && el.scrollWidth > el.clientWidth + 1; };
-  scroller.addEventListener("wheel", (e) => {
+  scope.listen(scroller, "wheel", (event) => {
+    const e = /** @type {WheelEvent} */ (event);
     const ax = Math.abs(e.deltaX), ay = Math.abs(e.deltaY);
     if (ay > ax) { lastV = e.timeStamp; if (g) gEnd(); return; }
     if (!g && (ax < 6 || ax < ay * 2 || e.timeStamp - lastV < 400 || ownsSideways(/** @type {Element | null} */ (e.target)))) return;
@@ -52,15 +55,17 @@ export function wireMessageSwipes(msgs, scroller, startReply) {
       if (e.deltaX < 0 && m) gStart("reply", /** @type {HTMLElement} */ (m)); else if (e.deltaX > 0) gStart("time", null); else return;
     }
     gMove((/** @type {NonNullable<typeof g>} */ (g)).kind === "reply" ? -e.deltaX : e.deltaX);
-    clearTimeout(idle); idle = setTimeout(gEnd, 140);
+    cancelIdle(); cancelIdle = scope.timeout(gEnd, 140);
   }, { passive: false });
   /** @type {{x: number, y: number, m: HTMLElement | null, on: boolean, last?: number} | null} */
   let touch = null;
-  msgs.addEventListener("pointerdown", (e) => {
+  scope.listen(msgs, "pointerdown", (event) => {
+    const e = /** @type {PointerEvent} */ (event);
     if (e.pointerType !== "touch" || ownsSideways(/** @type {Element | null} */ (e.target))) { touch = null; return; }
     touch = { x: e.clientX, y: e.clientY, m: (/** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest(".m"))), on: false };
   });
-  msgs.addEventListener("pointermove", (e) => {
+  scope.listen(msgs, "pointermove", (event) => {
+    const e = /** @type {PointerEvent} */ (event);
     if (!touch || e.pointerType !== "touch") return;
     const dx = e.clientX - touch.x, dy = e.clientY - touch.y;
     if (!touch.on) {
@@ -73,6 +78,6 @@ export function wireMessageSwipes(msgs, scroller, startReply) {
     gMove((/** @type {NonNullable<typeof g>} */ (g)).kind === "reply" ? e.clientX - (/** @type {number} */ (touch.last)) : (/** @type {number} */ (touch.last)) - e.clientX);
     touch.last = e.clientX;
   });
-  msgs.addEventListener("pointerup", () => { if (touch && touch.on) gEnd(); touch = null; });
-  msgs.addEventListener("pointercancel", () => { if (touch && touch.on) gEnd(false); touch = null; });
+  scope.listen(msgs, "pointerup", () => { if (touch && touch.on) gEnd(); touch = null; });
+  scope.listen(msgs, "pointercancel", () => { if (touch && touch.on) gEnd(false); touch = null; });
 }

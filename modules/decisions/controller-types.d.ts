@@ -58,6 +58,7 @@ export type DecisionApi = {
   laterNow(key: string): void;
   bringIn(key: string): void;
   cardHtml: Card["cardHtml"];
+  cardTitle: Card["cardTitle"];
   wireCard: ReturnType<typeof import("./card-events.js").createCardEvents>;
   parts: Pick<Card, "effTagHtml" | "leadHtml" | "chipsHtml">;
   queued(key: string): boolean;

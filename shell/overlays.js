@@ -10,7 +10,7 @@ export const PAGE_REGIONS = `
 export const MAIN_LAYERS = `
       <section class="panel" id="panel" aria-labelledby="pn-h" hidden>
         <header class="pn-top">
-          <div class="pn-title"><h2 id="pn-h">Needs you</h2><p class="pn-count" id="pn-count" aria-live="polite"></p></div>
+          <div class="pn-title"><h2 id="pn-h" tabindex="-1">Needs you</h2><p class="pn-count" id="pn-count" aria-live="polite"></p></div>
           <button type="button" class="pn-x" id="pn-x" aria-label="Close decisions" title="Close (Esc)"></button>
         </header>
         <div class="pn-rail" id="pn-rail" aria-hidden="true"></div>

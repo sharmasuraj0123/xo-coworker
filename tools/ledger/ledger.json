@@ -6146,11 +6146,23 @@
   },
   "css/msgx.css::ids::msgs": {
    "status": "moved",
-   "home": "modules/conversation/msgx.css"
+   "home": "modules/conversation/msgx.css",
+   "evidence": {
+    "modules/conversation/msgx.css": {
+     "anchor": ".msgs>.m{touch-action:pan-y}",
+     "reason": "The main message list now uses the shared message-list class."
+    }
+   }
   },
   "css/msgx.css::ids::tmsgs": {
    "status": "moved",
-   "home": "modules/conversation/msgx.css"
+   "home": "modules/conversation/msgx.css",
+   "evidence": {
+    "modules/conversation/msgx.css": {
+     "anchor": ".msgs>.m{touch-action:pan-y}",
+     "reason": "The side message list now uses the shared message-list class."
+    }
+   }
   },
   "css/msgx.css::ids::typing": {
    "status": "moved",
@@ -6166,11 +6178,23 @@
   },
   "css/rich.css::ids::msgs": {
    "status": "moved",
-   "home": "core/ui/markdown/rich.css"
+   "home": "core/ui/markdown/rich.css",
+   "evidence": {
+    "core/ui/markdown/rich.css": {
+     "anchor": ".msgs>.m:not(.m-card){margin-top:var(--s-6)}",
+     "reason": "The main message list uses the shared message-list class in document view."
+    }
+   }
   },
   "css/rich.css::ids::tmsgs": {
    "status": "moved",
-   "home": "core/ui/markdown/rich.css"
+   "home": "core/ui/markdown/rich.css",
+   "evidence": {
+    "core/ui/markdown/rich.css": {
+     "anchor": ".msgs>.m:not(.m-card){margin-top:var(--s-6)}",
+     "reason": "The side message list uses the shared message-list class in document view."
+    }
+   }
   },
   "css/rich.css::ids::typing": {
    "status": "moved",
@@ -8696,16 +8720,16 @@
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::fmtMin": {
-   "status": "moved",
-   "home": "modules/decisions/rank.js"
+   "status": "deleted",
+   "reason": "Unused minute formatter."
   },
   "js/content.js::exports::estLine": {
    "status": "moved",
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::fmtAgent": {
-   "status": "moved",
-   "home": "modules/decisions/rank.js"
+   "status": "deleted",
+   "reason": "Unused agent-duration formatter."
   },
   "js/content.js::exports::bidOf": {
    "status": "moved",
@@ -11095,11 +11119,23 @@
   },
   "js/msgx.js::functions::holdRules": {
    "status": "moved",
-   "home": "modules/conversation/working-turn.js"
+   "home": "modules/conversation/working-turn.js",
+   "evidence": {
+    "modules/conversation/working-turn.js": {
+     "anchor": "el.style.setProperty(\"--work-height\", `${st.height}px`)",
+     "reason": "The measured height is written to the affected row."
+    }
+   }
   },
   "js/msgx.js::functions::keepEnded": {
    "status": "moved",
-   "home": "modules/conversation/working-turn.js"
+   "home": "modules/conversation/working-turn.js",
+   "evidence": {
+    "modules/conversation/working-turn.js": {
+     "anchor": "ended.set(el, last)",
+     "reason": "The completed turn stores its ordering boundary in the conversation controller."
+    }
+   }
   },
   "js/msgx.js::functions::nowText": {
    "status": "moved",
@@ -11119,15 +11155,33 @@
   },
   "js/msgx.js::functions::fitLine": {
    "status": "moved",
-   "home": "modules/conversation/working-turn.js"
+   "home": "modules/conversation/msgx.css",
+   "evidence": {
+    "modules/conversation/msgx.css": {
+     "anchor": ".mx-wl{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+     "reason": "CSS fits and truncates the pill label."
+    }
+   }
   },
   "js/msgx.js::functions::sizeWork": {
    "status": "moved",
-   "home": "modules/conversation/working-turn.js"
+   "home": "modules/conversation/msgx.css",
+   "evidence": {
+    "modules/conversation/msgx.css": {
+     "anchor": "width:fit-content;max-width:min(var(--work-width-share),var(--work-max-width))",
+     "reason": "CSS sizes the working pill by content."
+    }
+   }
   },
   "js/msgx.js::functions::tick": {
    "status": "moved",
-   "home": "modules/conversation/working-turn.js"
+   "home": "modules/conversation/working-turn.js",
+   "evidence": {
+    "modules/conversation/working-turn.js": {
+     "anchor": "if (row.parentNode === msgs) updateElapsed(state, now)",
+     "reason": "The local interval updates only the controller's active rows."
+    }
+   }
   },
   "js/msgx.js::functions::showReply": {
    "status": "moved",
@@ -11205,7 +11259,13 @@
   },
   "js/msgx.js::custom_events::redrawn": {
    "status": "moved",
-   "home": "modules/conversation/decoration.js"
+   "home": "modules/conversation/decoration.js",
+   "evidence": {
+    "modules/conversation/decoration.js": {
+     "anchor": "scope.listen(msgs, \"redrawn\", (event) => {",
+     "reason": "The scoped listener decorates the redrawn row."
+    }
+   }
   },
   "js/pacing.js::exports::SMALL_MIN": {
    "status": "moved",

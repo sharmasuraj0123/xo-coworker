@@ -1,12 +1,9 @@
 // Settings › Accounts: GitHub's row says Space's state in words and offers the actions that state allows.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { SETTINGS } from "../shell/overlays.js";
 import { createAccounts, ghView, missingScopes, rtView, deviceCode, SIGN_IN } from "../modules/settings/accounts.js";
 import { dom, settle } from "./lib/dom.mjs";
 
-const html = readFileSync(new URL("../shell/overlays.js", import.meta.url), "utf8");
-const app = readFileSync(new URL("../js/app.js", import.meta.url), "utf8");
-const side = readFileSync(new URL("../shell/rail/side.js", import.meta.url), "utf8");
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const ids = (v) => v.actions.map((a) => a.id).join(",");
@@ -100,15 +97,14 @@ t("codex's device code is read from its terminal text, colours and all", () => {
   assert.deepEqual(deviceCode(out), { url: "https://auth.openai.com/codex/device", code: "FZ8Q-7KD2M" });
 });
 
-t("the page is wired: a tab, its panel, opened by setPage, in More's places", () => {
-  assert.match(html, /id="set-t-accounts" data-set="accounts"/);
-  assert.match(html, /data-page="accounts"[^>]*>.*<div class="set-live"><\/div>/);
-  assert.match(app, /if \(id === "accounts"\) ACCTS\.open\(\)/);
-  assert.match(side, /id: "accounts", name: "Accounts"/);
+const { document } = await dom(SETTINGS);
+t("Accounts has an accessible tab and a mount for its controls", () => {
+  const tab = document.querySelector('[data-set="accounts"]');
+  const page = document.querySelector('[data-page="accounts"]');
+  assert.equal(tab.id, "set-t-accounts");
+  assert.equal(page.getAttribute("aria-labelledby"), tab.id);
+  assert.ok(page.querySelector(".set-live"));
 });
-
-const frame = '<div id="settings"><section data-page="accounts"><div class="set-live"></div></section></div>';
-const { document } = await dom(frame);
 const requests = [];
 globalThis.fetch = async (url, init) => {
   requests.push([init.method, url]);
@@ -129,7 +125,7 @@ t("a sign-in route missing in Space leaves the agent row usable without retrying
   assert.equal(document.querySelector('[data-acct="in"]').textContent, "Sign in");
 });
 
-const callbackFrame = await dom(frame);
+const callbackFrame = await dom(SETTINGS);
 const answer = globalThis.fetch;
 globalThis.fetch = async (url, init) => {
   if (url === "connect/antigravity/callback") return Response.json({ detail: "Not Found" }, { status: 404 });

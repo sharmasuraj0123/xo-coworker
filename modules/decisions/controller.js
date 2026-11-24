@@ -35,7 +35,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
   const queue = createDecisionQueue({ world, F, log, sentKeys, stoppedDone, noSecret, show: (key, how) => show(key, how), toastRender: () => toastRender(), announce, render, onUndone, onSent, onNotSent });
   const needItems = /** @type {() => DecisionNeed[]} */ (createNeedItems({ world, P, later, waitSince, stoppedDone, sentKeys, queue }));
 
-  const { cardHtml, effTagHtml, leadHtml, chipsHtml } = createDecisionCard({ world, PROJ, F, teach, noSecret });
+  const { cardHtml, cardTitle, effTagHtml, leadHtml, chipsHtml } = createDecisionCard({ world, PROJ, F, teach, noSecret });
   /** @param {string} key @param {NoteMode} [mode] */
   function failedWords(key, mode = "back") {
     const e = log.find((d) => d.key === key);
@@ -52,7 +52,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     park, unpark,
     current: () => (F.open && !F.done && !F.vig ? F.cur : null),
     open, close, sync, undo, decide, decideNow, laterNow, bringIn,
-    cardHtml, wireCard,
+    cardHtml, cardTitle, wireCard,
     parts: { effTagHtml, leadHtml, chipsHtml },
     queued: (key) => queue.has(key),
     pendingKey: (key) => queue.has(key),
@@ -99,7 +99,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, later,
     F.parked = false; panel.hidden = false;
     document.body.classList.add("panel-open");
     render();
-    ($("#card") || panel).focus({ preventScroll: true });
+    (stage.querySelector("#card") || $("#pn-h")).focus({ preventScroll: true });
   }
 
   function close({ restore = true } = {}) {

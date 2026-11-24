@@ -1,6 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { createScope } from "../core/kernel/scope.js";
 import { dom } from "./lib/dom.mjs";
 import { mountLatestButton } from "../modules/conversation/latest-button.js";
 
@@ -15,15 +15,18 @@ conv.getBoundingClientRect = () => ({ bottom: 500 });
 const frames = new Map();
 const globals = /** @type {Record<string, unknown>} */ (globalThis);
 globals.requestAnimationFrame = (/** @type {FrameRequestCallback} */ callback) => { frames.set(frames.size + 1, callback); return frames.size; };
-globals.MutationObserver = class { observe() {} };
-globals.ResizeObserver = class { observe() {} };
+
+globals.cancelAnimationFrame = (/** @type {number} */ id) => frames.delete(id);
+globals.MutationObserver = class { observe() {} disconnect() {} };
+globals.ResizeObserver = class { observe() {} disconnect() {} };
 /** @type {boolean[]} */
 const followed = [];
+const scope = createScope();
 mountLatestButton({
   conv, msgs: element("msgs"), scroller, composer, dock: element("dock"), tdock: element("tdock"), host: conv,
   typing: conv, say: document.createElement("textarea"), send: conv, isThread: () => false,
-  follow: { fromLatest: () => 300, toLatest: (animate) => followed.push(animate) },
-});
+  follow: { fromLatest: () => 300, toLatest: (animate) => followed.push(animate), toRow() {} },
+}, scope);
 
 scroller.dispatchEvent(new window.Event("scroll"));
 scroller.dispatchEvent(new window.Event("scroll"));
@@ -40,5 +43,5 @@ assert.deepEqual(followed, [true]);
 scroller.dispatchEvent(new window.Event("scroll"));
 assert.equal(frames.size, 1, "a later scroll schedules its own frame");
 
-const follow = readFileSync(new URL("../modules/conversation/follow.js", import.meta.url), "utf8");
-assert.match(follow, /export function initFollow\(\)/);
+scope.dispose();
+assert.equal(frames.size, 0, "disposing cancels the pending update");

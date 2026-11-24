@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { $ as query } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { stateMark } from "../../core/ui/icons/icon.js";
@@ -26,22 +26,26 @@ export function createThreadPage({
 }) {
   /** @type {ThreadPage} */
   const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
+  const $ = (/** @type {string} */ selector) => query(selector, /** @type {HTMLElement} */ (TP.box));
+  const acts = document.createElement("span");
+  let headMarkup = "";
   const tpView = () => (TP.tid ? "t:" + TP.tid : "");
   /** @param {HTMLElement} box */
   function tpMount(box) {
     TP.box = box;
     box.classList.add("tp");
-    box.innerHTML = threadPageHtml($);
+    box.innerHTML = threadPageHtml(query);
+    headMarkup = "";
     const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
     TP.follow = createFollow(els);
     TP.follow.init();
-    TP.C = createConv({ view: tpView, msgs: els.msgs, scroller: els.scroller, column: els.column, typing: $("#ttyping"), follow: TP.follow });
+    TP.C = createConv({ ...els, view: tpView, typing: $("#ttyping"), follow: TP.follow });
     TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
       tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
     wireComposer(TP.K);
     wireTray(TP.K);
-    TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => (/** @type {Conversation} */ (TP.C)).scroller }, dockDeps);
-    const acts = document.createElement("span");
+    TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => els.scroller }, dockDeps);
+
     acts.className = "tp-acts"; acts.id = "tpacts"; acts.dataset.for = "thread";
     STAGE.slot.append(acts);
     menuKeys(acts, { close: () => closeThreadMenu() });
@@ -49,7 +53,7 @@ export function createThreadPage({
     TP.K.input.addEventListener("change", () => { addFiles((/** @type {PanelComposer} */ (TP.K)).input.files, /** @type {PanelComposer} */ (TP.K)); (/** @type {PanelComposer} */ (TP.K)).input.value = ""; });
     TP.K.iq.addEventListener("click", () => toggleIq(sessionOf(tpView()), (/** @type {PanelComposer} */ (TP.K)).iq));
     TP.deco = decorateConversation({ conv: box, msgs: els.msgs, scroller: els.scroller, typing: $("#ttyping"), composer: TP.K.form, say: TP.K.say, send: TP.K.send, atList: TP.K.at,
-      dock: els.dock, tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => TP.viewSubs.add(fn) });
+      dock: els.dock, tdock: $("#tptdock"), herald: $("#tpherald"), host: box, project: () => convProject(tpView()), follow: TP.follow, isThread: () => true, view: tpView, onView: (fn) => { TP.viewSubs.add(fn); return () => TP.viewSubs.delete(fn); } });
     TP.dockRO = watchDock(els.dock, box);
     bindConversation({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) }, wordsOf);
     els.scroller.addEventListener("scroll", () => { if (!TP.scrollRaf) TP.scrollRaf = requestAnimationFrame(() => { TP.scrollRaf = 0; loadAhead(/** @type {Conversation} */ (TP.C)); }); }, { passive: true });
@@ -88,12 +92,12 @@ export function createThreadPage({
 
   /** @param {Thread} t */
   function tpHead(t) {
-    const head = $("#tphead"), acts = $("#tpacts");
+    const head = $("#tphead");
     const open = S.tMenu === t.id && S.tMenuIn === "page";
     const html = `<button type="button" class="stg-btn tp-main" data-tp-main="${esc(t.id)}" title="Open in main chat" aria-label="Open in main chat">${ICON.toMain}</button><span class="badge st-${stOf(t)}">${stateMark(glyphOf(t))}${isHeld(t) ? heldBadge(t.held) : wordOf(t)}</span>` +
       `${rtTag(t)}${t.branch ? `<code class="tp-br" title="${esc(t.branch)}">${ICON.branch}${esc(t.branch)}</code>` : ""}`;
     const menu = `<span class="tp-menu-w"><button type="button" class="stg-ic tw-more" data-tmenu="${esc(t.id)}" data-tmenu-in="page" aria-haspopup="menu" aria-expanded="${open}" title="Everything this thread can do" aria-label="Thread actions">${ICON.more}</button>${open ? threadMenuHtml(t, "page") : ""}</span>`;
-    if (head._h !== html + menu) { redraw(head, html); redraw(acts, menu); head._h = html + menu; }
+    if (headMarkup !== html + menu) { redraw(head, html); redraw(acts, menu); headMarkup = html + menu; }
   }
   /** @param {DockNeed[]} needs */
   function drawThreadPage(needs) {

@@ -2,11 +2,12 @@
 
 // What each ask costs you (effort), what one answer frees (leverage), the order they come in, and the words behind one.
 
+import { count } from "../../core/platform/words.js";
 import * as Kit from "./kit.js";
 
-/** @import { Effort } from "../../core/services/decision-types.d.ts" */
+/** @import { Effort, RankFields } from "../../core/services/decision-types.d.ts" */
 
-/** @typedef {{ key?: string, t: any, ask: any, group?: string, risk?: string, effort: Effort, lev: { min: number, steps: number }, later?: boolean, since: number }} Need */
+/** @typedef {Pick<RankFields, "effort" | "lev" | "since"> & { later?: boolean, risk?: string }} Need */
 
 /** @type {Record<Effort, { label: string, time: string, secs: number, long: string, you: string }>} */
 export const EFFORT = {
@@ -16,7 +17,7 @@ export const EFFORT = {
 };
 const ERANK = { glance: 0, decide: 1, think: 2 };
 
-/** @param {{ ask: any, group?: string, risk?: string }} n @returns {Effort} */
+/** @param {{ ask: { kind?: string, options?: unknown }, group?: string, risk?: string }} n @returns {Effort} */
 export function effortOf(n) {
   if (n.group === "stopped") return "decide";
   const a = n.ask;
@@ -27,22 +28,20 @@ export function effortOf(n) {
   return "decide";
 }
 
-/** @param {{ t: any, group?: string }} n */
+/** @param {{ t: { checklist: { total: number, done: number } }, group?: string }} n */
 export function leverageOf(n) {
   const left = Math.max(1, n.t.checklist.total - n.t.checklist.done);
   if (n.group === "stopped") return { min: left * 24 + 20, steps: left };
   return { min: left * 21, steps: left };
 }
-/** @param {number} m */
-export const fmtMin = (m) => (m < 60 ? `${Math.max(1, Math.round(m))} min` : `${(m / 60).toFixed(m < 600 ? 1 : 0).replace(/\.0$/, "")} h`);
-/** @param {{ t: any }} n */
+
+/** @param {{ t: { checklist: { total: number, done: number } } }} n */
 export function estLine(n) {
   const left = n.t.checklist.total - n.t.checklist.done;
   if (!n.t.checklist.total || left <= 0) return "";
-  return `${left} ${left === 1 ? "step" : "steps"} left in its checklist`;
+  return `${count(left, "step")} left in its checklist`;
 }
-/** @param {number} m */
-export const fmtAgent = (m) => (m < 60 ? `~${Math.max(1, Math.round(m))} agent-min` : `~${(m / 60).toFixed(1).replace(/\.0$/, "")} agent-h`);
+
 
 /** @param {Need} n */
 export const bidOf = (n) => n.lev.min / EFFORT[n.effort].secs;
@@ -58,13 +57,13 @@ export function rank(items) {
 }
 
 
-/** @param {{ t: any, ask: any, group?: string }} n */
+/** @param {{ t: { happened?: string }, ask: { detail?: string }, group?: string }} n */
 export function whyLine(n) {
   if (n.group === "stopped") { const w = String(n.t.happened || "It stopped.").replace(/^Stopped:\s*/i, ""); return w.charAt(0).toUpperCase() + w.slice(1); }
   return n.ask.detail || "";
 }
 
-/** @param {{ t: any, ask: any }} n */
+/** @param {{ t: { happened?: string }, ask: { detail?: string, full?: string } }} n */
 export function evidenceFor(n) {
   const a = n.ask, t = n.t;
   return { change: null, facts: [], preview: null, why: a.full || a.detail || t.happened || "The agent is waiting on you before it continues." };

@@ -1,14 +1,3 @@
-/* The conversation as a document (the default; owner, 19 Nov) and what a reply can hold: math, charts, diagrams.
-   Chat bubbles (Settings › General) are modules/conversation/msgx.css under <html data-msgx="bubbles">; everything here that's about
-   the document look is scoped :root:not([data-msgx]), and the rich blocks below read well in both looks.
-   Values come from core/ui/tokens.css; corners nest (a block's 12 px corner inside nothing; a tooltip 12). */
-
-/* ── the document view ────────────────────────────────────────────────────────
-   One column, one pair of edges (owner, 19 Nov, after Claude's): an agent's words, its thread cards, its pictures
-   and its action row start on the column's left edge, the same edge as the composer below; your messages end on
-   its right edge, as the composer does. The speaker's mark (24) sits inline with their name on the header line,
-   not in a gutter of its own (it used to be a 32 px column + 12, so every reply started 44 px in from the
-   composer's edge). The time moves from the header to the action row, under every message. */
 :root:not([data-msgx]) .m-them{grid-template-columns:24px minmax(0,1fr);gap:0 8px}
 :root:not([data-msgx]) .m-them>.mb{grid-area:1/1/2/3;min-width:0}
 :root:not([data-msgx]) .m-them>.av{grid-area:1/1;z-index:1;width:var(--h-sm);height:var(--h-sm);margin-top:0;border-radius:var(--r-sm)}
@@ -19,8 +8,6 @@
 /* the name line is a label above the words: body size at 500 in the third ink, a role or model trailing in the fourth */
 :root:not([data-msgx]) .m-them>.mb>.mh{min-height:var(--h-sm);margin-bottom:8px;padding-left:32px;gap:8px;align-items:center}
 :root:not([data-msgx]) .m-them>.mb>.mh b{font:var(--fw-medium) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-3)}
-/* the coordinator speaking, in the chat view as in bubbles: its name in its violet and a violet ring round its
-   mark (tokens.css --coord-ink, --coord-ring); its words stay ink, so reading never changes, only who's speaking */
 :root:not([data-msgx]) .m-coord>.mb>.mh b{color:var(--coord-ink)}
 :root:not([data-msgx]) .m-coord>.av{border-color:var(--coord-ring)}
 :root:not([data-msgx]) .m-them>.mb>.mh :is(.role,.m-iq){font:var(--fw-regular) var(--fs-meta)/var(--lh-title) var(--sans);color:var(--ink-4)}
@@ -28,12 +15,11 @@
 :root:not([data-msgx]) :is(.m-them>.mb>.prose,.m-turn .turn>.tb-answer,.m-turn .turn>.tb-text){max-width:none}
 /* a reply's text lines stop at --measure; code, tables, charts, pictures and cards keep the whole column */
 .prose>:is(p,ul,ol,blockquote,.md-h){max-width:min(var(--measure),42em)}
-/* your message is XO's green, the same token as in the bubbles (modules/conversation/msgx.css --mx-you, 7.1:1 dark, 11.9:1 light) */
 :root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
 /* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
    names' edge (24 + 8) */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{gap:8px}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev>.ev-ic{margin:0 var(--s-1)}
+:root:not([data-msgx]) .msgs>.ev{gap:8px}
+:root:not([data-msgx]) .msgs>.ev>.ev-ic{margin:0 var(--s-1)}
 /* someone replying: the dots lead its line, on the text's edge, no mark */
 :root:not([data-msgx]) .typing{grid-template-columns:minmax(0,1fr)}
 :root:not([data-msgx]) .typing>.av{display:none}
@@ -43,20 +29,20 @@
 
 /* the rhythm is the conversation's: a project's empty page (.m-start, "What should get done in…?") isn't a message
    and keeps its own margin:auto, which centres it in the room (css/app.css) */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>:not(.m-start){margin-block:var(--s-4)}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:not(.m-card){margin-top:var(--s-6)}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev{min-height:var(--h-sm);margin-block:var(--s-4)}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>:first-child:not(.m-start){margin-top:0}
+:root:not([data-msgx]) .msgs>:not(.m-start){margin-block:var(--s-4)}
+:root:not([data-msgx]) .msgs>.m:not(.m-card){margin-top:var(--s-6)}
+:root:not([data-msgx]) .msgs>.ev{min-height:var(--h-sm);margin-block:var(--s-4)}
+:root:not([data-msgx]) .msgs>:first-child:not(.m-start){margin-top:0}
 /* words under the line that introduces them (a question and its answer, a steer and its note) read as one exchange: 8 under the line */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev.is-lead{margin-bottom:var(--s-2)}
+:root:not([data-msgx]) .msgs>.ev.is-lead{margin-bottom:var(--s-2)}
 /* event lines in a row read as one short list */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev:has(+.ev){margin-bottom:var(--s-2)}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev+.ev{margin-top:var(--s-2)}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.ev+.m.m-under{margin-top:var(--s-2)}
+:root:not([data-msgx]) .msgs>.ev:has(+.ev){margin-bottom:var(--s-2)}
+:root:not([data-msgx]) .msgs>.ev+.ev{margin-top:var(--s-2)}
+:root:not([data-msgx]) .msgs>.ev+.m.m-under{margin-top:var(--s-2)}
 /* a message's action row sits in the gap under it, out of the flow: an unseen row never widens a gap */
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-b) + var(--s-2))}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-b) + var(--s-2))}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m>.mb:has(>.mx-actrow){position:relative}
+:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow)+*{margin-top:calc(var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-b) + var(--s-2))}
+:root:not([data-msgx]) .msgs>.m>.mb:has(>.mx-actrow){position:relative}
 :root:not([data-msgx]) .typing{padding-bottom:16px}
 /* someone replying is a new speaker: 24 above it, whatever the conversation ends with (its margin collapses with the
    last message's, through #msgs and #typing, so the larger wins) */
@@ -74,8 +60,7 @@
 
 :root:not([data-msgx]) .turn .tb-live{display:none}
 :root[data-msgx] :is(.tb-wh,.ty-b)>.dots{display:none}
-/* the shimmer reads in the conversation's own weight (app.css .shimmer sets 500, which looked bold) */
-:root:not([data-msgx]) :is(:is(#typing,#ttyping),:is(#msgs,#tmsgs)) .shimmer{font-weight:var(--fw-regular)}
+:root:not([data-msgx]) :is(:is(#typing,#ttyping),.msgs) .shimmer{font-weight:var(--fw-regular)}
 
 /* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
    Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
@@ -84,10 +69,10 @@
    the row holds its place (no shift on hover) and shows on hover or focus; the latest reply's always shows.
    Between messages: the row, then 8 px, so a run of messages keeps one rhythm. */
 .mx-actrow{display:none}
-:root:not([data-msgx]) :is(#msgs,#tmsgs){--mx-b:var(--h-ctl)}
+:root:not([data-msgx]) .msgs{--mx-b:var(--h-ctl)}
 :root:not([data-msgx]) .mx-actrow{position:absolute;top:100%;left:calc((var(--ic) - var(--mx-b,var(--h-ctl))) / 2);display:flex;align-items:center;height:var(--mx-b,var(--h-ctl));opacity:0;transition:opacity var(--d-out) var(--ease)}
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
-:root:not([data-msgx]) :is(#msgs,#tmsgs)>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
+:root:not([data-msgx]) .msgs>.m:is(:hover,:focus-within,.mx-latest)>.mb>.mx-actrow,
+:root:not([data-msgx]) .msgs>.m:is(:hover,:focus-within)>.mb>.mx-actrow{opacity:1;transition-duration:var(--d-hover-in)}
 .mx-actrow button{display:grid;place-items:center;flex:none;width:var(--mx-b,var(--h-ctl));height:var(--mx-b,var(--h-ctl));border-radius:var(--r);color:var(--ink-4);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
 .mx-actrow button:hover{background:var(--hover-fill);color:var(--ink);transition-duration:var(--d-hover-in)}
 .mx-actrow button:active{background:var(--press-fill);--ink-3:var(--ink-2);--ink-4:var(--ink-2)}
@@ -98,17 +83,9 @@
 .mx-actrow time:empty{display:none}
 /* a phone's controls are 36 at least (css/phone.css's floor, ≤ 760 px), and a finger has no hover: the buttons take
    36 (the row's offset follows, so the glyph stays on the edge), and without hover every row shows */
-@media (max-width:760px){:root:not([data-msgx]) :is(#msgs,#tmsgs){--mx-b:calc(var(--h-ctl) + var(--s-1))}}
-@media (hover:none){:root:not([data-msgx]) :is(#msgs,#tmsgs){--mx-b:calc(var(--h-ctl) + var(--s-1))}:root:not([data-msgx]) .mx-actrow{opacity:1}}
+@media (max-width:760px){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}}
+@media (hover:none){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}:root:not([data-msgx]) .mx-actrow{opacity:1}}
 
-/* ── a thread's card in the document view ────────────────────────────────────
-   One of the reply's blocks, built as its code, tables and charts are (1 px line, 12 px corners, the same fill), and
-   the bubbles' card in structure, so the two looks are one family (the owner, 19 Nov: "take a look at how it looked
-   for bubbles"): a band across the top in the thread's state colour carrying its progress, then its title with where
-   it stands, what it's doing now, and a foot (branch, when, Open). Everything on the right ends on one edge, the
-   card's 16 px text edge: the status, Open, Decide. It used to have two right edges (the caption's, and Decide's
-   own column beside it), progress bars that stopped at 64 px each, a state glyph pushing the title off its edge,
-   an amber border, and spacing off the scale (13, 9, 10, 3). The bubbles' card (modules/conversation/msgx.css) is untouched. */
 :root:not([data-msgx]) .tcard{--st:var(--ink-4);--dec-w:72px;flex-direction:column;margin-top:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);box-shadow:none}
 :root:not([data-msgx]) .tcard.st-needs{--st:var(--warn)}
 :root:not([data-msgx]) .tcard:is(.st-needs,.st-failed){border-color:var(--line)}
@@ -204,7 +181,6 @@
 .md-diagram{margin:16px 0;padding:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
 /* its natural width at most; never under 80 % of it (a phone scrolls the card sideways rather than shrink the words) */
 .md-diagram>svg{display:block;width:100%;max-width:var(--dg-w,100%)!important;min-width:calc(var(--dg-w,0px) * .8);height:auto;margin:0 auto}
-/* no hard corners (the owner: "consistently rounded"): a plain node is the scale's 8 px; Mermaid's own shadows off */
 .md-diagram>svg .node>rect:not([rx]),.md-diagram>svg .node>rect[rx="0"]{rx:var(--r);ry:var(--r)}
 .md-diagram>svg :is(.node,.cluster)>:is(rect,polygon,circle,path){filter:none}
 .md-dg-src{margin:0;font:var(--fw-regular) var(--fs-code)/var(--lh-ui) var(--mono);color:var(--ink-4);white-space:pre-wrap;text-align:left}

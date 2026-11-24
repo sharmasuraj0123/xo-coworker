@@ -1,4 +1,6 @@
 // @ts-check
+import { createScope } from "../../core/kernel/scope.js";
+import { createScheduler } from "../../core/kernel/scheduler.js";
 import { wordsOf } from "./words.js";
 import { IC } from "./decoration-icons.js";
 import { mountLatestButton } from "./latest-button.js";
@@ -6,19 +8,15 @@ import { wireMessageSwipes } from "./message-swipes.js";
 import { createWorkingTurn, wave } from "./working-turn.js";
 import { wireMessageReply } from "./message-reply.js";
 
-/** @typedef {HTMLElement & {_mx?: boolean, _mxe?: string | null, _mxWho?: string, _mxq?: boolean}} DecoratedElement */
-
-
 /** @param {import("./decoration-types.js").Conversation} E */
 export function decorateConversation(E) {
-  /** @type {(() => void)[]} */
-  const gone = [];
-  /** @type {import('./message-reply.js').OnDoc} */
-  const onDoc = (type, fn, opts) => { document.addEventListener(type, fn, opts); gone.push(() => document.removeEventListener(type, fn, opts)); };
+  const scope = createScope();
+  const scheduler = createScheduler({ request: (run) => scope.frame(run) });
+  const decoratedBubbles = new WeakSet();
   const conv = E.conv;
 
   const msgs = E.msgs;
-  const SEL = `#${msgs.id}`; // this conversation's list, in the sheets this layer writes
+
   /** @type {string | null} */
   let agentNameMemo = null;
   function agentName() {
@@ -55,9 +53,9 @@ export function decorateConversation(E) {
 
   /** @param {HTMLElement} m */
   function quoteCard(m) {
-    const b = /** @type {DecoratedElement | null} */ (m.querySelector(".bubble"));
-    if (!b || b._mxq) return;
-    b._mxq = true;
+    const b = m.querySelector(".bubble");
+    if (!b || decoratedBubbles.has(b)) return;
+    decoratedBubbles.add(b);
     const tn = [...b.childNodes].find((n) => n.nodeType === 3);
     if (!tn || !/^> /.test(/** @type {string} */ (tn.nodeValue))) {
       const old = b.querySelector(":scope > .mx-qc");
@@ -68,7 +66,14 @@ export function decorateConversation(E) {
     let i = 0; const q = [];
     while (i < lines.length && /^>/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, ""));
     const rest = lines.slice(i).join("\n").replace(/^\n+/, "");
-    const who = (q[0].match(/^\*\*(.+?)\*\*$/) || [])[1];
+    const attribution = q[0].match(/^\*\*(.+?)\*\*(?: \[↩\]\(#xo-message-([^)]+)\))?$/);
+    const who = attribution?.[1];
+    let source;
+    if (attribution?.[2]) {
+      try { source = decodeURIComponent(attribution[2]); } catch (error) {
+        if (!(error instanceof URIError)) throw error;
+      }
+    }
     const said = (who ? q.slice(1) : q).join(" ").replace(/\s+/g, " ").trim().replace(/^[“"]|[”"]$/g, "");
     let card = /** @type {HTMLButtonElement | null} */ (b.querySelector(":scope > .mx-qc"));
     if (!card) {
@@ -76,55 +81,64 @@ export function decorateConversation(E) {
       card.type = "button"; card.className = "mx-qc"; card.title = "Go to the message"; card.dataset.own = "";
       card.innerHTML = `<b></b><span></span>`;
     }
-    card.dataset.mxJump = said;
+    if (source) {
+      card.dataset.mxJump = source;
+      card.title = "Go to the message";
+    } else {
+      delete card.dataset.mxJump;
+      card.removeAttribute("title");
+    }
+    card.disabled = !source;
     (/** @type {HTMLElement} */ (card.querySelector("b"))).textContent = who || "Quote";
     (/** @type {HTMLElement} */ (card.querySelector("span"))).textContent = said;
     tn.nodeValue = rest;
     b.insertBefore(card, tn);
   }
 
-  function decorate() {
-    agentNameMemo = null;
-    const kids = [.../** @type {HTMLCollectionOf<DecoratedElement>} */ (msgs.children)];
-    kids.forEach((el) => {
-      if (!el.classList.contains("m") && !el.classList.contains("ev")) return;
-      if (!el.dataset.mxTime) { const t = timeIn(el); if (t) el.dataset.mxTime = t; }
-      if (!el.classList.contains("m") || el._mx) return;
-      el._mx = true;
-      el.dataset.noswipe = ""; // a swipe on a message is a reply here; the page's back-swipe starts elsewhere
-      const acts = document.createElement("div");
-      acts.className = "mx-acts"; acts.dataset.own = "";
-      acts.innerHTML = `<button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button><button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button>`;
-      quoteCard(el);
-      const bub = bubbleOf(el), mb = el.querySelector(":scope > .mb");
-      if (bub && !bub.querySelector(":scope > .mx-acts")) bub.append(acts);
-      for (const a of el.querySelectorAll(".mx-acts:not(.is-foot)")) {
-        if (a.parentElement === bub) continue;
-        const f = a.querySelector(":focus");
-        if (f) (/** @type {HTMLElement | null} */ ((bub && bub.querySelector(`:scope > .mx-acts > [${f.hasAttribute("data-mx-copy") ? "data-mx-copy" : "data-mx-reply"}]`))))?.focus({ preventScroll: true });
-        a.remove();
-      }
-      if (!bub && !el.querySelector(".mx-stack, .tb-files")) mb?.querySelector(":scope > .mx-acts.is-foot")?.remove();
-      if (bub && !el.classList.contains("m-you")) {
-        if (mb && !mb.querySelector(":scope > .mx-acts.is-foot")) { const foot = /** @type {HTMLDivElement} */ (acts.cloneNode(true)); foot.classList.add("is-foot"); mb.append(foot); }
-      } else if (!bub && el.querySelector(".mx-stack, .tb-files")) {
-        el.classList.add("mx-nobub");
-        const at = mb || el;
-        if (!at.querySelector(":scope > .mx-acts.is-foot")) { const foot = /** @type {HTMLDivElement} */ (acts.cloneNode(true)); foot.classList.add("is-foot"); foot.querySelector("[data-mx-copy]")?.remove(); at.append(foot); }
-      }
-      const host = (el.classList.contains("m-you") && el.querySelector(".bubble")) || el;
-      if (!host.querySelector(":scope > .mx-swipe")) {
-        const arrow = document.createElement("span");
-        arrow.className = "mx-swipe"; arrow.innerHTML = IC.reply; arrow.setAttribute("aria-hidden", "true"); arrow.dataset.own = "";
-        host.append(arrow);
-      }
-    });
-    for (const el of kids) {
-      if (!el.classList.contains("m") || el._mxe === el.textContent) continue;
-      el._mxe = el.textContent;
-      const t = (/** @type {(HTMLElement & {textContent: string}) | null} */ ((el.querySelector(".bubble") || el.querySelector(".mb > .prose, .tb-answer"))))?.textContent.trim() || "";
-      el.classList.toggle("mx-emoji", t.length > 0 && t.length <= 16 && /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\ufe0f|\s)+$/u.test(t) && !/^[\d#*\s]+$/.test(t));
+  /** @param {HTMLElement} el */
+  function decorateRow(el) {
+    if (!el.classList.contains("m") && !el.classList.contains("ev")) return;
+    const time = timeIn(el);
+    if (time) el.dataset.mxTime = time; else delete el.dataset.mxTime;
+    if (!el.classList.contains("m")) return;
+    el.dataset.noswipe = ""; // a swipe on a message is a reply here; the page's back-swipe starts elsewhere
+    const acts = document.createElement("div");
+    acts.className = "mx-acts"; acts.dataset.own = "";
+    acts.innerHTML = `<button type="button" data-mx-reply title="Reply" aria-label="Reply">${IC.reply}</button><button type="button" data-mx-copy title="Copy" aria-label="Copy">${IC.copy}</button>`;
+    quoteCard(el);
+    const bub = bubbleOf(el), mb = el.querySelector(":scope > .mb");
+    if (bub && !bub.querySelector(":scope > .mx-acts")) bub.append(acts);
+    for (const a of el.querySelectorAll(".mx-acts:not(.is-foot)")) {
+      if (a.parentElement === bub) continue;
+      const f = a.querySelector(":focus");
+      if (f) (/** @type {HTMLElement | null} */ ((bub && bub.querySelector(`:scope > .mx-acts > [${f.hasAttribute("data-mx-copy") ? "data-mx-copy" : "data-mx-reply"}]`))))?.focus({ preventScroll: true });
+      a.remove();
     }
+    if (!bub && !el.querySelector(".mx-stack, .tb-files")) mb?.querySelector(":scope > .mx-acts.is-foot")?.remove();
+    if (bub && !el.classList.contains("m-you")) {
+      if (mb && !mb.querySelector(":scope > .mx-acts.is-foot")) { const foot = /** @type {HTMLDivElement} */ (acts.cloneNode(true)); foot.classList.add("is-foot"); mb.append(foot); }
+    } else if (!bub && el.querySelector(".mx-stack, .tb-files")) {
+      el.classList.add("mx-nobub");
+      const at = mb || el;
+      if (!at.querySelector(":scope > .mx-acts.is-foot")) { const foot = /** @type {HTMLDivElement} */ (acts.cloneNode(true)); foot.classList.add("is-foot"); foot.querySelector("[data-mx-copy]")?.remove(); at.append(foot); }
+    }
+    const host = (el.classList.contains("m-you") && el.querySelector(".bubble")) || el;
+    if (!host.querySelector(":scope > .mx-swipe")) {
+      const arrow = document.createElement("span");
+      arrow.className = "mx-swipe"; arrow.innerHTML = IC.reply; arrow.setAttribute("aria-hidden", "true"); arrow.dataset.own = "";
+      host.append(arrow);
+    }
+
+    const t = (/** @type {(HTMLElement & {textContent: string}) | null} */ ((el.querySelector(".bubble") || el.querySelector(".mb > .prose, .tb-answer"))))?.textContent.trim() || "";
+    el.classList.toggle("mx-emoji", t.length > 0 && t.length <= 16 && /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\ufe0f|\s)+$/u.test(t) && !/^[\d#*\s]+$/.test(t));
+    if (el.classList.contains("m-turn")) working(el);
+    cardSteps(el);
+  }
+
+  function decorateList() {
+    const kids = [.../** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children)];
+    updateOrder();
+    markAuthors(kids);
     for (const el of kids) {
       if (!el.classList.contains("m")) continue;
       const b = bubbleOf(el);
@@ -139,32 +153,34 @@ export function decorateConversation(E) {
       const next = el.nextElementSibling;
       el.classList.toggle("mx-next-cont", !!next && next.classList.contains("cont") && next.classList.contains(you ? "m-you" : "m-them"));
     }
+    projectMarks();
+    actionRows(kids);
+  }
+
+  /** @param {HTMLElement[]} kids */
+  function markAuthors(kids) {
     const view = E.isThread() ? "thread" : (/** @type {HTMLElement} */ (document.getElementById("app"))).dataset.view;
     const theirs = kids.filter((el) => el.classList.contains("m-them") && !el.classList.contains("m-turn") && !el.classList.contains("m-card"));
     const count = new Map();
-    for (const el of theirs) { const n = nameIn(el); el._mxWho = n; count.set(n, (count.get(n) || 0) + 1); }
+    const authors = theirs.map((row) => {
+      const name = nameIn(row);
+      count.set(name, (count.get(name) || 0) + 1);
+      return { row, name };
+    });
     let main = view === "thread" ? ((/** @type {(HTMLElement & {textContent: string}) | undefined} */ ([...msgs.querySelectorAll(".m-them > .av-t + .mb > .mh b")].pop()))?.textContent.trim() || null) : null;
     if (!main) main = [...count].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-    for (const el of theirs) {
-      const other = !!main && el._mxWho !== main;
+    for (const { row: el, name: author } of authors) {
+      const other = !!main && author !== main;
       el.classList.toggle("mx-other", other);
-      el.classList.toggle("mx-coord", other && view === "thread" && /coordinator/i.test(/** @type {string} */ (el._mxWho)));
+      el.classList.toggle("mx-coord", other && view === "thread" && /coordinator/i.test(author));
       const b = el.querySelector(":scope > .mb > .prose");
       const nm = b && b.querySelector(":scope > .mx-name");
       const want = other && !el.classList.contains("cont") && b;
       if (want && !nm) b.insertAdjacentHTML("afterbegin", `<span class="mx-name" data-own></span>`);
-      if (want) (/** @type {HTMLElement} */ (b.querySelector(":scope > .mx-name"))).textContent = /** @type {string} */ (el._mxWho);
-      else if (nm) nm.remove();
+      const label = nm || b?.querySelector(":scope > .mx-name");
+      if (want && label && label.textContent !== author) label.textContent = author;
+      else if (!want) nm?.remove();
     }
-    for (const el of kids) {
-      if (!el.classList.contains("m-turn")) continue;
-      const mb = el.querySelector(":scope > .mb");
-      if (mb) delete (/** @type {HTMLElement} */ (mb)).dataset.mxWho; // a turn is always the main agent's own
-      working(el);
-    }
-    projectMarks();
-    cardSteps();
-    actionRows(kids);
   }
 
   /** @type {Map<string | undefined, HTMLDivElement>} */
@@ -191,7 +207,7 @@ export function decorateConversation(E) {
     if (ROWS.size > 800) for (const [key, x] of ROWS) { if (ROWS.size <= 600) break; if (!x.isConnected) ROWS.delete(key); }
     return row;
   }
-  /** @param {DecoratedElement[]} kids */
+  /** @param {HTMLElement[]} kids */
   function actionRows(kids) {
     let latest = null;
     for (const el of kids) {
@@ -226,16 +242,19 @@ export function decorateConversation(E) {
     if (!k) return;
     const want = btn.dataset.mxRate, rating = RATED.get(k) === want ? null : want;
     if (rating) RATED.set(k, rating); else RATED.delete(k);
-    try { localStorage.setItem(RATE_KEY, JSON.stringify(Object.fromEntries(RATED))); } catch { /* kept for this page only */ }
+    try { localStorage.setItem(RATE_KEY, JSON.stringify(Object.fromEntries(RATED))); } catch (error) {
+      if (!(error instanceof DOMException)) throw error;
+    }
     for (const b of (/** @type {NodeListOf<HTMLElement>} */ ((/** @type {HTMLElement} */ (btn.closest(".mx-actrow"))).querySelectorAll("[data-mx-rate]")))) b.setAttribute("aria-pressed", String(b.dataset.mxRate === rating));
     const live = document.getElementById("live");
-    if (live) { live.textContent = ""; setTimeout(() => { live.textContent = rating ? `Marked as a ${rating} response.` : "Rating taken back."; }, 40); }
+    if (live) { live.textContent = ""; scope.timeout(() => { live.textContent = rating ? `Marked as a ${rating} response.` : "Rating taken back."; }, 40); }
   }
 
   /** @type {Map<string, number>} */
   const STEPS = new Map();
-  function cardSteps() {
-    for (const c of msgs.querySelectorAll(".tcard")) {
+  /** @param {HTMLElement} row */
+  function cardSteps(row) {
+    for (const c of row.querySelectorAll(".tcard")) {
       const key = (/** @type {HTMLElement | null} */ (c.querySelector("[data-go]")))?.dataset.go;
       const segs = [...c.querySelectorAll(".tc-segs .sg")];
       wave(c);
@@ -245,7 +264,7 @@ export function decorateConversation(E) {
       if (was != null && done > was && segs[done - 1]) {
         segs[done - 1].classList.add("mx-seg-done");
         segs.find((g) => g.classList.contains("s-doing"))?.classList.add("mx-seg-next");
-        setTimeout(() => { for (const g of c.querySelectorAll(".mx-seg-done,.mx-seg-next")) g.classList.remove("mx-seg-done", "mx-seg-next"); }, 1400);
+        scope.timeout(() => { for (const g of c.querySelectorAll(".mx-seg-done,.mx-seg-next")) g.classList.remove("mx-seg-done", "mx-seg-next"); }, 1400);
       }
       STEPS.set(key, done);
     }
@@ -263,29 +282,46 @@ export function decorateConversation(E) {
     }
   }
   const typingFade = () => { const t = E.typing.querySelector(".ty-t"); if (t) t.classList.toggle("mx-fade", t.scrollWidth > t.clientWidth + 1); };
-  new MutationObserver(() => { projectMarks(); wave(E.typing); typingFade(); }).observe(E.typing, { childList: true, subtree: true, characterData: true });
-  new ResizeObserver(typingFade).observe(E.typing);
+  const typingChanges = new MutationObserver(() => { scheduler.invalidate("list"); wave(E.typing); typingFade(); });
+  scope.observe(typingChanges);
+  typingChanges.observe(E.typing, { childList: true, subtree: true, characterData: true });
+  const typingSize = new ResizeObserver(typingFade);
+  scope.observe(typingSize);
+  typingSize.observe(E.typing);
 
-  const { working, restoreFocus, removeSheets } = createWorkingTurn(E, SEL, decorate, gone);
+  const { working, restoreFocus, updateOrder } = createWorkingTurn(E, scope);
+  scope.effect(() => scheduler.onFlush("list", decorateList));
 
-  new MutationObserver(decorate).observe(msgs, { childList: true });
-  msgs.addEventListener("redrawn", (e) => {
-    const el = /** @type {DecoratedElement} */ (e.target);
-    if (!el.classList || !el.classList.contains("m")) return;
-    el._mx = false; el._mxe = undefined;
-    for (const b of /** @type {NodeListOf<DecoratedElement>} */ (el.querySelectorAll(".bubble"))) b._mxq = false;
-    decorate();
-    restoreFocus(el);
+  /** @param {Iterable<HTMLElement>} rows */
+  function decorateRows(rows) {
+    agentNameMemo = null;
+    for (const row of rows) decorateRow(row);
+    scheduler.invalidate("list");
+  }
+
+  const observer = new MutationObserver((records) => {
+    const added = new Set(/** @type {HTMLElement[]} */ ([]));
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node.nodeType === Node.ELEMENT_NODE && node.parentNode === msgs) added.add(/** @type {HTMLElement} */ (node));
+    }
+    decorateRows(added);
+  });
+  scope.observe(observer);
+  observer.observe(msgs, { childList: true });
+  scope.listen(msgs, "redrawn", (event) => {
+    const row = /** @type {HTMLElement} */ (event.target);
+    if (row.parentNode !== msgs) return;
+    for (const bubble of row.querySelectorAll(".bubble")) decoratedBubbles.delete(bubble);
+    decorateRows([row]);
+    restoreFocus(row);
   });
 
-  const startReply = wireMessageReply(E, onDoc, gone, { nameIn, textOf, runText, rate });
+  const startReply = wireMessageReply(E, scope, { nameIn, textOf, runText, rate });
+  wireMessageSwipes(msgs, E.scroller, startReply, scope);
 
-  wireMessageSwipes(msgs, E.scroller, startReply);
-
+  function decorate() { decorateRows(/** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children)); }
   decorate();
+  mountLatestButton(E, scope);
 
-  mountLatestButton(E);
-
-  if (!E.main) gone.push(removeSheets);
-  return { decorate, conv, msgs, destroy: () => { while (gone.length) (/** @type {() => void} */ (gone.pop()))(); } };
+  return { decorate, conv, msgs, destroy: () => scope.dispose(), get activeEffects() { return scope.size; } };
 }

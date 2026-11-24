@@ -2,14 +2,15 @@
 import { space } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
 
-/** @param {import("./decoration-types.js").Conversation} E */
-export function mountLatestButton(E) {
+/** @param {import("./decoration-types.js").Conversation} E @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+export function mountLatestButton(E, scope) {
   const { conv, msgs, composer, scroller } = E;
   const { toLatest, fromLatest } = E.follow;
   const down = document.createElement("button");
   down.type = "button"; down.className = "mx-down"; down.title = "Back to the latest";
   down.innerHTML = `${ICON.chevron}<span class="mx-down-n" hidden></span>`;
   conv.append(down);
+  scope.effect(() => () => down.remove());
   let unseen = 0;
   const away = fromLatest;
   const tdock = E.tdock, herald = E.herald;
@@ -38,12 +39,16 @@ export function mountLatestButton(E) {
     if (n.textContent !== txt) n.textContent = txt;
     if (down.getAttribute("aria-label") !== label) down.setAttribute("aria-label", label);
   }
-  let downT = 0;
-  const downSoon = () => { if (!downT) downT = requestAnimationFrame(() => { downT = 0; downSync(); }); };
-  scroller.addEventListener("scroll", downSoon, { passive: true });
-  down.addEventListener("click", () => toLatest(true));
-  new MutationObserver((ms) => {
-    if (ms.reduce((n, m) => n + m.removedNodes.length, 0) > 6) { unseen = 0; requestAnimationFrame(downSync); return; }
+  let pending = false;
+  const downSoon = () => {
+    if (pending) return;
+    pending = true;
+    scope.frame(() => { pending = false; downSync(); });
+  };
+  scope.listen(scroller, "scroll", downSoon, { passive: true });
+  scope.listen(down, "click", () => toLatest(true));
+  const messages = new MutationObserver((ms) => {
+    if (ms.reduce((n, m) => n + m.removedNodes.length, 0) > 6) { unseen = 0; downSoon(); return; }
     let news = 0;
     for (const m of ms) for (const n of m.addedNodes) {
       if (n.nodeType !== 1 || !(/** @type {HTMLElement} */ (n)).classList.contains("is-new") || !(/** @type {HTMLElement} */ (n)).matches(".m-them, .m-you")) continue;
@@ -52,18 +57,34 @@ export function mountLatestButton(E) {
       if (!after) news++;
     }
     if (news && away() > 80) unseen += news;
-    requestAnimationFrame(downSync);
-  }).observe(msgs, { childList: true });
-  const downRO = new ResizeObserver(() => downSync());
+    downSoon();
+  });
+  scope.observe(messages);
+  messages.observe(msgs, { childList: true });
+  const downRO = new ResizeObserver(downSync);
+  scope.observe(downRO);
   downRO.observe(scroller); downRO.observe(E.dock); downRO.observe(tdock); if (herald) downRO.observe(herald);
-  let downRaf = 0;
+  let cancelFrame = () => {};
   /** @param {number} until */
-  const followDock = (until) => { cancelAnimationFrame(downRaf); const step = () => { downSync(); if (performance.now() < until) downRaf = requestAnimationFrame(step); }; step(); };
-  new MutationObserver(() => {
+  const followDock = (until) => {
+    cancelFrame();
+    const step = () => {
+      downSync();
+      if (performance.now() < until) cancelFrame = scope.frame(step);
+    };
+    step();
+  };
+  const dockChanges = new MutationObserver(() => {
     const a = E.host, first = tdock.firstElementChild;
     a.classList.toggle("has-tdock", !!first);
     a.classList.toggle("has-tdock-card", !!tdock.querySelector(":scope > .card"));
     followDock(performance.now() + 700);
-  }).observe(tdock, { childList: true, subtree: true });
-  if (herald) new MutationObserver(() => followDock(performance.now() + 700)).observe(herald, { childList: true });
+  });
+  scope.observe(dockChanges);
+  dockChanges.observe(tdock, { childList: true, subtree: true });
+  if (herald) {
+    const heraldChanges = new MutationObserver(() => followDock(performance.now() + 700));
+    scope.observe(heraldChanges);
+    heraldChanges.observe(herald, { childList: true });
+  }
 }

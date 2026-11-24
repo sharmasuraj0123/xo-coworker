@@ -1,9 +1,9 @@
 // @ts-check
 import { elapsed, RM } from "../../core/platform/index.js";
 
-/** @typedef {{timer?: ReturnType<typeof setTimeout>, cardKey?: string, open?: boolean, rows?: Set<string> | null, h?: number, resize?: {animation: Animation, from: number, to: number, duration: number} | null, card?: HTMLElement | null}} WorkCard */
+/** @typedef {{cancel?: () => void, cardKey?: string, open?: boolean, rows?: Set<string> | null, cardHeight?: number, resize?: {animation: Animation, from: number, to: number, duration: number} | null, card?: HTMLElement | null}} WorkCard */
 
-/** @typedef {WorkCard & {text: string, shown: string, since: number, swapped: number, w?: number}} Working */
+/** @typedef {WorkCard & {text: string, since: number, swapped: number, height?: number, pill: HTMLButtonElement}} Working */
 
 const WAVE_MS = 2400; // the wave of this layer's own animations (mx-shimmer, mx-doing, mx-await)
 /** @param {ParentNode} [root] */
@@ -11,8 +11,14 @@ export function wave(root = document) {
   for (const e of /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll(".mx-wl, .tc-segs, .tc-segs .sg.s-doing"))) if (!e.style.getPropertyValue("--mx-wave")) e.style.setProperty("--mx-wave", `${-(Date.now() % WAVE_MS)}ms`);
 }
 
-/** @param {import("./decoration-types.js").Conversation} E @param {string} SEL @param {() => void} decorate @param {(() => void)[]} gone */
-export function createWorkingTurn(E, SEL, decorate, gone) {
+/** @param {string} name @param {HTMLElement} node */
+function motionDuration(name, node) {
+  const value = getComputedStyle(node).getPropertyValue(name).trim();
+  return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);
+}
+
+/** @param {import("./decoration-types.js").Conversation} E @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+export function createWorkingTurn(E, scope) {
   const msgs = E.msgs;
 
   const toLatest = E.follow.toLatest;
@@ -21,18 +27,12 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
   let toHeader = null;
 
 
-/** @type {Map<string | undefined, Working>} */
-  const WORKING = new Map(); // turn key → { text, since, w }
-
-/** @type {Map<string | undefined, WorkCard>} */
-  const FINISHED_CARDS = new Map(); // only completed turns whose work card has been opened
-
-/** @type {Set<string | undefined>} */
-  const ENDED = new Set();
-
-/** @type {Map<string | undefined, number>} */
-  const HOLD = new Map();
-  const holdSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: E.main ? "mx-hold" : `mx-hold-${msgs.id}` }));
+  /** @type {Map<HTMLElement, Working>} */
+  const active = new Map();
+  /** @type {WeakMap<HTMLElement, WorkCard>} */
+  const finished = new WeakMap();
+  /** @type {Map<HTMLElement, HTMLElement>} */
+  const ended = new Map();
   /** @param {HTMLElement} el */
   function naturalHeight(el) {
     const top = el.getBoundingClientRect().top;
@@ -40,14 +40,36 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
     for (const c of el.children) { const r = c.getBoundingClientRect(); if (r.height) h = Math.max(h, r.bottom - top); }
     return Math.round(h);
   }
-  function holdRules() { holdSheet.textContent = [...HOLD].map(([k, h]) => `:root[data-msgx] ${SEL}>[data-k="${CSS.escape(/** @type {string} */ (k))}"]{min-height:${h}px}`).join("\n"); }
-  const orderSheet = document.head.appendChild(Object.assign(document.createElement("style"), { id: E.main ? "mx-order" : `mx-order-${msgs.id}` }));
-  /** @param {string | undefined} key @param {string | undefined} lastKey */
-  function keepEnded(key, lastKey) {
-    if (ENDED.has(key)) return;
-    ENDED.add(key);
-    const n = ENDED.size;
-    orderSheet.append(`:root[data-msgx] ${SEL}>[data-k="${CSS.escape(/** @type {string} */ (key))}"]{order:${2 * n - 1}}\n:root[data-msgx] ${SEL}>[data-k="${CSS.escape(/** @type {string} */ (lastKey))}"]~*{order:${2 * n}}\n`);
+  let hadOrder = false;
+  function updateOrder() {
+    for (const [row, state] of active) {
+      if (row.parentNode === msgs) continue;
+      state.cancel?.();
+      state.resize?.animation.cancel();
+      active.delete(row);
+    }
+    for (const [row, boundary] of ended) {
+      if (row.parentNode !== msgs || boundary.parentNode !== msgs) ended.delete(row);
+    }
+    if (!hadOrder && !ended.size) return;
+    hadOrder = ended.size > 0;
+    const rows = /** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children);
+    const boundaries = new Map();
+    const exceptions = new Map();
+    let rank = 0;
+    for (const [row, boundary] of ended) {
+      rank += 2;
+      boundaries.set(boundary, rank);
+      exceptions.set(row, rank - 1);
+    }
+    let order = 0;
+    for (const row of rows) {
+      const value = exceptions.get(row) ?? order;
+      row.toggleAttribute("data-work-order", !!value);
+      if (value) row.style.setProperty("--work-order", String(value));
+      else row.style.removeProperty("--work-order");
+      order = Math.max(order, boundaries.get(row) ?? 0);
+    }
   }
   /** @param {HTMLElement} turn */
   function nowText(turn) {
@@ -63,7 +85,6 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
   function working(el) {
     const live = el.classList.contains("is-live") || !!el.querySelector(".turn.is-live");
     el.classList.toggle("mx-live", live);
-    const key = el.dataset.k;
     const mb = el.querySelector(":scope > .mb");
     el.classList.toggle("mx-expanded", !!el.querySelector('.turn [aria-expanded="true"], .turn .is-waiting'));
     el.classList.toggle("mx-av-row", !!el.querySelector(':scope > .mb > .turn > :is(.tb-work.is-open, .tb-answer, .tb-text, .tb.is-unfolded):first-child'));
@@ -73,35 +94,25 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
         if (stale.contains(document.activeElement)) [...(/** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll(".turn .tb-work > .tb-h, .turn .tb-h, [data-mx-copy]")))].find((x) => x.getClientRects().length)?.focus({ preventScroll: true });
         stale.remove();
       }
-      if (WORKING.has(key)) {
-        const last = [.../** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children)].filter((c) => c !== el && c.dataset.k).pop();
-        if (last && last.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) keepEnded(key, last.dataset.k);
-        const from = (/** @type {Working} */ (WORKING.get(key))).h;
-        const letGo = () => { HOLD.delete(key); holdRules(); };
-        const to = naturalHeight(el);
-        if (from && to < from - 1 && !RM.matches) {
-          const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
-          const ms = parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320;
-          const a = el.animate([{ minHeight: `${from}px` }, { minHeight: `${to}px` }], { duration: ms, delay: ms, fill: "backwards", easing: cs.getPropertyValue("--ease").trim() || "ease" });
-          a.finished.then(letGo, letGo);
-        } else letGo();
-      }
-      const previous = FINISHED_CARDS.get(key) || WORKING.get(key);
-      if (previous?.timer) clearTimeout(previous.timer);
+      const state = active.get(el);
+      if (state) finishTurn(el, state);
+      const previous = finished.get(el) || state;
+      previous?.cancel?.();
       if (mb && (previous || el.classList.contains("mx-expanded"))) {
-        const state = previous || {};
-        settle(el, state);
-        if (state.open) FINISHED_CARDS.set(key, state); else FINISHED_CARDS.delete(key);
+        const card = previous || {};
+        settle(el, card);
+        if (card.open) finished.set(el, card); else finished.delete(el);
       }
-      WORKING.delete(key); return;
+      active.delete(el);
+      return;
     }
     let w = /** @type {HTMLButtonElement | null} */ (mb.querySelector(":scope > .mx-work"));
-    const was = WORKING.get(key);
+    const was = active.get(el);
     let text = nowText(el);
     const now = Date.now();
     if (was && text !== was.text && now - (was.swapped || 0) < 2500) {
-      clearTimeout(was.timer);
-      was.timer = setTimeout(decorate, 2500 - (now - was.swapped) + 20);
+      was.cancel?.();
+      was.cancel = scope.timeout(() => { if (el.parentNode === msgs) working(el); }, 2500 - (now - was.swapped) + 20);
       text = was.text;
     }
     const since = +((/** @type {HTMLElement | null} */ (el.querySelector(".elapsed[data-since]")))?.dataset.since || 0) || was?.since || Date.now();
@@ -110,43 +121,58 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
       w.type = "button"; w.className = "mx-work"; w.dataset.own = "";
       w.title = "See every step";
       w.innerHTML = `<span class="mx-wt"></span><span class="mx-we"></span>`;
-      w.addEventListener("click", () => {
-        if ((/** @type {HTMLButtonElement} */ (w)).contains(document.activeElement)) toHeader = el.dataset.k;
-        (/** @type {HTMLElement | null} */ (el.querySelector(".turn .tb-h")))?.click();
-        toLatest(true);
-      });
       mb.append(w);
     }
     const wt = /** @type {HTMLElement} */ (w.querySelector(".mx-wt"));
     const cur = wt.querySelector(".mx-wl:not(.is-out)");
-    const shown = fitLine(w, text);
-    w.title = shown === text ? "See every step" : `${text}\nSee every step`;
-    if (!cur || cur.textContent !== shown) {
-      const old = cur || (was && was.text !== text ? Object.assign(document.createElement("span"), { className: "mx-wl", textContent: was.shown || was.text }) : null);
-      if (old) { if (!old.parentNode) wt.append(old); old.className = "mx-wl is-out"; setTimeout(() => old.remove(), 220); }
-      const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: shown });
+    w.title = text === "Working" ? "See every step" : `${text}\nSee every step`;
+    if (!cur || cur.textContent !== text) {
+      const old = cur || (was && was.text !== text ? Object.assign(document.createElement("span"), { className: "mx-wl", textContent: was.text }) : null);
+      if (old) { if (!old.parentNode) wt.append(old); old.className = "mx-wl is-out"; scope.timeout(() => old.remove(), motionDuration("--d-out", el)); }
+      const line = Object.assign(document.createElement("span"), { className: old || !was ? "mx-wl is-in" : "mx-wl", textContent: text });
       wt.append(line);
     }
-    const pv = [...msgs.children].filter((c) => c !== el && !c.classList.contains("mx-live")).pop();
+    let pv = msgs.lastElementChild;
+    while (pv && (pv === el || pv.classList.contains("mx-live"))) pv = pv.previousElementSibling;
     const said = el.classList.contains("has-said");
     w.classList.add("is-them");
     w.classList.toggle("mx-tail", !said && !(pv && pv.matches(".m-them:not(.mx-other)")));
     w.classList.toggle("mx-under", said && !!el.querySelector(":scope > .mb > .turn > .tb-work"));
     /** @type {Working} */
-    const st = Object.assign(was || {}, { text, shown, since, swapped: !was || was.text !== text ? now : was.swapped });
-    WORKING.set(key, st);
+    const st = Object.assign(was || {}, { text, pill: w, since, swapped: !was || was.text !== text ? now : was.swapped });
+    active.set(el, st);
     settle(el, st);
-    sizeWork(w, key, shown);
-    const held = HOLD.get(key) || 0;
-    st.h = naturalHeight(el);
-    if (Math.abs(held - st.h) >= 1) {
-      HOLD.set(key, st.h); holdRules();
-      if (held > st.h + 1 && !RM.matches) {
-        const cs = getComputedStyle(el), d = cs.getPropertyValue("--d-move").trim();
-        el.animate([{ minHeight: `${held}px` }, { minHeight: `${st.h}px` }], { duration: parseFloat(d) * (d.endsWith("ms") ? 1 : 1000) || 320, easing: cs.getPropertyValue("--ease").trim() || "ease" });
-      }
-    }
-    tick();
+    updateElapsed(st, now);
+    const from = st.height;
+    st.height = naturalHeight(el);
+    el.toggleAttribute("data-work-height", true);
+    el.style.setProperty("--work-height", `${st.height}px`);
+    if (from && from > st.height + 1 && !RM.matches) resizeTurn(el, from, st.height);
+  }
+
+  /** @param {HTMLElement} el @param {Working} state */
+  function finishTurn(el, state) {
+    const last = Array.from(/** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children)).findLast((row) => row !== el && row.dataset.k);
+    if (!ended.has(el) && last && last.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING) ended.set(el, last);
+    el.removeAttribute("data-work-height");
+    el.style.removeProperty("--work-height");
+    const to = naturalHeight(el);
+    if (state.height && to < state.height - 1 && !RM.matches) resizeTurn(el, state.height, to, true);
+  }
+
+  /** @param {HTMLElement} el @param {number} from @param {number} to @param {boolean} [delay] */
+  function resizeTurn(el, from, to, delay = false) {
+    const ms = motionDuration("--d-move", el);
+    const animation = el.animate([{ minHeight: `${from}px` }, { minHeight: `${to}px` }], {
+      duration: ms, delay: delay ? ms : 0, fill: "backwards", easing: getComputedStyle(el).getPropertyValue("--ease"),
+    });
+    ownAnimation(animation);
+  }
+
+  /** @param {Animation} animation */
+  function ownAnimation(animation) {
+    const cancel = scope.effect(() => () => animation.cancel());
+    animation.finished.then(cancel, cancel);
   }
 
   /** @param {HTMLElement} el @param {WorkCard} st */
@@ -157,7 +183,7 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
     if (!card || st.cardKey !== key) {
       st.resize?.animation.cancel();
       if (st.card) st.card.style.overflow = "";
-      st.open = false; st.rows = null; st.h = 0; st.resize = null; st.card = null; st.cardKey = key;
+      st.open = false; st.rows = null; st.cardHeight = 0; st.resize = null; st.card = null; st.cardKey = key;
       if (!card) return;
     }
     if (!st.open) card.classList.add("mx-opening");
@@ -175,10 +201,9 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
     const h = card.offsetHeight;
     const previous = st.resize;
     const progress = (/** @type {{animation: {effect: AnimationEffect}} | null | undefined} */ (previous))?.animation.effect.getComputedTiming().progress ?? 1;
-    const from = previous ? previous.from + (previous.to - previous.from) * progress : st.h;
+    const from = previous ? previous.from + (previous.to - previous.from) * progress : st.cardHeight;
     const style = getComputedStyle(card);
-    const durationToken = style.getPropertyValue("--d-move").trim();
-    const fullDuration = parseFloat(durationToken) * (durationToken.endsWith("ms") ? 1 : 1000);
+    const fullDuration = motionDuration("--d-move", card);
     const duration = previous && previous.to === h ? Math.max(0, previous.duration - (/** @type {number} */ (previous.animation.currentTime || 0))) : fullDuration;
     previous?.animation.cancel();
     if (st.card) st.card.style.overflow = "";
@@ -186,60 +211,44 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
     if (st.open && from && Math.abs(h - from) > 1 && duration > 0 && !RM.matches) {
       card.style.overflow = "hidden";
       const animation = card.animate([{ height: `${from}px` }, { height: `${h}px` }], { duration, easing: style.getPropertyValue("--ease").trim(), fill: "both" });
+      ownAnimation(animation);
       const resize = st.resize = { animation, from, to: h, duration };
       animation.finished.then(() => {
         if (st.resize !== resize) return;
         card.style.overflow = ""; st.resize = null; animation.cancel();
       }, () => {});
     }
-    st.open = true; st.card = card; st.h = h;
+    st.open = true; st.card = card; st.cardHeight = h;
   }
-  const WORK_MAX = 560, WORK_CHROME = 16 + 12 + 64 + 16 + 2;
-  /** @param {HTMLElement} w */
-  const lineFont = (w) => { const c = getComputedStyle(w); return `${c.fontWeight} ${c.fontSize} ${c.fontFamily}`; };
-  const measureCtx = /** @type {CanvasRenderingContext2D} */ (document.createElement("canvas").getContext("2d"));
-  /** @param {HTMLElement} w @param {string} text */
-  function fitLine(w, text) {
-    const room = Math.min(WORK_MAX, (w.parentElement?.clientWidth || WORK_MAX) * 0.88) - WORK_CHROME;
-    measureCtx.font = lineFont(w);
-    if (measureCtx.measureText(text).width <= room) return text;
-    const words = text.split(" ");
-    while (words.length > 1) {
-      words.pop();
-      const t = words.join(" ").replace(/[\s,;:·–—-]+$/, "") + "…";
-      if (measureCtx.measureText(t).width <= room) return t;
+  /** @param {Working} state @param {number} now */
+  function updateElapsed(state, now) {
+    const e = state.pill.querySelector(".mx-we");
+    const s = Math.max(0, Math.floor((now - state.since) / 1000));
+    const text = s >= 3 ? elapsed(s) : "";
+    if (e && e.textContent !== text) e.textContent = text;
+  }
+  scope.interval(() => {
+    const now = Date.now();
+    for (const [row, state] of active) if (row.parentNode === msgs) updateElapsed(state, now);
+  }, 1000);
+  scope.listen(msgs, "click", (event) => {
+    const pill = (/** @type {Element} */ (event.target)).closest(".mx-work");
+    const row = /** @type {HTMLElement | null} */ (pill?.closest(".m"));
+    if (!row || active.get(row)?.pill !== pill) return;
+    if (pill?.contains(document.activeElement)) toHeader = row.dataset.k;
+    (/** @type {HTMLElement | null} */ (row.querySelector(".turn .tb-h")))?.click();
+    toLatest(true);
+  });
+  scope.effect(() => () => {
+    for (const row of /** @type {HTMLCollectionOf<HTMLElement>} */ (msgs.children)) {
+      row.removeAttribute("data-work-order");
+      row.removeAttribute("data-work-height");
+      row.style.removeProperty("--work-order");
+      row.style.removeProperty("--work-height");
     }
-    let t = text;
-    while (t.length > 1 && measureCtx.measureText(t + "…").width > room) t = t.slice(0, -1);
-    return t + "…";
-  }
-  /** @param {HTMLElement} w @param {string | undefined} key @param {string} text */
-  function sizeWork(w, key, text) {
-    const probe = document.createElement("span");
-    probe.className = "mx-wsize"; probe.textContent = text;
-    w.append(probe);
-    const natural = 16 + probe.offsetWidth + 12 + Math.max(64, (/** @type {HTMLElement} */ (w.querySelector(".mx-we"))).offsetWidth) + 16 + 2;
-    probe.remove();
-    const max = (/** @type {HTMLElement} */ (w.parentElement)).clientWidth * 0.88;
-    const st = WORKING.get(key);
-    const target = Math.max(Math.min(natural, WORK_MAX, max), st && st.w ? Math.min(st.w, WORK_MAX, max) : 0);
-    if (st && st.w && Math.abs(st.w - target) > 1) {
-      w.style.transition = "none"; w.style.width = `${st.w}px`; void w.offsetWidth;
-      w.style.transition = ""; w.style.width = `${target}px`;
-    } else w.style.width = `${target}px`;
-    if (st) st.w = target;
-  }
-  function tick() {
-    for (const w of document.querySelectorAll(".mx-work")) {
-      const st = WORKING.get((/** @type {HTMLElement | null} */ (w.closest(".m")))?.dataset.k);
-      if (!st) continue;
-      const s = Math.max(0, Math.floor((Date.now() - st.since) / 1000));
-      const t = s >= 3 ? elapsed(s) : "";
-      const e = /** @type {HTMLElement} */ (w.querySelector(".mx-we"));
-      if (e.textContent !== t) e.textContent = t;
-    }
-  }
-  { const tk = setInterval(tick, 1000); gone.push(() => clearInterval(tk)); }
+    active.clear();
+    ended.clear();
+  });
 
   /** @param {HTMLElement} el */
   function restoreFocus(el) {
@@ -254,5 +263,5 @@ export function createWorkingTurn(E, SEL, decorate, gone) {
     if (el.contains(a) && !shown(a)) { const w = el.querySelector(":scope > .mb > .mx-work"); if (shown(w)) w.focus({ preventScroll: true }); }
   }
 
-  return { working, restoreFocus, removeSheets: () => { holdSheet.remove(); orderSheet.remove(); } };
+  return { working, restoreFocus, updateOrder };
 }

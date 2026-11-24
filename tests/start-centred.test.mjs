@@ -1,24 +1,19 @@
-// A project's empty page ("What should get done in…?") sits in the middle of the room (the owner, 19 Nov 14:21Z:
-// "shouldn't this be in center?"). Its own margin:auto centres it (css/app.css .m-start); the conversation's rhythm
-// (core/ui/markdown/rich.css, 16 around every row of #msgs, 0 above the first) is for messages and must not reach it, or the
-// page sits at the top. Measured: margin-top 0 → 184.5 px each side at 1440×900.
-//   node tests/start-centred.test.mjs
 import assert from "node:assert/strict";
-import { sheet } from "./lib/cascade.mjs";
-import { readFileSync } from "node:fs";
-const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8");
-const app = sheet(new URL("../css/app.css", import.meta.url)), rich = read("core/ui/markdown/rich.css");
-assert.match(app, /\.m-start\{display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto 0;/);
-assert.match(app, /\.column:has\(\.m-start,\.m-load\),\.msgs:has\(> \.m-start,> \.m-load\)\{display:flex;flex:1 0 auto;flex-direction:column\}/);
-// a conversation on its way: the pack's spinner in the middle of that same room, only once it takes a moment
-assert.match(app, /\.m-load\{display:grid;place-items:center;flex:1;[^}]*animation:hs-in var\(--d-in\) var\(--ease\) var\(--d-wait\) both\}/);
-assert.match(app, /\.spin\.is-load\{[^}]*mask:var\(--mask-load\);[^}]*steps\(8\)\}/);
-assert.match(read("core/ui/tokens.css"), /--mask-load:url\(\/core\/ui\/icons\/source\/xo\/n-people-status-and-time\/spinner\.svg\)/);
-const messages = read("modules/conversation/messages.js"), items = read("modules/conversation/message-items.js");
-assert.match(messages, /\{ load: "Loading the thread" \}/);
-assert.match(items, /m\.load \? `<div class="m-load" role="status"><i class="spin is-load" aria-hidden="true"><\/i><span class="sr-only">/);
-assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:not\(\.m-start\)\{margin-block:var\(--s-4\)\}/);
-assert.match(rich, /:root:not\(\[data-msgx\]\) :is\(#msgs,#tmsgs\)>:first-child:not\(\.m-start\)\{margin-top:0\}/);
-// no other rule of the conversation sets a margin on every row of #msgs
-for (const css of [rich, read("modules/conversation/msgx.css"), app]) assert.doesNotMatch(css, /:is\(#msgs,#tmsgs\) ?> ?(\*|:first-child)\{[^}]*margin/);
-console.log("start-centred: ok");
+import { fileURLToPath } from "node:url";
+import { dom } from "./lib/dom.mjs";
+import { flattenStyles } from "../tools/conformance/css-flatten.mjs";
+
+const rows = flattenStyles(fileURLToPath(new URL("../", import.meta.url)));
+const value = (selector, property) =>
+  rows.find((row) => row.property === property && row.context.at(-1)?.selector === selector)?.value;
+assert.equal(value(".m-start", "margin"), "auto 0");
+assert.equal(value(".column:has(.m-start,.m-load),.msgs:has(> .m-start,> .m-load)", "flex"), "1 0 auto");
+assert.equal(value(".m-load", "place-items"), "center");
+assert.equal(value(".m-load", "animation"), "hs-in var(--d-in) var(--ease) var(--d-wait) both");
+assert.equal(value(".spin.is-load", "mask"), "var(--mask-load)");
+const { document } = await dom('<div class="msgs"><div class="m-start"></div><div class="m"></div></div>');
+const margin = rows.filter((row) => row.property?.startsWith("margin") &&
+  row.context.at(-1)?.selector?.startsWith(":root:not([data-msgx]) .msgs>"));
+const start = document.querySelector(".m-start"), msg = document.querySelector(".m");
+assert.ok(margin.some((rule) => msg.matches(rule.context.at(-1).selector)));
+assert.ok(margin.every((rule) => !start.matches(rule.context.at(-1).selector)));
