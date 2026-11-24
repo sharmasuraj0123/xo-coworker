@@ -323,7 +323,8 @@ body.fv-sizing{cursor:col-resize;user-select:none}
 .fv{container:fv / inline-size}
 @container fv (min-width:480px){.fl-sz{display:inline}}
 /* the file sits in the Files place now, not in the panel: it fills its column there */
-.fv .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
+.fv .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;
+  background:var(--fill-viewer-embedded);box-shadow:none;animation:none}
 .fv [data-vw-close]{display:none}
 body.viewer-open .fv~.dock{display:none}
 

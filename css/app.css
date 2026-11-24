@@ -34,7 +34,6 @@
 @import url("../modules/chats/send-now.css");
 @import url("../modules/files/conversation-cards.css");
 @import url("../modules/files/viewer.css");
-:root[data-theme="light"] .viewer{background:var(--surface)}
 @media (max-width:760px){
   .viewer{position:fixed;inset:0;width:auto;z-index:var(--z-popover);border-radius:0;border:0}
   .viewer.is-in{animation:sheet-up var(--d-move) var(--ease) both}
@@ -536,7 +535,8 @@ body.stage-full .stage{left:var(--float-inset);width:auto;z-index:calc(var(--z-p
 /* Hide the conversation dock under a full-size panel while keeping its own dock visible. */
 body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock){visibility:hidden}
 /* the Map and the viewer inside it: the panel is their card, their tabs and their close */
-.stage .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;animation:none}
+.stage .viewer{position:relative;inset:auto;z-index:auto;flex:1;width:auto;min-height:0;border:0;border-radius:0;
+  background:var(--fill-viewer-embedded);box-shadow:none;animation:none}
 .stage [data-vw-close]{display:none}
 /* the header's one button */
 .stg-btn{position:relative;flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);border:1px solid transparent;background:var(--btn-fill);color:var(--ink);align-self:center;transition:background var(--d-hover) var(--ease),border-color var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
