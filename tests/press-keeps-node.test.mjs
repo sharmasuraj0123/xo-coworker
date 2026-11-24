@@ -27,17 +27,6 @@ await t("Back is written through patch(): only when its name changes, in place",
   assert.doesNotMatch(header, /back\.innerHTML\s*=/);
   assert.equal((header.match(/patch\(back, `\$\{ICON\.back\}<span>/g) || []).length, 2, "a thread's Back and a chat's");
 });
-await t("Files redraws a folder's rows in place; its groups, the ⋯ and a new file's row are the tree's own", () => {
-  const f = ["files.js", "tree.js", "operations.js"].map((file) => readFileSync(new URL(`../modules/files/${file}`, import.meta.url), "utf8")).join("\n");
-  const i = f.indexOf("function sync(s, local, g, ctx) {");
-  const body = f.slice(i, f.indexOf("\n  }\n", i));
-  assert.match(body, /redraw\(g\.el, rowsHtml\(/);
-  assert.doesNotMatch(body, /innerHTML/);
-  assert.match(f, /el\.dataset\.flG = p; el\.setAttribute\("data-own", ""\);/, "a group made by sync is the tree's own");
-  assert.match(f, /data-fl-g="\$\{esc\(x\.path\)\}" data-own>/, "a group drawn whole is too");
-  assert.match(f, /M\.btn\.setAttribute\("data-own", ""\)/, "the ⋯");
-  assert.match(f, /el\.className = "fl-new"; el\.setAttribute\("data-own", ""\)/, "a new file's row");
-});
 await t("the Map draws its boxes, its head and a cursor's tag in place", () => {
   const m = ["map.js", "drawing.js", "diagram.js"].map((f) => readSource(`modules/map/${f}`)).join("\n");
   assert.doesNotMatch(m, /nodes\.innerHTML\s*=/);
@@ -63,6 +52,7 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
 {
   const { window } = await dom(`<main id="host"></main><div id="viewer"></div>`);
   Object.assign(globalThis, { innerWidth: 1440, innerHeight: 900, localStorage: { getItem: () => null, setItem() {} } });
+  globalThis.cancelAnimationFrame ??= clearTimeout;
   globalThis.performance ??= { now: () => Date.now() };
   const ev = (el, type) => el.dispatchEvent(new window.Event(type, { bubbles: true }));
   /** A press held across `fn`: pointerdown on `node`, fn() (a redraw), then the press ends. True if the node stayed. */
@@ -280,6 +270,29 @@ await t("the other live regions draw in place: away line, Follow, decisions foot
       const i = tree.indexOf("function sync(s, local, g, ctx) {"), body = tree.slice(i, tree.indexOf("\n  }\n", i));
       assert.match(body, /if \(!dirs\.has\(dkey\(s, p\)\)\) load\(s, p\);/);
       assert.doesNotMatch(f, /F\.scope !== s\b/, "a place is the same place by its key, never by the object");
+    });
+    await t("Files keeps the More button and naming field across live redraws", async () => {
+      row("c").focus();
+      const more = fh.querySelector('[data-fl-more="c"]');
+      const changes = new window.MutationObserver(() => {});
+      changes.observe(fh, { childList: true, subtree: true });
+      assert.ok(await pressAcross(more, () => {
+        mark("c/z.js", true);
+        const removed = changes.takeRecords().flatMap((record) => [...record.removedNodes]);
+        assert.equal(removed.some((el) => el === more || el.contains?.(more)), false);
+      }));
+      changes.disconnect();
+      assert.equal(fh.querySelector('[data-fl-more="c"]') === more, true);
+      const menu = document.querySelector(".fl-menu");
+      assert.equal(menu.hidden, false);
+      ev(menu.querySelector("[data-fl-mk]"), "click");
+      const input = fh.querySelector("[data-fl-name]");
+      input.value = "draft.md";
+      ev(input, "input");
+      mark("c/z.js", false);
+      assert.equal(fh.querySelector("[data-fl-name]") === input, true);
+      assert.equal(document.activeElement === input, true);
+      assert.equal(input.value, "draft.md");
     });
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }

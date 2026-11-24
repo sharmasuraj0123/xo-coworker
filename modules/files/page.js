@@ -2,9 +2,11 @@
 
 // Files, a page of the right panel: the tree and the open file beside the chat, the tree folding to a rail (⌘B).
 
+import { createScope } from "../../core/kernel/scope.js";
+import { read, write } from "../../core/platform/storage.js";
 import { ICON } from "../../core/ui/icons/names.js";
+import { createTreeWidth } from "./tree-width.js";
 
-const TW_KEY = "xo-files-tree", TW_DEF = 240, TW_MIN = 160, TW_MAX = 420;
 const FOLD_KEY = "xo-files-folds"; // {tree: "open" | "folded"}: what you chose, per browser
 
 /** @param {{ stage: any, files: any, viewer: any, view: () => string, announce?: (s: string) => void }} deps */
@@ -15,48 +17,26 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
   pane.setAttribute("aria-label", "Files");
   pane.innerHTML = `<div class="fv-b"></div>`;
   const body = /** @type {HTMLElement} */ (pane.querySelector(".fv-b"));
-  let mounted = false;
+  /** @type {ReturnType<typeof createScope> | undefined} */
+  let mounted;
 
-  // the tree's width: dragged, keyboard (← →), double-click for the default; kept per browser
-  let tw = TW_DEF;
-  try { tw = Number(localStorage.getItem(TW_KEY)) || TW_DEF; } catch { /* private mode */ }
-  const setTw = (/** @type {number} */ w, save = false) => {
-    tw = Math.round(Math.max(TW_MIN, Math.min(TW_MAX, w)));
-    pane.style.setProperty("--tw", `${tw}px`);
-    if (save) { try { localStorage.setItem(TW_KEY, String(tw)); } catch { /* private mode */ } }
-  };
-  setTw(tw);
+  const wireWidth = createTreeWidth(pane, body);
   // folded or open: your choice, kept per browser (open until you fold it)
-  let folds = /** @type {{ tree?: string }} */ ({});
-  try { folds = JSON.parse(localStorage.getItem(FOLD_KEY) || "{}") || {}; } catch { /* private mode */ }
+  const folds = read(FOLD_KEY, (raw) => JSON.parse(raw) || {}, {});
   const treeOpen = () => folds.tree !== "folded";
-  const keepFold = (/** @type {boolean} */ open) => { folds.tree = open ? "open" : "folded"; try { localStorage.setItem(FOLD_KEY, JSON.stringify(folds)); } catch { /* private mode */ } };
+  const keepFold = (/** @type {boolean} */ open) => { folds.tree = open ? "open" : "folded"; write(FOLD_KEY, JSON.stringify(folds)); };
 
-  function mountOnce() {
-    if (mounted) return;
-    mounted = true;
-    files.mount(body);
+  /** @param {HTMLElement} host */
+  function mount(host) {
+    host.append(pane);
+    if (mounted) return mounted.dispose;
+    const scope = createScope();
+    mounted = scope;
+    scope.effect(() => () => { mounted = undefined; pane.remove(); });
+    files.mount(body, scope);
     files.fold(!treeOpen());
-    const line = /** @type {HTMLElement | null} */ (body.querySelector(".fl-split"));
-    if (!line) return;
-    line.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      line.setPointerCapture(e.pointerId);
-      document.body.classList.add("fv-sizing");
-      const left = body.getBoundingClientRect().left; // read once, at the press
-      const move = (/** @type {PointerEvent} */ ev) => setTw(ev.clientX - left);
-      const up = () => { line.removeEventListener("pointermove", move); document.body.classList.remove("fv-sizing"); setTw(tw, true); };
-      line.addEventListener("pointermove", move);
-      line.addEventListener("pointerup", up, { once: true });
-      line.addEventListener("pointercancel", up, { once: true });
-    });
-    line.addEventListener("dblclick", () => { setTw(TW_DEF, true); });
-    line.addEventListener("keydown", (e) => {
-      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-      e.preventDefault();
-      setTw(tw + (e.key === "ArrowRight" ? 16 : -16), true);
-    });
+    wireWidth(scope);
+    return scope.dispose;
   }
 
   const nameOf = (/** @type {any} */ f) => (f ? f.name || String(f.path || f.rel || "").split("/").pop() : "");
@@ -75,7 +55,7 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
       return `<button type="button" class="stg-ic pg-lead" data-stg-act="tree" aria-pressed="${shown}" title="${shown ? "Hide" : "Show"} the files (⌘B)" aria-label="${shown ? "Hide" : "Show"} the files" aria-keyshortcuts="Meta+B Control+B">${ICON.sidebar}</button>`;
     },
     act: (/** @type {string} */ name) => { if (name === "tree") P.toggleTree({ focus: true }); },
-    mount: (/** @type {HTMLElement} */ host) => { host.append(pane); mountOnce(); },
+    mount,
     onShow: (/** @type {string} */ key, /** @type {{ focus?: boolean }} */ { focus } = {}) => {
       if (!pane.isConnected) return;
       files.show(view());
@@ -93,7 +73,7 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
   // the files' list shown beside (or, narrow, instead of) the file
   const listShown = () => (files.listing || (files.wide ? !files.folded : false));
   // the head's control keeps focus as the head redraws (it's redrawn in place, the same button)
-  const refocus = (/** @type {boolean} */ on) => { if (on) requestAnimationFrame(() => /** @type {HTMLElement | null} */ (document.querySelector('#stage [data-stg-act="tree"]'))?.focus({ preventScroll: true })); };
+  const refocus = (/** @type {boolean} */ on) => { if (on) mounted?.frame(() => /** @type {HTMLElement | null} */ (document.querySelector('#stage [data-stg-act="tree"]'))?.focus({ preventScroll: true })); };
   const P = {
     /** Show Files in the panel, on the file the viewer has (or the tree alone). focus: into the file. @param {{ focus?: boolean }} [o] */
     show({ focus = false } = {}) {

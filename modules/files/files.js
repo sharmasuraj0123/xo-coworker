@@ -1,5 +1,6 @@
 // @ts-check
 
+import { createScope } from "../../core/kernel/scope.js";
 import { esc, copyText, COPY_REFUSED, space } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { scopeOf, fileScope, localIn, parentOf } from "./scope.js";
@@ -8,32 +9,22 @@ import { createFilesTree } from "./tree.js";
 import { apiRel, createFolderReads } from "./folder-reads.js";
 import { createFileOperations } from "./operations.js";
 import { wireFileDrag } from "./drag.js";
+import { createFilesMenu } from "./menu-elements.js";
 import { createSectionFolds } from "./section-folds.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { pointerFollows } from "../../core/ui/a11y/keynav.js";
 
 /** @import { FileLocation, FilesScope } from "./scope.js" */
 
-/** @import { FileRow } from "./folder-reads.js" */
-
 /** @import { FilesDependencies, FilesState, MenuState } from "./files-types.d.ts" */
 
 /** @import { OperationDependencies } from "./operation-types.d.ts" */
 
-/** @import { CachedElement } from "./tree-types.d.ts" */
-
 const WIDE = 600;
-
 export const FILES_ICON = ICON.folder;
-const BACK = ICON.back;
 const CHANGED_IC = ICON.changes;
-const MORE_IC = ICON.more;
-const NEW_IC = ICON.fileNew;
-const FOLDER_IC = ICON.folder;
-
 /** @param {string | null | undefined} p */
 const base = (p) => /** @type {string} */ (String(p || "").split("/").pop());
-
 /** @param {FilesDependencies} deps */
 export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, onFold = null, paths = null }) {
   /** @type {FilesState} */
@@ -48,12 +39,12 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     q: "", wide: false,
     folded: false,
   };
+  /** @type {ReturnType<typeof createScope> | undefined} */
+  let mounted;
   /** @param {string} k */
   const setOf = (k) => { if (!F.open.has(k)) F.open.set(k, new Set()); return /** @type {Set<string>} */ (F.open.get(k)); };
   const { dirs, load } = createFolderReads(paint);
-
   const { folded, setFolded } = createSectionFolds();
-
   function paint() {
     if (!F.host || !F.shown) return;
     const s = F.scope;
@@ -71,8 +62,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     lay.classList.toggle("is-file", !F.wide && has && F.fileView);
     if (treeFocus && !treeFocus.getClientRects().length) { const v = document.getElementById("viewer"); if (v && !v.hidden && v.getClientRects().length) v.focus({ preventScroll: true }); }
     lay.classList.toggle("has-file", has);
-    const bar = /** @type {CachedElement} */ (F.host.querySelector(".fl-bar"));
-    const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${BACK}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
+    const bar = /** @type {import("./tree-types.d.ts").CachedElement} */ (F.host.querySelector(".fl-bar"));
+    const bh = has && !F.wide ? `<button type="button" class="fl-back" data-fl-back>${ICON.back}<span>${esc(s.key === "all" ? "Projects" : s.label || "Files")}</span></button>` : "";
     if (bar._h !== bh) { bar.innerHTML = bh; bar._h = bh; }
     if (retryOf != null && !/** @type {HTMLElement} */ (a).isConnected) {
       const target = F.host.querySelector(`[data-fl-retry="${CSS.escape(retryOf)}"]`) || (retryOf ? rowOf(retryOf) : F.host.querySelector("[data-fl-new]"));
@@ -85,7 +76,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     if (sel && host.querySelector(sel)) /** @type {HTMLElement} */ (host.querySelector(sel)).focus({ preventScroll: true });
     else /** @type {HTMLElement | null} */ (host.querySelector(".fl-tree [data-fl-unpick], .fl-tree .fl-r"))?.focus({ preventScroll: true });
   }
-
   /** @param {FilesScope} s @param {string} local @param {HTMLElement} from @param {number | null} bytes */
   function openFile(s, local, from, bytes = null) {
     F.sel = local; F.fileView = true; F.auto = false;
@@ -93,11 +83,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     paint();
   }
   async function frontPage() {
-    const s = F.scope;
+    const s = F.scope, scope = mounted;
     if (!F.wide || !s.project || viewer.hasFile) return;
     const d = await load(s, "");
-    if (F.scope.key !== s.key || viewer.hasFile || !d || d.state !== "ok") return;
-    const r = /** @type {FileRow[]} */ (d.files).find((x) => /^readme\.(md|mdx|markdown|txt)$/i.test(x.name)) || null;
+    if (scope?.signal.aborted || F.scope.key !== s.key || viewer.hasFile || !d || d.state !== "ok") return;
+    const r = /** @type {import("./folder-reads.js").FileRow[]} */ (d.files).find((x) => /^readme\.(md|mdx|markdown|txt)$/i.test(x.name)) || null;
     if (!r) return;
     F.sel = r.path; F.auto = true;
     viewer.open({ path: r.path, name: r.name, bytes: r.bytes, project: s.project, rel: apiRel(s, r.path) }, null);
@@ -109,7 +99,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       const fs = fileScope(f, { threads: world.state.threads, project: (id) => PROJ(id) });
       if (fs && localIn(fs, f) != null) { F.follow = fs; setScope(F.view); }
     }
-    const s = F.scope;
+    const s = F.scope, scope = mounted;
     const local = localIn(s, f);
     F.sel = local; F.fileView = true;
     if (local == null) { paint(); return; }
@@ -118,10 +108,9 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     for (let p = parentOf(local); p; p = parentOf(p)) chain.unshift(p);
     for (const p of chain) open.add(p);
     paint();
-    for (const p of ["", ...chain]) { await load(s, p); if (F.scope.key !== s.key) return; }
-    requestAnimationFrame(() => F.host && /** @type {HTMLElement} */ (F.host).querySelector(`.fl-r.is-on`)?.scrollIntoView({ block: "nearest" }));
+    for (const p of ["", ...chain]) { await load(s, p); if (scope?.signal.aborted || F.scope.key !== s.key) return; }
+    scope?.frame(() => F.host && /** @type {HTMLElement} */ (F.host).querySelector(".fl-r.is-on")?.scrollIntoView({ block: "nearest" }));
   }
-
   /** @param {string} view */
   function setScope(view) {
     if (view !== F.view) F.follow = null;
@@ -138,7 +127,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     F.scope = s;
     return false;
   }
-
   /** @param {boolean} on */
   function fold(on, { mine = false } = {}) {
     if (F.folded === !!on) return;
@@ -159,7 +147,6 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const target = part === "all" ? tree.querySelector(".fl-g .fl-r") : tree.querySelector(".fl-secs .fl-r") || tree.querySelector(".fl-r");
     /** @type {HTMLElement | null} */ (target)?.focus({ preventScroll: true });
   }
-
   /** @type {MenuState} */
   const M = { btn: null, row: null, menu: null, from: null, dir: null };
   /** @param {FilesScope} s @param {string} p */
@@ -187,8 +174,8 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     const m = /** @type {HTMLElement} */ (M.menu);
     M.from = btn; M.dir = btn.dataset.flMore; M.kind = btn.dataset.flKind || "dir";
     const can = ops(F.scope), dir = M.kind === "dir";
-    m.innerHTML = (dir ? `<button type="button" role="menuitem" data-fl-mk>${NEW_IC}<span>New file</span></button>` : "") +
-      (dir && can ? `<button type="button" role="menuitem" data-fl-mkdir>${FOLDER_IC}<span>New folder</span></button>` : "") +
+    m.innerHTML = (dir ? `<button type="button" role="menuitem" data-fl-mk>${ICON.fileNew}<span>New file</span></button>` : "") +
+      (dir && can ? `<button type="button" role="menuitem" data-fl-mkdir>${ICON.folder}<span>New folder</span></button>` : "") +
       (can ? `<button type="button" role="menuitem" data-fl-rn><span>Rename or move…</span><kbd>F2</kbd></button><button type="button" role="menuitem" data-fl-del><span>Delete</span></button>` : "") +
       `<button type="button" role="menuitem" data-fl-cp>${ICON.copy}<span>Copy path</span></button>`;
     m.hidden = false;
@@ -205,17 +192,18 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     M.from?.setAttribute("aria-expanded", "false");
     if (back && M.from && M.from.isConnected) M.from.focus({ preventScroll: true });
   }
-  /** @param {HTMLElement} m */
-  function wireMenu(m) {
-    m.addEventListener("click", (e) => {
+  /** @param {HTMLElement} m @param {ReturnType<typeof createScope>} scope */
+  function wireMenu(m, scope) {
+    scope.listen(m, "click", (e) => {
       if (/** @type {HTMLInputElement} */ (e.target).closest("[data-fl-mk]")) { closeMenu(); startNew(/** @type {string} */ (M.dir)); return; }
       if (/** @type {HTMLInputElement} */ (e.target).closest("[data-fl-mkdir]")) { closeMenu(); startNew(/** @type {string} */ (M.dir), "folder"); return; }
       if (/** @type {HTMLInputElement} */ (e.target).closest("[data-fl-rn]")) { closeMenu(); startNew(parentOf(/** @type {string} */ (M.dir)), "rename", /** @type {string} */ (M.dir)); return; }
       if (/** @type {HTMLInputElement} */ (e.target).closest("[data-fl-del]")) { closeMenu(); remove(/** @type {string} */ (M.dir), /** @type {string} */ (M.kind)); return; }
       const cp = /** @type {HTMLElement | null} */ (/** @type {HTMLInputElement} */ (e.target).closest("[data-fl-cp]"));
-      if (cp) { copyText(/** @type {string} */ (M.dir)).then((ok) => { if (ok) { cp.innerHTML = `${ICON.check}<span>Copied</span>`; setTimeout(() => closeMenu(true), 600); } else { cp.innerHTML = `<span>Couldn't copy here</span>`; cp.title = COPY_REFUSED; } }); }
+      if (cp) { copyText(/** @type {string} */ (M.dir)).then((ok) => { if (scope.signal.aborted) return; if (ok) { cp.innerHTML = `${ICON.check}<span>Copied</span>`; scope.timeout(() => closeMenu(true), 600); } else { cp.innerHTML = `<span>Couldn't copy here</span>`; cp.title = COPY_REFUSED; } }); }
     });
-    m.addEventListener("keydown", (e) => {
+    scope.listen(m, "keydown", (event) => {
+      const e = /** @type {KeyboardEvent} */ (event);
       const items = [...m.querySelectorAll("button")], i = items.indexOf(/** @type {HTMLButtonElement} */ (document.activeElement));
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeMenu(true); return; }
       if (e.key === "Tab") { closeMenu(true); e.preventDefault(); return; }
@@ -224,21 +212,19 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       e.preventDefault();
       items[(to + items.length) % items.length].focus();
     });
-    document.addEventListener("pointerdown", (e) => { if (!m.hidden && !m.contains(/** @type {Node} */ (e.target)) && e.target !== M.from && !M.from?.contains(/** @type {Node} */ (e.target))) closeMenu(); }, true);
+    scope.listen(document, "pointerdown", (e) => { if (!m.hidden && !m.contains(/** @type {Node} */ (e.target)) && e.target !== M.from && !M.from?.contains(/** @type {Node} */ (e.target))) closeMenu(); }, true);
   }
-
   /** @type {OperationDependencies["NW"]} */
   const NW = { key: null, dir: null, el: null, busy: false, confirm: false, mode: "file", from: null };
   const { T, paintTree, rowOf } = createFilesTree({
     F, M, NW, dirs, load, paths, folded, setOf, ops, world, viewer, changes, isBusy, placeNew: () => placeNew(), moreAt, base,
   });
   const { startNew, endNew, placeNew, nameSay, sayNew, makeNew, moveTo, remove, undoRemove } = createFileOperations({
-    F, NW, dirs, load, paths, changes, viewer, setOf, paint, groups: () => T.groups, rowOf, base, canMake, folderIcon: FOLDER_IC,
+    F, NW, dirs, load, paths, changes, viewer, setOf, paint, groups: () => T.groups, rowOf, base, canMake, folderIcon: ICON.folder,
   });
-
-  /** @param {HTMLElement} host */
-  function wire(host) {
-    host.addEventListener("click", (e) => {
+  /** @param {HTMLElement} host @param {ReturnType<typeof createScope>} scope */
+  function wire(host, scope) {
+    scope.listen(host, "click", (e) => {
       const t = /** @type {HTMLElement} */ (e.target);
       const rl = /** @type {HTMLElement | null} */ (t.closest("[data-fl-rail]"));
       if (rl) { unfoldTo(/** @type {string} */ (rl.dataset.flRail)); return; }
@@ -280,7 +266,7 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       }
       if (t.closest("[data-fl-back]")) { F.fileView = false; if (!F.wide) viewer.close({ restore: false }); paint(); /** @type {HTMLElement | null} */ (host.querySelector(".fl-r.is-on, .fl-r"))?.focus({ preventScroll: true }); }
     });
-    host.addEventListener("input", (e) => {
+    scope.listen(host, "input", (e) => {
       if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-q]")) { F.q = /** @type {HTMLInputElement} */ (e.target).value; paint(); return; }
       if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-name]") && NW.el && NW.mode === "file") {
         const n = /** @type {HTMLInputElement} */ (e.target).value.trim();
@@ -290,27 +276,29 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     });
     /** @param {HTMLElement | null} x */
     const folderRow = (x) => (x && x.matches && (x.matches(".fl-g > .fl-r.is-dir") || (ops(F.scope) && x.matches(".fl-g > .fl-r[data-fl-file]:not(.is-found)"))) ? x : null);
-    host.addEventListener("pointerover", (e) => {
+    scope.listen(host, "pointerover", (e) => {
       if (!/** @type {HTMLElement} */ (M.menu).hidden || /** @type {HTMLInputElement} */ (e.target).closest(".fl-more")) return;
       const r = /** @type {HTMLElement | null} */ (/** @type {HTMLInputElement} */ (e.target).closest(".fl-r"));
       if (r) moreAt(folderRow(r) || folderRow(/** @type {HTMLElement | null} */ (document.activeElement)));
     });
-    host.addEventListener("pointerout", (e) => {
+    scope.listen(host, "pointerout", (event) => {
+      const e = /** @type {PointerEvent} */ (event);
       if (!/** @type {HTMLElement} */ (M.menu).hidden || (e.relatedTarget && /** @type {HTMLElement} */ (e.relatedTarget).closest && /** @type {HTMLElement} */ (e.relatedTarget).closest(".fl-list"))) return;
       if (!/** @type {HTMLInputElement} */ (e.target).closest || !/** @type {HTMLInputElement} */ (e.target).closest(".fl-list")) return;
       moreAt(folderRow(/** @type {HTMLElement | null} */ (document.activeElement)) || (document.activeElement === M.btn ? M.row : null));
     });
-    host.addEventListener("focusin", (e) => {
+    scope.listen(host, "focusin", (e) => {
       const r = folderRow(/** @type {HTMLElement} */ (e.target));
       if (r) moreAt(r);
       else if (e.target !== M.btn) moreAt(null);
     });
-    host.addEventListener("focusout", (e) => {
-      if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-name]") && NW.el && !NW.busy && !/** @type {HTMLInputElement} */ (e.target).value.trim()) setTimeout(() => { if (NW.el && !NW.el.contains(/** @type {HTMLElement | null} */ (document.activeElement)) && !/** @type {HTMLInputElement} */ (NW.el.querySelector("input")).value.trim()) endNew(); });
+    scope.listen(host, "focusout", (e) => {
+      if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-name]") && NW.el && !NW.busy && !/** @type {HTMLInputElement} */ (e.target).value.trim()) scope.timeout(() => { if (NW.el && !NW.el.contains(/** @type {HTMLElement | null} */ (document.activeElement)) && !/** @type {HTMLInputElement} */ (NW.el.querySelector("input")).value.trim()) endNew(); }, 0);
     });
-    host.addEventListener("scroll", () => closeMenu(), true);
-    wireFileDrag(host, () => ops(F.scope), pathOfRow, base, moveTo);
-    host.addEventListener("keydown", (e) => {
+    scope.listen(host, "scroll", () => closeMenu(), true);
+    wireFileDrag(host, () => ops(F.scope) ? F.scope.key : null, pathOfRow, base, moveTo, scope);
+    scope.listen(host, "keydown", (event) => {
+      const e = /** @type {KeyboardEvent} */ (event);
       if (/** @type {HTMLInputElement} */ (e.target).matches("[data-fl-name]")) {
         if (e.key === "Enter") { e.preventDefault(); makeNew(); }
         else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); endNew({ focus: true }); }
@@ -329,31 +317,41 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
       e.preventDefault();
       rows[Math.max(0, Math.min(rows.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)))]?.focus();
     });
-    if (typeof ResizeObserver === "function") new ResizeObserver(() => {
-      const w = host.getBoundingClientRect().width >= WIDE;
-      if (w !== F.wide) { F.wide = w; paint(); if (w) frontPage(); }
-    }).observe(host);
+    if (typeof ResizeObserver === "function") {
+      const observer = new ResizeObserver(() => {
+        if (scope.signal.aborted) return;
+        const w = host.getBoundingClientRect().width >= WIDE;
+        if (w !== F.wide) { F.wide = w; paint(); if (w) frontPage(); }
+      });
+      scope.observe(observer);
+      observer.observe(host);
+    }
   }
-
   return {
     pathsChanged() { if (F.q.trim()) paint(); },
     /** @param {HTMLElement} host */
-    mount(host) {
+    mount(host, scope = createScope()) {
+      mounted?.dispose();
+      mounted = scope;
       F.host = host;
-      host.innerHTML = `<div class="fl"><nav class="fl-rail" aria-label="Files, folded"><button type="button" class="fl-rb" data-fl-rail="changes">${CHANGED_IC}<em hidden></em></button><button type="button" class="fl-rb" data-fl-rail="all" title="All files">${FOLDER_IC}</button><button type="button" class="fl-rb" data-fl-rail="find" title="Find a file">${ICON.search}</button></nav>` +
-        `<div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       const vw = document.getElementById("viewer");
+      host.innerHTML = `<div class="fl"><nav class="fl-rail" aria-label="Files, folded"><button type="button" class="fl-rb" data-fl-rail="changes">${CHANGED_IC}<em hidden></em></button><button type="button" class="fl-rb" data-fl-rail="all" title="All files">${ICON.folder}</button><button type="button" class="fl-rb" data-fl-rail="find" title="Find a file">${ICON.search}</button></nav>` +
+        `<div class="fl-tree"></div><div class="fl-split" role="separator" aria-orientation="vertical" aria-label="Resize the file tree" title="Drag to resize · double-click for the default" tabindex="0"></div><div class="fl-pv"><div class="fl-bar"></div><div class="fl-view"></div><p class="fl-empty">Pick a file to read it here.</p></div></div>`;
       if (vw) /** @type {HTMLElement} */ (host.querySelector(".fl-view")).appendChild(vw);
-      M.btn = document.createElement("button");
-      M.btn.type = "button"; M.btn.className = "fl-more"; M.btn.title = "More: new, rename, delete, copy path"; M.btn.setAttribute("data-own", "");
-      M.btn.setAttribute("aria-haspopup", "menu"); M.btn.setAttribute("aria-expanded", "false");
-      M.btn.innerHTML = MORE_IC;
-      M.menu = document.createElement("div");
-      M.menu.className = "fl-menu"; M.menu.setAttribute("role", "menu"); /** @type {HTMLElement} */ (M.menu).hidden = true;
-      document.body.appendChild(M.menu);
-      wireMenu(M.menu);
-      pointerFollows(M.menu);
-      wire(host);
+      const { button, menu } = createFilesMenu();
+      M.btn = button;
+      M.menu = menu;
+      document.body.appendChild(menu);
+      scope.effect(() => () => {
+        closeMenu(); moreAt(null); menu.remove();
+        F.host = M.btn = M.menu = M.from = M.dir = NW.el = null;
+        F.shown = false;
+        mounted = undefined;
+      });
+      wireMenu(menu, scope);
+      pointerFollows(menu);
+      wire(host, scope);
+      return scope.dispose;
     },
     /** @param {string} view */
     show(view) {
@@ -374,11 +372,11 @@ export function createFiles({ world, viewer, isBusy, PROJ, go, changes = null, o
     reveal,
     /** @param {FileLocation} f */
     async reread(f) {
-      const s = F.scope, local = localIn(s, f);
-      if (local == null) return;
+      const scope = mounted, s = F.scope, local = localIn(s, f);
+      if (!scope || local == null) return;
       const dir = parentOf(local);
       await load(s, dir, { again: true });
-      if (F.scope.key !== s.key || (document.activeElement && document.activeElement !== document.body)) return;
+      if (scope.signal.aborted || F.scope.key !== s.key || (document.activeElement && document.activeElement !== document.body)) return;
       const target = dir ? rowOf(dir) : /** @type {HTMLElement} */ (F.host).querySelector("[data-fl-new]");
       /** @type {HTMLElement | null} */ (target)?.focus({ preventScroll: true });
     },

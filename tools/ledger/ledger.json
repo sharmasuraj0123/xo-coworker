@@ -2578,8 +2578,11 @@
    "note": "The legacy entry re-exports Files. Tree, drag and write operations live in modules/files/."
   },
   "js/filespage.js": {
-   "status": "moved",
-   "home": "modules/files/page.js"
+   "status": "split",
+   "home": [
+    "modules/files/page.js",
+    "modules/files/tree-width.js"
+   ]
   },
   "js/flavours.js": {
    "status": "moved",
@@ -2723,7 +2726,15 @@
     "core/services/media/items.js",
     "core/services/media/layout.js",
     "core/services/media/render.js",
-    "core/services/media/hydrate.js"
+    "core/services/media/hydrate.js",
+    "core/services/media/images.js",
+    "core/services/media/intersection.js",
+    "core/services/media/cache.js",
+    "core/services/media/stack-data.js",
+    "core/services/media/image-scope.js",
+    "core/services/media/object-urls.js",
+    "core/services/media/picture-load.js",
+    "core/services/media/project-images.js"
    ],
    "note": "js/media.js re-exports the shared media modules"
   },
@@ -8970,7 +8981,7 @@
   },
   "js/filespage.js::storage::xo-files-tree": {
    "status": "moved",
-   "home": "modules/files/page.js"
+   "home": "modules/files/tree-width.js"
   },
   "js/filespage.js::storage::xo-files-folds": {
    "status": "moved",
@@ -8978,7 +8989,7 @@
   },
   "js/filespage.js::keys::ArrowRight": {
    "status": "moved",
-   "home": "modules/files/page.js"
+   "home": "modules/files/tree-width.js"
   },
   "js/focusview.js::exports::usable": {
    "status": "moved",
@@ -10390,7 +10401,7 @@
   },
   "js/media.js::exports::mediaItemOf": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/stack-data.js"
   },
   "js/media.js::exports::mediaItem": {
    "status": "moved",
@@ -10406,11 +10417,11 @@
   },
   "js/media.js::exports::webGone": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/cache.js"
   },
   "js/media.js::exports::markWebGone": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/cache.js"
   },
   "js/media.js::exports::webImagesHtml": {
    "status": "moved",
@@ -10434,11 +10445,11 @@
   },
   "js/media.js::exports::cachedSrc": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/images.js"
   },
   "js/media.js::exports::loadSrc": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "showSrc assigns object URLs directly to the image that uses them"
   },
   "js/media.js::exports::PICTURE_FACE": {
    "status": "moved",
@@ -10522,7 +10533,7 @@
   },
   "js/media.js::functions::markWebGone": {
    "status": "moved",
-   "home": "core/services/media/render.js"
+   "home": "core/services/media/cache.js"
   },
   "js/media.js::functions::webImagesHtml": {
    "status": "moved",
@@ -10561,24 +10572,24 @@
    "home": "core/services/media/render.js"
   },
   "js/media.js::functions::touch": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "The shared LRU owns cache recency"
   },
   "js/media.js::functions::evict": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "The shared LRU evicts entries and calls the object URL cleanup"
   },
   "js/media.js::functions::cachedSrc": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/images.js"
   },
   "js/media.js::functions::loadSrc": {
-   "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "status": "deleted",
+   "reason": "showSrc assigns object URLs directly to the image that uses them"
   },
   "js/media.js::functions::watcherFor": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/intersection.js"
   },
   "js/media.js::functions::stateOf": {
    "status": "moved",
@@ -10606,11 +10617,11 @@
   },
   "js/media.js::functions::watch": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/picture-load.js"
   },
   "js/media.js::functions::start": {
    "status": "moved",
-   "home": "core/services/media/hydrate.js"
+   "home": "core/services/media/picture-load.js"
   },
   "js/media.js::functions::hydrateMedia": {
    "status": "moved",

@@ -7,30 +7,21 @@ import { outText } from "../../ui/markdown/inline.js";
 import { fmtSize, typeWord } from "./attachment-rules.js";
 import { LIMITS, MAX_TILES, fitImage, albumLayout } from "./layout.js";
 import { labelOf, midNameHtml, fromWebImage } from "./items.js";
+import { webGone } from "./cache.js";
+import { stackAttrs } from "./stack-data.js";
 
 /** @typedef {ReturnType<typeof import("./items.js").mediaItem>} MediaItem */
 
-/** @type {Map<string, MediaItem>} */
-export const REG = new Map(); // key → item: the lightbox and the click handler read what was drawn
-/** The item drawn under `key` (the lightbox's list, a click). @param {string} key */
-export const mediaItemOf = (key) => REG.get(key) || null;
-
-/** @type {Set<string>} */
-const gone = new Set(); // addresses that failed in this page: drawn as their links from then on, not tried again
 /** A web picture as the outbound link it would have been: underlined with ↗, its alt as the words, else its host. @param {MediaItem} it */
 export function webLinkHtml(it) {
   const w = /** @type {Partial<NonNullable<MediaItem["web"]>>} */ (it.web || {});
   const words = it.title ? outText(it.title) : outText(/** @type {string} */ (w.host || w.url), { address: true });
   return `<a href="${esc(w.url)}" target="_blank" rel="noopener noreferrer nofollow" class="lk lk-out mx-weblink" title="${esc(w.url)}">${words}</a>`;
 }
-/** Has this web picture failed in this page? (then it's a link) @param {unknown} url */
-export const webGone = (url) => gone.has(String(url));
-/** Note that a web picture couldn't show: the next drawing of it is its link. @param {unknown} url */
-export function markWebGone(url) { gone.add(String(url)); }
 /** @param {readonly Parameters<typeof fromWebImage>[0][] | null | undefined} list */
 export function webImagesHtml(list) {
   const items = (list || []).map((x) => fromWebImage(x));
-  const show = items.filter((it) => !gone.has(/** @type {NonNullable<MediaItem["web"]>} */ (it.web).url)), links = items.filter((it) => gone.has(/** @type {NonNullable<MediaItem["web"]>} */ (it.web).url));
+  const show = items.filter((it) => !webGone(/** @type {NonNullable<MediaItem["web"]>} */ (it.web).url)), links = items.filter((it) => webGone(/** @type {NonNullable<MediaItem["web"]>} */ (it.web).url));
   const linkP = links.length ? `<p class="mx-weblinks">${links.map(webLinkHtml).join("")}</p>` : "";
   return show.length ? mediaHtml(show, { side: "them" }).replace(/<\/div>$/, `${linkP}</div>`) : `<div class="mx-stack mx-them">${linkP}</div>`;
 }
@@ -93,7 +84,6 @@ function cardHtml(it) {
 export function mediaHtml(items, { side = "them", caption = "" } = {}) {
   const list = /** @type {MediaItem[]} */ ((items || []).filter(Boolean));
   if (!list.length) return "";
-  for (const it of list) REG.set(it.key, it);
   const pics = list.filter((it) => it.kind === "image");
   const files = list.filter((it) => it.kind !== "image");
   let html = "";
@@ -101,7 +91,5 @@ export function mediaHtml(items, { side = "them", caption = "" } = {}) {
   else if (pics.length > 1) html += albumHtml(pics, side);
   if (files.length) html += `<ul class="tb-fl${side === "you" ? " m-files" : ""} mx-files" aria-label="Files">${files.map(cardHtml).join("")}</ul>`;
   if (caption) html += `<p class="mx-cap">${esc(caption)}</p>`;
-  // the lightbox walks every picture on screen in order, the ones behind "+N" too
-  const keys = pics.length ? ` data-mx-keys="${esc(JSON.stringify(pics.map((it) => it.key)))}"` : "";
-  return `<div class="mx-stack mx-${side === "you" ? "you" : "them"}"${keys}>${html}</div>`;
+  return `<div class="mx-stack mx-${side === "you" ? "you" : "them"}"${stackAttrs(list, pics)}>${html}</div>`;
 }
