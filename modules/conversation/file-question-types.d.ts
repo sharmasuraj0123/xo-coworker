@@ -1,4 +1,4 @@
-import type { FileLocation, FileScope, ScopeThread } from "../../core/services/types.d.ts";
+import type { FileLocation, FileScope, ScopeThread } from "../../core/services/file-scope-types.d.ts";
 import type { createDelivery } from "./delivery.js";
 import type { LocalMessage, Thread } from "./delivery-types.d.ts";
 import type { createHerald } from "../../core/services/notices.js";

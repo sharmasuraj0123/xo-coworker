@@ -12,7 +12,7 @@ import { sound } from "../../core/services/sound.js";
 
 /** @import { LocalMessage } from "./delivery-types.d.ts" */
 
-/** @import { FileScope } from "../../core/services/types.d.ts" */
+/** @import { FileScope } from "../../core/services/file-scope-types.d.ts" */
 
 /** @param {FileQuestionDeps} deps */
 export function createFileQuestion({
