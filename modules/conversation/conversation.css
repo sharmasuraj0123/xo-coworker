@@ -3,7 +3,7 @@
 .conv{--hg:28px}
 .top{position:relative;z-index:3;flex:none;display:flex;align-items:center;gap:var(--s-3);min-height:var(--h-bar);padding:var(--s-3) var(--col-x);background:var(--canvas)}
 /* A project's header is one full-width row: the title on the left, the threads in progress */
-.top[data-kind="project"]{gap:20px;padding:14px var(--hg);border-bottom:1px solid var(--line-faint)}
+.top[data-kind="project"]{--top-line:var(--line-view);gap:20px;padding:14px var(--hg);border-bottom:1px solid var(--top-line)}
 .top[data-kind="project"] .top-who{flex:0 1 auto;min-width:120px;max-width:min(calc(34% + 46px),426px)}
 .app[data-view="ws"] .top .top-who,.top[data-kind="project"]:has(> .top-end:empty) .top-who{flex:1;max-width:none} /* no Now strip beside it: its line can run */
 .top-end{flex:none;display:flex;align-items:center;margin-left:auto}
@@ -60,7 +60,7 @@
   .top .tw-rt{display:none}
 }
 
-.thead{flex:none;padding:var(--s-1) var(--hg) var(--s-2);border-bottom:1px solid var(--line-faint)}
+.thead{flex:none;padding:var(--s-1) var(--hg) var(--s-2);border-bottom:1px solid var(--line-view)}
 .ckbar{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line-faint);overflow:hidden;transition:border-color var(--d-in) var(--ease),background var(--d-in) var(--ease)}
 .ckbar.m-needs{background:color-mix(in srgb,var(--warn) 5%,var(--surface))}
 .ckbar.m-fresh{background:color-mix(in srgb,var(--accent-fill) 4%,var(--surface))}

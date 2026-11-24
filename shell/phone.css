@@ -19,7 +19,7 @@
   :root:root .app:is([data-view="thread"],[data-view="project"],[data-view="ws"]) .conv{top:0}
   :root:root .top{
     flex-direction:row;flex-wrap:wrap;align-items:center;align-content:flex-start;column-gap:4px;row-gap:0;
-    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--line-faint)}
+    min-height:52px;padding:calc(6px + env(safe-area-inset-top)) 16px 5px 6px;border-bottom:1px solid var(--top-line,var(--line-faint))}
   :root:root .top-menu,
   :root:root .top-back{flex:none;display:grid;place-items:center;width:var(--h-lg);height:var(--h-lg);min-height:var(--h-lg);margin:0;padding:0;border-radius:var(--r-lg);color:var(--ink-2)}
   :root:root .top-back[hidden]{display:none}

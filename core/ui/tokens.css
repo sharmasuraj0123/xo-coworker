@@ -14,7 +14,7 @@
   --sunken:#111111; --canvas:#141414; --surface:#1B1B1B; --float:#1E1E1E;
   --fill-1:#171717; --fill-2:#232323; --fill-3:#2C2C2C; --fill-4:#3A3A3A;
   --menu-focus:#383838;   /* a menu's focused item: its fill is the mark, so it shows on the float (#232323 was 15 RGB-sum off it) */
-  --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656;
+  --line-faint:#1F1F1F; --line-soft:#262626; --line:#303030; --line-strong:#3C3C3C; --line-hover:#565656; --line-view:var(--line-faint);
   --ink:#EDEDED; --ink-2:#D6D6D6; --ink-3:#B8B8B8; --ink-4:#ACACAC; --ink-5:#8A8A8A;   /* text, secondary, meta, quiet (4.6:1), placeholder */
   --on-ink:#141414; --ink-hi:#FFFFFF;
   --accent:#83D63A; --accent-fill:#83D63A; --accent-ink:#141414; --accent-hover:#96DC58; --accent-press:#74C02F; --accent-rgb:131,214,58;
@@ -199,7 +199,7 @@
   --sunken:#F2F2F2; --canvas:#FAFAFA; --surface:#FFFFFF; --float:#FFFFFF;
   --fill-1:#F5F5F5; --fill-2:#EEEEEE; --fill-3:#E5E5E5; --fill-4:#C9C9C9;
   --menu-focus:#EEEEEE;
-  --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD;
+  --line-faint:#EEEEEE; --line-soft:#E6E6E6; --line:#DCDCDC; --line-strong:#CCCCCC; --line-hover:#BDBDBD; --line-view:var(--line-soft);
   --ink:#111111; --ink-2:#2B2B2B; --ink-3:#404040; --ink-4:#505050; --ink-5:#6E6E6E; --on-ink:#FFFFFF; --ink-hi:#000000;
   --accent:#3D7A17; --accent-fill:#83D63A; --accent-ink:#1A1A1A; --accent-hover:#76C134; --accent-press:#6CB12D; --accent-rgb:61,122,23;
   --err:#C42B2B; --err-ink:#B42323; --warn:#A15800; --info:#1F63C7; --violet:#7041C2;

@@ -2,7 +2,9 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
+import { rootTokenModel } from "../tools/conformance/css-root-tokens.mjs";
+import { substitute } from "../tools/conformance/css-resolve.mjs";
+import { declarationsFor, resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs";
 
 test("published CSS rules have complete selectors", () => {
   const selectors = new Set(stylesheetRows.flatMap((row) => row.context.map((scope) => scope.selector)).filter(Boolean));
@@ -20,5 +22,14 @@ test("published CSS rules have complete selectors", () => {
 test("the thread header strip retains its shared edges and separator", () => {
   assert.deepEqual(valuesFor(".thead", "flex"), ["none"]);
   assert.deepEqual(valuesFor(".thead", "padding"), [resolveValue("var(--s-1) var(--hg) var(--s-2)")]);
-  assert.deepEqual(valuesFor(".thead", "border-bottom"), [resolveValue("1px solid var(--line-faint)")]);
+  const dividers = declarationsFor(".thead", "border-bottom");
+  const headerRows = stylesheetRows.filter((row) => !row.context.at(-1)?.selector?.endsWith(" :is(.toast,.lbx)"));
+  const { contexts } = rootTokenModel(headerRows, new Set());
+  const expected = { dark: "#1F1F1F", light: "#E6E6E6" };
+  for (const { state, values } of contexts) {
+    const paletteLine = state.theme === "dark" ? "--line-faint" : "--line-soft";
+    const color = state.flavour ? values.get(paletteLine) : expected[state.theme];
+    assert.ok(color, JSON.stringify(state));
+    assert.deepEqual(dividers.map(({ value }) => substitute(value, values)), [`1px solid ${color}`], JSON.stringify(state));
+  }
 });
