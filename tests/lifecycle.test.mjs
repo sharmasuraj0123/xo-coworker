@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checksLifecycle, lifecycleCounts } from "../tools/lifecycle.mjs";
+import { checksLifecycle, lifecycleCounts } from "../tools/conformance/lifecycle.mjs";
 
 test("lifecycle checks executable syntax and ignores lookalikes in source text", () => {
   assert.deepEqual(lifecycleCounts(`

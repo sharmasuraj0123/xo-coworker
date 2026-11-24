@@ -2,11 +2,15 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { checkLifecycle } from "./lifecycle.mjs";
+import { checkConformance } from "./conformance/ratchet.mjs";
+import { parseArgs } from "node:util";
 
-const ROOT = dirname(dirname(fileURLToPath(import.meta.url))), FAST = process.argv.includes("--fast");
-const UPDATE = process.argv.includes("--update-baselines");
-const UPSTREAM = process.argv.includes("--accept-upstream") ? process.argv[process.argv.indexOf("--accept-upstream") + 1] : null;
+const { values: flags } = parseArgs({ options: {
+  fast: { type: "boolean" }, "update-baselines": { type: "boolean" },
+  "accept-upstream": { type: "string" }, "conformance-base": { type: "string" },
+} });
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url))), FAST = flags.fast;
+const UPDATE = flags["update-baselines"], UPSTREAM = flags["accept-upstream"];
 const BASE_DIR = join(ROOT, "tools/baselines");
 const NEW_FILE_MAX = 400;
 const SOURCE_DIRS = ["js", "css", "core", "shell", "modules", "apps-host"];
@@ -32,13 +36,14 @@ function step(name, fn) { steps.push({ name, fn }); }
 step("lint", () => {
   if (!existsSync(bin("oxlint"))) return "oxlint is not installed: run `npm ci` (dev-only tools, see AGENTS.md)";
   const r = run(bin("oxlint"), ["-c", ".oxlintrc.json", "--format", "json", "."]);
+  if (![0, 1].includes(r.status)) return `oxlint did not complete: ${r.error?.message ?? r.stderr}`;
   let diags;
   try { diags = JSON.parse(r.stdout).diagnostics; } catch { return `oxlint gave no JSON:\n${r.stderr || r.stdout}`; }
   const now = {};
   for (const d of diags) { const k = `${d.filename}::${d.code}`; now[k] = (now[k] || 0) + 1; }
   const basePath = join(BASE_DIR, "lint.json");
   const base = readJson(basePath, null);
-  if (!base) { writeJson(basePath, now); return null; }
+  if (!base) return "Missing lint baseline";
   if (UPSTREAM) { for (const [k, n] of Object.entries(now)) if (upstreamSame(k.split("::")[0])) base[k] = Math.max(base[k] || 0, n); writeJson(basePath, base); }
   const grown = Object.entries(now).filter(([k, n]) => n > (base[k] || 0));
   if (UPDATE) writeJson(basePath, Object.fromEntries(Object.entries(base).map(([k, n]) => [k, Math.min(n, now[k] || 0)]).filter(([, n]) => n > 0)));
@@ -104,66 +109,6 @@ step("ratchets", () => {
   return errs.length ? `ratchets:\n${errs.join("\n")}` : null;
 });
 
-const REF = /(PLAN\.md|WAVES\.md|architecture\/|design-research\/|decision note|\bphase [0-9]|\bD[0-9]\b)/i;
-function commentFiles() {
-  const out = sourceFiles();
-  const walk = (dir, re) => {
-    if (!existsSync(join(ROOT, dir))) return;
-    for (const n of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-      const rel = `${dir}/${n.name}`;
-      if (SKIP.test(rel + "/") || n.name === "baselines") continue;
-      if (n.isDirectory()) walk(rel, re); else if (re.test(n.name)) out.push(rel);
-    }
-  };
-  walk("tests", /\.(m?js|cjs|py)$/);
-  walk("tools", /\.(m?js|cjs|py)$/);
-  walk("e2e", /\.(m?js|cjs)$/);
-  for (const f of ["serve.py", "index.html"]) if (existsSync(join(ROOT, f))) out.push(f);
-  return [...new Set(out)];
-}
-/** @param {string} f @param {string} text */
-function commentStats(f, text) {
-  const py = f.endsWith(".py");
-  let extra = 0, refs = 0, run = 0, inBlock = false, inDoc = false;
-  for (const line of text.split("\n")) {
-    const t = line.trim();
-    let isComment;
-    if (py) {
-      if (inDoc) { isComment = true; if (t.includes('"""')) inDoc = false; }
-      else if (t.startsWith('"""') && !(t.length > 3 && t.endsWith('"""'))) { isComment = true; inDoc = true; }
-      else isComment = t.startsWith("#") && !t.startsWith("#!");
-    } else if (inBlock) { isComment = true; if (t.includes("*/")) inBlock = false; }
-    else if (t.startsWith("/*") || t.startsWith("<!--")) { isComment = true; inBlock = !t.includes("*/") && !t.includes("-->"); }
-    else isComment = t.startsWith("//");
-    if (isComment) { run++; if (run > 1) extra++; } else run = 0;
-    if ((isComment || /\s\/\/\s|#\s/.test(line)) && REF.test(line)) refs++;
-  }
-  return { extra, refs };
-}
-
-step("comments", () => {
-  const basePath = join(BASE_DIR, "comments.json");
-  const now = {};
-  for (const f of commentFiles()) {
-    const s = commentStats(f, readFileSync(join(ROOT, f), "utf8"));
-    if (s.extra || s.refs) now[f] = s;
-  }
-  const base = readJson(basePath, null);
-  if (!base) { writeJson(basePath, now); return null; }
-  if (UPSTREAM) {
-    for (const [f, st] of Object.entries(now)) if (upstreamSame(f)) base[f] = { extra: Math.max(base[f]?.extra || 0, st.extra), refs: Math.max(base[f]?.refs || 0, st.refs) };
-    writeJson(basePath, base);
-  }
-  const errs = [];
-  for (const [f, s] of Object.entries(now)) {
-    const b = base[f] || { extra: 0, refs: 0 };
-    if (s.extra > b.extra) errs.push(`  ${f}: ${s.extra} comment lines past the first of a comment, was ${b.extra}; one line at most`);
-    if (s.refs > b.refs) errs.push(`  ${f}: ${s.refs} comments point at plan docs, phases or decisions, was ${b.refs}; none allowed`);
-  }
-  if (UPDATE) writeJson(basePath, Object.fromEntries(Object.entries(base).filter(([f]) => now[f]).map(([f, b]) => [f, { extra: Math.min(b.extra, now[f].extra), refs: Math.min(b.refs, now[f].refs) }])));
-  return errs.length ? `comments:\n${errs.join("\n")}` : null;
-});
-
 const RANK = [["core/kernel/", 0], ["core/platform/", 1], ["core/ui/", 2], ["core/services/", 3], ["shell/", 4], ["modules/", 5], ["apps-host/", 6], ["js/", 7], ["boot.js", 8]];
 const rankOf = (/** @type {string} */ f) => RANK.find(([p]) => f.startsWith(p))?.[1] ?? -1;
 const moduleOf = (/** @type {string} */ f) => (f.startsWith("modules/") ? f.split("/")[1] : null);
@@ -201,7 +146,7 @@ step("layers", () => {
   return fresh.length ? `layers: a file imports upward or from another module (talk through services, places or the bus):\n${fresh.map((k) => `  ${k}`).join("\n")}` : null;
 });
 
-step("lifecycle", () => checkLifecycle(sourceFiles(), ROOT, join(BASE_DIR, "lifecycle.json"), UPDATE));
+step("conformance", () => checkConformance(ROOT, BASE_DIR, { update: UPDATE, base: flags["conformance-base"] }));
 step("places", () => {
   const r = run(process.execPath, ["tools/places-md.mjs", "--check"]);
   return r.status === 0 ? null : (r.stderr || r.stdout).trim();

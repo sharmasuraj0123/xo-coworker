@@ -23,7 +23,7 @@ function walk(rel) {
     else if (/(^|\/)tests\/[^/]+\.test\.mjs$/.test(p)) files.push(p);
   }
 }
-for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) if (existsSync(join(ROOT, d))) walk(d);
+for (const d of ["core", "shell", "modules", "apps-host", "e2e", "tools"]) if (existsSync(join(ROOT, d))) walk(d);
 files.splice(0, files.length, ...files.filter((f) => f.includes(filter)).sort());
 
 function runOne(file) {
