@@ -2,7 +2,7 @@
 :root[data-theme="light"] body{background:var(--sunken)}
 :root[data-theme="light"] .prow.needs .pr-name{color:var(--need-text)}
 
-::selection{background:rgba(var(--accent-rgb),.28)}
+::selection{background:var(--fill-selection)}
 html,body{overflow:clip}
 body{background:var(--sunken)}
 code{font-family:var(--mono)}

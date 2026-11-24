@@ -28,7 +28,6 @@ kbd{
 /* Restrict fast hover feedback to controls so unrelated descendants retain their release time. */
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for],li:has(> button)):hover{--d-hover:var(--d-hover-in)}
 :where(button,a[href],[role=button],[role=tab],[role=option],[role=switch],summary,xo-select,label[for]):active{--d-hover:var(--d-press)}
-::selection{background:rgba(var(--accent-rgb),.24)}
 
 /* Outline icons use a constant stroke and square caps so short segments stay visible. */
 svg[stroke="currentColor"][fill="none"]:not(.side svg){stroke-width:var(--stroke-outline-icon);stroke-linecap:square;stroke-linejoin:miter}

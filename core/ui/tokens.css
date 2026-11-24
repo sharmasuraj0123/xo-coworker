@@ -254,7 +254,7 @@
   --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
   --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
 }
-/* High contrast, when the OS asks for it. */
+:root,:root[data-theme="light"] :is(.toast,.lbx){--fill-selection:rgba(var(--accent-rgb),.28)}
 @media (prefers-contrast: more){
   :root{--ink-3:#C8C8C8; --ink-4:#C8C8C8; --line:#5A5A5A; --line-hover:#8E8E8E}
   :root[data-theme="light"]{--ink-3:#333333; --ink-4:#333333; --line:#8E8E8E; --line-hover:#6B6B6B}
