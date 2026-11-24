@@ -4,7 +4,7 @@ import { xi } from "../../core/ui/icons/icon.js";
 
 /** @import { EditorMountOptions } from "./types.d.ts" */
 
-/** @typedef {typeof import("../../js/vendor/codemirror/cm.js")} CodeMirror */
+/** @typedef {typeof import("../../vendor/codemirror/cm.js")} CodeMirror */
 
 /** @typedef {InstanceType<CodeMirror["EditorState"]>} EditorState */
 

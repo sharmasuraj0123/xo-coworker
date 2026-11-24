@@ -614,15 +614,18 @@ class StaticCaching(unittest.TestCase):
         self.assertEqual(h2["etag"], h["etag"])
 
     def test_vendor_bundles_match_their_published_manifests(self):
-        base = f"/v/{serve.tree_version()}/js/vendor"
-        for library in ("codemirror", "pierre-diffs"):
+        base = f"/v/{serve.tree_version()}"
+        self.assertEqual(fetch(f"{base}/js/vendor/codemirror/cm.js")[0], 404)
+        for library in ("vendor/codemirror", "js/vendor/pierre-diffs"):
             status, _, body = fetch(f"{base}/{library}/manifest.json")
             self.assertEqual(status, 200, library)
             for path, digest in json.loads(body)["files"].items():
                 with self.subTest(library=library, path=path):
                     status, headers, contents = fetch(f"{base}/{library}/{path}")
-                    self.assertEqual((status, headers["cache-control"], sha256(contents).hexdigest()),
+                    self.assertEqual((status, headers.get("cache-control"), sha256(contents).hexdigest()),
                                      (200, serve.IMMUTABLE, digest))
+                    if path.endswith(".js"):
+                        self.assertEqual(headers.get("content-type"), "text/javascript")
 
     def test_current_version_is_immutable(self):
         status, h, body = fetch(f"/v/{serve.tree_version()}/js/app.js")

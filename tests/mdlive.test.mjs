@@ -4,7 +4,7 @@
 //   node tests/mdlive.test.mjs
 import assert from "node:assert/strict";
 
-const CM = await import("../js/vendor/codemirror/cm.js");
+const CM = await import("../vendor/codemirror/cm.js");
 // core/ui/markdown/rich.js reads the page's theme and makes a canvas when it loads: the least of a page for it (set after the editor's
 // own code has loaded, which reads `document` only when it's there)
 globalThis.document = { documentElement: { dataset: {} }, createElement: () => ({ getContext: () => null }), querySelector: () => null };

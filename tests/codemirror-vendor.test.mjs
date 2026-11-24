@@ -8,7 +8,7 @@ import { startSpace } from "../e2e/lib/space.mjs";
 import { dom } from "./lib/dom.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
-const VENDOR_PATH = "js/vendor/codemirror";
+const VENDOR_PATH = "vendor/codemirror";
 const VENDOR = join(ROOT, VENDOR_PATH);
 const manifest = JSON.parse(readFileSync(join(VENDOR, "manifest.json"), "utf8"));
 

@@ -1,28 +1,4 @@
-// Vendors CodeMirror 6 into js/vendor/codemirror/: ES modules the page imports as they are, with no build
-// step at run time. Development only; nothing here runs in the app.
-//
-//   mkdir /tmp/cmv && cd /tmp/cmv && npm init -y && npm i --ignore-scripts @codemirror/state@6.7.6 \
-//     @codemirror/view@6.43.15 @codemirror/commands@6.11.1 @codemirror/search@6.7.2 @codemirror/language@6.13.1 \
-//     @codemirror/autocomplete@6.20.4 @codemirror/merge@6.12.3 @codemirror/lang-markdown@6.5.2 \
-//     @codemirror/language-data@6.5.2 @lezer/highlight@1.2.5 @lezer/markdown@1.8.1 @lezer/common@1.5.5 esbuild@0.28.2
-//   node tools/codemirror/vendor.mjs /tmp/cmv/node_modules
-//
-// What it makes:
-//   cm.js       the editor: state, view, commands, search, language, autocomplete, Markdown, the highlight tags,
-//               the Lezer tree types and `languages` (every language CodeMirror knows, each loaded on first use)
-//   merge.js    @codemirror/merge (MergeView, unifiedMergeView and the chunk commands), sharing cm.js's chunks
-//   c/*.js      shared chunks (one @codemirror/state for both entries) and one chunk per language, each
-//               fetched only when `languages.find(...).load()` asks for it
-//   manifest.json  the versions, the names each entry exports and a sha256 per file
-//               (tests/codemirror-vendor.test.mjs checks them)
-//   LICENSES.md the licence of every package inside the bundle
-//
-// Both entries are built in one esbuild run with splitting on, so @codemirror/state, view and language live in
-// one shared chunk: CodeMirror breaks (instanceof checks fail) when two copies of @codemirror/state load.
-//
-// What it leaves out, on purpose: nothing the language data needs (its legacy modes are lazy chunks). Of
-// @codemirror/lint only what a language package pulls in lazily is bundled; cm.js doesn't export it. Exports
-// are named one by one, so a name two packages share is exported once, from the package OWNER says.
+// Build both CodeMirror entries together so they share one copy of editor state.
 
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, existsSync } from "node:fs";
@@ -78,7 +54,7 @@ const require = createRequire(join(nm, "noop.js"));
 const esbuild = require("esbuild");
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const OUT = join(ROOT, "js/vendor/codemirror");
+const OUT = join(ROOT, "vendor/codemirror");
 const tmp = mkdtempSync(join(tmpdir(), "codemirror-"));
 
 // the names each package exports, read by importing it (Node has `navigator`; nothing touches `document`
@@ -168,7 +144,7 @@ const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 const total = Object.keys(files).reduce((a, f) => a + size(f), 0);
 const sum = (l, fn) => l.reduce((a, f) => a + fn(f), 0);
 const lazy = Object.keys(files).filter((f) => f.endsWith(".js") && !cmInitial.includes(f) && !mergeInitial.includes(f));
-console.log(`js/vendor/codemirror: ${Object.keys(files).length} files, ${kb(total)}`);
+console.log(`vendor/codemirror: ${Object.keys(files).length} files, ${kb(total)}`);
 console.log(`  cm.js + static imports (${cmInitial.length} files): ${kb(sum(cmInitial, size))}, ${kb(sum(cmInitial, gz))} gzipped`);
 console.log(`  merge.js + static imports (${mergeInitial.length} files): ${kb(sum(mergeInitial, size))}, ${kb(sum(mergeInitial, gz))} gzipped`);
 console.log(`  ${lazy.length} lazy chunks, ${kb(sum(lazy, size))}`);

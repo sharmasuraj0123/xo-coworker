@@ -4,10 +4,10 @@
 
 /** @import { CodeMirror, EditorState, EditorView, LineRange, Transaction } from "./editor-extensions.js" */
 
-/** @typedef {typeof import("../../js/vendor/codemirror/merge.js")} CodeMirrorMerge */
+/** @typedef {typeof import("../../vendor/codemirror/merge.js")} CodeMirrorMerge */
 
-const CM_URL = new URL("../../js/vendor/codemirror/cm.js", import.meta.url).href;
-const MERGE_URL = new URL("../../js/vendor/codemirror/merge.js", import.meta.url).href;
+const CM_URL = new URL("../../vendor/codemirror/cm.js", import.meta.url).href;
+const MERGE_URL = new URL("../../vendor/codemirror/merge.js", import.meta.url).href;
 /** @type {Promise<CodeMirror> | null} */
 let cmP = null;
 /** @type {Promise<CodeMirrorMerge> | null} */
