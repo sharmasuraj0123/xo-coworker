@@ -17,7 +17,7 @@ for p in sorted(set(L["files"]) - tracked): errors.append(f"ledger names an untr
 FINAL = "--final" in sys.argv
 SETTLED = {"moved", "split", "kept", "vendor"}
 OK = SETTLED | {"deleted"} | (set() if FINAL else {"planned", "split-region", "decide"})
-homes = Homes(repo, commit)
+homes = Homes(repo, commit, L.get("items", {}), tracked)
 decides = []
 def check(kind, key, e):
     s = e.get("status")

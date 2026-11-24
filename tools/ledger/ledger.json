@@ -5037,22 +5037,20 @@
   "tests/lp-create-connect-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-connect-focus.test.mjs",
-   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)",
    "evidence": {
     "modules/create-project/tests/lp-create-connect-focus.test.mjs": {
-     "anchor": "errConnect(D).focus();",
-     "reason": "The DOM test focuses the Connect action in the clone error and verifies focus return."
+     "anchor": "async function refused()",
+     "reason": "The rewritten test still drives a refused clone at the Create Project UI."
     }
    }
   },
   "tests/lp-create-stop-focus.test.mjs": {
    "status": "moved",
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
-   "note": "rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs)",
    "evidence": {
     "modules/create-project/tests/lp-create-stop-focus.test.mjs": {
-     "anchor": "D.$(\"#cp-stop\").focus();",
-     "reason": "The DOM test exercises focus on the clone Stop control through the request."
+     "anchor": "async function cloning()",
+     "reason": "The rewritten test drives the clone and Stop controls from the Create Project UI."
     }
    }
   },
@@ -6139,8 +6137,8 @@
    "reason": "No #say rule at the Group 5 gate. The composer textarea uses the shared rules in modules/conversation/composer.css."
   },
   "css/launchpad.css::ids::fr-body-launch": {
-   "status": "moved",
-   "home": "modules/launchpad/launchpad.css"
+   "status": "deleted",
+   "reason": "Release replaced the Launchpad frame body with a dedicated panel page and removed the old ID selector."
   },
   "css/launchpad.css::ids::top-end": {
    "status": "moved",
@@ -6962,7 +6960,13 @@
   },
   "js/api.js::routes::/api/chat/*": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/api.js",
+   "evidence": {
+    "core/platform/api.js": {
+     "anchor": "status: () => get(\"/chat/status\")",
+     "reason": "The API adapter declares the chat namespace without its transport-level /api prefix."
+    }
+   }
   },
   "js/api.js::routes::/chat/status": {
    "status": "moved",
@@ -7114,11 +7118,23 @@
   },
   "js/api.js::routes::/xo-projects/{}/paths": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/api.js",
+   "evidence": {
+    "core/platform/api.js": {
+     "anchor": "projectPaths: (project,",
+     "reason": "The project path-list request now uses the Coworker route prefix."
+    }
+   }
   },
   "js/api.js::routes::/xo-projects/{}/search": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/api.js",
+   "evidence": {
+    "core/platform/api.js": {
+     "anchor": "projectSearch: (project,",
+     "reason": "The project content search now uses the Coworker route prefix."
+    }
+   }
   },
   "js/api.js::routes::/xo-projects/{}/changes": {
    "status": "moved",
@@ -7405,7 +7421,13 @@
   },
   "js/app.js::functions::typingRender": {
    "status": "moved",
-   "home": "modules/conversation/typing.js"
+   "home": "modules/conversation/typing.js",
+   "evidence": {
+    "modules/conversation/typing.js": {
+     "anchor": "function render(C)",
+     "reason": "The returned typing renderer paints the active conversation state."
+    }
+   }
   },
   "js/app.js::functions::tickElapsed": {
    "status": "moved",
@@ -7864,7 +7886,12 @@
   "js/app.js::functions::jumpRender": {
    "status": "moved",
    "home": "modules/search/jump.js",
-   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
+   "evidence": {
+    "modules/search/jump.js": {
+     "anchor": "function render()",
+     "reason": "The Jump renderer owns the result list and selection."
+    }
+   }
   },
   "js/app.js::functions::focusOverlay": {
    "status": "moved",
@@ -7873,12 +7900,22 @@
   "js/app.js::functions::openJump": {
    "status": "moved",
    "home": "modules/search/jump.js",
-   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
+   "evidence": {
+    "modules/search/jump.js": {
+     "anchor": "function open() { jumpReturn",
+     "reason": "Opening Jump remembers focus, shows the sheet and focuses the search field."
+    }
+   }
   },
   "js/app.js::functions::closeJump": {
    "status": "moved",
    "home": "modules/search/jump.js",
-   "note": "createJump: render, open, close; app.js keeps the items it lists (places, actions) until the jump.item place"
+   "evidence": {
+    "modules/search/jump.js": {
+     "anchor": "function close({ restore = true }",
+     "reason": "Closing Jump hides the sheet and restores the saved focus when requested."
+    }
+   }
   },
   "js/app.js::functions::syncInert": {
    "status": "moved",
@@ -7946,12 +7983,22 @@
   "js/app.js::functions::openSettings": {
    "status": "moved",
    "home": "modules/settings/frame.js",
-   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
+   "evidence": {
+    "modules/settings/frame.js": {
+     "anchor": "function open()",
+     "reason": "Opening the Settings frame reveals the dialog and focuses its selected page."
+    }
+   }
   },
   "js/app.js::functions::closeSettings": {
    "status": "moved",
    "home": "modules/settings/frame.js",
-   "note": "createSettingsFrame; app.js keeps one-line openSettings/closeSettings until the shell's settings place takes them"
+   "evidence": {
+    "modules/settings/frame.js": {
+     "anchor": "function close({ restore = true }",
+     "reason": "Closing the Settings frame updates the dialog and restores the previous focus."
+    }
+   }
   },
   "js/app.js::functions::keysSheetRender": {
    "status": "moved",
@@ -7960,7 +8007,12 @@
   "js/app.js::functions::keysPageRender": {
    "status": "moved",
    "home": "modules/settings/keys-page.js",
-   "note": "createKeysPage; app.js renders it on K.onChange"
+   "evidence": {
+    "modules/settings/keys-page.js": {
+     "anchor": "function render()",
+     "reason": "The keyboard settings renderer draws the action groups and remapping controls."
+    }
+   }
   },
   "js/app.js::functions::runGlobal": {
    "status": "moved",
@@ -7992,7 +8044,13 @@
   },
   "js/app.js::ids::nx-h": {
    "status": "moved",
-   "home": "modules/home/next-card.js"
+   "home": "modules/home/next-card.js",
+   "evidence": {
+    "modules/home/next-card.js": {
+     "anchor": "aria-labelledby=\"nx-h\"",
+     "reason": "The Home card keeps the heading linkage and passes the nx prefix to the decision heading renderer."
+    }
+   }
   },
   "js/app.js::ids::hm-head": {
    "status": "moved",
@@ -8136,18 +8194,18 @@
    "note": "createKeysPage; app.js renders it on K.onChange"
   },
   "js/app.js::ids::all-list": {
-   "status": "split",
-   "home": [
-    "shell/overlays.js",
-    "modules/threads/all.js"
-   ]
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "js/app.js::storage::cv-theme": {
-   "status": "split",
-   "home": [
-    "core/ui/theme.js",
-    "modules/settings/appearance.js"
-   ]
+   "status": "moved",
+   "home": "modules/settings/appearance.js",
+   "evidence": {
+    "modules/settings/appearance.js": {
+     "anchor": "lookSet(\"cv-theme\", b.dataset.mode)",
+     "reason": "Appearance persists the same theme choice through the injected storage owner."
+    }
+   }
   },
   "js/app.js::storage::cv-bubbles": {
    "status": "moved",
@@ -8159,7 +8217,13 @@
   },
   "js/app.js::storage::${f.project}|${f.rel}": {
    "status": "moved",
-   "home": "modules/changes/saved.js"
+   "home": "modules/changes/saved.js",
+   "evidence": {
+    "modules/changes/saved.js": {
+     "anchor": "const k = `${f.project}|${f.rel}`",
+     "reason": "The delayed saved notification keeps the same project-and-path key in its own timer map."
+    }
+   }
   },
   "js/app.js::storage::<SIDE.KEY>": {
    "status": "moved",
@@ -8207,7 +8271,13 @@
   },
   "js/app.js::keys::Tab": {
    "status": "moved",
-   "home": "shell/keyboard-layers.js"
+   "home": "shell/keyboard-layers.js",
+   "evidence": {
+    "shell/keyboard-layers.js": {
+     "anchor": "e.key !== \"Tab\" || e.defaultPrevented",
+     "reason": "The shell traps Tab within the top keyboard layer."
+    }
+   }
   },
   "js/app.js::keys::would_lose_work": {
    "status": "moved",
@@ -8223,15 +8293,33 @@
   },
   "js/app.js::keys::End": {
    "status": "moved",
-   "home": "modules/projects/icon-picker-keys.js"
+   "home": "modules/projects/icon-picker-keys.js",
+   "evidence": {
+    "modules/projects/icon-picker-keys.js": {
+     "anchor": "End: os.length - 1 - i",
+     "reason": "End moves keyboard focus to the last icon."
+    }
+   }
   },
   "js/app.js::keys::ArrowRight": {
    "status": "moved",
-   "home": "modules/projects/icon-picker-keys.js"
+   "home": "modules/projects/icon-picker-keys.js",
+   "evidence": {
+    "modules/projects/icon-picker-keys.js": {
+     "anchor": "ArrowRight: 1",
+     "reason": "ArrowRight moves focus one icon forward."
+    }
+   }
   },
   "js/app.js::keys::ArrowLeft": {
    "status": "moved",
-   "home": "modules/projects/icon-picker-keys.js"
+   "home": "modules/projects/icon-picker-keys.js",
+   "evidence": {
+    "modules/projects/icon-picker-keys.js": {
+     "anchor": "ArrowLeft: -1",
+     "reason": "ArrowLeft moves focus one icon backward."
+    }
+   }
   },
   "js/app.js::custom_events::xo:gesture": {
    "status": "moved",
@@ -8622,8 +8710,8 @@
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::exports::suggestFor": {
-   "status": "moved",
-   "home": "modules/decisions/rank.js"
+   "status": "deleted",
+   "reason": "The old card suggestion line was removed. Decision ranking no longer exposes this helper."
   },
   "js/content.js::exports::whyLine": {
    "status": "moved",
@@ -8650,8 +8738,8 @@
    "home": "modules/decisions/rank.js"
   },
   "js/content.js::functions::suggestFor": {
-   "status": "moved",
-   "home": "modules/decisions/rank.js"
+   "status": "deleted",
+   "reason": "The old card suggestion line was removed. No current renderer calls this helper."
   },
   "js/content.js::functions::whyLine": {
    "status": "moved",
@@ -9123,11 +9211,23 @@
   },
   "js/filespage.js::storage::xo-files-tree": {
    "status": "moved",
-   "home": "modules/files/tree-width.js"
+   "home": "modules/files/tree-width.js",
+   "evidence": {
+    "modules/files/tree-width.js": {
+     "anchor": "const TW_KEY = \"xo-files-tree\"",
+     "reason": "The Files width controller reads and saves the original width key."
+    }
+   }
   },
   "js/filespage.js::storage::xo-files-folds": {
    "status": "moved",
-   "home": "modules/files/page.js"
+   "home": "modules/files/page.js",
+   "evidence": {
+    "modules/files/page.js": {
+     "anchor": "const FOLD_KEY = \"xo-files-folds\"",
+     "reason": "The Files page preserves the stored tree disclosure preference."
+    }
+   }
   },
   "js/filespage.js::keys::ArrowRight": {
    "status": "moved",
@@ -9419,7 +9519,13 @@
   },
   "js/gestures.js::ids::scroller": {
    "status": "moved",
-   "home": "shell/gestures.js"
+   "home": "shell/gestures.js",
+   "evidence": {
+    "shell/gestures.js": {
+     "anchor": "scroller: $(\"#scroller\")",
+     "reason": "The shell attaches conversation gestures to the same scroller ID."
+    }
+   }
   },
   "js/gestures.js::keys::Escape": {
    "status": "moved",
@@ -9863,7 +9969,7 @@
   },
   "js/kit.js::exports::commandOf": {
    "status": "moved",
-   "home": "modules/decisions/kit.js"
+   "home": "modules/decisions/cardparts.js"
   },
   "js/kit.js::exports::prefixOf": {
    "status": "moved",
@@ -9907,7 +10013,7 @@
   },
   "js/kit.js::functions::commandOf": {
    "status": "moved",
-   "home": "modules/decisions/kit.js"
+   "home": "modules/decisions/cardparts.js"
   },
   "js/kit.js::functions::prefixOf": {
    "status": "moved",
@@ -9963,15 +10069,33 @@
   },
   "js/launchpad.js::ids::stage": {
    "status": "moved",
-   "home": "modules/launchpad/actions.js"
+   "home": "shell/panel/panel.js",
+   "evidence": {
+    "shell/panel/panel.js": {
+     "anchor": "el.id = \"stage\"",
+     "reason": "The shell panel owns the stage ID used by contributed pages."
+    }
+   }
   },
   "js/launchpad.js::ids::lp-h-": {
    "status": "moved",
-   "home": "modules/launchpad/views.js"
+   "home": "modules/launchpad/views.js",
+   "evidence": {
+    "modules/launchpad/views.js": {
+     "anchor": "const hint = (id, text) =>",
+     "reason": "The Launchpad form constructs input hint IDs from the same prefix."
+    }
+   }
   },
   "js/launchpad.js::storage::xo-lp-state": {
    "status": "moved",
-   "home": "modules/launchpad/words.js"
+   "home": "modules/launchpad/words.js",
+   "evidence": {
+    "modules/launchpad/words.js": {
+     "anchor": "const CACHE = \"xo-lp-state\"",
+     "reason": "The Launchpad state cache keeps its original key."
+    }
+   }
   },
   "js/launchpad.js::keys::name_taken": {
    "status": "moved",
@@ -10115,7 +10239,13 @@
   },
   "js/lpapi.js::functions::sse": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "modules/launchpad/client.js",
+   "evidence": {
+    "modules/launchpad/client.js": {
+     "anchor": "function stream(p, path, init, on)",
+     "reason": "The Launchpad client starts and resumes the event stream through the shared SSE reader."
+    }
+   }
   },
   "js/lpapi.js::functions::stream": {
    "status": "moved",
@@ -11043,7 +11173,13 @@
   },
   "js/msgx.js::ids::projects": {
    "status": "moved",
-   "home": "modules/conversation/decoration.js"
+   "home": "modules/conversation/decoration.js",
+   "evidence": {
+    "modules/conversation/decoration.js": {
+     "anchor": "#projects .prow[data-go=",
+     "reason": "Conversation decoration still looks up the active project row by its sidebar selector."
+    }
+   }
   },
   "js/msgx.js::storage::xo-msg-rating": {
    "status": "moved",
@@ -11841,7 +11977,13 @@
   },
   "js/runsview.js::keys::run:${r.id}": {
    "status": "moved",
-   "home": "modules/runs/view.js"
+   "home": "modules/runs/view.js",
+   "evidence": {
+    "modules/runs/view.js": {
+     "anchor": "out.includes(`run:${r.id}`)",
+     "reason": "Runs uses the same key to match pending Stop actions to the row."
+    }
+   }
   },
   "js/runtimes.js::exports::rtName": {
    "status": "moved",
@@ -12000,13 +12142,8 @@
    "home": "js/settings.js"
   },
   "js/settings.js::ids::settings": {
-   "status": "split",
-   "home": [
-    "modules/settings/host.js",
-    "modules/routing/page.js",
-    "modules/rules/page.js",
-    "modules/worktrees/page.js"
-   ]
+   "status": "moved",
+   "home": "shell/overlays.js"
   },
   "js/settings.js::ids::rt-h": {
    "status": "moved",
@@ -12501,12 +12638,12 @@
    "home": "shell/panel/panel.js"
   },
   "js/stage.js::ids::fr-title-launch": {
-   "status": "moved",
-   "home": "shell/panel/panel.js"
+   "status": "deleted",
+   "reason": "Release removed the Launchpad frame title ID when it switched to the shared single-page panel header."
   },
   "js/stage.js::ids::fr-body-launch": {
-   "status": "moved",
-   "home": "shell/panel/panel.js"
+   "status": "deleted",
+   "reason": "Release removed the Launchpad frame body ID when it switched to rendering the Launchpad panel page."
   },
   "js/stage.js::ids::stage-map-tree": {
    "status": "moved",
@@ -12521,16 +12658,16 @@
    "home": "shell/panel/panel.js"
   },
   "js/stage.js::storage::${W_KEY}:${S.page.name}": {
-   "status": "moved",
-   "home": "shell/panel/width.js"
+   "status": "deleted",
+   "reason": "Release replaced per-page width keys with one panel-wide width."
   },
   "js/stage.js::storage::<k>": {
    "status": "moved",
    "home": "shell/panel/panel.js"
   },
   "js/stage.js::storage::xo-stage-w": {
-   "status": "moved",
-   "home": "shell/panel/width.js"
+   "status": "deleted",
+   "reason": "Release stores the single panel width under xo-stage-w2 instead."
   },
   "js/stage.js::keys::Escape": {
    "status": "moved",
@@ -12561,8 +12698,21 @@
    "home": "shell/panel/panel.js"
   },
   "js/stage.js::keys::ArrowLeft": {
-   "status": "moved",
-   "home": "shell/panel/panel.js"
+   "status": "split",
+   "home": [
+    "shell/panel/panel.js",
+    "shell/panel/width.js"
+   ],
+   "evidence": {
+    "shell/panel/panel.js": {
+     "anchor": "[\"ArrowLeft\", \"ArrowRight\", \"Home\", \"End\"].includes(e.key)",
+     "reason": "The ArrowLeft handler still navigates the Map mode tabs."
+    },
+    "shell/panel/width.js": {
+     "anchor": "e.key !== \"ArrowLeft\" && e.key !== \"ArrowRight\"",
+     "reason": "The ArrowLeft grip handler still changes the panel width."
+    }
+   }
   },
   "js/storm.js::exports::WAITING_STATES": {
    "status": "moved",
@@ -13000,7 +13150,13 @@
   },
   "js/timeline.js::routes::/api/xo-projects/<project>/file": {
    "status": "moved",
-   "home": "core/services/world/relay.js"
+   "home": "core/services/world/relay.js",
+   "evidence": {
+    "core/services/world/relay.js": {
+     "anchor": "function sharedFileRoute(thread, path)",
+     "reason": "Relay decoration now resolves the project and file path and leaves URL construction to the Files API."
+    }
+   }
   },
   "js/timeline.js::keys::router_off": {
    "status": "moved",
@@ -13378,7 +13534,13 @@
   },
   "js/viewer.js::exports::createViewer": {
    "status": "moved",
-   "home": "modules/files/viewer.js"
+   "home": "modules/files/viewer.js",
+   "evidence": {
+    "modules/files/viewer.js": {
+     "anchor": "export function createFileViewer(",
+     "reason": "The file viewer's factory now has the explicit FileViewer name."
+    }
+   }
   },
   "js/viewer.js::functions::whenWords": {
    "status": "moved",
@@ -13386,7 +13548,13 @@
   },
   "js/viewer.js::functions::createViewer": {
    "status": "moved",
-   "home": "modules/files/viewer.js"
+   "home": "modules/files/viewer.js",
+   "evidence": {
+    "modules/files/viewer.js": {
+     "anchor": "export function createFileViewer(",
+     "reason": "The renamed factory still owns the opened file viewer and its tab state."
+    }
+   }
   },
   "js/viewer.js::ids::vw-h": {
    "status": "moved",
@@ -13394,11 +13562,23 @@
   },
   "js/viewer.js::routes::/api/xo-projects/<project>/file": {
    "status": "moved",
-   "home": "modules/files/viewer-reads.js"
+   "home": "modules/files/viewer-reads.js",
+   "evidence": {
+    "modules/files/viewer-reads.js": {
+     "anchor": "api.projectFile(f.project, f.rel, null, { purpose: \"edit\" })",
+     "reason": "Viewer text reads use the shared project file API route with edit purpose."
+    }
+   }
   },
   "js/viewer.js::routes::/api/files/*": {
    "status": "moved",
-   "home": "modules/files/viewer-reads.js"
+   "home": "modules/files/viewer-reads.js",
+   "evidence": {
+    "modules/files/viewer-reads.js": {
+     "anchor": "await attachmentText(att.chat, att.id)",
+     "reason": "The viewer delegates attachment text reads to the shared attachment client."
+    }
+   }
   },
   "js/viewer.js::keys::Enter": {
    "status": "moved",
@@ -14659,8 +14839,8 @@
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
    "evidence": {
     "modules/create-project/tests/lp-create-stop-focus.test.mjs": {
-     "anchor": "D.$(\"#cp-prog\")",
-     "reason": "The behavior test finds the clone progress region through the DOM fixture."
+     "anchor": "assert.equal(D.$(\"#cp-prog\").hidden, false)",
+     "reason": "The clone test checks the progress region by its public ID."
     }
    }
   },
@@ -14669,8 +14849,8 @@
    "home": "modules/create-project/tests/lp-create-stop-focus.test.mjs",
    "evidence": {
     "modules/create-project/tests/lp-create-stop-focus.test.mjs": {
-     "anchor": "D.$(\"#cp-stop\").focus()",
-     "reason": "The behavior test exercises focus on the clone Stop control before and after the request."
+     "anchor": "assert.equal(D.$(\"#cp-stop\").hidden, false)",
+     "reason": "The clone test presses Stop by its public ID."
     }
    }
   },
@@ -14837,7 +15017,7 @@
   },
   "tests/rail-order.test.mjs::functions::dom": {
    "status": "moved",
-   "home": "modules/settings/tests/rail-order.test.mjs"
+   "home": "tests/lib/dom.mjs"
   },
   "tests/reconcile-focus.test.mjs::exports::reconcile": {
    "status": "moved",
@@ -14877,7 +15057,13 @@
   },
   "tests/saved-truth.test.mjs::globals::matchMedia": {
    "status": "moved",
-   "home": "modules/runtimes/tests/saved-truth.test.mjs"
+   "home": "tests/lib/dom.mjs",
+   "evidence": {
+    "tests/lib/dom.mjs": {
+     "anchor": "g.matchMedia = g.matchMedia ||",
+     "reason": "The shared DOM test harness now supplies the matchMedia browser stub."
+    }
+   }
   },
   "tests/shape.test.mjs::functions::test_store_more": {
    "status": "planned",
@@ -15636,11 +15822,14 @@
    "home": "modules/conversation/thread-page-html.js"
   },
   "js/app.js::storage::cv-flavour": {
-   "status": "split",
-   "home": [
-    "core/ui/theme.js",
-    "modules/settings/appearance.js"
-   ]
+   "status": "moved",
+   "home": "modules/settings/appearance.js",
+   "evidence": {
+    "modules/settings/appearance.js": {
+     "anchor": "lookSet(\"cv-flavour\", b.dataset.flavour)",
+     "reason": "Appearance persists the same flavour choice through the injected storage owner."
+    }
+   }
   },
   "js/app.js::storage::<key>": {
    "status": "kept",
@@ -15980,7 +16169,13 @@
   },
   "js/ui.js::functions::move": {
    "status": "moved",
-   "home": "core/ui/redraw.js"
+   "home": "core/ui/redraw.js",
+   "evidence": {
+    "core/ui/redraw.js": {
+     "anchor": "function moveRow(box, row, before)",
+     "reason": "The renamed redraw helper moves the existing row node within its parent."
+    }
+   }
   },
   "tests/accounts.test.mjs::ids::set-t-accounts": {
    "status": "kept",

@@ -99,11 +99,27 @@ For P4 and fix packages A–D, keep the startup cascade explicit through the ord
 - The static graph resolves from Home, boot and main conversation decoration. Home retains the first module slot, decoration follows boot, and the 18 stylesheet slots match the P3 gate. Static serving checks cover the import map and these entry URLs. The browser execution check belongs to P5.
 - Settings and Home Record still assemble sibling modules at the application boundary. Their former consumers import public helpers from their owners.
 - Keep the P5 lane and the full legacy browser coverage. The P5 cases cover the drawer and Settings Back, Settings Escape focus return, the Threads panel, Home at two viewports, boot, project open, send and draft restoration. They cover only part of the retained browser suites. The deferred Apps cases stay in `e2e/specs/apps.spec.mjs`.
+- At P5, exercise the shortcuts sheet's hidden-state observation and the All Threads Tab trap through the booted app. Open shortcuts through its action and verify the app becomes inert. Close the sheet through its own control and verify focus return and inert release. Open All Threads and verify forward and reverse Tab wrap. Demonstrate that removing `watchHidden` from the shortcuts registration or clearing the All Threads Tab target fails its corresponding test.
 - `js/app.js` went from 1,388 to 1,227 lines. The extracted modules are keyboard layers (40), layer queries (26), global keys (35), Runs Escape (22), All Threads sheet (80), shortcuts sheet (11), project-icon keyboard (18), conversation lightbox (14), and main conversation decoration (13). The source-size revision keeps existing production files at or below the P3 counts. The runtime upward-import baseline is empty.
 - The ledger keeps 925 obligations open. [Package V](VENDOR-WORK-PACKAGE.md) owns the 367 byte-identical vendor relocations to `vendor/`. The CSS package (J) owns 12 stylesheet and asset entries, including the foundation, light, panel, shape and phone splits. The behavior-test work (C11) owns 283 unit-suite, fixture and test-kit entries. P5 owns 218 browser-suite and probe entries, and tooling package H owns 45. The P5 readiness gate requires evidence for all 925.
 - Settled ledger homes identify repository files. The checker verifies path and source correspondence in both modes. Exact copies, shared code or item names provide evidence. A rewritten destination can record a live source anchor and the reason for its transfer. The booted Settings and Quick Open tests exercise Escape, inert release and focus return, and verify the phone-only Settings Tab trap.
 - The independent review approved P4 at `8e9cb9fb`. The application inert observer moved from `js/app.js` to `shell/keyboard-layers.js`. The lifecycle baseline records one fewer observer in app wiring and the same observer in its new home.
 - Fix B landed at `b7268b5f` with all 321 suites passing on the clean export. Files drag-and-drop now reaches the validated target. Media reads are owned by their images, share a transport while needed and discard stale results. The conversation lightbox adapter imports that same media implementation directly.
+
+### P5 browser ledger evidence
+
+The 218 planned records are grouped by their original suite or harness in `tests/browser/`. Record each retained or rewritten check with the candidate commit, case or harness behavior, executed environments and outcome. The fast lane covers part of this inventory. An exit of 2 means Chromium or its harness did not run. Count viewport-specific cases only where they ran and keep the two separately deferred Apps cases in their own gate.
+
+| Origin | Records | Evidence to collect |
+|---|---:|---|
+| `chat-read-order.test.cjs`, `coordinator-busy.test.cjs` | 6 | Request ordering and coordinator state transitions. |
+| `conversation.test.cjs` | 54 | Existing project-open and send cases cover the entry path. Verify the remaining conversation and stream states. |
+| `flows.test.cjs` | 75 | Audit each flow across its applicable viewport and theme. Resolve the stale Map palette source assertion through its rendered behavior. |
+| `harness.cjs` | 31 | Map each behavior to the fake Space, store, settle, browser or runner tests. Verify any still-used helper with its consuming suite. |
+| `held-contract.test.cjs`, `held-waiting.test.cjs` | 7 | Held request and waiting-state behavior. |
+| `lpshell.test.cjs` | 8 | Launchpad and Shell integration with its seeded world. |
+| `settings.test.cjs` | 31 | The fast lane covers opening and Back/Escape routes. Verify the remaining Settings transitions and controls. |
+| `smoke.test.cjs` | 6 | Map desktop and phone smoke checks to executed equivalents and run any remaining checks. |
 
 ## Findings for the post-P4 fix phase
 

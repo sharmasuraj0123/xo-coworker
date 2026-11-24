@@ -12,7 +12,7 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | vendor | 10 |
 | split-region | 5 |
 
-Items inside first-party files: 2488 (moved 1805, planned 389, kept 152, deleted 136, split 6), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1801, planned 389, kept 152, deleted 143, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -238,8 +238,8 @@ Items inside first-party files: 2488 (moved 1805, planned 389, kept 152, deleted
 | `tests/link-buttons.test.mjs` | 47 | planned | core/ui (css guard)/tests/link-buttons.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/links-css.test.mjs` | 44 | planned | modules/files/tests/links-css.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/logic.test.mjs` | 550 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
-| `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs) |
-| `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs · next: rewritten as a behaviour test: the New project dialog from index.html driven on a DOM (modules/create-project/tests/create-fixture.mjs) |
+| `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs |
+| `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs |
 | `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-phone-links.test.mjs` | 84 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-stop-notice.test.mjs` | 171 | moved | modules/launchpad/tests/lp-stop-notice.test.mjs · next: still reads app.js's notice() source; its rewrite as a behaviour test is owed |

@@ -23,7 +23,7 @@ function walk(rel, visit) {
     else visit(p);
   }
 }
-for (const d of ["core", "shell", "modules", "apps-host", "e2e"]) {
+for (const d of ["core", "shell", "modules", "apps-host", "e2e", "tools"]) {
   if (existsSync(join(ROOT, d))) walk(d, (p) => { if (/(^|\/)tests\/[^/]+$/.test(p) && IS_TEST.test(p)) files.push(p); });
 }
 if (!filter) {

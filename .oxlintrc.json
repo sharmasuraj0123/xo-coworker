@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["import"],
-  "categories": { "correctness": "off" },
+  "categories": { "correctness": "error", "suspicious": "warn" },
   "env": { "browser": true, "es2024": true },
   "ignorePatterns": ["js/vendor/**", "vendor/**", "node_modules/**", "design-research/**", "ui-mockups/**", "tools/diffview/**"],
   "rules": {
