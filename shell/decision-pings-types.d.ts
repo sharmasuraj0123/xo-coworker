@@ -1,4 +1,4 @@
-export interface PingNeed { key: string; group: string; ask: { stopByYou?: boolean }; t: { id: string; project: string } }
+export interface PingNeed { key: string; group: string; t: { id: string; project: string } }
 
 export interface DecisionPingDeps<N extends PingNeed> {
   view(): string;

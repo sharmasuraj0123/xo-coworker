@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mock } from "node:test";
 import { dom } from "../../tests/lib/dom.mjs";
 import { createShellScheduler } from "../render.js";
+import { createScope } from "../../core/kernel/scope.js";
 import { createDecisionPings } from "../decision-pings.js";
 import { createReturnPill } from "../return-pill.js";
 import { tickElapsed } from "../elapsed.js";
@@ -11,8 +12,10 @@ const { document } = await dom('<main id="conv"><div id="scroller"><div id="msgs
 /** @type {FrameRequestCallback[]} */
 const frames = [];
 globalThis.requestAnimationFrame = (fn) => frames.push(fn);
+globalThis.cancelAnimationFrame = () => {};
 let renders = 0;
-const schedule = createShellScheduler(() => { if (++renders === 1) schedule(); });
+const scope = createScope();
+const schedule = createShellScheduler(() => { if (++renders === 1) schedule(); }, scope);
 schedule();
 schedule();
 assert.equal(frames.length, 1, "two requests share one frame");

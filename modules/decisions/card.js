@@ -133,7 +133,7 @@ export function createDecisionCard({ world, PROJ, F, teach, noSecret }) {
 
   /** @param {CardNeed} n */
   function chipsHtml(n) {
-    const estT = n.risk !== "destructive" && !n.ask.stopByYou ? estLine(n) : "";
+    const estT = n.risk !== "destructive" ? estLine(n) : "";
     return chipsOf(n).map((c) => `<li class="chip${c.tone ? ` t-${c.tone}` : ""}">${esc(c.text)}${c.count > 1 ? `<b>${c.count}</b>` : ""}</li>`).join("") +
       (estT ? `<li class="chip is-est" title="${n.t.live ? "From its checklist: the steps not done yet." : "An estimate: the steps left that wait on this answer × a typical step time."}">${ICON.hourglass}${esc(estT)}</li>` : "");
   }

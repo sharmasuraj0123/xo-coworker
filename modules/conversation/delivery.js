@@ -13,7 +13,7 @@ import { uploadErrorText } from "../../core/services/media/attachment-rules.js";
 
 /** @param {DeliveryDeps} options */
 export function createDelivery({
-  view: currentView, localMessages, fileReferences, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt,
+  view: currentView, signal, localMessages, fileReferences, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt,
   filesHere, tray, dropThumb, saveDraft, updateComposer, growSay, announce, heraldShow, heraldFor, schedule, render, go,
 }) {
   /** @param {string} [view] @param {string} [text] */
@@ -74,7 +74,7 @@ export function createDelivery({
   }
 
   /** @param {LocalMessage} m @param {Thread | null} thread */
-  function deliverLive(m, thread) { return once(`send:${m.cid}`, () => postLive(m, thread)); }
+  function deliverLive(m, thread) { if (!signal.aborted) return once(`send:${m.cid}`, () => postLive(m, thread)); }
   /** @param {LocalMessage} m @param {Thread | null} thread */
   async function postLive(m, thread) {
     m.status = "sending"; delete m.err;
@@ -82,15 +82,19 @@ export function createDelivery({
     try {
       await postWithFiles(m, thread);
       m.status = "sent";
-      const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
-      announce(`Sent to ${where}.`);
-      heraldFor(m.id, () => noticeFor(m, "sent"));
     } catch (err) {
       m.status = "failed";
       m.err = { title: (/** @type {SendFailure} */ (err)).fileErr ? `A file didn't upload: ${uploadErrorText(/** @type {SendFailure} */ (err))}` : (/** @type {SendFailure} */ (err)).code === "unknown_attachment" ? "A file is no longer on the server" : sendErrorTitle(/** @type {SendFailure} */ (err)), text: (/** @type {SendFailure} */ (err)).message || "" };
+    }
+    if (signal.aborted) return;
+    if (m.err) {
       announce(`${m.err.title}. ${m.err.text} Your message is kept; retry or edit it.`);
       const fail = noticeFor(m, "failed");
       if (!heraldFor(m.id, () => fail, 6000) && currentView() !== m.conv) heraldShow(fail, 6000);
+    } else {
+      const where = thread ? "the thread" : m.target === "workspace" ? "the coordinator" : PROJ(m.target);
+      announce(`Sent to ${where}.`);
+      heraldFor(m.id, () => noticeFor(m, "sent"));
     }
     schedule();
   }

@@ -23,7 +23,6 @@ export type CardNeed = BaseNeed & {
     item?: CardItem;
     full?: string;
     detail?: string;
-    stopByYou?: boolean;
     options?: string[];
   };
   t: {

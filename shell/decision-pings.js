@@ -13,7 +13,7 @@ export function createDecisionPings({ view, P, PROJ, askShort, heraldShow }) {
     for (const n of needs) {
       if (seen.has(n.key)) continue;
       seen.add(n.key);
-      if (n.group === "stopped" || n.ask.stopByYou || !P.mayPing(n)) continue;
+      if (n.group === "stopped" || !P.mayPing(n)) continue;
       // never the same ask twice on one screen: Home lists it, and its own thread shows it above the composer
       if (current === "home" || current === `t:${n.t.id}`) continue;
       heraldShow({ kind: "ping", text: `${PROJ(n.t.project)} · worth a look`, sub: askShort(n), decide: n.key }, 7000);

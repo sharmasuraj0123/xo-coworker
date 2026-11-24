@@ -28,6 +28,7 @@ type Herald = ReturnType<typeof createHerald>;
 
 export type DeliveryDeps = {
   view(): string;
+  signal: AbortSignal;
   localMessages: Pick<ReturnType<typeof createLocalMessages>, "send" | "get" | "removeSend">;
   fileReferences: Pick<ReturnType<typeof createFileReferences>, "get" | "remove">;
   world: {

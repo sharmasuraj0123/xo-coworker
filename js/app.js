@@ -167,7 +167,7 @@ const appScope = createScope();
 if (!viewportPhone) throw new Error("The application requires media queries.");
 const PHONE = viewportPhone;
 const world = createWorld();
-const schedule = createShellScheduler(() => render());
+const schedule = createShellScheduler(() => render(), appScope);
 const redrawFocus = createRedrawFocus();
 // what the backend can do, asked each time (a surface that needs a missing one stays away); filled in below
 /** @type {Record<string, (() => boolean) | undefined>} */
@@ -217,7 +217,7 @@ const transcriptFolds = createTranscriptFolds();
 const homeSelection = createHomeSelection();
 const { show: heraldShow, forMsg: heraldFor, drop: heraldDrop } = notices;
 const waitSince = new Map();
-const announce = createAnnouncer($("#live"));
+const announce = createAnnouncer($("#live"), appScope);
 const codeCopy = createCodeCopy(announce);
 
 const P = createPacing({ params });
@@ -254,10 +254,6 @@ const D = createDecisions({
     TP.dock?.undoReceipt(key);
   },
   onBreak: (left) => heraldShow({ kind: "calm", text: "Taking a break", sub: `${left} wait safely` }, 5200),
-  onSent: (part) => {
-    // "Stop here" after you stopped a thread: it ends there, honestly
-    if (part.ask.stopByYou && typeof part.choice === "object" && "option" in part.choice && part.choice.option === "Stop here") setTimeout(() => { world.act.resolve(part.t.id).catch(() => {}); }, 1600);
-  },
 });
 const IQ = createIntel({
   world, PROJ,
@@ -548,7 +544,8 @@ const filesHere = (view = currentView()) => (canAttach(view) ? tray.status(view)
 const { trayRender, addFiles, insertText, wireTray, dropThumb } = createComposerAttachments({ MK, tray, canAttach, attachChat, announce, heraldShow, updateComposer: (K) => updateComposer(K), saveDraft, VW });
 const fileReferences = createFileReferences();
 const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack, editFailed } = createDelivery({
-  view: currentView, localMessages, fileReferences, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, composerAt: (node) => composerAt(node),
+  view: currentView, signal: appScope.signal, localMessages, fileReferences, world, MK, say, CH, STAGE, PROJ, chatOf, convOfChat, convThread,
+  convProject, composerAt: (node) => composerAt(node),
   filesHere, tray, dropThumb, saveDraft, updateComposer: (K) => updateComposer(K), growSay: (K) => growSay(K), announce, heraldShow, heraldFor, schedule, render: () => render(), go,
 });
 const { heraldBox, heraldRender, heraldRoom, heraldBack } = createNoticeLine({

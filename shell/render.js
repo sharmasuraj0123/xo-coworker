@@ -6,10 +6,14 @@ import { usable } from "../core/ui/a11y/focus.js";
 import { redraw } from "../core/ui/redraw.js";
 import { faviconRender } from "./favicon.js";
 
-/** @param {() => void} render */
-export function createShellScheduler(render) {
-  let raf = 0;
-  return function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); };
+/** @param {() => void} render @param {ReturnType<typeof import("../core/kernel/scope.js").createScope>} scope */
+export function createShellScheduler(render, scope) {
+  let queued = false;
+  return function schedule() {
+    if (queued || scope.signal.aborted) return;
+    queued = true;
+    scope.frame(() => { queued = false; render(); });
+  };
 }
 
 /** @template {import("./render-types.d.ts").RenderNeed} Need @template {import("./render-types.d.ts").RenderThread} Thread @template {import("./render-types.d.ts").RenderConversation} Conversation @param {import("./render-types.d.ts").RenderDeps<Need, Thread, Conversation>} options */

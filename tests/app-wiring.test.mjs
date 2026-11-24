@@ -35,6 +35,8 @@ let promptCount = 0;
 /** @type {string[]} */
 const modelReads = [];
 const threadDeletes = [];
+const threadResolves = [];
+const outgoingPosts = new Map();
 let holdRunRead = false;
 const lateRunRead = deferred();
 /** @type {AbortSignal | undefined} */
@@ -154,6 +156,16 @@ Object.assign(globalThis, {
       threadDeletes.push(JSON.parse(init.body));
       return Response.json({});
     }
+    if (path.startsWith("/api/chat/chats/project-chat/threads/") && init?.method === "PATCH") {
+      const response = deferred();
+      threadResolves.push({ thread: resource, body: JSON.parse(init.body), signal: init.signal, response });
+      return response.promise;
+    }
+    if (path === "/api/chat/chats/project-chat/messages" && init?.method === "POST") {
+      const response = deferred();
+      outgoingPosts.set(JSON.parse(init.body).text, { signal: init.signal, response });
+      return response.promise;
+    }
     if (path === "/api/xo-projects/demo/github/issues") {
       githubSignal = init.signal;
       return githubRead.promise;
@@ -182,6 +194,7 @@ Object.assign(globalThis, {
     if (path === "/api/chat/chats/project-chat/threads") return Response.json({ threads: [
       { ts: "boot-thread", chat_id: "project-chat", title: "Thread from the panel", state: "working", session_id: "boot-session", pin: { model: "codex-fixture" }, runs: { total: 1 }, can_delete: true },
       { ts: "failed-thread", chat_id: "project-chat", title: "Review the draft", state: "failed" },
+      { ts: "failed-late", chat_id: "project-chat", title: "Review the second draft", state: "failed" },
     ].map((thread) => ({ ...thread, created_at: new Date(lastHomeVisit).toISOString(), updated_at: new Date(lastHomeVisit).toISOString() })) });
     if (path === "/api/chat/chats/project-chat/messages" && searchParams.get("thread") === "boot-thread") {
       return Response.json({ messages: [{
@@ -864,6 +877,28 @@ assert.ok(githubSignal, "the visible panel checks for the project's GitHub remot
 assert.ok(artifactsSignal, "the app reads project artifacts");
 assert.ok(shellSignal, "the mounted Shells dock starts a cancellable status read");
 const pagehide = (persisted) => window.dispatchEvent(Object.assign(new window.Event("pagehide"), { persisted }));
+const failedFromStage = (/** @type {string} */ id) => {
+  const button = `#stage .ag-r[data-go="t:${id}"]`;
+  if (document.querySelector("#stage").hidden) press("[data-stage-toggle]");
+  if (document.querySelector("#stage [data-stg-sections]")) press("#stage [data-stg-sections]");
+  if (!document.querySelector(button)) {
+    const done = document.querySelector('#stage [data-tg-fold="done"]');
+    assert.ok(done, "Stage lists the project's finished and stopped threads");
+    if (done.getAttribute("aria-expanded") === "false") done.click();
+  }
+  press(button, 1, "mouse", { metaKey: true });
+  assert.equal(app.dataset.conv, `t:${id}`);
+};
+async function sendFromMain(/** @type {string} */ text) {
+  const field = document.querySelector("#say");
+  field.value = text;
+  field.dispatchEvent(new window.Event("input", { bubbles: true }));
+  field.closest("form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
+  await new Promise(setImmediate);
+  const post = outgoingPosts.get(text);
+  assert.ok(post, `boot's composer sends "${text}"`);
+  return post;
+}
 const shellDock = document.querySelector("#shd");
 const shellGrip = shellDock.querySelector(".shd-grip");
 const resizeShells = () => shellGrip.dispatchEvent(Object.assign(new window.Event("keydown", { cancelable: true }), { key: "ArrowUp" }));
@@ -892,7 +927,57 @@ assert.equal(shellRelocationObservers.size, 1, "the page cache keeps the Stage S
 assert.equal(threadDockObservers.size, mountedDockObservers.length);
 assert.equal(stageLayoutObservers.size, 2, "the page cache keeps Stage layout observations");
 assert.ok(mountedDockObservers.every((observer) => threadDockObservers.has(observer)), "the page cache keeps the mounted dock observations");
+key("Escape");
+press('#projects [data-go="p:demo"]');
+failedFromStage("failed-thread");
+const cachedPost = await sendFromMain("A cached reply");
+press('#top [data-resolve="failed-thread"]');
+await new Promise(setImmediate);
+assert.deepEqual(threadResolves.map(({ body }) => body), [{ resolved: true }]);
+pagehide(true);
+cachedPost.response.resolve(Response.json({}));
+await new Promise(setImmediate);
+await new Promise((resolve) => setTimeout(resolve, 60));
+flushFrames();
+assert.equal(cachedPost.signal.aborted, false);
+assert.match(document.querySelector("#live").textContent, /Sent to the thread/);
+threadResolves[0].response.resolve(Response.json({ state: "resolved" }));
+await new Promise(setImmediate);
+await new Promise((resolve) => setTimeout(resolve, 60));
+flushFrames();
+assert.match(document.querySelector("#live").textContent, /Resolved Review the draft/);
+assert.equal(document.querySelector('#top [data-resolve="failed-thread"]').dataset.to, "open");
+assert.equal(threadResolves.length, 1, "the stopped thread needs only one Resolve");
+
+press('#projects [data-go="p:demo"]');
+failedFromStage("failed-late");
+const latePost = await sendFromMain("An already issued reply");
+const lateFailure = await sendFromMain("An already issued refusal");
+press('#top [data-resolve="failed-late"]');
+await new Promise(setImmediate);
+assert.deepEqual(threadResolves.map(({ thread, body }) => [thread, body]), [
+  ["failed-thread", { resolved: true }], ["failed-late", { resolved: true }],
+]);
+assert.ok(frames.size, "the live Resolve action has queued a render");
 pagehide(false);
+const live = document.querySelector("#live");
+const lastAnnouncement = live.textContent;
+const lastNotice = document.querySelector("#herald").textContent;
+app.dataset.conv = "unloaded";
+flushFrames();
+assert.equal(app.dataset.conv, "unloaded", "unload cancels a queued application render");
+assert.equal(latePost.signal.aborted || lateFailure.signal.aborted || threadResolves[1].signal.aborted, false,
+  "already-issued writes finish independently of the page lifetime");
+latePost.response.resolve(Response.json({}));
+lateFailure.response.resolve(Response.json({ message: "Late refusal" }, { status: 503 }));
+threadResolves[1].response.resolve(Response.json({ state: "resolved" }));
+await new Promise(setImmediate);
+await new Promise((resolve) => setTimeout(resolve, 1700));
+flushFrames();
+assert.equal(live.textContent, lastAnnouncement, "late writes do not announce in the retired app");
+assert.equal(document.querySelector("#herald").textContent, lastNotice, "late writes do not replace a retired notice");
+assert.equal(app.dataset.conv, "unloaded", "late writes do not render");
+assert.equal(threadResolves.length, 2, "each Resolve write is sent exactly once");
 assert.equal(overviewRetirements, 1, "unloading releases the Launchpad overview click listener");
 launchpadOverview.removeEventListener = removeOverviewListener;
 assert.equal(launchpadDialog.isConnected, false, "unloading removes the Launchpad dialog");

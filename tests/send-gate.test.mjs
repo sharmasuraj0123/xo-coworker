@@ -25,6 +25,9 @@ const notices = { herald: null };
 const announcements = [];
 const herald = createHerald({ state: notices, setTimer: () => 0, clearTimer() {} });
 const rendered = [];
+const deliveryScope = new AbortController();
+const noticeWrites = [];
+let scheduled = 0;
 const provider = (kind) => (recipient, text, options) => {
   const answer = deferred();
   requests.push({ kind, recipient, text, options, answer });
@@ -32,16 +35,17 @@ const provider = (kind) => (recipient, text, options) => {
 };
 const K = { get view() { return S.view; }, say, send, conv: { msgs, follow: { toLatest: () => rendered.push("follow") } } };
 const delivery = createDelivery({
-  view: () => S.view, localMessages, fileReferences, world: { state, act: { ask: provider("ask"), reply: provider("reply") } },
+  view: () => S.view, signal: deliveryScope.signal, localMessages, fileReferences, world: { state, act: { ask: provider("ask"), reply: provider("reply") } },
   MK: K, say, CH: { isChats: (view) => view.startsWith("c:"), blocked: () => chatBlock, send: (view, text) => requests.push({ view, text }) },
   STAGE: { resumeFollow() {} },
   PROJ: (id) => id === "demo" ? "Demo" : id,
   chatOf: () => "demo", convOfChat: (id) => "p:" + id,
   convThread: (view) => view === "t:active" ? thread : null, composerAt: () => K,
   filesHere: () => ({ count: 0 }), tray: {}, dropThumb() {},
-  saveDraft() {}, updateComposer() {}, growSay() {}, announce: (message) => announcements.push(message), schedule() {}, go() {},
+  saveDraft() {}, updateComposer() {}, growSay() {}, announce: (message) => announcements.push(message), schedule() { scheduled++; }, go() {},
   render: () => rendered.push(localMessages.list(S.view).at(-1)?.text),
-  heraldShow: herald.show, heraldFor: herald.forMsg,
+  heraldShow: (...args) => { noticeWrites.push("show"); return herald.show(...args); },
+  heraldFor: (...args) => { noticeWrites.push("replace"); return herald.forMsg(...args); },
 });
 
 fileReferences.set(S.view, { path: "notes.md", a: 2, b: 4, name: "notes.md" });
@@ -144,3 +148,20 @@ routing.mode = "agent";
 assert.equal(fileQuestion.askAboutLines(file, 2, 4, "What changed?"), true);
 assert.equal(fileSends[0].target, "demo");
 assert.equal(fileSends[0].text, "notes.md:2-4\n\nWhat changed?");
+
+say.value = "Send before disposal";
+delivery.send();
+say.value = "@demo Server refusal after disposal";
+delivery.send();
+await settle();
+const [lateSuccess, lateRefusal] = requests.slice(-2);
+assert.equal(lateSuccess.kind, "reply");
+assert.equal(lateRefusal.kind, "ask");
+deliveryScope.abort();
+const previous = { announcements: announcements.length, notices: noticeWrites.length, scheduled };
+lateSuccess.answer.resolve({});
+lateRefusal.answer.reject(Object.assign(new Error("late refusal"), { status: 502 }));
+await settle();
+assert.equal(announcements.length, previous.announcements, "retired delivery never calls the announcer");
+assert.equal(noticeWrites.length, previous.notices, "retired delivery never calls the notice owner");
+assert.equal(scheduled, previous.scheduled, "retired delivery never requests a render");
