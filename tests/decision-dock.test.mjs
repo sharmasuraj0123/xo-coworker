@@ -45,6 +45,11 @@ const press = (selector) => {
 };
 
 dock.render(D.needItems());
+const details = root.querySelector(".dis-h");
+assert.equal(details.getAttribute("aria-expanded"), "false");
+press(".dis-h");
+assert.equal(details.getAttribute("aria-expanded"), "true");
+assert.ok(!root.querySelector(".dis-b").hidden);
 press("[data-fold]");
 assert.ok(document.activeElement === region, "folding hands focus to the conversation");
 press("[data-unfold]");

@@ -4,6 +4,7 @@ type Checklist = { items: { state: string; text: string }[]; done: number; total
 type Thread = { checklist: Checklist; branch?: string; host?: boolean };
 
 export type EvidenceNeed = { t: Thread & { messages: { who: string; at: number; text: string }[] } };
+export type WaitingNeed = { t: Thread; ask: { full?: string; detail?: string } };
 
 export type ItemNeed = {
   t: Thread;

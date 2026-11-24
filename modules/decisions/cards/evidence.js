@@ -2,13 +2,25 @@
 
 import { esc } from "../../../core/platform/util.js";
 import { clock } from "../../../core/platform/time.js";
+import * as K from "../../../core/platform/keys.js";
 import { evidenceOf } from "../../../core/services/review.js";
 import { resetWords, rtName } from "../../../core/services/runtimes.js";
 import { ICON, stepMark } from "../../../core/ui/icons/names.js";
-import { renderMarkdown } from "../../../core/ui/markdown/markdown.js";
+import { renderMarkdown, excerptMarkdown, renderInline } from "../../../core/ui/markdown/markdown.js";
 import { highlight } from "../../../core/ui/markdown/highlight.js";
 
-/** @import { Change, EvidenceNeed, ItemNeed, LimitItem } from "./evidence-types.d.ts" */
+/** @import { Change, EvidenceNeed, WaitingNeed, ItemNeed, LimitItem } from "./evidence-types.d.ts" */
+
+/** @param {WaitingNeed} n */
+export function waitingDetailsHtml(n) {
+  const t = n.t, a = n.ask;
+  const { md, more } = excerptMarkdown(a.full || a.detail || "", 600);
+  const items = [...t.checklist.items].sort((x, y) => (/** @type {number} */ (/** @type {unknown} */ (x.state === "done"))) - (/** @type {number} */ (/** @type {unknown} */ (y.state === "done"))));
+  const ck = items.map((i) => `<li class="ck ck-${esc(i.state)}"><span class="ck-m" aria-hidden="true">${stepMark(i.state)}</span><span>${renderInline(i.text || "", true)}</span></li>`).join("");
+  const main = md ? `<div class="prose dt-ex${more ? " is-more" : ""}">${renderMarkdown(md)}</div>${more ? `<button type="button" class="dt-more" data-act="thread" title="Open the thread${K.hint("open")}">The rest is in the thread ${ICON.chevron}</button>` : ""}` : `<p class="dt-why">Open the thread to see what it needs.</p>`;
+  return `<div class="dt"><div class="dt-main">${main}</div>` +
+    (items.length ? `<div class="dt-side"><h4>Checklist <span>${t.checklist.done} of ${t.checklist.total}</span></h4><ol class="ck-list">${ck}</ol>${t.branch ? `<p class="ev-br">${ICON.branch}<code>${esc(t.branch)}</code></p>` : ""}</div>` : "") + `</div>`;
+}
 
 /** @param {Change | null | undefined} c */
 function changeBlock(c) {
