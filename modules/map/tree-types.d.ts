@@ -41,6 +41,6 @@ export interface TreeDeps {
     project: (project: string) => { name?: string } | null | undefined;
     state: { projects: { id: string, kind?: string, name?: string }[] };
   };
-  load: (scope: MapFolder, path: string) => Promise<void>;
+  load: (scope: MapFolder, path: string) => void;
   folderAt: (scope: MapFolder, path: string) => Directory | undefined;
 }

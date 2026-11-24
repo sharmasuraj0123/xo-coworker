@@ -53,7 +53,9 @@ export function createMap({ world, go, announce, isBusy, openFile, stepLineHtml 
   }
   const { agentOf, agentsIn, doingLine, verbOf } = createMapAgents({ world, isBusy, stepLineHtml });
   const headHtml = createMapHead(world, doingLine, verbOf);
-  const load = (/** @type {Parameters<typeof folders.load>} */ ...args) => folders.load(...args);
+  const load = (/** @type {Parameters<typeof folders.load>} */ ...args) => {
+    void folders.load(...args).catch(globalThis.reportError?.bind(globalThis) ?? console.error);
+  };
   const folderAt = (/** @type {Parameters<typeof folders.get>} */ ...args) => folders.get(...args);
   const { folderTree, projectsTree, boxHtml } = createMapTree(/** @type {Parameters<typeof createMapTree>[0]} */ ({ M, world, load, folderAt }));
   /** @param {Scope} scope */

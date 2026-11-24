@@ -13,10 +13,9 @@ interface Entry {
   path: string;
 }
 
-export type Directory =
-  | { state: "loading" }
-  | { state: "ok", dirs: Entry[], files: Entry[] }
-  | { state: "error", error: string };
+type GoodDirectory = { state: "ok", dirs: Entry[], files: Entry[] };
+type FailedDirectory = { state: "error", error: string };
+export type Directory = { state: "loading" } | GoodDirectory | (FailedDirectory & { previous?: GoodDirectory });
 
 export interface MapTree {
   dirs?: TreeEntry[];

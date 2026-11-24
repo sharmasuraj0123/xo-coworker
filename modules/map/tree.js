@@ -8,7 +8,7 @@ import { PAD } from "./layout.js";
 
 /** @import { FileMark } from "../../core/services/types.d.ts" */
 
-/** @import { Directory, MapFolder } from "./folders-types.d.ts" */
+/** @import { MapFolder } from "./folders-types.d.ts" */
 
 /** @import { MapTreeAgent, TreeDeps, TreeFile, TreeNode, TreeScope } from "./tree-types.d.ts" */
 
@@ -31,20 +31,21 @@ export function createMapTree({ M, world, load, folderAt }) {
     /** @param {Set<string>} set @param {string} p */
     const inside = (set, p) => { for (const h of set) if (h === p || h.startsWith(p + "/")) return true; return false; };
     const marked = new Set(marks.keys());
-    // Auto-unfold only while the panel can display the drawing at a readable width.
-    const roomy = auto;
-    const unfoldMarks = roomy && scope.kind === "thread" && marked.size <= 16;
+    const unfoldMarks = auto && scope.kind === "thread" && marked.size <= 16;
     const autoSet = setOf(M.autoOpen, scope.key);
     /** A folder an agent visited stays open. @param {string} p */
-    const isOpen = (p) => { if (opened.has(p)) return true; if (closed.has(p)) return false; if (roomy && (autoSet.has(p) || inside(hot, p) || (unfoldMarks && inside(marked, p)))) { autoSet.add(p); return true; } return false; };
+    const isOpen = (p) => { if (opened.has(p)) return true; if (closed.has(p)) return false; if (auto && (autoSet.has(p) || inside(hot, p) || (unfoldMarks && inside(marked, p)))) { autoSet.add(p); return true; } return false; };
     /** @param {string} local @returns {TreeNode[]} */
     const kids = (local) => {
       load(fold, local);
-      const d = /** @type {(Directory & { dirs: TreeFile[], files: TreeFile[] }) | undefined} */ (folderAt(fold, local));
-      if (!d || (d.state === "loading" && !d.dirs)) return [{ id: local + "/…", kind: "note", name: "Reading…" }];
-      if (d.state === "error") { M.refs.set(local + "/!", { retry: local, fold }); return [{ id: local + "/!", kind: "note", name: `${d.error} · Try again`, btn: true }]; }
+      const d = folderAt(fold, local);
+      if (!d || d.state === "loading") return [{ id: local + "/…", kind: "note", name: "Reading…" }];
+      const out = /** @type {TreeNode[]} */ ([]);
+      if (d.state === "error") {
+        M.refs.set(local + "/!", { retry: local, fold }); out.push({ id: local + "/!", kind: "note", name: `${d.error} · Try again`, btn: true });
+        if (!d.previous) return out;
+      }
       const all = more.has(local);
-      // Keep disk order and retain boxes already shown.
       const seen = setOf(M.shown, scope.key);
       /** @param {TreeFile[]} list @param {number} cap */
       const pick = (list, cap) => {
@@ -53,12 +54,10 @@ export function createMapTree({ M, world, load, folderAt }) {
         let room = cap - must.size;
         return list.filter((x) => must.has(x.path) || (room-- > 0));
       };
-      const dirs = d.dirs, files = d.files;
+      const { dirs, files } = d.state === "ok" ? d : d.previous;
       const sd = pick(dirs, DIR_CAP), sf = pick(files, FILE_CAP);
       for (const x of sd) seen.add(x.path);
       for (const x of sf) seen.add(x.path);
-      /** @type {TreeNode[]} */
-      const out = [];
       for (const c of sd) {
         const open = isOpen(c.path);
         M.refs.set(c.path, { toggle: c.path, open });
@@ -70,7 +69,7 @@ export function createMapTree({ M, world, load, folderAt }) {
         out.push({ id: f.path, kind: "file", name: f.name, mark: m ? m.mark : "" });
       }
       // a deleted file isn't on disk any more, but the diagram still says it went
-      for (const [p, m] of marks) if (m.mark === "deleted" && parentOf(p) === local && !d.files.some((f) => f.path === p)) out.push({ id: p, kind: "file", name: base(p), mark: "deleted" });
+      for (const [p, m] of marks) if (m.mark === "deleted" && parentOf(p) === local && !files.some((f) => f.path === p)) out.push({ id: p, kind: "file", name: base(p), mark: "deleted" });
       const hidden = dirs.length - sd.length + files.length - sf.length;
       if (hidden > 0) { M.refs.set(local + "/+", { more: local }); out.push({ id: local + "/+", kind: "more", name: `${hidden} more` }); }
       if (!out.length) out.push({ id: local + "/∅", kind: "note", name: "Empty" });

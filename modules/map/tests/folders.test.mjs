@@ -63,14 +63,23 @@ pending = Promise.withResolvers();
 const unexpected = folders.load(scope, "unexpected");
 pending.reject(requestFailure);
 await assert.rejects(unexpected, (error) => error === requestFailure);
-assert.equal(redraws, 4);
+assert.deepEqual(folders.get(scope, "unexpected"), { state: "error", error: "Couldn't read it" });
+assert.equal(redraws, 5);
 
 const conversionFailure = new ApiError(404, "not_found", "Broken response accessor");
 pending = Promise.withResolvers();
 const malformed = folders.load(scope, "malformed");
 pending.resolve({ get files() { throw conversionFailure; } });
 await assert.rejects(malformed, (error) => error === conversionFailure);
-assert.equal(redraws, 4);
+assert.equal(redraws, 6);
+
+const previous = folders.get(scope, "source");
+pending = Promise.withResolvers();
+const badRefresh = folders.load(scope, "source", { again: true });
+pending.reject(requestFailure);
+await assert.rejects(badRefresh, (error) => error === requestFailure);
+assert.deepEqual(folders.get(scope, "source"), { state: "error", error: "Couldn't read it", previous });
+assert.equal(redraws, 7);
 
 pending = Promise.withResolvers();
 const abandoned = folders.load(scope, "source", { again: true });
@@ -79,4 +88,4 @@ folders.dispose();
 assert.equal(signals.at(-1)?.aborted, true);
 pending.resolve({ files: [{ name: "disposed" }] });
 await abandoned;
-assert.equal(redraws, 4);
+assert.equal(redraws, 7);
