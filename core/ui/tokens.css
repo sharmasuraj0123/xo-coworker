@@ -9,17 +9,7 @@
 @font-face{font-family:"JetBrains Mono";font-style:italic;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-wght-italic.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"JetBrains Mono";font-style:italic;font-weight:100 800;font-display:swap;src:url("../../fonts/jetbrains-mono/jetbrains-mono-latin-ext-wght-italic.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 
-/* ── Surfaces and lines: named by role, never by value ───────────────────────────────────────────────
-   Five depths and five lines replace a 39-step grey ramp and the per-component palettes (--g14 … --g72,
-   --pop-*, --comp-line*, --hair, --raised, --bg-2/3/4).
-     sunken   the sidebar, recessed regions          canvas   the window
-     surface  cards, rows, fields, panels' content    float    menus, popovers, dialogs, the composer
-     fill-1   a quiet well (code, tracks, notes)      fill-2   a chip, a static hover tint
-     fill-3   pressed, selected, a strong track       fill-4   thumbs, handles, an off switch
-     line-faint  seams between regions                line-soft  a card's edge
-     line        a control's edge                     line-strong  a hovered edge
-     line-hover  the strongest edge (a field being typed in, a focused well)
-   Interactive states over any surface use the translucent --hover-fill and --press-fill. */
+/* Surface and line roles share an elevation scale. Interactive states use translucent fills. */
 
 /* Dark: a deep neutral canvas (#141414); every step keeps the same relative lift. */
 :root{
@@ -47,9 +37,14 @@
   --herald-bg:rgba(27,27,27,.9); --toast-bg:rgba(40,40,40,.95); --stamp-bg:rgba(29,29,29,.9);
   --comp-bg:var(--float); --comp-shadow:rgba(0,0,0,.35); --comp-hi:rgba(255,255,255,.04);
 
-  /* Depth. Three elevations: 0 the canvas, 1 a raised surface (a step and a line, no shadow),
-     2 floating (menus, sheets, the composer): one contact shadow plus one short ambient. */
+  /* Floating surfaces pair a contact shadow with a short ambient shadow. */
   --e1:none;
+  --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
+  --edge-sidebar-active:rgba(var(--black-rgb),.06); --edge-switch-track:rgba(var(--black-rgb),.04);
+  --e-switch-knob:0 1px 2px rgba(var(--black-rgb),.18),0 0 0 .5px rgba(var(--black-rgb),.06);
+  --e-composer-idle:0 1px 2px rgba(var(--black-rgb),.04),0 3px 10px -4px rgba(var(--black-rgb),.07);
+  --e-composer-focused:0 1px 2px rgba(var(--black-rgb),.05),0 4px 14px -6px rgba(var(--black-rgb),.1);
+  --edge-floating-panel:rgba(var(--black-rgb),.08); --dot-map-core:1px; --dot-map-feather:1.2px; --blur-map-label:3px;
   --e2:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.24);
   --shadow-md:var(--e2); --shadow-lg:var(--e2);
   --lift-1:0 0 #0000; --lift-2:0 0 #0000; --lift-3:var(--e2);   /* light's paper lifts; in dark a step does it */
@@ -65,8 +60,7 @@
   --danger-fill:color-mix(in srgb,var(--err-ink) 14%,transparent); --danger-fill-hover:color-mix(in srgb,var(--err-ink) 20%,transparent); --danger-fill-press:color-mix(in srgb,var(--err-ink) 26%,transparent);
   /* The one focus ring: 3 px of soft accent hugging the control; a typed-in field's edge and the glow outside it */
   --focus:rgba(var(--accent-rgb),.4); --focus-halo:rgba(var(--accent-rgb),.2);
-  /* the room the ring takes outside a control (its 2 px past a 2 px gap), and 2 px of air: kept clear wherever focus
-     scrolls a control into view (core/ui/foundation.css) */
+  /* Scroll containers reserve the ring's offset and room around focused controls. */
   --ring-room:6px;
   /* Dark ink maintains contrast on every agent colour. */
   --on-agent:#0B0B0C;
@@ -87,8 +81,7 @@
   /* Coordinator names and marks use the same violet in every view. */
   --coord-ink:color-mix(in srgb,var(--coord) 72%,var(--ink-3)); --coord-ring:color-mix(in srgb,var(--coord) 60%,var(--line));
 
-  /* The three lights. Green: done or go. Blue: working now. Amber: needs you. Red: real, irreversible danger.
-     Their quiet tints are mixed here, so a state never hard-codes one theme's RGB. */
+  /* Status roles provide the shared hues for labels and quiet tints. */
   --go:var(--accent); --work:var(--info); --need:var(--warn); --danger:var(--err);
 
   --sans:"Geist",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -122,20 +115,15 @@
   --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
   --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl box's --s-2 padding and 1 px line */
   --r-note:calc(var(--r) + var(--s-2));
-  /* A control that reads as text (no fill at rest, its words on an edge) still has a shape when it's hovered, pressed or
-     focused: its fill reaches --halo past its words, at --r. A cell of a flush bar (a tab, a rail's button) draws its
-     fill --cell-in inside its cell, at --r. Either way no state is ever a square, and nothing is flush with the words. */
+  /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
   --halo:8px; --cell-in:4px;
   /* a whole row reads as a card when hovered (Home's lists): its fill reaches a step further, at --r-lg */
   --halo-row:12px;
-  /* Places, said once (the positioning audit's G5): a floating panel's inset from the window; the phone's top bar; the
-     docked chat's rail; a resize grip's width; a drag handle's size */
+  /* Shared insets, rails and grab targets align panels and phone controls. */
   --float-inset:var(--s-3); --h-phonebar:52px; --rail-w:44px; --grip-w:8px; --grab-w:36px; --grab-h:4px;
   /* the sidebar folded to its rail: one row and the rows' own inset on each side (64) */
   --side-rail-w:calc(var(--h-row) + 2 * var(--s-3));
-  /* Controls with a body come in three sizes. Hit areas may be larger (44 under a coarse pointer); compact
-     density steps one size down. 24 inline · 32 standard (every button, select and toolbar field) · 40 form
-     fields and a screen's primary action. */
+  /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
   --dock-bar:var(--h-row-act); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
   --note-h:var(--h-ctl); --note-btn:var(--h-sm); /* the notice over the composer: a pill a control tall, and its button's height inside it */
@@ -185,10 +173,7 @@
   /* Stacking: one scale, so a popover can never fall under a panel. */
   --z-raised:2; --z-sticky:4; --z-dock:6; --z-panel:20; --z-overlay:60; --z-popover:80; --z-toast:100; --z-top:120;
 
-  /* Motion. One curve for everything that responds. A hover engages in 120 ms and releases in 200 (the
-     slower release is what feels expensive); a press goes down in 60. Floating things appear in 180 and
-     leave in 140, from the side they were called from; dialogs and sheets take 240; content arrives in 280;
-     a panel moves in 320; the landing is 600. Nothing overshoots. Gated by prefers-reduced-motion in core/ui/foundation.css. */
+  /* Hover starts faster than it releases. Floating surfaces leave faster than they enter. */
   --ease:cubic-bezier(.2,.8,.2,1);
   --ease-loop:cubic-bezier(.45,0,.55,1);   /* an ambient loop that responds to nothing (the working sweep): even in, even out */
   --ease-out:var(--ease);
@@ -199,10 +184,7 @@
   --tx-press-transform:transform var(--dur-fast) var(--ease);
 }
 
-/* Light: one neutral family, the dark theme's own, so no warm off-white sits beside a cool one. The side is
-   recessed (#F2), the canvas a breath off white (#FAFAFA), and anything that holds content is white; grey
-   steps then darken in one direction only. Status hues are darkened so every label keeps ≥ 4.5:1 on white
-   and on the side. Light has no glow: a shadow is a contact shadow plus a short, low ambient one. */
+/* Light uses a recessed sidebar, white content surfaces and short, low shadows. */
 :root[data-theme="light"]{
   color-scheme:light;
 
@@ -283,7 +265,6 @@
   --danger-wash:color-mix(in srgb,var(--err) 10%,transparent);
   --coord-tint:color-mix(in srgb,var(--coord) 14%,transparent);
 }
-/* a phone's one-line rows stay at its 36 px floor (Settings' and the picker's rows); its taller rows keep their own
-   heights in css/phone.css */
+/* Phone controls retain the touch floor while taller rows keep their own heights. */
 @media (max-width:760px){:root{--h-row:36px}}
 @media (max-width:760px){:root{--cbar-fade:22px}}
