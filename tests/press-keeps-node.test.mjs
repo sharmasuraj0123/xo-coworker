@@ -109,11 +109,12 @@ const t = async (name, fn) => {
     assert.equal(kept, false);
   });
   await t("redrawNode: an element redrawn as itself stays the same node, its insides in place", () => {
-    host.innerHTML = `<header class="vw-top"><button data-vw-edit>Edit</button><span class="vw-n">a.md</span></header>`;
+    host.innerHTML = `<header class="vw-top"><button data-vw-edit>Edit</button><span class="fixture-name">a.md</span></header>`;
     const top = host.firstElementChild, edit = top.querySelector("[data-vw-edit]");
-    const now = redrawNode(top, `<header class="vw-top is-upd"><button data-vw-edit>Edit</button><span class="vw-n">a.md · Updated</span></header>`);
+    const now = redrawNode(top, `<header class="vw-top is-upd"><button data-vw-edit>Edit</button><span class="fixture-name">a.md · Updated</span></header>`);
     assert.ok(now === top); assert.ok(top.querySelector("[data-vw-edit]") === edit);
-    assert.equal(top.className, "vw-top is-upd"); assert.equal(top.querySelector(".vw-n").textContent, "a.md · Updated");
+    assert.equal(top.className, "vw-top is-upd");
+    assert.equal(top.querySelector(".fixture-name").textContent, "a.md · Updated");
   });
 
   const { reconcile } = await import("../core/ui/redraw.js");

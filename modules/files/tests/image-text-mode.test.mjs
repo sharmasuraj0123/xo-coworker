@@ -14,7 +14,7 @@ await settle();
 click('[data-vw-mode="source"]');
 assert.equal(host.querySelector('[data-vw-mode="source"]').getAttribute("aria-pressed"), "true");
 assert.ok(host.querySelector(".vw-body.vw-doc"), "HTML source opens in the document editor's region");
-assert.equal(host.querySelectorAll(".vw-code,.vw-ln,.vw-src").length, 0, "HTML source renders no legacy code regions");
+assert.equal(host.querySelectorAll(".vw-code,.vw-ln,.vw-src,.vw-l,.vw-n").length, 0, "HTML source renders no legacy code regions");
 viewer.open(image);
 await settle();
 assert.equal(host.querySelector(".vw-img").classList.contains("is-actual"), false);

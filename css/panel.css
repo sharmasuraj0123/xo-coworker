@@ -119,14 +119,6 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-pv{container:flpv / inline-size}
 :root[data-theme="light"] .vw-seg{background:var(--fill-1);border-color:rgba(0,0,0,.08)}
 
-/* code in the viewer: one row per line with its number; a long line wraps under itself (a hanging indent)
-   instead of running off the edge */
-.vw-l{display:grid;grid-template-columns:calc(var(--lnw, 3ch) + 24px) minmax(0,1fr)}
-.vw-n{padding:0 12px;text-align:right;color:var(--ink-4);opacity:.7;border-right:1px solid var(--line-faint);user-select:none;-webkit-user-select:none;font-variant-numeric:tabular-nums}
-.vw-l code{display:block;min-width:0;padding:0 var(--pe) 0 calc(var(--pe) + 2ch);text-indent:-2ch;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:none;border:0;border-radius:0;color:var(--ink-2)}
-.vw-l:hover{background:color-mix(in srgb,var(--ink) 3%,transparent)}
-:root[data-theme="light"] .vw-n{border-right-color:rgba(0,0,0,.08)}
-
 /* ── Made: the same scope line and field; a list (36 px thumb on the edge, name, one line under it)
    until there's room for a gallery ──────────────────────────────────────────────────────────────── */
 .md-pane{container:made / inline-size}
