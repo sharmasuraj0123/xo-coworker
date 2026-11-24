@@ -2,8 +2,8 @@
 
 // The terminal viewer detaches when its socket closes. The shell keeps running on the server.
 
-import { Terminal } from "../../js/vendor/xterm/xterm.mjs";
-import { FitAddon } from "../../js/vendor/xterm/addon-fit.mjs";
+import { Terminal } from "../../vendor/xterm/xterm.mjs";
+import { FitAddon } from "../../vendor/xterm/addon-fit.mjs";
 import { createScope } from "../../core/kernel/scope.js";
 import { api, terminalSocketUrl } from "../../core/platform/api.js";
 import { copyText } from "../../core/platform/index.js";

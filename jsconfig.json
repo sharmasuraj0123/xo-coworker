@@ -26,7 +26,6 @@
     "apps-host/**/*.js"
   ],
   "exclude": [
-    "js/vendor/**",
     "vendor/**",
     "node_modules/**"
   ]

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import http.client
 from hashlib import sha256
+from html.parser import HTMLParser
 import importlib.util
 import json
 import os
@@ -658,6 +659,42 @@ class StaticCaching(unittest.TestCase):
                 with open(os.path.join(ROOT, relative), "rb") as svg:
                     self.assertEqual(body, svg.read())
                 self.assertEqual(fetch(f"{prefix}/js/{relative}")[0], 404)
+
+    def test_versioned_xterm_assets_and_order(self):
+        class Stylesheets(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.links = []
+
+            def handle_starttag(self, tag, attrs):
+                attributes = dict(attrs)
+                if tag == "link" and attributes.get("rel") == "stylesheet":
+                    self.links.append(attributes.get("href"))
+
+        version = serve.tree_version()
+        relative = "vendor/xterm"
+        prefix = f"/v/{version}"
+        status, _, page = fetch("/")
+        self.assertEqual(status, 200)
+        stylesheets = Stylesheets()
+        stylesheets.feed(page.decode())
+        self.assertEqual(stylesheets.links[:3], [
+            f".{prefix}/core/ui/foundation.css",
+            f".{prefix}/{relative}/xterm.css",
+            f".{prefix}/css/app.css",
+        ])
+        pins = {
+            "xterm.mjs": ("text/javascript", "b336ec65a086c056d4804b3d4c2347da5663d3f23c3f25be866467bd8857ad59"),
+            "xterm.css": ("text/css", "854a7c0fb70e8b1a083c16797ab827299fb18744f5ad34f227b48337e33293c6"),
+            "addon-fit.mjs": ("text/javascript", "2d87e1bddc73be9111de8beee5370c3bb7aac9c94e18e6f245f02ca741ef1769"),
+        }
+        for asset, (mime, digest) in pins.items():
+            with self.subTest(asset=asset):
+                status, headers, contents = fetch(f"{prefix}/{relative}/{asset}")
+                self.assertEqual((status, headers.get("content-type"), headers.get("cache-control")),
+                                 (200, mime, serve.IMMUTABLE))
+                self.assertEqual(sha256(contents).hexdigest(), digest)
+                self.assertEqual(fetch(f"{prefix}/js/{relative}/{asset}")[0], 404)
 
     def test_versioned_katex_scripts_styles_and_fonts(self):
         prefix = f"/v/{serve.tree_version()}"

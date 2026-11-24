@@ -127,7 +127,7 @@ function layerViolations() {
     for (const spec of importSpecifiers(text)) {
       if (!spec.startsWith(".")) continue;
       const target = relative(ROOT, join(ROOT, dirname(f), spec)).replace(/\\/g, "/");
-      if (/(^|\/)(vendor|node_modules)\//.test(target) || target.startsWith("js/vendor/")) continue;
+      if (/(^|\/)(vendor|node_modules)\//.test(target)) continue;
       const testOfLegacy = /(^|\/)tests\//.test(f) && target.startsWith("js/");
       const up = rankOf(target) > rankOf(f) && !testOfLegacy;
       const across = moduleOf(f) && moduleOf(target) && moduleOf(f) !== moduleOf(target);

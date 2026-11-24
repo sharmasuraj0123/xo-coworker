@@ -4515,27 +4515,27 @@
    "home": "vendor/pierre/icons.js"
   },
   "js/vendor/xterm/LICENSE-addon-fit": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/xterm/LICENSE-addon-fit"
   },
   "js/vendor/xterm/LICENSE-xterm": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/xterm/LICENSE-xterm"
   },
   "js/vendor/xterm/README.md": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/xterm/README.md"
   },
   "js/vendor/xterm/addon-fit.mjs": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/xterm/addon-fit.mjs"
   },
   "js/vendor/xterm/xterm.css": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/xterm/xterm.css"
   },
   "js/vendor/xterm/xterm.mjs": {
-   "status": "planned",
+   "status": "vendor",
    "home": "vendor/xterm/xterm.mjs"
   },
   "js/viewer.js": {

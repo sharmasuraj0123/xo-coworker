@@ -1,8 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { registerHooks } from "node:module";
-import { fileURLToPath } from "node:url";
-import { startSpace } from "../e2e/lib/space.mjs";
 import { declarationsFor, resolveValue } from "./lib/css-snapshot.mjs";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
 import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../modules/shells/model.js";
@@ -116,27 +113,6 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
     || /#(?:75ADF1|1F63C7)|rgb\(\s*117\s*,\s*173\s*,\s*241/i.test(String(resolveValue(value))));
   assert.deepEqual(blue, []);
 });
-
-{
-  const space = await startSpace({ root: fileURLToPath(new URL("../", import.meta.url)) });
-  try {
-    const pins = {
-      "xterm.mjs": "b336ec65a086c056d4804b3d4c2347da5663d3f23c3f25be866467bd8857ad59",
-      "xterm.css": "854a7c0fb70e8b1a083c16797ab827299fb18744f5ad34f227b48337e33293c6",
-      "addon-fit.mjs": "2d87e1bddc73be9111de8beee5370c3bb7aac9c94e18e6f245f02ca741ef1769",
-    };
-    for (const [path, pin] of Object.entries(pins)) {
-      const response = await fetch(space.base + "/js/vendor/xterm/" + path);
-      const digest = createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
-      t(`the published ${path} is the pinned xterm asset`, () => {
-        assert.equal(response.status, 200);
-        assert.equal(digest, pin);
-      });
-    }
-  } finally {
-    await space.close();
-  }
-}
 
 {
   const { document, window } = await dom('<main id="scroller" tabindex="-1"></main><button id="nv-shells"><span class="sh-n"></span></button><section id="shd"></section>');

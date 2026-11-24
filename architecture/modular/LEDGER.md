@@ -5,9 +5,9 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | Status | Files |
 |---|---:|
 | moved | 489 |
-| vendor | 370 |
+| vendor | 376 |
 | deleted | 337 |
-| planned | 154 |
+| planned | 148 |
 | kept | 61 |
 | split | 31 |
 | split-region | 4 |
@@ -783,12 +783,12 @@ Items inside first-party files: 2488 (moved 1794, planned 387, kept 153, deleted
 | `js/vendor/pierre/LICENSE.md` | 189 | vendor | vendor/pierre/LICENSE.md |
 | `js/vendor/pierre/NOTICE.md` | 35 | vendor | vendor/pierre/NOTICE.md |
 | `js/vendor/pierre/icons.js` | 5 | vendor | vendor/pierre/icons.js |
-| `js/vendor/xterm/LICENSE-addon-fit` |  | planned | vendor/xterm/LICENSE-addon-fit |
-| `js/vendor/xterm/LICENSE-xterm` |  | planned | vendor/xterm/LICENSE-xterm |
-| `js/vendor/xterm/README.md` | 20 | planned | vendor/xterm/README.md |
-| `js/vendor/xterm/addon-fit.mjs` | 18 | planned | vendor/xterm/addon-fit.mjs |
-| `js/vendor/xterm/xterm.css` | 285 | planned | vendor/xterm/xterm.css |
-| `js/vendor/xterm/xterm.mjs` | 53 | planned | vendor/xterm/xterm.mjs |
+| `js/vendor/xterm/LICENSE-addon-fit` |  | vendor | vendor/xterm/LICENSE-addon-fit |
+| `js/vendor/xterm/LICENSE-xterm` |  | vendor | vendor/xterm/LICENSE-xterm |
+| `js/vendor/xterm/README.md` | 20 | vendor | vendor/xterm/README.md |
+| `js/vendor/xterm/addon-fit.mjs` | 18 | vendor | vendor/xterm/addon-fit.mjs |
+| `js/vendor/xterm/xterm.css` | 285 | vendor | vendor/xterm/xterm.css |
+| `js/vendor/xterm/xterm.mjs` | 53 | vendor | vendor/xterm/xterm.mjs |
 
 ## assets (386)
 

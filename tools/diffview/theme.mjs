@@ -19,7 +19,7 @@ const KEYS = ["ink", "com", "kw", "str", "num", "fn", "bi", "prop", "tag", "pun"
 /** The page's stylesheets in order, each with its @imports inlined where they stand. */
 function sheets(root) {
   const html = readFileSync(join(root, "index.html"), "utf8").replace(/<!--[\s\S]*?-->/g, "");
-  const hrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\.\/((?!js\/vendor\/)[^"]+\.css)"/g)].map((m) => m[1]);
+  const hrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\.\/((?!vendor\/)[^"]+\.css)"/g)].map((m) => m[1]);
   const read = (rel) => readFileSync(join(root, rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/@import\s+url\(["']?(\.{1,2}\/[^"')]+)["']?\)\s*(?:layer\([\w.-]+\))?\s*;/g, (_, f) => read(join(dirname(rel), f)));
   return hrefs.map(read).join("\n");
