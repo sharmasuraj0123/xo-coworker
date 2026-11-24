@@ -1,5 +1,7 @@
 /* ── dialogs and sheets ──────────────────────────────────────────────────── */
-.dlg{position:fixed;inset:0;margin:auto;width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--line);border-radius:var(--r-2xl);background:var(--surface);color:var(--ink);box-shadow:var(--e2);overflow:auto}
+.dlg{position:fixed;inset:0;margin:auto;width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;
+  border:1px solid var(--line);border-radius:var(--r-2xl);background:var(--surface);color:var(--ink);
+  box-shadow:var(--lift-3);overflow:auto}
 .dlg[open]{animation:sheet-in var(--d-sheet) var(--ease)}
 .dlg.is-closing{animation:sheet-out var(--d-out) var(--ease) forwards}
 .dlg::backdrop{background:var(--scrim);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -76,7 +78,9 @@
 
 .sheet{position:fixed;inset:0;z-index:var(--z-popover);display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:var(--scrim);animation:fade var(--dur-base) var(--ease)}
 @keyframes fade{from{opacity:0}}
-.sheet-card{width:min(600px,100%);max-height:76vh;display:flex;flex-direction:column;border-radius:var(--r-2xl);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);overflow:hidden;animation:sheet-in var(--d-sheet) var(--ease)}
+.sheet-card{width:min(600px,100%);max-height:76vh;display:flex;flex-direction:column;border-radius:var(--r-2xl);
+  background:var(--surface);border:1px solid var(--line);box-shadow:var(--lift-3);overflow:hidden;
+  animation:sheet-in var(--d-sheet) var(--ease)}
 
 .sheet-h{display:flex;align-items:center;justify-content:space-between;padding:15px 15px 6px 25px}
 .sheet-h h2{font:var(--fw-strong) var(--fs-heading)/var(--lh-heading) var(--sans);letter-spacing:var(--tr-20)}
