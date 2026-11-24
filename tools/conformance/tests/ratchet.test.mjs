@@ -180,6 +180,7 @@ test("a map over a literal list reports only the files that can be read", (conte
     .map((entry) => entry.file).sort();
   const reader = 'import { readFileSync } from "node:fs";\n';
   const map = 'map((name) => readFileSync(new URL(`../modules/conversation/${name}.js`, import.meta.url)))';
+  const joined = 'map((name) => readFileSync(new URL("../modules/conversation/" + name + ".js", import.meta.url)))';
   const entries = JSON.stringify(wanted);
   const root = fixture(context, {
     ...scripts,
@@ -187,7 +188,7 @@ test("a map over a literal list reports only the files that can be read", (conte
     "tests/constant.test.mjs": `${reader}const files = ${entries}; files.map((name) => name.length); files.${map};`,
     "tests/computed.test.mjs": `${reader}[...otherFiles, 'decoration'].${map};`,
     "tests/mutated.test.mjs": `${reader}const files = ${entries}; files.push(extra); files.${map};`,
-    "tests/callback.test.mjs": `${reader}const files = ${entries}; files.map((name, i, all) => { all[0] = "notice-line"; }); files.${map};`,
+    "tests/callback.test.mjs": `${reader}const files = ${entries}; files.map((name, i, all) => { all[0] = "notice-line"; }); files.${joined};`,
     "tests/arguments.test.mjs": `${reader}const files = ${entries}; files.map(function () { arguments[2][0] = "notice-line"; }); files.${map};`,
     "tests/exported.test.mjs": `${reader}export const files = ${entries}; files.${map};`,
     "tests/eval.test.mjs": `${reader}const files = ${entries}; eval(source); files.${map};`,

@@ -84,7 +84,7 @@ try {
   await new Promise(setImmediate);
   assert.match(host.textContent, /current\.js/);
   assert.doesNotMatch(host.textContent, /Try again|Reading…/);
-  reads[0].resolve(Response.json({ files: [{ name: "stale.js" }], dirs: [] }));
+  reads[0].resolve(Response.json({ files: [{ name: "stale.js" }], dirs: "malformed" }));
   await new Promise(setImmediate);
   assert.doesNotMatch(host.textContent, /stale\.js/);
   assert.equal(reported.length, 2);
