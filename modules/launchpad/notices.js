@@ -47,5 +47,5 @@ export function createWindowNotices(S, { notify, notice, unnotice }) {
     n.line.undo?.();
   }
 
-  return { say, unsay, tell, handOver, undoNotice };
+  return { say, unsay, tell, handOver, undoNotice, clear() { for (const mid of N.keys()) drop(mid); } };
 }

@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { dom } from "./lib/dom.mjs";
 globalThis.matchMedia = (query) => ({ matches: query === "(max-width: 760px)", addEventListener() {}, removeEventListener() {} });
-const { installActions } = await import("../modules/launchpad/actions.js");
 const { createPanelThreadOpener } = await import("../modules/threads/open-panel-thread.js");
 const { createNavigation } = await import("../shell/navigation.js");
 
@@ -56,19 +55,6 @@ t("a panel route opens a thread beside its chat or hands off to global navigatio
   open("t:thread");
   assert.deepEqual(calls, [["thread", "thread", { focus: true }], ["t:thread", { panel: true }]]);
 });
-t("Launchpad's asked-thread row opens the thread and leaves focus to go(): no wait of its own for the conversation", () => {
-  const scroller = document.querySelector("#scroller");
-  const action = document.createElement("button");
-  action.dataset.go = "t:thread";
-  const actions = {
-    S: { v: "p:demo" }, projectOf: () => "demo", proj: () => ({}),
-    go: (place) => { assert.equal(place, "t:thread"); scroller.focus(); },
-  };
-  installActions(actions);
-  document.querySelector("#say").focus();
-  actions.act("thread", action);
-  assert.ok(document.activeElement === scroller, "opening the thread places focus synchronously");
-});
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);
 
 const markup = readFileSync(new URL("../index.html", import.meta.url), "utf8");
@@ -105,6 +91,7 @@ Object.assign(globalThis, {
   async fetch(input) {
     const path = new URL(input, location.href).pathname;
     if (path === "/api/chat/stream") return new Response(body);
+    if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "needs-agent" });
     if (path === "/api/chat/chats") return Response.json({ chats: [
       { id: "workspace-chat", kind: "workspace" },
       { id: "project-chat", kind: "project", project: "demo", name: "Demo" },
@@ -121,6 +108,12 @@ window.Element.prototype.matches = function (selector) {
 window.HTMLElement.prototype.scrollTo = function () {};
 window.HTMLElement.prototype.getAnimations = function () { return []; };
 window.HTMLElement.prototype.animate = function () { return { finished: Promise.resolve(), cancel() {} }; };
+const dialogPrototype = Object.getPrototypeOf(app.createElement("dialog"));
+dialogPrototype.showModal = function () { this.open = true; };
+dialogPrototype.close = function () {
+  this.open = false;
+  this.dispatchEvent(new window.Event("close"));
+};
 await import("../boot.js");
 
 function press(selector) {
@@ -181,4 +174,20 @@ await paint();
 press("[data-stage-toggle]");
 await until(second);
 handoff(second, "the Stage row from a thread");
+
+addThread("deploy-thread", "Deploy to Launchpad");
+press("#side [data-go='p:demo']");
+await until("[data-lp-open]");
+press("[data-lp-open]");
+const launchpadThread = '#lq [data-lp="thread"][data-go="t:deploy-thread"]';
+await until(launchpadThread);
+const launchpad = app.querySelector("#lq");
+assert.equal(launchpad.open, true, "the project Launchpad opens");
+const launchpadHandoff = [];
+launchpad.addEventListener("click", () => {
+  launchpadHandoff.push([launchpad.open, app.querySelector("#app").dataset.conv, app.activeElement === scroller]);
+}, { once: true });
+press(launchpadThread);
+assert.deepEqual(launchpadHandoff, [[false, "t:deploy-thread", true]],
+  "the Launchpad thread action closes its dialog, opens the requested conversation, and focuses it synchronously");
 stream.close();

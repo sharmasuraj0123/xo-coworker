@@ -3041,6 +3041,12 @@
     "shell/panel/lists.js",
     "modules/launchpad/page.js"
    ],
+   "evidence": {
+    "modules/launchpad/page.js": {
+     "anchor": "function render()",
+     "reason": "The Launchpad page owns its cover rendering and redraws within its live scope."
+    }
+   },
    "note": "The panel controller, page and frame wiring, list rendering and width management live in shell/panel. Launchpad owns its existing panel cover."
   },
   "js/storm.js": {

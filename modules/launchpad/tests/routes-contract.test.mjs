@@ -5,23 +5,25 @@ import { readFileSync } from "node:fs";
 const SNAP = JSON.parse(readFileSync(new URL("../../../core/platform/tests/fixtures/openapi-routes.json", import.meta.url), "utf8"));
 const templates = Object.entries(SNAP.paths).map(([p, methods]) => ({ p, methods, re: new RegExp(`^${p.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\\?\{[^}]+\\?\}/g, "[^/]+")}$`) }));
 
-globalThis.location = /** @type {any} */ ({ href: "http://127.0.0.1:5180/" });
-globalThis.history = /** @type {any} */ ({ state: null, replaceState() {} });
+globalThis.location = new URL("http://127.0.0.1:5180/");
+globalThis.history = { state: null, replaceState() {} };
 /** @type {{ method: string, path: string, from: string }[]} */
 const seen = [];
 let from = "";
-globalThis.fetch = /** @type {any} */ (async (url, init = {}) => {
+globalThis.fetch = async (url, init = {}) => {
   const u = new URL(String(url), "http://127.0.0.1:5180/");
   seen.push({ method: (init.method || "GET").toUpperCase(), path: u.pathname, from });
   return { ok: false, status: 204, statusText: "", type: "basic", text: async () => "", json: async () => ({}), blob: async () => ({}) };
-});
+};
 
 const { createLpApi } = await import("../client.js");
 const lp = createLpApi();
-const ARGS = { githubStart: [[true], [false]] };
+const signal = new AbortController().signal;
+const ARGS = { apps: [["p", signal]], githubStart: [[true, signal], [false, signal]], githubPoll: [["p", signal]] };
 for (const [name, fn] of Object.entries(lp)) for (const args of ARGS[name] || [["p", "q"]]) {
   from = name;
-  try { await /** @type {any} */ (fn)(...(name === "deploy" || name === "watch" ? [args[0], {}, () => {}] : args)); } catch { /* the answer is fake; the request is what counts */ }
+  try { await fn(...(name === "deploy" ? [args[0], {}, () => {}] : name === "watch" ? [args[0], () => {}] : args)); }
+  catch (error) { assert.equal(error.name, "Error"); }
 }
 await new Promise((r) => setTimeout(r, 20));
 

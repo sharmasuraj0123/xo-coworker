@@ -20,3 +20,14 @@ test("storage distinguishes stores, missing values, corrupt values and refusal",
   assert.deepEqual(write("key", "1"), { kept: false });
   assert.equal(read("key", JSON.parse, 9), 9);
 });
+
+test("an optional observer receives the failure while the storage return value stays the same", () => {
+  const refused = new Error("test storage failure");
+  const store = { getItem() { throw refused; }, setItem() { throw refused; } };
+  const reports = [];
+  assert.equal(read("key", JSON.parse, 9, store), 9);
+  assert.deepEqual(write("key", "1", store), { kept: false });
+  assert.equal(read("key", JSON.parse, 9, store, (error) => reports.push(error)), 9);
+  assert.deepEqual(write("key", "1", store, (error) => reports.push(error)), { kept: false });
+  assert.deepEqual(reports, [refused, refused]);
+});

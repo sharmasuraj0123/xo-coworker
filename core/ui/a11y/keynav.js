@@ -5,7 +5,7 @@
 const OPTION = '[role="radio"]';
 const ITEM = '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
 
-/** Focus the first usable item for keyboard activation, or the menu for pointer activation. @param {HTMLElement | null} menu @param {MouseEvent} [event] */
+/** Focus the first usable item for keyboard activation, or the menu for pointer activation. @param {HTMLElement | null} menu @param {Pick<MouseEvent, "detail">} [event] */
 export function focusOpened(menu, event) {
   if (!menu) return;
   const items = /** @type {NodeListOf<HTMLElement>} */ (menu.querySelectorAll(ITEM));
@@ -60,7 +60,8 @@ export function radioKeys(root, { follow = true } = {}) {
 
 /** A mouse moving onto a usable menu item focuses it while focus is in that menu, on its open button, or nowhere. @param {Element} root */
 export function pointerFollows(root, sel = ITEM) {
-  root.addEventListener("pointermove", (ev) => {
+  /** @param {Event} ev */
+  function move(ev) {
     const e = /** @type {PointerEvent} */ (ev), tg = /** @type {Element | null} */ (e.target);
     if (e.pointerType && e.pointerType !== "mouse" && e.pointerType !== "pen") return;
     const it = /** @type {HTMLElement | null} */ (tg?.closest?.(sel)), menu = it && it.closest('[role="menu"]');
@@ -70,7 +71,9 @@ export function pointerFollows(root, sel = ITEM) {
     const opener = !!a && a.getAttribute && a.getAttribute("aria-haspopup") === "menu" && a.getAttribute("aria-expanded") === "true";
     if (a && a.tagName !== "BODY" && !menu.contains(a) && !opener) return;
     it.focus({ preventScroll: true });
-  });
+  }
+  root.addEventListener("pointermove", move);
+  return () => root.removeEventListener("pointermove", move);
 }
 
 /** Arrows, Home, End and a letter move through any menu inside root; Escape and Tab call close(menu, key), which puts focus back on the menu's button (Tab then goes on from there). @param {Element} root @param {{ close?: (menu: Element, key: string) => void }} [opts] */
