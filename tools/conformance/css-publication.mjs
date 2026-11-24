@@ -2,7 +2,8 @@
 
 export const ORIGIN = "https://stylesheet.invalid";
 const VERSION = "/v/<tree>";
-const PUBLISHED = /^(?:(?:js|css|fonts|presets|assets|core|shell|modules|apps-host)\/.+|boot\.js|favicon\.svg)$/;
+export const PUBLISHED_PATH = String.raw`(?:js|css|fonts|presets|assets|core|shell|modules|apps-host)/[^\"]+|(?:boot\.js|favicon\.svg)`;
+const PUBLISHED = new RegExp(`^(?:${PUBLISHED_PATH})(?![\\s\\S])`);
 const IMPORT = /^(?:url\(\s*(?:"([^"]+)"|'([^']+)'|([^\s)]+))\s*\)|"([^"]+)"|'([^']+)')\s*([\s\S]*)$/i;
 
 /** @param {string} params */
