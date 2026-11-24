@@ -87,7 +87,6 @@ const store = createMadeStore({
   } },
   schedule: () => setImmediate(() => mounted.render()),
   announce() {},
-  changed() {},
 });
 const mounted = createArtifactsPage({
   MS: store, PV, PROJ: (id) => id,

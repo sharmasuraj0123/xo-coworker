@@ -3,20 +3,12 @@ import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 import { createScope } from "../../../core/kernel/scope.js";
 import { createPlaces } from "../../../core/kernel/places.js";
 
-const { document } = await dom('<div id="tab"></div>');
-const observers = [];
-globalThis.IntersectionObserver = class {
-  nodes = new Set();
-  constructor(callback) { this.callback = callback; observers.push(this); }
-  observe(node) { this.nodes.add(node); }
-  unobserve(node) { this.nodes.delete(node); }
-  disconnect() { this.nodes.clear(); }
-};
+const { document } = await dom('<div id="home"></div>');
 globalThis.localStorage = { getItem: () => null };
 const { createRecord } = await import("../../../js/recordview.js");
 const project = { id: "demo", name: "Demo", chatId: "chat" };
 const world = { state: { projects: [project], threads: [] }, project: () => project, thread: () => null };
-const rows = Array.from({ length: 50 }, (_, i) => ({
+const rows = Array.from({ length: 1 }, (_, i) => ({
   id: `image-${i}`, name: `image-${i}.png`, relative_path: `image-${i}.png`, project_id: "demo", updated_at: "2026-11-19T12:00:00Z",
 }));
 const requests = [];
@@ -45,18 +37,14 @@ assert.equal(failedScope.size, 0, "a failed mount releases its registered effect
 rejectArtifacts = false;
 const record = createRecord({ ...options, scope });
 assert.equal(places.entries("home.section").length, 2, "the record mounts the Since and Artifacts sections");
-const host = document.getElementById("tab");
-record.panel = { isOpen: true };
-record.made.mount(host);
-record.made.show("p:demo");
+const host = document.getElementById("home");
+record.homeMade(host);
 await settle();
-const observer = observers.at(-1);
-assert.equal(observer.nodes.size, rows.length);
-assert.equal(requests.length, 0, "offscreen cards make no thumbnail requests");
-const card = host.querySelector('[data-k="image-49"]');
-observer.callback([{ target: card, isIntersecting: true }]);
+record.homeMade(host);
 await settle();
-assert.deepEqual(requests.map((r) => r.path), ["image-49.png"]);
+const card = host.querySelector('[data-k="image-0"]');
+assert.ok(card, "the record paints the card on the live Home strip");
+assert.deepEqual(requests.map((r) => r.path), ["image-0.png"]);
 const link = document.createElement("button");
 link.setAttribute("data-made-go", "t:made");
 document.body.append(link);
@@ -65,7 +53,6 @@ assert.deepEqual(visits, ["t:made"]);
 record.dispose();
 assert.equal(places.entries("home.section").length, 0, "disposing the record removes both Home sections");
 assert.equal(scope.size, 0);
-assert.equal(observer.nodes.size, 0);
 assert.equal(requests[0].signal.aborted, true);
 link.click();
 assert.deepEqual(visits, ["t:made"], "disposal removes the delegated document listener");

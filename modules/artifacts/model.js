@@ -1,6 +1,6 @@
 // @ts-check
 
-// What threads made, as the Made tab, Home's strip and the Artifacts page show it: kinds, previews, groups and the backend's pages.
+// Classifies and groups artifacts for Home and the gallery.
 
 /** @typedef {import("./types").Made} Made @typedef {import("./types").Kind} Kind @typedef {import("./types").MadeRow} MadeRow */
 
@@ -14,7 +14,7 @@ const DOC = new Set(["md", "markdown", "txt", "pdf", "rtf", "doc", "docx"]);
 const DATA = new Set(["json", "jsonl", "csv", "tsv", "yaml", "yml", "toml", "xml"]);
 
 /** A made file's kind: image, page, doc, data or code. @param {import("./types").MadeFile} f @returns {Kind} */
-export function madeKind(f) {
+function madeKind(f) {
   const type = String(f.type || "");
   const ext = EXT(f.name || f.path);
   if (type.startsWith("image/") || IMG.has(ext)) return "image";
@@ -48,7 +48,7 @@ export function previewOf(name, content, { lines: n = 14, words = 320 } = {}) {
 const fileTitle = (t) => (typeof t === "string" && t.trim() ? t.replace(/\s+/g, " ").trim() : null);
 
 /** One key per file per thread, stable across reloads (pins are kept by it). @param {string} tid @param {string} path */
-export const madeKey = (tid, path) => `${tid}|${path}`;
+const madeKey = (tid, path) => `${tid}|${path}`;
 
 /** Everything the threads shared, newest thread first and its last shared file first; pins are flagged, not moved. @param {import("./types").MadeThread[]} threads @param {{ pins?: Set<string> }} [opts] @returns {Made[]} */
 export function madeItems(threads, { pins = new Set() } = {}) {
@@ -81,13 +81,13 @@ export function madeFromServer(rows, { project, threadTitle = () => "" } = {}) {
 }
 
 /** Narrow made items by kind and words (its title, name and path, and the title of the thread that made it). @param {Made[]} items @param {{ kind?: string, q?: string }} [opts] */
-export function filterMade(items, { kind = "all", q = "" } = {}) {
+function filterMade(items, { kind = "all", q = "" } = {}) {
   const w = String(q || "").trim().toLowerCase();
   return items.filter((m) => (kind === "all" || m.kind === kind) && (!w || `${m.title || ""} ${m.name} ${m.path} ${m.threadTitle || ""}`.toLowerCase().includes(w)));
 }
 
 /** Made items in the groups the view shows: Pinned, Today, This week, Earlier (empty ones dropped). @param {Made[]} items @param {number} [now] @returns {import("./types").Group[]} */
-export function madeGroups(items, now = Date.now()) {
+function madeGroups(items, now = Date.now()) {
   const start = new Date(now); start.setHours(0, 0, 0, 0);
   const today = start.getTime();
   /** @type {[string, string, Made[]][]} */

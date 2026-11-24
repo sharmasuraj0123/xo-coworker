@@ -13,7 +13,8 @@ globalThis.getComputedStyle = (node) => {
   styleReads++;
   return { getPropertyValue: token };
 };
-const { EASE, IN, MOVE, OUT } = await import("../core/ui/motion.js");
+const { EASE, MOVE, OUT } = await import("../core/ui/motion.js");
+const { IN } = await import("../core/ui/tokens.js");
 const ms = (name) => {
   const value = token(name);
   return parseFloat(value) * (value.endsWith("ms") ? 1 : 1000);

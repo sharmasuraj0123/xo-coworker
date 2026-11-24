@@ -3,7 +3,7 @@
 import { EASE, RM } from "../platform/motion.js";
 import { IN, MOVE, OUT } from "./tokens.js";
 
-export { EASE, RM, IN, MOVE, OUT };
+export { EASE, RM, MOVE, OUT };
 export const EXPAND_MS = MOVE;
 export const still = () => RM.matches || typeof Element === "undefined" || typeof Element.prototype.animate !== "function";
 

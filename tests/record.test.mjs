@@ -26,19 +26,19 @@ const tree = (lost) => ({ exists: true, error: null, would_lose: lost });
 const lost = ({ changed = 0, untracked = 0, commits = 0 } = {}) => ({ changed: { count: changed }, untracked: { count: untracked }, ignored: { count: 0 }, commits });
 
 t("a made file's kind comes from its type, else its name", () => {
-  assert.equal(R.madeKind({ type: "image/png", name: "a.png" }), "image");
-  assert.equal(R.madeKind({ name: "shot.webp" }), "image");
-  assert.equal(R.madeKind({ type: "text/html", name: "x" }), "page");
-  assert.equal(R.madeKind({ name: "notes.md" }), "doc");
-  assert.equal(R.madeKind({ name: "data.csv" }), "data");
-  assert.equal(R.madeKind({ name: "panel.js" }), "code");
+  const outputs = [
+    { type: "image/png", name: "a.unknown" }, { name: "shot.webp" }, { type: "text/html", name: "x" },
+    { name: "notes.md" }, { name: "data.csv" }, { name: "panel.js" },
+  ];
+  const items = R.madeItems([th("a", "done", 1, { outputs })]);
+  assert.deepEqual(items.map(({ kind }) => kind).reverse(), ["image", "image", "page", "doc", "data", "code"]);
 });
 
 t("made items: newest thread first, a thread's last share first; pins flagged, keys stable", () => {
   const a = th("a", "done", 30, { outputs: [{ path: "one.md" }, { path: "two.png", type: "image/png", bytes: 9 }] });
   const b = th("b", "working", 1, { outputs: [{ path: "dir/three.html", name: "three.html" }] });
   const c = th("c", "done", 2); // shared nothing
-  const items = R.madeItems([a, b, c], { pins: new Set([R.madeKey("a", "one.md")]) });
+  const items = R.madeItems([a, b, c], { pins: new Set(["a|one.md"]) });
   assert.deepEqual(items.map((m) => m.name), ["three.html", "two.png", "one.md"]);
   assert.deepEqual(items.map((m) => m.kind), ["page", "image", "doc"]);
   assert.deepEqual(items.map((m) => m.pinned), [false, false, true]);
@@ -46,12 +46,14 @@ t("made items: newest thread first, a thread's last share first; pins flagged, k
   assert.equal(items[0].key, "b|dir/three.html");
 });
 
+const galleryItems = (items, options) => R.artsView(items, options).groups.flatMap(({ items: group }) => group);
+
 t("made: filter by kind and words (the thread's title counts); groups drop empty ones", () => {
   const items = R.madeItems([th("a", "done", 200, { outputs: [{ path: "x.md" }, { path: "y.png" }] }), th("b", "done", 1, { outputs: [{ path: "z.md" }] })]);
-  assert.deepEqual(R.filterMade(items, { kind: "doc" }).map((m) => m.name), ["z.md", "x.md"]);
-  assert.deepEqual(R.filterMade(items, { q: "Y.P" }).map((m) => m.name), ["y.png"]);
-  assert.deepEqual(R.filterMade(items, { q: "b" }).map((m) => m.name), ["z.md"]);
-  const g = R.madeGroups(items.map((m, i) => (i === 2 ? { ...m, pinned: true } : m)), NOW);
+  assert.deepEqual(galleryItems(items, { kind: "doc" }).map((m) => m.name), ["z.md", "x.md"]);
+  assert.deepEqual(galleryItems(items, { q: "Y.P" }).map((m) => m.name), ["y.png"]);
+  assert.deepEqual(galleryItems(items, { q: "b" }).map((m) => m.name), ["z.md"]);
+  const g = R.artsView(items.map((m, i) => (i === 2 ? { ...m, pinned: true } : m)), { now: NOW }).groups;
   assert.deepEqual(g.map((x) => x.id), ["pinned", "today", "earlier"]);
 });
 
@@ -157,7 +159,7 @@ t("made from the backend: its rows in the same shape, links and branches kept, m
   assert.equal(items[1].exists, false);
   assert.deepEqual([items[2].pinned, items[2].fileProject, items[2].rel, items[2].threadTitle, items[2].title], [true, "p", ".xo/made/thread-a/plan.md", "Alpha", null]);
   assert.deepEqual(R.madeFromServer(null), []);
-  assert.deepEqual(R.filterMade(items, { kind: "link" }).map((m) => m.key), ["m2"]);
+  assert.deepEqual(galleryItems(items, { kind: "link" }).map((m) => m.key), ["m2"]);
 });
 
 t("a made file's own title and its thread's title are kept apart (the server's rows and the threads' outputs)", () => {
@@ -173,9 +175,9 @@ t("a made file's own title and its thread's title are kept apart (the server's r
     [null, "Notes", "old.md"],
   ]);
   // a search finds a file by its own title, its name, and the thread that made it
-  assert.deepEqual(R.filterMade(items, { q: "dark, narrow" }).map((m) => m.key), ["m1"]);
-  assert.deepEqual(R.filterMade(items, { q: "picker" }).map((m) => m.key), ["m1", "m2"]);
-  assert.deepEqual(R.filterMade(items, { q: "old.md" }).map((m) => m.key), ["m3"]);
+  assert.deepEqual(galleryItems(items, { q: "dark, narrow" }).map((m) => m.key), ["m1"]);
+  assert.deepEqual(galleryItems(items, { q: "picker" }).map((m) => m.key), ["m1", "m2"]);
+  assert.deepEqual(galleryItems(items, { q: "old.md" }).map((m) => m.key), ["m3"]);
   // the older Made (a thread's outputs) carries a file's title the same way, and its thread's title apart
   const out = R.madeItems([th("t", "done", 1, { title: "Make the deck", outputs: [{ path: "deck/cover.png", title: "The cover" }, { path: "deck/notes.md" }] })]);
   assert.deepEqual(out.map((m) => [m.name, m.title, m.threadTitle]), [["notes.md", null, "Make the deck"], ["cover.png", "The cover", "Make the deck"]]);

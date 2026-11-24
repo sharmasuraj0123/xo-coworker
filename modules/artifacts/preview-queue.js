@@ -2,7 +2,7 @@
 
 import { ApiError } from "../../core/platform/http.js";
 
-export const PREVIEW_CONCURRENCY = 3;
+const PREVIEW_CONCURRENCY = 3;
 
 /** @typedef {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} Scope */
 

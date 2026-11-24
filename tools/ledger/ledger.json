@@ -11315,7 +11315,7 @@
   },
   "js/motion.js::exports::IN": {
    "status": "moved",
-   "home": "core/ui/motion.js"
+   "home": "core/ui/tokens.js"
   },
   "js/motion.js::exports::still": {
    "status": "moved",
@@ -11770,8 +11770,8 @@
    "home": "modules/since/model.js"
   },
   "js/record.js::exports::madeKind": {
-   "status": "moved",
-   "home": "modules/artifacts/model.js"
+   "status": "deleted",
+   "reason": "The classifier is private to the model and exposed through normalized artifact rows."
   },
   "js/record.js::exports::KINDS": {
    "status": "moved",
@@ -11786,8 +11786,8 @@
    "home": "modules/artifacts/model.js"
   },
   "js/record.js::exports::madeKey": {
-   "status": "moved",
-   "home": "modules/artifacts/model.js"
+   "status": "deleted",
+   "reason": "Normalized artifact rows carry the stable pin key."
   },
   "js/record.js::exports::madeItems": {
    "status": "moved",
@@ -11798,12 +11798,12 @@
    "home": "modules/artifacts/model.js"
   },
   "js/record.js::exports::filterMade": {
-   "status": "moved",
-   "home": "modules/artifacts/model.js"
+   "status": "deleted",
+   "reason": "The gallery’s view owns filtering by project, kind and query."
   },
   "js/record.js::exports::madeGroups": {
-   "status": "moved",
-   "home": "modules/artifacts/model.js"
+   "status": "deleted",
+   "reason": "The gallery’s view owns grouping after filtering."
   },
   "js/record.js::exports::artsView": {
    "status": "moved",
@@ -11952,24 +11952,24 @@
    "note": "Composes Since and Made and passes the legacy Home first-paint helpers."
   },
   "js/recordview.js::ids::made-h": {
-   "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "status": "deleted",
+   "reason": "The release has no mounted Made pane."
   },
   "js/recordview.js::ids::made-sub": {
-   "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "status": "deleted",
+   "reason": "The release has no mounted Made pane."
   },
   "js/recordview.js::ids::made-q": {
-   "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "status": "deleted",
+   "reason": "The release has no mounted Made pane."
   },
   "js/recordview.js::ids::made-f": {
-   "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "status": "deleted",
+   "reason": "The release has no mounted Made pane."
   },
   "js/recordview.js::ids::made-body": {
-   "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "status": "deleted",
+   "reason": "The release has no mounted Made pane."
   },
   "js/recordview.js::ids::md-recent-h": {
    "status": "moved",
@@ -12015,7 +12015,13 @@
   },
   "js/recordview.js::keys::Escape": {
    "status": "moved",
-   "home": "modules/artifacts/made.js"
+   "home": "modules/artifacts/page.js",
+   "evidence": {
+    "modules/artifacts/page.js": {
+     "anchor": "e.key === \"Escape\" && t.id === \"arts-q\"",
+     "reason": "Escape still resets the live Artifacts search."
+    }
+   }
   },
   "js/redraw.js::exports::redraw": {
    "status": "moved",

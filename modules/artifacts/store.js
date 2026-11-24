@@ -18,13 +18,12 @@ function parsePins(raw) {
 }
 
 /** @param {MadeStoreOptions} options */
-export function createMadeStore({ world, api, scope = createScope(), schedule, announce, changed }) {
+export function createMadeStore({ world, api, scope = createScope(), schedule, announce }) {
   const pins = new Set(read(PINS, parsePins, []));
-  const reads = createMadeReads(api.made, scope.signal, () => { schedule(); changed(); }, schedule);
+  const reads = createMadeReads(api.made, scope.signal, schedule, schedule);
   const toggleRemotePin = createMadePins(api.pinMade, reads.setPin, scope.signal, (message) => {
     announce(message);
     schedule();
-    changed();
   });
   const projectsMade = () => (world.state.projects || []).filter((project) => project && project.id !== "workspace");
   let settled = false;
@@ -104,7 +103,6 @@ export function createMadeStore({ world, api, scope = createScope(), schedule, a
       write(PINS, JSON.stringify([...pins]));
     }
     announce(on ? "Pinned" : "Unpinned");
-    changed();
     schedule();
   }
 

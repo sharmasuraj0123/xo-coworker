@@ -12,7 +12,11 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 const row = (id, at, o = {}) => ({ id, name: `${id}.md`, relative_path: `${id}.md`, project_id: "demo", updated_at: at, ...o });
 const threads = [{ id: "t1", project: "demo", title: "Writer", lastAt: Date.now(), outputs: [{ name: "notes.md", path: "notes.md" }] }];
 const world = { state: { threads, projects: [{ id: "demo", chatId: "c1" }] }, project: (id) => (id === "demo" ? { id: "demo", chatId: "c1" } : null) };
-const make = (api) => { const said = [], marks = { changed: 0 }; const S = createMadeStore({ world, api, schedule() {}, announce: (w) => said.push(w), changed: () => marks.changed++ }); return { S, said, marks }; };
+const make = (api) => {
+  const said = [], marks = { scheduled: 0 };
+  const S = createMadeStore({ world, api, schedule: () => marks.scheduled++, announce: (w) => said.push(w) });
+  return { S, said, marks };
+};
 
 await t("the backend's newest page, newest first, once it answers; pending until then", async () => {
   const asked = [];
@@ -23,7 +27,7 @@ await t("the backend's newest page, newest first, once it answers; pending until
   assert.deepEqual(S.madeOf("demo").map((m) => m.id), ["b", "a"]);
   assert.equal(S.madePending(null), false);
   assert.deepEqual(asked, [["c1", 200, undefined]]);
-  assert.ok(marks.changed >= 1);
+  assert.ok(marks.scheduled >= 1);
 });
 await t("a Space without the route: what threads shared, and pins kept in this browser", async () => {
   store.clear();
@@ -124,7 +128,7 @@ await t("a project that changes chat reads and pins from the new owner", async (
   const edits = [];
   const localWorld = { state: { threads, projects: [project] }, project: () => project };
   const S = createMadeStore({
-    world: localWorld, schedule() {}, announce() {}, changed() {},
+    world: localWorld, schedule() {}, announce() {},
     api: {
       made: async (chat) => ({ made: [row(chat, "2026-11-19T12:00:00Z")] }),
       pinMade: async (chat, id, on) => { edits.push([chat, id, on]); },
@@ -165,7 +169,7 @@ await t("each store deduplicates reads and disposal prevents late commits", asyn
   await tick();
   assert.deepEqual(first.madeOf("demo").map((item) => item.name), ["notes.md"]);
   assert.deepEqual(second.madeOf("demo").map((item) => item.name), ["late.md"]);
-  assert.equal(marks.changed, 0);
+  assert.equal(marks.scheduled, 0);
   second.dispose();
 });
 

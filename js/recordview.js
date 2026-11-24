@@ -22,11 +22,8 @@ export function createRecord({ world, go, VW, PROJ, schedule, announce, places, 
     return {
       placeOf: since.placeOf, leave: since.leave, sinceLine: since.sinceLine, homeSinceLines: since.homeSinceLines,
       dispose: lifetime.dispose,
-      homeMade: made.homeMade, madeCount: made.madeCount, jumpItems: made.jumpItems, latestOf: made.latestOf,
-      artifacts: made.artifacts, made: made.made,
-      /** @param {{isOpen?: boolean} | null} p */
-      set panel(p) { made.panel = p; },
-      refresh() { made.refresh(); },
+      homeMade: made.homeMade, jumpItems: made.jumpItems, latestOf: made.latestOf,
+      artifacts: made.artifacts,
       /** @param {() => string | null} fn */
       set view(fn) { since.view = fn; },
     };

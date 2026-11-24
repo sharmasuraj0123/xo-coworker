@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 
-const { document } = await dom(`<div id="tab"></div><div id="home"></div>`);
+const { document } = await dom(`<div id="home"></div>`);
 globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
@@ -53,16 +53,6 @@ await t("Home's strip: as many stand-ins as last time while it's read, then the 
   assert.deepEqual(pending, { tiles: 3, hidden: false });
   assert.deepEqual([...home.querySelectorAll(".md-it")].map((li) => li.dataset.k), ["a", "b"]);
 });
-await t("the panel's Made tab: where, how many, the kinds it has, the groups", async () => {
-  const tab = document.getElementById("tab");
-  MD.made.mount(tab);
-  MD.panel = { isOpen: true };
-  MD.made.show("p:demo");
-  assert.equal(tab.querySelector("#made-h").textContent, "DEMO");
-  assert.equal(tab.querySelector("#made-sub").textContent, "2 things, newest first");
-  assert.deepEqual([...tab.querySelectorAll("[data-made-kind]")].map((b) => b.dataset.madeKind), ["all", "doc", "branch"]);
-  assert.equal(MD.made.count("t:t1"), 2, "a thread counts its project's");
-});
 await t("⌘K finds made things by name once something is typed", () => {
   assert.deepEqual(MD.jumpItems(""), []);
   assert.deepEqual(MD.jumpItems("plan").map((r) => [r.name, r.sub]), [["plan.md", "Made in DEMO · Planner"]]);
@@ -73,5 +63,10 @@ await t("a card's press opens its file in the viewer; a branch goes to its threa
   document.querySelector('[data-made-file="b"]').dispatchEvent(new window.Event("click", { bubbles: true }));
   assert.deepEqual(went, ["t:t2"]);
   assert.equal(MD.latestOf("t1", "demo")?.id, "a");
+});
+await t("selecting a Jump result goes to its thread and opens the file", () => {
+  MD.jumpItems("plan")[0].run();
+  assert.deepEqual(went, ["t:t2", "t:t1"]);
+  assert.deepEqual(opened.map((file) => file.rel), ["plan.md", "plan.md"]);
 });
 console.log(`\n${passed} passed`);

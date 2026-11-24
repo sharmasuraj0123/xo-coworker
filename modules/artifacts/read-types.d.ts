@@ -41,7 +41,6 @@ export interface MadeStoreOptions {
   scope?: ReturnType<typeof createScope>;
   schedule(): void;
   announce(words: string): void;
-  changed(): void;
 }
 
 export type CreateMadePins = (

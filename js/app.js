@@ -423,7 +423,6 @@ STAGE.names = (v) => {
   const p = v.startsWith("t:") ? world.thread(v.slice(2))?.project : v.startsWith("p:") ? v.slice(2) : null;
   return p && p !== "workspace" ? PROJ(p) : p === "workspace" || v === "ws" ? "Workspace" : "Your projects";
 };
-REC.panel = STAGE;
 const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRuntime({ world, SHAPE, isHeld });
 const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 /** The composer's target line in a thread; while its agent works, where your words land. */

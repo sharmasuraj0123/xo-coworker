@@ -35,6 +35,9 @@ let phone = false;
 let promptCount = 0;
 /** @type {string[]} */
 const modelReads = [];
+const lateCatalog = deferred();
+/** @type {AbortSignal | undefined} */
+let catalogSignal;
 const threadDeletes = [];
 const threadResolves = [];
 const outgoingPosts = new Map();
@@ -210,6 +213,10 @@ Object.assign(globalThis, {
     if (path === "/api/chat/runtimes") return Response.json({ runtimes: [{ name: "codex", cli: { logged_in: true } }, { name: "claude_code" }] });
     if (path.startsWith("/api/chat/runtimes/") && resource === "models") {
       modelReads.push(path);
+      if (path === "/api/chat/runtimes/claude_code/models") {
+        catalogSignal = init?.signal;
+        return lateCatalog.promise;
+      }
       return Response.json({ models: [{ id: "codex-fixture", name: "Fixture Codex" }] });
     }
     if (path === "/api/chat/runtime-policy") return Response.json({ effective: { allowed: ["codex", "claude_code"] } });
@@ -217,6 +224,11 @@ Object.assign(globalThis, {
       { ts: "boot-thread", chat_id: "project-chat", title: "Thread from the panel", state: "working", session_id: "boot-session", pin: { model: "codex-fixture" }, runs: { total: 1 }, can_delete: true },
       { ts: "failed-thread", chat_id: "project-chat", title: "Review the draft", state: "failed" },
       { ts: "failed-late", chat_id: "project-chat", title: "Review the second draft", state: "failed" },
+    ].map((thread) => ({ ...thread, created_at: new Date(lastHomeVisit).toISOString(), updated_at: new Date(lastHomeVisit).toISOString() })) });
+    if (path === "/api/chat/chats/catalog-chat/threads") return Response.json({ threads: [
+      { ts: "catalog-origin", chat_id: "catalog-chat", title: "First model composer", state: "working",
+        session_id: "claude-session", session: { agent: "claude_code" } },
+      { ts: "catalog-next", chat_id: "catalog-chat", title: "Next model composer", state: "working", pin: { model: "held-model" } },
     ].map((thread) => ({ ...thread, created_at: new Date(lastHomeVisit).toISOString(), updated_at: new Date(lastHomeVisit).toISOString() })) });
     if (path === "/api/chat/chats/project-chat/messages" && searchParams.get("thread") === "boot-thread") {
       return Response.json({ messages: [{
@@ -226,6 +238,7 @@ Object.assign(globalThis, {
     }
     if (path === "/api/chat/sessions") return Response.json({ sessions: [
       { id: "boot-session", agent: "codex" },
+      { id: "claude-session", agent: "claude_code" },
       { id: "plain-chat", role: "plain", agent: "codex", title: "Draft ideas", created_at: new Date(lastHomeVisit).toISOString() },
       { id: "second-plain-chat", role: "plain", agent: "codex", native_id: "title-pending", created_at: new Date(lastHomeVisit).toISOString() },
     ] });
@@ -259,6 +272,7 @@ assert.equal(firstHome.innerHTML, initialHome, "boot keeps the initial Home layo
 initialChats.resolve(Response.json({ chats: [
   { id: "workspace-chat", kind: "workspace" },
   { id: "project-chat", kind: "project", project: "demo" },
+  { id: "catalog-chat", kind: "project", project: "catalog-test" },
 ] }));
 const { kernel } = await import("../shell/kernel.js");
 await new Promise((resolve) => setImmediate(resolve));
@@ -448,7 +462,7 @@ assert.match(document.querySelector("#live").textContent, /Your text is kept/);
 press("#nv-ws");
 assert.equal(document.querySelector("#nv-ws").getAttribute("aria-current"), "page", "Workspace replaces Home");
 assert.equal(document.querySelector("#app").dataset.conv, "ws", "the shell tracks the active conversation");
-assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 1 project/);
+assert.match(document.querySelector("#ws-head").textContent, /Your coordinator, across all 2 projects/);
 await new Promise(setImmediate);
 flushFrames();
 await new Promise(setImmediate);
@@ -635,15 +649,45 @@ const runningTurn = {
 stream.enqueue(encoder.encode(`id: 2\nevent: turn.started\ndata: ${JSON.stringify(runningTurn)}\n\n`));
 const runningSession = { type: "session", seq: 3, session_id: "boot-session", data: { status: "running" } };
 stream.enqueue(encoder.encode(`id: 3\nevent: session\ndata: ${JSON.stringify(runningSession)}\n\n`));
+press('#projects [data-go="p:catalog-test"]');
+press("[data-stage-toggle]", 1, "touch");
+press('#stage .ag-r[data-go="t:catalog-origin"]', 1, "touch");
+flushFrames();
+await new Promise((resolve) => setTimeout(resolve, 0));
+await new Promise(setImmediate);
+flushFrames();
+assert.ok(catalogSignal && !catalogSignal.aborted, "opening the Claude thread warms its catalog without opening the picker");
+press("#stage [data-stg-sections]", 1, "touch");
+press('#stage .ag-r[data-go="t:catalog-next"]', 1, "touch");
+flushFrames();
+await new Promise((resolve) => setTimeout(resolve, 0));
+await new Promise(setImmediate);
+flushFrames();
+const nextModelChip = document.querySelector("#tiq");
+assert.match(nextModelChip.textContent, /held-model/, "the next composer shows its own unresolved model");
+lateCatalog.resolve(Response.json({ models: [{ id: "held-model", name: "Late Claude catalog" }] }));
+await new Promise(setImmediate);
+flushFrames();
+assert.match(document.querySelector("#tiq").textContent, /held-model/, "retired catalog cannot rename the next composer model");
+assert.equal(catalogSignal.aborted, true, "the composer transition aborts the retired catalog request");
+press("[data-stage-toggle]", 1, "touch");
+press('#projects [data-go="p:demo"]');
 press("[data-stage-toggle]", 1, "touch");
 const panelThread = '#stage .ag-r[data-go="t:boot-thread"]';
-for (const [detail, pointerType, expected] of [[1, "touch", "[data-page-heading]"], [1, "mouse", "#tsay"], [0, "", "#tsay"]]) {
+for (const [detail, pointerType, expected, downType] of [
+  [1, "touch", "[data-page-heading]"], [1, "mouse", "#tsay"], [0, "", "#tsay"], [1, "", "[data-page-heading]", "touch"],
+]) {
+  if (downType) {
+    const icon = document.querySelector(panelThread).firstElementChild;
+    icon.dispatchEvent(Object.assign(new window.Event("pointerdown", { bubbles: true }), { pointerType: downType }));
+  }
   press(panelThread, detail, pointerType);
   const heading = document.querySelector("#stage [data-page-heading]");
   assert.equal(heading.textContent, "Thread from the panel");
   assert.equal(heading.getAttribute("role"), "heading");
   assert.equal(heading.getAttribute("tabindex"), "-1");
-  assert.ok(document.activeElement === document.querySelector("#stage " + expected), pointerType || "keyboard");
+  const input = downType ? "touch pointerdown followed by a click without pointerType" : pointerType || "keyboard";
+  assert.ok(document.activeElement === document.querySelector("#stage " + expected), input);
   if (pointerType === "mouse") {
     togglePicker("#tiq");
     const reply = document.querySelector("#tsay");

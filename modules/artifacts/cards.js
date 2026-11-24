@@ -1,6 +1,6 @@
 // @ts-check
 
-// A made thing's card, the same everywhere (the panel's Made, Home's strip, the Artifacts page): made once, then updated in place.
+// Home and Artifacts cards are drawn once and updated in place.
 
 import { esc, short } from "../../core/platform/index.js";
 import { gitState } from "../../core/services/git-state.js";
@@ -10,7 +10,7 @@ import { ICON } from "../../core/ui/icons/names.js";
 import { fileIcon, fileColor } from "../../core/ui/icons/fileicons.js";
 import { KIND_WORD } from "./model.js";
 
-/** @typedef {boolean | "page"} Where */
+/** @typedef {true | "page"} Where */
 
 /** @import { Made } from "./types.d.ts" */
 
@@ -33,16 +33,6 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
       : `<span class="md-pl">${p.lines.map((/** @type {string} */ l) => esc(l) || " ").join("\n")}</span>`;
     return `<span class="md-well"${wt}><span class="md-sheet${p.kind === "doc" ? " is-doc" : ""}">${page}</span></span>`;
   }
-  /** @param {Made} m @param {Where} where */
-  function thumbHtml(m, where) {
-    // the Artifacts page and Home's Recently made show the thing itself, on its colour
-    if (where === "page" || where === true) { const w = wellHtml(m); if (w) return w + iconHtml(m); }
-    if (m.kind === "image") {
-      const u = PV.thumbs.get(m.key);
-      if (u) return `<img src="${esc(u)}" alt="" loading="lazy" decoding="async">`;
-    }
-    return iconHtml(m);
-  }
   /** @param {Made} m */
   function iconHtml(m) {
     const tag = m.kind === "link" ? hostOf(m.url) : m.kind === "branch" ? gitState(null, m.git || null).word || "branch" : (/\.([\w-]+)$/.exec(m.name) || [])[1] || /** @type {Record<string, string>} */ (KIND_WORD)[m.kind];
@@ -51,28 +41,27 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
   }
   /** @param {string | null | undefined} u */
   const hostOf = (u) => { try { return new URL(u || "").host; } catch { return "link"; } };
-  /** @param {number | null | undefined | ""} n */
-  const size = (n) => (n == null || n === "" ? "" : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
-  /** @param {Made} m @param {{ where?: Where }} [opts] */
-  function cardHtml(m, { where = false } = {}) {
+  /** @param {Made} m @param {Where} where */
+  function cardHtml(m, where) {
     const ago = short(m.at) === "now" ? "now" : short(m.at) + " ago";
     const n = madeNaming(m);
     // a titled file's name takes the kind word's place (its thumbnail already says the kind); gone says gone
     const what = m.exists === false ? "Gone" : m.title ? n.file : /** @type {Record<string, string>} */ (KIND_WORD)[m.kind];
     // on the page a card says where it's from, what it is and when; its size is in the file itself
-    const meta = (where === "page" ? [PROJ(m.project || ""), what, ago] : [what, size(m.bytes), ago]).filter(Boolean).join(" · ");
+    const project = PROJ(m.project || "");
+    const meta = where === true ? `${project} · ${ago}` : [project, what, ago].filter(Boolean).join(" · ");
     return `<li class="md-it${m.pinned ? " is-pin" : ""}${m.exists === false ? " is-gone" : ""}">` +
-      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${(where === "page" || where === true) && ((m.kind === "image" ? PV.thumbs.get(m.key) : PV.texts.get(m.key)) || (PV.previewable(m) && !PV.failed.has(m.key))) ? " has-well" : ""}">${thumbHtml(m, where)}</span>` +
-      `<span class="md-meta"><b>${n.html}</b><span>${esc(where === true ? `${PROJ(m.project || "")} · ${ago}` : meta)}</span></span></button>` +
+      `<button type="button" class="md-open" data-made-file="${esc(m.key)}" title="${esc(n.tip)}" aria-label="Open ${esc(n.label)}"><span class="md-th k-${m.kind}${((m.kind === "image" ? PV.thumbs.get(m.key) : PV.texts.get(m.key)) || (PV.previewable(m) && !PV.failed.has(m.key))) ? " has-well" : ""}">${wellHtml(m)}${iconHtml(m)}</span>` +
+      `<span class="md-meta"><b>${n.html}</b><span>${esc(meta)}</span></span></button>` +
       (where === true ? "" : m.tid ? `<button type="button" class="md-from" data-made-go="t:${esc(m.tid)}" title="Open the thread that made it">${ICON.threadOne}<span>${esc(n.from)}</span></button>`
-        : where === "page" ? `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>` : "") + // on the page every card is one height
+        : `<span class="md-from is-none" aria-hidden="true"><span>&nbsp;</span></span>`) + // on the page every card is one height
       `<button type="button" class="md-pin" data-made-pin="${esc(m.key)}" aria-pressed="${m.pinned}" aria-label="${m.pinned ? "Unpin" : "Pin"} ${esc(n.label)}" title="${m.pinned ? "Unpin" : "Pin it on top"}">${ICON.pin}</button></li>`;
   }
 
   const tpl = document.createElement("template"), signatures = new WeakMap();
   /** @param {Where} where @returns {(m: Made) => HTMLElement} */
   const cardMake = (where) => (m) => {
-    const html = cardHtml(m, { where });
+    const html = cardHtml(m, where);
     tpl.innerHTML = html.trim();
     const el = /** @type {HTMLElement} */ (tpl.content.firstElementChild);
     signatures.set(el, html);
@@ -82,7 +71,7 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
   };
   /** @param {Where} where @returns {(el: HTMLElement, m: Made) => void} */
   const cardUpdate = (where) => (el, m) => {
-    const html = cardHtml(m, { where });
+    const html = cardHtml(m, where);
     if (signatures.get(el) === html) return; // nothing about it changed: not even parsed again (a page can hold thousands)
     signatures.set(el, html);
     tpl.innerHTML = html.trim();
