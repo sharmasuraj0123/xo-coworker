@@ -36,7 +36,6 @@
  "modules/decisions/panel-view.js::eslint(no-unused-expressions)": 6,
  "modules/decisions/queue.js::eslint(no-unused-expressions)": 6,
  "modules/files/operations.js::eslint(no-unused-expressions)": 1,
- "modules/files/tree.js::eslint(no-underscore-dangle)": 6,
  "modules/files/viewer-events.js::eslint(no-unused-expressions)": 1,
  "modules/files/viewer-head.js::eslint(no-shadow)": 1,
  "modules/files/viewer.js::eslint(no-shadow)": 1,

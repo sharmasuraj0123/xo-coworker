@@ -1,4 +1,4 @@
-import type { FilesScope, ScopeThread } from "./scope.js";
+import type { FileScope as FilesScope, ScopeThread } from "../../core/services/file-scope-types.d.ts";
 import type { TreeDependencies } from "./tree-types";
 import type { OperationDependencies } from "./operation-types";
 

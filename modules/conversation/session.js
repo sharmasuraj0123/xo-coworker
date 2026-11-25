@@ -3,6 +3,7 @@
 /** @typedef {ReturnType<typeof createConversationSession>} ConversationSession */
 import { requireHtml } from "../../core/platform/dom.js";
 import { pageEl } from "../../shell/place-context.js";
+import { createConversationNavigation } from "./navigation.js";
 import { createConv } from "./draw.js";
 import { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "./follow.js";
 import { createLocalMessages } from "./local-messages.js";
@@ -13,8 +14,8 @@ import { PHONE } from "../../core/platform/viewport.js";
 
 /** @import { ThreadPageAttachment } from "./session-types" */
 
-/** @param {() => string} view @param {() => void} schedule */
-function createConversationSession(view, schedule) {
+/** @param {() => string} view @param {import("../../core/kernel/types").ModuleContext} ctx */
+function createConversationSession(view, ctx) {
   const main = createConv({
     view, msgs: requireHtml("#msgs"), scroller: requireHtml("#scroller"),
     column: requireHtml("#column"), typing: requireHtml("#typing"), main: true,
@@ -37,7 +38,7 @@ function createConversationSession(view, schedule) {
       const thread = panel();
       return thread?.K && thread.box ? { composer: thread.K, host: thread.box } : null;
     },
-  }, schedule);
+  }, () => ctx.invalidate("workspace"));
   /** @param {Node | null} element */
   function conversationAt(element) {
     const thread = panel();
@@ -45,7 +46,8 @@ function createConversationSession(view, schedule) {
   }
   const localMessages = createLocalMessages(), folds = createTranscriptFolds();
   const region = () => pageEl(view()) || main.scroller;
-  return { main, attachPanel, panel, conversationAt, localMessages, folds, region, composer, focus };
+  const { showMsg } = createConversationNavigation(ctx, { alias: localMessages.alias, main: () => main });
+  return { main, showMsg, attachPanel, panel, conversationAt, localMessages, folds, region, composer, focus };
 }
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
@@ -53,7 +55,7 @@ export const conversationSessionModule = {
   manifest: { id: "xo.conversation-session", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["currentView"], provides: ["conversationSession"] },
   activate(ctx) {
-    const session = createConversationSession(ctx.use("currentView"), () => ctx.invalidate("workspace"));
+    const session = createConversationSession(ctx.use("currentView"), ctx);
     ctx.effect(() => session.focus.dispose);
     ctx.provide("conversationSession", session);
   },

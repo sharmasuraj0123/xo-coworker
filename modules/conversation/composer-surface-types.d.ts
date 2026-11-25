@@ -15,7 +15,6 @@ export type ComposerHost =
   & Pick<Parameters<typeof createComposerAttachments>[0], "VW">
   & Pick<Parameters<typeof createConversationStarts>[0], "SHAPE">
   & {
-    places: import("../../core/kernel/types").Places;
     session: import("../../core/kernel/types").Services["conversationSession"];
     STAGE: { pageShown: { name: string } | null };
   };

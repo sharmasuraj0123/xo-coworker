@@ -14,6 +14,9 @@ export function createApplicationShape({ scope, events, notice }) {
   }, scope);
   scope.effect(() => events.onEvent((event) => { if (event.kind === "shape") shape.heard(event.value); }));
   /** @param {() => boolean} available */
-  function terminal(available) { terminalAvailable = available; }
+  function terminal(available) {
+    terminalAvailable = available;
+    return () => { if (terminalAvailable === available) terminalAvailable = () => true; };
+  }
   return { shape, terminal };
 }

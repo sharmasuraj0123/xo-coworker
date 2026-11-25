@@ -312,7 +312,7 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
     if (t.closest("[data-tg-find]")) { findThreads(); return; }
     if (t.closest("[data-tg-clear]")) { const inp = filter(); inp.value = ""; S.tq = ""; paint(); inp.focus(); return; }
     const destination = closest("[data-go]")?.dataset.go;
-    if (destination) go(destination, e);
+    if (destination) openFromPanel(destination, e);
   });
   el.addEventListener("keydown", (e) => {
     // inside the Shell page's terminal every key is the shell's, by the shells' own rule
@@ -341,7 +341,10 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
 
   if (savedOpen) S.resume = true;
 
+  /** @param {string} destination @param {Event} [event] */
+  function openFromPanel(destination, event) { go(destination, event, show); }
   return {
+    openFromPanel,
     disposeLayout: layoutScope.dispose,
     get isOpen() { return S.open; },
     open: () => open(), close, toggle, sync,

@@ -7,14 +7,14 @@ export type { Layers } from "../core/kernel/types.d.ts";
 export type InteractionScope = ReturnType<typeof createScope>;
 type Sheet = { isOpen: boolean; close(): unknown };
 export type InteractionHost = Pick<GlobalKeysOptions,
-  "capturing" | "SH" | "jump" | "IQ" | "CREATE" | "keys" | "FP" | "QO" | "back" | "go"> & {
+  "capturing" | "SH" | "jump" | "IQ" | "CREATE" | "keys" | "QO" | "back" | "go"> & {
   PHONE: MediaQueryList;
   navigationState: BackSteps["location"];
   go: BackSteps["go"];
   SH: { raised: boolean; toggle(): unknown; lower(): void };
   IQ: Sheet;
   CREATE: { close(): unknown };
-  FP: { isOpen: boolean };
+  files(): import("../core/kernel/types").Services["files"] | undefined;
   JUMP: { open(): unknown; close(): void };
   composerNow(): { view: string; say: HTMLTextAreaElement; iq: HTMLElement | null };
   toggleIq(session: string, chip: HTMLElement | null): void;
@@ -27,7 +27,6 @@ export type InteractionHost = Pick<GlobalKeysOptions,
   LB: Sheet;
   setEl: HTMLElement;
   closeSettings(): void;
-  VW: { isOpen: boolean; close(opts?: { ask: boolean }): unknown };
   setDrawer(open: boolean): unknown;
   D: { isOpen(): boolean; close(): void };
   CH: { setupOpen: boolean; closeSetup(): void; isChats(view: string): boolean };

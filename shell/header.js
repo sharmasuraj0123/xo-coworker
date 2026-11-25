@@ -17,7 +17,7 @@ export function headerActionsHtml(places, at) {
     `<button type="button" class="tw-act" data-header-action="${esc(e.id)}" title="${esc(e.label)}">${hasIcon(e.icon) ? xi(e.icon) : ""}<span>${esc(e.label)}</span></button>`).join("");
 }
 
-/** @param {Pick<import("../core/kernel/types").ModuleContext, "listen">} scope @param {Places} places @param {() => At} at */
+/** @param {Pick<import("../core/kernel/types").ModuleContext, "listen">} scope @param {Pick<Places, "get">} places @param {() => At} at */
 export function wireHeaderActions(scope, places, at) {
   scope.listen(document, "click", ({ target }) => {
     const id = target instanceof Element && target.closest("[data-header-action]")?.getAttribute("data-header-action");

@@ -10,3 +10,7 @@ export interface SearchFiles {
     open(file: { path: string; name?: string; project: string; rel: string; lines?: [number, number] }, from: null): void;
   };
 }
+
+declare module "../../core/kernel/types" {
+  interface Services { fileSearch: ReturnType<typeof import("./file-search.js").createFileSearch> }
+}

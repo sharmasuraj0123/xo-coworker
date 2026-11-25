@@ -5,14 +5,13 @@ import { watchDock } from "./dock-layout.js";
 import { initFollow, fromTop, toRow } from "./follow.js";
 import { createReturnPill } from "../../shell/return-pill.js";
 import { createLiveConversation } from "./live.js";
-import { createConversationNavigation } from "./navigation.js";
 import { createReadingLayout } from "./reading-layout.js";
 import { createConversationPaging } from "./paging.js";
 
 /** @import { ViewportOptions, ViewportScope } from "./main-viewport-types.d.ts" */
 
 /** @param {ViewportScope} scope @param {ViewportOptions} options */
-export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, heraldRoom, alias, ...paging }) {
+export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, heraldRoom, ...paging }) {
   const { scroller, msgs: msgsEl } = MAIN;
   const reading = createReadingLayout({ takeFoldChange, MAIN });
   const { loadAhead, loadOlderNow } = createConversationPaging({ ...paging, MAIN }, scope.signal);
@@ -30,7 +29,6 @@ export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, her
   scope.effect(initFollow);
   scope.effect(mountMainDecoration);
   const returnPill = createReturnPill(scope, { msgsEl, scroller, toRow });
-  const { showMsg } = createConversationNavigation(scope, { alias, main: () => MAIN });
   const live = createLiveConversation({ ...paging, view });
-  return { ...live, returnPill, showMsg, scroller, msgsEl, reading, loadAhead, loadOlderNow };
+  return { ...live, returnPill, scroller, msgsEl, reading, loadAhead, loadOlderNow };
 }

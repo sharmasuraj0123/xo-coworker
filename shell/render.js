@@ -14,7 +14,7 @@ export function createShellRenderer({
   world, D, view, restoreFocus, PAGE_OF, MAIN, pings, dockAtTop, convThread, sideRender, homeRender, places, LPP,
   topRender, wsHeadRender, drawConv, say, msgsEl, placeRegion, loadAhead, TP, STAGE, drawThreadPage,
   dockRender, heraldRender, chatTargetRender, targetLineRender, syncPlaceholder, sendRender, chipRender,
-  VW, LW, FP, titleFor, isBusy,
+  files, LW, titleFor, isBusy,
 }, /** @type {SurfaceScope} */ scope, /** @type {() => void} */ schedule) {
   const drawPages = createSurfaceSlots({
     places, place: "page", scope, schedule, hideOnRetire: true,
@@ -66,10 +66,10 @@ export function createShellRenderer({
     sendRender();
     chipRender();
     D.sync();
-    VW.notice();
+    files()?.viewer.notice();
     STAGE.sync();
     LW.sync();
-    FP.sync();
+    files()?.page.sync();
     const nd = needs.filter((n) => n.admitted && !n.later).length;
     document.title = titleFor(nd, "XO Space");
     faviconRender(world.state.threads.filter(isBusy).sort((a, b) => b.lastAt - a.lastAt)[0] || null, nd > 0);

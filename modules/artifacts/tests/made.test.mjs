@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 
-const { document } = await dom(`<div id="home"></div><button id="nv-arts"><span id="arts-n"></span></button>`);
+const { document } = await dom(`<div id="home"></div><button data-go="artifacts" id="nv-arts"><span class="nr-name">Artifacts</span><span data-rail-count id="arts-n"></span></button>`);
 globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
@@ -52,6 +52,8 @@ kernel.register({
   manifest: { id: "test.reader", kernel: "^1.1.0", version: "1.0.0", optional: ["artifactCatalog"] },
   activate(ctx) { catalog = () => ctx.optional("artifactCatalog"); },
 });
+const { railCountsModule } = await import("../../../shell/rail/counts.js");
+kernel.register(railCountsModule);
 kernel.register(artifactsModule);
 await kernel.start();
 const section = places.get("home.section", "hm-made");

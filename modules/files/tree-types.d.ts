@@ -1,9 +1,8 @@
 import type { createFolderReads, FolderRead } from "./folder-reads.js";
 import type { marksOf, touched } from "./marks.js";
-import type { FilesScope } from "./scope.js";
+import type { FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts";
 
 export type ProjectScope = FilesScope & { project: string };
-export type CachedElement = HTMLElement & { _h?: string | null };
 export interface TreeGroup { el: HTMLElement; sig: string | null; open: Set<string> }
 export interface TreeState { key: string | null; groups: Map<string, TreeGroup>; on: Element | null; q: string | null; changed: number }
 export interface TreeContext { marks: ReturnType<typeof marksOf>; open: Set<string>; openIn: Map<string, string[]>; q: string }

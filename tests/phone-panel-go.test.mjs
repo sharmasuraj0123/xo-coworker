@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { setImmediate, setInterval, setTimeout } from "node:timers";
 import { dom } from "./lib/dom.mjs";
 globalThis.matchMedia = (query) => ({ matches: query === "(max-width: 760px)", addEventListener() {}, removeEventListener() {} });
-const { createPanelThreadOpener } = await import("../modules/threads/open-panel-thread.js");
+const { createPanelThreadOpener } = await import("../shell/panel/thread-navigation.js");
 const { prepareStageNavigation } = await import("../shell/panel/navigation.js");
 const { createNavigation } = await import("../shell/navigation.js");
 const { createNavigationState } = await import("../shell/navigation-state.js");
@@ -57,12 +57,12 @@ t("a panel route opens a thread beside its chat or hands off to global navigatio
   const state = { view: "p:demo" };
   const calls = [];
   const open = createPanelThreadOpener({
-    view: () => state.view, world: { thread: (id) => id === "thread" }, TP: {},
-    STAGE: { show: (page, id, options) => calls.push([page, id, options]) }, go: (...args) => calls.push(args),
+    view: () => state.view, world: { thread: (id) => id === "thread" }, panelConversation: () => null,
+    go: (...args) => calls.push(args),
   });
-  open("t:thread");
+  open("t:thread", undefined, (page, id, options) => calls.push([page, id, options]));
   state.view = "home";
-  open("t:thread");
+  open("t:thread", undefined, (page, id, options) => calls.push([page, id, options]));
   assert.deepEqual(calls, [["thread", "thread", { focus: true, input: "keyboard" }], ["t:thread", { panel: true }]]);
 });
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

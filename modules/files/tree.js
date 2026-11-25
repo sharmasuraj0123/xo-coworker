@@ -13,9 +13,9 @@ import { dkey } from "./folder-reads.js";
 
 /** @import { Touch } from "./marks.js" */
 
-/** @import { FilesScope } from "./scope.js" */
+/** @import { FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts" */
 
-/** @import { TreeDependencies, TreeState, TreeContext, TreeGroup, CachedElement, ProjectScope } from "./tree-types.d.ts" */
+/** @import { TreeDependencies, TreeState, TreeContext, TreeGroup, ProjectScope } from "./tree-types.d.ts" */
 
 const CH = ICON.right;
 const BACK = ICON.back;
@@ -168,23 +168,30 @@ export function createFilesTree({ F, M, NW, dirs, load, paths, folded, setOf, op
   };
   const pickHtml = () => `<div class="fl-head"><div class="fl-crumb"><b>Projects</b></div></div><div class="fl-list">` +
     (world.state.projects || []).filter((p) => p && p.id !== "workspace").map((p) => `<button type="button" class="fl-r is-dir" style="--d:0" data-fl-pick="${esc(p.id)}"><span class="fl-c">${CH}</span><span class="fl-n">${esc(p.name || p.id)}</span>${world.state.threads.some((t) => t.project === p.id && isBusy(t)) ? `<span class="fl-who w-live" title="Agents at work"><i></i></span>` : ""}</button>`).join("") + `</div>`;
-  /** @param {CachedElement} node @param {string} html */
-  const put = (node, html) => { if (node._h !== html) { node.innerHTML = html; node._h = html; return true; } return false; };
+  /** @type {WeakMap<HTMLElement, string>} */
+  const markup = new WeakMap();
+  /** @param {HTMLElement} node @param {string} html */
+  const put = (node, html) => {
+    if (markup.get(node) === html) return false;
+    node.innerHTML = html;
+    markup.set(node, html);
+    return true;
+  };
 
-  /** @param {FilesScope} scope @param {CachedElement} tree */
+  /** @param {FilesScope} scope @param {HTMLElement} tree */
   function paintTree(scope, tree) {
     if (scope.key === "all") {
-      if (T.key !== "all") { T.key = "all"; T.groups = new Map(); T.on = null; tree._h = null; }
+      if (T.key !== "all") { T.key = "all"; T.groups = new Map(); T.on = null; markup.delete(tree); }
       put(tree, pickHtml());
       return;
     }
     const s = /** @type {ProjectScope} */ (scope);
     if (T.key !== s.key || !tree.firstElementChild) {
       tree.innerHTML = `<div class="fl-head"></div><div class="fl-list"><div class="fl-secs"></div><div class="fl-g" data-fl-g=""></div></div>`;
-      tree._h = null; T.key = s.key; T.on = null; T.q = null;
+      markup.delete(tree); T.key = s.key; T.on = null; T.q = null;
       T.groups = new Map([["", { el: /** @type {HTMLElement} */ (tree.querySelector(".fl-list > .fl-g")), sig: null, open: new Set() }]]);
     }
-    const head = /** @type {CachedElement} */ (tree.querySelector(".fl-head"));
+    const head = /** @type {HTMLElement} */ (tree.querySelector(".fl-head"));
     const qi = /** @type {HTMLInputElement} */ (head.querySelector("[data-fl-q]")), typing = qi && document.activeElement === qi ? /** @type {[number, number]} */ ([qi.selectionStart, qi.selectionEnd]) : null;
     if (put(head, headHtml(s)) && typing) { const q2 = /** @type {HTMLInputElement} */ (head.querySelector("[data-fl-q]")); q2.value = F.q; q2.focus(); q2.setSelectionRange(...typing); }
     const q = /** @type {HTMLInputElement} */ (head.querySelector("[data-fl-q]"));
@@ -195,11 +202,11 @@ export function createFilesTree({ F, M, NW, dirs, load, paths, folded, setOf, op
     const finding = !!(paths && F.q.trim());
     const u = F.undo && (!F.undo.s || F.undo.s.key === s.key) ? F.undo : null;
     const undoNote = u ? (u.err ? `<p class="fl-note is-err" role="alert">${esc(u.err)} <button type="button" class="fl-link" data-fl-undo>OK</button></p>` : `<p class="fl-note" role="status">Deleted ${esc(u.name)} <button type="button" class="fl-link" data-fl-undo>Undo</button></p>`) : "";
-    const secs = /** @type {CachedElement} */ (tree.querySelector(".fl-secs")), sh = undoNote + (finding ? "" : secHtml(s, tl));
+    const secs = /** @type {HTMLElement} */ (tree.querySelector(".fl-secs")), sh = undoNote + (finding ? "" : secHtml(s, tl));
     const allFolded = !finding && sh.includes('data-fl-sec="all"') && folded(s, "all");
     const rootG = /** @type {HTMLElement | null} */ (tree.querySelector(".fl-list > .fl-g"));
     if (rootG && rootG.hidden !== allFolded) rootG.hidden = allFolded;
-    if (secs._h !== sh) { redraw(secs, sh); secs._h = sh; }
+    if (markup.get(secs) !== sh) { redraw(secs, sh); markup.set(secs, sh); }
     const open = setOf(s.key), openIn = new Map();
     for (const p of open) { const at = parentOf(p); if (!openIn.has(at)) openIn.set(at, []); openIn.get(at).push(p); }
     const ctx = { marks: marksOf(tl), open, openIn, q: F.q.trim().toLowerCase() };

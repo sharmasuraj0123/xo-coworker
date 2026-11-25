@@ -6,11 +6,13 @@ export interface PanelThreadPress {
   ctrlKey?: boolean;
 }
 
+type EntryInput = import("../../core/ui/a11y/focus.js").EntryInput;
+export type ShowPage = (page: string, id: string, options: { focus: boolean; input: EntryInput }) => void;
+
 export interface PanelThreadDeps<C> {
   view(): string;
   world: { thread: (tid: string) => unknown };
-  STAGE: { show: (page: string, id: string, options: { focus: boolean; input: import("../../core/ui/a11y/focus.js").EntryInput }) => void };
-  TP: { C: C | null };
+  panelConversation(): C | null | undefined;
   go: (view: string, opts: { panel: boolean }) => void;
   showMsg: (message: string, conversation?: C) => void;
 }

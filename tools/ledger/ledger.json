@@ -2630,6 +2630,7 @@
     "modules/settings/application.js",
     "modules/settings/shortcuts-sheet.js",
     "modules/settings/surface.js",
+    "shell/rail/counts.js",
     "modules/artifacts/module.js",
     "modules/map/module.js",
     "modules/changes/module.js",
@@ -2667,12 +2668,16 @@
      "reason": "Conversation connects pending stops with live runs and retires their timers."
     },
     "shell/panel/workspace-stage.js": {
-     "anchor": "export function mountWorkspaceStage",
+     "anchor": "export const stageModule",
      "reason": "Stage owns its frame list, place names and scoped header actions."
     },
+    "shell/rail/counts.js": {
+     "anchor": "export const railCountsModule",
+     "reason": "The shell rail paints counts supplied by active features."
+    },
     "modules/artifacts/module.js": {
-     "anchor": "function paintCount",
-     "reason": "Artifacts owns its navigation count and publishes transcript records through its optional catalog service."
+     "anchor": "export const artifactsModule",
+     "reason": "Artifacts contributes its count to the shell rail and publishes transcript records through its optional catalog service."
     },
     "modules/conversation/surfaces.js": {
      "anchor": "export function mountConversationMedia",
@@ -2691,7 +2696,7 @@
      "reason": "Jump reads active project and thread services and owns its search controls."
     },
     "modules/shells/surface.js": {
-     "anchor": "export function mountShells",
+     "anchor": "export const shellDockModule",
      "reason": "Shells binds its dock, Stage panel and transcript links to their host scope."
     },
     "modules/conversation/typing.js": {
@@ -8432,7 +8437,7 @@
   },
   "js/app.js::functions::openFromPanel": {
    "status": "moved",
-   "home": "modules/threads/open-panel-thread.js"
+   "home": "shell/panel/thread-navigation.js"
   },
   "js/app.js::functions::createConv": {
    "status": "moved",
@@ -9039,7 +9044,7 @@
   },
   "js/app.js::keys::all": {
    "status": "moved",
-   "home": "modules/files/search-place.js"
+   "home": "modules/search/search-place.js"
   },
   "js/app.js::keys::Escape": {
    "status": "moved",
@@ -9919,7 +9924,7 @@
   },
   "js/files.js::exports::scopeOf": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "core/services/file-scope.js"
   },
   "js/files.js::exports::fileScope": {
    "status": "moved",
@@ -9939,7 +9944,7 @@
   },
   "js/files.js::functions::scopeOf": {
    "status": "moved",
-   "home": "modules/files/scope.js"
+   "home": "core/services/file-scope.js"
   },
   "js/files.js::functions::fileScope": {
    "status": "moved",

@@ -88,7 +88,7 @@ export function createComposerAttachments({ MK, tray, canAttach, attachChat, ann
     updateComposer(K); saveDraft(K);
   }
 
-  /** @param {Composer} K @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+  /** @param {Composer} K @param {import("./composer-types").ComposerScope} scope */
   function wireTray(K, scope) {
     scope.listen(K.tray, "click", (e) => {
       const b = /** @type {HTMLButtonElement} */ ((/** @type {Element} */ (e.target)).closest("[data-a]"));

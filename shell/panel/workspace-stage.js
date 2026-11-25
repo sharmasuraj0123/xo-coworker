@@ -2,37 +2,36 @@
 import { prepareStageNavigation } from "./navigation.js";
 import { PHONE } from "../../core/platform/viewport.js";
 import { panelPlace } from "../place-context.js";
+import { createPanelThreadOpener } from "./thread-navigation.js";
 import { createStage } from "./panel.js";
 import { bindPanelHeaderControls } from "./header-controls.js";
 import { wireHeaderActions } from "../header.js";
 
-/** @import { StageDeps } from "./panel-types" */
-
-/** @import { Services, ModuleContext } from "../../core/kernel/types" */
-
-/** @typedef {Omit<StageDeps, "at" | "place" | "frames">} StageOptions */
-
-/** @typedef {Parameters<typeof bindPanelHeaderControls>[2]} LaunchWindow */
-
-/** @typedef {{ place: Services["placeContext"], shape: Services["shape"], launch: LaunchWindow }} StageContext */
-
-/** @param {Pick<ModuleContext, "effect" | "listen">} scope @param {StageOptions} options @param {StageContext} host */
-export function mountWorkspaceStage(scope, options, { place, shape, launch }) {
-  const at = () => place.atOf(options.view());
-  const stage = createStage({
-    ...options, at, place: panelPlace, frames: () => shape.list("panel").map((frame) => frame.id.slice("xo:panel/".length)),
-  });
-  stage.names = place.panelName;
-  wireHeaderActions(scope, options.places, at);
-  bindPanelHeaderControls(scope, stage, launch, options.view);
-  scope.effect(() => stage.disposeLayout);
-  /** @type {import("../../core/kernel/types").ModuleDef} */
-  const module = {
-    manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["stage"] },
-    activate(ctx) {
-      ctx.provide("stage", stage);
-      ctx.on("app:view-preparing", (change) => prepareStageNavigation(stage, !!PHONE?.matches, change));
-    },
-  };
-  return { stage, module };
-}
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const stageModule = {
+  manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true,
+    needs: ["placeContext", "shape", "world", "currentView", "navigation", "mapAgents", "threadGroups",
+      "shellDock", "announce", "launchpad", "conversationSession"],
+    optional: ["files", "shellPanel"], provides: ["stage"], contributes: ["panel.page"] },
+  activate(ctx) {
+    const place = ctx.use("placeContext"), shape = ctx.use("shape"), view = ctx.use("currentView");
+    const session = ctx.use("conversationSession"), files = () => ctx.optional("files");
+    const go = createPanelThreadOpener({ view, world: ctx.use("world"), go: ctx.use("navigation").go,
+      panelConversation: () => session.panel()?.C, showMsg: session.showMsg });
+    const at = () => place.atOf(view());
+    const stage = createStage({
+      at, view, go, place: panelPlace, frames: () => shape.list("panel").map((frame) => frame.id.slice("xo:panel/".length)),
+      files: { changes: (where) => files()?.tree.changes(where) ?? [] }, openFiles: () => files()?.page.show({ focus: true }),
+      viewer: { open: (file, from) => files()?.viewer.open(file, from) }, announce: ctx.use("announce"),
+      agents: ctx.use("mapAgents").agents, threads: ctx.use("threadGroups").panelThreads, owns: ctx.use("shellDock").owns,
+      shell: (on, host, where) => ctx.optional("shellPanel")?.panelShell(on, host, where), onChange: () => ctx.invalidate("workspace"),
+      places: { ...ctx.places, contribute: ctx.contribute },
+    });
+    stage.names = place.panelName;
+    ctx.effect(() => stage.disposeLayout);
+    wireHeaderActions(ctx, ctx.places, at);
+    bindPanelHeaderControls(ctx, stage, ctx.use("launchpad").LW, view);
+    ctx.on("app:view-preparing", (change) => prepareStageNavigation(stage, !!PHONE?.matches, change));
+    ctx.provide("stage", stage);
+  },
+};

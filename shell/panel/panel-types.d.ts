@@ -68,7 +68,7 @@ export interface StageDeps {
   place?(view: string): boolean;
   viewer: { open(file: StageFile, from?: Element | null): void };
   view(): string;
-  go(view: string, event?: Event): void;
+  go(view: string, event: Event | undefined, show: import("./thread-navigation-types").ShowPage): void;
   announce(message: string): void;
   onChange?(): void;
   frames?(): string[];
@@ -77,5 +77,5 @@ export interface StageDeps {
   shell?: ((on: boolean, host?: HTMLElement, view?: string) => void) | null;
   owns?(event: Event): boolean;
   at(): At;
-  places: Kernel["places"];
+  places: Pick<Kernel["places"], "get" | "entries" | "watch" | "has" | "contribute">;
 }

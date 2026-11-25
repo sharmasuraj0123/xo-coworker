@@ -1,4 +1,4 @@
-import type { FilesScope } from "./scope.js";
+import type { FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts";
 import type { TreeDependencies, TreeState } from "./tree-types";
 
 export type NameMode = "file" | "folder" | "rename";

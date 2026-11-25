@@ -8,6 +8,7 @@ Every entry also has an `id`, and may have `order` (lists), `priority` (chains) 
 |---|---|---|---|---|---|
 | `page` | keyed | app | no | `mount` | A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts). |
 | `rail.entry` | list | app | yes | `label`, `icon`, `onPress` | An entry in the left rail's top list; the shape orders and hides them. |
+| `rail.count` | keyed | app | no | `count` | A count beside the corresponding rail destination. |
 | `rail.section` | list | app | no | `mount` | A section of the left rail below its entries (Projects). |
 | `rail.foot` | list | app | no | `label`, `icon`, `onPress` | A control at the foot of the left rail (account, theme, settings). |
 | `header.title` | keyed | conversation | no | `render` | How the header names what is open, keyed by route kind. |

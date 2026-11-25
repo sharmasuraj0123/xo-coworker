@@ -26,3 +26,14 @@ export type FileQuestionDeps = Pick<Delivery, "blockFor" | "refuse" | "deliverLi
   schedule(): void;
   lrefRender(): void;
 };
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    fileQuestions: {
+      target(file: QuestionFile): string | null;
+      send(file: QuestionFile, from: number, to: number, text: string): boolean;
+      compose(file: QuestionFile, from: number, to: number): boolean;
+      file(file: QuestionFile): boolean;
+    };
+  }
+}

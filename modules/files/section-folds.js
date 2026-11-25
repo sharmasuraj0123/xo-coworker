@@ -1,7 +1,7 @@
 // @ts-check
 import { read, write, reportStorageFailure } from "../../core/platform/storage.js";
 
-/** @import { FilesScope } from "./scope.js" */
+/** @import { FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts" */
 
 export function createSectionFolds() {
   const SECS_KEY = "xo-files-secs";

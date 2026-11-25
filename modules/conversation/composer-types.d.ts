@@ -3,7 +3,7 @@ import type { Run } from "./stop-types.d.ts";
 import type { createScope } from "../../core/kernel/scope.js";
 
 type MarkupNode = HTMLElement & { _h?: string | null };
-export type ComposerScope = ReturnType<typeof createScope>;
+export type ComposerScope = Pick<ReturnType<typeof createScope>, "listen" | "effect" | "frame" | "signal">;
 
 export type Composer = {
   main: boolean;

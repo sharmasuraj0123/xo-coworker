@@ -1,5 +1,5 @@
 // @ts-check
-import { mountPressRoutes, valuePress } from "../../shell/conversation-press.js";
+import { pressEntry, valuePress } from "../../shell/conversation-press.js";
 import { createDrafts } from "./drafts.js";
 import { createDelivery } from "./delivery.js";
 import { createFileReferenceLine } from "./file-reference-line.js";
@@ -15,7 +15,7 @@ import { createTray } from "../../core/services/media/attachment-tray.js";
 import { uploadAttachment } from "../../core/platform/api.js";
 import { ICON } from "../../core/ui/icons/names.js";
 
-/** @param {import("./composer-types").ComposerScope} scope @param {import("./composer-surface-types").ComposerHost} host */
+/** @param {import("../../core/kernel/types").ModuleContext} scope @param {import("./composer-surface-types").ComposerHost} host */
 export function createComposerSurface(scope, host) {
   const { view, session, localMessages, world, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject,
     announce, heraldShow, heraldFor, schedule, render, go, PHONE, isBusy, sendWhileRunning, noun, IQ, sessionOf, running,
@@ -62,12 +62,17 @@ export function createComposerSurface(scope, host) {
     targetLineRender, connDest, schedule, mentions, saveDraft, send, stopRun,
   });
   mountMainComposer(scope, MK, { wireTray, wireComposer, composerAt, canAttach, addFiles });
-  scope.effect(() => mountPressRoutes(host.places, "xo.conversation", {
+  /** @type {import("../../shell/conversation-press-types").PressRoutes} */
+  const routes = {
     start: valuePress("data-start", (id) => startDraft(+id), true),
     retry: valuePress("data-retry", retry),
     edit: valuePress("data-edit", (id, control) => editFailed(id, composerAt(control))),
     "remove-reference": valuePress("data-lref-x", () => { fileReferences.remove(view()); lrefRender(); say.focus(); }, true),
-  }));
+  };
+  for (const id of /** @type {(keyof typeof routes)[]} */ (Object.keys(routes))) {
+    const route = routes[id];
+    if (route) scope.contribute("conversation.press", pressEntry(id, route));
+  }
   return { saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
     fileReferences, lrefRender, liveBlock, blockFor, refuse, connDest, deliverLive, putBack, targetLineRender,
     syncPlaceholder, chipRender, sendRender, chatTargetRender, mentions, wireComposer, updateComposer };

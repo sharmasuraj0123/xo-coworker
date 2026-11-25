@@ -1,6 +1,6 @@
 // @ts-check
 
-import { scopeOf } from "./scope.js";
+import { scopeOf } from "../../core/services/file-scope.js";
 
 /** @param {Parameters<typeof scopeOf>[0]} view @param {Parameters<typeof scopeOf>[1]} deps */
 export function filePlace(view, deps) {

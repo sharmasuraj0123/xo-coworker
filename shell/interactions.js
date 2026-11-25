@@ -12,9 +12,9 @@ import { wireGestures } from "./gestures.js";
 
 /** @param {InteractionScope} scope @param {Layers} layers @param {InteractionHost} host */
 export function mountShellInteractions(scope, layers, host) {
-  const { PHONE, navigationState, capturing, SH, jump, IQ, CREATE, keys, FP, QO, back, go,
+  const { PHONE, navigationState, capturing, SH, jump, IQ, CREATE, keys, files, QO, back, go,
     JUMP, composerNow, toggleIq, sessionOf, openKeys, STAGE, SIDE, runsLayer, closeKeys, LB, setEl, closeSettings,
-    VW, setDrawer, D, CH, PAGE_OF, world, updateComposer, say, toastLine, wordsOf, scroller } = host;
+    setDrawer, D, CH, PAGE_OF, world, updateComposer, say, toastLine, wordsOf, scroller } = host;
   const currentView = navigationState.view;
   scope.listen(requireHtml("#top-back", "button"), "click", back);
   const GLOBAL = {
@@ -37,8 +37,8 @@ export function mountShellInteractions(scope, layers, host) {
     { id: "lightbox", open: () => LB.isOpen, close: () => { LB.close(); }, overlay: false },
     { id: "settings", tab: () => PHONE.matches ? setEl : null, watchHidden: setEl,
       open: () => !setEl.hidden, close: () => { closeSettings(); } },
-    { id: "files-page", open: () => FP.isOpen, close: () => { STAGE.back(); } },
-    { id: "viewer", open: () => VW.isOpen, close: () => { VW.close({ ask: true }); }, overlay: false },
+    { id: "files-page", open: () => files()?.page.isOpen ?? false, close: () => { STAGE.back(); } },
+    { id: "viewer", open: () => files()?.viewer.isOpen ?? false, close: () => { files()?.viewer.close({ ask: true }); }, overlay: false },
     { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, close: () => { STAGE.close(); } },
     { id: "shells", open: () => SH.raised, close: () => SH.lower() },
     { id: "drawer", tab: () => PHONE.matches ? requireHtml("#side") : null,
@@ -53,7 +53,8 @@ export function mountShellInteractions(scope, layers, host) {
     layers: LAYERS, phone: PHONE, app: requireHtml("#app"), main: requireHtml("#main"), side: requireHtml("#side"), settings: setEl,
   });
   scope.effect(() => wireGlobalKeys({
-    view: currentView, capturing: capturing, SH, jump, IQ, CREATE, keys, GLOBAL, FP, QO, LAYERS, back, go,
+    view: currentView, capturing: capturing, SH, jump, IQ, CREATE, keys, GLOBAL,
+    FP: { toggleTree: () => files()?.page.toggleTree() ?? false }, QO, LAYERS, back, go,
   }));
   scope.effect(() => disposeKeyboardLayers);
   scope.effect(() => LAYERS.undo);
@@ -68,7 +69,7 @@ export function mountShellInteractions(scope, layers, host) {
     drawer: (open) => setDrawer(open),
     isDrawer: () => requireHtml("#app").classList.contains("drawer"),
     settingsOpen: () => !setEl.hidden, closeSettings: () => closeSettings(),
-    viewerOpen: () => VW.isOpen, closeViewer: () => VW.close(),
+    viewerOpen: () => files()?.viewer.isOpen ?? false, closeViewer: () => files()?.viewer.close(),
     panelOpen: () => D.isOpen(),
     sheets: [
       { host: requireHtml("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },

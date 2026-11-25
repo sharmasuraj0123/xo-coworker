@@ -383,8 +383,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 147,
-  "lineLength": 11
+  "dependencyKey": 88,
+  "lineLength": 10
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -693,9 +693,6 @@
  "modules/files/page.js": {
   "lineLength": 5
  },
- "modules/files/scope.js": {
-  "lineLength": 4
- },
  "modules/files/section-folds.js": {
   "lineLength": 1
  },
@@ -703,7 +700,6 @@
   "lineLength": 2
  },
  "modules/files/tree.js": {
-  "domExpando": 4,
   "functionLines": 1,
   "lineLength": 34
  },

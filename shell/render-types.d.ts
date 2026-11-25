@@ -35,9 +35,8 @@ export interface RenderDeps<N extends RenderNeed, T extends RenderThread, C exte
   syncPlaceholder(): void;
   sendRender(): void;
   chipRender(): void;
-  VW: { notice(): void };
+  files(): { viewer: { notice(): void }; page: Sync } | undefined;
   LW: Sync;
-  FP: Sync;
   titleFor(count: number, title: string): string;
   isBusy(thread: T): boolean;
 }

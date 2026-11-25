@@ -6,7 +6,7 @@ import { fileIcon } from "../../core/ui/icons/fileicons.js";
 import { apiRel, dkey } from "./folder-reads.js";
 import { newFileSay, parentOf, RUNS_SAY } from "./scope.js";
 
-/** @import { FilesScope } from "./scope.js" */
+/** @import { FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts" */
 
 /** @import { FolderRead } from "./folder-reads.js" */
 

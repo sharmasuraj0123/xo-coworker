@@ -5,8 +5,8 @@ import { deferred, dom, same, settle } from "./lib/dom.mjs";
 import { bootPage } from "./lib/page.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-const { localIn, fileScope } = await import("../core/services/file-scope.js");
-const { scopeOf, newFileSay } = await import("../modules/files/scope.js");
+const { localIn, fileScope, scopeOf } = await import("../core/services/file-scope.js");
+const { newFileSay } = await import("../modules/files/scope.js");
 
 let passed = 0;
 const t = (name, fn) => {

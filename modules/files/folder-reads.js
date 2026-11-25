@@ -2,7 +2,7 @@
 
 import { api } from "../../core/platform/api.js";
 
-/** @import { FilesScope } from "./scope.js" */
+/** @import { FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts" */
 
 /** @import { TreeEntry } from "../../core/platform/project-response-types.d.ts" */
 

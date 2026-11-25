@@ -7,7 +7,7 @@ import { parentOf } from "./scope.js";
 
 /** @import { Turns, FileMark } from "../../core/services/types.d.ts" */
 
-/** @import { ScopeThread, FilesScope } from "./scope.js" */
+/** @import { ScopeThread, FileScope as FilesScope } from "../../core/services/file-scope-types.d.ts" */
 
 /** @typedef {ScopeThread & {title?: string, sessionId?: string | null, busy?: boolean, state?: string}} ActiveThread */
 
