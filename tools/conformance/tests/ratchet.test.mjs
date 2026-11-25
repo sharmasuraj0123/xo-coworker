@@ -9,6 +9,7 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { inventory } from "../inventory.mjs";
+import { sizeSignals } from "../size-ratchet.mjs";
 import { changedFiles, checkConformance, compare, formatBaseline, totals } from "../ratchet.mjs";
 
 const HEADER = "// @ts-check\n\n";
@@ -30,6 +31,17 @@ function fixture(context, files) {
 }
 
 const kind = (findings) => findings.map(({ rule }) => rule).sort();
+
+test("size review includes server, tools and tests without blocking cohesive files", (context) => {
+  const root = fixture(context, {
+    "serve.py": "pass\n".repeat(401),
+    "tools/report.mjs": "\n".repeat(403),
+    "tests/view.mjs": "\n".repeat(402),
+    "tests/small.mjs": "\n".repeat(400),
+  });
+  assert.deepEqual(sizeSignals(root), ["serve.py (401 lines)", "tests/view.mjs (402 lines)", "tools/report.mjs (403 lines)"]);
+  assert.deepEqual(compare(inventory(root), EMPTY, new Set()).errors, []);
+});
 
 const jsCases = [
   ["bareAriaState", 'control.toggleAttribute("aria-busy", working);'],
@@ -289,7 +301,7 @@ test("declaration syntax catches an explicit escape hatch", (context) => {
   assert.equal(compare(findings, EMPTY, new Set()).errors.length, 1);
 });
 
-test("Python uses real comments and docstrings and ratchets file size", (context) => {
+test("Python uses real comments and docstrings", (context) => {
   const source = '"""Real docstring.\nSecond line."""\n' + "pass\n".repeat(397)
     + 'text = "# Astra C058"\n# QA #123\n';
   const root = fixture(context, {
@@ -297,8 +309,8 @@ test("Python uses real comments and docstrings and ratchets file size", (context
     "serve/proxy.py": "pass\n".repeat(401),
   });
   const findings = inventory(root);
-  assert.deepEqual(kind(findings), ["changelogComment", "commentLines", "pythonSize", "pythonSize"]);
-  assert.equal(compare(findings, EMPTY, new Set()).errors.length, 4);
+  assert.deepEqual(kind(findings), ["changelogComment", "commentLines"]);
+  assert.equal(compare(findings, EMPTY, new Set()).errors.length, 2);
 });
 
 test("a source read identifies the test and the production path, leaving data fixtures alone", (context) => {

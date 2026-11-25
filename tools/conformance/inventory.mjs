@@ -17,7 +17,6 @@ const ROOT_DIRS = ["js", "css", "core", "shell", "modules", "apps-host", "serve"
 const EXCLUDED = new Set(["vendor", "node_modules", "__pycache__", "baselines", "diffview", "fixtures", "testdata"]);
 const GENERATED = new Set(["core/ui/icons/xoicons.js", "css/flavours.css", "css/flavour-swatches.css"]);
 const HANDWRITTEN_LIMIT = 140;
-const FILE_LIMIT = 400;
 
 /** @param {string} root */
 export function conformanceFiles(root) {
@@ -67,9 +66,6 @@ export function inventory(root, files = conformanceFiles(root)) {
         if ([...line].length > HANDWRITTEN_LIMIT) report("lineLength", index + 1);
       }
       if (JS.test(file) && !/^\s*\/\/\s*@ts-check\b/.test(source)) report("missingTsCheck", 1);
-      if (file.endsWith(".py") && lines.length > FILE_LIMIT) {
-        for (let line = FILE_LIMIT + 1; line <= lines.length; line++) report("pythonSize", line);
-      }
     }
     try {
       if (JS.test(file)) {

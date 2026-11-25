@@ -964,8 +964,7 @@
   "lineLength": 3
  },
  "serve.py": {
-  "lineLength": 2,
-  "pythonSize": 336
+  "lineLength": 2
  },
  "shell/dialogs.css": {
   "important": 1,

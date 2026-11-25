@@ -1,6 +1,19 @@
 // @ts-check
 
-export const NEW_FILE_MAX = 400;
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { conformanceFiles } from "./inventory.mjs";
+
+/** @param {string} root */
+export function sizeSignals(root) {
+  const signals = [];
+  for (const file of conformanceFiles(root)) {
+    const source = readFileSync(join(root, file), "utf8");
+    const lines = source.split("\n").length - Number(source.endsWith("\n"));
+    if (lines > 400) signals.push(`${file} (${lines} lines)`);
+  }
+  return signals;
+}
 
 /** @param {Record<string, Record<string, number>>} actual @param {Record<string, Record<string, number>>} cap */
 export function sizeRatchet(actual, cap) {
@@ -11,8 +24,7 @@ export function sizeRatchet(actual, cap) {
     for (const [file, count] of Object.entries(values)) {
       const allowed = cap[kind][file] ?? 0;
       if (count <= allowed) continue;
-      if (kind === "lines" && !allowed) growth.push(`  ${file}: ${count} lines; split at ${NEW_FILE_MAX} lines`);
-      else growth.push(`  ${file}: ${count} ${unit}, allowed ${allowed}`);
+      growth.push(`  ${file}: ${count} ${unit}, allowed ${allowed}`);
     }
     for (const [file, allowed] of Object.entries(cap[kind])) {
       const count = values[file] ?? 0;

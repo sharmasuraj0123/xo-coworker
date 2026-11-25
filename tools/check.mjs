@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSy
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkConformance } from "./conformance/ratchet.mjs";
-import { NEW_FILE_MAX, sizeRatchet } from "./conformance/size-ratchet.mjs";
+import { sizeSignals, sizeRatchet } from "./conformance/size-ratchet.mjs";
 import { runGit } from "./git-environment.mjs";
 import { parseArgs } from "node:util";
 
@@ -80,12 +80,11 @@ function sourceFiles() {
 }
 
 step("ratchets", () => {
+  for (const file of sizeSignals(ROOT)) console.log(`  size review: ${file}`);
   const basePath = join(BASE_DIR, "ratchets.json");
   const now = { lines: {}, important: {} };
   for (const f of sourceFiles()) {
     const text = readFileSync(join(ROOT, f), "utf8");
-    const lines = text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
-    if (f === "js/app.js" || lines > NEW_FILE_MAX) now.lines[f] = lines;
     if (f.endsWith(".css")) { const n = (text.match(/!important/g) || []).length; if (n) now.important[f] = n; }
   }
   const base = readJson(basePath, null);

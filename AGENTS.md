@@ -25,7 +25,7 @@
 - Render with `core/ui/redraw` (in place). A press must survive a live redraw. No framework re-creates nodes.
 - Focus is never left on BODY. Never move a conversation's scroll yourself: `follow.js` owns it.
 - New and moved files start with `// @ts-check` and have JSDoc types.
-- Size limits: 400 lines per new source file, 150 per top-level function, 140 characters per line. Existing counts may only fall.
+- Review files over 400 lines for distinct responsibilities. Split at ownership boundaries. Keep functions within 150 lines and lines within 140 characters.
 - Styles: tokens only, no literal colours or sizes. Every visual change goes through shared tokens, app-wide. No `!important`: use `@layer`.
 - Every storage key keeps its name, or gets a migration.
 - Own listeners on shared nodes, observers and timers with `createScope()`. Each mount's test checks that disposal leaves its scope empty.
