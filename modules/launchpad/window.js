@@ -1,13 +1,14 @@
 // @ts-check
 import { createScope } from "../../core/kernel/scope.js";
+import { createDialog } from "../../core/ui/components/dialog.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { xi } from "../../core/ui/icons/icon.js";
 
 /** @param {import("./surface-types.d.ts").LaunchpadWindowOptions} options */
 export function createLpWindow({ launch, projectOf, nameOf, iconOf, allApps, onChange }) {
   const scope = createScope();
-  const d = document.createElement("dialog");
-  d.className = "dlg lq";
+  const d = createDialog();
+  d.classList.add("lq");
   d.id = "lq";
   d.setAttribute("aria-labelledby", "lq-title");
   d.innerHTML = `<nav class="lq-side nav" aria-label="Launchpad"><div class="nrow lq-me"><span class="nr-ic"></span><span><b></b><small class="lp-hs"></small></span></div>` +

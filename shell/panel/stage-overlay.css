@@ -1,3 +1,4 @@
 /* ── when the conversation beside it would get too narrow, the panel floats over it ───────────────── */
 body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right:0}
-:root body.stage-over .stage{box-shadow:var(--e2)}
+:where(.stage,.panel,.viewer){--shadow-stage:none}
+body.stage-over .stage{--shadow-stage:var(--e2)}

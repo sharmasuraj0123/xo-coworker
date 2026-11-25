@@ -44,6 +44,8 @@ test("size review includes server, tools and tests without blocking cohesive fil
 });
 
 const jsCases = [
+  ["unstyledDialog", 'document.createElement("dialog");'],
+  ["unstyledDialog", 'const markup = `<dialog class="custom"></dialog>`;'],
   ["bareAriaState", 'control.toggleAttribute("aria-busy", working);'],
   ["observer", "new ResizeObserver(callback);"],
   ["globalListener", 'window.document["addEventListener"]("click", callback);'],
@@ -279,7 +281,34 @@ test("parsed comments, CSS values and types ignore source lookalikes", (context)
       a { content: "10px red #fff !important"; background: url(/icons/#abc); color: var(--red); }
     `,
     "core/ui/tokens.css": ':root[data-theme="light"] { --text: #fff; --tile: 4px; }',
+    "modules/first/card.css": ".card { color: var(--text); width: var(--tile); }",
+    "modules/second/row.css": ".row { color: var(--text); gap: var(--tile); }",
   });
+  assert.deepEqual(inventory(root), []);
+});
+
+test("shared tokens need two owners through direct uses or aliases", (context) => {
+  const root = fixture(context, {
+    "core/ui/tokens.css": ":root { --base: 7px; --alias: var(--base); --unused: 5px; --owned: 3px; } .card { --bad: var(--base); }",
+    "modules/first/card.css": ".card { width: var(--alias); height: var(--owned); }",
+    "modules/first/row.css": ".row { width: var(--owned); }",
+    "modules/second/tag.css": ".tag { gap: var(--alias); }",
+  });
+  const findings = inventory(root);
+  assert.deepEqual(findings.filter(row => row.rule === "singleOwnerToken").map(row => row.note).sort(),
+    ["--bad", "--owned", "--unused"]);
+  assert.ok(findings.some(row => row.rule === "componentTokenSelector"));
+});
+
+test("component geometry allowances match the exact declaration", (context) => {
+  const file = "modules/map/arrow.css";
+  const rule = value => JSON.stringify([file, ":root", "--tip", value]);
+  const root = fixture(context, {
+    [file]: ":root { --tip: .8; }",
+    "tools/baselines/token-ownership.json": JSON.stringify([rule(".9")]),
+  });
+  assert.deepEqual(kind(inventory(root)), ["localTokenLiteral", "staleTokenAllowance"]);
+  write(root, file, ":root { --tip: .9; }");
   assert.deepEqual(inventory(root), []);
 });
 
@@ -299,6 +328,17 @@ test("declaration syntax catches an explicit escape hatch", (context) => {
   const findings = inventory(root);
   assert.deepEqual(kind(findings), ["explicitAny"]);
   assert.equal(compare(findings, EMPTY, new Set()).errors.length, 1);
+});
+
+test("comment checks cover app manifests, build tools and shell entry points", (context) => {
+  const root = fixture(context, {
+    "apps-host/manifest.js": HEADER + 'const pattern = "**/*.hello";\n// first\n// second\n',
+    "core/services/shape/model.js": HEADER + 'const preset = "presets/*.json";',
+    "tools/diffview/theme.mjs": "/* first\nsecond */",
+    "start.sh": "#!/bin/sh\n# first\n# second\ncat <<'TEXT'\n# literal\n# still literal\nTEXT\n",
+  });
+  assert.deepEqual(inventory(root).filter(row => row.rule === "commentLines").map(row => row.file),
+    ["apps-host/manifest.js", "start.sh", "tools/diffview/theme.mjs"]);
 });
 
 test("Python uses real comments and docstrings", (context) => {

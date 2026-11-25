@@ -1,5 +1,5 @@
-.fl-list{padding:0 var(--s-file-tree-inset)}
-.fl-sec{box-sizing:border-box;height:var(--h-ctl);margin:0;padding:0 var(--s-file-tree-inset);
+.fl-list{padding:0 var(--s-1-5)}
+.fl-sec{box-sizing:border-box;height:var(--h-ctl);margin:0;padding:0 var(--s-1-5);
   font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);letter-spacing:var(--tr-12);color:var(--ink-4)}
 .fl-sec:first-child{padding-top:0}
 
@@ -10,7 +10,7 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-sec[aria-expanded="true"] .fl-c svg{transform:rotate(90deg)}
 .fl-sec-n{margin-left:auto;font-weight:var(--fw-regular);color:var(--ink-5)}
 .fl-r{height:var(--h-ctl);min-height:var(--h-ctl);gap:var(--s-2);
-  padding:0 var(--s-file-tree-inset) 0 calc(var(--s-file-tree-inset) + var(--d) * var(--s-4));border-radius:var(--r-sm);
+  padding:0 var(--s-1-5) 0 calc(var(--s-1-5) + var(--d) * var(--s-4));border-radius:var(--r-sm);
   font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2)}
 .fl-r.is-dir{color:var(--ink-2);font-weight:var(--fw-regular)}
 .fl-r:hover{background:var(--surface);color:var(--ink)}
@@ -24,10 +24,10 @@ button.fl-sec:hover{color:var(--ink-2);transition-duration:var(--d-hover-in)}
 .fl-who{margin-left:var(--s-1);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .fl-sz{display:none;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);font-variant-numeric:tabular-nums;color:var(--ink-4)}
 @container stage (min-width:480px){.fl-sz{display:inline}}
-.fl-note{min-height:var(--tile-sm);padding-left:calc(var(--pn) - var(--s-file-tree-inset) + var(--d,0) * var(--s-4));
+.fl-note{min-height:var(--tile-sm);padding-left:calc(var(--pn) - var(--s-1-5) + var(--d,0) * var(--s-4));
   font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .fl-note .spin{width:var(--ic-activity);height:var(--ic-activity)}
-.fl-bar{padding:var(--s-file-tree-inset) var(--s-file-tree-inset) 0}
-.fl-back{height:var(--h-ctl);padding:0 var(--s-2) 0 var(--s-file-tree-inset);gap:var(--s-1);border-radius:var(--r-sm);
+.fl-bar{padding:var(--s-1-5) var(--s-1-5) 0}
+.fl-back{height:var(--h-ctl);padding:0 var(--s-2) 0 var(--s-1-5);gap:var(--s-1);border-radius:var(--r-sm);
   font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans)}
 .fl-back svg{width:var(--ic);height:var(--ic)}

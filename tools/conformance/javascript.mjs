@@ -4,6 +4,7 @@ import { bindingNames, literal, member, SOURCE, TEST, walk } from "./syntax.mjs"
 import { checksLifecycle, lifecycleRules } from "./lifecycle.mjs";
 import { sourceReads } from "./source-reads.mjs";
 import { domWrites } from "./dom-expando.mjs";
+import { checkDialogMarkup } from "./dialogs.mjs";
 
 const FUNCTION = /^(?:FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/;
 const VIEWPORT = /^(?:innerWidth|outerWidth|clientWidth)$/;
@@ -37,6 +38,13 @@ export function javascriptRules(file, source, { tree, comments }, report, files,
       count("commentOnlyCatch");
     }
     if (!production) return;
+    if (node.type === "Literal" && typeof node.value === "string") checkDialogMarkup(node.value, count);
+    if (node.type === "TemplateLiteral") checkDialogMarkup(node.quasis.map(part => part.value.cooked).join(" "), count);
+    if (node.type === "CallExpression" && file !== "core/ui/components/dialog.js") {
+      const method = member(node.callee);
+      const tag = method === "createElement" ? node.arguments[0] : method === "createElementNS" ? node.arguments[1] : null;
+      if (String(literal(tag)).toLowerCase() === "dialog") count("unstyledDialog");
+    }
     if (node.type === "CallExpression" && member(node.callee) === "toggleAttribute"
         && /^aria-/.test(literal(node.arguments[0]) ?? "")) count("bareAriaState");
     if ((topLevelFunction(node, parent) || (FUNCTION.test(node.type) && topLevelValues.has(node)))

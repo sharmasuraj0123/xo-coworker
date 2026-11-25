@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { FLAVOURS } from "../../core/ui/flavours.js";
+import { paletteValue } from "./palette.mjs";
 
 export { FLAVOURS };
 
@@ -60,7 +61,8 @@ const decls = (body) => body.split(/;(?![^(]*\))/).map((d) => { const i = d.inde
 
 /** Stone's palette by where it applies: dark, light, the inverse surface, and the same three under prefers-contrast. */
 export function stone(root = ROOT) {
-  const css = readFileSync(join(root, "core/ui/tokens.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  const css = ["core/ui/tokens.css", "core/ui/inverse-surfaces.css"]
+    .map(file => readFileSync(join(root, file), "utf8")).join("\n").replace(/\/\*[\s\S]*?\*\//g, "");
   const out = { main: { dark: [], light: [], inverse: [] }, contrast: { dark: [], light: [], inverse: [] } };
   const take = (text, into) => {
     for (const m of text.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -76,6 +78,13 @@ export function stone(root = ROOT) {
     top = top.replace(m[0], "");
   }
   take(top, out.main);
+  const primitives = new Map(out.main.dark.filter(([key]) => key.startsWith("--dark-")));
+  for (const group of Object.values(out)) {
+    for (const [scope, rows] of Object.entries(group)) {
+      group[scope] = rows.filter(([key]) => !primitives.has(key))
+        .map(([key, value]) => [key, paletteValue(value, primitives)]);
+    }
+  }
   return out;
 }
 

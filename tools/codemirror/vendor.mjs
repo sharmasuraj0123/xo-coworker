@@ -57,8 +57,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = join(ROOT, "vendor/codemirror");
 const tmp = mkdtempSync(join(tmpdir(), "codemirror-"));
 
-// the names each package exports, read by importing it (Node has `navigator`; nothing touches `document`
-// at module load). Then the entry modules, every name written out once.
+// Build the entry modules from each package’s named exports.
 const esm = (p) => { const j = JSON.parse(readFileSync(join(nm, p, "package.json"), "utf8")); return join(nm, p, j.exports?.import || j.exports?.["."]?.import || j.module); };
 const namesOf = async (p) => Object.keys(await import(pathToFileURL(esm(p)).href)).filter((k) => k !== "default");
 const entry = async (spec) => {

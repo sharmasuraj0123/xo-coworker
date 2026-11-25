@@ -57,7 +57,7 @@
   "px-effect": 8,
   "px-position": 16,
   "px-radius": 7,
-  "px-size": 40,
+  "px-size": 39,
   "px-spacing": 63,
   "px-stroke": 8,
   "rawColor": 36,
@@ -84,7 +84,7 @@
   "px-effect": 2,
   "px-position": 18,
   "px-radius": 4,
-  "px-size": 32,
+  "px-size": 31,
   "px-spacing": 87,
   "px-stroke": 2,
   "rawColor": 17
@@ -112,10 +112,10 @@
   "px-effect": 4,
   "px-position": 26,
   "px-radius": 8,
-  "px-size": 40,
-  "px-spacing": 80,
+  "px-size": 37,
+  "px-spacing": 79,
   "px-stroke": 2,
-  "rawColor": 25,
+  "rawColor": 23,
   "themeSelector": 2
  },
  "modules/conversation/return-pill.css": {
@@ -154,7 +154,7 @@
  "modules/settings/settings.css": {
   "px-position": 1,
   "px-radius": 1,
-  "px-size": 10,
+  "px-size": 8,
   "px-spacing": 15,
   "rawColor": 4
  },
@@ -184,9 +184,9 @@
  },
  "shell/frame.css": {
   "px-effect": 2,
-  "px-position": 5,
+  "px-position": 3,
   "px-radius": 3,
-  "px-size": 19,
+  "px-size": 15,
   "px-spacing": 11,
   "rawColor": 14
  },

@@ -84,7 +84,7 @@ button.dg-n:hover{background-image:linear-gradient(var(--hover-fill),var(--hover
 .dg-n.is-here{border-color:var(--c);box-shadow:0 0 0 var(--s-map-node-halo) color-mix(in srgb,var(--c) 16%,var(--palette-transparent));
   color:var(--ink)}
 .dg-n.is-here .dg-ic{color:var(--c)}
-.dg-n.is-hit{animation:dg-hit 1s var(--ease)}
+.dg-n.is-hit{animation:dg-hit var(--d-map-hit) var(--ease)}
 @keyframes dg-hit{
   0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--c,var(--info)) 55%,var(--palette-transparent))}
   100%{box-shadow:0 0 0 var(--s-3) var(--palette-transparent)}

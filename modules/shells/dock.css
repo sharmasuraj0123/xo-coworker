@@ -118,3 +118,7 @@
 .shl-empty{max-width:var(--w-shell-list-empty);padding:var(--s-4) 0;font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-3)}
 .shl-empty b{color:var(--ink);font-weight:var(--fw-strong)}
 .shl-err{margin-top:var(--s-shell-control-inset);font-size:var(--fs-meta);color:var(--err-ink)}
+
+@layer tokens{
+:where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}
+}

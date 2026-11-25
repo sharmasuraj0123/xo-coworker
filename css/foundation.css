@@ -1,7 +1,7 @@
 @import url("../shell/panel/frame-styles.css");
 @import url("../shell/panel/stage-resize.css");
 
-:root[data-theme="light"] :is(.stage,.panel,.viewer){border-color:var(--edge-panel-flush);box-shadow:none}
+:root[data-theme="light"] :is(.stage,.panel,.viewer){border-color:var(--edge-panel-flush);box-shadow:var(--shadow-stage,none)}
 .top-back,.tw-rt,.target,.attach{margin-left:0}
 /* Work rows use the text surface until they are pressed. */
 .tb-h{background-color:var(--fill-clear)!important}

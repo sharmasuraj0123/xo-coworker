@@ -15,6 +15,34 @@ function lineAt(source, offset) {
 }
 
 /** @param {string} source */
+export function shellComments(source) {
+  const comments = [];
+  let quote = "";
+  let heredoc = "";
+  for (const [index, line] of source.split("\n").entries()) {
+    if (heredoc) {
+      if (line.replace(/^\t+/, "") === heredoc) heredoc = "";
+      continue;
+    }
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === "\\" && quote !== "'") { i++; continue; }
+      if (quote) { if (quote === c) quote = ""; continue; }
+      if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
+      if (c === "#" && (i === 0 || /[\s;|&()]/.test(line[i - 1]))) {
+        if (!(index === 0 && line.startsWith("#!"))) comments.push({ value: line.slice(i + 1), startLine: index + 1, endLine: index + 1 });
+        break;
+      }
+      if (line.startsWith("<<", i)) {
+        const match = /^<<-?\s*(['"]?)(\w+)\1/.exec(line.slice(i));
+        if (match) { heredoc = match[2]; i += match[0].length - 1; }
+      }
+    }
+  }
+  return comments;
+}
+
+/** @param {string} source */
 export function htmlComments(source) {
   const { document } = parseHTML(source);
   const comments = [];

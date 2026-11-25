@@ -1,4 +1,5 @@
 "use strict";
+// Mock-world smoke covers chat, panels, files and theme switching on phone and desktop, with clean errors and focus after every flow.
 const assert = require("assert/strict");
 const PW = process.env.PLAYWRIGHT_CORE || "/tmp/pw/node_modules/playwright-core";
 let chromium;

@@ -54,3 +54,10 @@
 .md-grid.is-strip .md-th{height:var(--h-artifact-recent-preview)}
 .md-grid.is-strip .md-meta{padding-bottom:var(--s-3)}
 .md-recent .hm-lbl svg{width:var(--ic-sm);height:var(--ic-sm)}
+
+@layer tokens{
+:root[data-theme="light"] :where(.md-pin){
+  --fill-artifact-pin:color-mix(in srgb,var(--surface) 85%,var(--palette-transparent)); --fill-artifact-pin-hover:var(--surface);
+  --ink-artifact-pin-hover:color-mix(in srgb,var(--accent) 75%,var(--ink));
+}
+}

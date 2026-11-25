@@ -14,7 +14,13 @@
   border-radius:var(--r-sm);text-align:left;color:var(--ink-3);font:var(--fw-medium) var(--fs-ui)/var(--lh-ui) var(--sans);
   white-space:nowrap;
   transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
-.sn-ic{flex:none;display:grid;place-items:center;width:18px;height:18px;color:var(--ink-4);transition:color var(--d-hover) var(--ease)}
+.sn-ic{flex:none;
+  display:grid;
+  place-items:center;
+  width:var(--ic-medium);
+  height:var(--ic-medium);
+  color:var(--ink-4);
+  transition:color var(--d-hover) var(--ease)}
 .sn-ic svg{width:var(--ic);height:var(--ic)}
 .set-nav button:hover .sn-ic,.set-nav button[aria-selected="true"] .sn-ic{color:var(--ink-2)}
 .set-nav button:hover{background:var(--row-hover);color:var(--ink)}

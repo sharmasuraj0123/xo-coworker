@@ -43,12 +43,12 @@ function acceptsNamedColors(prop) {
 }
 
 /** @param {string} file @param {object} tree @param {Function} report */
-export function cssRules(file, tree, report) {
+export function cssRules(file, tree, report, migrated = new Set()) {
   const tokenFile = TOKEN_FILE.has(file);
   tree.walkDecls((decl) => {
     const line = decl.source.start.line;
     if (decl.important) report("important", line);
-    if (tokenFile) return;
+    if (tokenFile || migrated.has(decl)) return;
     const tokens = valueTokens(decl.value);
     for (let index = 0; index < tokens.length; index++) {
       const { text } = tokens[index];
@@ -68,7 +68,7 @@ export function cssRules(file, tree, report) {
     }
   });
   tree.walkRules((rule) => {
-    if (tokenFile) return;
+    if (tokenFile || migrated.has(rule)) return;
     const tokens = valueTokens(rule.selector).filter(({ text }) => text.trim() && !text.startsWith("/*"));
     for (let index = 1; index < tokens.length; index++) {
       if (tokens[index - 1].text === "[" && tokens[index].text.toLowerCase() === "data-theme") {

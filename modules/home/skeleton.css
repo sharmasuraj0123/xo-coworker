@@ -4,3 +4,7 @@
   border-radius:var(--r-3xl);border:1px solid var(--edge-skeleton-card,var(--line-faint));background:var(--surface)}
 .hm-sk .sk-card .sk{flex:none}
 .handled.hm-sk .hd-ic{background:var(--fill-2)}
+
+@layer tokens{
+:root[data-theme="light"] :where(.hm-sk .sk-card){--edge-skeleton-card:var(--line-soft)}
+}

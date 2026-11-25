@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createScope } from "../core/kernel/scope.js";
+import { createLayers } from "../core/kernel/layers.js";
+import { stackLayers } from "../shell/layers.js";
 import { createHerald } from "../core/services/notices.js";
 import { createNoticeLine } from "../modules/conversation/notice-line.js";
 import { dom } from "./lib/dom.mjs";
@@ -22,7 +24,9 @@ test("failure floods wait behind Undo as one line and reveal a diagnostic only o
   t.after(scope.dispose);
   const notices = createHerald({ state, setTimer: () => 0, clearTimer() {} });
   notices.show({ kind: "sent", text: "Sent", undo() {} });
-  const surface = createFailureSurface(mountFailurePresenter({ ...scope, use: () => notices }), fn => fn());
+  const layers = createLayers();
+  const stack = stackLayers(layers, []);
+  const surface = createFailureSurface(mountFailurePresenter({ ...scope, use: () => notices, pushLayer: layers.push }), fn => fn());
   const message = 'Unexpected "<tag>"';
   for (let i = 0; i < 100; i++) surface.report(message, "xo.map");
   assert.equal(state.herald.text, "Sent");
@@ -44,8 +48,18 @@ test("failure floods wait behind Undo as one line and reveal a diagnostic only o
   assert.ok(document.activeElement === button);
   button.click();
   const dialog = document.querySelector("dialog[open]");
+  assert.ok(dialog.classList.contains("dlg"));
+  assert.equal(dialog.querySelector(".dlg-head h2").textContent, "Error details");
+  assert.ok(document.activeElement === dialog.querySelector(".dlg-foot .btn"));
   assert.equal(dialog.querySelector("pre").textContent, 'xo.map: Unexpected "<tag>" (×101)');
   assert.ok(dialog.querySelector("tag") === null);
   dialog.querySelector("button").click();
   assert.equal(dialog.hasAttribute("open"), false);
+  for (const dismiss of [stack.back, stack.escape]) {
+    button.click();
+    assert.equal(dismiss(), true);
+    assert.equal(dialog.hasAttribute("open"), false);
+    assert.ok(document.activeElement === button);
+    assert.equal(layers.list().length, 0);
+  }
 });

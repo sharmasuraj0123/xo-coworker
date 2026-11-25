@@ -1,17 +1,9 @@
-// The syntax colours of a diff or a file in Files: XO's code tokens (--code-*, the colours of code in chat,
-// css/app.css) worked out to plain hex for each theme, as the TextMate pair xo-dark / xo-light that
-// @pierre/diffs highlights with: Shiki's themes take concrete colours; everything else in a diff is CSS variables (css/diffs.css).
-//
-//   node tools/diffview/theme.mjs        writes modules/changes/diffthemes.js
-//
-// tests/diffview.test.mjs runs the same resolver and fails when the tokens change and the file wasn't
-// regenerated. The resolver reads the stylesheets in index.html's order and follows the cascade the way
-// the page meets it: `:root` blocks, then `:root[data-theme="light"]` ones on top in light (more specific),
-// at-rule blocks (@media and the like) skipped, var() and color-mix(in srgb, …) worked out.
+// Resolve syntax colours from the published theme for the diff highlighter.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { paletteValue } from "../flavours/palette.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const KEYS = ["ink", "com", "kw", "str", "num", "fn", "bi", "prop", "tag", "pun", "var", "add", "del", "bg"];
@@ -69,7 +61,8 @@ export function rootProps(root = ROOT) {
   const forTheme = (t) => {
     const out = {};
     decls.filter((d) => d.theme == null || d.theme === t).sort((a, b) => a.spec - b.spec || a.order - b.order).forEach((d) => { out[d.prop] = d.value; });
-    return out;
+    const palette = new Map(Object.entries(out));
+    return Object.fromEntries([...palette].map(([key, value]) => [key, paletteValue(value, palette)]));
   };
   return { dark: forTheme("dark"), light: forTheme("light") };
 }

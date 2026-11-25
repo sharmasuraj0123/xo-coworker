@@ -95,7 +95,7 @@
 .se-row .nr-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
 .se-row.is-off .nr-name{color:var(--ink-3)}
 .se-row.is-off .nr-ic{opacity:.6}
-.se-row.is-drag{opacity:.5}
+.se-row.is-drag{opacity:var(--opacity-muted)}
 /* where a dragged place lands: a line in the focus colour at the row's edge */
 .se-row.is-over::before{content:"";position:absolute;left:var(--s-3);right:var(--s-3);top:0;border-top:1px solid var(--focus)}
 .se-row.is-over.is-after::before{top:auto;bottom:0}
@@ -115,3 +115,7 @@
 .pk-o svg{width:var(--ic);height:var(--ic)}
 .pk-auto{position:relative;display:grid;place-items:center}
 .pk-auto i{position:absolute;right:calc(-1 * var(--s-2));bottom:calc(-1 * var(--s-2));font:var(--fw-medium) var(--fs-meta)/1 var(--sans);font-style:normal;color:var(--ink-4)}
+
+@layer tokens{
+:where(.side.is-drag){--shadow-sidebar-drag:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
+}

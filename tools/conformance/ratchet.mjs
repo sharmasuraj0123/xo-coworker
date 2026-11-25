@@ -150,6 +150,14 @@ export function checkConformance(root, baselineDir, { update, base }) {
       (file, rule, old, count) => `  ${local}: ${file} raised the ${rule} allowance from ${old} to ${count}`));
   }
   if (growth.length) return growth.join("\n");
+  const namesPath = "tools/baselines/token-ownership.json";
+  const priorNames = repository?.git(["show", `${repository.ref}:${namesPath}`]);
+  if (priorNames?.status === 0) {
+    const allowed = new Set(JSON.parse(priorNames.stdout));
+    const current = readFileSync(join(root, namesPath), "utf8");
+    const additions = JSON.parse(current).filter(name => !allowed.has(name));
+    if (additions.length) return "Token ownership allowances can only shrink: " + additions.join(", ");
+  }
   const touched = changes(repository);
   const app = "js/app.js";
   if (repository && touched.has(app) && existsSync(join(root, app))) {

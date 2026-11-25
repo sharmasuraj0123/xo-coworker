@@ -7,6 +7,7 @@ import { templateElements } from "../tools/conformance/templates.mjs";
 import { context } from "./lib/cascade.mjs";
 import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 import { dom, same } from "./lib/dom.mjs";
+import selectedControlRules from "./fixtures/selected-control-rules.json" with { type: "json" };
 
 const rules = publishedRules().filter((rule) => context(rule, 1440).active
   && rule.at.every((condition) => !condition.startsWith("@keyframes ")));
@@ -84,10 +85,7 @@ test("the shared wash recognizes every styled selected state", () => {
       if (own.some((name) => hovered.has(name))) silent.add(rule.sel);
     }
   }
-  assert.ok(known.has('.cp-mode button[aria-checked="true"]'), "the filter chip uses the shared wash");
-  assert.ok(known.has('.dg-mode button[aria-pressed="true"]'), "the selected Map mode is counted");
-  assert.ok(known.has(".fl-r.is-on"), "the selected Files row is counted");
-  assert.ok([...known].some((selector) => selector.includes(".prow.is-on")), "the sidebar selection is counted");
+  assert.deepEqual([...known].sort(), selectedControlRules);
   assert.deepEqual([...missing].sort(), [], "selected states missing from the shared wash");
   assert.deepEqual([...silent].sort(), [], "hover feedback outside the shared treatment");
 });
