@@ -180,8 +180,7 @@
  },
  "modules/home/home.css": {
   "px-size": 2,
-  "px-spacing": 1,
-  "widthMediaQuery": 1
+  "px-spacing": 1
  },
  "modules/launchpad/launchpad.css": {
   "px-effect": 3,

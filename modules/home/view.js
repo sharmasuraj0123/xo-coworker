@@ -18,6 +18,15 @@ export function createHomeView(options, scope) {
   const { selection, isCurrent, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today } = options;
   const { num, noun, plural, isBusy, askTitle, PROJ, places, SV, announce, schedule } = options;
   const drawSections = createHomeSections(places, scope, schedule);
+  let filter = "All", expanded = false;
+  scope.listen(requireHtml("#home"), "click", ({ target }) => {
+    if (!(target instanceof Element)) return;
+    const choice = target.closest("[data-inbox-filter]")?.getAttribute("data-inbox-filter");
+    if (choice) { filter = choice; expanded = false; }
+    else if (target.closest("[data-inbox-expand]")) expanded = !expanded;
+    else return;
+    schedule();
+  });
   const built = new WeakSet(), busy = new WeakSet();
   let nextKey = /** @type {string | null} */ (null), nextSeen = 0;
 
@@ -39,7 +48,7 @@ export function createHomeView(options, scope) {
     if (down) sub = "XO can't be reached right now.";
     const hello = greeting();
     redraw($("#hm-head"), `<header class="hm-top"><div class="hm-hd"><p class="hm-date">${esc(date)}</p><h1 class="hm-h" id="home-h">${hello}.<span> ${sub}</span></h1></div>` +
-      `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span class="cr-l">Create XO Project</span><span class="cr-s">New project</span></button></header>`);
+      `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span>New project</button></header>`);
     landed($("#hm-head"), [$("#home-h span"), $("#hm-head .create")]);
 
     const nb = requireHtml("#hm-next");
@@ -73,7 +82,8 @@ export function createHomeView(options, scope) {
     }
     landed(nb);
 
-    redraw($("#hm-then"), thenHtml(P0, { EFFORT, askTitle, PROJ }));
+    const inbox = options.inbox?.() ?? { items: [], failed: false };
+    redraw($("#hm-then"), thenHtml(P0, { EFFORT, askTitle, PROJ }, { ...inbox, filter, expanded }));
     landed($("#hm-then"));
     drawSections(requireHtml("#hm-body"), { needs, patch: redraw });
 
