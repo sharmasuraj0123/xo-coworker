@@ -2,14 +2,14 @@
 
 type Text = string | null;
 type Flag = boolean | null;
-type Field<T> = { value: T; source: string };
+type Field<T, Source = string> = { value: T; source: Source };
 type Disk = { path?: Text; size_gb?: number | null };
 type Repo = { full_name?: Text; origin?: Text; branch?: Text; own?: Flag; new_repo_name?: Text };
 type Running = { kind: "deploy" | "watch"; run_id: string };
 
 interface Fields {
   name?: Field<string>;
-  port?: Field<number | null> & { confident?: boolean };
+  port?: Field<number | null, Text> & { confident?: boolean };
   health_path?: Field<Text>;
   size?: Field<Text>;
   storage?: Field<Disk | null>;

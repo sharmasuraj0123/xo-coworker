@@ -36,8 +36,8 @@ const disk = (value) => value === null || record(value) && maybeText(value.path)
 const repo = (value) => record(value) && [value.full_name, value.origin, value.branch, value.new_repo_name].every(maybeText)
   && maybeFlag(value.own);
 
-/** @param {unknown} value @param {(value: unknown) => boolean} check */
-const field = (value, check) => value === undefined || record(value) && text(value.source) && check(value.value);
+/** @param {unknown} value @param {(value: unknown) => boolean} check @param {(value: unknown) => boolean} [source] */
+const field = (value, check, source = text) => value === undefined || record(value) && source(value.source) && check(value.value);
 
 /** @param {unknown} value */
 const env = (value) => Array.isArray(value) && value.every((row) => record(row) && text(row.name)
@@ -47,7 +47,8 @@ const env = (value) => Array.isArray(value) && value.every((row) => record(row) 
 function fields(value) {
   if (!record(value)) return false;
   const port = value.port;
-  return field(value.name, text) && field(port, maybeNumber) && (!record(port) || optional(port.confident, bool))
+  return field(value.name, text) && field(port, maybeNumber, (source) => source === null || text(source))
+    && (!record(port) || optional(port.confident, bool))
     && field(value.health_path, maybeText) && field(value.size, maybeText) && field(value.storage, disk)
     && optional(value.env, env) && optional(value.repo, repo);
 }

@@ -29,7 +29,7 @@ function isData(value) {
     && [value.ready, value.desired, value.release, value.port].every(maybeNumber)
     && (value.app == null || record(value.app) && text(value.app.id))
     && (value.apps == null || Array.isArray(value.apps) && value.apps.every(isOtherApp))
-    && (value.log_tail == null || strings(value.log_tail))
+    && (maybeText(value.log_tail) || strings(value.log_tail))
     && (value.exposed_ports == null || Array.isArray(value.exposed_ports) && value.exposed_ports.every(Number.isInteger));
 }
 

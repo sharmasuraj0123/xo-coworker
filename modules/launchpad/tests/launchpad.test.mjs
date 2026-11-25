@@ -283,7 +283,7 @@ t("stream: a resume Space answers with a new run (it no longer knew the old one)
     urls.push(String(url));
     if (urls.length === 1) return sseBody([10, 11].map((n) => ({ run_id: "old", seq: n, ts: ts(n), type: "step", step: "build", status: "running" })));
     return sseBody([
-      { run_id: "new", type: "run", kind: "watch", ts: ts(20) },
+      { run_id: "new", type: "run", kind: "watch", attached: false, started_at: ts(20), ts: ts(20), after: 0 },
       { run_id: "new", seq: 1, ts: ts(21), type: "done", url: "https://a-xo-1.apps.example.nl", release: 2, commit: "def" },
     ]);
   };

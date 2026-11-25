@@ -27,7 +27,9 @@ function stream(p, start, on) {
       seq = ev.seq; tries = 0;
     }
     if (END.has(ev.type)) ended = true;
-    take(ev);
+    if (ev.type === "error" && typeof ev.data?.log_tail === "string") {
+      take({ ...ev, data: { ...ev.data, log_tail: ev.data.log_tail.split("\n") } });
+    } else take(ev);
   };
   const fail = (/** @type {string} */ code, /** @type {string} */ message, action = "retry") => { ended = true; take({ type: "error", step: "check", code, message, action }); };
   const go = (/** @type {Start} */ open) => open({ signal, on: seen })

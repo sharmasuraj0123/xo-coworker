@@ -25,7 +25,7 @@ interface Data {
   desired?: Count;
   release?: Count;
   port?: Count;
-  log_tail?: string[] | null;
+  log_tail?: string | string[] | null;
   exposed_ports?: number[] | null;
   apps?: {id: string; slug?: Text; workflow?: Text}[] | null;
 }
