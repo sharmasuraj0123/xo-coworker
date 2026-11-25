@@ -54,6 +54,8 @@
 .md-grid.is-strip .md-th{height:var(--h-artifact-recent-preview)}
 .md-grid.is-strip .md-meta{padding-bottom:var(--s-3)}
 .md-recent .hm-lbl svg{width:var(--ic-sm);height:var(--ic-sm)}
+.md-recent header.hm-lbl{justify-content:space-between}
+.md-recent .hm-lbl h2{display:flex;align-items:center;gap:var(--s-2);font:inherit}
 
 @layer tokens{
 :root[data-theme="light"] :where(.md-pin){
