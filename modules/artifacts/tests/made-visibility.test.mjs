@@ -30,6 +30,7 @@ places.define({ id: "home.section", kind: "list", scope: "app", description: "Se
   check(entry) { if (rejectArtifacts && entry.id === "hm-made") throw new Error("record slot unavailable"); },
 });
 places.define({ id: "page", kind: "keyed", scope: "app", description: "Main pages" });
+places.define({ id: "rail.count", kind: "keyed", scope: "app", description: "Counts displayed in the rail" });
 places.define({ id: "search.provider", kind: "list", scope: "app", description: "Jump results" });
 kernel.register({
   manifest: { id: "test.surfaces", kernel: "^1.1.0", version: "1.0.0", provides: ["navigation", "homeSkeleton"] },
@@ -66,6 +67,7 @@ await kernel.disable("xo.artifacts");
 assert.equal(places.entries("home.section").length, 0, "disposing the record removes the Artifacts section");
 assert.equal(kernel.live("xo.artifacts"), 0);
 assert.equal(places.get("page", "artifacts"), undefined);
+assert.equal(places.get("rail.count", "artifacts"), undefined);
 assert.deepEqual(places.entries("search.provider"), []);
 assert.equal(requests[0].signal.aborted, true);
 link.click();
