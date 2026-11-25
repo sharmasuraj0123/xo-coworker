@@ -1,25 +1,25 @@
 // node core/platform/tests/http.test.mjs: requests, their errors, the Coder token, attachments, uploads and blobs, with fetch and XHR faked.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { mock } from "node:test";
 
 const replaced = [];
 const store = new Map();
-globalThis.location = /** @type {any} */ ({ href: "https://ws.example/app/?coder_session_token=TOK%2F1&x=1" });
-globalThis.history = /** @type {any} */ ({ state: { s: 1 }, replaceState: (st, _t, url) => replaced.push([st, String(url)]) });
+globalThis.location = { href: "https://ws.example/app/?coder_session_token=TOK%2F1&x=1" };
+globalThis.history = { state: { s: 1 }, replaceState: (st, _t, url) => replaced.push([st, String(url)]) };
 Object.defineProperty(globalThis, "sessionStorage", { value: { setItem: (k, v) => store.set(k, v), getItem: (k) => store.get(k) ?? null }, configurable: true });
 
-/** @type {{ url: string, init: any }[]} */
 let calls = [];
-/** @type {(url: string, init: any) => any} */
 let answer = () => res(200, "{}");
 const res = (status, body, { type = "basic", statusText = "" } = {}) => ({
   ok: status >= 200 && status < 300, status, statusText, type,
   text: async () => body, json: async () => JSON.parse(body), blob: async () => ({ blob: body }),
 });
-globalThis.fetch = /** @type {any} */ (async (url, init) => {
+globalThis.fetch = async (url, init) => {
   calls.push({ url, init });
   if (init.signal?.aborted) throw Object.assign(new Error("aborted"), { name: "AbortError" });
   return answer(url, init);
-});
+};
 
 const A = await import("../api.js");
 const H = await import("../http.js");
@@ -65,6 +65,25 @@ await t("request: the four error shapes, with storm's extras", async () => {
   e = await rejects(A.request("/a"));
   assert.deepEqual([e.code, e.message], ["http_500", "500 error"]);
 });
+await t("a malformed successful JSON answer reports the invalid response", async () => {
+  answer = () => res(200, "not json");
+  assert.deepEqual(pick(await rejects(H.requestJson("/a"))), { status: 200, code: "bad_answer" });
+  answer = () => res(204, "");
+  assert.equal(await H.requestJson("/a"), null);
+});
+await t("the status route checks its response before returning it", async () => {
+  const fixture = readFileSync(new URL("./fixtures/chat-status.json", import.meta.url), "utf8");
+  answer = () => res(200, fixture);
+  assert.deepEqual(await A.api.status(), JSON.parse(fixture));
+  assert.equal(calls[0].url, "api/chat/status");
+  const dispatched = calls.length;
+  await assert.rejects(A.request("/chat/status?legacy=true"), TypeError);
+  assert.equal(calls.length, dispatched);
+  for (const payload of ["null", '{"pools":{}}', '{"pools":[{"id":42}]}', '{"pools":[{"id":"pool","state":{}}]}']) {
+    answer = () => res(200, payload);
+    assert.equal((await rejects(A.api.status())).code, "bad_answer");
+  }
+});
 await t("request: signed out, network and timeout read as words", async () => {
   answer = () => res(0, "", { type: "opaqueredirect" });
   assert.deepEqual(Object.values(pick(await rejects(A.request("/a")))), [401, "signed_out"]);
@@ -77,6 +96,85 @@ await t("request: signed out, network and timeout read as words", async () => {
   const p = A.request("/a", { signal: ctl.signal });
   ctl.abort();
   assert.equal((await rejects(p)).name, "AbortError", "the caller's own abort stays an abort");
+});
+await t("an already cancelled request does not dispatch in any fetch adapter", async () => {
+  answer = () => res(200, "{}");
+  const ctl = new AbortController();
+  const reason = new Error("read retired");
+  ctl.abort(reason);
+  const { signal } = ctl;
+  const reads = [
+    H.requestJson("/a", { signal }), H.exchange("api/a", "GET", undefined, signal),
+    H.text("/a", { signal }), H.blob("/a", { signal }),
+  ];
+  const outcomes = await Promise.allSettled(reads);
+  assert.equal(calls.length, 0);
+  assert.deepEqual(outcomes, reads.map(() => ({ status: "rejected", reason })));
+});
+await t("a successful JSON body delivered after the deadline is retired", async () => {
+  answer = (_url, { signal }) => ({
+    ...res(200, "{}"),
+    text: () => new Promise((resolve) => signal.addEventListener("abort", () => resolve("{}"), { once: true })),
+  });
+  const error = await rejects(H.requestJson("/a", { timeout: 20 }));
+  assert.deepEqual(pick(error), { status: 0, code: "timeout" });
+});
+await t("a held unsuccessful body still follows the deadline", async () => {
+  answer = (_url, { signal }) => ({
+    ...res(422, ""),
+    text: () => new Promise((_, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true })),
+  });
+  assert.deepEqual(pick(await rejects(H.requestJson("/a", { timeout: 20 }))), { status: 0, code: "timeout" });
+});
+await t("text and blob bodies delivered after their deadlines are retired", async () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    for (const [kind, read, ms] of [
+      ["text", () => H.text("/a"), 30000],
+      ["blob", () => H.blob("/a", { ms: 20 }), 20],
+    ]) {
+      const { promise: reading, resolve: started } = Promise.withResolvers();
+      const { promise: body, resolve: deliver } = Promise.withResolvers();
+      answer = () => ({ ...res(200, ""), [kind]: () => { started(); return body; } });
+      const pending = read();
+      await reading;
+      mock.timers.tick(ms);
+      deliver(kind === "blob" ? new Blob(["late"]) : "late");
+      assert.deepEqual(pick(await rejects(pending)), { status: 0, code: "timeout" });
+    }
+  } finally {
+    mock.timers.reset();
+  }
+});
+await t("caller cancellation during an error body has priority over the status", async () => {
+  for (const read of [H.requestJson, H.text, H.blob]) {
+    const ctl = new AbortController();
+    const reason = new Error("retired during body");
+    const { promise: reading, resolve: started } = Promise.withResolvers();
+    const { promise: body, resolve: deliver } = Promise.withResolvers();
+    answer = () => ({ ...res(422, ""), text: () => { started(); return body; } });
+    const pending = read("/a", { signal: ctl.signal });
+    await reading;
+    ctl.abort(reason);
+    deliver('{"detail":"late validation failure"}');
+    await assert.rejects(pending, (error) => error === reason);
+  }
+});
+await t("validation details use only string or numeric locations and string messages", async () => {
+  const malformed = [{ loc: ["body", { toString: 0 }], msg: "invalid" }, { loc: ["body", "name"], msg: { toString: 0 } }];
+  answer = () => res(422, JSON.stringify({ detail: malformed }), { statusText: "Unprocessable Content" });
+  const fallback = await rejects(H.requestJson("/a"));
+  assert.ok(fallback instanceof H.ApiError);
+  assert.deepEqual([fallback.status, fallback.code, fallback.message], [422, "http_422", "422 Unprocessable Content"]);
+  answer = () => res(422, JSON.stringify({ detail: [...malformed, { loc: ["body", "names", 0], msg: "required" }] }));
+  const valid = await rejects(H.requestJson("/a"));
+  assert.equal(valid.message, "names.0: required");
+});
+await t("a request serialization failure is local and never reaches fetch", async () => {
+  const error = new TypeError("body cannot be serialized");
+  const body = { toJSON() { throw error; } };
+  await assert.rejects(H.requestJson("/a", { body, method: "POST" }), (e) => e === error);
+  assert.equal(calls.length, 0);
 });
 await t("missingRoute: a bare 404 or a 405, never a route's own 404", async () => {
   assert.equal(A.missingRoute({ status: 405 }), true);
@@ -111,13 +209,13 @@ await t("a project image comes as a Blob, its errors as ApiErrors", async () => 
 });
 await t("an upload sends raw bytes with the token, reports progress and reads its answer", async () => {
   const sent = [];
-  globalThis.XMLHttpRequest = /** @type {any} */ (class {
+  globalThis.XMLHttpRequest = class {
     constructor() { this.headers = {}; this.upload = {}; sent.push(this); }
     open(m, u) { this.m = m; this.u = u; }
     setRequestHeader(k, v) { this.headers[k] = v; }
     send(b) { this.body = b; }
     abort() { this.onabort(); }
-  });
+  };
   const progress = [];
   const up = A.uploadAttachment("c", { type: "", size: 9 }, "a b.png", { onProgress: (s, n) => progress.push([s, n]) });
   const x = sent[0];

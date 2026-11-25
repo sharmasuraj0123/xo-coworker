@@ -2504,8 +2504,15 @@
    "status": "split",
    "home": [
     "core/platform/http.js",
-    "core/platform/api.js"
+    "core/platform/api.js",
+    "core/platform/response.js"
    ],
+   "evidence": {
+    "core/platform/response.js": {
+     "anchor": "export const engineStatus =",
+     "reason": "The chat status API validates the engine response before returning it to callers."
+    }
+   },
    "note": "Callers use the owning modules directly."
   },
   "js/app.js": {
@@ -7211,7 +7218,13 @@
   },
   "js/api.js::functions::deadline": {
    "status": "moved",
-   "home": "core/platform/http.js"
+   "home": "core/platform/http.js",
+   "evidence": {
+    "core/platform/http.js": {
+     "anchor": "async function withDeadline(signal, ms, run)",
+     "reason": "The deadline now owns dispatch and response-body settlement for every fetch adapter."
+    }
+   }
   },
   "js/api.js::functions::request": {
    "status": "moved",
@@ -7256,14 +7269,20 @@
    "home": "core/platform/api.js",
    "evidence": {
     "core/platform/api.js": {
-     "anchor": "status: ({ signal } = {}) => get(\"/chat/status\", undefined, signal)",
+     "anchor": "runtimes: ({ signal } = {}) => get(\"/chat/runtimes\", undefined, signal)",
      "reason": "The API adapter declares the chat namespace without its transport-level /api prefix."
     }
    }
   },
   "js/api.js::routes::/chat/status": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/api.js",
+   "evidence": {
+    "core/platform/api.js": {
+     "anchor": "status: engineStatus",
+     "reason": "Chat status uses the typed response adapter on the original route."
+    }
+   }
   },
   "js/api.js::routes::/chat/runtimes": {
    "status": "moved",

@@ -67,9 +67,6 @@
  "core/platform/gestures.js": {
   "commentLines": 2
  },
- "core/platform/http.js": {
-  "commentLines": 2
- },
  "core/platform/keys.js": {
   "commentLines": 1
  },
@@ -78,10 +75,6 @@
  },
  "core/platform/sse.js": {
   "commentLines": 2
- },
- "core/platform/tests/http.test.mjs": {
-  "commentLines": 1,
-  "explicitAny": 7
  },
  "core/services/media/attachment-rules.js": {
   "commentLines": 1,

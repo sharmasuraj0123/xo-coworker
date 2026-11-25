@@ -1,0 +1,8 @@
+{
+  "sessions": {},
+  "queue": {},
+  "pools": [{ "id": "runtime:test", "state": "open", "resets_at": null, "reason": null, "windows": {} }],
+  "memory": {},
+  "review": {},
+  "latency_ms": {}
+}

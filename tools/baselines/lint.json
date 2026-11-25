@@ -6,7 +6,6 @@
  "boot.js::import(no-unassigned-import)": 3,
  "core/platform/api.js::eslint(no-shadow)": 2,
  "core/platform/fuzzy.js::eslint(no-underscore-dangle)": 1,
- "core/platform/http.js::eslint(no-shadow)": 2,
  "core/platform/tests/exports-used.test.mjs::eslint(no-shadow)": 1,
  "core/platform/tests/routes-contract.test.mjs::eslint(no-shadow)": 3,
  "core/services/media/hydrate.js::eslint(no-underscore-dangle)": 9,

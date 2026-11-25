@@ -84,7 +84,7 @@
   "lineLength": 5
  },
  "core/platform/http.js": {
-  "lineLength": 12
+  "lineLength": 9
  },
  "core/platform/keys.js": {
   "lineLength": 6

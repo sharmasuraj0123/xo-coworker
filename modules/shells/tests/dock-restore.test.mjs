@@ -77,8 +77,9 @@ await test("opening the dock while reads are failing replaces the saved view", a
 await test("an accepted fresh-shell request supersedes restore before its POST completes", async () => {
   const fx = await mount();
   try {
-    const opened = fx.dock.openWorkspace({ fresh: true });
     mock.timers.tick(60_000);
+    await flush();
+    const opened = fx.dock.openWorkspace({ fresh: true });
     await fx.recover();
     assert.equal(fx.root.hidden, true, "the retry cannot reopen a saved dock during a fresh request");
     fx.opening.resolve(Response.json({ terminal: fresh, ticket: "test-ticket" }));

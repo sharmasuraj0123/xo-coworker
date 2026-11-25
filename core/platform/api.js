@@ -2,6 +2,7 @@
 
 import { request, blob, signedUrl, socketUrl, text, upload, urlOf, exchange, coderHeaders, ApiError } from "./http.js";
 import { readJsonEvents } from "./sse.js";
+import { engineStatus } from "./response.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
 
 const enc = encodeURIComponent;
@@ -24,10 +25,7 @@ export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => {
 };
 
 /** @param {string} path @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
-const get = async (path, query, signal) => {
-  signal?.throwIfAborted();
-  return request(path, { query, signal });
-};
+const get = (path, query, signal) => request(path, { query, signal });
 /** @param {string} method @param {string} path @param {unknown} [body] @param {Record<string, unknown>} [query] */
 const send = (method, path, body, query) => request(path, { method, body, query });
 
@@ -56,7 +54,7 @@ export const ruleApi = {
 
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
-  status: ({ signal } = {}) => get("/chat/status", undefined, signal),
+  status: engineStatus,
   runtimes: ({ signal } = {}) => get("/chat/runtimes", undefined, signal),
   models: (runtime, { signal } = {}) => get(`/chat/runtimes/${enc(runtime)}/models`, undefined, signal),
   /** {space, effective}: the Space's runtime policy */

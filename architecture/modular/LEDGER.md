@@ -31,7 +31,7 @@ Items inside first-party files: 2488 (moved 1784, planned 252, kept 230, deleted
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `js/accounts.js` | 134 | moved | modules/settings/accounts.js |
-| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js · next: Callers use the owning modules directly. |
+| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js, core/platform/response.js · next: Callers use the owning modules directly. |
 | `js/app.js` | 5060 | split | js/app.js, core/ui/theme.js, core/ui/redraw.js, core/ui/markdown/copy.js, core/services/notices.js, shell/navigation.js, shell/layers.js, shell/keyboard-layers.js, shell/global-keys.js, shell/back-steps.js, modules/conversation/composer.js, modules/settings/shortcuts-sheet.js · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: Callers use the owning modules directly. |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |

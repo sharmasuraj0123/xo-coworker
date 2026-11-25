@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../core/ui/markdown/markdown.js";
 import { parseChecklist, tasksOf } from "../core/services/world/checklist.js";
-import { request } from "../core/platform/api.js";
+import { api, request } from "../core/platform/api.js";
 import { highlight, langOf } from "../core/ui/markdown/highlight.js";
 import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../core/services/world/timeline.js";
 import { mapLimit } from "../core/services/storm/load.js";
@@ -488,14 +488,14 @@ await (async () => {
       assert.equal(JSON.parse(seen[0].body).client_id, "ui_1", "a retry is the same request");
     });
     const ctl = new AbortController();
-    const p = request("/chat/status", { signal: ctl.signal, timeout: 5000 });
+    const p = api.status({ signal: ctl.signal });
     ctl.abort();
     let err2 = null;
     try { await p; } catch (e) { err2 = e; }
     t("a caller's own abort stays an AbortError, not a timeout", () => assert.equal(err2 && err2.name, "AbortError"));
     let opts3 = null, err3 = null;
     globalThis.fetch = async (url, opts) => { opts3 = opts; return { type: "opaqueredirect", ok: false, status: 0 }; };
-    try { await request("/chat/status"); } catch (e) { err3 = e; }
+    try { await api.status(); } catch (e) { err3 = e; }
     t("a Coder sign-in redirect is not followed and reads as signed out (Rohan's fix stays)", () => {
       assert.equal(opts3.redirect, "manual");
       assert.equal(err3 && err3.code, "signed_out");
