@@ -7,12 +7,12 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 | moved | 488 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 111 |
-| kept | 89 |
+| planned | 110 |
+| kept | 90 |
 | split | 39 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted 194, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1774, planned 270, kept 229, deleted 212, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -240,7 +240,7 @@ Items inside first-party files: 2488 (moved 1773, planned 293, kept 225, deleted
 | `tests/logic.test.mjs` | 550 | planned | core/services + conversation (markdown)/tests/logic.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-create-connect-focus.test.mjs` | 34 | moved | modules/create-project/tests/lp-create-connect-focus.test.mjs |
 | `tests/lp-create-stop-focus.test.mjs` | 39 | moved | modules/create-project/tests/lp-create-stop-focus.test.mjs |
-| `tests/lp-intel-order.test.mjs` | 74 | planned | modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/lp-intel-order.test.mjs` | 74 | kept | tests/lp-intel-order.test.mjs |
 | `tests/lp-phone-links.test.mjs` | 84 | planned | core/ui phone floor (launchpad, create, intel, shells)/tests/lp-phone-links.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/lp-stop-notice.test.mjs` | 171 | moved | modules/launchpad/tests/lp-stop-notice.test.mjs · next: still reads app.js's notice() source; its rewrite as a behaviour test is owed |
 | `tests/main-clip.test.mjs` | 19 | planned | core/ui (css guard)/tests/main-clip.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

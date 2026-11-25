@@ -5229,8 +5229,8 @@
    }
   },
   "tests/lp-intel-order.test.mjs": {
-   "status": "planned",
-   "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/lp-intel-order.test.mjs"
   },
   "tests/lp-phone-links.test.mjs": {
    "status": "planned",
@@ -15061,8 +15061,8 @@
    "home": "core/platform (focus) + decisions/tests/focus-back.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/focusview.test.mjs::functions::standIn": {
-   "status": "planned",
-   "home": "core/platform/tests/focusview.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/focusview.test.mjs"
   },
   "tests/follow-instance.test.mjs::globals::matchMedia": {
    "status": "moved",
@@ -15293,12 +15293,18 @@
    }
   },
   "tests/lp-intel-order.test.mjs::globals::window": {
-   "status": "planned",
-   "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "tests/lib/dom.mjs",
+   "evidence": {
+    "tests/lib/dom.mjs": {
+     "anchor": "Object.assign(g, { window, document, HTMLElement: window.HTMLElement",
+     "reason": "The shared DOM fixture installs the realm window used by the mounted picker."
+    }
+   }
   },
   "tests/lp-intel-order.test.mjs::globals::sessionStorage": {
-   "status": "planned",
-   "home": "modules/composer/tests/lp-intel-order.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The mounted picker no longer aliases sessionStorage to localStorage."
   },
   "tests/lp-stop-notice.test.mjs::functions::world": {
    "status": "moved",
@@ -15357,88 +15363,88 @@
    "home": "tests/panel-shell.test.mjs"
   },
   "tests/panel-threads.test.mjs::ids::conv-title": {
-   "status": "planned",
-   "home": "modules/threads/tests/panel-threads.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/panel-threads.test.mjs"
   },
   "tests/picker-keys.test.mjs::ids::iq-ro-l": {
    "status": "planned",
    "home": "modules/composer/tests/picker-keys.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
   },
   "tests/press-keeps-node.test.mjs::exports::inSight": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated inSight in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::bringWhole": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated bringWhole in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::esc": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated esc in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::copyText": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated copyText in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::COPY_REFUSED": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated COPY_REFUSED in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::space": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated space in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::ICON": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated ICON in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::calls": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated calls in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::api": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated api in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::MARKS": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated MARKS in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::activityOf": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated activityOf in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::folderOf": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated folderOf in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::fileIcon": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated fileIcon in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::folderIcon": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated folderIcon in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::countsHtml": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated countsHtml in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::RUNS": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated RUNS in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::exports::pointerFollows": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "deleted",
+   "reason": "The old press test generated pointerFollows in a synthetic module that the mounted Files fixture no longer creates."
   },
   "tests/press-keeps-node.test.mjs::ids::host": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-keeps-node.test.mjs::ids::viewer": {
-   "status": "planned",
-   "home": "core/platform (redraw)/tests/press-keeps-node.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "kept",
+   "home": "tests/press-keeps-node.test.mjs"
   },
   "tests/press-reach.test.mjs::exports::PICTURE_FACE": {
    "status": "moved",
