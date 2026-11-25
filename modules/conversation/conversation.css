@@ -121,7 +121,8 @@
 /* the Workspace: its overview heads the page; the conversation below loads older messages as you scroll up (hub #28) */
 .ws-head{padding:clamp(40px,8vh,84px) 0 30px}
 .wsh{position:relative}
-.wsh-mark{position:relative;display:inline-grid;place-items:center;width:64px;height:64px;border-radius:var(--r-xl);background:var(--fill-1);border:1px solid var(--line-soft);box-shadow:var(--e2)}
+.wsh-mark{position:relative;display:inline-grid;place-items:center;width:64px;height:64px;border-radius:var(--r-xl);
+  background:var(--fill-1);border:1px solid var(--line-soft);box-shadow:var(--lift-workspace-mark)}
 .wsh-mark::after{content:"";position:absolute;inset:-28px;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(var(--accent-rgb),.1),transparent)}
 .wsh-mark .xo-mark{width:var(--tile-lg);height:15px}
 .wsh-h{margin-top:20px;font:var(--fw-strong) var(--fs-hero)/var(--lh-hero) var(--sans);letter-spacing:var(--tr-40)}
