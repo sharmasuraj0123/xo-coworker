@@ -12,5 +12,3 @@
 | D6 | Dead code is deleted, each piece in its own commit. This covers the unreachable All-threads sheet, diffview's dead editor path and its vendored `edit.js`, the unused lucide folder, map.js's standalone mode, unused helpers and exports, the invalid CSS rules and unused tokens, the 9 uncalled routes, and the one-off probes under `tools/`. |
 | D7 | Each likely bug is fixed in the phase that moves its code, in its own commit with a test. Some were already fixed on the release line by 5a2b078: the one ⋯ menu, the Thread page's teardown, ⌘B and Esc. |
 | D8 | The first sandboxed app is a sample app made by `xo app new`, then the Design spike. It is not the file viewer. |
-
-- **In the ledger:** no entry waits for a decision any more (`python3 tools/ledger/check_ledger.py`: 0 entries waiting).

@@ -5,12 +5,12 @@
 for files changed in earlier commits. An archive can verify the baseline counts.
 Use the checkout for the package's changed-file check.
 
-Each baseline records findings by path and rule. It can only decrease.
-`--update-baselines` removes allowances once the checks pass. The changed-file
-gate clears type escape hatches, legacy comments, swallowing catches, bare
-global listeners, direct storage access, timers, viewport constants, DOM
-expandos and source-reading tests about the changed files. Other findings are
-subject to the per-file ratchet as their owning packages remove them.
+Each baseline records old findings by path and rule; no file may gain a
+finding. A baseline that could be lower, or one raised since the base, prints a
+`note` and does not fail: `--update-baselines` lowers it, and a raise needs its
+reason in the commit. A changed file loses its allowance for type escape
+hatches, `@ts-check` gaps, legacy comments and swallowing catches; its other
+findings stay under the per-file baseline.
 
 The lifecycle check follows lexical bindings in application and core code. It
 recognizes bare and qualified browser globals and catches that silently return a

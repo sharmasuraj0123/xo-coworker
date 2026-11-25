@@ -10,7 +10,7 @@
 - **Shells**: terminals in the project or a thread's worktree, when Space enables them.
 - **Shape**: the UI fits the person (Build software, Make content and campaigns, or Everything), switched only by the person.
 
-The UI is HTML, CSS and vanilla ES modules with no CDN. Development serves the source as it is; production serves a bundled release. Use shared values from `core/ui/tokens.css` for new styles. The style baselines track remaining literal values and can only decrease.
+The UI is HTML, CSS and vanilla ES modules with no CDN. Development serves the source as it is; production serves a bundled release. Styles use the shared values in `core/ui/tokens.css`; the style baselines track the literal values still left.
 
 ## Quick start
 
@@ -62,6 +62,6 @@ The app is a small kernel, layers of shared code, and modules that plug into nam
 | `js/app.js` | The static list of modules enabled at boot. |
 | `css/` | Styles that have not moved to their owners yet. It may only shrink. |
 
-`index.html` loads `boot.js`, which loads the frame, then `js/app.js`, which passes the enabled feature modules to the kernel in one static list. Outside the app: `tests/` (unit tests not yet beside their code), `e2e/` (the fast browser lane), `tests/browser/` (older browser suites), `tools/` (the checks, baselines, ledger, generators and the release build), `vendor/` and `fonts/`.
+`index.html` loads `boot.js`, which loads the frame, then `js/app.js`, which passes the enabled feature modules to the kernel in one static list. Outside the app: `tests/` (unit tests not yet beside their code), `e2e/` (the fast browser lane), `tests/browser/` (older browser suites), `tools/` (the checks, baselines, generators and the release build), `vendor/` and `fonts/`.
 
-Folders with a `README.md` describe their own files. [architecture/places.md](architecture/places.md) lists every place a module or an app can fill, [architecture/decisions/](architecture/decisions/) records the owner's decisions, and [architecture/HANDOFF.md](architecture/HANDOFF.md) holds the current state of the modular rebuild.
+Folders with a `README.md` describe their own files. [architecture/places.md](architecture/places.md) lists every place a module or an app can fill, [architecture/decisions/](architecture/decisions/) records the owner's decisions, and [architecture/HANDOFF.md](architecture/HANDOFF.md) lists what the finished modular rebuild left to do.

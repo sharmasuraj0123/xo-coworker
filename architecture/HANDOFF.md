@@ -4,7 +4,7 @@ The modularization is finished. `coworker/modular` is the canonical local branch
 
 ## Left over, to do when the code is next touched
 
-- About 90 unit tests in `tests/*.test.mjs` still sit at the top level; move each beside the code it covers.
+- Many unit tests still sit at the top of `tests/`; move each beside the code it covers when you next work on it.
 - The browser suites in `tests/browser/` (and `harness.cjs`) are meant to become `e2e/specs/`.
 - `css/foundation.css`, `css/light.css` and `css/panel.css` still hold rules that belong to their owners (tokens, the panel, Home, Files).
 

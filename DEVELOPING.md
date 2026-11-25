@@ -72,43 +72,42 @@ The DOM holds no state of its own: views draw from state with `core/ui/redraw.js
 
 ## Checks
 
-| Command | What it does |
-|---|---|
-| `node tools/check.mjs --fast` | Lint, ratchets, layers, conformance, places, ledger. No types, build or tests. It lists files over 400 lines for size review. The pre-commit hook runs it. |
-| `node tools/check.mjs --conformance-base <base>` | The full gate: the above plus types, the production build and every unit test. With a base, files changed since it are held to the strict rules and baselines may not grow. |
-| `node tools/check.mjs --update-baselines` | Lowers baselines to what the code is now. They never rise. |
-| `node tools/check.mjs --accept-upstream <ref>` | Integrator only, on a forward merge: allows existing findings in files identical to `<ref>`. |
-| `node tests/run.mjs [filter]` | Unit tests (all, or those whose path contains `filter`), each judged by its exit code. |
-| `python3 tools/ledger/check_ledger.py --repo .` | The ledger alone; `python3 tools/ledger/ledger_md.py . --check` checks its generated Markdown. |
-| `node e2e/run.mjs [filter]` | The fast browser lane ([e2e/README.md](e2e/README.md)). Only when the owner asks. |
+| Command | When | What it does |
+|---|---|---|
+| `node tools/check.mjs --fast` | Every commit (the pre-commit hook runs it) | Lint, layers, conformance, places, ratchets. A few seconds. |
+| `node tests/run.mjs <filter>` | While working | The unit tests whose path contains `filter`, each judged by its exit code. |
+| `node tools/check.mjs --conformance-base <start>` | Once, on the tip you hand over | The fast check plus types, the production build and every unit test. Holds files changed since `<start>` to the stricter rules. |
+| `node tools/check.mjs --fast --update-baselines` | When the check notes a baseline can drop | Lowers baselines to what the code has now. |
+| `node tools/check.mjs --accept-upstream <ref>` | Integrator, on a forward merge | Allows existing findings in files identical to `<ref>`. |
+| `node e2e/run.mjs [filter]` | Only when the owner asks | The fast browser lane ([e2e/README.md](e2e/README.md)). |
 
-The exit code is the verdict, never the printed lines. [tools/conformance/README.md](tools/conformance/README.md) explains the conformance rules and baselines in `tools/baselines/`.
+Read the exit code, not the printed lines. Lines starting with `note` don't fail the check: a baseline that can be lowered, or one raised since the base (say why in the commit). A file you edit loses its allowance for type escapes, stale comments and swallowed catches; its other old findings may stay, but no file gains new ones. [tools/conformance/README.md](tools/conformance/README.md) explains the rules.
 
-### Memory
+### Running the full check
 
-The sandbox has 8 GB shared by every thread, so heavy runs are serialised:
+The full check takes about 3 minutes and is the one heavy job, so it runs one at a time across the project:
 
-- One full check or multi-file test run across the project at a time: take the `modular-full-check` lease first, and release it when done. A browser run also holds `headless-browser-suite`.
-- Before starting, check `free -m`: wait unless at least 3 GiB is available.
-- Run it as `JOBS=1 NODE_OPTIONS=--max-old-space-size=512 node tools/check.mjs --conformance-base <base>`.
-- Run focused tests (`node tests/run.mjs <filter>`) while working, and the full gate once on the tip you hand over.
-- Stop only processes you started.
+```sh
+awk '/^anon /{print $2/2^30 " GiB in use"}' /sys/fs/cgroup/memory.stat   # wait if above 5 GiB; `free` shows the host, not this box
+# take the `modular-full-check` lease, then:
+JOBS=1 NODE_OPTIONS=--max-old-space-size=512 node tools/check.mjs --conformance-base <start>
+# release the lease
+```
+
+A browser run (only when asked) holds `headless-browser-suite` the same way.
 
 ## Tests
 
 - Each test file's header says what it covers. Test behaviour through the public entry point, not the source text.
-- Prove a fix's test: break the fix on purpose, watch the test fail, restore it, and say so in the handoff.
+- A bug fix's test fails without the fix. If that isn't obvious from the test, check it.
 - DOM tests run in linkedom. When an assertion compares DOM nodes, compare identities as booleans (`assert.ok(a === b)`): a failing deep comparison of nodes can exhaust memory.
 - Fake time and the backend; never wait on a real clock.
 
 ## Landing work
 
-The modular rebuild lands on an integration branch that the integrator thread owns; [architecture/HANDOFF.md](architecture/HANDOFF.md) names it and its current pin.
-
-1. Work in your own worktree, branched from the current pin.
+1. Work in your own worktree, on a branch from `coworker/modular`.
 2. Make small single-purpose commits whose titles say what changed.
-3. A commit that moves, splits or deletes a file of the ledger's base commit updates `tools/ledger/ledger.json` in the same commit and regenerates `architecture/modular/LEDGER.md` with `python3 tools/ledger/ledger_md.py .`; never hand-merge it. Move commits change no behaviour; fixes and deletions are their own commits, each with a test.
-4. Gate the exact tip: the full check with `--conformance-base <pin>`, then `git diff --check <pin>..HEAD`.
-5. Hand over the head (`git rev-parse HEAD`), tree (`git rev-parse 'HEAD^{tree}'`) and base, read from git, with the gate's result. The integrator checks that they match, that the branch fast-forwards from the pin, the ledger and `git diff --check`, then fast-forwards and announces the new pin. If the pin moved first, rebase and gate again.
+3. Run the full check once on the tip, then hand over the head hash from `git rev-parse HEAD` with the result.
+4. The integrator fast-forwards `coworker/modular` to it; if the branch moved, rebase and hand over again.
 
 Nothing leaves this machine (push, PR, deploy) without the owner's approval, and deploys go through the coordinator.
