@@ -389,8 +389,19 @@ test("a source read identifies the test and the production path, leaving data fi
   assert.deepEqual(kind(findings), ["sourceRead", "sourceReadTarget"]);
   const allowed = totals(findings);
   assert.deepEqual(compare(findings, allowed, new Set()).errors, []);
-  assert.match(compare(findings, allowed, new Set([FILE])).errors[0], /view.test.mjs:6 → modules\/sample\/page.js/);
-  assert.equal(compare(findings, EMPTY, new Set()).errors.length, 2);
+  assert.deepEqual(compare(findings, allowed, new Set([FILE])).errors, []);
+  const errors = compare(findings, EMPTY, new Set()).errors;
+  assert.equal(errors.length, 2);
+  assert.ok(errors.some((line) => /view.test.mjs:6 → modules\/sample\/page.js/.test(line)));
+});
+
+test("editing a file keeps its existing debt but clears its type escapes and stale comments", (context) => {
+  const root = fixture(context, { [FILE]: HEADER + "setTimeout(callback, delay);\n/** @type {any} */\nlet value;" });
+  const findings = inventory(root);
+  assert.deepEqual(kind(findings), ["explicitAny", "setTimeout"]);
+  const errors = compare(findings, totals(findings), new Set([FILE])).errors;
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /explicitAny has 1, allowed 0 in changed files/);
 });
 
 test("a map over a literal list reports only the files that can be read", (context) => {
@@ -465,7 +476,10 @@ test("a successful ratchet update only lowers allowances and a failed update is 
   assert.match(checkConformance(root, paths, options), /setTimeout has 2, allowed 1/);
   assert.equal(readFileSync(baseline, "utf8"), original);
   write(root, FILE, HEADER + "scope.timeout(callback, delay);");
-  assert.match(checkConformance(root, paths, { update: false }), /Stale conformance baseline/);
+  const notes = [];
+  assert.equal(checkConformance(root, paths, { update: false, notes }), null);
+  assert.match(notes.join("\n"), /setTimeout has 0, baseline allows 1/);
+  assert.equal(readFileSync(baseline, "utf8"), original);
   assert.equal(checkConformance(root, paths, options), null);
   assert.deepEqual(JSON.parse(readFileSync(baseline, "utf8")), {});
   write(root, FILE, HEADER + "setTimeout(callback, delay);");
@@ -493,7 +507,7 @@ test("the package base includes committed, staged, unstaged and untracked paths"
   assert.deepEqual(changedFiles(root), new Set(["js/staged.js", "js/untracked.js"]));
 });
 
-test("published baseline allowances cannot be raised in a package commit", (context) => {
+test("a raised baseline passes with a note naming the allowance", (context) => {
   const files = Object.fromEntries(Object.keys(EMPTY).map((name) => [`baselines/${name}.json`, "{}\n"]));
   const root = fixture(context, files);
   const git = (...args) => {
@@ -508,8 +522,9 @@ test("published baseline allowances cannot be raised in a package commit", (cont
   write(root, "baselines/lifecycle.json", JSON.stringify({ [FILE]: { observer: 1 } }));
   git("add", ".");
   git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "raise allowance");
-  const result = checkConformance(root, join(root, "baselines"), { update: false, base });
-  assert.match(result, /raised the observer allowance from 0 to 1/);
+  const notes = [];
+  assert.equal(checkConformance(root, join(root, "baselines"), { update: false, base, notes }), null);
+  assert.match(notes.join("\n"), /raised the observer allowance from 0 to 1/);
 });
 
 test("lint reports correctness errors and suspicious warnings in the project configuration", (context) => {

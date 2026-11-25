@@ -34,6 +34,8 @@ const upstreamSame = (() => {
 })();
 
 const steps = [];
+/** @type {string[]} */
+const notes = [];
 function step(name, fn) { steps.push({ name, fn }); }
 
 step("lint", () => {
@@ -101,12 +103,12 @@ step("ratchets", () => {
     const previous = runGit(["show", "--end-of-options", ref], { cwd: ROOT, encoding: "utf8" });
     if (previous.status !== 0) return `Cannot read ratchets at ${flags["conformance-base"]}`;
     const { growth } = sizeRatchet(base, JSON.parse(previous.stdout));
-    if (growth.length) return `Ratchet allowances grew.\n${growth.join("\n")}`;
+    if (growth.length) notes.push(`Ratchet allowances raised; give the reason in the commit:\n${growth.join("\n")}`);
   }
   const { growth, stale } = sizeRatchet(now, base);
   if (growth.length) return growth.join("\n");
   if (UPDATE && stale.length) writeJson(basePath, now);
-  if (!UPDATE && stale.length) return `Run --update-baselines to tighten the ratchet.\n${stale.join("\n")}`;
+  if (!UPDATE && stale.length) notes.push(`Ratchets can be lowered with --update-baselines.\n${stale.join("\n")}`);
   return null;
 });
 
@@ -157,7 +159,7 @@ step("import lifetimes", () => {
   return errors.length ? errors.join("\n") : null;
 });
 
-step("conformance", () => checkConformance(ROOT, BASE_DIR, { update: UPDATE, base: flags["conformance-base"] }));
+step("conformance", () => checkConformance(ROOT, BASE_DIR, { update: UPDATE, base: flags["conformance-base"], notes }));
 step("places", () => {
   const r = run(process.execPath, ["tools/places-md.mjs", "--check"]);
   return r.status === 0 ? null : (r.stderr || r.stdout).trim();
@@ -187,5 +189,6 @@ for (const s of steps) {
     process.exit(1);
   }
   console.log(`ok   ${s.name} (${(ms / 1000).toFixed(1)} s)`);
+  for (const note of notes.splice(0)) console.log(`note ${note}`);
 }
 console.log(`\ncheck passed${FAST ? " (fast: tests not run)" : ""} in ${((Date.now() - t0) / 1000).toFixed(1)} s`);

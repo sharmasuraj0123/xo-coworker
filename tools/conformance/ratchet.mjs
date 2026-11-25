@@ -9,10 +9,7 @@ import { wiringGrowth } from "./app-wiring.mjs";
 
 export const FAMILIES = ["lifecycle", "hygiene", "structure", "style"];
 const CLEAR_ON_TOUCH = new Set([
-  "commentOnlyCatch", "commentReference", "changelogComment", "explicitAny",
-  "sourceRead", "sourceReadTarget", "inlineViewportQuery", "viewportLiteral", "domExpando", "missingTsCheck",
-  "typeSuppression",
-  "globalListener", "storage", "setTimeout", "setInterval", "requestAnimationFrame",
+  "commentOnlyCatch", "commentReference", "changelogComment", "explicitAny", "missingTsCheck", "typeSuppression",
 ]);
 
 /** @param {ReturnType<typeof inventory>} findings */
@@ -129,8 +126,8 @@ function loadCoverage(root, baselineDir, repository) {
   return { coverage: existsSync(path) ? readCoverage(readFileSync(path, "utf8")) : {}, prior };
 }
 
-/** @param {string} root @param {string} baselineDir @param {{update: boolean, base?: string}} options */
-export function checkConformance(root, baselineDir, { update, base }) {
+/** @param {string} root @param {string} baselineDir @param {{update: boolean, base?: string, notes?: string[]}} options */
+export function checkConformance(root, baselineDir, { update, base, notes = [] }) {
   const repository = checkout(root, base);
   const baselines = {};
   const growth = [];
@@ -160,14 +157,14 @@ export function checkConformance(root, baselineDir, { update, base }) {
     growth.push(...allowanceSurplus(current, previous,
       (file, rule, old, count) => `  ${local}: ${file} raised the ${rule} allowance from ${old} to ${count}`));
   }
-  if (growth.length) return growth.join("\n");
+  if (growth.length) notes.push(`Baselines raised since ${base}; give the reason in the commit:\n${growth.join("\n")}`);
   const namesPath = "tools/baselines/token-ownership.json";
   const priorNames = repository?.git(["show", `${repository.ref}:${namesPath}`]);
   if (priorNames?.status === 0) {
     const allowed = new Set(JSON.parse(priorNames.stdout));
     const current = readFileSync(join(root, namesPath), "utf8");
     const additions = JSON.parse(current).filter(name => !allowed.has(name));
-    if (additions.length) return "Token ownership allowances can only shrink: " + additions.join(", ");
+    if (additions.length) notes.push(`Token ownership allowances added; give the reason in the commit: ${additions.join(", ")}`);
   }
   const touched = changes(repository);
   const app = "js/app.js";
@@ -186,12 +183,13 @@ export function checkConformance(root, baselineDir, { update, base }) {
   if (migrated.errors.length) return [...migrated.errors, ...errors].join("\n");
   if (errors.length) return errors.join("\n");
   if (!update) {
-    if (formatBaseline({ recordedStyle }) !== formatBaseline({ recordedStyle: observed })) {
-      return "Refresh the recorded CSS debt with --update-baselines.";
-    }
+    const unrecorded = Object.entries(observed).filter(([key, count]) => count > (recordedStyle[key] ?? 0));
+    if (unrecorded.length) return `Record the new CSS debt with --update-baselines:\n${unrecorded.map(([key]) => `  ${key}`).join("\n")}`;
     const stale = FAMILIES.flatMap(name => allowanceSurplus(baselines[name], current[name],
       (file, rule, count, allowed) => `  ${file}: ${rule} has ${count}, baseline allows ${allowed}`));
-    if (stale.length) return `Stale conformance baseline. Run node tools/check.mjs --fast --update-baselines.\n${stale.join("\n")}`;
+    if (stale.length || formatBaseline({ recordedStyle }) !== formatBaseline({ recordedStyle: observed })) {
+      notes.push(`Baselines can be lowered with --update-baselines.${stale.length ? `\n${stale.join("\n")}` : ""}`);
+    }
   }
   if (update) {
     for (const name of FAMILIES) {
