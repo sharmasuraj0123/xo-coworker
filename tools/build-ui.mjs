@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import postcss from "postcss";
+import { atRule } from "postcss";
 import { parseHTML } from "linkedom";
 import { javascript, member, walk } from "./conformance/syntax.mjs";
 import { finishPublicTree } from "./build/public.mjs";
@@ -62,8 +62,8 @@ async function buildPublic() {
     tree.walkAtRules("import", rule => {
       const { target, layer, condition } = stylesheetImport(rule.params);
       let children = cssFile(resolve(dirname(file), target)).nodes;
-      if (layer) children = [postcss.atRule({ name: "layer", params: layer[1] ?? "", nodes: children })];
-      if (condition) children = [postcss.atRule({ name: "media", params: condition, nodes: children })];
+      if (layer) children = [atRule({ name: "layer", params: layer[1] ?? "", nodes: children })];
+      if (condition) children = [atRule({ name: "media", params: condition, nodes: children })];
       rule.replaceWith(...children);
     });
     return tree;
