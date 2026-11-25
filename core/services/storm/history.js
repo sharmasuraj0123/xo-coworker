@@ -101,7 +101,7 @@ export function installHistory(ctx) {
     if (th.loaded && r.session_id && trimmed.has(r.session_id)) {
       trimmed.delete(r.session_id);
       const oldest = (state.threadMsgs[ts] || [])[0];
-      ctx.loadTurns(r.session_id).then(() => loadOlderTurns(r.session_id, oldest ? oldest.seq : null, signal))
+      ctx.loadTurns(r.session_id).then(() => loadOlderTurns(r.session_id, oldest?.seq ?? null, signal))
         .then(() => { if (!signal.aborted) ctx.soon(); }).catch((error) => reportReadFailure(error, signal));
       return;
     }
@@ -138,7 +138,7 @@ export function installHistory(ctx) {
       const m = await client.messages(r.chat_id, { thread: ts, before_seq: th.before, limit: OLDER_PAGE }, { signal });
       if (signal.aborted) return;
       const { list } = mergeRows(state.threadMsgs[ts] || [], m.messages || []);
-      if (r.session_id) await loadOlderTurns(r.session_id, list.length ? list[0].seq : null, signal);
+      if (r.session_id) await loadOlderTurns(r.session_id, list[0]?.seq ?? null, signal);
       if (signal.aborted) return;
       const current = state.threadMsgs[ts] || [];
       state.threadMsgs[ts] = mergeRows(current, read.reconcile(current, m.messages)).list;

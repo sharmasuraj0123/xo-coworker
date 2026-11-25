@@ -23,8 +23,9 @@ export function beginMessageRead(initial) {
         const newer = live.get(row.id);
         if (newer && newer !== before.get(row.id)) return newer;
         for (const { data, at, reaction } of edits.get(row.id) || []) {
-          if (reaction && row.extra?.reactions?.some((/** @type {Row} */ r) =>
-            r.emoji === data.emoji && r.by === (data.by || null) && r.at === at)) continue;
+          const reactions = row.extra?.reactions;
+          if (reaction && Array.isArray(reactions) && reactions.some((r) =>
+            r?.emoji === data.emoji && r.by === (data.by || null) && r.at === at)) continue;
           row = (reaction ? addReaction([row], data, at) : updateMessage([row], data))?.[0] || row;
         }
         return row;

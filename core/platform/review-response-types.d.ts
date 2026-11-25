@@ -2,6 +2,8 @@ export interface ReviewRecord {
   id: string;
   state: string;
   kind?: string;
+  created_at?: string | null;
+  expires_at?: string | null;
   title?: string | null;
   why?: string | null;
   risk?: string | null;

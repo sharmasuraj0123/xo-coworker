@@ -10,8 +10,8 @@ export interface RuntimeThread extends AgentThread {
   busy?: boolean;
   project: string;
   held?: Hold | null;
-  limits?: { limit?: { resetsAt?: string } }[];
-  movedTo?: string | null;
+  limits?: { limit?: { resetsAt?: string | null } }[];
+  movedTo?: object | string | null;
 }
 
 export interface ThreadRuntimeDeps {

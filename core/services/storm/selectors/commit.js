@@ -49,7 +49,7 @@ export function installCommit(ctx) {
       /** @type {import("../../world/state-types.d.ts").DecisionHost} */
       const host = hosts.get(h.id) || { id: h.id, host: true, project, chatId: h.chat, plainSession: h.session || null, asker, title: h.title || (asker ? "Coordinator" : project === "workspace" ? "Workspace" : project),
         state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [], live: true, loaded: true, busy: false,
-        createdAt: Date.parse(it.created_at) || Date.now(), lastAt: Date.parse(it.created_at) || Date.now(), card: {} };
+        createdAt: Date.parse(it.created_at ?? "") || Date.now(), lastAt: Date.parse(it.created_at ?? "") || Date.now(), card: {} };
       const shown = isLimitItem(it) ? limitItem(it, state.runtimes, ctx.chatPolicyOf) : paidItem(it, paidRows());
       if (shown !== it && isLimitItem(it)) host.title = "Usage limit";
       host.asks.push(...stormAsks(host, [shown]));

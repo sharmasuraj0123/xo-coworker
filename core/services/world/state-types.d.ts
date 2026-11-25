@@ -1,4 +1,4 @@
-import type { ClosedReview, HopRow, MessageRow, Project, Row, Session, StormEvent } from "../storm/types.d.ts";
+import type { ClosedReview, HopRow, MessageRow, Project, Session, StormEvent } from "../storm/types.d.ts";
 import type { EngineStatus, StatusPool } from "../../platform/status-types.d.ts";
 import type { createTurns } from "./turns.js";
 import type { tasksOf } from "./checklist.js";
@@ -18,7 +18,24 @@ interface WorldProject extends Project {
   routing: WorldRouter | null;
 }
 
-export interface WorldThread extends Row {
+export interface WorldThread {
+  headline: string;
+  needsYou: string;
+  live: boolean;
+  activity?: string | null;
+  waitReason?: string | null;
+  sessionState: string | null;
+  paused: unknown;
+  resolvedAt: string | null;
+  agentMs: number;
+  pin: import("../../platform/chat-response-types.d.ts").Pin;
+  outputs: { name?: string; path?: string; type?: string; title?: string | null; bytes?: number | null }[];
+  card: { title?: string; happened?: string; needs_you?: string; updated_at?: string };
+  git: import("../git-state-types.d.ts").BranchGit & { ahead?: number } | null;
+  canDelete: boolean;
+  movedTo: { to?: string; at?: string; text?: string } | null;
+  movedFrom: { from: string; text?: string } | null;
+  limits: (ReturnType<typeof import("../runtimes.js").limitItem> & { id: string })[];
   id: string;
   project: string;
   title: string;
@@ -45,7 +62,13 @@ export interface WorldThread extends Row {
   runs: { running?: number; waiting?: number; total?: number } | null;
 }
 
-export interface DecisionHost extends Row {
+export interface DecisionHost {
+  asker: ReturnType<typeof import("../review.js").askedBy>;
+  messages: never[];
+  live: true;
+  loaded: true;
+  busy: false;
+  card: WorldThread["card"];
   id: string;
   project: string;
   title: string;
@@ -111,7 +134,7 @@ export interface WorldState {
   pools: Record<string, Omit<StatusPool, "id"> & { pool: string }>;
   loaded: boolean;
   lastSeq: number;
-  review: Map<string, Row>;
+  review: Map<string, import("../../platform/review-response-types.d.ts").ReviewRecord>;
   gone: Map<string, ClosedReview>;
   statusError: string | null;
   statusCode?: string | null;

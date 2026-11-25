@@ -21,7 +21,7 @@ export function installThreads(ctx) {
     for (const it of state.review.values()) if (it.thread_ts === ts && it.state === "open") out.push(it);
     return out;
   }
-  /** Where a thread went (continued in) and where it came from, from every trace of a move we hold. @type {Map<string, Row>} */
+  /** Where a thread went (continued in) and where it came from, from every trace of a move we hold. @type {Map<string, { from: string; text: string }>} */
   let fromIndex = new Map();
   ctx.indexMoves = () => {
     fromIndex = new Map();
@@ -32,14 +32,16 @@ export function installThreads(ctx) {
     // the row says it (continued_in / continued_from); else the frame, or the old thread's note
     /** @type {{to?: string, at?: string, text?: string} | null} */
     let to = state.moves[r.ts] || (r.continued_in ? { to: r.continued_in } : null);
-    if (!to) for (const m of state.threadMsgs[r.ts] || []) { const x = m.extra && m.extra.continued_in; if (x) to = { to: x, text: m.text || "" }; }
+    if (!to) for (const m of state.threadMsgs[r.ts] || []) { const x = m.extra && m.extra.continued_in; if (typeof x === "string" && x) to = { to: x, text: m.text || "" }; }
     const from = r.continued_from ? { from: r.continued_from, ...(fromIndex.get(r.ts) || {}) } : fromIndex.get(r.ts) || null;
     // frozen: paused because its work moved on. Picked back up, the link stays as history.
     return { movedTo: to, movedFrom: from, frozen: r.state === "paused" && !!to };
   }
   ctx.chatPolicyOf = (chat) => (chat && state.chatPolicy[chat] && state.chatPolicy[chat].effective) || (state.policy && state.policy.effective) || null;
   /** The open usage-limit items a thread waits on, ready to show. @param {string} ts */
-  const limitsFor = (ts) => [...state.review.values()].filter((it) => it.state === "open" && isLimitItem(it) && (it.detail.threads || []).some((/** @type {Row} */ x) => x.ts === ts)).map((it) => limitItem(it, state.runtimes, ctx.chatPolicyOf));
+  const limitsFor = (ts) => [...state.review].filter(([, it]) => it.state === "open" && isLimitItem(it)
+    && Array.isArray(it.detail?.threads) && it.detail.threads.some((x) => x?.ts === ts))
+    .map(([id, it]) => ({ ...limitItem(it, state.runtimes, ctx.chatPolicyOf), id }));
   /** The runs the stream named, by session (rebuilt once per commit, not per thread). */
   ctx.runsBySession = () => {
     /** @type {Map<string, Row[]>} */
@@ -60,7 +62,7 @@ export function installThreads(ctx) {
     const sstate = (now && now.state) || null;
     const card = r.card || {};
     const busy = ctx.threadBusy(r, now, runsBy);
-    const turn = r.session_id && (busy || BUSY.has(sstate)) ? state.turns.running(r.session_id) : null;
+    const turn = r.session_id && (busy || BUSY.has(sstate ?? "")) ? state.turns.running(r.session_id) : null;
     // held back by a gate (the usage limit, …): nothing runs, its message waits; what for and until when
     const held = busy ? null : ctx.heldOfSession(now, runsBy.get(r.session_id) || []);
     /** @type {import("../../world/state-types.d.ts").WorldThread} */

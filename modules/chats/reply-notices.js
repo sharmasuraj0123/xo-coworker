@@ -20,7 +20,7 @@ function excerpt(text) {
 export function replyNotices(currentView, projectName, show, announce, schedule) {
   return (/** @type {StormEvent} */ event) => {
     if (event.kind !== "message") return false;
-    if (event.answered) {
+    if (event.answered && event.project) {
       const workspace = event.project === "workspace";
       const open = workspace ? "ws" : "p:" + event.project;
       const text = (workspace ? "The coordinator" : projectName(event.project) + " coordinator") + " replied";

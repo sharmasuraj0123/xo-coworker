@@ -2,8 +2,8 @@ export type { Runtime, RuntimeError, RuntimeHealth, RuntimePolicy } from "../pla
 
 export interface UsageItem {
   kind?: string;
-  title?: string;
-  why?: string;
+  title?: string | null;
+  why?: string | null;
   detail?: {
     limit?: string;
     move_to?: string | null;

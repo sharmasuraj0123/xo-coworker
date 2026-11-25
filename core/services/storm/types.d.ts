@@ -1,13 +1,43 @@
 import type { WorldState, WorldThread } from "../world/state-types.d.ts";
+import type { ChatRecord, MessageRecord, SessionRecord } from "../../platform/chat-response-types.d.ts";
 
 export type Row = import("../world/sessions.js").Row;
-export type MessageRow = Row & { id: string };
-export type HopRow = Row & import("../world/hop-types.d.ts").Hop;
+export type MessageRow = Omit<MessageRecord, "seq"> & { seq?: number | null };
+export type HopRow = import("../world/hop-types.d.ts").Hop;
 export type Frame = { type: string; id?: string | null; envelope?: Row };
-export type StormEvent = Row & { kind: string };
+export interface StormEvent {
+  kind: string;
+  at?: number;
+  project?: string | null;
+  thread?: string | null;
+  text?: string;
+  session?: string;
+  author?: string | null;
+  answered?: boolean;
+  id?: string | null;
+  slug?: string | null;
+  change?: string | null;
+  version?: string | null;
+  wakes?: string[];
+  runs?: number;
+  to?: string;
+  agent?: string;
+  by?: string | null;
+  type?: string;
+  data?: Record<string, unknown>;
+  value?: unknown;
+}
 export type Sent = { at: number; seq: number | null };
-export type Session = Row & { id: string };
-export type Project = Row & { id: string; chatId: string };
+export type Session = Omit<SessionRecord, "seq"> & {
+  seq?: number | null;
+  statusAt?: number;
+  statusSeq?: number | null;
+  frameSeq?: number | null;
+  readAt?: number;
+  sub?: boolean;
+  permission_mode?: string | null;
+};
+export type Project = Pick<ChatRecord, "id" | "pin"> & { chatId: string; hasChat?: boolean };
 export type ClosedReview = { state: "withdrawn" | "expired"; reason: string | null; why: string; at: number };
 
 export type Reducer = (ctx: Ctx, env: Row, d: Row, tid: string | null, type: string) => void;

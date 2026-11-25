@@ -18,7 +18,8 @@ const gone = (ctx, env, d, tid, type) => {
 /** @type {Record<string, Reducer>} */
 export const review = {
   "review.opened"(ctx, env, d) {
-    ctx.state.review.set(d.id, { ...d, state: "open", seq: env.seq ?? null });
+    if (typeof d.id !== "string") return;
+    ctx.state.review.set(d.id, { ...d, id: d.id, state: "open", seq: env.seq });
     ctx.soon();
   },
   "review.decided": closed,
@@ -30,6 +31,10 @@ export const review = {
   },
   "review.annotated"(ctx, env, d) {
     const it = ctx.state.review.get(d.id);
-    if (it) { ctx.state.review.set(d.id, { ...it, annotations: [...(it.annotations || []), d] }); ctx.soon(); }
+    if (it && typeof d.by === "string" && typeof d.note === "string") {
+      const annotation = { ...d, by: d.by, note: d.note };
+      ctx.state.review.set(d.id, { ...it, annotations: [...(it.annotations || []), annotation] });
+      ctx.soon();
+    }
   },
 };

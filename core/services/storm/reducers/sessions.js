@@ -52,7 +52,7 @@ export const sessions = {
     if (d.reason === "now_became_add") ctx.event({ kind: "now_became_add", session: id, wakes: d.wakes || [], runs: d.runs || 0 });
     state.sessions[id] = next;
     // a turn for our message ended: "replying" ends with it; a failure is said plainly
-    if (COORD.has(next.role) && !BUSY.has(next.state)) ctx.settleAwaiting(next.chat_id);
+    if (next.role && COORD.has(next.role) && !BUSY.has(next.state ?? "")) ctx.settleAwaiting(next.chat_id ?? null);
     ctx.soon();
   },
   "turn.started"(ctx, env) {

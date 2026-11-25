@@ -27,6 +27,7 @@ const isDecision = (value) => isResponseObject(value) && maybeText(value.decisio
 
 /** @param {unknown} value @returns {value is ReviewRecord} */
 export const isReview = (value) => isResponseObject(value) && text(value.id) && text(value.state) && maybeText(value.kind)
+  && nullableText(value.created_at) && nullableText(value.expires_at)
   && [value.title, value.why, value.risk, value.chat_id, value.thread_ts, value.session_id, value.run_id, value.turn_id].every(nullableText)
   && maybeNumber(value.seq) && (value.epoch === null || maybeNumber(value.epoch))
   && [value.blocking, value.parked].every(maybeBoolean) && (value.detail === undefined || isResponseObject(value.detail))

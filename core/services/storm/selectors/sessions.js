@@ -37,7 +37,7 @@ export function installSessions(ctx) {
   };
   ctx.evidenceOf = (sid, runs = null) => ({ runs: runs || [...state.runs.values()].filter((x) => x.session === sid), agg: state.liveRuns[sid] || null, turn: state.turns.running(sid) });
   /** On a turn now: its status says so, or it says queued and work has been seen since. */
-  ctx.onTurn = (s) => !!s && (BUSY.has(s.state) || queuedButWorking(s, ctx.evidenceOf(s.id)));
+  ctx.onTurn = (s) => !!s && (BUSY.has(s.state ?? "") || queuedButWorking(s, ctx.evidenceOf(s.id)));
   /** What a session held back by a gate waits for, or null; an older backend names no reason, so its pool is read. */
   ctx.heldOfSession = (s, runs = null) => {
     if (!s || s.state !== "queued" || queuedButWorking(s, ctx.evidenceOf(s.id, runs))) return null;

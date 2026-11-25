@@ -554,7 +554,7 @@
   "lineLength": 3
  },
  "modules/conversation/message-types.d.ts": {
-  "lineLength": 3
+  "lineLength": 2
  },
  "modules/conversation/messages.js": {
   "functionLines": 1,

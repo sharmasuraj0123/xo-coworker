@@ -12,7 +12,7 @@ type PassedOn = { project: string; to?: string | null };
 type Reactions = Parameters<typeof reactionGroups>[0];
 export type History = { loaded?: boolean; loading?: boolean; all?: boolean; older?: boolean; paged?: boolean; capped?: boolean; error?: string | null; olderError?: string | null; before?: number | null };
 export type Control = { at: string; seq?: number | null; action: string; by?: string; reason?: string };
-export type Limit = { id: string; title: string; limit: { resetsAt?: string }; why?: string; options?: { decision: string; label: string }[] };
+export type Limit = import("../../core/services/world/state-types.d.ts").WorldThread["limits"][number];
 type Move = { to?: string; from?: string; at?: string; agent?: string; reason?: string };
 type Speaker = "you" | "agent" | "coord" | "system";
 
@@ -95,8 +95,8 @@ export type ProjectionThread = {
   busy?: boolean;
   sessionId?: string | null;
   limits?: Limit[];
-  movedTo?: Move;
-  movedFrom?: Move;
+  movedTo?: Move | null;
+  movedFrom?: Move | null;
 };
 
 type Receipt = {

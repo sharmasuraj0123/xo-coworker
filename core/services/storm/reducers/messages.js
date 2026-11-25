@@ -22,9 +22,10 @@ export const messages = {
     if (!added.length) return;
     const aw = state.awaiting[project];
     const reply = row.author_kind !== "owner";
-    const answered = !!(aw && reply && COORD.has(row.author_id));
+    const coordinatorReply = reply && !!row.author_id && COORD.has(row.author_id);
+    const answered = !!aw && coordinatorReply;
     if (answered) delete state.awaiting[project];
-    if (reply && COORD.has(row.author_id)) delete state.failed[project];
+    if (coordinatorReply) delete state.failed[project];
     if (reply) ctx.event({ kind: "message", project, text: String(row.text || "").slice(0, 160), answered, author: row.author_id });
     ctx.emit();
   },

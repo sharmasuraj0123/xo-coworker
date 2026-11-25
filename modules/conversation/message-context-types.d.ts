@@ -1,8 +1,8 @@
 import type { Hop } from "../../core/services/world/hop-types.d.ts";
 
-type Host = { id: string; asks: unknown[]; asker?: string; title: string };
+type Host = { id: string; asks: unknown[]; asker?: string | null; title: string };
 
-type Session = { role?: string; chat_id?: string };
+type Session = { role?: string; chat_id?: string | null };
 
 export type MessageContextDeps = {
   world: {
