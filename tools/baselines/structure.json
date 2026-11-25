@@ -109,7 +109,7 @@
   "lineLength": 2
  },
  "core/services/comms.js": {
-  "lineLength": 8
+  "lineLength": 7
  },
  "core/services/git-state.js": {
   "lineLength": 2,
@@ -123,8 +123,7 @@
   "lineLength": 5
  },
  "core/services/media/hydrate.js": {
-  "domExpando": 4,
-  "lineLength": 5,
+  "lineLength": 3,
   "unusedExport": 2
  },
  "core/services/media/intersection.js": {

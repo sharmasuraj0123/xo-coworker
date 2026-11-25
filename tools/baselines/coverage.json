@@ -1,22 +1,4 @@
 {
- "core/kernel/scheduler.js": {
-  "sha256": "56a05ac0d79d0decfa692821c45767c61c54e7dd13c90bf96a64eaf05220bfd0",
-  "sites": [
-   ["requestAnimationFrame",9,""]
-  ]
- },
- "core/services/comms.js": {
-  "sha256": "4852f3d3587272b4e5adc3843a77a64140394d2fdbc1e7d8497190be1a033bb5",
-  "sites": [
-   ["commentOnlyCatch",30,""]
-  ]
- },
- "core/services/media/hydrate.js": {
-  "sha256": "99d4a1aadc7579cda3ad4e0f2792d7d02ae141f77bb193b299636c9fa1106b5e",
-  "sites": [
-   ["setTimeout",59,""]
-  ]
- },
  "core/services/shape/store.js": {
   "sha256": "1c594065418c9184c2247fc17929bd76a8081d3e307ad4405234aeff96a08c5b",
   "sites": [

@@ -58,9 +58,6 @@
   "commentLines": 2,
   "explicitAny": 3
  },
- "core/kernel/scheduler.js": {
-  "commentLines": 1
- },
  "core/platform/clipboard.js": {
   "commentOnlyCatch": 1
  },
@@ -89,9 +86,6 @@
  "core/platform/types.d.ts": {
   "explicitAny": 1
  },
- "core/services/comms.js": {
-  "explicitAny": 5
- },
  "core/services/media/attachment-rules.js": {
   "commentLines": 1,
   "commentOnlyCatch": 1,
@@ -101,8 +95,7 @@
   "commentLines": 2
  },
  "core/services/media/hydrate.js": {
-  "commentLines": 11,
-  "commentOnlyCatch": 1
+  "commentLines": 4
  },
  "core/services/media/items.js": {
   "commentOnlyCatch": 1

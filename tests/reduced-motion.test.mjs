@@ -43,22 +43,32 @@ test("a select closes even without an animationend event", async ({ mock }) => {
   select.remove();
 });
 
-test("a loaded picture settles even without a transitionend event", async ({ mock }) => {
-  const { window, document } = await dom('<main><div class="mx-one is-frame"><img class="mx-img" data-mx-img="settle"></div></main>');
+test("a loaded picture settles once, with or without transitionend", async ({ mock }) => {
+  const boxes = ["event", "fallback"].map((key) =>
+    `<div class="mx-one is-frame"><img class="mx-img" data-mx-img="${key}"></div>`).join("");
+  const { window, document } = await dom(`<main>${boxes}</main>`);
   window.Element.prototype.animate = () => { throw new Error("the frame uses a CSS transition"); };
   globalThis.getComputedStyle = window.getComputedStyle;
   const { hydrateMedia } = await import("../core/services/media/hydrate.js");
   mock.timers.enable({ apis: ["setTimeout"] });
-  const frame = document.querySelector(".mx-one");
-  frame.getBoundingClientRect = () => ({ width: 400, height: 260, bottom: 260 });
-  const image = frame.querySelector("img");
-  Object.defineProperties(image, {
-    complete: { value: true }, naturalWidth: { value: 640 }, naturalHeight: { value: 480 },
-  });
+  const [animated, frame] = document.querySelectorAll(".mx-one");
+  for (const box of [animated, frame]) {
+    box.getBoundingClientRect = () => ({ width: 400, height: 260, bottom: 260 });
+    const image = box.querySelector("img");
+    Object.defineProperties(image, {
+      complete: { value: true }, naturalWidth: { value: 640 }, naturalHeight: { value: 480 },
+    });
+  }
   hydrateMedia(document.querySelector("main"));
+  const done = new window.Event("transitionend");
+  Object.defineProperty(done, "propertyName", { value: "height" });
+  animated.dispatchEvent(done);
+  assert.equal(animated.style.aspectRatio, "640 / 480");
+  animated.style.aspectRatio = "1 / 1";
   assert.equal(frame.style.height, "300px");
   assert.equal(frame.style.aspectRatio, "auto");
   mock.timers.runAll();
+  assert.equal(animated.style.aspectRatio, "1 / 1", "the settled frame no longer has a fallback timeout");
   assert.equal(frame.style.transition, "");
   assert.equal(frame.style.height, "");
   assert.equal(frame.style.aspectRatio, "640 / 480");

@@ -1,10 +1,11 @@
 // @ts-check
+import { reportFailure } from "./notices/failures.js";
 
 // An agent's XO comms tool calls in people's words: what it is doing, what it did, and why a turn it ended is only a pause.
 
 /** @typedef {{ thread: (id: string) => string | null, project: (chatId: string) => string | null, here: () => string | null }} Names */
 
-/** @typedef {{ tool?: string, target?: string, status?: string, summary?: any }} Row */
+/** @typedef {{ tool?: string, target?: string, status?: string, summary?: unknown }} Row */
 
 /** @type {Names} */
 let names = { thread: () => null, project: () => null, here: () => null };
@@ -12,7 +13,7 @@ let names = { thread: () => null, project: () => null, here: () => null };
 export function nameWith(fns) { names = { ...names, ...fns }; }
 
 const COMMS = /^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/;
-/** @type {Record<string, (r: any) => boolean>} */
+/** @type {Record<string, (r: Record<string, unknown>) => boolean>} */
 const RECEIPT = {
   message_thread: (r) => r.delivered === true,
   message_coordinator: (r) => r.delivered === true || r.ok === true || !!r.hop_id,
@@ -26,26 +27,31 @@ export function commsTool(row) {
   const m = COMMS.exec(String((row && (row.tool || row.target)) || ""));
   return m ? m[1] : null;
 }
-/** @param {unknown} s @returns {any} */
-const parse = (s) => { if (!s || typeof s !== "string" || s[0] !== "{") return {}; try { return JSON.parse(s) || {}; } catch { return {}; } };
+/** @param {unknown} s @returns {Record<string, unknown>} */
+const parse = (s) => {
+  if (typeof s !== "string" || !s.startsWith("{")) return {};
+  try { return JSON.parse(s) || {}; }
+  catch (error) { if (!(error instanceof SyntaxError)) reportFailure(error); return {}; }
+};
 /** @param {string | null} t */
 const q = (t) => (t ? `“${t}”` : "");
 
-/** @param {string | undefined} name */
-const resourceOf = (name) => (!name ? "a shared resource" : /browser/i.test(name) ? "the browser" : `“${name}”`);
+/** @param {unknown} name */
+const resourceOf = (name) => (typeof name !== "string" || !name ? "a shared resource" : /browser/i.test(name) ? "the browser" : `“${name}”`);
 const HELD = /^(\S+) is held by\b/;
 /** @param {Row} row */
 export function commsBusy(row) {
   return commsTool(row) === "lease" && row.status === "error" && typeof row.summary === "string" && HELD.test(row.summary);
 }
 
-/** @param {string} tool @param {any} res @param {{ project?: string }} [ctx] @returns {string[]} */
+/** @param {string} tool @param {Record<string, unknown>} res @param {{ project?: string }} [ctx] @returns {string[]} */
 function words(tool, res, ctx = {}) {
-  const thread = res.thread_id ? names.thread(res.thread_id) : null;
+  const thread = typeof res.thread_id === "string" && res.thread_id ? names.thread(res.thread_id) : null;
   const t = thread ? q(thread) : "a thread";
   const here = ctx.project || names.here();
   const coord = here ? `the ${here} coordinator` : "its coordinator";
-  const proj = res.project || (res.chat_id && names.project(res.chat_id)) || null;
+  const project = typeof res.project === "string" ? res.project : "";
+  const proj = project || (typeof res.chat_id === "string" && res.chat_id && names.project(res.chat_id)) || null;
   switch (tool) {
     case "message_thread": return ["Writing to a thread", res.delivery === "steer" || res.turn_running ? `Sent to ${t} while it works` : `Sent to ${t}`, `Couldn't reach ${t}`, `Message to ${t}`];
     case "start_thread_session": return ["Starting a thread", `Started ${t}`, res.error === "thread_exists" ? `${thread ? t : "That thread"} was already started` : "Couldn't start a thread"];
@@ -112,7 +118,10 @@ export function commsLine(row, ctx) {
   if (row.status === "cancelled") return `Stopped: ${lower(w[0])}`;
   const refused = typeof row.summary === "string" && /^This turn is closed\b/.test(row.summary);
   const failed = row.status === "error" || refused || res.ok === false || res.delivered === false || !!res.error;
-  if (commsBusy(row)) { const r = resourceOf(/** @type {RegExpExecArray} */ (HELD.exec(row.summary))[1]); return `${r.charAt(0).toUpperCase()}${r.slice(1)} was in use`; }
+  if (commsBusy(row) && typeof row.summary === "string") {
+    const r = resourceOf(HELD.exec(row.summary)?.[1]);
+    return `${r.charAt(0).toUpperCase()}${r.slice(1)} was in use`;
+  }
   if (failed) return w[2] || `Didn't finish: ${lower(w[0])}`;
   if (RECEIPT[tool] && !RECEIPT[tool](res)) return w[3] || w[1];
   return w[1];
@@ -128,7 +137,7 @@ export function commsHeader(rows, ctx) {
 }
 
 const STEP = /(?:call )?`([\w-]+)` on `xo_comms`/g;
-/** @param {any} s @param {{ project?: string }} [ctx] */
+/** @template T @param {T} s @param {{ project?: string }} [ctx] */
 export function commsText(s, ctx) {
   if (!s || typeof s !== "string" || !s.includes("xo_comms")) return s;
   return s.replace(STEP, (_, tool, at) => {
@@ -140,7 +149,7 @@ export function commsText(s, ctx) {
 /** @param {Row[] | null | undefined} rows */
 export function commsPause(rows) {
   const wake = (rows || []).filter((r) => commsTool(r) === "wake_me" && r.status === "ok" && typeof r.summary === "string").pop();
-  if (!wake) return null;
+  if (typeof wake?.summary !== "string") return null;
   const on = /"on": ?"([^"]+)"/.exec(wake.summary), at = /"at": ?"([^"]+)"/.exec(wake.summary);
   if (on) {
     const [ev, about] = on[1].split(/:(.*)/);

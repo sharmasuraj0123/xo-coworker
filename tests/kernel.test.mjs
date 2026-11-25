@@ -89,6 +89,29 @@ await t("scheduler: invalidations batch into one flush; flushers run in registra
   assert.deepEqual(ran, ["a", "a2", "a", "b", "a2"]);
 });
 
+await t("scheduler: an immediate flush retires its scheduled browser frame", () => {
+  const original = [globalThis.requestAnimationFrame, globalThis.cancelAnimationFrame];
+  const queue = new Map();
+  let id = 0, count = 0;
+  globalThis.requestAnimationFrame = (fn) => { queue.set(++id, fn); return id; };
+  globalThis.cancelAnimationFrame = (key) => { queue.delete(key); };
+  try {
+    const scheduler = createScheduler({ warn: quiet });
+    scheduler.onFlush("rail", () => count++);
+    scheduler.invalidate("rail");
+    assert.equal(queue.size, 1);
+    scheduler.flushNow();
+    assert.equal(count, 1);
+    assert.equal(queue.size, 0);
+    scheduler.invalidate("rail");
+    queue.get(id)(0);
+    assert.equal(count, 2);
+    assert.equal(queue.size, 0);
+  } finally {
+    [globalThis.requestAnimationFrame, globalThis.cancelAnimationFrame] = original;
+  }
+});
+
 await t("layers: Esc is offered top-down until one takes it; closing returns focus", () => {
   const L = createLayers(quiet);
   const order = [];

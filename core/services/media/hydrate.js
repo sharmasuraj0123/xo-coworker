@@ -3,6 +3,7 @@
 import { createScope } from "../../kernel/scope.js";
 import { createLru } from "../../platform/cache.js";
 import { EASE, MOVE, still } from "../../ui/motion.js";
+import { reportFailure } from "../notices/failures.js";
 import { labelOf } from "./items.js";
 import { MEDIA_CACHE_MAX, markWebGone } from "./cache.js";
 import { mediaItemOf, stackItems, setStackItems } from "./stack-data.js";
@@ -12,14 +13,13 @@ import { loadPicture } from "./picture-load.js";
 
 /** @typedef {ReturnType<typeof import("./items.js").mediaItem>} MediaItem */
 
-/** @typedef {HTMLImageElement & {_mx?: boolean, dataset: {mxImg: string}}} MediaImage */
-
-/** @typedef {HTMLElement & {_mxGone?: boolean}} MediaBox */
-
-/** @typedef {HTMLElement & {_mxDrag?: boolean}} MediaRoot */
+/** @typedef {HTMLImageElement & {dataset: {mxImg: string}}} MediaImage */
 
 /** @type {ReturnType<typeof createLru<string, MediaImage>>} */
 const shown = createLru({ max: MEDIA_CACHE_MAX });
+const prepared = new WeakSet();
+const failedBoxes = new WeakSet();
+const dragRoots = new WeakSet();
 
 /** @param {Element | null} box @param {string | null} cls @param {string} [text] */
 function stateOf(box, cls, text) {
@@ -54,9 +54,15 @@ function settle(img, box) {
   void box.offsetHeight;
   box.style.transition = `height ${MOVE}ms ${EASE}, background-color var(--d-in) var(--ease)`;
   box.style.height = `${h1}px`;
-  const done = () => { box.style.transition = ""; box.style.height = ""; box.style.aspectRatio = ratio; };
-  box.addEventListener("transitionend", (e) => { if (e.propertyName === "height") done(); }, { once: true });
-  setTimeout(done, MOVE + 80);
+  const scope = createScope();
+  const done = () => {
+    scope.dispose();
+    box.style.transition = ""; box.style.height = ""; box.style.aspectRatio = ratio;
+  };
+  scope.listen(box, "transitionend", (e) => {
+    if (e.target === box && "propertyName" in e && e.propertyName === "height") done();
+  });
+  scope.timeout(done, MOVE + 80);
 }
 /** @param {MediaImage} img @param {HTMLElement | null} box @param {MediaItem | null} [it] */
 function failed(img, box, it) {
@@ -64,21 +70,22 @@ function failed(img, box, it) {
   if (it && it.web) { webFailed(box, it); return; }
   stateOf(box, "is-err", `Couldn't load ${it ? labelOf(it) : "this picture"} · Retry`);
 }
-/** @param {MediaBox | null} box @param {MediaItem} it */
+/** @param {HTMLElement | null} box @param {MediaItem} it */
 function webFailed(box, it) {
   markWebGone(/** @type {NonNullable<MediaItem["web"]>} */ (it.web).url);
-  const stack = box && /** @type {HTMLElement | null} */ (box.closest(".mx-stack"));
-  if (!stack || /** @type {MediaBox} */ (box)._mxGone) return;
-  /** @type {MediaBox} */ (box)._mxGone = true;
+  if (!box || failedBoxes.has(box)) return;
+  const stack = /** @type {HTMLElement | null} */ (box.closest(".mx-stack"));
+  if (!stack) return;
+  failedBoxes.add(box);
   setStackItems(stack, stackItems(stack).filter((item) => item.key !== it.key));
   let line = stack.querySelector(":scope > .mx-weblinks");
   const fresh = !line;
   if (fresh) { line = document.createElement("p"); line.className = "mx-weblinks"; }
   /** @type {Element} */ (line).insertAdjacentHTML("beforeend", webLinkHtml(it));
-  const album = /** @type {MediaBox} */ (box).closest(".mx-album");
-  if (!album) { if (fresh) /** @type {MediaBox} */ (box).replaceWith(/** @type {Element} */ (line)); else /** @type {MediaBox} */ (box).remove(); return; }
-  const row = /** @type {MediaBox} */ (box).closest(".mx-row");
-  /** @type {MediaBox} */ (box).remove();
+  const album = box.closest(".mx-album");
+  if (!album) { if (fresh) box.replaceWith(/** @type {Element} */ (line)); else box.remove(); return; }
+  const row = box.closest(".mx-row");
+  box.remove();
   if (row && !row.querySelector(".mx-tile")) row.remove();
   if (!album.querySelector(".mx-tile")) { if (fresh) album.replaceWith(/** @type {Element} */ (line)); else album.remove(); }
   else if (fresh) album.after(/** @type {Element} */ (line));
@@ -90,7 +97,7 @@ if (typeof document !== "undefined") {
     const img = /** @type {MediaImage | null} */ (e.target);
     if (!img || !img.matches || !img.matches("img[data-mx-web]")) return;
     const it = mediaItemOf(img.dataset.mxImg, img);
-    if (it) failed(img, /** @type {MediaBox | null} */ (img.closest(".mx-one,.mx-tile")), it);
+    if (it) failed(img, /** @type {HTMLElement | null} */ (img.closest(".mx-one,.mx-tile")), it);
   }, true);
 }
 
@@ -133,7 +140,7 @@ function prepare(img, box, item, near) {
     ready: () => landed(img, box, img.dataset.mxImg),
     failed: () => failed(img, box, item),
     slow: () => stateOf(box, "is-slow", "Loading…"),
-    removed: () => { img._mx = false; },
+    removed: () => { prepared.delete(img); },
   });
 }
 
@@ -141,11 +148,11 @@ function prepare(img, box, item, near) {
 export function hydrateMedia(root) {
   if (!root || typeof document === "undefined") return;
   for (const img of /** @type {NodeListOf<MediaImage>} */ (root.querySelectorAll("img.mx-img"))) {
-    if (img._mx) continue;
-    img._mx = true;
+    if (prepared.has(img)) continue;
+    prepared.add(img);
     const key = img.dataset.mxImg;
     const it = mediaItemOf(key, img);
-    const box = /** @type {MediaBox | null} */ (img.closest(".mx-one,.mx-tile"));
+    const box = /** @type {HTMLElement | null} */ (img.closest(".mx-one,.mx-tile"));
     const old = shown.get(key), u = cachedSrc(it);
     const same = old && !old.isConnected && old.complete && old.naturalWidth && (img.getAttribute("src") || u) === old.getAttribute("src");
     if (same) { old.className = img.className; img.replaceWith(old); box && box.classList.add("is-in"); continue; }
@@ -156,7 +163,7 @@ export function hydrateMedia(root) {
 
 /** A picture that couldn't load: try again (a press on it says Retry). True when it was one. @param {Element | null | undefined} el */
 export function retryMedia(el) {
-  const box = el && /** @type {MediaBox | null} */ (el.closest(".mx-one,.mx-tile"));
+  const box = el && /** @type {HTMLElement | null} */ (el.closest(".mx-one,.mx-tile"));
   if (!box || !box.classList.contains("is-err")) return false;
   const img = /** @type {MediaImage} */ (box.querySelector("img.mx-img"));
   const it = mediaItemOf(img.dataset.mxImg, img);
@@ -185,15 +192,19 @@ export function slotOf(root, key) {
   return root ? root.querySelector(`[data-mx="${CSS.escape(key)}"]`) : null;
 }
 
-/** @param {MediaRoot | null | undefined} root */
+/** @param {HTMLElement | null | undefined} root */
 export function wireDragOut(root) {
-  if (!root || root._mxDrag) return;
-  root._mxDrag = true;
+  if (!root || dragRoots.has(root)) return;
+  dragRoots.add(root);
   root.addEventListener("dragstart", (e) => {
     const target = /** @type {Element} */ (e.target);
     const img = target.closest && /** @type {MediaImage | null} */ (target.closest("img.mx-img"));
     const it = img && mediaItemOf(img.dataset.mxImg, img);
     if (!it || !/** @type {MediaImage} */ (img).src || !e.dataTransfer) return;
-    try { e.dataTransfer.setData("DownloadURL", `${it.type || "image/png"}:${it.name}:${new URL(/** @type {MediaImage} */ (img).src, location.href).href}`); } catch { /* not supported */ }
+    const href = new URL(/** @type {MediaImage} */ (img).src, location.href).href;
+    try { e.dataTransfer.setData("DownloadURL", `${it.type || "image/png"}:${it.name}:${href}`); }
+    catch (error) {
+      if (!(error instanceof DOMException) || !["NotSupportedError", "InvalidStateError"].includes(error.name)) reportFailure(error);
+    }
   });
 }

@@ -1,12 +1,18 @@
 // @ts-check
+import { createScope } from "./scope.js";
 
 /** @typedef {import("./types").Scheduler} Scheduler */
 
 /** @param {{ request?: (fn: () => void) => unknown, warn?: (...a: unknown[]) => void }} [opts] @returns {Scheduler} */
 export function createScheduler(opts = {}) {
   const warn = opts.warn || console.error;
+  const scope = createScope({ warn });
+  /** @type {(() => void) | undefined} */
+  let cancelFrame;
   const request = opts.request
-    || (typeof requestAnimationFrame === "function" ? (/** @type {() => void} */ fn) => requestAnimationFrame(() => fn()) : queueMicrotask);
+    || (typeof requestAnimationFrame === "function" ? (/** @type {() => void} */ fn) => {
+      cancelFrame = scope.frame(fn);
+    } : queueMicrotask);
   /** @type {Array<{ key: string, fn: () => void }>} */
   const flushers = [];
   /** @type {Set<string>} */
@@ -14,6 +20,8 @@ export function createScheduler(opts = {}) {
   let all = false, pending = false;
 
   function flushNow() {
+    cancelFrame?.();
+    cancelFrame = undefined;
     pending = false;
     const keys = new Set(dirty), every = all;
     dirty.clear();
