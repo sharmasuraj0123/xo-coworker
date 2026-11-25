@@ -22,13 +22,13 @@
   "themeSelector": 1
  },
  "css/app.css": {
-  "px-effect": 12,
+  "px-effect": 8,
   "px-position": 13,
   "px-radius": 3,
-  "px-size": 30,
-  "px-spacing": 87,
+  "px-size": 26,
+  "px-spacing": 85,
   "px-stroke": 3,
-  "rawColor": 31,
+  "rawColor": 20,
   "widthMediaQuery": 1
  },
  "css/diffs.css": {
