@@ -147,3 +147,9 @@ export interface WorldState {
   failed: Record<string, { id: string; at: number; error: string } | undefined>;
   liveRuns: Record<string, { running: number; waiting: number; tokens: number; at: number; seq: number | null }>;
 }
+
+declare module "../../kernel/types" {
+  interface PlaceEntries {
+    "world.reducer": { reduce(state: WorldState, frame: import("../storm/types").Frame): void };
+  }
+}

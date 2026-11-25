@@ -3,7 +3,11 @@ import type { Agent, Change, Group } from "./list-types";
 
 declare module "../../core/kernel/types" {
   interface KeyedPlaceEntries { "panel.frame:map": MapFrame; "panel.frame:changes": ChangesFrame }
-  interface PlaceEntries { "panel.page": import("./pages.js").PageSpec; "panel.title-action": PanelTitleAction }
+  interface PlaceEntries {
+    "panel.frame": MapFrame | ChangesFrame;
+    "panel.page": import("./pages.js").PageSpec;
+    "panel.title-action": PanelTitleAction;
+  }
   interface Services { mapControls: MapApi; stage: ReturnType<typeof import("./panel.js").createStage> }
 }
 
@@ -31,7 +35,7 @@ interface MapApi {
   show(view: string): void;
   hide(): void;
 }
-export interface MapFrame extends Entry { mount(host: HTMLElement): void | (() => void) }
+export interface MapFrame extends Entry { title: string; mount(host: HTMLElement): void | (() => void) }
 export interface ChangesFrameOptions {
   view(): string;
   openFile(scope: { project: string; worktree?: string | null }, path: string, from?: Element | null): void;
@@ -47,6 +51,7 @@ interface ChangesPanel {
   chosen(view: string): string | null;
 }
 export interface ChangesFrame extends Entry {
+  title: string;
   mount(host: HTMLElement, options: ChangesFrameOptions): ChangesPanel;
   theme(theme: string): void;
 }

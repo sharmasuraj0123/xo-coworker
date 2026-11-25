@@ -177,3 +177,18 @@ export interface ViewerEventDependencies extends ViewerContext,
 }
 
 export type FileChangeEvent = ChangeInfo & { project_id?: string; type?: string; path?: string; old_path?: string };
+
+declare module "../../core/kernel/types" {
+  interface PlaceEntries {
+    "files.viewer.kind": {
+      accepts(file: ViewerFile, at: import("../../core/kernel/types").At): boolean;
+      mount(host: HTMLElement, at: import("../../core/kernel/types").At, file: ViewerFile & { path: string }): void | (() => void);
+    };
+    "files.row.menu": FileAction;
+    "files.viewer.head.action": FileAction;
+    "files.tree.section": { mount(host: HTMLElement, at: import("../../core/kernel/types").At): void | (() => void) };
+    "editor.extension": { extension(file: ViewerFile): import("@codemirror/state").Extension };
+  }
+}
+
+interface FileAction { label: string; run(file: ViewerFile, at: import("../../core/kernel/types").At): void }

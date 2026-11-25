@@ -27,10 +27,6 @@
  "apps-host/tests/frame.test.mjs": {
   "commentLines": 1
  },
- "apps-host/tests/host.test.mjs": {
-  "commentLines": 6,
-  "explicitAny": 33
- },
  "apps-host/tests/manifest.test.mjs": {
   "commentLines": 1,
   "explicitAny": 4

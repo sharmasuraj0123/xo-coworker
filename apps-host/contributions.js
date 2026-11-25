@@ -2,7 +2,7 @@
 import { holds } from "./when.js";
 import { SURFACE_PLACES } from "./manifest.js";
 
-/** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("../core/kernel/types").At} At @typedef {import("../core/kernel/types").Entry} Entry @typedef {{ destroy(): void }} Mounted @typedef {{ enabled(appId: string, project: string | undefined): boolean, mountView(el: HTMLElement, v: { app: App, surface: Surface, kind: string, at: At, input?: unknown, onGone?: () => void }): Mounted, openPanel(app: App, surface: Surface, at: At): void, runCommand(app: App, command: Surface, at: At, args?: unknown): unknown }} Deps @typedef {{ place: string, entry: Entry & Record<string, unknown> }} Contribution */
+/** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("../core/kernel/types").At} At @typedef {{ destroy(): void }} Mounted @typedef {{ enabled(appId: string, project: string | undefined): boolean, mountView(el: HTMLElement, v: { app: App, surface: Surface, kind: string, at: At, input?: unknown, onGone?: () => void }): Mounted, openPanel(app: App, surface: Surface, at: At): void, runCommand(app: App, command: Surface, at: At, args?: unknown): unknown }} Deps @typedef {import("./contributions-types").Contribution} Contribution */
 
 export const APP_PRIORITY = 10;
 

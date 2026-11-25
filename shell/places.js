@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @import { Entry, Kernel, PlaceDef, Undo } from "../core/kernel/types" */
+/** @import { Entry, Kernel, Undo } from "../core/kernel/types" */
 
 /** @param {string} place @param {string[]} strings @param {string[]} fns @returns {(e: Entry) => void} */
 const needs = (place, strings, fns = []) => (e) => {
@@ -11,7 +11,7 @@ const needs = (place, strings, fns = []) => (e) => {
   for (const k of fns) if (typeof Reflect.get(e, k) !== "function") throw new Error(`${place} "${e.id}": ${k} must be a function`);
 };
 
-/** @type {[string, PlaceDef["kind"], PlaceDef["scope"], string, boolean, string[], string[]][]} */
+/** @type {import("./place-entry-types").CatalogSpec[]} */
 const SPECS = [
   ["page", "keyed", "app", "A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts).", false, [], ["render"]],
   ["workspace.paint", "list", "app", "Refreshes active workspace controls after the main view is drawn.", false, [], ["paint"]],

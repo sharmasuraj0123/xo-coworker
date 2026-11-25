@@ -21,3 +21,9 @@ declare module "../../core/kernel/types" {
     };
   }
 }
+
+declare module "../../core/kernel/types" {
+  interface PlaceEntries {
+    "thread.menu": { group: string; label: string; run(thread: import("../../core/services/world/state-types").WorldThread): void };
+  }
+}
