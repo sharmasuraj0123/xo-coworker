@@ -34,20 +34,6 @@
    ["requestAnimationFrame",145,""]
   ]
  },
- "modules/artifacts/cards.js": {
-  "sha256": "bc9d4d2b2ee4807ec65ccc253a4fadaf96beee21b315fabc8cf1a2bb1cfc130b",
-  "sites": [
-   ["commentOnlyCatch",43,""]
-  ]
- },
- "modules/artifacts/previews.js": {
-  "sha256": "bd2694caaa758cde6a4d8ef125fe7affece68d40ffbe8bed64e14a7f1bc5961e",
-  "sites": [
-   ["commentOnlyCatch",36,""],
-   ["commentOnlyCatch",38,""],
-   ["commentOnlyCatch",40,""]
-  ]
- },
  "modules/shells/term.js": {
   "sha256": "b30371a0fcc9006320b17e4e49edd35873df9614a219e023524f3e90e77e4815",
   "sites": [

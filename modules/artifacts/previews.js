@@ -1,6 +1,7 @@
 // @ts-check
 
 import { createScope } from "../../core/kernel/scope.js";
+import { reportStorageFailure } from "../../core/platform/storage.js";
 import { previewOf } from "./model.js";
 import { createPreviewQueue } from "./preview-queue.js";
 
@@ -33,11 +34,24 @@ export function createPreviews({ world, api, sharedFileRoute, box: boxOf, landed
   }
   /** @param {import("./types.d.ts").Made} m @param {string} kind */
   const cacheKey = (m, kind) => `/__xo-preview/${kind}/${encodeURIComponent(m.key)}/${m.at || 0}/${m.bytes ?? ""}`;
-  const cacheOpen = () => (typeof caches !== "undefined" ? caches.open(PREV_CACHE).catch(() => null) : Promise.resolve(null));
+  /** @param {unknown} error */
+  function cacheFallback(error) {
+    if (!signal.aborted) reportStorageFailure(error);
+    return null;
+  }
+  const cacheOpen = () => (typeof caches !== "undefined" ? caches.open(PREV_CACHE).catch(cacheFallback) : Promise.resolve(null));
   /** @param {import("./types.d.ts").Made} m @param {string} kind */
-  async function cached(m, kind) { const c = await cacheOpen(); const r = c && (await c.match(cacheKey(m, kind)).catch(() => null)); return r || null; }
+  async function cached(m, kind) {
+    const cache = await cacheOpen();
+    return (await cache?.match(cacheKey(m, kind)).catch(cacheFallback)) ?? null;
+  }
   /** @param {import("./types.d.ts").Made} m @param {string} kind @param {BodyInit} body @param {string} type */
-  async function keep(m, kind, body, type) { const c = await cacheOpen(); if (c) await c.put(cacheKey(m, kind), new Response(body, { headers: { "content-type": type } })).catch(() => {}); }
+  async function keep(m, kind, body, type) {
+    const cache = await cacheOpen();
+    if (signal.aborted || !cache) return;
+    const preview = new Response(body, { headers: { "content-type": type } });
+    await cache.put(cacheKey(m, kind), preview).catch(cacheFallback);
+  }
   /** A picture made small for its card: PREV_W wide at most (a card shows it at about a third of that), WebP. @param {Blob} b @returns {Promise<Blob>} */
   async function small(b) {
     if (typeof createImageBitmap !== "function" || typeof OffscreenCanvas !== "function") return b;

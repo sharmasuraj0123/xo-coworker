@@ -48,4 +48,9 @@ t("the gallery and Home show image previews inside the well", () => {
     assert.equal(preview?.getAttribute("src"), "blob:preview");
   }
 });
+t("a link with no parseable URL keeps its link label", () => {
+  const row = document.createElement("ul");
+  syncCards(row, [card({ kind: "link", url: "not a URL" })], "page");
+  assert.equal(row.querySelector(".md-ext")?.textContent, "link");
+});
 console.log(`\n${passed} passed`);

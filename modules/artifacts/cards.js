@@ -40,7 +40,10 @@ export function createCards({ PV, PROJ, naming: madeNaming }) {
     return `<span class="md-ic">${ic}</span><span class="md-ext${m.kind === "link" || m.kind === "branch" ? " is-word" : ""}">${esc(tag)}</span>`;
   }
   /** @param {string | null | undefined} u */
-  const hostOf = (u) => { try { return new URL(u || "").host; } catch { return "link"; } };
+  const hostOf = (u) => {
+    try { return new URL(u || "").host; }
+    catch (error) { if (error instanceof TypeError) return "link"; throw error; }
+  };
   /** @param {Made} m @param {Where} where */
   function cardHtml(m, where) {
     const ago = short(m.at) === "now" ? "now" : short(m.at) + " ago";
