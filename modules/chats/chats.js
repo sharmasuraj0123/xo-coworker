@@ -296,9 +296,11 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
     /** @param {string} v */
     items: (v) => {
       if (v !== "chats") { titleList.stop(); return chatItems(v.slice(2)); }
+      if (!C.all) return [];
       const rows = sessions().sort(recentFirst);
-      const searching = !scope.signal.aborted && titleList.observe(rows, C.all ? C.q.trim().toLowerCase() : "");
-      return chatListItems({ list: C.list, err: C.err, all: C.all, q: C.q, searching }, { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
+      const searching = !scope.signal.aborted && titleList.observe(rows, C.q.trim().toLowerCase());
+      return chatListItems({ list: C.list, err: C.err, q: C.q, searching },
+        { rows, waiting, inTurn, heldOf, heldShort, rowLine, titleFor, world, dayGroup, rowTime });
     },
     headHtml, targetHtml, permTitle, confirmHtml, resolveConfirm, nowState,
     /** @param {string} v */

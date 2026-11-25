@@ -28,7 +28,9 @@ export const railModule = {
     const chats = ctx.use("chats"), recent = requireHtml(".side-recents");
     const list = requireHtml(".side-recents nav"), history = requireHtml("[data-chat-history]", "button");
     ctx.listen(history, "click", () => chats.showAll(true));
-    ctx.listen(requireHtml("#nv-chats"), "click", () => chats.showAll(false));
+    for (const button of document.querySelectorAll('[data-go="chats"]:not([data-chat-history])')) {
+      ctx.listen(button, "click", () => chats.showAll(false));
+    }
     ctx.provide("rail", { side, rows(needs) {
       rows(needs);
       picker.paint();

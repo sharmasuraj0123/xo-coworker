@@ -143,13 +143,12 @@ t("The Chats greeting and composer lead the page without space reserved at the f
   style(".main:has(.dock.is-top)", { "--dock-h": "0px" });
   style(".cs-hi", {
     font: "var(--fw-strong) var(--fs-display)/var(--lh-display) var(--sans)",
-    margin: "var(--cs-lead,auto) 0 var(--s-2) var(--col-x)",
+    margin: "auto 0 var(--s-2) var(--col-x)",
   });
 });
 
 t("Recent chats share the search style and align controls with the composer", () => {
-  style(".chl-more", { padding: "0 var(--halo)", "margin-right": "calc(-1 * var(--halo))", "border-radius": "var(--r)" });
-  style('.app[data-conv="chats"] .scroller:has(.chl-few,.chl-calm)>.column', { height: "0", "margin-bottom": "auto" });
+  style('.app[data-conv="chats"] .scroller:has(#msgs:empty)>.column', { height: "0", "margin-bottom": "auto" });
   assert.ok(!rules.some(({ sel }) => sel.startsWith(".stage .tg-qf")), "the search field is one shared look");
 });
 

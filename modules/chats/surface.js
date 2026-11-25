@@ -2,7 +2,6 @@
 import { sheetGesture } from "../../shell/gestures.js";
 import { ownLayer } from "../../shell/layers.js";
 
-import { PHONE } from "../../core/platform/viewport.js";
 import { sessionOf } from "../../shell/place-context.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { pressEntry } from "../../shell/conversation-press.js";
@@ -49,8 +48,7 @@ export const chatControlsModule = {
       "intelligence", "composer", "runControls"],
     contributes: ["conversation.press:chat-message"] },
   activate(ctx) {
-    if (!PHONE) throw new Error("Chat controls need media queries");
-    const phone = PHONE, view = ctx.use("currentView"), session = ctx.use("conversationSession");
+    const view = ctx.use("currentView"), session = ctx.use("conversationSession");
     const chats = ctx.use("chats"), { updateComposer, putBack, liveBlock, refuse, mentions } = ctx.use("composer");
     const composer = () => session.composer.say;
     const stop = ctx.use("runControls").stopRun, intel = ctx.use("intelligence");
@@ -119,8 +117,7 @@ export const chatControlsModule = {
     const setup = requireHtml("#cs-pop");
     sheetGesture(ctx, { host: setup, open: () => chats.setupOpen && setup.classList.contains("is-sheet"),
       close: () => { chats.closeSetup(); updateComposer(); } });
-    bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, scroller: requireHtml("#scroller"),
-      greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"), phone, updateComposer });
+    bindChatControls({ scope: ctx, list: requireHtml("#msgs"), chats, setup, updateComposer });
     const reply = replyNotices(
       view, ctx.use("projectName"), ctx.use("notices").show, ctx.use("announce"), () => ctx.invalidate("workspace"));
     ctx.effect(() => ctx.use("world").onEvent(reply));
