@@ -5,7 +5,8 @@ const { document, window } = await dom('<button id="outside">Outside the panel</
 globalThis.innerWidth = 1440;
 const storage = new Map();
 globalThis.localStorage = { getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
-globalThis.matchMedia = () => ({ matches: true, addEventListener() {} });
+globalThis.matchMedia = () => Object.assign(document.createElement("span"), { matches: true });
+globalThis.cancelAnimationFrame = clearTimeout;
 window.HTMLElement.prototype.getAnimations = () => [];
 
 const { createKernel } = await import("../core/kernel/index.js");
@@ -144,4 +145,10 @@ assert.equal(threadList.classList.contains("is-fade"), true);
 threadList.scrollTop = 100;
 threadList.dispatchEvent(new window.Event("scroll", { bubbles: true }));
 assert.equal(threadList.classList.contains("is-fade"), false);
+panel.disposeLayout();
+threadList.scrollTop = 0;
+threadList.dispatchEvent(new window.Event("scroll", { bubbles: true }));
+assert.equal(threadList.classList.contains("is-fade"), false, "the retired Stage releases its scroll listener");
+assert.equal(places.get("panel.page", "shell"), undefined);
+assert.equal(stage.querySelectorAll(".stg-pg").length, 0, "retiring the Stage unmounts its pages");
 console.log("stage head and Back follow the visible page");

@@ -81,7 +81,7 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
     edgePending = true;
     layoutScope.frame(() => { edgePending = false; for (const list of el.querySelectorAll(LISTS)) edge(list); });
   }
-  el.addEventListener("scroll", (/** @type {Event} */ e) => {
+  layoutScope.listen(el, "scroll", (/** @type {Event} */ e) => {
     const target = /** @type {Element | null} */ (e.target);
     if (target?.matches?.(LISTS)) edge(target);
   }, { capture: true, passive: true });
@@ -91,8 +91,9 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
   body("agents").innerHTML = `<div class="tg-q" hidden><label class="tg-qf">${ICON.search}<input type="search" data-tg-q placeholder="Filter threads" aria-label="Filter threads by title, summary or branch" aria-keyshortcuts="/" autocomplete="off" spellcheck="false"></label><kbd class="tg-k" aria-hidden="true">/</kbd></div><div class="tg-box"></div>`;
   {
     const inp = filter();
-    inp.addEventListener("input", () => { S.tq = inp.value; paint(); });
-    inp.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
+    layoutScope.listen(inp, "input", () => { S.tq = inp.value; paint(); });
+    layoutScope.listen(inp, "keydown", (event) => {
+      const e = /** @type {KeyboardEvent} */ (event);
       if (e.key === "Escape" && inp.value) { e.preventDefault(); e.stopPropagation(); inp.value = ""; S.tq = ""; paint(); return; }
       // empty, Esc puts a field you opened away again and goes back to the search button
       if (e.key === "Escape" && S.tqOpen) { e.preventDefault(); e.stopPropagation(); S.tqOpen = false; paint(); query("[data-tg-find]")?.focus({ preventScroll: true }); return; }
@@ -128,7 +129,7 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
 
   /** @type {(v: string) => string} */
   let nameOf = () => "";
-  const PG = createPages({ el, S, places, at, view, threads, shell, nameOf: () => nameOf, placeless, open, close, paint, onChange });
+  const PG = createPages({ el, S, scope: layoutScope, places, at, view, threads, shell, nameOf: () => nameOf, placeless, open, close, paint, onChange });
   const { PAGES, show, back, dropPages, requestClose, setShell } = PG;
   const titleActions = bindTitleActions(query("[data-stg-shell], [data-stg-full]"), places, layoutScope);
   const mapLayout = { hide: () => binding.map?.hide(), show: (/** @type {string} */ v) => binding.map?.show(v) };
@@ -278,7 +279,7 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
     paint();
   }
 
-  el.addEventListener("click", (e) => {
+  layoutScope.listen(el, "click", (e) => {
     const t = e.target;
     if (!(t instanceof Element)) return;
     const closest = (/** @type {string} */ selector) => /** @type {HTMLElement | null} */ (t.closest(selector));
@@ -314,7 +315,8 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
     const destination = closest("[data-go]")?.dataset.go;
     if (destination) openFromPanel(destination, e);
   });
-  el.addEventListener("keydown", (e) => {
+  layoutScope.listen(el, "keydown", (event) => {
+    const e = /** @type {KeyboardEvent} */ (event);
     // inside the Shell page's terminal every key is the shell's, by the shells' own rule
     if (owns(e) || !(e.target instanceof Element)) return;
     const tab = e.target.closest("[data-map-mode]");

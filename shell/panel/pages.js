@@ -12,10 +12,10 @@ import { RM } from "../../core/ui/motion.js";
 
 /** @typedef {{ title?: string | ((key: string) => string), backTo?: (key: string) => string, lead?: (key: string) => string, act?: (name: string, el: Element) => void, mount?: (host: HTMLElement, at: At & { key: string }) => void | (() => void), onShow?: (key: string, opts: { focus: boolean }) => void, focusEntry?: (heading: HTMLElement | null, input: EntryInput) => void, onHide?: (key: string) => void, close?: (key: string) => void, canClose?: (key: string) => boolean | Promise<boolean>, up?: (key: string) => boolean, escape?: (key: string) => boolean, over?: boolean }} PageSpec */
 
-/** @typedef {{ el: HTMLElement, S: { page: Page | null, under: Page | null, open: boolean }, places: import("./panel-types").StageDeps["places"], at: () => At, view: () => string, threads: ((view: string) => { k: string, rows: unknown[] }[]) | null, shell: ((on: boolean, host?: HTMLElement, view?: string) => void) | null, nameOf: () => (view: string) => string, placeless: () => boolean, open: (opts?: { focus?: boolean }) => void, close: () => void, paint: () => void, onChange?: () => void }} PagesDeps */
+/** @typedef {{ el: HTMLElement, scope: Pick<import("../../core/kernel/types").ModuleContext, "effect" | "signal">, S: { page: Page | null, under: Page | null, open: boolean }, places: import("./panel-types").StageDeps["places"], at: () => At, view: () => string, threads: ((view: string) => { k: string, rows: unknown[] }[]) | null, shell: ((on: boolean, host?: HTMLElement, view?: string) => void) | null, nameOf: () => (view: string) => string, placeless: () => boolean, open: (opts?: { focus?: boolean }) => void, close: () => void, paint: () => void, onChange?: () => void }} PagesDeps */
 
 /** @param {PagesDeps} deps */
-export function createPages({ el, S, places, at, view, threads, shell, nameOf, placeless, open, close, paint, onChange }) {
+export function createPages({ el, S, scope, places, at, view, threads, shell, nameOf, placeless, open, close, paint, onChange }) {
   const PAGES = { get: (/** @type {string} */ name) => /** @type {PageSpec | undefined} */ (places.get("panel.page", name)) };
   /** @type {Map<string, HTMLElement>} */
   const boxes = new Map();
@@ -33,8 +33,8 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     registered.set(name, places.contribute("panel.page", { ...spec, id: name }, "xo.shell"));
   }
 
-  places.watch("panel.page", () => {
-    if (replacing) return;
+  scope.effect(() => places.watch("panel.page", () => {
+    if (scope.signal.aborted || replacing) return;
     for (const [name, box] of boxes) {
       if (PAGES.get(name)) continue;
       closePage(name);
@@ -44,6 +44,14 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
       box.remove();
     }
     reflect();
+  }));
+  scope.effect(() => () => {
+    for (const undo of mounts.values()) undo?.();
+    for (const box of boxes.values()) box.remove();
+    mounts.clear();
+    boxes.clear();
+    for (const undo of registered.values()) undo();
+    registered.clear();
   });
 
   /** @param {string} name */
@@ -141,6 +149,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     }
     spec.onShow?.(next.key, { focus });
     const settle = () => {
+      if (scope.signal.aborted) return;
       box.style.zIndex = "";
       if (S.page?.name !== name) return;
       if (old && old !== box) old.hidden = true;
@@ -180,6 +189,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
     for (const box of boxes.values()) {
       box.getAnimations().forEach((animation) => animation.cancel());
       box.hidden = true;
+      if (scope.signal.aborted) return;
       box.style.zIndex = "";
     }
     S.page = S.under = null;
@@ -204,6 +214,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
       try { if ((await PAGES.get(entry.name)?.canClose?.(entry.key)) === false) return false; }
       catch (error) { reportFailure(error); return false; }
     }
+    if (scope.signal.aborted) return false;
     close();
     return true;
   }
