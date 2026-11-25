@@ -4,15 +4,15 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 491 |
+| moved | 493 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 107 |
+| planned | 105 |
 | kept | 90 |
 | split | 39 |
 | split-region | 3 |
 
-Items inside first-party files: 2488 (moved 1776, planned 260, kept 230, deleted 219, split 3), in `ledger.json` as `path::kind::name`.
+Items inside first-party files: 2488 (moved 1784, planned 252, kept 230, deleted 219, split 3), in `ledger.json` as `path::kind::name`.
 
 ## root (7)
 
@@ -369,8 +369,8 @@ Items inside first-party files: 2488 (moved 1776, planned 260, kept 230, deleted
 | `tests/browser/coordinator-busy.test.cjs` | 80 | planned | e2e/specs/coordinator-busy.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/flows.test.cjs` | 4372 | planned | e2e/specs/flows.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/harness.cjs` | 444 | planned | e2e/lib (space.mjs, store.mjs, settle.mjs, browser.mjs) + e2e/run.mjs · next: the static fixture server moved to e2e/fixtures/browser-static-server.cjs; the in-page mock world retires when the last suite moves |
-| `tests/browser/held-contract.test.cjs` | 99 | planned | e2e/specs/held-contract.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
-| `tests/browser/held-waiting.test.cjs` | 151 | planned | e2e/specs/held-waiting.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
+| `tests/browser/held-contract.test.cjs` | 99 | moved | e2e/specs/held-contract.spec.mjs · next: Four browser profiles passed on 2b9d2503 with the captured Space rows and stream frames. |
+| `tests/browser/held-waiting.test.cjs` | 151 | moved | e2e/specs/held-waiting.spec.mjs · next: Eight browser cases passed on 2b9d2503. The obsolete project waiting subtotal was retired against release d639012b, and tests/panel-threads.test.mjs verifies the mounted count and activity markers. |
 | `tests/browser/lpshell.test.cjs` | 1008 | planned | e2e/specs/lpshell.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/settings.test.cjs` | 1464 | planned | e2e/specs/settings.spec.mjs · next: rewritten as cases: seeded store, settle barrier, ARIA snapshots |
 | `tests/browser/smoke.test.cjs` | 115 | moved | e2e/specs/smoke.spec.mjs · next: Eight public UI cases passed in dark and light at 1440×900 and 390×844, DPR 1, on 2b9d2503. |

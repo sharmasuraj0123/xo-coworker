@@ -4807,14 +4807,20 @@
    "note": "the static fixture server moved to e2e/fixtures/browser-static-server.cjs; the in-page mock world retires when the last suite moves"
   },
   "tests/browser/held-contract.test.cjs": {
-   "status": "planned",
+   "status": "moved",
    "home": "e2e/specs/held-contract.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "note": "Four browser profiles passed on 2b9d2503 with the captured Space rows and stream frames.",
+   "evidence": {
+    "e2e/specs/held-contract.spec.mjs": { "anchor": "Space held-session contract", "reason": "The captured fixture drives the public held and resumed UI through fake Space HTTP and SSE." }
+   }
   },
   "tests/browser/held-waiting.test.cjs": {
-   "status": "planned",
+   "status": "moved",
    "home": "e2e/specs/held-waiting.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots"
+   "note": "Eight browser cases passed on 2b9d2503. The obsolete project waiting subtotal was retired against release d639012b, and tests/panel-threads.test.mjs verifies the mounted count and activity markers.",
+   "evidence": {
+    "e2e/specs/held-waiting.spec.mjs": { "anchor": "casesForHeld(synthetic(explicit))", "reason": "Both backend shapes run in four browser profiles, with public Waiting, reset, Working and Stop assertions." }
+   }
   },
   "tests/browser/lpshell.test.cjs": {
    "status": "planned",
@@ -14141,12 +14147,18 @@
    "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::functions::menuOpen": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/conversation-rename.spec.mjs",
+   "evidence": {
+    "e2e/specs/conversation-rename.spec.mjs": { "anchor": "async function menuKeys(t)", "reason": "P5 C042 verifies arrow wrap, Home and End, Escape returning to the trigger, and Tab advancing focus in all four browser profiles." }
+   }
   },
   "tests/browser/conversation.test.cjs::functions::renameTo": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/conversation-rename.spec.mjs",
+   "evidence": {
+    "e2e/specs/conversation-rename.spec.mjs": { "anchor": "async function rename(t)", "reason": "P5 S009 uses the real Rename action for IME, Escape, refusal preserving the draft, and a single PATCH despite repeated Enter during a held retry." }
+   }
   },
   "tests/browser/conversation.test.cjs::functions::openAllSheet": {
    "status": "deleted",
@@ -14193,8 +14205,11 @@
    "home": "e2e/specs/conversation.spec.mjs"
   },
   "tests/browser/conversation.test.cjs::ids::tw-edit": {
-   "status": "planned",
-   "home": "e2e/specs/conversation.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/conversation-rename.spec.mjs",
+   "evidence": {
+    "e2e/specs/conversation-rename.spec.mjs": { "anchor": "await focused(page, \"#tw-edit\");\n    assert.equal(attempts, 1)", "reason": "P5 S009 verifies the field retains its draft and focus after refusal, then closes and restores trigger focus after cancellation or success." }
+   }
   },
   "tests/browser/conversation.test.cjs::ids::all-f": {
    "status": "deleted",
@@ -14795,24 +14810,39 @@
    "home": "e2e/lib/settle.mjs"
   },
   "tests/browser/held-contract.test.cjs::ids::typing": {
-   "status": "planned",
-   "home": "e2e/specs/held-contract.spec.mjs"
+   "status": "moved",
+   "home": "e2e/lib/held-sessions.mjs",
+   "evidence": {
+    "e2e/lib/held-sessions.mjs": { "anchor": "async function heldLine(t, isThread)", "reason": "The contract spec invokes the shared public typing checks for Waiting, reset time and resumed Working." }
+   }
   },
   "tests/browser/held-waiting.test.cjs::functions::world": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "moved",
+   "home": "e2e/lib/held-sessions.mjs",
+   "evidence": {
+    "e2e/lib/held-sessions.mjs": { "anchor": "function synthetic(explicit)", "reason": "Builds the inferred and explicit waiting payloads as fake Space seeds." }
+   }
   },
   "tests/browser/held-waiting.test.cjs::ids::typing": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "moved",
+   "home": "e2e/lib/held-sessions.mjs",
+   "evidence": {
+    "e2e/lib/held-sessions.mjs": { "anchor": "await heldLine(t, false)", "reason": "The coordinator and both threads show the reset time with no Working effects or Stop; the executing sessions resume after reset." }
+   }
   },
   "tests/browser/held-waiting.test.cjs::ids::herald": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "moved",
+   "home": "e2e/lib/held-sessions.mjs",
+   "evidence": {
+    "e2e/lib/held-sessions.mjs": { "anchor": "the Paused until line clears typing by", "reason": "Checks the connection notice's reset time and clearance from the waiting status row." }
+   }
   },
   "tests/browser/held-waiting.test.cjs::ids::msgs": {
-   "status": "planned",
-   "home": "e2e/specs/held-waiting.spec.mjs"
+   "status": "moved",
+   "home": "e2e/lib/held-sessions.mjs",
+   "evidence": {
+    "e2e/lib/held-sessions.mjs": { "anchor": "getByText(\"Try when it resets\", { exact: true })", "reason": "The waiting thread's transcript message is present in the live Messages log." }
+   }
   },
   "tests/browser/lpshell.test.cjs::functions::done": {
    "status": "planned",
