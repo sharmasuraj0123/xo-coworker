@@ -6,7 +6,7 @@ const ORDER = {
   escape: ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"],
   tab: ["keys", "jump", "settings", "drawer"],
 };
-/** @param {import("../core/kernel/types").Layers} layers @param {import("./layer-queries.js").AppLayer[]} list */
+/** @param {Pick<import("../core/kernel/types").Layers, "push" | "back" | "escape">} layers @param {import("./layer-queries.js").AppLayer[]} list */
 export function stackLayers(layers, list) {
   const entries = new Map(list.map((layer) => [layer.id, layer]));
   if (entries.size !== list.length) throw new Error("shell layers must have unique ids");

@@ -46,8 +46,8 @@ export function dockGestures(tdock, scope) {
   });
 }
 
-/** @param {SurfaceGestures} A @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */
-export function wireGestures(A, wordsOf, scope) {
+/** @param {SurfaceGestures} A @param {ReturnType<typeof createScope>} scope */
+export function wireGestures(A, scope) {
   const $ = (/** @type {string} */ s) => /** @type {HTMLElement} */ (document.querySelector(s));
   const main = $("#main"), side = $("#side"), scrim = $("#side-scrim");
   const W = () => main.clientWidth || innerWidth;
@@ -207,7 +207,6 @@ export function wireGestures(A, wordsOf, scope) {
   });
 
 
-  conversationGestures({ scroller: $("#scroller"), msgs: $("#msgs"), say: A.say, toast: A.toast }, wordsOf, scope);
 }
 
 /** @param {HTMLElement} runsCard @param {() => boolean} detail @param {() => void} back @param {AbortSignal} signal */

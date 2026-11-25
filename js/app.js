@@ -9,11 +9,10 @@ import "../core/ui/components/xo-select.js";
 import * as Kit from "../modules/decisions/kit.js";
 import { intelModule } from "../modules/chats/intel-surface.js";
 import { dockAtTop } from "../modules/conversation/dock-layout.js";
-import { PAGE_OF, sessionOf } from "../shell/place-context.js";
+import { PAGE_OF } from "../shell/place-context.js";
 import { runsModule } from "../modules/runs/module.js";
 import { shortcutsModule } from "../modules/settings/shortcuts-sheet.js";
 import { settingsModule, settingsFrameModule } from "../modules/settings/module.js";
-import { requireHtml } from "../core/platform/dom.js";
 import { shapeViewModule } from "../modules/settings/application.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
@@ -33,13 +32,12 @@ import { railCountsModule } from "../shell/rail/counts.js";
 import { railModule } from "../shell/rail/module.js";
 import { kernel, failureModule } from "../shell/kernel.js";
 import { createWorkspaceHeader } from "../shell/workspace-header.js";
-import { mountShellInteractions } from "../shell/interactions.js";
+import { interactionModule } from "../shell/interactions.js";
 import { edgeCardsModule } from "../shell/edge-cards.js";
 import { createShellRenderer } from "../shell/render.js";
 import { appServicesModule } from "../shell/world.js";
 import { shapeModule } from "../core/services/shape/module.js";
 import { createScope } from "../core/kernel/scope.js";
-import { PHONE } from "../core/platform/viewport.js";
 import { startupModule } from "../shell/start.js";
 import { bootShell } from "../shell/boot.js";
 import { launchpadModule } from "../modules/launchpad/surface.js";
@@ -56,7 +54,6 @@ import { shellDockModule, shellPanelModule } from "../modules/shells/surface.js"
 import { artifactsModule } from "../modules/artifacts/module.js";
 import { sinceModule } from "../modules/since/module.js";
 import { homeModule, homeSkeletonModule } from "../modules/home/module.js";
-import { wordsOf } from "../modules/conversation/words.js";
 import { threadRuntimeModule, runtimeSettingsModule } from "../modules/runtimes/module.js";
 import { SHAPE_IC } from "../modules/settings/index.js";
 import { themeModule } from "../core/ui/theme.js";
@@ -74,33 +71,27 @@ const workspaceModule = {
   activate(ctx) {
 const appScope = createScope();
 ctx.effect(() => appScope.dispose);
-const phone = PHONE;
-if (!phone) throw new Error("The application requires media queries.");
 const world = ctx.use("world");
 const navigationState = ctx.use("navigationState"), place = ctx.use("placeContext"), redrawFocus = ctx.use("redrawFocus");
-const setDrawer = ctx.use("drawer").set, toastLine = ctx.use("toastLine");
 const schedule = () => ctx.invalidate("workspace");
-const session = ctx.use("conversationSession"), { go, back } = ctx.use("navigation");
+const session = ctx.use("conversationSession");
 const { projects, convThread } = place;
 const currentView = navigationState.view;
 const { main: MAIN, region: placeRegion } = session;
-const { composer: MK, focus: { composerNow } } = session;
+const { composer: MK } = session;
 const { say } = MK;
 const { convHost } = ctx.use("messageContext");
 
-const { side: SIDE, rows: sideRender } = ctx.use("rail");
+const { rows: sideRender } = ctx.use("rail");
 
 const threadControls = ctx.use("threadControls");
 
 const { isBusy } = threadPresentation;
 const { D, pings } = ctx.use("decisionPresentation");
-const { intelligence: IQ, toggle: toggleIq, activate: activateIntel } = ctx.use("intelligence");
+const { activate: activateIntel } = ctx.use("intelligence");
 
 const CH = ctx.use("chats");
 const files = () => ctx.optional("files");
-const { quickOpen: QO } = ctx.use("fileSearch");
-const LB = ctx.use("lightbox");
-const SH = ctx.use("shellDock");
 
 const wsHeadRender = createWorkspaceHeader(currentView, projects);
 const { PICK, projectIcon } = ctx.use("projectIcons");
@@ -120,10 +111,10 @@ const dockRender = MDOCK.render;
 const composer = ctx.use("composer");
 const {
     targetLineRender,
-    syncPlaceholder, chipRender, sendRender, chatTargetRender, updateComposer } = composer;
+    syncPlaceholder, chipRender, sendRender, chatTargetRender } = composer;
 const { heraldRender } = ctx.use("noticeLine");
 
-const { scroller, msgsEl, loadAhead } = ctx.use("mainViewport");
+const { msgsEl, loadAhead } = ctx.use("mainViewport");
 /** @type {import("../core/kernel/types").Services["transcript"]} */
 const drawConv = (conversation, needs) => ctx.optional("transcript")?.(conversation, needs);
 
@@ -132,14 +123,6 @@ const topRender = mountConversationHeader({
   convHost, homeParts: (needs) => ctx.optional("home")?.homeParts(needs) ?? { held: [] }, threadCounts, projectIcon, threadMenuHtml, rtTag, location: navigationState, CH, checklistRender, tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),
 }, appScope, schedule);
 
-const CREATE = { close: () => ctx.optional("createProject")?.close(), isOpen: () => ctx.optional("createProject")?.isOpen() ?? false };
-
-const jump = requireHtml("#jump");
-const JUMP = { open: () => ctx.optional("jump")?.open(), close: () => ctx.optional("jump")?.close() };
-const { keys, openKeys, closeKeys } = ctx.use("shortcuts");
-const setEl = requireHtml("#settings");
-/** @param {Parameters<import("../core/kernel/types").Services["settingsFrame"]["close"]>[0]} [options] */
-function closeSettings(options) { ctx.optional("settingsFrame")?.close(options); }
 
 /** @type {Parameters<typeof createShellRenderer<DecisionNeed, WorldThread, Conversation>>[0]} */
 const rendererOptions = {
@@ -156,18 +139,11 @@ appScope.effect(() => kernel.bus.on("app:render", () => {
 }));
 
 
-const applyInert = mountShellInteractions(appScope, kernel.layers, {
-  PHONE: phone, navigationState, capturing: () => ctx.optional("settingsFrame")?.capturing() ?? false, SH, jump, IQ, CREATE, keys, files, QO, back, go, JUMP,
-  composerNow, toggleIq, sessionOf, openKeys, STAGE, SIDE, runsLayer: { id: "runs", open: () => ctx.optional("runs")?.isOpen() ?? false, close: () => ctx.optional("runs")?.back() }, closeKeys, LB, setEl, closeSettings,
-  setDrawer, D, CH, PAGE_OF, world, updateComposer, say, toastLine, wordsOf, scroller,
-});
-appScope.effect(() => kernel.bus.on("app:sync-inert", applyInert));
-
   },
 };
 
 await bootShell([
-  railModule, startupModule, jumpModule, homeModule, themeModule, settingsModule, settingsFrameModule, shapeViewModule, shortcutsModule, runtimeSettingsModule,
+  interactionModule, railModule, startupModule, jumpModule, homeModule, themeModule, settingsModule, settingsFrameModule, shapeViewModule, shortcutsModule, runtimeSettingsModule,
   createProjectModule, projectDescriptionsModule, appServicesModule, shellFoundationModule, failureModule, shapeModule, conversationSessionModule, edgeCardsModule, changeDataModule,
   messageContextModule, decisionDockModule, chatModelModule, chatControlsModule, threadGroupsModule, checklistModule, conversationPresentationModule, launchpadModule, intelModule, projectIconsModule, threadRuntimeModule, decisionModule, navigationModule, threadPresentationModule, homeSkeletonModule, railCountsModule, workspaceModule, githubModule, sinceModule, artifactsModule,
   threadPageModule, threadControlsModule, threadActionsModule, conversationPressModule, conversationMediaModule, noticeLineModule, mainViewportModule, transcriptModule, stageModule, filesModule, composerModule, shellDockModule, shellPanelModule, fileSearchModule, fileQuestionsModule, runsModule, runControlsModule, mapAgentsModule, mapModule, changesModule, routingModule, rulesModule, worktreesModule,

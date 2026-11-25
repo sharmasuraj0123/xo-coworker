@@ -137,6 +137,7 @@ export interface ModuleContext {
   onFlush(key: string, fn: () => void): Undo;
   invalidate(key?: string): void;
   pushLayer(layer: Layer): Undo;
+  readonly layers: Pick<Layers, "back" | "escape">;
   readonly places: Pick<Places, "entries" | "get" | "first" | "watch" | "has">;
   log(...args: unknown[]): void;
 }

@@ -16,7 +16,6 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
   globalThis.getSelection = () => null;
   globalThis.innerWidth = 400;
   const { wireGestures, wireRunsGesture } = await import("../shell/gestures.js");
-  const { wordsOf } = await import("../modules/conversation/words.js");
   const conv = document.getElementById("conv"), runsCard = document.getElementById("runs-card");
   Object.defineProperty(runsCard, "offsetWidth", { value: 400 });
   const calls = [];
@@ -25,7 +24,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
   wireGestures({
     view: () => "t:thread", phone: () => true, overlay: () => false,
     back: () => calls.push("thread"), sheets: [],
-  }, wordsOf, scope);
+  }, scope);
   wireRunsGesture(runsCard, () => runsDeep, () => calls.push("runs"), scope.signal);
   const swipe = async (target, distance) => {
     const send = (type, clientX, timeStamp) => {

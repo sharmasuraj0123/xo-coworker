@@ -2828,7 +2828,7 @@
      "reason": "The shell dispatches shared clicks to currently mounted feature contributions in the original order."
     },
     "shell/interactions.js": {
-     "anchor": "export function mountShellInteractions",
+     "anchor": "export const interactionModule",
      "reason": "The shell composes its layers, global keys, history and touch gestures."
     },
     "shell/panel/header-controls.js": {

@@ -37,7 +37,7 @@ test("the live phone viewer leaves horizontal drags inside CodeMirror to the edi
       phone: () => true,
       viewerOpen: () => true,
       sheets: [],
-    }, () => "", scope);
+    }, scope);
     const touch = (target, type, clientX) => {
       const event = new window.Event(type, { bubbles: true, cancelable: true });
       const points = [{ identifier: 1, clientX, clientY: 30 }];

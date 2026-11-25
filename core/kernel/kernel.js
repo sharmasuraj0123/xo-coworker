@@ -70,6 +70,7 @@ export function createKernel(opts = {}) {
       listen: U.listen, timeout: U.timeout, interval: U.interval, frame: U.frame, observe: U.observe, signal: U.signal,
       onFlush: (key, fn) => U.effect(() => scheduler.onFlush(key, fn)),
       invalidate: (key) => scheduler.invalidate(key),
+      layers: { back: (order) => !U.signal.aborted && layers.back(order), escape: (order) => !U.signal.aborted && layers.escape(order) },
       pushLayer: (layer) => U.effect(() => layers.push(layer, id)),
       places: { entries: places.entries, get: places.get, first: places.first, watch: (p, fn) => U.effect(() => places.watch(p, fn)), has: places.has },
       log: (...a) => log(`[${id}]`, ...a),

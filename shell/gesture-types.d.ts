@@ -18,6 +18,4 @@ export interface SurfaceGestures {
   closeViewer(): void;
   sheets: Sheet[];
   panelOpen(): boolean;
-  say?: HTMLElement;
-  toast?: (message: string) => void;
 }
