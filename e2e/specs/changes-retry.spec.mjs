@@ -17,7 +17,9 @@ const patch = ["diff --git a/example.js b/example.js", "--- a/example.js", "+++ 
 const seed = {
   files: { demo: { [path]: after + "\n" } },
   routes: {
-    "GET /api/xo-projects/demo/github/issues": { repo: null, issues: [] },
+    "GET /api/xo-projects/demo/github/issues": {
+      project_id: "demo", repo: null, fetched_at: null, error: null, issues: [], untracked: 0, tracked: 0, state: "no_remote",
+    },
     "GET /api/xo-projects/demo/versions": { relative_path: path, versions: [], head: null, more: false },
     "GET /api/coworker/xo-projects/demo/paths": { root: "/home/test/demo", paths: [path], dirs: [], truncated: false, stamp: "fixture" },
   },
@@ -46,7 +48,7 @@ async function holdPatch(t) {
 }
 
 /** @param {Tools} t @param {boolean} phone @param {string} theme */
-async function retry(t, phone, theme) {
+async function openRefusal(t, phone, theme) {
   const { page } = t;
   page.setDefaultTimeout(3500);
   const fixture = await holdPatch(t);
@@ -69,6 +71,13 @@ async function retry(t, phone, theme) {
     const viewer = await page.evaluate(() => document.getElementById("viewer")?.innerText.slice(0, 300));
     throw new Error(`Changes refusal rendered after ${fixture.reads()} patch reads: ${JSON.stringify(viewer)}`, { cause });
   }
+  return { body, error, fixture, visible };
+}
+
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function retry(t, phone, theme) {
+  const { page } = t;
+  const { body, error, fixture, visible } = await openRefusal(t, phone, theme);
   const failedReads = fixture.reads();
   assert.ok(failedReads > 0);
   await t.settle();
@@ -94,8 +103,51 @@ async function retry(t, phone, theme) {
   assert.equal(fixture.reads(), failedReads + 1);
 }
 
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function retryPaint(t, phone, theme) {
+  const { page } = t;
+  const { error, fixture } = await openRefusal(t, phone, theme);
+  const button = error.getByRole("button", { name: "Try again", exact: true });
+  const failedReads = fixture.reads();
+  await button.scrollIntoViewIfNeeded();
+  const box = await button.boundingBox();
+  assert.ok(box && box.width > 0 && box.height > 0);
+  const clip = { x: Math.floor(box.x), y: Math.floor(box.y), width: Math.ceil(box.width), height: Math.ceil(box.height) };
+  const paint = () => button.evaluate((/** @type {Element} */ el) => {
+    const { color, textDecorationColor, opacity } = getComputedStyle(el);
+    return { color, underline: textDecorationColor, opacity: Number(opacity) };
+  });
+  await page.mouse.move(2, 2);
+  await t.settle();
+  const rest = await paint();
+  const restShot = await page.screenshot({ clip });
+  await button.hover();
+  await t.settle();
+  const hover = await paint();
+  const hoverShot = await page.screenshot({ clip });
+  try {
+    await page.mouse.down();
+    await t.settle();
+    const pressed = await paint();
+    const pressedShot = await page.screenshot({ clip });
+    assert.notEqual(hover.color, rest.color);
+    assert.notEqual(hover.underline, rest.underline);
+    assert.ok(pressed.opacity < hover.opacity);
+    assert.equal(hoverShot.equals(restShot), false);
+    assert.equal(pressedShot.equals(restShot) || pressedShot.equals(hoverShot), false);
+  } finally {
+    await page.mouse.move(2, 2);
+    await page.mouse.up();
+  }
+  await t.settle();
+  assert.equal(fixture.reads(), failedReads);
+  assert.equal(await error.isVisible(), true);
+}
+
 /** @type {Omit<Case, "file">[]} */
-export const cases = viewports.flatMap((viewport) => ["dark", "light"].map((theme) => ({
-  name: `Changes read refusal and keyboard retry at ${viewport} ${theme}`, viewport, seed,
-  run: (/** @type {Tools} */ t) => retry(t, viewport === "phone", theme),
-})));
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((theme) => [
+  { name: `Changes read refusal and keyboard retry at ${viewport} ${theme}`, viewport, seed,
+    run: (/** @type {Tools} */ t) => retry(t, viewport === "phone", theme) },
+  { name: `Changes retry has distinct rest hover and pressed paint at ${viewport} ${theme}`, viewport, seed,
+    run: (/** @type {Tools} */ t) => retryPaint(t, viewport === "phone", theme) },
+]));

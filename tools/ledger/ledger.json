@@ -14584,7 +14584,7 @@
   "tests/browser/flows.test.cjs::functions::diffOpen": {
    "status": "planned",
    "home": "e2e/specs/flows.spec.mjs",
-   "note": "VW-DIFF-ERR is covered by e2e/specs/changes-retry.spec.mjs (Changes read refusal and keyboard retry). Two native presses redraw the selected Changes view without rereading or hiding the refusal. One explicit Retry shows pending status, renders the patch and keeps focus. All four browser profiles passed on release and integration. Other diffOpen cases, including the retry paint check, remain open."
+   "note": "VW-DIFF-ERR is covered by e2e/specs/changes-retry.spec.mjs (Changes read refusal and keyboard retry). Two native presses redraw the selected Changes view without rereading or hiding the refusal. One explicit Retry shows pending status, renders the patch and keeps focus. All four browser profiles passed on release and integration. The S139 retry paint case passed all four profiles on b9083e02 and release d639012b: rest, hover and press produced distinct pixels, and releasing away triggered no read. The held and late diff cases and other diffOpen cases remain open."
   },
   "tests/browser/flows.test.cjs::functions::movePicker": {
    "status": "planned",
