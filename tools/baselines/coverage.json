@@ -1,14 +1,4 @@
 {
- "core/ui/components/hold.js": {
-  "sha256": "3ee49e55a52c1ac913e32082de5aaac0bf91169ed89abf8fe9284587631a2607",
-  "sites": [
-   ["setTimeout",27,""],
-   ["requestAnimationFrame",51,""],
-   ["globalListener",58,""],
-   ["globalListener",58,""],
-   ["requestAnimationFrame",61,""]
-  ]
- },
  "core/ui/lightbox.js": {
   "sha256": "f33c22970620f13c72492998d1b6a466bcb75b1029313a975407649274005deb",
   "sites": [

@@ -1,6 +1,7 @@
 // @ts-check
 
-// Press and hold to confirm a destructive action: one guard and the one button drawn on it.
+import { createScope } from "../../kernel/scope.js";
+import { reportFailure } from "../../platform/util.js";
 
 export const HOLD_MS = 1200;
 
@@ -12,53 +13,65 @@ export function holdButton(btn, { ready, onConfirm, onRefuse, onRelease, holding
     const b = document.createElement("span"); b.className = "ht-b"; b.setAttribute("aria-hidden", "true"); b.textContent = holding;
     txt.replaceChildren(a, b);
   }
-  /** @type {ReturnType<typeof setTimeout> | undefined} */
-  let back;
+  const drain = createScope();
+  let cancelDrain = () => {};
   return holdToConfirm(btn, {
     ready,
     onProgress: (p) => {
-      if (p > 0 && btn.classList.contains("is-releasing")) { clearTimeout(back); btn.classList.remove("is-releasing"); } // held again mid-drain: the fill follows the hand
+      if (p > 0 && btn.classList.contains("is-releasing")) { cancelDrain(); btn.classList.remove("is-releasing"); }
       btn.style.setProperty("--p", String(p)); btn.classList.toggle("tense", p > 0.8 && p < 1);
     },
-    onConfirm: () => { btn.classList.remove("tense"); try { navigator.vibrate?.(24); } catch { /* not allowed */ } onConfirm(); }, // the one buzz is the hold completing
+    onConfirm: () => {
+      btn.classList.remove("tense");
+      try { navigator.vibrate?.(24); }
+      catch (error) {
+        if (!(error instanceof DOMException && ["SecurityError", "NotAllowedError", "NotSupportedError"].includes(error.name))) reportFailure(error);
+      }
+      onConfirm();
+    },
     onRefuse,
     onRelease: () => {
       btn.classList.remove("tense"); btn.classList.add("is-releasing");
-      clearTimeout(back); back = setTimeout(() => btn.classList.remove("is-releasing"), 260);
-      onRelease && onRelease();
+      cancelDrain();
+      cancelDrain = drain.timeout(() => btn.classList.remove("is-releasing"), 260);
+      onRelease?.();
     },
   });
 }
 
 /** Press-and-hold guard: a pointer or Enter/Space held for ms confirms; let go early, a click alone, or ready() refusing does nothing. @param {HTMLElement} btn @param {{ ms?: number, ready: () => true | string, onProgress: (p: number) => void, onConfirm: () => void, onRefuse?: (why: string) => void, onRelease?: () => void }} opts */
 export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm, onRefuse, onRelease }) {
-  let t0 = 0, raf = 0;
+  let t0 = 0;
+  /** @type {ReturnType<typeof createScope> | null} */
+  let active = null;
   /** @type {"pointer" | "key" | null} */
   let via = null;
   const onAway = (/** @type {Event} */ e) => { if (e.type === "blur" || document.hidden) stop(true); };
   const stop = (/** @type {boolean} */ early) => {
-    if (!t0) return;
-    cancelAnimationFrame(raf);
-    t0 = 0; via = null;
-    removeEventListener("blur", onAway); document.removeEventListener("visibilitychange", onAway);
+    if (!active) return;
+    active.dispose();
+    active = null; via = null;
     btn.classList.remove("is-holding");
     btn.setAttribute("aria-pressed", "false");
-    if (early) { onProgress(0); onRelease && onRelease(); }
+    if (early) { onProgress(0); onRelease?.(); }
   };
   const tick = () => {
+    if (!btn.isConnected) { stop(false); return; }
     const p = Math.min(1, (performance.now() - t0) / ms);
     onProgress(p);
-    if (p >= 1) { stop(false); onConfirm(); } else raf = requestAnimationFrame(tick);
+    if (p >= 1) { stop(false); onConfirm(); } else active?.frame(tick);
   };
   const start = (/** @type {"pointer" | "key"} */ src) => {
-    if (t0) return;
+    if (active) return;
     const r = ready();
-    if (r !== true) { onRefuse && onRefuse(r); return; }
+    if (r !== true) { onRefuse?.(r); return; }
     via = src; t0 = performance.now();
-    addEventListener("blur", onAway); document.addEventListener("visibilitychange", onAway);
+    active = createScope();
+    active.listen(window, "blur", onAway);
+    active.listen(document, "visibilitychange", onAway);
     btn.classList.add("is-holding");
     btn.setAttribute("aria-pressed", "true");
-    raf = requestAnimationFrame(tick);
+    active.frame(tick);
   };
   btn.addEventListener("keydown", () => btn.classList.remove("by-pointer"));
   btn.addEventListener("pointerdown", (e) => {
@@ -66,7 +79,10 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     e.preventDefault();
     btn.classList.add("by-pointer"); // held by a pointer it takes focus without a ring; a key on it brings the ring back
     btn.focus(/** @type {FocusOptions} */ ({ preventScroll: true, focusVisible: false }));
-    try { btn.setPointerCapture(e.pointerId); } catch { /* old browsers */ }
+    try { btn.setPointerCapture?.(e.pointerId); }
+    catch (error) {
+      if (!(error instanceof DOMException && error.name === "NotFoundError")) reportFailure(error);
+    }
     start("pointer");
   });
   for (const ev of ["pointerup", "pointercancel", "lostpointercapture"]) btn.addEventListener(ev, () => via === "pointer" && stop(true));

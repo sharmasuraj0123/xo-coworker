@@ -166,8 +166,7 @@
   "commentLines": 2
  },
  "core/ui/components/hold.js": {
-  "commentLines": 3,
-  "commentOnlyCatch": 2
+  "commentLines": 2
  },
  "core/ui/components/xo-select.css": {
   "commentLines": 7
