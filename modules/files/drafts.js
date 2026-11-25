@@ -1,33 +1,33 @@
 // @ts-check
-
-// Unsaved edits, kept in this browser until ⌘S saves them (js/viewer.js).
-
+import { erase, read, reportStorageFailure, write } from "../../core/platform/storage.js";
 /** @import { Store, Draft } from "./types.d.ts" */
 
 const INDEX = "xo-drafts", ONE = "xo-draft:", MAX = 20, MAX_BYTES = 2 * 1024 * 1024;
 
 export const draftKey = (/** @type {string} */ project, /** @type {string} */ rel) => `${project}|${rel}`;
-
+/** @param {string} raw */
+function parseDraft(raw) {
+  try { return JSON.parse(raw); }
+  catch (error) { if (error instanceof SyntaxError) return null; throw error; }
+}
 /** @param {Store} store @returns {Record<string, number>} */
 function index(store) {
-  try { const a = JSON.parse(store.getItem(INDEX) || "{}"); return a && typeof a === "object" && !Array.isArray(a) ? a : {}; } catch { return {}; }
+  const a = read(INDEX, parseDraft, null, store, reportStorageFailure);
+  return a && typeof a === "object" && !Array.isArray(a) ? a : {};
 }
-const set = (/** @type {Store} */ store, /** @type {string} */ k, /** @type {string} */ v) => { try { store.setItem(k, v); return true; } catch { return false; } };
-const rm = (/** @type {Store} */ store, /** @type {string} */ k) => { try { store.removeItem(k); } catch { /* refused: nothing to drop */ } };
+/** @param {Store} store @param {string} k @param {string} v */
+const set = (store, k, v) => write(k, v, store, reportStorageFailure).kept;
 /** @param {Store} store @param {Record<string, number>} a */
 function putIndex(store, a) {
   if (Object.keys(a).length) return set(store, INDEX, JSON.stringify(a));
-  rm(store, INDEX);
+  erase(INDEX, store);
   return true;
 }
-
 /** The draft kept for a file, or null. @param {Store | null} store @param {string | null} key @returns {Draft | null} */
 export function getDraft(store, key) {
   if (!store || !key) return null;
-  try {
-    const d = JSON.parse(store.getItem(ONE + key) || "null");
-    return d && typeof d.text === "string" && typeof d.base === "string" ? d : null;
-  } catch { return null; }
+  const d = read(ONE + key, parseDraft, null, store, reportStorageFailure);
+  return d && typeof d.text === "string" && typeof d.base === "string" ? d : null;
 }
 
 /** Keep a draft. False when it can't be kept (too big, storage full or refused). @param {Store | null} store @param {string | null} key @param {{ text: string, base: string, version?: string | null, at?: number }} d */
@@ -36,8 +36,8 @@ export function putDraft(store, key, { text, base, version, at = Date.now() }) {
   if ((text.length + base.length) * 2 > MAX_BYTES) return false;
   const a = index(store);
   delete a[key];
-  const old = Object.keys(a).sort((x, y) => (a[y] || 0) - (a[x] || 0)); // newest first
-  const drop = (/** @type {string} */ k) => { rm(store, ONE + k); delete a[k]; };
+  const old = Object.keys(a).sort((x, y) => (a[y] || 0) - (a[x] || 0));
+  const drop = (/** @type {string} */ k) => { erase(ONE + k, store); delete a[k]; };
   for (const k of old.splice(MAX - 1)) drop(k);
   const v = JSON.stringify({ text, base, version: version ?? null, at });
   // storage full: older drafts make room for this one, the oldest first
@@ -47,14 +47,14 @@ export function putDraft(store, key, { text, base, version, at = Date.now() }) {
   }
   a[key] = at;
   if (putIndex(store, a)) return true;
-  rm(store, ONE + key);
+  erase(ONE + key, store);
   return false;
 }
 
 /** Let a draft go (saved, discarded, or the same as the file again). @param {Store | null} store @param {string | null} key */
 export function dropDraft(store, key) {
   if (!store || !key) return;
-  rm(store, ONE + key);
+  erase(ONE + key, store);
   const a = index(store);
   if (key in a) { delete a[key]; putIndex(store, a); }
 }

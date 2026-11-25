@@ -86,14 +86,6 @@
    ["commentOnlyCatch",301,""]
   ]
  },
- "modules/files/drafts.js": {
-  "sha256": "e05a2d9971ba0e3c89e73acdb79e3c8606aba10621ad44ecadcf897fb63ed524",
-  "sites": [
-   ["commentOnlyCatch",13,""],
-   ["commentOnlyCatch",15,""],
-   ["commentOnlyCatch",30,""]
-  ]
- },
  "modules/files/editor.js": {
   "sha256": "41372cf22384d00448219ac84d67a0cb98df853c9a33cec063524c4dbb2e879d",
   "sites": [

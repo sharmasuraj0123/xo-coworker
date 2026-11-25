@@ -49,9 +49,6 @@
  "modules/files/documents.js": {
   "setTimeout": 1
  },
- "modules/files/drafts.js": {
-  "commentOnlyCatch": 1
- },
  "modules/files/editor.js": {
   "setTimeout": 1
  },
