@@ -4,7 +4,7 @@
 
 /** @typedef {{ alias(id: string): string | undefined, main(): Conversation }} MessageNavigation */
 
-/** @param {Pick<import("./composer-types").ComposerScope, "timeout">} scope @param {MessageNavigation} options */
+/** @param {Pick<import("../../core/kernel/types").ModuleContext, "timeout">} scope @param {MessageNavigation} options */
 export function createConversationNavigation(scope, { alias, main }) {
   /** @param {string} id @param {Conversation} [C] */
   function showMsg(id, C = main()) {

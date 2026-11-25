@@ -74,7 +74,7 @@ export function createMentionList({ MK, world, projects, projectIcon, isBusy, sa
     return false;
   }
 
-  /** @param {Composer} composer @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+  /** @param {Composer} composer @param {Pick<import("../../core/kernel/types").ModuleContext, "listen">} scope */
   function wire(composer, scope) {
     const { at, say } = composer;
     scope.listen(at, "mousedown", (event) => {
