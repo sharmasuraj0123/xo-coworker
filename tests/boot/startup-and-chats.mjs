@@ -22,6 +22,11 @@ const { kernel } = await import("../../shell/kernel.js");
 const { renderMarkdown } = await import("../../core/ui/markdown/markdown.js");
 const pictureMarkup = "![Diagram](https://example.org/diagram.png)";
 assert.match(renderMarkdown(pictureMarkup), /data-mx=/, "boot mounts media rendering for Markdown pictures");
+const quotedPicture = "> ![Trace](out/trace.png)";
+for (const project of ["demo", "catalog-test"]) {
+  const html = renderMarkdown(quotedPicture, "p:" + project);
+  assert.ok(html.includes('data-mx="prj:' + project + ':out/trace.png"'), "quoted media uses the rendering project's file route");
+}
 assert.equal(kernel.status("xo.since"), "active", "boot activates Since through the kernel");
 assert.equal(kernel.places.get("home.section", "hm-since")?.owner, "xo.since");
 assert.equal(kernel.places.get("header.detail", "since")?.owner, "xo.since");

@@ -79,8 +79,8 @@ function renderList(lines) {
   return html;
 }
 
-/** Render a message's markdown to an HTML string (safe to assign to innerHTML). @param {unknown} src @returns {string} */
-export function renderMarkdown(src) {
+/** @param {unknown} src @param {string} [view] @returns {string} */
+export function renderMarkdown(src, view) {
   const lines = String(src ?? "").replace(/\r\n?/g, "\n").split("\n");
   const out = [];
   /** @type {string[]} */
@@ -166,7 +166,7 @@ export function renderMarkdown(src) {
       flush();
       const body = [];
       while (i < lines.length && QUOTE.test(lines[i])) body.push(/** @type {RegExpExecArray} */ (QUOTE.exec(lines[i++]))[1]);
-      out.push(`<blockquote>${renderMarkdown(body.join("\n"))}</blockquote>`);
+      out.push(`<blockquote>${renderMarkdown(body.join("\n"), view)}</blockquote>`);
       continue;
     }
     if (BULLET.test(line) || ORDERED.test(line)) {
@@ -192,7 +192,7 @@ export function renderMarkdown(src) {
       const all = [...pics];
       i++;
       for (let more; i < lines.length && (more = imageLine(lines[i])); i++) all.push(...more);
-      out.push(imagesHtml(all));
+      out.push(imagesHtml(all, view));
       continue;
     }
     para.push(line);

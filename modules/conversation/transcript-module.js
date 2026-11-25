@@ -15,8 +15,6 @@ import { createConversationDrawing } from "./draw.js";
 export function createTranscriptModule(host) {
   /** @type {ReturnType<typeof createConversationDrawing> | undefined} */
   let draw;
-  /** @type {ReturnType<typeof createMessageItems> | undefined} */
-  let items;
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
     manifest: { id: "xo.transcript", version: "1.0.0", kernel: "^1.1.0",
@@ -44,18 +42,18 @@ export function createTranscriptModule(host) {
           return page?.latestOf(thread, project) ?? null;
         } },
         ...host, ...place, ...status, ...decision, world, SHAPE: shape, aliases: host.localMessages.aliases });
-      items = createMessageItems({ ...host, ...place, ...context, ...details, world, CHG, messagesOf });
+      const items = createMessageItems({ ...host, ...place, ...context, ...details, world, CHG, messagesOf });
       draw = createConversationDrawing({ ...host.reading, ...host, CHG, msgItems: items.msgItems, typingRender: typing.render });
       const routes = transcriptActions({ ...host.actions(), needs: decision.D.needItems, convThread: place.convThread });
       for (const [id, route] of Object.entries(routes)) {
         const key = /** @type {import("../../shell/conversation-press-types").PressId} */ (id);
         ctx.contribute("conversation.press", pressEntry(key, route));
       }
-      ctx.effect(() => () => { draw = undefined; items = undefined; });
+      ctx.effect(() => () => { draw = undefined; });
     },
   };
   return {
-    module, drawingView: () => items?.drawingView(),
+    module,
     /** @type {ReturnType<typeof createConversationDrawing>} */
     drawConv: (conversation, needs) => draw?.(conversation, needs),
   };

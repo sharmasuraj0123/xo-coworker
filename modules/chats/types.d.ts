@@ -87,7 +87,7 @@ export interface ChatDeps {
   restore?: (text: string, options?: { force?: boolean }) => boolean;
 }
 export interface Conversation {
-  turnHtml: (turn: Turn, blocks: unknown[], options: { open?: Record<string, boolean> }) => string;
+  turnHtml: (turn: Turn, blocks: unknown[], options: { view: string; open?: Record<string, boolean> }) => string;
   turnAv: (turn: Turn, blocks: unknown[]) => string;
   chatOrder: (prompts: Prompt[], turns: Turn[]) => ({ kind: "you"; m: Prompt } | { kind: "turn"; t: Turn })[];
   cliName: (name?: string | null) => string;

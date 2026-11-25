@@ -165,13 +165,13 @@ export function imageLine(line) {
   }
   return out.length ? out : null;
 }
-/** @type {((list: { alt: string, url?: string, file?: string }[]) => string | null) | null} */
+/** @type {((list: { alt: string, url?: string, file?: string }[], view?: string) => string | null) | null} */
 let webImages = null;
 /** Set the web-picture renderer; when unset, web pictures render as links. @param {unknown} fn */
 export function setWebImages(fn) { webImages = typeof fn === "function" ? /** @type {NonNullable<typeof webImages>} */ (fn) : null; }
-/** @param {{ alt: string, url?: string, file?: string }[]} list */
-export function imagesHtml(list) {
-  const shown = webImages && webImages(list);
+/** @param {{ alt: string, url?: string, file?: string }[]} list @param {string} [view] */
+export function imagesHtml(list, view) {
+  const shown = webImages && webImages(list, view);
   if (shown) return shown;
   // as links, one per line: the alt as words, else the address as a bare link reads
   return `<p>${list.map((x) => linkHtml(x.url || x.file, x.alt ? renderInline(x.alt, true) : x.file ? esc(x.file.split("/").pop()) : null) || esc(x.alt || x.url || x.file)).join("<br>")}</p>`;

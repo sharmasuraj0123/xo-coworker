@@ -11,17 +11,17 @@ export const WEBPICS = "xo:conversation/webpics";
 
 /** @typedef {{ on(key: string): boolean; word(key: string): string }} Shape */
 
-/** @typedef {(path: string | null | undefined) => FileRoute | null | undefined} ResolveFile */
+/** @typedef {(path: string | null | undefined, view?: string) => FileRoute | null | undefined} ResolveFile */
 
 /** @param {Pick<import("../../core/kernel/types").ModuleContext, "effect">} scope @param {Shape} shape @param {ResolveFile} route */
 export function mountConversationMarkdown(scope, shape, route) {
-  /** @param {{ alt: string, url?: string, file?: string }[]} list */
-  function pictures(list) {
+  /** @param {{ alt: string, url?: string, file?: string }[]} list @param {string} [view] */
+  function pictures(list, view) {
     const web = list.flatMap(({ url, alt }) => url ? [{ url, alt }] : []);
     if (web.length && !shape.on(WEBPICS)) return null;
     const own = list.flatMap(({ file, alt }) => {
       if (!file) return [];
-      return [fromSharedFile({ path: file, name: file.split("/").pop(), title: alt || null }, { route })];
+      return [fromSharedFile({ path: file, name: file.split("/").pop(), title: alt || null }, { route: (path) => route(path, view) })];
     });
     if (!web.length) return mediaHtml(own, { side: "them" });
     return (own.length ? mediaHtml(own, { side: "them" }) : "") + webImagesHtml(web);

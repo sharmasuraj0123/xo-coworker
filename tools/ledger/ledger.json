@@ -8009,7 +8009,13 @@
   },
   "js/app.js::functions::msgItemsOf": {
    "status": "moved",
-   "home": "modules/conversation/message-items.js"
+   "home": "modules/conversation/message-items.js",
+   "evidence": {
+    "modules/conversation/message-items.js": {
+     "anchor": "function msgItems(conv, needs)",
+     "reason": "Rendering carries its view directly and no longer needs a separate drawing-state wrapper."
+    }
+   }
   },
   "js/app.js::functions::wsHeadRender": {
    "status": "moved",

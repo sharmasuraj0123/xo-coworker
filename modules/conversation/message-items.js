@@ -17,9 +17,9 @@ import { turnHtml, turnAv } from "./blocks/turn.js";
 
 /** @import { Block, Turn } from "./blocks/turn.js" */
 
-/** @param {string} text */
-function proseHtml(text) {
-  const html = renderMarkdown(text);
+/** @param {string} text @param {string} view */
+function proseHtml(text, view) {
+  const html = renderMarkdown(text, view);
   return `<div class="prose${html.includes('<div class="md-table') ? " has-table" : ""}">${html}</div>`;
 }
 
@@ -39,16 +39,8 @@ export function createMessageItems({
   limitStatus, world, CH, CHG, STAGE, PROJ, projects, convThread, convProject, messagesOf, fwdSource, reactionsHtml,
   youText, startHtml, fileRoute, threadCardHtml, queuedMeta, nameOf, moveBannerHtml, passedTo, transcriptOpen,
 }) {
-  /** @type {string | null} */
-  let drawing = null;
-
   /** @param {string} conv @param {RankedNeed[]} needs */
   function msgItems(conv, needs) {
-    drawing = conv;
-    try { return msgItemsOf(conv, needs); } finally { drawing = null; }
-  }
-  /** @param {string} conv @param {RankedNeed[]} needs */
-  function msgItemsOf(conv, needs) {
     if (CH.isChats(conv)) return CH.items(conv);
     if (conv.startsWith("t:") && !convThread(conv)) {
       const known = projects().length > 0;
@@ -115,9 +107,9 @@ export function createMessageItems({
         if (under) items[items.length - 1].html = items[items.length - 1].html.replace(/^<div class="ev /, '<div class="ev is-lead ');
         html = `<div class="m m-them${(m.who === "coord" || m.coord) && convThread(conv) ? " m-coord" : ""}${cont ? " cont" : ""}${anon ? " m-anon" : ""}${under ? " m-under" : ""}">${cont ? `<div class="av av-gap"></div>` : av}<div class="mb">` +
           (cont ? "" : `<div class="mh"><b>${esc(name)}</b>${role ? `<span class="role">${esc(role)}</span>` : ""}<time>${clock(m.at)}</time>${iq}</div>`) +
-          `${m.text ? proseHtml(m.text) : ""}${media}${reactionsHtml(m.reactions)}${copy}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
+          `${m.text ? proseHtml(m.text, conv) : ""}${media}${reactionsHtml(m.reactions)}${copy}${tid ? threadCardHtml(tid, needs) : ""}${(m.threads || []).map((x) => threadCardHtml(x, needs)).join("")}</div></div>`;
       } else if (m.who === "turn") {
-        const inner = turnHtml(/** @type {Turn} */ (m.turn), /** @type {Block[]} */ (m.blocks), { open: transcriptOpen(), hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
+        const inner = turnHtml(/** @type {Turn} */ (m.turn), /** @type {Block[]} */ (m.blocks), { view: conv, open: transcriptOpen(), hideAnswer: m.hideAnswer, carried: m.carried, route: (p) => fileRoute(p, conv), by: nameOf(conv, "agent")[0], working: m.working, changed });
         if (!inner) { prev = m; continue; }
         const live = (/** @type {Turn} */ (m.turn)).status === "running", unfolded = inner.includes('aria-expanded="true"') || /class="[^"]*\bis-waiting\b/.test(inner);
         const said = live && !unfolded && /class="turn[^"]*\bis-said\b/.test(inner);
@@ -169,5 +161,5 @@ export function createMessageItems({
     return items;
   }
 
-  return { msgItems, drawingView: () => drawing };
+  return { msgItems };
 }

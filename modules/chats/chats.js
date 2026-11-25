@@ -105,7 +105,7 @@ export function createChats({ world, announce, heraldShow, go, schedule, view, r
           : m.added ? `<div class="meta"><span>Added to the turn in progress, not sent now</span>${inTurn(s) ? `<button type="button" class="meta-btn" data-chat-stop>${ICON.stop}Stop the turn</button>` : ""}</div>` : "";
         items.push({ key: `u:${m.id}`, html: `<div class="m m-you${m.status === "failed" ? " is-failed" : ""}"><div class="bubble">${esc(m.text)}</div>${meta}</div>` });
       } else {
-        const inner = turnHtml(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t), { open: transcriptOpen?.() ?? world.ui?.tbOpen });
+        const inner = turnHtml(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t), { view: "c:" + sid, open: transcriptOpen?.() ?? world.ui?.tbOpen });
         if (inner) items.push({ key: `turn:${x.t.id}`, html: `<div class="m m-them m-turn">${x.t.status === "running" ? turnAv(x.t, (/** @type {NonNullable<typeof world.state.turns>} */ (world.state.turns)).blocksOf(x.t)) : `<div class="av av-t">${rtMark(/** @type {string} */ (s.agent)) || ICON.thread}</div>`}<div class="mb">${inner}</div></div>` });
       }
     }

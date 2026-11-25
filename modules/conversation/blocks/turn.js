@@ -23,7 +23,7 @@ import { stepIcon } from "../../../core/services/step-icons.js";
 
 /** @typedef {Record<string, boolean>} Open */
 
-/** @typedef {NonNullable<Parameters<typeof fromSharedFile>[1]> & {carried?: File[], changed?: ((target: string) => Change | null) | null}} Media */
+/** @typedef {NonNullable<Parameters<typeof fromSharedFile>[1]> & {view?: string, carried?: File[], changed?: ((target: string) => Change | null) | null}} Media */
 
 /** @typedef {Media & {open?: Open, hideAnswer?: boolean, now?: number, working?: boolean}} RenderOptions */
 
@@ -96,11 +96,11 @@ function blockHtml(b, open, live, now, media = {}, tail = "") {
       return `<div class="tb tb-files"><p class="tb-fh">${ICON.doc}<span>${esc(header)}${b.caption ? ` · ${esc(b.caption)}` : ""}</span></p>${mediaHtml(items, { side: "them" })}</div>`;
     }
     case "narration":
-      return `<div class="tb tb-narr prose" data-b="${esc(b.id)}">${renderMarkdown(b.text || "")}</div>`;
+      return `<div class="tb tb-narr prose" data-b="${esc(b.id)}">${renderMarkdown(b.text || "", media.view)}</div>`;
     case "text":
-      { const md = renderMarkdown(b.text || ""); return `<div class="tb tb-text prose${!b.done && live ? " is-live" : ""}${md.includes('<div class="md-table') ? " has-table" : ""}">${md}</div>`; }
+      { const md = renderMarkdown(b.text || "", media.view); return `<div class="tb tb-text prose${!b.done && live ? " is-live" : ""}${md.includes('<div class="md-table') ? " has-table" : ""}">${md}</div>`; }
     case "answer":
-      { const md = renderMarkdown(b.text || ""); return `<div class="tb tb-answer prose${md.includes('<div class="md-table') ? " has-table" : ""}">${md}</div>`; }
+      { const md = renderMarkdown(b.text || "", media.view); return `<div class="tb tb-answer prose${md.includes('<div class="md-table') ? " has-table" : ""}">${md}</div>`; }
     default:
       return "";
   }
@@ -175,13 +175,13 @@ function workFold(turn, work, blocks, open, live, now, media = {}) {
     (live ? (waiting ? "" : DOTS) : `<span class="tb-hi">${ICON.list}</span>`) +
     `<span class="tb-ht${live && !waiting ? " shimmer" : ""}">${live ? `${waiting ? "Waiting for you" : "Working"}${time}` : WORDS ? esc(plainWork(rows)) : `Worked${time}`}</span>` +
     (WORDS && !live ? (took != null ? `<span class="tb-wn">${secs(took)}</span>` : "") : steps ? `<span class="tb-wn">${steps} ${steps === 1 ? "step" : "steps"}</span>` : "") + `<span class="tb-chev">${ICON.chevron}</span></button>`;
-  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.filter((b) => !emptyThought(b)).map((b) => blockHtml(b, open, live, now)).join("")}</div></div>`;
+  if (isOpen) return `<div class="tb tb-work is-open${live ? " is-live" : ""}" data-b="${esc(key)}">${head}<div class="tb-rail">${work.filter((b) => !emptyThought(b)).map((b) => blockHtml(b, open, live, now, media)).join("")}</div></div>`;
   let under = "";
   if (live) {
     const asks = rows.filter((r) => r.waiting);
     const last = work[work.length - 1];
     const step = last && last.type === "activity" ? /** @type {Step[]} */ ([(last.rows || []).filter((r) => r.status === "running").pop() || (last.rows || []).at(-1)].filter(Boolean)) : null;
-    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !last ? "" : step ? (step.length ? `<ul class="tb-rows is-cur">${step.map((r) => rowHtml(r, open)).join("")}</ul>` : "") : blockHtml(last, open, live, now);
+    under = asks.length ? `<ul class="tb-rows is-cur">${asks.map((r) => rowHtml(r, open)).join("")}</ul>` : WORDS || !last ? "" : step ? (step.length ? `<ul class="tb-rows is-cur">${step.map((r) => rowHtml(r, open)).join("")}</ul>` : "") : blockHtml(last, open, live, now, media);
   } else {
     /** @param {Step} r */
     const routine = (r) => (r.kind === "command" && r.status === "error" && turn.status !== "failed") || commsBusy(r);
@@ -221,8 +221,8 @@ function stoppedAt(step) {
 }
 
 /** @param {Turn} turn @param {unknown[]} blocks @param {RenderOptions} [options] */
-export function turnHtml(turn, blocks, { open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false, changed = null } = {}) {
-  const media = { carried, route, by, at: Date.parse(/** @type {string} */ (turn.at)) || null, changed };
+export function turnHtml(turn, blocks, { view, open = {}, hideAnswer = false, now = Date.now(), carried = [], route = null, by = "", working = false, changed = null } = {}) {
+  const media = { view, carried, route, by, at: Date.parse(/** @type {string} */ (turn.at)) || null, changed };
   const live = turn.status === "running";
   const kept = /** @type {Block[]} */ (afterSilence(/** @type {Block[]} */ (blocks)).filter((b) => !(hideAnswer && b.type === "answer")).map(withoutWireNotices).filter(Boolean));
   const quiet = !live && bookkeeping(kept.filter((b) => WORK.has(b.type)));

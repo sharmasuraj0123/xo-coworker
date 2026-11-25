@@ -76,10 +76,11 @@ import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 const { appScope, world, schedule, notices, shellServices, announce, applicationShape, navigationState, place, services, PHONE, redrawFocus,
   render, syncInert, toastLine, focusOverlay, setDrawer } = createShellFoundation(kernel.bus);
 const SHAPE = applicationShape.shape;
-const noun = mountConversationMarkdown(appScope, SHAPE, (path) => fileRoute(path));
 
 const { PROJ, projects, convThread, convProject, atOf } = place;
 const currentView = navigationState.view;
+const fileRoute = createFileRoute({ currentView, convThread });
+const noun = mountConversationMarkdown(appScope, SHAPE, fileRoute);
 const { session, module: sessionModule } = createConversationSession(currentView, kernel.places, schedule);
 const { main: MAIN, localMessages, folds: transcriptFolds, region: placeRegion, conversationAt: convAt } = session;
 const { composer: MK, focus: { composerNow, composers, inUse } } = session;
@@ -200,9 +201,9 @@ const { scroller, msgsEl, loadAhead, loadOlderNow, reading, returnPill, showMsg,
   view: currentView, alias: localMessages.alias, takeFoldChange: transcriptFolds.takeChange, heraldRoom, CH, world, convThread, chatOf, render: () => render(),
 });
 const openFromPanel = createPanelThreadOpener({ view: currentView, world, STAGE, TP, go, showMsg });
-const { drawConv, drawingView, module: transcriptModule } = createTranscriptModule({
+const { drawConv, module: transcriptModule } = createTranscriptModule({
   threadMark, noun, sendWhileRunning, running, workingRuns, agentOf, isStopping, localMessages, limitStatus, CH, STAGE,
-  transcriptOpen: transcriptFolds.open, youText: (text) => youText(text), startHtml, fileRoute: (path, conv) => fileRoute(path, conv),
+  transcriptOpen: transcriptFolds.open, youText: (text) => youText(text), startHtml, fileRoute,
   reading, ensureRoot, liveReady, actions: () => ({ convAt, loadOlderNow, transcriptFolds, schedule, toggleChecklist, checklistRender,
     requestFocus: redrawFocus.request, heraldBox, interruptRun }),
 });
@@ -220,7 +221,6 @@ const { youText, askPlace, askAboutLines, composeAbout, askAboutFile } = createF
   fileScope, localIn, lineRef, fileRef, lrefRender,
 });
 
-const fileRoute = createFileRoute({ currentView: () => drawingView() || currentView(), convThread });
 bindConversationPress(appScope, kernel.places, announce, { go, showMsg, openFromPanel, thread: world.thread, heraldShow });
 const topRender = mountConversationHeader({
   ...place, ...threadPresentation, threadControls, description: (project) => CREATE.descriptions.get(project), world, PICK, LP, LW, STAGE, kernel,
