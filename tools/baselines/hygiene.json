@@ -45,9 +45,6 @@
  "core/kernel/kernel.js": {
   "commentLines": 1
  },
- "core/kernel/layers.js": {
-  "explicitAny": 1
- },
  "core/platform/clipboard.js": {
   "commentOnlyCatch": 1
  },
