@@ -5,7 +5,6 @@ body.stage-open.stage-over:not(.panel-open):not(.stage-full) .home{padding-right
 body.stage-over .stage{box-shadow:var(--e2)}
 :root[data-theme="light"] body.stage-over .stage{box-shadow:var(--e2)}
 
-/* ── the scope line and the field under it: the same in Files, Made and the Map ─────────────────────── */
 .fl-head{gap:8px;padding:12px var(--pe) 8px}
 .fl-crumb{gap:8px;min-height:var(--h-sm);padding:0}
 .fl-crumb b{font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans)}

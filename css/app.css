@@ -199,10 +199,8 @@ a.vw-btn{text-decoration:none}
   .shd.is-half .shd-bar::before{top:var(--s-1)}
 }
 
-/* ── a project's record: Since you left's line under a project's header, and Made with Recently made on Home ── */
 .since{flex:none;padding:var(--s-3) var(--hg);border-bottom:1px solid var(--line-view)}
 
-.md-gh{padding:14px 2px 9px;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4)}
 .md-grid{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
 .md-it{position:relative;--nest-r:var(--r-lg);--nest-in:calc(var(--cell-in) + 1px);display:flex;flex-direction:column;border-radius:var(--nest-r);border:1px solid var(--line);background:var(--fill-1);overflow:hidden;transition:border-color var(--d-hover) var(--ease),background-color var(--d-hover) var(--ease),transform var(--dur-fast) var(--ease)}
 /* the whole card answers, not only its border (Plan F: a hover is ≥ 1.15:1 against rest) */
