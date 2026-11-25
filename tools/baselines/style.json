@@ -3,21 +3,14 @@
   "rawColor": 1
  },
  "core/ui/app-controls.css": {
-  "px-size": 5,
-  "px-spacing": 3,
-  "rawColor": 3,
-  "themeSelector": 2
+  "px-size": 4,
+  "rawColor": 1
  },
  "core/ui/components/xo-select.css": {
   "px-size": 7,
   "px-spacing": 6,
   "rawColor": 3,
-  "themeSelector": 5
- },
- "core/ui/foundation.css": {
-  "px-spacing": 2,
-  "px-stroke": 3,
-  "rawColor": 1
+  "themeSelector": 4
  },
  "core/ui/markdown/rich.css": {
   "px-effect": 1,
@@ -29,15 +22,14 @@
   "themeSelector": 1
  },
  "css/app.css": {
-  "ignoredCss": 2,
-  "px-effect": 24,
-  "px-position": 19,
-  "px-radius": 10,
-  "px-size": 150,
-  "px-spacing": 391,
-  "px-stroke": 9,
-  "rawColor": 95,
-  "themeSelector": 12,
+  "px-effect": 21,
+  "px-position": 17,
+  "px-radius": 6,
+  "px-size": 84,
+  "px-spacing": 195,
+  "px-stroke": 6,
+  "rawColor": 45,
+  "themeSelector": 6,
   "widthMediaQuery": 1
  },
  "css/diffs.css": {
@@ -47,14 +39,10 @@
   "px-spacing": 71,
   "px-stroke": 9,
   "rawColor": 9,
-  "themeSelector": 6,
+  "themeSelector": 5,
   "widthMediaQuery": 2
  },
  "css/docs.css": {
-  "px-size": 12,
-  "px-spacing": 47,
-  "px-stroke": 3,
-  "rawColor": 4,
   "widthMediaQuery": 1
  },
  "css/flavour-swatches.css": {
@@ -62,58 +50,32 @@
   "themeSelector": 30
  },
  "css/foundation.css": {
-  "px-effect": 2,
-  "px-position": 2,
-  "px-radius": 3,
-  "px-size": 8,
-  "px-spacing": 19,
-  "px-stroke": 4,
-  "rawColor": 9,
   "themeSelector": 1
  },
  "css/light.css": {
-  "px-effect": 12,
-  "px-size": 1,
-  "rawColor": 12,
-  "themeSelector": 50
- },
- "css/links.css": {
-  "px-position": 2,
-  "px-radius": 1,
-  "px-size": 1,
-  "px-stroke": 3,
-  "rawColor": 5
+  "themeSelector": 28
  },
  "css/panel.css": {
-  "px-effect": 9,
+  "px-effect": 8,
   "px-position": 16,
   "px-radius": 7,
-  "px-size": 54,
-  "px-spacing": 132,
+  "px-size": 45,
+  "px-spacing": 91,
   "px-stroke": 8,
-  "rawColor": 43,
-  "themeSelector": 25
+  "rawColor": 37,
+  "themeSelector": 21
  },
  "css/phone.css": {
-  "px-radius": 1,
-  "px-size": 5,
-  "px-spacing": 7,
-  "px-stroke": 1,
   "widthMediaQuery": 2
- },
- "css/shape.css": {
-  "px-size": 1,
-  "px-spacing": 2
  },
  "modules/artifacts/artifacts.css": {
   "px-radius": 1,
   "px-size": 7,
-  "px-spacing": 43,
+  "px-spacing": 5,
   "rawColor": 5,
   "themeSelector": 2
  },
  "modules/conversation/composer.css": {
-  "px-effect": 4,
   "px-size": 6,
   "px-spacing": 13,
   "px-stroke": 2,
@@ -124,10 +86,10 @@
   "px-effect": 2,
   "px-position": 18,
   "px-radius": 4,
-  "px-size": 34,
-  "px-spacing": 91,
+  "px-size": 32,
+  "px-spacing": 87,
   "px-stroke": 2,
-  "rawColor": 20
+  "rawColor": 17
  },
  "modules/conversation/dock.css": {
   "px-size": 1,
@@ -135,9 +97,9 @@
   "rawColor": 1
  },
  "modules/conversation/history.css": {
-  "px-radius": 2,
+  "px-radius": 1,
   "px-size": 13,
-  "px-spacing": 18,
+  "px-spacing": 12,
   "themeSelector": 1
  },
  "modules/conversation/media/media.css": {
@@ -152,8 +114,8 @@
   "px-effect": 4,
   "px-position": 26,
   "px-radius": 8,
-  "px-size": 41,
-  "px-spacing": 82,
+  "px-size": 40,
+  "px-spacing": 80,
   "px-stroke": 2,
   "rawColor": 25,
   "themeSelector": 2
@@ -170,23 +132,10 @@
   "px-stroke": 1,
   "rawColor": 39
  },
- "modules/home/handled.css": {
-  "px-radius": 2,
-  "px-size": 8,
-  "px-spacing": 9,
-  "rawColor": 1
- },
  "modules/home/home.css": {
-  "px-size": 5,
-  "px-spacing": 6,
-  "rawColor": 2,
+  "px-size": 2,
+  "px-spacing": 1,
   "widthMediaQuery": 1
- },
- "modules/home/next.css": {
-  "px-position": 4,
-  "px-radius": 1,
-  "px-size": 6,
-  "rawColor": 1
  },
  "modules/launchpad/launchpad.css": {
   "px-effect": 3,
@@ -208,22 +157,16 @@
   "px-position": 1,
   "px-radius": 1,
   "px-size": 10,
-  "px-spacing": 33,
+  "px-spacing": 15,
   "rawColor": 4
  },
  "modules/settings/shape.css": {
   "px-size": 2,
-  "px-spacing": 26,
+  "px-spacing": 1,
   "px-stroke": 1
  },
  "modules/since/notice.css": {
-  "px-spacing": 10
- },
- "modules/threads/all.css": {
-  "px-radius": 1,
-  "px-size": 5,
-  "px-spacing": 22,
-  "rawColor": 2
+  "px-spacing": 1
  },
  "modules/threads/intelligence.css": {
   "px-effect": 2,
@@ -238,7 +181,7 @@
   "px-position": 2,
   "px-radius": 2,
   "px-size": 15,
-  "px-spacing": 28,
+  "px-spacing": 12,
   "rawColor": 3
  },
  "shell/frame.css": {
@@ -246,33 +189,32 @@
   "px-position": 5,
   "px-radius": 3,
   "px-size": 19,
-  "px-spacing": 31,
+  "px-spacing": 11,
   "rawColor": 14
  },
  "shell/phone.css": {
-  "px-position": 3,
-  "px-radius": 2,
+  "px-position": 1,
+  "px-radius": 1,
   "px-size": 12,
-  "px-spacing": 36,
+  "px-spacing": 12,
   "rawColor": 6
  },
  "shell/pickers.css": {
   "px-size": 4,
-  "px-spacing": 16,
+  "px-spacing": 4,
   "rawColor": 1
  },
  "shell/responsive.css": {
-  "px-effect": 6,
+  "px-effect": 4,
   "px-position": 1,
   "px-radius": 1,
-  "px-size": 20,
-  "px-spacing": 46,
+  "px-size": 18,
+  "px-spacing": 44,
   "rawColor": 3,
   "widthMediaQuery": 2
  },
  "shell/sidebar.css": {
   "px-effect": 14,
-  "px-spacing": 2,
   "rawColor": 28,
   "themeSelector": 4
  }

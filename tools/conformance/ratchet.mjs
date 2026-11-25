@@ -103,13 +103,13 @@ function readBaseline(path, source) {
   return value;
 }
 
-/** @param {object} current @param {object} previous @param {string} path */
-function baselineGrowth(current, previous, path) {
+/** @param {object} current @param {object} previous @param {(file: string, rule: string, old: number, count: number) => string} message */
+function allowanceSurplus(current, previous, message) {
   const errors = [];
   for (const [file, rules] of Object.entries(current)) {
     for (const [rule, count] of Object.entries(rules)) {
       const old = previous[file]?.[rule] ?? 0;
-      if (count > old) errors.push(`  ${path}: ${file} raised the ${rule} allowance from ${old} to ${count}`);
+      if (count > old) errors.push(message(file, rule, old, count));
     }
   }
   return errors;
@@ -132,11 +132,17 @@ export function checkConformance(root, baselineDir, { update, base }) {
     if (!entry.stdout) continue;
     const existing = git(["show", `${ref}:${local}`]);
     if (existing.status !== 0) throw new Error(existing.error?.message ?? existing.stderr);
-    growth.push(...baselineGrowth(current, readBaseline(local, existing.stdout), local));
+    growth.push(...allowanceSurplus(current, readBaseline(local, existing.stdout),
+      (file, rule, old, count) => `  ${local}: ${file} raised the ${rule} allowance from ${old} to ${count}`));
   }
   if (growth.length) return growth.join("\n");
   const { current, errors } = compare(inventory(root), baselines, changes(repository));
   if (errors.length) return errors.join("\n");
+  if (!update) {
+    const stale = FAMILIES.flatMap(name => allowanceSurplus(baselines[name], current[name],
+      (file, rule, count, allowed) => `  ${file}: ${rule} has ${count}, baseline allows ${allowed}`));
+    if (stale.length) return `Stale conformance baseline. Run node tools/check.mjs --fast --update-baselines.\n${stale.join("\n")}`;
+  }
   if (update) {
     for (const name of FAMILIES) {
       const path = join(baselineDir, `${name}.json`);

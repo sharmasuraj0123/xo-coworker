@@ -1,26 +1,12 @@
 {
  "js/app.js": {
-  "storage": 2,
-  "commentOnlyCatch": 1,
-  "setTimeout": 7,
-  "globalListener": 11,
-  "requestAnimationFrame": 7,
   "observer": 1,
-  "setInterval": 1
- },
- "modules/artifacts/made.js": {
-  "globalListener": 1
+  "requestAnimationFrame": 1,
+  "setTimeout": 3
  },
  "modules/artifacts/page.js": {
-  "requestAnimationFrame": 1,
-  "observer": 2
- },
- "modules/artifacts/previews.js": {
+  "observer": 2,
   "requestAnimationFrame": 1
- },
- "modules/artifacts/store.js": {
-  "storage": 2,
-  "commentOnlyCatch": 2
  },
  "modules/changes/diffview.js": {
   "setTimeout": 2
@@ -34,63 +20,23 @@
  "modules/changes/store.js": {
   "setTimeout": 1
  },
- "modules/chats/chats.js": {
-  "commentOnlyCatch": 1,
-  "setTimeout": 1
- },
- "modules/chats/intel-input.js": {
-  "globalListener": 1
- },
- "modules/chats/intel.js": {
-  "setTimeout": 2
- },
- "modules/chats/record-lines.js": {
-  "setTimeout": 1
- },
- "modules/chats/setup.js": {
-  "storage": 2,
-  "commentOnlyCatch": 1
- },
- "modules/conversation/checklist.js": {
-  "setTimeout": 1
- },
  "modules/conversation/decoration.js": {
-  "globalListener": 1,
-  "storage": 2,
-  "commentOnlyCatch": 1,
-  "setTimeout": 2,
   "observer": 3
  },
  "modules/conversation/follow.js": {
   "observer": 1
  },
  "modules/conversation/latest-button.js": {
-  "requestAnimationFrame": 4,
   "observer": 4
  },
  "modules/conversation/message-reply.js": {
-  "observer": 1,
-  "setTimeout": 4
- },
- "modules/conversation/message-swipes.js": {
-  "setTimeout": 1
+  "observer": 1
  },
  "modules/conversation/navigation.js": {
   "setTimeout": 3
  },
- "modules/conversation/stops.js": {
-  "setTimeout": 1
- },
- "modules/conversation/thread-page.js": {
-  "requestAnimationFrame": 3,
-  "setTimeout": 1
- },
  "modules/conversation/typing.js": {
   "setTimeout": 2
- },
- "modules/conversation/working-turn.js": {
-  "setTimeout": 2,
-  "setInterval": 1
  },
  "modules/create-project/create.js": {
   "setTimeout": 5
@@ -101,15 +47,12 @@
  "modules/decisions/controller.js": {
   "setTimeout": 1
  },
- "modules/decisions/conversation-actions.js": {
-  "requestAnimationFrame": 2
- },
  "modules/decisions/dock.js": {
   "observer": 1
  },
  "modules/decisions/kit.js": {
-  "setTimeout": 3,
-  "setInterval": 1
+  "setInterval": 1,
+  "setTimeout": 3
  },
  "modules/decisions/panel-view.js": {
   "setTimeout": 1
@@ -127,173 +70,83 @@
   "setTimeout": 1
  },
  "modules/files/files.js": {
-  "requestAnimationFrame": 1,
-  "setTimeout": 2,
-  "globalListener": 1,
   "observer": 1
  },
- "modules/files/markdown-page.js": {
-  "setTimeout": 1
- },
- "modules/files/page.js": {
-  "storage": 4,
-  "commentOnlyCatch": 4,
-  "requestAnimationFrame": 1
- },
  "modules/files/section-folds.js": {
-  "storage": 2,
-  "commentOnlyCatch": 1
+  "commentOnlyCatch": 1,
+  "storage": 2
  },
  "modules/files/viewer-events.js": {
-  "setTimeout": 1,
-  "globalListener": 2
+  "globalListener": 2,
+  "setTimeout": 1
  },
  "modules/files/viewer.js": {
-  "storage": 1,
-  "setTimeout": 4
+  "setTimeout": 4,
+  "storage": 1
  },
  "modules/home/skeleton.js": {
-  "storage": 2,
   "commentOnlyCatch": 1,
-  "globalListener": 1
+  "globalListener": 1,
+  "storage": 2
  },
  "modules/home/view.js": {
   "requestAnimationFrame": 2
  },
  "modules/launchpad/actions.js": {
-  "requestAnimationFrame": 9,
   "setInterval": 2,
-  "setTimeout": 5
+  "setTimeout": 2
  },
  "modules/launchpad/client.js": {
-  "commentOnlyCatch": 1,
-  "setTimeout": 1
- },
- "modules/launchpad/launchpad.js": {
-  "storage": 1,
-  "commentOnlyCatch": 2,
-  "requestAnimationFrame": 1,
-  "globalListener": 1,
   "setTimeout": 1
  },
  "modules/launchpad/notices.js": {
   "setTimeout": 2
- },
- "modules/launchpad/store.js": {
-  "storage": 1,
-  "commentOnlyCatch": 1,
-  "requestAnimationFrame": 2
- },
- "modules/launchpad/window.js": {
-  "requestAnimationFrame": 1
- },
- "modules/map/after-pause.js": {
-  "setTimeout": 2,
-  "requestAnimationFrame": 1
  },
  "modules/map/drawing.js": {
   "requestAnimationFrame": 3,
   "setTimeout": 1
  },
  "modules/map/map.js": {
-  "storage": 2,
-  "commentOnlyCatch": 3,
-  "setTimeout": 1,
-  "observer": 1,
-  "requestAnimationFrame": 1
- },
- "modules/routing/page.js": {
-  "commentOnlyCatch": 1
- },
- "modules/runs/read.js": {
-  "setTimeout": 1
- },
- "modules/runs/stop.js": {
-  "setTimeout": 1
+  "observer": 1
  },
  "modules/runtimes/settings.js": {
-  "setTimeout": 2,
-  "commentOnlyCatch": 1
+  "setTimeout": 2
  },
  "modules/search/quickopen.js": {
   "setTimeout": 1
  },
- "modules/settings/accounts.js": {
-  "setTimeout": 3
- },
- "modules/settings/appearance.js": {
-  "storage": 2
- },
  "modules/settings/frame.js": {
   "globalListener": 1
- },
- "modules/settings/keys-page.js": {
-  "globalListener": 1
- },
- "modules/shells/dock-actions.js": {
-  "commentOnlyCatch": 1
- },
- "modules/shells/dock-input.js": {
-  "setTimeout": 1
- },
- "modules/shells/dock.js": {
-  "commentOnlyCatch": 2,
-  "storage": 4,
-  "setTimeout": 2,
-  "globalListener": 1,
-  "requestAnimationFrame": 1,
-  "setInterval": 1
  },
  "modules/shells/panel.js": {
   "observer": 1
  },
  "modules/shells/term.js": {
-  "observer": 2,
-  "setTimeout": 2,
-  "commentOnlyCatch": 1
- },
- "modules/since/model.js": {
-  "commentOnlyCatch": 1
- },
- "modules/since/view.js": {
-  "storage": 1,
-  "globalListener": 2
- },
- "modules/threads/row-resolve.js": {
-  "setTimeout": 1
- },
- "shell/back.js": {
-  "commentOnlyCatch": 1,
-  "setTimeout": 3
+  "observer": 2
  },
  "shell/gestures.js": {
-  "setTimeout": 3,
-  "globalListener": 3
+  "setTimeout": 1
  },
  "shell/keyboard-layers.js": {
   "observer": 1
  },
  "shell/panel/panel.js": {
-  "storage": 2,
-  "commentOnlyCatch": 1,
   "observer": 1,
   "requestAnimationFrame": 4
  },
  "shell/panel/width.js": {
-  "observer": 1,
-  "storage": 3,
-  "commentOnlyCatch": 3
+  "observer": 1
  },
  "shell/rail/rows.js": {
   "setTimeout": 2
  },
  "shell/rail/side.js": {
-  "storage": 10,
   "commentOnlyCatch": 3,
-  "globalListener": 1
+  "globalListener": 1,
+  "storage": 10
  },
  "shell/render.js": {
-  "requestAnimationFrame": 2
+  "requestAnimationFrame": 1
  },
  "shell/return-pill.js": {
   "requestAnimationFrame": 1,

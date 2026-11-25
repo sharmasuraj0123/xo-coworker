@@ -55,8 +55,7 @@
  },
  "core/kernel/kernel.js": {
   "functionLines": 1,
-  "lineLength": 11,
-  "unusedExport": 1
+  "lineLength": 9
  },
  "core/kernel/places.js": {
   "lineLength": 5
@@ -68,7 +67,7 @@
   "lineLength": 3
  },
  "core/platform/api.js": {
-  "lineLength": 29,
+  "lineLength": 27,
   "unusedExport": 3
  },
  "core/platform/clipboard.js": {
@@ -82,7 +81,7 @@
   "unusedExport": 1
  },
  "core/platform/gestures.js": {
-  "lineLength": 8
+  "lineLength": 5
  },
  "core/platform/http.js": {
   "lineLength": 14
@@ -126,7 +125,6 @@
  "core/services/media/hydrate.js": {
   "domExpando": 4,
   "lineLength": 5,
-  "sourceReadTarget": 1,
   "unusedExport": 2
  },
  "core/services/media/intersection.js": {
@@ -157,15 +155,14 @@
   "lineLength": 4
  },
  "core/services/places.js": {
-  "lineLength": 3
+  "lineLength": 2
  },
  "core/services/review.js": {
   "lineLength": 8,
   "unusedExport": 1
  },
  "core/services/runtimes.js": {
-  "dayLiteral": 1,
-  "lineLength": 24,
+  "lineLength": 20,
   "unusedExport": 3
  },
  "core/services/shape/changes.js": {
@@ -195,13 +192,13 @@
   "lineLength": 6
  },
  "core/services/storm/act.js": {
-  "lineLength": 7
+  "lineLength": 6
  },
  "core/services/storm/client.js": {
   "lineLength": 2
  },
  "core/services/storm/commands.js": {
-  "lineLength": 11
+  "lineLength": 9
  },
  "core/services/storm/history.js": {
   "functionLines": 1,
@@ -211,7 +208,6 @@
   "lineLength": 3
  },
  "core/services/storm/index.js": {
-  "lineLength": 2,
   "unusedExport": 1
  },
  "core/services/storm/load.js": {
@@ -228,10 +224,10 @@
   "lineLength": 1
  },
  "core/services/storm/reducers/runs.js": {
-  "lineLength": 4
+  "lineLength": 1
  },
  "core/services/storm/reducers/sessions.js": {
-  "lineLength": 4
+  "lineLength": 3
  },
  "core/services/storm/reducers/space.js": {
   "lineLength": 2
@@ -240,7 +236,7 @@
   "lineLength": 2
  },
  "core/services/storm/selectors/commit.js": {
-  "lineLength": 6
+  "lineLength": 5
  },
  "core/services/storm/selectors/sessions.js": {
   "lineLength": 4
@@ -259,32 +255,28 @@
   "unusedExport": 1
  },
  "core/services/world/conn.js": {
-  "lineLength": 7,
+  "lineLength": 6,
   "unusedExport": 1
  },
  "core/services/world/conversation.js": {
   "lineLength": 5
  },
  "core/services/world/held.js": {
-  "dayLiteral": 1,
   "lineLength": 2
  },
  "core/services/world/hops.js": {
-  "lineLength": 3,
+  "lineLength": 1,
   "unusedExport": 1
- },
- "core/services/world/list-time.js": {
-  "dayLiteral": 1
  },
  "core/services/world/paid.js": {
   "lineLength": 9,
   "unusedExport": 4
  },
  "core/services/world/relay.js": {
-  "lineLength": 8
+  "lineLength": 7
  },
  "core/services/world/rows.js": {
-  "lineLength": 10,
+  "lineLength": 6,
   "unusedExport": 1
  },
  "core/services/world/sessions.js": {
@@ -292,7 +284,7 @@
   "unusedExport": 3
  },
  "core/services/world/store.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "core/services/world/threads.js": {
   "lineLength": 7,
@@ -304,14 +296,10 @@
  },
  "core/services/world/turns.js": {
   "functionLines": 1,
-  "lineLength": 7
- },
- "core/ui/a11y/announce.js": {
-  "lineLength": 1
+  "lineLength": 5
  },
  "core/ui/a11y/focus.js": {
-  "lineLength": 18,
-  "sourceReadTarget": 1,
+  "lineLength": 17,
   "unusedExport": 8
  },
  "core/ui/a11y/keycap.js": {
@@ -322,12 +310,8 @@
   "unusedExport": 2
  },
  "core/ui/a11y/ring.js": {
-  "lineLength": 7,
-  "sourceReadTarget": 1,
+  "lineLength": 6,
   "unusedExport": 2
- },
- "core/ui/app-controls.css": {
-  "lineLength": 2
  },
  "core/ui/components/counts.js": {
   "lineLength": 2
@@ -336,29 +320,25 @@
   "lineLength": 5
  },
  "core/ui/components/xo-select.css": {
-  "lineLength": 5
+  "lineLength": 4
  },
  "core/ui/components/xo-select.js": {
   "lineLength": 12,
-  "sourceReadTarget": 2
+  "sourceReadTarget": 1
  },
  "core/ui/flavours.js": {
   "lineLength": 1
  },
  "core/ui/foundation.css": {
   "important": 6,
-  "lineLength": 6,
-  "sourceReadTarget": 1
+  "lineLength": 5
  },
  "core/ui/icons/fileicons.js": {
-  "lineLength": 4,
+  "lineLength": 3,
   "unusedExport": 3
  },
  "core/ui/icons/icon.js": {
   "lineLength": 3
- },
- "core/ui/icons/names.js": {
-  "sourceReadTarget": 1
  },
  "core/ui/landing.js": {
   "domExpando": 1
@@ -377,7 +357,7 @@
   "unusedExport": 1
  },
  "core/ui/markdown/inline.js": {
-  "lineLength": 19,
+  "lineLength": 17,
   "unusedExport": 4
  },
  "core/ui/markdown/markdown.js": {
@@ -390,152 +370,84 @@
  },
  "core/ui/markdown/rich.css": {
   "important": 2,
-  "lineLength": 18
+  "lineLength": 17
  },
  "core/ui/markdown/rich.js": {
-  "lineLength": 16,
-  "unusedExport": 2
+  "lineLength": 12
  },
  "core/ui/motion.js": {
-  "domExpando": 6,
-  "lineLength": 19,
-  "sourceReadTarget": 1,
+  "lineLength": 17,
   "unusedExport": 3
  },
- "core/ui/patch.js": {
-  "domExpando": 1,
-  "lineLength": 2
- },
  "core/ui/redraw.js": {
-  "domExpando": 3,
-  "lineLength": 11,
-  "sourceReadTarget": 4,
+  "lineLength": 3,
   "unusedExport": 1
  },
  "core/ui/theme.js": {
-  "domExpando": 1,
-  "lineLength": 4
+  "lineLength": 2
  },
  "core/ui/tokens.css": {
-  "lineLength": 33,
-  "sourceReadTarget": 12
+  "lineLength": 33
  },
  "core/ui/virtual.js": {
   "lineLength": 4
  },
  "css/app.css": {
-  "important": 4,
-  "lineLength": 204,
-  "sourceReadTarget": 45
- },
- "css/artifacts.css": {
-  "sourceReadTarget": 35
+  "lineLength": 83
  },
  "css/diffs.css": {
-  "lineLength": 31,
-  "sourceReadTarget": 36
- },
- "css/docs.css": {
-  "important": 7,
-  "lineLength": 13,
-  "sourceReadTarget": 35
- },
- "css/flavour-swatches.css": {
-  "sourceReadTarget": 35
- },
- "css/flavours.css": {
-  "sourceReadTarget": 36
+  "lineLength": 30
  },
  "css/foundation.css": {
   "important": 11,
-  "lineLength": 20,
-  "sourceReadTarget": 37
- },
- "css/launchpad.css": {
-  "sourceReadTarget": 35
- },
- "css/light.css": {
-  "lineLength": 5,
-  "sourceReadTarget": 35
- },
- "css/links.css": {
-  "lineLength": 2,
-  "sourceReadTarget": 35
+  "lineLength": 11
  },
  "css/panel.css": {
-  "important": 11,
-  "lineLength": 77,
-  "sourceReadTarget": 47
- },
- "css/phone.css": {
-  "lineLength": 3,
-  "sourceReadTarget": 43
- },
- "css/shape.css": {
-  "lineLength": 2,
-  "sourceReadTarget": 35
+  "important": 10,
+  "lineLength": 64
  },
  "index.html": {
-  "lineLength": 19,
-  "sourceReadTarget": 16
+  "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 781,
-  "domExpando": 15,
-  "inlineViewportQuery": 2,
-  "lineLength": 121,
-  "missingTsCheck": 1,
-  "sourceReadTarget": 21
+  "dependencyKey": 665,
+  "lineLength": 67
  },
  "js/recordview.js": {
   "lineLength": 1
  },
- "js/settings.js": {
-  "missingTsCheck": 1
- },
  "modules/artifacts/artifacts.css": {
   "important": 1,
-  "lineLength": 16,
-  "sourceReadTarget": 1
- },
- "modules/artifacts/cards.js": {
-  "domExpando": 3,
   "lineLength": 12
  },
+ "modules/artifacts/cards.js": {
+  "lineLength": 8
+ },
  "modules/artifacts/made.js": {
-  "domExpando": 13,
-  "functionLines": 1,
-  "lineLength": 14,
+  "lineLength": 1,
   "unusedExport": 1
  },
  "modules/artifacts/model.js": {
-  "dayLiteral": 1,
-  "lineLength": 13
+  "lineLength": 12
  },
  "modules/artifacts/page.js": {
-  "domExpando": 10,
-  "functionLines": 1,
-  "lineLength": 27
+  "lineLength": 19
  },
  "modules/artifacts/previews.js": {
-  "lineLength": 10
+  "lineLength": 8
  },
  "modules/artifacts/section.js": {
   "lineLength": 1
- },
- "modules/artifacts/store.js": {
-  "lineLength": 10
  },
  "modules/changes/diffthemes.js": {
   "lineLength": 2
  },
  "modules/changes/diffview.js": {
-  "lineLength": 6
+  "lineLength": 4
  },
  "modules/changes/frame.js": {
   "functionLines": 1,
   "lineLength": 30,
-  "sourceReadTarget": 2,
   "unusedExport": 2
  },
  "modules/changes/imagechange.js": {
@@ -543,19 +455,15 @@
   "unusedExport": 2
  },
  "modules/changes/store.js": {
-  "lineLength": 13,
+  "lineLength": 10,
   "unusedExport": 3
- },
- "modules/changes/tests/reveal-focus.test.mjs": {
-  "sourceRead": 1
  },
  "modules/changes/types.d.ts": {
   "lineLength": 1
  },
  "modules/chats/chats.js": {
   "functionLines": 1,
-  "lineLength": 39,
-  "sourceReadTarget": 1
+  "lineLength": 36
  },
  "modules/chats/effort.js": {
   "lineLength": 1
@@ -576,258 +484,163 @@
  },
  "modules/chats/intel.js": {
   "functionLines": 1,
-  "inlineViewportQuery": 1,
-  "lineLength": 24,
-  "sourceReadTarget": 1
+  "lineLength": 18
  },
  "modules/chats/list.js": {
   "lineLength": 9
  },
  "modules/chats/record-lines.js": {
-  "lineLength": 2,
-  "sharedStateParameter": 1
+  "lineLength": 1
  },
  "modules/chats/setup.js": {
-  "inlineViewportQuery": 1,
   "lineLength": 21
  },
  "modules/chats/types.d.ts": {
   "lineLength": 1
  },
  "modules/conversation/blocks/turn.js": {
-  "lineLength": 52,
-  "sourceReadTarget": 1
+  "lineLength": 50
  },
  "modules/conversation/checklist.js": {
-  "domExpando": 3,
-  "lineLength": 7,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 2
+  "lineLength": 7
  },
  "modules/conversation/composer-attachments.js": {
-  "domExpando": 1,
-  "lineLength": 16,
-  "sourceReadTarget": 1
+  "lineLength": 14
  },
  "modules/conversation/composer-controls.js": {
-  "domExpando": 3,
-  "lineLength": 2,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 2
  },
  "modules/conversation/composer.css": {
-  "lineLength": 10
+  "lineLength": 9
  },
  "modules/conversation/composer.js": {
-  "domExpando": 1,
-  "lineLength": 1,
-  "sourceReadTarget": 2
+  "lineLength": 1
  },
  "modules/conversation/conversation.css": {
-  "lineLength": 58
- },
- "modules/conversation/decoration-icons.js": {
-  "sourceReadTarget": 1
+  "lineLength": 56
  },
  "modules/conversation/decoration-types.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
+  "lineLength": 1
  },
  "modules/conversation/decoration.js": {
-  "domExpando": 7,
   "functionLines": 1,
-  "lineLength": 26,
-  "sourceReadTarget": 1
+  "lineLength": 24
  },
  "modules/conversation/delivery.js": {
   "functionLines": 1,
-  "lineLength": 5,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 6
+  "lineLength": 4
  },
  "modules/conversation/dock.css": {
   "lineLength": 9
  },
- "modules/conversation/drafts.js": {
-  "domExpando": 1,
-  "lineLength": 2,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
- },
  "modules/conversation/draw.js": {
-  "lineLength": 2,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 2
+  "lineLength": 1
  },
  "modules/conversation/file-question.js": {
-  "domExpando": 1,
-  "lineLength": 7,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 4
+  "lineLength": 4
  },
  "modules/conversation/follow.js": {
-  "lineLength": 2,
-  "sourceReadTarget": 2
+  "lineLength": 2
  },
  "modules/conversation/header.js": {
-  "lineLength": 10,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 4
+  "lineLength": 9
  },
  "modules/conversation/history.css": {
-  "lineLength": 7
+  "lineLength": 5
  },
  "modules/conversation/latest-button.js": {
-  "lineLength": 4,
-  "sourceReadTarget": 1
+  "lineLength": 4
  },
  "modules/conversation/lightbox.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
+  "lineLength": 1
  },
  "modules/conversation/live.js": {
-  "lineLength": 1,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
- },
- "modules/conversation/main-decoration.js": {
-  "sourceReadTarget": 1
+  "lineLength": 1
  },
  "modules/conversation/media/media.css": {
   "lineLength": 16
  },
  "modules/conversation/mention.js": {
-  "domExpando": 4,
-  "lineLength": 2,
-  "sourceReadTarget": 1
- },
- "modules/conversation/message-context.js": {
-  "lineLength": 2,
-  "sourceReadTarget": 1
- },
- "modules/conversation/message-details.js": {
-  "lineLength": 14,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
- },
- "modules/conversation/message-items-types.d.ts": {
   "lineLength": 1
  },
+ "modules/conversation/message-context.js": {
+  "lineLength": 2
+ },
+ "modules/conversation/message-details.js": {
+  "lineLength": 14
+ },
  "modules/conversation/message-items.js": {
-  "lineLength": 41,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 4
+  "lineLength": 41
  },
  "modules/conversation/message-reply.js": {
-  "domExpando": 2,
-  "lineLength": 12,
-  "sourceReadTarget": 1
+  "lineLength": 9
  },
  "modules/conversation/message-swipes.js": {
-  "lineLength": 3,
-  "sourceReadTarget": 1
+  "lineLength": 3
  },
  "modules/conversation/message-types.d.ts": {
   "lineLength": 3
  },
  "modules/conversation/messages.js": {
   "functionLines": 1,
-  "lineLength": 33,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 4
+  "lineLength": 32
  },
  "modules/conversation/msgx.css": {
   "important": 7,
-  "lineLength": 52,
-  "sourceReadTarget": 1
- },
- "modules/conversation/navigation.js": {
-  "lineLength": 1,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 46
  },
  "modules/conversation/notice-line.js": {
-  "domExpando": 3,
-  "lineLength": 9,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 3
- },
- "modules/conversation/notices.js": {
-  "domExpando": 1,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 6
  },
  "modules/conversation/paging.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
+  "lineLength": 1
  },
  "modules/conversation/reading-layout.js": {
-  "lineLength": 6,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 6
  },
  "modules/conversation/return-pill.css": {
   "lineLength": 1
  },
- "modules/conversation/running.js": {
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
- },
  "modules/conversation/start.js": {
-  "lineLength": 2,
-  "sourceReadTarget": 1
+  "lineLength": 2
  },
  "modules/conversation/stops.js": {
-  "lineLength": 9,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 4
  },
  "modules/conversation/target.js": {
-  "domExpando": 1,
-  "lineLength": 7,
-  "sourceReadTarget": 2
+  "lineLength": 7
  },
  "modules/conversation/thread-page-html.js": {
-  "lineLength": 7,
-  "sourceReadTarget": 2
+  "lineLength": 7
  },
  "modules/conversation/thread-page.js": {
-  "domExpando": 1,
-  "lineLength": 9,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 4
+  "lineLength": 2
  },
  "modules/conversation/typing.js": {
   "domExpando": 4,
-  "lineLength": 8,
-  "sourceReadTarget": 2
+  "lineLength": 8
  },
  "modules/conversation/words.js": {
-  "lineLength": 5,
-  "sourceReadTarget": 1
+  "lineLength": 5
  },
  "modules/conversation/working-turn.js": {
   "functionLines": 1,
-  "lineLength": 22,
-  "sourceReadTarget": 1
+  "lineLength": 14
  },
  "modules/create-project/create.js": {
   "functionLines": 1,
-  "lineLength": 36,
-  "unusedExport": 2
+  "lineLength": 19
  },
  "modules/decisions/card-events.js": {
   "domExpando": 16,
   "functionLines": 1,
-  "lineLength": 19,
-  "sourceReadTarget": 1
+  "lineLength": 19
  },
  "modules/decisions/card.js": {
-  "lineLength": 33,
-  "sourceReadTarget": 1
+  "lineLength": 33
  },
  "modules/decisions/cardparts.js": {
-  "lineLength": 23,
+  "lineLength": 21,
   "unusedExport": 1
  },
  "modules/decisions/cards/evidence.js": {
@@ -840,19 +653,12 @@
   "functionLines": 1,
   "lineLength": 18
  },
- "modules/decisions/conversation-actions.js": {
-  "lineLength": 2,
-  "sharedStateParameter": 1
- },
  "modules/decisions/decisions.css": {
   "important": 2,
   "lineLength": 50
  },
  "modules/decisions/dock.js": {
-  "domExpando": 3,
-  "lineLength": 13,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 3
+  "lineLength": 12
  },
  "modules/decisions/keyboard.js": {
   "lineLength": 6,
@@ -875,177 +681,117 @@
   "lineLength": 8
  },
  "modules/decisions/rank.js": {
-  "lineLength": 4,
-  "unusedExport": 4
+  "lineLength": 2,
+  "unusedExport": 2
  },
  "modules/decisions/toast.js": {
   "lineLength": 3
  },
- "modules/files/conversation-files-types.d.ts": {
-  "sourceReadTarget": 3
- },
  "modules/files/conversation-files.js": {
-  "lineLength": 2,
-  "sourceReadTarget": 3
+  "lineLength": 2
  },
  "modules/files/documents.js": {
   "functionLines": 1,
   "lineLength": 20,
-  "sourceReadTarget": 4,
   "unusedExport": 6
  },
  "modules/files/drafts.js": {
-  "lineLength": 4,
-  "sourceReadTarget": 3
+  "lineLength": 4
  },
  "modules/files/drag.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 3
- },
- "modules/files/drop-target.js": {
-  "sourceReadTarget": 3
+  "lineLength": 1
  },
  "modules/files/editor.js": {
-  "functionLines": 1,
-  "lineLength": 22,
-  "sourceReadTarget": 3,
+  "lineLength": 7,
   "unusedExport": 2
  },
  "modules/files/files-types.d.ts": {
-  "lineLength": 1,
-  "sourceReadTarget": 3
+  "lineLength": 1
  },
  "modules/files/files.js": {
   "domExpando": 1,
   "functionLines": 1,
   "lineLength": 33,
-  "sourceReadTarget": 5,
   "unusedExport": 1
  },
  "modules/files/folder-reads.js": {
-  "lineLength": 4,
-  "sourceReadTarget": 3
+  "lineLength": 4
  },
  "modules/files/markdown-page.js": {
-  "domExpando": 4,
-  "functionLines": 1,
-  "lineLength": 20,
-  "sourceReadTarget": 3
+  "lineLength": 5
  },
  "modules/files/marks.js": {
-  "lineLength": 5,
-  "sourceReadTarget": 3
- },
- "modules/files/menu-elements.js": {
-  "sourceReadTarget": 3
+  "lineLength": 5
  },
  "modules/files/open-media.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 3
+  "lineLength": 1
  },
  "modules/files/operation-types.d.ts": {
-  "lineLength": 2,
-  "sourceReadTarget": 3
+  "lineLength": 2
  },
  "modules/files/operations.js": {
   "functionLines": 1,
-  "lineLength": 20,
-  "sourceReadTarget": 3
+  "lineLength": 20
  },
  "modules/files/page.js": {
-  "lineLength": 5,
-  "sourceReadTarget": 4
+  "lineLength": 5
  },
  "modules/files/scope.js": {
-  "lineLength": 7,
-  "sourceReadTarget": 3
- },
- "modules/files/search-place.js": {
-  "sourceReadTarget": 3
+  "lineLength": 7
  },
  "modules/files/section-folds.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 4
+  "lineLength": 1
  },
  "modules/files/tree-types.d.ts": {
-  "lineLength": 2,
-  "sourceReadTarget": 3
- },
- "modules/files/tree-width.js": {
-  "sourceReadTarget": 3
+  "lineLength": 2
  },
  "modules/files/tree.js": {
   "domExpando": 4,
   "functionLines": 1,
-  "lineLength": 34,
-  "sourceReadTarget": 5
- },
- "modules/files/types.d.ts": {
-  "sourceReadTarget": 3
+  "lineLength": 34
  },
  "modules/files/version-time.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 3
+  "lineLength": 1
  },
  "modules/files/viewer-diff.js": {
-  "lineLength": 13,
-  "sourceReadTarget": 4
+  "lineLength": 13
  },
  "modules/files/viewer-events.js": {
   "lineLength": 17,
-  "sourceReadTarget": 5
+  "sourceReadTarget": 1
  },
  "modules/files/viewer-head.js": {
   "functionLines": 1,
-  "lineLength": 40,
-  "sourceReadTarget": 7
+  "lineLength": 39
  },
  "modules/files/viewer-reads.js": {
-  "lineLength": 4,
-  "sourceReadTarget": 3
+  "lineLength": 4
  },
  "modules/files/viewer-text.js": {
   "lineLength": 6,
-  "sourceReadTarget": 3
- },
- "modules/files/viewer-types.d.ts": {
-  "sourceReadTarget": 3
+  "sourceReadTarget": 1
  },
  "modules/files/viewer.js": {
   "domExpando": 1,
   "functionLines": 1,
   "lineLength": 22,
-  "sourceReadTarget": 4
+  "sourceReadTarget": 1
  },
  "modules/github/page.js": {
-  "dayLiteral": 1,
-  "functionLines": 1,
-  "lineLength": 51,
-  "unusedExport": 6
- },
- "modules/home/handled.css": {
-  "lineLength": 7
+  "lineLength": 42,
+  "unusedExport": 4
  },
  "modules/home/handled.js": {
-  "domExpando": 1,
-  "lineLength": 4,
-  "sharedStateParameter": 1
- },
- "modules/home/home.css": {
-  "lineLength": 3
+  "lineLength": 4
  },
  "modules/home/next-card.js": {
   "lineLength": 13
- },
- "modules/home/next.css": {
-  "lineLength": 7
  },
  "modules/home/open-next.js": {
   "lineLength": 1
  },
  "modules/home/parts.js": {
-  "lineLength": 3,
-  "sharedStateParameter": 1
+  "lineLength": 1
  },
  "modules/home/sections.js": {
   "domExpando": 1,
@@ -1057,27 +803,22 @@
   "unusedExport": 2
  },
  "modules/home/view.js": {
-  "domExpando": 6,
-  "lineLength": 16,
-  "sharedStateParameter": 1
+  "lineLength": 8
  },
  "modules/launchpad/actions.js": {
-  "domExpando": 1,
   "functionLines": 1,
-  "lineLength": 36
+  "lineLength": 29
  },
  "modules/launchpad/client.js": {
-  "lineLength": 10,
+  "lineLength": 4,
   "unusedExport": 1
  },
  "modules/launchpad/launchpad.css": {
   "lineLength": 38
  },
  "modules/launchpad/launchpad.js": {
-  "domExpando": 2,
   "functionLines": 1,
-  "lineLength": 26,
-  "sourceReadTarget": 1,
+  "lineLength": 21,
   "unusedExport": 1
  },
  "modules/launchpad/model.js": {
@@ -1091,9 +832,7 @@
   "lineLength": 5
  },
  "modules/launchpad/page.js": {
-  "domExpando": 1,
-  "lineLength": 12,
-  "missingTsCheck": 1
+  "lineLength": 12
  },
  "modules/launchpad/store.js": {
   "functionLines": 1,
@@ -1101,9 +840,6 @@
  },
  "modules/launchpad/system.js": {
   "lineLength": 11
- },
- "modules/launchpad/tests/lp-stop-notice.test.mjs": {
-  "sourceRead": 1
  },
  "modules/launchpad/tests/mockspace-scenarios.test.mjs": {
   "sourceRead": 1
@@ -1116,84 +852,33 @@
   "lineLength": 3
  },
  "modules/launchpad/window.js": {
-  "domExpando": 1,
-  "lineLength": 2,
-  "missingTsCheck": 1
+  "lineLength": 2
  },
  "modules/launchpad/words.js": {
   "lineLength": 14
  },
- "modules/map/after-pause.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
- },
- "modules/map/agents-types.d.ts": {
-  "sourceReadTarget": 1
- },
  "modules/map/agents.js": {
-  "lineLength": 6,
-  "sourceReadTarget": 1
- },
- "modules/map/camera-types.d.ts": {
-  "sourceReadTarget": 1
+  "lineLength": 6
  },
  "modules/map/camera.js": {
   "lineLength": 4,
-  "sourceReadTarget": 2
- },
- "modules/map/diagram-types.d.ts": {
-  "sourceReadTarget": 1
- },
- "modules/map/diagram.js": {
-  "lineLength": 3,
-  "sourceReadTarget": 1
- },
- "modules/map/drawing-types.d.ts": {
   "sourceReadTarget": 1
  },
  "modules/map/drawing.js": {
-  "lineLength": 10,
-  "sourceReadTarget": 1
- },
- "modules/map/folders-types.d.ts": {
-  "sourceReadTarget": 1
- },
- "modules/map/folders.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
+  "lineLength": 9
  },
  "modules/map/graph-physics.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
+  "lineLength": 1
  },
  "modules/map/head.js": {
-  "lineLength": 8,
-  "sourceReadTarget": 1
- },
- "modules/map/icons.js": {
-  "sourceReadTarget": 1
- },
- "modules/map/layout.js": {
-  "lineLength": 3,
-  "sourceReadTarget": 2
- },
- "modules/map/map-types.d.ts": {
-  "sourceReadTarget": 1
+  "lineLength": 8
  },
  "modules/map/map.js": {
-  "domExpando": 1,
   "functionLines": 1,
-  "inlineViewportQuery": 1,
-  "lineLength": 25,
-  "sourceReadTarget": 4,
   "unusedExport": 1
  },
- "modules/map/tree-types.d.ts": {
-  "sourceReadTarget": 1
- },
  "modules/map/tree.js": {
-  "lineLength": 13,
-  "sourceReadTarget": 1
+  "lineLength": 13
  },
  "modules/projects/icon-choice.js": {
   "lineLength": 1
@@ -1208,12 +893,7 @@
   "lineLength": 5
  },
  "modules/routing/page.js": {
-  "functionLines": 1,
-  "lineLength": 26,
-  "sourceReadTarget": 1
- },
- "modules/rules/page.js": {
-  "lineLength": 10
+  "lineLength": 14
  },
  "modules/runs/controller.js": {
   "lineLength": 1
@@ -1222,27 +902,21 @@
   "lineLength": 1
  },
  "modules/runs/panel.js": {
-  "domExpando": 2,
-  "lineLength": 8,
-  "sharedStateParameter": 1
+  "lineLength": 7
  },
  "modules/runs/read.js": {
-  "lineLength": 3
- },
- "modules/runs/stop.js": {
-  "lineLength": 6
+  "lineLength": 2
  },
  "modules/runs/strip.js": {
-  "lineLength": 3
+  "lineLength": 1
  },
  "modules/runs/view.js": {
   "lineLength": 51,
-  "sourceReadTarget": 1,
   "unusedExport": 3
  },
  "modules/runtimes/settings.js": {
   "functionLines": 1,
-  "lineLength": 33,
+  "lineLength": 32,
   "unusedExport": 3
  },
  "modules/runtimes/thread.js": {
@@ -1259,30 +933,26 @@
   "lineLength": 15
  },
  "modules/settings/accounts.js": {
-  "functionLines": 1,
-  "lineLength": 37,
+  "lineLength": 29,
   "unusedExport": 5
  },
  "modules/settings/appearance.js": {
-  "lineLength": 9,
-  "sharedStateParameter": 1
+  "lineLength": 9
  },
  "modules/settings/apply-shape.js": {
-  "lineLength": 2,
-  "sharedStateParameter": 1
+  "lineLength": 2
  },
  "modules/settings/frame.js": {
   "lineLength": 5
  },
  "modules/settings/host.js": {
-  "lineLength": 5
+  "lineLength": 2
  },
  "modules/settings/index.js": {
   "unusedExport": 1
  },
  "modules/settings/keys-page.js": {
-  "lineLength": 8,
-  "sharedStateParameter": 1
+  "lineLength": 5
  },
  "modules/settings/keys-sheet.js": {
   "lineLength": 2
@@ -1291,14 +961,11 @@
   "lineLength": 2
  },
  "modules/settings/settings.css": {
-  "lineLength": 11
+  "lineLength": 5
  },
  "modules/settings/shape-page.js": {
   "functionLines": 1,
   "lineLength": 33
- },
- "modules/settings/shape.css": {
-  "lineLength": 5
  },
  "modules/settings/shortcuts-sheet.js": {
   "lineLength": 3
@@ -1307,14 +974,13 @@
   "lineLength": 1
  },
  "modules/settings/types.d.ts": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "modules/shells/dock-actions.js": {
-  "lineLength": 9
+  "lineLength": 5
  },
  "modules/shells/dock-input.js": {
-  "inlineViewportQuery": 1,
-  "lineLength": 10
+  "lineLength": 9
  },
  "modules/shells/dock-view.js": {
   "domExpando": 6,
@@ -1323,104 +989,45 @@
  },
  "modules/shells/dock.js": {
   "functionLines": 1,
-  "lineLength": 12
+  "lineLength": 8
  },
  "modules/shells/model.js": {
   "lineLength": 4,
   "unusedExport": 3
  },
- "modules/shells/panel.js": {
-  "lineLength": 2,
-  "sharedStateParameter": 1
- },
  "modules/shells/term.js": {
-  "functionLines": 1,
-  "lineLength": 10,
-  "unusedExport": 1,
-  "viewportLiteral": 1
+  "lineLength": 9,
+  "unusedExport": 1
  },
  "modules/since/model.js": {
-  "dayLiteral": 1,
-  "lineLength": 5,
+  "lineLength": 2,
   "unusedExport": 4
  },
- "modules/since/notice.css": {
-  "lineLength": 4
- },
- "modules/since/section.js": {
-  "lineLength": 2
- },
- "modules/since/view.js": {
-  "domExpando": 2,
-  "lineLength": 13
- },
- "modules/threads/all-sheet.js": {
-  "lineLength": 3,
-  "sharedStateParameter": 1
- },
- "modules/threads/all.css": {
-  "lineLength": 4
- },
- "modules/threads/all.js": {
-  "lineLength": 4,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 2
- },
- "modules/threads/delete-view.js": {
-  "domExpando": 2,
-  "lineLength": 3,
-  "sharedStateParameter": 1
- },
- "modules/threads/delete.js": {
-  "domExpando": 1,
-  "lineLength": 4,
-  "sharedStateParameter": 1
- },
  "modules/threads/editing.js": {
-  "domExpando": 4,
-  "lineLength": 7,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 7
  },
  "modules/threads/groups.js": {
-  "lineLength": 6
+  "lineLength": 5
  },
  "modules/threads/header.js": {
   "lineLength": 2
  },
  "modules/threads/intelligence.css": {
-  "lineLength": 20
+  "lineLength": 19
  },
  "modules/threads/menu.js": {
-  "lineLength": 5,
-  "sourceReadTarget": 1
- },
- "modules/threads/open-panel-thread.js": {
-  "lineLength": 1,
-  "sharedStateParameter": 1,
-  "sourceReadTarget": 1
+  "lineLength": 5
  },
  "modules/threads/resolve.js": {
   "lineLength": 3
- },
- "modules/threads/row-resolve.js": {
-  "domExpando": 1,
-  "lineLength": 4
- },
- "modules/worktrees/page.js": {
-  "domExpando": 1,
-  "lineLength": 13
  },
  "serve.py": {
   "lineLength": 2,
   "pythonSize": 336
  },
- "shell/back.js": {
-  "lineLength": 2
- },
  "shell/dialogs.css": {
   "important": 1,
-  "lineLength": 15
+  "lineLength": 9
  },
  "shell/elapsed.js": {
   "lineLength": 1
@@ -1432,19 +1039,14 @@
   "lineLength": 2
  },
  "shell/frame.css": {
-  "lineLength": 21,
-  "sourceReadTarget": 2
+  "lineLength": 10
  },
  "shell/frame.js": {
   "lineLength": 1
  },
  "shell/gestures.js": {
   "functionLines": 1,
-  "lineLength": 23,
-  "sourceReadTarget": 1
- },
- "shell/global-keys.js": {
-  "lineLength": 1
+  "lineLength": 13
  },
  "shell/header.js": {
   "lineLength": 2
@@ -1454,7 +1056,7 @@
   "unusedExport": 1
  },
  "shell/keyboard-layers.js": {
-  "lineLength": 5
+  "lineLength": 3
  },
  "shell/layer-queries.js": {
   "lineLength": 1
@@ -1462,65 +1064,44 @@
  "shell/layers.js": {
   "lineLength": 1
  },
- "shell/navigation.js": {
-  "domExpando": 1,
-  "lineLength": 3,
-  "sourceReadTarget": 3
- },
  "shell/overlays.js": {
-  "lineLength": 33,
-  "sourceReadTarget": 1
+  "lineLength": 32
  },
  "shell/panel/frames.js": {
   "lineLength": 4,
   "unusedExport": 4
  },
  "shell/panel/lists.js": {
-  "lineLength": 15,
-  "unusedExport": 2
+  "lineLength": 13,
+  "unusedExport": 1
  },
  "shell/panel/pages.js": {
   "functionLines": 1,
   "lineLength": 5
  },
  "shell/panel/panel.js": {
-  "domExpando": 1,
   "functionLines": 1,
-  "lineLength": 34,
-  "sourceReadTarget": 1,
-  "viewportLiteral": 1
- },
- "shell/panel/width.js": {
-  "lineLength": 2,
-  "sourceReadTarget": 1,
-  "viewportLiteral": 1
+  "lineLength": 23
  },
  "shell/phone.css": {
-  "lineLength": 13
+  "lineLength": 7
  },
  "shell/phone.js": {
   "lineLength": 2
- },
- "shell/pickers.css": {
-  "lineLength": 1
  },
  "shell/places.js": {
   "lineLength": 10
  },
  "shell/rail/rows.js": {
-  "domExpando": 2,
-  "lineLength": 11
+  "lineLength": 10
  },
  "shell/rail/side.js": {
   "domExpando": 1,
   "functionLines": 1,
-  "lineLength": 24,
-  "sourceReadTarget": 3
+  "lineLength": 24
  },
  "shell/render.js": {
-  "domExpando": 1,
-  "lineLength": 3,
-  "sourceReadTarget": 2
+  "lineLength": 2
  },
  "shell/responsive.css": {
   "lineLength": 6
@@ -1530,36 +1111,17 @@
   "lineLength": 4
  },
  "shell/sidebar.css": {
-  "lineLength": 16,
-  "sourceReadTarget": 4
+  "lineLength": 16
  },
  "shell/sideorder.js": {
   "lineLength": 2,
   "unusedExport": 2
  },
  "shell/top-header.js": {
-  "domExpando": 2,
-  "lineLength": 5,
-  "sourceReadTarget": 1
+  "lineLength": 4
  },
  "shell/workspace-header.js": {
-  "lineLength": 1,
-  "sourceReadTarget": 1
- },
- "tests/accounts.test.mjs": {
-  "sourceRead": 3
- },
- "tests/agent-tag.test.mjs": {
-  "sourceRead": 4
- },
- "tests/app-wiring.test.mjs": {
-  "sourceRead": 1
- },
- "tests/artifacts-preview.test.mjs": {
-  "sourceRead": 2
- },
- "tests/back-to-where.test.mjs": {
-  "sourceRead": 3
+  "lineLength": 1
  },
  "tests/browser-hooks.test.mjs": {
   "sourceRead": 1
@@ -1567,148 +1129,19 @@
  "tests/browser/harness.cjs": {
   "sourceRead": 1
  },
- "tests/captions.test.mjs": {
-  "sourceRead": 1
- },
- "tests/card-family.test.mjs": {
-  "sourceRead": 1
- },
- "tests/card-ring.test.mjs": {
-  "sourceRead": 1
- },
  "tests/cardparts.test.mjs": {
-  "sourceRead": 1
- },
- "tests/chats-list.test.mjs": {
-  "sourceRead": 1
- },
- "tests/checklist-empty.test.mjs": {
-  "sourceRead": 1
- },
- "tests/codemirror-vendor.test.mjs": {
-  "sourceRead": 3
- },
- "tests/composer-behavior.test.mjs": {
-  "sourceRead": 1
- },
- "tests/composer-popover-height.test.mjs": {
-  "sourceRead": 1
- },
- "tests/composer-row-size.test.mjs": {
-  "sourceRead": 1
- },
- "tests/conn-line.test.mjs": {
-  "sourceRead": 2
- },
- "tests/conv-ctl-scale.test.mjs": {
-  "sourceRead": 1
- },
- "tests/conv-find-ring.test.mjs": {
   "sourceRead": 1
  },
  "tests/coord-colour.test.mjs": {
   "sourceRead": 1
  },
- "tests/copied-speaker.test.mjs": {
-  "sourceRead": 2
- },
- "tests/copy-path-fail.test.mjs": {
-  "sourceRead": 2
- },
- "tests/css-wellformed.test.mjs": {
-  "sourceRead": 1
- },
- "tests/ctl-scale.test.mjs": {
-  "sourceRead": 3
- },
- "tests/design-budget.test.mjs": {
-  "sourceRead": 4
- },
- "tests/details-toggle.test.mjs": {
-  "sourceRead": 2
- },
- "tests/diff-redraw-focus.test.mjs": {
-  "sourceRead": 2
- },
- "tests/diffview.test.mjs": {
-  "sourceRead": 7
- },
- "tests/disclosure-corners.test.mjs": {
-  "sourceRead": 1
- },
- "tests/dock-focus.test.mjs": {
-  "sourceRead": 2
- },
- "tests/dock-reset.test.mjs": {
-  "sourceRead": 3
- },
- "tests/dots-motion.test.mjs": {
-  "sourceRead": 1
- },
  "tests/dropdown-held.test.mjs": {
-  "sourceRead": 1
- },
- "tests/edge-card.test.mjs": {
   "sourceRead": 1
  },
  "tests/edge-ring.test.mjs": {
   "sourceRead": 1
  },
- "tests/event-lines.test.mjs": {
-  "sourceRead": 2
- },
- "tests/field-ring.test.mjs": {
-  "sourceRead": 2
- },
- "tests/file-cache.test.mjs": {
-  "sourceRead": 2
- },
- "tests/files-stop-look.test.mjs": {
-  "sourceRead": 1
- },
- "tests/files-tree-scroll-fold.test.mjs": {
-  "sourceRead": 3
- },
- "tests/files.test.mjs": {
-  "sourceRead": 1
- },
  "tests/flavours.test.mjs": {
-  "sourceRead": 1
- },
- "tests/focus-back.test.mjs": {
-  "sourceRead": 1
- },
- "tests/focus-fields.test.mjs": {
-  "sourceRead": 1
- },
- "tests/focusview.test.mjs": {
-  "sourceRead": 2
- },
- "tests/ghpage.test.mjs": {
-  "sourceRead": 1
- },
- "tests/gone-thread-composer.test.mjs": {
-  "sourceRead": 2
- },
- "tests/graph-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/head-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/head-narrow.test.mjs": {
-  "sourceRead": 3
- },
- "tests/head-redraw.test.mjs": {
-  "sourceRead": 1
- },
- "tests/hover-census.test.mjs": {
-  "sourceRead": 1
- },
- "tests/hover-inks.test.mjs": {
-  "sourceRead": 1
- },
- "tests/hover-rings.test.mjs": {
   "sourceRead": 1
  },
  "tests/hover-veil.test.mjs": {
@@ -1717,34 +1150,10 @@
  "tests/icon-gap.test.mjs": {
   "sourceRead": 1
  },
- "tests/image-text-mode.test.mjs": {
-  "sourceRead": 1
- },
- "tests/inverse-toast.test.mjs": {
-  "sourceRead": 1
- },
- "tests/iq-one-path.test.mjs": {
-  "sourceRead": 1
- },
- "tests/jump-projects.test.mjs": {
-  "sourceRead": 2
- },
- "tests/layers.test.mjs": {
-  "sourceRead": 3
- },
- "tests/layout-reads.test.mjs": {
-  "sourceRead": 1
- },
  "tests/ledger-deleted.test.mjs": {
   "sourceRead": 1
  },
  "tests/lib/cascade.mjs": {
-  "sourceRead": 1
- },
- "tests/lib/layers.mjs": {
-  "sourceRead": 3
- },
- "tests/lib/page.mjs": {
   "sourceRead": 1
  },
  "tests/lib/panel-src.mjs": {
@@ -1753,271 +1162,31 @@
  "tests/lib/sources.mjs": {
   "sourceRead": 1
  },
- "tests/lib/tokens.mjs": {
-  "sourceRead": 1
- },
- "tests/link-buttons.test.mjs": {
-  "sourceRead": 2
- },
- "tests/links-css.test.mjs": {
-  "sourceRead": 2
- },
- "tests/lp-intel-order.test.mjs": {
-  "sourceRead": 1
- },
- "tests/lp-phone-links.test.mjs": {
-  "sourceRead": 3
- },
- "tests/map-focus-reveal.test.mjs": {
-  "sourceRead": 2
- },
  "tests/map-follow-cursor.test.mjs": {
-  "sourceRead": 1
- },
- "tests/map-follow.test.mjs": {
-  "sourceRead": 1
- },
- "tests/map-reach.test.mjs": {
-  "sourceRead": 1
- },
- "tests/map-tag-press.test.mjs": {
-  "sourceRead": 1
- },
- "tests/md-headings.test.mjs": {
-  "sourceRead": 1
- },
- "tests/menu-focus-fill.test.mjs": {
-  "sourceRead": 1
- },
- "tests/menu-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/menu-open-unlit.test.mjs": {
-  "sourceRead": 3
- },
- "tests/menu-successor.test.mjs": {
-  "sourceRead": 1
- },
- "tests/menu-type.test.mjs": {
-  "sourceRead": 1
- },
- "tests/motion.test.mjs": {
   "sourceRead": 1
  },
  "tests/names.test.mjs": {
   "sourceRead": 1
  },
- "tests/no-offedge.test.mjs": {
-  "sourceRead": 1
- },
- "tests/notice-clear.test.mjs": {
-  "sourceRead": 4
- },
- "tests/notice-kind.test.mjs": {
-  "sourceRead": 1
- },
- "tests/one-active.test.mjs": {
-  "sourceRead": 2
- },
  "tests/pack-where-it-fits.test.mjs": {
-  "sourceRead": 1
- },
- "tests/page-no-hover.test.mjs": {
-  "sourceRead": 1
- },
- "tests/paint-a11y.test.mjs": {
-  "sourceRead": 1
- },
- "tests/panel-parity.test.mjs": {
-  "sourceRead": 1
- },
- "tests/panel-shell.test.mjs": {
-  "sourceRead": 3
- },
- "tests/panel-threads.test.mjs": {
-  "sourceRead": 8
- },
- "tests/path-copy-inline.test.mjs": {
-  "sourceRead": 2
- },
- "tests/phone-cascade.test.mjs": {
-  "sourceRead": 1
- },
- "tests/phone-floor.test.mjs": {
-  "sourceRead": 7
- },
- "tests/phone-hit-area.test.mjs": {
-  "sourceRead": 1
- },
- "tests/phone-panel-go.test.mjs": {
   "sourceRead": 1
  },
  "tests/picker-keys.test.mjs": {
   "sourceRead": 1
  },
- "tests/press-inks.test.mjs": {
-  "sourceRead": 1
- },
- "tests/press-keeps-node.test.mjs": {
-  "sourceRead": 6
- },
- "tests/press-reach.test.mjs": {
-  "sourceRead": 1
- },
- "tests/primary-button.test.mjs": {
-  "sourceRead": 3
- },
- "tests/project-icons.test.mjs": {
-  "sourceRead": 2
- },
- "tests/rail-badge.test.mjs": {
-  "sourceRead": 1
- },
- "tests/rec-undo-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/reconcile-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/reduced-motion.test.mjs": {
-  "sourceRead": 3
- },
  "tests/refusal-mark.test.mjs": {
-  "sourceRead": 1
- },
- "tests/refused.test.mjs": {
-  "sourceRead": 3
- },
- "tests/region-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/render-focus.test.mjs": {
   "sourceRead": 1
  },
  "tests/retry-waiting.test.mjs": {
   "sourceRead": 1
  },
- "tests/ring-room.test.mjs": {
-  "sourceRead": 2
- },
- "tests/ring.test.mjs": {
-  "sourceRead": 4
- },
- "tests/routing-truth.test.mjs": {
-  "sourceRead": 1
- },
- "tests/row-insets.test.mjs": {
-  "sourceRead": 1
- },
- "tests/rows-in-place.test.mjs": {
-  "sourceRead": 2
- },
- "tests/runs-page.test.mjs": {
-  "sourceRead": 1
- },
- "tests/runs-stop-receipt.test.mjs": {
-  "sourceRead": 2
- },
- "tests/scroller-ring.test.mjs": {
-  "sourceRead": 2
- },
- "tests/seg-fold.test.mjs": {
-  "sourceRead": 2
- },
- "tests/seg-ring.test.mjs": {
-  "sourceRead": 1
- },
- "tests/send-calm.test.mjs": {
-  "sourceRead": 4
- },
- "tests/send-gate.test.mjs": {
-  "sourceRead": 3
- },
- "tests/send-notice.test.mjs": {
-  "sourceRead": 4
- },
- "tests/settings-css.test.mjs": {
-  "sourceRead": 1
- },
  "tests/shape-presets.test.mjs": {
   "sourceRead": 1
- },
- "tests/shell-grip.test.mjs": {
-  "sourceRead": 1
- },
- "tests/shells.test.mjs": {
-  "sourceRead": 2
- },
- "tests/side-bar.test.mjs": {
-  "sourceRead": 3
- },
- "tests/side-calm-order.test.mjs": {
-  "sourceRead": 1
- },
- "tests/side-fold.test.mjs": {
-  "sourceRead": 4
- },
- "tests/side-spacing.test.mjs": {
-  "sourceRead": 1
- },
- "tests/space-scale.test.mjs": {
-  "sourceRead": 2
  },
  "tests/speaker-names.test.mjs": {
   "sourceRead": 1
  },
- "tests/stage-list-edge.test.mjs": {
-  "sourceRead": 1
- },
- "tests/stage-pages.test.mjs": {
-  "sourceRead": 8
- },
- "tests/stale-pass.test.mjs": {
-  "sourceRead": 1
- },
- "tests/start-centred.test.mjs": {
-  "sourceRead": 1
- },
- "tests/state-hover.test.mjs": {
-  "sourceRead": 1
- },
- "tests/stopped-on-purpose.test.mjs": {
-  "sourceRead": 1
- },
- "tests/target-bounded.test.mjs": {
-  "sourceRead": 1
- },
- "tests/targets-css.test.mjs": {
-  "sourceRead": 1
- },
- "tests/thread-filter.test.mjs": {
-  "sourceRead": 3
- },
- "tests/thread-menu.test.mjs": {
-  "sourceRead": 5
- },
- "tests/thread-page.test.mjs": {
-  "sourceRead": 20
- },
- "tests/turn-split-notes.test.mjs": {
-  "sourceRead": 1
- },
- "tests/type-faces.test.mjs": {
-  "sourceRead": 1
- },
- "tests/viewer-busy.test.mjs": {
-  "sourceRead": 1
- },
  "tests/viewer-errors.test.mjs": {
-  "sourceRead": 1
- },
- "tests/viewer-head-focus.test.mjs": {
-  "sourceRead": 1
- },
- "tests/viewer-hooks.test.mjs": {
-  "sourceRead": 1
- },
- "tests/xoicons.test.mjs": {
   "sourceRead": 1
  }
 }

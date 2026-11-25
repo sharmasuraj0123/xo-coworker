@@ -248,6 +248,7 @@ test("a successful ratchet update only lowers allowances and a failed update is 
   assert.match(checkConformance(root, paths, options), /setTimeout has 2, allowed 1/);
   assert.equal(readFileSync(baseline, "utf8"), original);
   write(root, FILE, HEADER + "scope.timeout(callback, delay);");
+  assert.match(checkConformance(root, paths, { update: false }), /Stale conformance baseline/);
   assert.equal(checkConformance(root, paths, options), null);
   assert.deepEqual(JSON.parse(readFileSync(baseline, "utf8")), {});
   write(root, FILE, HEADER + "setTimeout(callback, delay);");

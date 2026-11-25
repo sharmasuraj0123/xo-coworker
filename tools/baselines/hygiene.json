@@ -61,8 +61,7 @@
   "explicitAny": 3
  },
  "core/kernel/kernel.js": {
-  "commentLines": 1,
-  "explicitAny": 3
+  "commentLines": 1
  },
  "core/kernel/layers.js": {
   "explicitAny": 1
@@ -74,9 +73,6 @@
  "core/kernel/scheduler.js": {
   "commentLines": 1
  },
- "core/platform/api-types.d.ts": {
-  "explicitAny": 1
- },
  "core/platform/clipboard.js": {
   "commentOnlyCatch": 1
  },
@@ -84,9 +80,7 @@
   "explicitAny": 2
  },
  "core/platform/gestures.js": {
-  "commentLines": 4,
-  "commentOnlyCatch": 1,
-  "explicitAny": 1
+  "commentLines": 2
  },
  "core/platform/http.js": {
   "commentLines": 2,
@@ -106,32 +100,15 @@
   "commentOnlyCatch": 5,
   "explicitAny": 3
  },
- "core/platform/tests/gestures.test.mjs": {
-  "commentLines": 4,
-  "explicitAny": 13
- },
  "core/platform/tests/http.test.mjs": {
   "commentLines": 1,
   "explicitAny": 7
  },
- "core/platform/tests/routes-contract.test.mjs": {
-  "commentLines": 2,
-  "explicitAny": 4
- },
- "core/platform/tests/time.test.mjs": {
-  "explicitAny": 1
- },
  "core/platform/types.d.ts": {
   "explicitAny": 1
  },
- "core/services/change-types.d.ts": {
-  "explicitAny": 3
- },
  "core/services/comms.js": {
   "explicitAny": 5
- },
- "core/services/git-state.js": {
-  "explicitAny": 2
  },
  "core/services/media/attachment-rules.js": {
   "commentLines": 1,
@@ -166,9 +143,7 @@
   "explicitAny": 19
  },
  "core/services/runtimes.js": {
-  "changelogComment": 5,
-  "commentLines": 2,
-  "explicitAny": 2
+  "commentLines": 1
  },
  "core/services/shape/changes.js": {
   "explicitAny": 12
@@ -194,52 +169,19 @@
   "commentOnlyCatch": 5,
   "explicitAny": 1
  },
- "core/services/storm/act.js": {
-  "commentLines": 1
- },
- "core/services/storm/commands.js": {
-  "commentLines": 1,
-  "commentOnlyCatch": 2,
-  "explicitAny": 3
- },
- "core/services/storm/history.js": {
-  "explicitAny": 4
- },
  "core/services/storm/hops.js": {
   "commentOnlyCatch": 1
  },
  "core/services/storm/index.js": {
-  "commentLines": 22,
-  "explicitAny": 1
+  "commentLines": 4
  },
  "core/services/storm/load.js": {
   "commentLines": 2,
   "commentOnlyCatch": 6,
   "explicitAny": 2
  },
- "core/services/storm/reducers/sessions.js": {
-  "explicitAny": 2
- },
- "core/services/storm/selectors/commit.js": {
-  "changelogComment": 1,
-  "explicitAny": 1
- },
- "core/services/storm/selectors/sessions.js": {
-  "commentLines": 1,
-  "explicitAny": 3
- },
  "core/services/storm/selectors/threads.js": {
-  "commentLines": 4,
-  "explicitAny": 1
- },
- "core/services/storm/stream.js": {
-  "explicitAny": 1
- },
- "core/services/storm/types.d.ts": {
-  "explicitAny": 2
- },
- "core/services/types.d.ts": {
-  "explicitAny": 1
+  "commentLines": 4
  },
  "core/services/world/conn.js": {
   "commentLines": 1
@@ -251,8 +193,7 @@
   "commentLines": 1
  },
  "core/services/world/hops.js": {
-  "commentLines": 4,
-  "explicitAny": 3
+  "commentLines": 1
  },
  "core/services/world/paid.js": {
   "changelogComment": 1,
@@ -262,52 +203,28 @@
  "core/services/world/relay.js": {
   "commentLines": 1
  },
- "core/services/world/rows.js": {
-  "commentLines": 1,
-  "explicitAny": 2
- },
  "core/services/world/sessions.js": {
-  "explicitAny": 1
- },
- "core/services/world/store.js": {
-  "commentLines": 1,
   "explicitAny": 1
  },
  "core/services/world/threads.js": {
   "explicitAny": 3
  },
  "core/services/world/turns.js": {
-  "commentLines": 4,
-  "explicitAny": 1
- },
- "core/ui/a11y/focus.js": {
-  "explicitAny": 1
- },
- "core/ui/a11y/keynav.js": {
-  "explicitAny": 4
+  "commentLines": 4
  },
  "core/ui/a11y/ring.js": {
-  "commentLines": 2,
-  "explicitAny": 1
+  "commentLines": 2
  },
  "core/ui/components/hold.js": {
   "commentLines": 3,
   "commentOnlyCatch": 2
  },
  "core/ui/components/xo-select.css": {
-  "changelogComment": 1,
   "commentLines": 7
  },
  "core/ui/components/xo-select.js": {
   "commentLines": 9,
   "explicitAny": 2
- },
- "core/ui/foundation.css": {
-  "changelogComment": 3,
-  "commentLines": 13
- },
- "core/ui/icons/fileicons.js": {
-  "changelogComment": 2
  },
  "core/ui/icons/icon.js": {
   "changelogComment": 1
@@ -324,66 +241,28 @@
   "explicitAny": 3
  },
  "core/ui/markdown/inline.js": {
-  "commentLines": 3,
-  "explicitAny": 2
+  "commentLines": 3
  },
  "core/ui/markdown/markdown.js": {
   "commentLines": 1
  },
  "core/ui/markdown/rich.css": {
-  "changelogComment": 4,
-  "commentLines": 35
+  "commentLines": 19
  },
  "core/ui/markdown/rich.js": {
-  "commentLines": 15,
-  "explicitAny": 7
- },
- "core/ui/motion.js": {
-  "explicitAny": 8
- },
- "core/ui/redraw.js": {
-  "commentLines": 2,
-  "commentOnlyCatch": 1,
-  "explicitAny": 8
- },
- "core/ui/theme.js": {
-  "commentOnlyCatch": 1
+  "commentLines": 14
  },
  "core/ui/tokens.css": {
-  "changelogComment": 9,
-  "commentLines": 60
+  "commentLines": 14
  },
  "css/app.css": {
-  "changelogComment": 20,
-  "commentLines": 68
+  "commentLines": 3
  },
  "css/diffs.css": {
-  "changelogComment": 6,
-  "commentLines": 18
- },
- "css/docs.css": {
-  "changelogComment": 3,
-  "commentLines": 4
- },
- "css/foundation.css": {
-  "changelogComment": 19,
-  "commentLines": 71,
-  "commentReference": 1
- },
- "css/light.css": {
-  "commentLines": 1
- },
- "css/links.css": {
-  "commentLines": 21
+  "commentLines": 9
  },
  "css/panel.css": {
-  "changelogComment": 17,
-  "commentLines": 49,
-  "commentReference": 1
- },
- "css/phone.css": {
-  "changelogComment": 16,
-  "commentLines": 36
+  "commentLines": 16
  },
  "e2e/lib/apps.mjs": {
   "changelogComment": 3,
@@ -426,65 +305,43 @@
   "commentLines": 2
  },
  "js/app.js": {
-  "changelogComment": 16,
-  "commentLines": 52,
-  "commentReference": 1
+  "commentLines": 31
  },
  "modules/artifacts/cards.js": {
-  "commentLines": 4,
-  "explicitAny": 15
- },
- "modules/artifacts/made.js": {
-  "commentLines": 6
- },
- "modules/artifacts/model.js": {
-  "explicitAny": 2
+  "commentLines": 3
  },
  "modules/artifacts/page.js": {
-  "commentLines": 15,
-  "explicitAny": 29
+  "commentLines": 4
  },
  "modules/artifacts/previews.js": {
-  "commentLines": 7,
-  "explicitAny": 13
+  "commentLines": 6
  },
  "modules/artifacts/section.js": {
   "explicitAny": 1
  },
  "modules/artifacts/store.js": {
-  "commentLines": 7,
-  "explicitAny": 19
- },
- "modules/artifacts/types.d.ts": {
-  "explicitAny": 2
+  "commentLines": 1
  },
  "modules/changes/diffview.js": {
-  "commentLines": 1,
-  "explicitAny": 7
+  "commentLines": 1
  },
  "modules/changes/frame.js": {
   "commentLines": 11
  },
  "modules/changes/imagechange.js": {
-  "changelogComment": 1,
-  "commentLines": 7,
-  "explicitAny": 1
+  "commentLines": 7
  },
  "modules/changes/store.js": {
-  "commentLines": 4,
-  "explicitAny": 6
+  "commentLines": 4
  },
  "modules/changes/tests/changes.test.mjs": {
   "commentLines": 2
  },
- "modules/changes/types.d.ts": {
-  "explicitAny": 1
- },
  "modules/chats/chats.js": {
-  "commentLines": 11
+  "commentLines": 9
  },
  "modules/chats/intel-catalog.js": {
-  "commentLines": 3
+  "commentLines": 2
  },
  "modules/chats/intel-input.js": {
   "commentLines": 3
@@ -493,7 +350,7 @@
   "commentLines": 5
  },
  "modules/chats/intel.js": {
-  "commentLines": 17
+  "commentLines": 15
  },
  "modules/chats/list.js": {
   "commentLines": 2
@@ -510,34 +367,22 @@
  "modules/conversation/composer-attachments.js": {
   "commentLines": 2
  },
- "modules/conversation/composer.css": {
-  "changelogComment": 2
- },
  "modules/conversation/conversation.css": {
   "commentLines": 1
  },
  "modules/conversation/decoration.js": {
-  "commentLines": 5
+  "commentLines": 3
  },
  "modules/conversation/delivery.js": {
-  "commentLines": 2
+  "commentLines": 1
  },
  "modules/conversation/draw.js": {
   "commentLines": 1
- },
- "modules/conversation/file-question.js": {
-  "commentLines": 1
- },
- "modules/conversation/follow.js": {
-  "explicitAny": 1
  },
  "modules/conversation/latest-button.js": {
   "commentLines": 1
  },
  "modules/conversation/live.js": {
-  "commentLines": 1
- },
- "modules/conversation/main-decoration.js": {
   "commentLines": 1
  },
  "modules/conversation/mention.js": {
@@ -547,21 +392,15 @@
   "commentLines": 2
  },
  "modules/conversation/message-reply.js": {
-  "commentLines": 8
+  "commentLines": 7
  },
  "modules/conversation/message-swipes.js": {
-  "commentLines": 12
+  "commentLines": 11
  },
  "modules/conversation/messages.js": {
-  "commentLines": 10
+  "commentLines": 9
  },
  "modules/conversation/navigation.js": {
-  "commentLines": 1
- },
- "modules/conversation/reading-layout.js": {
-  "commentLines": 2
- },
- "modules/conversation/stops.js": {
   "commentLines": 1
  },
  "modules/conversation/tests/typing.test.mjs": {
@@ -569,18 +408,16 @@
   "explicitAny": 2
  },
  "modules/conversation/thread-page.js": {
-  "commentLines": 6
+  "commentLines": 1
  },
  "modules/conversation/typing.js": {
   "explicitAny": 8
  },
  "modules/conversation/working-turn.js": {
-  "commentLines": 8
+  "commentLines": 4
  },
  "modules/create-project/create.js": {
-  "changelogComment": 2,
-  "commentLines": 12,
-  "explicitAny": 21
+  "commentLines": 7
  },
  "modules/decisions/card-events.js": {
   "commentLines": 8
@@ -595,7 +432,7 @@
   "commentLines": 2
  },
  "modules/decisions/dock.js": {
-  "commentLines": 5
+  "commentLines": 4
  },
  "modules/decisions/keyboard.js": {
   "commentLines": 5
@@ -606,9 +443,6 @@
  },
  "modules/decisions/needs.js": {
   "commentLines": 3
- },
- "modules/decisions/rank.js": {
-  "explicitAny": 9
  },
  "modules/decisions/toast.js": {
   "commentLines": 1
@@ -628,8 +462,7 @@
   "commentLines": 2
  },
  "modules/files/editor.js": {
-  "commentLines": 15,
-  "explicitAny": 32
+  "commentLines": 2
  },
  "modules/files/files.js": {
   "commentLines": 38
@@ -638,8 +471,7 @@
   "commentLines": 2
  },
  "modules/files/markdown-page.js": {
-  "commentLines": 23,
-  "explicitAny": 59
+  "commentLines": 1
  },
  "modules/files/marks.js": {
   "commentLines": 2
@@ -660,9 +492,6 @@
  "modules/files/tree.js": {
   "commentLines": 8
  },
- "modules/files/types.d.ts": {
-  "explicitAny": 4
- },
  "modules/files/viewer-diff.js": {
   "commentLines": 4
  },
@@ -679,10 +508,7 @@
   "commentLines": 2
  },
  "modules/github/page.js": {
-  "commentLines": 4
- },
- "modules/home/handled.js": {
-  "commentReference": 2
+  "commentLines": 1
  },
  "modules/home/sections.js": {
   "commentLines": 2,
@@ -695,35 +521,23 @@
   "explicitAny": 2
  },
  "modules/launchpad/actions.js": {
-  "commentLines": 11,
-  "explicitAny": 7
+  "commentLines": 10
  },
  "modules/launchpad/client.js": {
-  "commentLines": 6,
-  "commentReference": 1,
-  "explicitAny": 9
- },
- "modules/launchpad/launchpad.js": {
-  "commentLines": 9,
-  "explicitAny": 8
+  "commentLines": 1
  },
  "modules/launchpad/model.js": {
   "commentLines": 5,
   "explicitAny": 15
  },
  "modules/launchpad/store.js": {
-  "commentLines": 7,
-  "explicitAny": 3
+  "commentLines": 6
  },
  "modules/launchpad/system.js": {
   "explicitAny": 1
  },
  "modules/launchpad/tests/lp-stop-notice.test.mjs": {
   "commentLines": 1
- },
- "modules/launchpad/tests/routes-contract.test.mjs": {
-  "commentLines": 2,
-  "explicitAny": 4
  },
  "modules/launchpad/views.js": {
   "commentLines": 2,
@@ -739,11 +553,8 @@
  "modules/map/drawing.js": {
   "commentLines": 4
  },
- "modules/map/layout.js": {
-  "explicitAny": 2
- },
  "modules/map/map.js": {
-  "commentLines": 28
+  "commentLines": 8
  },
  "modules/map/tests/agents.test.mjs": {
   "commentLines": 2
@@ -761,33 +572,14 @@
   "changelogComment": 1,
   "commentLines": 1
  },
- "modules/routing/page.js": {
-  "commentLines": 5,
-  "explicitAny": 18
- },
- "modules/routing/types.d.ts": {
-  "explicitAny": 12
- },
- "modules/rules/page.js": {
-  "commentLines": 3,
-  "explicitAny": 8
- },
- "modules/rules/types.d.ts": {
-  "explicitAny": 12
- },
  "modules/runs/panel.js": {
   "commentLines": 2
  },
- "modules/runs/read.js": {
-  "commentLines": 3
- },
  "modules/runs/view.js": {
-  "changelogComment": 1,
   "commentLines": 2
  },
  "modules/runtimes/settings.js": {
-  "commentLines": 5,
-  "explicitAny": 22
+  "commentLines": 1
  },
  "modules/runtimes/tests/rtsettings.test.mjs": {
   "changelogComment": 2,
@@ -804,7 +596,7 @@
   "explicitAny": 2
  },
  "modules/settings/accounts.js": {
-  "commentLines": 9
+  "commentLines": 2
  },
  "modules/settings/appearance.js": {
   "commentLines": 5
@@ -812,13 +604,6 @@
  "modules/settings/frame.js": {
   "commentLines": 8,
   "explicitAny": 2
- },
- "modules/settings/host.js": {
-  "explicitAny": 6
- },
- "modules/settings/keys-page.js": {
-  "commentLines": 7,
-  "explicitAny": 1
  },
  "modules/settings/keys-sheet.js": {
   "commentLines": 1
@@ -833,64 +618,23 @@
  "modules/settings/shortcuts-sheet.js": {
   "commentLines": 1
  },
- "modules/settings/types.d.ts": {
-  "explicitAny": 11
- },
- "modules/shells/dock-actions.js": {
-  "commentLines": 3
- },
  "modules/shells/dock-input.js": {
   "commentLines": 2
  },
  "modules/shells/dock.js": {
-  "commentLines": 25
+  "commentLines": 16
  },
  "modules/shells/model.js": {
   "commentLines": 1
  },
- "modules/shells/panel.js": {
-  "commentLines": 1
- },
  "modules/shells/term.js": {
-  "commentLines": 3
- },
- "modules/since/model.js": {
-  "explicitAny": 7
- },
- "modules/since/notice.css": {
-  "changelogComment": 1
- },
- "modules/since/section.js": {
-  "explicitAny": 2
- },
- "modules/since/view.js": {
-  "commentLines": 12,
-  "explicitAny": 12
- },
- "modules/threads/all-sheet.js": {
   "commentLines": 2
- },
- "modules/threads/all.js": {
-  "commentLines": 1
- },
- "modules/threads/delete.js": {
-  "commentLines": 3
  },
  "modules/threads/editing.js": {
   "commentLines": 1
  },
  "modules/threads/resolve.js": {
   "commentLines": 2
- },
- "modules/threads/row-resolve.js": {
-  "commentLines": 1
- },
- "modules/worktrees/page.js": {
-  "commentLines": 2,
-  "explicitAny": 11
- },
- "modules/worktrees/types.d.ts": {
-  "explicitAny": 12
  },
  "serve.py": {
   "commentLines": 71
@@ -913,15 +657,11 @@
   "commentLines": 2,
   "explicitAny": 4
  },
- "shell/panel/lists.js": {
-  "explicitAny": 9
- },
  "shell/panel/pages.js": {
   "commentLines": 1
  },
  "shell/panel/panel.js": {
-  "commentLines": 11,
-  "explicitAny": 18
+  "commentLines": 9
  },
  "shell/panel/width.js": {
   "commentLines": 3
@@ -946,31 +686,12 @@
  "shell/sideorder.js": {
   "commentLines": 1
  },
- "shell/tests/back.test.mjs": {
-  "commentLines": 1,
-  "explicitAny": 2
- },
- "shell/tests/panel-frames.test.mjs": {
-  "explicitAny": 1
- },
- "tests/agent-marks.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 3
- },
- "tests/agent-tag.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 5
- },
  "tests/app-ctl-scale.test.mjs": {
   "changelogComment": 4,
   "commentLines": 5
  },
  "tests/app-wiring.test.mjs": {
   "commentLines": 3
- },
- "tests/artifacts-preview.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 5
  },
  "tests/attach.test.mjs": {
   "commentLines": 2
@@ -979,16 +700,13 @@
   "commentLines": 4
  },
  "tests/browser/conversation.test.cjs": {
-  "changelogComment": 10,
-  "commentLines": 29
+  "commentLines": 7
  },
  "tests/browser/coordinator-busy.test.cjs": {
   "commentLines": 2
  },
  "tests/browser/flows.test.cjs": {
-  "changelogComment": 59,
-  "commentLines": 128,
-  "commentReference": 1
+  "commentLines": 49
  },
  "tests/browser/harness.cjs": {
   "changelogComment": 2,
@@ -1017,32 +735,8 @@
   "changelogComment": 1,
   "commentLines": 9
  },
- "tests/card-ring.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/checklist-empty.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/codemirror-vendor.test.mjs": {
-  "commentLines": 4
- },
- "tests/conn-line.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
  "tests/conv-actions.test.mjs": {
-  "commentLines": 2,
-  "explicitAny": 9
- },
- "tests/conv-ctl-scale.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 6
- },
- "tests/conv-find-ring.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 2
+  "commentLines": 1
  },
  "tests/conv-herald-resolve.test.mjs": {
   "changelogComment": 1,
@@ -1052,45 +746,11 @@
   "changelogComment": 2,
   "commentLines": 5
  },
- "tests/copy-path-fail.test.mjs": {
-  "changelogComment": 4,
-  "commentLines": 13,
-  "commentReference": 2
- },
- "tests/cover-inert.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 6
- },
- "tests/css-wellformed.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 7
- },
- "tests/ctl-heights.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/ctl-scale.test.mjs": {
-  "changelogComment": 9,
-  "commentLines": 22,
-  "commentReference": 1
- },
  "tests/decisions-undo.test.mjs": {
   "explicitAny": 1
  },
  "tests/design-budget.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 14
- },
- "tests/diff-redraw-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 10
- },
- "tests/diffview.test.mjs": {
-  "commentLines": 3
- },
- "tests/dock-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 11
+  "commentLines": 4
  },
  "tests/docs.test.mjs": {
   "commentLines": 3
@@ -1109,56 +769,8 @@
  "tests/edits.test.mjs": {
   "commentLines": 3
  },
- "tests/field-ring.test.mjs": {
-  "changelogComment": 4,
-  "commentLines": 6
- },
- "tests/file-cache.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/files-stop-look.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 2
- },
- "tests/files-tree-scroll-fold.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
  "tests/files.test.mjs": {
   "commentLines": 1
- },
- "tests/focus-back.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 9
- },
- "tests/focusview.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 8
- },
- "tests/gone-thread-composer.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/graph-focus.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 5
- },
- "tests/grip-ring.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/head-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/head-narrow.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 5
- },
- "tests/head-redraw.test.mjs": {
-  "changelogComment": 4,
-  "commentLines": 7
  },
  "tests/herald.test.mjs": {
   "changelogComment": 1,
@@ -1167,32 +779,15 @@
  "tests/home-sections.test.mjs": {
   "explicitAny": 2
  },
- "tests/hover-census.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 6
- },
- "tests/hover-inks.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
  "tests/icon-gap.test.mjs": {
   "changelogComment": 1,
   "commentLines": 4
  },
- "tests/image-text-mode.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
  "tests/intel-chip-toggle.test.mjs": {
   "explicitAny": 1
  },
- "tests/inverse-toast.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 5
- },
  "tests/keynav.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 3
+  "commentLines": 2
  },
  "tests/layers.test.mjs": {
   "commentLines": 1
@@ -1205,88 +800,28 @@
   "commentLines": 13
  },
  "tests/lib/dom.mjs": {
-  "commentLines": 1,
-  "explicitAny": 13
+  "commentLines": 1
  },
  "tests/lib/layers.mjs": {
   "commentLines": 8
- },
- "tests/lib/tokens.mjs": {
-  "changelogComment": 2,
-  "commentLines": 3
- },
- "tests/link-buttons.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/links-css.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
  },
  "tests/logic.test.mjs": {
   "changelogComment": 2,
   "commentLines": 4
  },
- "tests/lp-intel-order.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4,
-  "commentReference": 1
- },
- "tests/lp-phone-links.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 10
- },
  "tests/main-clip.test.mjs": {
   "changelogComment": 1,
   "commentLines": 4
  },
- "tests/map-focus-reveal.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 7
- },
  "tests/map-follow-cursor.test.mjs": {
   "changelogComment": 1,
   "commentLines": 5
- },
- "tests/map-follow.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 6
- },
- "tests/map-reach.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 6
- },
- "tests/map-tag-press.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/map.test.mjs": {
-  "commentLines": 2
- },
- "tests/mdlive.test.mjs": {
-  "commentLines": 22
  },
  "tests/media-lifecycle.test.mjs": {
   "commentLines": 1
  },
  "tests/media.test.mjs": {
   "commentLines": 12
- },
- "tests/menu-focus-fill.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/menu-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/menu-one-active.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/menu-successor.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 7
  },
  "tests/merge.test.mjs": {
   "commentLines": 2
@@ -1295,136 +830,29 @@
   "changelogComment": 1,
   "commentLines": 3
  },
- "tests/no-offedge.test.mjs": {
-  "commentLines": 4
- },
- "tests/notice-clear.test.mjs": {
-  "changelogComment": 4,
-  "commentLines": 9
- },
- "tests/notice-kind.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/one-active.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/pack-marks.test.mjs": {
-  "changelogComment": 1
- },
- "tests/page-no-hover.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
  "tests/paging.test.mjs": {
   "commentLines": 3
  },
  "tests/paid.test.mjs": {
   "commentLines": 2
  },
- "tests/paint-a11y.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 5
- },
- "tests/panel-threads.test.mjs": {
-  "changelogComment": 5,
-  "commentLines": 7
- },
- "tests/path-copy-inline.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 3
- },
  "tests/pending.test.mjs": {
   "commentLines": 1
- },
- "tests/phone-cascade.test.mjs": {
-  "commentLines": 6
- },
- "tests/phone-floor.test.mjs": {
-  "changelogComment": 4,
-  "commentLines": 9
- },
- "tests/phone-hit-area.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 7
- },
- "tests/phone-panel-go.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 6
  },
  "tests/picker-keys.test.mjs": {
   "changelogComment": 2,
   "commentLines": 5
  },
- "tests/press-inks.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 7
- },
- "tests/press-keeps-node.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 11
- },
- "tests/press-reach.test.mjs": {
-  "changelogComment": 8,
-  "commentLines": 10
- },
- "tests/project-icons.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 3
- },
- "tests/quickopen.test.mjs": {
-  "commentLines": 2
- },
- "tests/reconcile-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 2
- },
  "tests/record.test.mjs": {
   "commentLines": 8
- },
- "tests/reduced-motion.test.mjs": {
-  "commentLines": 5
  },
  "tests/refusal-mark.test.mjs": {
   "changelogComment": 2,
   "commentLines": 3
  },
- "tests/refused.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/region-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/render-focus.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
  "tests/retry-waiting.test.mjs": {
   "changelogComment": 1,
   "commentLines": 6
- },
- "tests/rich-markdown.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 3
- },
- "tests/ring-room.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 10
- },
- "tests/ring.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 5
- },
- "tests/routing-truth.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/runs-stop-receipt.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 7
  },
  "tests/runtimes.test.mjs": {
   "commentLines": 1
@@ -1432,77 +860,25 @@
  "tests/scroller-ring.test.mjs": {
   "commentLines": 17
  },
- "tests/seg-fold.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/seg-ring.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/send-gate.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 7,
-  "commentReference": 1
- },
- "tests/send-notice.test.mjs": {
-  "commentLines": 3,
-  "commentReference": 1
- },
  "tests/serve.test.py": {
   "commentLines": 13
- },
- "tests/settings-css.test.mjs": {
-  "commentLines": 2
  },
  "tests/shape.test.mjs": {
   "changelogComment": 2,
   "commentLines": 7
  },
- "tests/shell-grip.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
  "tests/shells.test.mjs": {
-  "commentLines": 2
- },
- "tests/side-bar.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/side-fold.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 2
- },
- "tests/side-spacing.test.mjs": {
   "commentLines": 1
  },
  "tests/sidebar-hover.test.mjs": {
   "changelogComment": 2,
   "commentLines": 4
  },
- "tests/stage-inplace.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 6
- },
- "tests/stage-pages.test.mjs": {
-  "changelogComment": 6,
-  "commentLines": 5
- },
  "tests/stalled-own-message.test.mjs": {
   "changelogComment": 1
  },
- "tests/start-centred.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/state-hover.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 14
- },
  "tests/stopped-on-purpose.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 10
+  "commentLines": 3
  },
  "tests/storm-harness.mjs": {
   "commentLines": 1,
@@ -1518,44 +894,11 @@
  "tests/storm.test.mjs": {
   "commentLines": 3
  },
- "tests/target-bounded.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 5
- },
- "tests/targets-css.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/thread-filter.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 4
- },
- "tests/thread-page.test.mjs": {
-  "changelogComment": 8,
-  "commentLines": 8,
-  "commentReference": 1
- },
  "tests/turnview.test.mjs": {
   "changelogComment": 2,
   "commentLines": 8
  },
- "tests/viewer-busy.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
  "tests/viewer-errors.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
- "tests/viewer-head-focus.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 4
- },
- "tests/viewer-hooks.test.mjs": {
-  "changelogComment": 3,
-  "commentLines": 12
- },
- "tests/xoicons.test.mjs": {
   "changelogComment": 1,
   "commentLines": 4
  },
@@ -1563,8 +906,7 @@
   "commentLines": 1
  },
  "tools/codemirror/vendor.mjs": {
-  "commentLines": 25,
-  "commentReference": 1
+  "commentLines": 1
  },
  "tools/ledger/ledger_md.py": {
   "commentReference": 1
