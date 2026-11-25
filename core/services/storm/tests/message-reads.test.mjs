@@ -17,8 +17,8 @@ test("history retains newer rows and replays edits received before the base row"
 
 test("closing an earlier history request preserves the newer request's buffered reaction", () => {
   const active = new Map();
-  const old = openMessageRead(active, "thread:t", []);
-  const current = openMessageRead(active, "thread:t", []);
+  const old = openMessageRead(active, "thread:t", beginMessageRead([]));
+  const current = openMessageRead(active, "thread:t", beginMessageRead([]));
   old.close();
   active.get("thread:t")?.record({ message_id: "m", emoji: "ok" }, "now", true);
   const [row] = current.reconcile([], [{ id: "m" }]);

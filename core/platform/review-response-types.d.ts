@@ -55,7 +55,13 @@ export interface ReviewRecord {
   epoch?: number | null;
   blocking?: boolean;
   parked?: boolean;
-  detail?: Record<string, unknown> & { questions?: ReviewQuestion[] };
+  detail?: Record<string, unknown> & {
+    questions?: ReviewQuestion[];
+    limit?: string;
+    move_to?: string | null;
+    resets_at?: string | null;
+    threads?: { chat_id: string; ts?: string; title?: string }[];
+  };
   options?: ReviewOption[];
   annotations?: { by: string; note: string }[];
   risk_reasons?: string[];

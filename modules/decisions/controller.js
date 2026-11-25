@@ -201,7 +201,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     log.unshift(entry);
     teach.delete(n.key);
     if (F.open) F.status.set(n.key, no ? "back" : "allow");
-    queue.push([{ key: n.key, n, t: n.t, ask: n.ask, choice: { storm: true, body }, note: "", stopped: false, entry }], { verb, label: said || it.title, deny: no, inline });
+    queue.push([{ key: n.key, n, t: n.t, ask: n.ask, choice: { storm: true, body }, note: "", stopped: false, entry }], { verb, label: (Array.isArray(said) ? said.join(", ") : said) || it.title, deny: no, inline });
     announce(`${verb}${said ? `: ${said}` : ""}. Undo for 3 seconds.`);
     toastRender();
     render();

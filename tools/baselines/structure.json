@@ -154,7 +154,7 @@
   "lineLength": 2
  },
  "core/services/review.js": {
-  "lineLength": 8,
+  "lineLength": 7,
   "unusedExport": 1
  },
  "core/services/runtimes.js": {
@@ -210,8 +210,7 @@
   "lineLength": 1
  },
  "core/services/storm/reducers/index.js": {
-  "lineLength": 2,
-  "unusedExport": 1
+  "lineLength": 2
  },
  "core/services/storm/reducers/review.js": {
   "lineLength": 1

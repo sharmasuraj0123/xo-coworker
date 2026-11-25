@@ -25,8 +25,8 @@ const gone = (ctx, env, d, tid, type) => {
 
 /** @type {Record<string, Reducer>} */
 export const review = {
-  "review.opened"(ctx, env, d, tid, type) {
-    if (typeof d.id !== "string") return rejectFrame(ctx, type, "id");
+  "review.opened"(ctx, env, d) {
+    if (typeof d.id !== "string") return rejectFrame(ctx, "review.opened", "id");
     const item = { ...d, id: d.id, state: "open", seq: env.seq ?? undefined };
     if (!isReview(item)) return rejectFrame(ctx, "review.opened", invalidField(item, { id: "", state: "open" }, isReview));
     ctx.state.review.set(d.id, item);

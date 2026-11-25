@@ -1,3 +1,5 @@
+import type { ReviewDescription } from "../../../core/services/review-description.d.ts";
+
 export type Change = { label: string; lang: string; text: string };
 
 type Checklist = { items: { state: string; text: string }[]; done: number; total: number };
@@ -8,7 +10,7 @@ export type WaitingNeed = { t: Thread; ask: { full?: string; detail?: string } }
 
 export type ItemNeed = {
   t: Thread;
-  ask: { item: { annotations?: { by: string; note: string }[] } };
+  ask: { item: ReviewDescription & { annotations?: { by: string; note: string }[] } };
 };
 
 export type LimitItem = {

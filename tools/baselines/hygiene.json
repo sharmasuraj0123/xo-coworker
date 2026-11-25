@@ -96,10 +96,6 @@
  "core/services/paths.js": {
   "commentLines": 1
  },
- "core/services/review.js": {
-  "commentLines": 2,
-  "explicitAny": 19
- },
  "core/services/runtimes.js": {
   "commentLines": 1
  },
@@ -680,9 +676,6 @@
  },
  "tests/names.test.mjs": {
   "changelogComment": 1,
-  "commentLines": 3
- },
- "tests/paging.test.mjs": {
   "commentLines": 3
  },
  "tests/paid.test.mjs": {

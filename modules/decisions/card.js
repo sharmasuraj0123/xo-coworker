@@ -18,7 +18,7 @@ import { paidHtml } from "./cards/paid.js";
 /** @param {ScopeParts} P @param {string | undefined} id */
 export const scopeWords = (P, id) => {
   const o = id && P.scopes.find((x) => x.id === id);
-  return !o ? (P.primary ? P.primary.label : "Allow") : o.scope === "thread" ? "Allow for this thread" : "Allow + rule";
+  return !o ? (P.primary?.label || "Allow") : o.scope === "thread" ? "Allow for this thread" : "Allow + rule";
 };
 
 /** @param {CardNeed} n */

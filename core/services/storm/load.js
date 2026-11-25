@@ -173,7 +173,10 @@ export function installLoad(ctx) {
     if (signal.aborted || !state.projects.length) return;
     await Promise.all([
       mapLimit(state.projects.filter((p) => p.kind === "project"), LOAD_CAP, ctx.loadThreads, signal),
-      ...[loadSessions, loadReview, loadRouted].map((read) => retryRead(ctx.reads, async (signal) => { await read(signal); if (!signal.aborted) ctx.soon(); })),
+      ...[loadSessions, loadReview, loadRouted].map((read) => retryRead(ctx.reads, async (readSignal) => {
+        await read(readSignal);
+        if (!readSignal.aborted) ctx.soon();
+      })),
       ctx.loadRuntimes(), ctx.loadSpacePolicy(),
     ]);
   };

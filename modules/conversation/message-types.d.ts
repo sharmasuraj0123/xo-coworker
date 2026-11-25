@@ -102,7 +102,7 @@ export type ProjectionThread = {
 type Receipt = {
   id: string | number; project: string; at: number; said?: string | string[]; label?: string; verb?: string; choice?: string; why?: string;
 };
-type TimelineRow = Row & { id: string; text?: string };
+type TimelineRow = Row & { id: string; text?: string | null };
 type SessionTurn = Turn & { session: string | null };
 type TurnStore = {
   running(session: string): Parameters<typeof waitsForTurn>[1];

@@ -1,5 +1,6 @@
 // @ts-check
-import { optionalText as maybeText, optionalNullableText as nullableText, optionalNumber as maybeNumber, optionalFlag as maybeBoolean } from "./response-fields.js";
+import { optionalText as maybeText, optionalNullableText as nullableText, optionalNumber as maybeNumber,
+  optionalFlag as maybeBoolean } from "./response-fields.js";
 import { isResponseObject } from "./http.js";
 
 /** @import {ReviewRecord, ReviewPage, Rule, RuleBatch} from "./review-response-types" */
@@ -31,12 +32,18 @@ const isQuestionOption = (value) => isResponseObject(value) && text(value.label)
 const isQuestion = (value) => isResponseObject(value) && [value.id, value.header, value.question].every(maybeText)
   && maybeBoolean(value.secret) && maybeBoolean(value.multi) && optionalList(value.options, isQuestionOption);
 
+/** @param {unknown} value */
+const isDetail = (value) => isResponseObject(value) && optionalList(value.questions, isQuestion)
+  && maybeText(value.limit) && nullableText(value.move_to) && nullableText(value.resets_at)
+  && optionalList(value.threads, (row) => isResponseObject(row) && text(row.chat_id) && maybeText(row.ts) && maybeText(row.title));
+
 /** @param {unknown} value @returns {value is ReviewRecord} */
 export const isReview = (value) => isResponseObject(value) && text(value.id) && text(value.state) && maybeText(value.kind)
   && nullableText(value.created_at) && nullableText(value.expires_at)
-  && [value.title, value.why, value.risk, value.origin, value.chat_id, value.thread_ts, value.session_id, value.run_id, value.turn_id].every(nullableText)
+  && [value.title, value.why, value.risk, value.origin, value.chat_id, value.thread_ts,
+    value.session_id, value.run_id, value.turn_id].every(nullableText)
   && maybeNumber(value.seq) && (value.epoch === null || maybeNumber(value.epoch))
-  && [value.blocking, value.parked].every(maybeBoolean) && (value.detail === undefined || isResponseObject(value.detail) && optionalList(value.detail.questions, isQuestion))
+  && [value.blocking, value.parked].every(maybeBoolean) && (value.detail === undefined || isDetail(value.detail))
   && optionalList(value.risk_reasons, text)
   && optionalList(value.options, isReviewOption) && optionalList(value.annotations, isAnnotation)
   && optionalList(value.risk_groups, isRiskGroup) && (value.decision == null || isDecision(value.decision));

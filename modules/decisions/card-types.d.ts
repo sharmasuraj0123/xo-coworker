@@ -48,7 +48,7 @@ export type CardDeps = {
 export type Option = { label: string; description?: string; cost?: string; recommended?: boolean };
 export type Question = { id: string; question: string; header: string; multi: boolean; secret: boolean; options: Option[] };
 export type Action = ReturnType<typeof actsOf>[number];
-export type ScopeParts = { primary: { label: string } | null; scopes: { id: string; scope: string; label: string; sentence?: string }[] };
+export type ScopeParts = { primary: { label?: string } | null; scopes: { id: string; scope: string; label: string; sentence?: string }[] };
 export type Strip = { tag?: string } & (
   | { type: "diff"; lines: { text: string; sign: string }[] }
   | { type: "paths"; items: { path: string; add?: number; del?: number }[]; more?: number }

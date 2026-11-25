@@ -2,7 +2,7 @@
 
 import { isRecord } from "../platform/util.js";
 
-/** @import { ReviewOption, ReviewRecord, DecisionBody } from "../platform/review-response-types.d.ts" */
+/** @import { ReviewOption, ReviewRecord, ReviewQuestion, DecisionBody } from "../platform/review-response-types.d.ts" */
 
 /** @typedef {Pick<ReviewRecord, "risk" | "options">} Options */
 
@@ -14,13 +14,17 @@ const NO = new Set(["deny", "send_back", "cant", "wait"]);
 /** @type {Record<string, string>} */
 export const VERB = { allow: "Allowed", deny: "Denied", answer: "Answered", approve: "Approved", send_back: "Sent back", done: "Done", cant: "Can't do it", continue: "Continued", wait: "Waiting", move: "Moving" };
 
-/** @param {Options} item */
+/** @param {ReviewOption} option @returns {option is ReviewOption & {id: string; label: string; scope: string}} */
+const isScope = (option) => option.decision === "allow" && (option.scope === "rule" || option.scope === "thread")
+  && typeof option.id === "string" && typeof option.label === "string";
+
+/** @param {Options | undefined} item */
 export function itemParts(item) {
-  const opts = Array.isArray(item && item.options) ? item.options : [];
-  const scopes = opts.filter((o) => o.decision === "allow" && (o.scope === "thread" || o.scope === "rule"));
-  const primary = opts.find((o) => YES.has(o.decision) && !scopes.includes(o)) || null;
+  const opts = item?.options ?? [];
+  const scopes = opts.filter(isScope);
+  const primary = opts.find((o) => YES.has(o.decision) && o.scope !== "rule" && o.scope !== "thread") || null;
   const back = opts.find((o) => NO.has(o.decision)) || null;
-  const hold = !!(primary && (primary.hold_to_confirm || (item.risk === "destructive" && YES.has(primary.decision))));
+  const hold = !!(primary && (primary.hold_to_confirm || (item?.risk === "destructive" && YES.has(primary.decision))));
   return { primary, back, scopes, hold, why: (primary && primary.why) || null };
 }
 
@@ -33,10 +37,10 @@ export function holdWords(primary) {
   return `Hold to ${String((primary && primary.label) || "confirm").replace(/^\w/, (c) => c.toLowerCase())}`;
 }
 
-/** @param {{detail?: {questions?: import("../platform/review-response-types").ReviewQuestion[]}; title?: string | null}} item */
+/** @param {{detail?: {questions?: ReviewQuestion[]}; title?: string | null} | undefined} item */
 export function questionsOf(item) {
   const q = item?.detail?.questions ?? [];
-  return q.map((x, /** @type {number} */ i) => ({ id: x.id || String(i), header: x.header || "", question: x.question || item.title || "", options: x.options ?? [], multi: !!x.multi, secret: !!x.secret }));
+  return q.map((x, /** @type {number} */ i) => ({ id: x.id || String(i), header: x.header || "", question: x.question || item?.title || "", options: x.options ?? [], multi: !!x.multi, secret: !!x.secret }));
 }
 
 /** @param {Options & Pick<ReviewRecord, "kind">} item @param {unknown} choice @param {string} [note] @returns {DecisionBody} */
@@ -124,7 +128,10 @@ export function evidenceOf(item) {
   }
   if (item.kind === "integrity") {
     if (d.failed) facts.push(`The check couldn't run: ${d.reason || "unknown reason"}`);
-    for (const c of Array.isArray(d.changes) ? d.changes.slice(0, 20).filter(isRecord) : []) blocks.push({ label: typeof c.path === "string" ? c.path : "changed file", lang: "diff", text: String(c.diff || c.summary || c.change || "") });
+    for (const c of Array.isArray(d.changes) ? d.changes.slice(0, 20).filter(isRecord) : []) {
+      blocks.push({ label: typeof c.path === "string" ? c.path : "changed file", lang: "diff",
+        text: String(c.diff || c.summary || c.change || "") });
+    }
     if (d.more) facts.push(`${d.more} more changed`);
   }
   if (item.kind === "usage" && d.resets_at) facts.push(`Your plan resets at ${d.resets_at}`);

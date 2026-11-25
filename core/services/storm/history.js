@@ -26,7 +26,7 @@ export function installHistory(ctx) {
     const { signal } = ctx.reads;
     const active = reads.get(signal) || new Map();
     reads.set(signal, active);
-    return openMessageRead(active, key, initial);
+    return openMessageRead(active, key, beginMessageRead(initial));
   }
   ctx.applyPendingMessageEdits = (key, row) => reads.get(ctx.reads.signal)?.get(key)?.materialize(row) ?? row;
   ctx.noteMessageEdit = (key, data, at, reaction) => reads.get(ctx.reads.signal)?.get(key)?.record(data, at, reaction);
