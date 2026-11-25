@@ -333,9 +333,8 @@
   "lineLength": 3
  },
  "core/ui/lightbox.js": {
-  "domExpando": 4,
   "functionLines": 1,
-  "lineLength": 26
+  "lineLength": 16
  },
  "core/ui/markdown/chart.js": {
   "lineLength": 21,
@@ -362,10 +361,10 @@
   "lineLength": 17
  },
  "core/ui/markdown/rich.js": {
-  "lineLength": 12
+  "lineLength": 10
  },
  "core/ui/motion.js": {
-  "lineLength": 17,
+  "lineLength": 14,
   "unusedExport": 3
  },
  "core/ui/redraw.js": {

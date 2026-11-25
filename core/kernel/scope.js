@@ -31,6 +31,12 @@ export function createScope({ timers = globalThis, warn } = {}) {
     return undo;
   }
 
+  /** @param {number} ms @returns {Promise<void>} */
+  function delay(ms) {
+    if (signal.aborted) return Promise.resolve();
+    return new Promise((resolve) => timeout(add(resolve), ms));
+  }
+
   /** @type {Pick<import("./types").ModuleContext, "listen" | "interval" | "frame" | "observe">} */
   const resources = {
     listen(target, type, fn, options) {
@@ -58,7 +64,7 @@ export function createScope({ timers = globalThis, warn } = {}) {
   };
 
   return {
-    ...resources, effect, timeout, signal,
+    ...resources, effect, timeout, delay, signal,
     dispose() {
       if (signal.aborted) return;
       controller.abort();

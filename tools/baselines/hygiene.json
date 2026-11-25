@@ -172,8 +172,7 @@
   "changelogComment": 1
  },
  "core/ui/lightbox.js": {
-  "commentLines": 3,
-  "explicitAny": 42
+  "commentLines": 3
  },
  "core/ui/markdown/chart.js": {
   "commentLines": 5

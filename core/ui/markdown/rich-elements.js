@@ -42,12 +42,12 @@ export function createRichElements(drawMath, diagramFor) {
   }
   /** @param {HTMLElement} element */
   const isDrawing = (element) => matches(element, drawing.get(element));
-  /** @param {HTMLElement} element */
-  async function drawRichElement(element) {
-    if (!attached(element) || isDrawing(element) || element.classList.contains("is-failed")) return;
+  /** @param {HTMLElement} element @param {AbortSignal} [signal] */
+  async function drawRichElement(element, signal) {
+    if (signal?.aborted || !attached(element) || isDrawing(element) || element.classList.contains("is-failed")) return;
     const request = { ...inputOf(element), owner: owners.get(element) };
     drawing.set(element, request);
-    const current = () => attached(element) && drawing.get(element) === request && matches(element, request);
+    const current = () => !signal?.aborted && attached(element) && drawing.get(element) === request && matches(element, request);
     try {
       if (request.math) {
         const markup = await drawMath(request.source, request.display);

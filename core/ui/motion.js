@@ -1,16 +1,19 @@
 // @ts-check
 
+import { createScope } from "../kernel/scope.js";
 import { EASE, RM } from "../platform/motion.js";
+import { reportFailure } from "../platform/util.js";
 import { IN, MOVE, OUT } from "./tokens.js";
 
 export { EASE, RM, MOVE, OUT };
 export const EXPAND_MS = MOVE;
 export const still = () => RM.matches || typeof Element === "undefined" || typeof Element.prototype.animate !== "function";
 
-/** An animation's time: none under reduced motion. Never for time a person needs to act (see hold). @param {number} ms */
-export const wait = (ms) => new Promise((r) => setTimeout(r, RM.matches ? 0 : ms));
-/** Time a person has to act (an Undo window, a moment to read): real time, reduced motion or not. @param {number} ms */
-export const hold = (ms) => new Promise((r) => setTimeout(r, ms));
+/** @param {number} ms @param {ReturnType<typeof createScope>} [scope] */
+export const wait = (ms, scope = createScope()) => scope.delay(RM.matches ? 0 : ms);
+
+/** @param {number} ms @param {ReturnType<typeof createScope>} [scope] */
+export const hold = (ms, scope = createScope()) => scope.delay(ms);
 
 /** An element arrives: fade in and settle. @param {Element | null | undefined} el */
 export function arrive(el, { delay = 0 } = {}) {
@@ -24,7 +27,9 @@ export function fadeImage(img) {
   const show = () => { if (still()) { img.style.opacity = ""; return; } img.animate([{ opacity: 0 }, { opacity: 1 }], { duration: IN, easing: EASE }); img.style.opacity = ""; };
   img.style.opacity = "0";
   if (img.complete && img.naturalWidth) { show(); return; }
-  const decoded = () => (typeof img.decode === "function" ? img.decode().catch(() => {}) : Promise.resolve()).then(show); // loaded is not yet drawable
+  const decoded = () => (typeof img.decode === "function" ? img.decode().catch((error) => {
+    if (!(error instanceof DOMException && error.name === "EncodingError")) reportFailure(error);
+  }) : Promise.resolve()).then(show);
   img.addEventListener("load", decoded, { once: true });
   img.addEventListener("error", () => { img.style.opacity = ""; }, { once: true });
 }
@@ -93,12 +98,34 @@ export function morph(el, mutate, { duration = MOVE, fade = null } = {}) {
 }
 
 const closing = new WeakSet();
+
+/** @type {WeakMap<Element, ReturnType<typeof createScope>>} */
+const steps = new WeakMap();
+
+/** @param {Element} owner @param {() => void} onStep */
+function trackExpansion(owner, onStep) {
+  const scope = createScope();
+  const deadline = performance.now() + EXPAND_MS + 40;
+  const connected = owner.isConnected;
+  steps.set(owner, scope);
+  scope.effect(() => () => steps.delete(owner));
+  const page = owner.ownerDocument.defaultView;
+  if (page) scope.listen(page, "pagehide", (event) => { if (!("persisted" in event && event.persisted)) scope.dispose(); });
+  const step = () => {
+    if (connected && !owner.isConnected) { scope.dispose(); return; }
+    try { onStep(); } catch (error) { scope.dispose(); throw error; }
+    if (performance.now() < deadline) scope.frame(step); else scope.dispose();
+  };
+  scope.frame(step);
+}
+
 /** @param {Element | null} box @param {HTMLElement | null} body @param {boolean} open @param {import("./motion-types.d.ts").ExpandOptions} [opts] */
 export function expand(box, body, open, { onStep = null, frame = null } = {}) {
   if (!box || !body) return;
   if (frame) { expandFrame(box, body, open, /** @type {HTMLElement} */ (frame), onStep); return; }
   const was = box.classList.contains("is-open");
   if (was === open && !closing.has(body)) return;
+  steps.get(body)?.dispose();
   const rm = RM.matches;
   body.getAnimations?.().forEach((/** @type {Animation} */ a) => a.cancel());
   const inner = body.firstElementChild;
@@ -122,11 +149,12 @@ export function expand(box, body, open, { onStep = null, frame = null } = {}) {
     const a = body.animate([{ height: `${h0}px` }, { height: "0px" }], { duration: EXPAND_MS - 40, easing: EASE });
     a.onfinish = () => { if (closing.delete(body)) body.hidden = true; body.style.overflow = ""; inner?.getAnimations?.().forEach((x) => x.cancel()); };
   }
-  if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+  if (onStep) trackExpansion(body, onStep);
 }
 
 /** @param {Element} box @param {HTMLElement} body @param {boolean} open @param {HTMLElement} frame @param {(() => void) | null} onStep */
 function expandFrame(box, body, open, frame, onStep) {
+  steps.get(frame)?.dispose();
   const rm = RM.matches;
   frame.getAnimations?.().forEach((/** @type {Animation} */ a) => a.id === "xf" && a.cancel());
   const inner = body.firstElementChild;
@@ -142,7 +170,7 @@ function expandFrame(box, body, open, frame, onStep) {
   if (open && inner) inner.animate([{ opacity: 0, transform: "translateY(-3px)" }, { opacity: 1, transform: "none" }], { duration: 220, delay: 60, easing: EASE, fill: "backwards" });
   if (!open && inner) inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: OUT, fill: "forwards" });
   a.onfinish = a.oncancel = () => { frame.style.overflow = ""; if (!box.classList.contains("is-open")) body.hidden = true; inner?.getAnimations?.().forEach((/** @type {Animation} */ x) => x.cancel()); };
-  if (onStep) { const t0 = performance.now(); const f = () => { onStep(); if (performance.now() - t0 < EXPAND_MS + 40) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+  if (onStep) trackExpansion(frame, onStep);
 }
 
 export function keepTurning() {

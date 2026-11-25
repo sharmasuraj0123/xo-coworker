@@ -10,5 +10,7 @@ import { showSrc } from "../../core/services/media/images.js";
 
 const pictures = { mediaItemOf, galleryOf, slotOf, showSrc, labelOf, midName, midNameHtml, typeWord, fmtSize, attachmentUrl, projectDownload: (/** @type {string} */ project, /** @type {string} */ rel) => api.projectDownload(project, rel) };
 
-/** @param {Omit<Parameters<typeof create>[0], "pictures">} [opts] */
+/** @import { LightboxOptions } from "../../core/ui/lightbox-types.d.ts" */
+
+/** @param {Omit<LightboxOptions<NonNullable<ReturnType<typeof mediaItemOf>>>, "pictures">} [opts] */
 export const createLightbox = (opts = {}) => create({ ...opts, pictures });

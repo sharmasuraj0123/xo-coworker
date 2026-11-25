@@ -15,6 +15,7 @@
 - Every merge review checks production readiness in addition to test results. Inspect ownership and naming, readability, types, existing tokens, error propagation, listener and observer lifetimes, and work added to startup. Require behavior tests with deliberate breaks. Send any new regression back with file and line evidence. Record inherited problems for the post-P4 fix phase.
 - After P4 and the fix phase, an independent audit covers the whole codebase and lists remaining patches, workarounds, oversized files, docstrings and duplicates by file and line before P5.
 - Send any audit finding that would change looks or behaviour to the coordinator as a proposal for the owner. Make verified behaviour-preserving cleanups in their own checked commits.
+- `core/ui/lightbox.js` is at the 400-line cap. If its next change needs more room, extract the download and object URL lifetime together.
 
 ## P1 integration, resumed 23 November 2026
 

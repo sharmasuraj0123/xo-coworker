@@ -1,39 +1,4 @@
 {
- "core/ui/lightbox.js": {
-  "sha256": "f33c22970620f13c72492998d1b6a466bcb75b1029313a975407649274005deb",
-  "sites": [
-   ["globalListener",65,""],
-   ["commentOnlyCatch",163,""],
-   ["commentOnlyCatch",170,""],
-   ["setTimeout",278,""]
-  ]
- },
- "core/ui/markdown/rich.js": {
-  "sha256": "f417f168bcfc414899b61a3588a7e4f5d5a0c4f926158dbd1c52a690d08a104c",
-  "sites": [
-   ["globalListener",35,""],
-   ["setTimeout",39,""],
-   ["setTimeout",70,""],
-   ["setTimeout",72,""],
-   ["observer",251,""],
-   ["setTimeout",251,""],
-   ["observer",253,""],
-   ["globalListener",254,""],
-   ["globalListener",255,""]
-  ]
- },
- "core/ui/motion.js": {
-  "sha256": "6fab1737e9d09cf61310a74ebf473318973ffdef75909688eaaacfaafbc7f2fa",
-  "sites": [
-   ["setTimeout",11,""],
-   ["setTimeout",13,""],
-   ["commentOnlyCatch",27,""],
-   ["requestAnimationFrame",125,""],
-   ["requestAnimationFrame",125,""],
-   ["requestAnimationFrame",145,""],
-   ["requestAnimationFrame",145,""]
-  ]
- },
  "modules/shells/term.js": {
   "sha256": "b30371a0fcc9006320b17e4e49edd35873df9614a219e023524f3e90e77e4815",
   "sites": [
