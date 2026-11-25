@@ -409,5 +409,5 @@
  "[\"modules/map/graph.css\",\":root\",\"--d-map-hit\",\"1s\"]",
  "[\"modules/map/graph.css\",\":root\",\"--map-dot-hover\",\"1.35\"]",
  "[\"modules/shells/dock.css\",\"@layer tokens\",\":where(.shd-dot.d-on)\",\"--shadow-shell-running\",\"0 0 0 3px rgba(var(--accent-rgb),.16)\"]",
- "[\"shell/sidebar.css\",\"@layer tokens\",\":where(.side.is-drag)\",\"--shadow-sidebar-drag\",\"30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))\"]"
+ "[\"shell/sidebar.css\",\"@layer tokens\",\":where(.side.is-drag)\",\"--shadow-sidebar-drag\",\"var(--size-30) 0 var(--size-80) rgb(0 0 0 / calc(.5 * var(--sha)))\"]"
 ]

@@ -177,7 +177,8 @@
   --s-2-5:10px;
   --s-0-75:3px;
   --ic-medium:18px;
-  --h-compact-strip:30px;
+  --size-30:30px;
+  --size-80:80px;
   --ic-tiny:9px;
   --r-tight:3px;
   --s-1-5:6px;
@@ -233,7 +234,7 @@
   --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
   --s-long-press-gap:2px; --s-long-press-inline:14px;
   --r-sheet-grip:2px; --start-shell-sheet:45dvh; --s-shell-sheet-bar:6px;
-  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:80px; --stroke-artifact-focus:2px;
+  --w-artifact-tile-min:200px; --h-artifact-preview:110px; --h-artifact-recent-preview:var(--size-80); --stroke-artifact-focus:2px;
   --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
   --h-skeleton-label:10px;
   --s-since-phone-block:10px;
