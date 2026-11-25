@@ -76,15 +76,61 @@ await t("mounting a file loads and applies the editor configuration", async () =
   document.hasFocus = () => false;
   const doc = { state: "readonly" };
   const docs = { textOf: () => "file contents", attach() {} };
+  const loadLanguage = cm.LanguageDescription.prototype.load;
+  const { reportError } = globalThis;
   let handle;
   try {
     handle = await mount(host, { docs, doc, name: "note" });
     assert.equal(handle.view.state.doc.toString(), "file contents");
     assert.equal(handle.view.contentDOM.getAttribute("contenteditable"), "false");
     assert.deepEqual([...loaded], ["editor-extensions.js"]);
+    handle.destroy();
+    const failure = new Error("Language bundle unavailable");
+    const reported = [];
+    globalThis.reportError = (error) => reported.push(error);
+    let hold = Promise.withResolvers();
+    cm.LanguageDescription.prototype.load = () => hold.promise;
+    handle = await mount(host, { docs, doc: { state: "readonly" }, name: "note.py" });
+    hold.reject(failure);
+    await new Promise(setImmediate);
+    assert.deepEqual(reported, [failure]);
+    handle.destroy();
+    hold = Promise.withResolvers();
+    handle = await mount(host, { docs, doc: { state: "readonly" }, name: "note.py" });
+    handle.destroy();
+    hold.reject(failure);
+    await new Promise(setImmediate);
+    assert.deepEqual(reported, [failure], "a retired editor publishes no language error");
+
+    let attached;
+    handle = await mount(host, {
+      docs: { ...docs, attach: (_doc, editorHooks) => { attached = editorHooks; } },
+      doc: { state: "readonly" },
+    });
+    const { setTimeout, clearTimeout } = globalThis;
+    const tintTimer = Symbol("tint");
+    let scheduled = false, cancelled = false;
+    globalThis.setTimeout = (fn, delay, ...args) => {
+      if (delay !== 2400) return setTimeout(fn, delay, ...args);
+      scheduled = true;
+      return tintTimer;
+    };
+    globalThis.clearTimeout = (id) => {
+      if (id === tintTimer) cancelled = true;
+      else clearTimeout(id);
+    };
+    try {
+      attached.apply({ from: 0, to: 0, insert: "Edited " }, { lines: [{ from: 1, to: 1 }] });
+      assert.equal(scheduled, true);
+      handle.destroy();
+      assert.equal(cancelled, true, "retiring the editor cancels the tint timer");
+    } finally {
+      Object.assign(globalThis, { setTimeout, clearTimeout });
+    }
   } finally {
     handle?.destroy();
-    Object.assign(globalThis, { MutationObserver, requestAnimationFrame, cancelAnimationFrame });
+    cm.LanguageDescription.prototype.load = loadLanguage;
+    Object.assign(globalThis, { MutationObserver, requestAnimationFrame, cancelAnimationFrame, reportError });
   }
   assert.equal(host.childElementCount, 0);
 });

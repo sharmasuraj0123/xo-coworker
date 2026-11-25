@@ -1,5 +1,8 @@
 // @ts-check
 
+import { createScope } from "../../core/kernel/scope.js";
+import { reportFailure } from "../../core/platform/util.js";
+
 /** @import { EditorMountOptions } from "./editor-types.d.ts" */
 
 /** @import { CodeMirror, CodeMirrorMerge, EditorState, LanguageSupport } from "./cm-types.d.ts" */
@@ -41,6 +44,8 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     ? doc.cmState.update({ effects: CM.StateEffect.reconfigure.of(extensions(readOnlyNow())) }).state
     : EditorState.create({ doc: docs.textOf(doc), extensions: extensions(readOnlyNow()) });
   const view = new EditorView({ state, parent: host });
+  const scope = createScope();
+  const { signal } = scope;
   doc.cmState = null;
   /** @type {EditorState | null} */
   let live = null;
@@ -52,8 +57,8 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
   if (!isMd) {
     const d = LanguageDescription.matchFilename(languages, name);
     if (d) d.load().then((/** @type {LanguageSupport} */ support) => {
-      if (!destroyed) view.dispatch({ effects: lang.reconfigure(support) });
-    }).catch(() => {});
+      if (!signal.aborted) view.dispatch({ effects: lang.reconfigure(support) });
+    }).catch((error) => { if (!signal.aborted) reportFailure(error); });
   }
 
   // the document's hooks: its text (the live one, even while an old version shows), and its changes coming in
@@ -65,10 +70,9 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
       if (live) { live = live.update(spec).state; return; }
       const lines = info && info.lines && info.lines.length ? info.lines : null;
       view.dispatch({ ...spec, effects: lines ? tint.add.of(lines) : [] });
-      if (lines) setTimeout(() => { if (!destroyed && !live) view.dispatch({ effects: tint.clear.of(null) }); }, TINT_MS);
+      if (lines) scope.timeout(() => { if (!live) view.dispatch({ effects: tint.clear.of(null) }); }, TINT_MS);
     },
   });
-  let destroyed = false;
 
   async function countChunks() {
     const M = await loadMerge();
@@ -114,7 +118,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     async showChanges(original) {
       if (original == null) { if (showing) { showing = false; view.dispatch({ effects: mergeC.reconfigure([]) }); } return; }
       const M = await loadMerge();
-      if (destroyed || merging) return;
+      if (signal.aborted || merging) return;
       showing = true;
       view.dispatch({ effects: mergeC.reconfigure(M.unifiedMergeView({ original, mergeControls: false, highlightChanges: true, gutter: true, syntaxHighlightDeletions: true })) });
     },
@@ -123,7 +127,7 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
       const merge = doc.merge;
       if (!merge) return;
       const M = await loadMerge();
-      if (destroyed || doc.merge !== merge) return;
+      if (signal.aborted || doc.merge !== merge) return;
       merging = true; showing = false;
       const control = (/** @type {"accept" | "reject"} */ type, /** @type {(event: MouseEvent) => void} */ action) => {
         const b = document.createElement("button");
@@ -140,8 +144,8 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     /** The read-only switch follows the document (Space said it can't be saved here). */
     refresh() { if (!live) view.dispatch({ effects: ro.reconfigure([EditorState.readOnly.of(readOnlyNow()), EditorView.editable.of(!readOnlyNow())]) }); },
     destroy() {
-      if (destroyed) return;
-      destroyed = true;
+      if (signal.aborted) return;
+      scope.dispose();
       if (live) { view.setState(live); live = null; }
       if (!merging && !showing) doc.cmState = view.state; // undo and where you were, for when it opens again
       docs.attach(doc, { source: null, apply: null });

@@ -73,12 +73,6 @@
    ["commentOnlyCatch",301,""]
   ]
  },
- "modules/files/editor.js": {
-  "sha256": "41372cf22384d00448219ac84d67a0cb98df853c9a33cec063524c4dbb2e879d",
-  "sites": [
-   ["commentOnlyCatch",54,""]
-  ]
- },
  "modules/home/skeleton.js": {
   "sha256": "a9a4fe7a87d96d5ffcdb155bc4a14211127ce988208b429c0dda49a070150630",
   "sites": [

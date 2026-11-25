@@ -39,9 +39,6 @@
  "modules/files/documents.js": {
   "setTimeout": 1
  },
- "modules/files/editor.js": {
-  "setTimeout": 1
- },
  "modules/files/files.js": {
   "observer": 1
  },
