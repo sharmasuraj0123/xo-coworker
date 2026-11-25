@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 493 |
+| moved | 494 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 105 |
+| planned | 104 |
 | kept | 90 |
 | split | 39 |
 | split-region | 3 |
@@ -192,7 +192,7 @@ Items inside first-party files: 2488 (moved 1784, planned 252, kept 230, deleted
 | `tests/done-line.test.mjs` | 27 | kept | tests/done-line.test.mjs |
 | `tests/dots-motion.test.mjs` | 21 | kept | tests/dots-motion.test.mjs |
 | `tests/drafts.test.mjs` | 77 | kept | tests/drafts.test.mjs · next: Retains file draft isolation, write count, eviction, refusal and storage fallback through the Files owner. |
-| `tests/dropdown-held.test.mjs` | 27 | planned | core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/dropdown-held.test.mjs` | 27 | moved | core/ui/tests/dropdown-held.test.mjs |
 | `tests/edge-card.test.mjs` | 48 | kept | tests/edge-card.test.mjs |
 | `tests/edge-ring.test.mjs` | 18 | planned | core/ui (css guard)/tests/edge-ring.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/editor-caret.test.mjs` | 28 | deleted | Pierre's old file editor, unused since the Files editor moved to CodeMirror (owner D6); this test read the source of that editor's caret handling; tests/diffview.test.mjs checks the adapter offers no editor |

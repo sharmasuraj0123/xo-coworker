@@ -124,10 +124,12 @@ test("the selected file tab keeps its wrapper fill when hovered", () => {
 
 test("a select moves one active choice under the pointer and skips disabled choices", async () => {
   const { window, document } = await dom("<main></main>");
+  const observed = new Set();
   Object.assign(globalThis, {
     customElements: window.customElements,
     MutationObserver: class {
-      observe() {}
+      observe() { observed.add(this); }
+      disconnect() { observed.delete(this); }
       takeRecords() { return []; }
     },
     getComputedStyle: window.getComputedStyle,
@@ -157,5 +159,21 @@ test("a select moves one active choice under the pointer and skips disabled choi
   enter.key = "Enter";
   button.dispatchEvent(enter);
   assert.equal(select.value, "c");
+  assert.equal(observed.size, 1);
+  const menu = select.querySelector('[role="listbox"]');
+  button.click();
+  window.dispatchEvent(new window.Event("resize"));
+  assert.equal(button.getAttribute("aria-expanded"), "false");
+  menu.dispatchEvent(new window.Event("animationend"));
+  assert.equal(menu.hidden, true);
+  button.click();
   select.remove();
+  assert.equal(observed.size, 0);
+  assert.equal(menu.hidden, true);
+  document.querySelector("main").append(select);
+  assert.equal(observed.size, 1);
+  same(select.querySelector("button"), button);
+  assert.equal(select.value, "c");
+  select.remove();
+  assert.equal(observed.size, 0);
 });

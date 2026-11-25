@@ -9,16 +9,6 @@
    ["requestAnimationFrame",61,""]
   ]
  },
- "core/ui/components/xo-select.js": {
-  "sha256": "5c5e5528dc657b0627f24a4abb1abd63bcf451f3cad23abd849ec0f404ee777e",
-  "sites": [
-   ["observer",87,""],
-   ["globalListener",166,""],
-   ["globalListener",167,""],
-   ["globalListener",168,""],
-   ["setTimeout",210,""]
-  ]
- },
  "core/ui/lightbox.js": {
   "sha256": "f33c22970620f13c72492998d1b6a466bcb75b1029313a975407649274005deb",
   "sites": [

@@ -319,8 +319,7 @@
   "lineLength": 4
  },
  "core/ui/components/xo-select.js": {
-  "lineLength": 12,
-  "sourceReadTarget": 1
+  "lineLength": 9
  },
  "core/ui/flavours.js": {
   "lineLength": 1
@@ -1122,9 +1121,6 @@
   "sourceRead": 1
  },
  "tests/coord-colour.test.mjs": {
-  "sourceRead": 1
- },
- "tests/dropdown-held.test.mjs": {
   "sourceRead": 1
  },
  "tests/edge-ring.test.mjs": {

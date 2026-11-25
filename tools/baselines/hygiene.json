@@ -180,8 +180,7 @@
   "commentLines": 7
  },
  "core/ui/components/xo-select.js": {
-  "commentLines": 9,
-  "explicitAny": 2
+  "commentLines": 5
  },
  "core/ui/icons/icon.js": {
   "changelogComment": 1
@@ -706,10 +705,6 @@
  },
  "tests/drafts.test.mjs": {
   "commentLines": 1
- },
- "tests/dropdown-held.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 6
  },
  "tests/edge-ring.test.mjs": {
   "changelogComment": 1,

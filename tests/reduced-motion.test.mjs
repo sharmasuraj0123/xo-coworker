@@ -19,6 +19,7 @@ test("a select closes even without an animationend event", async ({ mock }) => {
     customElements: window.customElements,
     MutationObserver: class {
       observe() {}
+      disconnect() {}
       takeRecords() { return []; }
     },
     getComputedStyle: window.getComputedStyle,
@@ -38,7 +39,12 @@ test("a select closes even without an animationend event", async ({ mock }) => {
   button.click();
   assert.equal(button.getAttribute("aria-expanded"), "false");
   assert.equal(menu.hidden, false, "the outro remains visible until cleanup");
-  mock.timers.runAll();
+  mock.timers.tick(100);
+  button.click();
+  button.click();
+  mock.timers.tick(120);
+  assert.equal(menu.hidden, false, "an earlier close cannot end a later outro");
+  mock.timers.tick(100);
   assert.equal(menu.hidden, true, "a missing animationend cannot strand the menu");
   select.remove();
 });

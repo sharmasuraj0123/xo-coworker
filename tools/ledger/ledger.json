@@ -5014,8 +5014,14 @@
    "note": "Retains file draft isolation, write count, eviction, refusal and storage fallback through the Files owner."
   },
   "tests/dropdown-held.test.mjs": {
-   "status": "planned",
-   "home": "core/ui/tests/dropdown-held.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/ui/tests/dropdown-held.test.mjs",
+   "evidence": {
+    "core/ui/tests/dropdown-held.test.mjs": {
+     "anchor": "a select closes when held, preserves focus and refuses a new choice",
+     "reason": "Mounted behavior covers held triggers, focus retention, and suppression of new choices."
+    }
+   }
   },
   "tests/edge-card.test.mjs": {
    "status": "kept",

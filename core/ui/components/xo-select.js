@@ -4,6 +4,7 @@
 
 import { ICON } from "../icons/names.js";
 import { RM } from "../motion.js";
+import { createScope } from "../../kernel/scope.js";
 
 const CHEV = ICON.chevron;
 const GAP = 4; // trigger → list
@@ -14,6 +15,13 @@ let seq = 0;
 let openOne = null;
 
 class XoSelect extends HTMLElement {
+  /** @type {{ scope: ReturnType<typeof createScope>, observer: MutationObserver } | null} */
+  #connection = null;
+  /** @type {ReturnType<typeof createScope> | null} */
+  #openScope = null;
+  /** @type {ReturnType<typeof createScope> | null} */
+  #exitScope = null;
+
   constructor() {
     super();
     /** @type {string | null} */
@@ -21,11 +29,6 @@ class XoSelect extends HTMLElement {
     this._active = -1; this._typed = ""; this._typedAt = 0; this._built = false; this._open = false; this._focused = false; this._id = "";
     this._btn = /** @type {HTMLButtonElement} */ (/** @type {unknown} */ (null));
     this._menu = /** @type {HTMLDivElement} */ (/** @type {unknown} */ (null));
-    this._mo = /** @type {MutationObserver} */ (/** @type {unknown} */ (null));
-    /** @type {(e: Event) => void} */
-    this._onAway = () => {};
-    /** @type {(e: Event) => void} */
-    this._onMove = () => {};
   }
 
   /** @returns {HTMLOptionElement[]} */
@@ -47,9 +50,24 @@ class XoSelect extends HTMLElement {
 
   connectedCallback() {
     if (!this._built) this._build();
+    const scope = createScope();
+    const observer = new MutationObserver((recs) => {
+      if (!recs.every((r) => this._menu.contains(r.target) || this._btn.contains(r.target))) this._sync(recs);
+    });
+    scope.observe(observer);
+    this.#connection = { scope, observer };
+    observer.observe(this, {
+      childList: true, subtree: true, attributes: true, characterData: true,
+      attributeFilter: ["selected", "disabled", "value", "label", "data-desc"],
+    });
     this._sync();
   }
-  disconnectedCallback() { if (openOne === this) this.close(false); }
+  disconnectedCallback() {
+    this.close(false, false);
+    this.#hideMenu();
+    this.#connection?.scope.dispose();
+    this.#connection = null;
+  }
 
   _build() {
     this._built = true;
@@ -77,18 +95,15 @@ class XoSelect extends HTMLElement {
     }));
     // a press in the list never takes focus from the button (so blur means "focus went elsewhere")
     m.addEventListener("pointerdown", (e) => e.preventDefault());
-    m.addEventListener("pointermove", (e) => { const r = /** @type {any} */ (e.target).closest?.(".dd-row"); if (r && !r.hasAttribute("aria-disabled")) this._activate(+r.dataset.i, false); });
+    m.addEventListener("pointermove", (e) => {
+      const row = e.target instanceof Element ? e.target.closest(".dd-row") : null;
+      if (row instanceof HTMLElement && !row.hasAttribute("aria-disabled")) this._activate(Number(row.dataset.i), false);
+    });
     m.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation(); // inside a <label>, a click on the list must not reach the button too
-      const r = /** @type {any} */ (e.target).closest(".dd-row");
-      if (r && !r.hasAttribute("aria-disabled")) this._choose(+r.dataset.i);
+      const row = e.target instanceof Element ? e.target.closest(".dd-row") : null;
+      if (row instanceof HTMLElement && !row.hasAttribute("aria-disabled")) this._choose(Number(row.dataset.i));
     });
-
-    this._mo = new MutationObserver((recs) => {
-      if (recs.every((r) => this._menu.contains(r.target) || this._btn.contains(r.target))) return;
-      this._sync(recs);
-    });
-    this._mo.observe(this, { childList: true, subtree: true, attributes: true, characterData: true, attributeFilter: ["selected", "disabled", "value", "label", "data-desc"] });
   }
 
   /** The options are the source; the choice changes only when the options or their selected change, never for a disabled or a description. @param {MutationRecord[] | null} [recs] */
@@ -97,7 +112,7 @@ class XoSelect extends HTMLElement {
     if (this._btn.parentNode !== this) { this.append(this._btn); back = true; }
     if (this._menu.parentNode !== this) this.append(this._menu);
     if (back && this._focused && this.isConnected && (!document.activeElement || document.activeElement === document.body)) this._btn.focus({ preventScroll: true });
-    this._mo.takeRecords();
+    this.#connection?.observer.takeRecords();
     const opts = this.options;
     const marked = opts.find((o) => o.hasAttribute("selected"));
     const ours = (/** @type {Node | null} */ n) => !!n && (n === this._btn || n === this._menu || this._btn.contains(n) || this._menu.contains(n));
@@ -151,6 +166,8 @@ class XoSelect extends HTMLElement {
   open() {
     if (this._open || this.disabled || this.held || !this.options.length) return;
     if (openOne && openOne !== this) openOne.close(false);
+    this.#exitScope?.dispose();
+    this.#exitScope = null;
     openOne = this; this._open = true;
     this._rows();
     const m = this._menu;
@@ -161,11 +178,16 @@ class XoSelect extends HTMLElement {
     this._btn.setAttribute("aria-expanded", "true");
     this.classList.add("is-open");
     this._activate(Math.max(0, this.selectedIndex), true, "center");
-    this._onAway = (e) => { const t = /** @type {Node} */ (e.target); if (!this.contains(t) && !this.closest("label")?.contains(t)) this.close(false); }; // a press on its own label toggles
-    this._onMove = (e) => { if (e.type === "resize" || !m.contains(/** @type {Node} */ (e.target))) this.close(false); };
-    document.addEventListener("pointerdown", this._onAway, true);
-    addEventListener("scroll", this._onMove, true);
-    addEventListener("resize", this._onMove);
+    const scope = createScope();
+    this.#openScope = scope;
+    scope.listen(document, "pointerdown", (e) => {
+      const target = e.target;
+      if (target instanceof Node && !this.contains(target) && !this.closest("label")?.contains(target)) this.close(false);
+    }, true);
+    scope.listen(window, "scroll", (e) => {
+      if (!(e.target instanceof Node) || !m.contains(e.target)) this.close(false);
+    }, true);
+    scope.listen(window, "resize", () => this.close(false));
   }
 
   /** The rows' text starts on the button's, the dot hanging out to the left; below, or above when below is short. */
@@ -195,20 +217,32 @@ class XoSelect extends HTMLElement {
   }
 
   /** @param {boolean} refocus */
-  close(refocus) {
+  close(refocus, animate = true) {
     if (!this._open) return;
     this._open = false; if (openOne === this) openOne = null;
-    document.removeEventListener("pointerdown", this._onAway, true);
-    removeEventListener("scroll", this._onMove, true);
-    removeEventListener("resize", this._onMove);
+    this.#openScope?.dispose();
+    this.#openScope = null;
     this._btn.setAttribute("aria-expanded", "false");
     this._btn.removeAttribute("aria-activedescendant");
     this.classList.remove("is-open");
     const m = this._menu;
-    const done = () => { if (!this._open) { m.hidden = true; m.classList.remove("is-out", "is-in"); } };
-    if (RM.matches) done();
-    else { m.classList.add("is-out"); m.addEventListener("animationend", done, { once: true }); setTimeout(done, 220); }
+    if (RM.matches || !animate) this.#hideMenu();
+    else {
+      const scope = createScope();
+      this.#exitScope = scope;
+      const done = () => this.#hideMenu();
+      m.classList.add("is-out");
+      scope.listen(m, "animationend", done);
+      scope.timeout(done, 220);
+    }
     if (refocus) this._btn.focus({ preventScroll: true });
+  }
+
+  #hideMenu() {
+    this.#exitScope?.dispose();
+    this.#exitScope = null;
+    this._menu.hidden = true;
+    this._menu.classList.remove("is-out", "is-in");
   }
 
   /** @param {number} i */
