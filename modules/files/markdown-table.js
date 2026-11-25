@@ -130,7 +130,7 @@ export function createTableWidget(WidgetType) {
           if (!cell) {
             cell = document.createElement(first ? "th" : "td");
             cell.contentEditable = "true";
-            cell.spellcheck = true;
+            cell.spellcheck = false;
             cell.dataset.r = String(index);
             cell.dataset.c = String(column);
             tr.appendChild(cell);

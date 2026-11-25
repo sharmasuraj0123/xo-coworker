@@ -222,7 +222,7 @@ export function createEditorConfiguration(CM, { onLines, onAsk }) {
       tint.field, ask.ext, keys, theme,
       EditorView.contentAttributes.of({
         "aria-label": `${name || "File"}${page && isMd ? ", as a page" : ""}`,
-        spellcheck: page && isMd ? "true" : "false",
+        spellcheck: "false",
       }),
       EditorView.updateListener.of(onUpdate),
       EditorView.domEventHandlers({ keydown: (/** @type {KeyboardEvent} */ e) => (onKey ? onKey(e) : false) }),

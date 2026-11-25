@@ -110,7 +110,6 @@ export async function mount(host, { docs, doc, name = "", page = false, onLines 
     setPage(on) {
       if (!isMd) return;
       view.dispatch({ effects: [pageC.reconfigure(on ? pageExt : askTip), gutters.reconfigure(on ? [] : [lineNumbers(), highlightActiveLineGutter(), foldGutter()])] });
-      view.contentDOM.setAttribute("spellcheck", on ? "true" : "false");
     },
     get isMarkdown() { return isMd; },
     /** Show a read-only version or restore the live file. @param {string | null} text */

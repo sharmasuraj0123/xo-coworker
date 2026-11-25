@@ -160,7 +160,7 @@ await t("editor configuration keeps page attributes, read-only state and the sav
   assert.equal(state.facet(cm.EditorState.readOnly), true);
   assert.equal(state.facet(cm.EditorView.editable), false);
   assert.deepEqual(state.facet(cm.EditorView.contentAttributes).find((attrs) => attrs["aria-label"]), {
-    "aria-label": "note.md, as a page", spellcheck: "true",
+    "aria-label": "note.md, as a page", spellcheck: "false",
   });
   const bindings = state.facet(cm.keymap).flat();
   const save = bindings.find(({ key }) => key === "Mod-s");
