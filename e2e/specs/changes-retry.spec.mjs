@@ -74,6 +74,13 @@ async function retry(t, phone, theme) {
   await t.settle();
   assert.equal(await error.isVisible(), true);
   assert.equal(fixture.reads(), failedReads);
+  const selectedChanges = visible('#viewer .vw-seg [data-vw-show="changes"][aria-pressed="true"]');
+  for (let i = 0; i < 2; i++) {
+    await selectedChanges.press("Enter");
+    await t.settle();
+    assert.equal(await error.isVisible(), true, "the refusal stays visible across a Changes redraw");
+    assert.equal(fixture.reads(), failedReads, "redrawing the selected Changes view does not reread the patch");
+  }
   try {
     fixture.beginRetry();
     await body.getByRole("button", { name: "Try again" }).press("Enter");
