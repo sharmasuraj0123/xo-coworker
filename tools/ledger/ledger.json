@@ -5606,8 +5606,9 @@
    "evidence": { "modules/files/tests/render-focus.test.mjs": { "anchor": "successful retry returns focus to the inline Copy path action", "reason": "Checks the real focus fallback when the offered path disappears." } }
   },
   "tests/retry-waiting.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/retry-waiting.test.mjs",
+   "evidence": { "modules/files/tests/retry-waiting.test.mjs": { "anchor": "the viewer exposes a pending retry", "reason": "Mounts the viewer and exercises retry failure, pending presses and successful completion." } }
   },
   "tests/reveal-focus.test.mjs": {
    "status": "moved",

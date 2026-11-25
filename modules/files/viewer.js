@@ -1,9 +1,11 @@
 // @ts-check
 
+import { createScope } from "../../core/kernel/scope.js";
 import { esc, isImagePath } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { api } from "../../core/platform/api.js";
+import { localStore, reportStorageFailure } from "../../core/platform/storage.js";
 import { kindOf } from "../../core/services/media/attachment-rules.js";
 import { createDocs } from "./documents.js";
 import { prefetch as prefetchEditor } from "./editor.js";
@@ -13,6 +15,7 @@ import { createViewerText } from "./viewer-text.js";
 import { createViewerReads } from "./viewer-reads.js";
 import { bindViewerEvents } from "./viewer-events.js";
 import { createViewerDiff } from "./viewer-diff.js";
+import { downloadViewerFile } from "./viewer-download.js";
 
 /** @import { BusyState, OpenFile, ViewerData, ViewerDocument, ViewerFile, ViewerOptions, ViewerRenderers, ViewerState, ViewerTab, ViewerTextState } from "./viewer-types.d.ts" */
 
@@ -20,9 +23,11 @@ import { createViewerDiff } from "./viewer-diff.js";
 const bytes = (s) => new TextEncoder().encode(s).length;
 
 /** @param {ViewerOptions} options @param {ViewerRenderers} renderers */
-export function createFileViewer({ announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null, threadTitle = () => null, opened = null, closed = null }, { $, diff, jump, isImageChange, drawImageChange }) {
+export function createFileViewer({
+  announce, onChange, tabs, changes = null, ask = null, edits = null, away = null, home = null,
+  threadTitle = () => null, opened = null, closed = null, scope = createScope(),
+}, { $, diff, jump, isImageChange, drawImageChange }) {
   const el = /** @type {HTMLElement} */ ($("#viewer"));
-  const COPY_SAYS_MS = 150;
 
   /** @type {ViewerState} */
   const V = { open: false, parked: false, file: null, data: null, error: null, loading: false, mode: "preview", textMode: "page", imgMode: "preview", returnTo: null, gen: 0, copied: false, dims: null, busy: null, saveError: null, show: "file", split: false, menu: false, tabs: [], showChanges: false };
@@ -30,8 +35,7 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
   const showsDiff = () => V.show === "changes" && !!chg();
   /** @type {ViewerTextState} */
   const TX = { el: null, h: null, key: null, gen: 0, sel: null, asking: false, q: null };
-  const store = (() => { try { return localStorage; } catch { return null; } })();
-  const docs = createDocs({ api, store, onChange: (d, what) => docChanged(d, what) });
+  const docs = createDocs({ api, store: localStore(reportStorageFailure), onChange: (d, what) => docChanged(d, what) });
   const doc = () => (V.data && V.data.doc) || null;
   const showsText = () => {
     const d = V.data;
@@ -40,26 +44,19 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
     return d.kind !== "image" && d.kind !== "pdf";
   };
   const isMd = () => !!(V.data && V.data.kind === "markdown");
-
   function dropImage() {
     if (V.data && V.data.url && !V.data.remote) URL.revokeObjectURL(V.data.url);
   }
-
   const canSave = () => !!(/** @type {OpenFile} */ (V.file).project && /** @type {OpenFile} */ (V.file).rel);
-
   async function download() {
     if (V.busy) return;
     const f = /** @type {Required<Pick<ViewerFile, "project" | "rel">> & ViewerFile} */ (V.file);
     V.busy = { kind: "download", shown: true }; V.copied = false; V.saveError = null; redrawKeep();
-    try {
-      const url = URL.createObjectURL(await api.projectDownload(f.project, f.rel));
-      const a = Object.assign(document.createElement("a"), { href: url, download: f.name || "file" });
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (err) {
-      if (f === V.file) V.saveError = /** @type {{message?: string}} */ (err).message || "Couldn't download this file.";
+    try { downloadViewerFile(scope, await api.projectDownload(f.project, f.rel), f.name || "file"); }
+    catch (error) {
+      if (!scope.signal.aborted && f === V.file) V.saveError = error instanceof Error && error.message || "Couldn't download this file.";
     }
-    if (f !== V.file) return;
+    if (scope.signal.aborted || f !== V.file) return;
     V.busy = null; redrawKeep();
   }
 
@@ -92,7 +89,11 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
     V.asking = null;
     if (!A || how === "cancel") { A?.cancel?.(); paintHead(); TX.h?.focus(); return; }
     if (how === "discard") { for (const D of A.docs) docs.discard(D); A.then(); return; }
-    await Promise.all(A.docs.map((D) => docs.flush(D)));
+    let pending = true;
+    const release = scope.effect(() => () => { if (pending) A.cancel?.(); });
+    try { await Promise.all(A.docs.map((D) => docs.flush(D))); }
+    finally { pending = false; release(); }
+    if (scope.signal.aborted) return;
     if (A.docs.every((D) => D.state === "saved")) A.then(); else { A.cancel?.(); paintHead(); }
   }
 
@@ -108,12 +109,12 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
     if (what === "state" && d.state === "dirty") { const t = V.tabs.find((x) => x.doc === d); if (t && t.preview) t.preview = false; }
     paintHead();
   }
-  let flashT = 0;
+  let cancelFlash = () => {};
   /** @param {ViewerDocument} d */
   function flashSaved(d) {
     if (d !== doc()) return;
-    V.savedFlash = d; clearTimeout(flashT);
-    flashT = setTimeout(() => { if (V.savedFlash === d) { V.savedFlash = null; if (V.open) paintHead(); } }, 1600);
+    V.savedFlash = d; cancelFlash();
+    cancelFlash = scope.timeout(() => { if (V.savedFlash === d) { V.savedFlash = null; if (V.open) paintHead(); } }, 1600);
   }
 
   function body() {
@@ -233,6 +234,7 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
 
   /** @param {ViewerFile} f @param {Element | null} [from] */
   function open(f, from) {
+    if (scope.signal.aborted) return;
     const was = V.open;
     if (V.parked) { V.parked = false; el.hidden = false; }
     const file = { ...f, where: f.rel || f.path || "", image: f.att ? kindOf(f.type || "") === "image" : f.local == null && isImagePath(f.rel || f.path || f.name) };
@@ -303,13 +305,13 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
   /** @param {string} text */
   async function copy(text, what = "contents") {
     if (V.busy) return;
-
     /** @type {BusyState} */
     const busy = V.busy = { kind: "copy", shown: false }, file = V.file;
-    V.copied = false; // a new copy clears the previous success state
-    const slow = setTimeout(() => { if (V.busy === busy) { busy.shown = true; redrawKeep(); } }, COPY_SAYS_MS);
+    V.copied = false;
+    const cancelSlow = scope.timeout(() => { if (V.busy === busy) { busy.shown = true; redrawKeep(); } }, 150);
     let ok = false;
     try { await navigator.clipboard.writeText(text); ok = true; } catch {
+      if (scope.signal.aborted) return;
       const ta = Object.assign(document.createElement("textarea"), { value: text, readOnly: true });
       ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
       const back = /** @type {HTMLElement | null} */ (document.activeElement);
@@ -317,8 +319,8 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
       try { ok = document.execCommand("copy"); } catch { ok = false; }
       ta.remove(); back && back.focus && back.focus({ preventScroll: true });
     }
-    clearTimeout(slow);
-    if (V.busy !== busy || V.file !== file) return;
+    cancelSlow();
+    if (scope.signal.aborted || V.busy !== busy || V.file !== file) return;
     V.busy = null;
     if (!ok) {
       V.saveError = what === "path"
@@ -329,15 +331,19 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
     V.copied = busy; V.saveError = null;
     redrawKeep();
     announce("Copied.");
-    setTimeout(() => { if (V.copied === busy) { V.copied = false; redrawKeep(); } }, 1400);
+    scope.timeout(() => { if (V.copied === busy) { V.copied = false; redrawKeep(); } }, 1400);
   }
 
   bindViewerEvents({
-    el, V, TX, DF, docs, doc, ask, away, chg, close, closeTab, copy, diffBody, drawDiff, drawText, download,
+    el, scope, V, TX, DF, docs, doc, ask, away, chg, close, closeTab, copy, diffBody, drawDiff, drawText, download,
     dropImage, headFocus, isMd, load, localPath, menuItems, menuOff, onChange, paintHead, render, showChangesNow,
     showTab, shown, showsDiff, stepVersion, announce, answerUnsaved, jump,
   });
-
+  scope.effect(() => () => {
+    const asking = V.asking; V.asking = null;
+    asking?.cancel?.();
+    close();
+  });
   function park() {
     if (!V.open || V.parked) return;
     V.keep = /** @type {HTMLElement | null} */ (el.querySelector(".vw-body"))?.scrollTop || 0;
@@ -356,9 +362,8 @@ export function createFileViewer({ announce, onChange, tabs, changes = null, ask
     onChange && onChange();
   }
   function refresh() { if (V.open && !V.parked) { V.keepScroll = true; render(); } }
-
   return {
-    open, close, park, unpark, refresh, notice, fileChanged,
+    open, close, park, unpark, refresh, notice, fileChanged, dispose: scope.dispose,
     get isOpen() { return V.open && !V.parked; }, get hasFile() { return V.open; }, get isParked() { return V.open && V.parked; }, get file() { return V.file; }, get opener() { return V.open ? V.returnTo : null; },
     get editing() { return docs.all().some((D) => D.state === "conflict"); },
     /** @param {number} line @param {number | null} col */

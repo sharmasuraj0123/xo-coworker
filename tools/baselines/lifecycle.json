@@ -45,14 +45,6 @@
  "modules/files/files.js": {
   "observer": 1
  },
- "modules/files/viewer-events.js": {
-  "globalListener": 2,
-  "setTimeout": 1
- },
- "modules/files/viewer.js": {
-  "setTimeout": 4,
-  "storage": 1
- },
  "modules/home/skeleton.js": {
   "commentOnlyCatch": 1,
   "globalListener": 1,

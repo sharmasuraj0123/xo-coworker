@@ -79,19 +79,6 @@
    ["commentOnlyCatch",54,""]
   ]
  },
- "modules/files/viewer-events.js": {
-  "sha256": "b7e74416e7572521b1e9c809bff83de3b5b94896a33fcff6b5fd0119416e6df2",
-  "sites": [
-   ["globalListener",94,""],
-   ["globalListener",95,""]
-  ]
- },
- "modules/files/viewer.js": {
-  "sha256": "064c1fb983533215d3ce7446a9a5a5331e748901a60844917210eb6c628ed474",
-  "sites": [
-   ["commentOnlyCatch",33,""]
-  ]
- },
  "modules/home/skeleton.js": {
   "sha256": "a9a4fe7a87d96d5ffcdb155bc4a14211127ce988208b429c0dda49a070150630",
   "sites": [

@@ -1,5 +1,6 @@
 import type { ChangeInfo, ViewerDocument } from "./document-types";
 import type { createDocs } from "./documents.js";
+import type { createScope } from "../../core/kernel/scope.js";
 import type { mount } from "./editor.js";
 import type { createViewerDiff, FileChange } from "./viewer-diff.js";
 export type { ViewerDocument } from "./document-types";
@@ -83,6 +84,7 @@ export interface ViewerTextState {
 type DiffDeps = Parameters<typeof createViewerDiff>[0];
 export type ViewerChanges = DiffDeps["changes"] & { at(project: string, rel: string): FileChange | null };
 export interface ViewerOptions {
+  scope?: ReturnType<typeof createScope>;
   announce(text: string): void;
   onChange?: () => void;
   tabs?: () => string;
@@ -149,6 +151,7 @@ export interface ViewerEventDependencies extends ViewerContext,
   Pick<ViewerHead, "headFocus" | "menuItems" | "menuOff" | "paintHead" | "shown">,
   Pick<ViewerText, "drawText" | "showChangesNow" | "stepVersion">,
   Pick<ViewerDiff, "DF" | "diffBody" | "drawDiff"> {
+  scope: ReturnType<typeof createScope>;
   ask: ViewerOptions["ask"];
   away: ViewerOptions["away"];
   chg(): FileChange | null;

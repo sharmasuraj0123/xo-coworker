@@ -743,8 +743,7 @@
   "lineLength": 13
  },
  "modules/files/viewer-events.js": {
-  "lineLength": 17,
-  "sourceReadTarget": 1
+  "lineLength": 14
  },
  "modules/files/viewer-head.js": {
   "functionLines": 1,
@@ -754,13 +753,11 @@
   "lineLength": 4
  },
  "modules/files/viewer-text.js": {
-  "lineLength": 6,
-  "sourceReadTarget": 1
+  "lineLength": 6
  },
  "modules/files/viewer.js": {
-  "domExpando": 1,
   "functionLines": 1,
-  "lineLength": 22
+  "lineLength": 21
  },
  "modules/github/page.js": {
   "lineLength": 42,
@@ -1144,9 +1141,6 @@
   "sourceRead": 1
  },
  "tests/refusal-mark.test.mjs": {
-  "sourceRead": 1
- },
- "tests/retry-waiting.test.mjs": {
   "sourceRead": 1
  },
  "tests/shape-presets.test.mjs": {

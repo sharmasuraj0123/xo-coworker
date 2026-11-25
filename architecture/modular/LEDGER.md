@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 496 |
+| moved | 497 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 102 |
+| planned | 101 |
 | kept | 89 |
 | split | 40 |
 | split-region | 3 |
@@ -298,7 +298,7 @@ Items inside first-party files: 2488 (moved 1798, planned 235, kept 228, deleted
 | `tests/refused.test.mjs` | 57 | split | tests/refused.test.mjs, tests/send-gate.test.mjs, tests/app-wiring.test.mjs, tests/conversation-file-question.test.mjs |
 | `tests/region-focus.test.mjs` | 28 | moved | modules/files/tests/region-focus.test.mjs |
 | `tests/render-focus.test.mjs` | 22 | moved | modules/files/tests/render-focus.test.mjs |
-| `tests/retry-waiting.test.mjs` | 34 | planned | modules/files/tests/retry-waiting.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/retry-waiting.test.mjs` | 34 | moved | modules/files/tests/retry-waiting.test.mjs |
 | `tests/reveal-focus.test.mjs` | 20 | moved | modules/changes/tests/reveal-focus.test.mjs |
 | `tests/rich-markdown.test.mjs` | 133 | kept | tests/rich-markdown.test.mjs · next: Retains math, chart, diagram and escaping behavior and exercises deferred renderer outcomes. |
 | `tests/ring-room.test.mjs` | 67 | planned | core/platform/tests/ring-room.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |

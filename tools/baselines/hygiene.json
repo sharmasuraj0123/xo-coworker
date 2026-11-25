@@ -753,10 +753,6 @@
   "changelogComment": 2,
   "commentLines": 3
  },
- "tests/retry-waiting.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 6
- },
  "tests/runtimes.test.mjs": {
   "commentLines": 1
  },
