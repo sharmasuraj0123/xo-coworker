@@ -4,6 +4,10 @@ import assert from "node:assert/strict";
 
 /** @import { Case, Tools } from "../lib/types.d.ts" */
 
+/** @typedef {{status: number, json: unknown}} RefusalResponse */
+
+/** @typedef {{request(): {method(): string}, fallback(): Promise<void>, fulfill(options: RefusalResponse): Promise<void>}} RenameRoute */
+
 const thread = "cmsg_e2e_readme";
 const patchPath = `/api/chat/chats/chat_demo/threads/${thread}`;
 const before = "Tidy the README";
@@ -51,6 +55,7 @@ async function menuKeys(t) {
   const last = (await items.count()) - 1;
   assert.ok(last >= 1);
   const moves = /** @type {const} */ ([["ArrowDown", 1], ["ArrowUp", 0], ["ArrowUp", last], ["Home", 0], ["End", last]]);
+
   assert.equal(await items.first().evaluate((/** @type {Element} */ el) => el === document.activeElement), true, "initial menu focus");
   for (const [key, to] of moves) {
     await page.keyboard.press(key);
@@ -88,14 +93,16 @@ async function checklist(t) {
   } finally { await sameButton.dispose(); }
 }
 
+const viewports = /** @type {const} */ (["desktop", "phone"]);
+
 /** @type {Omit<Case, 'file'>[]} */
-export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewport) => ["dark", "light"].map((theme) => ({
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].map((theme) => ({
   name: `thread menu, checklist and native rename at ${viewport} ${theme}`, viewport, seed: "basic",
   async run(t) {
     const { page } = t;
     await page.addInitScript((/** @type {string} */ value) => localStorage.setItem("cv-theme", value), theme);
     let attempts = 0;
-    await page.route(`**${patchPath}`, async (/** @type {any} */ route) => {
+    await page.route(`**${patchPath}`, async (/** @type {RenameRoute} */ route) => {
       if (route.request().method() !== "PATCH") return route.fallback();
       ++attempts;
       if (attempts === 1) return route.fulfill({ status: 403, json: { detail: { code: "refused", message: "Rename refused" } } });

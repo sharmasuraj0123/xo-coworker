@@ -11,6 +11,7 @@ const reset = "2026-11-19T15:17:00Z";
 const pool = "claude_code:default";
 const runtimeRoute = "/api/chat/runtimes";
 const { runtimes: [runtime] } = /** @type {{runtimes: Row[]}} */ (createStore().statics[runtimeRoute]);
+
 const profiles = /** @type {const} */ ([
   ["desktop", "dark", 1440, 900], ["desktop", "light", 1440, 900], ["phone", "dark", 390, 844], ["phone", "light", 390, 844],
 ]);
@@ -120,6 +121,7 @@ async function pausedLine(page) {
 }
 
 /** @typedef {{seed: Seed, coordinator: string, session: string, thread: string, done?: string, events: Frame[], label: string}} HeldCase */
+
 /** @param {HeldCase} witness @returns {Omit<Case, 'file'>[]} */
 export function casesForHeld(witness) {
   return profiles.map(([viewport, theme, width, height]) => ({

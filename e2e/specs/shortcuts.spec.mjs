@@ -4,8 +4,10 @@ import assert from "node:assert/strict";
 
 /** @import { Case } from "../lib/types.d.ts" */
 
+const viewports = /** @type {const} */ (["desktop", "phone"]);
+
 /** @type {Omit<Case, 'file'>[]} */
-export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewport) => ["dark", "light"].map((theme) => ({
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].map((theme) => ({
   name: `shortcuts inert, close and focus return at ${viewport} ${theme}`, viewport, seed: "basic",
   async run(t) {
     const { page } = t;
@@ -26,6 +28,7 @@ export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewpo
     assert.equal(await opener.evaluate((/** @type {Element} */ el) => el === document.activeElement), true);
     await open();
     await sheet.getByRole("button", { name: "Close" }).evaluate((/** @type {HTMLElement} */ el) => el.blur());
+
     await sheet.evaluate((/** @type {HTMLElement} */ el) => { el.hidden = true; });
     await page.locator("#app:not([inert])").waitFor({ state: "attached" });
     await opener.focus();

@@ -4,8 +4,10 @@ import assert from "node:assert/strict";
 
 /** @import { Case } from "../lib/types.d.ts" */
 
+const viewports = /** @type {const} */ (["desktop", "phone"]);
+
 /** @type {Omit<Case, 'file'>[]} */
-export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewport) => ["dark", "light"].map((theme) => ({
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].map((theme) => ({
   name: `Settings close activation and focus return at ${viewport} ${theme}`, viewport, seed: "basic",
   async run(t) {
     const { page } = t;
