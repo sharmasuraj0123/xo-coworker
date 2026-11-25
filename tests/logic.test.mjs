@@ -139,7 +139,6 @@ t("tasks leave notes out of the count and the bar", () => {
   assert.deepEqual([c.total, c.done, c.doing], [2, 1, 1]);
 });
 
-// ── storm rows and the live timeline (js/timeline.js) ────────────────────
 t("an agent's reactions: read from extra, applied live, grouped by emoji", () => {
   const row = { id: "cmsg_a1", seq: 4, created_at: "2026-01-01T00:00:00Z", author_kind: "owner", author_id: "owner", text: "hi", extra: { reactions: [{ emoji: "👀", by: "cse_1", at: "x" }, { emoji: null }] } };
   assert.deepEqual(uiMsg(row).reactions, [{ emoji: "👀", by: "cse_1", at: "x" }]);

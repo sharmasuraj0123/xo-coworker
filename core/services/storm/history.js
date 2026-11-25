@@ -5,7 +5,7 @@ import { isRecord } from "../../platform/util.js";
 import { createLru } from "../../platform/cache.js";
 import { mergeRows, pageAfter, canPageOlder, framesShort } from "../world/rows.js";
 import { PAGE, OLDER_PAGE } from "./config.js";
-import { beginMessageRead } from "./message-reads.js";
+import { beginMessageRead, openMessageRead } from "./message-reads.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").MessageRow} MessageRow */
 const LOOKUP_RETRY_MS = 1000;
@@ -26,9 +26,7 @@ export function installHistory(ctx) {
     const { signal } = ctx.reads;
     const active = reads.get(signal) || new Map();
     reads.set(signal, active);
-    const read = beginMessageRead(initial);
-    active.set(key, read);
-    return { reconcile: read.reconcile, close: () => active.delete(key) };
+    return openMessageRead(active, key, initial);
   }
   ctx.applyPendingMessageEdits = (key, row) => reads.get(ctx.reads.signal)?.get(key)?.materialize(row) ?? row;
   ctx.noteMessageEdit = (key, data, at, reaction) => reads.get(ctx.reads.signal)?.get(key)?.record(data, at, reaction);

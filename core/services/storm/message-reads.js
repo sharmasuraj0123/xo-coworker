@@ -41,3 +41,10 @@ export function beginMessageRead(initial) {
     },
   };
 }
+
+/** @param {Map<string, ReturnType<typeof beginMessageRead>>} active @param {string} key @param {MessageRow[] | undefined} initial */
+export function openMessageRead(active, key, initial) {
+  const read = beginMessageRead(initial);
+  active.set(key, read);
+  return { reconcile: read.reconcile, close() { if (active.get(key) === read) active.delete(key); } };
+}

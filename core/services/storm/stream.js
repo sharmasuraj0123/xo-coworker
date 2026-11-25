@@ -5,7 +5,7 @@ import { client, coderHeaders, SSEStream } from "./client.js";
 import { createTurns } from "../world/turns.js";
 import { LOAD_CAP, RUNS_KEEP } from "./config.js";
 import { mapLimit } from "./load.js";
-import { retryDelay } from "./read-policy.js";
+import { resumeReadRetries, retryStep, scheduleReadRetry } from "./read-policy.js";
 import { reportFailure } from "../notices/failures.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Frame} Frame */
@@ -46,18 +46,17 @@ export function startStorm(ctx) {
     ctx.apply(f);
   }
 
-  /** @type {(() => void) | null} */
-  let recoverT = null;
+  let recoveryScheduled = false;
   let attempt = 0;
   ctx.scheduleRecover = () => {
-    const delay = retryDelay(attempt);
-    if (recoverT) return true;
-    if (signal.aborted || delay === undefined) return false;
-    attempt++;
+    if (recoveryScheduled) return true;
+    if (signal.aborted) return false;
+    const step = retryStep(attempt++);
     const cycle = ctx.reads;
-    const clear = cycle.effect(() => () => { recoverT = null; });
-    recoverT = cycle.timeout(() => { clear(); void ctx.recover().catch(reportFailure); }, delay);
-    return true;
+    recoveryScheduled = true;
+    const clear = cycle.effect(() => () => { recoveryScheduled = false; });
+    scheduleReadRetry(cycle, step.delay, () => { clear(); void ctx.recover().catch(reportFailure); });
+    return !step.report;
   };
   /** @type {Promise<void> | null} */
   let recovering = null;
@@ -137,6 +136,7 @@ export function startStorm(ctx) {
         state.conn = s; state.connInfo = info;
         if (s !== "connecting") releaseSubscription();
         if (s === "live" && state.loaded) {
+          resumeReadRetries(ctx.reads.signal);
           if (state.error || !state.projects.length) void ctx.recover().catch(reportFailure);
           ctx.loadStatus();
         }
@@ -163,10 +163,11 @@ export function startStorm(ctx) {
   const events = typeof window === "undefined" ? globalThis : window;
   scope.listen(events, "visibilitychange", () => {
     if (document.hidden) return;
+    resumeReadRetries(ctx.reads.signal);
     stream && stream.nudge();
     ctx.loadStatus();
     ctx.maybeChats();
   });
-  scope.listen(events, "online", () => stream && stream.nudge());
+  scope.listen(events, "online", () => { resumeReadRetries(ctx.reads.signal); stream?.nudge(); });
   boot().catch((error) => { if (!signal.aborted) reportFailure(error); });
 }
