@@ -4,14 +4,12 @@ import type { createTurns } from "./turns.js";
 import type { tasksOf } from "./checklist.js";
 import type { stopOf, stormAsks } from "./threads.js";
 import type { Hold } from "./held.js";
-import type { Runtime, RuntimePolicy } from "../runtime-types.d.ts";
-import type { accountRows, heldModes } from "./paid.js";
+import type { Policies, Router, Runtime } from "../../platform/runtime-response-types.d.ts";
+import type { AccountIntents, Advisory } from "../../platform/account-response-types.d.ts";
 import type { uiMsg } from "./rows.js";
 import type { StoredRun } from "../run-types.d.ts";
 
-export interface WorldRouter { mode?: string; decision_model?: string | null; abstain_below?: number }
-interface Policy { space?: RuntimePolicy; project?: RuntimePolicy; effective?: RuntimePolicy }
-type AccountSources = Parameters<typeof accountRows>[0];
+export type WorldRouter = Router;
 
 interface WorldProject extends Project {
   name: string;
@@ -92,11 +90,11 @@ export interface WorldState {
   now: number;
   router: WorldRouter | null;
   runtimes: Runtime[] | null;
-  policy: Policy | null;
-  chatPolicy: Record<string, Policy>;
-  advisory: AccountSources["advisory"];
-  paidPools: NonNullable<AccountSources["served"]>;
-  paid: Parameters<typeof heldModes>[0];
+  policy: Policies | null;
+  chatPolicy: Record<string, Policies>;
+  advisory: Advisory | null;
+  paidPools: AccountIntents["pools"];
+  paid: AccountIntents["intents"];
   paidOk: boolean;
   sessions: Record<string, WorldSession>;
   hops: Map<string, HopRow>;

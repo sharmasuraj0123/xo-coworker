@@ -23,7 +23,7 @@ globalThis.fetch = async (input, init) => {
   assert.ok(snapshot.paths[path]?.includes(method), `${method} ${path} must be in OpenAPI`);
   if (method === "DELETE") {
     revoked = true;
-    return Response.json({});
+    return Response.json({ ...first, revoked_at: "2026-11-23T12:00:00Z" });
   }
   if (cursor === "0") return Response.json({ rules: revoked ? [] : [first], defaults: [builtIn], next_after_seq: 8 });
   return Response.json({ rules: [second] });

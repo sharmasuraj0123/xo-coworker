@@ -14,7 +14,7 @@ const calls = [];
 globalThis.fetch = async (url, init) => {
   const request = new URL(String(url), "http://local");
   calls.push([init?.method, request.pathname, JSON.parse(String(init?.body))]);
-  return Response.json({});
+  return Response.json({ ts: "thread/key", chat_id: "chat/key", state: "working" });
 };
 const threadRecords = createThreadRecords();
 threadRecords.write("thread/key", { chat_id: "chat/key", state: "working" });

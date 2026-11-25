@@ -1,15 +1,7 @@
-export interface Model {
-  id: string;
-  name: string;
-  family?: string;
-  family_default?: boolean;
-  description?: string;
-  is_default?: boolean;
-  takes_effort?: boolean;
-  efforts?: string[];
-}
+export type { RuntimeModel as Model } from "../../core/platform/runtime-response-types.d.ts";
+import type { RuntimeModel as Model } from "../../core/platform/runtime-response-types.d.ts";
 export interface Runtime { name: string }
-export interface Feature { values?: string[]; support?: string }
+export interface Feature { values?: string[]; support?: string | null }
 export interface SetupState {
   prefs: Record<string, string | null>;
   models: Map<string | null, Model[]>;

@@ -210,7 +210,7 @@ Object.assign(globalThis, {
     }
     if (path === "/api/chat/chats/project-chat/threads/boot-thread" && init.method === "DELETE") {
       threadDeletes.push(JSON.parse(init.body));
-      return Response.json({});
+      return Response.json({ deleted: true });
     }
     if (path.startsWith("/api/chat/chats/project-chat/threads/") && init?.method === "PATCH") {
       const response = deferred();
@@ -1068,13 +1068,13 @@ press('#top [data-resolve="failed-thread"]');
 await new Promise(setImmediate);
 assert.deepEqual(threadResolves.map(({ body }) => body), [{ resolved: true }]);
 pagehide(true);
-cachedPost.response.resolve(Response.json({}));
+cachedPost.response.resolve(Response.json({ id: "cached-reply", seq: 40, text: "A cached reply" }));
 await new Promise(setImmediate);
 await new Promise((resolve) => setTimeout(resolve, 60));
 flushFrames();
 assert.equal(cachedPost.signal.aborted, false);
 assert.match(document.querySelector("#live").textContent, /Sent to the thread/);
-threadResolves[0].response.resolve(Response.json({ state: "resolved" }));
+threadResolves[0].response.resolve(Response.json({ ts: threadResolves[0].thread, state: "resolved" }));
 await new Promise(setImmediate);
 await new Promise((resolve) => setTimeout(resolve, 60));
 flushFrames();
@@ -1150,9 +1150,9 @@ flushFrames();
 assert.equal(app.dataset.conv, "unloaded", "unload cancels a queued application render");
 assert.equal(latePost.signal.aborted || lateFailure.signal.aborted || threadResolves[1].signal.aborted, false,
   "already-issued writes finish independently of the page lifetime");
-latePost.response.resolve(Response.json({}));
+latePost.response.resolve(Response.json({ id: "late-reply", seq: 41, text: "A late reply" }));
 lateFailure.response.resolve(Response.json({ message: "Late refusal" }, { status: 503 }));
-threadResolves[1].response.resolve(Response.json({ state: "resolved" }));
+threadResolves[1].response.resolve(Response.json({ ts: threadResolves[1].thread, state: "resolved" }));
 await new Promise(setImmediate);
 await new Promise((resolve) => setTimeout(resolve, 1700));
 flushFrames();

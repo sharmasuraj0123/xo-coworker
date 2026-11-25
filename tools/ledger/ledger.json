@@ -7285,7 +7285,7 @@
    "home": "core/platform/api.js",
    "evidence": {
     "core/platform/api.js": {
-     "anchor": "runtimes: ({ signal } = {}) => get(\"/chat/runtimes\", undefined, signal)",
+     "anchor": "runtimes: (options) => requestChecked(\"/chat/runtimes\", isRuntimes, options)",
      "reason": "The API adapter declares the chat namespace without its transport-level /api prefix."
     }
    }

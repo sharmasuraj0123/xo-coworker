@@ -33,8 +33,8 @@ for (const [method, template, path, request] of routes) {
   const requests = [];
   globalThis.fetch = async (url, options) => {
     requests.push([options?.method || "GET", new URL(String(url), origin).pathname]);
-    return Response.json({});
+    return Response.json({}, { status: 404 });
   };
-  await request();
+  await assert.rejects(request, { status: 404 });
   assert.deepEqual(requests, [[method, path]], `${method} ${path}`);
 }

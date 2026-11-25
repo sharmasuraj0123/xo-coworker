@@ -1,8 +1,6 @@
 import type { Said } from "./types.d.ts";
 
-export interface RunStopResult {
-  stopping?: unknown;
-}
+export type { RunStopResult } from "../../core/platform/run-response-types.d.ts";
 
 export interface RunsStopOptions {
   pendingStops: ReturnType<typeof import("../../core/services/run-stops.js").createPendingRunStops>;

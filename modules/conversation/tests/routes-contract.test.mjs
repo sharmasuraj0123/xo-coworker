@@ -8,22 +8,26 @@ const snapshot = JSON.parse(readFileSync(new URL("../../../core/platform/tests/f
 const chat = "sample-chat";
 const thread = "sample-thread";
 
-/** @type {[string, string, string, () => Promise<unknown>][]} */
+/** @type {[string, string, string, () => Promise<unknown>, object][]} */
 const routes = [
-  ["GET", "/api/chat/chats/{chat_id}/messages", `/api/chat/chats/${chat}/messages`, () => api.messages(chat, { thread, before_seq: 10 })],
-  ["GET", "/api/chat/chats/{chat_id}/threads/{ts}", `/api/chat/chats/${chat}/threads/${thread}`, () => api.thread(chat, thread)],
-  ["GET", "/api/chat/chats/{chat_id}/hops", `/api/chat/chats/${chat}/hops`, () => api.hops(chat)],
-  ["POST", "/api/chat/chats/{chat_id}/messages", `/api/chat/chats/${chat}/messages`, () => api.post(chat, { text: "Hello", threadTs: thread, clientId: "client-id", attachments: ["attachment"] })],
-  ["POST", "/api/chat/abort", "/api/chat/abort", () => api.abort("session-id")],
+  ["GET", "/api/chat/chats/{chat_id}/messages", `/api/chat/chats/${chat}/messages`,
+    () => api.messages(chat, { thread, before_seq: 10 }), { messages: [] }],
+  ["GET", "/api/chat/chats/{chat_id}/threads/{ts}", `/api/chat/chats/${chat}/threads/${thread}`,
+    () => api.thread(chat, thread), { ts: thread, chat_id: chat }],
+  ["GET", "/api/chat/chats/{chat_id}/hops", `/api/chat/chats/${chat}/hops`, () => api.hops(chat), { hops: [] }],
+  ["POST", "/api/chat/chats/{chat_id}/messages", `/api/chat/chats/${chat}/messages`,
+    () => api.post(chat, { text: "Hello", threadTs: thread, clientId: "client-id", attachments: ["attachment"] }),
+    { id: "message-id", chat_id: chat, thread_ts: thread, text: "Hello" }],
+  ["POST", "/api/chat/abort", "/api/chat/abort", () => api.abort("session-id"), { session_id: "session-id", stopped: true }],
 ];
 
-for (const [method, template, path, request] of routes) {
+for (const [method, template, path, request, answer] of routes) {
   assert.ok(snapshot.paths[template]?.includes(method), `${method} ${template}`);
   /** @type {string[][]} */
   const calls = [];
   globalThis.fetch = async (url, options) => {
     calls.push([options?.method || "GET", new URL(String(url), "https://xo.test/").pathname]);
-    return Response.json({});
+    return Response.json(answer);
   };
   await request();
   assert.deepEqual(calls, [[method, path]]);

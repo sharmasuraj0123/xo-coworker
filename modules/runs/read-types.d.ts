@@ -18,7 +18,7 @@ export interface RunsReadDeps {
     state: { runs: Map<string, Run> };
     act: {
       listRuns(session: string, options?: ReadOptions): Promise<{ runs?: Run[]; counts?: RunCounts }>;
-      run(id: string, options?: ReadOptions): Promise<Run & { ancestry?: Ancestry }>;
+      run(id: string, options?: ReadOptions): Promise<Run & { ancestry?: Ancestry | null }>;
       transcript(id: string, cursor: string | null, options?: ReadOptions): Promise<{ items?: TranscriptItem[]; next?: string | null }>;
     };
   };

@@ -13,6 +13,8 @@ const signal = new AbortController().signal;
 globalThis.fetch = async (input, init) => {
   const url = new URL(String(input), "https://space.invalid/");
   requests.push([url.pathname.replace(encodeURIComponent(chat), "{chat_id}"), init?.method, url.searchParams.get("chat")]);
+  if (url.pathname === "/api/chat/chats") return Response.json({ chats: [] });
+  if (url.pathname.endsWith("/seen")) return Response.json({ seen: { seen_at: "2026-11-20T12:00:00Z", seen_seq: 1 } });
   return Response.json({});
 };
 

@@ -72,7 +72,9 @@ inView([rows[4]], false);
 const first = rows[0];
 first.focus();
 const firstRequest = requests[0];
-const history = (title) => ({ messages: [{ id: "prompt", data: { role: "user" }, parts: [{ data: { type: "text", text: title } }] }] });
+const history = (title) => ({ messages: [{
+  id: "prompt", time_created: "2026-11-23T12:00:00Z", data: { role: "user" }, parts: [{ data: { type: "text", text: title } }],
+}] });
 waiting.get(firstRequest).resolve(Response.json(history("A title from history")));
 await new Promise(setImmediate);
 assert.equal(requests.length, 5, "only the waiting row still in view starts when a slot frees");

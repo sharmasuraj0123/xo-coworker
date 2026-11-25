@@ -18,7 +18,7 @@ const STATE_WORD = { running: "Working", waiting: "Waiting on you", finished: "D
 const KIND_WORD = { subagent: "Sub-agent", worker: "Worker", teammate: "Teammate", workflow_agent: "Workflow agent", remote_agent: "Remote agent", background_command: "Background command", monitor: "Monitor", review: "Review", internal: "Internal", other: "Other" };
 /** @param {number | null | undefined} n */
 const num = (n) => (n == null ? "" : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
-/** @param {string | undefined} a @param {string | null | undefined} b */
+/** @param {string | null | undefined} a @param {string | null | undefined} b */
 const dur = (a, b) => {
   const ms = (Date.parse(b || "") || Date.now()) - (Date.parse(a || "") || Date.now());
   if (!Number.isFinite(ms) || ms <= 0) return "";

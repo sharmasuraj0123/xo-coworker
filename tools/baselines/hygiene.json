@@ -121,9 +121,6 @@
  "core/services/shape/store.js": {
   "commentLines": 7
  },
- "core/services/step-icons.js": {
-  "commentLines": 1
- },
  "core/services/storm/act.js": {
   "commentLines": 1
  },
@@ -812,9 +809,6 @@
  "tests/storm-recover.test.mjs": {
   "commentLines": 1,
   "explicitAny": 2
- },
- "tests/storm-writes.test.mjs": {
-  "explicitAny": 1
  },
  "tests/storm.test.mjs": {
   "commentLines": 3

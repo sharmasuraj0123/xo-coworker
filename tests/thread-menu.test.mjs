@@ -39,7 +39,10 @@ assert.doesNotMatch(main.textContent + page.textContent, /[⌘⇧⏎⌫]/, "no k
 
 {
   const sent = [];
-  globalThis.fetch = async (url, init) => { sent.push([init.method, String(url), init.body]); return { ok: true, status: 200, type: "basic", text: async () => "{}" }; };
+  globalThis.fetch = async (url, init) => {
+    sent.push([init.method, String(url), init.body]);
+    return Response.json(init.method === "DELETE" ? { deleted: true } : { ts: "t 1", chat_id: "c/1" });
+  };
   const { api } = await import("../core/platform/api.js");
   await api.deleteThread("c/1", "t 1", { keep_branch: true });
   await api.restoreThread("c/1", "t 1");

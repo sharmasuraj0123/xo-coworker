@@ -1,15 +1,14 @@
-import type { Model } from "./setup-types.js";
+import type { Policies, RouterModel, RuntimeModel } from "../../core/platform/runtime-response-types.d.ts";
 import type { createIntelCatalog } from "./intel-catalog.js";
 import type { Runtime, RuntimePolicy } from "../../core/services/runtime-types.d.ts";
 import type { WorldRouter } from "../../core/services/world/state-types.d.ts";
 
-export type IntelModel = Model & { default_effort?: string };
+export type IntelModel = RuntimeModel;
 export type IntelRuntime = Runtime;
 export type Setting = { agent?: string | null; model?: string | null; effort?: string | null };
 export type Routing = WorldRouter;
 export type Draft = { auto: boolean; model?: string | null; effort?: string | null };
 export type Policy = RuntimePolicy;
-type ChatPolicy = { project?: Policy; effective?: Policy };
 export type IntelChat = { chatId: string; pin?: Setting; routing?: Routing | null };
 export type IntelThread = { id: string; chatId: string; project: string; state?: string; session?: Setting | null; pin?: Setting; movedTo?: object | null };
 export type IntelError = Error & { status?: number; code?: string };
@@ -18,7 +17,7 @@ export interface IntelWorld {
   state: {
     router?: Routing | null;
     runtimes?: IntelRuntime[] | null;
-    chatPolicy?: Record<string, ChatPolicy>;
+    chatPolicy?: Record<string, Policies>;
     policy?: { effective?: Policy } | null;
   };
   project(id: string): IntelChat | null | undefined;
@@ -69,7 +68,7 @@ export interface IntelState {
   more: boolean;
   saving?: boolean;
   saveErr?: string | null;
-  dms?: { id: string; label: string; connected: boolean }[];
+  dms?: RouterModel[];
 }
 
 export type IntelPop = {

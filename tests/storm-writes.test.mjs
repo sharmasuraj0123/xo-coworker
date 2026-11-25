@@ -67,7 +67,7 @@ t("a decision made: the item leaves; the idempotency key is a client id unless t
 });
 
 t("a refused decision is never reported as made: the item is read again and the caller told why", async () => {
-  const now = { i_gone: { id: "i_gone", state: "decided", decision: "deny" }, i_open: item("i_open", { title: "Fresh copy" }) };
+  const now = { i_gone: { id: "i_gone", state: "decided", decision: { decision: "deny" } }, i_open: item("i_open", { title: "Fresh copy" }) };
   const be = fakeBackend({
     "GET /chat/review": { items: [item("i_gone"), item("i_open"), item("i_lost")] },
     "POST /chat/review/i_gone/decision": fail(409, { code: "already_decided", message: "decided elsewhere" }),
@@ -77,7 +77,7 @@ t("a refused decision is never reported as made: the item is read again and the 
     "GET /chat/review/i_open": now.i_open,
   });
   const { world } = await boot(be);
-  await assert.rejects(world.act.decideItem("i_gone", { decision: "approve" }), (e) => e.gone === "already_decided" && e.item.decision === "deny");
+  await assert.rejects(world.act.decideItem("i_gone", { decision: "approve" }), (e) => e.gone === "already_decided" && e.item.decision.decision === "deny");
   assert.equal(world.state.review.has("i_gone"), false);
   await assert.rejects(world.act.decideItem("i_open", { decision: "approve" }), (e) => e.gone === undefined && e.item.title === "Fresh copy");
   assert.equal(world.state.review.get("i_open").title, "Fresh copy", "a fresh copy to answer again");
@@ -89,7 +89,7 @@ t("a decision that never reached XO leaves the item as it was, unread", async ()
   const be = fakeBackend({ "GET /chat/review": { items: [item("i1")] } });
   const { world } = await boot(be);
   const fetch = globalThis.fetch;
-  globalThis.fetch = /** @type {any} */ (async (url, opts) => ((opts && opts.method) === "POST" ? Promise.reject(new TypeError("offline")) : fetch(url, opts)));
+  globalThis.fetch = async (url, opts) => opts?.method === "POST" ? Promise.reject(new TypeError("offline")) : fetch(url, opts);
   await assert.rejects(world.act.decideItem("i1", { decision: "approve" }), (e) => e.code === "network" && e.item === undefined);
   globalThis.fetch = fetch;
   assert.equal(be.count("GET", "/chat/review/i1"), 0);

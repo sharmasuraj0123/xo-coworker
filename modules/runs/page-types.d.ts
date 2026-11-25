@@ -8,8 +8,8 @@ export interface RunsPageDeps {
   stage: RunsPanelDeps["STAGE"] & RunsOpening["STAGE"] & Pick<ReturnType<typeof createPages>, "page"> & RunsReadDeps["STAGE"];
   world: RunsReadDeps["world"] & RunsPanelDeps["world"] & {
     act: {
-      stopRun(id: string): Promise<RunStopResult>;
-      stopRuns(session: string): Promise<RunStopResult>;
+      stopRun(id: string): Promise<RunStopResult | null>;
+      stopRuns(session: string): Promise<RunStopResult | null>;
     };
   };
   headFor: RunsOpening["headFor"];

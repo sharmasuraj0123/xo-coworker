@@ -6,6 +6,8 @@ import { AWAIT_CAP_MS } from "./config.js";
 import { createCommands } from "./commands.js";
 
 /** @import {Ctx, Row} from "./types" */
+
+/** @import {RunRecord} from "../../platform/run-response-types" */
 /** @type {WeakMap<Ctx, { revision: number, rows: WeakMap<import("../run-types").StoredRun, number> }>} */
 const runOrders = new WeakMap();
 
@@ -111,7 +113,7 @@ export function createAct(ctx) {
       const d = await worldRead(scope.signal, options.signal,
         (signal) => client.runs(session, { tree: "true", depth: 3, limit: 200 }, { signal }));
       scope.signal.throwIfAborted(); options.signal?.throwIfAborted();
-      /** @param {Row} run @returns {Row} */
+      /** @param {RunRecord} run @returns {RunRecord} */
       const publish = (run) => {
         const current = state.runs.get(run.id);
         const children = run.children?.map(publish);
@@ -127,7 +129,7 @@ export function createAct(ctx) {
         order.rows.set(record, readOrder);
         return children ? { ...run, children } : run;
       };
-      const ordered = d.runs?.map(publish);
+      const ordered = d.runs.map(publish);
       ctx.soon();
       return { ...d, runs: ordered };
     },

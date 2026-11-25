@@ -61,6 +61,16 @@ Object.assign(globalThis, {
       requests.push(JSON.parse(init.body));
       return reply.promise;
     }
+    if (path.endsWith("/messages")) return Response.json({ messages: [] });
+    if (path.endsWith("/threads")) return Response.json({ threads: [] });
+    if (path.endsWith("/sessions")) return Response.json({ sessions: [] });
+    if (path.endsWith("/hops")) return Response.json({ hops: [] });
+    if (path.endsWith("/runtime-policy")) return Response.json({ effective: {} });
+    if (path.endsWith("/runtimes")) return Response.json({ runtimes: [] });
+    if (path === "/api/chat/active") return Response.json({ turns: [] });
+    if (path === "/api/advisory") return Response.json({ accounts: [] });
+    if (path === "/api/chat/intent") return Response.json({ intents: [], pools: [] });
+    if (path === "/api/chat/review") return Response.json({ items: [] });
     return Response.json({});
   },
 });
@@ -70,6 +80,14 @@ const { publishedRules } = await import("./lib/css-snapshot.mjs");
 async function paint() {
   await new Promise((resolve) => setImmediate(resolve));
   for (const callback of frames.splice(0)) callback(performance.now());
+}
+async function paintUntil(ready, description) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    await paint();
+    if (ready()) return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.fail(description);
 }
 function press(selector) {
   const node = document.querySelector(selector);
@@ -108,22 +126,24 @@ assert.doesNotMatch(document.querySelector("#typing").textContent, /coordinator 
 press('#side [data-go="p:demo"]');
 await paint();
 assert.match(document.querySelector("#typing").textContent, /coordinator is replying/i);
+const returned = list.querySelector(`[data-k="${key}"]`);
+assert.ok(returned?.classList.contains("is-pending"), "returning while the POST is held draws the same optimistic message");
 
-reply.resolve(Response.json(null));
-await paint();
+const serverMessage = {
+  id: "server-message", chat_id: "project-chat", author_kind: "owner", text: draft,
+  seq: sequence + 1, created_at: new Date().toISOString(), client_id: requests[0].client_id,
+};
+reply.resolve(Response.json(serverMessage));
+await paintUntil(() => Boolean(list.querySelector(".sent")), "the accepted POST draws its acknowledgement");
 const acknowledged = list.querySelector(`[data-k="${key}"]`);
 assert.ok(acknowledged, "the POST acknowledgement does not retire the optimistic row");
+same(acknowledged, returned);
 assert.equal(acknowledged.querySelector(".bubble").textContent, draft, "acknowledgement keeps the optimistic bubble");
 assert.equal(acknowledged.querySelector(".sent").textContent.trim(), "Received by XO");
 assert.equal(Boolean(acknowledged.querySelector(".is-sending")), false);
-frame("message", {
-  chat_id: "project-chat",
-  data: {
-    id: "server-message", chat_id: "project-chat", author_kind: "owner", text: draft,
-    created_at: new Date().toISOString(), extra: { reactions: [{ emoji: "👍" }] },
-  },
-});
-await paint();
+frame("message", { chat_id: "project-chat", data: serverMessage });
+frame("reaction", { chat_id: "project-chat", data: { message_id: serverMessage.id, emoji: "👍" } });
+await paintUntil(() => acknowledged.querySelector(".m-react")?.textContent === "👍", "the streamed reaction appears on the acknowledged row");
 const copies = [...list.querySelectorAll(".m-you .bubble")].filter(({ textContent }) => textContent === draft);
 assert.equal(copies.length, 1, "the drawn echo replaces the optimistic copy");
 same(copies[0].closest("[data-k]"), acknowledged);

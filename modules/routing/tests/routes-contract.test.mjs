@@ -15,7 +15,8 @@ globalThis.fetch = async (input, init) => {
   const path = url.pathname.replace("/test%20provider", "/{provider}").replace("/test%20chat", "/{chat_id}");
   const body = init?.body ? JSON.parse(String(init.body)) : null;
   requests.push([init?.method, path, body]);
-  return Response.json({});
+  if (path === "/api/chat/chats/{chat_id}") return Response.json({ id: "test chat", routing: null });
+  return Response.json(path.startsWith("/api/chat/router/models") ? { models: [] } : setting);
 };
 await api.router();
 await api.routerModels();

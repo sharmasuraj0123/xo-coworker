@@ -2,9 +2,17 @@
 
 import { request, blob, signedUrl, socketUrl, text, upload, urlOf, exchange, coderHeaders, ApiError } from "./http.js";
 import { readJsonEvents } from "./sse.js";
-import { engineStatus } from "./response.js";
 import { projectApi } from "./project-api.js";
 import { scheduleApi } from "./schedule-response.js";
+import { engineStatus, requestChecked } from "./response.js";
+import { isAccountIntents, isAdvisory, isPaidReceipt } from "./account-responses.js";
+import { isReview, isReviewPage, isRule, isRuleBatch } from "./review-responses.js";
+import { isModels, isPolicies, isRouter, isRouterModels, isRuntimes } from "./runtime-responses.js";
+import { isRunDetail, isRunList, isRunStopResult, isRunTranscript } from "./run-responses.js";
+import {
+  isAbortReceipt, isActive, isChat, isChats, isEvents, isHops, isMessage, isMessages, isObservedPage,
+  isPromptReceipt, isSeenAck, isSession, isSessions, isThread, isThreadContinuation, isThreadDeletion, isThreads,
+} from "./chat-responses.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
 
 const enc = encodeURIComponent;
@@ -36,9 +44,9 @@ export const NEWEST = 9007199254740991;
 
 export const chatActivityApi = {
   /** @param {AbortSignal} [signal] */
-  chats: (signal) => request("/chat/chats", { signal }),
+  chats: (signal) => requestChecked("/chat/chats", isChats, { signal }),
   /** @param {string} chat @param {AbortSignal} [signal] */
-  markSeen: (chat, signal) => request(`/chat/chats/${enc(chat)}/seen`, { method: "PUT", body: {}, signal }),
+  markSeen: (chat, signal) => requestChecked(`/chat/chats/${enc(chat)}/seen`, isSeenAck, { method: "PUT", body: {}, signal }),
   /** @param {string | null} [chat] @param {AbortSignal} [signal] */
   worktrees: (chat, signal) => request("/chat/worktrees", { query: chat ? { chat } : undefined, signal }),
   /** @param {string} chat @param {string} thread @param {string | null} [confirm] @param {AbortSignal} [signal] */
@@ -49,54 +57,63 @@ export const chatActivityApi = {
 
 export const ruleApi = {
   /** @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
-  rules: (query, signal) => request("/chat/rules", { query, signal }),
+  rules: (query, signal) => requestChecked("/chat/rules", isRuleBatch, { query, signal }),
   /** @param {string} id @param {AbortSignal} [signal] */
-  revokeRule: (id, signal) => request(`/chat/rules/${enc(id)}`, { method: "DELETE", signal }),
+  revokeRule: (id, signal) => requestChecked(`/chat/rules/${enc(id)}`, isRule, { method: "DELETE", signal }),
 };
 
 /** Every route, by name; each returns the answer's JSON (or a Blob, or a URL). @type {import("./api-types").Api} */
 export const api = {
   status: engineStatus,
-  runtimes: ({ signal } = {}) => get("/chat/runtimes", undefined, signal),
-  models: (runtime, { signal } = {}) => get(`/chat/runtimes/${enc(runtime)}/models`, undefined, signal),
+  runtimes: (options) => requestChecked("/chat/runtimes", isRuntimes, options),
+  models: (runtime, options) => requestChecked(`/chat/runtimes/${enc(runtime)}/models`, isModels, options),
   /** {space, effective}: the Space's runtime policy */
-  runtimePolicy: ({ signal } = {}) => get("/chat/runtime-policy", undefined, signal),
+  runtimePolicy: (options) => requestChecked("/chat/runtime-policy", isPolicies, options),
   /** Replaces the Space's policy: {allowed, default, preferences, fallback}. */
-  setRuntimePolicy: (policy) => send("PUT", "/chat/runtime-policy", policy),
+  setRuntimePolicy: (policy) => requestChecked("/chat/runtime-policy", isPolicies, { method: "PUT", body: policy }),
   /** {space, project, effective}: a project chat's own override (404 no_such_chat otherwise) */
-  chatRuntimePolicy: (chat, { signal } = {}) => get(`/chat/chats/${enc(chat)}/runtime-policy`, undefined, signal),
+  chatRuntimePolicy: (chat, options) => requestChecked(`/chat/chats/${enc(chat)}/runtime-policy`, isPolicies, options),
   /** Replaces a project's override; a null field follows the Space. */
-  setChatRuntimePolicy: (chat, policy) => send("PUT", `/chat/chats/${enc(chat)}/runtime-policy`, policy),
+  setChatRuntimePolicy: (chat, policy) =>
+    requestChecked(`/chat/chats/${enc(chat)}/runtime-policy`, isPolicies, { method: "PUT", body: policy }),
   /** The Space advisory: each account's plan, usage windows and paid facts (facts only; every one with its source and age). */
-  advisory: ({ signal } = {}) => get("/advisory", undefined, signal),
+  advisory: (options) => requestChecked("/advisory", isAdvisory, options),
   /** {intents: [...]}: the founder's holds and paid modes that hold now (rows: scope, scope_id, key, value, until, cites, set_at). */
-  intents: ({ signal } = {}) => get("/chat/intent", undefined, signal),
+  intents: (options) => requestChecked("/chat/intent", isAccountIntents, options),
   /** The founder's paid-usage mode: {scope: "space", scope_id: "", value} or {scope: "pool", scope_id: poolId, value | null (null: follow the Space)}. */
-  setPaid: (body) => send("POST", "/chat/intent/paid", body),
-  router: ({ signal } = {}) => get("/chat/router", undefined, signal),
-  setRouter: (body, { signal } = {}) => request("/chat/router", { method: "PUT", body, signal }),
-  routerModels: ({ signal } = {}) => get("/chat/router/models", undefined, signal),
-  connectRouterModel: (body, { signal } = {}) => request("/chat/router/models", { method: "POST", body, signal }),
-  disconnectRouterModel: (provider, { signal } = {}) => request(`/chat/router/models/${enc(provider)}`, { method: "DELETE", signal }),
+  setPaid: (body) => requestChecked("/chat/intent/paid", isPaidReceipt, { method: "POST", body }),
+  router: (options) => requestChecked("/chat/router", isRouter, options),
+  setRouter: (body, options) => requestChecked("/chat/router", isRouter, { ...options, method: "PUT", body }),
+  routerModels: (options) => requestChecked("/chat/router/models", isRouterModels, options),
+  connectRouterModel: (body, options) => requestChecked("/chat/router/models", isRouterModels, { ...options, method: "POST", body }),
+  disconnectRouterModel: (provider, options) =>
+    requestChecked(`/chat/router/models/${enc(provider)}`, isRouterModels, { ...options, method: "DELETE" }),
 
   chats: ({ signal } = {}) => chatActivityApi.chats(signal),
-  chat: (id) => get(`/chat/chats/${enc(id)}`),
-  patchChat: (id, body, { signal } = {}) => request(`/chat/chats/${enc(id)}`, { method: "PATCH", body, signal }),
+  chat: (id) => requestChecked(`/chat/chats/${enc(id)}`, isChat),
+  patchChat: (id, body, options) => requestChecked(`/chat/chats/${enc(id)}`, isChat, { ...options, method: "PATCH", body }),
   /** {thread?, after_seq?, before_seq?, limit?} → {messages, next_after_seq, next_before_seq?} */
-  messages: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/messages`, query, signal),
+  messages: (chat, query = {}, { signal } = {}) =>
+    requestChecked(`/chat/chats/${enc(chat)}/messages`, isMessages, { query, signal }),
   /** attachments: ids uploaded to this same chat (uploadAttachment); text may be "" when there are some. */
   post: (chat, { text, threadTs, clientId: cid, attachments }) =>
-    send("POST", `/chat/chats/${enc(chat)}/messages`, { text, client_id: cid, ...(threadTs ? { thread_ts: threadTs } : {}), ...(attachments && attachments.length ? { attachments } : {}) }),
-  threads: (chat, { signal } = {}) => get(`/chat/chats/${enc(chat)}/threads`, undefined, signal),
-  thread: (chat, ts, { signal } = {}) => get(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`, undefined, signal),
+    requestChecked(`/chat/chats/${enc(chat)}/messages`, isMessage, { method: "POST", body: {
+      text, client_id: cid, ...(threadTs ? { thread_ts: threadTs } : {}), ...(attachments?.length ? { attachments } : {}),
+    } }),
+  threads: (chat, options) => requestChecked(`/chat/chats/${enc(chat)}/threads`, isThreads, options),
+  thread: (chat, ts, options) => requestChecked(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`, isThread, options),
   /** {resolved?, paused?: false, title?, label?, intelligence?} */
-  patchThread: (chat, ts, body) => send("PATCH", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
+  patchThread: (chat, ts, body) =>
+    requestChecked(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`, isThread, { method: "PATCH", body }),
   /** Delete a thread (Space, when it offers it: a thread row's can_delete). {keep_branch, confirm?} → {deleted, undo_until}; 409 would_lose_work {what, confirm} when its worktree holds work kept nowhere else. Undone by restoreThread until undo_until. */
-  deleteThread: (chat, ts, body) => send("DELETE", `/chat/chats/${enc(chat)}/threads/${enc(ts)}`, body),
-  restoreThread: (chat, ts) => send("POST", `/chat/chats/${enc(chat)}/threads/${enc(ts)}/restore`, {}),
+  deleteThread: (chat, ts, body) =>
+    requestChecked(`/chat/chats/${enc(chat)}/threads/${enc(ts)}`, isThreadDeletion, { method: "DELETE", body }),
+  restoreThread: (chat, ts) =>
+    requestChecked(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/restore`, isThread, { method: "POST", body: {} }),
   /** Continue a thread on another runtime: it stops, freezes, and a linked new thread starts from its work. */
-  continueThread: (chat, ts, body) => request(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`, { method: "POST", body, timeout: 60000 }),
-  hops: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/hops`, query, signal),
+  continueThread: (chat, ts, body) => requestChecked(`/chat/chats/${enc(chat)}/threads/${enc(ts)}/continue`,
+    isThreadContinuation, { method: "POST", body, timeout: 60000 }),
+  hops: (chat, query = {}, { signal } = {}) => requestChecked(`/chat/chats/${enc(chat)}/hops`, isHops, { query, signal }),
   memory: (chat) => get(`/chat/chats/${enc(chat)}/memory`),
   /** What a chat's threads made (a newer backend): {made: [...], next_before}. 404 on an older one. */
   made: (chat, query = {}, { signal } = {}) => get(`/chat/chats/${enc(chat)}/made`, query, signal),
@@ -110,30 +127,33 @@ export const api = {
   /** {shape: object|null, if_version}: compare-and-set; a stale if_version is 409 shape_changed with `current`. */
   putShape: (body) => send("PUT", "/chat/shape", body),
 
-  sessions: (query = {}, { signal } = {}) => get("/chat/sessions", query, signal),
-  session: (id, { signal } = {}) => get(`/chat/sessions/${enc(id)}`, undefined, signal),
-  patchSession: (id, body) => send("PATCH", `/chat/sessions/${enc(id)}`, body),
-  active: ({ signal } = {}) => get("/chat/active", undefined, signal),
+  sessions: (query = {}, { signal } = {}) => requestChecked("/chat/sessions", isSessions, { query, signal }),
+  session: (id, options) => requestChecked(`/chat/sessions/${enc(id)}`, isSession, options),
+  patchSession: (id, body) => requestChecked(`/chat/sessions/${enc(id)}`, isSession, { method: "PATCH", body }),
+  active: ({ signal } = {}) => requestChecked("/chat/active", isActive, { signal }),
   /** Stored frames, for history and resumes beyond the stream's reach. */
-  events: (query = {}, { signal } = {}) => get("/chat/events", query, signal),
+  events: (query = {}, { signal } = {}) => requestChecked("/chat/events", isEvents, { query, signal }),
 
   /** A plain chat's history lives in its CLI transcript, read by observation. */
-  observedMessages: (nativeId, query = {}, { signal } = {}) => get(`/messages/${enc(nativeId)}`, query, signal),
-  prompt: (body) => send("POST", "/chat/prompt", body),
-  abort: (sessionId) => send("POST", "/chat/abort", { session_id: sessionId }),
+  observedMessages: (nativeId, query = {}, { signal } = {}) =>
+    requestChecked(`/messages/${enc(nativeId)}`, isObservedPage, { query, signal }),
+  prompt: (body) => requestChecked("/chat/prompt", isPromptReceipt, { method: "POST", body }),
+  abort: (sessionId) =>
+    requestChecked("/chat/abort", isAbortReceipt, { method: "POST", body: { session_id: sessionId } }),
 
-  review: (query = {}, { signal } = {}) => get("/chat/review", query, signal),
-  reviewItem: (id, { signal } = {}) => get(`/chat/review/${enc(id)}`, undefined, signal),
-  decide: (id, body) => send("POST", `/chat/review/${enc(id)}/decision`, body),
+  review: (query = {}, { signal } = {}) => requestChecked("/chat/review", isReviewPage, { query, signal }),
+  reviewItem: (id, options) => requestChecked(`/chat/review/${enc(id)}`, isReview, options),
+  decide: (id, body) => requestChecked(`/chat/review/${enc(id)}/decision`, isReview, { method: "POST", body }),
   rules: (query) => ruleApi.rules(query),
-  addRule: (body) => send("POST", "/chat/rules", body),
+  addRule: (body) => requestChecked("/chat/rules", isRule, { method: "POST", body }),
   revokeRule: (id) => ruleApi.revokeRule(id),
 
-  runs: (session, query = {}, { signal } = {}) => get(`/chat/sessions/${enc(session)}/runs`, query, signal),
-  run: (id, { signal } = {}) => get(`/chat/runs/${enc(id)}`, undefined, signal),
-  transcript: (id, query = {}, { signal } = {}) => get(`/chat/runs/${enc(id)}/transcript`, query, signal),
-  stopRun: (id) => send("POST", `/chat/runs/${enc(id)}/stop`),
-  stopRuns: (session) => send("POST", `/chat/sessions/${enc(session)}/runs/stop`),
+  runs: (session, query = {}, { signal } = {}) => requestChecked(`/chat/sessions/${enc(session)}/runs`, isRunList, { query, signal }),
+  run: (id, options) => requestChecked(`/chat/runs/${enc(id)}`, isRunDetail, options),
+  transcript: (id, query = {}, { signal } = {}) =>
+    requestChecked(`/chat/runs/${enc(id)}/transcript`, isRunTranscript, { query, signal }),
+  stopRun: (id) => requestChecked(`/chat/runs/${enc(id)}/stop`, isRunStopResult, { method: "POST" }),
+  stopRuns: (session) => requestChecked(`/chat/sessions/${enc(session)}/runs/stop`, isRunStopResult, { method: "POST" }),
 
   worktrees: (chat) => chatActivityApi.worktrees(chat),
   removeWorktree: (chat, ts, confirm) => chatActivityApi.removeWorktree(chat, ts, confirm),

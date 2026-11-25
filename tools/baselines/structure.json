@@ -198,7 +198,7 @@
  },
  "core/services/storm/history.js": {
   "functionLines": 1,
-  "lineLength": 3
+  "lineLength": 2
  },
  "core/services/storm/hops.js": {
   "lineLength": 1

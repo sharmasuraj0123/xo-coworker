@@ -5,7 +5,8 @@
 import assert from "node:assert/strict";
 import { renderMarkdown, renderInline, threadLinks, excerptMarkdown, setThreadInfo, shortUrl } from "../core/ui/markdown/markdown.js";
 import { parseChecklist, tasksOf } from "../core/services/world/checklist.js";
-import { api, request } from "../core/platform/api.js";
+import { api } from "../core/platform/api.js";
+import { requestJson } from "../core/platform/http.js";
 import { highlight, langOf } from "../core/ui/markdown/highlight.js";
 import { uiMsg, mergeRows, echoes, askText, stormAsks, threadAnchors, parseTarget, stripTarget, sendErrorTitle, connLine, currentPools, sharedFileRoute, relayedInto, forwardOrigin, sendBlock, plainText, hopLine, waitsForTurn, threadState, hopNotes, mainRuntime, chatOrder, addReaction, reactionGroups } from "../core/services/world/timeline.js";
 import { mapLimit } from "../core/services/storm/load.js";
@@ -480,7 +481,9 @@ await (async () => {
   try {
     let err = null;
     const t0 = Date.now();
-    try { await request("/chat/chats/x/messages", { method: "POST", body: { text: "hi", client_id: "ui_1" }, timeout: 60 }); } catch (e) { err = e; }
+    try {
+      await requestJson("/chat/chats/x/messages", { method: "POST", body: { text: "hi", client_id: "ui_1" }, timeout: 60 });
+    } catch (e) { err = e; }
     t("a write that never settles fails as a timeout", () => {
       assert.ok(err && err.code === "timeout" && err.status === 0, String(err && err.code));
       assert.equal(sendErrorTitle(err), "No answer from XO");

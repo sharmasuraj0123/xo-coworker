@@ -51,14 +51,14 @@ const COMMS_ICON = {
 };
 /** @type {[RegExp, string][]} */
 const VERB_ICON = [[/^(?:read|view|show|look at|inspect|open|check)\b/i, "eye"], [/^(?:search|find|grep|look for|locate)\b/i, "search"], [/^list\b/i, "folder-open"], [/^(?:run|rerun)\b.*\btests?\b/i, "test-flask"]];
-/** @param {[RegExp, string][]} list @param {string} [s] */
+/** @param {[RegExp, string][]} list @param {string | null} [s] */
 const nameIcon = (list, s) => (list.find(([re]) => re.test(s || "")) || [])[1];
-/** @param {{ kind?: string, tool?: string, target?: string, line?: string, pending?: boolean }} [step] */
+/** @param {{ kind?: string | null, tool?: string | null, target?: string | null, line?: string | null, pending?: boolean }} [step] */
 export function stepIcon({ kind, tool, target, line, pending } = {}) {
   if (pending && !kind && !tool) return "compose"; // still being written out: its tool isn't known yet
-  const comms = commsTool({ tool, target });
+  const comms = commsTool({ tool: tool ?? undefined, target: target ?? undefined });
   if (comms) return COMMS_ICON[comms] || (/^(?:fetch|list)_/.test(comms) ? "eye" : "plug");
   if (kind === "command") { const c = cmdIcon(target); return c !== "terminal" ? c : nameIcon(VERB_ICON, String(line || "").replace(/[`*_]/g, "").trim()) || c; }
-  if (kind === "other" || !KIND_ICON[/** @type {string} */ (kind)]) return nameIcon(TOOL_ICON, tool) || "wrench";
-  return KIND_ICON[/** @type {string} */ (kind)];
+  if (kind && kind !== "other" && KIND_ICON[kind]) return KIND_ICON[kind];
+  return nameIcon(TOOL_ICON, tool) || "wrench";
 }

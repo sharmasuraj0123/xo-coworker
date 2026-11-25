@@ -165,7 +165,7 @@ export function createCommands(ctx) {
           const refreshed = await client.chatRuntimePolicy(c, { signal })
             .catch((error) => signal.aborted ? null : keepLastRead(error, state.chatPolicy[c]));
           if (signal.aborted) return saved;
-          state.chatPolicy[c] = refreshed;
+          if (refreshed) state.chatPolicy[c] = refreshed;
         }
       }
       emit();

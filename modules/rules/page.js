@@ -7,7 +7,7 @@ import { latest } from "../../core/platform/latest.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { renderInline } from "../../core/ui/markdown/markdown.js";
 
-/** @import {Rule, RuleBatch, RulesHost, RulesOptions, RulesState} from "./types" */
+/** @import {Rule, RulesHost, RulesOptions, RulesState} from "./types" */
 
 const PAGE = "rules";
 const PAGE_SIZE = 500;
@@ -21,7 +21,6 @@ async function readRules(signal) {
   let defaults = [];
   let after = 0;
   for (let page = 0; page < MAX_PAGES; page++) {
-    /** @type {RuleBatch | null} */
     const batch = await ruleApi.rules({ after_seq: after, limit: PAGE_SIZE }, signal);
     rules.push(...(batch?.rules ?? []));
     defaults = batch?.defaults ?? defaults;

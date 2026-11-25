@@ -116,7 +116,7 @@ test("disconnect retires the old list before updating chat overrides", async () 
   const retired = staleSignal.aborted;
   stale.resolve(catalog(true));
   await refresh;
-  override.resolve(Response.json({ routing: null }));
+  override.resolve(Response.json({ id: project.chatId, routing: null }));
   await settle();
   assert.equal(patched, true);
   assert.equal(retired, true, "disconnect retires the old list while an override is being updated");
@@ -133,7 +133,7 @@ test("disposing during disconnect aborts the write and fences late effects", asy
   let writeSignal, patched = false;
   globalThis.fetch = async (input, init) => {
     if (init.method === "DELETE") { writeSignal = init.signal; return removal.promise; }
-    if (init.method === "PATCH") { patched = true; return Response.json({ routing: null }); }
+    if (init.method === "PATCH") { patched = true; return Response.json({ id: project.chatId, routing: null }); }
     return String(input).endsWith("/models") ? catalog(true) : router();
   };
   await page.open();
@@ -155,12 +155,12 @@ test("disposing during disconnect aborts the write and fences late effects", asy
 });
 
 test("a disconnect refresh cannot roll back a newer Storm routing change", async () => {
-  const { page, click, publishRouter, world } = await fixture();
+  const { page, click, project, publishRouter, world } = await fixture();
   const refresh = Promise.withResolvers();
   let routerReads = 0;
   globalThis.fetch = async (input, init) => {
     if (init.method === "DELETE") return catalog(false);
-    if (init.method === "PATCH") return Response.json({ routing: null });
+    if (init.method === "PATCH") return Response.json({ id: project.chatId, routing: null });
     if (String(input).endsWith("/models")) return catalog(true);
     return ++routerReads === 1 ? router() : refresh.promise;
   };

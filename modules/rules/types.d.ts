@@ -1,21 +1,5 @@
-export interface Rule {
-  id: string;
-  sentence?: string;
-  scope?: string;
-  project_pid?: string;
-  thread_ts?: string;
-  effect?: string;
-  tier?: string;
-  uses?: number;
-  created_at?: string;
-  revoked_at?: string | null;
-}
-
-export interface RuleBatch {
-  rules?: Rule[];
-  defaults?: Rule[];
-  next_after_seq?: number;
-}
+import type { Rule } from "../../core/platform/review-response-types.d.ts";
+export type { Rule } from "../../core/platform/review-response-types.d.ts";
 
 export interface RulesState {
   rules: Rule[] | null;

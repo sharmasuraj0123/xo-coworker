@@ -62,7 +62,7 @@ Object.assign(globalThis, {
     if (path === "/api/chat/active") return Response.json({ turns: [{ turn_id: "turn-ws", session_id: "session-ws", chat_id: "chat-ws" }] });
     if (path === "/api/chat/abort") {
       stops.push(JSON.parse(options.body));
-      return Response.json({ stopped: true });
+      return Response.json({ session_id: "session-ws", stopped: true, turn_id: "turn-ws" });
     }
     if (path === "/api/chat/chats/chat-ws/messages" && options?.method === "POST") {
       const post = JSON.parse(options.body);

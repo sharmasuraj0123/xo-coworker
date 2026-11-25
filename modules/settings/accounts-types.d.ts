@@ -34,7 +34,7 @@ export interface GitHubFlow {
 
 export interface Agent {
   name: string;
-  health?: { installed?: boolean, logged_in?: boolean };
+  health?: { installed?: boolean, logged_in?: boolean } | null;
   default?: boolean;
 }
 

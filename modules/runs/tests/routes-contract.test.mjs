@@ -10,7 +10,7 @@ const { paths } = JSON.parse(readFileSync(new URL("../../../core/platform/tests/
 const routes = ["/api/chat/sessions/{session_id}/runs", "/api/chat/runs/{run_id}", "/api/chat/runs/{run_id}/transcript"];
 for (const route of routes) assert.ok(paths[route]?.includes("GET"), `GET ${route} in OpenAPI`);
 const calls = [];
-const run = { id: "run/key", state: "done", title: "Review" };
+const run = { id: "run/key", state: "done", kind: "subagent", title: "Review" };
 const responses = [{ runs: [run], counts: { done: 1 } }, run, { items: [{ id: "line", type: "text" }] }];
 globalThis.fetch = async (url, init) => {
   const request = new URL(String(url), "http://local");

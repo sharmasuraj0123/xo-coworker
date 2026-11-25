@@ -8,6 +8,19 @@ import { hasCheckedProjectResponse } from "./checked-project-routes.js";
 const BASE = "api";
 export const CHAT_STATUS_PATH = "/chat/status";
 
+const CHECKED_ROUTES = new Set([
+  CHAT_STATUS_PATH, "/chat/runtimes", "/chat/router", "/chat/router/models", "/chat/runtime-policy", "/chat/review", "/chat/rules",
+]);
+const CHECKED_DETAIL = /^\/chat\/(?:runtimes\/[^/]+\/models|chats\/[^/]+\/runtime-policy|router\/models\/[^/]+)$/;
+const CHECKED_READS = /^\/chat\/(?:sessions(?:\/[^/]+(?:\/runs)?)?|runs\/[^/]+(?:\/transcript)?|events|active|intent)$/;
+const CHECKED_CHAT_READS = /^\/chat\/chats(?:\/[^/]+(?:\/(?:messages|hops|threads(?:\/[^/]+)?))?)?$/;
+const CHECKED_SEEN = /^\/chat\/chats\/[^/]+\/seen$/;
+const CHECKED_STOP = /^\/chat\/(?:runs\/[^/]+|sessions\/[^/]+\/runs)\/stop$/;
+const CHECKED_CHAT_PATCH = /^\/chat\/(?:chats\/[^/]+(?:\/threads\/[^/]+)?|sessions\/[^/]+)$/;
+const CHECKED_CHAT_POST = /^\/chat\/(?:prompt|abort|intent\/paid|chats\/[^/]+\/(?:messages|threads\/[^/]+\/(?:restore|continue)))$/;
+const CHECKED_CHAT_DELETE = /^\/chat\/chats\/[^/]+\/threads\/[^/]+$/;
+const CHECKED_REVIEW = /^\/chat\/(?:review\/[^/]+(?:\/decision)?|rules\/[^/]+)$/;
+
 const TOKEN_PARAM = "coder_session_token";
 const TOKEN_KEY = "xo-coder-token";
 /** Coder's sign-in cookie lasts a minute, so the token is kept for this tab and taken out of the address bar. */
@@ -83,8 +96,17 @@ export async function requestJson(path, { method = "GET", body, signal, query, t
 
 /** @param {string} path @param {RequestOptions} [options] @returns {Promise<ReturnType<typeof JSON.parse>>} */
 export async function request(path, options) {
-  const route = path.split(/[?#]/, 1)[0];
-  if (route === CHAT_STATUS_PATH || hasCheckedProjectResponse(route, options?.method)) throw new TypeError("Use the checked API route.");
+  const [route] = path.split(/[?#]/, 1);
+  const method = (options?.method ?? "GET").toUpperCase();
+  const checked = (method === "GET" && (CHECKED_READS.test(route)
+    || CHECKED_CHAT_READS.test(route) || route === "/advisory" || /^\/messages\/[^/]+$/.test(route)))
+    || (method === "PUT" && CHECKED_SEEN.test(route)) || (method === "PATCH" && CHECKED_CHAT_PATCH.test(route))
+    || (method === "POST" && (CHECKED_STOP.test(route) || CHECKED_CHAT_POST.test(route)))
+    || (method === "DELETE" && CHECKED_CHAT_DELETE.test(route));
+  const project = hasCheckedProjectResponse(route, method);
+  if (checked || project || CHECKED_ROUTES.has(route) || CHECKED_DETAIL.test(route) || CHECKED_REVIEW.test(route)) {
+    throw new TypeError(`Use the checked adapter for ${route}.`);
+  }
   return requestJson(path, options);
 }
 

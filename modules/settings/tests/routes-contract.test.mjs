@@ -30,7 +30,8 @@ for (const [method, path, call, optional] of routes) {
   const seen = [];
   globalThis.fetch = async (url, options) => {
     seen.push([options?.method ?? "GET", new URL(String(url), "http://local/").pathname]);
-    return optional ? Response.json({ detail: "Not Found" }, { status: 404 }) : Response.json({});
+    if (optional) return Response.json({ detail: "Not Found" }, { status: 404 });
+    return Response.json(path === "/api/chat/runtimes" ? { runtimes: [] } : {});
   };
   assert.equal(snapshot.paths[path]?.includes(method) ?? false, !optional, `${method} ${path} in OpenAPI`);
   if (optional) await assert.rejects(call(), { status: 404 });

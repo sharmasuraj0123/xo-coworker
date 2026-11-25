@@ -167,7 +167,10 @@ export function installHistory(ctx) {
     for (const f of (c && c.events) || []) {
       const x = f.data || {};
       if (f.type === "thread.control") ctx.noteControl(f, x);
-      else if (f.type === "thread.continued" && (x.from || f.thread_ts) && !state.moves[x.from || f.thread_ts]) state.moves[x.from || f.thread_ts] = { ...x, at: f.ts };
+      else if (f.type === "thread.continued" && f.ts) {
+        const from = typeof x.from === "string" && x.from ? x.from : f.thread_ts;
+        if (from && !state.moves[from]) state.moves[from] = { ...x, at: f.ts };
+      }
     }
   };
 

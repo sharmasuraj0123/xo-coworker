@@ -39,8 +39,7 @@ export function createChatTitles(root, session, searchChanged) {
   async function read(id, native, signal) {
     let text;
     try {
-      const data = /** @type {{ messages?: import("./read-types.d.ts").Observed[] }} */ (
-        await api.observedMessages(native, { offset: 0, limit: 5 }, { signal }));
+      const data = await api.observedMessages(native, { offset: 0, limit: 5 }, { signal });
       const first = data.messages?.find((message) => message.data?.role === "user");
       text = first?.parts?.map((part) => part.data?.type === "text" ? part.data.text : "").join(" ").trim();
     } catch (error) {

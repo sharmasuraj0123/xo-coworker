@@ -1,13 +1,6 @@
 import type { ChatDeps, ChatState, LocalPrompt, Session } from "./types.d.ts";
 import type { createChatTitles } from "./titles.js";
 
-export interface Observed {
-  id: string;
-  time_created: string;
-  data?: { role?: string };
-  parts?: { data?: { type?: string; text?: string } }[];
-}
-
 export interface ChatReadDeps {
   world: ChatDeps["world"];
   sessions: () => Session[];

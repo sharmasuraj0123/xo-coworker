@@ -6,7 +6,7 @@ import { isPending, once } from "../../core/platform/pending.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { CHAT_LIST_LIMIT } from "./titles.js";
 
-/** @import { ChatState, History } from "./types.d.ts" @import { ChatReadDeps, Observed } from "./read-types.d.ts" */
+/** @import { ChatState, History } from "./types.d.ts" @import { ChatReadDeps } from "./read-types.d.ts" */
 const HISTORY_RETRY_MS = 1000;
 
 /** @param {ChatState} state @param {ChatReadDeps} deps */
@@ -78,7 +78,7 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
       if (signal.aborted || superseded()) return;
       history.turns = true;
       if (observed) {
-        history.user = userPrompts(/** @type {{ messages?: Observed[] }} */ (observed).messages);
+        history.user = userPrompts(observed.messages);
         history.loaded = true;
         if (history.user[0]) titles.remember(record, history.user[0].text);
       }
@@ -120,7 +120,7 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
   return { loadList, loadChat };
 }
 
-/** @param {Observed[]} [messages] */
+/** @param {import("../../core/platform/chat-response-types.d.ts").ObservedMessage[]} [messages] */
 function userPrompts(messages = []) {
   return messages.filter((message) => message.data?.role === "user").map((message) => ({
     id: message.id,
