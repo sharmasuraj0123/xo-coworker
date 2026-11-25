@@ -5,7 +5,7 @@ import { regionRings } from "../core/ui/a11y/ring.js";
 import { keepFocusInView } from "../core/ui/a11y/focus.js";
 import { tickElapsed } from "./elapsed.js";
 import { createScope } from "../core/kernel/scope.js";
-import { $ } from "../core/platform/dom.js";
+import { requireHtml } from "../core/platform/dom.js";
 import { PHONE } from "../core/platform/viewport.js";
 import { createWorld } from "../core/services/world/store.js";
 import { createConversationNotices } from "../core/services/notices/line.js";
@@ -39,7 +39,7 @@ export function createShellFoundation(bus) {
   };
   const redrawFocus = createRedrawFocus();
   const setDrawer = createDrawer(appScope, PHONE, syncInert);
-  const announce = createAnnouncer($("#live"), appScope);
+  const announce = createAnnouncer(requireHtml("#live"), appScope);
   const applicationShape = createApplicationShape({
     scope: appScope, events: world, notice: (h) => notices.show({ kind: "calm", ...h }, 6000),
   });

@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { createShapeView } from "./index.js";
 import { createShapeApply } from "./apply-shape.js";
 import { createSettingsModule } from "./module.js";
@@ -17,9 +17,10 @@ export function mountApplicationSettings(scope, appearance, bindings) {
   const apply = createShapeApply({ ...appearance, SV, SHAPE: shape });
   scope.effect(() => shape.onChange(apply));
   apply({ boot: true });
-  const setEl = $("#settings");
+  const setEl = requireHtml("#settings");
   const settings = createSettingsModule({
-    ...bindings, el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), shape: SV,
+    ...bindings, el: setEl, side: requireHtml("#set-side", "button"),
+    phoneButton: requireHtml("#set-phone", "button"), closeButton: requireHtml("#set-x", "button"), shape: SV,
   });
   return { SV, settings, setEl, ...shortcuts };
 }

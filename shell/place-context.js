@@ -1,11 +1,11 @@
 // @ts-check
 import { nameWith } from "../core/services/comms.js";
-import { $ } from "../core/platform/dom.js";
+import { findHtml } from "../core/platform/dom.js";
 
 /** @type {Record<string, string>} */
 export const PAGE_OF = { home: "#home", artifacts: "#arts", launchpad: "#lpp" };
 /** @param {string} view */
-export const pageEl = (view) => PAGE_OF[view] ? $(PAGE_OF[view]) : null;
+export const pageEl = (view) => PAGE_OF[view] ? findHtml(PAGE_OF[view]) : null;
 /** @param {string} view */
 export const panelPlace = (view) => /^(?:ws$|[pt]:)/.test(view);
 /** @param {string} view */

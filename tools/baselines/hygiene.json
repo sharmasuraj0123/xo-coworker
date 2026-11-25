@@ -55,9 +55,6 @@
  "core/platform/clipboard.js": {
   "commentOnlyCatch": 1
  },
- "core/platform/dom.js": {
-  "explicitAny": 2
- },
  "core/platform/gestures.js": {
   "commentLines": 2
  },
@@ -546,9 +543,6 @@
  },
  "shell/render.js": {
   "commentLines": 1
- },
- "shell/return-pill.js": {
-  "commentLines": 6
  },
  "shell/sideorder.js": {
   "commentLines": 1

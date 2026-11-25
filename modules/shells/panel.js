@@ -1,6 +1,6 @@
 // @ts-check
 import { createScope } from "../../core/kernel/scope.js";
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { reportFailure } from "../../core/services/notices/failures.js";
 
 /** @import { ShellPanelDeps } from "./panel-types.d.ts" */
@@ -8,7 +8,7 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 /** @param {ShellPanelDeps} options */
 export function createShellPanel({ view, STAGE, SH, world, heraldShow }) {
   const scope = createScope();
-  const dock = $("#shd");
+  const dock = requireHtml("#shd");
   const parent = /** @type {ParentNode} */ (dock.parentNode), next = dock.nextSibling;
   let mounted = false;
   /** @type {(() => void) | undefined} */

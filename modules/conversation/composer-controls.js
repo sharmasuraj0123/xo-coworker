@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { RM } from "../../core/ui/motion.js";
@@ -61,22 +61,22 @@ export function createComposerControls({ MK, CH, IQ, PHONE, STOP_ICON, sessionOf
   function chatTargetRender() {
     const view = MK.view;
     sendNowRender(view);
-    const perm = $("#cs-perm"), ph = CH.isChats(view) && !liveBlock() ? CH.permHtml(view) : "";
+    const perm = requireHtml("#cs-perm", "button"), ph = CH.isChats(view) && !liveBlock() ? CH.permHtml(view) : "";
     perm.hidden = !ph;
     perm.title = CH.permTitle(view);
     fixChip(perm, view !== "chats");
     if (markup.get(perm) !== ph) { perm.innerHTML = ph; markup.set(perm, ph); }
-    if (!CH.isChats(view)) { $("#target").hidden = false; return false; }
+    if (!CH.isChats(view)) { requireHtml("#target", "button").hidden = false; return false; }
     const html = CH.blocked(view) ? CH.targetHtml(view) : liveBlock() ? `<span class="tg-warn">${ICON.pause}</span><span>Sending is paused · ${esc(liveBlock())}</span>` : CH.targetHtml(view);
-    paintComposerTarget($("#target"), html);
-    $("#target").hidden = !html;
-    $("#target").title = view === "chats" ? "The folder a new chat works in" : "";
+    paintComposerTarget(requireHtml("#target", "button"), html);
+    requireHtml("#target", "button").hidden = !html;
+    requireHtml("#target", "button").title = view === "chats" ? "The folder a new chat works in" : "";
     return true;
   }
 
   /** @param {string} view */
   function sendNowRender(view) {
-    const b = $("#send-now");
+    const b = requireHtml("#send-now", "button");
     const st = CH.isChats(view) && !liveBlock() ? CH.nowState(view) : null;
     b.hidden = !st;
     if (st) { b.setAttribute("aria-pressed", String(st.on)); b.classList.toggle("is-on", st.on); }

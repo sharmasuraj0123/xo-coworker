@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { hydrateMedia } from "../../core/services/media/hydrate.js";
 import { reconcile } from "../../core/ui/redraw.js";
 
@@ -30,7 +30,7 @@ export function createConversationDrawing(options) {
     // the work folds about to be redrawn, measured before anything changes (workMotion glides them)
     const folds = quiet ? null : foldsBefore(C, items);
     const place = !opening && !C.follow.isPinned() ? readingPlace(C) : null;
-    reconcile(C.msgs, items, { quiet, fallback: () => (C.main ? $("#say") : C.scroller) });
+    reconcile(C.msgs, items, { quiet, fallback: () => (C.main ? requireHtml("#say", "textarea") : C.scroller) });
     hydrateMedia(C.msgs); // new pictures load and fade in; redrawn ones keep their pixels
     if (place) { holdPlace(C, place); queueMicrotask(() => holdPlace(C, place)); } // after msgx's decoration too
     if (folds) workMotion(C, folds);

@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { pageEl, sessionOf } from "../../shell/place-context.js";
 import { createWorkspaceJump } from "./jump-items.js";
@@ -8,7 +8,7 @@ import { createWorkspaceJump } from "./jump-items.js";
 
 /** @param {JumpHost} host */
 export function createJumpModule(host) {
-  const el = $("#jump");
+  const el = requireHtml("#jump");
   /** @type {ReturnType<typeof createWorkspaceJump> | undefined} */
   let jump;
   /** @type {import("../../core/kernel/types").ModuleDef} */
@@ -23,8 +23,8 @@ export function createJumpModule(host) {
         ...host, host: el, sources: ctx.places, announce: ctx.use("announce"),
         items: { ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), D: ctx.use("decisionPresentation").D,
           projectIcon: host.projectIcon },
-        actions: { ...host, theme: () => $("#theme").click(), stage: () => !pageEl(view()),
-          intelligence: () => !!host.IQ.kindOf(session()), openIntelligence: () => host.IQ.open(session(), $("#iq")) },
+        actions: { ...host, theme: () => requireHtml("#theme", "button").click(), stage: () => !pageEl(view()),
+          intelligence: () => !!host.IQ.kindOf(session()), openIntelligence: () => host.IQ.open(session(), requireHtml("#iq", "button")) },
       }, scope);
     },
   };

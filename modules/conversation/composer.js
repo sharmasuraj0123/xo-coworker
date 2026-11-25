@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 
 /** @import { Composer, ComposerDeps, ComposerScope } from "./composer-types.d.ts" */
 
@@ -47,14 +47,14 @@ export function createComposer({
     lrefRender();
     if (chatTargetRender()) {
       syncPlaceholder();
-      $("#composer").classList.toggle("has-text", !!say.value);
+      requireHtml("#composer", "form").classList.toggle("has-text", !!say.value);
       sendRender(); growSay(); mentions.close();
       return;
     }
     targetLineRender();
     { const dk = JSON.stringify(connDest()); if (dk !== (/** @type {{dk?: string}} */ (updateComposer)).dk) { (/** @type {{dk?: string}} */ (updateComposer)).dk = dk; schedule(); } }
     syncPlaceholder();
-    $("#composer").classList.toggle("has-text", !!say.value);
+    requireHtml("#composer", "form").classList.toggle("has-text", !!say.value);
     sendRender();
     growSay();
     mentions.render(MK);

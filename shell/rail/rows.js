@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml, findHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { heldShort, heldWords, soonestHeld } from "../../core/services/world/held.js";
 import { EASE, MOVE, RM, still } from "../../core/ui/motion.js";
@@ -22,29 +22,33 @@ export function createSideRows(scope, { view, world, CH, places, D, projects, co
     const current = view();
     const mine = needs.filter((x) => x.admitted && !x.later);
     const n = mine.length;
-    const hn = $("#home-n");
+    const hn = findHtml("#home-n");
     const hnHtml = n ? `<span class="nv-dot" aria-hidden="true"></span>${n}` : "";
     if (homeCount !== n) { redraw(hn, hnHtml); homeCount = n; }
-    $("#nv-home").setAttribute("aria-label", n ? `Home, ${n} need you` : "Home, nothing needs you");
+    requireHtml("#nv-home", "button").setAttribute("aria-label", n ? `Home, ${n} need you` : "Home, nothing needs you");
     // the Workspace's own coordinator asking: the same amber mark on its row, as a project's row has
     const wsN = mine.filter((x) => x.t.host && x.t.project === "workspace").length;
     const wnHtml = wsN ? `<span class="nv-dot" aria-hidden="true"></span>${wsN}` : "";
-    const wn = $("#ws-n");
+    const wn = findHtml("#ws-n");
     if (workspaceCount !== wsN) { redraw(wn, wnHtml); workspaceCount = wsN; }
-    $("#nv-ws").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
-    $("#nv-home").classList.toggle("is-on", current === "home");
-    $("#nv-ws").classList.toggle("is-on", current === "ws");
-    $("#nv-chats").classList.toggle("is-on", CH.isChats(current));
-    $("#nv-arts").classList.toggle("is-on", current === "artifacts");
-    $("#nv-lp").classList.toggle("is-on", current === "launchpad");
+    requireHtml("#nv-ws", "button").setAttribute("aria-label", wsN ? `Workspace, its coordinator needs you` : "Workspace");
+    requireHtml("#nv-home", "button").classList.toggle("is-on", current === "home");
+    requireHtml("#nv-ws", "button").classList.toggle("is-on", current === "ws");
+    requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current));
+    requireHtml("#nv-arts", "button").classList.toggle("is-on", current === "artifacts");
+    requireHtml("#nv-lp", "button").classList.toggle("is-on", current === "launchpad");
     const artifacts = /** @type {import("../surface-types").ArtifactsPage | undefined} */ (places.get("page", "artifacts"));
     const count = artifacts?.count() ?? 0;
     const label = count ? String(count) : "";
-    if ($("#arts-n").textContent !== label) $("#arts-n").textContent = label;
-    $("#nv-arts").setAttribute("aria-label", count ? `Artifacts, ${count}` : "Artifacts");
+    if (requireHtml("#arts-n").textContent !== label) requireHtml("#arts-n").textContent = label;
+    requireHtml("#nv-arts", "button").setAttribute("aria-label", count ? `Artifacts, ${count}` : "Artifacts");
     // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
-    for (const b of [$("#nv-home"), $("#nv-ws"), $("#nv-chats"), $("#nv-arts"), $("#nv-lp")]) if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
-    $("#nv-more").classList.toggle("is-on", !!$("#side .nav .nrow.is-on[hidden]")); // a place kept in More marks More
+    for (const id of ["nv-home", "nv-ws", "nv-chats", "nv-arts", "nv-lp"]) {
+      const b = requireHtml("#" + id, "button");
+      if (b.classList.contains("is-on")) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
+    }
+    requireHtml("#nv-more", "button").classList.toggle("is-on", !!findHtml("#side .nav .nrow.is-on[hidden]"));
     const now = Date.now();
     const rows = projects().map((p) => {
       const on = current === "p:" + p.id || convThread(current)?.project === p.id;
@@ -68,14 +72,14 @@ export function createSideRows(scope, { view, world, CH, places, D, projects, co
         `<span class="pr-main"><span class="pr-l1"><span class="pr-name">${esc(p.name)}</span>${needsMe ? `<span class="pr-w" aria-hidden="true"><i class="pr-d"></i>${asks.length}</span>` : ""}</span>` +
         (label ? `<span class="pr-t">${esc(label)}</span>` : "") + `</span></button>`, active: busy || needsMe, urgent: needsMe };
     });
-    const held = SIDE_CALM.over || ($("#side").matches(":focus-within") && !!document.activeElement?.matches(":focus-visible"));
+    const held = SIDE_CALM.over || (requireHtml("#side").matches(":focus-within") && !!document.activeElement?.matches(":focus-visible"));
     const calm = SIDE_CALM.order(rows.map((r) => ({ id: r.key, active: r.active, urgent: r.urgent })), now, { first: !ready, held });
     SIDE_CALM.pending = calm.pending;
     cancelReorder();
     if (calm.next != null) cancelReorder = scope.timeout(() => sideRender(D.needItems()), calm.next + 50);
     const up = new Set(calm.top);
     const items = [...rows.filter((r) => up.has(r.key)), ...(up.size && up.size < rows.length ? [{ key: "pr-sep", html: `<div class="pr-sep" aria-hidden="true"></div>` }] : []), ...rows.filter((r) => !up.has(r.key))];
-    const box = $("#projects"), sig = items.map((r) => r.key).join();
+    const box = requireHtml("#projects"), sig = items.map((r) => r.key).join();
     const from = ready && sig !== signature && !still() ? new Map([.../** @type {HTMLCollectionOf<HTMLElement>} */ (box.children)].map((el) => [el, el.getBoundingClientRect().top])) : null;
     previousNeeds = new Map(projects().map((p) => [p.id, mine.filter((x) => x.t.project === p.id).length]));
     // a row that changes (where you are, a count) is updated in place: its lines stay, so nothing replays its entrance
@@ -85,13 +89,16 @@ export function createSideRows(scope, { view, world, CH, places, D, projects, co
     ready = true;
   };
   {
-    const side = $("#side");
+    const side = requireHtml("#side");
     const settle = () => {
       if (SIDE_CALM.pending) scope.timeout(() => !SIDE_CALM.over && sideRender(D.needItems()), 800);
     };
     scope.listen(side, "pointerenter", () => { SIDE_CALM.over = true; });
     scope.listen(side, "pointerleave", () => { SIDE_CALM.over = false; settle(); });
-    scope.listen(side, "focusout", (event) => { if (!side.contains(/** @type {FocusEvent} */ (event).relatedTarget)) settle(); });
+    scope.listen(side, "focusout", (event) => {
+      const next = /** @type {FocusEvent} */ (event).relatedTarget;
+      if (!(next instanceof Node) || !side.contains(next)) settle();
+    });
   }
   return sideRender;
 }

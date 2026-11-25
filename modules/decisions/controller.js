@@ -5,7 +5,7 @@ import * as Kit from "./kit.js";
 import { createDecisionQueue } from "./queue.js";
 import { createNeedItems } from "./needs.js";
 import { rank } from "./rank.js";
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml, findHtml } from "../../core/platform/dom.js";
 import { RM } from "../../core/ui/motion.js";
 import { usable, hookOf } from "../../core/ui/a11y/focus.js";
 import { itemParts, itemBody, isNo, VERB } from "../../core/services/review.js";
@@ -21,7 +21,7 @@ import { createDecisionPanelView } from "./panel-view.js";
 
 /** @param {DecisionControllerDeps} options */
 export function createDecisions({ world, P, PROJ, announce, render, back, waitSince, onOpenThread, onAllClear, onUndone, onBreak, onSent, onNotSent, onShown, onGone }) {
-  const panel = $("#panel"), stage = $("#pn-stage");
+  const panel = requireHtml("#panel"), stage = requireHtml("#pn-stage");
   const sentKeys = new Map();
   const stoppedDone = new Set();
   const later = new Set();
@@ -68,9 +68,9 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     panel.hidden = false;
     document.body.classList.add("panel-open");
     if (!was) { panel.classList.remove("is-in"); void panel.offsetWidth; panel.classList.add("is-in"); }
-    $("#pn-h").textContent = F.mode === "glance" ? "Quick glances" : F.mode === "set" ? "Before you go" : "Needs you";
+    requireHtml("#pn-h").textContent = F.mode === "glance" ? "Quick glances" : F.mode === "set" ? "Before you go" : "Needs you";
     show(F.cur, was ? "skip-fwd" : "enter");
-    announce(`${$("#pn-h").textContent}: ${F.order.length}.`);
+    announce(`${requireHtml("#pn-h").textContent}: ${F.order.length}.`);
     render();
     onShown && onShown();
     return true;
@@ -86,7 +86,7 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     F.parked = false; panel.hidden = false;
     document.body.classList.add("panel-open");
     render();
-    (stage.querySelector("#card") || $("#pn-h")).focus({ preventScroll: true });
+    (findHtml("#card", undefined, stage) || findHtml("#pn-h"))?.focus({ preventScroll: true });
   }
 
   function close({ restore = true } = {}) {
@@ -254,17 +254,17 @@ export function createDecisions({ world, P, PROJ, announce, render, back, waitSi
     if (F.busy || F.done || F.vig) return;
     const nx = nextPending(F.cur, dir);
     if (!nx) return;
-    const fr = $("#card");
+    const fr = findHtml("#card");
     if (fr) cardState(fr).quietOff?.();
     F.cur = nx; show(nx, dir > 0 ? "skip-fwd" : "skip-back");
   }
 
-  $("#pn-foot").addEventListener("click", (/** @type {MouseEvent} */ e) => {
+  requireHtml("#pn-foot").addEventListener("click", (/** @type {MouseEvent} */ e) => {
     const nav = /** @type {(HTMLElement & {dataset: {nav: string}}) | null} */ ((/** @type {Element} */ (e.target)).closest("[data-nav]"));
     if (nav) skip(+nav.dataset.nav);
     if ((/** @type {Element} */ (e.target)).closest("[data-all]")) confirmAll();
   });
-  $("#pn-x").addEventListener("click", () => close());
+  requireHtml("#pn-x", "button").addEventListener("click", () => close());
 
   const toastRender = createDecisionToast(queue);
 

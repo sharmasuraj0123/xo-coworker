@@ -1,12 +1,13 @@
 // @ts-check
 
+import { isHtml } from "../../core/platform/dom.js";
 import { arrive, still, EASE, MOVE } from "../../core/ui/motion.js";
 
 /** @typedef {HTMLElement & {_h?: string}} RenderedRow */
 
 /** @typedef {HTMLElement & {parentElement: HTMLElement}} FoldPart */
 
-/** @typedef {{scroller: HTMLElement, msgs: HTMLElement & {children: HTMLCollectionOf<RenderedRow>}}} Conversation */
+/** @typedef {{scroller: HTMLElement, msgs: HTMLElement}} Conversation */
 
 /** @param {{takeFoldChange: ReturnType<typeof import("./transcript-folds.js").createTranscriptFolds>["takeChange"], MAIN: Conversation}} options */
 export function createReadingLayout({ takeFoldChange, MAIN }) {
@@ -16,6 +17,7 @@ export function createReadingLayout({ takeFoldChange, MAIN }) {
   function readingPlace(C = MAIN) {
     const top = C.scroller.getBoundingClientRect().top;
     for (const el of C.msgs.children) {
+      if (!isHtml(el)) continue;
       const k = el.dataset.k;
       if (!k || !isMessageRow(k)) continue;
       const r = el.getBoundingClientRect();
@@ -24,7 +26,7 @@ export function createReadingLayout({ takeFoldChange, MAIN }) {
     return null;
   }
   /** @param {Conversation} C @param {string} k */
-  const childOf = (C, k) => { for (const el of C.msgs.children) if (el.dataset.k === k) return el; return null; };
+  const childOf = (C, k) => { for (const el of C.msgs.children) if (isHtml(el) && el.dataset.k === k) return el; return null; };
   /** @param {Conversation} C @param {{k: string, top: number}} a */
   function holdPlace(C, a) {
     const el = childOf(C, a.k);
@@ -42,7 +44,7 @@ export function createReadingLayout({ takeFoldChange, MAIN }) {
     const out = [];
     /** @type {Map<string, RenderedRow>} */
     const now = new Map();
-    for (const el of C.msgs.children) if (el.dataset.k) now.set(el.dataset.k, el);
+    for (const el of C.msgs.children) if (isHtml(el) && el.dataset.k) now.set(el.dataset.k, el);
     for (const it of items) {
       const el = now.get(it.key);
       if (!el || el._h === it.html || !el.querySelector("[data-tb]")) continue;

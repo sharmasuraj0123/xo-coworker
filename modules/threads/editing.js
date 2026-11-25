@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { findHtml } from "../../core/platform/dom.js";
 import { once } from "../../core/platform/pending.js";
 import { esc } from "../../core/platform/util.js";
 import { createScope } from "../../core/kernel/scope.js";
@@ -24,7 +24,7 @@ export function createThreadEditing({ controls, world, render, schedule, announc
     controls.clearMenu();
     if (!back) { schedule(); return; }
     render();
-    $(opener)?.focus({ preventScroll: true });
+    findHtml(opener)?.focus({ preventScroll: true });
   }
 
   /** @param {string} tid @param {EditField} field */
@@ -33,7 +33,7 @@ export function createThreadEditing({ controls, world, render, schedule, announc
     if (!t) return;
     controls.startEdit(tid, field, field === "title" ? t.title : t.label || "");
     render();
-    const inp = $("#tw-edit");
+    const inp = findHtml("#tw-edit", "input");
     if (inp) { inp.focus(); inp.select(); }
   }
 
@@ -42,7 +42,7 @@ export function createThreadEditing({ controls, world, render, schedule, announc
     if (!controls.clearEdit(edit)) return;
     const had = document.activeElement?.id === "tw-edit";
     render();
-    if (had) $("[data-tmenu]")?.focus({ preventScroll: true });
+    if (had) findHtml("[data-tmenu]")?.focus({ preventScroll: true });
   }
 
   /** @param {string} tid @param {EditField} field @param {string} value */
@@ -54,7 +54,7 @@ export function createThreadEditing({ controls, world, render, schedule, announc
     if ((field === "title" && (!v || v === t.title)) || (field === "label" && v === (t.label || ""))) { if (edit) endThreadEdit(edit); return Promise.resolve(); }
     return once(`thread-edit:${tid}:${field}`, async () => {
       if (edit) controls.updateEdit(edit, { value, busy: true });
-      const inp = edit && $("#tw-edit");
+      const inp = edit && findHtml("#tw-edit", "input");
       if (inp) { inp.readOnly = true; inp.setAttribute("aria-busy", "true"); }
       try {
         await world.act.editThread(tid, field === "title" ? { title: v.slice(0, 120) } : { label: v ? v.slice(0, 32) : null });

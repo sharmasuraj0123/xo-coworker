@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { viewerFile } from "../../core/services/media/items.js";
 import { wireDragOut } from "../../core/services/media/hydrate.js";
 import { mountPressRoutes, valuePress } from "../../shell/conversation-press.js";
@@ -39,7 +39,7 @@ export function mountNoticeLine(scope, places, deps, receipts) {
 
 /** @param {Scope} scope @param {Places} places @param {Viewer} viewer @param {(text: string) => void} announce */
 export function mountConversationMedia(scope, places, viewer, announce) {
-  const msgsEl = $("#msgs");
+  const msgsEl = requireHtml("#msgs");
   const LB = createLightbox({ openFile: (item, from) => viewer.open(viewerFile(item), from), announce });
   const open = createMediaOpener({ msgsEl, LB, VW: viewer });
   wireDragOut(scope, msgsEl);

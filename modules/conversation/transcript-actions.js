@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { valuePress } from "../../shell/conversation-press.js";
 
 /** @import { PressRoutes } from "../../shell/conversation-press-types" */
@@ -22,7 +22,7 @@ export function transcriptActions({ convAt, loadOlderNow, transcriptFolds, sched
       if (!thread) return;
       toggleChecklist(thread.id);
       if (conversation.main) checklistRender(needs());
-      else checklistRender(needs(), $("#tpthead"), conversation.view, "tck-list");
+      else checklistRender(needs(), requireHtml("#tpthead"), conversation.view, "tck-list");
     }, true),
     interrupt: valuePress("data-interrupt", (_, target) => {
       requestFocus([() => heraldBox()?.querySelector("[data-herald-undo]")]);

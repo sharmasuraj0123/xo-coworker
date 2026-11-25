@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { findHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { connLine } from "../../core/services/world/conn.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -13,17 +13,17 @@ import { usable } from "../../core/ui/a11y/focus.js";
 export function createNoticeLine({ notice, world, MK, composerNow, panelHost, connDest, placeRegion }) {
   /** @type {WeakMap<HTMLElement, { notice: Notice | null, html: string }>} */
   const lines = new WeakMap();
-  const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
+  const heraldBox = () => (composerNow() === MK ? findHtml("#herald") : findHtml("#tpherald"));
   /** @param {unknown} needs */
   function heraldRender(needs) {
     const box = heraldBox();
-    for (const o of [$("#herald"), $("#tpherald")]) if (o && o !== box && o.firstChild) {
+    for (const o of [findHtml("#herald"), findHtml("#tpherald")]) if (o && o !== box && o.firstChild) {
       if (o.contains(document.activeElement)) heraldBack(lines.get(o)?.notice)?.focus({ preventScroll: true });
       redraw(o, ""); lines.delete(o);
     }
     const current = notice();
     const h = current && current.until > Date.now() ? current : null;
-    const c = h ? null : connLine(world.state, box === $("#herald") ? connDest() : { thread: true });
+    const c = h ? null : connLine(world.state, box === findHtml("#herald") ? connDest() : { thread: true });
     let html;
     if (h) {
       const ic = h.kind === "stopped" ? `<span class="hr-ic k-stopped">${ICON.close}</span>` : h.kind === "sent" ? `<i class="dash" aria-hidden="true"></i>` : h.kind === "ping" ? `<span class="hr-ic k-ping"><i class="hr-dot"></i></span>` : h.kind === "calm" || h.kind === "halt" ? `<span class="hr-ic k-calm">${h.kind === "halt" ? ICON.stop : ICON.pause}</span>` : h.kind === "rec" ? `<span class="hr-ic k-calm">${ICON.router}</span>` : `<span class="hr-ic k-ok">${ICON.check}</span>`;
@@ -35,6 +35,7 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     } else if (c) {
       html = `<div class="hr hr-conn k-${c.kind}" role="status"><span class="hr-ic ${c.kind === "down" ? "k-stopped" : "k-calm"}">${c.kind === "down" ? ICON.retry : ICON.pause}</span><span class="hr-t">${esc(c.text)}</span><span class="hr-s">${esc(c.sub)}</span></div>`;
     } else html = "";
+    if (!box) return;
     const prior = lines.get(box);
     const fa = document.activeElement;
     if (fa && fa !== box && box.contains(fa) && !(h && fa.closest(`[data-hn="${h.n}"]`))) heraldBack(prior?.notice)?.focus({ preventScroll: true });
@@ -43,8 +44,12 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     heraldRoom();
   }
   function heraldRoom() {
-    for (const [box, dock, host] of [[$("#herald"), $("#dock"), $("#app")], [$("#tpherald"), $("#tpdock"), panelHost()]]) {
-      if (!box) continue;
+    const hosts = [
+      [findHtml("#herald"), findHtml("#dock"), findHtml("#app")],
+      [findHtml("#tpherald"), findHtml("#tpdock"), panelHost()],
+    ];
+    for (const [box, dock, host] of hosts) {
+      if (!box || !dock || !host) continue;
       const line = box.firstElementChild;
       const shown = line && line.getClientRects().length > 0;
       const px = shown ? Math.max(0, Math.round(dock.getBoundingClientRect().top - box.getBoundingClientRect().top)) : 0;
@@ -53,7 +58,7 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     }
   }
   /** @param {(Notice & {back?: (string | (() => HTMLElement | null))[]}) | null | undefined} h */
-  function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof sel === "function" ? sel() : $(sel))), composerNow().say].find(usable) || placeRegion(); }
+  function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof sel === "function" ? sel() : findHtml(sel))), composerNow().say].find(usable) || placeRegion(); }
 
   /** @param {import("./notice-line-types").NoticeUndo} actions */
   function undoNotice({ requestFocus, undo, undoRecord }) {

@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { $, requireHtml } from "../../core/platform/dom.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { createFileViewer } from "./viewer.js";
@@ -39,7 +39,7 @@ export function createFilesModule(options) {
         away: () => { if (!page?.isOpen) return false; stage.back(); return true; },
         opened: (_, opts) => { ctx.emit("app:card-opened", "files"); page?.show(opts); },
         closed: () => ctx.emit("app:card-closed", "files"),
-        home: () => [$("#say"), session.region()].find(usable) || null,
+        home: () => [requireHtml("#say", "textarea"), session.region()].find(usable) || null,
       }, { $, ...renderers });
       ctx.effect(() => ctx.use("edgeCards").register("files", {
         isOpen: () => mountedViewer.isOpen, park: mountedViewer.park, unpark: mountedViewer.unpark,

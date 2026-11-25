@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $, $$ } from "../../core/platform/dom.js";
+import { $$, findHtml, isHtml, requireHtml } from "../../core/platform/dom.js";
 import { focusOpened, pointerFollows } from "../../core/ui/a11y/keynav.js";
 
 /** @import { Side, SideDeps } from "./side-types.d.ts" */
@@ -15,10 +15,10 @@ function control(target, selector) {
 
 /** @param {Events} deps */
 export function listenSide({ scope, side, announce, toggleJump }) {
-  const pop = $("#side-more");
-  scope.listen($("#side-fold"), "click", () => side.fold(!side.folded));
-  scope.listen($("#side-jump"), "click", toggleJump);
-  scope.listen($("#nv-more"), "click", (event) => {
+  const pop = requireHtml("#side-more");
+  scope.listen(requireHtml("#side-fold", "button"), "click", () => side.fold(!side.folded));
+  scope.listen(requireHtml("#side-jump", "button"), "click", toggleJump);
+  scope.listen(requireHtml("#nv-more", "button"), "click", (event) => {
     if (pop.hidden) side.openMore(/** @type {MouseEvent} */ (event));
     else side.closeMore({ focus: true });
   });
@@ -39,13 +39,13 @@ export function listenSide({ scope, side, announce, toggleJump }) {
       const on = button?.getAttribute("aria-checked") !== "true";
       side.pin(id, on);
       announce(`${side.byId(id).name}: ${on ? "in the sidebar" : "in More"}`);
-      pop.querySelector(`[data-se-sw="${id}"]`)?.focus({ preventScroll: true });
+      findHtml(`[data-se-sw="${id}"]`, undefined, pop)?.focus({ preventScroll: true });
       return;
     }
     if (control(target, "[data-se-reset]")) {
       side.reset();
       announce("The sidebar is back to its default");
-      pop.querySelector("[data-se-done]")?.focus({ preventScroll: true });
+      findHtml("[data-se-done]", undefined, pop)?.focus({ preventScroll: true });
       return;
     }
     if (control(target, "[data-se-done]")) { side.edit(false); return; }
@@ -60,7 +60,7 @@ export function listenSide({ scope, side, announce, toggleJump }) {
       side.move(id, arrow);
       const { order } = side.bar();
       announce(`${side.byId(id).name}: ${order.indexOf(id) + 1} of ${order.length}`);
-      pop.querySelector(`[data-se-grip="${id}"]`)?.focus({ preventScroll: true });
+      findHtml(`[data-se-grip="${id}"]`, undefined, pop)?.focus({ preventScroll: true });
       return;
     }
     if (e.key === "Escape") {
@@ -72,8 +72,8 @@ export function listenSide({ scope, side, announce, toggleJump }) {
     }
     if (!side.editing && arrow) {
       e.preventDefault();
-      const items = $$('[role="menuitem"]', pop);
-      const i = items.indexOf(document.activeElement);
+      const items = $$('[role="menuitem"]', pop).filter(isHtml);
+      const i = items.findIndex(item => item === document.activeElement);
       const j = i < 0 ? (arrow === 1 ? 0 : items.length - 1) : (i + arrow + items.length) % items.length;
       items[j]?.focus({ preventScroll: true });
     }

@@ -1,12 +1,12 @@
 // @ts-check
-import { $ } from "../core/platform/dom.js";
+import { requireHtml } from "../core/platform/dom.js";
 import { redraw } from "../core/ui/redraw.js";
 import { XO } from "../core/ui/icons/names.js";
 
 /** @param {() => string} view @param {() => readonly unknown[]} projects */
 export function createWorkspaceHeader(view, projects) {
   return function wsHeadRender() {
-    const box = $("#ws-head");
+    const box = requireHtml("#ws-head");
     if (view() !== "ws") { box.hidden = true; return; }
     box.hidden = false;
     redraw(box, `<div class="wsh"><div class="wsh-mark">${XO}</div><h2 class="wsh-h">Workspace</h2>` +

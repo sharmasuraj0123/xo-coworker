@@ -585,7 +585,7 @@
   "lineLength": 7
  },
  "modules/conversation/thread-page.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "modules/conversation/typing.js": {
   "lineLength": 6
@@ -599,7 +599,7 @@
  },
  "modules/create-project/create.js": {
   "functionLines": 1,
-  "lineLength": 18
+  "lineLength": 16
  },
  "modules/decisions/card-events.js": {
   "functionLines": 1,
@@ -1035,7 +1035,7 @@
   "lineLength": 8
  },
  "shell/rail/rows.js": {
-  "lineLength": 8
+  "lineLength": 7
  },
  "shell/rail/side.js": {
   "functionLines": 1,
@@ -1046,10 +1046,6 @@
  },
  "shell/responsive.css": {
   "lineLength": 6
- },
- "shell/return-pill.js": {
-  "domExpando": 2,
-  "lineLength": 4
  },
  "shell/sidebar.css": {
   "lineLength": 16

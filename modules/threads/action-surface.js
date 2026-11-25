@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { menuKeys } from "../../core/ui/a11y/keynav.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { threadNotices } from "./notices.js";
@@ -48,12 +48,12 @@ export function createThreadActions() {
         deletion = undefined;
         schedule();
       });
-      ctx.effect(() => menuKeys($("#top"), { close: () => close() }));
-      editing.bind($("#top"));
+      ctx.effect(() => menuKeys(requireHtml("#top"), { close: () => close() }));
+      editing.bind(requireHtml("#top"));
       const route = createThreadMenuActions({
         go, schedule, render, thread: world.thread, controls, editing, deletion, scope: ctx, resolve, heraldShow,
         closePage: () => stage.closePage("thread"), showThread: (id, input) => stage.show("thread", id, { focus: true, input }),
-        openOtherRuntime: () => intel.openAlternate(sessionOf(view()), $("#iq")),
+        openOtherRuntime: () => intel.openAlternate(sessionOf(view()), requireHtml("#iq", "button")),
       });
       ctx.contribute("conversation.press", pressEntry("thread-menu", route));
     },

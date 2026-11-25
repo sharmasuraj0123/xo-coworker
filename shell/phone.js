@@ -2,7 +2,7 @@
 
 // The phone's drawer: the sidebar slides over the page, with a scrim; closed, focus returns to its opener.
 
-import { $ } from "../core/platform/dom.js";
+import { $, requireHtml } from "../core/platform/dom.js";
 
 /** @param {Pick<import("../core/kernel/types").ModuleContext, "listen">} scope @param {MediaQueryList} PHONE @param {() => void} syncInert */
 export function createDrawer(scope, PHONE, syncInert) {
@@ -12,19 +12,19 @@ export function createDrawer(scope, PHONE, syncInert) {
   function setDrawer(open) {
     if (!PHONE.matches && open) return;
     if (open) drawerReturn = document.activeElement;
-    $("#app").classList.toggle("drawer", !!open);
-    $("#side-scrim").hidden = !open;
-    $("#pb-menu").setAttribute("aria-expanded", String(!!open));
-    $("#top-menu").setAttribute("aria-expanded", String(!!open));
+    requireHtml("#app").classList.toggle("drawer", !!open);
+    requireHtml("#side-scrim").hidden = !open;
+    requireHtml("#pb-menu", "button").setAttribute("aria-expanded", String(!!open));
+    requireHtml("#top-menu", "button").setAttribute("aria-expanded", String(!!open));
     syncInert();
-    if (open) $("#nv-home").focus();
-    else if ($("#side").contains(document.activeElement) || document.activeElement === document.body) {
+    if (open) requireHtml("#nv-home", "button").focus();
+    else if (requireHtml("#side").contains(document.activeElement) || document.activeElement === document.body) {
       const back = [drawerReturn, $("#top-menu"), $("#pb-menu")].find((b) => b instanceof HTMLElement
         && b.isConnected && b.offsetParent && !b.closest("[inert]"));
-      if (PHONE.matches) back?.focus({ preventScroll: true });
+      if (PHONE.matches && back instanceof HTMLElement) back.focus({ preventScroll: true });
     }
   }
-  for (const selector of ["#pb-menu", "#top-menu"]) scope.listen($(selector), "click", () => setDrawer(true));
-  for (const selector of ["#side-x", "#side-scrim", "#nv-shells"]) scope.listen($(selector), "click", () => setDrawer(false));
+  for (const selector of ["#pb-menu", "#top-menu"]) scope.listen(requireHtml(selector), "click", () => setDrawer(true));
+  for (const selector of ["#side-x", "#side-scrim", "#nv-shells"]) scope.listen(requireHtml(selector), "click", () => setDrawer(false));
   return setDrawer;
 }

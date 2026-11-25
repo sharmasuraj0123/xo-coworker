@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { findHtml } from "../../core/platform/dom.js";
 import { focusOpened } from "../../core/ui/a11y/keynav.js";
 import { createThreadMenuNavigation } from "./menu-navigation.js";
 
@@ -14,7 +14,7 @@ export function createThreadMenuActions(deps) {
     thread: deps.thread, go: deps.go, showThread: deps.showThread,
     inStage: () => controls.menu()?.location === "page", closeMenu: () => closeThreadMenu({ focus: false }),
   });
-  const focusDelete = () => $("[data-tdel-no]")?.focus({ preventScroll: true });
+  const focusDelete = () => findHtml("[data-tdel-no]")?.focus({ preventScroll: true });
 
   /** @param {Element} target @param {MouseEvent} event */
   return function menuAction(target, event) {
@@ -65,7 +65,7 @@ export function createThreadMenuActions(deps) {
     }
     if (target.closest("[data-tdel-no]")) {
       const tid = deletion.cancel();
-      $(`[data-tmenu="${CSS.escape(tid || "")}"]`)?.focus({ preventScroll: true });
+      findHtml(`[data-tmenu="${CSS.escape(tid || "")}"]`)?.focus({ preventScroll: true });
       return true;
     }
     const confirm = action("data-tdel-yes");

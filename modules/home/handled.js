@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { $, requireHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { expand } from "../../core/ui/motion.js";
@@ -16,7 +16,7 @@ export function createHandled({ world, homeParts, isBusy, num, PROJ, threadMark,
   let open = false;
   /** @param {HandledParts<N>} parts @param {WorkingThread[]} working */
   function endRender(parts, working) {
-    const end = $("#hm-end");
+    const end = requireHtml("#hm-end");
     if (!built.has(end)) {
       end.innerHTML = `<section class="handled" id="handled" aria-label="Handled"><div class="hd-row0"><div id="hd-head"></div></div><div class="hd-b" id="hd-b" hidden><div class="hd-in" id="hd-in"></div></div></section>`;
       built.add(end);
@@ -24,7 +24,7 @@ export function createHandled({ world, homeParts, isBusy, num, PROJ, threadMark,
     const w = working.length, held = parts.held;
     const bits = [w ? `${low(w)} working` : "nothing running", held.length ? `${low(held.length)} can wait` : ""].filter(Boolean);
     redraw($("#hd-head"), `<button type="button" class="hd" data-fid="hd" data-handled aria-expanded="${open}" aria-controls="hd-b"><span class="hd-ic">${ICON.check}</span><span class="hd-t"><b>Handled</b> · ${bits.join(" · ")}</span>${w || held.length ? ICON.chevron : ""}</button>`);
-    landed(end, [...$("#hd-head .hd").children]);
+    landed(end, [...requireHtml("#hd-head .hd").children]);
     if (open) redraw($("#hd-in"), handledListHtml(parts, working));
   }
 
@@ -42,7 +42,7 @@ export function createHandled({ world, homeParts, isBusy, num, PROJ, threadMark,
     open = !open;
     if (open) redraw($("#hd-in"), handledListHtml(homeParts(), world.state.threads.filter(isBusy)));
     $("[data-handled]")?.setAttribute("aria-expanded", String(open));
-    expand($("#handled"), $("#hd-b"), open);
+    expand(requireHtml("#handled"), requireHtml("#hd-b"), open);
   }
 
   return { endRender, toggleHandled };

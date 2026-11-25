@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { WAITING } from "../../core/services/world/store.js";
 import { stopWords } from "../../core/services/world/conversation.js";
@@ -26,7 +26,7 @@ export function createChecklistRenderer({ view, scope, SHAPE, convThread, places
     }
   }
   /** @param {ChecklistNeed[]} needs @param {ChecklistHead} [th] */
-  function render(needs, th = $("#thead"), current = view(), listId = "ck-list") {
+  function render(needs, th = requireHtml("#thead"), current = view(), listId = "ck-list") {
     const t = convThread(current);
     if (!t) { th.hidden = true; state.forgetMarkup(th); return; }
     /** @type {ThreadHead[]} */

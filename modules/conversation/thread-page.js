@@ -1,6 +1,6 @@
 // @ts-check
 import { watchDock } from "./dock-layout.js";
-import { $ as query } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { focusEntry } from "../../core/ui/a11y/focus.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { conversationGestures as bindConversation } from "../../shell/gestures.js";
@@ -25,7 +25,7 @@ export function createThreadPage({
   let mounted;
   /** @type {ThreadPage<N>} */
   const TP = { box: null, C: null, K: null, tid: null, follow: null, viewSubs: new Set() };
-  const $ = (/** @type {string} */ selector) => query(selector, /** @type {HTMLElement} */ (TP.box));
+  const $ = (/** @type {string} */ selector) => requireHtml(selector, undefined, /** @type {HTMLElement} */ (TP.box));
   const head = createThreadPageHead({ STAGE, threadControls, closeThreadMenu, stOf, glyphOf, isHeld, wordOf, rtTag, threadMenuHtml });
   let cancelDraw = () => {};
   const tpView = () => (TP.tid ? "t:" + TP.tid : "");
@@ -35,15 +35,20 @@ export function createThreadPage({
     mounted = scope;
     TP.box = box;
     box.classList.add("tp");
-    box.innerHTML = threadPageHtml(query);
+    box.innerHTML = threadPageHtml(requireHtml("#att-input", "input").accept);
     const els = { scroller: $("#tscroller"), column: $("#tcolumn"), msgs: $("#tmsgs"), dock: $("#tpdock") };
     TP.follow = createFollow(els);
     TP.follow.init();
     const follow = TP.follow;
     scope.effect(() => follow.destroy);
     TP.C = createConv({ ...els, view: tpView, typing: $("#ttyping"), follow: TP.follow });
-    TP.K = { main: false, get view() { return tpView(); }, say: $("#tsay"), send: $("#tsend"), form: $("#tpcomposer"), target: $("#ttarget"), label: $("#tsay-label"), conv: TP.C,
-      tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
+    TP.K = {
+      main: false, get view() { return tpView(); }, say: requireHtml("#tsay", "textarea", box),
+      send: requireHtml("#tsend", "button", box), form: requireHtml("#tpcomposer", "form", box),
+      target: requireHtml("#ttarget", "button", box), label: $("#tsay-label"), conv: TP.C,
+      tray: $("#tatt-tray"), attach: requireHtml("#tattach", "button", box),
+      input: requireHtml("#tatt-input", "input", box), note: $("#tatt-note"), iq: requireHtml("#tiq", "button", box), at: $("#tat-list"),
+    };
     wireComposer(TP.K, scope);
     wireTray(TP.K, scope);
     TP.dock = createDock({ scope, el: $("#tptdock"), view: tpView, region: () => els.scroller }, dockDeps);

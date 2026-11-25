@@ -1,7 +1,7 @@
 // @ts-check
 
 import { esc } from "../core/platform/index.js";
-import { $ } from "../core/platform/dom.js";
+import { $, requireHtml } from "../core/platform/dom.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { redraw } from "../core/ui/redraw.js";
 import { headerActionsHtml } from "./header.js";
@@ -16,16 +16,16 @@ export function createTopHeader(deps, scope, schedule) {
   const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender } = deps;
   /** @type {ReturnType<typeof createSurfaceSlots<import("./app-service-types").ConversationHeaderPaint>>} */
   const drawDetails = createSurfaceSlots({
-    places: kernel.places, place: "header.detail", scope, schedule, fallback: () => $("#scroller"), hideOnRetire: true,
+    places: kernel.places, place: "header.detail", scope, schedule, fallback: () => requireHtml("#scroller"), hideOnRetire: true,
   });
   /** @param {N[]} needs */
   function topRender(needs) {
     const v = location.view();
     const t = convThread(v);
-    const top = $("#top");
+    const top = requireHtml("#top");
     top.dataset.kind = t ? "thread" : "project";
     top.dataset.state = !t ? "" : needs.some((n) => n.t.id === t.id && n.admitted) ? "need" : t.state === "failed" && !t.stop ? "stop" : isBusy(t) ? "busy" : t.state === "done" || t.state === "resolved" ? "done" : "";
-    const back = $("#top-back");
+    const back = requireHtml("#top-back", "button");
     back.hidden = !t;
     if (CH.isChats(v)) {
       top.dataset.kind = v === "chats" ? "project" : "thread";

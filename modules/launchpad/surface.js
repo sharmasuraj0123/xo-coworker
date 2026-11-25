@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { heldShort } from "../../core/services/world/held.js";
 import { createLaunchpad } from "./launchpad.js";
 import { createLpApi } from "./client.js";
@@ -26,7 +26,7 @@ export function createLaunchpadSurface({ world, isBusy, isHeld, PROJ, projectIco
   });
   const LW = createLpWindow({ launch: LP, projectOf: lpProject, nameOf: PROJ,
     iconOf: (p) => p ? projectIcon(p) : "", allApps: () => go("launchpad"), onChange: schedule });
-  const LPP = createLpPage({ el: $("#lpp"), launch: LP, projects: () => projects().map((p) => p.id), iconOf: projectIcon,
+  const LPP = createLpPage({ el: requireHtml("#lpp"), launch: LP, projects: () => projects().map((p) => p.id), iconOf: projectIcon,
     open: (v, from) => LW.open(v, from),
     press: (name) => LW.press(name) });
   return { LP, LW, LPP, lpProject, dispose() { LPP.dispose(); LW.dispose(); } };

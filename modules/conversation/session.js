@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { pageEl } from "../../shell/place-context.js";
 import { createConv } from "./draw.js";
 import { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "./follow.js";
@@ -14,7 +14,8 @@ import { PHONE } from "../../core/platform/viewport.js";
 /** @param {() => string} view @param {Pick<import("../../core/kernel/types").Places, "get">} places @param {() => void} schedule */
 export function createConversationSession(view, places, schedule) {
   const main = createConv({
-    view, msgs: $("#msgs"), scroller: $("#scroller"), column: $("#column"), typing: $("#typing"), main: true,
+    view, msgs: requireHtml("#msgs"), scroller: requireHtml("#scroller"),
+    column: requireHtml("#column"), typing: requireHtml("#typing"), main: true,
     follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest },
   });
   const page = () => /** @type {ThreadPageEntry | undefined} */ (places.get("panel.page", "thread"));

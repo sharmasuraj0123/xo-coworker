@@ -2,7 +2,7 @@
 
 import { esc, RM, copyText, COPY_REFUSED } from "../../core/platform/index.js";
 import { ICON } from "../../core/ui/icons/names.js";
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml, findHtml } from "../../core/platform/dom.js";
 import { api } from "../../core/platform/api.js";
 import { fmtSize } from "../../core/services/media/attachment-rules.js";
 import { redraw } from "../../core/ui/redraw.js";
@@ -28,19 +28,21 @@ function canRetryClone(failure) {
 /** @param {import("./types").CreateCtx} ctx @param {import("./types").CreateScope} scope */
 export function initCreate(ctx, scope) {
   const { signal } = scope;
-  const dlg = $("#create-dlg"), form = $("#create-form");
-  const name = $("#cp-name"), desc = $("#cp-desc"), repo = $("#cp-repo"), submit = $("#cp-submit"), cancel = $("#cp-cancel");
+  const dlg = requireHtml("#create-dlg", "dialog"), form = requireHtml("#create-form", "form");
+  const name = requireHtml("#cp-name", "input"), desc = requireHtml("#cp-desc", "textarea");
+  const repo = requireHtml("#cp-repo", "input"), submit = requireHtml("#cp-submit", "button");
+  const cancel = requireHtml("#cp-cancel", "button");
   let root = /** @type {string | null} */ (null), mode = "empty", nameTouched = false;
   let busy = /** @type {CloneActivity | null} */ (null);
   let gh = /** @type {GitHubState} */ ({ status: "unknown" });
   let stopLogin = /** @type {(() => void) | undefined} */ (undefined);
 
-  $("#dlg-ic").innerHTML = ICON.project;
-  $("#cpm-empty").innerHTML = ICON.plus;
-  $("#cpm-clone").innerHTML = GH;
+  requireHtml("#dlg-ic").innerHTML = ICON.project;
+  requireHtml("#cpm-empty").innerHTML = ICON.plus;
+  requireHtml("#cpm-clone").innerHTML = GH;
 
   const error = (/** @type {string} */ text, /** @type {{ id: string, label: string } | null | undefined} */ action = undefined) => {
-    const el = $("#cp-err");
+    const el = requireHtml("#cp-err");
     el.innerHTML = text ? `${esc(text)}${action ? ` <button type="button" class="cp-link" data-cp="${action.id}">${esc(action.label)}</button>` : ""}` : "";
     el.hidden = !text;
   };
@@ -48,14 +50,14 @@ export function initCreate(ctx, scope) {
 
   function renderWhere() {
     const id = slugify(name.value);
-    $("#cp-where").innerHTML = `${ICON.folder}<span>${id ? `Saved as <code>${esc(home())}/${esc(id)}</code>` : `Saved in <code>${esc(home())}</code>`}</span>`;
+    requireHtml("#cp-where").innerHTML = `${ICON.folder}<span>${id ? `Saved as <code>${esc(home())}/${esc(id)}</code>` : `Saved in <code>${esc(home())}</code>`}</span>`;
   }
   function renderRepoIcon() {
     const r = parseRepo(repo.value);
-    $("#cp-repo-ic").innerHTML = !r || r.github ? GH : ICON.branch;
+    requireHtml("#cp-repo-ic").innerHTML = !r || r.github ? GH : ICON.branch;
   }
   function renderGh() {
-    const el = $("#cp-gh"), r = parseRepo(repo.value), off = busy ? " disabled" : ""; // no new login mid-clone
+    const el = requireHtml("#cp-gh"), r = parseRepo(repo.value), off = busy ? " disabled" : ""; // no new login mid-clone
     // in place: Connect becomes "Connecting…" and then Try again as the same button, so it keeps focus
     const put = (/** @type {string} */ html) => redraw(el, html);
     delete el.dataset.tone;
@@ -85,7 +87,10 @@ export function initCreate(ctx, scope) {
     stopLogin?.();
     gh = { status: "starting" }; renderGh();
     // Connect lives in GitHub's line (#cp-gh) and in a failed clone's message (#cp-err): focus on either is focus on Connect
-    const onConnect = () => { const a = document.activeElement; return !!a && ($("#cp-gh").contains(a) || $("#cp-err").contains(a)); };
+    const onConnect = () => {
+      const a = document.activeElement;
+      return !!a && (requireHtml("#cp-gh").contains(a) || requireHtml("#cp-err").contains(a));
+    };
     const settle = (/** @type {GitHubState} */ next) => {
       if (signal.aborted) return;
       const was = onConnect();
@@ -95,8 +100,8 @@ export function initCreate(ctx, scope) {
       if (!was) return;
       // where Connect leads: on failure a Connect again, for a code its Copy, once connected the repository
       const a = document.activeElement, still = a && a.isConnected && a.matches?.('[data-cp="connect"]');
-      if (gh.status === "failed") { if (!still) $("#cp-gh [data-cp=connect]")?.focus({ preventScroll: true }); }
-      else (gh.status === "code" ? $("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
+      if (gh.status === "failed") { if (!still) findHtml("#cp-gh [data-cp=connect]")?.focus({ preventScroll: true }); }
+      else (gh.status === "code" ? findHtml("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
     };
     /** @type {import("../../core/platform/github-auth-types").Start} */
     let s;
@@ -107,7 +112,7 @@ export function initCreate(ctx, scope) {
     const was = onConnect();
     gh = { status: "code", code: s.user_code, uri: s.verification_uri, session: s.session_id };
     renderGh();
-    if (was) $("#cp-gh [data-cp=copy]")?.focus({ preventScroll: true });
+    if (was) findHtml("#cp-gh [data-cp=copy]")?.focus({ preventScroll: true });
     const poll = async () => {
       let r = /** @type {GitHubState} */ ({ status: "failed" });
       // Space's 502 carries its words in a field ApiError doesn't read; 404 is a code that expired
@@ -122,8 +127,11 @@ export function initCreate(ctx, scope) {
 
   function setMode(/** @type {string} */ m, { focus = true } = {}) {
     mode = m;
-    for (const b of $("#cp-mode").children) { b.setAttribute("aria-checked", String(b.dataset.mode === m)); b.tabIndex = b.dataset.mode === m ? 0 : -1; }
-    $("#cp-repo-f").hidden = m !== "clone";
+    for (const b of requireHtml("#cp-mode").querySelectorAll("button")) {
+      b.setAttribute("aria-checked", String(b.dataset.mode === m));
+      b.tabIndex = b.dataset.mode === m ? 0 : -1;
+    }
+    requireHtml("#cp-repo-f", "label").hidden = m !== "clone";
     dlg.dataset.mode = m;
     if (!busy) submit.textContent = m === "clone" ? "Clone project" : "Create project";
     error("");
@@ -136,18 +144,21 @@ export function initCreate(ctx, scope) {
     busy?.stopTick?.();
     busy = on ? { t0: Date.now(), label: repoOf?.label, host: repoOf && (repoOf.github ? "GitHub" : repoOf.label.split(/[/:]/)[0]) } : null;
     for (const el of [name, desc, repo]) el.disabled = on;
-    for (const b of $("#cp-mode").children) b.disabled = on;
+    for (const b of requireHtml("#cp-mode").querySelectorAll("button")) b.disabled = on;
     // aria-disabled="true", not disabled: a pressed Create keeps focus while it works, and a failure leaves it there
     if (on) { submit.setAttribute("aria-disabled", "true"); submit.setAttribute("aria-busy", "true"); } else { submit.removeAttribute("aria-disabled"); submit.removeAttribute("aria-busy"); }
     submit.innerHTML = on ? `<i class="spin" aria-hidden="true"></i>${mode === "clone" ? "Cloning…" : "Creating…"}` : (mode === "clone" ? "Clone project" : "Create project");
     // a create on its way can't be called back (a clone has its own Stop): the button only closes the dialog, and says so
     cancel.textContent = on ? "Close" : "Cancel";
     // the progress row goes when the work ends, however it ends: focus that was in it lands on Create before it hides
-    const fromProg = !on && $("#cp-prog").contains(document.activeElement);
-    $("#cp-prog").hidden = !(on && mode === "clone");
+    const fromProg = !on && requireHtml("#cp-prog").contains(document.activeElement);
+    requireHtml("#cp-prog").hidden = !(on && mode === "clone");
     if (fromProg) submit.focus({ preventScroll: true });
-    delete $("#cp-phase").dataset.v;
-    $("#cp-stop").disabled = false; $("#cp-stop").removeAttribute("aria-disabled"); $("#cp-stop").removeAttribute("aria-busy");
+    delete requireHtml("#cp-phase").dataset.v;
+    const stopButton = requireHtml("#cp-stop", "button");
+    stopButton.disabled = false;
+    stopButton.removeAttribute("aria-disabled");
+    stopButton.removeAttribute("aria-busy");
     if (mode === "clone") renderGh();
     if (on && mode === "clone") tick();
   }
@@ -158,20 +169,25 @@ export function initCreate(ctx, scope) {
     // 0 % is "not started yet" (a big repo can count for a while on GitHub's side): the bar keeps moving until it has a real figure
     const pct = st.percent && st.percent > 0 ? Math.min(100, Math.round(st.percent)) : null;
     const bytes = st.received_bytes ?? 0;
-    const bar = $("#cp-bar"), facts = [pct != null && pct > 0 && `${pct}%`, bytes > 0 && fmtSize(bytes)].filter(Boolean).join(" · ");
+    const bar = requireHtml("#cp-bar");
+    const facts = [pct != null && pct > 0 && `${pct}%`, bytes > 0 && fmtSize(bytes)].filter(Boolean).join(" · ");
     bar.classList.toggle("is-known", pct != null);
-    bar.firstElementChild.style.width = pct != null ? `${pct}%` : "";
-    if (pct != null) { bar.setAttribute("aria-valuenow", pct); bar.setAttribute("aria-valuemin", 0); bar.setAttribute("aria-valuemax", 100); bar.setAttribute("aria-valuetext", facts || `${pct}%`); }
+    requireHtml(":scope > :first-child", undefined, bar).style.width = pct != null ? `${pct}%` : "";
+    if (pct != null) { bar.setAttribute("aria-valuenow", String(pct)); bar.setAttribute("aria-valuemin", "0"); bar.setAttribute("aria-valuemax", "100"); bar.setAttribute("aria-valuetext", facts || `${pct}%`); }
     else for (const k of ["aria-valuenow", "aria-valuemin", "aria-valuemax", "aria-valuetext"]) bar.removeAttribute(k);
     // Space's idle_seconds (when it sends it): git has said nothing for that long, so say who we're waiting on
     const quiet = (st.idle_seconds ?? 0) >= 8 ? busy.host : "";
     const verb = quiet && st.phase === "counting" ? `Waiting for ${quiet} to prepare` : PHASE[st.phase ?? ""] || "Cloning";
     const phase = `${verb} ${busy.label}`;
-    if ($("#cp-phase").dataset.v !== phase) { $("#cp-phase").dataset.v = phase; $("#cp-phase").innerHTML = `${esc(verb)} <b>${esc(busy.label)}</b>`; }
-    $("#cp-facts").textContent = [facts, quiet && st.phase !== "counting" && `waiting for ${quiet}`].filter(Boolean).join(" · ");
-    $("#cp-time").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-    $("#cp-stop").hidden = !busy.cloneId;
-    $("#cp-hint").hidden = s < 6;
+    const phaseLine = requireHtml("#cp-phase");
+    if (phaseLine.dataset.v !== phase) {
+      phaseLine.dataset.v = phase;
+      phaseLine.innerHTML = `${esc(verb)} <b>${esc(busy.label)}</b>`;
+    }
+    requireHtml("#cp-facts").textContent = [facts, quiet && st.phase !== "counting" && `waiting for ${quiet}`].filter(Boolean).join(" · ");
+    requireHtml("#cp-time").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    requireHtml("#cp-stop", "button").hidden = !busy.cloneId;
+    requireHtml("#cp-hint").hidden = s < 6;
     busy.stopTick = scope.timeout(tick, 1000 - ((Date.now() - busy.t0) % 1000));
   }
   /** Follow a clone until it's done; throws its error, or "cancelled" once it's stopped from anywhere. @param {string} cloneId */
@@ -204,7 +220,7 @@ export function initCreate(ctx, scope) {
   }
   async function stop() {
     const id = busy?.cloneId;
-    const st = $("#cp-stop");
+    const st = requireHtml("#cp-stop", "button");
     if (!id || st.getAttribute("aria-busy") === "true") return;
     // aria-disabled while it asks, not disabled: a refused stop leaves you on Stop to try again
     st.setAttribute("aria-disabled", "true"); st.setAttribute("aria-busy", "true");
@@ -326,15 +342,15 @@ export function initCreate(ctx, scope) {
     }
   }
 
-  scope.listen($("#cp-mode"), "click", (/** @type {Event} */ e) => {
+  scope.listen(requireHtml("#cp-mode"), "click", (/** @type {Event} */ e) => {
     const chosen = e.target instanceof Element ? e.target.closest("[data-mode]")?.getAttribute("data-mode") : null;
     if (chosen && chosen !== mode) setMode(chosen);
   });
-  scope.listen($("#cp-mode"), "keydown", (e) => {
+  scope.listen(requireHtml("#cp-mode"), "keydown", (e) => {
     if (!("key" in e) || typeof e.key !== "string" || !/^Arrow(Left|Right|Up|Down)$/.test(e.key)) return;
     e.preventDefault();
     setMode(mode === "empty" ? "clone" : "empty", { focus: false });
-    $(`#cp-mode [data-mode="${mode}"]`).focus();
+    requireHtml(`#cp-mode [data-mode="${mode}"]`).focus();
   });
   scope.listen(form, "click", (/** @type {Event} */ e) => {
     const action = e.target instanceof Element ? e.target.closest("[data-cp]")?.getAttribute("data-cp") : null;
@@ -349,11 +365,11 @@ export function initCreate(ctx, scope) {
     renderRepoIcon();
     renderGh();
     const r = parseRepo(repo.value);
-    if (!nameTouched) { name.value = r ? r.name : ""; renderWhere(); }
+    if (!nameTouched) { name.value = r?.name ?? ""; renderWhere(); }
   });
   scope.listen(name, "input", () => { nameTouched = !!name.value; renderWhere(); error(""); });
   scope.listen(cancel, "click", () => close());
-  scope.listen($("#cp-stop"), "click", stop);
+  scope.listen(requireHtml("#cp-stop", "button"), "click", stop);
   scope.listen(form, "submit", (/** @type {Event} */ e) => { e.preventDefault(); submitForm(); });
   scope.listen(dlg, "cancel", (/** @type {Event} */ e) => { e.preventDefault(); close(); });
   return { open, close, isOpen: () => dlg.open };

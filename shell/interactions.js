@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../core/platform/dom.js";
+import { requireHtml } from "../core/platform/dom.js";
 import { RM } from "../core/ui/motion.js";
 import { wireGlobalKeys } from "./global-keys.js";
 import { stackLayers } from "./layers.js";
@@ -16,7 +16,7 @@ export function mountShellInteractions(scope, layers, host) {
     JUMP, composerNow, toggleIq, sessionOf, openKeys, STAGE, SIDE, runsLayer, closeKeys, LB, setEl, closeSettings,
     VW, setDrawer, D, CH, PAGE_OF, world, updateComposer, say, toastLine, wordsOf, scroller } = host;
   const currentView = navigationState.view;
-  scope.listen($("#top-back"), "click", back);
+  scope.listen(requireHtml("#top-back", "button"), "click", back);
   const GLOBAL = {
     shells: () => SH.toggle(),
     jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),
@@ -41,8 +41,8 @@ export function mountShellInteractions(scope, layers, host) {
     { id: "viewer", open: () => VW.isOpen, close: () => { VW.close({ ask: true }); }, overlay: false },
     { id: "panel-sheet", open: () => STAGE.isOpen && PHONE.matches, close: () => { STAGE.close(); } },
     { id: "shells", open: () => SH.raised, close: () => SH.lower() },
-    { id: "drawer", tab: () => PHONE.matches ? $("#side") : null,
-      open: () => $("#app").classList.contains("drawer"), close: () => { setDrawer(false); } },
+    { id: "drawer", tab: () => PHONE.matches ? requireHtml("#side") : null,
+      open: () => requireHtml("#app").classList.contains("drawer"), close: () => { setDrawer(false); } },
     { id: "decisions", open: () => D.isOpen(), close: () => { D.close(); } },
     { id: "chat-setup", open: () => CH.setupOpen, close: () => { CH.closeSetup(); } },
   ]);
@@ -50,7 +50,7 @@ export function mountShellInteractions(scope, layers, host) {
   const placeOk = (v) => v === "ws" || CH.isChats(v) || Object.hasOwn(PAGE_OF, v)
     || v.startsWith("p:") && !!world.project(v.slice(2)) || v.startsWith("t:") && !!world.thread(v.slice(2));
   const { syncInert, dispose: disposeKeyboardLayers } = mountKeyboardLayers({
-    layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl,
+    layers: LAYERS, phone: PHONE, app: requireHtml("#app"), main: requireHtml("#main"), side: requireHtml("#side"), settings: setEl,
   });
   scope.effect(() => wireGlobalKeys({
     view: currentView, capturing: capturing, SH, jump, IQ, CREATE, keys, GLOBAL, FP, QO, LAYERS, back, go,
@@ -66,23 +66,24 @@ export function mountShellInteractions(scope, layers, host) {
     view: currentView,
     back,
     drawer: (open) => setDrawer(open),
-    isDrawer: () => $("#app").classList.contains("drawer"),
+    isDrawer: () => requireHtml("#app").classList.contains("drawer"),
     settingsOpen: () => !setEl.hidden, closeSettings: () => closeSettings(),
     viewerOpen: () => VW.isOpen, closeViewer: () => VW.close(),
     panelOpen: () => D.isOpen(),
     sheets: [
-      { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
+      { host: requireHtml("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
       { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: JUMP.close },
       { host: keys, card: () => keys.querySelector(".sheet-card"), open: () => !keys.hidden, close: closeKeys },
-      { host: $("#iq-pop"), open: () => IQ.isOpen && $("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
-      { host: $("#cs-pop"), open: () => CH.setupOpen && $("#cs-pop").classList.contains("is-sheet"),
+      { host: requireHtml("#iq-pop"),
+        open: () => IQ.isOpen && requireHtml("#iq-pop").classList.contains("is-sheet"), close: () => IQ.close() },
+      { host: requireHtml("#cs-pop"), open: () => CH.setupOpen && requireHtml("#cs-pop").classList.contains("is-sheet"),
         close: () => { CH.closeSetup(); updateComposer(); } },
     ],
     say,
     toast: (text) => toastLine(text),
   }, wordsOf, scope);
-  scope.listen($("#pb-t"), "click", () => {
-    (currentView() === "home" ? $("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
+  scope.listen(requireHtml("#pb-t"), "click", () => {
+    (currentView() === "home" ? requireHtml("#home") : scroller).scrollTo({ top: 0, behavior: RM.matches ? "auto" : "smooth" });
   });
   return syncInert;
 }

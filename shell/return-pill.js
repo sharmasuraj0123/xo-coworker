@@ -1,54 +1,63 @@
 // @ts-check
-import { $ } from "../core/platform/dom.js";
+import { findHtml, requireHtml } from "../core/platform/dom.js";
 import { space } from "../core/platform/util.js";
 import { ICON } from "../core/ui/icons/names.js";
 
-/** @typedef {{ _find: () => HTMLElement | null; _seen: (element: HTMLElement) => boolean }} ReturnTarget */
+/** @typedef {Pick<import("../core/kernel/types").ModuleContext, "effect" | "frame" | "listen" | "timeout">} Scope */
 
-/** @typedef {HTMLButtonElement & Partial<ReturnTarget>} ReturnButton */
+/** @typedef {{ msgsEl: HTMLElement, scroller: HTMLElement, toRow(el: HTMLElement, smooth: boolean): void }} ReturnOptions */
 
-/** @typedef {HTMLButtonElement & ReturnTarget} ClickedReturnButton */
-
-/** @param {{ msgsEl: HTMLElement; scroller: HTMLElement; toRow: (element: HTMLElement, smooth: boolean) => void }} options */
-export function createReturnPill({ msgsEl, scroller, toRow }) {
+/** @param {Scope} scope @param {ReturnOptions} options */
+export function createReturnPill(scope, { msgsEl, scroller, toRow }) {
+  /** @type {HTMLButtonElement | null} */
+  let pill = null;
+  /** @type {string | null} */
+  let key = null;
+  let cancelFrame = () => {};
+  const currentRow = () => key ? findHtml(`:scope > [data-k="${CSS.escape(key)}"]`, undefined, msgsEl) : null;
+  /** @param {HTMLElement} row */
+  const inSight = (row) => {
+    const a = row.getBoundingClientRect(), b = scroller.getBoundingClientRect();
+    return a.bottom > b.top + 40 && a.top < b.bottom - 120;
+  };
+  function mount() {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "mx-return";
+    button.className = "mx-return";
+    button.innerHTML = `${ICON.arrow}<span>Back to where you were</span>`;
+    requireHtml("#conv").append(button);
+    scope.effect(() => () => button.remove());
+    scope.listen(button, "click", () => {
+      button.hidden = true;
+      const row = currentRow();
+      if (!row) return;
+      toRow(row, true);
+      const back = findHtml("[data-go]", undefined, row)
+        || [...row.querySelectorAll("button, a[href]")].find(el => el instanceof HTMLElement && el.offsetParent);
+      if (back instanceof HTMLElement) back.focus({ preventScroll: true });
+      row.classList.remove("is-flash");
+      void row.offsetWidth;
+      row.classList.add("is-flash");
+      scope.timeout(() => row.classList.remove("is-flash"), 1800);
+    });
+    scope.listen(scroller, "scroll", () => {
+      if (button.hidden) return;
+      const row = currentRow();
+      if (!row || inSight(row)) button.hidden = true;
+    }, { passive: true });
+    return button;
+  }
   /** @param {Element | null} target */
   return function returnPill(target) {
-    /** @type {ReturnButton | null} */
-    let pill = $("#mx-return");
-    // the message is held by its key, never its node: a redraw replaces nodes, and the key finds the one now drawn
-    const row = target && target.closest ? (/** @type {HTMLElement | null} */ (target.closest("#msgs > [data-k]"))) : null;
-    const key = row ? row.dataset.k : null;
+    cancelFrame();
+    key = target?.closest("#msgs > [data-k]")?.getAttribute("data-k") ?? null;
     if (!key) { if (pill) pill.hidden = true; return; }
-    /** @type {() => HTMLElement | null} */
-    const find = () => msgsEl.querySelector(`:scope > [data-k="${CSS.escape(key)}"]`);
-    /** @param {HTMLElement} el */
-    const inSight = (el) => { const a = el.getBoundingClientRect(), b = scroller.getBoundingClientRect(); return a.bottom > b.top + 40 && a.top < b.bottom - 120; };
-    requestAnimationFrame(() => {
-      const el = find();
-      if (!el || inSight(el)) { if (pill) pill.hidden = true; return; }
-      if (!pill) {
-        pill = document.createElement("button");
-        pill.type = "button"; pill.id = "mx-return"; pill.className = "mx-return";
-        $("#conv").append(pill);
-        pill.addEventListener("click", () => {
-          (/** @type {ReturnButton} */ (pill)).hidden = true;
-          const el = (/** @type {ClickedReturnButton} */ (pill))._find && (/** @type {ClickedReturnButton} */ (pill))._find();
-          if (!el) return; // it isn't drawn any more: nothing to go back to
-          toRow(el, true);
-          // the control you left from (the card or link that opened the thread), else the first one in the message
-          const back = /** @type {HTMLElement | null} */ (el.querySelector("[data-go]")) || [.../** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll("button, a[href]"))].find((b) => b.offsetParent);
-          back?.focus({ preventScroll: true });
-          el.classList.remove("is-flash"); void el.offsetWidth; el.classList.add("is-flash"); setTimeout(() => el.classList.remove("is-flash"), 1800);
-        });
-        scroller.addEventListener("scroll", () => {
-          if ((/** @type {ReturnButton} */ (pill)).hidden || !(/** @type {ReturnButton} */ (pill))._find) return;
-          const el = (/** @type {ClickedReturnButton} */ (pill))._find();
-          if (!el || (/** @type {ClickedReturnButton} */ (pill))._seen(el)) (/** @type {ReturnButton} */ (pill)).hidden = true; // gone, or you've reached it
-        }, { passive: true });
-      }
-      pill._find = find; pill._seen = inSight;
-      pill.style.top = `${scroller.offsetTop + space("--s-3")}px`; // --s-3 under the header, whatever its height
-      pill.innerHTML = `${ICON.arrow}<span>Back to where you were</span>`;
+    cancelFrame = scope.frame(() => {
+      const row = currentRow();
+      if (!row || inSight(row)) { if (pill) pill.hidden = true; return; }
+      pill ??= mount();
+      pill.style.top = `${scroller.offsetTop + space("--s-3")}px`;
       pill.hidden = false;
     });
   };

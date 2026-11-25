@@ -1,7 +1,7 @@
 // @ts-check
 import { cardState } from "./card-state.js";
 
-import { $ } from "../../core/platform/dom.js";
+import { findHtml } from "../../core/platform/dom.js";
 import * as K from "../../core/platform/keys.js";
 import { itemParts } from "../../core/services/review.js";
 import { radioKeys } from "../../core/ui/a11y/keynav.js";
@@ -68,7 +68,7 @@ export function wireDecisionKeyboard({ panel, stage, F, undo, onOpenThread, clos
   radioKeys(panel);
   panel.addEventListener("keydown", (e) => {
     if (!F.open || e.isComposing || e.keyCode === 229) return;
-    const card = $("#card");
+    const card = findHtml("#card");
     if (e.key === "Escape") {
       const cf = stage.querySelector(".confirm");
       if (cf) { e.preventDefault(); e.stopPropagation(); cf.remove(); card?.focus(); return; }

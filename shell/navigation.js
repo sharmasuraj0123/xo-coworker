@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../core/platform/dom.js";
+import { requireHtml } from "../core/platform/dom.js";
 import { focusDestination } from "./navigation-focus.js";
 
 /** @param {import("./navigation-types").NavigationDeps} deps */
@@ -30,7 +30,7 @@ export function createNavigation({
     location.visit(v, options);
     follow();
     clearDock();
-    const el = pageEl(v) || $("#column");
+    const el = pageEl(v) || requireHtml("#column");
     el.classList.remove("enter-r", "enter-l", "enter", "enter-up");
     void el.offsetWidth;
     if (!still) el.classList.add(carry ? "enter-up" : deeper ? "enter-r" : backFrom ? "enter-l" : "enter");

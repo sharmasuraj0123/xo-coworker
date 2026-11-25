@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { mountMainDecoration } from "./main-decoration.js";
 import { watchDock } from "./dock-layout.js";
 import { initFollow, fromTop, toRow } from "./follow.js";
@@ -23,13 +23,13 @@ export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, her
     scope.frame(() => {
       scrolling = false;
       loadAhead();
-      $("#top").classList.toggle("is-scrolled", fromTop() > 120);
+      requireHtml("#top").classList.toggle("is-scrolled", fromTop() > 120);
     });
   }, { passive: true });
-  watchDock(scope, { dock: $("#dock"), host: $("#app"), heraldRoom });
+  watchDock(scope, { dock: requireHtml("#dock"), host: requireHtml("#app"), heraldRoom });
   scope.effect(initFollow);
   scope.effect(mountMainDecoration);
-  const returnPill = createReturnPill({ msgsEl, scroller, toRow });
+  const returnPill = createReturnPill(scope, { msgsEl, scroller, toRow });
   const { showMsg } = createConversationNavigation(scope, { alias, main: () => MAIN });
   const live = createLiveConversation({ ...paging, view });
   return { ...live, returnPill, showMsg, scroller, msgsEl, reading, loadAhead, loadOlderNow };

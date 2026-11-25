@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../core/platform/dom.js";
+import { $, requireHtml } from "../core/platform/dom.js";
 import { esc } from "../core/platform/util.js";
 import { XO } from "../core/ui/icons/names.js";
 import { usable } from "../core/ui/a11y/focus.js";
@@ -29,7 +29,7 @@ export function createShellRenderer({
 }, /** @type {SurfaceScope} */ scope, /** @type {() => void} */ schedule) {
   const drawPages = createSurfaceSlots({
     places, place: "page", scope, schedule, hideOnRetire: true,
-    fallback: () => [$("#nv-home"), $("#pb-menu")].find(usable) ?? null,
+    fallback: () => [requireHtml("#nv-home", "button"), requireHtml("#pb-menu", "button")].find(usable) ?? null,
   });
   return function render() {
     if (!world.state.loaded) return;
@@ -39,21 +39,22 @@ export function createShellRenderer({
     const isHome = v === "home";
     const isArts = v === "artifacts", isLp = v === "launchpad", isPage = !!PAGE_OF[v];
     // Only write changed view and conversation attributes, since other layers observe them.
-    const appEl = $("#app"), kind = isPage ? v : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
+    const appEl = requireHtml("#app");
+    const kind = isPage ? v : v === "ws" ? "ws" : v.startsWith("t:") || v.startsWith("c:") ? "thread" : "project";
     if (appEl.dataset.view !== kind) appEl.dataset.view = kind;
     if (appEl.dataset.conv !== v) appEl.dataset.conv = v;
     dockAtTop(v === "chats");
     // A missing thread has no composer.
     const gone = v.startsWith("t:") && !convThread(v);
     if (appEl.hasAttribute("data-gone") !== gone) appEl.toggleAttribute("data-gone", gone);
-    for (const [k, sel] of Object.entries(PAGE_OF)) $(sel).hidden = k !== v;
-    $("#conv").hidden = isPage;
+    for (const [k, sel] of Object.entries(PAGE_OF)) requireHtml(sel).hidden = k !== v;
+    requireHtml("#conv").hidden = isPage;
     const pbt = isHome ? "Home" : isArts ? "Artifacts" : isLp ? "Launchpad" : "";
     redraw($("#pb-t"), pbt ? esc(pbt) : XO);
     sideRender(needs);
     if (isHome) { homeRender(needs); MAIN.rendered = "home"; }
     else if (isArts) {
-      const host = $(PAGE_OF[v]);
+      const host = requireHtml(PAGE_OF[v]);
       host.hidden = !places.get("page", v);
       if (!host.hidden) drawPages((id) => id === v ? host : null, undefined);
       MAIN.rendered = v;

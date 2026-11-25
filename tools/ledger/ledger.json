@@ -2648,6 +2648,10 @@
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/settings/shortcuts-sheet.js": {
+     "anchor": "export function createShortcutsSheet",
+     "reason": "Settings owns opening the shortcuts sheet, moving focus to Close and restoring focus on dismissal."
+    },
     "modules/conversation/session.js": {
      "anchor": "export function createConversationSession",
      "reason": "Conversation owns main and panel selection, composer focus, local messages and transcript folds."

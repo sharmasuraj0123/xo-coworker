@@ -29,7 +29,7 @@ const msgsEl = document.getElementById("msgs");
 scroller.getBoundingClientRect = () => ({ top: 0, bottom: 800 });
 Object.defineProperty(scroller, "offsetTop", { value: 12 });
 const visits = [];
-const pill = createReturnPill({ msgsEl, scroller, toRow: (row, smooth) => visits.push([row, smooth]) });
+const pill = createReturnPill(scope, { msgsEl, scroller, toRow: (row, smooth) => visits.push([row, smooth]) });
 const original = msgsEl.firstElementChild;
 pill(original.firstElementChild);
 const replacement = original.cloneNode(true);
@@ -46,6 +46,10 @@ try {
   assert.equal(visits[0][1], true);
   assert.ok(document.activeElement === replacement.firstElementChild);
   assert.ok(button.hidden);
+  scope.dispose();
+  assert.ok(!button.isConnected, "viewport disposal removes its return control");
+  button.click();
+  assert.equal(visits.length, 1, "retired controls cannot navigate");
   tickElapsed();
   assert.equal(document.querySelector(".elapsed").textContent, "5s");
 } finally {

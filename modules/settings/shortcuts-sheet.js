@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import * as K from "../../core/platform/keys.js";
 import { keysSheetRender } from "./keys-sheet.js";
 
@@ -8,8 +8,8 @@ import { keysSheetRender } from "./keys-sheet.js";
 
 /** @param {Scope} scope @param {(el: HTMLElement) => void} focusOverlay @param {() => void} syncInert @param {() => void} schedule */
 export function createShortcutsSheet(scope, focusOverlay, syncInert, schedule) {
-  const keys = $("#keys");
-  const closeButton = keys.querySelector("[data-close]");
+  const keys = requireHtml("#keys");
+  const closeButton = requireHtml("[data-close]", "button", keys);
   /** @type {HTMLElement | null} */
   let returnTo = null;
   function openKeys() {

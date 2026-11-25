@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { replyNotices } from "./reply-notices.js";
 import { createChats } from "./chats.js";
@@ -19,7 +19,7 @@ import { dayGroup, rowTime } from "../../core/services/world/list-time.js";
 /** @param {ChatSurfaceOptions} options @param {Pick<Conversation, "turnHtml" | "turnAv">} conversation */
 export function createChatSurface(options, conversation) {
   const { world, announce, heraldShow, go, schedule, view, transcriptOpen, composer, putBack, stop } = options;
-  const list = $("#msgs");
+  const list = requireHtml("#msgs");
   const chats = createChats({
     world, announce, heraldShow, go, schedule, view, listRoot: list, transcriptOpen,
     restore(text, { force = false } = {}) {
@@ -99,10 +99,15 @@ export function createChatSurface(options, conversation) {
     activate(ctx) {
       const { updateComposer, aim, toggleIntelligence, phone } = options;
       bindComposerButtons({
-        scope: ctx, target: $("#target"), permissions: $("#cs-perm"), sendNow: $("#send-now"), intelligence: $("#iq"),
+        scope: ctx, target: requireHtml("#target", "button"),
+        permissions: requireHtml("#cs-perm", "button"), sendNow: requireHtml("#send-now", "button"),
+        intelligence: requireHtml("#iq", "button"),
         updateComposer, aim, toggleIntelligence,
       });
-      mountControls({ scope: ctx, scroller: $("#scroller"), greeting: $("#cs-hi"), setup: $("#cs-pop"), phone, updateComposer });
+      mountControls({
+        scope: ctx, scroller: requireHtml("#scroller"), greeting: requireHtml("#cs-hi"), setup: requireHtml("#cs-pop"),
+        phone, updateComposer,
+      });
       const reply = replyNotices(ctx.use("currentView"), ctx.use("projectName"), heraldShow, ctx.use("announce"), schedule);
       ctx.effect(() => ctx.use("world").onEvent(reply));
       ctx.contribute("conversation.press", pressEntry("chat-message", handleMessageAction));

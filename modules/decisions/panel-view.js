@@ -1,7 +1,7 @@
 // @ts-check
 import { cardState } from "./card-state.js";
 
-import { $ } from "../../core/platform/dom.js";
+import { findHtml, requireHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import * as K from "../../core/platform/keys.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -25,14 +25,14 @@ export function createDecisionPanelView(options) {
     if (!n) return;
     F.vig = false;
     const my = ++F.swap;
-    const ae = document.activeElement, cur = $("#card");
+    const ae = document.activeElement, cur = findHtml("#card");
     const typing = how !== "allow" && how !== "back" && !!(cur && ae && cur.contains(ae) && ae.matches("textarea, input, [contenteditable]"));
     F.cancelAutoClose?.();
     F.hold && F.hold.cancel();
-    let frame = $("#card");
+    let frame = cur;
     if (!frame) {
       stage.innerHTML = `<article class="card" id="card" tabindex="-1" aria-roledescription="decision"><div class="stamp stamp-allow" aria-hidden="true">${BIG_CHECK}</div><div class="stamp stamp-back" aria-hidden="true">${BIG_BACK}</div></article>`;
-      frame = $("#card");
+      frame = requireHtml("#card", undefined, stage);
     }
     const old = frame.querySelector(".card-in");
     F.busy = true;
@@ -66,7 +66,7 @@ export function createDecisionPanelView(options) {
   /** @param {Transition} how */
   async function vigilance(how) {
     F.vig = true;
-    const frame = $("#card");
+    const frame = requireHtml("#card");
     const old = frame && frame.querySelector(".card-in");
     if (old && !RM.matches) {
       frame.classList.add(`st-${how}`); await wait(190);
@@ -99,9 +99,9 @@ export function createDecisionPanelView(options) {
     if (lifetime.signal.aborted) return;
     F.done = true;
     const my = ++F.swap;
-    const frame = $("#card");
-    const old = frame && frame.querySelector(".card-in");
-    if (old && !RM.matches) {
+    const frame = findHtml("#card");
+    const old = frame?.querySelector(".card-in");
+    if (frame && old && !RM.matches) {
       if (how === "allow" || how === "back") { frame.classList.add(`st-${how}`); await wait(190); }
       if (lifetime.signal.aborted) return;
       old.classList.add(`out-${how}`);
@@ -134,7 +134,7 @@ export function createDecisionPanelView(options) {
   }
 
   function chrome() {
-    const rail = $("#pn-rail");
+    const rail = requireHtml("#pn-rail");
     let html = "";
     /** @type {boolean | null | undefined} */
     let apart = null;
@@ -149,9 +149,9 @@ export function createDecisionPanelView(options) {
     rail.innerHTML = html;
     const i = F.order.indexOf(/** @type {string} */ (F.cur)) + 1, total = F.order.length;
     const left = F.order.filter(pending).length;
-    $("#pn-count").innerHTML = F.done ? `All ${total} seen` : F.vig ? `${left} held` : `<b>${i}</b> of ${total}`;
+    requireHtml("#pn-count").innerHTML = F.done ? `All ${total} seen` : F.vig ? `${left} held` : `<b>${i}</b> of ${total}`;
     const routine = F.order.filter(pending).map((k) => F.items.get(k)).filter((/** @type {CardNeed | undefined} */ n) => n && n.group === "routine" && Kit.isBinary(n.ask));
-    const foot = $("#pn-foot");
+    const foot = findHtml("#pn-foot");
     redraw(foot, F.done || F.vig ? "" :
       `<button type="button" class="pn-nav" data-nav="-1" title="Previous${K.hint("prev")}" aria-label="Previous ask"${total < 2 ? " disabled" : ""}>${ICON.back}</button>` +
       (routine.length >= 2 ? `<button type="button" class="pn-all" data-all>Allow all ${routine.length} routine</button>` : `<span class="pn-tip">Skip freely; nothing here is forced first.</span>`) +
@@ -175,7 +175,7 @@ export function createDecisionPanelView(options) {
       const b = /** @type {HTMLElement | null} */ ((/** @type {Element} */ (e.target)).closest("[data-cf]"));
       if (!b) return;
       el.remove();
-      if (b.dataset.cf === "yes") allowAllRoutine(batch.map((n) => n.key)); else $("#card")?.focus();
+      if (b.dataset.cf === "yes") allowAllRoutine(batch.map((n) => n.key)); else findHtml("#card")?.focus();
     });
   }
 

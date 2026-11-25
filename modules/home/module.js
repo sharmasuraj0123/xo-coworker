@@ -1,6 +1,6 @@
 // @ts-check
 import { skTile, bar, rememberedMade } from "./skeleton.js";
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { convOfChat } from "../../shell/place-context.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
@@ -20,7 +20,7 @@ export function createHomeModule(host) {
       needs: ["world", "currentView", "announce", "placeContext", "decisionPresentation", "threadPresentation"] },
     activate(ctx) {
       const scope = createScope();
-      const view = ctx.use("currentView"), el = $("#home");
+      const view = ctx.use("currentView"), el = requireHtml("#home");
       ctx.effect(() => () => { controller = undefined; scope.dispose(); el.replaceChildren(); });
       const home = createHomeController({
         ...host, ...ctx.use("decisionPresentation"), scope, host: el, world: ctx.use("world"), announce: ctx.use("announce"),

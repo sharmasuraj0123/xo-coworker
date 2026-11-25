@@ -3,7 +3,7 @@
 // The sidebar: folded, a rail of the same rows with their words hidden; its bar is yours to edit, and More holds the rest.
 
 import * as keys from "../../core/platform/keys.js";
-import { $, $$ } from "../../core/platform/dom.js";
+import { $, $$, findHtml, isHtml, requireHtml } from "../../core/platform/dom.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { reportFailure } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
@@ -26,14 +26,14 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     fold(on, { quiet = false } = {}) {
       SIDE.folded = !!on;
       writeFold(on);
-      $("#app").classList.toggle("side-folded", SIDE.folded);
-      const b = $("#side-fold");
+      requireHtml("#app").classList.toggle("side-folded", SIDE.folded);
+      const b = requireHtml("#side-fold", "button");
       b.setAttribute("aria-expanded", String(!SIDE.folded));
       b.setAttribute("aria-label", SIDE.folded ? "Show the sidebar" : "Fold the sidebar");
       b.title = `${SIDE.folded ? "Show" : "Fold"} the sidebar${K.hint("sideFold")}`;
-      $("#side-jump").title = `Search and jump${K.hint("jump")}`;
+      requireHtml("#side-jump", "button").title = `Search and jump${K.hint("jump")}`;
       // the places' names become their tooltips while the words are hidden
-      for (const r of $$("#side .nav .nrow")) { const n = r.querySelector(".nr-name")?.textContent || ""; if (SIDE.folded) r.title = n; else r.removeAttribute("title"); }
+      for (const r of $$("#side .nav .nrow").filter(isHtml)) { const n = r.querySelector(".nr-name")?.textContent || ""; if (SIDE.folded) r.title = n; else r.removeAttribute("title"); }
       SIDE.closeMore();
       if (!quiet) { announce(SIDE.folded ? "Sidebar folded" : "Sidebar shown"); render(); }
     },
@@ -98,11 +98,11 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     extras: new Map(), // a Settings page kept in the bar: its row, made once
     /** The sidebar's rows, as the bar says: the four places are the page's own rows, Settings' pages rows made for them; all before More. */
     apply() {
-      const b = SIDE.bar(), nav = $("#side .nav"), more = $("#nv-more");
+      const b = SIDE.bar(), nav = requireHtml("#side .nav"), more = requireHtml("#nv-more", "button");
       for (const p of SIDE.PLACES) if (!b.shown.includes(p.id)) SIDE.extras.get(p.id)?.remove();
       for (const id of b.order) {
         const p = SIDE.byId(id), on = b.shown.includes(id);
-        let el = p.sel ? $(p.sel) : SIDE.extras.get(id);
+        let el = p.sel ? findHtml(p.sel) : SIDE.extras.get(id);
         if (!p.sel && on && !el) {
           const t = document.createElement("template");
           t.innerHTML = `<button type="button" class="nrow" data-set-open="${p.id}">` +
@@ -115,11 +115,11 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
         if (on || p.sel) { if (el.nextElementSibling !== more || el.parentNode !== nav) nav.insertBefore(el, more); }
         if (on && SIDE.folded) el.title = p.name;
       }
-      if (!$("#side-more").hidden) SIDE.drawMore();
+      if (!requireHtml("#side-more").hidden) SIDE.drawMore();
     },
     /** More: the places you didn't keep, each with its pin, and "Edit the sidebar…"; or, editing, every place with its switch and grip. */
     drawMore() {
-      const b = SIDE.bar(), pop = $("#side-more");
+      const b = SIDE.bar(), pop = requireHtml("#side-more");
       const icon = (/** @type {Place} */ p) => (p.ic ? p.ic() : $(/** @type {string} */ (p.sel))?.querySelector(".nr-ic")?.innerHTML || "");
       let html;
       if (SIDE.editing) {
@@ -135,7 +135,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
         pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
         const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id)).filter((p) => !p.set);
         html = rest.map((p) => {
-          const go = p.sel ? `data-go="${$(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
+          const go = p.sel ? `data-go="${requireHtml(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
           return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
             `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`; }).join("") +
           `${rest.length ? `<div class="sm-sep" role="separator"></div>` : ""}<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-side-edit><span class="nr-ic">${ICON.edit}</span><span class="nr-name">Edit the sidebar…</span></button></div>`;
@@ -146,11 +146,11 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     dispose: scope.dispose,
     edit(on) {
       SIDE.editing = !!on; SIDE.drawMore();
-      const pop = $("#side-more");
-      (on ? pop.querySelector("[data-se-grip]") : pop.querySelector('[role="menuitem"]'))?.focus({ preventScroll: true });
+      const pop = requireHtml("#side-more");
+      findHtml(on ? "[data-se-grip]" : '[role="menuitem"]', undefined, pop)?.focus({ preventScroll: true });
     },
     openMore(e) {
-      const pop = $("#side-more"), row = $("#nv-more");
+      const pop = requireHtml("#side-more"), row = requireHtml("#nv-more", "button");
       SIDE.drawMore();
       pop.hidden = false;
       row.setAttribute("aria-expanded", "true"); row.classList.add("is-on");
@@ -160,15 +160,16 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
       focusOpened(pop, e);
     },
     closeMore({ focus = false } = {}) {
-      const pop = $("#side-more"), row = $("#nv-more");
+      const pop = findHtml("#side-more");
       if (!pop || pop.hidden) return;
+      const row = requireHtml("#nv-more", "button");
       pop.hidden = true; SIDE.editing = false;
       row.setAttribute("aria-expanded", "false"); row.classList.remove("is-on");
       if (focus) row.focus({ preventScroll: true });
     },
   };
   scope.effect(() => () => {
-    const pop = $("#side-more"), more = $("#nv-more");
+    const pop = requireHtml("#side-more"), more = requireHtml("#nv-more", "button");
     const focused = document.activeElement;
     SIDE.closeMore({ focus: pop.contains(focused) });
     for (const row of SIDE.extras.values()) {

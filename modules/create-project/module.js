@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { PHONE } from "../../core/platform/viewport.js";
 import { RM } from "../../core/ui/motion.js";
 import { pressEntry, valuePress } from "../../shell/conversation-press.js";
@@ -24,15 +24,15 @@ export function createProjectModule() {
           localMessages.welcome("p:" + id, text);
         },
         onPhoneClose() {
-          if (PHONE?.matches) ctx.timeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170);
+          if (PHONE?.matches) ctx.timeout(() => requireHtml("#pb-menu", "button").focus({ preventScroll: true }), RM.matches ? 0 : 170);
         },
       }, ctx);
       ctx.effect(() => () => {
         dialog?.close({ now: true, restore: false });
-        $("#create-dlg").classList.remove("is-closing");
+        requireHtml("#create-dlg", "dialog").classList.remove("is-closing");
         dialog = undefined;
       });
-      ctx.listen($("#side-add"), "click", dialog.open);
+      ctx.listen(requireHtml("#side-add", "button"), "click", dialog.open);
       ctx.contribute("conversation.press", pressEntry("create", valuePress("data-create", dialog.open, true)));
     },
   };

@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { $, findHtml, requireHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON, NEXT_GLYPH, XO } from "../../core/ui/icons/names.js";
 import { RM, wait } from "../../core/ui/motion.js";
@@ -23,7 +23,7 @@ export function createHomeView(options, scope) {
 
   /** @param {N[]} needs */
   function homeRender(needs) {
-    const box = $("#home");
+    const box = requireHtml("#home");
     if (!built.has(box)) {
       box.innerHTML = `<div class="hm"><div id="hm-head"></div><div class="hm-body" id="hm-body"><div id="hm-since"></div><div id="hm-next"></div><div id="hm-then"></div><div id="hm-end"></div><div id="hm-made"></div></div></div>`;
       built.add(box);
@@ -42,8 +42,8 @@ export function createHomeView(options, scope) {
       `<button type="button" class="create" data-create data-fid="create"><span class="create-ic">${ICON.plus}</span><span class="cr-l">Create XO Project</span><span class="cr-s">New project</span></button></header>`);
     landed($("#hm-head"), [$("#home-h span"), $("#hm-head .create")]);
 
-    const nb = $("#hm-next");
-    const card0 = nb.querySelector(".next");
+    const nb = requireHtml("#hm-next");
+    const card0 = findHtml(".next", undefined, nb);
     const nextHad = nb.contains(document.activeElement);
     const inPanel = P0.next && D.current() === P0.next.key;
     if (card0 && (card0.classList.contains("noting") || busy.has(card0)) && P0.next && card0.dataset.key === P0.next.key) { /* Keep the draft in place. */ }
@@ -56,9 +56,9 @@ export function createHomeView(options, scope) {
       if (changed) nextSeen = performance.now();
       const html = `<p class="hm-lbl"><span class="nx-glyph">${NEXT_GLYPH}</span>Your next move</p>` + nextCardHtml(P0.next);
       if (redraw(nb, html) && changed) {
-        const card = nb.querySelector(".next");
+        const card = findHtml(".next", undefined, nb);
         const undo = selection.takeUndoAnimation();
-        if (nextKey && !RM.matches) card.classList.add(undo ? "in-undo" : "in-next");
+        if (nextKey && !RM.matches) card?.classList.add(undo ? "in-undo" : "in-next");
       }
       nextKey = key;
     } else {
@@ -68,22 +68,22 @@ export function createHomeView(options, scope) {
       else redraw(nb, `<p class="calm-line">${w ? `${num(w)} ${noun(plural(w, "thread"))} working. ${w === 1 ? "It'll" : "They'll"} ask when it's worth it.` : "Start something below, or enjoy the quiet."}</p>`);
     }
     if (selection.takeFocus() || (nextHad && !nb.contains(document.activeElement))) {
-      const nc = nb.querySelector(".next");
+      const nc = findHtml(".next", undefined, nb);
       if (nc) nc.focus({ preventScroll: true }); else { nb.tabIndex = -1; nb.focus({ preventScroll: true }); }
     }
     landed(nb);
 
     redraw($("#hm-then"), thenHtml(P0, { EFFORT, askTitle, PROJ }));
     landed($("#hm-then"));
-    drawSections($("#hm-body"), { needs, patch: redraw });
+    drawSections(requireHtml("#hm-body"), { needs, patch: redraw });
 
     endRender(P0, working);
-    SV.homeOrder($("#hm-body"));
+    SV.homeOrder(requireHtml("#hm-body"));
   }
 
   /** @param {HomeChoice} choice @param {string} [note] */
   async function nextDecide(choice, note) {
-    const card = $("#hm-next .next");
+    const card = findHtml("#hm-next .next");
     if (!card || busy.has(card)) return;
     const key = card.dataset.key;
     if (key !== nextKey || performance.now() - nextSeen < Kit.READ_MS) { if (card.classList.contains("r-notable")) announce("A beat to read it first."); return; }
@@ -95,7 +95,7 @@ export function createHomeView(options, scope) {
     selection.select(null);
     schedule();
     scope.frame(() => scope.frame(() => {
-      const control = $("#hm-next .next");
+      const control = findHtml("#hm-next .next");
       if (control && isCurrent() && !D.isOpen()) control.focus({ preventScroll: true });
     }));
   }

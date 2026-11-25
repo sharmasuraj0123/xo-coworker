@@ -1,6 +1,6 @@
 // @ts-check
 
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { esc } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { fileIcon } from "../../core/ui/icons/fileicons.js";
@@ -14,7 +14,7 @@ export function createFileReferenceLine({ view, fileReferences }) {
   const painted = new WeakMap();
   return function lrefRender() {
     const reference = fileReferences.get(view());
-    const el = $("#cref");
+    const el = requireHtml("#cref");
     const html = reference ? referenceHtml(reference) : "";
     el.hidden = !reference;
     if (painted.get(el) === html) return;

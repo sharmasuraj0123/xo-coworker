@@ -1,5 +1,5 @@
 // @ts-check
-import { $ } from "../../core/platform/dom.js";
+import { requireHtml } from "../../core/platform/dom.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { bindComposerDrop } from "./drop.js";
 
@@ -11,8 +11,12 @@ export function createMainComposer(view, conversation) {
     main: true,
     get view() { return view(); },
     conv: conversation,
-    say: $("#say"), send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"),
-    tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: $("#at-list"),
+    say: requireHtml("#say", "textarea"), send: requireHtml("#send", "button"),
+    form: requireHtml("#composer", "form"), target: requireHtml("#target", "button"),
+    label: requireHtml("#say-label", "label"),
+    tray: requireHtml("#att-tray"), attach: requireHtml("#attach", "button"),
+    input: requireHtml("#att-input", "input"), note: requireHtml("#att-note"),
+    iq: requireHtml("#iq", "button"), at: requireHtml("#at-list"),
   };
 }
 
@@ -23,5 +27,5 @@ export function mountMainComposer(scope, main, { wireTray, wireComposer, compose
   scope.listen(main.input, "change", () => { addFiles(main.input.files, main); main.input.value = ""; });
   wireTray(main, scope);
   wireComposer(main, scope);
-  scope.effect(() => bindComposerDrop({ veil: $("#drop-veil"), icon: $("#drop-ic"), composerAt, canAttach, addFiles }));
+  scope.effect(() => bindComposerDrop({ veil: requireHtml("#drop-veil"), icon: requireHtml("#drop-ic"), composerAt, canAttach, addFiles }));
 }
