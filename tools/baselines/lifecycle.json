@@ -77,19 +77,13 @@
   "observer": 2
  },
  "shell/panel/panel.js": {
-  "observer": 1,
-  "requestAnimationFrame": 4
+  "observer": 1
  },
  "shell/panel/width.js": {
   "observer": 1
  },
  "shell/rail/rows.js": {
   "setTimeout": 2
- },
- "shell/rail/side.js": {
-  "commentOnlyCatch": 3,
-  "globalListener": 1,
-  "storage": 10
  },
  "shell/return-pill.js": {
   "requestAnimationFrame": 1,

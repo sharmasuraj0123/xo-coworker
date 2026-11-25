@@ -225,10 +225,10 @@ t("The Files page mounts once and keeps tree width and fold under their existing
   storage.set("xo-files-folds", JSON.stringify({ tree: "folded" }));
   const paneHost = document.createElement("aside");
   document.body.append(paneHost);
-  let page, mountCount = 0;
+  let mountCount = 0;
   const folds = [];
   const panelFiles = createFilesPage({
-    stage: { pageShown: { name: "files" }, page: (_, definition) => { page = definition; } },
+    stage: { pageShown: { name: "files" } },
     files: {
       mount: (body) => { mountCount++; body.innerHTML = '<div class="fl-split" role="separator"></div>'; },
       fold: (folded) => folds.push(folded),
@@ -237,8 +237,8 @@ t("The Files page mounts once and keeps tree width and fold under their existing
     viewer: { hasFile: true },
     view: () => "p:p",
   });
-  page.mount(paneHost);
-  page.mount(paneHost);
+  panelFiles.entry.mount(paneHost);
+  panelFiles.entry.mount(paneHost);
   assert.equal(mountCount, 1);
   assert.deepEqual(folds, [true]);
   assert.equal(paneHost.firstElementChild.style.getPropertyValue("--tw"), "260px");

@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createKernel } from "../../../core/kernel/index.js";
-import { SETTINGS_PAGE_OPEN, settingsModule } from "../module.js";
+import { createSettingsModule } from "../module.js";
+import { SETTINGS_PAGE_OPEN } from "../page-events.js";
+const settingsModule = createSettingsModule().module;
 
 const { document } = await dom('<section id="settings">'
   + '<div data-page="rules"><button id="inside">Act</button><button id="pending" aria-disabled="true">Wait</button></div>'

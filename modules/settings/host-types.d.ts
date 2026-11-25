@@ -20,6 +20,9 @@ export interface SettingsHost {
 }
 
 declare module "../../core/kernel/types" {
+  interface Topics {
+    "settings:page-open": string;
+  }
   interface Services {
     settings: SettingsHost & { bindPage(id: string, page: SettingsPage): () => void };
   }

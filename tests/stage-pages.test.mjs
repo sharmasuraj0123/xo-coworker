@@ -60,7 +60,8 @@ test("the panel keeps one width and restores sections on leaving a page", async 
   const fileCalls = [];
   const viewer = { hasFile: true, file: { name: "notes.md" }, close: (opts) => fileCalls.push(opts), confirmClose: () => true };
   const files = { mount() {}, fold() {}, show() {}, hide: () => fileCalls.push("hidden"), reveal() {} };
-  createFilesPage({ stage: panel, files, viewer, view: () => "p:one" });
+  const filesPage = createFilesPage({ stage: panel, files, viewer, view: () => "p:one" });
+  panel.page("files", filesPage.entry);
   panel.page("thread", { title: "Thread", mount() {} });
   const sections = stage.querySelector(".stg-frames");
   const allFiles = stage.querySelector(".stg-acts [data-open-files]");

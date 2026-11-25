@@ -414,8 +414,7 @@
   "commentLines": 3
  },
  "modules/files/page.js": {
-  "commentLines": 4,
-  "explicitAny": 4
+  "commentLines": 4
  },
  "modules/files/section-folds.js": {
   "commentLines": 2
@@ -580,7 +579,7 @@
   "commentLines": 1
  },
  "shell/panel/panel.js": {
-  "commentLines": 9
+  "commentLines": 7
  },
  "shell/panel/width.js": {
   "commentLines": 3
@@ -589,8 +588,7 @@
   "explicitAny": 2
  },
  "shell/rail/side.js": {
-  "commentLines": 5,
-  "explicitAny": 10
+  "commentLines": 1
  },
  "shell/render.js": {
   "commentLines": 1

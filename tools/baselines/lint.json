@@ -73,7 +73,6 @@
  "shell/panel/panel.js::eslint(no-shadow)": 1,
  "shell/panel/panel.js::eslint(no-unused-expressions)": 3,
  "shell/rail/rows.js::eslint(no-shadow)": 1,
- "shell/rail/side.js::eslint(no-underscore-dangle)": 2,
  "shell/return-pill.js::eslint(no-shadow)": 2,
  "shell/return-pill.js::eslint(no-underscore-dangle)": 7,
  "tests/browser/chat-read-order.test.cjs::eslint(no-shadow)": 2,

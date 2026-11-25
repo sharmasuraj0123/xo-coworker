@@ -19,18 +19,19 @@ export interface StageState {
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
 interface MapApi {
   agents(view: string): Agent[];
-  mode: string;
-  setMode(mode: string): void;
+  mode: "graph" | "tree";
+  setMode(mode: "graph" | "tree"): void;
   show(view: string): void;
   hide(): void;
 }
-export interface MapFrame extends Entry { mount(host: HTMLElement): void; api: MapApi }
-interface ChangesFrameOptions {
+export interface MapFrame extends Entry { mount(host: HTMLElement): void | (() => void); api: MapApi }
+export interface ChangesFrameOptions {
   view(): string;
   openFile(scope: { project: string; worktree?: string | null }, path: string, from?: Element | null): void;
   onChange(): void;
 }
 interface ChangesPanel {
+  dispose?(): void;
   head(): { count: number; total: { add: number; del: number }; follow: boolean } | null;
   paint(): void;
   toggleFollow(): void;

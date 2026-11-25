@@ -1,6 +1,7 @@
 // @ts-check
 
 import { createSettingsHost } from "../../modules/settings/host.js";
+import { SETTINGS_PAGE_OPEN } from "../../modules/settings/page-events.js";
 import { dom } from "./dom.mjs";
 
 /** @param {string} id */
@@ -15,7 +16,8 @@ export async function openSettingsModule(page, module, services) {
   await mountSettingsPage(page);
   const { createKernel } = await import("../../core/kernel/index.js");
   const { createAppServices } = await import("../../shell/app-services.js");
-  const { SETTINGS_PAGE_OPEN, settingsModule } = await import("../../modules/settings/module.js");
+  const { createSettingsModule } = await import("../../modules/settings/module.js");
+  const settingsModule = createSettingsModule().module;
   const kernel = createKernel();
   kernel.register(createAppServices({ ...services, currentView: () => "home" }, () => {}));
   kernel.register(settingsModule);

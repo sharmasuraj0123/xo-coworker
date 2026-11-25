@@ -98,11 +98,5 @@
    ["commentOnlyCatch",126,""],
    ["commentOnlyCatch",167,""]
   ]
- },
- "shell/rail/side.js": {
-  "sha256": "13c9ec91edbea0147c6703fa402d1d9aac9de283294cb724d5f495c6ff5e7b8e",
-  "sites": [
-   ["commentOnlyCatch",25,""]
-  ]
  }
 }

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { bootPage } from "./lib/page.mjs";
 import { publishedRules } from "./lib/css-snapshot.mjs";
+import { createScope } from "../core/kernel/scope.js";
 import { deferred, same } from "./lib/dom.mjs";
 import { createSide } from "../shell/rail/side.js";
 
@@ -14,14 +15,17 @@ let shapeChanged;
 const shape = {
   synced: synced.promise,
   get: (key) => mine[key],
-  onChange: (listener) => { shapeChanged = listener; },
+  onChange: (listener) => { shapeChanged = listener; return () => { shapeChanged = undefined; }; },
   patchMine({ layout: { side } }) {
     if (side === null) delete mine.layout.side;
     else mine.layout.side = side;
     return { ok: true };
   },
 };
-const SIDE = createSide({ shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() {} });
+const scope = createScope();
+let jumps = 0;
+const deps = { shape, keys: { hint: () => "" }, announce() {}, render() {}, toggleJump() { jumps++; } };
+const SIDE = createSide({ ...deps, scope });
 
 const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
@@ -30,7 +34,29 @@ assert.ok(SIDE.isDefault());
 // More's pins from before carry over
 store.set("xo-side-pins", JSON.stringify(["rules", "gone"]));
 assert.deepEqual(SIDE.bar().shown, ["home", "ws", "chats", "arts", "rules"]);
+store.set("xo-side-bar", "{broken");
+assert.deepEqual(SIDE.bar().shown, ["home", "ws", "chats", "arts", "rules"], "invalid legacy JSON falls back to the old pins");
 store.clear();
+
+const browserStorage = globalThis.localStorage;
+const log = console.error;
+const storageErrors = [];
+console.error = (error) => storageErrors.push(error);
+try {
+  const unavailable = new DOMException("Storage was blocked", "SecurityError");
+  globalThis.localStorage = { ...browserStorage, getItem() { throw unavailable; }, setItem() { throw unavailable; } };
+  SIDE.fold(true, { quiet: true });
+  assert.equal(SIDE.folded, true, "blocked storage does not prevent a fold");
+  assert.ok(SIDE.isDefault(), "blocked reads keep the default layout");
+  assert.deepEqual(storageErrors, []);
+  const fault = new Error("Unexpected storage write failure");
+  globalThis.localStorage = { ...browserStorage, setItem() { throw fault; } };
+  SIDE.fold(false, { quiet: true });
+  assert.deepEqual(storageErrors, [fault], "unexpected storage failures reach the shared reporter");
+} finally {
+  console.error = log;
+  globalThis.localStorage = browserStorage;
+}
 
 // keep and leave: a place in the bar or in More
 SIDE.pin("chats", false); SIDE.pin("worktrees", true);
@@ -105,6 +131,25 @@ assert.equal(pop.querySelector("[data-se-reset]").hasAttribute("disabled"), true
 click(pop.querySelector("[data-se-done]"));
 assert.equal(pop.getAttribute("role"), "menu");
 assert.equal(Boolean(document.querySelector("#nv-pins")), false);
+
+pop.querySelector('[role="menuitem"]').focus();
+SIDE.dispose();
+assert.equal(scope.size, 0);
+assert.equal(shapeChanged, undefined);
+assert.equal(pop.hidden, true);
+assert.equal(pop.childElementCount, 0);
+same(document.activeElement, more);
+click(more);
+click(document.querySelector("#side-jump"));
+assert.equal(pop.hidden, true);
+assert.equal(jumps, 0);
+const replacement = createSide(deps);
+click(more);
+assert.equal(pop.hidden, false);
+assert.equal(pop.querySelectorAll("[data-side-edit]").length, 1);
+click(document.querySelector("#side-jump"));
+assert.equal(jumps, 1);
+replacement.dispose();
 
 const editorRules = publishedRules().filter(({ sel }) => /^\.(?:sm-sep\b|se-)/.test(sel));
 assert.ok(editorRules.some(({ sel }) => sel === ".se-grip"));

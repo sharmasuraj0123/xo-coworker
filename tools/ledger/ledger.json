@@ -2559,10 +2559,30 @@
     "shell/global-keys.js",
     "shell/back-steps.js",
     "modules/conversation/composer.js",
-    "modules/settings/shortcuts-sheet.js"
+    "modules/settings/shortcuts-sheet.js",
+    "modules/settings/surface.js",
+    "modules/map/module.js",
+    "modules/changes/module.js",
+    "modules/files/module.js"
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/settings/surface.js": {
+     "anchor": "export function mountSettingsSurface",
+     "reason": "Settings owns the frame, Accounts, keyboard editor and contributed sections with one activation lifetime."
+    },
+    "modules/map/module.js": {
+     "anchor": "ctx.contribute(\"panel.frame\",",
+     "reason": "Map registers and retires its own Stage frame and rendering controller."
+    },
+    "modules/changes/module.js": {
+     "anchor": "ctx.contribute(\"panel.frame\",",
+     "reason": "Changes registers its Stage frame with the shared change store."
+    },
+    "modules/files/module.js": {
+     "anchor": "ctx.contribute(\"panel.page\",",
+     "reason": "Files owns the viewer, the tree and its Stage page for one activation lifetime."
+    },
     "core/ui/markdown/copy.js": {
      "anchor": "export function createCodeCopy",
      "reason": "Clipboard feedback and its lifetime are owned by the code copy controller."
@@ -8677,7 +8697,8 @@
   },
   "js/app.js::storage::xo-side-folded": {
    "status": "moved",
-   "home": "shell/rail/side.js"
+   "home": "shell/rail/side-storage.js",
+   "evidence": { "shell/rail/side-storage.js": { "anchor": "xo-side-folded", "reason": "Rail keeps the existing shared-storage key." } }
   },
   "js/app.js::storage::${f.project}|${f.rel}": {
    "status": "moved",
@@ -8691,15 +8712,18 @@
   },
   "js/app.js::storage::<SIDE.KEY>": {
    "status": "moved",
-   "home": "shell/rail/side.js"
+   "home": "shell/rail/side-storage.js",
+   "evidence": { "shell/rail/side-storage.js": { "anchor": "read(FOLD,", "reason": "Rail keeps the fold preference under its original key." } }
   },
   "js/app.js::storage::<SIDE.BAR>": {
    "status": "moved",
-   "home": "shell/rail/side.js"
+   "home": "shell/rail/side-storage.js",
+   "evidence": { "shell/rail/side-storage.js": { "anchor": "erase(BAR)", "reason": "The owner clears the legacy bar key after adoption." } }
   },
   "js/app.js::storage::<SIDE.PINS>": {
    "status": "moved",
-   "home": "shell/rail/side.js"
+   "home": "shell/rail/side-storage.js",
+   "evidence": { "shell/rail/side-storage.js": { "anchor": "erase(PINS)", "reason": "The owner clears the legacy pins key after adoption." } }
   },
   "js/app.js::keys::all": {
    "status": "moved",

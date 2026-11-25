@@ -1109,6 +1109,21 @@ const shellHeight = shellDock.style.getPropertyValue("--shd-h");
 assert.equal(kernel.status("xo.settings"), "active");
 const settingsOwners = ["xo.settings", "xo.rules", "xo.worktrees", "xo.routing"];
 for (const id of settingsOwners) assert.ok(kernel.live(id) > 0, `${id} owns its Settings lifetime`);
+for (const [id, place, host] of [
+  ["map", "panel.frame", "#fr-body-map"],
+  ["changes", "panel.frame", ".cx-host"],
+  ["files", "panel.page", null],
+]) {
+  const owner = `xo.${id}`;
+  assert.equal(kernel.places.get(place, id)?.owner, owner);
+  await kernel.disable(owner);
+  assert.equal(kernel.live(owner), 0);
+  assert.equal(kernel.places.get(place, id), undefined);
+  if (host) assert.equal(document.querySelector(host).childElementCount, 0, `${id} clears its permanent host`);
+  assert.ok((await kernel.enable(owner)).active.includes(owner));
+  assert.equal(kernel.places.entries(place).filter((entry) => entry.id === id).length, 1);
+}
+assert.equal(document.querySelectorAll(".cx-host .cx").length, 1, "Changes mounts exactly one replacement frame");
 let filePickerClicks = 0;
 document.querySelector("#att-input").addEventListener("click", () => { filePickerClicks++; });
 press("#attach");

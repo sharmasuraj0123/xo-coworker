@@ -9,6 +9,7 @@ export function appTopicTypeChecks(bus, context) {
   bus.once("app:view-leaving", (event) => event.to.toUpperCase());
   context.on("app:conversation-header", ({ needs }) => needs.map(({ t }) => t.id));
   context.emit("app:render");
+  context.emit("settings:page-open", "keys");
   context.emit("extension:data", { value: 1 });
   const pagehide = /** @type {const} */ (["app:pagehide"]);
 
@@ -26,6 +27,8 @@ export function appTopicTypeChecks(bus, context) {
   context.emit("app:conversation-header");
   // @ts-expect-error A payload-free topic accepts no payload.
   context.emit("app:render", {});
+  // @ts-expect-error Opening a Settings page publishes its ID.
+  context.emit("settings:page-open", { id: "keys" });
   // @ts-expect-error A union topic must travel with its own payload.
   bus.emit(topic);
   // @ts-expect-error This payload does not belong to all members of the topic union.

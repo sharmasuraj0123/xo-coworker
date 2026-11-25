@@ -43,6 +43,7 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
       boxes.delete(name);
       box.remove();
     }
+    reflect();
   });
 
   /** @param {string} name */
@@ -82,7 +83,11 @@ export function createPages({ el, S, places, at, view, threads, shell, nameOf, p
 
   function reflect() {
     if (S.page) el.dataset.stgPage = S.page.name; else delete el.dataset.stgPage;
-    reflectButton("[data-open-files]", S.page?.name === "files");
+    const filesButton = reflectButton("[data-open-files]", S.page?.name === "files");
+    if (filesButton) {
+      filesButton.hidden = !PAGES.get("files");
+      if (filesButton.hidden && document.activeElement === filesButton) el.focus({ preventScroll: true });
+    }
     reflectButton("[data-open-gh]", /^gh/.test(S.page?.name || "") || S.page?.name === "github");
     const shellButton = reflectButton("[data-stg-shell]", S.page?.name === "shell");
     if (shellButton) shellButton.title = S.page?.name === "shell" ? (S.under ? `Back to ${pageTitle(S.under)}` : "Back to Threads, Changes and Map") : S.page?.name === "thread" ? "A shell in this thread's worktree" : "A shell here, in the panel";

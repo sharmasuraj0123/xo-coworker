@@ -1,6 +1,18 @@
 // @ts-check
 
-/** @import { Surface, SurfaceOptions } from "./surface-types.d.ts" */
+/** @import { Surface, SurfaceOptions, SurfaceScope } from "./surface-types.d.ts" */
+
+/** @param {SurfaceScope} scope @param {HTMLElement} host @param {() => void} undo @param {SurfaceOptions["fallback"]} fallback */
+export function ownSurface(scope, host, undo, fallback, hideOnRetire = false) {
+  return scope.effect(() => () => {
+    const hadFocus = host.contains(host.ownerDocument.activeElement);
+    try { undo(); } finally {
+      host.replaceChildren();
+      if (hideOnRetire) host.hidden = true;
+      if (hadFocus) fallback()?.focus({ preventScroll: true });
+    }
+  });
+}
 
 /** @template C @param {SurfaceOptions} options */
 export function createSurfaceSlots({ places, place, scope, schedule, fallback, hideOnRetire = false }) {
@@ -11,18 +23,9 @@ export function createSurfaceSlots({ places, place, scope, schedule, fallback, h
 
   /** @param {Surface<C>} entry @param {HTMLElement} host */
   function mount(entry, host) {
-    const retire = scope.effect(() => {
-      const undo = entry.mount?.(host);
-      return () => {
-        mounted.delete(entry);
-        const hadFocus = host.contains(host.ownerDocument.activeElement);
-        try { undo?.(); } finally {
-          host.replaceChildren();
-          if (hideOnRetire) host.hidden = true;
-          if (hadFocus) fallback()?.focus({ preventScroll: true });
-        }
-      };
-    });
+    if (scope.signal.aborted) return;
+    const undo = entry.mount?.(host);
+    const retire = ownSurface(scope, host, () => { mounted.delete(entry); undo?.(); }, fallback, hideOnRetire);
     if (!scope.signal.aborted) mounted.set(entry, { host, retire });
   }
 

@@ -402,8 +402,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 652,
-  "lineLength": 64
+  "dependencyKey": 613,
+  "lineLength": 59
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -1056,7 +1056,7 @@
  },
  "shell/panel/panel.js": {
   "functionLines": 1,
-  "lineLength": 23
+  "lineLength": 21
  },
  "shell/phone.css": {
   "lineLength": 7
@@ -1071,9 +1071,8 @@
   "lineLength": 10
  },
  "shell/rail/side.js": {
-  "domExpando": 1,
   "functionLines": 1,
-  "lineLength": 24
+  "lineLength": 10
  },
  "shell/render.js": {
   "lineLength": 2

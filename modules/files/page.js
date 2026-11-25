@@ -7,9 +7,12 @@ import { read, write } from "../../core/platform/storage.js";
 import { ICON } from "../../core/ui/icons/names.js";
 import { createTreeWidth } from "./tree-width.js";
 
+/** @import { FilesPageDeps } from "./module-types.d.ts" */
+/** @import { PageSpec } from "../../shell/panel/pages.js" */
+
 const FOLD_KEY = "xo-files-folds"; // {tree: "open" | "folded"}: what you chose, per browser
 
-/** @param {{ stage: any, files: any, viewer: any, view: () => string, announce?: (s: string) => void }} deps */
+/** @param {FilesPageDeps} deps */
 export function createFilesPage({ stage, files, viewer, view, announce = () => {} }) {
   // the page's own pane, made once and kept off the page while its tab is closed: the viewer is one element for the app's whole life
   const pane = document.createElement("section");
@@ -39,15 +42,16 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
     return scope.dispose;
   }
 
-  const nameOf = (/** @type {any} */ f) => (f ? f.name || String(f.path || f.rel || "").split("/").pop() : "");
+  const nameOf = () => viewer.file?.name || (viewer.file?.path || viewer.file?.rel || "").split("/").pop() || "";
   // the tree follows the file the viewer shows: found and marked in its folder, and on a narrow panel (a phone) the file takes the tree's place.
   let seen = /** @type {unknown} */ (null);
   function follow() {
     const f = viewer.hasFile ? viewer.file : null;
     if (f !== seen) { seen = f; if (f && !files.auto) files.reveal(f); }
   }
-  stage.page("files", {
-    title: () => (viewer.hasFile ? nameOf(viewer.file) : "Files"),
+  /** @type {PageSpec} */
+  const entry = {
+    title: () => (viewer.hasFile ? nameOf() : "Files"),
     // the one control that shows or hides the file list beside a file, first in the panel's head with the sidebar's own icon
     lead: () => {
       if (!viewer.hasFile) return "";
@@ -68,13 +72,14 @@ export function createFilesPage({ stage, files, viewer, view, announce = () => {
     // unsaved files: Save, Don't save or Cancel (the viewer asks); nothing unsaved: yes at once
     canClose: () => viewer.confirmClose(),
     escape: () => viewer.escape(),
-  });
+  };
 
   // the files' list shown beside (or, narrow, instead of) the file
   const listShown = () => (files.listing || (files.wide ? !files.folded : false));
   // the head's control keeps focus as the head redraws (it's redrawn in place, the same button)
   const refocus = (/** @type {boolean} */ on) => { if (on) mounted?.frame(() => /** @type {HTMLElement | null} */ (document.querySelector('#stage [data-stg-act="tree"]'))?.focus({ preventScroll: true })); };
   const P = {
+    entry,
     /** Show Files in the panel, on the file the viewer has (or the tree alone). focus: into the file. @param {{ focus?: boolean }} [o] */
     show({ focus = false } = {}) {
       stage.show("files", "files", { focus });

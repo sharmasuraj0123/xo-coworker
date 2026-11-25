@@ -27,7 +27,7 @@ import { startRich } from "../core/ui/markdown/rich.js";
 import { createLightbox } from "../modules/conversation/lightbox.js";
 import { createRunsModule } from "../modules/runs/module.js";
 import { createPendingRunStops } from "../core/services/run-stops.js";
-import { SETTINGS_PAGE_OPEN, settingsModule } from "../modules/settings/module.js";
+import { createSettingsModule } from "../modules/settings/module.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
 import { worktreesModule } from "../modules/worktrees/module.js";
@@ -68,11 +68,10 @@ import { createDockFolds } from "../modules/decisions/dock-folds.js";
 import { createConversationDecisionActions } from "../modules/decisions/conversation-actions.js";
 import { tickElapsed } from "../shell/elapsed.js";
 import { headOf } from "../modules/decisions/cardparts.js";
-import { createAccounts } from "../modules/settings/accounts.js";
-import { createFileViewer } from "../modules/files/viewer.js";
+import { createFilesModule } from "../modules/files/module.js";
 import { diff, jump as jumpDiff, setTheme as setDiffTheme } from "../modules/changes/diffview.js";
 import { isImageChange, drawImageChange } from "../modules/changes/imagechange.js";
-import { createMap } from "../modules/map/map.js";
+import { createMapModule } from "../modules/map/module.js";
 import { createStage } from "../shell/panel/panel.js";
 import { createSide } from "../shell/rail/side.js";
 import { kernel } from "../shell/kernel.js";
@@ -97,7 +96,6 @@ import { drawPlaceIcons, drawFrameIcons } from "../shell/frame-icons.js";
 import { startShell } from "../shell/start.js";
 import { createLaunchpad } from "../modules/launchpad/launchpad.js";
 import { createLpApi } from "../modules/launchpad/client.js";
-import { createFiles } from "../modules/files/files.js";
 import { createConversationFiles } from "../modules/files/conversation-files.js";
 import { createMediaOpener } from "../modules/files/open-media.js";
 import { fileScope, localIn } from "../modules/files/scope.js";
@@ -105,7 +103,6 @@ import { filePlace } from "../modules/files/search-place.js";
 import { createPaths } from "../core/services/paths.js";
 import { createQuickOpen } from "../modules/search/quickopen.js";
 import { createWorkspaceJump } from "../modules/search/jump-items.js";
-import { createFilesPage } from "../modules/files/page.js";
 import { createChanges, lineRef, fileRef } from "../modules/changes/store.js";
 import { createSavedSoon } from "../modules/changes/saved.js";
 import { createThreadResolve } from "../modules/threads/resolve.js";
@@ -120,7 +117,7 @@ import { createLpWindow } from "../modules/launchpad/window.js";
 import { createLpPage } from "../modules/launchpad/page.js";
 import { createGhPage } from "../modules/github/page.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
-import { createChangesFrame } from "../modules/changes/frame.js";
+import { createChangesModule } from "../modules/changes/module.js";
 import { createTray } from "../core/services/media/attachment-tray.js";
 import { api, uploadAttachment } from "../core/platform/api.js";
 import { initCreate } from "../modules/create-project/create.js";
@@ -143,7 +140,7 @@ import { wordsOf } from "../modules/conversation/words.js";
 import { rtName } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 import { createShapeStore } from "../core/services/shape/index.js";
-import { createSettingsFrame, createSettingsSections, createKeysPage, createShapeView, SHAPE_IC } from "../modules/settings/index.js";
+import { createShapeView, SHAPE_IC } from "../modules/settings/index.js";
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
 import { menuKeys, focusOpened } from "../core/ui/a11y/keynav.js";
 import { bindChatControls } from "../modules/chats/controls.js";
@@ -279,8 +276,9 @@ const CH = createChats({
 }, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
 // what a place changed, from Space's /changes (modules/changes/store.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, api, onChange: () => schedule() });
-const VW = createFileViewer({
-  announce, onChange: () => schedule(), changes: CHG,
+const { module: filesModule, viewer: VW, tree: FILES, page: FP } = createFilesModule({
+  viewer: {
+  onChange: schedule, changes: CHG,
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text), compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
   // each save (⌘S): its place's changes are read again, once you pause
   edits: { saved: (f) => savedSoon(f) },
@@ -293,7 +291,11 @@ const VW = createFileViewer({
   closed: () => edgeBack(decisionsCard),
   // closed, with what opened it gone and nothing drawn in its place: where you'd carry on
   home: () => [$("#say"), placeRegion()].find(usable) || null,
-}, { $, diff, jump: jumpDiff, isImageChange, drawImageChange });
+  },
+  renderers: { $, diff, jump: jumpDiff, isImageChange, drawImageChange },
+  tree: () => ({ isBusy, PROJ, go: (v) => go(v), changes: CHG, paths: PATHS }),
+  stage: () => STAGE,
+});
 const savedSoon = createSavedSoon(CHG);
 // a file changed on disk (Space's file.version): the open file takes it in, and the place's file list follows
 appScope.effect(() => world.onEvent((e) => {
@@ -360,11 +362,10 @@ const glyphOf = (/** @type {ThreadStatus} */ t) => (isHeld(t) ? "paused" : t.sta
 const wordOf = (/** @type {ThreadStatus} */ t) => (isHeld(t) ? heldShort(t.held) : glyphOf(t) === "idle" ? "Waiting" : t.frozen ? "Continued" : STATE_WORD[t.state] || t.state);
 const stOf = (/** @type {ThreadStatus} */ t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "stopped" : t.state);
 setThreadInfo((/** @type {string} */ id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
-const MAP = createMap({ world, go: (v) => go(v, { panel: true }), announce, isBusy, openFile: (f, from) => VW.open(f, from), stepLineHtml });
+const MAP = createMapModule({ go: (v) => go(v, { panel: true }), isBusy, openFile: (f, from) => VW.open(f, from), stepLineHtml });
 const { panelThreads, threadCounts } = createThreadGroups({
   world, D, MAP, convProject, askShort, threadMark: (t) => threadMark(t), isBusy, isHeld,
 });
-const FILES = createFiles({ world, viewer: VW, isBusy, PROJ, go: (v) => go(v), changes: CHG, onFold: (f) => FP.treeFolded(f), paths: PATHS });
 /** @param {string | null | undefined} v */
 const lpProject = (v) => v?.startsWith("p:") ? v.slice(2) : v?.startsWith("t:") ? world.thread(v.slice(2))?.project ?? null : null;
 /** @param {string} p @param {string | null} [id] */
@@ -393,13 +394,6 @@ const atOf = (/** @type {string} */ v) => {
   const t = convThread(v);
   return { view: v, project: t?.project ?? (v.startsWith("p:") ? v.slice(2) : undefined), thread: t?.id };
 };
-/** @typedef {Omit<Parameters<typeof createChangesFrame>[0], "host" | "changes">} ChangeFrameOptions */
-const FRAMES = {
-  map: { title: "Map", mount: (/** @type {HTMLElement} */ host) => MAP.mount(host), api: MAP },
-  changes: { title: "Changes", theme: setDiffTheme,
-    mount: (/** @type {HTMLElement} */ host, /** @type {ChangeFrameOptions} */ o) => createChangesFrame({ host, changes: CHG, ...o }) },
-};
-for (const [id, e] of Object.entries(FRAMES)) kernel.places.contribute("panel.frame", { id, ...e }, `xo.${id}`);
 const STAGE = createStage({
   place: panelPlace, files: FILES, openFiles: () => FP.show({ focus: true }),
   github: {
@@ -410,7 +404,6 @@ const STAGE = createStage({
   frames: () => SHAPE.list("panel").map((s) => s.id.slice("xo:panel/".length)), threads: (v) => panelThreads(v),
   shell: (on, host, where) => panelShell(on, host, where), owns: (e) => SH.owns(e), at: () => atOf(currentView()), places: kernel.places,
 });
-const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: currentView, announce });
 const GH = createGhPage({ stage: STAGE, api, view: currentView, projectOf: (view) => lpProject(view) ?? "", announce, work: (p, it) => {
   if (currentView() !== `p:${p}`) go(`p:${p}`);
   const what = it.kind === "pr" ? `Review pull request #${it.number}` : `Work on issue #${it.number}`;
@@ -1060,31 +1053,26 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
-const leafModules = [sinceModule, artifacts.module, runs.module, settingsModule];
-for (const module of [...leafModules, routingModule, rulesModule, worktreesModule]) kernel.register(module);
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
-const ACCTS = createAccounts({ announce });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
 const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
 const shapeApply = createShapeApply({ view: currentView, SV, SHAPE, setWorkMode, hopsRender, webpicsRender, convThread, world, loadChatHops, SH, STAGE, schedule });
 appScope.effect(() => SHAPE.onChange(() => shapeApply()));
 shapeApply({ boot: true });
-const SECTIONS = createSettingsSections({ places: kernel.places, nav: setEl.querySelector(".set-nav"), pages: setEl.querySelector(".set-page").parentElement, at: () => ({ project: currentView().startsWith("p:") ? currentView().slice(2) : convThread(currentView())?.project }), pick: (id) => SETF.setPage(id), isOpen: () => !setEl.hidden, onTabs: () => SV.apply() });
-const SETF = createSettingsFrame({
-  el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE, focusIn: focusOverlay, fallback: () => say,
-  onPage: (id) => { kernel.bus.emit(SETTINGS_PAGE_OPEN, id); if (id === "runtimes") RTSET.open(); if (id === "accounts") ACCTS.open(); if (id === "shape") SV.open(); SECTIONS.show(id); },
-  // a phone's drawer hands the keyboard back to its menu first, so closing Settings returns it there
-  beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); SECTIONS.resume(); },
-  beforeClose: () => { KP.cancel(); SECTIONS.hide(); },
+const settings = createSettingsModule({
+  el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE,
+  focusIn: focusOverlay, fallback: () => say,
+  at: () => { const view = currentView(); return { project: view.startsWith("p:") ? view.slice(2) : convThread(view)?.project }; },
+  openRuntimes: RTSET.open, shape: SV,
+  beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
   onHidden: () => syncInert(),
 });
-function openSettings() { SETF.open(); }
-/** @param {Parameters<typeof SETF.close>[0]} [options] */
-function closeSettings(options) { SETF.close(options); }
-
-const KP = createKeysPage({ box: $("#set-keys-list"), announce, resetIcon: ICON.retry });
-appScope.effect(() => K.onChange(() => { KP.render(); if (!keys.hidden) keysSheetRender(); schedule(); }));
-KP.render();
+const leafModules = [sinceModule, artifacts.module, runs.module, settings.module, MAP.module, createChangesModule(CHG), filesModule];
+for (const module of [...leafModules, routingModule, rulesModule, worktreesModule]) kernel.register(module);
+function openSettings() { settings.open(); }
+/** @param {Parameters<typeof settings.close>[0]} [options] */
+function closeSettings(options) { settings.close(options); }
+appScope.effect(() => K.onChange(() => { if (!keys.hidden) keysSheetRender(); schedule(); }));
 
 wireThemeToggle(applyTheme, lookSync, announce);
 
@@ -1153,7 +1141,7 @@ const { syncInert, dispose: disposeKeyboardLayers } = mountKeyboardLayers({
   layers: LAYERS, phone: PHONE, app: $("#app"), main: $("#main"), side: $("#side"), settings: setEl,
 });
 const disposeGlobalKeys = wireGlobalKeys({
-  view: navigationState.view, capturing: KP.capturing, SH, jump, IQ, CREATE, keys, GLOBAL, FP, QO, LAYERS, back, go,
+  view: navigationState.view, capturing: settings.capturing, SH, jump, IQ, CREATE, keys, GLOBAL, FP, QO, LAYERS, back, go,
 });
 const { canBack, stepBack } = createBackSteps({ location: navigationState, LAYERS, placeOk, go, back });
 appScope.effect(() => wireBack({ canBack, stepBack }));
@@ -1193,11 +1181,11 @@ $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 appScope.effect(mountMainDecoration);
 for (const module of leafModules) appScope.effect(() => () => { void kernel.disable(module.manifest.id); });
 for (const dispose of [
-  codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo,
-  CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
+  codeCopy.dispose, disposeComposerFocus, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo, SIDE.dispose,
+  CH.dispose, IQ.dispose, GH.dispose,
   threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,
-  SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), disposeConversationStops,
+  SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, disposeConversationStops,
   STAGE.disposeLayout, LPP.dispose, LW.dispose,
 ]) appScope.effect(() => dispose);
 appScope.listen(window, "pagehide", (event) => {

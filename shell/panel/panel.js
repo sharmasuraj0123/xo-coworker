@@ -14,7 +14,8 @@ import { FILTER_AT, threadsHtml, agentsHtml, changesHtml } from "./lists.js";
 import { createPages } from "./pages.js";
 import { createCover, createWidth } from "./width.js";
 import { countsHtml } from "../../core/ui/components/counts.js";
-/** @import { ChangesFrame, FrameState, MapFrame, StageDeps, StageState } from "./panel-types.d.ts" */
+import { bindPanelFrames } from "./frame-bindings.js";
+/** @import { FrameState, StageDeps, StageState } from "./panel-types.d.ts" */
 
 const KEY = "xo-stage";
 const FR_KEY = "xo-stage-frames-3"; // Threads · Changes · Map, the Map folded at first
@@ -27,11 +28,7 @@ const FILES_IC = ICON.folder;
 /** @param {StageDeps} deps */
 export function createStage({ files, openFiles = null, github = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, threads = null, shell = null, owns = () => false, at, places }) {
   const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
-  const mapFrame = /** @type {MapFrame | undefined} */ (places.get("panel.frame", "map"));
-  const changesFrame = /** @type {ChangesFrame | undefined} */ (places.get("panel.frame", "changes"));
-  if (!mapFrame || !changesFrame) throw new Error("Panel frames are missing");
   const layoutScope = createScope();
-  const map = mapFrame.api;
   // the Map starts folded, in its Graph: Threads and Changes have the room
   /** @type {Partial<FrameState>} */
   const savedFrames = read(FR_KEY, JSON.parse, {});
@@ -77,8 +74,12 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   }
   const LISTS = '[data-fr="agents"] > .fr-b, .ch-old';
   const edge = (/** @type {Element} */ b) => b.classList.toggle("is-fade", b.scrollTop + b.clientHeight < b.scrollHeight - 1);
-  let edgeF = 0;
-  const edges = () => { if (!edgeF) edgeF = requestAnimationFrame(() => { edgeF = 0; for (const b of el.querySelectorAll(LISTS)) edge(b); }); };
+  let edgePending = false;
+  function edges() {
+    if (edgePending) return;
+    edgePending = true;
+    layoutScope.frame(() => { edgePending = false; for (const list of el.querySelectorAll(LISTS)) edge(list); });
+  }
   el.addEventListener("scroll", (/** @type {Event} */ e) => {
     const target = /** @type {Element | null} */ (e.target);
     if (target?.matches?.(LISTS)) edge(target);
@@ -97,16 +98,28 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       if (e.key === "ArrowDown" || e.key === "Enter") { const r = query(".tg-box [data-go]"); if (r) { e.preventDefault(); if (e.key === "Enter") r.click(); else r.focus(); } }
     });
   }
-  mapFrame.mount(body("map"));
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
   body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
-  const CX = changesFrame.mount(query(".cx-host"), {
-    view,
-    openFile: ({ project, worktree }, path, from) => viewer.open({
-      path, name: path.split("/").pop(), project, rel: worktree ? `.xo/worktrees/${worktree}/${path}` : path, show: "changes",
-    }, from),
-    onChange: () => onChange && onChange(),
+  const binding = bindPanelFrames({
+    places, scope: layoutScope, hosts: { map: body("map"), changes: query(".cx-host") },
+    options: {
+      view,
+      openFile: ({ project, worktree }, path, from) => viewer.open({
+        path, name: path.split("/").pop(), project, rel: worktree ? `.xo/worktrees/${worktree}/${path}` : path, show: "changes",
+      }, from),
+      onChange: () => onChange && onChange(),
+    },
+    fallback: () => {
+      const threadsFold = query('[data-fr-fold="agents"]');
+      return usable(threadsFold) ? threadsFold : el;
+    },
+    refresh: () => {
+      const retired = document.activeElement?.closest("[data-fr]")?.getAttribute("data-fr");
+      if ((retired === "map" && !binding.map) || (retired === "changes" && !binding.changes)) el.focus({ preventScroll: true });
+      layout(); paint(); onChange?.();
+    },
   });
+  const activeFrames = () => frames().filter((id) => id === "agents" || (id === "map" ? binding.map : binding.changes));
 
   function persist() { write(KEY, JSON.stringify({ open: S.open || !!S.resume })); write(FR_KEY, JSON.stringify(fr)); }
 
@@ -116,7 +129,8 @@ export function createStage({ files, openFiles = null, github = null, place = ()
   let nameOf = () => "";
   const PG = createPages({ el, S, places, at, view, threads, shell, nameOf: () => nameOf, placeless, open, close, paint, onChange });
   const { PAGES, show, back, dropPages, requestClose, setShell } = PG;
-  const FR = createFrames({ el, S, fr, frames, view, map, persist, paint });
+  const mapLayout = { hide: () => binding.map?.hide(), show: (/** @type {string} */ v) => binding.map?.show(v) };
+  const FR = createFrames({ el, S, fr, frames: activeFrames, view, map: mapLayout, persist, paint });
   function layout() { FR.layout(); }
   function capAgents() { FR.capAgents(); }
 
@@ -134,7 +148,8 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     PG.reflect();
     if (!S.open) return;
     const v = view();
-    const ag = map.agents(v);
+    const { map, changes } = binding;
+    const ag = map?.agents(v) ?? [];
     // a clock's figures aren't a change; what changes is drawn in place, so the row you're on stays itself
     const set = (/** @type {string} */ k, /** @type {HTMLElement} */ node, /** @type {string} */ html) => {
       const same = html.replace(/(<span class="elapsed" data-since="\d+">)[^<]*/g, "$1");
@@ -156,8 +171,8 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     const count = String(tg ? (tg.reduce((n, x) => n + x.rows.filter((r) => !r.coord).length, 0) || "") : (ag.filter((a) => a.busy).length || ""));
     if (agentCount.textContent !== count) agentCount.textContent = count;
     // Changes: Space's list and diff where it has /changes, else today's list
-    if (!fr.changes.folded && !covered) CX.paint();
-    const hd = CX.head();
+    if (!fr.changes.folded && !covered) changes?.paint();
+    const hd = changes?.head();
     const cxHost = query(".cx-host"), old = query(".ch-old");
     cxHost.hidden = !hd; old.hidden = !!hd;
     if (!hd && !covered) { const ch = files.changes(v); set("changes", old, changesHtml(ch, v)); }
@@ -181,10 +196,10 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       fw.setAttribute("aria-label", hd.follow ? "Following the agent" : "Follow the agent");
     }
     for (const b of /** @type {NodeListOf<HTMLElement>} */ (el.querySelectorAll("[data-map-mode]"))) {
-      const on = map.mode === b.dataset.mapMode;
+      const on = map?.mode === b.dataset.mapMode;
       b.classList.toggle("is-on", on); b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1;
     }
-    body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
+    if (map) body("map").setAttribute("aria-labelledby", `stage-map-${map.mode}`);
     const fb = query("[data-stg-full]");
     const fh = S.full ? UNFULL_IC : FULL_IC;
     redraw(fb, fh);
@@ -201,7 +216,8 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       S.returnTo = /** @type {HTMLElement | null} */ (document.activeElement);
       el.hidden = false;
       // its entrance starts in the next frame, not by forcing a layout in the middle of the switch that brought it
-      el.classList.remove("is-in"); requestAnimationFrame(() => { if (S.open) el.classList.add("is-in"); });
+      el.classList.remove("is-in");
+      layoutScope.frame(() => { if (S.open) el.classList.add("is-in"); });
       document.body.classList.add("stage-open");
     }
     apply();
@@ -222,7 +238,7 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     el.hidden = true;
     coverSync(); // what it covered is in reach again before focus goes back to it
     document.body.classList.remove("stage-open");
-    map.hide();
+    binding.map?.hide();
     persist();
     // back to what opened it, or, if that was redrawn meanwhile, to the toggle on screen now: never to the page
     const toggles = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll("[data-stage-toggle]"));
@@ -230,7 +246,14 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     S.returnTo = null;
     if (restore && back) back.focus({ preventScroll: true });
     // the head is redrawn after this (its toggle with it): once it has been, focus is on the toggle drawn now
-    if (restore) requestAnimationFrame(() => requestAnimationFrame(() => { const a = document.activeElement; if (!a || a === document.body || !a.isConnected) /** @type {HTMLElement[]} */ ([...document.querySelectorAll("[data-stage-toggle]")]).find(usable)?.focus({ preventScroll: true }); }));
+    if (restore) layoutScope.frame(() => layoutScope.frame(() => {
+      const active = document.activeElement;
+      if (!active || active === document.body || !active.isConnected) {
+        /** @type {NodeListOf<HTMLElement>} */
+        const buttons = document.querySelectorAll("[data-stage-toggle]");
+        [...buttons].find(usable)?.focus({ preventScroll: true });
+      }
+    }));
     if (!quiet) announce("Panel closed.");
     onChange && onChange();
   }
@@ -272,10 +295,13 @@ export function createStage({ files, openFiles = null, github = null, place = ()
       layout(); paint(); persist(); return;
     }
     const mode = closest("[data-map-mode]")?.dataset.mapMode;
-    if (mode) { if (fr.map.folded) { fr.map.folded = false; layout(); } map.setMode(mode); paint(); return; }
+    if ((mode === "graph" || mode === "tree") && binding.map) {
+      if (fr.map.folded) { fr.map.folded = false; layout(); }
+      binding.map.setMode(mode); paint(); return;
+    }
     if (t.closest("[data-open-gh]")) { if (S.page?.name === "github" || S.page?.name === "ghitem") dropPages(); else github?.show(); return; }
     if (t.closest("[data-open-files]")) { if (S.page?.name === "files") back(entryInput(e)); else openFiles && openFiles(); return; }
-    if (t.closest("[data-follow]")) { CX.toggleFollow(); paint(); return; }
+    if (t.closest("[data-follow]")) { binding.changes?.toggleFollow(); paint(); return; }
     const ch = closest("[data-change]"), rel = ch?.dataset.change;
     if (rel) { viewer.open({ path: rel, name: rel.split("/").pop(), project: ch?.dataset.changeProject, rel }, ch); return; }
     const fold = closest("[data-tg-fold]")?.dataset.tgFold;
@@ -343,19 +369,18 @@ export function createStage({ files, openFiles = null, github = null, place = ()
     reshape() { layout(); paint(); },
     /** A changed file's chip: the panel opens (if closed) on that file's diff; false when it can't. @param {string} path */
     showChange(path) {
-      if (!frames().includes("changes") || !CX.head()) return false;
-      if (!CX.select(path)) return false;
+      if (!frames().includes("changes") || !binding.changes?.head() || !binding.changes.select(path)) return false;
       fr.changes.folded = false;
       if (S.page) dropPages();
       if (!S.open) open({ focus: false }); else { layout(); paint(); persist(); }
       return true;
     },
     /** You sent the agent a message: following resumes. @param {string} v */
-    resumeFollow(v) { CX.resume(v); },
+    resumeFollow(v) { binding.changes?.resume(v); },
     /** The file chosen in the panel's Changes for a view, while the panel shows it. @param {string} v */
-    chosen(v) { return S.open && !fr.changes.folded && frames().includes("changes") ? CX.chosen(v) : null; },
+    chosen(v) { return S.open && !fr.changes.folded && frames().includes("changes") ? binding.changes?.chosen(v) ?? null : null; },
     /** The app's theme switched: drawn diffs follow. @param {string} t */
-    theme: (t) => changesFrame.theme(t),
+    theme: binding.theme,
     /** The place's name for the title bar (app.js knows the names). @param {(v: string) => string} fn */
     set names(fn) { nameOf = fn; },
     /** Is this element inside the panel (so the app's Esc leaves it alone)? @param {Node | null} node */

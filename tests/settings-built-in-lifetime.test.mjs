@@ -5,8 +5,13 @@ import { createAppServices } from "../shell/app-services.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
 import { worktreesModule } from "../modules/worktrees/module.js";
-import { SETTINGS_PAGE_OPEN, settingsModule } from "../modules/settings/module.js";
+import { createSettingsModule } from "../modules/settings/module.js";
+import { SETTINGS_PAGE_OPEN } from "../modules/settings/page-events.js";
+import { definePlaces } from "../shell/places.js";
+import { SETTINGS } from "../shell/overlays.js";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
+
+const settingsModule = createSettingsModule().module;
 
 test("Settings retires each built-in read and its keyboard controls together", async (t) => {
   const ids = ["routing", "rules", "worktrees"];
@@ -66,4 +71,60 @@ test("Settings retires each built-in read and its keyboard controls together", a
   await settle();
   assert.equal(requestCount, routes.length);
   assert.equal(root.innerHTML, painted, "retired pages ignore late results");
+});
+
+test("the Settings surface retires focus, views and listeners and mounts one replacement", async () => {
+  const { document } = await dom(`<button id="set-side">Settings</button><button id="set-phone">Phone Settings</button>${SETTINGS}`);
+  const find = (selector) => document.querySelector(selector);
+  const root = find("#settings"), opener = find("#set-side");
+  const kernel = createKernel();
+  definePlaces(kernel);
+  kernel.register({
+    manifest: {
+      id: "test.host", version: "1.0.0", kernel: "^1.1.0", provides: ["announce"], contributes: ["settings.section:test-page"],
+    },
+    activate(ctx) {
+      ctx.provide("announce", () => {});
+      ctx.contribute("settings.section", {
+        id: "test-page", label: "Test page", icon: "key",
+        render(host) {
+          const button = document.createElement("button");
+          host.append(button);
+          return () => button.remove();
+        },
+      });
+    },
+  });
+  const settings = createSettingsModule({
+    el: root, side: opener, phoneButton: find("#set-phone"), closeButton: find("#set-x"),
+    phone: matchMedia("(max-width: 760px)"), focusIn: (node) => node.focus(), fallback: () => opener,
+    at: () => ({}), openRuntimes() {}, shape: { apply() {}, open() {} }, beforeOpen() {}, onHidden() {},
+  });
+  const id = settings.module.manifest.id;
+  kernel.register(settings.module);
+  const opened = [];
+  kernel.bus.on(SETTINGS_PAGE_OPEN, (page) => opened.push(page));
+  await kernel.start();
+  const keyRows = find("#set-keys-list").childElementCount;
+  assert.ok(keyRows > 0);
+  opener.focus();
+  opener.click();
+  find('[data-set="test-page"]').click();
+  find('[data-section="test-page"] button').focus();
+  await kernel.disable(id);
+  assert.equal(kernel.live(id), 0);
+  assert.equal(root.hidden, true);
+  same(document.activeElement, opener);
+  assert.equal(find('[data-set="test-page"]'), null);
+  assert.equal(find("#set-keys-list").childElementCount, 0);
+  opener.click();
+  assert.equal(root.hidden, true);
+  await kernel.enable(id);
+  assert.equal(document.querySelectorAll('[data-set="test-page"]').length, 1);
+  assert.equal(find("#set-keys-list").childElementCount, keyRows);
+  opener.click();
+  assert.equal(root.hidden, false);
+  find('[data-set="keys"]').click();
+  assert.deepEqual(opened.filter((page) => page === "keys"), ["keys"]);
+  await kernel.disable(id);
 });

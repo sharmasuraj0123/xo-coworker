@@ -33,6 +33,11 @@ export interface SettingsFrameDeps {
   onPage: (id: string) => void; beforeOpen: () => void; beforeClose: () => void; onHidden: () => void;
   focusIn: (el: HTMLElement) => void; fallback: () => Element | null; phone: MediaQueryList;
 }
+export interface SettingsSurfaceHost extends Omit<SettingsFrameDeps, "scope" | "onPage" | "beforeClose"> {
+  at(): { project?: string };
+  openRuntimes(): void;
+  shape: { apply(): void; open(): void };
+}
 export interface SectionEntry {
   id: string;
   label: string;
