@@ -10,7 +10,7 @@ export function createConversationNotices(schedule) {
   const scope = createScope();
   /** @type {{ herald: Notice | null }} */
   const state = { herald: null };
-  const { show, forMsg, next, drop } = createHerald({
+  const { show, forMsg, next, drop, HQ } = createHerald({
     state, schedule, setTimer: scope.timeout,
     clearTimer: (cancel) => { if (typeof cancel === "function") cancel(); },
   });
@@ -27,6 +27,8 @@ export function createConversationNotices(schedule) {
 
   return {
     current, dismiss,
+    /** @param {string} mid */
+    has: mid => !scope.signal.aborted && (current()?.mid === mid || HQ.some(({ h }) => h.mid === mid)),
     /** @type {typeof show} */
     show: (...args) => { if (!scope.signal.aborted) show(...args); },
     /** @type {typeof forMsg} */

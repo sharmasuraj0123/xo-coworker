@@ -1,23 +1,23 @@
 // @ts-check
 
-const notified = new WeakSet();
+const mounted = new WeakSet();
 
 /** @param {import("../core/kernel/types").ModuleContext} ctx */
 export function mountReleaseNotice(ctx) {
   const version = document.querySelector('meta[name="xo-ui-version"]')?.getAttribute("content");
-  if (!version || notified.has(document)) return;
+  if (!version || mounted.has(document)) return;
+  mounted.add(document);
   const prefix = location.origin + "/v/" + version + "/";
   const notices = ctx.use("notices");
   const mid = "system:ui-update";
-  ctx.effect(() => () => notices.drop(mid));
+  ctx.effect(() => () => { mounted.delete(document); notices.drop(mid); });
   let checking = false, nextCheck = 0;
   function show() {
-    if (ctx.signal.aborted || notified.has(document)) return;
-    notified.add(document);
+    if (ctx.signal.aborted || notices.has(mid)) return;
     notices.show({ mid, kind: "calm", force: true, text: "XO was updated", undoLabel: "Reload", undo: () => location.reload() }, 30000);
   }
   async function check() {
-    if (checking || Date.now() < nextCheck || notified.has(document) || ctx.signal.aborted || document.visibilityState === "hidden") return;
+    if (checking || Date.now() < nextCheck || notices.has(mid) || ctx.signal.aborted || document.visibilityState === "hidden") return;
     checking = true;
     try {
       const response = await fetch("/", { method: "HEAD", cache: "no-store", signal: ctx.signal });
