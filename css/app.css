@@ -48,16 +48,9 @@
 @import url("../shell/dock-grid-phone.css");
 @import url("../modules/shells/dock-phone.css");
 @import url("../shell/gestures.css");
-@media (max-width:760px){
-  .side.is-drag{box-shadow:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
-  .sheet-card{position:relative}
-  .panel::before,.iq-pop.is-sheet::before,.sheet-card::before,.shd-bar::before{content:"";position:absolute;z-index:3;top:var(--s-2);left:50%;width:var(--grab-w);height:var(--grab-h);margin-left:calc(var(--grab-w) / -2);border-radius:2px;background:var(--fill-4);pointer-events:none}
-  .shd-bar{position:relative}
-  .shd-bar::before{top:calc(env(safe-area-inset-top) + 4px)}
-  .shd.is-half{top:45dvh;border-top:1px solid var(--line-soft);border-radius:var(--r-xl) var(--r-xl) 0 0;overflow:hidden;box-shadow:var(--e2)}
-  .shd.is-half .shd-bar{padding-top:6px}
-  .shd.is-half .shd-bar::before{top:var(--s-1)}
-}
+@import url("../shell/gesture-phone.css");
+@import url("../shell/panel/sheet-grip.css");
+@import url("../modules/shells/sheet-phone.css");
 
 .since{flex:none;padding:var(--s-3) var(--hg);border-bottom:1px solid var(--line-view)}
 

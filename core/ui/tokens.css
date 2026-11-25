@@ -175,6 +175,7 @@
   --offset-shell-list-link:3px; --s-shell-status-top:7px; --w-shell-list-name:320px; --s-shell-flag-block:1px;
   --w-shell-list-empty:560px; --h-shell-phone-bar:52px; --w-shell-phone-rename:160px;
   --s-long-press-gap:2px; --s-long-press-inline:14px;
+  --r-sheet-grip:2px; --start-shell-sheet:45dvh; --s-shell-sheet-bar:6px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
@@ -293,3 +294,4 @@
 @media (max-width:760px){:root{--h-row:36px}}
 @media (max-width:760px){:root{--cbar-fade:22px}}
 :where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}
+:where(.side.is-drag){--shadow-sidebar-drag:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
