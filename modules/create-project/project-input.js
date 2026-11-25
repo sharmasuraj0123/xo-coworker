@@ -42,11 +42,10 @@ export function parseRepo(raw) {
     const github = host === "github.com";
     return { url: v, label: github ? path : `${host}:${path}`, name: path.split("/").pop(), github };
   }
-  try {
-    const u = new URL(v);
-    const path = u.pathname.replace(/\/+$/, "").replace(/\.git$/, "");
-    if (!/^(https|ssh):$/.test(u.protocol) || u.password || (u.username && u.protocol === "https:") || u.search || u.hash) return null;
-    if (path.split("/").filter(Boolean).length < 1) return null;
-    return { url: v, label: `${u.host}${path}`, name: path.split("/").pop(), github: false };
-  } catch { return null; }
+  let u;
+  try { u = new URL(v); } catch (error) { if (error instanceof TypeError) return null; throw error; }
+  const path = u.pathname.replace(/\/+$/, "").replace(/\.git$/, "");
+  if (!/^(https|ssh):$/.test(u.protocol) || u.password || (u.username && u.protocol === "https:") || u.search || u.hash) return null;
+  if (path.split("/").filter(Boolean).length < 1) return null;
+  return { url: v, label: `${u.host}${path}`, name: path.split("/").pop(), github: false };
 }

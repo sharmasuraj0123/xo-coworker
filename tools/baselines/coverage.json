@@ -73,12 +73,6 @@
    ["commentOnlyCatch",247,""]
   ]
  },
- "modules/create-project/project-input.js": {
-  "sha256": "7e7ded21f98a013b1d063b193859e1178bf3343b4c3b874f1aff722028a16e90",
-  "sites": [
-   ["commentOnlyCatch",51,""]
-  ]
- },
  "modules/decisions/kit.js": {
   "sha256": "3d81e29d7114ca24f04f45d1ae42171c5af9f438e38c73b7609455ef5d1105d0",
   "sites": [
