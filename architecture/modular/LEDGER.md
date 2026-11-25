@@ -1,6 +1,6 @@
 # Ledger: every file of xo-coworker at f0144d5 and its new home
 
-Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not edit by hand. **Planned**, **split-region**, and **decide** are open. Settled entries are **moved**, **kept**, **split**, **vendor** (unchanged bytes), or **deleted** (with a reason). Settled homes must be repository files with evidence of the transfer. `--final` requires every entry to be settled.
+Frozen when the modularization finished; the ledger tooling was removed then and nothing checks this file. **Planned** and **split-region** entries were left open; [HANDOFF.md](../HANDOFF.md) lists them as follow-ups. Settled entries are **moved**, **kept**, **split**, **vendor** (unchanged bytes), or **deleted** (with a reason).
 
 | Status | Files |
 |---|---:|

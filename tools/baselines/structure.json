@@ -1038,9 +1038,6 @@
  "tests/hover-veil.test.mjs": {
   "sourceRead": 1
  },
- "tests/ledger-deleted.test.mjs": {
-  "sourceRead": 1
- },
  "tests/lib/cascade.mjs": {
   "sourceRead": 1
  },

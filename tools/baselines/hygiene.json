@@ -648,8 +648,5 @@
  },
  "tools/check.mjs": {
   "commentLines": 1
- },
- "tools/ledger/ledger_md.py": {
-  "commentReference": 1
  }
 }

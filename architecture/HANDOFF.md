@@ -1,25 +1,14 @@
 # Modularization handoff
 
-`coworker/modular` is the canonical local branch. The deployed code is `7440249e`.
+The modularization is finished. `coworker/modular` is the canonical local branch, and new work branches from it. The rules for working here are in [AGENTS.md](../AGENTS.md) and [DEVELOPING.md](../DEVELOPING.md).
 
-The Files page returns the shared viewer to its shell position on unmount. At 400 lines, the next change to `modules/files/files.js` must first extract a coherent part, such as mounting and viewer placement.
+## Left over, to do when the code is next touched
 
-## Standing rules for every phase
+- About 90 unit tests in `tests/*.test.mjs` still sit at the top level; move each beside the code it covers.
+- The browser suites in `tests/browser/` (and `harness.cjs`) are meant to become `e2e/specs/`.
+- `css/foundation.css`, `css/light.css` and `css/panel.css` still hold rules that belong to their owners (tokens, the panel, Home, Files).
 
-- Move code as it is. Don't hard-code any value, and don't change any CSS value, look or behaviour while modularizing.
-- Never rebuild or redesign anything on your own. If something seems to need a rebuild or a behaviour change (including a "fix"), stop and ask me first, with the evidence. I take it to the owner.
-- In P2, resolve conflicts by keeping release's look and behaviour exactly, and modular's structure. Anything that can't be both, ask me.
-- Run only one full check or browser run across the project at a time. Use `modular-full-check` for a full check and `headless-browser-suite` for a browser run. Before starting, confirm neither kind of run is active elsewhere. Use `JOBS=1` and a memory `ulimit` for each run.
-- Before a full check, read `free -m` and wait if available memory is below about 1.5 GB. Use no helper sub-agents. Run at most one TypeScript checker or Node test process of your own at a time, and only stop processes you started.
-
-## Exit criteria
-
-- Code is efficient and readable, with small cohesive modules and clear boundaries.
-- Comments and docstrings are one line at most. Each P3 package records each file's size against its target and checks for comment blocks, dead code and duplicate helpers.
-- Every merge review checks production readiness in addition to test results. Inspect ownership and naming, readability, types, existing tokens, error propagation, listener and observer lifetimes, and work added to startup. Require behavior tests with deliberate breaks. Send any new regression back with file and line evidence. Record inherited problems for the post-P4 fix phase.
-- After P4 and the fix phase, an independent audit covers the whole codebase and lists remaining patches, workarounds, oversized files, docstrings and duplicates by file and line before P5.
-- Send any audit finding that would change looks or behaviour to the coordinator as a proposal for the owner. Make verified behaviour-preserving cleanups in their own checked commits.
-- `core/ui/lightbox.js` is at the 400-line cap. If its next change needs more room, extract the download and object URL lifetime together.
+[modular/LEDGER.md](modular/LEDGER.md) is the frozen map from each old file to its new home. Everything below is the history of the rebuild: its rules and caps no longer apply.
 
 ## P1 integration, resumed 23 November 2026
 

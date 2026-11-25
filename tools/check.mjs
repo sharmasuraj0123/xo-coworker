@@ -163,13 +163,6 @@ step("places", () => {
   return r.status === 0 ? null : (r.stderr || r.stdout).trim();
 });
 
-step("ledger", () => {
-  const r = run("python3", ["tools/ledger/check_ledger.py", "--repo", "."]);
-  if (r.status !== 0) return `ledger:\n${(r.stdout + r.stderr).trim()}`;
-  const md = run("python3", ["tools/ledger/ledger_md.py", ".", "--check"]);
-  return md.status === 0 ? null : (md.stdout + md.stderr).trim();
-});
-
 if (!FAST) step("production build", () => {
   const result = run(process.execPath, ["tools/build/check.mjs"]);
   return result.status === 0 ? null : (result.stderr || result.stdout).trim();

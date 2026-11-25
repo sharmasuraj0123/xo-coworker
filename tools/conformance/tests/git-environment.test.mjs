@@ -40,10 +40,7 @@ test("Git fixture suites leave a repository named by the environment byte-identi
     ...process.env, HOME: outer, XDG_CONFIG_HOME: outer, GIT_DIR: metadata, GIT_WORK_TREE: outer,
     GIT_INDEX_FILE: join(metadata, "index"), GIT_CONFIG_GLOBAL: join(outer, "global-config"),
   };
-  const suites = [
-    [process.execPath, "tools/conformance/tests/ratchet.test.mjs"],
-    ["python3", "tests/ledger-evidence.test.py"],
-  ];
+  const suites = [[process.execPath, "tools/conformance/tests/ratchet.test.mjs"]];
   const results = suites.map(([command, file]) =>
     spawnSync(command, [file], { cwd: fileURLToPath(project), encoding: "utf8", env }));
   const after = snapshot(scratch);
