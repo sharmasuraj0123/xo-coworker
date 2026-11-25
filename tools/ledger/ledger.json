@@ -14550,7 +14550,8 @@
   },
   "tests/browser/flows.test.cjs::functions::diffOpen": {
    "status": "planned",
-   "home": "e2e/specs/flows.spec.mjs"
+   "home": "e2e/specs/flows.spec.mjs",
+   "note": "VW-DIFF-ERR is covered by e2e/specs/changes-retry.spec.mjs (Changes read refusal and keyboard retry). The visible refusal, one retry, pending status, rendered patch and focus passed in all four browser profiles on release and integration. Other diffOpen cases, including the retry paint check, remain open."
   },
   "tests/browser/flows.test.cjs::functions::movePicker": {
    "status": "planned",
