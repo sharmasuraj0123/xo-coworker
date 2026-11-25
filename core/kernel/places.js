@@ -6,7 +6,7 @@ const ID = /^(preview:)?[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
 const KINDS = new Set(["single", "list", "keyed", "chain"]);
 const SCOPES = new Set(["app", "project", "conversation"]);
 
-/** @param {(...a: unknown[]) => void} [warn] @returns {Places} */
+/** @param {import("./types").Warn} [warn] @returns {Places} */
 export function createPlaces(warn = console.error) {
   /** @type {Map<string, { def: PlaceDef, owner: string, entries: Contributed[], seq: Map<Contributed, number>, arranger?: Arranger, watchers: Set<() => void> }>} */
   const places = new Map();
@@ -20,12 +20,12 @@ export function createPlaces(warn = console.error) {
   }
   /** @param {ReturnType<typeof need>} p */
   function changed(p) {
-    for (const fn of [...p.watchers]) { try { fn(); } catch (e) { warn(`place "${p.def.id}": a watcher threw:`, e); } }
+    for (const fn of [...p.watchers]) { try { fn(); } catch (e) { warn({ module: "places", phase: "watch", subject: p.def.id }, e); } }
   }
   /** @param {Contributed} e @param {At} at */
   function visible(e, at) {
     if (typeof e.when !== "function") return true;
-    try { return e.when(at) !== false; } catch (err) { warn(`place entry "${e.id}" (${e.owner}): when() threw:`, err); return false; }
+    try { return e.when(at) !== false; } catch (err) { warn({ module: e.owner, phase: "visibility", subject: e.id }, err); return false; }
   }
   /** @param {ReturnType<typeof need>} p @param {At} at @returns {Contributed[]} */
   function ordered(p, at) {
@@ -36,7 +36,7 @@ export function createPlaces(warn = console.error) {
     else if (kind === "keyed") list.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     if (kind !== "single") list = list.filter((e) => visible(e, at));
     if (kind === "list" && p.arranger) {
-      try { list = p.arranger(list, at); } catch (e) { warn(`place "${p.def.id}": the arranger threw; using the default order:`, e); }
+      try { list = p.arranger(list, at); } catch (e) { warn({ module: "places", phase: "arrange", subject: p.def.id }, e); }
     }
     return list;
   }

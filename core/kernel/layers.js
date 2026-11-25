@@ -2,13 +2,13 @@
 
 /** @typedef {import("./types").Layer} Layer @typedef {import("./types").Layers} Layers */
 
-/** @param {(...a: unknown[]) => void} [warn] @returns {Layers} */
+/** @param {import("./types").Warn} [warn] @returns {Layers} */
 export function createLayers(warn = console.error) {
   /** @type {Layer[]} */
   const stack = [];
   /** @type {Set<() => void>} */
   const watchers = new Set();
-  const changed = () => { for (const fn of [...watchers]) { try { fn(); } catch (e) { warn("layers: a watcher threw:", e); } } };
+  const changed = () => { for (const fn of [...watchers]) { try { fn(); } catch (e) { warn({ module: "layers", phase: "watch" }, e); } } };
   /** @param {"escape" | "back"} what @param {readonly string[]} [order] */
   const offer = (what, order) => {
     const candidates = order ? stack.filter((layer) => layer[what]) : stack;
@@ -21,7 +21,7 @@ export function createLayers(warn = console.error) {
     for (let i = candidates.length - 1; i >= 0; i--) {
       const layer = candidates[i];
       const fn = layer[what];
-      try { if (fn && fn.call(layer) === true) return true; } catch (e) { warn(`layers: ${what} of "${layer.id}" threw:`, e); return true; }
+      try { if (fn && fn.call(layer) === true) return true; } catch (e) { warn({ module: "layers", phase: what, subject: layer.id }, e); return true; }
     }
     return false;
   };

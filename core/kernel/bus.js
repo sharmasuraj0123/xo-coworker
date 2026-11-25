@@ -2,7 +2,7 @@
 
 /** @typedef {import("./types").Bus} Bus */
 
-/** @param {(...a: unknown[]) => void} [warn] @returns {Bus} */
+/** @param {import("./types").Warn} [warn] @returns {Bus} */
 export function createBus(warn = console.error) {
   /** @type {Map<string, Set<(payload: unknown) => void>>} */
   const topics = new Map();
@@ -25,7 +25,7 @@ export function createBus(warn = console.error) {
       const set = topics.get(topic);
       if (!set) return;
       for (const fn of [...set]) {
-        try { fn(payload); } catch (e) { warn(`bus: a listener of "${topic}" threw:`, e); }
+        try { fn(payload); } catch (e) { warn({ module: "bus", phase: "listener", subject: topic }, e); }
       }
     },
   };

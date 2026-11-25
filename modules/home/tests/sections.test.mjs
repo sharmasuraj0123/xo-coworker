@@ -111,7 +111,7 @@ t("a failed cleanup reports once and retires both hosts on withdrawal and scope 
     else scope.dispose();
     assert.deepEqual(retired, first, "the second cleanup follows the throwing one");
     assert.equal(home.textContent, "");
-    assert.deepEqual(reports, [["undo failed:", error]]);
+    assert.deepEqual(reports, [[{ module: "scope", phase: "cleanup" }, error]]);
     assert.equal(scheduled, withdrawal ? 3 : 2, "withdrawal still schedules a render");
     scope.dispose();
     assert.equal(scope.size, 0);

@@ -2,7 +2,7 @@
 
 /** @typedef {import("./types").Undo} Undo */
 
-/** @param {(...a: unknown[]) => void} [warn] */
+/** @param {import("./types").Warn} [warn] */
 export function createUndos(warn = console.error) {
   /** @type {Set<Undo>} */
   const live = new Set();
@@ -16,7 +16,7 @@ export function createUndos(warn = console.error) {
         if (done) return;
         done = true;
         live.delete(once);
-        try { fn(); } catch (e) { warn("undo failed:", e); }
+        try { fn(); } catch (e) { warn({ module: "scope", phase: "cleanup" }, e); }
       };
       live.add(once);
       return once;

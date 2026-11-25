@@ -3,7 +3,7 @@ import { createScope } from "./scope.js";
 
 /** @typedef {import("./types").Scheduler} Scheduler */
 
-/** @param {{ request?: (fn: () => void) => unknown, warn?: (...a: unknown[]) => void }} [opts] @returns {Scheduler} */
+/** @param {{ request?: (fn: () => void) => unknown, warn?: import("./types").Warn }} [opts] @returns {Scheduler} */
 export function createScheduler(opts = {}) {
   const warn = opts.warn || console.error;
   const scope = createScope({ warn });
@@ -29,7 +29,7 @@ export function createScheduler(opts = {}) {
     all = false;
     for (const f of [...flushers]) {
       if (!every && !keys.has(f.key)) continue;
-      try { f.fn(); } catch (e) { warn(`scheduler: flusher "${f.key}" threw:`, e); }
+      try { f.fn(); } catch (e) { warn({ module: "scheduler", phase: "flush", subject: f.key }, e); }
     }
   }
   return {

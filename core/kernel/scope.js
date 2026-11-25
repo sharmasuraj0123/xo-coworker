@@ -4,7 +4,7 @@ import { createUndos } from "./undo.js";
 
 /** @typedef {Pick<typeof globalThis, "setTimeout" | "clearTimeout" | "setInterval" | "clearInterval">} Timers */
 
-/** @param {{ timers?: Timers, warn?: (...args: unknown[]) => void }} [options] */
+/** @param {{ timers?: Timers, warn?: import("./types").Warn }} [options] */
 export function createScope({ timers = globalThis, warn } = {}) {
   const undos = createUndos(warn);
   const controller = new AbortController();

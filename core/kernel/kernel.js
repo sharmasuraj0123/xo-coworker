@@ -11,7 +11,7 @@ import { manifestProblems } from "./manifest.js";
 /** @import {Kernel, ModuleContext, ModuleDef, ModuleManifest, ModuleStatus, ServiceValue, StartReport} from "./types" */
 
 export const KERNEL_VERSION = "1.1.0";
-/** @param {{ warn?: (...a: unknown[]) => void, log?: (...a: unknown[]) => void, request?: (fn: () => void) => unknown, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} [opts] @returns {Kernel} */
+/** @param {{ warn?: import("./types").Warn, log?: (...a: unknown[]) => void, request?: (fn: () => void) => unknown, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} [opts] @returns {Kernel} */
 export function createKernel(opts = {}) {
   const warn = opts.warn || console.error;
   const log = opts.log || console.log;
@@ -99,7 +99,7 @@ export function createKernel(opts = {}) {
         scope.dispose();
         rec.activation = undefined;
         rec.error = String((e && typeof e === "object" && "message" in e && e.message) || e);
-        warn(id, e);
+        warn({ module: id, phase: "activation" }, e);
         bus.emit("kernel:module-failed", { id, error: rec.error });
       }
     }

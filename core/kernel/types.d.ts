@@ -1,4 +1,6 @@
 export type Undo = () => void;
+export interface FaultSource { module: string; phase: string; subject?: string }
+export type Warn = (source: FaultSource, error: unknown) => void;
 
 export type Scope = "app" | "project" | "conversation";
 

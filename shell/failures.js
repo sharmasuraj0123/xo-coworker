@@ -23,9 +23,10 @@ export function createFailureReporting() {
   /** @type {ReturnType<typeof createPolicy> | undefined} */
   let surface = createPolicy();
 
-  /** @param {unknown} source @param {unknown} error */
+  /** @type {import("../core/kernel/types").Warn} */
   function warn(source, error) {
-    surface?.report(error, String(source));
+    console.error(source, error);
+    surface?.report(error, source);
   }
 
   /** @type {import("../core/kernel/types").ModuleDef} */
