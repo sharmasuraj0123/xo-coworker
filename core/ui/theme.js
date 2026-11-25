@@ -1,16 +1,22 @@
 // @ts-check
-
 import { ICON } from "./icons/names.js";
 import { canvasColor } from "./flavours.js";
 import { redraw } from "./redraw.js";
 import { createThemePreference } from "./theme-preference.js";
 
-/** @param {(theme: "light" | "dark") => void} setDiffTheme */
-export function createTheme(setDiffTheme) {
+/** @param {ReturnType<typeof import("../kernel/scope.js").createScope>} scope @param {(theme: "light" | "dark") => void} setDiffTheme */
+export function createTheme(scope, setDiffTheme) {
   const LIGHT_OS = matchMedia("(prefers-color-scheme: light)");
   const preference = createThemePreference(LIGHT_OS);
-  const THEME = { ...preference, set: (/** @type {Parameters<typeof preference.save>} */ ...args) => {
-    const result = preference.save(...args); applyTheme(preference.get()); return result;
+  /** @type {Set<() => void>} */
+  const listeners = new Set();
+  const onChange = (/** @type {() => void} */ fn) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
+
+  const THEME = { ...preference, onChange, set: (/** @type {Parameters<typeof preference.save>} */ ...args) => {
+    const result = preference.save(...args);
+    applyTheme(preference.get());
+    for (const notify of listeners) notify();
+    return result;
   } };
   /** @param {"light" | "dark"} t @param {boolean} [persist] */
   function applyTheme(t, persist = false) {
@@ -29,16 +35,16 @@ export function createTheme(setDiffTheme) {
     }
   }
   applyTheme(THEME.get());
-  LIGHT_OS.addEventListener("change", () => { if (THEME.pref() === "system") applyTheme(THEME.get()); });
+  scope.listen(LIGHT_OS, "change", () => { if (THEME.pref() === "system") applyTheme(THEME.get()); });
   return { THEME, applyTheme };
 }
 
-/** @param {ReturnType<typeof createTheme>["applyTheme"]} applyTheme @param {() => void} lookSync @param {(message: string) => void} announce */
-export function wireThemeToggle(applyTheme, lookSync, announce) {
-  document.getElementById("theme")?.addEventListener("click", () => {
+/** @param {ReturnType<typeof import("../kernel/scope.js").createScope>} scope @param {ReturnType<typeof createTheme>["applyTheme"]} applyTheme @param {(message: string) => void} announce */
+export function wireThemeToggle(scope, applyTheme, announce) {
+  const button = document.getElementById("theme");
+  if (button) scope.listen(button, "click", () => {
     const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
     applyTheme(t, true);
-    lookSync();
     announce(t === "light" ? "Light mode" : "Dark mode");
   });
 }

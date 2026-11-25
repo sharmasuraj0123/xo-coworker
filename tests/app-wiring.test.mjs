@@ -6,6 +6,7 @@ import { STONE, FLAVOURS } from "../core/ui/flavours.js";
 import { xi } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { deferred, dom } from "./lib/dom.mjs";
+import { checkSettingsPreferences } from "./lib/settings-preferences.mjs";
 
 const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/connector-responses.json", import.meta.url)));
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
@@ -1085,6 +1086,7 @@ launchpadDialog.querySelector("[data-lq-close]").click();
 press("#nv-home");
 
 assert.ok(JSON.parse(storage.get("xo-seen")).home > lastHomeVisit, "Home records its visit in the app's Since store");
+await checkSettingsPreferences(kernel, press);
 {
   const timers = new Map();
   const realSet = globalThis.setTimeout, realClear = globalThis.clearTimeout;

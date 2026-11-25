@@ -36,6 +36,7 @@ export interface SettingsFrameDeps {
 }
 export interface SettingsSurfaceHost extends Omit<SettingsFrameDeps, "scope" | "onPage" | "beforeClose"> {
   at(): { project?: string };
+  preferences: import("./appearance-types.d.ts").Preferences;
   mountRuntimes(host: { scope: ModuleContext; root: HTMLElement }): { open(): void };
   shape: { apply(): void; open(): void };
 }

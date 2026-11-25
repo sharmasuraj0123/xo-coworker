@@ -2,6 +2,7 @@
 
 import { ICON } from "../../core/ui/icons/names.js";
 import { onChange } from "../../core/platform/keys.js";
+import { mountPreferences } from "./preferences.js";
 import { createAccounts } from "./accounts.js";
 import { createSettingsFrame } from "./frame.js";
 import { createKeysPage } from "./keys-page.js";
@@ -20,6 +21,7 @@ export function mountSettingsSurface(ctx, host) {
   const box = el.querySelector("#set-keys-list");
   if (!(nav instanceof HTMLElement) || !pages || !(box instanceof HTMLElement)) throw new Error("Settings pages are missing");
   const announce = ctx.use("announce");
+  mountPreferences(ctx, host.preferences, announce);
   const runtimes = host.mountRuntimes({ scope: ctx, root: el });
   const keys = createKeysPage({ box, announce, resetIcon: ICON.retry });
   ctx.effect(() => () => { keys.dispose(); box.replaceChildren(); });

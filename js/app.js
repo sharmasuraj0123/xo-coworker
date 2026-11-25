@@ -15,7 +15,6 @@ import { ICON } from "../core/ui/icons/names.js";
 import { $ } from "../core/platform/dom.js";
 import { watchDock, dockAtTop } from "../modules/conversation/dock-layout.js";
 import { RM } from "../core/ui/motion.js";
-import { sound } from "../core/services/sound.js";
 import { plainText, heldWords, heldShort } from "../core/services/world/timeline.js";
 import { stepLineHtml, turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
 import { nameWith } from "../core/services/comms.js";
@@ -26,6 +25,8 @@ import { startRich } from "../core/ui/markdown/rich.js";
 import { createLightbox } from "../modules/conversation/lightbox.js";
 import { createRunsModule } from "../modules/runs/module.js";
 import { createPendingRunStops } from "../core/services/run-stops.js";
+import { sound } from "../core/services/sound.js";
+import { wireSound } from "../modules/settings/sound.js";
 import { createSettingsModule } from "../modules/settings/module.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
@@ -143,9 +144,6 @@ import { createConversationNotices } from "../core/services/notices/line.js";
 import { createLaunchpadHerald } from "../modules/launchpad/herald.js";
 import { createSideRows } from "../shell/rail/rows.js";
 import { createAnnouncer } from "../core/ui/a11y/announce.js";
-import { wireAppearance, wireChatBubbles, wireMessageHops, wireWebPictures } from "../modules/settings/appearance.js";
-import { createDeviceNotice } from "../modules/settings/device-notice.js";
-import { wireSound } from "../modules/settings/sound.js";
 import { createShapeApply } from "../modules/settings/apply-shape.js";
 import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 import { regionRings } from "../core/ui/a11y/ring.js";
@@ -195,7 +193,7 @@ function PROJ(id) {
 const { convHost, openAsk, fwdSource, reactionsHtml } = createMessageContext({ world, PROJ });
 const STOP_ICON = ICON.stop;
 
-const { THEME, applyTheme } = createTheme(setDiffTheme);
+const { THEME, applyTheme } = createTheme(appScope, setDiffTheme);
 
 const navigationState = createNavigationState();
 const threadControls = createThreadControls();
@@ -794,26 +792,22 @@ const JUMP = createWorkspaceJump({
 
 // ── keys sheet ──────────────────────────────────────────────────────────────
 const keys = $("#keys");
-const soundRender = wireSound({ sound, announce });
-const deviceSaid = createDeviceNotice(announce);
-const webpicsRender = wireWebPictures(SHAPE, WEBPICS, deviceSaid);
-const { lookSync } = wireAppearance({ THEME, applyTheme, deviceSaid });
-wireChatBubbles(deviceSaid);
-const hopsRender = wireMessageHops(SHAPE, deviceSaid);
 const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.querySelector("[data-close]"), keysSheetRender, focusOverlay, syncInert: () => syncInert() });
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
+const soundRender = wireSound({ sound, announce });
 const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
-const shapeApply = createShapeApply({ view: currentView, SV, SHAPE, setWorkMode, hopsRender, webpicsRender, convThread, world, loadChatHops, SH, STAGE, schedule });
+const shapeApply = createShapeApply({ view: currentView, SV, SHAPE, setWorkMode, convThread, world, loadChatHops, SH, STAGE, schedule });
 appScope.effect(() => SHAPE.onChange(() => shapeApply()));
 shapeApply({ boot: true });
 const settings = createSettingsModule({
   el: setEl, side: $("#set-side"), phoneButton: $("#set-phone"), closeButton: $("#set-x"), phone: PHONE,
   focusIn: focusOverlay, fallback: () => say,
   at: () => { const view = currentView(); return { project: view.startsWith("p:") ? view.slice(2) : convThread(view)?.project }; },
+  preferences: { THEME, shape: SHAPE, webPictures: WEBPICS },
   mountRuntimes: (runtimeHost) => createRuntimeSettings({ world, announce, ...runtimeHost }), shape: SV,
   beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); },
   onHidden: () => syncInert(),
@@ -825,7 +819,7 @@ function openSettings() { settings.open(); }
 function closeSettings(options) { settings.close(options); }
 appScope.effect(() => K.onChange(() => { if (!keys.hidden) keysSheetRender(); schedule(); }));
 
-wireThemeToggle(applyTheme, lookSync, announce);
+wireThemeToggle(appScope, applyTheme, announce);
 
 /** @type {Parameters<typeof createShellRenderer<DecisionNeed, WorldThread, Conversation>>[0]} */
 const rendererOptions = {

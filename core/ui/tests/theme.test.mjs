@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createScope } from "../../kernel/scope.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { canvasPalette } from "../../../tools/flavours/theme-colors.mjs";
 import { FLAVOURS, STONE } from "../flavours.js";
@@ -20,7 +21,8 @@ test("theme and flavour changes update browser chrome without reading computed s
   const expected = canvasPalette();
   assert.deepEqual([...expected.keys()].sort(), [STONE, ...FLAVOURS].map(({ id }) => id).sort());
   let diffTheme;
-  const { applyTheme } = createTheme((theme) => { diffTheme = theme; });
+  const scope = createScope();
+  const { applyTheme } = createTheme(scope, (theme) => { diffTheme = theme; });
   const button = document.querySelector("#theme");
   const color = document.querySelector('meta[name="theme-color"]');
   const scheme = document.querySelector('meta[name="color-scheme"]');
@@ -46,7 +48,7 @@ test("theme and flavour changes update browser chrome without reading computed s
   }
   storage.set("cv-flavour", "constructor");
   let announcement;
-  wireThemeToggle(applyTheme, () => {}, (message) => { announcement = message; });
+  wireThemeToggle(scope, applyTheme, (message) => { announcement = message; });
   button.click();
   checks("light", expected.get("stone").light);
   assert.equal(storage.get("cv-theme"), "light");

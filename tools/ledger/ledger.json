@@ -2560,6 +2560,7 @@
     "shell/back-steps.js",
     "modules/conversation/composer.js",
     "modules/conversation/main-composer.js",
+    "modules/settings/preferences.js",
     "modules/settings/shortcuts-sheet.js",
     "modules/settings/surface.js",
     "modules/map/module.js",
@@ -2581,6 +2582,10 @@
     "modules/chats/surface.js": {
      "anchor": "export function createChatSurface",
      "reason": "Chats owns its composer recovery, message actions and control bindings."
+    },
+    "modules/settings/preferences.js": {
+     "anchor": "export function mountPreferences",
+     "reason": "Settings activation owns its appearance and device controls."
     },
     "modules/conversation/main-composer.js": {
      "anchor": "export function mountMainComposer",

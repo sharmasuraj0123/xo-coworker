@@ -398,8 +398,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 613,
-  "lineLength": 42
+  "dependencyKey": 612,
+  "lineLength": 41
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -912,7 +912,7 @@
   "lineLength": 9
  },
  "modules/settings/apply-shape.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "modules/settings/host.js": {
   "lineLength": 2

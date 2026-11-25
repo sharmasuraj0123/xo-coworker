@@ -3,8 +3,6 @@ export interface ShapeApplyDeps {
   SV: { apply(): void };
   SHAPE: { opts(key: "xo:thread/work"): { mode: unknown }; on(key: "xo:thread/hops"): boolean };
   setWorkMode(mode: unknown): void;
-  hopsRender(): void;
-  webpicsRender(): void;
   convThread(view: string): { id: string } | null | undefined;
   world: { act: { loadHops?: (id: string) => void } };
   loadChatHops(view: string): void;

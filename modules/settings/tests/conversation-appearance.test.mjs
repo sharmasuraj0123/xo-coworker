@@ -1,5 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
+import { createScope } from "../../../core/kernel/scope.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createDeviceNotice } from "../device-notice.js";
 import { wireMessageHops, wireWebPictures } from "../appearance.js";
@@ -24,8 +25,9 @@ const shape = {
     return { kept: true };
   },
 };
-const picturesRender = wireWebPictures(shape, WEBPICS, deviceSaid);
-const hopsRender = wireMessageHops(shape, deviceSaid);
+const scope = createScope();
+const picturesRender = wireWebPictures(scope, shape, WEBPICS, deviceSaid);
+const hopsRender = wireMessageHops(scope, shape, deviceSaid);
 picturesRender();
 const pictures = document.getElementById("webpics-tog");
 const hops = document.getElementById("hops-tog");
@@ -43,18 +45,18 @@ let currentView = "t:thread";
 showHops = true;
 const shapeApply = createShapeApply({
   view: () => currentView, SV: { apply: () => events.push("surface") }, SHAPE: { ...shape, opts: () => ({ mode: "words" }) },
-  setWorkMode: (mode) => events.push(mode), hopsRender: () => events.push("hops"), webpicsRender: () => events.push("pictures"),
+  setWorkMode: (mode) => events.push(mode),
   convThread: (view) => view === "t:thread" ? { id: "thread" } : null,
   world: { act: { loadHops: (id) => events.push(id) } }, loadChatHops: (view) => events.push(view),
   SH: { redraw: () => events.push("shell") }, STAGE: { reshape: () => events.push("panel") }, schedule: () => events.push("frame"),
 });
 shapeApply({ boot: true });
-assert.deepEqual(events.splice(0), ["surface", "words", "hops", "pictures"]);
+assert.deepEqual(events.splice(0), ["surface", "words"]);
 shapeApply();
-assert.deepEqual(events.splice(0), ["surface", "words", "hops", "pictures", "thread", "shell", "panel", "frame"]);
+assert.deepEqual(events.splice(0), ["surface", "words", "thread", "shell", "panel", "frame"]);
 currentView = "p:project";
 shapeApply();
-assert.deepEqual(events.splice(0), ["surface", "words", "hops", "pictures", "p:project", "shell", "panel", "frame"]);
+assert.deepEqual(events.splice(0), ["surface", "words", "p:project", "shell", "panel", "frame"]);
 showHops = false;
 shapeApply();
-assert.deepEqual(events.splice(0), ["surface", "words", "hops", "pictures", "shell", "panel", "frame"]);
+assert.deepEqual(events.splice(0), ["surface", "words", "shell", "panel", "frame"]);

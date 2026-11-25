@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createTheme } from "../core/ui/theme.js";
+import { createScope } from "../core/kernel/scope.js";
 import { createKernel } from "../core/kernel/index.js";
 import { createAppServices } from "../shell/app-services.js";
 import { routingModule } from "../modules/routing/module.js";
@@ -98,6 +100,8 @@ test("the Settings surface retires focus, views and listeners and mounts one rep
   const settings = createSettingsModule({
     el: root, side: opener, phoneButton: find("#set-phone"), closeButton: find("#set-x"),
     phone: matchMedia("(max-width: 760px)"), focusIn: (node) => node.focus(), fallback: () => opener,
+    preferences: { THEME: createTheme(createScope(), () => {}).THEME, webPictures: "xo:conversation/webpics",
+      shape: { on: () => true, setDevice: () => ({ kept: true }), onChange: () => () => {} } },
     at: () => ({}), mountRuntimes: () => ({ open() {} }), shape: { apply() {}, open() {} }, beforeOpen() {}, onHidden() {},
   });
   const id = settings.module.manifest.id;
