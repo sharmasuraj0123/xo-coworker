@@ -1,6 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
-import "./boot/environment.mjs";
+import { window } from "./boot/environment.mjs";
 
 await import("../boot.js");
 const { default: kernel } = await import("../js/app.js");

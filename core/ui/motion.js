@@ -9,10 +9,10 @@ export { EASE, RM, MOVE, OUT };
 export const EXPAND_MS = MOVE;
 export const still = () => RM.matches || typeof Element === "undefined" || typeof Element.prototype.animate !== "function";
 
-/** @param {number} ms @param {ReturnType<typeof createScope>} [scope] */
+/** @param {number} ms @param {Pick<import("../kernel/types").ModuleContext, "delay">} [scope] */
 export const wait = (ms, scope = createScope()) => scope.delay(RM.matches ? 0 : ms);
 
-/** @param {number} ms @param {ReturnType<typeof createScope>} [scope] */
+/** @param {number} ms @param {Pick<import("../kernel/types").ModuleContext, "delay">} [scope] */
 export const hold = (ms, scope = createScope()) => scope.delay(ms);
 
 /** An element arrives: fade in and settle. @param {Element | null | undefined} el */

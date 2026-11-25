@@ -151,7 +151,7 @@
   "commentLines": 1
  },
  "core/ui/markdown/rich.js": {
-  "commentLines": 14
+  "commentLines": 13
  },
  "e2e/lib/apps.mjs": {
   "changelogComment": 3,

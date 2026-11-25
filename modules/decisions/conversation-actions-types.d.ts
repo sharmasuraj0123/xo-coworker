@@ -4,7 +4,7 @@ export type OpenOptions = { only?: "glance" | string[] | null; teach?: string | 
 export type ActionDeps = {
   view(): string;
   unfold(key: string): void;
-  scope: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+  scope: import("../../core/kernel/types").Lifetime;
   D: {
     needItems(): RankedNeed[];
     isOpen(): boolean;

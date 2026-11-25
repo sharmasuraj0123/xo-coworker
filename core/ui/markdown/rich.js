@@ -9,7 +9,10 @@ import { createRichElements, RichInputError } from "./rich-elements.js";
 const QUIET = 600;
 const SLICE = 8;
 const MAX_TEX = 4000, MAX_DIAGRAM = 20000;
-const theme = () => `${document.documentElement.dataset.theme === "light" ? "light" : "dark"}:${document.documentElement.dataset.flavour || "stone"}`;
+const theme = () => {
+  const { theme: mode, flavour } = document.documentElement.dataset;
+  return `${mode === "light" ? "light" : "dark"}:${flavour || "stone"}`;
+};
 
 /** @type {Map<string, string>} */
 const MATH = new Map(); // (display ? "D" : "I") + tex → KaTeX's HTML
@@ -201,7 +204,7 @@ function chartLeave(e) {
   }
 }
 
-/** @param {import("../../kernel/types").Lifetime & Pick<import("../../kernel/types").ModuleContext, "delay">} scope */
+/** @param {import("../../kernel/types").Lifetime} scope */
 export function startRich(scope) {
   scope.effect(() => { setRich({ math: cachedMath, diagram: cachedDiagram }); return () => setRich(null); });
   let lastInput = -Infinity;

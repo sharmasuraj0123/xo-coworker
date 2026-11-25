@@ -44,6 +44,9 @@ function scopeParameter(fn, receiver, file, comments, parents) {
   const doc = comments.find(comment => comment.loc.end.line === start - 1 && comment.value.startsWith("*"));
   if (!doc) return false;
   const pattern = /@param\s+\{ReturnType<typeof import\(["']([^"']+)["']\)\.createScope>\}\s+([\w$]+)/g;
+  const lifetime = /@param\s+\{import\(["']([^"']+)["']\)\.Lifetime\}\s+([\w$]+)/g;
+  if ([...doc.value.matchAll(lifetime)].some(([, source, name]) =>
+    name === receiver.name && source.startsWith(".") && join(dirname(file), source) === "core/kernel/types")) return true;
   return [...doc.value.matchAll(pattern)].some(([, source, name]) => name === receiver.name && scopeModule(file, source));
 }
 

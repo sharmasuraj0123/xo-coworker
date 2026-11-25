@@ -36,5 +36,4 @@ export interface Side {
   edit(on: boolean): void;
   openMore(event: MouseEvent): void;
   closeMore(options?: { focus?: boolean }): void;
-  dispose(): void;
 }

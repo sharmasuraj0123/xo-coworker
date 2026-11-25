@@ -19,7 +19,8 @@ export const workspaceRendererModule = {
     const decisions = ctx.use("decisionPresentation"), { isBusy } = ctx.use("threadPresentation"), rail = ctx.use("rail");
     const session = ctx.use("conversationSession"), content = ctx.use("conversationContent"), focus = ctx.use("redrawFocus");
     const drawPages = createSurfaceSlots({
-      places, place: "page", read: () => places.entries("page"), scope: ctx, schedule: () => ctx.invalidate("workspace"), hideOnRetire: true,
+      places, place: "page", read: () => places.entries("page"), scope: ctx, hideOnRetire: true,
+      schedule: () => ctx.invalidate("workspace"),
       fallback: () => [requireHtml("#nv-home", "button"), requireHtml("#pb-menu", "button")].find(usable) ?? null,
     });
     ctx.on("app:render", () => {

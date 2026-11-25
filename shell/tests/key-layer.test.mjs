@@ -33,7 +33,7 @@ const undos = [
   layer("quickopen", quickopen, { inertsApp: true }),
   layer("settings", settings, { watchHidden: settings, tab: () => phone.matches ? settings : null }),
   { id: "drawer", open: () => app.classList.contains("drawer"), close: () => app.classList.remove("drawer"), tab: () => phone.matches ? side : null },
-].map((layer) => ownLayer({ layers: kernel.layers, pushLayer: kernel.layers.push }, layer));
+].map((entry) => ownLayer({ layers: kernel.layers, pushLayer: kernel.layers.push }, entry));
 const { syncInert, dispose } = mountKeyboardLayers({ layers: stack, phone, app, main, side, settings });
 const mutation = async () => { await Promise.resolve(); await Promise.resolve(); };
 const tab = (target, shiftKey = false) => {
@@ -130,4 +130,5 @@ phone.dispatchEvent(new window.Event("change"));
 await mutation();
 assert.equal(side.inert, false, "a retired keyboard layer ignores viewport changes");
 assert.equal(app.inert, false, "a retired keyboard layer ignores open-state mutations");
+undos.forEach((undo) => undo());
 console.log("keyboard layers preserve Tab order, inert ownership and focus return");

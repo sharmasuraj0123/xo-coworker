@@ -8,7 +8,9 @@ import { createCalmOrder } from "../sideorder.js";
 
 /** @import { Hold, SideNeed, SideRowsDeps } from "./rows-types.d.ts" */
 
-/** @template {SideNeed} N @param {Pick<import("../../core/kernel/types").Lifetime, "listen" | "timeout">} scope @param {SideRowsDeps<N>} deps */
+/** @import { Lifetime } from "../../core/kernel/types" */
+
+/** @template {SideNeed} N @param {Pick<Lifetime, "listen" | "timeout">} scope @param {SideRowsDeps<N>} deps */
 export function createSideRows(scope, { view, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
   const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false });
   let cancelReorder = () => {};

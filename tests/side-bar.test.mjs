@@ -144,7 +144,7 @@ click(document.querySelector("#side-jump"));
 assert.equal(pop.hidden, true);
 assert.equal(jumps, 0);
 const nextScope = createScope();
-const replacement = createSide({ ...deps, scope: nextScope });
+createSide({ ...deps, scope: nextScope });
 click(more);
 assert.equal(pop.hidden, false);
 assert.equal(pop.querySelectorAll("[data-side-edit]").length, 1);
