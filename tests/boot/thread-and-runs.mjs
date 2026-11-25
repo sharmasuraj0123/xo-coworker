@@ -18,6 +18,9 @@ assert.equal(kernel.layers.list().filter((layer) => layer.id === "runs").length,
 await kernel.enable("xo.runs");
 assert.equal(kernel.layers.list().filter((layer) => layer.id === "runs").length, 1);
 const threadPageModuleId = "xo.thread-page";
+const painters = () => kernel.places.entries("workspace.paint").map((entry) => entry.id);
+const redrawOrder = ["thread-page", "decision-dock", "notice", "composer", "decisions", "viewer", "stage", "launchpad", "files"];
+assert.deepEqual(painters(), redrawOrder);
 function mountedThreadObservers() {
   const observers = [...threadDockObservers];
   assert.equal(observers.length, 2, "the thread has one observer for each dock responsibility");
@@ -43,6 +46,7 @@ try {
   deferredPress.dispatchEvent(touch("touchstart", 50, 50));
   assert.equal(pendingPressTimers.size, 1, "the mounted conversation can begin a long press");
   await kernel.disable(threadPageModuleId);
+  assert.deepEqual(painters(), redrawOrder.slice(1), "the retired page releases its redraw callback");
   assert.equal(pendingPressTimers.size, 0, "unmount cancels a pending long press");
 } finally {
   globalThis.setTimeout = realTimeout;
@@ -63,6 +67,7 @@ detachedComposer.dispatchEvent(new window.Event("input"));
 assert.equal(detachedComposer.style.height, "3px", "unmount releases retained composer controls");
 detachedComposer.style.height = oldHeight;
 await kernel.enable(threadPageModuleId);
+assert.deepEqual(painters(), redrawOrder, "the replacement page draws once in its original position");
 press(panelThread, 1, "touch");
 assert.ok(mountedThreadObservers().every((observer) => !initialThreadObservers.includes(observer)), "remount creates fresh owners");
 flushFrames();
