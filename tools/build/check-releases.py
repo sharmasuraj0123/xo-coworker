@@ -9,9 +9,6 @@ from contextlib import contextmanager
 from http.client import HTTPConnection
 from pathlib import Path
 
-from publish import publish
-
-
 @contextmanager
 def server(root, mode):
     env = {**os.environ, "PORT": "0", "HOST": "127.0.0.1", "XO_SERVE_RAW": ""}
@@ -45,7 +42,7 @@ def install(dist, version):
         (stage / file).write_text(version)
     (stage / "js/debug.js.map").write_text("private")
     (stage / ".build.json").write_text(json.dumps({"version": version, "files": assets}))
-    publish(stage, version)
+    subprocess.run([sys.executable, Path(__file__).with_name("publish.py"), stage, version], check=True, capture_output=True)
     if stage.exists():
         shutil.rmtree(stage)
 
