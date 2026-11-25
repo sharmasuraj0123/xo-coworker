@@ -567,8 +567,15 @@ t("LP44: a cancelled GitHub code's late answer doesn't clear the newer code", as
   let n = 0, cancelled = 0;
   const page = await open({ launchpad: "scope", api: async (r, m, p, answer) => {
     if (p.endsWith("/connectors/github/cli/start")) { n++; return answer({ session_id: `s${n}`, user_code: `CODE-${n}`, verification_uri: "https://github.com/login/device", expires_in: 900 }); }
-    if (p.endsWith("/connectors/github/cli/poll")) { const id = JSON.parse(r.request().postData() || "{}").session_id; if (id === "s1") { await new Promise((ok) => setTimeout(ok, 2500)); return answer({ status: "failed", error: "expired" }); } return answer({ status: "pending" }); }
-    if (p.endsWith("/connectors/github/cli/cancel")) { cancelled++; return answer({}); }
+    if (p.endsWith("/connectors/github/cli/poll")) {
+      const id = JSON.parse(r.request().postData() || "{}").session_id;
+      if (id === "s1") {
+        await new Promise((ok) => setTimeout(ok, 2500));
+        return answer({ status: "failed", error: "expired" }, 502);
+      }
+      return answer({ status: "pending", user_code: "CODE-2", verification_uri: "https://github.com/login/device" });
+    }
+    if (p.endsWith("/connectors/github/cli/cancel")) { cancelled++; return answer({ status: "cancelled" }); }
     return undefined;
   } });
   await W.openLaunchpad(page);

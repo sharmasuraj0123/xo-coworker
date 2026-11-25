@@ -7,6 +7,7 @@ import { xi } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { deferred, dom } from "./lib/dom.mjs";
 
+const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/connector-responses.json", import.meta.url)));
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const lastHomeVisit = Date.now() - 86_400_000;
 const storage = new Map([
@@ -187,8 +188,8 @@ Object.assign(globalThis, {
       heldStatusSignal = init?.signal;
       return lateStatus.promise;
     }
-    if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "ready" });
-    if (path === "/api/deploy/demo/preflight") return Response.json({});
+    if (path === "/api/deploy/demo/check") return Response.json(connectorReplies.check);
+    if (path === "/api/deploy/demo/preflight") return Response.json(connectorReplies.preflight);
     if (path === "/api/config/workspace") return Response.json({ default: "home", roots: { home: "/home/test" } });
     if (path === "/api/connectors/github/status") { createGithubSignal = init?.signal; return createGithubRead.promise; }
     if (path === "/api/xo-projects" && init?.method === "POST") {
@@ -198,7 +199,7 @@ Object.assign(globalThis, {
     }
     if (path.startsWith("/api/xo-projects/clones/")) {
       createClonePolls++;
-      return Response.json({});
+      return Response.json({ detail: { code: "not_found", message: "Unexpected clone poll" } }, { status: 404 });
     }
     if (path === "/api/terminal/status") {
       shellSignal = init?.signal;
@@ -225,6 +226,10 @@ Object.assign(globalThis, {
     if (path === "/api/xo-projects/demo/github/issues") {
       githubSignal = init.signal;
       return githubRead.promise;
+    }
+    if (path === "/api/xo-projects/catalog-test/github/issues") {
+      return Response.json({ project_id: "catalog-test", state: "empty", repo: null, fetched_at: null,
+        issues: [], tracked: 0, untracked: 0, error: null });
     }
     if (path === "/api/chat/chats/project-chat/made") {
       artifactsSignal = init?.signal;
@@ -1191,9 +1196,10 @@ const displayed = [rulesPage.textContent, worktreesPage.textContent];
 rules.response.resolve(Response.json({ rules: [{ id: "late", sentence: "Late rule" }] }));
 worktrees.response.resolve(Response.json({ worktrees: [] }));
 for (const { response } of sinceReads) response.resolve(Response.json({ worktrees: [] }));
-githubRead.resolve(Response.json({ repo: "demo/repo", issues: [{ number: 1, title: "Late issue" }] }));
+const terminalReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/terminal-responses.json", import.meta.url)));
+githubRead.resolve(Response.json({ ...connectorReplies.issues, issues: [{ ...connectorReplies.issues.issues[0], title: "Late issue" }] }));
 artifactsRead.resolve(Response.json({ made: [{ id: "late", name: "Late artifact", relative_path: "late.txt" }] }));
-shellStatus.resolve(Response.json({ enabled: true }));
+shellStatus.resolve(Response.json(terminalReplies.status));
 await new Promise(setImmediate);
 assert.deepEqual([rulesPage.textContent, worktreesPage.textContent], displayed, "pending replies leave the unloaded pages alone");
 storage.delete("xo-seen");

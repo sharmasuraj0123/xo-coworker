@@ -12,7 +12,7 @@ import { reportFailure } from "../../core/platform/util.js";
 import { parseRepo, projectFailure, slugify } from "./project-input.js";
 import { cloneError } from "./clone-notice.js";
 
-/** @import { CloneActivity, CloneNotice, CloneStatus, ConnectReply, GitHubState, WorkspaceConfig } from "./read-types.d.ts" */
+/** @import { CloneActivity, CloneNotice, CloneStatus, GitHubState, WorkspaceConfig } from "./read-types.d.ts" */
 
 const PHASE = /** @type {Record<string, string>} */ ({ counting: "Counting files in", receiving: "Downloading", resolving: "Unpacking", checkout: "Checking out", finishing: "Adding plan and memory to" });
 
@@ -98,7 +98,7 @@ export function initCreate(ctx, scope) {
       if (gh.status === "failed") { if (!still) $("#cp-gh [data-cp=connect]")?.focus({ preventScroll: true }); }
       else (gh.status === "code" ? $("#cp-gh [data-cp=copy]") : repo)?.focus({ preventScroll: true });
     };
-    /** @type {ConnectReply} */
+    /** @type {import("../../core/platform/github-auth-types").Start} */
     let s;
     try { s = await api.githubConnect(); }
     catch (failure) { settle({ status: "failed", error: projectFailure(failure).message }); return; }

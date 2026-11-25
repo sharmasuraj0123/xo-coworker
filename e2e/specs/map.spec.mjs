@@ -26,7 +26,9 @@ export const cases = [{
       })),
     },
     files: { demo: Object.fromEntries(agents.map(({ file }) => [file, "// fixture\n"])) },
-    routes: { "GET /api/xo-projects/demo/github/issues": { repo: null, issues: [] } },
+    routes: { "GET /api/xo-projects/demo/github/issues": {
+      project_id: "demo", repo: null, fetched_at: null, error: null, issues: [], untracked: 0, tracked: 0, state: "no_remote",
+    } },
   },
   async run(t) {
     const { page, space } = t;

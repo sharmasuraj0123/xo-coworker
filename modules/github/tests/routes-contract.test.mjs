@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { api } from "../../../core/platform/api.js";
+import replies from "../../../core/platform/tests/fixtures/connector-responses.json" with { type: "json" };
 
 /** @type {{ paths: Record<string, string[]> }} */
 const snapshot = JSON.parse(readFileSync(new URL("../../../core/platform/tests/fixtures/openapi-routes.json", import.meta.url), "utf8"));
@@ -22,7 +23,8 @@ for (const { name, template, call, optional } of routes) {
   const requests = [];
   globalThis.fetch = async (url, options) => {
     requests.push([options?.method || "GET", new URL(String(url), "http://local/").pathname]);
-    return optional ? Response.json({ detail: "Not Found" }, { status: 404 }) : Response.json({});
+    if (optional) return Response.json({ detail: "Not Found" }, { status: 404 });
+    return Response.json(name === "githubStatus" ? replies.connected : { ...replies.issues, project_id: project });
   };
   if (optional) {
     assert.equal(Object.entries(snapshot.paths).some(([path, methods]) => {

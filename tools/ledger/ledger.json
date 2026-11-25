@@ -2507,7 +2507,11 @@
     "core/platform/api.js",
     "core/platform/response.js",
     "core/platform/project-api.js",
-    "core/platform/schedule-response.js"
+    "core/platform/schedule-response.js",
+    "core/platform/github-auth-response.js",
+    "core/platform/github-issues-response.js",
+    "core/platform/sign-in-response.js",
+    "core/platform/terminal-response.js"
    ],
    "evidence": {
     "core/platform/response.js": {
@@ -2521,6 +2525,22 @@
     "core/platform/schedule-response.js": {
      "anchor": "export const scheduleApi =",
      "reason": "Schedule reads validate lists, job details and run history before returning them to callers."
+    },
+    "core/platform/github-auth-response.js": {
+     "anchor": "export const githubAuthApi =",
+     "reason": "GitHub connection replies are checked before Settings, Create and Launchpad use them."
+    },
+    "core/platform/github-issues-response.js": {
+     "anchor": "export function githubIssues(",
+     "reason": "Issue mirror and optional detail and pull request replies are checked before going to the GitHub page."
+    },
+    "core/platform/sign-in-response.js": {
+     "anchor": "export const signInApi =",
+     "reason": "Sign-in callbacks and events validate the fields sent to the account controls."
+    },
+    "core/platform/terminal-response.js": {
+     "anchor": "export const terminalApi =",
+     "reason": "Terminal status, session and attach acknowledgements are checked at the HTTP boundary."
     }
    },
    "note": "Callers use the owning modules directly."
@@ -2776,9 +2796,31 @@
    "status": "split",
    "home": [
     "modules/launchpad/model.js",
-    "modules/launchpad/client.js"
+    "modules/launchpad/client.js",
+    "core/platform/github-auth-response.js",
+    "core/platform/launchpad-actions-response.js",
+    "core/platform/launchpad-check-response.js",
+    "core/platform/launchpad-stream.js"
    ],
-   "note": "GitHub's device flow stays in client.js until core/services/github takes it with create-project's"
+   "note": "The Launchpad module owns its view model and request lifetime. Platform owns shared GitHub authentication and the checked deploy transport.",
+   "evidence": {
+    "core/platform/github-auth-response.js": {
+     "anchor": "export const githubAuthApi =",
+     "reason": "Shared connector methods replace Launchpad's direct GitHub requests."
+    },
+    "core/platform/launchpad-actions-response.js": {
+     "anchor": "export const launchpadActionsApi =",
+     "reason": "The checked app listing, linking and action routes are served through this adapter."
+    },
+    "core/platform/launchpad-check-response.js": {
+     "anchor": "export const launchpadCheck =",
+     "reason": "Typed check and preflight replies reach Launchpad through this adapter."
+    },
+    "core/platform/launchpad-stream.js": {
+     "anchor": "export function launchpadDeploy(",
+     "reason": "Transport for deploy and watch lives in Platform, with restart and resume in the Launchpad client."
+    }
+   }
   },
   "js/lppage.js": {
    "status": "moved",
@@ -7482,19 +7524,19 @@
   },
   "js/api.js::routes::/connectors/github/status": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/github-auth-response.js"
   },
   "js/api.js::routes::/terminal/status": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/terminal-response.js"
   },
   "js/api.js::routes::/terminal/sessions": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/terminal-response.js"
   },
   "js/api.js::routes::/terminal/sessions/{}": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/terminal-response.js"
   },
   "js/api.js::keys::http_404": {
    "status": "moved",
@@ -10692,8 +10734,8 @@
    "home": "modules/launchpad/client.js",
    "evidence": {
     "modules/launchpad/client.js": {
-     "anchor": "function stream(p, path, init, on)",
-     "reason": "The Launchpad client starts and resumes the event stream through the shared SSE reader."
+     "anchor": "function stream(p, start, on)",
+     "reason": "The Launchpad client owns restart and resume of the checked platform stream."
     }
    }
   },
@@ -10707,43 +10749,50 @@
   },
   "js/lpapi.js::routes::/deploy/{}/check": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/launchpad-check-response.js"
   },
   "js/lpapi.js::routes::/deploy/{}/preflight": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/launchpad-check-response.js"
   },
   "js/lpapi.js::routes::/deploy/{}": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/launchpad-stream.js",
+   "note": "Deploy streams here. Its DELETE acknowledgement is checked in core/platform/launchpad-actions-response.js.",
+   "evidence": {
+    "core/platform/launchpad-stream.js": {
+     "anchor": "export function launchpadDeploy(",
+     "reason": "The checked stream starts the deploy POST."
+    }
+   }
   },
   "js/lpapi.js::routes::/deploy/{}/apps": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/launchpad-actions-response.js"
   },
   "js/lpapi.js::routes::/deploy/{}/link": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/launchpad-actions-response.js"
   },
   "js/lpapi.js::routes::/deploy/{}/agent": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/launchpad-actions-response.js"
   },
   "js/lpapi.js::routes::/connectors/github/disconnect": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/github-auth-response.js"
   },
   "js/lpapi.js::routes::/connectors/github/cli/start": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/github-auth-response.js"
   },
   "js/lpapi.js::routes::/connectors/github/cli/poll": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/github-auth-response.js"
   },
   "js/lpapi.js::routes::/connectors/github/cli/cancel": {
    "status": "moved",
-   "home": "modules/launchpad/client.js"
+   "home": "core/platform/github-auth-response.js"
   },
   "js/map.js::exports::MAP_ICON": {
    "status": "moved",
@@ -16328,19 +16377,25 @@
   },
   "js/api.js::routes::/xo-projects/{}/github/issues": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/github-issues-response.js",
+   "evidence": {
+    "core/platform/github-issues-response.js": {
+     "anchor": "export function githubIssues(",
+     "reason": "The route-specific adapter checks the issue mirror and preserves the refresh query."
+    }
+   }
   },
   "js/api.js::routes::/xo-projects/{}/github/issues/{}": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/github-issues-response.js"
   },
   "js/api.js::routes::/xo-projects/{}/github/pulls": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/github-issues-response.js"
   },
   "js/api.js::routes::/xo-projects/{}/github/pulls/{}": {
    "status": "moved",
-   "home": "core/platform/api.js"
+   "home": "core/platform/github-issues-response.js"
   },
   "js/app.js::functions::runsGone": {
    "status": "kept",

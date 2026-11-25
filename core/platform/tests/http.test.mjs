@@ -222,8 +222,9 @@ await t("an upload sends raw bytes with the token, reports progress and reads it
   assert.deepEqual([x.m, x.u, x.headers], ["POST", "api/chat/chats/c/attachments?name=a%20b.png", { "Coder-Session-Token": "TOK/1", "Content-Type": "application/octet-stream" }]);
   x.upload.onprogress({ loaded: 3, lengthComputable: false });
   assert.deepEqual(progress, [[3, 9]]);
-  Object.assign(x, { status: 200, responseText: '{"id":"a1"}' }); x.onload();
-  assert.deepEqual(await up.promise, { id: "a1" });
+  const uploaded = { id: "a1", name: "a b.png", type: "image/png", bytes: 9, w: 8, h: 12, tint: "#345678" };
+  Object.assign(x, { status: 200, responseText: JSON.stringify(uploaded) }); x.onload();
+  assert.deepEqual(await up.promise, uploaded);
   const up2 = A.uploadAttachment("c", { type: "image/png", size: 1 }, "x");
   Object.assign(sent[1], { status: 413, statusText: "Too big", responseText: JSON.stringify({ detail: { code: "too_large", message: "Too large." } }) }); sent[1].onload();
   const e = await rejects(up2.promise);
@@ -231,6 +232,10 @@ await t("an upload sends raw bytes with the token, reports progress and reads it
   const up3 = A.uploadAttachment("c", { type: "", size: 1 }, "x");
   up3.abort();
   assert.equal((await rejects(up3.promise)).name, "AbortError");
+  const malformed = A.uploadAttachment("c", { type: "", size: 1 }, "x");
+  Object.assign(sent[3], { status: 200, responseText: '{"id":"missing-name"}' }); sent[3].onload();
+  assert.equal((await rejects(malformed.promise)).code, "bad_answer");
+  assert.ok(await rejects(A.request("/chat/chats/c/attachments?name=x", { method: "POST" })) instanceof TypeError);
 });
 await t("one error parser: blobs, texts and uploads read every error shape as requests do, extras and all", async () => {
   answer = () => res(421, JSON.stringify({ error: "bad_host" }), { statusText: "Misdirected" });

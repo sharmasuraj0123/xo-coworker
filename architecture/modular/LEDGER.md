@@ -31,7 +31,7 @@ Items inside first-party files: 2488 (moved 1792, planned 244, kept 230, deleted
 | File | Lines | Status | New home |
 |---|---:|---|---|
 | `js/accounts.js` | 134 | moved | modules/settings/accounts.js |
-| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js, core/platform/response.js, core/platform/project-api.js, core/platform/schedule-response.js · next: Callers use the owning modules directly. |
+| `js/api.js` | 435 | split | core/platform/http.js, core/platform/api.js, core/platform/response.js, core/platform/project-api.js, core/platform/schedule-response.js, core/platform/github-auth-response.js, core/platform/github-issues-response.js, core/platform/sign-in-response.js, core/platform/terminal-response.js · next: Callers use the owning modules directly. |
 | `js/app.js` | 5060 | split | js/app.js, core/ui/theme.js, core/ui/redraw.js, core/ui/markdown/copy.js, core/services/notices.js, shell/navigation.js, shell/layers.js, shell/keyboard-layers.js, shell/global-keys.js, shell/back-steps.js, modules/conversation/composer.js, modules/settings/shortcuts-sheet.js · next: The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance. |
 | `js/attach.js` | 270 | split | core/services/media/attachment-rules.js, core/services/media/attachment-tray.js, core/services/world/rows.js · next: Callers use the owning modules directly. |
 | `js/blocks.js` | 242 | moved | core/services/world/turns.js · next: nothing imports the old path, so it leaves with no re-export |
@@ -70,7 +70,7 @@ Items inside first-party files: 2488 (moved 1792, planned 244, kept 230, deleted
 | `js/kit.js` | 265 | split | modules/decisions/kit.js, core/ui/components/hold.js · next: the hold button and its guard are in core/ui/components/hold.js (modules/decisions/kit.js re-exports them) |
 | `js/launchpad.js` | 1144 | split | modules/launchpad/launchpad.js, modules/launchpad/store.js, modules/launchpad/views.js, modules/launchpad/system.js, modules/launchpad/actions.js, modules/launchpad/words.js · next: moved whole into modules/launchpad/, typed and split under 400 lines; app.js still calls createLaunchpad and hands the section to the panel until the shell hosts panel.frame and header.action |
 | `js/lightbox.js` | 384 | split | core/ui/lightbox.js, modules/conversation/lightbox.js |
-| `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js · next: GitHub's device flow stays in client.js until core/services/github takes it with create-project's |
+| `js/lpapi.js` | 239 | split | modules/launchpad/model.js, modules/launchpad/client.js, core/platform/github-auth-response.js, core/platform/launchpad-actions-response.js, core/platform/launchpad-check-response.js, core/platform/launchpad-stream.js · next: The Launchpad module owns its view model and request lifetime. Platform owns shared GitHub authentication and the checked deploy transport. |
 | `js/lppage.js` | 48 | moved | modules/launchpad/page.js |
 | `js/lpwindow.js` | 56 | moved | modules/launchpad/window.js |
 | `js/map.js` | 1360 | split | modules/map/map.js, modules/map/input.js, modules/map/render.js, modules/map/layout.js, modules/map/diagram.js, modules/map/folders.js, modules/map/tree.js, modules/map/agents.js, modules/map/icons.js, core/services/places.js, core/services/agent-activity.js · next: The app supplies conversation rendering to the panel map. |

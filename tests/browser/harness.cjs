@@ -3,6 +3,7 @@
 // Used by tests/browser/flows.test.cjs.
 "use strict";
 const fs = require("fs"), path = require("path");
+const projectReplies = require("../../core/platform/tests/fixtures/project-schedule-responses.json");
 const { install: installLaunchpad, SCENARIOS: LP } = require("../../e2e/fixtures/mockspace-harness.cjs");
 const { ROOT, SSE, serve } = require("../../e2e/fixtures/browser-static-server.cjs");
 
@@ -83,7 +84,18 @@ function mockApi(W) {
       const head = { project_id: "demo", worktree: null, root: "/demo", base_ref: "HEAD", base_commit: "c0", base_source: "head", head_commit: "c0", computed_at: NOW, truncated: false };
       // W.changesGateFor[path]: one file's own read held (the test says when it answers)
       // W.changeReads[path]: how many times one file's change was read; W.changesFailFor[path]: refused that many times
-      if (one) { W.changeReads = W.changeReads || {}; W.changeReads[one] = (W.changeReads[one] || 0) + 1; if (W.changesGate) await W.changesGate; if (W.changesGateFor && W.changesGateFor[one]) await W.changesGateFor[one]; if (W.changesFailFor && W.changesFailFor[one] > 0) { W.changesFailFor[one]--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); } return json({ ...head, total_files: 1, files: all.filter((f) => f.path === one).map(({ full, ...f }) => ({ ...f, patch: full || f.patch, patch_omitted: null })) }); }
+      if (one) {
+        W.changeReads = W.changeReads || {};
+        W.changeReads[one] = (W.changeReads[one] || 0) + 1;
+        if (W.changesGate) await W.changesGate;
+        if (W.changesGateFor?.[one]) await W.changesGateFor[one];
+        if (W.changesFailFor?.[one] > 0) {
+          W.changesFailFor[one]--;
+          return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
+        }
+        const files = all.filter((f) => f.path === one).map(({ full, patch_omitted, ...f }) => ({ ...f, patch: full || f.patch }));
+        return json({ ...head, total_files: files.length, files });
+      }
       return json({ ...head, total_files: all.length, files: all.map(({ full, ...f }) => f) });
     }
     // a clone Space runs: started at once, running until stopped; W.cloneStopMode "503" refuses the stop
@@ -94,29 +106,42 @@ function mockApi(W) {
       W.cloneN = (W.cloneN || 0) + 1;
       const id = JSON.parse(req.postData() || "{}").project_id;
       if (id) W.extraChats = (W.extraChats || []).concat(chat(`chat_${id}`, "project", id));
-      return json({ clone_id: `clone-${W.cloneN}` }, 202);
+      const clone = { ...projectReplies.clone, clone_id: `clone-${W.cloneN}`, project_id: id };
+      (W.clones ||= new Map()).set(clone.clone_id, clone);
+      return json(clone, 202);
     }
     if ((k = /^\/api\/xo-projects\/clones\/([^/]+)$/.exec(p))) {
       const id = decodeURIComponent(k[1]);
+      const clone = W.clones?.get(id);
+      if (!clone) return json({ detail: { code: "not_found", message: "No such clone" } }, 404);
       if (m === "DELETE") {
         W.cloneStops = (W.cloneStops || 0) + 1;
         if (W.cloneStopGates && W.cloneStopGates[id]) await W.cloneStopGates[id];
-        return W.cloneStopMode === "503" ? json({ detail: { code: "unavailable", message: `Fixture unavailable (${id})` } }, 503) : json({ cancelled: true });
+        if (W.cloneStopMode === "503") return json({ detail: { code: "unavailable", message: `Fixture unavailable (${id})` } }, 503);
+        return json({ ...projectReplies.cancelledClone, clone_id: id, project_id: clone.project_id });
       }
-      if (W.cloneDone && W.cloneDone.has(id)) return json({ state: "done", phase: "done", percent: 100, received_bytes: 2048, idle_seconds: 0 });
-      return json({ state: "running", phase: "receiving", percent: 12, received_bytes: 1024, idle_seconds: 0 });
+      if (W.cloneDone?.has(id)) {
+        return json({ ...clone, state: "done", phase: "done", percent: 100, received_bytes: 2048, finished_at: NOW });
+      }
+      return json({ ...clone, phase: "receiving", percent: 12, received_bytes: 1024 });
     }
     if (/^\/api\/xo-projects\/[^/]+\/tree$/.test(p)) {
       const rel = u.searchParams.get("relative_path") || "";
+      const tree = { project_id: p.split("/")[3], relative_path: rel,
+        parent_relative_path: rel ? rel.split("/").slice(0, -1).join("/") : null };
       if (!rel && W.rootFails) { W.rootFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
       if (!rel && W.rootGate) await W.rootGate;
-      if (!rel && W.rootEmpty) return json({ dirs: [], files: [] });
+      if (!rel && W.rootEmpty) return json({ ...tree, dirs: [], files: [] });
       if (rel === "bad" && W.treeFails) { W.treeFails--; return json({ detail: { code: "unavailable", message: "Fixture offline" } }, 503); }
       if (rel === "bad" && W.treeGate) await W.treeGate; // the test says when the second read answers
-      if (rel === "bad") return json({ dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
+      if (rel === "bad") return json({ ...tree, dirs: [], files: [{ name: "inside.md", relative_path: "bad/inside.md", size_bytes: 9 }] });
       // W.dirs: more folders at the top (a wide map), each empty
-      if (W.dirs && W.dirs.includes(rel)) return json({ dirs: [], files: [] });
-      return json({ dirs: [{ name: "bad", relative_path: "bad" }, ...(W.dirs || []).map((d) => ({ name: d, relative_path: d }))], files: Object.keys(W.files).filter((f) => !f.includes("/")).map((f) => ({ name: f, relative_path: f, size_bytes: W.files[f].content.length })) });
+      if (W.dirs?.includes(rel)) return json({ ...tree, dirs: [], files: [] });
+      const dirs = ["bad", ...(W.dirs || [])].map((name) => ({ name, relative_path: name }));
+      const files = Object.keys(W.files).filter((f) => !f.includes("/")).map((name) => ({
+        name, relative_path: name, size_bytes: Buffer.byteLength(W.files[name].content),
+      }));
+      return json({ ...tree, dirs, files });
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "GET") {
       const rel = u.searchParams.get("relative_path"), f = W.files[rel];
@@ -132,7 +157,8 @@ function mockApi(W) {
         if (W.editStatusFor && W.editStatusFor[rel]) return json({ detail: { code: W.editStatusFor[rel] === 413 ? "too_large" : "unavailable", message: "Fixture" } }, W.editStatusFor[rel]);
         if (W.editReadFails) { W.editReadFails--; return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503); }
       }
-      return json({ kind: "code", name: rel, content: f.content, version: f.version, editable: true, size_bytes: f.content.length, place: "ordinary" });
+      return json({ project_id: p.split("/")[3], relative_path: rel, kind: "code", name: rel, content: f.content,
+        version: f.version, editable: true, size_bytes: Buffer.byteLength(f.content), truncated: false, place: "ordinary" });
     }
     if (/^\/api\/xo-projects\/[^/]+\/file$/.test(p) && m === "PUT") {
       const b = JSON.parse(req.postData() || "{}");
@@ -148,7 +174,8 @@ function mockApi(W) {
         return json({ detail: { code: "file_changed", message: "changed", current: { content: f.content, version: f.version } } }, 409);
       }
       f.content = b.content; f.version = `sha256:saved${W.saves.length}`;
-      return json({ version: f.version, edit_id: `edit-${W.saves.length}`, saved_at: new Date().toISOString() });
+      return json({ relative_path: b.relative_path, version: f.version, edit_id: `edit-${W.saves.length}`,
+        saved_at: new Date().toISOString(), size_bytes: Buffer.byteLength(f.content), unchanged: false });
     }
     // a picture a thread made: the app's own mark stands in for it (W.pictures: answer image reads)
     if (W.pictures && /^\/api\/xo-projects\/[^/]+\/image$/.test(p)) return r.fulfill({ status: 200, contentType: "image/svg+xml", body: W.pictures });
@@ -161,7 +188,8 @@ function mockApi(W) {
     }
     if (/^\/api\/xo-projects\/[^/]+\/edits\/[^/]+\/undo$/.test(p) && m === "POST") {
       W.undos = (W.undos || 0) + 1;
-      return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503) : json({ undone: true });
+      return W.undoMode === "503" ? json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503)
+        : json({ ...projectReplies.undo, relative_path: W.saves.at(-1)?.relative_path ?? "README.md" });
     }
     if ((k = /^\/api\/chat\/sessions\/([^/]+)\/runs$/.exec(p))) {
       const sid = decodeURIComponent(k[1]);
@@ -178,13 +206,15 @@ function mockApi(W) {
       if (W.createMode === "503") return json({ detail: { code: "unavailable", message: "Fixture unavailable" } }, 503);
       const b = JSON.parse(req.postData() || "{}"), id = String(b.path || "").split("/").pop();
       W.extraChats = (W.extraChats || []).concat(chat(`chat_${id}`, "project", id)); // this test's world only
-      return json({ created: true, path: b.path });
+      return json({ name: id, path: b.path, copied: [] });
     }
     if (p === "/api/connectors/github/status") return json({ status: "needs_auth" });
     if (p === "/api/connectors/github/cli/start" && m === "POST") {
       W.ghStarts = (W.ghStarts || 0) + 1;
       if (W.ghGate) await W.ghGate;
-      return W.ghMode === "connected" ? json({ status: "connected", username: "tester" }) : json({ detail: { code: "unavailable", message: "GitHub didn't answer" } }, 503);
+      return W.ghMode === "connected"
+        ? json({ status: "connected", username: "tester", session_id: "s1", user_code: "", verification_uri: "", expires_in: 30 })
+        : json({ detail: { code: "unavailable", message: "GitHub didn't answer" } }, 503);
     }
     // continuing a thread on another runtime: held by W.continueGate, then refused (409 still_busy)
     if (/^\/api\/chat\/chats\/[^/]+\/threads\/[^/]+\/continue$/.test(p) && m === "POST") {

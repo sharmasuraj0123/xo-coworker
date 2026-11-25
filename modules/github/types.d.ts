@@ -1,4 +1,6 @@
 import type { Api } from "../../core/platform/api-types";
+import type { Person, Pull } from "../../core/platform/github-issues-types";
+export type { Person, Pull, Detail } from "../../core/platform/github-issues-types";
 
 export type GithubApi = Pick<Api, "githubIssues" | "githubPulls" | "githubIssue" | "githubPull" | "githubStatus">;
 export type DetailApi = Pick<GithubApi, "githubIssue" | "githubPull">;
@@ -13,53 +15,23 @@ export interface GithubPageOptions {
 }
 
 type Count = number | { total_count?: number } | null;
-export type Person = string | { login?: string; avatar_url?: string; avatarUrl?: string } | null;
 export interface Issue {
   number: number;
   title?: string;
   url?: string;
-  state?: string;
-  updated_at?: string;
+  state?: string | null;
+  updated_at?: string | null;
   author?: Person;
   assignees?: Person[];
   comments?: Count;
   comment_count?: Count;
-  labels?: unknown[];
+  labels?: unknown[] | null;
   in_progress?: boolean;
 }
-export interface Pull extends Issue {
-  updatedAt?: string;
-  merged?: boolean;
-  is_draft?: boolean;
-  isDraft?: boolean;
-  draft?: boolean;
-  head?: string;
-  head_ref?: string;
-  headRefName?: string;
-  base?: string;
-  base_ref?: string;
-  baseRefName?: string;
-  checks?: string;
-  check_state?: string;
-  statusCheckRollup?: string;
-  review_decision?: string;
-  reviewDecision?: string;
-  mergeable?: string;
-  additions?: Count;
-  deletions?: Count;
-  changed_files?: Count;
-  changedFiles?: Count;
-}
 export interface PageData {
-  issues: { repo?: string | null; state?: string; issues?: Issue[]; error?: { message?: string }; fetched_at?: string };
+  issues: { repo?: string | null; state?: string; issues?: Issue[]; error?: { message?: string } | null; fetched_at?: string | null };
   pulls?: { pulls?: Pull[] } | null;
   status: { valid?: boolean } | null;
-}
-export interface Detail {
-  body?: string;
-  conflicts?: string[];
-  checks?: { state?: string; conclusion?: string; name?: string }[];
-  comments?: { author?: Person; created_at?: string; body?: string }[];
 }
 interface Page {
   title: (key: string) => string;

@@ -64,7 +64,7 @@
   "unusedExport": 1
  },
  "core/platform/api.js": {
-  "lineLength": 9,
+  "lineLength": 7,
   "unusedExport": 3
  },
  "core/platform/clipboard.js": {
@@ -801,7 +801,7 @@
   "lineLength": 29
  },
  "modules/launchpad/client.js": {
-  "lineLength": 4,
+  "lineLength": 1,
   "unusedExport": 1
  },
  "modules/launchpad/launchpad.css": {

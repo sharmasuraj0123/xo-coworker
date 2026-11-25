@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { deferred, dom } from "../../../tests/lib/dom.mjs";
+import replies from "../../../core/platform/tests/fixtures/terminal-responses.json" with { type: "json" };
 
 const { document, window } = await dom(
   '<main id="app"><button id="nv-shells"><span class="sh-n"></span></button><aside id="shd"></aside></main>',
@@ -13,7 +14,7 @@ const pending = deferred();
 let transport;
 let holdList = false;
 globalThis.fetch = async (url, options) => {
-  if (String(url).endsWith("/status")) return Response.json({ enabled: true });
+  if (String(url).endsWith("/status")) return Response.json(replies.status);
   if (!holdList) return Response.json({ terminals: [] });
   transport = options?.signal ?? undefined;
   return pending.promise;
@@ -35,6 +36,6 @@ dock.dispose();
 assert.equal(transport.aborted, true, "disposing the dock aborts its pending list");
 assert.equal(resize(), true, "the retained grip no longer handles keyboard resize");
 assert.equal(root.style.getPropertyValue("--shd-h"), height);
-pending.resolve(Response.json({ terminals: [{ id: "late", state: "running", name: "Late shell" }] }));
+pending.resolve(Response.json({ terminals: [{ ...replies.terminal, id: "late", name: "Late shell" }] }));
 await new Promise(setImmediate);
 assert.equal(root.textContent.includes("Late shell"), false);

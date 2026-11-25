@@ -1,5 +1,6 @@
 // The panel's GitHub page: Space's issue rows and pull requests read into rows, nothing invented when a field is missing.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { dom, settle } from "./lib/dom.mjs";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
@@ -7,6 +8,7 @@ const R = new URL("../", import.meta.url);
 const { createGhPage, issueOf, prOf, issueRow, prRow } = await import(new URL("modules/github/page.js", R));
 const { relativeShort: since, relativeWords: longAgo } = await import("../core/platform/relative-time.js");
 const { api } = await import("../core/platform/api.js");
+const { issues: fixture } = JSON.parse(readFileSync(new URL("core/platform/tests/fixtures/connector-responses.json", R), "utf8"));
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
 const NOW = Date.parse("2026-11-23T16:00:00Z");
@@ -76,17 +78,17 @@ async function githubPage({ pulls, item, failure, retryPulls = false }) {
   const { document, window } = await dom("<div id='panel'></div>");
   const panel = document.getElementById("panel");
   const project = "demo", base = `/api/xo-projects/${project}/github`;
-  const issue = { number: 1, title: "Issue from list", url: "https://github.com/o/r/issues/1", state: "open" };
+  const issue = { ...fixture.issues[0], title: "Issue from list", url: "https://github.com/o/r/issues/1", assignees: [] };
   const pr = { number: 2, title: "Pull from list", url: "https://github.com/o/r/pull/2", state: "open" };
   const requests = [];
   let recovering = false;
   globalThis.fetch = async (url) => {
     const { pathname: path } = new URL(String(url), "http://local/");
     requests.push(path);
-    if (path === `${base}/issues`) return Response.json({ repo: "o/r", issues: [issue] });
+    if (path === `${base}/issues`) return Response.json({ ...fixture, repo: "o/r", issues: [issue] });
     if (path === `${base}/pulls` && retryPulls && !recovering) return Response.json({ detail: "Try again" }, { status: 500 });
     if (path === `${base}/pulls` && pulls) return Response.json({ pulls: [pr] });
-    if (path === "/api/connectors/github/status") return Response.json({ status: "connected" });
+    if (path === "/api/connectors/github/status") return Response.json({ status: "connected", username: "sample-user" });
     if (failure && path === `${base}/issues/1`) return Response.json({ detail: failure.detail }, { status: failure.status });
     return Response.json({ detail: "Not Found" }, { status: 404 });
   };

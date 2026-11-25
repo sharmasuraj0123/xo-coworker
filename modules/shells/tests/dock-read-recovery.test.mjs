@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import { dom } from "../../../tests/lib/dom.mjs";
+import replies from "../../../core/platform/tests/fixtures/terminal-responses.json" with { type: "json" };
 
 const markup = '<button id="nv-shells"><span class="sh-n"></span></button><aside id="shd"></aside>';
 const { document, window } = await dom(markup);
@@ -12,8 +13,8 @@ const previousReporter = globalThis.reportError;
 globalThis.reportError = (error) => reports.push(error);
 const flush = () => new Promise(setImmediate);
 const launcher = document.getElementById("nv-shells");
-const old = { id: "old", name: "Known shell", status: "running" };
-const replacement = { id: "new", name: "Recovered shell", status: "running" };
+const old = { ...replies.terminal, id: "old", name: "Known shell" };
+const replacement = { ...replies.terminal, id: "new", name: "Recovered shell" };
 let status = 200;
 let list = 200;
 let terminal = old;
@@ -23,7 +24,7 @@ Object.defineProperty(document, "hidden", { get: () => hidden });
 const visibility = (value) => { hidden = value; document.dispatchEvent(new window.Event("visibilitychange")); };
 globalThis.fetch = async (url) => {
   if (String(url).endsWith("/status")) {
-    return status === 200 ? Response.json({ enabled: true }) : Response.json({ error: "status unavailable" }, { status });
+    return status === 200 ? Response.json(replies.status) : Response.json({ error: "status unavailable" }, { status });
   }
   reads++;
   return list === 200 ? Response.json({ terminals: [terminal] }) : Response.json({ error: "list unavailable" }, { status: list });

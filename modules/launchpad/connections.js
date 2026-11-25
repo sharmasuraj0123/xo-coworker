@@ -44,6 +44,7 @@ export function installConnections({ api, windowScope, proj, land, announce, cha
       }
       const { id, code, url, until } = d;
       if (!id || !code || !url) throw new Error("Space didn't return a device code");
+      const loginId = id;
       Object.assign(device, { id, code, url });
       changed();
       function schedulePoll() {
@@ -53,7 +54,7 @@ export function installConnections({ api, windowScope, proj, land, announce, cha
       }
       async function poll() {
         try {
-          const r = await api.githubPoll(id, signal);
+          const r = await api.githubPoll(loginId, signal);
           if (signal.aborted) return;
           if (r?.failed) throw new Error(r.failed);
           if (r?.done) connected("GitHub is connected.");

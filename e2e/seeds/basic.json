@@ -2,7 +2,10 @@
   "_about": "A quiet Space: the Workspace and one project, demo, with a short conversation, one finished thread and three files. Rows are xo-space's shapes (tests/fixtures/storm-held-contract.json).",
   "now": "2026-11-19T12:00:00Z",
   "routes": {
-    "GET /api/xo-projects/demo/github/issues": { "repo": null, "issues": [] }
+    "GET /api/xo-projects/demo/github/issues": {
+      "project_id": "demo", "repo": null, "fetched_at": null, "error": null,
+      "issues": [], "tracked": 0, "untracked": 0, "state": "no_remote"
+    }
   },
   "chats": [
     { "id": "chat_ws", "kind": "workspace" },

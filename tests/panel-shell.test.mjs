@@ -5,6 +5,7 @@ import { dom, same } from "./lib/dom.mjs";
 import { bootPage } from "./lib/page.mjs";
 import { stageFixture } from "./lib/stage-fixture.mjs";
 import { SHELL_DOCK } from "../shell/overlays.js";
+import terminalReplies from "../core/platform/tests/fixtures/terminal-responses.json" with { type: "json" };
 const { stage: withoutShells } = await stageFixture({ reduced: false, shell: null });
 const { createShellPanel } = await import("../modules/shells/panel.js");
 const { publishedRules } = await import("./lib/css-snapshot.mjs");
@@ -179,9 +180,9 @@ async function checkAppShellDock() {
     EventSource: class { addEventListener() {} close() {} },
     fetch: async (url) => {
       const path = new URL(String(url), "http://localhost/").pathname;
-      if (path === "/api/terminal/status") return Response.json({ enabled: true });
+      if (path === "/api/terminal/status") return Response.json(terminalReplies.status);
       if (path === "/api/terminal/sessions") {
-        return Response.json({ terminals: [{ id: "workspace-shell", name: "Workspace", scope: "workspace", status: "running" }] });
+        return Response.json({ terminals: [{ ...terminalReplies.terminal, id: "workspace-shell", name: "Workspace" }] });
       }
       return Response.json({});
     },

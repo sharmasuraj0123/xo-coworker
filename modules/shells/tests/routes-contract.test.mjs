@@ -7,6 +7,8 @@ import { api, terminalSocketUrl } from "../../../core/platform/api.js";
 /** @type {{ paths: Record<string, string[]> }} */
 const snapshot = JSON.parse(readFileSync(new URL("../../../core/platform/tests/fixtures/openapi-routes.json", import.meta.url), "utf8"));
 const origin = "https://xo.test/";
+const fixtureUrl = new URL("../../../core/platform/tests/fixtures/terminal-responses.json", import.meta.url);
+const fixture = JSON.parse(readFileSync(fixtureUrl, "utf8"));
 
 const id = "sample-terminal";
 const session = "/api/terminal/sessions";
@@ -31,7 +33,12 @@ for (const [method, template, path, request] of routes) {
   const requests = [];
   globalThis.fetch = async (url, options) => {
     requests.push([options?.method || "GET", new URL(String(url), origin).pathname]);
-    return Response.json({});
+    if (path === "/api/terminal/status") return Response.json(fixture.status);
+    if (path === session && method === "GET") return Response.json({ terminals: [fixture.terminal] });
+    if (path === session && method === "POST") return Response.json({ terminal: fixture.terminal, ...fixture.ticket });
+    if (path.endsWith("/attach")) return Response.json(fixture.ticket);
+    if (method === "DELETE") return Response.json(fixture.closed);
+    return Response.json({ terminal: fixture.terminal });
   };
   await request();
   assert.deepEqual(requests, [[method, path]], `${method} ${path}`);

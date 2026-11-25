@@ -1,0 +1,32 @@
+{
+  "status": {
+    "enabled": true,
+    "reason": null,
+    "max_sessions": 8,
+    "detached_ttl_seconds": 3600,
+    "running": 1,
+    "attached": 0
+  },
+  "terminal": {
+    "id": "sample-terminal",
+    "name": "Example",
+    "scope": "workspace",
+    "project": null,
+    "path": null,
+    "cwd": "/home/example",
+    "status": "running",
+    "exit_code": null,
+    "ended_reason": null,
+    "foreground": "bash",
+    "viewers": 0,
+    "size": { "rows": 24, "cols": 80 },
+    "created_at": "2026-01-02T03:04:05Z",
+    "last_attached_at": null,
+    "last_output_at": null,
+    "detached_since": "2026-01-02T03:04:05Z",
+    "closes_at": "2026-01-02T04:04:05Z",
+    "ended_at": null
+  },
+  "ticket": { "ticket": "sample-ticket", "ticket_expires_in": 30 },
+  "closed": { "ok": true, "closed": "sample-terminal" }
+}

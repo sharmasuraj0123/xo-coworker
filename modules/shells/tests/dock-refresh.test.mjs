@@ -4,6 +4,7 @@ import { mock } from "node:test";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createScope } from "../../../core/kernel/scope.js";
 import { createDockRefresh } from "../dock-refresh.js";
+import replies from "../../../core/platform/tests/fixtures/terminal-responses.json" with { type: "json" };
 
 const { document, window } = await dom("");
 const scope = createScope();
@@ -13,7 +14,7 @@ let reads = 0;
 let holdRead = false;
 let transport;
 globalThis.fetch = async (url, options) => {
-  if (String(url).endsWith("/status")) return Response.json({ enabled: true });
+  if (String(url).endsWith("/status")) return Response.json(replies.status);
   reads++;
   if (holdRead) {
     const signal = options?.signal;

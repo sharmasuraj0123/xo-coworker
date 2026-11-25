@@ -39,7 +39,7 @@ const uploads = [];
 Object.assign(globalThis, {
   XMLHttpRequest: class {
     status = 200;
-    responseText = "{}";
+    responseText = JSON.stringify({ id: "sample-upload", name: "notes.txt", type: "text/plain", bytes: 4 });
     /** @type {() => void} */
     onload = () => {};
     /** @param {string} method @param {string} url */

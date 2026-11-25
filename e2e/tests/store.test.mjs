@@ -85,7 +85,10 @@ await test("a seed's own route wins over everything", () => {
 await test("a quiet Space has no active turns and demo has no linked GitHub repository", () => {
   const st = createStore(basic);
   assert.deepEqual(ask(st, "GET", "/api/chat/active").answer, { status: 200, body: { turns: [] } });
-  assert.deepEqual(ask(st, "GET", "/api/xo-projects/demo/github/issues").answer, { status: 200, body: { repo: null, issues: [] } });
+  assert.deepEqual(ask(st, "GET", "/api/xo-projects/demo/github/issues").answer, {
+    status: 200, body: { project_id: "demo", repo: null, fetched_at: null, error: null,
+      issues: [], tracked: 0, untracked: 0, state: "no_remote" },
+  });
   assert.deepEqual(st.misses, []);
 });
 

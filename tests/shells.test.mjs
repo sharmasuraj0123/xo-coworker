@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import { declarationsFor, resolveValue } from "./lib/css-snapshot.mjs";
 import { deferred, dom, same, settle } from "./lib/dom.mjs";
+import replies from "../core/platform/tests/fixtures/terminal-responses.json" with { type: "json" };
 import { busyWith, isDetached, span, whereOf, stateLine, dotOf, runningOf, listRows, cleanName, nameFor, createFlow, backoff, closeMeaning, HIGH, LOW } from "../modules/shells/model.js";
 
 let passed = 0;
@@ -147,11 +148,11 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
   };
   globalThis.fetch = async (url, options) => {
     const path = new URL(String(url), "http://local/").pathname;
-    if (path === "/api/terminal/status") return Response.json({ enabled: true });
+    if (path === "/api/terminal/status") return Response.json(replies.status);
     assert.equal(path, "/api/terminal/sessions");
     if (options?.method === "POST") return Response.json({
-      terminal: { id: "demo", project: "demo", name: "Demo", status: "running" },
-      ticket: "attach-ticket",
+      terminal: { ...replies.terminal, id: "demo", project: "demo", scope: "project", name: "Demo" },
+      ...replies.ticket, ticket: "attach-ticket",
     });
     return Response.json({ terminals: [] });
   };
@@ -275,7 +276,7 @@ t("a shell's status dot is never blue (the owner: no blue dots; blue is for work
       assert.equal(stale.sent.length, 0, "an obsolete socket cannot send auth");
     } finally {
       shell.dispose();
-      held.resolve(Response.json({ ticket: "late" }));
+      held.resolve(Response.json({ ...replies.ticket, ticket: "late" }));
       Object.assign(globalThis, original);
       host.remove();
     }

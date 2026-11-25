@@ -3,7 +3,9 @@
 import { picDims } from "../world/rows.js";
 import { MAX_FILES, sortFiles, pasteName } from "./attachment-rules.js";
 
-/** @typedef {{id: string, name?: string, type: string, bytes: number, w?: number, h?: number, tint?: string}} UploadResult */
+/** @import {AttachmentImage} from "../../platform/attachment-response.js" */
+
+/** @typedef {{id: string, name?: string, type: string, bytes: number} & AttachmentImage} UploadResult */
 
 /** @typedef {{promise: Promise<UploadResult>, abort: () => void}} UploadJob */
 

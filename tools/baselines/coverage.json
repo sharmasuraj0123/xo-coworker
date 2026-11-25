@@ -106,12 +106,6 @@
    ["globalListener",88,""]
   ]
  },
- "modules/launchpad/client.js": {
-  "sha256": "0caf6a16572e4c8119f04147b264ae8417711fdd0577668222b0169ca94efb69",
-  "sites": [
-   ["commentOnlyCatch",95,""]
-  ]
- },
  "modules/settings/shape-page.js": {
   "sha256": "1113db250a1a3cfa599257c0d4afee6e0080c4529eb4b1003cfa37845f61c783",
   "sites": [

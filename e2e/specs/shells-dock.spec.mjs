@@ -30,11 +30,13 @@ async function installShells(t, state, empty) {
   const { page, store } = t;
   const fixtures = ["demo", "api", "web"].map((name, index) => ({
     id: `sh_${index + 1}`, name, scope: "workspace", project: null, status: "running", viewers: 0,
-    cwd: "/fixture", foreground: index === 0 ? "npm" : "bash", created_at: store.now,
+    cwd: "/fixture", path: null, foreground: index === 0 ? "npm" : "bash", created_at: store.now,
+    exit_code: null, ended_reason: null, size: { rows: 24, cols: 80 }, last_attached_at: null, last_output_at: null,
+    detached_since: null, closes_at: null, ended_at: null,
   }));
   const rows = new Map(empty ? [] : fixtures.map((row) => [row.id, row]));
   store.routes["GET /api/terminal/status"] = {
-    enabled: true, max_sessions: 8, detached_ttl_seconds: 3600, running: rows.size, attached: 0,
+    enabled: true, reason: null, max_sessions: 8, detached_ttl_seconds: 3600, running: rows.size, attached: 0,
   };
   await page.route(routePrefix, async (/** @type {Route} */ route) => {
     if (route.request().method() === "GET") return route.fulfill({ json: { terminals: [...rows.values()] } });
@@ -43,7 +45,7 @@ async function installShells(t, state, empty) {
     if (state.refuse) return route.abort("connectionrefused");
     const terminal = fixtures[0];
     rows.set(terminal.id, terminal);
-    return route.fulfill({ json: { terminal } });
+    return route.fulfill({ json: { terminal, ticket: "shell-fixture", ticket_expires_in: 30 } });
   });
   await page.route(`${routePrefix}/*`, (/** @type {Route} */ route) => {
     const request = route.request();
@@ -61,9 +63,10 @@ async function installShells(t, state, empty) {
     assert.equal(request.method(), "DELETE");
     state.closed.push(id);
     rows.delete(id);
-    return route.fulfill({ json: { closed: true } });
+    return route.fulfill({ json: { ok: true, closed: id } });
   });
-  await page.route(`${routePrefix}/*/attach`, (/** @type {Route} */ route) => route.fulfill({ json: { ticket: "shell-fixture" } }));
+  await page.route(`${routePrefix}/*/attach`, (/** @type {Route} */ route) =>
+    route.fulfill({ json: { ticket: "shell-fixture", ticket_expires_in: 30 } }));
   for (const terminal of fixtures) {
     await page.routeWebSocket(`${routePrefix}/${terminal.id}/ws`, (/** @type {WebSocketRoute} */ socket) => {
       socket.onMessage((message) => answerShell(socket, message, terminal, state.mode));

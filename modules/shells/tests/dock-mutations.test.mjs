@@ -5,8 +5,11 @@ import { registerHooks } from "node:module";
 import { test } from "node:test";
 import { deferred, dom } from "../../../tests/lib/dom.mjs";
 import { stageFixture } from "../../../tests/lib/stage-fixture.mjs";
+import replies from "../../../core/platform/tests/fixtures/terminal-responses.json" with { type: "json" };
 
-const terminal = { id: "shell", project: "review", name: "Existing shell", status: "running", foreground: "sh", path: "/review/thread" };
+const terminal = {
+  ...replies.terminal, id: "shell", scope: "project", project: "review", name: "Existing shell", path: "/review/thread",
+};
 const terminalRoute = "/api/terminal/sessions";
 const statusRoute = "/api/terminal/status";
 const worktreeRoute = "/api/chat/worktrees";
@@ -46,7 +49,7 @@ async function mount(document, hold, target) {
       held.push(pending);
       return pending.response.promise;
     }
-    if (path === statusRoute) return Response.json({ enabled: true });
+    if (path === statusRoute) return Response.json(replies.status);
     if (path === terminalRoute) return Response.json({ terminals: [terminal] });
     assert.equal(path, `${terminalRoute}/shell`);
     assert.equal(method, "GET");
@@ -92,7 +95,7 @@ await test("the dock retires a pending terminal open", async () => {
   fx.dock.dispose();
   const changed = fx.changes();
   assert.equal(fx.signal()?.aborted, false, "an issued terminal POST can finish server-side");
-  fx.response.resolve(Response.json({ terminal: { ...terminal, id: "late", name: "Late shell" }, ticket: "ticket" }));
+  fx.response.resolve(Response.json({ terminal: { ...terminal, id: "late", name: "Late shell" }, ...replies.ticket }));
   await flush();
   assert.equal(Boolean(fx.root.querySelector("[data-pane]")), false, "a late terminal POST cannot attach after the dock disposes");
   assert.equal(fx.dock.countFor(), 1);
@@ -186,13 +189,13 @@ await test("closing Stage Shells retires the UI result of an issued terminal POS
   assert.equal(first.signal.aborted, false, "a sent POST remains live server-side");
   press(document, stageShell);
   assert.equal(fx.held.length, 2, "closing a pending open frees the dock to open the new view");
-  first.response.resolve(Response.json({ terminal: { ...terminal, id: "retired", project: "new" }, ticket: "first" }));
+  first.response.resolve(Response.json({ terminal: { ...terminal, id: "retired", project: "new" }, ...replies.ticket }));
   await flush();
   assert.equal(fx.dock.countFor("new"), 0, "the retired POST does not upsert a tab or change the last known list");
   assert.equal(!!fx.root.querySelector("[data-pane]"), false, "the retired POST does not attach");
   assert.deepEqual(fx.notices, []);
   assert.equal(panel.isShell, true);
-  fx.held[1].response.resolve(Response.json({ terminal: { ...terminal, id: "fresh", project: "new" }, ticket: "second" }));
+  fx.held[1].response.resolve(Response.json({ terminal: { ...terminal, id: "fresh", project: "new" }, ...replies.ticket }));
   await flush();
   assert.ok(fx.root.querySelector('[data-pane="fresh"]'), "the fresh POST can attach normally");
   assert.equal(fx.dock.countFor("new"), 1);
@@ -234,7 +237,8 @@ for (const write of ["PATCH", "DELETE"]) {
     fx.dock.dispose();
     const changed = fx.changes();
     assert.equal(fx.signal()?.aborted, false);
-    fx.response.resolve(Response.json({ terminal: { ...terminal, name: "New name" } }));
+    const reply = write === "PATCH" ? { terminal: { ...terminal, name: "New name" } } : { ok: true, closed: terminal.id };
+    fx.response.resolve(Response.json(reply));
     await flush();
     assert.equal(fx.changes(), changed, `late ${write} cannot draw the retired dock`);
     assert.equal(fx.root.querySelector(".shl-n")?.textContent, terminal.name);

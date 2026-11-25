@@ -1,10 +1,9 @@
 // @ts-check
 
-import { request, blob, signedUrl, socketUrl, text, upload, urlOf, exchange, coderHeaders, ApiError } from "./http.js";
-import { readJsonEvents } from "./sse.js";
+import { request, blob, signedUrl, socketUrl, text, upload, urlOf } from "./http.js";
 import { projectApi } from "./project-api.js";
 import { scheduleApi } from "./schedule-response.js";
-import { engineStatus, requestChecked } from "./response.js";
+import { checkedResponse, engineStatus, requestChecked } from "./response.js";
 import { isAccountIntents, isAdvisory, isPaidReceipt } from "./account-responses.js";
 import { isReview, isReviewPage, isRule, isRuleBatch } from "./review-responses.js";
 import { isModels, isPolicies, isRouter, isRouterModels, isRuntimes } from "./runtime-responses.js";
@@ -13,6 +12,14 @@ import {
   isAbortReceipt, isActive, isChat, isChats, isEvents, isHops, isMessage, isMessages, isObservedPage,
   isPromptReceipt, isSeenAck, isSession, isSessions, isThread, isThreadContinuation, isThreadDeletion, isThreads,
 } from "./chat-responses.js";
+import { isUploadedAttachment } from "./attachment-response.js";
+import { terminalApi } from "./terminal-response.js";
+import { githubAuthApi } from "./github-auth-response.js";
+import { githubIssue, githubIssues, githubPull, githubPulls } from "./github-issues-response.js";
+import { signInApi } from "./sign-in-response.js";
+import { launchpadActionsApi } from "./launchpad-actions-response.js";
+import { launchpadCheck, launchpadPreflight } from "./launchpad-check-response.js";
+import { launchpadDeploy, launchpadWatch } from "./launchpad-stream.js";
 export { coderHeaders, ApiError, request, missingRoute, clientId } from "./http.js";
 
 const enc = encodeURIComponent;
@@ -30,8 +37,9 @@ export const attachmentText = (chat, id, { signal } = {}) => text(attPath(chat, 
 
 /** Upload one file's raw bytes to a chat: {promise → {id, name, type, bytes}, abort()}. @param {string} chat @param {Blob} blob @param {string} name @param {{ onProgress?: (sent: number, total: number) => void }} [opts] */
 export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => {
-  const { promise, abort } = upload(`/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`, blob, { onProgress });
-  return { promise: /** @type {Promise<{id: string, name?: string, type: string, bytes: number}>} */ (promise), abort };
+  const path = `/chat/chats/${enc(chat)}/attachments`;
+  const { promise, abort } = upload(path + `?name=${enc(name)}`, blob, { onProgress });
+  return { promise: promise.then((value) => checkedResponse(value, isUploadedAttachment, `POST ${path}`)), abort };
 };
 
 /** @param {string} path @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
@@ -166,40 +174,19 @@ export const api = {
   projectVersion: (project, relativePath, { commit, was = null }, opts) => blob(`/coworker/xo-projects/${enc(project)}/version?relative_path=${enc(relativePath)}&commit=${enc(commit)}${was ? `&commit_path=${enc(was)}` : ""}&hidden=true`, opts),
   /** A whole project file as a Blob, for the viewer's Download (fetched, so the Coder token stays out of every URL). */
   projectDownload: (project, relativePath) => blob(`/xo-projects/${enc(project)}/download?relative_path=${enc(relativePath)}&hidden=true`, { ms: 300000 }),
-  /** GitHub connector: {status: "connected"|"needs_auth", username?, avatar_url?} */
-  githubStatus: ({ signal } = {}) => get("/connectors/github/status", undefined, signal),
-  githubIssues: (project, refresh = false, { signal } = {}) =>
-    get(`/xo-projects/${enc(project)}/github/issues`, refresh ? { refresh: "true" } : undefined, signal),
-  githubIssue: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/issues/${enc(n)}`, undefined, signal),
-  githubPulls: (project, { signal } = {}) => get(`/xo-projects/${enc(project)}/github/pulls`, undefined, signal),
-  githubPull: (project, n, signal) => get(`/xo-projects/${enc(project)}/github/pulls/${enc(n)}`, undefined, signal),
-  /** Device flow: {session_id, user_code, verification_uri}; poll → {status: "pending"} until the profile. */
-  githubConnect: (fresh = false) => send("POST", "/connectors/github/cli/start", undefined, fresh ? { fresh: true } : undefined),
-  githubConnectPoll: (id, { signal } = {}) =>
-    request("/connectors/github/cli/poll", { method: "POST", body: { session_id: id }, signal }),
-  githubConnectCancel: (sessionId) => send("POST", "/connectors/github/cli/cancel", { session_id: sessionId }),
-  githubDisconnect: () => send("POST", "/connectors/github/disconnect", {}),
-  signInStream: async (route, { force = false, signal, on }) => {
-    let res;
-    try { res = await fetch(`connect/${route}${force ? "?force=1" : ""}`, { method: "POST", signal, headers: { Accept: "text/event-stream", ...coderHeaders() }, cache: "no-store", redirect: "manual" }); }
-    catch (err) { if (/** @type {Error} */ (err).name === "AbortError") throw err; throw new ApiError(0, "network", "Can't reach the UI server. Is serve.py running?"); }
-    if (!res.ok) throw new ApiError(res.status, `http_${res.status}`, `Space answered ${res.status}.`);
-    await readJsonEvents(res, on, signal);
-  },
-  signInCode: (route, sessionId, code) => exchange(`connect/${route}/callback`, "POST", { session_id: sessionId, code }),
-  signInCancel: (route) => exchange(`connect/${route}`, "DELETE"),
+  ...githubAuthApi,
+  githubIssues,
+  githubIssue,
+  githubPulls,
+  githubPull,
+  ...signInApi,
+  ...launchpadActionsApi,
+  launchpadCheck,
+  launchpadPreflight,
+  launchpadDeploy,
+  launchpadWatch,
 
-  terminalStatus: ({ signal } = {}) => get("/terminal/status", undefined, signal),
-  /** {project?, path?, workspace?: true} → {terminals: [T…]}, oldest first */
-  terminals: (query = {}, { signal } = {}) => get("/terminal/sessions", query, signal),
-  terminal: (id, { signal } = {}) => get(`/terminal/sessions/${enc(id)}`, undefined, signal),
-  /** {project?, path?, name?, rows?, cols?}; no project is a workspace shell → {terminal, ticket, ticket_expires_in} */
-  openTerminal: (body) => send("POST", "/terminal/sessions", body),
-  /** A fresh ticket to (re)attach: {ticket, ticket_expires_in} */
-  attachTerminal: (id, { signal } = {}) => request(`/terminal/sessions/${enc(id)}/attach`, { method: "POST", signal }),
-  renameTerminal: (id, name) => send("PATCH", `/terminal/sessions/${enc(id)}`, { name }),
-  /** Hangs up everything started in that shell, and forgets it. */
-  closeTerminal: (id) => send("DELETE", `/terminal/sessions/${enc(id)}`),
+  ...terminalApi,
 
   streamUrl: () => urlOf("/chat/stream"),
 };

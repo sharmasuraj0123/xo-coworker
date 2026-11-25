@@ -98,7 +98,7 @@ async function stopDeploy(t, outcome) {
       t.store.routes[check] = setup.routes[check];
       return route.fulfill({ json: { stopped: true, run_id: runId } });
     }
-    return route.fulfill({ json: {} });
+    return route.fulfill({ json: { stopped: false } });
   });
   try {
     if (outcome === "confirmed") {

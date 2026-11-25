@@ -90,10 +90,13 @@ const SCENARIOS = {
   undo: { check: check(), click: ['[data-lp="deploy"]'] },
 };
 const APPS = [
-  { id: "app_1", name: "storefront", status: "running", url: "https://storefront-xo-8288e36.apps.xo.builders", linkable: true },
-  { id: "app_2", name: "api-gateway", status: "progressing", url: "https://api-gateway-xo-37ec5cd.apps.xo.builders", linkable: true },
-  { id: "app_3", name: "billing-worker", status: "failed", url: "https://billing-worker-xo-b114583.apps.xo.builders", linkable: true },
-];
+  { id: "app_1", name: "storefront", status: "running", url: "https://storefront-xo-8288e36.apps.xo.builders" },
+  { id: "app_2", name: "api-gateway", status: "progressing", url: "https://api-gateway-xo-37ec5cd.apps.xo.builders" },
+  { id: "app_3", name: "billing-worker", status: "failed", url: "https://billing-worker-xo-b114583.apps.xo.builders" },
+].map((app) => ({
+  ...app, slug: app.name, source: "github", repo: `fixture/${app.name}`, branch: "main", port: 3000, match: [], linkable: true,
+}));
+const DEVICE = { user_code: "WDJB-MJHT", verification_uri: "https://github.com/login/device" };
 
 // a linked app in each of Launchpad's other states (the open section must say it, not only the head)
 for (const [k, st] of [["live-stopped", "stopped"], ["live-failed", "failed"], ["live-rolling", "progressing"], ["live-unhealthy", "unhealthy"]]) {
@@ -115,13 +118,18 @@ exports.install = async (page, name) => {
     if (/\/api\/deploy\/[^/]+\/preflight$/.test(path)) return json(r, sc.pre || pre());
     if (/\/api\/deploy\/[^/]+\/watch$/.test(path)) return sse(r, sc.watch ? body(...sc.watch) : "");
     if (/\/api\/deploy\/[^/]+\/apps$/.test(path)) return json(r, { apps: APPS, linked: null, name: "xo-coworker" });
-    if (/\/api\/deploy\/[^/]+\/link$/.test(path)) return m === "DELETE" ? json(r, { unlinked: { app_id: "app_7f3a" }, forgot: false }) : json(r, { config: { ...linked, app_id: "app_1", name: "storefront", url: APPS[0].url }, app: APPS[0] });
+    if (/\/api\/deploy\/[^/]+\/link$/.test(path)) {
+      if (m === "DELETE") return json(r, { unlinked: { app_id: "app_7f3a", name: "xo-coworker" }, forgot: false, commit: null });
+      const app = APPS[0];
+      return json(r, { config: { ...linked, app_id: app.id, name: app.name, url: app.url }, app, commit: null });
+    }
     if (/\/api\/deploy\/[^/]+\/agent$/.test(path)) return json(r, { chat_id: "chat_9460bc3363914c18", thread_ts: "t_ready", already: false, state: "needs-agent" });
     if (/\/api\/deploy\/[^/]+$/.test(path) && m === "POST") { (page.__sent ||= []).push(JSON.parse(r.request().postData() || "{}")); return sse(r, body(sc.deploy === "confirm-repo" && page.__sent.at(-1).use_repo === "someone-else/xo-coworker" ? "live" : sc.deploy === "other-apps" && (page.__sent.at(-1).allow_apps || []).length === 2 ? "live" : sc.deploy || "live", 0)); }
-    if (/\/api\/deploy\/[^/]+$/.test(path) && m === "DELETE") return json(r, { stopped: true });
-    if (path.endsWith("/connectors/github/cli/start")) return json(r, { session_id: "s1", user_code: "WDJB-MJHT", verification_uri: "https://github.com/login/device", expires_in: 900 });
-    if (path.endsWith("/connectors/github/cli/poll")) return json(r, { status: "pending" });
-    if (/\/connectors\/github\/(disconnect|cli\/cancel)$/.test(path)) return json(r, {});
+    if (/\/api\/deploy\/[^/]+$/.test(path) && m === "DELETE") return json(r, { stopped: true, run_id: "r1" });
+    if (path.endsWith("/connectors/github/cli/start")) return json(r, { session_id: "s1", ...DEVICE, expires_in: 900 });
+    if (path.endsWith("/connectors/github/cli/poll")) return json(r, { status: "pending", ...DEVICE });
+    if (path.endsWith("/connectors/github/disconnect")) return json(r, { status: "needs_auth" });
+    if (path.endsWith("/connectors/github/cli/cancel")) return json(r, { status: "cancelled" });
     if (m !== "GET" && m !== "HEAD") return r.abort();
     return r.continue();
   });

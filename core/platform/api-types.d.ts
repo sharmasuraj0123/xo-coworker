@@ -8,15 +8,18 @@ import type {
 import type { MissingStopReceipt, RunDetail, RunList, RunTranscript, StopRunReceipt, StopRunsReceipt } from "./run-response-types.d.ts";
 import type { ReviewPage, ReviewRecord, Rule, RuleBatch } from "./review-response-types.d.ts";
 import type { AccountIntents, Advisory, PaidReceipt } from "./account-response-types.d.ts";
+import type { TerminalApi } from "./terminal-response-types";
+import type { AuthApi } from "./github-auth-types";
+import type { ActionsApi } from "./launchpad-actions-types";
 
 type Json = ReturnType<typeof import("./http.js").request>;
 type Query = Record<string, unknown>;
 type Id = string;
 interface BlobOptions { signal?: AbortSignal; ms?: number }
 interface ReadOptions { signal?: AbortSignal }
-type SignInRoute = "claude-code" | "codex" | "antigravity";
+type SignInApi = typeof import("./sign-in-response.js").signInApi;
 
-export interface Api extends ProjectApi, ScheduleApi {
+export interface Api extends ProjectApi, ScheduleApi, TerminalApi, AuthApi, SignInApi, ActionsApi {
   status(options?: ReadOptions): Promise<import("./status-types.d.ts").EngineStatus>;
   runtimes(options?: ReadOptions): Promise<{ runtimes: Runtime[] }>;
   models(runtime: string, options?: ReadOptions): Promise<{ models: RuntimeModel[] }>;
@@ -83,26 +86,14 @@ export interface Api extends ProjectApi, ScheduleApi {
   projectImage(project: Id, relativePath: string, opts?: BlobOptions): Promise<Blob>;
   projectVersion(project: Id, relativePath: string, at: { commit: string; was?: string | null }, opts?: BlobOptions): Promise<Blob>;
   projectDownload(project: Id, relativePath: string): Promise<Blob>;
-  githubStatus(options?: ReadOptions): Json;
-  githubIssues(project: Id, refresh?: boolean, options?: ReadOptions): Json;
-  githubIssue(project: Id, number: Id | number, signal?: AbortSignal): Json;
-  githubPulls(project: Id, options?: ReadOptions): Json;
-  githubPull(project: Id, number: Id | number, signal?: AbortSignal): Json;
-  githubConnect(fresh?: boolean): Json;
-  githubConnectPoll(sessionId: Id, options?: ReadOptions): Json;
-  githubConnectCancel(sessionId: Id): Json;
-  githubDisconnect(): Json;
-  signInStream(route: SignInRoute, options: { force?: boolean; signal: AbortSignal; on: (event: unknown) => void }): Promise<void>;
-  signInCode(route: Exclude<SignInRoute, "codex">, sessionId: Id, code: string): Json;
-  signInCancel(route: "claude-code"): Json;
-
-  terminalStatus(options?: ReadOptions): Json;
-  terminals(query?: Query, options?: ReadOptions): Json;
-  terminal(id: Id, options?: ReadOptions): Json;
-  openTerminal(body: object): Json;
-  attachTerminal(id: Id, options?: ReadOptions): Promise<{ ticket: string; ticket_expires_in: number }>;
-  renameTerminal(id: Id, name: string): Json;
-  closeTerminal(id: Id): Json;
+  githubIssues: typeof import("./github-issues-response.js").githubIssues;
+  githubIssue: typeof import("./github-issues-response.js").githubIssue;
+  githubPulls: typeof import("./github-issues-response.js").githubPulls;
+  githubPull: typeof import("./github-issues-response.js").githubPull;
+  launchpadCheck: typeof import("./launchpad-check-response.js").launchpadCheck;
+  launchpadPreflight: typeof import("./launchpad-check-response.js").launchpadPreflight;
+  launchpadDeploy: typeof import("./launchpad-stream.js").launchpadDeploy;
+  launchpadWatch: typeof import("./launchpad-stream.js").launchpadWatch;
 
   streamUrl(): string;
 }

@@ -6,6 +6,7 @@ globalThis.matchMedia = (query) => ({ matches: query === "(max-width: 760px)", a
 const { createPanelThreadOpener } = await import("../modules/threads/open-panel-thread.js");
 const { createNavigation } = await import("../shell/navigation.js");
 const { createNavigationState } = await import("../shell/navigation-state.js");
+const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/connector-responses.json", import.meta.url)));
 
 let passed = 0;
 const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + e.message); process.exitCode = 1; } };
@@ -99,7 +100,10 @@ Object.assign(globalThis, {
   async fetch(input) {
     const path = new URL(input, location.href).pathname;
     if (path === "/api/chat/stream") return new Response(body);
-    if (path === "/api/deploy/demo/check") return Response.json({ project: "demo", state: "needs-agent" });
+    if (path === "/api/deploy/demo/check") return Response.json({ ...connectorReplies.check, state: "needs-agent" });
+    if (path === "/api/terminal/status") return Response.json({
+      enabled: false, reason: "off in tests", max_sessions: 0, detached_ttl_seconds: 0, running: 0, attached: 0,
+    });
     if (path === "/api/chat/chats") return Response.json({ chats: [
       { id: "workspace-chat", kind: "workspace" },
       { id: "project-chat", kind: "project", project: "demo", name: "Demo" },

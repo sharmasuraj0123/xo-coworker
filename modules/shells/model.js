@@ -2,7 +2,7 @@
 
 import { toMs } from "../../core/platform/index.js";
 
-/** @typedef {{ id: string, name?: string, scope?: string, project?: string | null, path?: string, cwd?: string, status?: string, exit_code?: number | null, ended_reason?: string, foreground?: string | null, viewers?: number, created_at?: string, detached_since?: string, closes_at?: string, ended_at?: string }} Shell */
+/** @typedef {Pick<import("../../core/platform/terminal-response-types").Terminal, "id"> & Partial<import("../../core/platform/terminal-response-types").Terminal>} Shell */
 
 /** The programs that are "just the shell": closing one of these loses nothing that's running. */
 const SHELLS = new Set(["bash", "sh", "zsh", "fish", "dash", "ksh", "tcsh", "csh", "ash", "nu", "pwsh", "login"]);

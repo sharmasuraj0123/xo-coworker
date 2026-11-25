@@ -1,0 +1,53 @@
+{
+  "connected": {
+    "status": "connected", "username": "sample-user", "name": null, "avatar_url": "https://example.org/avatar",
+    "scopes": "repo, workflow", "auth_method": "gh_cli", "valid": true
+  },
+  "start": {
+    "session_id": "sample-session", "user_code": "CODE-TEST", "verification_uri": "https://github.com/login/device", "expires_in": 900
+  },
+  "pending": { "status": "pending", "user_code": "CODE-TEST", "verification_uri": "https://github.com/login/device" },
+  "issues": {
+    "project_id": "demo", "repo": "example/demo", "fetched_at": "2026-11-23T01:00:00Z", "error": null,
+    "issues": [{
+      "node_id": "sample-issue", "number": 1, "title": "Example", "url": "https://github.com/example/demo/issues/1",
+      "state": "open", "state_reason": null, "assignees": [{ "login": "sample-user", "avatar_url": null }],
+      "labels": null, "updated_at": null, "adopted": false, "workitem_id": null, "in_progress": false
+    }],
+    "tracked": 0, "untracked": 1, "state": "ok"
+  },
+  "app": {
+    "id": "sample-app", "name": "Demo", "slug": "demo", "source": "github", "status": "running", "url": "https://example.org/",
+    "repo": "example/demo", "branch": "main", "port": 3000
+  },
+  "config": { "app_id": "sample-app", "name": "Demo", "url": "https://example.org/", "schema": 1 },
+  "agent": { "chat_id": "sample-chat", "thread_ts": "sample-thread", "already": false, "state": "needs-agent" },
+  "check": {
+    "schema": 1, "project": "demo", "state": "ready", "summary": "Ready to deploy", "reasons": [], "blockers": [],
+    "warnings": [], "config": null, "config_error": null,
+    "fields": {
+      "name": { "value": "demo", "source": "the project folder" },
+      "port": { "value": 3000, "source": "Dockerfile EXPOSE", "confident": true },
+      "size": { "value": null, "source": "template" },
+      "repo": { "full_name": null, "remote": null, "branch": "main", "origin": "example/demo", "new_repo_name": "demo" },
+      "env": [{ "name": "LOG_LEVEL", "sensitive": false, "source": ".env.example", "default": "info" }]
+    },
+    "build": { "dockerfile": "Dockerfile", "stack": "docker" },
+    "git": { "repo": true, "branch": "main", "head": "fixture-head", "deployed_head": null },
+    "prerequisites": { "github_connected": true, "github_source": "gh", "launchpad_key": true, "launchpad_cli": true },
+    "running": null, "last": null
+  },
+  "preflight": {
+    "state": "ready",
+    "github": { "connected": true, "source": "gh", "login": "sample-user", "scopes": ["repo", "workflow"], "workflow_scope": true },
+    "repo": { "branch": "main", "mode": "origin", "full_name": "example/demo", "remote": "origin" },
+    "launchpad": {
+      "key": true, "cli": true, "name_free": true,
+      "sizes": {
+        "template": "github", "default": "xo.small", "allowed": ["xo.small"],
+        "tiers": [{ "name": "xo.small", "label": "Small", "cpu": 1, "memory_gb": 2 }], "fixed_after_create": true,
+        "source": "launchpad"
+      }
+    }
+  }
+}

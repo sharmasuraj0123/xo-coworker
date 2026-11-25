@@ -182,7 +182,9 @@ callbackAgent.querySelector('[data-agent="cancel"]').click();
       return statusReply?.promise ?? Response.json(status);
     }
     if (new URL(url, "https://space.invalid/").pathname === "/api/connectors/github/cli/start") {
-      return Response.json({ session_id: `fixture-${++nextSession}`, user_code: "0000", verification_uri: "https://sign-in.example" });
+      return Response.json({
+        session_id: `fixture-${++nextSession}`, user_code: "0000", verification_uri: "https://sign-in.example", expires_in: 900,
+      });
     }
     if (url === "api/connectors/github/cli/poll") {
       const reply = Promise.withResolvers();

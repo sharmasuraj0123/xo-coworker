@@ -8,12 +8,6 @@ export interface GitHubState {
   error?: string;
 }
 
-export interface ConnectReply extends GitHubState {
-  user_code: string;
-  verification_uri: string;
-  session_id: string;
-}
-
 export interface CloneStatus {
   state: string;
   phase?: string;

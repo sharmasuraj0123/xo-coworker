@@ -19,13 +19,16 @@ globalThis.XMLHttpRequest = (class { constructor() { this.upload = {}; } open(m,
 
 const { api, attachmentUrl, attachmentText, uploadAttachment, terminalSocketUrl } = await import("../api.js");
 
-const SIGN_IN_OPTIONS = { signal: new AbortController().signal, on() {} };
+const STREAM_OPTIONS = { signal: new AbortController().signal, on() {} };
 const ARGS = {
   projectTree: [["x", "y"]],
   githubIssue: [["x", "y"]],
   githubPull: [["x", "y"]],
   pinMade: [["c", "m", true], ["c", "m", false]],
-  signInStream: ["claude-code", "codex", "antigravity"].map((route) => [route, SIGN_IN_OPTIONS]),
+  launchpadApps: [["x"]],
+  launchpadDeploy: [["x", {}, STREAM_OPTIONS]],
+  launchpadWatch: [["x", STREAM_OPTIONS]],
+  signInStream: ["claude-code", "codex", "antigravity"].map((route) => [route, STREAM_OPTIONS]),
   signInCode: ["claude-code", "antigravity"].map((route) => [route, "session", "code"]),
   signInCancel: [["claude-code"]],
 };
@@ -74,7 +77,7 @@ t("each optional entry refers to a route absent from this OpenAPI snapshot", () 
     }
   }
 });
-await assert.rejects(api.signInStream("antigravity", SIGN_IN_OPTIONS), { status: 404, code: "http_404" });
+await assert.rejects(api.signInStream("antigravity", STREAM_OPTIONS), { status: 404, code: "http_404" });
 await assert.rejects(api.signInCode("antigravity", "session", "code"), { status: 404, code: "http_404" });
 t("a shell's socket hangs off a terminal session xo-space defines (OpenAPI lists no sockets)", () => {
   const session = wsPath.replace(/\/ws$/, "");

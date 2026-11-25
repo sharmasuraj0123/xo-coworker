@@ -18,7 +18,7 @@ export interface View {
 export interface GitHubStatus {
   status: string;
   username?: string;
-  name?: string;
+  name?: string | null;
   scopes?: string;
   error?: string;
   gh_login?: { usable?: boolean, username?: string };

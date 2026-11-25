@@ -10,6 +10,18 @@ const snapshot = JSON.parse(readFileSync(new URL("../../../core/platform/tests/f
 const control = new AbortController();
 const stream = { signal: control.signal, on() {} };
 const session = "account-session";
+const code = { user_code: "ABCD-EFGH", verification_uri: "https://github.com/login/device" };
+const github = "/api/connectors/github";
+const replies = new Map([
+  ["/api/chat/runtimes", { runtimes: [] }],
+  [github + "/status", { status: "needs_auth" }],
+  [github + "/cli/start", { session_id: session, ...code, expires_in: 900 }],
+  [github + "/cli/poll", { status: "pending", ...code }],
+  [github + "/cli/cancel", { status: "cancelled" }],
+  [github + "/disconnect", { status: "needs_auth" }],
+  ["/connect/claude-code/callback", { ok: true, message: "Code supplied", session_id: session }],
+  ["/connect/claude-code", { ok: true, message: "Cancelled", session_id: null }],
+]);
 /** @type {[string, string, () => Promise<unknown>, boolean?][]} */
 const routes = [
   ["GET", "/api/chat/runtimes", () => api.runtimes()],
@@ -31,7 +43,11 @@ for (const [method, path, call, optional] of routes) {
   globalThis.fetch = async (url, options) => {
     seen.push([options?.method ?? "GET", new URL(String(url), "http://local/").pathname]);
     if (optional) return Response.json({ detail: "Not Found" }, { status: 404 });
-    return Response.json(path === "/api/chat/runtimes" ? { runtimes: [] } : {});
+    if (method === "POST" && !replies.has(path)) {
+      return new Response('data: {"type":"session","session_id":"account-session"}\n\n');
+    }
+    assert.ok(replies.has(path), path);
+    return Response.json(replies.get(path));
   };
   assert.equal(snapshot.paths[path]?.includes(method) ?? false, !optional, `${method} ${path} in OpenAPI`);
   if (optional) await assert.rejects(call(), { status: 404 });

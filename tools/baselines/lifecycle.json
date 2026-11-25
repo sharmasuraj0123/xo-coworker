@@ -72,9 +72,6 @@
   "setInterval": 2,
   "setTimeout": 2
  },
- "modules/launchpad/client.js": {
-  "setTimeout": 1
- },
  "modules/launchpad/notices.js": {
   "setTimeout": 2
  },

@@ -48,7 +48,12 @@ const STATIC = {
 
 // ── shells: the backend's T, in memory per page ──
 const ago = (ms) => new Date(Date.now() - ms).toISOString();
-const term = (o) => ({ id: "sh_1", name: "demo", scope: "project", project: "demo", path: "/home/coder/demo", cwd: "/home/coder/demo", status: "running", exit_code: null, ended_reason: null, foreground: "bash", viewers: 0, created_at: ago(40 * 60e3), detached_since: ago(12 * 60e3), closes_at: new Date(Date.now() + 22 * 3600e3).toISOString(), ended_at: null, ...o });
+const term = (o) => ({
+  id: "sh_1", name: "demo", scope: "project", project: "demo", path: "/home/coder/demo", cwd: "/home/coder/demo",
+  status: "running", exit_code: null, ended_reason: null, foreground: "bash", viewers: 0, size: { rows: 24, cols: 80 },
+  created_at: ago(40 * 60e3), detached_since: ago(12 * 60e3), closes_at: new Date(Date.now() + 22 * 3600e3).toISOString(),
+  last_attached_at: null, last_output_at: null, ended_at: null, ...o,
+});
 const SHELL_SETS = {
   none: () => [],
   some: () => [
@@ -89,7 +94,10 @@ function mockApi(W) {
       if (k[2]) return json({ ticket: "tk-" + t.id, ticket_expires_in: 30 });
       if (m === "GET") return json({ terminal: t });
       if (m === "PATCH") { if (W.renameFail) return json({ detail: { code: "unavailable", message: W.renameFail } }, 503); t.name = JSON.parse(req.postData() || "{}").name; return json({ terminal: t }); }
-      if (m === "DELETE") { if (W.closeFail) return json({ detail: { code: "unavailable", message: W.closeFail } }, 503); W.terms = W.terms.filter((x) => x !== t); W.closed.push(t.id); return json({ closed: true }); }
+      if (m === "DELETE") {
+        if (W.closeFail) return json({ detail: { code: "unavailable", message: W.closeFail } }, 503);
+        W.terms = W.terms.filter((x) => x !== t); W.closed.push(t.id); return json({ ok: true, closed: t.id });
+      }
     }
     if (STATIC[p]) return json(STATIC[p]);
     if ((k = /^\/api\/chat\/chats\/([^/]+)\/(threads|messages|hops|made|runtime-policy|worktrees)$/.exec(p))) {
