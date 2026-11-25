@@ -1,0 +1,450 @@
+{
+ "apps-host/bridge.js": {
+  "sha256": "3094928968f7a88c966ca37b7cbb9b8d2b19c65f150478b114467fc0d748eda6",
+  "sites": [
+   ["commentOnlyCatch",20,""]
+  ]
+ },
+ "apps-host/frame.js": {
+  "sha256": "5ff3322ecb81bc5d0857b53d4bff983894f7c5234084091a9739aa4e6519c2c3",
+  "sites": [
+   ["commentOnlyCatch",163,""]
+  ]
+ },
+ "apps-host/host.js": {
+  "sha256": "6b72a00dd2a0a9523bda6c2deddf6e4746b39215d0f5ab4a7a1264ba778469ed",
+  "sites": [
+   ["commentOnlyCatch",68,""],
+   ["commentOnlyCatch",92,""],
+   ["commentOnlyCatch",93,""],
+   ["commentOnlyCatch",140,""]
+  ]
+ },
+ "apps-host/settings.js": {
+  "sha256": "b070bae19a08780fa8d7fd13ca300e1080bfcdd558e3bce1792a9337dd8ae855",
+  "sites": [
+   ["commentOnlyCatch",47,""],
+   ["setTimeout",49,""]
+  ]
+ },
+ "core/kernel/scheduler.js": {
+  "sha256": "56a05ac0d79d0decfa692821c45767c61c54e7dd13c90bf96a64eaf05220bfd0",
+  "sites": [
+   ["requestAnimationFrame",9,""]
+  ]
+ },
+ "core/platform/gestures.js": {
+  "sha256": "6e89f433be6e5dfa8ba033658c201a62ca5222a138d33e5a60f1431d79f19087",
+  "sites": [
+   ["globalListener",16,""]
+  ]
+ },
+ "core/platform/http.js": {
+  "sha256": "0a412a38ae59019bab1bf4b35bd3219a292b4a419df4a7c057bbc90674205f5d",
+  "sites": [
+   ["storage",22,""],
+   ["storage",23,""],
+   ["setTimeout",49,""],
+   ["commentOnlyCatch",111,""],
+   ["commentOnlyCatch",136,""]
+  ]
+ },
+ "core/platform/keys.js": {
+  "sha256": "fea6585b35a1d22293bd676b08aa3a691655518d3bb11349c21b15d85555b244",
+  "sites": [
+   ["storage",64,""],
+   ["commentOnlyCatch",64,""],
+   ["storage",66,""]
+  ]
+ },
+ "core/platform/sse.js": {
+  "sha256": "969f7d593eea5d50c8656568befab3a5f5a02bf13570b90bb4e86071da56f572",
+  "sites": [
+   ["setTimeout",113,""],
+   ["setTimeout",185,""]
+  ]
+ },
+ "core/platform/storage.js": {
+  "sha256": "da2a8a71767226e6e6ae3e2b77080bb82d5d458a11b1259e13694f93dc90fd71",
+  "sites": [
+   ["commentOnlyCatch",38,""]
+  ]
+ },
+ "core/services/comms.js": {
+  "sha256": "4852f3d3587272b4e5adc3843a77a64140394d2fdbc1e7d8497190be1a033bb5",
+  "sites": [
+   ["commentOnlyCatch",30,""]
+  ]
+ },
+ "core/services/media/hydrate.js": {
+  "sha256": "99d4a1aadc7579cda3ad4e0f2792d7d02ae141f77bb193b299636c9fa1106b5e",
+  "sites": [
+   ["setTimeout",59,""]
+  ]
+ },
+ "core/services/media/intersection.js": {
+  "sha256": "c9f64ea192c2d1bebdcf2b79d940b15e2d2217067d00bb67d0750b418d5799b4",
+  "sites": [
+   ["observer",23,""]
+  ]
+ },
+ "core/services/media/object-urls.js": {
+  "sha256": "2257c8dd85807fc2fbd790436b03e5a3fcb400cb3f9cba9bbafbd1b4e6780428",
+  "sites": [
+   ["observer",47,""]
+  ]
+ },
+ "core/services/shape/store.js": {
+  "sha256": "1c594065418c9184c2247fc17929bd76a8081d3e307ad4405234aeff96a08c5b",
+  "sites": [
+   ["storage",15,""],
+   ["commentOnlyCatch",26,""],
+   ["commentOnlyCatch",28,""],
+   ["setTimeout",101,""]
+  ]
+ },
+ "core/services/sound.js": {
+  "sha256": "5365264b7ba7bc8ad7db6a8ca22cb901e4b4664ab86fdf435a27cac17db9677e",
+  "sites": [
+   ["storage",7,""],
+   ["commentOnlyCatch",7,""],
+   ["storage",9,""],
+   ["storage",9,""],
+   ["commentOnlyCatch",9,""]
+  ]
+ },
+ "core/services/storm/account.js": {
+  "sha256": "48d796c1e9db8cc13e7b5030ccf0ff460a8b2dc617e01f377ed01558439dd2d7",
+  "sites": [
+   ["setTimeout",33,""],
+   ["setTimeout",49,""]
+  ]
+ },
+ "core/services/storm/history.js": {
+  "sha256": "520cecdf1c2282322db1dd72392800c1a898e3cde7f38442ead5c804d5be61e6",
+  "sites": [
+   ["commentOnlyCatch",115,""],
+   ["commentOnlyCatch",131,""],
+   ["commentOnlyCatch",132,""],
+   ["setTimeout",162,""],
+   ["commentOnlyCatch",177,""]
+  ]
+ },
+ "core/services/storm/hops.js": {
+  "sha256": "b6e0ce590e40f6b1b14bf00744d0fc53f9fe3aeb29db5d65b1025f8bb4af0b3a",
+  "sites": [
+   ["setTimeout",18,""]
+  ]
+ },
+ "core/services/storm/selectors/commit.js": {
+  "sha256": "d934fa27625252abd0ceca6404124f7437b2c27d8b9d98c91377104676b29cc6",
+  "sites": [
+   ["setTimeout",63,""],
+   ["setTimeout",64,""]
+  ]
+ },
+ "core/services/storm/stream.js": {
+  "sha256": "9d3310269fb79c1c33b7fc692c04eb5004b8fdc76b64d7478271600e709253b3",
+  "sites": [
+   ["setTimeout",35,""],
+   ["setTimeout",46,""],
+   ["setInterval",97,""],
+   ["globalListener",106,""],
+   ["globalListener",112,""]
+  ]
+ },
+ "core/ui/a11y/announce.js": {
+  "sha256": "6c0226dc86407d3cb4ad33246a0e5596248d8fc679439ff04260f1756118b687",
+  "sites": [
+   ["setTimeout",4,""]
+  ]
+ },
+ "core/ui/components/hold.js": {
+  "sha256": "3ee49e55a52c1ac913e32082de5aaac0bf91169ed89abf8fe9284587631a2607",
+  "sites": [
+   ["setTimeout",27,""],
+   ["requestAnimationFrame",51,""],
+   ["globalListener",58,""],
+   ["globalListener",58,""],
+   ["requestAnimationFrame",61,""]
+  ]
+ },
+ "core/ui/components/xo-select.js": {
+  "sha256": "5c5e5528dc657b0627f24a4abb1abd63bcf451f3cad23abd849ec0f404ee777e",
+  "sites": [
+   ["observer",87,""],
+   ["globalListener",166,""],
+   ["globalListener",167,""],
+   ["globalListener",168,""],
+   ["setTimeout",210,""]
+  ]
+ },
+ "core/ui/intersection.js": {
+  "sha256": "886b63bed648110c829095c78b225666bfc0662188e4cb7f54c8a68145328f95",
+  "sites": [
+   ["observer",6,""]
+  ]
+ },
+ "core/ui/lightbox.js": {
+  "sha256": "f33c22970620f13c72492998d1b6a466bcb75b1029313a975407649274005deb",
+  "sites": [
+   ["globalListener",65,""],
+   ["commentOnlyCatch",163,""],
+   ["commentOnlyCatch",170,""],
+   ["setTimeout",278,""]
+  ]
+ },
+ "core/ui/markdown/chart.js": {
+  "sha256": "05d8f44ea45bf22c85b461f62895df39e941a43f0ddf5ee352ca65358df654f9",
+  "sites": [
+   ["commentOnlyCatch",19,""]
+  ]
+ },
+ "core/ui/markdown/inline.js": {
+  "sha256": "c08eb279b7378dce79294cbf141179fe7896eea2aeca39074935c28dda196ff1",
+  "sites": [
+   ["commentOnlyCatch",142,""]
+  ]
+ },
+ "core/ui/markdown/rich.js": {
+  "sha256": "f417f168bcfc414899b61a3588a7e4f5d5a0c4f926158dbd1c52a690d08a104c",
+  "sites": [
+   ["globalListener",35,""],
+   ["setTimeout",39,""],
+   ["setTimeout",70,""],
+   ["setTimeout",72,""],
+   ["observer",251,""],
+   ["setTimeout",251,""],
+   ["observer",253,""],
+   ["globalListener",254,""],
+   ["globalListener",255,""]
+  ]
+ },
+ "core/ui/motion.js": {
+  "sha256": "6fab1737e9d09cf61310a74ebf473318973ffdef75909688eaaacfaafbc7f2fa",
+  "sites": [
+   ["setTimeout",11,""],
+   ["setTimeout",13,""],
+   ["commentOnlyCatch",27,""],
+   ["requestAnimationFrame",125,""],
+   ["requestAnimationFrame",125,""],
+   ["requestAnimationFrame",145,""],
+   ["requestAnimationFrame",145,""],
+   ["observer",158,""]
+  ]
+ },
+ "css/app.css": {
+  "sha256": "04941c3522f7dcfc91eb129c6b1d32c8fdd6e3067dc20a259cc50731c17f2d15",
+  "sites": [
+   ["changelogComment",590,""],
+   ["changelogComment",597,""],
+   ["changelogComment",617,""]
+  ]
+ },
+ "modules/artifacts/cards.js": {
+  "sha256": "bc9d4d2b2ee4807ec65ccc253a4fadaf96beee21b315fabc8cf1a2bb1cfc130b",
+  "sites": [
+   ["commentOnlyCatch",43,""]
+  ]
+ },
+ "modules/artifacts/previews.js": {
+  "sha256": "bd2694caaa758cde6a4d8ef125fe7affece68d40ffbe8bed64e14a7f1bc5961e",
+  "sites": [
+   ["commentOnlyCatch",36,""],
+   ["commentOnlyCatch",38,""],
+   ["commentOnlyCatch",40,""]
+  ]
+ },
+ "modules/changes/diffview.js": {
+  "sha256": "de596a5583fc5e2e256ce36579710caee8c6ed1eaa4134b601cf1847558cac12",
+  "sites": [
+   ["globalListener",72,""],
+   ["unusedExport",32,"langOf"]
+  ]
+ },
+ "modules/chats/intel-reads.js": {
+  "sha256": "ca72c60135265b58d6eb7b4a257ff17e122acf65f90204cd4423563374450c34",
+  "sites": [
+   ["commentOnlyCatch",62,""]
+  ]
+ },
+ "modules/chats/intel.js": {
+  "sha256": "ee4ae6f90cbf1ee2f34fdde5c0718e824c5a5ba0b8d33b4c92d92e4381564964",
+  "sites": [
+   ["commentOnlyCatch",262,""]
+  ]
+ },
+ "modules/create-project/create.js": {
+  "sha256": "5ca02ec14c00881ad9328671b6faa3f43ba4aabfa2bfc5e6726943e405ff7aec",
+  "sites": [
+   ["commentOnlyCatch",247,""]
+  ]
+ },
+ "modules/create-project/project-input.js": {
+  "sha256": "7e7ded21f98a013b1d063b193859e1178bf3343b4c3b874f1aff722028a16e90",
+  "sites": [
+   ["commentOnlyCatch",51,""]
+  ]
+ },
+ "modules/decisions/kit.js": {
+  "sha256": "3d81e29d7114ca24f04f45d1ae42171c5af9f438e38c73b7609455ef5d1105d0",
+  "sites": [
+   ["globalListener",123,""]
+  ]
+ },
+ "modules/files/documents.js": {
+  "sha256": "a9c91aa9bb85c76757cfde23014d146929ec1719c39e6e6c2e2538578e8f8e68",
+  "sites": [
+   ["commentOnlyCatch",297,""],
+   ["commentOnlyCatch",301,""]
+  ]
+ },
+ "modules/files/drafts.js": {
+  "sha256": "e05a2d9971ba0e3c89e73acdb79e3c8606aba10621ad44ecadcf897fb63ed524",
+  "sites": [
+   ["commentOnlyCatch",13,""],
+   ["commentOnlyCatch",15,""],
+   ["commentOnlyCatch",30,""]
+  ]
+ },
+ "modules/files/editor.js": {
+  "sha256": "41372cf22384d00448219ac84d67a0cb98df853c9a33cec063524c4dbb2e879d",
+  "sites": [
+   ["commentOnlyCatch",54,""]
+  ]
+ },
+ "modules/files/markdown-page.js": {
+  "sha256": "d57d7f3922b3ae90ef1ffbbf592f2bd6f37f4b85a07e5fb310af7f11aa9d4407",
+  "sites": [
+   ["unusedExport",12,"rowLine"],
+   ["unusedExport",12,"tableRows"],
+   ["unusedExport",18,"toggleMark"]
+  ]
+ },
+ "modules/files/markdown-table.js": {
+  "sha256": "72430d6899dfbbfc41d4f9f77d63d113b84d814327b451db3ec15a20d4899a81",
+  "sites": [
+   ["unusedExport",11,"rowLine"],
+   ["unusedExport",16,"tableRows"]
+  ]
+ },
+ "modules/files/section-folds.js": {
+  "sha256": "74d5100c4dae834fb95d98fde261c5a676ab6278dbc63edef324bc40efef1f9f",
+  "sites": [
+   ["commentOnlyCatch",8,""]
+  ]
+ },
+ "modules/files/viewer-events.js": {
+  "sha256": "b7e74416e7572521b1e9c809bff83de3b5b94896a33fcff6b5fd0119416e6df2",
+  "sites": [
+   ["globalListener",94,""],
+   ["globalListener",95,""]
+  ]
+ },
+ "modules/files/viewer.js": {
+  "sha256": "064c1fb983533215d3ce7446a9a5a5331e748901a60844917210eb6c628ed474",
+  "sites": [
+   ["commentOnlyCatch",33,""]
+  ]
+ },
+ "modules/home/skeleton.js": {
+  "sha256": "a9a4fe7a87d96d5ffcdb155bc4a14211127ce988208b429c0dda49a070150630",
+  "sites": [
+   ["commentOnlyCatch",33,""],
+   ["globalListener",88,""]
+  ]
+ },
+ "modules/launchpad/client.js": {
+  "sha256": "0caf6a16572e4c8119f04147b264ae8417711fdd0577668222b0169ca94efb69",
+  "sites": [
+   ["commentOnlyCatch",95,""]
+  ]
+ },
+ "modules/launchpad/tests/launchpad.test.mjs": {
+  "sha256": "cdabffc296206210ae3e21b6e790bb2bd209b6d7022db41cd0c8f1005f56c621",
+  "sites": [
+   ["changelogComment",63,""]
+  ]
+ },
+ "modules/launchpad/views.js": {
+  "sha256": "1d43f2c2fbeacc42652b12b16d14532cec79b7b2c48efcda6bcf6d44f9fe8d0c",
+  "sites": [
+   ["changelogComment",99,""]
+  ]
+ },
+ "modules/settings/shape-page.js": {
+  "sha256": "1113db250a1a3cfa599257c0d4afee6e0080c4529eb4b1003cfa37845f61c783",
+  "sites": [
+   ["commentOnlyCatch",91,""]
+  ]
+ },
+ "modules/shells/term.js": {
+  "sha256": "b30371a0fcc9006320b17e4e49edd35873df9614a219e023524f3e90e77e4815",
+  "sites": [
+   ["commentOnlyCatch",126,""],
+   ["commentOnlyCatch",167,""]
+  ]
+ },
+ "shell/panel/pages.js": {
+  "sha256": "fb6136222cdd5ee4c26779dca5c4ba1f45138a67f3901ca83623cf7eb800477c",
+  "sites": [
+   ["commentOnlyCatch",201,""]
+  ]
+ },
+ "shell/rail/side.js": {
+  "sha256": "13c9ec91edbea0147c6703fa402d1d9aac9de283294cb724d5f495c6ff5e7b8e",
+  "sites": [
+   ["commentOnlyCatch",25,""]
+  ]
+ },
+ "tests/browser/conversation.test.cjs": {
+  "sha256": "3c3cb87d50c99a943d7e80df0431b7547e2a744308d2c687ac8ae1f198dae777",
+  "sites": [
+   ["changelogComment",142,""]
+  ]
+ },
+ "tests/browser/lpshell.test.cjs": {
+  "sha256": "90c639d152941c6774c175b09247f309bcdc79241f250b6fe2e499c3c82b79bc",
+  "sites": [
+   ["changelogComment",54,""]
+  ]
+ },
+ "tests/busy.test.mjs": {
+  "sha256": "436e43235f374c62d575101d34353baa88153af2bbb3961fd80da3e973a3ae08",
+  "sites": [
+   ["changelogComment",1,""]
+  ]
+ },
+ "tests/icon-gap.test.mjs": {
+  "sha256": "35a38286567beb8946be75faf8477d6552089bb89afe2a10f9aecc618bab8375",
+  "sites": [
+   ["changelogComment",4,""]
+  ]
+ },
+ "tests/logic.test.mjs": {
+  "sha256": "36746edeab03607c8c1a87ee3cb8560452606ff67dc5d35102d50070ac044f44",
+  "sites": [
+   ["changelogComment",62,""],
+   ["changelogComment",499,""]
+  ]
+ },
+ "tests/media.test.mjs": {
+  "sha256": "2cc761c4be26bc51c6c9b700181094e1a8957bd8c9495a0788e0109d99d6e0a2",
+  "sites": [
+   ["changelogComment",194,""],
+   ["changelogComment",293,""]
+  ]
+ },
+ "tests/shape.test.mjs": {
+  "sha256": "973f5f8cd666252e38685c154c262d6a85a460ff5e1a6702fe852e512e0389e3",
+  "sites": [
+   ["changelogComment",3,""]
+  ]
+ },
+ "tests/viewer-errors.test.mjs": {
+  "sha256": "988cc02091300e08339a285c91cb3e03e20d808a3f00872d42b97a1a63d949ed",
+  "sites": [
+   ["changelogComment",2,""]
+  ]
+ }
+}

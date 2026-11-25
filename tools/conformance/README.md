@@ -22,6 +22,11 @@ writes and other writes on statically recognizable DOM receivers. Export usage
 follows re-exports and counts the names read through a namespace or destructured
 from it. Opaque namespace reads conservatively keep any export they could access.
 
+The one-time coverage migration in `tools/baselines/coverage.json` records each
+newly detectable site against its original source bytes. Remove a file's
+migration entry when fixing it. Changed files lose all migrated coverage, and
+entries can only shrink.
+
 For stylesheet moves, compare `node tools/conformance/css-resolve.mjs --flat <root>`
 for the two trees. It follows links and imports, preserves layer registration,
 declaration order and conditions, and distinguishes versioned and root asset paths.

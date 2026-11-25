@@ -1,9 +1,10 @@
 // @ts-check
 
 import { runGit } from "../git-environment.mjs";
-import { readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { family, inventory } from "./inventory.mjs";
+import { applyCoverage, readCoverage } from "./coverage.mjs";
 
 export const FAMILIES = ["lifecycle", "hygiene", "structure", "style"];
 const CLEAR_ON_TOUCH = new Set([
@@ -31,8 +32,8 @@ export function formatBaseline(counts) {
   return JSON.stringify(Object.fromEntries(entries), null, 1) + "\n";
 }
 
-/** @param {ReturnType<typeof inventory>} findings @param {object} baselines @param {Set<string>} touched */
-export function compare(findings, baselines, touched) {
+/** @param {ReturnType<typeof inventory>} findings @param {object} baselines @param {Set<string>} touched @param {object} [prior] */
+export function compare(findings, baselines, touched, prior = {}) {
   const current = totals(findings);
   const seen = new Set();
   const errors = [];
@@ -40,7 +41,8 @@ export function compare(findings, baselines, touched) {
     const { file, rule, line, note } = finding;
     const name = family(finding);
     const total = current[name][file][rule];
-    const zero = CLEAR_ON_TOUCH.has(rule) && (touched.has(file) || (rule === "sourceReadTarget" && touched.has(note)));
+    const changed = touched.has(file) || (rule === "sourceReadTarget" && touched.has(note));
+    const zero = changed && (CLEAR_ON_TOUCH.has(rule) || prior[file]?.sites.some(([kind]) => kind === rule));
     const allowed = zero ? 0 : baselines[name][file]?.[rule] ?? 0;
     const key = JSON.stringify([file, rule, zero ? note : ""]);
     if (total <= allowed || seen.has(key)) continue;
@@ -116,6 +118,16 @@ function allowanceSurplus(current, previous, message) {
   return errors;
 }
 
+/** @param {string} root @param {string} baselineDir @param {{git: Function, ref: string} | null} repository */
+function loadCoverage(root, baselineDir, repository) {
+  const path = join(baselineDir, "coverage.json");
+  const local = relative(root, path).split(sep).join("/");
+  const previous = repository?.git(["show", `${repository.ref}:${local}`]);
+  const prior = previous?.status === 0 ? readCoverage(previous.stdout) : null;
+  if (prior && !existsSync(path)) throw new Error("Keep the conformance coverage record, even when empty");
+  return { coverage: existsSync(path) ? readCoverage(readFileSync(path, "utf8")) : {}, prior };
+}
+
 /** @param {string} root @param {string} baselineDir @param {{update: boolean, base?: string}} options */
 export function checkConformance(root, baselineDir, { update, base }) {
   const repository = checkout(root, base);
@@ -137,7 +149,11 @@ export function checkConformance(root, baselineDir, { update, base }) {
       (file, rule, old, count) => `  ${local}: ${file} raised the ${rule} allowance from ${old} to ${count}`));
   }
   if (growth.length) return growth.join("\n");
-  const { current, errors } = compare(inventory(root), baselines, changes(repository));
+  const touched = changes(repository);
+  const { coverage, prior } = loadCoverage(root, baselineDir, repository);
+  const migrated = applyCoverage(root, inventory(root), coverage, prior, touched);
+  const { current, errors } = compare(migrated.remaining, baselines, touched, prior ?? {});
+  if (migrated.errors.length) return [...migrated.errors, ...errors].join("\n");
   if (errors.length) return errors.join("\n");
   if (!update) {
     const stale = FAMILIES.flatMap(name => allowanceSurplus(baselines[name], current[name],

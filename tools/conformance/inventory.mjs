@@ -9,7 +9,6 @@ import { cssRules } from "./css.mjs";
 import { cssSyntax } from "./css-syntax.mjs";
 import { moduleEdges, unusedExports } from "./exports.mjs";
 import { javascriptRules } from "./javascript.mjs";
-import { checksLifecycle } from "./lifecycle.mjs";
 import { declarationSyntax, javascript, JS, SOURCE, TEST } from "./syntax.mjs";
 
 const ROOT_FILES = ["boot.js", "index.html", "serve.py"];
@@ -101,8 +100,11 @@ export function inventory(root, files = conformanceFiles(root)) {
 
 /** @param {{file: string, rule: string}} finding */
 export function family({ file, rule }) {
+  const lifecycleCatch = rule === "commentOnlyCatch"
+    && (file === "boot.js" || file === "js/app.js" || /^(modules|shell)\/.*\.m?js$/.test(file))
+    && !file.split("/").includes("tests");
   if (["observer", "globalListener", "storage", "setTimeout", "setInterval", "requestAnimationFrame"].includes(rule)
-      || (rule === "commentOnlyCatch" && checksLifecycle(file))) return "lifecycle";
+      || lifecycleCatch) return "lifecycle";
   if (/^(?:px-|rawColor|themeSelector|widthMediaQuery|ignoredCss)/.test(rule)) return "style";
   if (/^(?:comment|changelog|explicitAny)/.test(rule)) return "hygiene";
   return "structure";
