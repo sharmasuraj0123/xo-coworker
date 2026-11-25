@@ -24,6 +24,9 @@ export interface HomeControllerOptions<N extends HomeViewNeed>
 }
 
 declare module "../../core/kernel/types" {
+  interface Services {
+    home: Pick<ReturnType<typeof import("./controller.js").createHomeController<import("../../core/services/decision-types").RankedNeed>>, "homeParts" | "homeRender">;
+  }
   interface PlaceEntries {
     "home.section": import("../../shell/surface-types").SurfaceEntry<import("./sections.js").SectionContext<unknown>>;
   }

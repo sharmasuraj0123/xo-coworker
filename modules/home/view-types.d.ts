@@ -35,7 +35,7 @@ export interface HomeViewDeps<N extends HomeViewNeed> {
   isBusy: (thread: WorkingThread) => boolean;
   askTitle: (need: N) => string;
   PROJ: (project: string) => string;
-  kernel: { places: Places };
+  places: Pick<Places, "entries" | "watch" | "has">;
   SV: { homeOrder: (body: HTMLElement) => void };
   announce: (message: string) => void;
   schedule: () => void;

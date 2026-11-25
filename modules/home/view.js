@@ -16,8 +16,8 @@ import { thenHtml } from "./then.js";
 /** @template {HomeViewNeed} N @param {HomeViewDeps<N>} options @param {SurfaceScope} scope */
 export function createHomeView(options, scope) {
   const { selection, isCurrent, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today } = options;
-  const { num, noun, plural, isBusy, askTitle, PROJ, kernel, SV, announce, schedule } = options;
-  const drawSections = createHomeSections(kernel.places, scope, schedule);
+  const { num, noun, plural, isBusy, askTitle, PROJ, places, SV, announce, schedule } = options;
+  const drawSections = createHomeSections(places, scope, schedule);
   const built = new WeakSet(), busy = new WeakSet();
   let nextKey = /** @type {string | null} */ (null), nextSeen = 0;
 

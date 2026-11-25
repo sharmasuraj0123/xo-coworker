@@ -2691,11 +2691,11 @@
      "reason": "Conversation opens transcript pictures and hands files to the active viewer."
     },
     "modules/home/module.js": {
-     "anchor": "export function createHomeModule",
+     "anchor": "export const homeModule",
      "reason": "Home binds its controller and Next action to its activation."
     },
     "modules/search/jump-module.js": {
-     "anchor": "export function createJumpModule",
+     "anchor": "export const jumpModule",
      "reason": "Jump reads active project and thread services and owns its search controls."
     },
     "modules/shells/surface.js": {

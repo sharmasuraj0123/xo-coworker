@@ -58,7 +58,7 @@ const { homeRender, nextDecide } = createHomeView({
   isBusy: () => false,
   askTitle: (need) => need.key,
   PROJ: (project) => project,
-  kernel: { places },
+  places,
   SV: { homeOrder() {} },
   announce: (message) => { announcements.push(message); },
   schedule: () => { scheduled++; },

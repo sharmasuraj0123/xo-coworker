@@ -23,8 +23,7 @@ export interface JumpItemsDeps {
   glyphOf: (thread: JumpThread) => string;
   wordOf: (thread: JumpThread) => string;
 }
-export type JumpHost = Pick<WorkspaceJumpDeps, "go" | "focusIn" | "onHidden">
-  & Pick<JumpActionDeps, "create" | "settings" | "keys" | "toggleStage">
-  & Pick<JumpItemsDeps, "projectIcon"> & {
-    IQ: { kindOf(session: string): unknown; open(session: string, chip: HTMLElement): unknown };
-  };
+
+declare module "../../core/kernel/types" {
+  interface Services { jump: Pick<ReturnType<typeof import("./jump.js").createJump>, "open" | "close"> }
+}

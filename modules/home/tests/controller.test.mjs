@@ -20,7 +20,7 @@ const needs = ["first", "second", "third", "fourth", "parked", "waiting"].map((k
 const places = createPlaces();
 places.define({ id: "home.section", kind: "list", scope: "app", description: "Home sections" });
 const home = createHomeController({
-  host, scope, kernel: { places }, isCurrent: () => true,
+  host, scope, places, isCurrent: () => true,
   world: { state: { threads: [] } },
   D: {
     needItems: () => needs, current: () => null, isOpen: () => false, decideNow: () => true,

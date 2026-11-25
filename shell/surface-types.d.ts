@@ -15,7 +15,7 @@ export interface FileRouteEntry extends Entry {
 
 export interface SurfaceOptions<C> {
   read(): Surface<C>[];
-  places: Places;
+  places: Pick<Places, "watch" | "has">;
   place: string;
   scope: SurfaceScope;
   schedule: () => void;

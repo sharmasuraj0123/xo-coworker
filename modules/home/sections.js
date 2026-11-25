@@ -8,7 +8,7 @@ import { createSurfaceSlots } from "../../shell/surfaces.js";
 
 /** @template N @typedef {{ needs: N[], patch: (el: HTMLElement, html: string) => boolean }} SectionContext */
 
-/** @template N @param {Places} places @param {SurfaceScope} scope @param {() => void} schedule */
+/** @template N @param {Pick<Places, "entries" | "watch" | "has">} places @param {SurfaceScope} scope @param {() => void} schedule */
 export function createHomeSections(places, scope, schedule) {
   /** @type {ReturnType<typeof createSurfaceSlots<SectionContext<N>>>} */
   const draw = createSurfaceSlots({

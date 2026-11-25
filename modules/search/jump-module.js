@@ -4,29 +4,28 @@ import { createScope } from "../../core/kernel/scope.js";
 import { pageEl, sessionOf } from "../../shell/place-context.js";
 import { createWorkspaceJump } from "./jump-items.js";
 
-/** @import { JumpHost } from "./jump-items-types" */
-
-/** @param {JumpHost} host */
-export function createJumpModule(host) {
-  const el = requireHtml("#jump");
-  /** @type {ReturnType<typeof createWorkspaceJump> | undefined} */
-  let jump;
-  /** @type {import("../../core/kernel/types").ModuleDef} */
-  const module = {
-    manifest: { id: "xo.jump", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["currentView", "placeContext", "threadPresentation", "decisionPresentation", "announce"] },
-    activate(ctx) {
-      const scope = createScope(), view = ctx.use("currentView");
-      const session = () => sessionOf(view());
-      ctx.effect(() => () => { jump?.close(); scope.dispose(); jump = undefined; });
-      jump = createWorkspaceJump({
-        ...host, host: el, sources: ctx.places, announce: ctx.use("announce"),
-        items: { ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), D: ctx.use("decisionPresentation").D,
-          projectIcon: host.projectIcon },
-        actions: { ...host, theme: () => requireHtml("#theme", "button").click(), stage: () => !pageEl(view()),
-          intelligence: () => !!host.IQ.kindOf(session()), openIntelligence: () => host.IQ.open(session(), requireHtml("#iq", "button")) },
-      }, scope);
-    },
-  };
-  return { module, el, open: () => jump?.open(), close: () => jump?.close() };
-}
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const jumpModule = {
+  manifest: { id: "xo.jump", version: "1.0.0", kernel: "^1.1.0", provides: ["jump"],
+    needs: ["currentView", "placeContext", "threadPresentation", "decisionPresentation", "announce", "overlayFocus", "navigation",
+      "intelligence", "projectIcons", "stage", "shortcuts"], optional: ["createProject", "settingsFrame"] },
+  activate(ctx) {
+    const scope = createScope(), view = ctx.use("currentView"), el = requireHtml("#jump");
+    ctx.effect(() => scope.dispose);
+    const session = () => sessionOf(view()), { intelligence } = ctx.use("intelligence");
+    const shortcuts = ctx.use("shortcuts"), stage = ctx.use("stage");
+    const jump = createWorkspaceJump({
+      host: el, sources: ctx.places, announce: ctx.use("announce"), focusIn: ctx.use("overlayFocus"),
+      onHidden: () => ctx.emit("app:sync-inert"), go: ctx.use("navigation").go,
+      items: { ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), D: ctx.use("decisionPresentation").D,
+        projectIcon: ctx.use("projectIcons").projectIcon },
+      actions: {
+        create: () => ctx.optional("createProject")?.open(), settings: () => ctx.optional("settingsFrame")?.open(), keys: shortcuts.openKeys,
+        theme: () => requireHtml("#theme", "button").click(), stage: () => !pageEl(view()), toggleStage: () => stage.toggle(),
+        intelligence: () => !!intelligence.kindOf(session()), openIntelligence: () => intelligence.open(session(), requireHtml("#iq", "button")),
+      },
+    }, scope);
+    ctx.effect(() => jump.close);
+    ctx.provide("jump", jump);
+  },
+};
