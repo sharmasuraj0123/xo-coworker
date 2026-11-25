@@ -752,7 +752,7 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
-const SV = createShapeView({ shape: SHAPE, announce, notice: (n) => heraldShow({ kind: "stopped", text: n.text, sub: n.sub, force: true }) });
+const SV = createShapeView({ shape: SHAPE, announce });
 const shapeApply = createShapeApply({ view: currentView, SV, SHAPE, setWorkMode, convThread, world, loadChatHops, SH, STAGE, schedule });
 appScope.effect(() => SHAPE.onChange(() => shapeApply()));
 shapeApply({ boot: true });

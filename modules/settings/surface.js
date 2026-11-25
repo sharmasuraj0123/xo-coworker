@@ -15,7 +15,8 @@ import { createSettingsSections } from "./sections.js";
 
 /** @param {ModuleContext} ctx @param {SettingsSurfaceHost} host */
 export function mountSettingsSurface(ctx, host) {
-  const { el, at, shape } = host;
+  const { el, at } = host;
+  const shape = host.shape.mount(ctx);
   const nav = el.querySelector(".set-nav");
   const pages = el.querySelector(".set-page")?.parentElement;
   const box = el.querySelector("#set-keys-list");

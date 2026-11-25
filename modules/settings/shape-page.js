@@ -25,24 +25,15 @@ function inOrder(els) {
 }
 
 /** @param {import("./types").ShapeViewDeps} deps */
-export function createShapeView({ shape, announce = () => {}, notice = () => {} }) {
-  /** @type {import("./types").ShapeViewState} */
-  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, unkept: false, sharedAt: null, built: false };
-  const page = /** @type {HTMLElement} */ (document.querySelector('[data-page="shape"]'));
-  const box = /** @type {HTMLElement} */ (page && page.querySelector(".shp"));
+export function createShapeView({ shape, announce = () => {} }) {
   const nav = /** @type {HTMLElement} */ (document.querySelector("#settings .set-nav"));
   const navOrder = nav ? [.../** @type {NodeListOf<HTMLElement>} */ (nav.querySelectorAll("[data-set]"))].map((b) => /** @type {string} */ (b.dataset.set)) : [];
-  const cardsOf = () => PRESETS.map((p) => {
-    const f = shape.presetFile(p.id) || {};
-    return { id: p.id, name: f.name || p.name, summary: f.summary || p.summary };
-  });
-  /** @param {string} id */
-  const nameOf = (id) => (cardsOf().find((c) => c.id === id) || { name: id }).name;
-
   function apply() {
     document.documentElement.dataset.density = shape.get("density");
-    railRender();
-    if (page && !page.hidden && !/** @type {HTMLElement} */ (document.querySelector("#settings")).hidden) render();
+    if (mounted) {
+      railRender();
+      mounted.refresh();
+    }
   }
   function railRender() {
     if (!nav) return;
@@ -82,12 +73,43 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     inOrder(/** @type {Element[]} */ (order.flatMap((id) => HOME[id].map((x) => body.querySelector(`:scope > #${x}`))).filter(Boolean)));
   }
 
-  shape.onHeld?.(() => { if (page && !page.hidden && !/** @type {HTMLElement} */ (document.querySelector("#settings")).hidden) { render(); inSightHeld(); } });
+  /** @type {ReturnType<typeof mountShapePage> | undefined} */
+  let mounted;
+  return {
+    apply, homeOrder,
+    /** @param {import("../../core/kernel/types").ModuleContext} scope */
+    mount(scope) {
+      mounted = mountShapePage(scope, { shape, announce });
+      scope.effect(() => () => { mounted = undefined; });
+      return { open: mounted.open, apply };
+    },
+  };
+}
+
+/** @param {import("../../core/kernel/types").ModuleContext} scope @param {import("./types").ShapeViewDeps} deps */
+function mountShapePage(scope, { shape, announce = () => {} }) {
+  /** @type {import("./types").ShapeViewState} */
+  const V = { confirm: null, err: null, pickErr: null, draft: null, saveErr: null, unkept: false, sharedAt: null, built: false };
+  const page = /** @type {HTMLElement} */ (document.querySelector('[data-page="shape"]'));
+  const box = /** @type {HTMLElement} */ (page && page.querySelector(".shp"));
+  const cardsOf = () => PRESETS.map((p) => {
+    const f = shape.presetFile(p.id) || {};
+    return { id: p.id, name: f.name || p.name, summary: f.summary || p.summary };
+  });
+  /** @param {string} id */
+  const nameOf = (id) => (cardsOf().find((c) => c.id === id) || { name: id }).name;
+
+  const visible = () => page && !page.hidden && !page.closest("#settings[hidden]");
+  scope.effect(() => shape.onHeld?.(() => {
+    if (visible()) { render(); inSightHeld(); }
+  }));
+  const refresh = () => { if (!scope.signal.aborted && visible()) render(); };
+  if (isPending(SHAPING)) once(SHAPING, () => {}).then(refresh, refresh);
 
   async function open() {
     render();
     await Promise.all(PRESETS.filter((p) => !p.builtin).map((p) => shape.loadPreset(p.id).catch(reportFailure)));
-    if (!page.hidden) render();
+    if (!scope.signal.aborted && !page.hidden) render();
   }
   const mineText = () => JSON.stringify(shape.mine || { shape: 1 }, null, 2);
   /** @param {string[]} lines */
@@ -208,6 +230,7 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     V.sharedAt = "preset";
     const p = once(SHAPING, async () => {
       const r = await shape.choose(id);
+      if (scope.signal.aborted) return;
       if (r && r.error) { V.pickErr = r.error; render(); return; }
       const d = describeShape(createShape([]), shape.presetShape(id));
       V.confirm = null; V.err = null; V.unkept = r.kept === false ? "preset" : null;
@@ -218,11 +241,11 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     });
     render();
     await p;
-    render();
+    if (!scope.signal.aborted) render();
   }
 
   if (box) {
-    box.addEventListener("click", (e) => {
+    scope.listen(box, "click", (e) => {
       const t = /** @type {Element} */ (e.target);
       const p = /** @type {HTMLElement | null} */ (t.closest("[data-shp-preset]"));
       if (p) {
@@ -243,14 +266,15 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
       const sv = t.closest("[data-shp-save]");
       if (sv) { save(sv); return; }
     });
-    box.addEventListener("input", (e) => {
+    scope.listen(box, "input", (e) => {
       const ta = /** @type {HTMLTextAreaElement} */ (e.target);
       if (!ta.matches("[data-shp-json]")) return;
       V.draft = ta.value === mineText() ? null : ta.value;
       V.saveErr = null;
       jsonRender();
     });
-    box.addEventListener("keydown", (e) => {
+    scope.listen(box, "keydown", (event) => {
+      const e = /** @type {KeyboardEvent} */ (event);
       if (!/** @type {Element} */ (e.target).matches("[data-shp-json]") || e.key !== "Tab" || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
       e.preventDefault();
       document.execCommand("insertText", false, "  ");
@@ -267,6 +291,7 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     V.sharedAt = "json";
     const p = once(SHAPING, async () => {
       const res = await shape.setMine(r.doc);
+      if (scope.signal.aborted) return false;
       if (res.error) { V.saveErr = res.error; return false; }
       if (V.draft === sent) V.draft = null;
       V.err = null; V.unkept = res.kept === false ? "json" : null;
@@ -275,9 +300,10 @@ export function createShapeView({ shape, announce = () => {}, notice = () => {} 
     });
     jsonRender();
     const ok = await p;
+    if (scope.signal.aborted) return;
     render();
     if (ok && V.draft == null) landOn(box.querySelector("[data-shp-json]"), from);
   }
 
-  return { apply, open, render, homeOrder };
+  return { open, refresh };
 }

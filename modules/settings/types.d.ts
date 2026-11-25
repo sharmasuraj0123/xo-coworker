@@ -5,7 +5,6 @@ import type { createShapeStore } from "../../core/services/shape/store.js";
 export interface ShapeViewDeps {
   shape: ReturnType<typeof createShapeStore>;
   announce?: (text: string) => void;
-  notice?: (n: { text: string; sub?: string }) => void;
 }
 export interface ShapeViewState {
   confirm: string | null;
@@ -38,7 +37,7 @@ export interface SettingsSurfaceHost extends Omit<SettingsFrameDeps, "scope" | "
   at(): { project?: string };
   preferences: import("./appearance-types.d.ts").Preferences;
   mountRuntimes(host: { scope: ModuleContext; root: HTMLElement }): { open(): void };
-  shape: { apply(): void; open(): void };
+  shape: { mount(scope: ModuleContext): { apply(): void; open(): void } };
 }
 export interface SectionEntry {
   id: string;

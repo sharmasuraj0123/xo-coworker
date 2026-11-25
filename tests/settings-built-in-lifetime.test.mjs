@@ -102,7 +102,7 @@ test("the Settings surface retires focus, views and listeners and mounts one rep
     phone: matchMedia("(max-width: 760px)"), focusIn: (node) => node.focus(), fallback: () => opener,
     preferences: { THEME: createTheme(createScope(), () => {}).THEME, webPictures: "xo:conversation/webpics",
       shape: { on: () => true, setDevice: () => ({ kept: true }), onChange: () => () => {} } },
-    at: () => ({}), mountRuntimes: () => ({ open() {} }), shape: { apply() {}, open() {} }, beforeOpen() {}, onHidden() {},
+    at: () => ({}), mountRuntimes: () => ({ open() {} }), shape: { mount: () => ({ apply() {}, open() {} }) }, beforeOpen() {}, onHidden() {},
   });
   const id = settings.module.manifest.id;
   kernel.register(settings.module);

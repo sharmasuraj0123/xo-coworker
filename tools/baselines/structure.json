@@ -395,8 +395,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 611,
-  "lineLength": 39
+  "dependencyKey": 610,
+  "lineLength": 38
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -928,7 +928,7 @@
  },
  "modules/settings/shape-page.js": {
   "functionLines": 1,
-  "lineLength": 29
+  "lineLength": 28
  },
  "modules/settings/shortcuts-sheet.js": {
   "lineLength": 3

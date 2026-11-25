@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 export async function checkSettingsPreferences(kernel, press) {
   const find = (selector) => document.querySelector(selector);
   const bubbles = find("#bubbles-tog");
+  press("#set-phone");
+  press('#settings [data-set="shape"]');
+  const initialDensity = document.documentElement.dataset.density;
   await kernel.disable("xo.settings");
+  press("[data-shp-dense]");
+  assert.equal(document.documentElement.dataset.density, initialDensity, "retired Shape cannot change device density");
   const bubbleState = bubbles.getAttribute("aria-checked");
   press("#bubbles-tog");
   assert.equal(bubbles.getAttribute("aria-checked"), bubbleState);
@@ -23,6 +28,12 @@ export async function checkSettingsPreferences(kernel, press) {
   assert.equal(document.documentElement.dataset.density, density, "a Shape update still applies while Settings is retired");
   press("#nv-home");
   await kernel.enable("xo.settings");
+  press("#set-phone");
+  press('#settings [data-set="shape"]');
+  press("[data-shp-dense]");
+  assert.notEqual(document.documentElement.dataset.density, initialDensity, "replacement Shape toggles density once");
+  press("[data-shp-dense]");
+  press("#set-x");
   press("#bubbles-tog");
   assert.notEqual(bubbles.getAttribute("aria-checked"), bubbleState, "one click toggles the replacement exactly once");
   press("#bubbles-tog");
