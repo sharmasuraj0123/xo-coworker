@@ -1,5 +1,5 @@
 // @ts-check
-import "../core/ui/components/xo-select.js";
+import { defineXoSelect } from "../core/ui/components/xo-select.js";
 import { drawPlaceIcons, drawFrameIcons } from "./frame-icons.js";
 import { startShell } from "./start.js";
 import { PHONE } from "../core/platform/viewport.js";
@@ -11,6 +11,7 @@ import { createScope } from "../core/kernel/scope.js";
 /** @param {ModuleDef[]} modules */
 export async function bootShell(modules) {
   const scope = createScope();
+  defineXoSelect();
   drawPlaceIcons();
   drawFrameIcons();
   scope.effect(() => kernel.dispose);

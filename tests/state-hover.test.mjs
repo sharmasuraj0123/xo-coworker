@@ -136,7 +136,8 @@ test("a select moves one active choice under the pointer and skips disabled choi
     innerWidth: 1440,
     removeEventListener: window.removeEventListener.bind(window),
   });
-  await import("../core/ui/components/xo-select.js");
+  const { defineXoSelect } = await import("../core/ui/components/xo-select.js");
+  defineXoSelect();
   const select = document.createElement("xo-select");
   select.innerHTML = '<option value="a">Alpha</option><option value="b" disabled>Bravo</option><option value="c">Charlie</option>';
   Object.defineProperty(select.querySelector("[disabled]"), "disabled", { value: true });

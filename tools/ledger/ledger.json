@@ -2579,6 +2579,7 @@
    "status": "split",
    "home": [
     "js/app.js",
+    "shell/boot.js",
     "core/ui/theme.js",
     "core/ui/redraw.js",
     "core/ui/markdown/copy.js",
@@ -2656,6 +2657,10 @@
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "shell/boot.js": {
+     "anchor": "defineXoSelect();",
+     "reason": "Boot registers the shared dropdown before the shell mounts."
+    },
     "modules/settings/shortcuts-sheet.js": {
      "anchor": "export const shortcutsModule",
      "reason": "Settings owns opening the shortcuts sheet, moving focus to Close and restoring focus on dismissal."

@@ -13,7 +13,8 @@ test("a select closes when held, preserves focus and refuses a new choice", asyn
     innerHeight: 844,
     innerWidth: 1440,
   });
-  await import("../components/xo-select.js");
+  const { defineXoSelect } = await import("../components/xo-select.js");
+  defineXoSelect();
   const select = document.createElement("xo-select");
   select.innerHTML = '<option value="a">Alpha</option><option value="b">Bravo</option>';
   document.querySelector("main").append(select);

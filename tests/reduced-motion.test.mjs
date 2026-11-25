@@ -27,7 +27,8 @@ test("a select closes even without an animationend event", async ({ mock }) => {
     innerWidth: 1440,
     removeEventListener: window.removeEventListener.bind(window),
   });
-  await import("../core/ui/components/xo-select.js");
+  const { defineXoSelect } = await import("../core/ui/components/xo-select.js");
+  defineXoSelect();
   mock.timers.enable({ apis: ["setTimeout"] });
   const select = document.createElement("xo-select");
   select.innerHTML = '<option value="a">Alpha</option><option value="b">Bravo</option>';

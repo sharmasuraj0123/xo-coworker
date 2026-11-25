@@ -336,4 +336,6 @@ class XoSelect extends HTMLElement {
   }
 }
 
-if (!customElements.get("xo-select")) customElements.define("xo-select", XoSelect);
+export function defineXoSelect() {
+  if (!customElements.get("xo-select")) customElements.define("xo-select", XoSelect);
+}

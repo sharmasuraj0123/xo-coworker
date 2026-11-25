@@ -2823,7 +2823,8 @@ t("Runs: Stop's Undo is in the sheet; Undo keeps it running and focus goes back 
 // ── xo-select ──
 async function select(page, html) {
   return page.evaluate(async (html) => {
-    await import("./core/ui/components/xo-select.js");
+    const { defineXoSelect } = await import("./core/ui/components/xo-select.js");
+    defineXoSelect();
     const box = document.createElement("div"); box.style.cssText = "position:fixed;left:40px;top:40px;z-index:9999"; box.innerHTML = html; document.body.append(box);
     await new Promise((ok) => requestAnimationFrame(ok));
     return true;
