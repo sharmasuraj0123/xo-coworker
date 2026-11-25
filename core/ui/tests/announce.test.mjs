@@ -8,7 +8,8 @@ import { createScope } from "../../kernel/scope.js";
 
 const { document } = await dom('<div role="status">Previous update</div>');
 const region = document.querySelector('[role="status"]');
-const announce = createAnnouncer(region);
+const scope = createScope();
+const announce = createAnnouncer(region, scope);
 
 mock.timers.enable({ apis: ["setTimeout"] });
 try {
@@ -23,17 +24,18 @@ try {
   assert.equal(region.textContent, "");
   mock.timers.tick(1);
   assert.equal(region.textContent, "Current update");
+  assert.equal(scope.size, 0, "a completed announcement releases its timer");
 
-  const scope = createScope();
-  const announceInScope = createAnnouncer(region, scope);
-  announceInScope("Retired update");
+  announce("Retired update");
   assert.equal(region.textContent, "", "scoped announcements clear the old announcement synchronously");
   scope.dispose();
   mock.timers.tick(40);
   assert.equal(region.textContent, "", "disposing the owner cancels a queued announcement");
-  announceInScope("Ignored update");
+  announce("Ignored update");
   mock.timers.tick(40);
   assert.equal(region.textContent, "", "the retired announcer cannot change the region");
+  assert.equal(scope.size, 0);
 } finally {
+  scope.dispose();
   mock.timers.reset();
 }

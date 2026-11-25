@@ -36,12 +36,6 @@
    ["commentOnlyCatch",9,""]
   ]
  },
- "core/ui/a11y/announce.js": {
-  "sha256": "6c0226dc86407d3cb4ad33246a0e5596248d8fc679439ff04260f1756118b687",
-  "sites": [
-   ["setTimeout",4,""]
-  ]
- },
  "core/ui/components/hold.js": {
   "sha256": "3ee49e55a52c1ac913e32082de5aaac0bf91169ed89abf8fe9284587631a2607",
   "sites": [
