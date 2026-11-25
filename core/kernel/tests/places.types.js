@@ -13,6 +13,10 @@ export function workspacePlaceTypes(ctx) {
   // @ts-expect-error A rail badge provides a count.
   ctx.places.first("rail.count")?.mount();
   ctx.places.first("command")?.run({ project: "demo" }, { title: "Draft" });
+  const card = ctx.places.get("conversation.block", "app");
+  card?.render(document.body, { app: "demo", card: "preview" });
+  // @ts-expect-error An app card identifies its app by name.
+  card?.render(document.body, { app: 42 });
   ctx.places.first("files.viewer.kind")?.accepts({ path: "notes.md" }, {});
   // @ts-expect-error File viewers receive a file descriptor.
   ctx.places.first("files.viewer.kind")?.accepts(42, {});

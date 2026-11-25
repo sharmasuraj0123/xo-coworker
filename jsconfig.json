@@ -25,7 +25,8 @@
     "modules/**/*.js",
     "modules/**/*.d.ts",
     "boot.js",
-    "apps-host/**/*.js"
+    "apps-host/**/*.js",
+    "apps-host/**/*.d.ts"
   ],
   "exclude": [
     "vendor/**",
