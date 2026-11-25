@@ -171,6 +171,21 @@ await t("editor configuration keeps page attributes, read-only state and the sav
   assert.deepEqual(asks, [{ a: 1, b: 2 }]);
 });
 
+await t("a selection paints the shared selection fill, outranking CodeMirror's own focused default", async () => {
+  const { createEditorConfiguration } = await import("../modules/files/editor-extensions.js");
+  const { prepareExtensions } = createEditorConfiguration(cm, {});
+  const rules = [];
+  const walk = (ext) => {
+    if (Array.isArray(ext)) ext.forEach(walk);
+    else if (ext && Array.isArray(ext.value?.rules)) rules.push(...ext.value.rules);
+    else if (ext?.inner) walk(ext.inner);
+  };
+  walk(prepareExtensions({ name: "a.md", isMd: true, page: true, pageExt: [], onUpdate() {} })(false));
+  const focused = rules.find((rule) => /\.cm-focused > \.cm-scroller > \.cm-selectionLayer \.cm-selectionBackground[,{ ]/.test(rule));
+  assert.ok(focused, "the focused selection rule matches CodeMirror's own focused selector");
+  assert.ok(focused.includes("background-color: var(--fill-selection)"), focused);
+});
+
 await t("cm.js and merge.js export exactly the names the manifest lists", () => {
   assert.deepEqual(Object.keys(cm).sort(), manifest.exports["cm.js"]);
   assert.deepEqual(Object.keys(merge).sort(), manifest.exports["merge.js"]);

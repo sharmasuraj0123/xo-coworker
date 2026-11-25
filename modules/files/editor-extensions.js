@@ -153,8 +153,8 @@ function editorTheme(CM) {
     ".cm-activeLine": { backgroundColor: "var(--row-hover)" },
     ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--ink-3)" },
     "&.cm-focused .cm-cursor": { borderLeftColor: "var(--ink)" },
-    "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection": {
-      backgroundColor: "color-mix(in srgb, var(--info) 28%, transparent)",
+    "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
+      backgroundColor: "var(--fill-selection)",
     },
     ".cm-searchMatch": { backgroundColor: "color-mix(in srgb, var(--warn) 22%, transparent)", outline: "none" },
     ".cm-searchMatch-selected": { backgroundColor: "color-mix(in srgb, var(--warn) 40%, transparent)" },
