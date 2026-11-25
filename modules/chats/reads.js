@@ -7,6 +7,7 @@ import { requestFailureMessage } from "../../core/services/notices/failures.js";
 import { CHAT_LIST_LIMIT } from "./titles.js";
 
 /** @import { ChatState, History } from "./types.d.ts" @import { ChatReadDeps, Observed } from "./read-types.d.ts" */
+const HISTORY_RETRY_MS = 1000;
 
 /** @param {ChatState} state @param {ChatReadDeps} deps */
 export function createChatReads(state, { world, sessions, session, schedule, ensureModels, titles, signal }) {
@@ -52,6 +53,7 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
   /** @param {string} id @param {History} history */
   async function readHistory(id, history) {
     if (signal.aborted) return;
+    const requestedNative = session(id)?.native_id ?? null;
     /** @type {string | null | undefined} */
     let native;
     function superseded() {
@@ -81,8 +83,13 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
         if (history.user[0]) titles.remember(record, history.user[0].text);
       }
       history.error = null;
+      delete history.retry;
     } catch (error) {
-      if (!signal.aborted && !superseded()) history.error = requestFailureMessage(error, "Couldn't read the chat.");
+      native ??= requestedNative;
+      if (signal.aborted || superseded()) return;
+      history.retry = { native, at: Date.now() + HISTORY_RETRY_MS };
+      delete history.tried;
+      history.error = requestFailureMessage(error, "Couldn't read the chat.");
     }
   }
 
@@ -91,6 +98,8 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
     if (signal.aborted) return;
     const history = state.hist.get(id) ?? {};
     state.hist.set(id, history);
+    const retry = history.retry;
+    if (afterTurn && retry && retry.native === (session(id)?.native_id ?? null) && retry.at > Date.now()) return;
     if (isPending(history)) {
       if (afterTurn) history.again = true;
       return;
@@ -103,7 +112,7 @@ export function createChatReads(state, { world, sessions, session, schedule, ens
       history.loading = false;
       if (history.again) {
         history.again = false;
-        loadChat(id);
+        if (!loadChat(id, { afterTurn: true })) schedule();
       } else schedule();
     });
   }

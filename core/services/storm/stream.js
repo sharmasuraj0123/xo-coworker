@@ -19,12 +19,13 @@ export function startStorm(ctx) {
   const releaseSubscription = scope.effect(() => () => subscribed.resolve(undefined));
   scope.effect(() => () => { held.length = 0; stream?.close(); });
 
-  /** @param {Frame} f */
-  function onFrame(f) {
+  /** @param {import("../../platform/types").StreamFrame} frame */
+  function onFrame({ type, id, envelope }) {
     if (signal.aborted) return;
     releaseSubscription();
-    // where the stream stands, even while its frames are held: a read sent now stands there (the snapshot's seq before any stored frame)
-    const fe = f.envelope || {}, at = fe.seq ?? (f.type === "snapshot" && fe.data ? fe.data.seq : null);
+    /** @type {Frame} */
+    const f = { type, id, envelope: envelope && typeof envelope === "object" ? envelope : {} };
+    const fe = f.envelope || {}, at = fe.seq ?? (type === "snapshot" && fe.data ? fe.data.seq : null);
     if (at != null && at > state.lastSeq) state.lastSeq = at;
     if (ctx.holding) { held.push(f); return; }
     ctx.apply(f);
@@ -86,7 +87,6 @@ export function startStorm(ctx) {
     if (!readSignal.aborted && watched.side && watched.side !== watched.thread) await ctx.loadThread(watched.side);
   }
 
-  // A reset refreshes the thread list in place and reloads the open conversations.
   async function reload() {
     const cycle = ctx.renewReads();
     state.timeline = {}; state.hist = {}; state.threadMsgs = {}; state.threadHist = {}; state.found = {}; framesBefore.clear();
@@ -108,6 +108,7 @@ export function startStorm(ctx) {
   function startStream() {
     stream = new SSEStream(client.streamUrl(), {
       headers: coderHeaders,
+      onError: reportFailure,
       onFrame,
       onState: (s, info) => {
         if (signal.aborted) return;

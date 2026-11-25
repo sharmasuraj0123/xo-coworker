@@ -1,13 +1,4 @@
 {
- "core/services/shape/store.js": {
-  "sha256": "1c594065418c9184c2247fc17929bd76a8081d3e307ad4405234aeff96a08c5b",
-  "sites": [
-   ["storage",15,""],
-   ["commentOnlyCatch",26,""],
-   ["commentOnlyCatch",28,""],
-   ["setTimeout",101,""]
-  ]
- },
  "core/ui/components/hold.js": {
   "sha256": "3ee49e55a52c1ac913e32082de5aaac0bf91169ed89abf8fe9284587631a2607",
   "sites": [

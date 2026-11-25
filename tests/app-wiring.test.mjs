@@ -17,6 +17,9 @@ const sinceReads = [];
 const settingsReads = new Map();
 const chatTitleRead = deferred();
 const initialChats = deferred();
+const initialShape = deferred();
+let shapeReads = 0;
+let shapeWrites = 0;
 /** @type {AbortSignal | undefined} */
 let chatTitleSignal;
 /** @type {Map<Element, (entries: { target: Element; isIntersecting: boolean }[]) => void>} */
@@ -167,6 +170,11 @@ Object.assign(globalThis, {
   setTimeout: (/** @type {() => void} */ fn, /** @type {number} */ ms) => setTimeout(fn, ms).unref(),
   fetch: async (input, init) => {
     const { pathname: path, searchParams } = new URL(String(input), location.href);
+    if (path === "/api/chat/shape") {
+      if (init?.method === "PUT") { shapeWrites++; return Response.json({}); }
+      shapeReads++;
+      return initialShape.promise;
+    }
     const resource = path.split("/").at(-1);
     if (path === "/api/chat/stream") { stormSignal = init?.signal; return new Response(streamBody); }
     if (path === "/api/chat/status" && heldStatusSignal === null) {
@@ -1067,7 +1075,16 @@ assert.deepEqual(threadResolves.map(({ thread, body }) => [thread, body]), [
   ["failed-thread", { resolved: true }], ["failed-late", { resolved: true }],
 ]);
 assert.ok(frames.size, "the live Resolve action has queued a render");
+assert.equal(shapeReads, 1, "the real Shape read is still pending");
+const shapeEvent = { data: { key: "ui.shape", value: { doc: { shape: 1, preset: "marketing" } } } };
+stream.enqueue(encoder.encode(`event: settings\ndata: ${JSON.stringify(shapeEvent)}\n\n`));
+await new Promise(setImmediate);
+const storedShape = storage.get("cv-shape-mine");
 pagehide(false);
+initialShape.resolve(Response.json({ shape: null, version: "new" }));
+await new Promise(setImmediate);
+assert.equal(storage.get("cv-shape-mine"), storedShape, "a queued Shape event cannot write after permanent pagehide");
+assert.deepEqual([shapeReads, shapeWrites], [1, 0], "the retired Shape event cannot start another request");
 assert.equal(stormSignal.aborted && heldStatusSignal.aborted, true, "real unload retires the world and aborts its stream and held GET");
 lateStatus.resolve(Response.json({ pools: [{ id: "retired-status" }] }));
 assert.equal(mainLatest.isConnected, false, "unload destroys the booted main conversation decoration");

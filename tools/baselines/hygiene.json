@@ -83,9 +83,6 @@
   "commentLines": 1,
   "explicitAny": 7
  },
- "core/platform/types.d.ts": {
-  "explicitAny": 1
- },
  "core/services/media/attachment-rules.js": {
   "commentLines": 1,
   "commentOnlyCatch": 1,
@@ -129,9 +126,7 @@
   "explicitAny": 31
  },
  "core/services/shape/store.js": {
-  "commentLines": 19,
-  "commentOnlyCatch": 3,
-  "explicitAny": 24
+  "commentLines": 7
  },
  "core/services/step-icons.js": {
   "commentLines": 1

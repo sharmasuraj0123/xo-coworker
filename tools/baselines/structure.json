@@ -96,7 +96,7 @@
   "lineLength": 1
  },
  "core/platform/sse.js": {
-  "lineLength": 3,
+  "lineLength": 2,
   "unusedExport": 1
  },
  "core/platform/tests/exports-used.test.mjs": {
@@ -177,7 +177,7 @@
  },
  "core/services/shape/store.js": {
   "functionLines": 1,
-  "lineLength": 33,
+  "lineLength": 5,
   "unusedExport": 1
  },
  "core/services/sound.js": {
@@ -201,7 +201,7 @@
  },
  "core/services/storm/history.js": {
   "functionLines": 1,
-  "lineLength": 4
+  "lineLength": 3
  },
  "core/services/storm/hops.js": {
   "lineLength": 1

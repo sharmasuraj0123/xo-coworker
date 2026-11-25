@@ -1,9 +1,11 @@
 // @ts-check
 import { client, NEWEST, reportReadFailure } from "./client.js";
+import { createLru } from "../../platform/cache.js";
 import { mergeRows, pageAfter, canPageOlder, framesShort } from "../world/rows.js";
 import { PAGE, OLDER_PAGE } from "./config.js";
 
 /** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
+const LOOKUP_RETRY_MS = 1000;
 
 /** @param {Ctx["reads"]} cycle @param {Row} page @param {"loading" | "older"} flag */
 function loading(cycle, page, flag) {
@@ -169,9 +171,9 @@ export function installHistory(ctx) {
     }
   };
 
-  /** Rows named by id and not loaded: ONE backwards walk per project for all asked at once, pages of 50, newest hint first, at most 6 pages. @type {Set<string>} */
-  const sought = new Set();
-  /** @type {Map<string, Map<string, number | null>>} */
+  /** @type {ReturnType<typeof createLru<string, number>>} */
+  const sought = createLru({ max: 512 });
+  /** @type {Map<string, Map<string, { key: string, before: number | null }>>} */
   const wanted = new Map();
   /** @type {(() => void) | null} */
   let findT = null;
@@ -183,10 +185,10 @@ export function installHistory(ctx) {
     for (const id of ids) {
       if ((state.timeline[project] || []).some((/** @type {Row} */ r) => r.id === id) || state.found[project]?.has(id)) continue;
       const key = `${project}|${id}@${beforeSeq ?? ""}`;
-      if (sought.has(key)) continue;
-      sought.add(key);
+      if (q?.has(id) || (sought.get(key) ?? 0) > Date.now()) continue;
+      sought.set(key, Infinity);
       if (!q) wanted.set(project, (q = new Map()));
-      q.set(id, beforeSeq ?? null);
+      q.set(id, { key, before: beforeSeq ?? null });
     }
     if (q && q.size && !findT) findT = ctx.reads.timeout(() => walkFound(signal), 0);
   };
@@ -200,17 +202,23 @@ export function installHistory(ctx) {
       const map = state.found[project] || (state.found[project] = new Map());
       let floor = Infinity; // nothing at or above this seq is left to read
       for (let page = 0; page < 6 && q.size; page++) {
-        const top = Math.max(...[...q.values()].map((s) => (s == null ? Infinity : s)));
+        const top = Math.max(...[...q.values()].map(({ before }) => before ?? Infinity));
         const from = Math.min(top === Infinity ? Infinity : top + 1, floor);
         let d;
-        try { d = await client.messages(chat, { before_seq: from === Infinity ? NEWEST : from, limit: 50 }, { signal });
-        } catch (error) { reportReadFailure(error, signal); return; }
+        try {
+          d = await client.messages(chat, { before_seq: from === Infinity ? NEWEST : from, limit: 50 }, { signal });
+        } catch (error) {
+          if (signal.aborted) return;
+          for (const { key } of q.values()) sought.set(key, Date.now() + LOOKUP_RETRY_MS);
+          reportReadFailure(error, signal);
+          return;
+        }
         if (signal.aborted) return;
         const rows = d.messages || [];
         for (const r of rows) { map.set(r.id, r); q.delete(r.id); }
         if (!rows.length || !d.next_before_seq) break;
         floor = Math.min(...rows.map((/** @type {Row} */ r) => r.seq));
-        for (const [id, s] of q) if (s == null || s >= floor) q.set(id, floor - 1);
+        for (const entry of q.values()) if (entry.before == null || entry.before >= floor) entry.before = floor - 1;
       }
     }));
     if (!signal.aborted) ctx.emitSoon();

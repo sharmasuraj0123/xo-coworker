@@ -1,8 +1,6 @@
 {
  "js/app.js": {
-  "observer": 1,
-  "requestAnimationFrame": 1,
-  "setTimeout": 3
+  "observer": 1
  },
  "modules/artifacts/page.js": {
   "observer": 2,

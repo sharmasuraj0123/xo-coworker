@@ -1,8 +1,9 @@
 // @ts-check
+
 import { createScope } from "../kernel/scope.js";
 import { reportFailure } from "./util.js";
 
-// One Server-Sent Events connection, read with fetch so it can send headers and resume from Last-Event-ID, losing nothing.
+/** @import { Reset, StateInfo, StreamFrame, StreamState } from "./types" */
 
 /** A pure, incremental SSE parser (the WHATWG rules we need). feed(text) → frames. */
 export function createParser() {
@@ -54,21 +55,30 @@ export function createParser() {
   };
 }
 
+const invalidJson = Symbol();
+/** @param {string} text */
+function parseEvent(text) {
+  try { return JSON.parse(text); }
+  catch (error) { if (error instanceof SyntaxError) return invalidJson; throw error; }
+}
+
 /** @param {Response} res @param {(event: unknown) => void} on @param {AbortSignal} signal */
 export async function readJsonEvents(res, on, signal) {
-  const reader = /** @type {ReadableStream<Uint8Array>} */ (res.body).getReader();
+  if (!res.body) throw new TypeError("Missing event stream body.");
+  const reader = res.body.getReader();
   const decoder = new TextDecoder(), parser = createParser();
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done || signal.aborted) return;
-    for (const frame of parser.feed(decoder.decode(value, { stream: true }))) {
-      if (!frame.data) continue;
-      let event;
-      try { event = JSON.parse(frame.data); }
-      catch (error) { if (error instanceof SyntaxError) continue; throw error; }
-      try { on(event); } catch (error) { reportFailure(error); }
+  try {
+    while (!signal.aborted) {
+      const { value, done } = await reader.read();
+      if (done || signal.aborted) return;
+      for (const frame of parser.feed(decoder.decode(value, { stream: true }))) {
+        if (signal.aborted) return;
+        const event = parseEvent(frame.data);
+        if (event === invalidJson) continue;
+        try { on(event); } catch (error) { reportFailure(error); }
+      }
     }
-  }
+  } finally { reader.releaseLock?.(); }
 }
 
 const RETRY_MAX_MS = 15000;
@@ -76,61 +86,66 @@ const WATCHDOG_MS = 45000; // the server sends a heartbeat after 15 s of silence
 const STALE_MS = 25000;    // after a sleep: no byte for this long means the connection is gone
 const DOWN_AFTER = 3;      // failed attempts in a row before we say the stream is down
 
-/** @typedef {{ headers?: () => Record<string, string>, lastId?: string | null, onFrame?: (frame: import("./types").StreamFrame) => void, onState?: (state: import("./types").StreamState, info: import("./types").StateInfo) => void, onReset?: (reset: import("./types").Reset) => Promise<unknown> | void, fetchImpl?: typeof fetch }} StreamOptions */
-
 /** One connection at a time, frames of a superseded attempt dropped; `retention`/`ahead` resets await onReset, then resume from from_seq. */
 export class SSEStream {
-  /** @param {string} url @param {StreamOptions} [opts] */
-  constructor(url, { headers = () => ({}), lastId = null, onFrame, onState, onReset, fetchImpl } = {}) {
+  #scope = createScope();
+  /** @type {(() => void) | undefined} */
+  #retireAttempt;
+  /** @type {(() => void) | undefined} */
+  #timer;
+  /** @type {(() => void) | undefined} */
+  #watch;
+
+  /** @param {string} url @param {import("./types").StreamOptions} [opts] */
+  constructor(url, { headers = () => ({}), lastId = null, onFrame, onState, onReset, onError, fetchImpl } = {}) {
     this.url = url;
     this.headers = headers;
     this.lastId = lastId;
     this.onFrame = onFrame || (() => {});
     this.onState = onState || (() => {});
     this.onReset = onReset || (async () => {});
+    this.onError = onError ?? reportFailure;
     this.fetch = fetchImpl || ((...a) => globalThis.fetch(...a));
-    /** @type {import("./types").StreamState | null} */
+    /** @type {StreamState | null} */
     this.state = null;
     this.fails = 0;
-    this.closed = false;
-    /** @type {AbortController | null} */
-    this.ctl = null;
     this.gen = 0;
-    this.scope = createScope();
-    /** @type {(() => void) | null} */
-    this.timer = null;
-    /** @type {(() => void) | null} */
-    this.watch = null;
     this.lastChunk = 0;
   }
 
-  start() { this.connect(); return this; }
+  get closed() { return this.#scope.signal.aborted; }
+  start() { void this.connect().catch(this.onError); return this; }
 
-  /** @param {import("./types").StreamState} s @param {import("./types").StateInfo} [info] */
-  setState(s, info) { if (s !== this.state || info) { this.state = s; this.onState(s, info || null); } }
+  /** @param {StreamState} s @param {StateInfo} [info] */
+  setState(s, info) {
+    if (s === this.state && !info) return;
+    this.state = s;
+    try { this.onState(s, info || null); } catch (error) { this.onError(error); }
+  }
 
   async connect() {
     if (this.closed) return;
-    this.timer?.(); this.timer = null;
-    this.watch?.();
-    if (this.ctl) this.ctl.abort(); // never two connections
+    this.#timer?.(); this.#timer = undefined;
+    this.#watch?.();
+    this.#retireAttempt?.();
     const gen = ++this.gen;
     const ctl = new AbortController();
-    this.ctl = ctl;
+    this.#retireAttempt = this.#scope.effect(() => () => ctl.abort());
     const current = () => !this.closed && this.gen === gen;
     // the watchdog runs from the start: a connect that never answers is retried too
-    const kick = () => { this.watch?.(); this.watch = this.scope.timeout(() => ctl.abort(), WATCHDOG_MS); };
+    const kick = () => { this.#watch?.(); this.#watch = this.#scope.timeout(() => ctl.abort(), WATCHDOG_MS); };
     kick();
     this.setState(this.fails ? "reconnecting" : "connecting");
+    if (!current()) return;
     let res;
+    /** @type {Record<string, string>} */
+    const h = { Accept: "text/event-stream", ...this.headers() };
+    if (this.lastId) h["Last-Event-ID"] = this.lastId;
     try {
-      /** @type {Record<string, string>} */
-      const h = { Accept: "text/event-stream", ...this.headers() };
-      if (this.lastId) h["Last-Event-ID"] = this.lastId;
       res = await this.fetch(this.url, { headers: h, signal: ctl.signal, cache: "no-store", redirect: "manual" });
     } catch (error) {
       if (!current()) return;
-      if (!ctl.signal.aborted && !(error instanceof TypeError)) reportFailure(error);
+      if (!ctl.signal.aborted && !(error instanceof TypeError)) this.onError(error);
       return this.retry({ code: "network", message: "Can't reach the UI server." });
     }
     if (!current()) return;
@@ -138,7 +153,7 @@ export class SSEStream {
     if (!res.ok) {
       let detail = null;
       try { detail = (await res.json())?.detail; }
-      catch (error) { if (!(error instanceof SyntaxError) && !ctl.signal.aborted) reportFailure(error); }
+      catch (error) { if (current() && !ctl.signal.aborted && !(error instanceof SyntaxError)) this.onError(error); }
       if (!current()) return;
       const code = (detail && detail.code) || `http_${res.status}`;
       const message = (detail && detail.message) || (typeof detail === "string" ? detail : `${res.status}`);
@@ -147,41 +162,39 @@ export class SSEStream {
       return this.retry({ code, message, status: res.status });
     }
     const parser = createParser();
-    const reader = /** @type {ReadableStream<Uint8Array>} */ (res.body).getReader();
+    if (!res.body) return this.retry({ code: "ended", message: "The stream ended." });
+    const reader = res.body.getReader();
     const dec = new TextDecoder();
     let healthy = false, reset = null;
     try {
       for (;;) {
         const { value, done } = await reader.read();
-        if (!current()) {
-          await reader.cancel().catch((error) => { if (!ctl.signal.aborted) reportFailure(error); });
-          return;
-        }
+        if (!current()) return;
         if (done) break;
         kick();
         this.lastChunk = Date.now();
         for (const f of parser.feed(dec.decode(value, { stream: true }))) {
           if (!healthy) { healthy = true; this.fails = 0; this.setState("live"); }
-          let env = null;
-          try { env = JSON.parse(f.data); }
-          catch (error) { if (error instanceof SyntaxError) continue; throw error; }
+          if (!current()) return;
+          const env = parseEvent(f.data);
+          if (env === invalidJson) continue;
           if (f.id) this.lastId = f.id;
           if (f.event === "reset") { reset = (env && env.data) || {}; continue; }
           if (f.event === "snapshot" && !this.lastId && env && env.data && env.data.seq != null) this.lastId = String(env.data.seq);
-          this.onFrame({ type: f.event, id: f.id, envelope: env });
+          try { this.onFrame({ type: f.event, id: f.id, envelope: env }); } catch (error) { this.onError(error); }
           if (!current()) return;
         }
       }
     } catch (error) {
-      if (!ctl.signal.aborted) reportFailure(error);
-    }
+      if (current() && !ctl.signal.aborted && !(error instanceof TypeError)) this.onError(error);
+    } finally { reader.releaseLock?.(); }
     if (!current()) return;
-    this.watch?.();
+    this.#watch?.();
     if (reset) {
       if (reset.reason === "retention" || reset.reason === "ahead") {
         this.setState("reconnecting", { reset: reset.reason });
-        try { await this.onReset(reset); }
-        catch (error) { if (!ctl.signal.aborted) reportFailure(error); }
+        if (!current()) return;
+        try { await this.onReset(reset); } catch (error) { if (current()) this.onError(error); }
         if (!current()) return;
         this.lastId = reset.from_seq != null ? String(reset.from_seq) : null;
       } else if (reset.from_seq != null) {
@@ -193,28 +206,25 @@ export class SSEStream {
     this.retry(healthy ? null : { code: "ended", message: "The stream ended." }, healthy ? 300 : undefined);
   }
 
-  /** @param {import("./types").StateInfo} err @param {number} [delay] */
+  /** @param {StateInfo} err @param {number} [delay] */
   retry(err, delay) {
     if (this.closed) return;
     if (err) this.fails += 1;
     const wait = delay ?? Math.min(RETRY_MAX_MS, 1000 * 2 ** Math.max(0, this.fails - 1)) + Math.random() * 400;
+    this.#watch?.();
+    this.#timer?.();
+    this.#timer = this.#scope.timeout(() => this.start(), wait);
     this.setState(this.fails >= DOWN_AFTER ? "down" : "reconnecting", err);
-    this.timer?.();
-    this.timer = this.scope.timeout(() => { this.timer = null; this.connect(); }, wait);
   }
 
   /** Visible again or back online: retry now rather than wait out the backoff, and drop a connection that went silent in a sleep. */
   nudge() {
     if (this.closed) return;
-    if (this.timer) { this.connect(); return; }
-    if (this.state === "live" && Date.now() - this.lastChunk > STALE_MS) this.connect();
+    if (this.#timer || (this.state === "live" && Date.now() - this.lastChunk > STALE_MS)) this.start();
   }
 
   close() {
-    this.closed = true;
-    this.scope.dispose();
-    this.timer = this.watch = null;
-    if (this.ctl) this.ctl.abort();
+    this.#scope.dispose();
     this.setState("closed");
   }
 }

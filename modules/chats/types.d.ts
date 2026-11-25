@@ -46,6 +46,7 @@ export interface History {
   turns?: boolean;
   again?: boolean;
   tried?: string | null;
+  retry?: { native: string | null; at: number };
   user?: Prompt[];
   error?: string | null;
 }

@@ -3,13 +3,25 @@ import { reportFailure } from "./util.js";
 
 /** @typedef {"local" | "session" | Pick<Storage, "getItem" | "setItem">} StorageAccess @typedef {(error: unknown) => void} Report */
 
+/** @param {"local" | "session"} kind */
+const browserStore = (kind) => kind === "session" ? globalThis.sessionStorage : globalThis.localStorage;
+
 /** @param {StorageAccess} kind */
-const backend = (kind) => kind === "session" ? globalThis.sessionStorage : kind === "local" ? globalThis.localStorage : kind;
+const backend = (kind) => typeof kind === "string" ? browserStore(kind) : kind;
+
+/** @param {unknown} error */
+const storageUnavailable = (error) => error instanceof DOMException
+  && (error.name === "SecurityError" || error.name === "QuotaExceededError");
 
 /** @param {unknown} error */
 export function reportStorageFailure(error) {
-  if (error instanceof DOMException && ["SecurityError", "QuotaExceededError"].includes(error.name)) return;
-  reportFailure(error);
+  if (!storageUnavailable(error)) reportFailure(error);
+}
+
+/** @param {Report} report */
+export function localStore(report) {
+  try { return browserStore("local"); }
+  catch (error) { report(error); return undefined; }
 }
 
 /** @template T @param {string} key @param {(s:string)=>T} parse @param {T} backup @param {StorageAccess} [kind] @param {Report} [report] */
@@ -36,15 +48,15 @@ export function write(key, value, kind = "local", report) {
   }
 }
 
-/** @param {string} key @param {"local" | "session"} [kind] */
-export function erase(key, kind = "local") {
+/** @param {string} key @param {"local" | "session" | Pick<Storage, "removeItem">} [kind] @param {Report} [report] */
+export function erase(key, kind = "local", report = reportStorageFailure) {
   try {
-    const store = kind === "session" ? globalThis.sessionStorage : globalThis.localStorage;
+    const store = typeof kind === "string" ? browserStore(kind) : kind;
     if (!store) return { kept: false };
     store.removeItem(key);
     return { kept: true };
   } catch (error) {
-    reportStorageFailure(error);
+    report(error);
     return { kept: false };
   }
 }

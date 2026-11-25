@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { boot, fail, fakeBackend, settle, thread, until } from "../../../../tests/storm-harness.mjs";
+import { advance, boot, fail, fakeBackend, settle, thread, until } from "../../../../tests/storm-harness.mjs";
 
 const EVENT_PATH = "/chat/events";
 const MESSAGE_PATH = "/chat/chats/chat_p/messages";
@@ -55,4 +55,29 @@ test("lookup paging reports a failed read without publishing messages into the t
   await settle();
   assert.equal(world.state.timeline.demo, undefined);
   assert.deepEqual(reported, ["history_failure"]);
+});
+
+test("a transient lookup failure backs off and allows the same quote to recover", async (t) => {
+  const reported = [];
+  t.mock.method(console, "error", (error) => reported.push(error.code));
+  const backend = fakeBackend({
+    ["GET " + MESSAGE_PATH]: ({ before_seq }) => before_seq === "21"
+      ? { messages: [row(10)], next_before_seq: 10 } : refusal,
+  });
+  const { world } = await boot(backend);
+  t.after(world.dispose);
+  const lookup = () => world.act.findRows("demo", ["r5"], 20);
+  lookup();
+  await until(() => backend.count("GET", MESSAGE_PATH) === 2);
+  await settle();
+  for (let i = 0; i < 4; i++) lookup();
+  await settle();
+  assert.equal(backend.count("GET", MESSAGE_PATH), 2, "repeated draws honor the backoff");
+  assert.deepEqual(reported, ["history_failure"]);
+  backend.routes["GET " + MESSAGE_PATH] = { messages: [row(5)] };
+  advance(1200);
+  lookup();
+  await settle();
+  assert.equal(world.state.found.demo.get("r5")?.seq, 5, "the original lookup key can retry after a later page fails");
+  assert.equal(world.state.timeline.demo, undefined);
 });

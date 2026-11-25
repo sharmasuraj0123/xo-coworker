@@ -3017,9 +3017,16 @@
    "home": [
     "core/services/shape/model.js",
     "core/services/shape/changes.js",
-    "core/services/shape/store.js"
+    "core/services/shape/store.js",
+    "core/services/shape/sync.js"
    ],
-   "note": "every importer points at the new home, so it leaves with no re-export"
+   "note": "every importer points at the new home, so it leaves with no re-export",
+   "evidence": {
+    "core/services/shape/sync.js": {
+     "anchor": "export function createShapeSync(",
+     "reason": "Remote synchronization and its retry lifetime moved out of the Shape store."
+    }
+   }
   },
   "js/shapeview.js": {
    "status": "moved",
@@ -12763,7 +12770,7 @@
   },
   "js/shape.js::keys::shape_changed": {
    "status": "moved",
-   "home": "core/services/shape/store.js"
+   "home": "core/services/shape/sync.js"
   },
   "js/shapeview.js::exports::SHAPE_IC": {
    "status": "moved",

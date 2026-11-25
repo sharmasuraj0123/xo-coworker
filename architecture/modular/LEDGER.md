@@ -98,7 +98,7 @@ Items inside first-party files: 2488 (moved 1784, planned 252, kept 230, deleted
 | `js/runsview.js` | 168 | moved | modules/runs/view.js |
 | `js/runtimes.js` | 179 | moved | core/services/runtimes.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/settings.js` | 407 | split | modules/settings/module.js, modules/settings/host.js, modules/settings/page-events.js, modules/routing/module.js, modules/routing/page.js, modules/routing/actions.js, modules/rules/module.js, modules/rules/page.js, modules/worktrees/module.js, modules/worktrees/page.js · next: The Settings service owns page delegation. Routing, Rules, and Worktrees register and dispose their own page handlers. |
-| `js/shape.js` | 731 | split | core/services/shape/model.js, core/services/shape/changes.js, core/services/shape/store.js · next: every importer points at the new home, so it leaves with no re-export |
+| `js/shape.js` | 731 | split | core/services/shape/model.js, core/services/shape/changes.js, core/services/shape/store.js, core/services/shape/sync.js · next: every importer points at the new home, so it leaves with no re-export |
 | `js/shapeview.js` | 314 | moved | modules/settings/shape-page.js · next: whole file moved; the home thread takes homeOrder and the shell thread density (apply) from shape-page.js later |
 | `js/shells/dock.js` | 704 | split | modules/shells/dock.js, modules/shells/dock-refresh.js, modules/shells/dock-resize.js, modules/shells/dock-open.js, modules/shells/dock-actions.js, modules/shells/dock-rename.js |
 | `js/shells/model.js` | 128 | moved | modules/shells/model.js |

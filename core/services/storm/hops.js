@@ -11,13 +11,14 @@ export function installHops(ctx) {
   async function loadThreadHops(ts) {
     const { signal } = ctx.reads;
     const r = rawThreads.get(ts);
-    if (signal.aborted || !r) return;
+    if (signal.aborted || !r) return false;
     try {
       const d = await client.hops(r.chat_id, { thread: ts, before_seq: NEWEST, limit: 200 }, { signal });
-      if (signal.aborted) return;
+      if (signal.aborted) return false;
       for (const h of d.hops || []) ctx.putHop(h, { at: h.created_at });
       ctx.emitSoon();
-    } catch (error) { reportReadFailure(error, signal, true); }
+      return true;
+    } catch (error) { reportReadFailure(error, signal, true); return false; }
   }
   /** A burst of hops is one read. @type {(() => void) | undefined} */
   let hopsT;
@@ -42,7 +43,7 @@ export function installHops(ctx) {
     if (signal.aborted) return;
     const reads = threadReads.get(signal) || new Map();
     threadReads.set(signal, reads);
-    if (!reads.has(ts)) reads.set(ts, loadThreadHops(ts));
+    if (!reads.has(ts)) reads.set(ts, loadThreadHops(ts).then((loaded) => { if (!loaded) reads.delete(ts); }));
     return reads.get(ts);
   };
   /** A Workspace or project chat's own hops, for "Show hops" on its timeline, read once per chat. */
@@ -58,6 +59,6 @@ export function installHops(ctx) {
       if (signal.aborted) return;
       for (const h of d.hops || []) ctx.putHop(h, { at: h.created_at });
       ctx.emitSoon();
-    } catch { hopsRead.delete(chat); }
+    } catch (error) { hopsRead.delete(chat); reportReadFailure(error, signal, true); }
   };
 }

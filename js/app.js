@@ -178,7 +178,7 @@ const SHAPE = createShapeStore({
   caps: { has: (/** @type {string} */ c) => CAP[c]?.() ?? true },
   remote: { get: () => api.shape(), put: (body) => api.putShape(body) },
   notice: (h) => heraldShow({ kind: "calm", ...h }, 6000),
-});
+}, appScope);
 appScope.effect(() => world.onEvent((e) => { if (e.kind === "shape") SHAPE.heard(e.value); }));
 const WEBPICS = "xo:conversation/webpics";
 setWebImages((/** @type {{ alt: string, url?: string, file?: string }[]} */ list) => {
@@ -247,8 +247,8 @@ const D = createDecisions({
     go("t:" + tid);
   },
   // a decision refused after its window: the honest correction replaces "All clear"
-  onNotSent: (title, why) => { setTimeout(() => heraldShow({ kind: "stopped", text: "Not sent", sub: `${String(title).replace(/`/g, "").replace(/[.?!]$/, "")} · ${why}`, force: true }, 7000), RM.matches ? 0 : 950); },
-  onAllClear: (summary) => { setTimeout(() => heraldShow({ kind: "clear", text: "All clear", sub: summary }, 4600), RM.matches ? 0 : 900); },
+  onNotSent: (title, why) => { appScope.timeout(() => heraldShow({ kind: "stopped", text: "Not sent", sub: `${String(title).replace(/`/g, "").replace(/[.?!]$/, "")} · ${why}`, force: true }, 7000), RM.matches ? 0 : 950); },
+  onAllClear: (summary) => { appScope.timeout(() => heraldShow({ kind: "clear", text: "All clear", sub: summary }, 4600), RM.matches ? 0 : 900); },
   // a docked decision's own line ("Allowed. Undo") ends the moment its decision is undone, by its Undo or a key
   onUndone: (key) => {
     if (currentView() === "home") homeSelection.restore(key);
@@ -416,7 +416,7 @@ const FP = createFilesPage({ stage: STAGE, files: FILES, viewer: VW, view: curre
 const GH = createGhPage({ stage: STAGE, api, view: currentView, projectOf: (view) => lpProject(view) ?? "", announce, work: (p, it) => {
   if (currentView() !== `p:${p}`) go(`p:${p}`);
   const what = it.kind === "pr" ? `Review pull request #${it.number}` : `Work on issue #${it.number}`;
-  requestAnimationFrame(() => { insertText(`${what}, “${it.title}”: ${it.url}`, MK); announce("The ask is in the message box. Send it to start a thread."); });
+  appScope.frame(() => { insertText(`${what}, “${it.title}”: ${it.url}`, MK); announce("The ask is in the message box. Send it to start a thread."); });
 } });
 wireHeaderActions(kernel.places, () => atOf(currentView()));
 // the place beside the panel's name: a thread's project (its title is the conversation's own head), a project
@@ -1039,7 +1039,7 @@ const CREATE = initCreate({
     localMessages.welcome(`p:${id}`, text);
   },
   // On a phone the sidebar button that opened it is inside the closed drawer: return to the menu.
-  onPhoneClose: () => { if (PHONE.matches) setTimeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170); },
+  onPhoneClose: () => { if (PHONE.matches) appScope.timeout(() => $("#pb-menu").focus({ preventScroll: true }), RM.matches ? 0 : 170); },
 });
 appScope.listen($("#side-add"), "click", CREATE.open);
 

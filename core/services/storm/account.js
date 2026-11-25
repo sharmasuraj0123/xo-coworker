@@ -1,7 +1,8 @@
 // @ts-check
 import { client, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
-import { once } from "../../platform/pending.js";
+import { latest, once } from "../../platform/pending.js";
+import { createLru } from "../../platform/cache.js";
 import { currentPools } from "../world/sessions.js";
 import { mapLimit } from "./load.js";
 import { LOAD_CAP, STATUS_MS, STATUS_RETRY_MS, RUNTIMES_MS } from "./config.js";
@@ -118,20 +119,30 @@ export function installAccount(ctx) {
       if (!signal.aborted) state.policy = policy;
     } catch (error) { reportReadFailure(error, signal, true); }
   };
-  /** @type {WeakMap<AbortSignal, Map<string, Promise<void>>>} */
+  /** @type {WeakMap<AbortSignal, ReturnType<typeof createLru<string, { key: symbol, promise: Promise<void> }>>>} */
   const readsByCycle = new WeakMap();
   ctx.loadChatPolicy = (chat, fresh = false) => {
     const { signal } = ctx.reads;
-    if (signal.aborted) return null;
-    const policyReads = readsByCycle.get(signal) || new Map();
+    if (signal.aborted || !chat) return null;
+    const policyReads = readsByCycle.get(signal) || createLru({ max: 512 });
     readsByCycle.set(signal, policyReads);
-    if (!chat || (!fresh && policyReads.has(chat))) return chat ? policyReads.get(chat) || null : null;
-    const read = client.chatRuntimePolicy(chat, { signal }).then((p) => {
-      if (signal.aborted) return;
-      state.chatPolicy[chat] = p; ctx.soon();
-    }, (error) => reportReadFailure(error, signal, true));
-    policyReads.set(chat, read);
-    return read;
+    const previous = policyReads.get(chat);
+    if (previous && !fresh) return previous.promise;
+    const key = previous?.key ?? Symbol();
+    const promise = latest(key, (readSignal) => client.chatRuntimePolicy(chat, { signal: readSignal }), {
+      signal,
+      commit(p) {
+        if (policyReads.get(chat)?.promise !== promise) return;
+        state.chatPolicy[chat] = p;
+        ctx.soon();
+      },
+    }).then(() => {}, (error) => {
+      if (policyReads.get(chat)?.promise !== promise) return;
+      policyReads.delete(chat);
+      reportReadFailure(error, signal, true);
+    });
+    policyReads.set(chat, { key, promise });
+    return promise;
   };
   ctx.loadPolicies = async () => {
     const { signal } = ctx.reads;
