@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSy
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkConformance } from "./conformance/ratchet.mjs";
+import { NEW_FILE_MAX, sizeRatchet } from "./conformance/size-ratchet.mjs";
 import { runGit } from "./git-environment.mjs";
 import { parseArgs } from "node:util";
 
@@ -13,7 +14,6 @@ const { values: flags } = parseArgs({ options: {
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url))), FAST = flags.fast;
 const UPDATE = flags["update-baselines"], UPSTREAM = flags["accept-upstream"];
 const BASE_DIR = join(ROOT, "tools/baselines");
-const NEW_FILE_MAX = 400;
 const SOURCE_DIRS = ["js", "css", "core", "shell", "modules", "apps-host"];
 const SKIP = /(^|\/)(vendor|node_modules)\//;
 
@@ -95,19 +95,18 @@ step("ratchets", () => {
     for (const [f, n] of Object.entries(now.important)) if (upstreamSame(f)) base.important[f] = Math.max(base.important[f] || 0, n);
     writeJson(basePath, base);
   }
-  const errs = [];
-  for (const [f, n] of Object.entries(now.lines)) {
-    if (base.lines[f] === undefined) errs.push(`  ${f}: ${n} lines; a new or small file may not pass ${NEW_FILE_MAX} (split it)`);
-    else if (n > base.lines[f]) errs.push(`  ${f}: ${n} lines, was ${base.lines[f]}; it may shrink, never grow`);
+  if (flags["conformance-base"] && !UPSTREAM) {
+    const ref = `${flags["conformance-base"]}:tools/baselines/ratchets.json`;
+    const previous = runGit(["show", "--end-of-options", ref], { cwd: ROOT, encoding: "utf8" });
+    if (previous.status !== 0) return `Cannot read ratchets at ${flags["conformance-base"]}`;
+    const { growth } = sizeRatchet(base, JSON.parse(previous.stdout));
+    if (growth.length) return `Ratchet allowances grew.\n${growth.join("\n")}`;
   }
-  for (const [f, n] of Object.entries(now.important)) {
-    if (n > (base.important[f] || 0)) errs.push(`  ${f}: ${n} !important, was ${base.important[f] || 0}; use @layer order instead`);
-  }
-  if (UPDATE) writeJson(basePath, {
-    lines: Object.fromEntries(Object.entries(base.lines).filter(([f]) => now.lines[f] !== undefined).map(([f, n]) => [f, Math.min(n, now.lines[f])])),
-    important: Object.fromEntries(Object.entries(base.important).filter(([f]) => now.important[f]).map(([f, n]) => [f, Math.min(n, now.important[f])])),
-  });
-  return errs.length ? `ratchets:\n${errs.join("\n")}` : null;
+  const { growth, stale } = sizeRatchet(now, base);
+  if (growth.length) return growth.join("\n");
+  if (UPDATE && stale.length) writeJson(basePath, now);
+  if (!UPDATE && stale.length) return `Run --update-baselines to tighten the ratchet.\n${stale.join("\n")}`;
+  return null;
 });
 
 const RANK = [["core/kernel/", 0], ["core/platform/", 1], ["core/ui/", 2], ["core/services/", 3], ["shell/", 4], ["modules/", 5], ["apps-host/", 6], ["js/", 7], ["boot.js", 8]];
