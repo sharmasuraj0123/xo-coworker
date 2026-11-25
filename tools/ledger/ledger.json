@@ -14933,8 +14933,11 @@
    }
   },
   "tests/browser/lpshell.test.cjs::ids::lp-h-name": {
-   "status": "planned",
-   "home": "e2e/specs/lpshell.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/launchpad-names.spec.mjs",
+   "evidence": {
+    "e2e/specs/launchpad-names.spec.mjs": { "anchor": "const hint = page.locator(\"#lp-h-name\")", "reason": "LP11 verifies the free-name button beneath the inline hint, release-matched height and application clearing invalidity in four profiles." }
+   }
   },
   "tests/browser/lpshell.test.cjs::ids::live": {
    "status": "planned",
@@ -14952,8 +14955,11 @@
    "home": "e2e/specs/lpshell.spec.mjs"
   },
   "tests/browser/lpshell.test.cjs::routes::/api/terminal/sessions": {
-   "status": "planned",
-   "home": "e2e/specs/sessions.spec.mjs"
+   "status": "moved",
+   "home": "e2e/specs/shells-dock.spec.mjs",
+   "evidence": {
+    "e2e/specs/shells-dock.spec.mjs": { "anchor": "async function createShell(t, state)", "reason": "The public New shell action holds the creation response, rejects a duplicate press, attaches the returned shell, and restores focus when another request loses its connection." }
+   }
   },
   "tests/browser/settings.test.cjs::functions::world": {
    "status": "planned",

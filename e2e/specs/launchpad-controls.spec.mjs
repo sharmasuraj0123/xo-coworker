@@ -24,18 +24,18 @@ const preflight = {
     default: "xo.small", source: "template",
   } },
 };
-const setup = { ...basic, routes: { ...basic.routes, [`GET ${deploy}/check`]: SCENARIOS.ready.check,
+export const setup = { ...basic, routes: { ...basic.routes, [`GET ${deploy}/check`]: SCENARIOS.ready.check,
   [`GET ${deploy}/preflight`]: preflight } };
 
-/** @param {Tools} t @param {boolean} phone @param {string} theme */
-async function openLaunchpad(t, phone, theme) {
+/** @param {Tools} t @param {boolean} phone @param {string} theme @param {"setup" | "run"} [screen] */
+export async function openLaunchpad(t, phone, theme, screen = "setup") {
   const { page } = t;
   await page.addInitScript((/** @type {string} */ value) => localStorage.setItem("cv-theme", value), theme);
   await t.open();
   if (phone) await page.locator("#pb-menu").click();
   await page.getByRole("navigation", { name: "Projects" }).getByRole("button", { name: "demo" }).click();
   await page.locator("[data-lp-open]").click();
-  await page.locator('.lp[data-screen="setup"]').waitFor();
+  await page.locator(`.lp[data-screen="${screen}"]`).waitFor();
 }
 
 /** @param {Tools} t @param {boolean} phone */
