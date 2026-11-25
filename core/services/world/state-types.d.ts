@@ -134,6 +134,7 @@ export interface WorldState {
   pools: Record<string, Omit<StatusPool, "id"> & { pool: string }>;
   loaded: boolean;
   lastSeq: number;
+  rejectedFrames: Map<string, number>;
   review: Map<string, import("../../platform/review-response-types.d.ts").ReviewRecord>;
   gone: Map<string, ClosedReview>;
   statusError: string | null;

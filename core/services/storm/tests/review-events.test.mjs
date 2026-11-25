@@ -4,7 +4,7 @@ import { review } from "../reducers/review.js";
 import { isReview } from "../../../platform/review-responses.js";
 
 test("open reviews retain valid annotations and ignore incomplete frames", () => {
-  const ctx = { state: { review: new Map() }, soon() {} };
+  const ctx = { state: { rejectedFrames: new Map(), review: new Map() }, soon() {} };
   review["review.opened"](ctx, {}, {});
   assert.equal(ctx.state.review.size, 0);
   review["review.opened"](ctx, { seq: 1 }, { id: "r" });
@@ -27,4 +27,12 @@ test("review risk reasons remain text through the decision projection", () => {
   const row = { id: "r", state: "open" };
   assert.equal(isReview({ ...row, risk_reasons: ["Irreversible"] }), true);
   assert.equal(isReview({ ...row, risk_reasons: [{}] }), false);
+});
+
+test("the decision contract checks hold flags and question choices before rendering", () => {
+  const item = { id: "r", state: "open", options: [{ decision: "allow", hold_to_confirm: true }],
+    detail: { questions: [{ id: "q", options: [{ label: "Keep" }] }] } };
+  assert.ok(isReview(item));
+  assert.equal(isReview({ ...item, options: [{ decision: "allow", hold_to_confirm: "false" }] }), false);
+  assert.equal(isReview({ ...item, detail: { questions: [{ options: [{ label: 12 }] }] } }), false);
 });

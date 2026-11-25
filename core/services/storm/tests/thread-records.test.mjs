@@ -6,7 +6,7 @@ import { isThread } from "../../../platform/chat-responses.js";
 
 test("partial thread frames retain identity and malformed projections leave the last valid row intact", () => {
   const threadRecords = createThreadRecords();
-  const ctx = { threadRecords, rawThreads: threadRecords.rows, state: {}, soon() {}, fillSession() {}, sessRead: () => ({}) };
+  const ctx = { threadRecords, rawThreads: threadRecords.rows, state: { rejectedFrames: new Map() }, soon() {}, fillSession() {}, sessRead: () => ({}) };
   const apply = (data) => threads.thread(ctx, { chat_id: "chat" }, { ts: "thread", ...data });
   const before = { chat_id: "chat", title: "First", card: { happened: "Built" }, outputs: [{ name: "build.log" }] };
   apply(before);

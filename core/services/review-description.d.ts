@@ -1,6 +1,9 @@
+import type { ReviewQuestion, ReviewRecord } from "../platform/review-response-types.d.ts";
+
 export type ToolName = string | string[] | { server?: string; tool?: string };
 
 export interface ReviewDetail {
+  questions?: ReviewQuestion[];
   kind?: string;
   command?: string;
   paths?: string[];
@@ -15,7 +18,7 @@ export interface ReviewDetail {
   first_task?: string;
 }
 
-export interface ReviewDescription {
+export interface ReviewDescription extends Pick<ReviewRecord, "options" | "title" | "risk" | "origin" | "parked" | "risk_reasons"> {
   kind?: string;
   detail?: ReviewDetail;
   why?: string | null;

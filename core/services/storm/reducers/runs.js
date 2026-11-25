@@ -1,4 +1,5 @@
 // @ts-check
+import { rejectFrame } from "../frame-failures.js";
 import { number, text } from "../../world/frame-values.js";
 import { isRecord } from "../../../platform/util.js";
 import { publishStreamRun } from "../act.js";
@@ -9,7 +10,8 @@ import { publishStreamRun } from "../act.js";
 export const runs = {
   // a sub-agent at work keeps its thread Working after the turn: the threads are rebuilt
   "run.started"(ctx, env, d) {
-    if (typeof d.run_id !== "string" || !env.session_id) return;
+    if (typeof d.run_id !== "string") return rejectFrame(ctx, "run.started", "run_id");
+    if (!env.session_id) return rejectFrame(ctx, "run.started", "session_id");
     const i = isRecord(d.info) ? d.info : {};
     publishStreamRun(ctx, {
       ...ctx.state.runs.get(d.run_id), id: d.run_id, session: env.session_id, parent: text(d.parent_run_id) || null,
@@ -19,7 +21,7 @@ export const runs = {
     });
   },
   "run.state"(ctx, env, d) {
-    if (typeof d.run_id !== "string") return;
+    if (typeof d.run_id !== "string") return rejectFrame(ctx, "run.state", "run_id");
     const r = ctx.state.runs.get(d.run_id);
     if (!r) return;
     publishStreamRun(ctx, {
@@ -29,10 +31,10 @@ export const runs = {
     });
   },
   "run.finished"(ctx, env, d) {
-    if (typeof d.run_id !== "string") return;
+    if (typeof d.run_id !== "string") return rejectFrame(ctx, "run.finished", "run_id");
     const r = ctx.state.runs.get(d.run_id);
     const session = r?.session || env.session_id;
-    if (!session) return;
+    if (!session) return rejectFrame(ctx, "run.finished", "session_id");
     publishStreamRun(ctx, {
       ...(r || { id: d.run_id, session, title: "Sub-agent", kind: "subagent" }),
       state: text(d.state) || "finished", status: text(d.status), summary: text(d.summary) || null, tokens: number(d.tokens) ?? r?.tokens,
@@ -42,7 +44,7 @@ export const runs = {
     });
   },
   runs(ctx, env, d) {
-    if (typeof d.session !== "string" || !d.session) return;
+    if (typeof d.session !== "string" || !d.session) return rejectFrame(ctx, "runs", "session");
     ctx.state.liveRuns[d.session] = { running: number(d.running) || 0, waiting: number(d.waiting) || 0,
       tokens: number(d.tokens) || 0, at: Date.now(), seq: env.seq ?? null };
     ctx.soon();

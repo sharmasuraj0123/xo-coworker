@@ -1,4 +1,5 @@
 // @ts-check
+import { optionalText, optionalNullableText as textOrNone, optionalNumber, optionalFlag } from "./response-fields.js";
 import { isResponseObject } from "./http.js";
 import { isBranch } from "./record-responses.js";
 import { isRouter } from "./runtime-responses.js";
@@ -8,15 +9,7 @@ import { isRouter } from "./runtime-responses.js";
 /** @param {unknown} value */
 const finite = (value) => typeof value === "number" && Number.isFinite(value);
 /** @param {unknown} value */
-const textOrNone = (value) => value == null || typeof value === "string";
-/** @param {unknown} value */
-const optionalText = (value) => value === undefined || typeof value === "string";
-/** @param {unknown} value */
 const numberOrNone = (value) => value == null || finite(value);
-/** @param {unknown} value */
-const optionalNumber = (value) => value === undefined || finite(value);
-/** @param {unknown} value */
-const optionalFlag = (value) => value === undefined || typeof value === "boolean";
 /** @param {unknown} value */
 const recordOrNone = (value) => value == null || isResponseObject(value);
 
@@ -88,8 +81,8 @@ export const isThreads = (value) => isResponseObject(value) && Array.isArray(val
 
 /** @param {unknown} value @returns {value is Wire.MessageRecord} */
 export const isMessage = (value) => isResponseObject(value) && typeof value.id === "string" && optionalNumber(value.seq)
-  && [value.thread_ts, value.author_id, value.author_session_id, value.client_id, value.reply_to].every(textOrNone)
-  && [value.chat_id, value.author_kind, value.text, value.created_at].every(optionalText)
+  && [value.thread_ts, value.author_id, value.author_session_id, value.client_id, value.reply_to, value.text].every(textOrNone)
+  && [value.chat_id, value.author_kind, value.created_at].every(optionalText)
   && recordOrNone(value.extra);
 
 /** @param {unknown} value @returns {value is Wire.CursorPage & { messages: Wire.MessageRecord[] }} */

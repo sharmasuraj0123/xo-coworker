@@ -1,5 +1,6 @@
 // @ts-check
 
+import { optionalText } from "./response-fields.js";
 import { isResponseObject } from "./http.js";
 import { requestChecked } from "./response.js";
 
@@ -7,9 +8,6 @@ import { requestChecked } from "./response.js";
 
 /** @param {unknown} value */
 const nullableText = (value) => value === null || typeof value === "string";
-
-/** @param {unknown} value */
-const optionalText = (value) => value === undefined || typeof value === "string";
 
 /** @param {unknown} value */
 const isAssignee = (value) => isResponseObject(value) && typeof value.login === "string" && nullableText(value.avatar_url);

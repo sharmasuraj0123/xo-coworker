@@ -3,7 +3,7 @@ import test from "node:test";
 import { runs } from "../reducers/runs.js";
 
 test("a malformed run frame keeps invalid identifiers and counters out of the store", () => {
-  const ctx = { state: { runs: new Map(), liveRuns: {} }, soon() {} };
+  const ctx = { state: { rejectedFrames: new Map(), runs: new Map(), liveRuns: {} }, soon() {} };
   const env = { session_id: "s", seq: 1 };
   runs["run.started"](ctx, env, { run_id: { id: "r" } });
   assert.equal(ctx.state.runs.size, 0);

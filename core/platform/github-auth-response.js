@@ -1,12 +1,10 @@
 // @ts-check
 
+import { optionalText } from "./response-fields.js";
 import { isResponseObject } from "./http.js";
 import { requestChecked } from "./response.js";
 
 /** @import * as GitHub from "./github-auth-types.d.ts" */
-
-/** @param {unknown} value */
-const optionalText = (value) => value === undefined || typeof value === "string";
 
 /** @param {unknown} value @returns {value is GitHub.Connected} */
 function isConnected(value) {

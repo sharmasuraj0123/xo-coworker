@@ -1,4 +1,6 @@
 // @ts-check
+import { rejectFrame } from "./frame-failures.js";
+import { REDUCERS } from "./reducers/index.js";
 import { isFrame } from "../../platform/chat-responses.js";
 import { isRecord } from "../../platform/util.js";
 import { client, coderHeaders, SSEStream } from "./client.js";
@@ -38,7 +40,7 @@ export function startStorm(ctx) {
     if (signal.aborted) return;
     releaseSubscription();
     const raw = isRecord(envelope) ? { ...envelope, type } : { type };
-    if (!isFrame(raw)) return;
+    if (!isFrame(raw)) return rejectFrame(ctx, Object.hasOwn(REDUCERS, type) ? type : "stream", "envelope");
     const f = { type, id, envelope: raw };
     const fe = f.envelope, at = fe.seq ?? (type === "snapshot" && fe.data ? fe.data.seq : null);
     if (typeof at === "number" && at > state.lastSeq) state.lastSeq = at;

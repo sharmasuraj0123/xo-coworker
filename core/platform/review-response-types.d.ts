@@ -1,7 +1,46 @@
+export interface ReviewOption {
+  decision: string;
+  id?: string;
+  label?: string;
+  scope?: string;
+  sentence?: string;
+  hold_to_confirm?: boolean;
+  note?: boolean;
+  why?: string | null;
+  answer?: string;
+}
+
+export interface QuestionOption {
+  label: string;
+  description?: string;
+  cost?: string;
+  recommended?: boolean;
+}
+
+export interface ReviewQuestion {
+  id?: string;
+  header?: string;
+  question?: string;
+  options?: QuestionOption[];
+  multi?: boolean;
+  secret?: boolean;
+}
+
+export type DecisionBody = {
+  decision: string;
+  option?: string;
+  answer?: string | Record<string, string | string[]>;
+  note?: string;
+  scope?: string;
+  rule_sentence?: string;
+  idempotency_key?: string;
+};
+
 export interface ReviewRecord {
   id: string;
   state: string;
   kind?: string;
+  origin?: string | null;
   created_at?: string | null;
   expires_at?: string | null;
   title?: string | null;
@@ -16,8 +55,8 @@ export interface ReviewRecord {
   epoch?: number | null;
   blocking?: boolean;
   parked?: boolean;
-  detail?: Record<string, unknown>;
-  options?: Record<string, unknown>[];
+  detail?: Record<string, unknown> & { questions?: ReviewQuestion[] };
+  options?: ReviewOption[];
   annotations?: { by: string; note: string }[];
   risk_reasons?: string[];
   risk_groups?: { kind?: string | null; text: string; count?: number }[];

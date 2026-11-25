@@ -1,4 +1,5 @@
 // @ts-check
+import { rejectFrame } from "../frame-failures.js";
 import { text, number, strings } from "../../world/frame-values.js";
 import { statusLater, sessionRead } from "../../world/sessions.js";
 import { BUSY, COORD } from "../config.js";
@@ -34,7 +35,7 @@ export const sessions = {
   session(ctx, env, d) {
     const { state } = ctx;
     const id = env.session_id;
-    if (!id) return;
+    if (!id) return rejectFrame(ctx, "session", "session_id");
     const old = state.sessions[id] || { id };
     /** @type {import("../types").Session} */
     const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: text(d.status) || old.state, seq: old.seq ?? env.seq ?? null, frameSeq: env.seq ?? state.lastSeq };

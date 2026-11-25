@@ -30,3 +30,7 @@ export {};
 /** @typedef {NonNullable<ReturnType<WorldState["turns"]["get"]>>} Turn */
 
 /** @typedef {Closed<OpenMember<NonNullable<Turn["end"] | Turn["stopped"]> | import("../../storm/types").StoredThread>>} PrivateRecords */
+
+/** @import { DecisionBody, ReviewOption, ReviewQuestion } from "../../../platform/review-response-types.d.ts" */
+
+/** @typedef {Closed<OpenMember<DecisionBody | ReviewOption | ReviewQuestion>>} DecisionRows */

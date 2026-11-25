@@ -51,6 +51,7 @@ export function createWorld() {
     liveRuns: {},
     turns: createTurns(),
     lastSeq: 0,
+    rejectedFrames: new Map(),
   };
   const emit = () => {
     if (signal.aborted) return;

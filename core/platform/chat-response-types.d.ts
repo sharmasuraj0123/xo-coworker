@@ -93,7 +93,7 @@ export interface MessageRecord {
   author_id?: string | null;
   author_session_id?: string | null;
   client_id?: string | null;
-  text?: string;
+  text?: string | null;
   reply_to?: string | null;
   extra?: Record<string, unknown> | null;
   created_at?: string;

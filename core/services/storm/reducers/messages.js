@@ -1,4 +1,5 @@
 // @ts-check
+import { invalidField, rejectFrame } from "../frame-failures.js";
 import { mergeRows, addReaction, updateMessage } from "../../world/rows.js";
 import { isMessage } from "../../../platform/chat-responses.js";
 import { text } from "../../world/frame-values.js";
@@ -9,7 +10,7 @@ import { COORD } from "../config.js";
 /** @type {Record<string, Reducer>} */
 export const messages = {
   message(ctx, env, d) {
-    if (!isMessage(d)) return;
+    if (!isMessage(d)) return rejectFrame(ctx, "message", invalidField(d, { id: "" }, isMessage));
     const { state } = ctx;
     /** @type {import("../types").MessageRow} */
     const row = { ...d, id: d.id, seq: env.seq ?? d.seq ?? null };
@@ -35,6 +36,7 @@ export const messages = {
   },
   // an agent's emoji on a message: onto the row wherever we hold it (its thread, or its timeline)
   reaction(ctx, env, d) {
+    if (typeof d.message_id !== "string" || typeof d.emoji !== "string") return rejectFrame(ctx, "reaction", "message_id or emoji");
     const { state } = ctx;
     const ts = text(d.thread_ts) || env.thread_ts;
     const inThread = ts && addReaction(state.threadMsgs[ts], d, env.ts);
@@ -46,6 +48,7 @@ export const messages = {
   },
   // a message changed after it was sent (files an agent shared after its turn's last reply), applied where we hold the row
   "message.updated"(ctx, env, d) {
+    if (typeof d.id !== "string") return rejectFrame(ctx, "message.updated", "id");
     const { state } = ctx;
     const ts = text(d.thread_ts) || env.thread_ts;
     const inThread = ts && updateMessage(state.threadMsgs[ts], d);

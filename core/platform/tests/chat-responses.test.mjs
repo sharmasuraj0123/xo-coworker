@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { isMessage } from "../chat-responses.js";
 import { api, chatActivityApi } from "../api.js";
 
 const rows = JSON.parse(readFileSync(new URL("./fixtures/chat-reads.json", import.meta.url), "utf8"));
@@ -56,3 +57,8 @@ for (const [path, read, sample, bad, method = "GET"] of routes) {
     assert.equal(mock.mock.callCount(), 2);
   });
 }
+
+test("optional message metadata accepts omission, while an attachment-only message can carry null text", () => {
+  assert.ok(isMessage({ id: "m", text: null }));
+  assert.equal(isMessage({ id: "m", author_kind: null }), false);
+});

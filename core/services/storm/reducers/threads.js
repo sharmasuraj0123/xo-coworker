@@ -1,4 +1,5 @@
 // @ts-check
+import { invalidField, rejectFrame } from "../frame-failures.js";
 import { text } from "../../world/frame-values.js";
 import { isThread, isThreadCard } from "../../../platform/chat-responses.js";
 
@@ -8,7 +9,7 @@ import { isThread, isThreadCard } from "../../../platform/chat-responses.js";
 export const threads = {
   thread(ctx, env, d) {
     const { state, rawThreads } = ctx;
-    if (!isThread(d) || !d.ts) return;
+    if (!isThread(d) || !d.ts) return rejectFrame(ctx, "thread", d.ts ? invalidField(d, { ts: "thread" }, isThread) : "ts");
     const ts = d.ts;
     const old = rawThreads.get(ts);
     if (!old && !d.chat_id) { ctx.refetchThread(env.chat_id, ts); return; }
@@ -35,9 +36,10 @@ export const threads = {
     if (ctx.noteControl(env, d)) ctx.soon();
   },
   card(ctx, env, d) {
-    if (typeof d.ts !== "string") return;
+    if (typeof d.ts !== "string") return rejectFrame(ctx, "card", "ts");
     const r = ctx.rawThreads.get(d.ts);
-    if (!r || (d.card != null && !isThreadCard(d.card))) return;
+    if (d.card != null && !isThreadCard(d.card)) return rejectFrame(ctx, "card", "card");
+    if (!r) return;
     ctx.threadRecords.write(d.ts, { card: d.card, updated_at: env.ts || r.updated_at });
     ctx.soon();
   },
