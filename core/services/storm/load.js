@@ -108,8 +108,7 @@ export function installLoad(ctx) {
         if (signal.aborted) return;
         state.error = err instanceof Error ? err.message : String(err);
         state.errorCode = err instanceof ApiError ? err.code : null;
-        reportReadFailure(err, signal);
-        if (retryableRead(err)) ctx.scheduleRecover();
+        if (!retryableRead(err) || !ctx.scheduleRecover()) reportReadFailure(err, signal);
       } finally { updates.delete(signal); }
       if (!signal.aborted) ctx.soon();
     });

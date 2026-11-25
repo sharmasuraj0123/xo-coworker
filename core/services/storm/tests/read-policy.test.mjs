@@ -17,7 +17,7 @@ test("transient reads back off, stop and report the terminal failure once", asyn
 });
 
 test("chat recovery schedules transient failures and reports permanent failures without retrying", async (t) => {
-  const ctx = { state: {}, reads: { signal: new AbortController().signal }, soon() {}, scheduleRecover() { retries++; } };
+  const ctx = { state: {}, reads: { signal: new AbortController().signal }, soon() {}, scheduleRecover() { return ++retries <= 1; } };
   let retries = 0, status = 403;
   const errors = [];
   t.mock.method(console, "error", (error) => errors.push(error.status));
@@ -28,5 +28,7 @@ test("chat recovery schedules transient failures and reports permanent failures 
   status = 503;
   await ctx.loadChats();
   assert.equal(retries, 1);
+  assert.deepEqual(errors, [403]);
+  await ctx.loadChats();
   assert.deepEqual(errors, [403, 503]);
 });

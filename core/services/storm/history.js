@@ -30,6 +30,7 @@ export function installHistory(ctx) {
     active.set(key, read);
     return { reconcile: read.reconcile, close: () => active.delete(key) };
   }
+  ctx.applyPendingMessageEdits = (key, row) => reads.get(ctx.reads.signal)?.get(key)?.materialize(row) ?? row;
   ctx.noteMessageEdit = (key, data, at, reaction) => reads.get(ctx.reads.signal)?.get(key)?.record(data, at, reaction);
 
   /** @param {string} project @param {MessageRow[]} rows */
@@ -44,7 +45,8 @@ export function installHistory(ctx) {
     }
   }
   ctx.addRows = (project, rows) => {
-    const { list, added } = mergeRows(state.timeline[project] || [], rows);
+    const read = reads.get(ctx.reads.signal)?.get("project:" + project);
+    const { list, added } = mergeRows(state.timeline[project] || [], read ? rows.map(read.materialize) : rows);
     state.timeline[project] = list;
     if (added.length) noteCopies(project, added);
     return added;

@@ -199,3 +199,26 @@ test("a public refresh waiting on a retired cycle does not start reads in the re
   assert.equal(backend.count("GET", threadsPath), 2);
   assert.equal(publications, 1);
 });
+
+test("a streamed message receives its buffered edits before its first page settles", async (t) => {
+  const page = held();
+  const backend = fakeBackend({ ["GET " + messagesPath]: page.read });
+  const { world } = await boot(backend);
+  t.after(() => { world.dispose(); page.resolve({ messages: [] }); });
+  world.act.watch(["demo"]);
+  await until(() => backend.count("GET", messagesPath) === 1);
+  const push = (type, seq, data) => backend.push(type, { seq, chat_id: "chat_p", data }, seq);
+  push("reaction", 2, { message_id: "m", emoji: "ok", by: "agent" });
+  push("message.updated", 3, { id: "m", extra: { label: "first" } });
+  push("message", 4, { id: "m", text: "Live body" });
+  await until(() => world.state.timeline.demo?.length);
+  const live = world.state.timeline.demo[0];
+  assert.equal(live.extra?.reactions?.length, 1);
+  assert.equal(live.extra.label, "first");
+  push("message.updated", 5, { id: "m", extra: { label: "last" } });
+  await until(() => world.state.timeline.demo[0].extra?.label === "last");
+  page.resolve({ messages: [{ id: "m", seq: 1, text: "Stale body" }] });
+  await until(() => world.state.hist.demo?.loaded);
+  const row = world.state.timeline.demo[0];
+  assert.deepEqual([row.text, row.extra.label, row.extra.reactions.length], ["Live body", "last", 1]);
+});

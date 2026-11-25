@@ -109,7 +109,7 @@ export function createCommands(ctx) {
       const row = await post(project, text, { threadTs: threadId, cid, attachments });
       if (signal.aborted) return row || null;
       if (row) {
-        const { list } = mergeRows(state.threadMsgs[threadId] || [], [row]);
+        const { list } = mergeRows(state.threadMsgs[threadId] || [], [ctx.applyPendingMessageEdits("thread:" + threadId, row)]);
         state.threadMsgs[threadId] = list;
       }
       ctx.soon();

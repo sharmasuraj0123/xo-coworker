@@ -51,11 +51,13 @@ export function startStorm(ctx) {
   let attempt = 0;
   ctx.scheduleRecover = () => {
     const delay = retryDelay(attempt);
-    if (signal.aborted || recoverT || delay === undefined) return;
+    if (recoverT) return true;
+    if (signal.aborted || delay === undefined) return false;
     attempt++;
     const cycle = ctx.reads;
     const clear = cycle.effect(() => () => { recoverT = null; });
     recoverT = cycle.timeout(() => { clear(); void ctx.recover().catch(reportFailure); }, delay);
+    return true;
   };
   /** @type {Promise<void> | null} */
   let recovering = null;

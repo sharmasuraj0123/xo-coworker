@@ -8,7 +8,21 @@ export function beginMessageRead(initial) {
   const before = new Map(initial?.map((row) => [row.id, row]));
   /** @type {Map<string, Array<{ data: Row, at: string | null, reaction: boolean }>>} */
   const edits = new Map();
+
+  /** Apply edits that arrived before a message body, in stream order. @param {MessageRow} row */
+  function materialize(row) {
+    for (const { data, at, reaction } of edits.get(row.id) || []) {
+      const reactions = row.extra?.reactions;
+      if (reaction && Array.isArray(reactions) && reactions.some((r) =>
+        r?.emoji === data.emoji && r.by === (data.by || null) && r.at === at)) continue;
+      row = (reaction ? addReaction([row], data, at) : updateMessage([row], data))?.[0] || row;
+    }
+    edits.delete(row.id);
+    return row;
+  }
+
   return {
+    materialize,
     /** @param {Row} data @param {string | null} at @param {boolean} reaction */
     record(data, at, reaction) {
       const id = reaction ? data.message_id : data.id;
@@ -22,14 +36,7 @@ export function beginMessageRead(initial) {
       const live = new Map(current?.map((row) => [row.id, row]));
       return incoming.map((row) => {
         const newer = live.get(row.id);
-        if (newer && newer !== before.get(row.id)) return newer;
-        for (const { data, at, reaction } of edits.get(row.id) || []) {
-          const reactions = row.extra?.reactions;
-          if (reaction && Array.isArray(reactions) && reactions.some((r) =>
-            r?.emoji === data.emoji && r.by === (data.by || null) && r.at === at)) continue;
-          row = (reaction ? addReaction([row], data, at) : updateMessage([row], data))?.[0] || row;
-        }
-        return row;
+        return materialize(newer && newer !== before.get(row.id) ? newer : row);
       });
     },
   };
