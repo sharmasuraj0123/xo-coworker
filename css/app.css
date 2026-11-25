@@ -41,10 +41,7 @@
 @import url("../modules/conversation/attachments.css");
 @import url("../modules/conversation/reactions.css");
 @import url("../modules/files/previews.css");
-@media (max-width:760px){
-  .att{max-width:100%;flex:1 1 100%}
-  .att-b{width:var(--h-touch);height:var(--h-touch)}
-}
+@import url("../modules/conversation/attachment-layout-phone.css");
 a.vw-btn{text-decoration:none}
 .vw-sub>span:first-child::before{content:none;margin:0}
 .app{grid-template-rows:minmax(0,1fr) auto}
