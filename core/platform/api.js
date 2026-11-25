@@ -18,7 +18,10 @@ export const terminalSocketUrl = (id) => socketUrl(`/terminal/sessions/${enc(id)
 export const attachmentText = (chat, id, { signal } = {}) => text(attPath(chat, id), { signal });
 
 /** Upload one file's raw bytes to a chat: {promise → {id, name, type, bytes}, abort()}. @param {string} chat @param {Blob} blob @param {string} name @param {{ onProgress?: (sent: number, total: number) => void }} [opts] */
-export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => upload(`/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`, blob, { onProgress });
+export const uploadAttachment = (chat, blob, name, { onProgress } = {}) => {
+  const { promise, abort } = upload(`/chat/chats/${enc(chat)}/attachments?name=${enc(name)}`, blob, { onProgress });
+  return { promise: /** @type {Promise<{id: string, name?: string, type: string, bytes: number}>} */ (promise), abort };
+};
 
 /** @param {string} path @param {Record<string, unknown>} [query] @param {AbortSignal} [signal] */
 const get = async (path, query, signal) => {

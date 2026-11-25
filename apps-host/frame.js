@@ -1,5 +1,7 @@
 // @ts-check
-import { createBridge } from "./bridge.js";
+import { createBridge, ViewReplyTimeout } from "./bridge.js";
+import { createScope } from "../core/kernel/scope.js";
+import { reportFailure } from "../core/platform/util.js";
 
 /** @typedef {import("./bridge.js").Handlers} Handlers @typedef {import("./manifest.js").App} App @typedef {{ doc: Document, win: EventTarget, app: App, title: string, load: () => Promise<{ html: string, app: App, granted: string[] }>, ready?: (notify: (method: string, params: unknown) => void) => void, handlers: Omit<Handlers, "resize" | "initialized" | "hostContext">, displayMode?: string, timers?: { setTimeout: typeof setTimeout, clearTimeout: typeof clearTimeout, setInterval: typeof setInterval, clearInterval: typeof clearInterval } }} FrameOpts */
 
@@ -76,7 +78,10 @@ export function createAppFrame(host, o) {
   let iframe = null;
   /** @type {ReturnType<typeof createBridge> | null} */
   let bridge = null;
-  let watch = /** @type {any} */ (null), opening = /** @type {any} */ (null), loads = 0, gone = false, gen = 0;
+  /** @type {ReturnType<typeof createScope> | null} */
+  let viewScope = null;
+  const frameScope = createScope({ timers: T });
+  let loads = 0, gone = false, gen = 0;
   let mode = o.displayMode || "inline";
 
   /** @param {"loading" | "live" | "stopped"} state @param {string} text */
@@ -89,8 +94,8 @@ export function createAppFrame(host, o) {
   const hostContext = () => ({ theme: themeOf(doc), styles: { variables: look().variables }, displayMode: mode, availableDisplayModes: ["inline", "fullscreen"], platform: "web", locale: doc.documentElement.lang || "en" });
 
   const unmount = () => {
-    if (watch) { T.clearInterval(watch); watch = null; }
-    if (opening) { T.clearTimeout(opening); opening = null; }
+    viewScope?.dispose();
+    viewScope = null;
     if (bridge) { bridge.close(); bridge = null; }
     if (iframe) { iframe.remove(); iframe = null; }
   };
@@ -108,7 +113,11 @@ export function createAppFrame(host, o) {
     loads = 0;
     show("loading", `Opening ${app.name}…`);
     let html, granted;
-    try { ({ html, app, granted } = await o.load()); } catch (e) { if (my === gen && !gone) stop(`${app.name} couldn't open: ${String(/** @type {any} */ (e)?.message || e)}`); return; }
+    try { ({ html, app, granted } = await o.load()); }
+    catch (error) {
+      if (my === gen && !gone) stop(`${app.name} couldn't open: ${error instanceof Error ? error.message : String(error)}`);
+      return;
+    }
     if (my !== gen || gone) return;
     const f = doc.createElement("iframe");
     f.className = "xa-frame-view";
@@ -116,7 +125,8 @@ export function createAppFrame(host, o) {
     f.setAttribute("allow", ALLOW);
     f.setAttribute("referrerpolicy", "no-referrer");
     f.setAttribute("title", o.title);
-    f.addEventListener("load", () => { if (++loads > 1) stop(`${app.name} tried to leave its frame, so XO closed it.`); });
+    const scope = viewScope = createScope({ timers: T });
+    scope.listen(f, "load", () => { if (++loads > 1) stop(`${app.name} tried to leave its frame, so XO closed it.`); });
     f.srcdoc = buildSrcdoc(html, look());
     iframe = f;
     const b = createBridge({
@@ -127,22 +137,24 @@ export function createAppFrame(host, o) {
         resize: (h) => box.style.setProperty("--xa-view-h", `${Math.ceil(h)}px`),
         initialized: () => {
           if (my !== gen) return;
-          if (opening) { T.clearTimeout(opening); opening = null; }
+          cancelOpening();
           const focusView = doc.activeElement === box;
           show("live", "");
           if (focusView) f.focus();
           if (o.ready) o.ready((m, p) => b.notify(m, p));
-          watch = T.setInterval(() => { b.request("ping", undefined, DEAD_MS).catch(() => { if (bridge === b) stop(`${app.name} stopped responding.`); }); }, PING_MS);
+          scope.interval(() => {
+            b.request("ping", undefined, DEAD_MS).catch(() => { if (bridge === b) stop(`${app.name} stopped responding.`); });
+          }, PING_MS);
         },
         displayMode: (m) => { const next = o.handlers.displayMode(m); mode = next; return next; },
       },
     });
     bridge = b;
+    const cancelOpening = scope.timeout(() => { if (my === gen && !b.ready) stop(`${app.name} didn't open.`); }, OPEN_MS);
     box.append(f);
-    opening = T.setTimeout(() => { if (my === gen && !b.ready) stop(`${app.name} didn't open.`); }, OPEN_MS);
   }
 
-  reload.addEventListener("click", () => { box.focus(); void mount(); });
+  frameScope.listen(reload, "click", () => { box.focus(); void mount(); });
   void mount();
 
   return {
@@ -158,9 +170,12 @@ export function createAppFrame(host, o) {
       if (gone) return;
       gone = true;
       gen++;
+      frameScope.dispose();
       const b = bridge;
       if (b) b.quiesce();
-      if (b && b.ready) b.request("ui/resource-teardown", {}, 500).catch(() => {}).finally(() => { unmount(); box.remove(); });
+      if (b && b.ready) b.request("ui/resource-teardown", {}, 500)
+        .catch((error) => { if (!(error instanceof ViewReplyTimeout)) reportFailure(error); })
+        .finally(() => { unmount(); box.remove(); });
       else { unmount(); box.remove(); }
     },
   };

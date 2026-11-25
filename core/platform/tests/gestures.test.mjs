@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 
-const docL = {};
 globalThis.matchMedia = (() => ({ matches: false }));
-globalThis.document = ({ addEventListener: (t, f) => { docL[t] = f; }, dispatchEvent: () => true });
+globalThis.document = ({ dispatchEvent: () => true });
 globalThis.getSelection = (() => null);
 globalThis.CustomEvent ??= (class { constructor(t) { this.type = t; } });
 const G = await import("../gestures.js");
@@ -16,7 +15,6 @@ const t = async (name, fn) => { await fn(); passed++; console.log("  ok  " + nam
 await t("a sideways drag past 10 px locks, is followed, and ends with its distance and speed", async () => {
   const e = el(), log = [];
   G.drag((e), { axis: "x", move: (dx, dy) => log.push(["move", dx, dy]), end: (dx, dy, vx) => log.push(["end", dx, dy, Math.round(vx * 100) / 100]) });
-  docL.touchstart({ touches: [touch(0, 0)] });
   e.h.touchstart(ev([touch(100, 100)], 0));
   const small = ev([touch(105, 102)], 10);
   e.h.touchmove(small);
@@ -46,15 +44,18 @@ await t("one touch, one gesture: a second drag on the same touch stays out", () 
   const outer = el(), inner = el(), log = [];
   G.drag((inner), { axis: "x", move: () => log.push("inner"), end: () => {} });
   G.drag((outer), { axis: "x", move: () => log.push("outer"), end: () => {} });
-  docL.touchstart({ touches: [touch(0, 0)] });
-  for (const x of [inner, outer]) x.h.touchstart(ev([touch(0, 0)], 0));
+  const start = ev([touch(0, 0)], 0);
+  for (const x of [inner, outer]) x.h.touchstart(start);
   for (const x of [inner, outer]) x.h.touchmove(ev([touch(30, 0)], 10));
   assert.deepEqual(log, ["inner"]);
+  outer.h.touchstart(ev([touch(0, 0, 2)], 20));
+  outer.h.touchmove(ev([touch(30, 0, 2)], 30));
+  assert.deepEqual(log, ["inner", "outer"]);
+  outer.h.touchcancel();
 });
 await t("a second finger cancels a locked drag", () => {
   const e = el(), log = [];
   G.drag((e), { axis: "x", move: () => {}, end: () => log.push("end"), cancel: () => log.push("cancel") });
-  docL.touchstart({ touches: [touch(0, 0)] });
   e.h.touchstart(ev([touch(0, 0)], 0));
   e.h.touchmove(ev([touch(30, 0)], 10));
   e.h.touchmove(ev([touch(40, 0), touch(5, 5, 2)], 20));

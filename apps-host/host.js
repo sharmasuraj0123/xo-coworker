@@ -5,6 +5,8 @@ import { createAppFrame } from "./frame.js";
 import { createAppsSettings } from "./settings.js";
 import { createCards } from "./card.js";
 import { missingRoute } from "../core/platform/http.js";
+import { createScope } from "../core/kernel/scope.js";
+import { reportFailure } from "../core/platform/util.js";
 
 /** @typedef {import("./manifest.js").App} App @typedef {import("./manifest.js").Surface} Surface @typedef {import("./client.js").AppsClient} AppsClient @typedef {import("./settings-view.js").Row} Row @typedef {import("../core/kernel/types").ModuleDef} ModuleDef @typedef {import("../core/kernel/types").ModuleContext} ModuleContext @typedef {import("../core/kernel/types").At} At @typedef {import("../core/kernel/types").Undo} Undo @typedef {{ client: AppsClient, doc: Document, win: Window, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, draft(text: string, at: At): void, openPanel(key: string, at: At): void, confirm(text: string, o: { yes: string, near: Element | null }): Promise<boolean>, context(appId: string, at: At, params: unknown): void }} HostDeps */
 
@@ -19,12 +21,18 @@ export const MANIFEST = Object.freeze({
   styles: ["apps-host/apps-host.css"],
 });
 
-/** @param {any} res */
+/** @param {unknown} value @returns {value is {text: string}} */
+const textContent = (value) =>
+  !!value && typeof value === "object" && "text" in value && typeof value.text === "string";
+/** @param {unknown} res */
 const htmlOf = (res) => {
-  const c = Array.isArray(res?.contents) ? res.contents.find((/** @type {any} */ x) => typeof x?.text === "string") : null;
+  const contents = res && typeof res === "object" && "contents" in res ? res.contents : null;
+  const c = Array.isArray(contents) ? contents.find(textContent) : null;
   if (!c) throw new Error("the app sent no view");
-  return /** @type {string} */ (c.text);
+  return c.text;
 };
+/** @param {unknown} error */
+const errorWords = (error) => error instanceof Error ? error.message : String(error);
 /** @param {At} at */
 const whereOf = (at) => {
   if (typeof at.project !== "string" || !at.project) throw new Error("open it inside a project");
@@ -44,7 +52,7 @@ export function createAppsHost(d) {
       const enabled = (/** @type {string} */ id, /** @type {string | undefined} */ project) => !!project && apps.get(id)?.row.projects?.[project]?.state === "enabled";
       const granted = (/** @type {string} */ id, /** @type {string} */ project) => {
         const g = apps.get(id)?.row.projects?.[project];
-        return Array.isArray(g?.permissions) ? g.permissions.map((/** @type {any} */ p) => p && p.cap).filter((x) => typeof x === "string") : [];
+        return Array.isArray(g?.permissions) ? g.permissions.map((p) => p?.cap).filter((x) => typeof x === "string") : [];
       };
 
       /** @param {App} app @param {At} at @param {string} name @param {unknown} args @param {Element | null} near */
@@ -59,13 +67,22 @@ export function createAppsHost(d) {
       const mountView = (el, v) => {
         const { at } = v;
         let { app, surface } = v;
-        let where, alive = 0, view = "";
-        try { where = whereOf(at); } catch (e) { where = null; }
+        const where = typeof at.project === "string" && at.project ? whereOf(at) : null;
+        /** @type {(() => void) | null} */
+        let alive = null;
+        let view = "";
+        const lifetime = createScope({ timers: {
+          setTimeout, clearTimeout, setInterval: d.win.setInterval.bind(d.win), clearInterval: d.win.clearInterval.bind(d.win),
+        } });
         /** @type {ReturnType<typeof createAppFrame> | null} */
         let frame = null;
         const closed = () => {
           frames.delete(handle);
-          if (alive) { d.win.clearInterval(alive); alive = 0; if (where) d.client.viewClosed(app.id, where, view).catch(() => {}); }
+          if (alive) {
+            alive();
+            alive = null;
+            if (where) d.client.viewClosed(app.id, where, view).catch(reportFailure);
+          }
         };
         const handle = {
           app: app.id,
@@ -73,7 +90,7 @@ export function createAppsHost(d) {
           gone: v.onGone,
           retheme: () => frame && frame.retheme(),
           halt: (/** @type {string} */ text) => { if (frame) frame.halt(text); closed(); },
-          destroy: () => { if (frame) frame.destroy(); closed(); },
+          destroy: () => { if (frame) frame.destroy(); closed(); lifetime.dispose(); },
         };
         frame = createAppFrame(el, {
           doc: d.doc, win: d.win, app, title: surface.title ? `${app.name}: ${surface.title}` : app.name,
@@ -89,8 +106,10 @@ export function createAppsHost(d) {
             frames.add(handle);
             view = s.view;
             if (!alive) {
-              d.client.viewOpened(app.id, w, view).catch(() => {});
-              alive = d.win.setInterval(() => { if (d.doc.visibilityState !== "hidden") d.client.viewAlive(app.id, w, view).catch(() => {}); }, ALIVE_MS);
+              d.client.viewOpened(app.id, w, view).catch(reportFailure);
+              alive = lifetime.interval(() => {
+                if (d.doc.visibilityState !== "hidden") d.client.viewAlive(app.id, w, view).catch(reportFailure);
+              }, ALIVE_MS);
             }
             return { html: htmlOf(await d.client.resource(app.id, view, w)), app, granted: granted(app.id, w.project) };
           },
@@ -123,7 +142,7 @@ export function createAppsHost(d) {
       const cards = createCards({ doc: d.doc, mountView, find: (id, project) => (enabled(id, project) ? apps.get(id)?.app || null : null) });
       ctx.contribute("settings.section", { id: "apps", label: "Apps", icon: "plug", order: 900, render: settings.render });
       ctx.contribute("conversation.block", { id: "app", render: cards.render });
-      ctx.effect(() => () => { cards.closeAll(); for (const f of [...frames]) f.destroy(); });
+      ctx.effect(() => () => { settings.dispose(); cards.closeAll(); for (const f of [...frames]) f.destroy(); });
 
       /** @param {{ app: string, gone?: () => void, destroy(): void, halt(text: string): void }} f @param {string} text */
       const close = (f, text) => { if (f.gone) { f.destroy(); f.gone(); } else f.halt(text); };
@@ -137,7 +156,11 @@ export function createAppsHost(d) {
       };
       /** @type {Promise<void>} */
       let queue = Promise.resolve();
-      const refresh = () => (queue = queue.catch(() => {}).then(load));
+      const refresh = () => {
+        const result = queue.then(load);
+        queue = result.catch(reportFailure);
+        return result;
+      };
       async function load() {
         let res, none = false;
         try { res = await d.client.list(); } catch (e) {
@@ -172,7 +195,7 @@ export function createAppsHost(d) {
           const undo = [];
           if (app && app.id === row.id && row.state !== "needs_consent") {
             try { for (const c of compile(app, deps)) undo.push(ctx.contribute(c.place, c.entry)); } catch (e) {
-              problems.push(String(/** @type {any} */ (e)?.message || e));
+              problems.push(errorWords(e));
               for (const u of undo.splice(0).reverse()) u();
             }
           } else if (app && app.id !== row.id) problems.push(`its manifest says it is ${app.id}`);
@@ -183,16 +206,17 @@ export function createAppsHost(d) {
         settings.redraw();
       }
       ctx.effect(() => () => { disposed = true; for (const id of [...apps.keys()]) drop(id); });
-      ctx.on("apps:refresh", () => { refresh().catch((e) => settings.loaded(false, `XO couldn't list your apps: ${String(/** @type {any} */ (e)?.message || e)}`)); });
+      ctx.on("apps:refresh", () => { refresh().catch((e) => settings.loaded(false, `XO couldn't list your apps: ${errorWords(e)}`)); });
 
       const html = d.doc.documentElement;
-      const MO = /** @type {typeof MutationObserver | undefined} */ (/** @type {any} */ (d.win).MutationObserver);
+      const MO = /** @type {Window & {MutationObserver?: typeof MutationObserver}} */ (d.win).MutationObserver;
       if (MO) {
         const mo = new MO(() => { for (const f of frames) f.retheme(); });
         mo.observe(html, { attributes: true, attributeFilter: ["data-theme", "class"] });
         ctx.observe(mo);
       }
-      try { await refresh(); settings.loaded(false); } catch (e) { settings.loaded(false, `XO couldn't list your apps: ${String(/** @type {any} */ (e)?.message || e)}`); }
+      try { await refresh(); settings.loaded(false); }
+      catch (e) { settings.loaded(false, `XO couldn't list your apps: ${errorWords(e)}`); }
     },
   };
 }

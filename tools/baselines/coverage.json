@@ -1,59 +1,8 @@
 {
- "apps-host/bridge.js": {
-  "sha256": "3094928968f7a88c966ca37b7cbb9b8d2b19c65f150478b114467fc0d748eda6",
-  "sites": [
-   ["commentOnlyCatch",20,""]
-  ]
- },
- "apps-host/frame.js": {
-  "sha256": "5ff3322ecb81bc5d0857b53d4bff983894f7c5234084091a9739aa4e6519c2c3",
-  "sites": [
-   ["commentOnlyCatch",163,""]
-  ]
- },
- "apps-host/host.js": {
-  "sha256": "6b72a00dd2a0a9523bda6c2deddf6e4746b39215d0f5ab4a7a1264ba778469ed",
-  "sites": [
-   ["commentOnlyCatch",68,""],
-   ["commentOnlyCatch",92,""],
-   ["commentOnlyCatch",93,""],
-   ["commentOnlyCatch",140,""]
-  ]
- },
- "apps-host/settings.js": {
-  "sha256": "b070bae19a08780fa8d7fd13ca300e1080bfcdd558e3bce1792a9337dd8ae855",
-  "sites": [
-   ["commentOnlyCatch",47,""],
-   ["setTimeout",49,""]
-  ]
- },
  "core/kernel/scheduler.js": {
   "sha256": "56a05ac0d79d0decfa692821c45767c61c54e7dd13c90bf96a64eaf05220bfd0",
   "sites": [
    ["requestAnimationFrame",9,""]
-  ]
- },
- "core/platform/gestures.js": {
-  "sha256": "6e89f433be6e5dfa8ba033658c201a62ca5222a138d33e5a60f1431d79f19087",
-  "sites": [
-   ["globalListener",16,""]
-  ]
- },
- "core/platform/http.js": {
-  "sha256": "0a412a38ae59019bab1bf4b35bd3219a292b4a419df4a7c057bbc90674205f5d",
-  "sites": [
-   ["storage",22,""],
-   ["storage",23,""],
-   ["setTimeout",49,""],
-   ["commentOnlyCatch",111,""],
-   ["commentOnlyCatch",136,""]
-  ]
- },
- "core/platform/sse.js": {
-  "sha256": "969f7d593eea5d50c8656568befab3a5f5a02bf13570b90bb4e86071da56f572",
-  "sites": [
-   ["setTimeout",113,""],
-   ["setTimeout",185,""]
   ]
  },
  "core/services/comms.js": {

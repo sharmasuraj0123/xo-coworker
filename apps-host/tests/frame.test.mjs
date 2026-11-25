@@ -4,7 +4,8 @@ import { checkManifest } from "../manifest.js";
 import { buildSrcdoc, themeVariables, createAppFrame, CSP, SANDBOX } from "../frame.js";
 import { FakeDoc, message, tick, fakeTimers } from "./dom.mjs";
 
-const app = /** @type {any} */ (checkManifest(JSON.parse(readFileSync(new URL("./fixtures/word.plugin.json", import.meta.url), "utf8"))).app);
+const app = checkManifest(JSON.parse(readFileSync(new URL("./fixtures/word.plugin.json", import.meta.url), "utf8"))).app;
+assert.ok(app);
 
 const doc0 = buildSrcdoc("<!DOCTYPE html><html><head><meta http-equiv=\"Content-Security-Policy\" content=\"default-src *\"><script>x()</script></head><body>hi</body></html>", { theme: "light", variables: { "--color-text-primary": "#000" } });
 assert.ok(doc0.startsWith(`<!doctype html><html class="xo-light" data-theme="light"><head><meta http-equiv="Content-Security-Policy" content="${CSP}">`), "XO's CSP is the first thing parsed");
@@ -23,10 +24,12 @@ const host = doc.createElement("div");
 doc.body.append(host);
 const win = new EventTarget();
 const T = fakeTimers();
-/** @type {any[]} */
+/** @type {string[]} */
 const seen = [];
-const make = (load = async () => ({ html: "<p>hi</p>", app, granted: [] })) => createAppFrame(/** @type {any} */ (host), {
-  doc: /** @type {any} */ (doc), win, app, title: "Word: Outline", load, timers: T,
+const hostElement = /** @type {HTMLElement} */ (/** @type {unknown} */ (host));
+const make = (load = async () => ({ html: "<p>hi</p>", app, granted: [] })) => createAppFrame(hostElement, {
+  doc: /** @type {Document} */ (/** @type {unknown} */ (doc)), win, app, title: "Word: Outline", load,
+  timers: /** @type {NonNullable<import("../frame.js").FrameOpts["timers"]>} */ (/** @type {unknown} */ (T)),
   ready: (notify) => { seen.push("ready"); notify("ui/notifications/tool-input", { arguments: { path: "a.word.json" } }); },
   handlers: { callTool: async () => ({}), readResource: async () => ({}), draft() {}, context() {}, openLink: () => false, displayMode: () => "inline" },
 });
@@ -110,6 +113,8 @@ silent.destroy();
 T.advance(600);
 await tick();
 assert.equal(host.children.length, 0, "teardown gets 500 ms, then the frame goes");
+assert.equal(v2.listeners.size, 0, "destroy releases the view's listeners");
+assert.equal(reloadBtn.listeners.size, 0, "destroy releases Reload's listener");
 
 const bad = make(async () => { throw new Error("it isn't on in this project"); });
 await tick();

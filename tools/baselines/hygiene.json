@@ -1,7 +1,4 @@
 {
- "apps-host/bridge.js": {
-  "explicitAny": 8
- },
  "apps-host/client.js": {
   "commentLines": 18,
   "explicitAny": 1
@@ -9,12 +6,8 @@
  "apps-host/contributions.js": {
   "commentLines": 2
  },
- "apps-host/frame.js": {
-  "explicitAny": 3
- },
  "apps-host/host.js": {
-  "commentLines": 1,
-  "explicitAny": 7
+  "commentLines": 1
  },
  "apps-host/manifest.js": {
   "commentLines": 4,
@@ -25,8 +18,7 @@
   "explicitAny": 1
  },
  "apps-host/settings.js": {
-  "commentLines": 4,
-  "explicitAny": 3
+  "commentLines": 3
  },
  "apps-host/tests/bridge.test.mjs": {
   "commentLines": 3,
@@ -35,12 +27,8 @@
  "apps-host/tests/client.test.mjs": {
   "explicitAny": 3
  },
- "apps-host/tests/dom.mjs": {
-  "explicitAny": 1
- },
  "apps-host/tests/frame.test.mjs": {
-  "commentLines": 1,
-  "explicitAny": 4
+  "commentLines": 1
  },
  "apps-host/tests/host.test.mjs": {
   "commentLines": 6,
@@ -83,9 +71,7 @@
   "commentLines": 2
  },
  "core/platform/http.js": {
-  "commentLines": 2,
-  "commentOnlyCatch": 2,
-  "explicitAny": 4
+  "commentLines": 2
  },
  "core/platform/keys.js": {
   "commentLines": 1
@@ -94,9 +80,7 @@
   "explicitAny": 1
  },
  "core/platform/sse.js": {
-  "commentLines": 2,
-  "commentOnlyCatch": 5,
-  "explicitAny": 3
+  "commentLines": 2
  },
  "core/platform/tests/http.test.mjs": {
   "commentLines": 1,

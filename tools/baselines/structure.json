@@ -3,7 +3,7 @@
   "lineLength": 2
  },
  "apps-host/bridge.js": {
-  "lineLength": 9,
+  "lineLength": 6,
   "unusedExport": 4
  },
  "apps-host/card.js": {
@@ -20,12 +20,12 @@
   "unusedExport": 1
  },
  "apps-host/frame.js": {
-  "lineLength": 13,
+  "lineLength": 11,
   "unusedExport": 6
  },
  "apps-host/host.js": {
   "functionLines": 1,
-  "lineLength": 18,
+  "lineLength": 14,
   "unusedExport": 2
  },
  "apps-host/index.js": {
@@ -44,7 +44,7 @@
  },
  "apps-host/settings.js": {
   "functionLines": 1,
-  "lineLength": 12
+  "lineLength": 10
  },
  "apps-host/when.js": {
   "lineLength": 1,
@@ -67,7 +67,7 @@
   "lineLength": 3
  },
  "core/platform/api.js": {
-  "lineLength": 27,
+  "lineLength": 26,
   "unusedExport": 3
  },
  "core/platform/clipboard.js": {
@@ -84,7 +84,7 @@
   "lineLength": 5
  },
  "core/platform/http.js": {
-  "lineLength": 14
+  "lineLength": 12
  },
  "core/platform/keys.js": {
   "lineLength": 6

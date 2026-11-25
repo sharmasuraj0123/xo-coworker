@@ -7219,7 +7219,13 @@
   },
   "js/api.js::storage::xo-coder-token": {
    "status": "moved",
-   "home": "core/platform/http.js"
+   "home": "core/platform/http.js",
+   "evidence": {
+    "core/platform/http.js": {
+     "anchor": "const TOKEN_KEY = \"xo-coder-token\"",
+     "reason": "The Coder session token retains its tab-scoped key through shared storage."
+    }
+   }
   },
   "js/api.js::routes::/api/chat/*": {
    "status": "moved",

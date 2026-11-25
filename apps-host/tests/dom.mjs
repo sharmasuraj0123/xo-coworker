@@ -16,6 +16,11 @@ export class FakeEl {
   setAttribute(k, v) { this.attrs.set(k, String(v)); }
   getAttribute(k) { return this.attrs.has(k) ? this.attrs.get(k) : null; }
   addEventListener(t, fn) { if (!this.listeners.has(t)) this.listeners.set(t, []); this.listeners.get(t).push(fn); }
+  removeEventListener(t, fn) {
+    const next = this.listeners.get(t)?.filter((listener) => listener !== fn) || [];
+    if (next.length) this.listeners.set(t, next);
+    else this.listeners.delete(t);
+  }
   dispatch(t, extra = {}) { for (const fn of this.listeners.get(t) || []) fn({ type: t, target: this, preventDefault() {}, ...extra }); }
   focus() { this.ownerDocument.activeElement = this; }
   querySelector() { return null; }
@@ -62,6 +67,6 @@ export function fakeTimers() {
       now = end;
     },
   };
-  return /** @type {any} */ (T);
+  return T;
 }
 export const tick = () => new Promise((r) => setTimeout(r, 0));

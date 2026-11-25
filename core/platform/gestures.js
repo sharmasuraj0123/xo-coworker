@@ -13,7 +13,8 @@ export const edgeIsSafari = (x) => IOS && !STANDALONE && x < 24;
 
 /** The one touch a gesture owns. @type {object | null} */
 let claimed = null;
-document.addEventListener("touchstart", (e) => { if (e.touches.length === 1) claimed = null; }, { capture: true, passive: true });
+/** @type {WeakSet<TouchEvent>} */
+const starts = new WeakSet();
 
 export function tick() {
   try { navigator.vibrate?.(8); }
@@ -49,6 +50,10 @@ export function drag(el, o) {
   el.addEventListener("touchstart", (e) => {
     s = null;
     if (e.touches.length !== 1) return;
+    if (!starts.has(e)) {
+      starts.add(e);
+      claimed = null;
+    }
     const p = e.touches[0];
     if (o.start && o.start({ x: p.clientX, y: p.clientY, target: /** @type {Element} */ (e.target) }) === false) return;
     s = { id: p.identifier, x0: p.clientX, y0: p.clientY, locked: false, pts: [[p.clientX, p.clientY, e.timeStamp]] };

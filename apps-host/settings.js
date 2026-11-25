@@ -1,29 +1,32 @@
 // @ts-check
 import { view } from "./settings-view.js";
 import { checkRow } from "./manifest.js";
+import { createScope } from "../core/kernel/scope.js";
+import { reportFailure } from "../core/platform/util.js";
 
 /** @typedef {import("./settings-view.js").State} State @typedef {import("./settings-view.js").Row} Row @typedef {import("./client.js").AppsClient} AppsClient @typedef {{ client: AppsClient, redraw(el: HTMLElement, html: string): unknown, projects(): Array<{ id: string, name: string }>, confirm(text: string, o: { yes: string, near: Element | null }): Promise<boolean>, rows(): Row[], refresh(): Promise<void>, openPanel(key: string, at: { project: string }): void, wait?: (ms: number) => Promise<void> }} SettingsDeps */
 
 /** @param {unknown} e */
-const words = (e) => String(/** @type {any} */ (e)?.message || e || "Something went wrong.");
+const words = (e) => String((e instanceof Error ? e.message : e) || "Something went wrong.");
+
+/** @typedef {{approval_id?: string, expires_at?: number | string, state?: string, reason?: string, result?: {id?: string}}} Approval */
 
 /** Settings › Apps: install from a repo or a folder, the consent sheet, per-project grants, update, rollback, remove. @param {SettingsDeps} d */
 export function createAppsSettings(d) {
+  const scope = createScope();
+  /** @type {(() => void) | null} */
+  let cancelWait = null;
   /** @type {State} */
   const s = { mode: "list", rows: [], loading: true, error: "", busy: "", source: "git", staged: null, appId: "", grantFor: "", activity: null, values: {}, off: "", waiting: "" };
-  /** @type {Set<HTMLElement>} */
-  const shown = new Set();
-  /** @type {WeakSet<HTMLElement>} */
-  const wired = new WeakSet();
-  /** @type {WeakMap<HTMLElement, { project?: string }>} */
-  const where = new WeakMap();
+  /** @type {Map<HTMLElement, { project?: string, close: () => void }>} */
+  const shown = new Map();
 
   const draw = () => {
     s.rows = d.rows();
-    for (const el of [...shown]) {
-      if (!el.isConnected) { shown.delete(el); continue; }
+    for (const [el, mount] of shown) {
+      if (!el.isConnected) { mount.close(); continue; }
       const had = el.contains(el.ownerDocument.activeElement);
-      d.redraw(el, view(s, { projects: d.projects(), project: where.get(el)?.project }));
+      d.redraw(el, view(s, { projects: d.projects(), project: mount.project }));
       const a = el.ownerDocument.activeElement;
       if (had && (!a || a === el.ownerDocument.body || !el.contains(a))) /** @type {HTMLElement | null} */ (el.querySelector("[data-autofocus]"))?.focus();
     }
@@ -42,30 +45,38 @@ export function createAppsSettings(d) {
   const val = (el, sel) => String(/** @type {HTMLInputElement | null} */ (el.querySelector(sel))?.value || "").trim();
   /** @param {HTMLElement} el */
   const loadValues = (el) => {
-    const project = where.get(el)?.project, id = s.appId, key = `${id}|${project}`;
+    const project = shown.get(el)?.project, id = s.appId, key = `${id}|${project}`;
     if (!project || !id || Object.hasOwn(s.values, key)) return;
-    d.client.settings(id, project).then((v) => { if (!Object.hasOwn(s.values, key)) set({ values: { ...s.values, [key]: v && typeof v === "object" ? (v.values || v) : {} } }); }).catch(() => {});
+    d.client.settings(id, project).then((v) => {
+      if (!scope.signal.aborted && !Object.hasOwn(s.values, key)) {
+        set({ values: { ...s.values, [key]: v && typeof v === "object" ? (v.values || v) : {} } });
+      }
+    }).catch(reportFailure);
   };
-  const wait = d.wait || ((/** @type {number} */ ms) => new Promise((ok) => setTimeout(ok, ms)));
-  const showing = () => [...shown].some((el) => el.isConnected);
-  /** An owner decision xo-space holds in Needs you: true once applied, false when Settings closed before an answer; anything else is said in words. @param {any} r @returns {Promise<any>} */
+  const wait = d.wait || ((/** @type {number} */ ms) => new Promise((resolve) => {
+    const cancel = scope.timeout(() => cancelWait?.(), ms);
+    cancelWait = () => { cancel(); cancelWait = null; resolve(undefined); };
+  }));
+  const showing = () => [...shown.keys()].some((el) => el.isConnected);
+  /** An owner decision in Needs you; closing Settings drops polling. @param {Approval | null | undefined} r */
   const approved = async (r) => {
-    const id = r && typeof r.approval_id === "string" ? r.approval_id : "";
-    if (!id) return r ?? {};
-    const until = typeof r.expires_at === "number" ? r.expires_at * 1000 : Date.parse(r.expires_at) || Infinity;
+    if (!r || typeof r.approval_id !== "string" || !r.approval_id) return r ?? {};
+    const id = r.approval_id;
+    const until = typeof r.expires_at === "number" ? r.expires_at * 1000 : Date.parse(r.expires_at ?? "") || Infinity;
     const here = `${s.mode}|${s.appId}`;
     set({ busy: "", waiting: "Waiting for your approval in Needs you…" });
     for (;;) {
-      const a = await d.client.approval(id);
+      const a = /** @type {Approval | null} */ (await d.client.approval(id));
       const state = a && a.state;
       if (state === "applied") return a;
       if (state === "declined") throw new Error("You said not now. Nothing changed.");
       if (state === "expired" || state === "void" || (state === "pending" && Date.now() > until)) throw new Error("That request expired before an answer. Nothing changed; try again.");
       if (state === "withdrawn") throw new Error("That request was withdrawn. Nothing changed.");
-      if (state === "failed") throw new Error(`XO couldn't do it${a.reason ? `: ${a.reason}` : "."} Nothing changed.`);
+      if (state === "failed") throw new Error(`XO couldn't do it${a?.reason ? `: ${a.reason}` : "."} Nothing changed.`);
       if (state !== "pending") throw new Error("XO couldn't tell what happened to that request, so nothing changed.");
       if (!showing() || `${s.mode}|${s.appId}` !== here) return null;
       await wait(2000);
+      if (scope.signal.aborted || !showing() || `${s.mode}|${s.appId}` !== here) return null;
     }
   };
   const app = () => { const r = s.rows.find((x) => x.id === s.appId); return r ? checkRow(r).app : null; };
@@ -128,7 +139,7 @@ export function createAppsSettings(d) {
       return { mode: "list", appId: "", activity: null };
     }),
     "save-settings": (el) => work("Saving…", async () => {
-      const project = where.get(el)?.project;
+      const project = shown.get(el)?.project;
       if (!project) return {};
       /** @type {Record<string, unknown>} */
       const values = {};
@@ -143,33 +154,40 @@ export function createAppsSettings(d) {
 
   /** @param {HTMLElement} el */
   const wire = (el) => {
-    if (wired.has(el)) return;
-    wired.add(el);
-    el.addEventListener("click", (e) => {
+    const click = scope.listen(el, "click", (e) => {
       const b = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest?.("[data-act]"));
       if (!b || !el.contains(b) || /** @type {HTMLButtonElement} */ (b).disabled) return;
       const fn = Object.hasOwn(ACTS, b.dataset.act || "") ? ACTS[b.dataset.act || ""] : null;
       if (fn) void fn(el, b.dataset);
     });
-    el.addEventListener("change", (e) => {
+    const change = scope.listen(el, "change", (e) => {
       const t = /** @type {HTMLInputElement} */ (e.target);
       if (t.dataset && t.dataset.source && t.checked) set({ source: t.dataset.source === "path" ? "path" : "git" });
     });
+    return () => { click(); change(); };
   };
 
   return {
     /** The settings.section entry's render. @param {HTMLElement} el @param {{ project?: string }} [at] */
     render(el, at = {}) {
-      where.set(el, { project: typeof at.project === "string" ? at.project : undefined });
-      shown.add(el);
-      wire(el);
+      const old = shown.get(el);
+      const unwire = wire(el);
+      const close = () => {
+        unwire();
+        if (shown.get(el)?.close !== close) return;
+        shown.delete(el);
+        if (!showing()) cancelWait?.();
+      };
+      shown.set(el, { project: typeof at.project === "string" ? at.project : undefined, close });
+      old?.close();
       if (s.mode === "app") loadValues(el);
       draw();
-      return () => { shown.delete(el); };
+      return close;
     },
     /** @param {boolean} loading @param {string} [error] */
     loaded(loading, error = "") { set({ loading, error }); },
     off(/** @type {string} */ why) { if (s.off !== why) set({ off: why, ...(why ? { mode: "list" } : {}) }); },
     redraw: draw,
+    dispose() { cancelWait?.(); scope.dispose(); shown.clear(); },
   };
 }

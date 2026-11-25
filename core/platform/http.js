@@ -1,4 +1,7 @@
 // @ts-check
+import { createScope } from "../kernel/scope.js";
+import { read, write, reportStorageFailure } from "./storage.js";
+import { reportFailure } from "./util.js";
 
 // Requests to XO Space through serve.py, relative to the page; inside Coder the session token rides on every one.
 
@@ -10,18 +13,17 @@ const TOKEN_KEY = "xo-coder-token";
 const coderToken = (() => {
   /** @type {string | null} */
   let token = null;
-  try {
+  if (typeof location !== "undefined") {
     const url = new URL(location.href);
     token = url.searchParams.get(TOKEN_PARAM);
     if (token) {
       url.searchParams.delete(TOKEN_PARAM);
-      history.replaceState(history.state, "", url);
+      try { history.replaceState(history.state, "", url); }
+      catch (error) { if (!(error instanceof DOMException && error.name === "SecurityError")) reportFailure(error); }
     }
-  } catch { /* not in a browser */ }
-  try {
-    if (token) sessionStorage.setItem(TOKEN_KEY, token);
-    else token = sessionStorage.getItem(TOKEN_KEY);
-  } catch { /* storage blocked: this page load still has the token */ }
+  }
+  if (token) write(TOKEN_KEY, token, "session", reportStorageFailure);
+  else token = read(TOKEN_KEY, (raw) => raw, null, "session", reportStorageFailure);
   return token;
 })();
 
@@ -45,23 +47,24 @@ const READ_MS = 30000;
 /** One signal that aborts on the caller's signal or after `ms`; `timedOut()` says which. @param {AbortSignal | null | undefined} signal @param {number} ms */
 function deadline(signal, ms) {
   const ctl = new AbortController();
+  const scope = createScope();
   let late = false;
-  const t = setTimeout(() => { late = true; ctl.abort(); }, ms);
+  scope.timeout(() => { late = true; ctl.abort(); }, ms);
   const onAbort = () => ctl.abort();
   if (signal) {
     if (signal.aborted) ctl.abort();
-    else signal.addEventListener("abort", onAbort, { once: true });
+    else scope.listen(signal, "abort", onAbort, { once: true });
   }
   return {
     signal: ctl.signal,
     timedOut: () => late,
-    done: () => { clearTimeout(t); if (signal) signal.removeEventListener("abort", onAbort); },
+    done: scope.dispose,
   };
 }
 
 /** @typedef {{ method?: string, body?: unknown, signal?: AbortSignal, query?: Record<string, unknown>, timeout?: number, headers?: Record<string, string> | null }} RequestOptions */
 
-/** A JSON request to `api` + path; failures throw ApiError (timeout, network, signed_out, or the answer's own code). @param {string} path @param {RequestOptions} [opts] @returns {Promise<any>} */
+/** @param {string} path @param {RequestOptions} [opts] */
 export async function request(path, { method = "GET", body, signal, query, timeout, headers = null } = {}) {
   let url = BASE + path;
   if (query) {
@@ -105,35 +108,55 @@ export async function exchange(url, method, body, signal, extra = null) {
     throw new ApiError(401, "signed_out", "Signed out of the workspace. Reopen this app from XO.");
   }
   if (!res.ok) throw await failure(res);
-  const text = await res.text();
+  const raw = await res.text();
   try {
-    return text ? JSON.parse(text) : null;
-  } catch {
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
     return null;
   }
 }
 
-/** A Space without this route yet: FastAPI's bare 404 ("http_404") or 405; a route's own 404 names what isn't there. @param {any} err */
-export const missingRoute = (err) => !!err && (err.status === 405 || (err.status === 404 && (!err.code || err.code === "http_404")));
+/** @param {unknown} err */
+export const missingRoute = (err) => {
+  if (!err || typeof err !== "object" || !("status" in err)) return false;
+  return err.status === 405 || (err.status === 404 && (!("code" in err) || !err.code || err.code === "http_404"));
+};
 
-/** The one error parser: storm's {detail: {code, message, …extras}}, FastAPI's 422 list, a plain-string detail, or serve.py's own. @param {number} status @param {string} statusText @param {string} text */
-function errorOf(status, statusText, text) {
-  /** @type {any} */
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
+const record = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+
+/** The one error parser: storm's {detail: {code, message, …extras}}, FastAPI's 422 list, a plain-string detail, or serve.py's own. @param {number} status @param {string} statusText @param {string} raw */
+function errorOf(status, statusText, raw) {
+  /** @type {unknown} */
   let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  const d = data && data.detail;
-  const code = (d && d.code) || (data && data.error) || `http_${status}`;
-  let message = (d && d.message) || (typeof d === "string" ? d : "");
-  if (Array.isArray(d)) message = d.map((e) => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ");
+  try { data = raw ? JSON.parse(raw) : null; } catch (error) { if (!(error instanceof SyntaxError)) reportFailure(error); }
+  const d = record(data) ? data.detail : null;
+  const detailCode = record(d) && typeof d.code === "string" ? d.code : "";
+  const responseCode = record(data) && typeof data.error === "string" ? data.error : "";
+  const code = detailCode || responseCode || `http_${status}`;
+  let message = record(d) && typeof d.message === "string" ? d.message : typeof d === "string" ? d : "";
+  if (Array.isArray(d)) message = d.filter(record).map((e) => {
+    const location = Array.isArray(e.loc) ? e.loc.slice(1).join(".") : "";
+    return `${location}: ${e.msg}`;
+  }).join("; ");
   if (!message) message = `${status} ${statusText || "error"}`;
   /** @type {Record<string, unknown>} */
   const extra = {};
-  if (d && typeof d === "object" && !Array.isArray(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
+  if (record(d)) for (const k of ["feature", "count", "sentence", "what", "confirm", "summary", "current"]) if (k in d) extra[k] = d[k];
   return new ApiError(status, code, message, extra);
 }
 
 /** A failed answer as an ApiError; a body that can't be read still keeps the answer's status. @param {Response} res */
-const failure = async (res) => errorOf(res.status, res.statusText, await res.text().catch(() => ""));
+const failure = async (res) => {
+  let raw = "";
+  try { raw = await res.text(); }
+  catch (error) {
+    const interrupted = error instanceof DOMException && error.name === "AbortError";
+    if (!interrupted && !(error instanceof TypeError)) reportFailure(error);
+  }
+  return errorOf(res.status, res.statusText, raw);
+};
 
 /** The page-relative URL of a route. @param {string} path */
 export const urlOf = (path) => BASE + path;
@@ -176,7 +199,7 @@ export async function text(path, { signal } = {}) {
 /** POST raw bytes with upload progress (XMLHttpRequest: fetch has none); an abort rejects with an AbortError. @param {string} path @param {Blob} body @param {{ onProgress?: (sent: number, total: number) => void }} [opts] */
 export function upload(path, body, { onProgress } = {}) {
   const xhr = new XMLHttpRequest();
-  /** @type {Promise<any>} */
+  /** @type {Promise<unknown>} */
   const promise = new Promise((resolve, reject) => {
     xhr.open("POST", BASE + path);
     for (const [k, v] of Object.entries(coderHeaders())) xhr.setRequestHeader(k, v);
