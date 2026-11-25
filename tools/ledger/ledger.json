@@ -2751,7 +2751,7 @@
      "reason": "Changes supplies its model and diff renderers to the active Files viewer."
     },
     "modules/create-project/module.js": {
-     "anchor": "export function createProjectModule",
+     "anchor": "export const createProjectModule",
      "reason": "Project creation owns its sidebar opener, delegated route and dialog lifetime."
     },
     "modules/github/surface.js": {

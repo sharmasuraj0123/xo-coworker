@@ -9,3 +9,10 @@ export interface CreateCtx {
   setDrawer: (open: boolean) => void;
   onPhoneClose: () => void;
 }
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    projectDescriptions: Pick<Map<string, string>, "get" | "set">;
+    createProject: Pick<ReturnType<typeof import("./create.js").initCreate>, "open" | "close" | "isOpen">;
+  }
+}

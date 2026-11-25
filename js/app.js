@@ -50,7 +50,7 @@ import { threadControlsModule, threadActionsModule } from "../modules/threads/ac
 import { githubModule } from "../modules/github/surface.js";
 import { fileQuestionsModule } from "../modules/conversation/file-question-module.js";
 import { changesModule } from "../modules/changes/module.js";
-import { createProjectModule } from "../modules/create-project/module.js";
+import { createProjectModule, projectDescriptionsModule } from "../modules/create-project/module.js";
 import { projectIconsModule } from "../modules/projects/surface.js";
 import { shellDockModule, shellPanelModule } from "../modules/shells/surface.js";
 import { artifactsModule } from "../modules/artifacts/module.js";
@@ -69,9 +69,9 @@ import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 const workspaceModule = {
   manifest: { id: "xo.workspace", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "notices", "announce", "shape", "navigationState", "placeContext", "redrawFocus", "drawer", "toastLine",
-      "overlayFocus", "conversationSession", "shellDock", "stage", "navigation", "projectIcons", "threadRuntime", "decisionPresentation",
+      "overlayFocus", "conversationSession", "shellDock", "stage", "navigation", "projectIcons", "projectDescriptions", "threadRuntime", "decisionPresentation",
       "launchpad", "intelligence", "threadControls", "threadMenu",
-      "conversationPresentation", "threadGroups", "checklist", "chats", "decisionDock", "messageContext", "composer", "lightbox", "noticeLine", "mainViewport", "fileSearch"], optional: ["runs", "files", "transcript", "threadActions", "threadPage"] },
+      "conversationPresentation", "threadGroups", "checklist", "chats", "decisionDock", "messageContext", "composer", "lightbox", "noticeLine", "mainViewport", "fileSearch"], optional: ["createProject", "runs", "files", "transcript", "threadActions", "threadPage"] },
   activate(ctx) {
 const appScope = createScope();
 ctx.effect(() => appScope.dispose);
@@ -142,14 +142,14 @@ ctx.on("app:view-preparing", () => {
 });
 
 const topRender = mountConversationHeader({
-  ...place, ...threadPresentation, threadControls, description: (project) => CREATE.descriptions.get(project), world, PICK, LP, LW, STAGE, kernel,
+  ...place, ...threadPresentation, threadControls, description: (project) => ctx.use("projectDescriptions").get(project), world, PICK, LP, LW, STAGE, kernel,
   convHost, homeParts, threadCounts, projectIcon, threadMenuHtml, rtTag, location: navigationState, CH, checklistRender, tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),
 }, appScope, schedule);
 
-const CREATE = createProjectModule();
+const CREATE = { close: () => ctx.optional("createProject")?.close(), isOpen: () => ctx.optional("createProject")?.isOpen() ?? false };
 
 const JUMP = createJumpModule({
-  projectIcon, create: CREATE.open, settings: () => settings.open(), keys: () => openKeys(), IQ, toggleStage: () => STAGE.toggle(),
+  projectIcon, create: () => ctx.optional("createProject")?.open(), settings: () => settings.open(), keys: () => openKeys(), IQ, toggleStage: () => STAGE.toggle(),
   go, focusIn: focusOverlay, onHidden: () => syncInert(),
 });
 const jump = JUMP.el;
@@ -191,7 +191,7 @@ appScope.effect(() => kernel.bus.on("app:sync-inert", applyInert));
 
 for (const module of [
   homeModule, JUMP.module,
-  settings.module, CREATE.module,
+  settings.module,
 ]) kernel.register(module);
 appScope.effect(() => SIDE.dispose);
 ctx.on("app:started", () => appScope.effect(() => startShell({
@@ -201,7 +201,7 @@ ctx.on("app:started", () => appScope.effect(() => startShell({
 };
 
 await bootShell([
-  appServicesModule, shellFoundationModule, failureModule, shapeModule, conversationSessionModule, edgeCardsModule, changeDataModule,
+  createProjectModule, projectDescriptionsModule, appServicesModule, shellFoundationModule, failureModule, shapeModule, conversationSessionModule, edgeCardsModule, changeDataModule,
   messageContextModule, decisionDockModule, chatModelModule, chatControlsModule, threadGroupsModule, checklistModule, conversationPresentationModule, launchpadModule, intelModule, projectIconsModule, threadRuntimeModule, decisionModule, navigationModule, threadPresentationModule, homeSkeletonModule, railCountsModule, workspaceModule, githubModule, sinceModule, artifactsModule,
   threadPageModule, threadControlsModule, threadActionsModule, conversationPressModule, conversationMediaModule, noticeLineModule, mainViewportModule, transcriptModule, stageModule, filesModule, composerModule, shellDockModule, shellPanelModule, fileSearchModule, fileQuestionsModule, runsModule, runControlsModule, mapAgentsModule, mapModule, changesModule, routingModule, rulesModule, worktreesModule,
 ], SHAPE_IC);
