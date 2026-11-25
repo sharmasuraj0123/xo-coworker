@@ -139,6 +139,8 @@ await kernel.enable("xo.since");
 await new Promise(setImmediate);
 flushFrames();
 assert.equal(document.querySelectorAll('#hm-since [data-rec-got="home"]').length, 1, "enabling Since restores one Home instance");
+const homeBody = document.querySelector("#hm-body");
+assert.ok(homeBody);
 press("#nv-arts");
 const gallery = document.querySelector("#arts");
 const gallerySearch = gallery.querySelector("#arts-q");
@@ -156,6 +158,8 @@ await kernel.enable("xo.artifacts");
 await new Promise(setImmediate);
 flushFrames();
 assert.equal(gallery.querySelectorAll("#arts-q").length, 1, "enabling Artifacts restores one gallery");
+press("#nv-home");
+assert.ok(document.querySelector("#hm-body") === homeBody, "returning from Artifacts preserves the mounted Home controls");
 press('#projects [data-go="p:demo"]');
 
 export {

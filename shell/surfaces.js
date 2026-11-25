@@ -39,12 +39,13 @@ export function createSurfaceSlots({ read, places, place, scope, schedule, fallb
     try { reconcile(active()); } finally { schedule(); }
   }));
 
-  /** @param {(id: string) => HTMLElement | null} hostFor @param {C} context */
-  function draw(hostFor, context) {
+  /** @param {(id: string) => HTMLElement | null} hostFor @param {C} context @param {string} [selected] */
+  function draw(hostFor, context, selected) {
     if (scope.signal.aborted) return;
     const entries = active();
     reconcile(entries);
     for (const entry of entries) {
+      if (selected !== undefined && entry.id !== selected) continue;
       const host = hostFor(entry.id);
       if (host !== mounted.get(entry)?.host) {
         mounted.get(entry)?.retire();

@@ -1,8 +1,10 @@
 // @ts-check
 import { createScope } from "../../core/kernel/scope.js";
+import { usable } from "../../core/ui/a11y/focus.js";
+import { createWorkspaceHeader } from "../../shell/workspace-header.js";
 import { requireHtml } from "../../core/platform/dom.js";
 import { mountMainDecoration } from "./main-decoration.js";
-import { watchDock } from "./dock-layout.js";
+import { dockAtTop, watchDock } from "./dock-layout.js";
 import { initFollow, fromTop, toRow } from "./follow.js";
 import { conversationGestures } from "../../shell/gestures.js";
 import { wordsOf } from "./words.js";
@@ -51,9 +53,32 @@ export const mainViewportModule = {
       heraldRoom: ctx.use("noticeLine").heraldRoom, CH: ctx.use("chats"), world: ctx.use("world"),
       convThread: place.convThread, chatOf: place.convProject, render: () => ctx.emit("app:render"),
     });
-    conversationGestures({ scroller: viewport.scroller, msgs: viewport.msgsEl, say: session.composer.say, toast: ctx.use("toastLine") }, wordsOf, scope);
+    conversationGestures({ scroller: viewport.scroller, msgs: viewport.msgsEl, say: session.composer.say,
+      toast: ctx.use("toastLine") }, wordsOf, scope);
     ctx.on("app:view-visited", viewport.follow);
+    ctx.on("workspace:layout", (view) => dockAtTop(view === "chats"));
     ctx.on("app:return-target", viewport.returnPill);
     ctx.provide("mainViewport", viewport);
+  },
+};
+
+/** @type {import("../../core/kernel/types").ModuleDef} */
+export const conversationContentModule = {
+  manifest: { id: "xo.conversation-content", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["conversationContent"],
+    needs: ["conversationSession", "mainViewport", "conversationHeader", "currentView", "placeContext"], optional: ["transcript"] },
+  activate(ctx) {
+    const session = ctx.use("conversationSession"), viewport = ctx.use("mainViewport"), header = ctx.use("conversationHeader");
+    const workspaceHeader = createWorkspaceHeader(ctx.use("currentView"), ctx.use("placeContext").projects);
+    ctx.provide("conversationContent", { draw(needs, gone) {
+      header(needs);
+      workspaceHeader();
+      ctx.optional("transcript")?.(session.main, needs);
+      if (gone && document.activeElement === session.composer.say) {
+        const actions = viewport.msgsEl.querySelectorAll('.calm-act [data-go="home"]');
+        const target = [...actions].find((el) => el instanceof HTMLElement && usable(el));
+        (target instanceof HTMLElement ? target : session.region()).focus({ preventScroll: true });
+      }
+      ctx.frame(() => viewport.loadAhead(session.main));
+    } });
   },
 };

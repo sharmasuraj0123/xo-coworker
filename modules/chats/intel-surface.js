@@ -58,5 +58,9 @@ export const intelModule = {
   manifest: { id: "xo.intelligence", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "shape", "navigation", "announce", "conversationSession", "notices", "currentView", "projectName"],
     contributes: ["conversation.press:record-undo"], provides: ["intelligence"] },
-  activate(ctx) { ctx.provide("intelligence", mountIntelligence(ctx)); },
+  activate(ctx) {
+    const intelligence = mountIntelligence(ctx);
+    ctx.on("workspace:painted", intelligence.activate);
+    ctx.provide("intelligence", intelligence);
+  },
 };

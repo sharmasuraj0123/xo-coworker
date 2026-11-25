@@ -37,7 +37,8 @@ function createLaunchpadSurface({ world, isBusy, isHeld, PROJ, projectIcon, proj
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const launchpadModule = {
   manifest: { id: "xo.launchpad", version: "1.0.0", kernel: "^1.1.0", core: true,
-    needs: ["world", "threadPresentation", "placeContext", "projectIcons", "navigation", "announce", "notices"], provides: ["launchpad"] },
+    needs: ["world", "threadPresentation", "placeContext", "projectIcons", "navigation", "announce", "notices"],
+    contributes: ["page:launchpad", "workspace.paint:launchpad"], provides: ["launchpad"] },
   activate(ctx) {
     const { isBusy, isHeld } = ctx.use("threadPresentation"), { PROJ, projects } = ctx.use("placeContext");
     const surface = createLaunchpadSurface({
@@ -46,6 +47,8 @@ export const launchpadModule = {
       isBusy, isHeld, PROJ, projects,
     });
     ctx.effect(() => surface.dispose);
+    ctx.contribute("page", { id: "launchpad", render: () => surface.LPP.render() });
+    ctx.contribute("workspace.paint", { id: "launchpad", order: 80, paint: () => surface.LW.sync() });
     ctx.provide("launchpad", surface);
   },
 };

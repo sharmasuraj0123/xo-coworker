@@ -8,7 +8,7 @@ import { createHomeController } from "./controller.js";
 
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const homeModule = {
-  manifest: { id: "xo.home", version: "1.0.0", kernel: "^1.1.0", contributes: ["conversation.press:next"], provides: ["home"],
+  manifest: { id: "xo.home", version: "1.0.0", kernel: "^1.1.0", contributes: ["conversation.press:next", "page:home"], provides: ["home"],
     needs: ["world", "currentView", "announce", "placeContext", "decisionPresentation", "threadPresentation", "conversationPresentation",
       "shapeView", "threadRuntime", "notices", "decisionDock"] },
   activate(ctx) {
@@ -23,6 +23,7 @@ export const homeModule = {
     });
     ctx.on("app:decision-undone", (key) => { if (view() === "home") home.restore(key); });
     ctx.contribute("conversation.press", pressEntry("next", valuePress("data-next", home.openNext, true)));
+    ctx.contribute("page", { id: "home", render: (_host, needs) => home.homeRender(needs) });
     ctx.provide("home", home);
     ctx.invalidate("workspace");
   },

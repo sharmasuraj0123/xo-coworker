@@ -14,7 +14,8 @@ import { createLightbox } from "./lightbox.js";
 export const conversationHeaderModule = {
   manifest: { id: "xo.conversation-header", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["conversationHeader"],
     needs: ["world", "placeContext", "threadPresentation", "threadControls", "projectDescriptions", "projectIcons", "launchpad", "stage",
-      "messageContext", "threadGroups", "threadMenu", "threadRuntime", "navigationState", "chats", "checklist"], optional: ["threadActions", "home"] },
+      "messageContext", "threadGroups", "threadMenu", "threadRuntime", "navigationState", "chats", "checklist"],
+    optional: ["threadActions", "home"] },
   activate(ctx) {
     const scope = createScope(), project = ctx.use("projectIcons"), { LP, LW } = ctx.use("launchpad");
     ctx.effect(() => scope.dispose);
@@ -23,12 +24,14 @@ export const conversationHeaderModule = {
     const header = {
       ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), threadControls: ctx.use("threadControls"),
       description: (id) => descriptions.get(id), world: ctx.use("world"), ...project, LP, LW, STAGE: ctx.use("stage"), places: ctx.places,
-      emit: ctx.emit, convHost: ctx.use("messageContext").convHost, homeParts: (needs) => ctx.optional("home")?.homeParts(needs) ?? { held: [] },
+      emit: ctx.emit, convHost: ctx.use("messageContext").convHost,
+      homeParts: (needs) => ctx.optional("home")?.homeParts(needs) ?? { held: [] },
       threadCounts: ctx.use("threadGroups").threadCounts, threadMenuHtml: ctx.use("threadMenu"), rtTag: ctx.use("threadRuntime").rtTag,
       location: ctx.use("navigationState"), CH: ctx.use("chats"), checklistRender: ctx.use("checklist").render,
       tdelRender: (thread) => ctx.optional("threadActions")?.renderDelete(thread),
     };
-    const render = createTopHeader({ ...header, conversationHeaderHtml: createConversationHeader(header) }, scope, () => ctx.invalidate("workspace"));
+    const schedule = () => ctx.invalidate("workspace");
+    const render = createTopHeader({ ...header, conversationHeaderHtml: createConversationHeader(header) }, scope, schedule);
     ctx.provide("conversationHeader", render);
   },
 };
@@ -37,7 +40,7 @@ export const conversationHeaderModule = {
 export const noticeLineModule = {
   manifest: { id: "xo.notice-line", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["world", "conversationSession", "composer", "notices", "intelligence", "redrawFocus"],
-    provides: ["noticeLine"], contributes: ["conversation.press:notice-undo"] },
+    provides: ["noticeLine"], contributes: ["conversation.press:notice-undo", "workspace.paint:notice"] },
   activate(ctx) {
     const notices = ctx.use("notices"), session = ctx.use("conversationSession");
     const line = createNoticeLine({
@@ -46,6 +49,7 @@ export const noticeLineModule = {
     });
     const receipts = { requestFocus: ctx.use("redrawFocus").request, undo: notices.undo, undoRecord: ctx.use("intelligence").undoRecord };
     ctx.contribute("conversation.press", pressEntry("notice-undo", valuePress("data-herald-undo", () => line.undoNotice(receipts), true)));
+    ctx.contribute("workspace.paint", { id: "notice", order: 30, paint: line.heraldRender });
     ctx.provide("noticeLine", line);
   },
 };

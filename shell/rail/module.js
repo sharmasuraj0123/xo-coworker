@@ -7,7 +7,8 @@ import { createSideRows } from "./rows.js";
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const railModule = {
   manifest: { id: "xo.rail", version: "1.0.0", kernel: "^1.1.0", core: true,
-    needs: ["shape", "announce", "currentView", "world", "chats", "decisionPresentation", "placeContext", "threadPresentation", "projectIcons"],
+    needs: ["shape", "announce", "currentView", "world", "chats", "decisionPresentation",
+      "placeContext", "threadPresentation", "projectIcons"],
     optional: ["jump"], provides: ["rail"] },
   activate(ctx) {
     const scope = createScope();
@@ -17,7 +18,8 @@ export const railModule = {
       toggleJump() { const surface = ctx.optional("jump"); if (jump.hidden) surface?.open(); else surface?.close(); } });
     const { D, askShort } = ctx.use("decisionPresentation"), place = ctx.use("placeContext");
     const rows = createSideRows(scope, {
-      view: ctx.use("currentView"), world: ctx.use("world"), CH: ctx.use("chats"), D, projects: place.projects, convThread: place.convThread,
+      view: ctx.use("currentView"), world: ctx.use("world"), CH: ctx.use("chats"), D,
+      projects: place.projects, convThread: place.convThread,
       ...ctx.use("threadPresentation"), askShort, projectIcon: ctx.use("projectIcons").projectIcon, folded: () => side.folded,
     });
     ctx.provide("rail", { side, rows });

@@ -1,41 +1,7 @@
-export interface RenderNeed { admitted?: boolean; later?: boolean }
-export interface RenderThread { lastAt: number }
-export interface RenderConversation { rendered: string | null }
+import type { Services } from "../core/kernel/types";
+export type FrameNeeds = ReturnType<Services["decisionPresentation"]["D"]["needItems"]>;
 
-interface Sync { sync(): void }
-
-export interface RenderDeps<N extends RenderNeed, T extends RenderThread, C extends RenderConversation> {
-  world: { state: { loaded?: boolean; threads: T[] } };
-  D: Sync & { needItems(): N[] };
-  view(): string;
-  restoreFocus(): void;
-  PAGE_OF: Record<string, string>;
-  MAIN: C;
-  pings(needs: N[]): void;
-  dockAtTop(top: boolean): void;
-  convThread(view: string): T | null | undefined;
-  sideRender(needs: N[]): void;
-  homeRender(needs: N[]): void;
-  places: import("../core/kernel/types.d.ts").Places;
-  LPP: { render(): void };
-  topRender(needs: N[]): void;
-  wsHeadRender(needs: N[]): void;
-  drawConv(conversation: C, needs: N[]): void;
-  say: HTMLElement;
-  msgsEl: HTMLElement;
-  placeRegion(): HTMLElement;
-  loadAhead(conversation: C): void;
-  STAGE: Sync & { pageShown?: { name: string } | null };
-  drawThreadPage(needs: N[]): void;
-  dockRender(needs: N[]): void;
-  heraldRender(needs: N[]): void;
-  chatTargetRender(): boolean | undefined;
-  targetLineRender(): void;
-  syncPlaceholder(): void;
-  sendRender(): void;
-  chipRender(): void;
-  files(): { viewer: { notice(): void }; page: Sync } | undefined;
-  LW: Sync;
-  titleFor(count: number, title: string): string;
-  isBusy(thread: T): boolean;
+declare module "../core/kernel/types" {
+  interface PlaceEntries { "workspace.paint": { paint(needs: FrameNeeds): void } }
+  interface Topics { "workspace:painted": undefined; "workspace:layout": string }
 }

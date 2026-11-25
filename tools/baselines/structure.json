@@ -382,10 +382,6 @@
  "index.html": {
   "lineLength": 19
  },
- "js/app.js": {
-  "dependencyKey": 70,
-  "lineLength": 8
- },
  "modules/artifacts/artifacts.css": {
   "important": 1,
   "lineLength": 12
@@ -1023,9 +1019,6 @@
  "shell/rail/side.js": {
   "functionLines": 1,
   "lineLength": 10
- },
- "shell/render.js": {
-  "lineLength": 2
  },
  "shell/responsive.css": {
   "lineLength": 6

@@ -6,7 +6,8 @@ Every entry also has an `id`, and may have `order` (lists), `priority` (chains) 
 
 | Place | Kind | Scope | Open to apps | Entry needs | What goes here |
 |---|---|---|---|---|---|
-| `page` | keyed | app | no | `mount` | A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts). |
+| `page` | keyed | app | no | `render` | A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts). |
+| `workspace.paint` | list | app | no | `paint` | Refreshes active workspace controls after the main view is drawn. |
 | `rail.entry` | list | app | yes | `label`, `icon`, `onPress` | An entry in the left rail's top list; the shape orders and hides them. |
 | `rail.count` | keyed | app | no | `count` | A count beside the corresponding rail destination. |
 | `rail.section` | list | app | no | `mount` | A section of the left rail below its entries (Projects). |

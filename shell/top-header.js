@@ -13,7 +13,8 @@ import { createSurfaceSlots } from "./surfaces.js";
 
 /** @template {Thread} T @template {Need} N @param {HeaderDeps<T, N>} deps @param {SurfaceScope} scope @param {() => void} schedule */
 export function createTopHeader(deps, scope, schedule) {
-  const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, places, emit, atOf, LP, LW, tdelRender } = deps;
+  const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml,
+    places, emit, atOf, LP, LW, tdelRender } = deps;
   /** @type {ReturnType<typeof createSurfaceSlots<import("./app-service-types").ConversationHeaderPaint>>} */
   const drawDetails = createSurfaceSlots({
     places, place: "header.detail", read: () => places.entries("header.detail"), scope, schedule,

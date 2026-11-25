@@ -20,9 +20,11 @@ export const jumpModule = {
       items: { ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), D: ctx.use("decisionPresentation").D,
         projectIcon: ctx.use("projectIcons").projectIcon },
       actions: {
-        create: () => ctx.optional("createProject")?.open(), settings: () => ctx.optional("settingsFrame")?.open(), keys: shortcuts.openKeys,
+        create: () => ctx.optional("createProject")?.open(), settings: () => ctx.optional("settingsFrame")?.open(),
+        keys: shortcuts.openKeys,
         theme: () => requireHtml("#theme", "button").click(), stage: () => !pageEl(view()), toggleStage: () => stage.toggle(),
-        intelligence: () => !!intelligence.kindOf(session()), openIntelligence: () => intelligence.open(session(), requireHtml("#iq", "button")),
+        intelligence: () => !!intelligence.kindOf(session()),
+        openIntelligence: () => intelligence.open(session(), requireHtml("#iq", "button")),
       },
     }, scope);
     ctx.effect(() => jump.close);

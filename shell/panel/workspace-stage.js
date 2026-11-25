@@ -12,7 +12,7 @@ export const stageModule = {
   manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["placeContext", "shape", "world", "currentView", "navigation", "mapAgents", "threadGroups",
       "shellDock", "announce", "launchpad", "conversationSession"],
-    optional: ["files", "shellPanel", "mapControls"], provides: ["stage"], contributes: ["panel.page"] },
+    optional: ["files", "shellPanel", "mapControls"], provides: ["stage"], contributes: ["panel.page", "workspace.paint:stage"] },
   activate(ctx) {
     const place = ctx.use("placeContext"), shape = ctx.use("shape"), view = ctx.use("currentView");
     const session = ctx.use("conversationSession"), files = () => ctx.optional("files");
@@ -33,6 +33,7 @@ export const stageModule = {
     wireHeaderActions(ctx, ctx.places, at);
     bindPanelHeaderControls(ctx, stage, ctx.use("launchpad").LW, view);
     ctx.on("app:view-preparing", (change) => prepareStageNavigation(stage, !!PHONE?.matches, change));
+    ctx.contribute("workspace.paint", { id: "stage", order: 70, paint: () => stage.sync() });
     ctx.provide("stage", stage);
   },
 };

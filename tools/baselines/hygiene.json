@@ -196,9 +196,6 @@
  "e2e/worlds/lp-shell.cjs": {
   "commentLines": 2
  },
- "js/app.js": {
-  "commentLines": 2
- },
  "modules/artifacts/cards.js": {
   "commentLines": 3
  },
@@ -511,9 +508,6 @@
   "commentLines": 3
  },
  "shell/rail/side.js": {
-  "commentLines": 1
- },
- "shell/render.js": {
   "commentLines": 1
  },
  "shell/sideorder.js": {

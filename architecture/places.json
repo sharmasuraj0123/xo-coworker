@@ -8,7 +8,17 @@
    "description": "A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts).",
    "openToApps": false,
    "requires": [
-    "mount"
+    "render"
+   ]
+  },
+  {
+   "id": "workspace.paint",
+   "kind": "list",
+   "scope": "app",
+   "description": "Refreshes active workspace controls after the main view is drawn.",
+   "openToApps": false,
+   "requires": [
+    "paint"
    ]
   },
   {

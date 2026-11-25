@@ -10,7 +10,7 @@ import { threadsCtl } from "./header.js";
 /** @import { ThreadPresentation } from "./presentation-types" */
 
 /** @type {ThreadPresentation} */
-export const threadPresentation = { glyphOf, isBusy, isHeld, stOf, wordOf, threadsCtl, threadTitleInput, threadLabelInput };
+const threadPresentation = { glyphOf, isBusy, isHeld, stOf, wordOf, threadsCtl, threadTitleInput, threadLabelInput };
 
 /** @type {ModuleDef} */
 export const threadPresentationModule = {

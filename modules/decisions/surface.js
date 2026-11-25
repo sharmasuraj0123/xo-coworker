@@ -15,7 +15,7 @@ import { createPacing } from "./pacing.js";
 export const decisionModule = {
   manifest: { id: "xo.decision-model", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["edgeCards", "world", "navigation", "projectName", "currentView", "announce", "notices", "redrawFocus", "conversationSession"],
-    provides: ["decisionPresentation"] },
+    contributes: ["workspace.paint:decisions"], provides: ["decisionPresentation"] },
   activate(ctx) {
     const world = ctx.use("world"), { go } = ctx.use("navigation"), PROJ = ctx.use("projectName");
     const showNotice = ctx.use("notices").show, view = ctx.use("currentView");
@@ -42,6 +42,7 @@ export const decisionModule = {
     /** @type {import("./surface-types").DecisionPresentation} */
     const presentation = { D: decisions, pings: createDecisionPings(pingOptions),
       EFFORT, askTitle, askShort, waitSince, Kit, evidenceFor };
+    ctx.contribute("workspace.paint", { id: "decisions", order: 50, paint: decisions.sync });
     ctx.provide("decisionPresentation", presentation);
   },
 };
@@ -50,7 +51,7 @@ export const decisionModule = {
 export const decisionDockModule = {
   manifest: { id: "xo.decisions", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["chats", "decisionPresentation", "world", "placeContext", "messageContext", "currentView", "conversationSession", "announce"],
-    provides: ["decisionDock"], contributes: ["conversation.press:decide", "conversation.press:limit"] },
+    provides: ["decisionDock"], contributes: ["workspace.paint:decision-dock", "conversation.press:decide", "conversation.press:limit"] },
   activate(ctx) {
     const scope = createScope();
     ctx.effect(() => scope.dispose);
@@ -62,6 +63,7 @@ export const decisionDockModule = {
     });
     for (const route of dock.routes) ctx.contribute("conversation.press", route);
     ctx.on("app:view-visited", () => dock.main.reset({ restoreFocus: false }));
+    ctx.contribute("workspace.paint", { id: "decision-dock", order: 20, paint: dock.main.render });
     ctx.provide("decisionDock", dock);
   },
 };

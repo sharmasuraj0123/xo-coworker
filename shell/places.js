@@ -13,7 +13,8 @@ const needs = (place, strings, fns = []) => (e) => {
 
 /** @type {[string, PlaceDef["kind"], PlaceDef["scope"], string, boolean, string[], string[]][]} */
 const SPECS = [
-  ["page", "keyed", "app", "A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts).", false, [], ["mount"]],
+  ["page", "keyed", "app", "A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts).", false, [], ["render"]],
+  ["workspace.paint", "list", "app", "Refreshes active workspace controls after the main view is drawn.", false, [], ["paint"]],
   ["rail.entry", "list", "app", "An entry in the left rail's top list; the shape orders and hides them.", true, ["label", "icon"], ["onPress"]],
   ["rail.count", "keyed", "app", "A count beside the corresponding rail destination.", false, [], ["count"]],
   ["rail.section", "list", "app", "A section of the left rail below its entries (Projects).", false, [], ["mount"]],

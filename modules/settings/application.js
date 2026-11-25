@@ -11,7 +11,8 @@ export const shapeViewModule = {
     const shape = ctx.use("shape"), view = createShapeView({ shape, announce: ctx.use("announce") });
     const apply = createShapeApply({
       SV: view, SHAPE: shape, view: ctx.use("currentView"), convThread: ctx.use("placeContext").convThread,
-      world: ctx.use("world"), loadChatHops: ctx.use("mainViewport").loadChatHops, setWorkMode: ctx.use("conversationPresentation").setWorkMode,
+      world: ctx.use("world"), loadChatHops: ctx.use("mainViewport").loadChatHops,
+      setWorkMode: ctx.use("conversationPresentation").setWorkMode,
       SH: ctx.use("shellDock"), STAGE: ctx.use("stage"), schedule: () => ctx.invalidate("workspace"),
     });
     ctx.effect(() => shape.onChange(apply));

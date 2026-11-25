@@ -2635,6 +2635,7 @@
     "modules/settings/surface.js",
     "shell/rail/counts.js",
     "shell/rail/module.js",
+    "shell/render.js",
     "modules/artifacts/module.js",
     "modules/map/module.js",
     "modules/changes/module.js",
@@ -2656,7 +2657,7 @@
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
     "modules/settings/shortcuts-sheet.js": {
-     "anchor": "export function createShortcutsSheet",
+     "anchor": "export const shortcutsModule",
      "reason": "Settings owns opening the shortcuts sheet, moving focus to Close and restoring focus on dismissal."
     },
     "modules/conversation/session.js": {
@@ -2674,6 +2675,10 @@
     "shell/panel/workspace-stage.js": {
      "anchor": "export const stageModule",
      "reason": "Stage owns its frame list, place names and scoped header actions."
+    },
+    "shell/render.js": {
+     "anchor": "export const workspaceRendererModule",
+     "reason": "The shell redraws its frame and dispatches page and control paints to their active owners."
     },
     "shell/rail/module.js": {
      "anchor": "export const railModule",
@@ -8470,7 +8475,13 @@
   },
   "js/app.js::functions::render": {
    "status": "moved",
-   "home": "shell/render.js"
+   "home": "shell/render.js",
+   "evidence": {
+    "shell/render.js": {
+     "anchor": "ctx.on(\"app:render\",",
+     "reason": "The workspace activation owns the redraw and visits the live control contributions."
+    }
+   }
   },
   "js/app.js::functions::faviconRender": {
    "status": "moved",
@@ -10370,21 +10381,21 @@
   },
   "js/gestures.js::ids::msgs": {
    "status": "moved",
-   "home": "shell/gestures.js",
+   "home": "modules/conversation/main-viewport.js",
    "evidence": {
-    "shell/gestures.js": {
-     "anchor": "msgs: $(\"#msgs\"), say: A.say",
-     "reason": "The main message list still receives the shared conversation gestures."
+    "modules/conversation/main-viewport.js": {
+     "anchor": "msgs: viewport.msgsEl",
+     "reason": "The message list receives gestures while the main viewport is active."
     }
    }
   },
   "js/gestures.js::ids::scroller": {
    "status": "moved",
-   "home": "shell/gestures.js",
+   "home": "modules/conversation/main-viewport.js",
    "evidence": {
-    "shell/gestures.js": {
-     "anchor": "scroller: $(\"#scroller\")",
-     "reason": "The shell attaches conversation gestures to the same scroller ID."
+    "modules/conversation/main-viewport.js": {
+     "anchor": "scroller: viewport.scroller",
+     "reason": "The viewport owns gestures on its scroll region."
     }
    }
   },
@@ -16829,24 +16840,48 @@
    "home": "core/platform/github-issues-response.js"
   },
   "js/app.js::functions::runsGone": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/runs/panel.js",
+   "evidence": {
+    "modules/runs/panel.js": {
+     "anchor": "function runsGone()",
+     "reason": "Runs owns dismissal of its panel view."
+    }
+   }
   },
   "js/app.js::functions::reset": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/decisions/dock.js",
+   "evidence": {
+    "modules/decisions/dock.js": {
+     "anchor": "function reset(",
+     "reason": "A dock owns the receipt and focus state cleared on a conversation switch."
+    }
+   }
   },
   "js/app.js::functions::goneRender": {
    "status": "moved",
    "home": "modules/decisions/dock.js"
   },
   "js/app.js::functions::toastLine": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "shell/foundation.js",
+   "evidence": {
+    "shell/foundation.js": {
+     "anchor": "ctx.provide(\"toastLine\",",
+     "reason": "The shell publishes the transient message and its announcement together."
+    }
+   }
   },
   "js/app.js::functions::fixChip": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/composer-controls.js",
+   "evidence": {
+    "modules/conversation/composer-controls.js": {
+     "anchor": "function fixChip(",
+     "reason": "The composer owns fixed chip presentation."
+    }
+   }
   },
   "js/app.js::functions::atRender": {
    "status": "moved",
@@ -16901,8 +16936,14 @@
    }
   },
   "js/app.js::functions::toggleIq": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/chats/intel-surface.js",
+   "evidence": {
+    "modules/chats/intel-surface.js": {
+     "anchor": "function toggle(session, chip)",
+     "reason": "The intelligence surface toggles its singleton picker for the active composer."
+    }
+   }
   },
   "js/app.js::functions::tpClose": {
    "status": "moved",
@@ -16910,7 +16951,13 @@
   },
   "js/app.js::functions::toMain": {
    "status": "moved",
-   "home": "modules/conversation/thread-page-module.js"
+   "home": "modules/conversation/thread-page-module.js",
+   "evidence": {
+    "modules/conversation/thread-page-module.js": {
+     "anchor": "go(\"t:\" + id, { panel: true })",
+     "reason": "The thread page promotes the selected thread to the main conversation."
+    }
+   }
   },
   "js/app.js::functions::watchDock": {
    "status": "moved",
@@ -16951,8 +16998,14 @@
    }
   },
   "js/app.js::storage::<key>": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "core/ui/theme-preference.js",
+   "evidence": {
+    "core/ui/theme-preference.js": {
+     "anchor": "return write(key, value)",
+     "reason": "Theme preferences save the selected local key through shared storage."
+    }
+   }
   },
   "js/cardparts.js::exports::cap": {
    "status": "moved",

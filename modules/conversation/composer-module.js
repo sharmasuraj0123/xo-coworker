@@ -8,7 +8,7 @@ export const composerModule = {
   manifest: { id: "xo.composer", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["composer"], optional: ["files"],
     needs: ["stage", "world", "chats", "placeContext", "conversationSession", "notices", "announce", "navigation", "shape",
       "intelligence", "threadRuntime", "threadPresentation", "projectIcons", "currentView", "conversationPresentation", "runControls"],
-    contributes: ["conversation.press:start", "conversation.press:retry", "conversation.press:edit",
+    contributes: ["workspace.paint:composer", "conversation.press:start", "conversation.press:retry", "conversation.press:edit",
       "conversation.press:remove-reference"] },
   activate(ctx) {
     if (!PHONE) throw new Error("The application requires media queries.");
@@ -25,6 +25,12 @@ export const composerModule = {
       projectIcon: ctx.use("projectIcons").projectIcon, stopRun: runs.stopRun, SHAPE: ctx.use("shape"),
       VW: { open: (file, button) => ctx.optional("files")?.viewer.open(file, button) },
     });
+    ctx.contribute("workspace.paint", { id: "composer", order: 40, paint() {
+      if (!composer.chatTargetRender()) composer.targetLineRender();
+      composer.syncPlaceholder();
+      composer.sendRender();
+      composer.chipRender();
+    } });
     ctx.provide("composer", composer);
     ctx.on("app:view-leaving", () => composer.saveDraft());
     ctx.on("app:view-restoring", () => composer.loadDraft());

@@ -1,17 +1,17 @@
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { createComposerTarget } from "../modules/conversation/target.js";
-import { createShellRenderer } from "../shell/render.js";
+import { workspaceRendererModule } from "../shell/render.js";
 import { createRedrawFocus } from "../shell/redraw-focus.js";
 import { dom, same } from "./lib/dom.mjs";
 import { flattenStyles } from "../tools/conformance/css-flatten.mjs";
 import { createKernel } from "../core/kernel/index.js";
 import { definePlaces } from "../shell/places.js";
-import { createScope } from "../core/kernel/scope.js";
 
-const { document } = await dom('<div id="app"><button id="pb-t"></button><main id="home"></main>'
+const { document } = await dom('<div id="app"><button id="pb-t"></button><main id="home"></main><main id="arts"></main><main id="lpp"></main><div id="ws-head"></div>'
   + '<section id="conv" tabindex="-1"><div id="msgs"><div class="calm-act"><button data-go="home">Go to Home</button></div></div>'
   + '<div class="cbar"><div class="composer"><textarea id="say"></textarea><label for="say"></label></div></div></section></div>');
+const { conversationContentModule } = await import("../modules/conversation/main-viewport.js");
 globalThis.requestAnimationFrame = () => 1;
 const say = document.getElementById("say");
 const label = document.querySelector("label");
@@ -22,10 +22,9 @@ const app = document.getElementById("app");
 const state = { view: "t:first" };
 const redrawFocus = createRedrawFocus();
 const noop = () => {};
-const kernel = createKernel();
+const warnings = [];
+const kernel = createKernel({ warn: (...details) => warnings.push(details) });
 definePlaces(kernel);
-const { places } = kernel;
-const sync = { sync: noop };
 const thread = { lastAt: 0 };
 const threads = new Map([["t:first", { lastAt: 0 }], ["t:gone", thread]]);
 const convThread = (view) => threads.get(view) ?? null;
@@ -34,16 +33,26 @@ const { syncPlaceholder } = createComposerTarget({
   MK: { get view() { return state.view; }, say, label }, world, CH: { isChats: () => false }, PHONE: { matches: false },
   PROJ: (id) => { assert.equal(id, "project"); return "Project"; }, convThread, convProject: (view) => convThread(view) ? "project" : null,
 });
-const render = createShellRenderer({
-  world, D: { ...sync, needItems: () => [] }, view: () => state.view, restoreFocus: redrawFocus.restore,
-  PAGE_OF: { home: "#home" }, MAIN: { rendered: null },
-  pings: noop, dockAtTop: noop, convThread, sideRender: noop, homeRender: noop,
-  places, LPP: { render: noop }, topRender: noop, wsHeadRender: noop, drawConv: noop,
-  say, msgsEl, placeRegion: () => region, loadAhead: noop, STAGE: sync,
-  drawThreadPage: noop, dockRender: noop, heraldRender: noop, chatTargetRender: () => true, targetLineRender: noop,
-  syncPlaceholder, sendRender: noop, chipRender: noop, files: () => undefined, LW: sync,
-  titleFor: (_, title) => title, isBusy: () => false,
-}, createScope(), noop);
+const services = {
+  world, currentView: () => state.view, placeContext: { convThread, projects: () => [] }, redrawFocus,
+  decisionPresentation: { D: { needItems: () => [] }, Kit: { titleFor: (_, title) => title }, pings: noop },
+  threadPresentation: { isBusy: () => false }, rail: { rows: noop }, conversationHeader: noop,
+  conversationSession: { main: { rendered: null }, composer: { say }, region: () => region }, mainViewport: { msgsEl, loadAhead: noop },
+};
+kernel.register({
+  manifest: { id: "test.frame", version: "1.0.0", kernel: "^1.1.0", provides: Object.keys(services), contributes: ["workspace.paint:composer"] },
+  activate(ctx) {
+    for (const [name, service] of Object.entries(services)) ctx.provide(name, service);
+    ctx.contribute("workspace.paint", { id: "composer", paint: () => syncPlaceholder() });
+  },
+});
+kernel.register(conversationContentModule);
+kernel.register(workspaceRendererModule);
+assert.deepEqual((await kernel.start()).failed, []);
+function render() {
+  kernel.bus.emit("app:render");
+  assert.deepEqual(warnings, []);
+}
 
 render();
 assert.equal(app.hasAttribute("data-gone"), false);
@@ -78,6 +87,7 @@ threads.set(state.view, thread);
 render();
 assert.equal(app.hasAttribute("data-gone"), false);
 
+kernel.dispose();
 const published = flattenStyles(fileURLToPath(new URL("../", import.meta.url)));
 const declarations = (selector) => Object.fromEntries(published
   .filter((entry) => entry.property && entry.context.some((scope) => scope.selector === selector))

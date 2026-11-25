@@ -17,7 +17,8 @@ export const filesModule = {
     id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
     needs: ["world", "currentView", "announce", "projectName", "changeData", "placeContext", "conversationSession", "stage",
       "navigation", "threadPresentation", "edgeCards", "fileSearch", "fileQuestions"], provides: ["files"],
-    contributes: ["panel.page:files", "conversation.file-route:shared-file", "conversation.press:reference"],
+    contributes: ["workspace.paint:viewer", "workspace.paint:files", "panel.page:files",
+      "conversation.file-route:shared-file", "conversation.press:reference"],
   },
   activate(ctx) {
     const announce = ctx.use("announce");
@@ -51,6 +52,8 @@ export const filesModule = {
       currentView: ctx.use("currentView"), convThread: ctx.use("placeContext").convThread,
       convAt: session.conversationAt, CHG: changes, VW: mountedViewer,
     });
+    ctx.contribute("workspace.paint", { id: "viewer", order: 60, paint: () => mountedViewer.notice() });
+    ctx.contribute("workspace.paint", { id: "files", order: 90, paint: () => filesPage.sync() });
     ctx.provide("files", { tree: files, viewer: mountedViewer, page: filesPage });
     ctx.effect(() => ctx.use("navigation").beforeLeave((resume) => {
       if (!mountedViewer.editing) return true;

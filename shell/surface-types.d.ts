@@ -25,7 +25,7 @@ export interface SurfaceOptions<C> {
 
 declare module "../core/kernel/types" {
   interface PlaceEntries {
-    "page": SurfaceEntry<undefined>;
+    "page": SurfaceEntry<import("./render-types").FrameNeeds>;
     "header.detail": SurfaceEntry<import("./app-service-types").ConversationHeaderPaint>;
     "rail.count": { count(): number };
     "header.action": import("./header.js").Action;

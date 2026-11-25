@@ -22,13 +22,15 @@ export const interactionModule = {
     ctx.effect(() => scope.dispose);
     const phone = PHONE;
     if (!phone) throw new Error("Shell interactions require media queries.");
-    const navigationState = ctx.use("navigationState"), SH = ctx.use("shellDock"), { intelligence: IQ, toggle: toggleIq } = ctx.use("intelligence");
+    const navigationState = ctx.use("navigationState"), SH = ctx.use("shellDock");
+    const { intelligence: IQ, toggle: toggleIq } = ctx.use("intelligence");
     const { openKeys, closeKeys, keys } = ctx.use("shortcuts"), QO = ctx.use("fileSearch").quickOpen;
     const { back, go } = ctx.use("navigation"), { composerNow } = ctx.use("conversationSession").focus, STAGE = ctx.use("stage");
     const SIDE = ctx.use("rail").side, LB = ctx.use("lightbox"), setDrawer = ctx.use("drawer").set, D = ctx.use("decisionPresentation").D;
     const CH = ctx.use("chats"), world = ctx.use("world"), { updateComposer } = ctx.use("composer"), { scroller } = ctx.use("mainViewport");
     const jump = requireHtml("#jump"), setEl = requireHtml("#settings"), files = () => ctx.optional("files");
-    const capturing = () => ctx.optional("settingsFrame")?.capturing() ?? false, closeSettings = () => ctx.optional("settingsFrame")?.close();
+    const capturing = () => ctx.optional("settingsFrame")?.capturing() ?? false;
+    const closeSettings = () => ctx.optional("settingsFrame")?.close();
     const createOpen = () => ctx.optional("createProject")?.isOpen() ?? false;
     const closeJump = () => ctx.optional("jump")?.close();
     const currentView = navigationState.view;
