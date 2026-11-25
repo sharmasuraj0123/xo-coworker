@@ -43,10 +43,7 @@
 @import url("../modules/files/previews.css");
 @import url("../modules/conversation/attachment-layout-phone.css");
 @import url("../modules/files/viewer-links.css");
-.app{grid-template-rows:minmax(0,1fr) auto}
-.side{grid-column:1;grid-row:1/-1}
-.main{grid-column:2;grid-row:1}
-.top-end{gap:var(--s-2)}
+@import url("../shell/dock-grid.css");
 .sh-btn svg{width:var(--ic-sm);height:var(--ic-sm);margin-left:-2px;color:var(--ink-3)}
 .sh-btn:not(:has(span)){padding-right:var(--s-3)}
 .shd{grid-column:2;grid-row:2;--shd-h:320px;position:relative;z-index:6;display:flex;flex-direction:column;height:var(--shd-h);min-height:0;background:var(--canvas);border-top:1px solid var(--line-soft)}
