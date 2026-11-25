@@ -2,8 +2,8 @@
 import { layerQueries } from "./layer-queries.js";
 
 const ORDER = {
-  back: ["failure-details", "create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"],
-  escape: ["failure-details", "jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"],
+  back: ["create", "jump", "intel", "chat-setup", "runs", "keys", "lightbox", "files-page", "viewer", "panel-sheet", "settings", "shells", "drawer", "decisions"],
+  escape: ["jump", "intel", "quickopen", "runs", "keys", "settings", "files-page", "drawer", "decisions", "chat-setup"],
   tab: ["keys", "jump", "settings", "drawer"],
 };
 /** @param {import("../core/kernel/types").Layers} layers @param {import("./layer-queries.js").AppLayer[]} list */
@@ -19,8 +19,8 @@ export function stackLayers(layers, list) {
     return layers.push({ id, back: ORDER.back.includes(id) ? close : undefined, escape: ORDER.escape.includes(id) ? close : undefined });
   });
   return {
-    back: () => layers.back(ORDER.back),
-    escape: () => layers.escape(ORDER.escape),
+    back: () => layers.back(["failure-details", ...ORDER.back]),
+    escape: () => layers.escape(["failure-details", ...ORDER.escape]),
     ...layerQueries(entries, ORDER.tab),
     undo: () => { for (const u of undos.reverse()) u(); },
   };
