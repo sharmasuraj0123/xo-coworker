@@ -153,6 +153,16 @@
    ]
   },
   {
+   "id": "conversation.press",
+   "kind": "chain",
+   "scope": "app",
+   "description": "Handles shared notice and transcript controls in precedence order.",
+   "openToApps": false,
+   "requires": [
+    "route"
+   ]
+  },
+  {
    "id": "conversation.file-route",
    "kind": "chain",
    "scope": "conversation",

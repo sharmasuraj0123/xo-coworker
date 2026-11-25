@@ -78,8 +78,9 @@ export function pointerFollows(root, sel = ITEM) {
 
 /** Arrows, Home, End and a letter move through any menu inside root; Escape and Tab call close(menu, key), which puts focus back on the menu's button (Tab then goes on from there). @param {Element} root @param {{ close?: (menu: Element, key: string) => void }} [opts] */
 export function menuKeys(root, { close } = {}) {
-  pointerFollows(root);
-  root.addEventListener("keydown", (ev) => {
+  const stopPointer = pointerFollows(root);
+  /** @param {Event} ev */
+  const onKey = (ev) => {
     const e = /** @type {KeyboardEvent} */ (ev), tg = /** @type {HTMLElement | null} */ (e.target);
     if (!plain(e) || e.isComposing) return;
     const menu = tg?.closest?.('[role="menu"]');
@@ -106,5 +107,7 @@ export function menuKeys(root, { close } = {}) {
     } else return;
     e.preventDefault();
     if (j >= 0) items[j].focus();
-  });
+  };
+  root.addEventListener("keydown", onKey);
+  return () => { stopPointer(); root.removeEventListener("keydown", onKey); };
 }

@@ -156,8 +156,12 @@ Object.defineProperties(scroller, { scrollHeight: { value: 2400 }, clientHeight:
 scroller.getBoundingClientRect = () => ({ top: 0 });
 scroller.scrollTop = 1800;
 scroller.dispatchEvent(new window.Event("scroll"));
+await draw();
+assert.ok(element("#top").classList.contains("is-scrolled"), "the viewport updates the header on its next frame");
 scroller.scrollTop = 120;
 scroller.dispatchEvent(new window.Event("scroll"));
+await draw();
+assert.ok(!element("#top").classList.contains("is-scrolled"));
 row.getBoundingClientRect = () => {
   const top = (row.contains(retry) ? 12 : 52) - (scroller.scrollTop - 120);
   return { top, bottom: top + 50, height: 50 };

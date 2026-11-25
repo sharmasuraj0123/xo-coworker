@@ -2569,6 +2569,22 @@
     "shell/global-keys.js",
     "shell/back-steps.js",
     "modules/conversation/composer.js",
+    "core/services/shape/application.js",
+    "modules/chats/reply-notices.js",
+    "modules/decisions/ask-label.js",
+    "modules/conversation/markdown.js",
+    "modules/conversation/thread-page-module.js",
+    "modules/conversation/composer-surface.js",
+    "modules/conversation/main-viewport.js",
+    "modules/conversation/transcript-actions.js",
+    "shell/conversation-press.js",
+    "modules/conversation/notice-line.js",
+    "modules/projects/surface.js",
+    "modules/launchpad/surface.js",
+    "shell/place-context.js",
+    "shell/interactions.js",
+    "shell/navigation-links.js",
+    "shell/panel/header-controls.js",
     "modules/conversation/main-composer.js",
     "modules/settings/preferences.js",
     "modules/settings/shortcuts-sheet.js",
@@ -2603,6 +2619,70 @@
     "modules/search/file-search.js": {
      "anchor": "export function createFileSearch",
      "reason": "Search connects path updates and Quick Open selections to the active Files viewer."
+    },
+    "core/services/shape/application.js": {
+     "anchor": "export function createApplicationShape",
+     "reason": "Shape owns its remote storage, terminal capability and scoped world updates and supplies its store through the kernel."
+    },
+    "modules/chats/reply-notices.js": {
+     "anchor": "export function replyNotices",
+     "reason": "Chats announces answered messages and shows reply notices outside the active chat."
+    },
+    "modules/decisions/ask-label.js": {
+     "anchor": "export function askTitle",
+     "reason": "Decisions formats short and rich ask labels."
+    },
+    "modules/conversation/markdown.js": {
+     "anchor": "export function mountConversationMarkdown",
+     "reason": "Conversation owns Shape-aware Markdown image and noun rendering."
+    },
+    "modules/conversation/thread-page-module.js": {
+     "anchor": "export function createThreadPageModule",
+     "reason": "Conversation owns the thread page contribution, its Escape behavior and transfer to the main chat."
+    },
+    "modules/conversation/composer-surface.js": {
+     "anchor": "export function createComposerSurface",
+     "reason": "Conversation connects drafts, delivery, controls and attachments to the active composer."
+    },
+    "modules/conversation/main-viewport.js": {
+     "anchor": "export function mountMainViewport",
+     "reason": "The main transcript owns paging, reading position and dock observation."
+    },
+    "modules/conversation/transcript-actions.js": {
+     "anchor": "export function transcriptActions",
+     "reason": "The transcript dispatches shared control clicks in their original order."
+    },
+    "modules/conversation/notice-line.js": {
+     "anchor": "export function createNoticeLine",
+     "reason": "The notice returns focus and dispatches its current undo action."
+    },
+    "modules/projects/surface.js": {
+     "anchor": "export function mountProjectIcons",
+     "reason": "Projects owns the icon picker and its document listeners."
+    },
+    "modules/launchpad/surface.js": {
+     "anchor": "export function createLaunchpadSurface",
+     "reason": "Launchpad connects its window, project overview, deployment thread and notices."
+    },
+    "shell/place-context.js": {
+     "anchor": "export function createPlaceContext",
+     "reason": "The shell resolves routes to their project and thread and supplies project labels."
+    },
+    "shell/conversation-press.js": {
+     "anchor": "export function bindConversationPress",
+     "reason": "The shell dispatches shared clicks to currently mounted feature contributions in the original order."
+    },
+    "shell/interactions.js": {
+     "anchor": "export function mountShellInteractions",
+     "reason": "The shell composes its layers, global keys, history and touch gestures."
+    },
+    "shell/panel/header-controls.js": {
+     "anchor": "export function bindPanelHeaderControls",
+     "reason": "The panel handles shared header buttons for Stage and Launchpad."
+    },
+    "shell/navigation-links.js": {
+     "anchor": "export function createNavigationLinks",
+     "reason": "The shell resolves shared navigation links and preserves the source row."
     },
     "modules/chats/surface.js": {
      "anchor": "export function createChatSurface",
@@ -16653,8 +16733,8 @@
    "home": "modules/conversation/thread-page.js"
   },
   "js/app.js::functions::toMain": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/thread-page-module.js"
   },
   "js/app.js::functions::watchDock": {
    "status": "moved",

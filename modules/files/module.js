@@ -1,5 +1,6 @@
 // @ts-check
 
+import { pressEntry } from "../../shell/conversation-press.js";
 import { createFileViewer } from "./viewer.js";
 import { applyFileEvent } from "./file-events.js";
 import { createFiles } from "./files.js";
@@ -21,7 +22,8 @@ export function createFilesModule(options) {
   const module = {
     manifest: {
       id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "currentView", "announce"], contributes: ["panel.page:files", "conversation.file-route:shared-file"],
+      needs: ["world", "currentView", "announce"],
+      contributes: ["panel.page:files", "conversation.file-route:shared-file", "conversation.press:reference"],
     },
     activate(ctx) {
       const announce = ctx.use("announce");
@@ -48,6 +50,11 @@ export function createFilesModule(options) {
         if (!(button instanceof HTMLElement)) return false;
         event.preventDefault(); options.openSharedFile(button); return true;
       } });
+      ctx.contribute("conversation.press", pressEntry("reference", (target, event) => {
+        const ref = target.closest("[data-ref]");
+        if (!(ref instanceof HTMLElement)) return false;
+        event.preventDefault(); options.openLineRef(ref); return true;
+      }));
       ctx.contribute("panel.page", { id: "files", ...filesPage.entry });
     },
   };

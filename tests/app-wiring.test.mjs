@@ -336,6 +336,9 @@ initialChats.resolve(Response.json({ chats: [
   { id: "catalog-chat", kind: "project", project: "catalog-test" },
 ] }));
 const { kernel } = await import("../shell/kernel.js");
+const { renderMarkdown } = await import("../core/ui/markdown/markdown.js");
+const pictureMarkup = "![Diagram](https://example.org/diagram.png)";
+assert.match(renderMarkdown(pictureMarkup), /data-mx=/, "boot mounts media rendering for Markdown pictures");
 assert.equal(kernel.status("xo.since"), "active", "boot activates Since through the kernel");
 assert.equal(kernel.places.get("home.section", "hm-since")?.owner, "xo.since");
 assert.equal(kernel.places.get("header.detail", "since")?.owner, "xo.since");
@@ -858,6 +861,16 @@ for (const [detail, pointerType, expected, downType] of [
     }
     const allowButton = document.querySelector(allow);
     assert.ok(allowButton, "the review opens in the thread's own decision dock");
+    for (const host of ["#herald", "#tmsgs"]) {
+      const action = document.createElement("button");
+      action.dataset.decide = "panel-review";
+      document.querySelector(host).append(action);
+      action.click();
+      assert.ok(!document.querySelector("#panel").hidden, host + " dispatches the shared decision action");
+      press("#pn-x");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      action.remove();
+    }
     const { READ_MS } = await import("../modules/decisions/kit.js");
     await new Promise((resolve) => setTimeout(resolve, READ_MS));
     allowButton.focus();
@@ -923,6 +936,13 @@ try {
   globalThis.clearTimeout = realClearTimeout;
 }
 assert.equal(Boolean(document.querySelector("#tpdock")), false, "disabling the thread page unmounts the Stage contribution");
+const retiredMainAction = document.createElement("button");
+retiredMainAction.dataset.tpMain = "failed-thread";
+document.body.append(retiredMainAction);
+const viewBeforePress = app.dataset.conv;
+retiredMainAction.click();
+assert.equal(app.dataset.conv, viewBeforePress, "disabling the thread page withdraws its transfer action");
+retiredMainAction.remove();
 assert.equal(threadDockObservers.size, 0, "unmount releases both dock observers");
 const oldHeight = detachedComposer.style.height;
 detachedComposer.style.height = "3px";
@@ -1027,10 +1047,12 @@ assert.equal(runSignal?.aborted, true, "disabling Runs aborts a held detail read
 assert.equal(runPage.isConnected, false, "disabling Runs removes its mounted panel page");
 assert.ok(document.activeElement !== document.body && !runPage.contains(document.activeElement), "disabling focused Runs restores focus");
 assert.equal(kernel.live("xo.runs"), 0);
+assert.equal(kernel.places.get("conversation.press", "run"), undefined);
 lateRunRead.resolve(Response.json({ ...run, title: "Retired result" }));
 await new Promise(setImmediate);
 assert.doesNotMatch(runPage.textContent, /Retired result/);
 assert.ok((await kernel.enable("xo.runs")).active.includes("xo.runs"));
+assert.equal(kernel.places.get("conversation.press", "run").owner, "xo.runs");
 holdRunRead = false;
 await new Promise(setImmediate);
 flushFrames();
@@ -1346,9 +1368,12 @@ assert.equal(mainLatest.isConnected, false, "unload destroys the booted main con
 assert.equal(mainDecorationObservers.size, 0, "unload disconnects the main decoration observers");
 assert.equal(mainFollowObservers.size, 0, "unload disconnects the main scroller's follower");
 assert.equal(keyboardLayerObservers.size, 0, "unload disconnects the keyboard layer observer");
+assert.doesNotMatch(renderMarkdown(pictureMarkup), /data-mx=/, "unload withdraws the conversation picture renderer");
 const closeKeysButton = shortcuts.querySelector("[data-close]");
 closeKeysButton.tabIndex = 0;
 shortcuts.hidden = false;
+closeKeysButton.click();
+assert.equal(shortcuts.hidden, false, "retired Shortcuts releases its close button");
 document.querySelector("#say").focus();
 assert.equal(key("Tab").defaultPrevented, false, "the retired keyboard layers cannot trap Tab");
 shortcuts.hidden = true;

@@ -27,6 +27,7 @@ const SPECS = [
   ["panel.page", "keyed", "app", "A page the right panel shows in place of its frames (Shell, Files, Thread).", true, [], ["mount"]],
   ["panel.title-action", "list", "app", "A button in the right panel's title bar.", false, ["label", "icon"], ["onPress"]],
   ["dock.bottom", "single", "app", "The dock under the conversation; it can move into a panel page.", false, [], ["mount"]],
+  ["conversation.press", "chain", "app", "Handles shared notice and transcript controls in precedence order.", false, [], ["route"]],
   ["conversation.file-route", "chain", "conversation", "Handles transcript file clicks in priority order.", false, [], ["route"]],
   ["conversation.source", "keyed", "app", "Where a conversation's rows come from, keyed by view prefix.", false, [], ["items"]],
   ["conversation.row", "keyed", "conversation", "How one kind of conversation row is drawn, keyed by its kind.", true, [], ["render"]],

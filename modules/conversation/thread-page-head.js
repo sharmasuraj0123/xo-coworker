@@ -23,8 +23,8 @@ export function createThreadPageHead({ STAGE, threadControls, closeThreadMenu, s
     Object.assign(actions, { className: "tp-acts", id: "tpacts" });
     actions.dataset.for = "thread";
     STAGE.slot.append(actions);
-    menuKeys(actions, { close: closeThreadMenu });
-    return () => actions.remove();
+    const stopKeys = menuKeys(actions, { close: () => closeThreadMenu() });
+    return () => { stopKeys(); actions.remove(); };
   }
 
   /** @param {HTMLElement} head @param {Thread} thread */

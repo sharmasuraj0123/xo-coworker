@@ -22,7 +22,7 @@ export function mountSettingsSurface(ctx, host) {
   const box = el.querySelector("#set-keys-list");
   if (!(nav instanceof HTMLElement) || !pages || !(box instanceof HTMLElement)) throw new Error("Settings pages are missing");
   const announce = ctx.use("announce");
-  mountPreferences(ctx, host.preferences, announce);
+  mountPreferences(ctx, { ...host.preferences, shape: ctx.use("shape") }, announce);
   const runtimes = host.mountRuntimes({ scope: ctx, root: el });
   const keys = createKeysPage({ box, announce, resetIcon: ICON.retry });
   ctx.effect(() => () => { keys.dispose(); box.replaceChildren(); });

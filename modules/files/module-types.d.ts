@@ -19,5 +19,6 @@ export interface FilesModuleOptions {
   renderers: ViewerRenderers;
   tree(): Omit<FilesDependencies, "world" | "viewer" | "onFold">;
   stage(): FilesStage;
+  openLineRef(button: HTMLElement): void;
   openSharedFile(button: HTMLElement): void;
 }

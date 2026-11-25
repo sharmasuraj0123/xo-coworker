@@ -1,11 +1,31 @@
 // @ts-check
 
-/** @param {{keys: HTMLElement, closeButton: HTMLElement, keysSheetRender: () => void, focusOverlay: (target: HTMLElement) => void, syncInert: () => void}} deps */
-export function createShortcutsSheet({ keys, closeButton, keysSheetRender, focusOverlay, syncInert }) {
-  keys.addEventListener("click", (e) => { if (e.target === keys || /** @type {Element} */ (e.target).closest("[data-close]")) closeKeys(); });
+import { $ } from "../../core/platform/dom.js";
+import * as K from "../../core/platform/keys.js";
+import { keysSheetRender } from "./keys-sheet.js";
+
+/** @typedef {Pick<import("../../core/kernel/types").ModuleContext, "listen" | "effect">} Scope */
+
+/** @param {Scope} scope @param {(el: HTMLElement) => void} focusOverlay @param {() => void} syncInert @param {() => void} schedule */
+export function createShortcutsSheet(scope, focusOverlay, syncInert, schedule) {
+  const keys = $("#keys");
+  const closeButton = keys.querySelector("[data-close]");
   /** @type {HTMLElement | null} */
-  let keysReturn = null;
-  function openKeys() { keysSheetRender(); keysReturn = /** @type {HTMLElement | null} */ (document.activeElement); keys.hidden = false; focusOverlay(closeButton); }
-  function closeKeys() { keys.hidden = true; syncInert(); keysReturn?.focus?.({ preventScroll: true }); }
-  return { openKeys, closeKeys };
+  let returnTo = null;
+  function openKeys() {
+    keysSheetRender();
+    returnTo = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    keys.hidden = false;
+    focusOverlay(closeButton);
+  }
+  function closeKeys() {
+    keys.hidden = true;
+    syncInert();
+    returnTo?.focus({ preventScroll: true });
+  }
+  scope.listen(keys, "click", ({ target }) => {
+    if (target === keys || (target instanceof Element && target.closest("[data-close]"))) closeKeys();
+  });
+  scope.effect(() => K.onChange(() => { if (!keys.hidden) keysSheetRender(); schedule(); }));
+  return { keys, openKeys, closeKeys };
 }

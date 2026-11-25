@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { createKernel } from "../../../core/kernel/index.js";
+import { definePlaces } from "../../../shell/places.js";
 import { createScope } from "../../../core/kernel/scope.js";
 import { deferred } from "../../../tests/lib/dom.mjs";
 import { createConversationDecisionActions } from "../conversation-actions.js";
@@ -8,7 +10,10 @@ const request = deferred();
 const calls = [];
 const announcements = [];
 let draws = 0;
+const kernel = createKernel();
+definePlaces(kernel);
 const actions = createConversationDecisionActions({
+  places: kernel.places,
   scope, world: { act: { decideItem(id, decision) { calls.push([id, decision]); return request.promise; } } },
   announce: (text) => announcements.push(text), schedule: () => draws++,
 });

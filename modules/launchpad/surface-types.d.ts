@@ -20,3 +20,18 @@ export interface LaunchpadWindowOptions {
   allApps?(): void;
   onChange?(): void;
 }
+
+import type { WorldThread } from "../../core/services/world/state-types.d.ts";
+import type { createLaunchpadHerald } from "./herald.js";
+export interface LaunchpadHost {
+  world: { thread(id: string): WorldThread | undefined | null; state: { threads: WorldThread[] } };
+  isBusy(thread: WorldThread): boolean;
+  isHeld(thread: WorldThread): boolean;
+  PROJ(id: string | null): string;
+  projectIcon(id: string): string;
+  projects(): { id: string }[];
+  go(view: string): void;
+  announce(text: string): void;
+  schedule(): void;
+  notices: Parameters<typeof createLaunchpadHerald>[0];
+}

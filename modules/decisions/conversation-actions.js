@@ -1,12 +1,13 @@
 // @ts-check
 
+import { mountPressRoutes, valuePress } from "../../shell/conversation-press.js";
 import { ApiError } from "../../core/platform/http.js";
 import { requestFailureMessage } from "../../core/services/notices/failures.js";
 
 /** @import { ActionDeps, OpenOptions } from "./conversation-actions-types.d.ts" */
 
 /** @param {ActionDeps} options */
-export function createConversationDecisionActions({ view, unfold, scope, D, world, tdock, convThread, schedule, announce }) {
+export function createConversationDecisionActions({ view, unfold, scope, places, D, world, tdock, convThread, schedule, announce }) {
   /** @type {Map<string, { busy: boolean, error?: string }>} */
   const pendingLimits = new Map();
   /** @param {string} key @param {OpenOptions} [opts] */
@@ -47,5 +48,15 @@ export function createConversationDecisionActions({ view, unfold, scope, D, worl
     schedule();
   }
 
+  scope.effect(() => mountPressRoutes(places, "xo.decisions", {
+    decide: valuePress("data-decide", (key) => decideKey(key)),
+    limit(target) {
+      const button = target.closest("[data-limit]");
+      const id = button?.getAttribute("data-limit"), decision = button?.getAttribute("data-limit-d");
+      if (!id || !decision) return false;
+      void decideLimit(id, decision);
+      return true;
+    },
+  }));
   return { decideKey, decideLimit, limitStatus: pendingLimits.get.bind(pendingLimits) };
 }

@@ -11,7 +11,7 @@ export function createSettingsModule(host) {
   let active;
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
-    manifest: { id: "xo.settings", version: "1.0.0", kernel: "^1.1.0", provides: ["settings"], needs: host ? ["announce"] : [] },
+    manifest: { id: "xo.settings", version: "1.0.0", kernel: "^1.1.0", provides: ["settings"], needs: host ? ["announce", "shape"] : [] },
     activate(ctx) {
       const root = host?.el ?? document.getElementById("settings");
       if (!root) throw new Error("Settings root is missing");

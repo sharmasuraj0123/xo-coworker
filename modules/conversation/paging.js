@@ -4,8 +4,8 @@ import { canPageOlder } from "../../core/services/world/rows.js";
 
 /** @import { PagingDeps, Conversation } from "./paging-types.d.ts" */
 
-/** @param {PagingDeps} options */
-export function createConversationPaging({ MAIN, CH, world, convThread, chatOf, render }) {
+/** @param {PagingDeps} options @param {AbortSignal} [signal] */
+export function createConversationPaging({ MAIN, CH, world, convThread, chatOf, render }, signal) {
   /** @param {Conversation} [C] */
   function loadAhead(C = MAIN) {
     const v = C.view;
@@ -26,7 +26,7 @@ export function createConversationPaging({ MAIN, CH, world, convThread, chatOf, 
     if (t) { const th = world.state.threadHist?.[t.id]; if (th && th.olderError) th.olderError = null; if (world.act.loadOlderThread) read = world.act.loadOlderThread(t.id); }
     else { const c = chatOf(C.view); if (c) read = world.act.loadOlder(c); }
     if (from) Promise.resolve(read).finally(() => {
-      if (C.view !== from || document.activeElement !== C.scroller) return;
+      if (signal?.aborted || !C.scroller.isConnected || C.view !== from || document.activeElement !== C.scroller) return;
       render();
       (/** @type {HTMLElement | null} */ (C.msgs.querySelector("[data-older]")))?.focus({ preventScroll: true });
     });

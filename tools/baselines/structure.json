@@ -395,8 +395,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 610,
-  "lineLength": 38
+  "dependencyKey": 511,
+  "lineLength": 21
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -853,7 +853,7 @@
   "lineLength": 1
  },
  "modules/projects/icon-picker.js": {
-  "lineLength": 6
+  "lineLength": 5
  },
  "modules/projects/projicons.js": {
   "lineLength": 5
@@ -929,9 +929,6 @@
  "modules/settings/shape-page.js": {
   "functionLines": 1,
   "lineLength": 28
- },
- "modules/settings/shortcuts-sheet.js": {
-  "lineLength": 3
  },
  "modules/settings/types.d.ts": {
   "lineLength": 1

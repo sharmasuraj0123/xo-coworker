@@ -8,9 +8,6 @@
  "modules/changes/store.js": {
   "setTimeout": 1
  },
- "modules/conversation/navigation.js": {
-  "setTimeout": 3
- },
  "modules/conversation/typing.js": {
   "setTimeout": 2
  },

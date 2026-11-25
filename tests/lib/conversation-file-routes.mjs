@@ -28,8 +28,10 @@ export async function checkConversationFileRoutes(kernel, press, flushFrames, ke
   assert.ok(document.querySelector("#viewer").textContent.includes("notes.md"), "Files handles the chip after Changes retires");
   await kernel.disable("xo.files");
   assert.deepEqual(owners(), []);
+  assert.equal(kernel.places.get("conversation.press", "reference"), undefined);
   await kernel.enable("xo.files");
   await kernel.enable("xo.changes");
+  assert.equal(kernel.places.get("conversation.press", "reference").owner, "xo.files");
   assert.deepEqual(owners(), ["xo.changes", "xo.files"], "priority survives reactivation in reverse order");
   key("p", { metaKey: true });
   await new Promise(setImmediate);

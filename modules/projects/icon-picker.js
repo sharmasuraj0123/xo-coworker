@@ -11,6 +11,7 @@ export function createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIco
   /** @type {{ el: HTMLElement | null, pid: string | null, from: HTMLElement | null }} */
   const PICK = { el: null, pid: null, from: null };
 
+  let release = () => {};
   /** @param {string} pid @param {HTMLElement} from */
   function pickIcon(pid, from) {
     if (PICK.el && PICK.pid === pid) { closePick(); return; }
@@ -31,12 +32,19 @@ export function createProjectIconPicker({ world, SHAPE, PROJ, ownIcon, forgetIco
     PICK.el = el; PICK.pid = pid; PICK.from = from;
     from.setAttribute("aria-expanded", "true");
     (/** @type {HTMLElement} */ (el.querySelector('.pk-o[tabindex="0"]'))).focus({ preventScroll: true });
-    el.addEventListener("click", (e) => { const o = (/** @type {HTMLElement} */ (e.target)).closest("[data-pk]"); if (o) chooseIcon(pid, /** @type {string} */ ((/** @type {HTMLElement} */ (o)).dataset.pk)); });
-    wirePickKeys(el, closePick);
+    /** @param {Event} event */
+    const click = (event) => {
+      const option = event.target instanceof Element && event.target.closest("[data-pk]");
+      if (option instanceof HTMLElement) chooseIcon(pid, option.dataset.pk || "");
+    };
+    el.addEventListener("click", click);
+    const stopKeys = wirePickKeys(el, closePick);
+    release = () => { el.removeEventListener("click", click); stopKeys(); };
   }
 
   function closePick({ focus = false } = {}) {
     if (!PICK.el) return;
+    release(); release = () => {};
     PICK.el.remove(); PICK.from?.setAttribute("aria-expanded", "false");
     const back = /** @type {HTMLElement | null} */ (document.querySelector(`[data-pj-icon="${CSS.escape(/** @type {string} */ (PICK.pid))}"]`));
     PICK.el = null; PICK.pid = null; PICK.from = null;

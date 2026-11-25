@@ -29,14 +29,18 @@ export type ThreadPage<N extends DockNeed> = {
 
 export type ThreadPageDeps<DockDeps, N extends DockNeed> = {
   STAGE: { slot: HTMLElement; pageShown: { name: string } | null; closePage(name: string): unknown };
-  threadControls: { clearMenu(location: "page"): void; menuOpen(id: string, location: "page"): boolean };
+  threadControls: {
+    menu(): { location: string } | null;
+    clearMenu(location: "page"): void;
+    menuOpen(id: string, location: "page"): boolean;
+  };
   world: { act: { watchSideThread?: (key: string | null) => unknown } };
   D: { needItems(): N[] };
   createDock(mount: DockMount, deps: DockDeps): Dock<N>;
   dockDeps: DockDeps;
   wireComposer(composer: Composer, scope: ReturnType<typeof createScope>): void;
   wireTray(composer: Composer, scope: ReturnType<typeof createScope>): void;
-  closeThreadMenu(): void;
+  closeThreadMenu(options?: { focus?: boolean }): void;
   addFiles(files: FileList | null, composer: Composer): void;
   toggleIq(session: string, chip: HTMLElement): void;
   sessionOf(view: string): string;

@@ -55,5 +55,16 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
   /** @param {(Notice & {back?: (string | (() => HTMLElement | null))[]}) | null | undefined} h */
   function heraldBack(h) { return [...((h && h.back) || []).map((sel) => (typeof sel === "function" ? sel() : $(sel))), composerNow().say].find(usable) || placeRegion(); }
 
-  return { heraldBox, heraldRender, heraldRoom, heraldBack };
+  /** @param {import("./notice-line-types").NoticeUndo} actions */
+  function undoNotice({ requestFocus, undo, undoRecord }) {
+    const h = notice(), u = h?.undo;
+    if (!h?.ownFocus) {
+      heraldBack(h)?.focus({ preventScroll: true });
+      const K = composerNow();
+      requestFocus([...((h && h.back) || []), () => K.say]);
+    }
+    if (typeof u === "function") undo();
+    else if (u) undoRecord(u);
+  }
+  return { heraldBox, heraldRender, heraldRoom, undoNotice };
 }

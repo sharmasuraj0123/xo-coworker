@@ -1,5 +1,8 @@
 import type { ProjectIconWorld } from "./icon-choice-types.d.ts";
 
+export type IconHost = Omit<IconPickerDeps, "ownIcon" | "forgetIcon">
+  & Parameters<typeof import("./icon-choice.js").createProjectIconChoice>[0];
+
 export interface IconPickerDeps {
   world: ProjectIconWorld;
   SHAPE: { patchMine: (patch: { layout: { icons: Record<string, string | null> } }) => unknown };

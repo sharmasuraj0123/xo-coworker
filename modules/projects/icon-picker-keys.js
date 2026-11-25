@@ -2,7 +2,8 @@
 
 /** @param {HTMLElement} el @param {(opts: {focus: boolean}) => void} closePick */
 export function wirePickKeys(el, closePick) {
-  el.addEventListener("keydown", (e) => {
+  /** @param {KeyboardEvent} e */
+  const keydown = (e) => {
     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closePick({ focus: true }); return; }
     const os = [.../** @type {NodeListOf<HTMLButtonElement>} */ (el.querySelectorAll(".pk-o"))], i = os.indexOf(/** @type {HTMLButtonElement} */ (document.activeElement));
     if (i < 0) return;
@@ -14,5 +15,7 @@ export function wirePickKeys(el, closePick) {
     e.preventDefault();
     const j = Math.max(0, Math.min(os.length - 1, i + d));
     os[i].tabIndex = -1; os[j].tabIndex = 0; os[j].focus({ preventScroll: true });
-  });
+  };
+  el.addEventListener("keydown", keydown);
+  return () => el.removeEventListener("keydown", keydown);
 }

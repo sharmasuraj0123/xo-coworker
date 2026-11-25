@@ -83,10 +83,11 @@ test("the Settings surface retires focus, views and listeners and mounts one rep
   definePlaces(kernel);
   kernel.register({
     manifest: {
-      id: "test.host", version: "1.0.0", kernel: "^1.1.0", provides: ["announce"], contributes: ["settings.section:test-page"],
+      id: "test.host", version: "1.0.0", kernel: "^1.1.0", provides: ["announce", "shape"], contributes: ["settings.section:test-page"],
     },
     activate(ctx) {
       ctx.provide("announce", () => {});
+      ctx.provide("shape", { on: () => true, setDevice: () => ({ kept: true }), onChange: () => () => {} });
       ctx.contribute("settings.section", {
         id: "test-page", label: "Test page", icon: "key",
         render(host) {
@@ -100,8 +101,7 @@ test("the Settings surface retires focus, views and listeners and mounts one rep
   const settings = createSettingsModule({
     el: root, side: opener, phoneButton: find("#set-phone"), closeButton: find("#set-x"),
     phone: matchMedia("(max-width: 760px)"), focusIn: (node) => node.focus(), fallback: () => opener,
-    preferences: { THEME: createTheme(createScope(), () => {}).THEME, webPictures: "xo:conversation/webpics",
-      shape: { on: () => true, setDevice: () => ({ kept: true }), onChange: () => () => {} } },
+    preferences: { THEME: createTheme(createScope(), () => {}).THEME, webPictures: "xo:conversation/webpics" },
     at: () => ({}), mountRuntimes: () => ({ open() {} }), shape: { mount: () => ({ apply() {}, open() {} }) }, beforeOpen() {}, onHidden() {},
   });
   const id = settings.module.manifest.id;

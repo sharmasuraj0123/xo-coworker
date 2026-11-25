@@ -237,7 +237,7 @@
   "commentLines": 2
  },
  "js/app.js": {
-  "commentLines": 21
+  "commentLines": 6
  },
  "modules/artifacts/cards.js": {
   "commentLines": 3
@@ -515,9 +515,6 @@
  },
  "modules/settings/shape-page.js": {
   "commentLines": 10
- },
- "modules/settings/shortcuts-sheet.js": {
-  "commentLines": 1
  },
  "modules/shells/dock-input.js": {
   "commentLines": 2

@@ -1,5 +1,6 @@
 // @ts-check
 
+import { pressEntry } from "../../shell/conversation-press.js";
 import { createRunsPage } from "./page.js";
 import { createRunsStrip } from "./strip.js";
 import { wireRunsGesture } from "../../shell/gestures.js";
@@ -20,7 +21,7 @@ export function createRunsModule(host) {
   const module = {
     manifest: {
       id: "xo.runs", version: "1.0.0", kernel: "^1.1.0", needs: ["world", "announce"],
-      contributes: ["panel.page:runs", "thread.head:runs"],
+      contributes: ["panel.page:runs", "thread.head:runs", "conversation.press:run"],
     },
     activate(ctx) {
       const world = ctx.use("world");
@@ -31,6 +32,7 @@ export function createRunsModule(host) {
       active = { page, strip, world };
       wireRunsGesture(page.card, () => page.isDetail, page.back, ctx.signal);
       ctx.contribute("panel.page", page.page);
+      ctx.contribute("conversation.press", pressEntry("run", openFrom));
       ctx.contribute("thread.head", { id: "runs", order: 20, render: strip.runsStrip });
     },
   };
@@ -49,7 +51,7 @@ export function createRunsModule(host) {
     return true;
   }
   return {
-    module, openFrom,
+    module,
     working: (/** @type {RunThread} */ thread) => active?.strip.workingRuns(thread) ?? 0,
     layer: { id: "runs", open: () => active?.page.isOpen ?? false, close: () => active?.page.back() },
   };
