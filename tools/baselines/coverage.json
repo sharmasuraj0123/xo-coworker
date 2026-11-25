@@ -293,12 +293,6 @@
    ["commentOnlyCatch",95,""]
   ]
  },
- "modules/launchpad/views.js": {
-  "sha256": "1d43f2c2fbeacc42652b12b16d14532cec79b7b2c48efcda6bcf6d44f9fe8d0c",
-  "sites": [
-   ["changelogComment",99,""]
-  ]
- },
  "modules/settings/shape-page.js": {
   "sha256": "1113db250a1a3cfa599257c0d4afee6e0080c4529eb4b1003cfa37845f61c783",
   "sites": [

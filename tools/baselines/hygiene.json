@@ -523,15 +523,11 @@
  "modules/launchpad/store.js": {
   "commentLines": 6
  },
- "modules/launchpad/system.js": {
-  "explicitAny": 1
- },
  "modules/launchpad/tests/lp-stop-notice.test.mjs": {
   "commentLines": 1
  },
  "modules/launchpad/views.js": {
-  "commentLines": 2,
-  "explicitAny": 6
+  "commentLines": 2
  },
  "modules/launchpad/words.js": {
   "commentLines": 7,

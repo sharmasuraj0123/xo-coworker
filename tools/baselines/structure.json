@@ -838,14 +838,14 @@
   "lineLength": 18
  },
  "modules/launchpad/system.js": {
-  "lineLength": 11
+  "lineLength": 9
  },
  "modules/launchpad/tests/mockspace-scenarios.test.mjs": {
   "sourceRead": 1
  },
  "modules/launchpad/views.js": {
   "functionLines": 1,
-  "lineLength": 75
+  "lineLength": 70
  },
  "modules/launchpad/window.css": {
   "lineLength": 3

@@ -2,6 +2,7 @@ import type { createLpApi } from "./client.js";
 import type { createScope } from "../../core/kernel/scope.js";
 import type { model } from "./model.js";
 import type { createWindowNotices } from "./notices.js";
+import type { installStore } from "./store.js";
 
 export type LaunchpadApi = ReturnType<typeof createLpApi>;
 type CheckModel = ReturnType<typeof model>;
@@ -12,7 +13,8 @@ type Timer = ReturnType<typeof setTimeout>;
 type Disk = { path: string; gb: number };
 type Step = { state?: string; text?: string; url?: string; at?: number; took?: number; ready?: number; of?: number; release?: number };
 type DeployError = { code: string; text?: string; message?: string; node?: string; step?: string; port?: number; declared?: number;
-  last?: number; app?: { id: string }; url?: string; action?: string };
+  last?: number; app?: { id: string }; url?: string; action?: string; fix?: string; source?: string;
+  release?: number; log?: string[] | null };
 type NoticeOwner = ReturnType<typeof createWindowNotices>;
 
 export interface PrepThread {
@@ -99,6 +101,8 @@ export interface DeployFrame {
   started?: number;
   error?: DeployError;
   message?: string;
+  action?: string;
+  fix?: string;
   text?: string;
   url?: string;
   host?: string;
@@ -107,7 +111,8 @@ export interface DeployFrame {
   release?: number;
   commit?: string;
   app?: { id: string; name?: string };
-  data?: { suggestion?: string; reason?: string; repo?: string; apps?: { id: string }[]; app?: { id: string } };
+  data?: { suggestion?: string; reason?: string; repo?: string; origin?: string; branch?: string;
+    apps?: { id: string; slug?: string; workflow?: string }[]; app?: { id: string } };
 }
 
 export interface LaunchpadProject {
@@ -165,6 +170,9 @@ export interface LaunchpadViewHooks {
   bodyHtml?(project: string): { key: string; html: string; form: boolean };
   hintFor?(key: string, project: string): string;
 }
+
+export type LaunchpadViewOptions = LaunchpadViewHooks & Pick<LaunchpadRecords, "proj" | "nameOf" | "findThread">
+  & Pick<ReturnType<typeof installStore>, "screen" | "summary"> & { S: LaunchpadDom };
 
 export interface LaunchpadStoreOptions extends LaunchpadRecords {
   remember(project: string, state: string): void;
