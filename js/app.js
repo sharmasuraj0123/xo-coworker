@@ -15,6 +15,7 @@ import { createIntel } from "../modules/chats/intel.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { $ } from "../core/platform/dom.js";
+import { watchDock, dockAtTop } from "../modules/conversation/dock-layout.js";
 import { RM } from "../core/ui/motion.js";
 import { sound } from "../core/services/sound.js";
 import { plainText, heldWords, heldShort, cliName, chatOrder, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
@@ -530,6 +531,7 @@ const { liveBlock, blockFor, refuse, connDest, deliverLive, send, retry, putBack
 const { heraldBox, heraldRender, heraldRoom, heraldBack } = createNoticeLine({
   notice: notices.current, world, MK, composerNow, panelHost: () => TP.box, connDest, placeRegion: () => placeRegion(), STOP_ICON,
 });
+
 const { targetLineRender, syncPlaceholder } = createComposerTarget({ MK, world, CH, PHONE, PROJ, convThread, convProject, liveBlock, isBusy, sendWhileRunning, noun });
 const { chipRender, sendRender, chatTargetRender } = createComposerControls({
   MK, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock,
@@ -566,7 +568,7 @@ appScope.listen($("#iq"), "click", () => {
 function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip); }
 
 const { TP, tpMount, tpShow, tpFocus, tpClose, drawThreadPage } = createThreadPage({
-  STAGE, threadControls, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu: () => closeThreadMenu(), addFiles, toggleIq, sessionOf, convProject, watchDock,
+  STAGE, threadControls, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu: () => closeThreadMenu(), addFiles, toggleIq, sessionOf, convProject, heraldRoom,
   toastLine, loadAhead: (C) => loadAhead(C), returnPill: (destination) => returnPill(destination), saveDraft, loadDraft, convThread,
   stOf, glyphOf, isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv: (C, needs) => drawConv(C, needs), updateComposer, sendRender, targetLineRender,
 });
@@ -620,33 +622,7 @@ appScope.listen(scroller, "scroll", () => {
   scrolling = true;
   appScope.frame(() => { scrolling = false; loadAhead(); $("#top").classList.toggle("is-scrolled", fromTop() > 120); });
 }, { passive: true });
-// the dock's height, for the space under the conversation (pinned at the latest, follow.js keeps you there).
-/** @param {HTMLElement} dock @param {HTMLElement} host */
-function watchDock(dock, host) {
-  const bar = dock.querySelector(".cbar");
-  const ro = new ResizeObserver(() => {
-    host.style.setProperty("--dock-h", `${dock.offsetHeight}px`);
-    if (!bar) return;
-    const on = bar.getBoundingClientRect().top - dock.getBoundingClientRect().top > 0.5;
-    if (dock.classList.contains("is-stacked") !== on) dock.classList.toggle("is-stacked", on);
-    heraldRoom(); // the line stands higher over what's docked (is-stacked)
-  });
-  ro.observe(dock);
-  return ro;
-}
-appScope.observe(watchDock($("#dock"), $("#app")));
-/** Chats leads with the composer and other conversations put it after the messages. @param {boolean} top */
-function dockAtTop(top) {
-  const dock = $("#dock"), sc = $("#scroller");
-  if (top === (dock.parentElement === sc)) return;
-  const active = document.activeElement;
-  const had = active instanceof HTMLElement && dock.contains(active) ? active : null;
-  if (top) $("#cs-sub").after(dock); else $("#drop-veil").after(dock);
-  $("#cs-hi").hidden = $("#cs-sub").hidden = !top;
-  if (!top) sc.style.removeProperty("--cs-lead");
-  dock.classList.toggle("is-top", top);
-  had?.focus({ preventScroll: true });
-}
+watchDock(appScope, { dock: $("#dock"), host: $("#app"), heraldRoom });
 appScope.effect(initFollow);
 
 // ── navigation: back always returns exactly where you were ─────────────────

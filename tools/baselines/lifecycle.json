@@ -1,7 +1,4 @@
 {
- "js/app.js": {
-  "observer": 1
- },
  "modules/artifacts/page.js": {
   "observer": 2
  },

@@ -1,5 +1,5 @@
 // @ts-check
-
+import { watchDock } from "./dock-layout.js";
 import { $ as query } from "../../core/platform/dom.js";
 import { focusEntry } from "../../core/ui/a11y/focus.js";
 import { createScope } from "../../core/kernel/scope.js";
@@ -18,7 +18,7 @@ import { wordsOf } from "./words.js";
 /** @template DockDeps @template {DockNeed} N @param {ThreadPageDeps<DockDeps, N>} deps */
 export function createThreadPage({
   STAGE, threadControls, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu, addFiles, toggleIq, sessionOf,
-  convProject, watchDock, toastLine, loadAhead, returnPill, saveDraft, loadDraft, convThread, stOf, glyphOf,
+  convProject, heraldRoom, toastLine, loadAhead, returnPill, saveDraft, loadDraft, convThread, stOf, glyphOf,
   isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv, updateComposer, sendRender, targetLineRender,
 }) {
   /** @type {ReturnType<typeof createScope> | undefined} */
@@ -59,7 +59,7 @@ export function createThreadPage({
       view: tpView, onView: (fn) => { TP.viewSubs.add(fn); return () => TP.viewSubs.delete(fn); },
     });
     scope.effect(() => decoration.destroy);
-    scope.observe(watchDock(els.dock, box));
+    watchDock(scope, { dock: els.dock, host: box, heraldRoom });
     bindConversation({ scroller: els.scroller, msgs: els.msgs, say: TP.K.say, toast: (text) => toastLine(text) }, wordsOf, scope);
     let scrollQueued = false;
     scope.listen(els.scroller, "scroll", () => {

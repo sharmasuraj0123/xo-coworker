@@ -41,7 +41,7 @@ export type ThreadPageDeps<DockDeps, N extends DockNeed> = {
   toggleIq(session: string, chip: HTMLElement): void;
   sessionOf(view: string): string;
   convProject(view: string): string | null;
-  watchDock(dock: HTMLElement, host: HTMLElement): ResizeObserver;
+  heraldRoom(): void;
   toastLine(text: string): void;
   loadAhead(conversation: Conversation): void;
   returnPill(destination: null): void;

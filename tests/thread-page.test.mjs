@@ -31,7 +31,7 @@ const page = createThreadPage({
   wireTray: (composer) => calls.push(["tray", composer]),
   closeThreadMenu() {}, addFiles: (files, composer) => calls.push(["files", files, composer]),
   toggleIq: (session, chip) => calls.push(["model", session, chip]),
-  sessionOf: String, convProject: () => null, watchDock: () => new ResizeObserver(),
+  sessionOf: String, convProject: () => null, heraldRoom() {},
   toastLine() {}, loadAhead() {}, returnPill: (target) => calls.push(["return", target]),
   saveDraft: () => calls.push(["save"]), loadDraft: () => calls.push(["draft"]),
   convThread: () => threadExists ? { id: "t1", title: "Panel thread" } : null,

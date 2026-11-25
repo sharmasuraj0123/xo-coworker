@@ -16607,12 +16607,12 @@
    "home": "js/app.js"
   },
   "js/app.js::functions::watchDock": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/dock-layout.js"
   },
   "js/app.js::functions::dockAtTop": {
-   "status": "kept",
-   "home": "js/app.js"
+   "status": "moved",
+   "home": "modules/conversation/dock-layout.js"
   },
   "js/app.js::functions::composerNow": {
    "status": "moved",
