@@ -128,6 +128,11 @@
 :is(.home,.conv,.arts,.lpp,.dock){container-type:inline-size;--col-w:min(var(--col-max),100cqw - 2 * var(--gut-min));--col-x:calc((100cqw - var(--col-w)) / 2);--measure:max(calc(var(--col-w) - var(--s-12)), min(100%, var(--measure-min)))}
 .main :is(.home,.conv,.arts,.dock,.toast-wrap){right:var(--rp)}
 @media (min-width:761px){
+  .app{background:var(--sb-side)}
+  .app:not(.side-folded) > .main{
+    margin:var(--s-2) var(--s-2) var(--s-2) 0;
+    border-radius:var(--s-4);
+    border:var(--hair) solid var(--line-faint)}
   body.panel-open .main{--rp:var(--pw)}
   body.stage-open:not(.panel-open):not(.stage-full):not(.stage-over) .main{--rp:var(--sw)}
 }

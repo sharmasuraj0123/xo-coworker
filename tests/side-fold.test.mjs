@@ -7,6 +7,12 @@ import { ACTIONS, binding } from "../core/platform/keys.js";
 import { appDocument } from "../tools/conformance/templates.mjs";
 import { declarationFiles, stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 
+test("the docked desktop canvas uses a shared inset and corner radius", () => {
+  const canvas = ".app:not(.side-folded) > .main";
+  assert.deepEqual(valuesFor(canvas, "margin"), ["8px 8px 8px 0"]);
+  assert.deepEqual(valuesFor(canvas, "border-radius"), ["16px"]);
+});
+
 test("the rail has fold, search and More controls with accessible icon labels", () => {
   const markup = appDocument(fileURLToPath(new URL("../", import.meta.url)));
   for (const id of ["side-fold", "side-jump", "nv-more", "side-more"]) assert.ok(markup.getElementById(id), id);
