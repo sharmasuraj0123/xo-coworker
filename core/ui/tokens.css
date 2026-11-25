@@ -180,6 +180,11 @@
   --s-artifact-meta-top:10px; --s-artifact-origin-inline:6px; --s-artifact-origin-end:7px;
   --h-skeleton-label:10px;
   --s-since-phone-block:10px;
+  --w-stage-preferred:clamp(420px,42vw,720px);
+  --s-map-header-tight:10px; --offset-map-status-inline:7px; --s-map-control-inset:9px; --w-map-status-mark:2px;
+  --h-map-legend-max:86px; --w-map-agent-max:260px; --stroke-map-focus:2px; --w-map-node:172px; --h-map-node:34px;
+  --w-map-node-icon:15px; --h-map-root-node:38px; --offset-map-root-node:-2px; --ic-map-status:6px;
+  --w-map-more-min:84px; --h-map-note:26px; --ic-map-spinner:9px; --s-map-node-halo:3px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
