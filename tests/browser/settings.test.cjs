@@ -211,7 +211,6 @@ for (const [row, tog, words] of [["C099", "#hops-tog", /Showing how messages tra
   });
 }
 
-// ── C098: the rail is a tablist ───────────────────────────────────────────────────────────
 t("C098 tabs: one in the Tab order, arrows and Home/End choose, each tab names its panel and back", async (ctx) => {
   const page = await open(world(), ctx);
   await settings(page);
@@ -861,7 +860,6 @@ t("SHAPE-START a fresh browser starts with no shape question; Settings › Shape
   assert.ok(await card.count() > 0, "Shape's presets are there");
   await done(page);
 });
-// ── STATES · C106: Settings › Shape's controls answer hover and press, the Compact switch off and on (logged) ──
 const { stateSweep } = require("./harness.cjs");
 t("STATES C106 Shape: every control answers hover and press, Compact off and on", async (ctx) => {
   if (ctx.width < 760) return; // a phone has no hover

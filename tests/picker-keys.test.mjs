@@ -1,9 +1,3 @@
-// The picker's parts are keyed, so its redraw keeps each whatever comes and goes before it (the create-project grader
-// on 0e75a32, S071, 12/12: choosing a project's runtime under Runtime, routing sent the change and recorded its Undo,
-// but focus fell to the page). core/ui/redraw.js keeps a node by its key (id, data-key, data- hooks) and matches the rest
-// by tag, in order. A runtime chosen clears the model list ("Reading the models…" in its place), so the unkeyed parts
-// after it were matched to the wrong old ones: the runtime row was drawn anew, and the Claude Code you'd pressed went.
-//   node tests/picker-keys.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 

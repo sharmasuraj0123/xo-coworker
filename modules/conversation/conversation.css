@@ -149,7 +149,7 @@
 /* chat rhythm on the 4-point scale (pixel audit #14): 24 between messages, 8 between one sender's */
 .m{position:relative;margin:0 0 24px}
 .m:has(+.ev){margin-bottom:var(--s-4)}   /* a line after a message: 16 (was 24 then the line's −8) */
-.m.mx-next-cont,.m:has(+.m.cont){margin-bottom:var(--s-2)}   /* the same speaker going on: 8, said once (was 24 then −16) */
+.m.mx-next-cont,.m:has(+.m.cont){margin-bottom:var(--s-2)}
 .m.is-new{animation:msg-in var(--d-in) var(--ease)}
 @keyframes msg-in{from{opacity:0;transform:translateY(8px)}}
 .m-you{display:flex;flex-direction:column;align-items:flex-end}

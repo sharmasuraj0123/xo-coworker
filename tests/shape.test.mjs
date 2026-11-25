@@ -1,7 +1,11 @@
 // Local shape, preset files and synchronization against a fake Storm.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, changesOf, applyChanges, oneKey, sameDoc, SURFACES, KEYS, SHAPE_VERSION } from "../core/services/shape/index.js";
+import {
+  merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, SURFACES, SHAPE_VERSION,
+} from "../core/services/shape/model.js";
+import { changesOf, applyChanges, oneKey, sameDoc } from "../core/services/shape/changes.js";
+import { createShapeStore, KEYS } from "../core/services/shape/store.js";
 import { createScope } from "../core/kernel/scope.js";
 
 let passed = 0;

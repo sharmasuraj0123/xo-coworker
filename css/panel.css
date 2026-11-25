@@ -4,9 +4,6 @@
 @import url("../modules/files/stage-tree.css");
 :root[data-theme="light"] .fl-r:hover{background:rgba(0,0,0,.04)}
 :root[data-theme="light"] .fl-r.is-on{background:rgba(0,0,0,.07)}
-/* New file (js/files.js): beside Find for the place itself, in a folder's ⋯ for that folder. One ⋯ for the
-   tree, on the folder under the pointer or with focus; the new file's name takes a row at the top of its
-   folder's rows, and what that name would do is said in the row under it (both 28 px: whole rows still) */
 .fl-find{display:flex;gap:var(--s-1);min-width:0}
 .fl-find .fl-q{flex:1;min-width:0}
 .fl-add{flex:none;display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
@@ -29,9 +26,6 @@
 :root[data-theme="light"] .fl-new-r input{background:var(--surface)}
 @media (prefers-reduced-motion:reduce){.fl-menu{animation:none}}
 
-/* ── the file viewer's header: one 40 px row on the grid. Icon at the edge, the name on the name column,
-   then its kind and size as one quiet run on the same baseline; actions are 28 px icon buttons ───── */
-/* Paint the divider inside the header so controls have room for their full focus rings. */
 .vw-top{height:var(--h-lg);padding:0 8px 0 var(--pe);gap:8px;align-items:center;border-bottom:0;box-shadow:inset 0 -1px 0 var(--line-faint);container:vwtop / inline-size}
 /* Fold secondary actions into the menu as the header narrows to keep room for the file name. */
 .vw-t{min-width:64px}
@@ -113,8 +107,6 @@ svg.fi-line{color:inherit}
 .av-w::after{display:none}
 .av-live.is-wait{border-color:transparent!important;background:color-mix(in srgb,var(--warn) 8%,var(--surface))!important}
 /* the arc: the text colour on a 22% track of the same colour (the chat capsule's working glyph), never blue */
-/* one working-arc system, in the app's blue (--info), like .g-working in css/app.css: the avatar's corner arc and the
-   generic spinner share its colour, 22% track and 1.6s turn. A spinner inside a button keeps the button's ink. */
 .arc{position:absolute;right:-4px;bottom:-4px;width:var(--ic-sm);height:var(--ic-sm);border-radius:50%;background:var(--canvas);color:var(--info)}
 .arc>svg{display:block;width:100%;height:100%;animation:arc-turn 1.6s linear infinite}
 .arc>svg>g:first-child>circle{fill:none}
@@ -141,8 +133,6 @@ button .spin,.btn .spin{color:inherit}
 .fl-who.w-live i{background:var(--ink-2)}
 .dg-dot.d-hot{background:var(--ink-3)}
 
-/* ══ the panel as stacked frames (Premiere's panels): a 40 px title bar, then Agents · Map · Changes,
-   each with its own 32 px head and tabs, folding to that head, the 1 px line between two dragged ══ */
 .stg-t{flex:1;min-width:0;display:flex;align-items:center;gap:var(--s-1);white-space:nowrap;overflow:hidden}
 /* the place, or the page's title: a long one ends in an ellipsis */
 .stg-name{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font:var(--fw-strong) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink)}
@@ -215,7 +205,6 @@ body.stage-vsizing{cursor:row-resize;user-select:none}
 :root[data-theme="light"] .fv .fl.is-wide .fl-tree{background:var(--canvas)}
 .fv .fl-crumb:not(:has(.fl-up)){display:none}
 .fl-split{display:none}
-/* its 9 px grab area reaches over the file beside it: raised above it, so the pointer can take it at its line (C034) */
 .fv .fl.is-wide .fl-split{display:block;flex:none;position:relative;z-index:var(--z-raised);width:1px;background:var(--fill-2);cursor:col-resize;outline:none}
 .fv .fl.is-wide .fl-split::after{content:"";position:absolute;top:0;bottom:0;left:-4px;width:9px}
 .fv .fl.is-wide .fl-split:hover,.fv .fl.is-wide .fl-split:focus-visible,body.fv-sizing .fl-split{background:var(--line-hover)}
@@ -270,8 +259,6 @@ body.viewer-open .fv~.dock{display:none}
 .stage .fr-gut:focus-visible{outline:2px solid var(--ring-in,var(--focus));outline-offset:-1px}
 .stage .fr-none{padding:8px 20px 12px;margin:0;line-height:var(--lh-ui)}
 
-/* A thread's coloured glyph is its map identity; its tile carries the shared corner working arc.
-   Neither tint nor a persistent card outline is needed on every row. */
 .stage .ag-list,.stage .ch-list{display:flex;flex-direction:column;gap:4px;padding:0 12px 8px}
 .stage .ag-r,.stage .ch-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;height:var(--h-row-act);padding:6px 8px;border:0;border-radius:var(--r-lg);background:transparent;transition:background var(--d-hover) var(--ease),box-shadow var(--d-hover) var(--ease)}
 .stage .ag-r:hover,.stage .ch-r:hover{background:var(--panel-hover);transition-duration:var(--d-hover-in)}
@@ -309,8 +296,6 @@ body.viewer-open .fv~.dock{display:none}
 .stage .ag-tm,.stage .ch-r .ch-m{align-self:start;padding-top:0;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 .stage .ch-r:not(:has(.ch-path)) .ch-m{align-self:center}
 
-/* The map belongs to the same rail. Idle nodes are open rows; only the root and an agent's current
-   place sit on raised surfaces. The exact node bounds and pointer targets stay unchanged. */
 .stage .fr[data-fr="map"] .dg{
   margin:0 0 8px;border:0;border-radius:0;
   background-color:var(--panel-canvas);
@@ -348,8 +333,7 @@ body.viewer-open .fv~.dock{display:none}
 .stage .map-host .gn.m-edited .gn-d{background:var(--violet)}
 .stage .map-host .gn.is-here .gn-d{background:var(--c)}
 .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:var(--ink-3)} /* the root is neutral until an agent is there */
-:root[data-theme="light"] .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:var(--map-dot)} /* the pale map grey, not a black blob */
-/* light: a pale agent colour (the yellow) keeps an edge of its own hue on the pale canvas, on its dot and its arrow */
+:root[data-theme="light"] .stage .map-host .gn.k-root:not(.is-here) .gn-d{background:var(--map-dot)}
 :root[data-theme="light"] .stage .map-host .gn.is-here .gn-d{--gn-in:inset 0 0 0 1px color-mix(in srgb,var(--c) 70%,#000);--gn-halo:0 0 0 5px color-mix(in srgb,var(--c) 30%,transparent)}
 :root[data-theme="light"] .stage .map-host .dg-cur:not(.is-idle) .dg-arrow path{stroke:color-mix(in srgb,var(--c) 62%,#000);stroke-width:1}
 .stage .map-host .gn-l{text-shadow:0 0 3px var(--panel-canvas),0 0 3px var(--panel-canvas)}
@@ -360,9 +344,7 @@ body.viewer-open .fv~.dock{display:none}
 
 body.stage-covers .dock{z-index:auto} /* no stacking context of its own, so the notice can rise above the panel */
 body.stage-covers .herald:not(.tp .herald){position:fixed;left:16px;right:16px;bottom:max(16px, env(safe-area-inset-bottom));z-index:var(--z-popover);visibility:visible}
-/* away from the composer (over a covering panel), only notices come: the composer's own
-   line (Off, can't reach XO) says where a draft can't go and stays with it. Over the panel it hid the map's zoom
-   buttons on a phone (the phone floor's browser pass, 320 and 390) */
+/* Only notices cross a covering panel so the composer's own status cannot obscure its controls. */
 body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 
 .stage .tg-h{list-style:none}
@@ -431,8 +413,6 @@ body.stage-covers .herald:not(.tp .herald) .hr-conn{display:none}
 .stage .tp-head{flex:none;display:flex;align-items:center;gap:var(--s-2);padding:var(--s-2) var(--s-3) var(--s-2) var(--s-4);border-bottom:1px solid var(--line-faint)}
 .stage .tp-br{display:inline-flex;align-items:center;gap:var(--s-1);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--mono);color:var(--ink-4)}
 .stage .tp-br svg{flex:none;width:var(--ic-xs);height:var(--ic-xs)}
-/* the page's checklist takes the header gutter as its own (--hg is the conversation's: undefined here, it voided
-   the strip's whole padding, so it sat on the head with no gap) */
 .stage .tp-thead{--hg:var(--s-4)}
 .stage .tp .scroller{flex:1;min-height:0}
 .stage .tp .dock{left:0;right:0;width:auto}

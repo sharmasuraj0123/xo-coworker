@@ -3,7 +3,7 @@
 import { esc, once, isPending, busyAttrs } from "../../core/platform/index.js";
 import { reportFailure } from "../../core/platform/util.js";
 import { ICON } from "../../core/ui/icons/names.js";
-import { PRESETS, createShape, describeShape } from "../../core/services/shape/index.js";
+import { PRESETS, createShape, describeShape } from "../../core/services/shape/model.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { bringWhole } from "../../core/ui/a11y/focus.js";
 import { rovingTab } from "../../core/ui/a11y/keynav.js";

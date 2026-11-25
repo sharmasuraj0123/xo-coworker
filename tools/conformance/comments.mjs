@@ -4,7 +4,7 @@ import { tokenizer } from "acorn";
 import { parseHTML } from "linkedom";
 
 const REFERENCE = /(?:[\w-]+\.md\b|architecture\/|design-research\/|decision note|\bphase \d|\b[DP]\d+\b)/i;
-const FINDING = /\bF\d+\b/;
+const FINDING = /\b(?:F\d+|[SCH]\d{3})\b/;
 const REVISION = /\b(?:on|at|commit) [\da-f]{7,40}\b|(?<![#/\w-])(?=[\da-f]*\d)[\da-f]{7,40}\b/i;
 const CHANGELOG = /\b(?:Astra|grader|Codex|the owner)\b|\bQA\s*#\d|\b\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i;
 const TYPE_TAG = /@(?:arg(?:ument)?|param|returns?|type|typedef|property|prop|this|extends|implements|satisfies|throws|enum|template)\b\s*(?:[^{}\n]*?)\{/g;

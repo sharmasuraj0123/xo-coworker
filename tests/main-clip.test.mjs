@@ -1,8 +1,3 @@
-// The page's main area can't be scrolled by anything (the controls grader on 65e84b7, S138 on a phone: after Close on
-// the Created notice, the editor's own scrollIntoView, Pierre's, scrolled MAIN#main to 262 and the file out of sight;
-// window and every other ancestor stayed at 0). A box with overflow:hidden is still a scroll container a script can
-// scroll; overflow:clip isn't. Checked from the CSS; the drawn result is the flows case S138 (Created) by pointer.
-//   node tests/main-clip.test.mjs
 import assert from "node:assert/strict";
 import { sheet } from "./lib/cascade.mjs";
 

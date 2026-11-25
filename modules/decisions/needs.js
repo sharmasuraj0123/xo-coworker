@@ -11,9 +11,6 @@ import { effortOf, leverageOf, rank } from "./rank.js";
 
 /** @typedef {NeedFields & Partial<RankFields>} UnrankedNeed */
 
-/** @param {string} r */
-export const riskLabel = (r) => ({ destructive: "Destructive", notable: "Notable", routine: "Routine", stopped: "Stopped" })[/** @type {"destructive" | "notable" | "routine" | "stopped"} */ (r)] || "Notable";
-
 /** @param {{world: {state: {threads: NeedThread[], hosts?: NeedThread[]}}, P: Pick<ReturnType<typeof import("./pacing.js").createPacing>, "classify">, later: Set<string>, waitSince: Map<string, number>, stoppedDone: Set<string>, sentKeys: Map<string, number>, queue: {has(key: string): boolean}}} options */
 export function createNeedItems({ world, P, later, waitSince, stoppedDone, sentKeys, queue }) {
   /** @type {Map<string, Seen>} */

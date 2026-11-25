@@ -302,7 +302,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
   const inView = (r) => r.width >= 1 && r.height >= 1 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
   const els = [...document.querySelectorAll(CTL)].filter((e) => e.getClientRects().length && !e.closest("[inert], [hidden], .sr-only") && !e.disabled && inView(e.getBoundingClientRect()));
   const cut = [], seen = new Set(), floor = [], wrapped = [];
-  // a button's label sits on one line (the coordinator's ruling, S045): the lines its words take, a line being the text
+  // Measure the number of visual lines in the label.
   // boxes that overlap in height (an icon, a count in a smaller size on the same line stay one line)
   // the lines a label wraps onto: counted within each run of words that flows as one (the text under one block, flex or
   // grid box): a control drawn as two lines on purpose (a name over its meta, each its own block, an Artifacts row on a
@@ -325,7 +325,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
     el.focus({ preventScroll: false });
     if (document.activeElement !== el) continue;
     await frame();
-    // the ring may be its box's (a field in a box: the box draws the ring while its field has focus, C053/C020)
+    // A wrapper can own the focus ring for its input.
     let ringEl = el;
     if (getComputedStyle(el).outlineStyle === "none") for (let a = el.parentElement, k = 0; a && k < 3; a = a.parentElement, k++) if (getComputedStyle(a).outlineStyle !== "none") { ringEl = a; break; }
     const s = getComputedStyle(ringEl), r = ringEl.getBoundingClientRect();
@@ -353,7 +353,7 @@ const ringClips = (page, where) => page.evaluate(async (where) => {
       if (ox && ring.right > box.right + 0.5 && r.right <= box.right + 0.5) sides.push("right");
       if (sides.length) { const k = `${name(ringEl)}${ringEl !== el ? ` (for ${name(el)})` : ""} in ${name(a)}`; if (!seen.has(k)) { seen.add(k); cut.push(`${where}: ${k}: ${sides.join("+")}`); } }
     }
-    // the screen's own edges clip too: a control at the very top of a phone's Files (S070: Back at y=2, its ring 4 out)
+    // The viewport can clip a ring as well as its scroll containers.
     // loses what's past them, whatever box it sits in
     const vw = document.documentElement.clientWidth, vh = innerHeight, vs = [];
     if (ring.top < -0.5 && r.top >= -0.5) vs.push("top");

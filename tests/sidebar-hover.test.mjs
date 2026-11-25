@@ -1,8 +1,3 @@
-// A sidebar row in a state answers hover (the controls grader on 999f408, C008: a project row needing you, its tinted
-// wash and orange edge, looked the same hovered and at rest, in both themes; the shared hover rule, the owner's choice,
-// asks every control to answer). Each state's wash is a stronger rule than the row's hover, so one layer over it does,
-// in every state and theme: it must outrank every wash, since a background shorthand clears the layer.
-//   node tests/sidebar-hover.test.mjs
 import assert from "node:assert/strict";
 import { rules, context, spec, cmp, decls } from "./lib/cascade.mjs";
 

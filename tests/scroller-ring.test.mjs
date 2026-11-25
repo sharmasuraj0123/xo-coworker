@@ -1,17 +1,5 @@
 // @ts-check
 
-// Every box that clips keeps the focus ring's room inside it, or holds nothing a ring is drawn around at its edges. The
-// rows found one box at a time: the runs strip (C047, overflow-x:auto, a chip's ring cut on three sides), the
-// sidebar's project list (C008, 2 px above its first row), the checklist's bar in a thread's head (C045,
-// overflow:hidden: the toggle fills it, only the ring's right edge showed), and a code block on a phone (S089,
-// overflow:hidden: Copy, 36 tall in a 34 px head, lost its ring's top). A box that clips one way clips the other too.
-// The ring, 4 px outside a control, is cut unless the control draws its ring inside itself or the box pads it with the
-// ring's room (--ring-room). So every clipping box is placed, scroll or not: overflow on either axis, paint
-// containment, a clip path or a mask. A new one fails here until it's placed, with what it holds and how the ring
-// stays whole. What can't hold a control is placed by the rule itself: a line of text that ellipsizes, a picture, a
-// pseudo-element, a control's own overflow (its own ring is drawn outside it). The sweep of the page as drawn, every
-// control focused and every clipping box around it checked, is flows' RINGCLIP.
-//   node tests/scroller-ring.test.mjs
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { list } from "postcss";
@@ -136,8 +124,6 @@ for (const element of elements) {
   const classes = element.matches(controlSelector) ? controls : elsewhere;
   for (const name of element.classList) classes.add(name);
 }
-// a box the CSS draws a control inside (a later compound of some selector names a control): never only words (S005:
-// a project's count line ellipsizes, and "Coordinator needs you" leads it)
 const holders = new Set();
 for (const r of rules) {
   const parts = r.sel.split(/[\s>+~]+/);

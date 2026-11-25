@@ -24,10 +24,9 @@
   --live-1:oklch(var(--live-l) var(--live-c) calc(var(--live-h) - 30)); --live-2:oklch(var(--live-l) var(--live-c) var(--live-h)); --live-3:oklch(var(--live-l) var(--live-c) calc(var(--live-h) + 30));
   --mark-x:#E1E1E1; --mark-o:#83D63A;
   --bubble:#232323; --bubble-line:#303030; --bubble-top:#262626; --bubble-foot:#1F1F1F;   /* theirs in the bubble view: lit from above */
-  --lbx-scrim:rgba(12,12,12,.94); --checker:rgb(128 128 128 / .2);   /* behind a picture: the lightbox, a transparency grid */
+  --lbx-scrim:rgba(12,12,12,.94); --checker:rgb(128 128 128 / .2);
   --term-bg:#111111;
   --code-bg:var(--fill-1);   /* code reads in a well, one step under the surface it sits on */
-  /* the sidebar's plates (rgba, so they sit on the sunken plane) */
   --row-bg:rgba(255,255,255,.022); --row-bg-hover:rgba(255,255,255,.045); --row-on:rgba(255,255,255,.06);
   --row-line:rgba(255,255,255,.05); --row-line-hover:rgba(255,255,255,.09); --row-hi:rgba(255,255,255,.03); --row-hover:rgba(255,255,255,.035);
   /* frosted bars and toasts */
@@ -50,7 +49,6 @@
   --hairline:inset 0 1px 0 rgba(255,255,255,.035); --lift-workspace-mark:var(--e2);
   --scrim:rgba(0,0,0,.55);
   --sha:1;   /* how much a coloured shadow shows: 1 in dark, .28 in light */
-  /* Feedback. A hover is visible (≥ 1.15:1 against rest); a press goes one step further. */
   --hover-fill:rgba(255,255,255,.06); --press-fill:rgba(255,255,255,.09);
   --btn-fill:color-mix(in srgb,var(--ink) 14%,transparent); --btn-fill-hover:color-mix(in srgb,var(--ink) 18%,transparent); --btn-fill-press:color-mix(in srgb,var(--ink) 22%,transparent);
   /* the main action's fill: XO's accent; a flavour may make it the ink (tools/flavours, primary) */
@@ -85,7 +83,7 @@
   --cap-mid-read:.352em; --asc-read:.992em; --desc-read:.31em;
   --cap-mid:var(--cap-mid-ui); --asc:var(--asc-ui); --desc:var(--desc-ui);
   --tr-caps:.04em;   /* a small caps label (FILES, SECTION) */
-  --tr-code:.1em;    /* a code to read out or type (a pairing code) */
+  --tr-code:.1em;
   --fw-regular:400; --fw-read:var(--fw-regular); --fw-medium:500; --fw-strong:600;
   --ink-read:var(--ink);
   --ok-fill:color-mix(in srgb,var(--accent-fill) 16%,transparent); --ok-fill-hover:color-mix(in srgb,var(--accent-fill) 22%,transparent); --ok-fill-press:color-mix(in srgb,var(--accent-fill) 28%,transparent);
@@ -94,13 +92,12 @@
   /* the dock family (every decision card, its folded and done lines, the composer) shares one corner; its controls sit --card-in from the edge */
   --r-card:24px; --card-in:var(--s-3); --card-pad:var(--s-5);
   --comp-ctl:var(--h-ctl); --comp-in:calc(var(--r-card) - var(--comp-ctl) / 2); /* the composer's corner circles, and the inset that makes them concentric */
-  --glass-blur:blur(18px) saturate(1.4); /* the dock's folded and done lines are glass over the conversation */
-  /* a rounded box says its corner and its content's inset as --nest-r and --nest-in; what sits in its corner takes calc(var(--nest-r) - var(--nest-in)) */
+  --glass-blur:blur(18px) saturate(1.4);
   --r-menu:var(--r-lg); --menu-pad:var(--s-1); --menu-row:var(--h-ctl); --menu-w:calc(6 * var(--h-ctl));
   --win-w:calc(32 * var(--h-ctl)); --win-h:calc(20 * var(--h-ctl)); --win-side:calc(7 * var(--h-ctl)); --row-k:calc(5 * var(--h-ctl));
   --r-pop-row:calc(var(--r-menu) - var(--menu-pad) - 1px); /* a menu row inside its popover's padding and 1 px line */
-  --r-lg-in:calc(var(--r-lg) - 1px); /* a box's corner inside a --r-lg box's 1 px border */
-  --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px); /* a row inside a --r-xl box's --s-2 padding and 1 px line */
+  --r-lg-in:calc(var(--r-lg) - 1px);
+  --r-xl-in:calc(var(--r-xl) - var(--s-2) - 1px);
   --r-note:calc(var(--r) + var(--s-2));
   /* Focus and interaction fills extend past bare labels and stay within flush bar cells. */
   --halo:8px; --cell-in:4px;
@@ -110,10 +107,9 @@
   /* Standard controls use the middle height. Inline and primary controls use adjacent steps. */
   --h-sm:24px; --h-ctl:32px; --h-lg:40px; --h-bar:56px;
   --dock-bar:var(--h-row-act); --dock-btn:var(--h-ctl); /* the thread's docked line (a folded ask, the done line): its height inside its line, and its button's */
-  --note-h:var(--h-ctl); --note-btn:var(--h-sm); /* the notice over the composer: a pill a control tall, and its button's height inside it */
-  --pop-x:10px;   /* a popover's inner inset inside its 5 px frame: where its head, labels and rows start */
-  --pop-list-h:min(296px,40dvh);   /* a composer popover's list: its own scroll past this */
-  /* Rows share the control grid with separate heights for compact, action and two-line rows. */
+  --note-h:var(--h-ctl); --note-btn:var(--h-sm);
+  --pop-x:10px;
+  --pop-list-h:min(296px,40dvh);
   --h-row:40px; --h-row-compact:32px; --h-row-act:48px; --h-row-list:56px;
   --h-touch:36px; --h-hit:44px; --tile-sm:28px; --tile:32px; --tile-lg:36px; --tile-xl:44px;
   --mark-sm:var(--s-3);
@@ -124,8 +120,8 @@
   --mask-warn:url(/core/ui/icons/source/xo/d-things-and-kinds/warning.svg) center/contain no-repeat; --mask-next:url(/core/ui/icons/source/xo/b-arrows-and-chevrons/arrow-right.svg) center/contain no-repeat;
   --ic-xs:12px; --ic-sm:14px; --ic-base:16px; --ic:var(--ic-base); --ic-lg:20px;
   --edge-text:var(--s-3); /* words or a bare glyph at a bar's end sit this far inside its line; a filled control nests concentric instead */
-  --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24); /* how far into its box a glyph's ink starts: line icons, chevrons, state marks' discs */
-  --badge-dot:calc(var(--ic) * 3 / 8); /* a dot on an icon (needs you), in proportion to it */
+  --ic-ink:.15; --ic-ink-chev:.21; --mark-ink:calc(2 / 24);
+  --badge-dot:calc(var(--ic) * 3 / 8);
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:28px; --s-8:32px; --s-9:36px; --s-10:40px; --s-12:48px;
   --gap-icon:var(--s-2); /* Spacing follows a 4 px grid. */
   --hair:1px; --scrollbar-track:var(--palette-transparent); --measure-turn:66ch; --h-thread-state-mark:2px;

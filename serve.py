@@ -1,40 +1,5 @@
 #!/usr/bin/env python3
-"""Static server + reverse proxy for the XO projects-chat test UI.
-
-    python3 serve.py              # http://127.0.0.1:5180
-    PORT=5181 XO_API=http://127.0.0.1:5002 python3 serve.py
-
-Serves the files in this folder and forwards every /api/* request to the
-XO Space backend (XO_API, default http://127.0.0.1:5002). Server-Sent Event
-responses are relayed chunk by chunk with no buffering, and a shell's terminal
-WebSocket is tunnelled as raw bytes (the only upgrade it allows).
-
-Why a proxy: the backend refuses browser writes whose Origin it does not
-recognise. This server is the browser's origin, so it applies its own
-same-origin check and then forwards WITHOUT the browser's
-Origin/Referer/Sec-Fetch-* headers (as a server-side proxy would).
-
-What it refuses, whatever the page asks:
-- any request, static files included, not addressed to this server by a name
-  DNS rebinding cannot reach (see `own_origins`), before any routing;
-- any request, read or write, from a page it didn't serve (several backend
-  GETs write or call out);
-- the routes this UI never uses that expose secret values, raw files or
-  file writes anywhere under $HOME (NEVER_FORWARD), in every spelling;
-- a request path with "#" or "." / ".." segments, raw or encoded;
-- a body over 1 MiB, except an attachment upload (up to 25 MiB);
-- any upgrade but a shell's WebSocket (WS_PATH).
-
-What it adds: the UI's writer key (X-XO-UI-Writer, read from the file XO Space keeps it in) on exactly
-two writes, saving a project file and undoing a save (WRITER_ROUTES), after its own same-origin check.
-A page can never send that header itself.
-
-Static files: index.html is rewritten as served so every local file it reaches sits under /v/<version>/
-(the tree's content hash), kept for a year; index.html is revalidated each visit. Text answers, static or
-proxied (not SSE), are gzipped when the browser accepts it.
-
-Standard library only.
-"""
+"""Serve the XO UI and proxy its API, event streams and terminal WebSockets."""
 
 from __future__ import annotations
 
@@ -60,8 +25,7 @@ _UP = urlsplit(XO_API)
 if _UP.scheme not in ("http", "https") or not _UP.hostname:
     sys.exit(f"XO_API must be an http(s) URL, got {XO_API!r}")
 
-# Request headers never forwarded upstream: hop-by-hop ones, and the browser
-# labels the backend's write guard reads (we enforce same-origin ourselves).
+# The proxy validates origin itself and omits browser origin and hop-by-hop headers upstream.
 DROP_REQUEST = {
     "host", "connection", "keep-alive", "proxy-connection", "te", "trailer",
     "transfer-encoding", "upgrade", "origin", "referer", "accept-encoding",
@@ -104,9 +68,7 @@ NEVER_FORWARD = [
 ]
 
 
-# The UI's two file writes: saving a project file and undoing a save.
-# Space accepts them only with the UI's writer key, which this server adds after its own same-origin check,
-# from the file Space keeps it in. No other request carries the key.
+# Add the writer key only to matching routes after the origin check.
 WRITER_ROUTES = [
     ("PUT", re.compile(r"^/api/xo-projects/[^/]+/file$")),
     ("POST", re.compile(r"^/api/xo-projects/[^/]+/edits/[^/]+/undo$")),
@@ -126,8 +88,7 @@ _WRITER = {"stamp": None, "key": None}
 
 
 def clean_path(path: str) -> str:
-    """The path cut at "?" or "#", decoded (twice, for double encoding), slashes collapsed and any trailing
-    slash dropped: the one spelling route checks match against."""
+    """Normalize the route to the spelling used by the proxy's checks."""
     p = unquote(unquote(re.split(r"[?#]", path, maxsplit=1)[0]))
     return re.sub(r"/+", "/", p).rstrip("/") or "/"
 
@@ -148,15 +109,13 @@ def writer_route(method: str, path: str) -> bool:
 
 
 def writer_key_path() -> str:
-    """Where Space keeps the key: ${QUIRQ_STATE_ROOT:-$HOME/.quirq}/secrets/ui-writer.key (its secrets_dir(),
-    services/project_files/writer_key.py), beside the Space's other credentials."""
+    """Find the UI writer key in the Space state directory."""
     root = (os.environ.get("QUIRQ_STATE_ROOT") or "").strip() or os.path.join(os.path.expanduser("~"), ".quirq")
     return os.path.join(os.path.expanduser(root), "secrets", "ui-writer.key")
 
 
 def writer_key() -> str | None:
-    """The key (64 lowercase hex characters), read again whenever the file changes (Space makes a new one
-    when it finds the file missing or invalid); None when there is none."""
+    """Read the key again when its file changes, or return None if it is unusable."""
     path = writer_key_path()
     try:
         st = os.stat(path)
@@ -174,22 +133,19 @@ def writer_key() -> str | None:
 
 
 def never_forward(method: str, path: str) -> bool:
-    """True for a route this proxy refuses: the path cut at "?" or "#", decoded (twice, for double
-    encoding), slashes collapsed and any trailing slash dropped, so no spelling of it slips through."""
+    """Check whether the requested route is blocked by the proxy."""
     p = clean_path(path)
     return any(m in (method, "*") and rx.match(p) for m, rx in NEVER_FORWARD)
 
 
 def odd_path(path: str) -> bool:
-    """True for a path no page of this UI sends: a "#", raw or encoded, or a "." or ".." segment, raw or
-    encoded. The backend doesn't resolve them today; refusing them keeps the checked path the routed one."""
+    """Reject fragment markers or dot segments before routing."""
     p = unquote(unquote(path.split("?", 1)[0]))
     return "#" in path or "#" in p or any(seg in (".", "..") for seg in p.split("/"))
 
 
 def host_port(value: str) -> tuple[str, int | None] | None:
-    """`(host, port)` of a Host-style "host[:port]" value, the host lowercased and an IPv6 one unbracketed;
-    None for an empty or malformed value (spaces, a path, a user, a bad port)."""
+    """Parse and normalize a Host header, or return None for a malformed value."""
     if not value or any(c.isspace() for c in value):
         return None
     try:
@@ -227,21 +183,7 @@ HOSTNAME = re.compile(r"^[a-z0-9_.-]+$")
 
 def own_origins(host_values: list[str], forwarded_hosts: list[str], via_local_proxy: bool,
                 own_port: int) -> list[tuple[str, str, int]] | None:
-    """The origins `(scheme, host, port)` a request says it was sent to, or None when one of them could be
-    a DNS-rebinding name.
-
-    `host_values` are the request's Host headers (exactly one is required), `forwarded_hosts` its
-    X-Forwarded-Host entries; every one of them must name, as "host[:port]":
-    - `localhost` or an IP literal on this server's own port (no port only when that port is 80, the
-      one a browser leaves out over http): the browser connected here directly;
-    - or a hostname, only from a proxy on this machine (`via_local_proxy`: a loopback TCP peer), and
-      not on this server's own port. Coder's app proxy is one: it passes the browser's Host through
-      (the public name, no port) and sets no X-Forwarded-Proto, so nothing but the port can tell it
-      from a page. That is enough: a rebinding page reaches this port directly, so its browser always
-      writes its Host as `name:<own port>`, and a page cannot change Host (it can set X-Forwarded-*,
-      so those prove nothing). A missing port is the scheme's default, so when this server itself
-      listens on 80 or 443 no hostname is accepted at all. A hostname's origin counts only as https.
-    """
+    """Only a loopback proxy can claim an HTTPS hostname on a port other than the listening port."""
     if len(host_values) != 1:
         return None
     origins = []
@@ -278,8 +220,7 @@ def parse_origin(origin: str) -> tuple[str, str, int] | None:
 
 
 MAX_BODY = 1 << 20  # 1 MiB is plenty for a chat message
-# A file attached to a message (hub #30): the backend takes up to 25 MiB; a little more lets its own
-# 413 answer (with the limit in words) rather than ours.
+# Give the backend room to return its own attachment limit message.
 UPLOAD = re.compile(r"^/api/chat/chats/[^/]+/attachments$")
 MAX_UPLOAD = 25 * (1 << 20) + (64 << 10)
 
@@ -289,8 +230,7 @@ WS_PATH = re.compile(r"^/api/terminal/sessions/[A-Za-z0-9_-]{16,64}/ws$")
 
 
 def ws_header(name: str) -> bool:
-    """True for a request header a tunnelled handshake carries upstream: Upgrade, Connection, Sec-WebSocket-*.
-    Never Origin (we judged it), cookies, the Coder token or X-Forwarded-*."""
+    """Allow only the headers needed for the upstream WebSocket handshake."""
     name = name.lower()
     return name in ("upgrade", "connection") or name.startswith("sec-websocket-")
 
@@ -308,8 +248,8 @@ INDEX_PATH = re.compile(r'((?:href|src)=")\./(%s)(?=")' % STATIC_PATH)
 IMMUTABLE = "public, max-age=31536000, immutable"
 GZIP_TYPES = ("text/", "application/json", "application/javascript", "image/svg+xml", "application/xml")
 GZIP_MIN = 1024
-_SHA: dict[str, tuple[tuple, str]] = {}    # path → (stat stamp, sha1 of its bytes)
-_GZ: dict[str, tuple[tuple, bytes]] = {}   # path → (stat stamp, its gzip)
+_SHA: dict[str, tuple[tuple, str]] = {}
+_GZ: dict[str, tuple[tuple, bytes]] = {}
 
 
 def _stamp(st: os.stat_result) -> tuple:
@@ -406,9 +346,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     # ── who may ask: checked before any routing ──────────────────────────────
     def parse_request(self) -> bool:
-        """Parse the request line and headers as usual, then refuse a request not addressed to this server
-        by a name DNS rebinding cannot reach (see `own_origins`), whatever its method or path: no handler,
-        static or proxied, runs for it."""
+        """Validate the destination before dispatching any request."""
         if not super().parse_request():
             return False
         if self._own_origins() is None:
@@ -548,8 +486,7 @@ class Handler(SimpleHTTPRequestHandler):
         origin = self.headers.get("Origin")
         if origin is None:
             return True  # curl, scripts, a same-origin read: not a cross-origin page
-        # Scheme, host and port: a hostname counts only as https (see `own_origins`), so a page on an
-        # http hostname, which only rebinding could make same-origin, never matches. "null" never does.
+        # Match scheme, host and port against the validated destination.
         return parse_origin(origin) in (self._own_origins() or [])
 
     def _json_error(self, status: int, code: str, message: str):
@@ -568,9 +505,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json_error(400, "bad_target", "This UI never sends a request path like this.")
         if never_forward("GET" if method == "HEAD" else method, self.path):
             return self._json_error(403, "not_forwarded", "This UI never uses this route: it exposes secret values or raw files.")
-        # Every forwarded request answers only pages served by this UI (or no page: curl, the address bar).
-        # Reads too: several backend GETs write or call out, and a page from another site, or a sandboxed
-        # preview of an HTML file, must not reach them.
+        # Apply the origin check to reads as well as writes.
         if not self._write_allowed():
             msg = "Cross-origin writes are refused by the UI proxy." if method in WRITE_METHODS else "This is only answered for pages served by this UI."
             return self._json_error(403, "cross_origin", msg)
@@ -637,9 +572,8 @@ class Handler(SimpleHTTPRequestHandler):
 
     # ── WebSocket tunnel ─────────────────────────────────────────────────────
     def _tunnel(self):
-        """Relay a shell's WebSocket to the backend: the checks of `_proxy`, a handshake carrying only the
-        WebSocket headers, then raw bytes both ways until either side ends. Every other upgrade is refused."""
-        self.close_connection = True  # an upgrade's connection is never reused for another request
+        """Validate and relay a terminal WebSocket until either side ends."""
+        self.close_connection = True
         path = self.path.split("?", 1)[0]
         if self.command != "GET" or self.headers.get("Upgrade", "").strip().lower() != "websocket":
             return self._json_error(400, "bad_upgrade", "This server only upgrades a GET to a WebSocket.")
@@ -687,8 +621,7 @@ class Handler(SimpleHTTPRequestHandler):
 
         back = threading.Thread(target=pump, args=(up.recv, client), daemon=True)
         back.start()
-        # Read the client through rfile: bytes it sent right behind the handshake may already sit in rfile's
-        # buffer, and read1 hands those over first, then reads the socket as more come (one read at a time).
+        # Read through rfile first because it can contain bytes buffered during the handshake.
         pump(self.rfile.read1, up)
         back.join(5)
         up.close()

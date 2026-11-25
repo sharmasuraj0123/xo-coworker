@@ -3163,7 +3163,7 @@ t("STACK: the notices' line clears everything docked over the composer: nothing,
   assert.equal(s.gap, WIDTH > 760 ? 10 : 8, "its place with nothing docked is unchanged");
   await done(page);
 });
-// ── RINGCLIP: no clipping box cuts a focused control's ring (C047, C008, C045, S089) ──
+// Check whether overflowing containers clip focus rings.
 // A sweep of the page as drawn: every control in view is focused as Tab would (keepFocusInView brings it in), its ring
 // read as drawn (outline width and offset), and every box around it that clips (overflow either axis, paint
 // containment, a clip path) is checked: the ring stays inside each. Four rows found one box at a time (the runs strip,
@@ -3179,7 +3179,7 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   const sweep = async (where) => { const r = await ringClips(page, where); counts.push(`${where} ${r.n}`); cuts.push(...r.cut); small.push(...r.floor); wraps.push(...r.wrapped); };
   await page.evaluate(() => { window.__t.go("home"); window.__t.render(); }); await page.waitForTimeout(500);
   await sweep("Home");
-  // the project's coordinator asking: "Coordinator needs you" leads its count line (S005)
+  // Put the project coordinator in a state that needs you.
   await page.evaluate(() => { const t = window.__t, pr = t.world.project("demo"), chat = pr && pr.chatId; if (!chat) return;
     t.world.state.hosts = [{ id: "chat:" + chat, host: true, project: "demo", chatId: chat, asker: "coordinator", title: "Coordinator", state: "needs_approval", checklist: { items: [], total: 0, done: 0, doing: 0 }, messages: [], asks: [{ id: "rc-h1", kind: "permission", title: "Run: npm test", detail: "Fixture", risk: "routine" }], live: true, loaded: true, busy: false, createdAt: Date.now(), lastAt: Date.now(), card: {} }]; });
   await toDemo(page); await page.locator("#msgs [data-copy]").first().waitFor({ timeout: 4000 }); await page.waitForTimeout(500);
@@ -3198,10 +3198,10 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
   await toDemo(page); await page.waitForTimeout(400);
   const sw = page.locator("[data-switch]").filter({ visible: true }).first();
   if (await sw.count()) { await sw.focus(); await page.keyboard.press("Enter"); await page.waitForTimeout(500); await sweep("All threads"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
-  // Jump (C020: its field's box ring, clipped by the sheet's card)
+  // Open Jump.
   await page.keyboard.press("ControlOrMeta+k"); await page.locator("#jump-q").waitFor({ state: "visible", timeout: 4000 }).catch(() => {});
   if (await page.locator("#jump-q").isVisible()) { await page.waitForTimeout(300); await sweep("Jump"); await page.keyboard.press("Escape"); await page.waitForTimeout(300); }
-  // a made file opened from Artifacts: in the panel's Files page (on a phone, the panel's sheet; S070)
+  // Open a file from Artifacts.
   await page.evaluate(() => { window.__t.go("artifacts"); window.__t.render(); });
   const mo = page.locator('#arts-body .md-it[data-k] .md-open').filter({ visible: true }).first();
   await mo.waitFor({ timeout: 6000 }); await mo.focus(); await page.keyboard.press("Enter");
@@ -3225,7 +3225,7 @@ t("RINGCLIP: no clipping box cuts a focused control's ring: Home, a project with
 const { stateSweep } = require("./harness.cjs");
 t("STATES: every control in view answers hover and press: Home, a project with its Now shelf and a message's Copy, the Workspace, a thread", async () => {
   if (WIDTH < 760) skip("a phone has no hover");
-  // the project's message holds a file's capsule too (S088, a[data-file]: held looked as hovered)
+  // Open the message's file capsule.
   const page = await app({ messages: MSG("Here is the command, from [package.json](package.json):\n\n```sh\nnpm test\n```\n") });
   const silent = [], counts = [];
   const sweep = async (where) => { const r = await stateSweep(page, where); counts.push(`${where} ${r.n}`); silent.push(...r.silent); };
@@ -3237,14 +3237,14 @@ t("STATES: every control in view answers hover and press: Home, a project with i
   await sweep("a project");
   await page.evaluate(() => { window.__t.go("ws"); window.__t.render(); }); await page.waitForTimeout(600);
   await sweep("the Workspace");
-  // the Now shelf with a thread that needs you (C024: its chip's state drew over its hover)
+  // Open the Now shelf for a thread that needs you.
   await page.evaluate(() => { const t = window.__t;
     for (const n of ["watch", "watchThread", "watchSession", "loadThread", "loadHops", "loadChatHops", "findRows", "listRuns"]) if (t.world.act[n]) t.world.act[n] = async () => {};
     t.world.state.threads.push({ id: "st1", project: "demo", title: "Rework the API", live: false, loaded: true, busy: false, state: "needs_approval", happened: "Fixture", lastAt: Date.now(), messages: [], checklist: { total: 3, done: 1, items: [{ text: "a", state: "done" }, { text: "b", state: "doing" }, { text: "c", state: "todo" }] }, asks: [{ id: "st-a", kind: "permission", title: "Run: npm test", risk: "routine" }] });
     t.go("p:demo"); t.render(); });
   await page.waitForTimeout(700);
   await sweep("a project with a thread needing you");
-  // the lightbox, dark in both themes (S080 Open in Files and Next, S201 Previous: light's press ink on its chrome)
+  // Open the lightbox, whose chrome stays dark in both themes.
   await page.evaluate(async () => {
     const { mediaItem } = await import("./core/services/media/items.js");
     const { mediaHtml } = await import("./core/services/media/render.js");
@@ -3258,7 +3258,7 @@ t("STATES: every control in view answers hover and press: Home, a project with i
     const root = document.createElement("div"); root.id = "lbx-states"; root.style.cssText = "position:fixed;left:24px;top:24px;z-index:50;width:420px"; root.innerHTML = mediaHtml(items); document.body.appendChild(root);
   });
   await page.waitForTimeout(300);
-  // a message's pictures, before the lightbox covers them (S090: hover and press under the picture)
+  // Reach the message's pictures while the lightbox is closed.
   await sweep("a message's pictures");
   await page.evaluate(async () => {
     const { createLightbox } = await import("./modules/conversation/lightbox.js");

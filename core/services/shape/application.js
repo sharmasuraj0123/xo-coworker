@@ -1,6 +1,6 @@
 // @ts-check
 import { api } from "../../platform/api.js";
-import { createShapeStore } from "./index.js";
+import { createShapeStore } from "./store.js";
 
 /** @import { ApplicationShape } from "./application-types" */
 

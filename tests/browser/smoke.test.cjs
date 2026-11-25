@@ -19,7 +19,6 @@ const done = async (page) => {
   assert.deepEqual(drops, [], "focus fell to the page");
 };
 const live = (page) => page.evaluate(() => { const st = window.__t.world.state; st.conn = "live"; st.error = null; st.statusError = null; window.__t.render(); });
-// the composer's row whole: Send and the model chip on screen, Send not under the chip (the grader's C111 on a phone)
 const rowWhole = (page) => page.evaluate(() => { const vw = innerWidth, b = (id) => { const e = document.getElementById(id); return e && e.getClientRects().length ? e.getBoundingClientRect() : null; }; const s = b("send"), q = b("iq"); return { ok: !!s && s.right <= vw && s.width >= 30 && (!q || (q.right <= s.left + 1 && q.width >= 24)), s: s && [Math.round(s.left), Math.round(s.right)], q: q && [Math.round(q.left), Math.round(q.right)], vw }; });
 const typeAndSend = async (page, text) => {
   await live(page);

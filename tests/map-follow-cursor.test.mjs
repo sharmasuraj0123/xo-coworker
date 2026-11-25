@@ -1,9 +1,3 @@
-// Follow keeps the followed agent's cursor in view: its arrow, and its name beside it where there's room, never only the
-// middle of the box it's on (the controls grader's S208-moving-follow, 03:21; reproduced on 70375ad, Tree at 1440: at
-// the zoom you chose, 2.4, the agent moved to a far file, and Follow put that box's middle in view while the arrow, at the
-// box's edge, stood off the view's left). The lead carries the arrow's own point, its side and its name's width; the
-// view is nudged by the least move that brings them inside its margins, the arrow first when both can't fit.
-//   node tests/map-follow-cursor.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createMapDrawing } from "../modules/map/drawing.js";

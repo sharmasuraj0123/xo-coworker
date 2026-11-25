@@ -56,13 +56,6 @@ export function rank(items) {
     x.since - y.since);
 }
 
-
-/** @param {{ t: { happened?: string }, ask: { detail?: string }, group?: string }} n */
-export function whyLine(n) {
-  if (n.group === "stopped") { const w = String(n.t.happened || "It stopped.").replace(/^Stopped:\s*/i, ""); return w.charAt(0).toUpperCase() + w.slice(1); }
-  return n.ask.detail || "";
-}
-
 /** @param {{ t: { happened?: string }, ask: { detail?: string, full?: string } }} n */
 export function evidenceFor(n) {
   const a = n.ask, t = n.t;

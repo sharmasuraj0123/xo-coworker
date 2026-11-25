@@ -10,16 +10,10 @@
 .tb-cf .xd-n{margin-left:var(--s-1)}
 .tb-cf.is-on{background:color-mix(in srgb,var(--ink) 9%,var(--surface));border-color:var(--line-strong);color:var(--ink)}
 
-/* ── the panel's Changes (modules/changes/frame.js): the list, then the chosen file's diff ──
-   Rows are 32 px on the panel's 12 px side margins. Measured from the card's outer edge (its 1 px border
-   included): the head's button, 28 px, sits 4 px in on top and right, so its radius is 12 − 4 = 8; the
-   head is 1 + 3 + 28 + 3 = 35 px with its line, the path 12 px in, as the rows' icons are. */
 .stage .fr[data-fr="changes"] .fr-b{display:flex;flex-direction:column;overflow:hidden}
 .stage .cx-host{flex:1;min-height:0;display:flex;flex-direction:column}
 .stage .cx{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
-/* the list shows five whole rows (5 × 32 + 4 × 2 = 168 px), then scrolls a row at a time; its 8 px foot is
-   outside the scroller, so the sixth row never peeks in. In a short frame (Changes is the size container that
-   takes the room that's left), as many whole rows as fit above the diff's 120 px and its 12 px margin */
+/* The list scrolls in whole rows and keeps its foot outside the scroller. */
 .stage .cx-list{flex:none;list-style:none;display:flex;flex-direction:column;gap:2px;max-height:min(168px,calc(round(down,100cqh - 178px,34px) - 2px));margin:0 0 8px;padding:0 12px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-snap-type:y mandatory}
 /* Reserve the full row height for offscreen files so scrolling stays stable. */
 .stage .cx-list>li{flex:0 0 32px;scroll-snap-align:start;content-visibility:auto;contain-intrinsic-size:auto 32px}
@@ -140,7 +134,7 @@
 .xd-runs{flex:none;display:inline-flex;align-items:center;gap:4px;height:var(--h-sm);padding:0 8px 0 6px;margin-right:4px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--warn) 12%,transparent);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:color-mix(in srgb,var(--warn) 70%,var(--ink))}
 .xd-runs svg{width:var(--ic-sm);height:var(--ic-sm)}
 /* the run-code question, under Save */
-.vw-top{position:relative;z-index:3} /* above the file below it: the run-code question opens over the code */
+.vw-top{position:relative;z-index:3}
 .xd-pop{position:absolute;z-index:var(--z-panel);top:calc(100% + 8px);right:8px;width:320px;padding:12px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);box-shadow:var(--e2);font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);color:var(--ink-2);animation:xd-in var(--d-in) var(--ease)}
 :root[data-theme="light"] .xd-pop{background:var(--surface)}
 .xd-pop p{margin:0}
@@ -159,13 +153,11 @@
   /* Place toast actions below the message and close button on phones. */
 }
 
-/* the head's ⋯ (js/viewer.js moreHtml): Copy, Copy path and Download in a menu. While a copy or a download
-   lasts, the ⋯ says so in words ("Copied", "Downloading…"): the menu has closed by then */
 .vw-mw{position:relative;display:flex}
 .vw-more:is(.is-done,.is-busy){width:auto;padding:0 10px 0 8px;gap:4px}
 .vw-more:is(.is-done,.is-busy) span{display:inline;font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 .vw-more.is-done{color:var(--go)}
-.vw-more.is-busy{color:var(--ink-2)} /* its spinner in the second ink: 9.9:1 on the dark head, 10:1 on the light (C092 at 320) */
+.vw-more.is-busy{color:var(--ink-2)}
 .vw-more .spin{width:12px;height:12px}
 .vw-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:var(--z-panel);display:flex;flex-direction:column;min-width:176px;
   padding:var(--menu-pad);border-radius:var(--r-menu);border:1px solid var(--line-soft);background:var(--float);box-shadow:var(--lift-3)}
@@ -174,9 +166,7 @@
 .vw-menu svg{flex:none;width:var(--ic);height:var(--ic);color:var(--ink-3)}
 @media (prefers-reduced-motion:reduce){.vw-menu{animation:none}}
 
-/* an image change (modules/changes/imagechange.js): the image itself, fitted on a checkerboard (its transparent parts show
-   as such), and a line under it: what changed, its size, what can't be shown. In the panel's pane and in
-   Files' Changes view */
+/* The checkerboard reveals transparent parts of an image change. */
 .stage .cx-im{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
 .stage .cx-im[hidden]{display:none}
 .ximg{flex:1 1 0;min-height:0;height:100%;display:flex;flex-direction:column;margin:0}

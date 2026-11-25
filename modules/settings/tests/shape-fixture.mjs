@@ -8,7 +8,7 @@ const PAGE = `<section id="settings"><nav class="set-nav">${RAIL.map((id) => `<b
 /** own: a change of your own on top of the preset, so Reset to preset has something to reset. @param {{ advanced?: string[], own?: boolean }} [o] */
 export async function shapePage({ advanced = [], own = false } = {}) {
   await dom(PAGE);
-  const { createShape } = await import("../../../core/services/shape/index.js");
+  const { createShape } = await import("../../../core/services/shape/model.js");
   const { createShapeView, UNKEPT } = await import("../shape-page.js");
   const heldSubs = new Set();
   const said = [];

@@ -16,8 +16,6 @@
 /* a reply's text lines stop at --measure; code, tables, charts, pictures and cards keep the whole column */
 .prose>:is(p,ul,ol,blockquote,.md-h){max-width:min(var(--measure),42em)}
 :root:not([data-msgx]) .m-you .bubble{border:0;background:var(--mx-you);box-shadow:var(--mx-you-hi);color:var(--mx-you-ink)}
-/* a line between messages (a thread finished, a decision): its icon centred on the mark's 24 px, its words on the
-   names' edge (24 + 8) */
 :root:not([data-msgx]) .msgs>.ev{gap:8px}
 :root:not([data-msgx]) .msgs>.ev>.ev-ic{margin:0 var(--s-1)}
 /* someone replying: the dots lead its line, on the text's edge, no mark */
@@ -27,8 +25,6 @@
 /* an agent's Reply and Copy are its action row; yours stay beside your bubble, on hover (no row under it) */
 :root:not([data-msgx]) :is(.m-them,.m-turn) .mx-acts{display:none!important}
 
-/* the rhythm is the conversation's: a project's empty page (.m-start, "What should get done in…?") isn't a message
-   and keeps its own margin:auto, which centres it in the room (css/app.css) */
 :root:not([data-msgx]) .msgs>:not(.m-start){margin-block:var(--s-4)}
 :root:not([data-msgx]) .msgs>.m:not(.m-card){margin-top:var(--s-6)}
 :root:not([data-msgx]) .msgs>.ev{min-height:var(--h-sm);margin-block:var(--s-4)}
@@ -44,8 +40,7 @@
 :root:not([data-msgx]) .msgs>.m:has(>.mb>.mx-actrow):last-child{margin-bottom:calc(var(--mx-b) + var(--s-2))}
 :root:not([data-msgx]) .msgs>.m>.mb:has(>.mx-actrow){position:relative}
 :root:not([data-msgx]) .typing{padding-bottom:16px}
-/* someone replying is a new speaker: 24 above it, whatever the conversation ends with (its margin collapses with the
-   last message's, through #msgs and #typing, so the larger wins) */
+/* A new speaker's margin collapses through the intervening containers. */
 :root:not([data-msgx]) :is(#typing,#ttyping)>.typing{margin-top:24px}
 /* inside a reply */
 :root:not([data-msgx]) .prose>*+*{margin-top:12px}
@@ -62,12 +57,7 @@
 :root[data-msgx] :is(.tb-wh,.ty-b)>.dots{display:none}
 :root:not([data-msgx]) :is(:is(#typing,#ttyping),.msgs) .shimmer{font-weight:var(--fw-regular)}
 
-/* ── the action row (js/msgx.js actionRows) ────────────────────────────────────
-   Icon buttons of --mx-b (32, --h-ctl; 36 on a phone) on the text's edge: the first icon's 16 px glyph sits
-   (b − 16) / 2 into its button, so the row starts that far out and the glyph lands on the edge itself. One row per
-   reply, under its last message (js/msgx.js actionRows). Quiet at rest:
-   the row holds its place (no shift on hover) and shows on hover or focus; the latest reply's always shows.
-   Between messages: the row, then 8 px, so a run of messages keeps one rhythm. */
+/* Offset the action row by half the extra button width to align the glyph with the text. */
 .mx-actrow{display:none}
 :root:not([data-msgx]) .msgs{--mx-b:var(--h-ctl)}
 :root:not([data-msgx]) .mx-actrow{position:absolute;top:100%;left:calc((var(--ic) - var(--mx-b,var(--h-ctl))) / 2);display:flex;align-items:center;height:var(--mx-b,var(--h-ctl));opacity:0;transition:opacity var(--d-out) var(--ease)}
@@ -81,8 +71,6 @@
 .mx-actrow [aria-pressed="true"] svg{fill:currentColor;fill-opacity:.2}
 .mx-actrow time{padding:0 8px;font:var(--fw-regular) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-4);font-variant-numeric:tabular-nums;white-space:nowrap}
 .mx-actrow time:empty{display:none}
-/* a phone's controls are 36 at least (css/phone.css's floor, ≤ 760 px), and a finger has no hover: the buttons take
-   36 (the row's offset follows, so the glyph stays on the edge), and without hover every row shows */
 @media (max-width:760px){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}}
 @media (hover:none){:root:not([data-msgx]) .msgs{--mx-b:calc(var(--h-ctl) + var(--s-1))}:root:not([data-msgx]) .mx-actrow{opacity:1}}
 
@@ -105,8 +93,6 @@
 :root:not([data-msgx]) .tc-foot{gap:8px;margin-top:4px;font:var(--fw-regular) var(--fs-meta)/var(--lh-ui) var(--sans)}
 :root:not([data-msgx]) .tc-go{gap:4px}
 :root:not([data-msgx]) .tc-go svg{width:var(--ic-sm);height:var(--ic-sm)}
-/* Decide: at the foot's right end, on the text edge, a 24 px pill in the ask's amber (centred on the foot's line);
-   Open steps aside for it */
 :root:not([data-msgx]) .tcard.st-needs>.tc-dec{position:absolute;right:16px;bottom:calc(var(--s-3) + (var(--lh-ui) - var(--h-sm)) / 2);width:var(--dec-w);height:var(--h-sm);margin:0;padding:0;border-radius:var(--r-pill);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans)}
 :root:not([data-msgx]) .tcard.st-needs .tc-go{margin-right:calc(var(--dec-w) + 8px)}
 @media (max-width:760px){
@@ -117,10 +103,7 @@
   :root:not([data-msgx]) .tc-top b{width:100%;white-space:normal;overflow-wrap:anywhere}
 }
 
-/* ── math (KaTeX, js/rich.js) ─────────────────────────────────────────────────
-   Before it's drawn (a beat, while KaTeX loads between keystrokes), a formula shows its TeX quietly, in the code
-   face; drawn, it takes the text's colour. A displayed formula is centred on its own line and scrolls sideways on
-   its own when it's wider than the column, never the page. */
+/* Display math scrolls within its column when it is wider than the text. */
 .md-math:not(.is-done){font:var(--fw-regular) .9em/inherit var(--mono);color:var(--ink-3)}
 .md-math.is-failed{color:var(--ink-3)}
 .md-math.is-block{display:block;text-align:center}
@@ -134,11 +117,7 @@
 /* inline, a formula keeps the line's height: tall pieces (fractions, sums) sit in it rather than push lines apart */
 .md-math:not(.is-block) .katex{line-height:1}
 
-/* ── charts (js/chart.js) ─────────────────────────────────────────────────────
-   One palette in fixed order (the data-viz method's validated eight: CVD-safe adjacent pairs, light and dark stepped
-   separately against our canvases). Text never wears a series colour; identity is the legend's swatch, the table and
-   the hover. Marks: 2 px lines, 8 px dots with a 2 px ring of the chart's surface, columns ≤ 24 px with the scale's 6 px round
-   ends square at the baseline, gridlines a hairline. */
+/* Charts identify each series with its swatch and label. */
 :root{--viz-1:#3987e5;--viz-2:#d95926;--viz-3:#199e70;--viz-4:#c98500;--viz-5:#d55181;--viz-6:#0ca30c;--viz-7:#9085e9;--viz-8:#e66767}
 :root[data-theme="light"]{--viz-1:#2a78d6;--viz-2:#eb6834;--viz-3:#1baf7a;--viz-4:#eda100;--viz-5:#e87ba4;--viz-6:#008300;--viz-7:#6250d6;--viz-8:#e34948}
 .md-chart{--mc-bg:var(--fill-1);margin:16px 0;padding:16px 16px 12px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--mc-bg);font-variant-numeric:tabular-nums}
@@ -175,9 +154,6 @@
 .mc-tip strong{font-weight:var(--fw-medium)}
 @media (max-width:760px){.mc-frame{grid-template-rows:auto 168px 24px auto}.md-chart{padding:12px 12px 8px}}
 
-/* ── diagrams (Mermaid, js/rich.js) ───────────────────────────────────────────
-   On the same quiet card as a chart, drawn in XO's own tokens (stone nodes, hairline edges, ink words). Until it's
-   drawn, its source shows dimmed in the code face; a diagram Mermaid can't read stays its source, with why. */
 .md-diagram{margin:16px 0;padding:16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--fill-1);overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
 /* its natural width at most; never under 80 % of it (a phone scrolls the card sideways rather than shrink the words) */
 .md-diagram>svg{display:block;width:100%;max-width:var(--dg-w,100%)!important;min-width:calc(var(--dg-w,0px) * .8);height:auto;margin:0 auto}

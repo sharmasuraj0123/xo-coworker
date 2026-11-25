@@ -9,7 +9,7 @@ globalThis.fetch = async (url) => {
   const path = fileURLToPath(url);
   return existsSync(path) ? new Response(readFileSync(path, "utf8")) : new Response(null, { status: 404 });
 };
-const { createShapeStore } = await import("../core/services/shape/index.js");
+const { createShapeStore } = await import("../core/services/shape/store.js");
 const store = createShapeStore({ storage: { getItem: () => null, setItem() {}, removeItem() {} } });
 for (const id of ["engineering", "marketing"]) {
   const doc = await store.loadPreset(id, { fresh: true });

@@ -1,8 +1,3 @@
-// A thread's resolve has one notice (C041, the controls grader on 1ef7056): a refused resolve says "Couldn't resolve it
-// · Retry"; when a later resolve of the same thread goes through, that notice is replaced (on screen or waiting), or
-// taken away when the outcome has nothing to say. It never stays with a live Retry that would resolve the thread again.
-// The real herald (core/services/notices.js) with a hand-moved clock, and how the app's resolveThread uses it (js/app.js).
-//   node tests/conv-herald-resolve.test.mjs
 import assert from "node:assert/strict";
 import { createThreadResolve } from "../modules/threads/resolve.js";
 

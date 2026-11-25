@@ -181,7 +181,6 @@ async function renameTo(page, text) {
   await page.locator("#tw-edit").fill(text);
 }
 
-// ── CONV-1 · S009: rename ───────────────────────────────────────────────────
 t("CONV-1 S009: a refused rename keeps the typed name in the field, with focus; the retry renames", async () => {
   const page = await app({ patchFail: true });
   await openThread(page, "t_login");
@@ -253,7 +252,6 @@ t("CONV-1 S009: an IME's composing Enter or Escape in the rename field neither s
   await done(page);
 });
 
-// ── CONV-4 · C042: the thread menu ──────────────────────────────────────────
 t("CONV-4 C042: ↓ ↑ Home End walk the thread menu; Escape returns to ⋯; Tab closes it and moves on", async () => {
   const page = await app();
   await openThread(page, "t_login");
@@ -286,7 +284,6 @@ t("CONV-4 C042: ↓ ↑ Home End walk the thread menu; Escape returns to ⋯; Ta
   await done(page);
 });
 
-// ── CONV-4 · C045: the checklist ────────────────────────────────────────────
 t("CONV-4 C045: Enter on the checklist opens it and keeps focus on the same toggle; again closes it", async () => {
   const page = await app();
   await openThread(page, "t_docs");
@@ -319,7 +316,6 @@ t("C045: a thread with no steps shows no checklist toggle; with its first step t
   await done(page);
 });
 
-// ── CONV-5 · C041: Resolve in the thread's header ───────────────────────────
 t("CONV-5 C041: two presses while Resolve is out send one request; focus stays on the button, now Reopen", async () => {
   let release;
   const page = await app({ patchGate: new Promise((ok) => (release = ok)) });
@@ -367,7 +363,6 @@ t("CONV-5 C041: a refused Resolve says so, the button is Resolve again with focu
   await done(page);
 });
 
-// ── CONV-6 · S040: Edit on a failed thread message ──────────────────────────
 async function failSend(page, text) {
   page.W.postFail = true;
   await page.locator("#say").fill(text);
@@ -417,7 +412,6 @@ t("CONV-4 S039: Retry on a failed message is one request while it's out, and foc
   await done(page);
 });
 
-// ── CONV-3 · S046: a new chat's permission mode ─────────────────────────────
 t("CONV-3 S046: a new chat's modes are one Tab stop; arrows and Space choose, and focus stays on the choice", async () => {
   const page = await app({ runtimes: [RUNTIME] });
   await page.evaluate(() => window.__t.go("chats"));
@@ -453,7 +447,6 @@ t("CONV-3 S046: a new chat's modes are one Tab stop; arrows and Space choose, an
   await done(page);
 });
 
-// ── CONV-7 · S043 S048: a plain chat's Retry and the would-stop question ────
 async function chatOpen(W) {
   const page = await app({ runtimes: [RUNTIME], sessions: [CHAT()], ...W });
   await page.evaluate(() => window.__t.go("c:cse_chat1"));
@@ -496,7 +489,6 @@ t("CONV-7 S048: answering the would-stop question sends once, as chosen, and foc
   await done(page);
 });
 
-// ── CONV-8 · S170 S171: a phone's long-press menu on a message ──────────────
 async function longPress(page, sel) {
   const b = await page.locator(sel).first().boundingBox();
   const cdp = await page.context().newCDPSession(page);
@@ -560,7 +552,6 @@ t("CONV-8: Escape closes the long-press menu and returns focus to the message; �
   await done(page);
 }, { only: (c) => c.width < 760 });
 
-// ── CONV-9 · C027: Back to the latest and a notice above the composer ───────
 t("CONV-9 C027: a notice above the composer never covers Back to the latest; pressing it goes to the latest", async () => {
   const page = await app({ threadMsgs: { t_login: MSGS("t_login", 40) }, patchFail: true });
   await openThread(page, "t_login");
@@ -681,7 +672,6 @@ t("H28 S016: a focused Remove keeps focus when its upload finishes; Retry hands 
   assert.match(await focusIs(page), /\[data-a=x\]/);
   await done(page);
 });
-// ── a new chat's model: focus through a catalog arriving (S152), one truth for a model that's gone (S153) ──
 const RT2 = (name) => ({ ...RUNTIME, name, default: name === "claude_code" });
 const MODEL = (id, name) => ({ id, name, efforts: [], is_default: false, takes_effort: false, family: id, family_default: true, description: "" });
 t("S152: a catalog arriving while Model has focus keeps focus on Model, with the new choices", async () => {
@@ -926,7 +916,6 @@ t("RPL-5: a swipe-to-reply the system cancels never replies; released armed, it 
   await done(page);
 }, { only: (c) => c.width < 760 });
 
-// ── S150: a thread's own decision notice opens its folded dock ───────────────
 t("S150: the notice for this thread's own decision unfolds its folded card and focuses it", async () => {
   const threads = [...THREADS(), TH("t_ask", "Pick a database", "needs_reply", { card: { needs_you: "Which database should it use?" } })];
   const page = await app({ threads });
@@ -995,7 +984,6 @@ t("every chosen control in view answers the pointer in a thread and on Home", as
   await done(page);
 }, { only: (c) => c.width >= 760 });
 
-// ── ROWS · C048: a Chats row is 56 at every width (its phone floor of 58 drew 66) ────────────────────────
 t("ROWS C048: every Chats row is 56, on a desktop and on a phone", async () => {
   // chats to list (the suite's plain chat, and one more with its own title), as the Chats cases draw them
   const page = await app({ runtimes: [RUNTIME], sessions: [CHAT(), CHAT({ id: "cse_chat2", title: "A second chat", updated_at: NOW })] });
@@ -1008,7 +996,6 @@ t("ROWS C048: every Chats row is 56, on a desktop and on a phone", async () => {
   await done(page);
 });
 
-// ── STATES · S002, C052: a finished turn's tool disclosure and a message's Copy answer hover and press ─────
 const { stateSweep } = require("./harness.cjs");
 t("STATES S002 C052: a finished turn's controls (its tool disclosure, its Copy and Reply) answer hover and press", async () => {
   const page = await liveTurn();
@@ -1026,7 +1013,6 @@ t("STATES S002 C052: a finished turn's controls (its tool disclosure, its Copy a
   await done(page);
 }, { only: (c) => c.width >= 760 });
 
-// ── DET-3 · S003: Try again on a failed history read ────────────────────────
 for (const where of ["project", "thread"]) {
   t(`DET-3 S003: Try again on earlier messages (${where}) keeps focus on the conversation while it reads, then on Try again`, async () => {
     const W = { olderFail: true };
@@ -1049,7 +1035,6 @@ for (const where of ["project", "thread"]) {
   });
 }
 
-// ── DET-1 · S002 and DET-2 · C121/C050: a live turn's output and its working line ──
 const SID = "cse_th1", TURN = "turn_det1";
 const env = (type, data, x = {}) => ({ type, envelope: { type, id: null, seq: null, ts: new Date().toISOString(), chat_id: "chat_demo", session_id: SID, thread_ts: "t_live", turn_id: TURN, run_id: null, data, ...x } });
 const ROW = (x) => ({ call_id: "call-det", kind: "command", tool: "Bash", line: "Run the tests", status: "running", target: "npm test", summary: null, ...x });

@@ -226,7 +226,7 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .rt-check:has(input:checked){border-color:transparent;background:color-mix(in srgb,var(--accent-fill) 10%,transparent);color:var(--ink)}
 .rt-check input{accent-color:var(--accent-fill)}
 .rt-check:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:1px}
-.rt-check input:focus-visible{outline:none} /* the label draws the one ring for its box: never two (C115) */
+.rt-check input:focus-visible{outline:none}
 @media (max-width:760px){
   .rt-w{grid-template-columns:96px minmax(60px,1fr) auto}
   .rt-def{flex-direction:column;align-items:stretch}
@@ -262,7 +262,6 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .ev-ctl.is-stop .ev-t{color:var(--ink-2)}
 
 /* ── the picker's first choice: the runtime (mixed runtimes), then model, then effort ─────────────── */
-/* a long catalog scrolls inside the picker; what the choice means stays on screen */
 
 /* Settings › Runtimes: the defaults, four plain rows that save as they change */
 .rt-defs{display:flex;flex-direction:column}

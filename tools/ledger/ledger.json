@@ -9526,8 +9526,8 @@
    "reason": "The old card suggestion line was removed. Decision ranking no longer exposes this helper."
   },
   "js/content.js::exports::whyLine": {
-   "status": "moved",
-   "home": "modules/decisions/rank.js"
+   "status": "deleted",
+   "reason": "The decision renderer does not use the old explanation helper."
   },
   "js/content.js::exports::evidenceFor": {
    "status": "moved",
@@ -9554,8 +9554,8 @@
    "reason": "The old card suggestion line was removed. No current renderer calls this helper."
   },
   "js/content.js::functions::whyLine": {
-   "status": "moved",
-   "home": "modules/decisions/rank.js"
+   "status": "deleted",
+   "reason": "The decision renderer does not use the old explanation helper."
   },
   "js/content.js::functions::evidenceFor": {
    "status": "moved",
@@ -9590,8 +9590,8 @@
    "home": "modules/create-project/create.js"
   },
   "js/decide.js::exports::riskLabel": {
-   "status": "moved",
-   "home": "modules/decisions/needs.js"
+   "status": "deleted",
+   "reason": "No decision surface reads the old standalone risk label."
   },
   "js/decide.js::exports::createDecisions": {
    "status": "moved",

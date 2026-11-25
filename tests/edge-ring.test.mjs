@@ -1,7 +1,3 @@
-// A control at the top of the screen keeps its whole ring (the controls grader on 8aa58d3, S070: a ring 4 px out lost
-// its top at 390). Files' own head went with the Files place (Files is a page of the panel); the browser check is the
-// ring sweep, which reads the screen's edges as a clip (flows RINGCLIP, four cells).
-//   node tests/edge-ring.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
