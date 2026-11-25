@@ -1,5 +1,5 @@
 // @ts-check
-import { client, NEWEST } from "./client.js";
+import { client, NEWEST, reportReadFailure } from "./client.js";
 import { mergeRows, pageAfter, canPageOlder, framesShort } from "../world/rows.js";
 import { PAGE, OLDER_PAGE } from "./config.js";
 
@@ -120,7 +120,7 @@ export function installHistory(ctx) {
         if (signal.aborted) return;
         for (const f of d.events || []) if (f.type !== "thread.control" && f.type !== "thread.continued") state.turns.apply({ type: f.type, envelope: f });
         framesBefore.set(session, d.next_before_seq ?? null);
-      } catch { return; /* the messages still land; their work shows when it can be read */ }
+      } catch (error) { reportReadFailure(error, signal, true); return; }
     }
   }
   /** A coordinator's control of a thread, once per stored event, in order. */
@@ -133,12 +133,13 @@ export function installHistory(ctx) {
     list.sort((/** @type {Row} */ a, /** @type {Row} */ b) => (a.seq ?? Infinity) - (b.seq ?? Infinity));
     return true;
   };
-  // its frames, and the thread's control rows and move, read side by side: a thread's first page waits for both
   ctx.loadTurns = async (session) => {
     if (signal.aborted) return;
     const [d, c] = await Promise.all([
-      client.events({ session, before_seq: NEWEST, limit: 500 }, { signal }).catch(() => null), // live frames still arrive
-      client.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 }, { signal }).catch(() => null),
+      client.events({ session, before_seq: NEWEST, limit: 500 }, { signal })
+        .catch((error) => { reportReadFailure(error, signal, true); return null; }),
+      client.events({ session, kinds: "thread.control,thread.continued", before_seq: NEWEST, limit: 500 }, { signal })
+        .catch((error) => { reportReadFailure(error, signal, true); return null; }),
     ]);
     if (signal.aborted) return;
     if (d) {
@@ -172,7 +173,6 @@ export function installHistory(ctx) {
     }
     if (q && q.size && !findT) findT = scope.timeout(walkFound, 0);
   };
-  // what it finds goes to state.found, never the visible timeline
   async function walkFound() {
     findT = null;
     const jobs = [...wanted]; wanted.clear();
@@ -186,7 +186,7 @@ export function installHistory(ctx) {
         const from = Math.min(top === Infinity ? Infinity : top + 1, floor);
         let d;
         try { d = await client.messages(chat, { before_seq: from === Infinity ? NEWEST : from, limit: 50 }, { signal });
-      if (signal.aborted) return; } catch { return; }
+        } catch (error) { reportReadFailure(error, signal); return; }
         if (signal.aborted) return;
         const rows = d.messages || [];
         for (const r of rows) { map.set(r.id, r); q.delete(r.id); }
