@@ -1,21 +1,25 @@
 // @ts-check
 
-/** @typedef {import("../core/kernel/types").PlaceDef} PlaceDef @typedef {import("../core/kernel/types").Kernel} Kernel @typedef {import("../core/kernel/types").Undo} Undo */
+/** @import { Entry, Kernel, PlaceDef, Undo } from "../core/kernel/types" */
 
-/** @param {string} place @param {string[]} strings @param {string[]} fns @returns {(e: any) => void} */
+/** @param {string} place @param {string[]} strings @param {string[]} fns @returns {(e: Entry) => void} */
 const needs = (place, strings, fns = []) => (e) => {
-  for (const k of strings) if (typeof e[k] !== "string" || !e[k]) throw new Error(`${place} "${e.id}": ${k} must be a non-empty string`);
-  for (const k of fns) if (typeof e[k] !== "function") throw new Error(`${place} "${e.id}": ${k} must be a function`);
+  for (const k of strings) {
+    const value = Reflect.get(e, k);
+    if (typeof value !== "string" || !value) throw new Error(`${place} "${e.id}": ${k} must be a non-empty string`);
+  }
+  for (const k of fns) if (typeof Reflect.get(e, k) !== "function") throw new Error(`${place} "${e.id}": ${k} must be a function`);
 };
 
-/** @type {Array<PlaceDef & { requires: string[] }>} */
-const DEFS = [
+/** @type {[string, PlaceDef["kind"], PlaceDef["scope"], string, boolean, string[], string[]][]} */
+const SPECS = [
   ["page", "keyed", "app", "A main page, keyed by route kind (home, ws, p, t, c, chats, artifacts).", false, [], ["mount"]],
   ["rail.entry", "list", "app", "An entry in the left rail's top list; the shape orders and hides them.", true, ["label", "icon"], ["onPress"]],
   ["rail.section", "list", "app", "A section of the left rail below its entries (Projects).", false, [], ["mount"]],
   ["rail.foot", "list", "app", "A control at the foot of the left rail (account, theme, settings).", false, ["label", "icon"], ["onPress"]],
   ["header.title", "keyed", "conversation", "How the header names what is open, keyed by route kind.", false, [], ["render"]],
   ["header.badge", "list", "conversation", "A small mark beside the header's title (runtime, needs you).", false, [], ["render"]],
+  ["header.detail", "list", "conversation", "A detail drawn into a named host below the conversation header.", false, [], ["render"]],
   ["header.action", "list", "conversation", "A button in the header (Threads, Resolve, Deploy, Map, the panel).", true, ["label", "icon"], ["onPress"]],
   ["thread.menu", "list", "conversation", "An item in a thread's ⋯ menu, in a named group.", true, ["label", "group"], ["run"]],
   ["thread.head", "list", "conversation", "A strip under a thread's header (checklist, sub-agents).", false, [], ["mount"]],
@@ -49,10 +53,9 @@ const DEFS = [
   ["shortcut", "keyed", "app", "A key binding for a command, in a scope (global, decision, editor, diff, panel).", false, ["keys", "command"], []],
   ["pre-paint", "list", "app", "A flag set on <html> before the first paint (theme, bubbles, density).", false, [], ["apply"]],
   ["world.reducer", "keyed", "app", "How one stream frame type changes the world, keyed by frame type.", false, [], ["reduce"]],
-].map(([id, kind, scope, description, openToApps, strings, fns]) => ({
-  id: /** @type {string} */ (id), kind: /** @type {any} */ (kind), scope: /** @type {any} */ (scope), description: /** @type {string} */ (description),
-  openToApps: /** @type {boolean} */ (openToApps), requires: [.../** @type {string[]} */ (strings), .../** @type {string[]} */ (fns)],
-  check: needs(/** @type {string} */ (id), /** @type {string[]} */ (strings), /** @type {string[]} */ (fns)),
+];
+const DEFS = SPECS.map(([id, kind, scope, description, openToApps, strings, fns]) => ({
+  id, kind, scope, description, openToApps, requires: [...strings, ...fns], check: needs(id, strings, fns),
 }));
 
 export const PLACES = Object.freeze(DEFS);

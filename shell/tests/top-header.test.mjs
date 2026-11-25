@@ -4,6 +4,7 @@ import { dom } from "../../tests/lib/dom.mjs";
 import { createKernel } from "../../core/kernel/index.js";
 import { definePlaces } from "../places.js";
 import { createTopHeader } from "../top-header.js";
+import { createScope } from "../../core/kernel/scope.js";
 
 const { document } = await dom('<header id="top"><button id="top-back" hidden></button><div id="top-who"></div><div id="top-end"></div></header>');
 const K = createKernel();
@@ -12,6 +13,7 @@ K.places.contribute("header.action", { id: "outline", label: "Outline", icon: "p
 let view = "p:p";
 const thread = { id: "t", project: "p", state: "working", busy: true };
 const calls = [];
+K.bus.on("app:conversation-header", () => calls.push("since"));
 let title = "<h1>Project</h1>";
 const top = document.getElementById("top");
 const back = document.getElementById("top-back");
@@ -28,8 +30,7 @@ const render = createTopHeader({
   kernel: K, atOf: () => ({ project: "p" }), LW: { isOpen: false },
   LP: { button: () => "<button>Deploy</button>", ensure: () => calls.push("launchpad") },
   tdelRender: () => calls.push("delete"),
-  REC: { sinceLine: () => calls.push("since") },
-});
+}, createScope(), () => {});
 render([]);
 assert.equal(back.hidden, true);
 assert.deepEqual([...end.children].map((control) => control.textContent), ["Threads", "Outline", "Deploy", "Panel"]);

@@ -4,8 +4,10 @@ import { publishedRules, resolveValue } from "./lib/css-snapshot.mjs";
 import { dom } from "./lib/dom.mjs";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
 import { createScope } from "../core/kernel/scope.js";
+import { createKernel } from "../core/kernel/index.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createTopHeader } from "../shell/top-header.js";
+import { definePlaces } from "../shell/places.js";
 
 let passed = 0;
 const t = async (name, fn) => { try { await fn(); passed++; console.log("  ok  " + name); } catch (e) { console.error("  FAIL " + name + "\n" + (e.stack || e.message)); process.exitCode = 1; } };
@@ -129,12 +131,15 @@ await t("A requested stop retains its explanation across the header, checklist a
     stop: { by: "you", reason: "Finishing for today" }, checklist: { total: 1, done: 0, items: [{ state: "doing", text: "First task" }] } };
   const view = () => "t:t";
   const convThread = () => thread, isBusy = () => false;
+  const kernel = createKernel(), scope = createScope();
+  definePlaces(kernel);
   const { render: checklistRender } = createChecklistRenderer({
-    view, scope: createScope(), convThread, SHAPE: { on: () => false }, runsStrip: () => "", schedule() {},
+    view, scope, convThread, SHAPE: { on: () => false }, runsStrip: () => "", schedule() {},
   });
   const header = createTopHeader({ location: { view, parentOf: () => undefined },
     convThread, isBusy, checklistRender, CH: { isChats: () => false }, STAGE: { button: () => "" },
-    PROJ: () => "Project", conversationHeaderHtml: () => ({ who: "<h1>Test</h1>", controls: "" }), LP: { ensure() {} }, tdelRender() {}, REC: { sinceLine() {} } });
+    PROJ: () => "Project", conversationHeaderHtml: () => ({ who: "<h1>Test</h1>", controls: "" }),
+    LP: { ensure() {} }, tdelRender() {}, kernel }, scope, () => {});
   const { panelThreads } = createThreadGroups({ world: { state: { threads: [thread] } }, D: { needItems: () => [] }, MAP: { agents: () => [] },
     convProject: () => "p", askShort: () => "", threadMark: () => "", isBusy, isHeld: () => false });
   header([]);
@@ -152,6 +157,7 @@ await t("A requested stop retains its explanation across the header, checklist a
       .flatMap((rule) => rule.declarations.filter(({ p }) => p === property).map(({ v }) => resolveValue(v)));
     assert.deepEqual(values, [resolveValue("var(--ink-4)")]);
   }
+  scope.dispose();
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ", some FAILED" : ""}`);

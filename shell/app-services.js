@@ -5,13 +5,17 @@
 /** @import { AppServices } from "./app-service-types.d.ts" */
 
 /** @param {AppServices} services @param {() => void} schedule @returns {ModuleDef} */
-export function createAppServices({ world, announce, projectName }, schedule) {
+export function createAppServices({ world, announce, projectName, currentView }, schedule) {
   return {
-    manifest: { id: "xo.app-services", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["world", "announce", "projectName"] },
+    manifest: {
+      id: "xo.app-services", version: "1.0.0", kernel: "^1.1.0", core: true,
+      provides: ["world", "announce", "projectName", "currentView"],
+    },
     activate(ctx) {
       ctx.provide("world", world);
       ctx.provide("announce", announce);
       ctx.provide("projectName", projectName);
+      ctx.provide("currentView", currentView);
       ctx.on("app:render", schedule);
     },
   };

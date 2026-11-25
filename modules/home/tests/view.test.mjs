@@ -16,6 +16,8 @@ Object.assign(globalThis, {
 let now = 0;
 Object.defineProperty(globalThis, "performance", { value: { now: () => now } });
 const { createHomeView } = await import("../view.js");
+const { createScope } = await import("../../../core/kernel/scope.js");
+globalThis.cancelAnimationFrame = () => {};
 
 const needs = ["a", "b", "c", "d"].map((key) => ({
   key, risk: "notable", effort: "think", group: "notable", admitted: true,
@@ -60,7 +62,7 @@ const { homeRender, nextDecide } = createHomeView({
   SV: { homeOrder() {} },
   announce: (message) => { announcements.push(message); },
   schedule: () => { scheduled++; },
-});
+}, createScope());
 
 homeRender(needs);
 assert.equal(document.querySelector("#home-h").textContent, "Hello. 4 things are worth your time.");

@@ -20,7 +20,7 @@ export interface NavigationDeps {
   STAGE: { isOpen: boolean, leave: () => void, close: (options: { restore: boolean, quiet: boolean }) => void };
   IQ: LayerClose;
   PHONE: Pick<MediaQueryList, "matches">;
-  REC: { leave: (from: string, to: string) => void };
+  bus: Pick<import("../core/kernel/types").Bus, "emit">;
   clearDock: () => void;
   clearThreadEdit: () => void;
   say: HTMLElement;

@@ -5,9 +5,19 @@ import { $ } from "../core/platform/dom.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { redraw } from "../core/ui/redraw.js";
 import { headerActionsHtml } from "./header.js";
+import { createSurfaceSlots } from "./surfaces.js";
 
-/** @template {import("./header-types.d.ts").HeaderThread} T @template {import("./header-types.d.ts").HeaderNeed} N @param {import("./header-types.d.ts").HeaderDeps<T, N>} deps */
-export function createTopHeader({ location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender, REC }) {
+/** @import { HeaderThread as Thread, HeaderNeed as Need, HeaderDeps } from "./header-types.d.ts" */
+
+/** @import { SurfaceScope } from "./surface-types.d.ts" */
+
+/** @template {Thread} T @template {Need} N @param {HeaderDeps<T, N>} deps @param {SurfaceScope} scope @param {() => void} schedule */
+export function createTopHeader(deps, scope, schedule) {
+  const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender } = deps;
+  /** @type {ReturnType<typeof createSurfaceSlots<import("./app-service-types").ConversationHeaderPaint>>} */
+  const drawDetails = createSurfaceSlots({
+    places: kernel.places, place: "header.detail", scope, schedule, fallback: () => $("#scroller"), hideOnRetire: true,
+  });
   /** @param {N[]} needs */
   function topRender(needs) {
     const v = location.view();
@@ -41,7 +51,9 @@ export function createTopHeader({ location, convThread, isBusy, CH, STAGE, check
     LP.ensure(v);
     checklistRender(needs);
     tdelRender(t);
-    REC.sinceLine(v.startsWith("p:") ? v.slice(2) : null, needs);
+    const painted = { project: pv ? v.slice(2) : null, needs };
+    drawDetails((id) => document.getElementById(id), painted);
+    kernel.bus.emit("app:conversation-header", painted);
   }
   return topRender;
 }

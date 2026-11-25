@@ -12,10 +12,9 @@ export interface HeaderDeps<T extends HeaderThread, N extends HeaderNeed> {
   checklistRender: (needs: N[]) => void;
   PROJ: (project: string) => string;
   conversationHeaderHtml: (view: string, thread: T | null | undefined, needs: N[]) => { who: string | null; controls: string };
-  kernel: Pick<Kernel, "places">;
+  kernel: Pick<Kernel, "places" | "bus">;
   atOf: (view: string) => At;
   LP: { button: (view: string, isOpen: boolean) => string; ensure: (view: string) => void };
   LW: { isOpen: boolean };
   tdelRender: (thread: T | null | undefined) => void;
-  REC: { sinceLine: (project: string | null, needs: N[]) => void };
 }

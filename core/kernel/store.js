@@ -18,6 +18,8 @@ export function createStore(initial, { bus = createBus(), topic = "change" } = {
     get: () => current,
     set,
     /** @param {(value: Readonly<T>) => void} listener */
-    subscribe(listener) { return bus.on(topic, listener); },
+    subscribe(listener) {
+      return bus.on(topic, (payload) => listener(/** @type {Readonly<T>} */ (payload)));
+    },
   };
 }

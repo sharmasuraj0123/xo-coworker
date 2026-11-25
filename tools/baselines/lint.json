@@ -82,7 +82,6 @@
  "modules/files/viewer.js::eslint(no-unused-expressions)": 9,
  "modules/github/page.js::eslint(no-shadow)": 2,
  "modules/home/handled.js::eslint(no-underscore-dangle)": 2,
- "modules/home/sections.js::eslint(no-underscore-dangle)": 2,
  "modules/home/skeleton.js::eslint(no-underscore-dangle)": 3,
  "modules/home/view.js::eslint(no-underscore-dangle)": 11,
  "modules/launchpad/actions.js::eslint(no-shadow)": 3,

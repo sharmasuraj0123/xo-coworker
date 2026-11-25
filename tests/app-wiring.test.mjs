@@ -11,7 +11,7 @@ const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests
 const { window, document } = await dom(readFileSync(new URL("../index.html", import.meta.url), "utf8"));
 const lastHomeVisit = Date.now() - 86_400_000;
 const storage = new Map([
-  ["cv-theme", "light"], ["cv-flavour", "onyx"], ["xo-seen", JSON.stringify({ home: lastHomeVisit })],
+  ["cv-theme", "light"], ["cv-flavour", "onyx"], ["xo-seen", JSON.stringify({ home: lastHomeVisit, "p:demo": lastHomeVisit - 86_400_000 })],
 ]);
 const blockedStorage = new Set();
 const sinceReads = [];
@@ -312,6 +312,9 @@ initialChats.resolve(Response.json({ chats: [
   { id: "catalog-chat", kind: "project", project: "catalog-test" },
 ] }));
 const { kernel } = await import("../shell/kernel.js");
+assert.equal(kernel.status("xo.since"), "active", "boot activates Since through the kernel");
+assert.equal(kernel.places.get("home.section", "hm-since")?.owner, "xo.since");
+assert.equal(kernel.places.get("header.detail", "since")?.owner, "xo.since");
 await new Promise((resolve) => setImmediate(resolve));
 flushFrames();
 
@@ -644,6 +647,32 @@ assert.equal(settings.hidden, true);
 assert.equal(home.inert, false, "closing Settings releases the background");
 assert.ok(document.activeElement === settingsOpener, "closing Settings restores the phone opener");
 
+press('#projects [data-go="p:demo"]');
+assert.ok(document.querySelector("#since .sl"), "the project header paints Since through the active module");
+const sinceProject = document.querySelector('#since [data-rec-got="p:demo"]');
+sinceProject.focus();
+await kernel.disable("xo.since");
+assert.equal(document.querySelector("#since").hidden, true, "disabling Since hides its permanent host");
+assert.equal(document.querySelector("#since").childElementCount, 0, "disabling Since clears its project controls");
+assert.ok(document.activeElement === document.querySelector("#scroller"), "disabling Since returns project focus to the conversation");
+assert.equal(kernel.live("xo.since"), 0);
+storage.set("xo-seen", JSON.stringify({ home: lastHomeVisit - 86_400_000, "p:demo": lastHomeVisit - 86_400_000 }));
+await kernel.enable("xo.since");
+await new Promise(setImmediate);
+flushFrames();
+assert.equal(document.querySelectorAll('#since [data-rec-got="p:demo"]').length, 1, "enabling Since restores one project instance");
+press("#nv-home");
+const sinceHome = document.querySelector('#hm-since [data-rec-got="home"]');
+assert.ok(sinceHome, "the enabled module paints a Home catch-up");
+sinceHome.focus();
+await kernel.disable("xo.since");
+assert.equal(document.querySelector("#hm-since").childElementCount, 0, "disabling Since removes its Home controls");
+assert.ok(document.activeElement === document.querySelector("#home"), "disabling Since returns focus to Home");
+storage.set("xo-seen", JSON.stringify({ home: lastHomeVisit - 86_400_000, "p:demo": lastHomeVisit - 86_400_000 }));
+await kernel.enable("xo.since");
+await new Promise(setImmediate);
+flushFrames();
+assert.equal(document.querySelectorAll('#hm-since [data-rec-got="home"]').length, 1, "enabling Since restores one Home instance");
 press('#projects [data-go="p:demo"]');
 const picker = document.querySelector("#iq-pop");
 const dropVeil = document.querySelector("#drop-veil");
@@ -1044,6 +1073,8 @@ heldStatusSignal = null;
 window.dispatchEvent(new window.Event("visibilitychange"));
 await new Promise(setImmediate);
 assert.ok(heldStatusSignal, "the mounted Storm starts a status read when visible again");
+const activeSinceReads = sinceReads.filter(({ signal }) => !signal.aborted).length;
+assert.ok(activeSinceReads > 0, "Since still owns a live read after being re-enabled");
 pagehide(true);
 assert.equal(stormSignal.aborted || heldStatusSignal.aborted, false, "the page cache keeps the Storm stream and status read alive");
 assert.equal(mainLatest.isConnected, true, "the page cache keeps the main conversation decoration");
@@ -1055,7 +1086,7 @@ assert.equal(launchpadDialog.open, true, "the page cache keeps Launchpad's overv
 press("#attach");
 assert.equal(filePickerClicks, 2, "the page cache keeps the composer control live");
 assert.equal(rules.signal.aborted || worktrees.signal.aborted, false, "the page cache keeps both Settings readers live");
-assert.equal(sinceReads.some(({ signal }) => signal.aborted), false);
+assert.equal(sinceReads.filter(({ signal }) => !signal.aborted).length, activeSinceReads);
 assert.equal(githubSignal.aborted, false, "the page cache keeps GitHub's read live");
 assert.equal(artifactsSignal.aborted, false, "the page cache keeps the Artifacts read live");
 assert.equal(shellSignal.aborted, false, "the page cache keeps the Shells poll live");
@@ -1117,7 +1148,9 @@ assert.equal(createGithubSignal?.aborted, false, "Create is reading GitHub befor
 assert.equal(createCloneSignal?.aborted, false, "Create has sent the async clone write before unload");
 const createProgress = document.querySelector("#cp-prog").innerHTML;
 const createGithub = document.querySelector("#cp-gh").innerHTML;
+storage.delete("xo-seen");
 pagehide(false);
+assert.ok(JSON.parse(storage.get("xo-seen") || "{}")["p:demo"] > lastHomeVisit, "Since records the active project before unload disposes it");
 assert.equal(createGithubSignal?.aborted, true, "real unload aborts Create's outstanding read");
 assert.equal(createCloneSignal?.aborted, false, "real unload leaves the already issued clone write alone");
 const cloneFixture = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/project-schedule-responses.json", import.meta.url)));
@@ -1176,7 +1209,9 @@ assert.equal(filePickerClicks, 2, "unloading releases the retained composer cont
 for (const id of settingsOwners) assert.equal(kernel.live(id), 0, `${id} disposed through the app`);
 assert.equal(rules.signal.aborted, true, "unloading aborts Rules through the app");
 assert.equal(worktrees.signal.aborted, true, "unloading aborts Worktrees through the app");
-assert.equal(sinceReads.some(({ signal }) => signal.aborted), true, "unloading aborts Since through the app");
+assert.equal(sinceReads.every(({ signal }) => signal.aborted), true, "unloading aborts Since through the app");
+assert.equal(kernel.live("xo.since"), 0, "unload removes the Since module effects");
+assert.equal(kernel.places.get("home.section", "hm-since"), undefined, "unload removes Since from Home");
 assert.equal(githubSignal.aborted, true, "unloading aborts GitHub through the app");
 assert.equal(artifactsSignal.aborted, true, "unloading aborts Artifacts through the app");
 assert.equal(shellSignal.aborted, true, "unloading aborts the Shells poll through the app");

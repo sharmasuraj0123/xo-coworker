@@ -10,14 +10,14 @@ export async function mountSettingsPage(id) {
   return Object.freeze(createSettingsHost());
 }
 
-/** @param {string} page @param {import("../../core/kernel/types").ModuleDef} module @param {import("../../shell/app-service-types").AppServices} services */
+/** @param {string} page @param {import("../../core/kernel/types").ModuleDef} module @param {Omit<import("../../shell/app-service-types").AppServices, "currentView">} services */
 export async function openSettingsModule(page, module, services) {
   await mountSettingsPage(page);
   const { createKernel } = await import("../../core/kernel/index.js");
   const { createAppServices } = await import("../../shell/app-services.js");
   const { SETTINGS_PAGE_OPEN, settingsModule } = await import("../../modules/settings/module.js");
   const kernel = createKernel();
-  kernel.register(createAppServices(services, () => {}));
+  kernel.register(createAppServices({ ...services, currentView: () => "home" }, () => {}));
   kernel.register(settingsModule);
   kernel.register(module);
   await kernel.start();

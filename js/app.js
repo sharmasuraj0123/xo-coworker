@@ -131,6 +131,7 @@ import { createProjectIconChoice } from "../modules/projects/icon-choice.js";
 import { createShells } from "../modules/shells/dock.js";
 import { createShellPanel } from "../modules/shells/panel.js";
 import { createRecord } from "./recordview.js";
+import { sinceModule } from "../modules/since/module.js";
 import { createRecordLines } from "../modules/chats/record-lines.js";
 import { createHomeParts } from "../modules/home/parts.js";
 import { createHomeSelection } from "../modules/home/selection.js";
@@ -325,7 +326,6 @@ wireDragOut($("#msgs"));
 const SH = createShells({ PROJ, announce, notify: (h) => heraldShow(h, 6000), onChange: () => schedule(), wanted: () => SHAPE.on("xo:dock/shells") });
 CAP.terminal = () => SH.available;
 const REC = createRecord({ world, go, VW, PROJ, schedule, announce, places: kernel.places });
-REC.view = () => currentView();
 
 const projects = () => world.state.projects.filter((p) => p.id !== "workspace");
 const wsHeadRender = createWorkspaceHeader(currentView, projects);
@@ -470,9 +470,8 @@ const { homeRender, nextDecide } = createHomeView({
   selection: homeSelection, isCurrent: () => currentView() === "home", D, world, Kit, EFFORT,
   homeParts, nextCardHtml, endRender, greeting, today, num, noun, plural, isBusy, askTitle, PROJ, kernel,
   SV: { homeOrder: (body) => SV.homeOrder(body) }, announce, schedule,
-});
+}, appScope);
 const messagesOf = createConversationMessages({ localMessages, shape: SHAPE, world, D, PROJ, convThread, chatOf, convProject, threadsOf });
-
 
 const { runsStrip, workingRuns, dispose: disposeRunsStrip } = createRunsStrip({ world, SHAPE, schedule });
 const { render: checklistRender, toggle: toggleChecklist } = createChecklistRenderer({ view: currentView, scope: appScope, SHAPE, convThread, runsStrip, schedule });
@@ -686,7 +685,7 @@ const drawConv = createConversationDrawing({
   CHG, msgItems, readingPlace, holdPlace, foldsBefore, workMotion, ensureRoot, liveReady, typingRender,
 });
 const { go: navigate, back } = createNavigation({
-  location: navigationState, VW, STAGE, IQ, PHONE, REC, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open),
+  location: navigationState, VW, STAGE, IQ, PHONE, bus: kernel.bus, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open),
   clearDock: () => MDOCK.reset({ restoreFocus: false }),
   clearThreadEdit: threadControls.clear,
   saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread,
@@ -1022,8 +1021,8 @@ const headerOptions = {
 };
 const conversationHeaderHtml = createConversationHeader(headerOptions);
 const topRender = createTopHeader({
-  location: navigationState, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender: threadDelete.render, REC,
-});
+  location: navigationState, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender: threadDelete.render,
+}, appScope, schedule);
 const { panelShell, openShell, dispose: disposeShellPanel } = createShellPanel({
   view: navigationState.view, STAGE, SH, world, heraldShow,
 });
@@ -1073,11 +1072,8 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
-kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "" }, schedule));
-kernel.register(settingsModule);
-kernel.register(routingModule);
-kernel.register(rulesModule);
-kernel.register(worktreesModule);
+kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
+for (const module of [sinceModule, settingsModule, routingModule, rulesModule, worktreesModule]) kernel.register(module);
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 const ACCTS = createAccounts({ announce });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
@@ -1211,12 +1207,14 @@ appScope.effect(mountMainDecoration);
 for (const dispose of [
   codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo,
   REC.dispose, () => { void kernel.disable(settingsModule.manifest.id); }, CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
+  () => { void kernel.disable(sinceModule.manifest.id); },
   runsPage.dispose, disposeRunsStrip, threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,
   SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), disposeConversationStops,
   STAGE.disposeLayout, LPP.dispose, LW.dispose,
 ]) appScope.effect(() => dispose);
 appScope.listen(window, "pagehide", (event) => {
+  kernel.bus.emit("app:pagehide");
   if ("persisted" in event && event.persisted) return;
   appScope.dispose();
 });

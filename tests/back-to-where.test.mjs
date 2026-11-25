@@ -12,7 +12,7 @@ const scroller = document.querySelector("#scroller"), card = document.querySelec
 const pill = [];
 const nav = createNavigation({
   location, VW: {}, STAGE: { leave: noop }, IQ: { close: noop }, PHONE: { matches: false },
-  REC: { leave: noop }, clearDock: noop, clearThreadEdit: noop, say: document.querySelector("textarea"), scroller,
+  bus: { emit: noop }, clearDock: noop, clearThreadEdit: noop, say: document.querySelector("textarea"), scroller,
   closeSettings: noop, setDrawer: noop, saveDraft: noop, follow: noop, pageEl: () => null,
   loadDraft: noop, render: noop, returnPill: (target) => pill.push(target), convThread: () => ({ project: "x" }),
 });

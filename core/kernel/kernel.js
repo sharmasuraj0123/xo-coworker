@@ -60,8 +60,8 @@ export function createKernel(opts = {}) {
         return places.define(def, id);
       }),
       effect: U.effect,
-      on: (topic, fn) => U.effect(() => bus.on(topic, fn)),
-      emit: (topic, payload) => bus.emit(topic, payload),
+      on: (topic, ...args) => U.effect(() => bus.on(topic, ...args)),
+      emit: bus.emit,
       listen: U.listen, timeout: U.timeout, interval: U.interval, frame: U.frame, observe: U.observe, signal: U.signal,
       onFlush: (key, fn) => U.effect(() => scheduler.onFlush(key, fn)),
       invalidate: (key) => scheduler.invalidate(key),

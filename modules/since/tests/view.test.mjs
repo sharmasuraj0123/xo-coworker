@@ -158,7 +158,7 @@ await t("disposing Since aborts reads and releases its page listeners", async ()
   S.dispose();
   assert.equal(signals[0]?.aborted, true);
   document.querySelector("button").dispatchEvent(new window.Event("click", { bubbles: true }));
-  window.dispatchEvent(new window.Event("pagehide"));
+  S.markCurrent();
   Object.defineProperty(document, "hidden", { value: true });
   document.dispatchEvent(new window.Event("visibilitychange"));
   read.resolve({ chats: [] });

@@ -43,10 +43,18 @@ export interface Places {
   catalog(): ReadonlyArray<Readonly<PlaceDef> & { owner: string; entries: number }>;
 }
 
+export interface Topics {}
+type TopicPayload<T extends string> = T extends keyof Topics ? Topics[T] : unknown;
+type TopicListener<T extends string> = Exclude<Extract<T, `app:${string}`>, keyof Topics> extends never
+  ? [fn: (payload: TopicPayload<T>) => void] : never;
+type TopicArguments<T extends string> = T extends keyof Topics
+  ? Topics[T] extends undefined ? [topic: T] : [topic: T, payload: Topics[T]]
+  : T extends `app:${string}` ? never : [topic: T, payload?: unknown];
+
 export interface Bus {
-  on<T = unknown>(topic: string, fn: (payload: T) => void): Undo;
-  once<T = unknown>(topic: string, fn: (payload: T) => void): Undo;
-  emit<T = unknown>(topic: string, payload?: T): void;
+  on<T extends string>(topic: T, ...args: TopicListener<NoInfer<T>>): Undo;
+  once<T extends string>(topic: T, ...args: TopicListener<NoInfer<T>>): Undo;
+  emit<T extends string>(...args: [topic: T, ...unknown[]] & TopicArguments<NoInfer<T>>): void;
 }
 
 export interface Scheduler {
@@ -105,8 +113,8 @@ export interface ModuleContext {
   contribute<E extends Entry>(place: string, entry: E): Undo;
   definePlace<E extends Entry>(def: PlaceDef<E>): Undo;
   effect(fn: () => Undo | void): Undo;
-  on<T = unknown>(topic: string, fn: (payload: T) => void): Undo;
-  emit<T = unknown>(topic: string, payload?: T): void;
+  on: Bus["on"];
+  emit: Bus["emit"];
   listen(target: EventTarget, type: string, fn: EventListenerOrEventListenerObject, opts?: boolean | AddEventListenerOptions): Undo;
   timeout(fn: () => void, ms: number): Undo;
   interval(fn: () => void, ms: number): Undo;

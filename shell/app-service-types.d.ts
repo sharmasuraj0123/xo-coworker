@@ -4,8 +4,22 @@ export interface AppServices {
   world: ReturnType<typeof createWorld>;
   announce: (message: string) => void;
   projectName: (id: string | null | undefined) => string;
+  currentView: () => string;
+}
+
+export interface ViewLeaving { from: string; to: string }
+
+export interface ConversationHeaderPaint {
+  project: string | null;
+  needs: { t: { id: string }; admitted?: boolean; later?: boolean }[];
 }
 
 declare module "../core/kernel/types" {
   interface Services extends AppServices {}
+  interface Topics {
+    "app:render": undefined;
+    "app:pagehide": undefined;
+    "app:view-leaving": ViewLeaving;
+    "app:conversation-header": ConversationHeaderPaint;
+  }
 }

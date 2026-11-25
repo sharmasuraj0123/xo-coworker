@@ -87,11 +87,11 @@ export function createVisits(world, api, { scope, changed, failed, storage }) {
       changed();
     }
   });
-  scope.listen(window, "pagehide", markCurrent);
   void loadSeen();
 
   return {
     placeOf,
+    markCurrent,
     arrive,
     /** @param {string} from @param {string | null} [to] */
     leave(from, to) {

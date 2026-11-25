@@ -32,7 +32,7 @@ test("Settings retires each built-in read and its keyboard controls together", a
     subscribe() { subscribers++; return () => { subscribers--; }; },
   };
   const kernel = createKernel();
-  kernel.register(createAppServices({ world, announce() {}, projectName: (id) => id }, () => {}));
+  kernel.register(createAppServices({ world, announce() {}, projectName: (id) => id, currentView: () => "home" }, () => {}));
   for (const module of [settingsModule, routingModule, rulesModule, worktreesModule]) kernel.register(module);
   await kernel.start();
   t.after(async () => {

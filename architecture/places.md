@@ -12,6 +12,7 @@ Every entry also has an `id`, and may have `order` (lists), `priority` (chains) 
 | `rail.foot` | list | app | no | `label`, `icon`, `onPress` | A control at the foot of the left rail (account, theme, settings). |
 | `header.title` | keyed | conversation | no | `render` | How the header names what is open, keyed by route kind. |
 | `header.badge` | list | conversation | no | `render` | A small mark beside the header's title (runtime, needs you). |
+| `header.detail` | list | conversation | no | `render` | A detail drawn into a named host below the conversation header. |
 | `header.action` | list | conversation | yes | `label`, `icon`, `onPress` | A button in the header (Threads, Resolve, Deploy, Map, the panel). |
 | `thread.menu` | list | conversation | yes | `label`, `group`, `run` | An item in a thread's ⋯ menu, in a named group. |
 | `thread.head` | list | conversation | no | `mount` | A strip under a thread's header (checklist, sub-agents). |

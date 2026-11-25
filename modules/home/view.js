@@ -6,15 +6,18 @@ import { ICON, NEXT_GLYPH, XO } from "../../core/ui/icons/names.js";
 import { RM, wait } from "../../core/ui/motion.js";
 import { landed } from "../../core/ui/landing.js";
 import { redraw } from "../../core/ui/redraw.js";
-import { drawSections } from "./sections.js";
+import { createHomeSections } from "./sections.js";
 import { thenHtml } from "./then.js";
 
 /** @import { HomeChoice, HomeViewDeps, HomeViewNeed } from "./view-types.d.ts" */
 
-/** @template {HomeViewNeed} N @param {HomeViewDeps<N>} options */
-export function createHomeView(options) {
+/** @import { SurfaceScope } from "../../shell/surface-types.d.ts" */
+
+/** @template {HomeViewNeed} N @param {HomeViewDeps<N>} options @param {SurfaceScope} scope */
+export function createHomeView(options, scope) {
   const { selection, isCurrent, D, world, Kit, EFFORT, homeParts, nextCardHtml, endRender, greeting, today } = options;
   const { num, noun, plural, isBusy, askTitle, PROJ, kernel, SV, announce, schedule } = options;
+  const drawSections = createHomeSections(kernel.places, scope, schedule);
   const built = new WeakSet(), busy = new WeakSet();
   let nextKey = /** @type {string | null} */ (null), nextSeen = 0;
 
@@ -72,7 +75,7 @@ export function createHomeView(options) {
 
     redraw($("#hm-then"), thenHtml(P0, { EFFORT, askTitle, PROJ }));
     landed($("#hm-then"));
-    drawSections(kernel.places, $("#hm-body"), { needs, patch: redraw });
+    drawSections($("#hm-body"), { needs, patch: redraw });
 
     endRender(P0, working);
     SV.homeOrder($("#hm-body"));
@@ -90,7 +93,7 @@ export function createHomeView(options) {
     if (!RM.matches) { card.classList.add(choice === "deny" ? "st-back" : "st-allow"); await wait(choice === "deny" ? 260 : 300); }
     selection.select(null);
     schedule();
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    scope.frame(() => scope.frame(() => {
       const control = $("#hm-next .next");
       if (control && isCurrent() && !D.isOpen()) control.focus({ preventScroll: true });
     }));

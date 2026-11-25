@@ -23,7 +23,7 @@ for (const focus of [true, false]) {
       location: createNavigationState(),
       VW: { editing: false, leave() {} },
       STAGE: { isOpen: true, leave() {}, close(options) { calls.push(options); } },
-      IQ: { close() {} }, PHONE: { matches: true }, REC: { leave() {} },
+      IQ: { close() {} }, PHONE: { matches: true }, bus: { emit() {} },
       clearDock() {}, clearThreadEdit() {}, say, scroller,
       closeSettings() {}, setDrawer() {}, saveDraft() {}, follow() {},
       pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => null,
@@ -40,7 +40,7 @@ t("Back uses a thread’s recorded parent and leaves the place trail untouched",
   let confirmLeave;
   const viewer = { editing: true, leave(next) { confirmLeave = next; } };
   const { back } = createNavigation({ location, VW: viewer, STAGE: { isOpen: false, leave() {}, close() {} },
-    IQ: { close() {} }, PHONE: { matches: false }, REC: { leave() {} }, clearDock() {}, clearThreadEdit() {},
+    IQ: { close() {} }, PHONE: { matches: false }, bus: { emit() {} }, clearDock() {}, clearThreadEdit() {},
     say: document.querySelector("#say"), scroller: document.querySelector("#scroller"), closeSettings() {}, setDrawer() {},
     saveDraft() {}, follow() {}, pageEl: () => null, loadDraft() {}, render() {}, returnPill() {}, convThread: () => ({ project: "project" }),
   });

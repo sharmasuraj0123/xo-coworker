@@ -57,9 +57,8 @@ export function createSince({ world, api, schedule, announce, storage }) {
     return threads.filter((thread) => thread.project === project);
   }
 
-  /** @param {string | null} pid @param {SinceNeed[]} needs */
-  function sinceLine(pid, needs) {
-    const box = document.getElementById("since");
+  /** @param {string | null} pid @param {SinceNeed[]} needs @param {HTMLElement | null} box */
+  function sinceLine(pid, needs, box = document.getElementById("since")) {
     if (!box) return;
     const html = pid ? projectLine(pid, needs) : "";
     box.hidden = !html;
@@ -120,6 +119,7 @@ export function createSince({ world, api, schedule, announce, storage }) {
 
   return {
     placeOf: visits.placeOf,
+    markCurrent: visits.markCurrent,
     leave: visits.leave,
     sinceLine,
     homeSinceLines,

@@ -4,22 +4,24 @@
 
 /** @param {(...a: unknown[]) => void} [warn] @returns {Bus} */
 export function createBus(warn = console.error) {
-  /** @type {Map<string, Set<(p: any) => void>>} */
+  /** @type {Map<string, Set<(payload: unknown) => void>>} */
   const topics = new Map();
-  /** @type {Bus} */
-  const bus = {
-    on(topic, fn) {
-      let set = topics.get(topic);
-      if (!set) topics.set(topic, (set = new Set()));
-      const own = (/** @type {any} */ p) => fn(p);
-      set.add(own);
-      return () => { set.delete(own); if (!set.size) topics.delete(topic); };
+  /** @param {string} topic @param {(payload: unknown) => void} notify */
+  function listen(topic, notify) {
+    let set = topics.get(topic);
+    if (!set) topics.set(topic, (set = new Set()));
+    set.add(notify);
+    return () => { set.delete(notify); if (!set.size) topics.delete(topic); };
+  }
+  return {
+    on(topic, ...[fn]) {
+      return listen(topic, (p) => fn(/** @type {Parameters<typeof fn>[0]} */ (p)));
     },
-    once(topic, fn) {
-      const off = bus.on(topic, (p) => { off(); fn(/** @type {any} */ (p)); });
+    once(topic, ...[fn]) {
+      const off = listen(topic, (p) => { off(); fn(/** @type {Parameters<typeof fn>[0]} */ (p)); });
       return off;
     },
-    emit(topic, payload) {
+    emit(...[topic, payload]) {
       const set = topics.get(topic);
       if (!set) return;
       for (const fn of [...set]) {
@@ -27,5 +29,4 @@ export function createBus(warn = console.error) {
       }
     },
   };
-  return bus;
 }

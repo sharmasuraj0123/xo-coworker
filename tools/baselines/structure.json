@@ -784,10 +784,6 @@
  "modules/home/parts.js": {
   "lineLength": 1
  },
- "modules/home/sections.js": {
-  "domExpando": 1,
-  "lineLength": 2
- },
  "modules/home/skeleton.js": {
   "domExpando": 2,
   "lineLength": 8,
@@ -1081,7 +1077,7 @@
   "lineLength": 2
  },
  "shell/places.js": {
-  "lineLength": 10
+  "lineLength": 8
  },
  "shell/rail/rows.js": {
   "lineLength": 10
@@ -1109,7 +1105,7 @@
   "unusedExport": 2
  },
  "shell/top-header.js": {
-  "lineLength": 4
+  "lineLength": 2
  },
  "shell/workspace-header.js": {
   "lineLength": 1

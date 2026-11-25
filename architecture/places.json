@@ -66,6 +66,16 @@
    ]
   },
   {
+   "id": "header.detail",
+   "kind": "list",
+   "scope": "conversation",
+   "description": "A detail drawn into a named host below the conversation header.",
+   "openToApps": false,
+   "requires": [
+    "render"
+   ]
+  },
+  {
    "id": "header.action",
    "kind": "list",
    "scope": "conversation",

@@ -2996,9 +2996,18 @@
    ]
   },
   "js/recordview.js": {
-   "status": "kept",
-   "home": "js/recordview.js",
-   "note": "The application composes Since and Made, contributes their sections, and supplies the existing Home skeleton helpers."
+   "status": "split",
+   "home": [
+    "js/recordview.js",
+    "modules/since/module.js"
+   ],
+   "evidence": {
+    "modules/since/module.js": {
+     "anchor": "export const sinceModule",
+     "reason": "Since now registers its Home contribution and visit lifetime through the kernel."
+    }
+   },
+   "note": "The record adapter still owns the Artifacts Home section and supplies its existing skeleton helpers."
   },
   "js/redraw.js": {
    "status": "moved",

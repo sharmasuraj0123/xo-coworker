@@ -2,11 +2,14 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createKernel } from "../core/kernel/index.js";
+import { createScope } from "../core/kernel/scope.js";
 import { createConversationHeader } from "../modules/conversation/header.js";
 import { createThreadGroups } from "../modules/threads/groups.js";
 import { createThreadControls } from "../modules/threads/controls.js";
 import { threadsCtl } from "../modules/threads/header.js";
 import { createTopHeader } from "../shell/top-header.js";
+import { definePlaces } from "../shell/places.js";
 import { stylesheetRows, tokenValuesFor, valuesFor } from "./lib/css-snapshot.mjs";
 import { stageFixture } from "./lib/stage-fixture.mjs";
 
@@ -39,23 +42,26 @@ assert.deepEqual(panelThreads("p:p").map(({ k, rows }) => [k, rows.map(({ go }) 
 ]);
 
 
-test("the project header counts all thread states and places Threads before Deploy and the panel toggle", async () => {
+test("the project header counts all thread states and places Threads before Deploy and the panel toggle", async (t) => {
   const { panel, document } = await stageFixture();
   const head = document.createElement("header");
   head.innerHTML = '<div id="top"><button id="top-back"></button><div id="top-who"></div><div id="top-end"></div></div>';
   document.body.append(head);
   const PROJ = () => "Project";
+  const kernel = createKernel(), scope = createScope();
+  definePlaces(kernel);
+  t.after(scope.dispose);
   const conversationHeaderHtml = createConversationHeader({
     threadControls: createThreadControls(), description: () => undefined,
     PICK: {}, threadCounts, PROJ, projectIcon: () => "", threadsCtl, convHost: () => null,
   });
   const render = createTopHeader({
     location: { view: () => "p:p", parentOf: () => undefined },
-    PROJ, conversationHeaderHtml, kernel: { places: { entries: () => [] } }, convThread: () => null,
+    PROJ, conversationHeaderHtml, kernel, convThread: () => null,
     CH: { isChats: () => false }, STAGE: panel, atOf: () => ({}),
     LP: { button: () => '<button id="deploy">Deploy</button>', ensure() {} }, LW: { isOpen: false },
-    checklistRender() {}, tdelRender() {}, REC: { sinceLine() {} },
-  });
+    checklistRender() {}, tdelRender() {},
+  }, scope, () => {});
   render(needs);
   assert.equal(document.querySelector(".tw-t.is-one #conv-title").textContent, "Project");
   assert.deepEqual(Array.from(document.querySelector("#top-end").children, (button) =>

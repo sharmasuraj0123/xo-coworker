@@ -5,7 +5,7 @@ import { focusDestination } from "./navigation-focus.js";
 
 /** @param {import("./navigation-types").NavigationDeps} deps */
 export function createNavigation({
-  location, VW, STAGE, IQ, PHONE, REC, clearDock, clearThreadEdit, say, scroller, closeSettings,
+  location, VW, STAGE, IQ, PHONE, bus, clearDock, clearThreadEdit, say, scroller, closeSettings,
   setDrawer, saveDraft, follow, pageEl, loadDraft, render, returnPill, convThread,
 }) {
   /** @param {string} v @param {import("./navigation-types").NavigationOptions} options */
@@ -26,7 +26,7 @@ export function createNavigation({
     saveDraft();
     const deeper = v.startsWith("t:") && !previous.startsWith("t:");
     const backFrom = from?.startsWith("t:") ? from : null;
-    REC.leave(previous, v);
+    bus.emit("app:view-leaving", { from: previous, to: v });
     location.visit(v, options);
     follow();
     clearDock();

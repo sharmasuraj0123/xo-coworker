@@ -45,9 +45,6 @@
  "apps-host/tests/when.test.mjs": {
   "explicitAny": 2
  },
- "core/kernel/bus.js": {
-  "explicitAny": 3
- },
  "core/kernel/kernel.js": {
   "commentLines": 1
  },
@@ -453,15 +450,8 @@
  "modules/github/page.js": {
   "commentLines": 1
  },
- "modules/home/sections.js": {
-  "commentLines": 2,
-  "explicitAny": 1
- },
  "modules/home/skeleton.js": {
   "commentLines": 3
- },
- "modules/home/tests/sections.test.mjs": {
-  "explicitAny": 2
  },
  "modules/launchpad/actions.js": {
   "commentLines": 10
@@ -608,10 +598,6 @@
  "shell/phone.js": {
   "explicitAny": 2
  },
- "shell/places.js": {
-  "commentLines": 2,
-  "explicitAny": 3
- },
  "shell/rail/side.js": {
   "commentLines": 5,
   "explicitAny": 10
@@ -707,9 +693,6 @@
  "tests/herald.test.mjs": {
   "changelogComment": 1,
   "commentLines": 4
- },
- "tests/home-sections.test.mjs": {
-  "explicitAny": 2
  },
  "tests/intel-chip-toggle.test.mjs": {
   "explicitAny": 1

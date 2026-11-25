@@ -65,9 +65,6 @@
   "globalListener": 1,
   "storage": 2
  },
- "modules/home/view.js": {
-  "requestAnimationFrame": 2
- },
  "modules/launchpad/actions.js": {
   "setInterval": 2,
   "setTimeout": 2
