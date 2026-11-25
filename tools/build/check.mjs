@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,15 @@ function run(cmd, args, options = {}) {
   return result.stdout.trim();
 }
 try {
-  const build = run(process.execPath, ["tools/build-ui.mjs", temporary]);
+  copyFileSync(join(root, "serve.py"), join(temporary, "serve.py"));
+  copyFileSync(join(root, "index.html"), join(temporary, "index.html"));
+  function checkHttp(server, graph, mode, forceRaw = false) {
+    console.log(run("python3", ["tools/build/check-http.py", server, mode], {
+      env: { ...process.env, XO_SERVE_RAW: forceRaw ? "1" : "" }, input: JSON.stringify([...graph]),
+    }));
+  }
+  checkHttp(temporary, [], "raw");
+  const build = run(process.execPath, ["tools/build-ui.mjs", join(temporary, "dist")]);
   const resolve = path => run(process.execPath, ["tools/conformance/css-resolve.mjs", "--resolved", path]);
   assert.ok(resolve(root) === resolve(build), "Production styles changed the resolved cascade");
   const source = publicGraph(root);
@@ -22,11 +30,8 @@ try {
   for (const asset of source) {
     if (asset.startsWith("vendor/") || !/\.(?:m?js|css)$/.test(asset)) bundled.add(asset);
   }
-  for (const [directory, graph] of [["", source], [build, bundled]]) {
-    console.log(run("python3", ["tools/build/check-http.py"], {
-      env: { ...process.env, XO_PUBLIC_DIR: directory }, input: JSON.stringify([...graph]),
-    }));
-  }
+  checkHttp(root, source, "raw", true);
+  checkHttp(temporary, bundled, "production");
 } finally {
   rmSync(temporary, { recursive: true, force: true });
 }

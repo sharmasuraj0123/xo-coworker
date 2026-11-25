@@ -10,7 +10,7 @@ import { cssSyntax } from "./conformance/css-syntax.mjs";
 import { stylesheetImport } from "./conformance/css-publication.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const destination = resolve(process.argv[2] || "dist");
+const destination = resolve(process.argv[2] || join(root, "dist"));
 mkdirSync(destination, { recursive: true });
 const out = mkdtempSync(join(destination, ".building-"));
 try {
@@ -92,5 +92,10 @@ async function buildPublic() {
   catch (error) {
     if (!["EEXIST", "ENOTEMPTY"].includes(error.code) || !existsSync(join(published, ".build.json"))) throw error;
   }
+  const pointer = out + ".current";
+  try {
+    writeFileSync(pointer, version + "\n");
+    renameSync(pointer, join(destination, "current"));
+  } finally { rmSync(pointer, { force: true }); }
   return published;
 }

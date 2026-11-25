@@ -79,6 +79,7 @@ def start(server) -> int:
 
 BACKEND = Quiet(("127.0.0.1", 0), Backend)
 os.environ["XO_API"] = f"http://127.0.0.1:{start(BACKEND)}"
+os.environ["XO_SERVE_RAW"] = "1"
 
 # serve.py reads XO_API when imported, so import it now, from the repo root.
 _spec = importlib.util.spec_from_file_location("serve", os.path.join(ROOT, "serve.py"))

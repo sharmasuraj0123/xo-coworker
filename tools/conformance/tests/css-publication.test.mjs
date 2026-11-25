@@ -23,7 +23,9 @@ function assertPublicationParity(path, policy) {
 }
 
 test("stylesheet publication uses the exact server path grammar and catches a directory added on one side", () => {
-  const result = spawnSync("python3", ["-B", "-c", EXPORT_POLICY, server], { encoding: "utf8" });
+  const result = spawnSync("python3", ["-B", "-c", EXPORT_POLICY, server], {
+    encoding: "utf8", env: { ...process.env, XO_SERVE_RAW: "1" },
+  });
   assert.equal(result.status, 0, result.error?.message ?? result.stderr);
   const policy = JSON.parse(result.stdout);
   assertPublicationParity(PUBLISHED_PATH, policy);

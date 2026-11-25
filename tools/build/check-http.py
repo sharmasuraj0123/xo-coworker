@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import quote
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, sys.argv[1])
 import serve
 
 
@@ -18,12 +18,13 @@ class Handler(serve.Handler):
 
 
 def check():
+    assert bool(serve.PUBLIC_DIR) == (sys.argv[2] == "production"), "Unexpected server mode"
     root = Path(serve.ROOT)
     files = set(json.load(sys.stdin))
     if serve.PUBLIC_DIR:
         files.update(serve.BUILD_FILES - {"index.html"})
-        with patch.object(serve, "versioned_files", side_effect=AssertionError("Production digest walked the tree")):
-            assert serve.tree_version() == serve.BUILD_VERSION
+    with patch.object(serve, "versioned_files", side_effect=AssertionError("Request digest walked the tree")):
+        assert serve.tree_version() == serve.STARTUP_VERSION
     with serve.Server(("127.0.0.1", 0), Handler) as server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
         port = server.server_port

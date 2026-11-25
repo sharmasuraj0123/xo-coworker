@@ -43,9 +43,9 @@ python3 serve.py                 # foreground, http://127.0.0.1:5180
 | `PORT`   | `5180`                  | port to listen on             |
 | `XO_API` | `http://127.0.0.1:5002` | the XO Space API to proxy to  |
 | `HOST`   | `127.0.0.1`             | bind address                  |
-| `XO_PUBLIC_DIR` | unset | immutable release directory printed by the build |
+| `XO_SERVE_RAW` | unset | set to `1` to serve source during development |
 
-For a production installation, run `node tools/build-ui.mjs /path/to/releases` after installing build dependencies. The build prints the absolute directory of the content-addressed release. Set `XO_PUBLIC_DIR` to that directory when starting the Python server. Keep the previous release directory to allow rollback by restarting with its path. The Python runtime needs only its server files and the selected public directory.
+At image build time, run `npm ci && npm run build` in the frontend repository. Ship the generated `dist/` beside `serve.py` in `/opt/xo-cowork/frontend`. The usual Python startup command selects the release recorded in `dist/current`. An image containing only the source files starts the same way and computes its asset digest once at startup. Restart the source server after editing assets to refresh the digest.
 
 `serve.py` (standard library only) serves the files and reverse-proxies `/api/*` to `XO_API`:
 - It answers only requests addressed to it as `localhost` or an IP address on its own port, or as a hostname

@@ -18,8 +18,7 @@ import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote, urlsplit
 
-PUBLIC_DIR = os.environ.get("XO_PUBLIC_DIR")
-ROOT = os.path.realpath(PUBLIC_DIR) if PUBLIC_DIR else os.path.dirname(os.path.abspath(__file__))
+SOURCE_ROOT = os.path.dirname(os.path.abspath(__file__))
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "5180"))
 XO_API = os.environ.get("XO_API", "http://127.0.0.1:5002").rstrip("/")
@@ -255,19 +254,37 @@ def read_build(root):
     return version, files
 
 
-BUILD_VERSION, BUILD_FILES = read_build(ROOT) if PUBLIC_DIR else (None, frozenset())
+def selected_build(root):
+    try:
+        with open(os.path.join(root, "dist", "current"), encoding="ascii") as pointer:
+            version = pointer.read(14).strip()
+        if not re.fullmatch(r"[0-9a-f]{12}", version):
+            raise ValueError("Invalid production release name")
+        directory = os.path.join(root, "dist", version)
+        digest, files = read_build(directory)
+        if digest != version:
+            raise ValueError("Production release digest does not match its directory")
+        return directory, digest, files
+    except FileNotFoundError:
+        return None, None, frozenset()
+
+
+PUBLIC_DIR, BUILD_VERSION, BUILD_FILES = (
+    (None, None, frozenset()) if os.environ.get("XO_SERVE_RAW") == "1" else selected_build(SOURCE_ROOT)
+)
+ROOT = PUBLIC_DIR or SOURCE_ROOT
 VERSIONED_DIRS = ("js", "css", "fonts", "presets", "assets", "core", "shell", "modules", "apps-host", "vendor")
 VERSIONED_FILES = ("boot.js", "favicon.svg")
 if PUBLIC_DIR:
     VERSIONED_DIRS = tuple(sorted({f.split("/")[0] for f in BUILD_FILES if "/" in f}))
     VERSIONED_FILES = tuple(sorted(f for f in BUILD_FILES if "/" not in f and f != "index.html"))
-STATIC_PATH = r"(?:%s)/[^\"]+|(?:%s)" % ("|".join(map(re.escape, VERSIONED_DIRS)), "|".join(map(re.escape, VERSIONED_FILES)))
+directory_pattern = "|".join(map(re.escape, VERSIONED_DIRS) if PUBLIC_DIR else VERSIONED_DIRS)
+STATIC_PATH = r"(?:%s)/[^\"]+|(?:%s)" % (directory_pattern, "|".join(map(re.escape, VERSIONED_FILES)))
 VERSION_PATH = re.compile(r"^/v/([0-9a-f]{12})(/(?:%s))$" % STATIC_PATH)
 INDEX_PATH = re.compile(r'((?:href|src)=")\./(%s)(?=")' % STATIC_PATH)
 IMMUTABLE = "public, max-age=31536000, immutable"
 GZIP_TYPES = ("text/", "application/json", "application/javascript", "image/svg+xml", "application/xml")
 GZIP_MIN = 1024
-_SHA: dict[str, tuple[tuple, str]] = {}
 _GZ: dict[str, tuple[tuple, bytes]] = {}
 
 
@@ -312,23 +329,23 @@ def versioned_files(root: str):
                     yield path
 
 
-def tree_version(root: str = ROOT) -> str:
-    """12 hex characters naming the static files' contents: any changed, added or removed file changes it."""
-    if BUILD_VERSION and root == ROOT:
-        return BUILD_VERSION
+def source_digest(root):
     h = hashlib.sha1()
     for path in versioned_files(root):
         try:
-            st = os.stat(path)
+            with open(path, "rb") as fh:
+                content = hashlib.sha1(fh.read()).hexdigest()
         except OSError:
             continue
-        got = _SHA.get(path)
-        if not got or got[0] != _stamp(st):
-            with open(path, "rb") as fh:
-                got = (_stamp(st), hashlib.sha1(fh.read()).hexdigest())
-            _SHA[path] = got
-        h.update(f"{os.path.relpath(path, root)}\0{got[1]}\n".encode())
+        h.update(f"{os.path.relpath(path, root)}\0{content}\n".encode())
     return h.hexdigest()[:12]
+
+
+STARTUP_VERSION = BUILD_VERSION or source_digest(ROOT)
+
+
+def tree_version(root: str = ROOT) -> str:
+    return STARTUP_VERSION if root == ROOT else source_digest(root)
 
 
 def versioned_index(html: str, version: str) -> str:
