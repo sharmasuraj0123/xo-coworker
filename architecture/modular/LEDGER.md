@@ -4,10 +4,10 @@ Generated from `tools/ledger/ledger.json` by `tools/ledger/ledger_md.py`; do not
 
 | Status | Files |
 |---|---:|
-| moved | 489 |
+| moved | 491 |
 | vendor | 379 |
 | deleted | 337 |
-| planned | 109 |
+| planned | 107 |
 | kept | 90 |
 | split | 39 |
 | split-region | 3 |
@@ -223,7 +223,7 @@ Items inside first-party files: 2488 (moved 1779, planned 260, kept 230, deleted
 | `tests/hover-inks.test.mjs` | 33 | planned | core/ui (css guard)/tests/hover-inks.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/hover-rings.test.mjs` | 41 | kept | tests/hover-rings.test.mjs |
 | `tests/hover-veil.test.mjs` | 42 | kept | tests/hover-veil.test.mjs |
-| `tests/icon-gap.test.mjs` | 24 | planned | core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/icon-gap.test.mjs` | 24 | moved | core/ui/tests/icon-gap.test.mjs |
 | `tests/image-text-mode.test.mjs` | 28 | moved | modules/files/tests/image-text-mode.test.mjs |
 | `tests/imagechange.test.mjs` | 34 | moved | modules/changes/tests/imagechange.test.mjs |
 | `tests/inverse-toast.test.mjs` | 56 | planned | core/ui (css guard)/tests/inverse-toast.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
@@ -354,7 +354,7 @@ Items inside first-party files: 2488 (moved 1779, planned 260, kept 230, deleted
 | `tests/type-faces.test.mjs` | 46 | kept | tests/type-faces.test.mjs |
 | `tests/type-roles.test.mjs` | 70 | kept | tests/type-roles.test.mjs |
 | `tests/viewer-busy.test.mjs` | 43 | moved | modules/files/tests/viewer-busy.test.mjs |
-| `tests/viewer-errors.test.mjs` | 25 | planned | modules/files/tests/viewer-errors.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
+| `tests/viewer-errors.test.mjs` | 25 | moved | modules/files/tests/viewer-errors.test.mjs |
 | `tests/viewer-head-focus.test.mjs` | 18 | planned | modules/files/tests/viewer-head-focus.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves) |
 | `tests/viewer-hooks.test.mjs` | 37 | moved | modules/files/tests/viewer-hooks.test.mjs |
 | `tests/words.test.mjs` | 47 | moved | modules/conversation/tests/words.test.mjs · next: still reads the source for the two imports; its rewrite as a behaviour test is owed |

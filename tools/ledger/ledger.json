@@ -5131,8 +5131,9 @@
    "home": "tests/hover-veil.test.mjs"
   },
   "tests/icon-gap.test.mjs": {
-   "status": "planned",
-   "home": "core/ui (css guard)/tests/icon-gap.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "core/ui/tests/icon-gap.test.mjs",
+   "evidence": { "core/ui/tests/icon-gap.test.mjs": { "anchor": "a published margin-right for", "reason": "Checks the shared token and the published icon-gap declarations regardless of stylesheet ownership." } }
   },
   "tests/image-text-mode.test.mjs": {
    "status": "moved",
@@ -5756,8 +5757,9 @@
    "evidence": { "modules/files/tests/viewer-busy.test.mjs": { "anchor": "the pending download excludes clipboard work", "reason": "Checks pending copy and download exclusion, status and stale completion." } }
   },
   "tests/viewer-errors.test.mjs": {
-   "status": "planned",
-   "home": "modules/files/tests/viewer-errors.test.mjs  (source-reading tests are rewritten as behaviour tests when their module moves)"
+   "status": "moved",
+   "home": "modules/files/tests/viewer-errors.test.mjs",
+   "evidence": { "modules/files/tests/viewer-errors.test.mjs": { "anchor": "each viewer body shows the download error once beneath its controls", "reason": "Mounts the preview, source and Changes bodies and checks error paint and ordering beneath the controls." } }
   },
   "tests/viewer-head-focus.test.mjs": {
    "status": "planned",

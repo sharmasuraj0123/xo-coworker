@@ -766,10 +766,6 @@
  "tests/home-sections.test.mjs": {
   "explicitAny": 2
  },
- "tests/icon-gap.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
- },
  "tests/intel-chip-toggle.test.mjs": {
   "explicitAny": 1
  },
@@ -878,10 +874,6 @@
  "tests/turnview.test.mjs": {
   "changelogComment": 2,
   "commentLines": 8
- },
- "tests/viewer-errors.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 4
  },
  "tools/check.mjs": {
   "commentLines": 1

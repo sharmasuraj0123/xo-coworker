@@ -323,17 +323,5 @@
   "sites": [
    ["commentOnlyCatch",25,""]
   ]
- },
- "tests/icon-gap.test.mjs": {
-  "sha256": "35a38286567beb8946be75faf8477d6552089bb89afe2a10f9aecc618bab8375",
-  "sites": [
-   ["changelogComment",4,""]
-  ]
- },
- "tests/viewer-errors.test.mjs": {
-  "sha256": "988cc02091300e08339a285c91cb3e03e20d808a3f00872d42b97a1a63d949ed",
-  "sites": [
-   ["changelogComment",2,""]
-  ]
  }
 }

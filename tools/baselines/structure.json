@@ -774,8 +774,7 @@
  "modules/files/viewer.js": {
   "domExpando": 1,
   "functionLines": 1,
-  "lineLength": 22,
-  "sourceReadTarget": 1
+  "lineLength": 22
  },
  "modules/github/page.js": {
   "lineLength": 42,
@@ -1141,9 +1140,6 @@
  "tests/hover-veil.test.mjs": {
   "sourceRead": 1
  },
- "tests/icon-gap.test.mjs": {
-  "sourceRead": 1
- },
  "tests/ledger-deleted.test.mjs": {
   "sourceRead": 1
  },
@@ -1178,9 +1174,6 @@
   "sourceRead": 1
  },
  "tests/speaker-names.test.mjs": {
-  "sourceRead": 1
- },
- "tests/viewer-errors.test.mjs": {
   "sourceRead": 1
  }
 }
