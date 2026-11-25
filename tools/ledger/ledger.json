@@ -2634,6 +2634,7 @@
     "modules/settings/shortcuts-sheet.js",
     "modules/settings/surface.js",
     "shell/rail/counts.js",
+    "shell/rail/module.js",
     "modules/artifacts/module.js",
     "modules/map/module.js",
     "modules/changes/module.js",
@@ -2673,6 +2674,10 @@
     "shell/panel/workspace-stage.js": {
      "anchor": "export const stageModule",
      "reason": "Stage owns its frame list, place names and scoped header actions."
+    },
+    "shell/rail/module.js": {
+     "anchor": "export const railModule",
+     "reason": "Rail activation owns the sidebar controls, project rows and their event subscriptions."
     },
     "shell/rail/counts.js": {
      "anchor": "export const railCountsModule",

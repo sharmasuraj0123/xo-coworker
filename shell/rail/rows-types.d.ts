@@ -32,3 +32,9 @@ export interface SideRowsDeps<N extends SideNeed> {
   projectIcon: (project: string) => string;
   folded: () => boolean;
 }
+
+declare module "../../core/kernel/types" {
+  interface Services {
+    rail: { side: import("./side-types").Side; rows(needs: import("../../core/services/decision-types").RankedNeed[]): void };
+  }
+}

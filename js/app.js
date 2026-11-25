@@ -26,12 +26,11 @@ import { threadPageModule } from "../modules/conversation/thread-page-module.js"
 import { transcriptModule } from "../modules/conversation/transcript-module.js";
 import { composerModule } from "../modules/conversation/composer-module.js";
 import { messageContextModule } from "../modules/conversation/message-context.js";
-import { askShort } from "../modules/decisions/ask-label.js";
 import { filesModule } from "../modules/files/module.js";
 import { mapAgentsModule, mapModule } from "../modules/map/module.js";
 import { stageModule } from "../shell/panel/workspace-stage.js";
 import { railCountsModule } from "../shell/rail/counts.js";
-import { createSide } from "../shell/rail/side.js";
+import { railModule } from "../shell/rail/module.js";
 import { kernel, failureModule } from "../shell/kernel.js";
 import { createWorkspaceHeader } from "../shell/workspace-header.js";
 import { mountShellInteractions } from "../shell/interactions.js";
@@ -41,7 +40,7 @@ import { appServicesModule } from "../shell/world.js";
 import { shapeModule } from "../core/services/shape/module.js";
 import { createScope } from "../core/kernel/scope.js";
 import { PHONE } from "../core/platform/viewport.js";
-import { startShell } from "../shell/start.js";
+import { startupModule } from "../shell/start.js";
 import { bootShell } from "../shell/boot.js";
 import { launchpadModule } from "../modules/launchpad/surface.js";
 import { fileSearchModule } from "../modules/search/file-search-module.js";
@@ -60,7 +59,6 @@ import { homeModule, homeSkeletonModule } from "../modules/home/module.js";
 import { wordsOf } from "../modules/conversation/words.js";
 import { threadRuntimeModule, runtimeSettingsModule } from "../modules/runtimes/module.js";
 import { SHAPE_IC } from "../modules/settings/index.js";
-import { createSideRows } from "../shell/rail/rows.js";
 import { themeModule } from "../core/ui/theme.js";
 /** @import { DecisionNeed } from "../modules/decisions/controller-types.d.ts" */
 /** @import { WorldThread } from "../core/services/world/state-types.d.ts" */
@@ -69,19 +67,19 @@ import { themeModule } from "../core/ui/theme.js";
 /** @type {import("../core/kernel/types").ModuleDef} */
 const workspaceModule = {
   manifest: { id: "xo.workspace", version: "1.0.0", kernel: "^1.1.0", core: true,
-    needs: ["world", "announce", "shape", "navigationState", "placeContext", "redrawFocus", "drawer", "toastLine",
+    needs: ["world", "rail", "navigationState", "placeContext", "redrawFocus", "drawer", "toastLine",
       "conversationSession", "shellDock", "stage", "navigation", "projectIcons", "projectDescriptions", "threadRuntime", "decisionPresentation",
-      "launchpad", "intelligence", "theme", "shortcuts", "threadControls", "threadMenu",
+      "launchpad", "intelligence", "shortcuts", "threadControls", "threadMenu",
       "threadGroups", "checklist", "chats", "decisionDock", "messageContext", "composer", "lightbox", "noticeLine", "mainViewport", "fileSearch"], optional: ["home", "jump", "settingsFrame", "createProject", "runs", "files", "transcript", "threadActions", "threadPage"] },
   activate(ctx) {
 const appScope = createScope();
 ctx.effect(() => appScope.dispose);
 const phone = PHONE;
 if (!phone) throw new Error("The application requires media queries.");
-const world = ctx.use("world"), announce = ctx.use("announce"), SHAPE = ctx.use("shape");
+const world = ctx.use("world");
 const navigationState = ctx.use("navigationState"), place = ctx.use("placeContext"), redrawFocus = ctx.use("redrawFocus");
 const setDrawer = ctx.use("drawer").set, toastLine = ctx.use("toastLine");
-const render = () => ctx.emit("app:render"), schedule = () => ctx.invalidate("workspace");
+const schedule = () => ctx.invalidate("workspace");
 const session = ctx.use("conversationSession"), { go, back } = ctx.use("navigation");
 const { projects, convThread } = place;
 const currentView = navigationState.view;
@@ -90,11 +88,11 @@ const { composer: MK, focus: { composerNow } } = session;
 const { say } = MK;
 const { convHost } = ctx.use("messageContext");
 
-const { THEME, applyTheme } = ctx.use("theme");
+const { side: SIDE, rows: sideRender } = ctx.use("rail");
 
 const threadControls = ctx.use("threadControls");
 
-const { isBusy, isHeld } = threadPresentation;
+const { isBusy } = threadPresentation;
 const { D, pings } = ctx.use("decisionPresentation");
 const { intelligence: IQ, toggle: toggleIq, activate: activateIntel } = ctx.use("intelligence");
 
@@ -112,9 +110,6 @@ const { LP, LW, LPP } = ctx.use("launchpad");
 const STAGE = ctx.use("stage");
 const threadMenuHtml = ctx.use("threadMenu");
 
-const sideRender = createSideRows(appScope, {
-  view: currentView, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
-});
 
 const { render: checklistRender } = ctx.use("checklist");
 
@@ -123,17 +118,14 @@ const dockRender = MDOCK.render;
 
 
 const composer = ctx.use("composer");
-const { loadDraft,
+const {
     targetLineRender,
     syncPlaceholder, chipRender, sendRender, chatTargetRender, updateComposer } = composer;
 const { heraldRender } = ctx.use("noticeLine");
 
-const { scroller, msgsEl, loadAhead, follow } = ctx.use("mainViewport");
+const { scroller, msgsEl, loadAhead } = ctx.use("mainViewport");
 /** @type {import("../core/kernel/types").Services["transcript"]} */
 const drawConv = (conversation, needs) => ctx.optional("transcript")?.(conversation, needs);
-ctx.on("app:view-preparing", () => {
-  setDrawer(false);
-});
 
 const topRender = mountConversationHeader({
   ...place, ...threadPresentation, threadControls, description: (project) => ctx.use("projectDescriptions").get(project), world, PICK, LP, LW, STAGE, kernel,
@@ -163,7 +155,6 @@ appScope.effect(() => kernel.bus.on("app:render", () => {
   if (world.state.loaded) activateIntel();
 }));
 
-const SIDE = createSide({ shape: SHAPE, announce, render, toggleJump: () => (jump.hidden ? JUMP.open() : JUMP.close()) });
 
 const applyInert = mountShellInteractions(appScope, kernel.layers, {
   PHONE: phone, navigationState, capturing: () => ctx.optional("settingsFrame")?.capturing() ?? false, SH, jump, IQ, CREATE, keys, files, QO, back, go, JUMP,
@@ -172,15 +163,11 @@ const applyInert = mountShellInteractions(appScope, kernel.layers, {
 });
 appScope.effect(() => kernel.bus.on("app:sync-inert", applyInert));
 
-appScope.effect(() => SIDE.dispose);
-ctx.on("app:started", () => appScope.effect(() => startShell({
-  THEME, applyTheme, SIDE, PHONE: phone, setDrawer, render, world, schedule, follow, loadDraft,
-})));
   },
 };
 
 await bootShell([
-  jumpModule, homeModule, themeModule, settingsModule, settingsFrameModule, shapeViewModule, shortcutsModule, runtimeSettingsModule,
+  railModule, startupModule, jumpModule, homeModule, themeModule, settingsModule, settingsFrameModule, shapeViewModule, shortcutsModule, runtimeSettingsModule,
   createProjectModule, projectDescriptionsModule, appServicesModule, shellFoundationModule, failureModule, shapeModule, conversationSessionModule, edgeCardsModule, changeDataModule,
   messageContextModule, decisionDockModule, chatModelModule, chatControlsModule, threadGroupsModule, checklistModule, conversationPresentationModule, launchpadModule, intelModule, projectIconsModule, threadRuntimeModule, decisionModule, navigationModule, threadPresentationModule, homeSkeletonModule, railCountsModule, workspaceModule, githubModule, sinceModule, artifactsModule,
   threadPageModule, threadControlsModule, threadActionsModule, conversationPressModule, conversationMediaModule, noticeLineModule, mainViewportModule, transcriptModule, stageModule, filesModule, composerModule, shellDockModule, shellPanelModule, fileSearchModule, fileQuestionsModule, runsModule, runControlsModule, mapAgentsModule, mapModule, changesModule, routingModule, rulesModule, worktreesModule,
