@@ -1,5 +1,6 @@
 // @ts-check
 import { createScope } from "../../kernel/scope.js";
+import { reportFailure } from "../notices/failures.js";
 import { stormSource } from "../storm/index.js";
 import { createTurns } from "./turns.js";
 
@@ -7,6 +8,11 @@ import { createTurns } from "./turns.js";
 
 /** Waiting on the person: a question, an approval, or paused by storm's loop breaker (a reply in the thread resumes it). @param {string} s */
 export const WAITING = (s) => s === "needs_reply" || s === "needs_approval" || s === "paused";
+
+/** @template {unknown[]} Args @param {(...args: Args) => void} listener @param {Args} args */
+function notify(listener, ...args) {
+  try { listener(...args); } catch (error) { reportFailure(error); }
+}
 
 /** The world the views render: it reads on its own (GETs and the one stream) and writes only when the person acts, through world.act. */
 export function createWorld() {
@@ -49,7 +55,7 @@ export function createWorld() {
   const emit = () => {
     if (signal.aborted) return;
     state.now = Date.now();
-    for (const f of subs) f(state);
+    for (const f of subs) notify(f, state);
   };
   /** @param {WorldEvent} e */
   const event = (e) => {
@@ -57,7 +63,7 @@ export function createWorld() {
     e.at = e.at || Date.now();
     state.activity.unshift(e);
     state.activity.length = Math.min(state.activity.length, 200);
-    for (const f of evs) f(e, state);
+    for (const f of evs) notify(f, e, state);
   };
 
   scope.effect(() => () => { subs.clear(); evs.clear(); });
@@ -69,7 +75,7 @@ export function createWorld() {
     subscribe(fn) {
       if (signal.aborted) return () => false;
       subs.add(fn);
-      if (state.loaded) fn(state);
+      if (state.loaded) notify(fn, state);
       return () => subs.delete(fn);
     },
     /** Discrete events: a state change, a new ask, a message, done. @param {(e: WorldEvent, s: State) => void} fn */
