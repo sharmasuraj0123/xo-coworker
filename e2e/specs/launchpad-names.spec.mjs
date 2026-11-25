@@ -5,6 +5,12 @@ import { openLaunchpad, setup } from "./launchpad-controls.spec.mjs";
 
 /** @import { Case, Tools } from "../lib/types.d.ts" */
 
+/** @typedef {{method(): string, postDataJSON(): unknown}} Request */
+
+/** @typedef {{request(): Request, fulfill(reply: {contentType: string, body: string}): Promise<void>, fallback(): Promise<void>}} Route */
+
+/** @typedef {{request(): Request, url(): string}} Response */
+
 const deploy = "/api/deploy/demo";
 const suggestion = "demo-next";
 const namedRepo = "fixtures/launchpad-demo";
@@ -16,10 +22,12 @@ async function installDeploy(t, decision) {
   const { page } = t;
   /** @type {Record<string, unknown>[]} */
   const requests = [];
-  await page.route(`**${deploy}`, async (/** @type {any} */ route) => {
+  await page.route(`**${deploy}`, async (/** @type {Route} */ route) => {
     const request = route.request();
     if (request.method() !== "POST") return route.fallback();
-    requests.push(request.postDataJSON());
+    const payload = request.postDataJSON();
+    assert.ok(payload && typeof payload === "object");
+    requests.push({ ...payload });
     const ts = t.store.now, run_id = "launchpad-name";
     const frames = [
       { type: "run", ts, run_id, kind: "deploy", attached: false, started_at: ts },
@@ -112,7 +120,7 @@ async function deployDecision(t, kind, approve) {
   const key = repo ? "use_repo" : "allow_apps";
   assert.equal(requests[0][key], undefined);
   if (approve) {
-    const replied = page.waitForResponse((/** @type {any} */ response) => response.request().method() === "POST"
+    const replied = page.waitForResponse((/** @type {Response} */ response) => response.request().method() === "POST"
       && new URL(response.url()).pathname === deploy);
     await approveButton.click();
     await passUndo(t, 6200);
@@ -137,8 +145,10 @@ const repoSetup = {
   },
 };
 
+const viewports = /** @type {const} */ (["desktop", "phone"]);
+
 /** @type {Omit<Case, 'file'>[]} */
-export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewport) => ["dark", "light"].flatMap((theme) => [
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((theme) => [
   {
     name: `Launchpad name suggestion under the hint at ${viewport} ${theme}`, viewport, seed: setup,
     async run(/** @type {Tools} */ t) {

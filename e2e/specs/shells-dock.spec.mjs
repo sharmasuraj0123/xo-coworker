@@ -3,12 +3,19 @@
 import assert from "node:assert/strict";
 
 /** @import { Case, Tools } from "../lib/types.d.ts" */
+
 /** @typedef {{id: string, name: string}} Terminal */
+
 /** @typedef {{refuse: boolean, creates: number, closed: string[], mode: "ready" | "exit" | "retry", hold?: Promise<void>}} ShellState */
+
 /** @typedef {{url(): string, method(): string, postDataJSON(): unknown}} Request */
+
 /** @typedef {{status?: number, json?: unknown}} Reply */
+
 /** @typedef {{request(): Request, fulfill(response: Reply): Promise<void>, abort(code: string): Promise<void>}} Route */
+
 /** @typedef {{send(value: string | Buffer): void, close(options: {code: number, reason?: string}): void}} Socket */
+
 /** @typedef {Socket & {onMessage(handler: (value: string | Buffer) => void): void}} WebSocketRoute */
 
 const sessions = "/api/terminal/sessions";
@@ -114,15 +121,20 @@ async function tabsAndRename(t, state, phone) {
   const sidebar = page.locator("#nv-shells");
   assert.equal(await sidebar.getAttribute("aria-pressed"), "true");
   assert.match(await sidebar.getAttribute("aria-label"), /Shells, 3 running/);
-  const dots = await page.locator(".shl-row .shd-dot").evaluateAll((/** @type {Element[]} */ nodes) => nodes.map((node) => {
+
+  /** @param {Element[]} nodes */
+  const inspectDots = (nodes) => nodes.map((node) => {
     const color = getComputedStyle(node).backgroundColor;
     const parts = color.match(/[\d.]+/g)?.map(Number) || [];
     const [r, g, b, a = 1] = parts;
     const scale = color.startsWith("color(") ? 255 : 1;
     return { detached: node.classList.contains("d-away"), blue: a > 0 && (b - Math.max(r, g)) * scale > 30 };
-  }));
-  assert.ok(dots.some((/** @type {{detached: boolean}} */ dot) => dot.detached));
-  assert.ok(dots.every((/** @type {{blue: boolean}} */ dot) => !dot.blue));
+  });
+
+  /** @type {ReturnType<typeof inspectDots>} */
+  const dots = await page.locator(".shl-row .shd-dot").evaluateAll(inspectDots);
+  assert.ok(dots.some((dot) => dot.detached));
+  assert.ok(dots.every((dot) => !dot.blue));
   await attach(t, first);
   const close = page.locator(`.shd-acts [data-sh-close="${first}"]`);
   assert.equal((await close.innerText()).trim(), phone ? "Close" : "Close shell");
@@ -299,11 +311,14 @@ const scenarios = [
   { name: "close detached shells and move focus through minimise and hide", run: closeDetached },
 ];
 
+const viewports = /** @type {const} */ (["desktop", "phone"]);
+
 /** @type {Omit<Case, "file">[]} */
-export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewport) => ["dark", "light"].flatMap((theme) =>
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((theme) =>
   scenarios.map((scenario) => ({
     name: `${scenario.name} at ${viewport} ${theme}`, viewport, seed: "basic",
     async run(/** @type {Tools} */ t) {
+
       /** @type {ShellState} */
       const state = { refuse: false, creates: 0, closed: [], mode: "ready" };
       await installShells(t, state, !!scenario.empty);

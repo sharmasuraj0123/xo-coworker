@@ -5,12 +5,20 @@ import { openLaunchpad, setup } from "./launchpad-controls.spec.mjs";
 
 /** @import { Case, Tools } from "../lib/types.d.ts" */
 
+/** @typedef {{url(): string, method(): string}} Request */
+
+/** @typedef {{status?: number, json?: unknown, contentType?: string, body?: string}} Reply */
+
+/** @typedef {{request(): Request, fulfill(reply: Reply): Promise<void>, fallback(): Promise<void>}} Route */
+
 const deploy = "/api/deploy/demo";
 const check = `GET ${deploy}/check`;
 const runId = "demo-building";
 
+const viewports = /** @type {const} */ (["desktop", "phone"]);
+
 /** @type {Omit<Case, 'file'>[]} */
-export const cases = /** @type {const} */ (["desktop", "phone"]).flatMap((viewport) => ["dark", "light"].flatMap((theme) => [
+export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((theme) => [
   {
     name: `Launchpad deploy Undo cancels the request at ${viewport} ${theme}`, viewport, seed: setup,
     async run(/** @type {Tools} */ t) {
@@ -59,7 +67,7 @@ async function undoDeploy(t) {
 /** @param {Tools} t */
 async function watch(t) {
   t.store.routes[check] = { ...setup.routes[check], running: { run_id: runId, kind: "deploy" } };
-  await t.page.route(`**${deploy}/watch*`, (/** @type {any} */ route) => {
+  await t.page.route(`**${deploy}/watch*`, (/** @type {Route} */ route) => {
     const ts = t.store.now, run_id = runId;
     const frames = [
       { type: "run", ts, run_id, seq: 1, kind: "deploy", attached: true, started_at: ts },
@@ -79,7 +87,7 @@ async function stopDeploy(t, outcome) {
   await screen.getByText("GitHub Actions is building the image.", { exact: true }).waitFor();
   const release = /** @type {ReturnType<typeof Promise.withResolvers<void>>} */ (Promise.withResolvers());
   let calls = 0;
-  await page.route(`**${deploy}`, async (/** @type {any} */ route) => {
+  await page.route(`**${deploy}`, async (/** @type {Route} */ route) => {
     if (route.request().method() !== "DELETE") return route.fallback();
     calls += 1;
     await release.promise;
@@ -94,7 +102,7 @@ async function stopDeploy(t, outcome) {
   });
   try {
     if (outcome === "confirmed") {
-      const resumed = page.waitForRequest((/** @type {any} */ request) => {
+      const resumed = page.waitForRequest((/** @type {Request} */ request) => {
         const url = new URL(request.url());
         return url.pathname === `${deploy}/watch` && url.searchParams.get("run") === runId && url.searchParams.get("after") === "2";
       });
@@ -109,7 +117,7 @@ async function stopDeploy(t, outcome) {
       await resumed;
       assert.equal(calls, 0);
     }
-    const sent = page.waitForRequest((/** @type {any} */ request) => request.method() === "DELETE"
+    const sent = page.waitForRequest((/** @type {Request} */ request) => request.method() === "DELETE"
       && new URL(request.url()).pathname === deploy);
     await stop.press("Enter");
     await focus(t, "stop-undo");
