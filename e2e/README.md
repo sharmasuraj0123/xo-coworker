@@ -14,8 +14,7 @@ node e2e/tests/store.test.mjs node e2e/tests/aria.test.mjs   the lane's own unit
 - **Exit code:** 0 means every case passed, 1 means a case failed or the 3-minute budget ran out, and 2 means
   nothing ran (no Playwright or Chromium, or no case matches the filter). The exit code is the verdict; the
   printed lines are not.
-- **Only on request.** `tools/check.mjs` and `tests/run.mjs` never start a browser. On this machine, hold the
-  `headless-browser-suite` lease first, and run one browser suite at a time.
+- **Only on request.** `tools/check.mjs` and `tests/run.mjs` never start a browser.
 
 ## How a case runs
 

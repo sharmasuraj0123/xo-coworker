@@ -76,25 +76,12 @@ The DOM holds no state of its own: views draw from state with `core/ui/redraw.js
 |---|---|---|
 | `node tools/check.mjs --fast` | Every commit (the pre-commit hook runs it) | Lint, layers, conformance, places, ratchets. A few seconds. |
 | `node tests/run.mjs <filter>` | While working | The unit tests whose path contains `filter`, each judged by its exit code. |
-| `node tools/check.mjs --conformance-base <start>` | Once, on the tip you hand over | The fast check plus types, the production build and every unit test. Holds files changed since `<start>` to the stricter rules. |
+| `node tools/check.mjs --conformance-base <start>` | Once, before a merge or deploy | The fast check plus types, the production build and every unit test (about 2 minutes). Holds files changed since `<start>` to the stricter rules. |
 | `node tools/check.mjs --fast --update-baselines` | When the check notes a baseline can drop | Lowers baselines to what the code has now. |
 | `node tools/check.mjs --accept-upstream <ref>` | Integrator, on a forward merge | Allows existing findings in files identical to `<ref>`. |
 | `node e2e/run.mjs [filter]` | Only when the owner asks | The fast browser lane ([e2e/README.md](e2e/README.md)). |
 
 Read the exit code, not the printed lines. Lines starting with `note` don't fail the check: a baseline that can be lowered, or one raised since the base (say why in the commit). A file you edit loses its allowance for type escapes, stale comments and swallowed catches; its other old findings may stay, but no file gains new ones. [tools/conformance/README.md](tools/conformance/README.md) explains the rules.
-
-### Running the full check
-
-The full check takes about 3 minutes and is the one heavy job, so it runs one at a time across the project:
-
-```sh
-awk '/^anon /{print $2/2^30 " GiB in use"}' /sys/fs/cgroup/memory.stat   # wait if above 5 GiB; `free` shows the host, not this box
-# take the `modular-full-check` lease, then:
-JOBS=1 NODE_OPTIONS=--max-old-space-size=512 node tools/check.mjs --conformance-base <start>
-# release the lease
-```
-
-A browser run (only when asked) holds `headless-browser-suite` the same way.
 
 ## Tests
 
@@ -105,9 +92,9 @@ A browser run (only when asked) holds `headless-browser-suite` the same way.
 
 ## Landing work
 
-1. Work in your own worktree, on a branch from `coworker/modular`.
+1. Work on your own branch from `coworker/modular`.
 2. Make small single-purpose commits whose titles say what changed.
 3. Run the full check once on the tip, then hand over the head hash from `git rev-parse HEAD` with the result.
 4. The integrator fast-forwards `coworker/modular` to it; if the branch moved, rebase and hand over again.
 
-Nothing leaves this machine (push, PR, deploy) without the owner's approval, and deploys go through the coordinator.
+Nothing is pushed or deployed without the owner's approval; deploys go through the coordinator.

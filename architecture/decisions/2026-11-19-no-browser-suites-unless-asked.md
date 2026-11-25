@@ -5,4 +5,3 @@
   - Unit tests are fine at any time (`node tests/run.mjs`).
   - Browser suites run only when the owner asks, usually before a push or deploy.
   - Otherwise, one small final screenshot set.
-- **When they do run:** hold the `headless-browser-suite` lease (project-wide; Chromium has run the machine out of memory), and run one suite at a time.
