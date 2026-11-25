@@ -6,6 +6,7 @@ import sys
 import threading
 from pathlib import Path
 from urllib.parse import quote
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import serve
@@ -21,6 +22,8 @@ def check():
     files = set(json.load(sys.stdin))
     if serve.PUBLIC_DIR:
         files.update(serve.BUILD_FILES - {"index.html"})
+        with patch.object(serve, "versioned_files", side_effect=AssertionError("Production digest walked the tree")):
+            assert serve.tree_version() == serve.BUILD_VERSION
     with serve.Server(("127.0.0.1", 0), Handler) as server:
         threading.Thread(target=server.serve_forever, daemon=True).start()
         port = server.server_port
