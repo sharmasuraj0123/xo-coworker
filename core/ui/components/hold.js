@@ -1,5 +1,4 @@
 // @ts-check
-
 import { createScope } from "../../kernel/scope.js";
 import { reportFailure } from "../../platform/util.js";
 
@@ -53,7 +52,8 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     active = null; via = null;
     btn.classList.remove("is-holding");
     btn.setAttribute("aria-pressed", "false");
-    if (early) { onProgress(0); onRelease?.(); }
+    if (early || !btn.isConnected) onProgress(0);
+    if (early && btn.isConnected) onRelease?.();
   };
   const tick = () => {
     if (!btn.isConnected) { stop(false); return; }
@@ -98,7 +98,7 @@ export function holdToConfirm(btn, { ms = HOLD_MS, ready, onProgress, onConfirm,
     const r = btn.getBoundingClientRect();
     if (e.clientX < r.left - 8 || e.clientX > r.right + 8 || e.clientY < r.top - 8 || e.clientY > r.bottom + 8) stop(true);
   });
-  btn.addEventListener("touchstart", (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }); // the browser's own long-press never buzzes first
+  btn.addEventListener("touchstart", (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false });
   btn.addEventListener("click", (e) => e.preventDefault());
   btn.addEventListener("contextmenu", (e) => e.preventDefault());
   return { cancel: () => stop(true) };

@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { dom } from "../../../tests/lib/dom.mjs";
-import { holdToConfirm } from "../components/hold.js";
+import { HOLD_MS, holdButton } from "../components/hold.js";
 
 test("active holds release their listeners and frames when cancelled, completed or detached", async ({ mock }) => {
   const { document, window } = await dom("<button>Confirm</button>");
@@ -17,12 +17,9 @@ test("active holds release their listeners and frames when cancelled, completed 
   });
   const listeners = mock.method(document, "addEventListener");
   const removals = mock.method(document, "removeEventListener");
-  const progress = [];
   let confirmations = 0, releases = 0;
-  const mounted = holdToConfirm(button, {
-    ms: 100,
+  const mounted = holdButton(button, {
     ready: () => true,
-    onProgress: (value) => progress.push(value),
     onConfirm: () => confirmations++,
     onRelease: () => releases++,
   });
@@ -36,21 +33,31 @@ test("active holds release their listeners and frames when cancelled, completed 
 
   press();
   assert.equal(frames.size, 1);
-  tick(25);
-  assert.deepEqual(progress, [0.25]);
+  tick(HOLD_MS / 4);
+  assert.equal(button.style.getPropertyValue("--p"), "0.25");
   mounted.cancel();
   assert.equal(releases, 1);
   assert.equal(frames.size, 0);
 
   press();
-  tick(100);
+  tick(HOLD_MS);
   assert.equal(confirmations, 1);
   assert.equal(frames.size, 0);
 
   press();
+  tick(HOLD_MS * 0.9);
+  assert.equal(button.style.getPropertyValue("--p"), "0.9");
+  assert.equal(button.classList.contains("tense"), true);
   button.remove();
-  tick(100);
+  tick(HOLD_MS);
+  document.body.append(button);
+  assert.equal(button.style.getPropertyValue("--p"), "0");
+  assert.equal(button.classList.contains("tense"), false);
+  assert.equal(button.classList.contains("is-holding"), false);
+  assert.equal(button.classList.contains("is-releasing"), false);
+  assert.equal(button.getAttribute("aria-pressed"), "false");
   assert.equal(confirmations, 1);
+  assert.equal(releases, 1);
   assert.equal(frames.size, 0);
   const visibility = (call) => call.arguments[0] === "visibilitychange";
   const handlers = (tracker) => tracker.mock.calls.filter(visibility).map((call) => call.arguments[1]);
