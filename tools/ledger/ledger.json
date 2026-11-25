@@ -4909,7 +4909,7 @@
   "tests/browser/flows.test.cjs": {
    "status": "planned",
    "home": "e2e/specs/flows.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies held and refused Save, plus Find Close with Enter and Space and the Quick Open transition to an empty file (S231/C120), in desktop and phone light and dark on b9083e02 and release d639012b. The legacy alert/Retry, cross-file Save, Undo, invalid regex and Find geometry cases remain open. Find Escape on the Close button closes the viewer and drops focus on both pins."
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies held and refused Save, direct alert Try again after reopening, Find Close with Enter and Space, and Quick Open into an empty file (S231/C120), in desktop and phone light and dark on b9083e02 and release d639012b. Cross-file Save and caret focus after Save passed on both desktop themes and phone light on both pins. The phone-dark passes are incomplete because the Files row sometimes lost focus on entry. The legacy Saved Undo, invalid regex and Find geometry cases remain open. Find Escape on the Close button closes the viewer and drops focus on both pins."
   },
   "tests/browser/harness.cjs": {
    "status": "planned",
@@ -14716,7 +14716,7 @@
   "tests/browser/flows.test.cjs::ids::runs": {
    "status": "planned",
    "home": "e2e/specs/flows.spec.mjs",
-   "note": "e2e/specs/runs-controls.spec.mjs verifies first-open refusal, S238 cached refusal and retry, stale lists after switching threads, C047 live opener, S100 named Stop, Stage Back focus and duplicate Stop/Undo on b9083e02 in desktop and phone light and dark, with release desktop-dark parity. Same-thread reopen and replaced-opener focus remain open. Runs Escape can reopen detail after focus reaches the panel region on both pins."
+   "note": "e2e/specs/runs-controls.spec.mjs verifies first-open refusal, S238 cached refusal and retry, stale lists after switching threads, C047 live opener, S100 named Stop, Stage Back focus and duplicate Stop/Undo on b9083e02 in desktop and phone light and dark, with release desktop-dark parity. SRC-MAIN-RUN-1/2 late list and detail after same-thread reopen passed all four profiles on both pins. Replaced live opener focus passed both desktop themes on both pins. Runs Escape can reopen detail after focus reaches the panel region on both pins."
   },
   "tests/browser/flows.test.cjs::ids::drop-veil": {
    "status": "planned",

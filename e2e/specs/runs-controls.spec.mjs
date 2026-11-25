@@ -70,6 +70,9 @@ const banner = (page) => visible(page, "#thead [data-runs]");
 /** @param {Tools['page']} page */
 const runs = (page) => visible(page, "#runs-card");
 
+/** @param {Tools['page']} page @param {string} name */
+const stageBack = (page, name) => page.locator("#stage").getByRole("button", { name, exact: true }).press("Enter");
+
 /** @param {Tools['page']} page @param {string} selector */
 async function focus(page, selector) {
   await page.waitForFunction((/** @type {string} */ hook) => !!document.activeElement?.matches(hook), selector);
@@ -166,6 +169,78 @@ async function staleList(t, phone, theme) {
 }
 
 /** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function sameThreadReopen(t, phone, theme) {
+  const { page } = t;
+  const old = held();
+  let reads = 0;
+  await page.route((/** @type {URL} */ url) => url.pathname === endpoint("alpha"), async (/** @type {RunRoute} */ route) => {
+    const first = ++reads === 1;
+    if (first) await old.promise;
+    const run = first ? { ...alpha, id: "old-run", title: "Old helper" } : alpha;
+    return route.fulfill({ json: reply({ ...run, state: "finished", can_stop: false }) });
+  });
+  await boot(t, phone, theme);
+  await openThread(t, "alpha");
+  const panel = runs(page);
+  try {
+    await Promise.all([
+      page.waitForRequest((/** @type {{url(): string}} */ request) => new URL(request.url()).pathname === endpoint("alpha")),
+      banner(page).press("Enter"),
+    ]);
+    await panel.getByRole("status").filter({ hasText: /Reading its sub-agents/ }).waitFor();
+    await stageBack(page, "Back to the thread");
+    await panel.waitFor({ state: "hidden" });
+    await banner(page).press("Enter");
+    await panel.getByRole("button", { name: alpha.title }).waitFor();
+  } finally {
+    old.resolve();
+  }
+  await t.settle();
+  assert.equal(reads, 2);
+  assert.equal(await panel.getByRole("button", { name: alpha.title }).count(), 1);
+  assert.equal(await panel.getByRole("button", { name: "Old helper" }).count(), 0);
+  assert.equal(await panel.locator(".rn-hero").count(), 0);
+}
+
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function sameThreadDetail(t, phone, theme) {
+  const { page } = t;
+  const old = held();
+  const path = `/api/chat/runs/${alpha.id}`;
+  let reads = 0;
+  await page.route((/** @type {URL} */ url) => url.pathname === endpoint("alpha"), (/** @type {RunRoute} */ route) =>
+    route.fulfill({ json: reply({ ...alpha, state: "finished", can_stop: false }) }));
+  await page.route((/** @type {URL} */ url) => url.pathname === path, async (/** @type {RunRoute} */ route) => {
+    const first = ++reads === 1;
+    if (first) await old.promise;
+    const title = first ? "Obsolete detail" : "Current detail";
+    return route.fulfill({ json: { ...alpha, title, state: "finished", can_stop: false } });
+  });
+  await boot(t, phone, theme);
+  await openThread(t, "alpha");
+  const panel = runs(page);
+  const row = panel.getByRole("button", { name: alpha.title });
+  try {
+    await banner(page).press("Enter");
+    await Promise.all([
+      page.waitForRequest((/** @type {{url(): string}} */ request) => new URL(request.url()).pathname === path),
+      row.press("Enter"),
+    ]);
+    await stageBack(page, "Back to Sub-agents");
+    await stageBack(page, "Back to the thread");
+    await banner(page).press("Enter");
+    await row.press("Enter");
+    await panel.getByRole("heading", { name: "Current detail" }).waitFor();
+  } finally {
+    old.resolve();
+  }
+  await t.settle();
+  assert.equal(reads, 2);
+  assert.equal(await panel.getByRole("heading", { name: "Current detail" }).count(), 1);
+  assert.equal(await panel.getByRole("heading", { name: "Obsolete detail" }).count(), 0);
+}
+
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
 async function openLiveDetail(t, phone, theme) {
   const { page, space } = t;
   await page.route((/** @type {URL} */ url) => url.pathname === endpoint("alpha"), (/** @type {RunRoute} */ route) =>
@@ -204,12 +279,31 @@ async function openLiveDetail(t, phone, theme) {
 async function liveControls(t, phone, theme) {
   const { page } = t;
   const panel = await openLiveDetail(t, phone, theme);
-  await page.locator("#stage").getByRole("button", { name: "Back to Sub-agents", exact: true }).press("Enter");
+  await stageBack(page, "Back to Sub-agents");
   await panel.getByRole("button", { name: alpha.title }).waitFor();
   await focus(page, '#runs-card .rn-open[data-run="alpha-run"]');
-  await page.locator("#stage").getByRole("button", { name: "Back to the thread", exact: true }).press("Enter");
+  await stageBack(page, "Back to the thread");
   await panel.waitFor({ state: "hidden" });
   await focus(page, phone ? "#thead [data-runs]" : '#thead .rn-chip[data-run="alpha-run"]');
+}
+
+/** @param {Tools} t @param {string} theme */
+async function replacedOpener(t, theme) {
+  const { page, space } = t;
+  const selector = '#thead .rn-chip[data-run="alpha-run"]';
+  const panel = await openLiveDetail(t, false, theme);
+  const chip = visible(page, selector);
+  const original = await chip.elementHandle();
+  await stageBack(page, "Back to Sub-agents");
+  const frame = { chat_id: "chat_demo", thread_ts: "alpha", session_id: "s-alpha" };
+  space.push("run.finished", { run_id: alpha.id, state: "finished" }, frame);
+  await chip.waitFor({ state: "hidden" });
+  assert.equal(await original.evaluate((/** @type {Element} */ node) => node.isConnected), false);
+  space.push("run.started", { run_id: alpha.id, state: "running", info: alpha }, frame);
+  await chip.waitFor();
+  await stageBack(page, "Back to the thread");
+  await panel.waitFor({ state: "hidden" });
+  await focus(page, selector);
 }
 
 /** @param {Tools} t @param {boolean} phone @param {string} theme */
@@ -240,14 +334,21 @@ export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((
   const phone = viewport === "phone";
   return [
     ...[false, true].map((warm) => ({
-      name: `Runs read refusal and keyboard recovery ${warm ? "with cached rows" : "on first open"} at ${viewport} ${theme}`, viewport, seed,
+      name: `Runs read refusal and keyboard recovery ${warm ? "with cached rows" : "on first open"} at ${viewport} ${theme}`,
+      viewport, seed,
       run: (/** @type {Tools} */ t) => retryList(t, phone, theme, warm),
     })),
     { name: `Runs ignores a late list from the previous thread at ${viewport} ${theme}`, viewport, seed,
       run: (/** @type {Tools} */ t) => staleList(t, phone, theme) },
+    { name: `Runs ignores a late list after reopening the same thread at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => sameThreadReopen(t, phone, theme) },
+    { name: `Runs ignores a late detail after reopening the same thread at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => sameThreadDetail(t, phone, theme) },
     { name: `Runs live opener, named detail Stop and focus restoration at ${viewport} ${theme}`, viewport, seed,
       run: (/** @type {Tools} */ t) => liveControls(t, phone, theme) },
     { name: `Runs deduplicates Stop and Undo cancels the request at ${viewport} ${theme}`, viewport, seed,
       run: (/** @type {Tools} */ t) => undoStop(t, phone, theme) },
+    ...(phone ? [] : [{ name: `Runs returns focus to a replaced live opener at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => replacedOpener(t, theme) }]),
   ];
 }));

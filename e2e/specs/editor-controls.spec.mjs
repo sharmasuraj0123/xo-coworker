@@ -122,8 +122,8 @@ async function saveWhileTyping(t, phone, theme) {
   assert.equal(writes.length, 2);
 }
 
-/** @param {Tools} t @param {boolean} phone @param {string} theme */
-async function saveRefusal(t, phone, theme) {
+/** @param {Tools} t @param {boolean} phone @param {string} theme @param {boolean} [afterReopen] */
+async function saveRefusal(t, phone, theme, afterReopen = false) {
   const { page } = t;
   const writes = await interceptSaves(t, (save, attempt, route) => attempt === 1
     ? route.fulfill({ status: 503, json: { detail: { code: "writer_key_missing", message: "Saving is unavailable" } } })
@@ -147,7 +147,17 @@ async function saveRefusal(t, phone, theme) {
   assert.match(await content.innerText(), /keep this edit/);
   assert.equal(await content.evaluate((/** @type {Element} */ node) => node === document.activeElement), true);
   assert.equal(writes.length, 1);
-  await content.press("ControlOrMeta+s");
+  if (afterReopen) {
+    await quickOpenEditor(page, emptyFile);
+    await quickOpenEditor(page, firstFile);
+    const alert = page.locator("#viewer").getByRole("alert").filter({ hasText: "XO Space hasn't enabled saving yet" });
+    const retry = alert.getByRole("button", { name: "Try again", exact: true });
+    await retry.waitFor();
+    assert.equal(writes.length, 1);
+    await retry.press("Enter");
+  } else {
+    await content.press("ControlOrMeta+s");
+  }
   await status.filter({ hasText: /^Saved$/ }).waitFor();
   assert.equal(writes.length, 2);
   assert.deepEqual(writes[1], writes[0]);
@@ -177,28 +187,87 @@ async function closeFind(t, phone, theme) {
   }
 }
 
+/** @param {Tools['page']} page @param {string} name */
+async function quickOpenEditor(page, name) {
+  await page.keyboard.press("ControlOrMeta+p");
+  const picker = page.getByRole("dialog", { name: "Go to a file", exact: true });
+  const query = picker.getByRole("textbox");
+  await query.pressSequentially(name);
+  await picker.getByRole("option", { name, exact: true }).waitFor();
+  await query.press("Enter");
+  await picker.waitFor({ state: "hidden" });
+  const content = page.locator(`#viewer .cm-content[aria-label="${name}"]`);
+  await content.waitFor();
+  return content;
+}
+
 /** @param {Tools} t @param {boolean} phone @param {string} theme */
 async function findThenEmpty(t, phone, theme) {
   const { page } = t;
   await closeFind(t, phone, theme);
-  await page.keyboard.press("ControlOrMeta+p");
-  const picker = page.getByRole("dialog", { name: "Go to a file", exact: true });
-  const query = picker.getByRole("textbox");
-  await query.pressSequentially(emptyFile);
-  await picker.getByRole("option", { name: emptyFile, exact: true }).waitFor();
-  await query.press("Enter");
-  await picker.waitFor({ state: "hidden" });
-  const blank = page.locator(`#viewer .cm-content[aria-label="${emptyFile}"]`);
-  await blank.waitFor();
+  const blank = await quickOpenEditor(page, emptyFile);
   assert.equal((await blank.innerText()).trim(), "");
   await page.waitForFunction((/** @type {string} */ name) => document.activeElement?.getAttribute("aria-label") === name, emptyFile);
   await page.keyboard.insertText("first words in the empty file");
   await blank.getByText("first words in the empty file", { exact: true }).waitFor();
 }
 
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function saveDuringSwitch(t, phone, theme) {
+  const { page } = t;
+  const hold = /** @type {ReturnType<typeof Promise.withResolvers<void>>} */ (Promise.withResolvers());
+  const writes = await interceptSaves(t, async (save, attempt, route) => {
+    await hold.promise;
+    t.store.files.demo[save.relative_path] = save.content;
+    await route.fulfill({ json: saved(t, save, attempt) });
+  });
+  await boot(t, phone, theme);
+  const original = await openFile(page, firstFile);
+  const edit = " // saved while another file is open";
+  await append(page, edit);
+  try {
+    await original.press("ControlOrMeta+s");
+    await page.locator("#viewer .xd-state").filter({ hasText: "Saving" }).waitFor();
+    await quickOpenEditor(page, emptyFile);
+  } finally {
+    hold.resolve();
+  }
+  await t.settle();
+  const blank = editor(page);
+  assert.equal(await blank.getAttribute("aria-label"), emptyFile);
+  assert.equal((await blank.innerText()).trim(), "");
+  assert.equal(await page.locator("#viewer .xd-state").filter({ hasText: /^Saved$/ }).count(), 0);
+  assert.equal(await page.locator("#viewer").getByRole("button", { name: "Undo", exact: true }).count(), 0);
+  const savedFile = await quickOpenEditor(page, firstFile);
+  await savedFile.press("ControlOrMeta+End");
+  assert.ok((await savedFile.innerText()).includes(edit));
+  assert.deepEqual(writes, [{ relative_path: firstFile, content: initial + edit, base_version: `sha256:e2e-${initial.length}` }]);
+  assert.equal(t.store.files.demo[emptyFile], "");
+}
+
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function saveReceipt(t, phone, theme) {
+  const { page } = t;
+  const writes = await interceptSaves(t, (save, attempt, route) => route.fulfill({ json: saved(t, save, attempt) }));
+  await boot(t, phone, theme);
+  const content = await openFile(page, firstFile);
+  await append(page, " // later version");
+  await content.press("ControlOrMeta+s");
+  await page.locator("#viewer .xd-state").filter({ hasText: /^Saved$/ }).waitFor();
+  assert.equal(writes.length, 1);
+  assert.equal(await page.locator("#viewer").getByRole("button", { name: "Undo", exact: true }).count(), 0);
+  assert.equal(await content.evaluate((/** @type {Element} */ node) => node === document.activeElement), true);
+}
+
 /** @type {Omit<Case, "file">[]} */
 export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((theme) => {
   const phone = viewport === "phone";
+  const saveFocusCases = phone && theme === "dark" ? [] : [
+    { name: `Editor late Save stays with its original file at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => saveDuringSwitch(t, phone, theme) },
+    { name: `Editor Save receipt leaves focus at the caret and has no viewer Undo at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => saveReceipt(t, phone, theme) },
+  ];
   return [
     { name: `Editor held Save preserves later typing at ${viewport} ${theme}`, viewport, seed,
       run: (/** @type {Tools} */ t) => saveWhileTyping(t, phone, theme) },
@@ -208,5 +277,8 @@ export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((
       run: (/** @type {Tools} */ t) => closeFind(t, phone, theme) },
     { name: `Editor Find followed by Quick Open into an empty file at ${viewport} ${theme}`, viewport, seed,
       run: (/** @type {Tools} */ t) => findThenEmpty(t, phone, theme) },
+    { name: `Editor reopened refusal retries through its alert at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => saveRefusal(t, phone, theme, true) },
+    ...saveFocusCases,
   ];
 }));
