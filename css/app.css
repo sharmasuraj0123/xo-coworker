@@ -62,44 +62,8 @@
 @import url("../shell/panel/stage-width.css");
 @import url("../modules/map/diagram.css");
 @import url("../modules/map/graph.css");
-/* the cursors: one per agent, its tip exactly on the place, its name just under it */
-.dg-curs{position:absolute;left:0;top:0;pointer-events:none}
-.dg-cur{--c:var(--info);position:absolute;left:0;top:0;width:0;height:0;transition:transform var(--d-land) var(--ease),opacity var(--d-sheet) var(--ease);z-index:2}
-.k-graph .dg-tag{left:13px;top:16px}
-.k-graph .dg-cur{transition:transform var(--d-long) var(--ease),opacity var(--d-sheet) var(--ease)}
-.dg-cur.is-new,.dg-cur.is-gone{opacity:0}
-.dg-arrow{position:absolute;left:-1.6px;top:-1.4px;overflow:visible;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
-.dg-arrow path{fill:var(--c);stroke:#fff;stroke-width:1.2;stroke-linejoin:round}
-.dg-tag{pointer-events:auto;position:absolute;left:15px;top:-3px;display:inline-flex;align-items:center;gap:4px;max-width:250px;height:var(--h-sm);padding:0 8px;border-radius:var(--r-sm);background:var(--c);color:var(--on-agent);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;transition:filter var(--dur-fast)}
-.dg-tag:hover{filter:brightness(1.08)}
-.dg-tag b{min-width:0;font-weight:var(--fw-strong);overflow:hidden;text-overflow:ellipsis}
-.dg-tag span{flex:none;font-weight:var(--fw-regular)} /* full ink: dimmed, pressed it fell under 4.5:1 (S083) */
-.dg-cur.is-stacked .dg-tag{display:none}
-.dg-cur.is-left .dg-tag{left:auto;right:4px;border-radius:var(--r-sm)}
-.dg-cur.is-below .dg-tag{left:auto;right:-10px;top:31px;max-width:168px}
-.dg-more{font-style:normal;font-weight:var(--fw-strong);padding:2px 5px;margin-right:-3px;border-radius:var(--r-sm);background:rgba(255,255,255,.22)}
-.dg-cur.is-idle .dg-arrow path{fill:var(--ink-5)}
-.dg-cur.is-idle .dg-tag{background:var(--fill-4);color:var(--ink)}
-.dg-cur.is-wait .dg-tag::after{content:"";width:var(--ic-xs);height:var(--ic-xs);background:var(--warn);mask:var(--mask-needs)}
-.dg-cur.is-ping .dg-tag{animation:dg-ping var(--d-land) var(--ease)}
-@keyframes dg-ping{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 12px transparent}}
-
-/* the view's tools, how it's drawn, and what the marks mean */
-.dg-tools{position:absolute;right:10px;bottom:10px;display:flex;align-items:center;gap:2px;padding:3px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)));cursor:default}
-.dg-mode{display:flex;gap:2px}
-.dg-sep{width:1px;height:18px;margin:0 var(--s-1);background:var(--fill-3)}
-.dg-tools button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
-.dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}
-.dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
-.dg-mode button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
-.dg-tools svg,.dg-mode svg{width:var(--ic);height:var(--ic)}
-.dg-key{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;height:30px;align-items:center;padding:0 10px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);cursor:default}
-.dg-key[hidden]{display:none}
-.dg-key span{display:inline-flex;align-items:center;gap:4px}
-.dg-key i{width:9px;height:9px;border-radius:3px;border:1.5px solid var(--ink-4)}
-.dg-key .m-new i{border-color:var(--accent)}
-.dg-key .m-edited i{border-color:var(--violet)}
-.dg-key .m-deleted i{border-style:dashed}
+@import url("../modules/map/cursors.css");
+@import url("../modules/map/controls.css");
 
 @media (max-width:1180px) and (min-width:761px){:root{--mw:min(460px,48vw)}}
 /* a phone: the head clears the notch, the tools reach touch size */

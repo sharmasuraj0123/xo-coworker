@@ -187,6 +187,13 @@
   --w-map-more-min:84px; --h-map-note:26px; --ic-map-spinner:9px; --s-map-node-halo:3px;
   --h-map-graph-node:16px; --offset-map-graph-node:-8px; --w-map-graph-gap:2px; --stroke-map-folder:1.5px;
   --w-map-graph-ring:4px; --w-map-graph-halo:5px; --w-map-graph-flash:16px; --palette-shadow-clear:#0000;
+  --offset-map-graph-tag-inline:13px; --offset-map-cursor-x:-1.6px; --offset-map-cursor-y:-1.4px;
+  --offset-map-tag-inline:15px; --offset-map-tag-block:-3px; --w-map-tag-max:250px; --offset-map-tag-reverse:-10px;
+  --offset-map-tag-below:31px; --w-map-tag-below:168px; --s-map-tag-count-block:2px; --s-map-tag-count-inline:5px;
+  --offset-map-tag-count:-3px; --fill-map-tag-count:rgba(255,255,255,.22);
+  --shadow-map-arrow:drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); --shadow-map-tag:0 2px 8px rgba(0,0,0,.22);
+  --s-map-tools-inset:10px; --s-map-tools-gap:2px; --s-map-tools-pad:3px; --h-map-tools-sep:18px;
+  --h-map-key:30px; --ic-map-key:9px; --r-map-key:3px; --stroke-map-key:1.5px;
   --r-icon-round:50%; --w-draft-file:340px; --h-draft-file:46px; --tile-thumb:10px; --h-upload-progress:2px;
   --s-draft-block-end:10px; --s-draft-outdent:-6px; --s-draft-label-gap:2px; --s-draft-file-end:10px; --s-draft-file-start:6px;
   --s-draft-preview-inset:7px; --s-draft-remove-inset:11px; --s-draft-remove-phone:5px;
@@ -306,6 +313,7 @@
 @media (max-width:760px){:root{--cbar-fade:22px}}
 :where(.shd-dot.d-on){--shadow-shell-running:0 0 0 3px rgba(var(--accent-rgb),.16)}
 :where(.side.is-drag){--shadow-sidebar-drag:30px 0 80px rgb(0 0 0 / calc(.5 * var(--sha)))}
+:where(.dg-tools){--shadow-map-tools:0 4px 14px rgb(0 0 0 / calc(.3 * var(--sha)))}
 :root[data-theme="light"] :where(.hm-sk .sk-card){--edge-skeleton-card:var(--line-soft)}
 :root[data-theme="light"] :where(.md-pin){
   --fill-artifact-pin:color-mix(in srgb,var(--surface) 85%,var(--palette-transparent)); --fill-artifact-pin-hover:var(--surface);

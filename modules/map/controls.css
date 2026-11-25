@@ -1,0 +1,21 @@
+/* the view's tools, how it's drawn, and what the marks mean */
+.dg-tools{position:absolute;right:var(--s-map-tools-inset);bottom:var(--s-map-tools-inset);display:flex;align-items:center;
+  gap:var(--s-map-tools-gap);padding:var(--s-map-tools-pad);border-radius:var(--r-sm);background:var(--surface);
+  border:1px solid var(--line);box-shadow:var(--shadow-map-tools);cursor:default}
+.dg-mode{display:flex;gap:var(--s-map-tools-gap)}
+.dg-sep{width:1px;height:var(--h-map-tools-sep);margin:0 var(--s-1);background:var(--fill-3)}
+.dg-tools button{display:grid;place-items:center;width:var(--h-ctl);height:var(--h-ctl);border-radius:var(--r-sm);color:var(--ink-3);
+  transition:background var(--d-hover) var(--ease),color var(--d-hover) var(--ease)}
+.dg-tools button:hover,.dg-mode button:hover{background:var(--fill-3);color:var(--ink)}
+.dg-tools button[aria-pressed="true"]{background:color-mix(in srgb,var(--info) 16%,var(--palette-transparent));color:var(--info)}
+.dg-mode button[aria-pressed="true"]{background:var(--fill-3);color:var(--ink)}
+.dg-tools svg,.dg-mode svg{width:var(--ic);height:var(--ic)}
+.dg-key{position:absolute;left:var(--s-map-tools-inset);bottom:var(--s-map-tools-inset);display:flex;gap:var(--s-3);
+  height:var(--h-map-key);align-items:center;padding:0 var(--s-map-tools-inset);border-radius:var(--r-sm);background:var(--surface);
+  border:1px solid var(--line);font:var(--fw-medium) var(--fs-meta)/var(--lh-meta) var(--sans);color:var(--ink-3);cursor:default}
+.dg-key[hidden]{display:none}
+.dg-key span{display:inline-flex;align-items:center;gap:var(--s-1)}
+.dg-key i{width:var(--ic-map-key);height:var(--ic-map-key);border-radius:var(--r-map-key);border:var(--stroke-map-key) solid var(--ink-4)}
+.dg-key .m-new i{border-color:var(--accent)}
+.dg-key .m-edited i{border-color:var(--violet)}
+.dg-key .m-deleted i{border-style:dashed}
