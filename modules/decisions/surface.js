@@ -31,7 +31,7 @@ export function createDecisionSurface({ bus, view, scope, showNotice, conversati
   /** @type {import("../../core/kernel/types").ModuleDef} */
   const module = {
     manifest: { id: "xo.decision-model", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["decisionPresentation"] },
-    activate(ctx) { ctx.provide("decisionPresentation", { D: decisions, EFFORT, askTitle, Kit, evidenceFor }); },
+    activate(ctx) { ctx.provide("decisionPresentation", { D: decisions, EFFORT, askTitle, askShort, waitSince, Kit, evidenceFor }); },
   };
   return { decisions, waitSince, pings: createDecisionPings(pingOptions), module };
 }

@@ -8,28 +8,21 @@ import { createMentionList } from "./mention-input.js";
 import { createConversationStarts } from "./start.js";
 import { createComposerControls } from "./composer-controls.js";
 import { createComposer } from "./composer.js";
-import { createComposerFocus } from "./composer-focus.js";
 import { createComposerAttachments } from "./composer-attachments.js";
-import { createMainComposer, mountMainComposer } from "./main-composer.js";
+import { mountMainComposer } from "./main-composer.js";
 import { createTray } from "../../core/services/media/attachment-tray.js";
 import { uploadAttachment } from "../../core/platform/api.js";
 import { ICON } from "../../core/ui/icons/names.js";
 
 /** @param {import("./composer-types").ComposerScope} scope @param {import("./composer-surface-types").ComposerHost} host */
 export function createComposerSurface(scope, host) {
-  const { view, main, panel, localMessages, world, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject,
+  const { view, session, localMessages, world, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject,
     announce, heraldShow, heraldFor, schedule, render, go, PHONE, isBusy, sendWhileRunning, noun, IQ, sessionOf, running,
     projects, projectIcon, lrefRender, stopRun, VW, SHAPE } = host;
   const STOP_ICON = ICON.stop;
-  const MK = createMainComposer(view, main);
+  const MK = session.composer;
   const { say } = MK;
-  const { composerAt, composerNow, composers, inUse, dispose: disposeComposerFocus } = createComposerFocus({
-    main: MK,
-    panel,
-    isThread: () => STAGE.pageShown?.name === "thread",
-    coversChat: () => document.body.classList.contains("stage-full") || PHONE.matches,
-  }, schedule);
-  scope.effect(() => disposeComposerFocus);
+  const { composerAt } = session.focus;
   const { saveDraft, loadDraft } = createDrafts(MK, (composer) => { mentions.reset(composer); updateComposer(composer); });
   const { startHtml, startDraft } = createConversationStarts({
     SHAPE, PROJ, say, growSay: () => growSay(), saveDraft, updateComposer: () => updateComposer(),
@@ -73,7 +66,7 @@ export function createComposerSurface(scope, host) {
     edit: valuePress("data-edit", (id, control) => editFailed(id, composerAt(control))),
     "remove-reference": valuePress("data-lref-x", () => { fileReferences.remove(view()); lrefRender(); say.focus(); }, true),
   }));
-  return { MK, say, composerAt, composerNow, composers, inUse, saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
+  return { saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
     fileReferences, liveBlock, blockFor, refuse, connDest, deliverLive, putBack, targetLineRender,
     syncPlaceholder, chipRender, sendRender, chatTargetRender, mentions, wireComposer, updateComposer };
 }

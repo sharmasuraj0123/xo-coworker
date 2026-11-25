@@ -1,4 +1,4 @@
-import type { Composer, ComposerControlsDeps, ComposerDeps } from "./composer-types.d.ts";
+import type { ComposerControlsDeps, ComposerDeps } from "./composer-types.d.ts";
 import type { DeliveryDeps } from "./delivery-types.d.ts";
 import type { TargetDeps } from "./target-types.d.ts";
 import type { MentionDeps } from "./mention-types.d.ts";
@@ -16,7 +16,6 @@ export type ComposerHost =
   & Pick<Parameters<typeof createConversationStarts>[0], "SHAPE">
   & {
     places: import("../../core/kernel/types").Places;
-    main(): Composer["conv"];
-    panel(): { composer: Composer; host: HTMLElement } | null;
+    session: import("../../core/kernel/types").Services["conversationSession"];
     STAGE: { pageShown: { name: string } | null };
   };

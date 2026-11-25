@@ -17,20 +17,28 @@ import { createShellScheduler } from "./render.js";
 import { createRedrawFocus } from "./redraw-focus.js";
 import { createAppServices } from "./app-services.js";
 
-/** @param {() => void} render @param {() => void} syncInert */
-export function createShellFoundation(render, syncInert) {
+/** @param {import("../core/kernel/types").Bus} bus */
+export function createShellFoundation(bus) {
   if (!PHONE) throw new Error("The application requires media queries.");
   const appScope = createScope();
   const world = createWorld();
   appScope.effect(() => world.dispose);
+  const render = () => bus.emit("app:paint");
+  const syncInert = () => bus.emit("app:sync-inert");
   const schedule = createShellScheduler(render, appScope);
   const notices = createConversationNotices(schedule);
   appScope.effect(() => notices.dispose);
   /** @type {import("../core/kernel/types").ModuleDef} */
-  const noticeModule = {
-    manifest: { id: "xo.notices", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["notices"] },
-    activate(ctx) { ctx.provide("notices", notices); },
+  const shellServices = {
+    manifest: { id: "xo.shell", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["notices", "redrawFocus", "drawer"] },
+    activate(ctx) {
+      ctx.provide("notices", notices);
+      ctx.provide("redrawFocus", redrawFocus);
+      ctx.provide("drawer", { set: setDrawer });
+    },
   };
+  const redrawFocus = createRedrawFocus();
+  const setDrawer = createDrawer(appScope, PHONE, syncInert);
   const announce = createAnnouncer($("#live"), appScope);
   const applicationShape = createApplicationShape({
     scope: appScope, events: world, notice: (h) => notices.show({ kind: "calm", ...h }, 6000),
@@ -45,8 +53,8 @@ export function createShellFoundation(render, syncInert) {
   appScope.effect(regionRings);
   appScope.effect(keepFocusInView);
   return {
-    appScope, world, schedule, notices, noticeModule, announce, applicationShape, navigationState, place,
-    services, PHONE, setDrawer: createDrawer(appScope, PHONE, syncInert), redrawFocus: createRedrawFocus(),
+    appScope, world, render, syncInert, schedule, notices, shellServices, announce, applicationShape, navigationState, place,
+    services, PHONE, setDrawer, redrawFocus,
     toastLine, focusOverlay: createOverlayFocus(appScope),
   };
 }

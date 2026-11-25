@@ -24,5 +24,10 @@ export function mountWorkspaceStage(scope, options, { place, shape, launch }) {
   wireHeaderActions(scope, options.places, at);
   bindPanelHeaderControls(scope, stage, launch, options.view);
   scope.effect(() => stage.disposeLayout);
-  return stage;
+  /** @type {import("../../core/kernel/types").ModuleDef} */
+  const module = {
+    manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["stage"] },
+    activate(ctx) { ctx.provide("stage", stage); },
+  };
+  return { stage, module };
 }

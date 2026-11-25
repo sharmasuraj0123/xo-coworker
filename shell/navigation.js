@@ -49,7 +49,10 @@ export function createNavigation({
   /** @type {import("../core/kernel/types").ModuleDef} */
   const module = {
     manifest: { id: "xo.navigation", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["navigation"] },
-    activate(ctx) { ctx.provide("navigation", { go, back }); },
+    activate(ctx) {
+      ctx.provide("navigation", { go, back });
+      ctx.on("app:navigate", ({ view, options }) => go(view, options));
+    },
   };
   return { go, back, module };
 }

@@ -1,6 +1,10 @@
 import type { At, Entry, Kernel } from "../../core/kernel/types";
 import type { Agent, Change, Group } from "./list-types";
 
+declare module "../../core/kernel/types" {
+  interface Services { stage: ReturnType<typeof import("./panel.js").createStage> }
+}
+
 interface Page { name: string; key: string }
 export interface StageState {
   open: boolean;

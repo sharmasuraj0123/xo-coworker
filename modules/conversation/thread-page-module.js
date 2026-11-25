@@ -12,9 +12,10 @@ import { createThreadPage } from "./thread-page.js";
 /** @template D @template {DockNeed} N @param {ThreadPageDeps<D, N> & Navigation} options */
 export function createThreadPageModule(options) {
   const { TP, drawThreadPage, tpMount, tpShow, tpFocus, tpClose } = createThreadPage(options);
-  /** @type {PageSpec & { id: string }} */
+  /** @type {PageSpec & import("./session-types").ThreadPageEntry} */
   const page = {
-    id: "thread", title: (id) => options.convThread("t:" + id)?.title || "Thread",
+    id: "thread", session: TP, shown: () => options.STAGE.pageShown?.name === "thread",
+    title: (id) => options.convThread("t:" + id)?.title || "Thread",
     mount: tpMount, onShow: tpShow, focusEntry: tpFocus, close: tpClose,
     escape() {
       if (options.threadControls.menu()?.location === "page") { options.closeThreadMenu(); return true; }

@@ -16,11 +16,7 @@ export interface FilesPageDeps {
 }
 export interface FilesModuleOptions {
   ask: ViewerOptions["ask"];
-  region(): HTMLElement;
   opened(): void;
   closed(): void;
-  schedule(): void;
-  tree(): Omit<FilesDependencies, "world" | "viewer" | "onFold" | "changes" | "PROJ">;
-  stage(): FilesStage;
-  convAt(button: HTMLElement): { view: string };
+  paths(): FilesDependencies["paths"];
 }

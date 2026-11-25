@@ -25,19 +25,20 @@ export function createFilesModule(options) {
   const module = {
     manifest: {
       id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "currentView", "announce", "projectName", "changeData", "placeContext"],
+      needs: ["world", "currentView", "announce", "projectName", "changeData", "placeContext", "conversationSession", "stage",
+        "navigation", "threadPresentation"],
       contributes: ["panel.page:files", "conversation.file-route:shared-file", "conversation.press:reference"],
     },
     activate(ctx) {
       const announce = ctx.use("announce");
-      const world = ctx.use("world"), stage = options.stage();
+      const world = ctx.use("world"), stage = ctx.use("stage"), session = ctx.use("conversationSession");
       const { changes, save, ...renderers } = ctx.use("changeData");
       const mountedViewer = createFileViewer({
-        announce, ask: options.ask, onChange: options.schedule, changes, edits: { saved: save(changes, ctx) },
+        announce, ask: options.ask, onChange: () => ctx.emit("app:render"), changes, edits: { saved: save(changes, ctx) },
         threadTitle: (ts) => world.thread(ts)?.title || null,
         away: () => { if (!page?.isOpen) return false; stage.back(); return true; },
         opened: (_, opts) => { options.opened(); page?.show(opts); }, closed: options.closed,
-        home: () => [$("#say"), options.region()].find(usable) || null,
+        home: () => [$("#say"), session.region()].find(usable) || null,
       }, { $, ...renderers });
       ctx.effect(() => () => {
         viewer = undefined;
@@ -45,10 +46,11 @@ export function createFilesModule(options) {
         page = undefined;
         mountedViewer.dispose();
       });
-      const treeOptions = options.tree();
-      ctx.effect(() => world.onEvent((event) => applyFileEvent(event, mountedViewer, treeOptions.paths)));
+      const paths = options.paths();
+      ctx.effect(() => world.onEvent((event) => applyFileEvent(event, mountedViewer, paths)));
       const files = createFiles({
-        ...treeOptions, changes, PROJ: ctx.use("projectName"), viewer: mountedViewer, world, onFold: (folded) => page?.treeFolded(folded),
+        paths, go: ctx.use("navigation").go, isBusy: ctx.use("threadPresentation").isBusy, changes, PROJ: ctx.use("projectName"),
+        viewer: mountedViewer, world, onFold: (folded) => page?.treeFolded(folded),
       });
       const filesPage = createFilesPage({
         stage, files, viewer: mountedViewer, view: ctx.use("currentView"), announce,
@@ -57,7 +59,7 @@ export function createFilesModule(options) {
       ctx.on("app:open-file", ({ file, from }) => mountedViewer.open(file, from));
       const routes = createConversationFiles({
         currentView: ctx.use("currentView"), convThread: ctx.use("placeContext").convThread,
-        convAt: options.convAt, CHG: changes, VW: mountedViewer,
+        convAt: session.conversationAt, CHG: changes, VW: mountedViewer,
       });
       tree = files;
       page = filesPage;

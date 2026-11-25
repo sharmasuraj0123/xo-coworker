@@ -20,6 +20,12 @@ export interface Composer {
   iq: HTMLElement | null;
 }
 
+declare module "../../core/kernel/types" {
+  interface Services {
+    intelligence: Pick<ReturnType<typeof import("./intel-surface.js").createIntelSurface>, "intelligence" | "openAlternate" | "toggle">;
+  }
+}
+
 export interface ChatButtons extends Pick<ChatControls, "scope" | "updateComposer"> {
   target: HTMLElement;
   permissions: HTMLElement;

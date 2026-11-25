@@ -20,8 +20,7 @@ import { createRuntimeSettings } from "../modules/runtimes/settings.js";
 import { createChatSurface } from "../modules/chats/surface.js";
 import { mountMainViewport } from "../modules/conversation/main-viewport.js";
 import { mountRunControls } from "../modules/conversation/run-controls.js";
-import { createTranscriptFolds } from "../modules/conversation/transcript-folds.js";
-import { createLocalMessages } from "../modules/conversation/local-messages.js";
+import { createConversationSession } from "../modules/conversation/session.js";
 import { createThreadPageModule } from "../modules/conversation/thread-page-module.js";
 import { createTranscriptModule } from "../modules/conversation/transcript-module.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
@@ -58,7 +57,7 @@ import { createThreadActions } from "../modules/threads/action-surface.js";
 import { createPanelThreadOpener } from "../modules/threads/open-panel-thread.js";
 import { mountGithubPage } from "../modules/github/surface.js";
 import { createFileQuestion } from "../modules/conversation/file-question.js";
-import { createChangesModule } from "../modules/changes/module.js";
+import { changesModule } from "../modules/changes/module.js";
 import { createProjectModule } from "../modules/create-project/module.js";
 import { mountProjectIcons } from "../modules/projects/surface.js";
 import { mountShells } from "../modules/shells/surface.js";
@@ -75,39 +74,36 @@ import { createTheme, wireThemeToggle } from "../core/ui/theme.js";
 /** @import { WorldThread } from "../core/services/world/state-types.d.ts" */
 /** @import { Conversation } from "../modules/conversation/draw-types.d.ts" */
 
-const { appScope, world, schedule, notices, noticeModule, announce, applicationShape, navigationState, place, services, PHONE, redrawFocus,
-  toastLine, focusOverlay, setDrawer } = createShellFoundation(render, () => syncInert());
+const { appScope, world, schedule, notices, shellServices, announce, applicationShape, navigationState, place, services, PHONE, redrawFocus,
+  render, syncInert, toastLine, focusOverlay, setDrawer } = createShellFoundation(kernel.bus);
 const SHAPE = applicationShape.shape;
 const noun = mountConversationMarkdown(appScope, SHAPE, (path) => fileRoute(path));
 
 const { PROJ, projects, convThread, convProject, atOf } = place;
+const currentView = navigationState.view;
+const { session, module: sessionModule } = createConversationSession(currentView, kernel.places, schedule);
+const { main: MAIN, localMessages, folds: transcriptFolds, region: placeRegion, conversationAt: convAt } = session;
+const { composer: MK, focus: { composerNow, composers, inUse } } = session;
+const { say } = MK;
 const { convHost } = createMessageContext({ world, PROJ });
 
 const { THEME, applyTheme } = createTheme(appScope, setTheme);
 
-const threadActions = createThreadActions({
-  notice: () => ({ movedHere: IQ.movedHere, waitSince }), notices, go, render, schedule, requestFocus: redrawFocus.request, composerAt: (element) => composerAt(element),
-  closePage: () => STAGE.closePage("thread"), showThread: (id, input) => STAGE.show("thread", id, { focus: true, input }),
-  openOtherRuntime: () => openAlternate(sessionOf(currentView()), $("#iq")),
-});
+const threadActions = createThreadActions();
 const threadControls = threadActions.controls;
-const currentView = navigationState.view;
-
-const localMessages = createLocalMessages();
-const transcriptFolds = createTranscriptFolds();
 const { show: heraldShow, forMsg: heraldFor } = notices;
 
 const edgeCards = createEdgeCards(() => D, () => VW);
 const { glyphOf, isBusy, isHeld, stOf, wordOf } = threadPresentation;
-const { decisions: D, pings, waitSince, module: decisionModel } = createDecisionSurface({
+const { decisions: D, pings, module: decisionModel } = createDecisionSurface({
   world, PROJ, announce, view: currentView, bus: kernel.bus, scope: appScope, showNotice: heraldShow,
   conversationOf: (project) => convOfChat(project), go,
   onShown: edgeCards.decisionOpened, onGone: edgeCards.decisionClosed,
   render: () => schedule(),
   back: (targets) => redrawFocus.back(targets, placeRegion, schedule),
 });
-const { intelligence: IQ, toggle: toggleIq, openAlternate, activate: activateIntel, undoRecord } = createIntelSurface({
-  world, PROJ, announce, composers: () => composers(), redrawChip: (composer) => chipRender(false, composer),
+const { intelligence: IQ, toggle: toggleIq, activate: activateIntel, undoRecord, module: intelModule } = createIntelSurface({
+  world, PROJ, announce, composers, redrawChip: (composer) => chipRender(false, composer),
   openThread: (id) => go(`t:${id}`, { focus: true }),
   simple: () => SHAPE.opts("xo:composer/intel").mode === "simple",
   scope: appScope, places: kernel.places, records: { view: currentView, localMessages, announce, schedule, heraldShow, placeRegion: () => placeRegion(),
@@ -121,11 +117,10 @@ const { chats: CH, module: chatControls } = createChatSurface({
   updateComposer: () => updateComposer(), toggleIntelligence: (view, chip) => toggleIq(sessionOf(view), chip),
 }, { turnHtml, turnAv });
 const files = createFilesModule({
-  schedule, region: () => placeRegion(), opened: edgeCards.fileOpened, closed: edgeCards.fileClosed,
+  opened: edgeCards.fileOpened, closed: edgeCards.fileClosed,
   ask: { target: (f) => askPlace(f)?.name || null, send: (f, a, b, text) => askAboutLines(f, a, b, text),
     compose: (f, a, b) => composeAbout(f, a, b), file: (f) => askAboutFile(f) },
-  tree: () => ({ isBusy, go, paths: PATHS }),
-  stage: () => STAGE, convAt: (button) => convAt(button),
+  paths: () => PATHS,
 });
 const { module: filesModule, viewer: VW, tree: FILES, page: FP } = files;
 const { paths: PATHS, quickOpen: QO } = createFileSearch(appScope, files, {
@@ -143,7 +138,7 @@ const { panelThreads, threadCounts } = createThreadGroups({
 const { LP, LW, LPP, lpProject, dispose: disposeLaunchpad } = createLaunchpadSurface({
   world, isBusy, isHeld, PROJ, projectIcon, projects, go, announce, schedule, notices,
 });
-const STAGE = mountWorkspaceStage(appScope, {
+const { stage: STAGE, module: stageModule } = mountWorkspaceStage(appScope, {
   files: FILES, openFiles: () => FP.show({ focus: true }),
   github: { show: () => GH.show(), leave: () => GH.leave(), has: (view) => GH.has(view) },
   viewer: VW, view: currentView, go: (v, e) => openFromPanel(v, e), announce, onChange: schedule,
@@ -167,12 +162,12 @@ const { homeParts, homeRender, module: homeModule } = createHomeModule({
 const workingRuns = (thread) => runs.working(thread);
 const { stopsHerald, stopRun, interruptRun, isStopping, pendingStops, running } = mountRunControls(appScope, {
   world, Kit, PROJ, announce, schedule, chatOf, heraldShow, workingRuns, view: currentView, CH, convThread,
-  inUse: (selector) => inUse(selector),
+  inUse,
   dismissStops: () => notices.dismiss((notice) => notice.tag === "stops"),
 });
 const runs = createRunsModule({
   stage: STAGE, shape: SHAPE, transcript: transcriptFolds, pendingStops, stopsHerald, heraldShow, commitMs: Kit.COMMIT_MS,
-  placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller,
+  placeRegion, threadScroller: () => session.panel()?.C?.scroller,
   headFor: (opener) => convAt(opener) === MAIN ? $("#thead") : $("#tpthead"),
   threadAt: (opener) => convThread(convAt(opener).view),
 });
@@ -186,16 +181,16 @@ const { main: MDOCK, decideKey, limitStatus, createDock, deps: dockDeps } = moun
 const dockRender = MDOCK.render;
 
 
-const { MK, say, composerAt, composerNow, composers, inUse, saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
+const { saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
     fileReferences, liveBlock, blockFor, refuse, connDest, deliverLive, putBack, targetLineRender,
     syncPlaceholder, chipRender, sendRender, chatTargetRender, mentions, wireComposer, updateComposer } = createComposerSurface(appScope, {
-  places: kernel.places, view: currentView, main: () => MAIN, panel: () => TP.K && TP.box ? { composer: TP.K, host: TP.box } : null,
+  places: kernel.places, view: currentView, session,
   localMessages, world, CH, STAGE, PROJ, chatOf, convOfChat, convThread, convProject, announce, heraldShow, heraldFor, schedule,
   render: () => render(), go, PHONE, isBusy, sendWhileRunning, noun, IQ, sessionOf, running, projects, projectIcon,
   lrefRender: () => lrefRender(), stopRun, VW, SHAPE,
 });
 const { heraldBox, heraldRender, heraldRoom } = mountNoticeLine(appScope, kernel.places, {
-  notice: notices.current, world, MK, composerNow, panelHost: () => TP.box, connDest, placeRegion: () => placeRegion(),
+  notice: notices.current, world, MK, composerNow, panelHost: () => session.panel()?.box ?? null, connDest, placeRegion,
 }, { requestFocus: redrawFocus.request, undo: notices.undo, undoRecord });
 
 const { TP, drawThreadPage, module: threadPageModule } = createThreadPageModule({
@@ -204,7 +199,8 @@ const { TP, drawThreadPage, module: threadPageModule } = createThreadPageModule(
   stOf, glyphOf, isHeld, wordOf, rtTag, threadMenuHtml, checklistRender, drawConv: (C, needs) => drawConv(C, needs), updateComposer, sendRender, targetLineRender,
 });
 
-const { MAIN, scroller, msgsEl, loadAhead, loadOlderNow, reading, returnPill, showMsg, placeRegion, liveReady, follow, loadChatHops, ensureRoot } = mountMainViewport(appScope, {
+const { scroller, msgsEl, loadAhead, loadOlderNow, reading, returnPill, showMsg, liveReady, follow, loadChatHops, ensureRoot } = mountMainViewport(appScope, {
+  main: MAIN,
   view: currentView, alias: localMessages.alias, takeFoldChange: transcriptFolds.takeChange, heraldRoom, CH, world, convThread, chatOf, render: () => render(),
 });
 const openFromPanel = createPanelThreadOpener({ view: currentView, world, STAGE, TP, go, showMsg });
@@ -214,22 +210,20 @@ const { drawConv, drawingView, module: transcriptModule } = createTranscriptModu
   reading, ensureRoot, liveReady, actions: () => ({ convAt, loadOlderNow, transcriptFolds, schedule, toggleChecklist, checklistRender,
     requestFocus: redrawFocus.request, heraldBox, interruptRun }),
 });
-const { go: navigate, back, module: navigationModule } = createNavigation({
+const { back, module: navigationModule } = createNavigation({
   location: navigationState, VW, STAGE, IQ, PHONE, bus: kernel.bus, say, scroller, closeSettings, setDrawer: (open) => setDrawer(open),
   clearDock: () => MDOCK.reset({ restoreFocus: false }),
   clearThreadEdit: threadControls.clear,
   saveDraft, follow, pageEl, loadDraft, render: () => render(), returnPill, convThread,
 });
 /** @param {string} v @param {import("../shell/navigation-types.d.ts").NavigationOptions} [options] */
-function go(v, options) { return navigate(v, options); }
+function go(v, options) { kernel.bus.emit("app:navigate", { view: v, options }); }
 
 const { youText, askPlace, askAboutLines, composeAbout, askAboutFile, lrefRender } = createFileQuestion({
   view: currentView, localMessages, fileReferences, world, PROJ, convOfChat, CH, say, VW, STAGE, go, announce, heraldShow, schedule, blockFor, refuse, deliverLive,
   fileScope, localIn, lineRef, fileRef,
 });
 
-/** The conversation containing a control, or the main chat. */
-const convAt = (/** @type {Node | null} */ el) => (TP.box?.contains(el) && TP.C ? TP.C : MAIN);
 const fileRoute = createFileRoute({ currentView: () => drawingView() || currentView(), convThread });
 bindConversationPress(appScope, kernel.places, announce, { go, showMsg, openFromPanel, thread: world.thread, heraldShow });
 const topRender = mountConversationHeader({
@@ -253,9 +247,6 @@ const { SV, settings, setEl, keys, openKeys, closeKeys } = mountApplicationSetti
   preferences: { THEME, webPictures: WEBPICS }, mountRuntimes: (host) => createRuntimeSettings({ world, announce, ...host }),
   beforeOpen: () => { setDrawer(false); if (D.isOpen()) D.close(); IQ.close({ restore: false }); }, onHidden: () => syncInert(),
 });
-const changesModule = createChangesModule({
-  conversationAt: convAt, showChange: STAGE.showChange, openFile: VW.open, focusAfterDraw: redrawFocus.request,
-});
 /** @param {Parameters<typeof settings.close>[0]} [options] */
 function closeSettings(options) { settings.close(options); }
 
@@ -270,21 +261,22 @@ const rendererOptions = {
   VW, LW, FP, titleFor: Kit.titleFor, isBusy,
 };
 const renderShell = createShellRenderer(rendererOptions, appScope, schedule);
-function render() {
+appScope.effect(() => kernel.bus.on("app:paint", () => {
   renderShell();
   if (world.state.loaded) activateIntel(sessionOf);
-}
+}));
 
 const SIDE = createSide({ shape: SHAPE, announce, render, toggleJump: () => (jump.hidden ? JUMP.open() : JUMP.close()) });
 
-const syncInert = mountShellInteractions(appScope, kernel.layers, {
+const applyInert = mountShellInteractions(appScope, kernel.layers, {
   PHONE, navigationState, capturing: settings.capturing, SH, jump, IQ, CREATE, keys, FP, QO, back, go, JUMP,
   composerNow, toggleIq, sessionOf, openKeys, STAGE, SIDE, runsLayer: runs.layer, closeKeys, LB, setEl, closeSettings,
   VW, setDrawer, D, CH, PAGE_OF, world, updateComposer, say, toastLine, wordsOf, scroller,
 });
+appScope.effect(() => kernel.bus.on("app:sync-inert", applyInert));
 
 await bootShell(appScope, [
-  noticeModule, failureModule, navigationModule,
+  shellServices, failureModule, navigationModule, sessionModule, stageModule, intelModule,
   threadPageModule, applicationShape.module, services, changeDataModule, decisionModel, threadPresentationModule, transcriptModule,
   homeSkeletonModule, homeModule, JUMP.module, sinceModule, artifactsModule, runs.module, settings.module,
   mapModule, changesModule, filesModule, threadActions.module, CREATE.module, chatControls, routingModule, rulesModule, worktreesModule,

@@ -2,6 +2,7 @@ import type { createNavigationState } from "./navigation-state.js";
 
 declare module "../core/kernel/types" {
   interface Services { navigation: { go(view: string, options?: NavigationOptions): void; back(): void } }
+  interface Topics { "app:navigate": { view: string; options?: NavigationOptions } }
 }
 
 export interface NavigationOptions {

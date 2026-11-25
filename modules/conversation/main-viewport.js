@@ -2,24 +2,18 @@
 import { $ } from "../../core/platform/dom.js";
 import { mountMainDecoration } from "./main-decoration.js";
 import { watchDock } from "./dock-layout.js";
-import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "./follow.js";
+import { initFollow, fromTop, toRow } from "./follow.js";
 import { createReturnPill } from "../../shell/return-pill.js";
-import { pageEl } from "../../shell/place-context.js";
 import { createLiveConversation } from "./live.js";
 import { createConversationNavigation } from "./navigation.js";
-import { createConv } from "./draw.js";
 import { createReadingLayout } from "./reading-layout.js";
 import { createConversationPaging } from "./paging.js";
 
 /** @import { ViewportOptions, ViewportScope } from "./main-viewport-types.d.ts" */
 
 /** @param {ViewportScope} scope @param {ViewportOptions} options */
-export function mountMainViewport(scope, { view, takeFoldChange, heraldRoom, alias, ...paging }) {
-  const scroller = $("#scroller"), msgsEl = $("#msgs");
-  const MAIN = createConv({
-    view, msgs: msgsEl, scroller, column: $("#column"), typing: $("#typing"), main: true,
-    follow: { toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest },
-  });
+export function mountMainViewport(scope, { view, main: MAIN, takeFoldChange, heraldRoom, alias, ...paging }) {
+  const { scroller, msgs: msgsEl } = MAIN;
   const reading = createReadingLayout({ takeFoldChange, MAIN });
   const { loadAhead, loadOlderNow } = createConversationPaging({ ...paging, MAIN }, scope.signal);
   let scrolling = false;
@@ -38,6 +32,5 @@ export function mountMainViewport(scope, { view, takeFoldChange, heraldRoom, ali
   const returnPill = createReturnPill({ msgsEl, scroller, toRow });
   const { showMsg } = createConversationNavigation(scope, { alias, main: () => MAIN });
   const live = createLiveConversation({ ...paging, view });
-  return { ...live, returnPill, showMsg, placeRegion: () => pageEl(view()) || scroller,
-    MAIN, scroller, msgsEl, reading, loadAhead, loadOlderNow };
+  return { ...live, returnPill, showMsg, scroller, msgsEl, reading, loadAhead, loadOlderNow };
 }

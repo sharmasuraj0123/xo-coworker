@@ -44,5 +44,11 @@ export function createIntelSurface({ composers, redrawChip, announce, openThread
   }
 
   scope.effect(() => () => { lines.dispose(); intelligence.dispose(); });
-  return { intelligence, toggle, openAlternate, activate, undoRecord: lines.undoRecord };
+  const surface = { intelligence, toggle, openAlternate, activate, undoRecord: lines.undoRecord };
+  /** @type {import("../../core/kernel/types").ModuleDef} */
+  const module = {
+    manifest: { id: "xo.intelligence", version: "1.0.0", kernel: "^1.1.0", core: true, provides: ["intelligence"] },
+    activate(ctx) { ctx.provide("intelligence", surface); },
+  };
+  return { ...surface, module };
 }

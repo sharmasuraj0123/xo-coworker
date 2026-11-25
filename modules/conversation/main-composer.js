@@ -5,12 +5,12 @@ import { bindComposerDrop } from "./drop.js";
 
 /** @import { Composer, ComposerScope } from "./composer-types.d.ts" */
 
-/** @param {() => string} view @param {() => Composer["conv"]} conversation @returns {Composer} */
+/** @param {() => string} view @param {Composer["conv"]} conversation @returns {Composer} */
 export function createMainComposer(view, conversation) {
   return {
     main: true,
     get view() { return view(); },
-    get conv() { return conversation(); },
+    conv: conversation,
     say: $("#say"), send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"),
     tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: $("#at-list"),
   };

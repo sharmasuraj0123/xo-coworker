@@ -2624,6 +2624,7 @@
     "shell/navigation-links.js",
     "shell/panel/header-controls.js",
     "modules/conversation/main-composer.js",
+    "modules/conversation/session.js",
     "modules/settings/preferences.js",
     "modules/settings/application.js",
     "modules/settings/shortcuts-sheet.js",
@@ -2647,6 +2648,10 @@
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/conversation/session.js": {
+     "anchor": "export function createConversationSession",
+     "reason": "Conversation owns main and panel selection, composer focus, local messages and transcript folds."
+    },
     "modules/conversation/run-controls.js": {
      "anchor": "export function mountRunControls",
      "reason": "Conversation connects pending stops with live runs and retires their timers."
@@ -3303,7 +3308,7 @@
    ],
    "evidence": {
     "modules/artifacts/module.js": {
-     "anchor": "export function createArtifactsModule",
+     "anchor": "export const artifactsModule",
      "reason": "Artifacts owns the gallery, Home section, search provider, and their lifetime."
     },
     "modules/since/module.js": {
