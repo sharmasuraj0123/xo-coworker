@@ -22,7 +22,7 @@ export function createKernel(opts = {}) {
   const mods = new Map();
   /** @type {Map<string, { api: unknown, owner: string }>} */
   const services = new Map();
-  let order = 0, safe = false;
+  let order = 0, safe = false, disposed = false;
   /** @type {Set<string>} */
   const off = new Set();
 
@@ -74,7 +74,7 @@ export function createKernel(opts = {}) {
   /** @param {NonNullable<ReturnType<typeof mods.get>>} rec */
   function activate(rec) {
     const { id, core } = rec.def.manifest;
-    if (off.has(id) || (safe && !core)) return;
+    if (disposed || off.has(id) || (safe && !core)) return;
     if (rec.activation) return rec.activation.done;
     if (missing(rec.def.manifest).length) { rec.status = "waiting"; return; }
     const scope = newScope(), { promise, resolve, reject } = /** @type {PromiseWithResolvers<void>} */ (Promise.withResolvers());
@@ -146,7 +146,17 @@ export function createKernel(opts = {}) {
 
   return {
     version: KERNEL_VERSION, places, bus, scheduler, layers,
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      for (const id of [...mods.keys()].reverse()) {
+        if (mods.get(id)?.status === "disabled") continue;
+        for (const child of dependents(id)) deactivate(child, "disabled");
+        deactivate(id, "disabled");
+      }
+    },
     register(def) {
+      if (disposed) throw new Error("The kernel has been disposed");
       const p = manifestProblems(def && def.manifest);
       if (p.length) throw new Error(`module manifest: ${p.join("; ")}`);
       const m = def.manifest;
@@ -157,6 +167,7 @@ export function createKernel(opts = {}) {
       mods.set(m.id, { def, status: "registered", order: order++ });
     },
     async start(o = {}) {
+      if (disposed) throw new Error("The kernel has been disposed");
       safe = !!o.safe;
       if (safe) for (const r of mods.values()) if (!r.def.manifest.core) r.status = "disabled";
       for (const id of o.disabled || []) {
@@ -167,6 +178,7 @@ export function createKernel(opts = {}) {
       return report();
     },
     async enable(id) {
+      if (disposed) throw new Error("The kernel has been disposed");
       const rec = mods.get(id);
       if (!rec) throw new Error(`no module ${id}`);
       off.delete(id);

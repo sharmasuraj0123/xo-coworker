@@ -14,10 +14,8 @@ export async function bootShell(scope, modules, startup) {
   drawPlaceIcons();
   drawFrameIcons(startup.shapeIcon);
   for (const dispose of startup.dispose) scope.effect(() => dispose);
-  for (const module of modules) {
-    kernel.register(module);
-    if (!module.manifest.core) scope.effect(() => () => { void kernel.disable(module.manifest.id); });
-  }
+  scope.effect(() => kernel.dispose);
+  for (const module of modules) kernel.register(module);
   scope.listen(window, "pagehide", (event) => {
     kernel.bus.emit("app:pagehide");
     if (!("persisted" in event && event.persisted)) scope.dispose();

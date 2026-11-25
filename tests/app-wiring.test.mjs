@@ -1360,6 +1360,7 @@ storage.delete("xo-seen");
 pagehide(false);
 assert.ok(JSON.parse(storage.get("xo-seen") || "{}")["p:demo"] > lastHomeVisit, "Since records the active project before unload disposes it");
 assert.equal(kernel.live("xo.thread-presentation"), 0);
+assert.ok(kernel.modules().every(({ id }) => kernel.live(id) === 0), "permanent unload releases core and feature scopes");
 assert.equal(createGithubSignal?.aborted, true, "real unload aborts Create's outstanding read");
 assert.equal(createCloneSignal?.aborted, false, "real unload leaves the already issued clone write alone");
 const cloneFixture = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/project-schedule-responses.json", import.meta.url)));

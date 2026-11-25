@@ -144,6 +144,7 @@ export interface Kernel {
   readonly scheduler: Scheduler;
   readonly layers: Layers;
   register(def: ModuleDef): void;
+  dispose(): void;
   start(opts?: { safe?: boolean; disabled?: string[] }): Promise<StartReport>;
   enable(id: string): Promise<StartReport>;
   disable(id: string): Promise<string[]>;
