@@ -1,4 +1,5 @@
 import type { Places } from "../../core/kernel/types.d.ts";
+import type { createScope } from "../../core/kernel/scope.js";
 import type { createShapeStore } from "../../core/services/shape/store.js";
 
 export interface ShapeViewDeps {
@@ -27,6 +28,7 @@ export interface KeysPageDeps {
   resetIcon: string;
 }
 export interface SettingsFrameDeps {
+  scope?: ReturnType<typeof createScope>;
   el: HTMLElement; side: HTMLElement; phoneButton: HTMLElement; closeButton: HTMLElement;
   onPage: (id: string) => void; beforeOpen: () => void; beforeClose: () => void; onHidden: () => void;
   focusIn: (el: HTMLElement) => void; fallback: () => Element | null; phone: MediaQueryList;

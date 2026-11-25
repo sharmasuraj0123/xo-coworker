@@ -920,9 +920,6 @@
  "modules/settings/apply-shape.js": {
   "lineLength": 2
  },
- "modules/settings/frame.js": {
-  "lineLength": 5
- },
  "modules/settings/host.js": {
   "lineLength": 2
  },

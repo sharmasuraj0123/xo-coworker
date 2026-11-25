@@ -524,10 +524,6 @@
  "modules/settings/appearance.js": {
   "commentLines": 5
  },
- "modules/settings/frame.js": {
-  "commentLines": 8,
-  "explicitAny": 2
- },
  "modules/settings/keys-sheet.js": {
   "commentLines": 1
  },

@@ -70,9 +70,6 @@
  "modules/search/quickopen.js": {
   "setTimeout": 1
  },
- "modules/settings/frame.js": {
-  "globalListener": 1
- },
  "modules/shells/panel.js": {
   "observer": 1
  },

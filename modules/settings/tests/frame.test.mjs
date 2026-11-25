@@ -1,6 +1,7 @@
 // @ts-check
 
 import assert from "node:assert/strict";
+import { createScope } from "../../../core/kernel/scope.js";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createSettingsFrame } from "../frame.js";
 
@@ -22,13 +23,16 @@ const { document } = await dom(`
 const pages = [];
 const el = document.getElementById("settings");
 const side = document.getElementById("side");
-createSettingsFrame({
+const options = {
   el, side, phoneButton: document.getElementById("phone"),
   closeButton: document.getElementById("close"),
   onPage: (id) => pages.push(id), beforeOpen() {}, beforeClose() {}, onHidden() {},
   focusIn: (node) => node.focus(), fallback: () => side,
   phone: window.matchMedia("(max-width: 760px)"),
-});
+};
+const scope = createScope();
+const frame = createSettingsFrame({ ...options, scope });
+side.focus();
 side.click();
 el.querySelector('[data-set="routing"]').click();
 assert.deepEqual(pages, ["routing"]);
@@ -38,3 +42,21 @@ assert.equal(el.querySelector('[data-set="general"]').getAttribute("aria-selecte
 assert.equal(el.querySelector('[data-set="routing"]').getAttribute("aria-selected"), "true");
 assert.equal(document.getElementById("panel").hidden, false);
 assert.equal(document.getElementById("other").getAttribute("aria-selected"), "false");
+el.querySelector('[data-set="routing"]').focus();
+frame.dispose();
+assert.equal(scope.size, 0);
+assert.equal(el.hidden, true);
+assert.equal(document.activeElement, side);
+side.click();
+assert.equal(el.hidden, true);
+
+const shortcut = document.createElement("button");
+shortcut.setAttribute("data-set-open", "general");
+document.body.append(shortcut);
+shortcut.click();
+assert.deepEqual(pages, ["routing"]);
+const remount = createSettingsFrame(options);
+shortcut.click();
+assert.deepEqual(pages, ["routing", "general"]);
+assert.equal(el.hidden, false);
+remount.dispose();
