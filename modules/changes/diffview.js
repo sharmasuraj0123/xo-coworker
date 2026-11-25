@@ -65,35 +65,59 @@ function workers(P) {
 
 const loadedLangs = new Set();
 const INPUT = ["wheel", "scroll", "pointerdown", "keydown", "touchstart"];
-const quiet = () => new Promise(/** @param {(ready: boolean) => void} resolve */ (resolve) => {
-  if (typeof addEventListener !== "function") { resolve(true); return; }
+
+/** @param {ReturnType<typeof createScope>} scope */
+function quiet(scope) {
+  if (typeof addEventListener !== "function") return Promise.resolve();
+  return new Promise((resolve) => {
+    const wait = createScope();
+    wait.effect(() => () => resolve(undefined));
+    const ready = scope.effect(() => wait.dispose);
+    let last = performance.now();
+    for (const event of INPUT) wait.listen(globalThis, event, () => { last = performance.now(); }, { capture: true, passive: true });
+    function check() {
+      const delay = 1200 - (performance.now() - last);
+      if (delay > 0) { wait.timeout(check, delay); return; }
+      if (typeof requestIdleCallback !== "function") { ready(); return; }
+      wait.effect(() => {
+        const idle = requestIdleCallback(ready, { timeout: 1000 });
+        return () => cancelIdleCallback(idle);
+      });
+    }
+    wait.timeout(check, 1200);
+  });
+}
+
+/** @param {string[]} langs */
+async function warmup(langs) {
   const scope = createScope();
-  let last = performance.now();
-  const ready = () => { resolve(true); scope.dispose(); };
-  scope.listen(globalThis, "pagehide", () => { resolve(false); scope.dispose(); });
-  for (const event of INPUT) scope.listen(globalThis, event, () => { last = performance.now(); }, { capture: true, passive: true });
-  function check() {
-    const delay = 1200 - (performance.now() - last);
-    if (delay > 0) { scope.timeout(check, delay); return; }
-    if (typeof requestIdleCallback !== "function") { ready(); return; }
-    scope.effect(() => {
-      const idle = requestIdleCallback(ready, { timeout: 1000 });
-      return () => cancelIdleCallback(idle);
+  if (typeof addEventListener === "function") {
+    scope.listen(globalThis, "pagehide", (event) => {
+      if (!("persisted" in event && event.persisted)) scope.dispose();
     });
   }
-  scope.timeout(check, 1200);
-});
+  let initialized = false;
+  try {
+    await quiet(scope);
+    if (scope.signal.aborted) return;
+    const P = await load();
+    if (scope.signal.aborted) return;
+    await workers(P).initialize(langs);
+    initialized = true;
+  } catch (error) {
+    if (!scope.signal.aborted) reportFailure(error);
+  } finally {
+    if (!initialized) for (const lang of langs) loadedLangs.delete(lang);
+    scope.dispose();
+  }
+}
 /** @param {string[]} [paths] */
 export function prefetch(paths = []) {
   if (typeof Worker !== "function") return; // nowhere to colour (a test, an old browser): the first draw loads it
   const langs = [...new Set(paths.map(langOf))].filter((l) => l !== "text" && !loadedLangs.has(l));
   if (lib && !langs.length) return;
   for (const l of langs) loadedLangs.add(l);
-  const retry = () => { for (const l of langs) loadedLangs.delete(l); };
-  void quiet().then(async (ready) => {
-    if (ready) await workers(await load()).initialize(langs);
-    else retry();
-  }).catch((error) => { retry(); reportFailure(error); });
+  void warmup(langs);
 }
 
 /** @type {Set<RenderedDiff>} */
