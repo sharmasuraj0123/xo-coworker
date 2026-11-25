@@ -496,13 +496,17 @@ await new Promise((resolve) => setImmediate(resolve));
 flushFrames();
 assert.equal(promptCount, 1);
 assert.ok(document.querySelector("[data-chat-retry]"), "a failed prompt offers Retry");
+press("[data-chat-retry]");
+await new Promise(setImmediate);
+flushFrames();
+assert.equal(promptCount, 2, "Retry resends the failed prompt in an active chat");
 retireChat();
 await new Promise((resolve) => setImmediate(resolve));
 flushFrames();
 press("[data-chat-retry]");
 await new Promise((resolve) => setTimeout(resolve, 60));
 flushFrames();
-assert.equal(promptCount, 1, "Retry in an ended chat sends no request");
+assert.equal(promptCount, 2, "Retry in an ended chat sends no request");
 assert.match(document.querySelector("#herald").textContent, /Not sent: This chat has ended/);
 assert.match(document.querySelector("#live").textContent, /Not sent: This chat has ended/);
 assert.match(document.querySelector("[data-chat-retry]").closest(".m-you").textContent, /Keep this prompt/);
@@ -510,7 +514,7 @@ chatComposer.value = "Keep this unsent draft too";
 chatComposer.closest("form").dispatchEvent(new window.Event("submit", { bubbles: true, cancelable: true }));
 await new Promise((resolve) => setTimeout(resolve, 60));
 flushFrames();
-assert.equal(promptCount, 1, "the composer also checks the ended chat before sending");
+assert.equal(promptCount, 2, "the composer also checks the ended chat before sending");
 assert.equal(chatComposer.value, "Keep this unsent draft too");
 assert.match(document.querySelector("#live").textContent, /Your text is kept/);
 
@@ -1123,7 +1127,7 @@ assert.ok(JSON.parse(storage.get("xo-seen")).home > lastHomeVisit, "Home records
     assert.equal(timers.size, 0, "disabling Settings cancels its queued refresh");
     assert.deepEqual(removed.filter((type) => ["click", "change", "input", "focusout"].includes(type)).sort(),
       ["change", "click", "focusout", "input"], "the retired controller removes all four delegated handlers");
-    assert.equal(document.activeElement, settingsOpener, "disabling Runtimes returns focus to the Settings opener");
+    assert.ok(document.activeElement === settingsOpener, "disabling Runtimes returns focus to the Settings opener");
     assert.equal(runtimeWrites[0].signal.aborted, false, "an accepted preference write survives Settings retirement");
 
     assert.ok((await kernel.enable("xo.settings")).active.includes("xo.settings"));

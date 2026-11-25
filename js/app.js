@@ -8,17 +8,15 @@ import "../core/ui/components/xo-select.js";
 import { renderInline, setThreadInfo, setWebImages } from "../core/ui/markdown/markdown.js";
 import * as Kit from "../modules/decisions/kit.js";
 import * as K from "../core/platform/keys.js";
-import { createDecisions } from "../modules/decisions/controller.js";
-import { createDecisionFeedback } from "../modules/decisions/feedback.js";
-import { createPacing } from "../modules/decisions/pacing.js";
-import { createIntel } from "../modules/chats/intel.js";
+import { createDecisionSurface } from "../modules/decisions/surface.js";
+import { createIntelSurface } from "../modules/chats/intel-surface.js";
 import { EFFORT, evidenceFor } from "../modules/decisions/rank.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { $ } from "../core/platform/dom.js";
 import { watchDock, dockAtTop } from "../modules/conversation/dock-layout.js";
 import { RM } from "../core/ui/motion.js";
 import { sound } from "../core/services/sound.js";
-import { plainText, heldWords, heldShort, cliName, chatOrder, heldBadge, dayGroup, rowTime } from "../core/services/world/timeline.js";
+import { plainText, heldWords, heldShort } from "../core/services/world/timeline.js";
 import { stepLineHtml, turnHtml, turnAv, setWorkMode } from "../modules/conversation/blocks/turn.js";
 import { nameWith } from "../core/services/comms.js";
 import { mediaHtml, webImagesHtml } from "../core/services/media/render.js";
@@ -33,7 +31,7 @@ import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
 import { worktreesModule } from "../modules/worktrees/module.js";
 import { createRuntimeSettings } from "../modules/runtimes/settings.js";
-import { createChats } from "../modules/chats/chats.js";
+import { createChatSurface } from "../modules/chats/surface.js";
 import { initFollow, toLatest, toTop, unpin, isPinned, fromTop, toRow, fromLatest } from "../modules/conversation/follow.js";
 import { mountMainDecoration } from "../modules/conversation/main-decoration.js";
 import { createTyping } from "../modules/conversation/typing.js";
@@ -62,7 +60,7 @@ import { createComposerControls } from "../modules/conversation/composer-control
 import { createComposer } from "../modules/conversation/composer.js";
 import { createComposerFocus } from "../modules/conversation/composer-focus.js";
 import { createComposerAttachments } from "../modules/conversation/composer-attachments.js";
-import { bindComposerDrop } from "../modules/conversation/drop.js";
+import { createMainComposer, mountMainComposer } from "../modules/conversation/main-composer.js";
 import { createMessageContext } from "../modules/conversation/message-context.js";
 import { createDock } from "../modules/decisions/dock.js";
 import { createDockFolds } from "../modules/decisions/dock-folds.js";
@@ -111,6 +109,8 @@ import { createThreadGroups } from "../modules/threads/groups.js";
 import { threadsCtl } from "../modules/threads/header.js";
 import { createThreadMenu } from "../modules/threads/menu.js";
 import { createThreadMenuActions } from "../modules/threads/menu-actions.js";
+import { threadNotices } from "../modules/threads/notices.js";
+import { glyphOf, isBusy, isHeld, stOf, threadInfo, wordOf } from "../modules/threads/status.js";
 import { createThreadDelete } from "../modules/threads/delete.js";
 import { createThreadEditing, threadTitleInput, threadLabelInput } from "../modules/threads/editing.js";
 import { createThreadControls } from "../modules/threads/controls.js";
@@ -134,13 +134,11 @@ import { createHomeController } from "../modules/home/controller.js";
 import { skTile, bar as skBar, rememberedMade } from "../modules/home/skeleton.js";
 import { wireGestures, dockGestures } from "../shell/gestures.js";
 import { wordsOf } from "../modules/conversation/words.js";
-import { rtName } from "../core/services/runtimes.js";
 import { createThreadRuntime } from "../modules/runtimes/thread.js";
 import { createShapeStore } from "../core/services/shape/index.js";
 import { createShapeView, SHAPE_IC } from "../modules/settings/index.js";
 import { keysSheetRender } from "../modules/settings/keys-sheet.js";
 import { menuKeys } from "../core/ui/a11y/keynav.js";
-import { bindChatControls } from "../modules/chats/controls.js";
 import { createConversationNotices } from "../core/services/notices/line.js";
 import { createLaunchpadHerald } from "../modules/launchpad/herald.js";
 import { createSideRows } from "../shell/rail/rows.js";
@@ -212,7 +210,6 @@ const waitSince = new Map();
 const announce = createAnnouncer($("#live"), appScope);
 const codeCopy = createCodeCopy(announce);
 
-const P = createPacing({ params });
 // one card at the right edge: the newest shows, the one it covers steps aside and comes back when it closes
 /** @typedef {{ readonly isOpen: boolean, park: () => unknown, unpark: () => unknown }} EdgeCard */
 /** @type {EdgeCard | null} */
@@ -224,19 +221,13 @@ const edgeBack = (/** @type {EdgeCard} */ card) => {
   card.unpark();
 };
 const decisionsCard = { get isOpen() { return D.isOpen(); }, park: () => D.park(), unpark: () => D.unpark() };
-const D = createDecisions({
-  ...createDecisionFeedback((notice, duration) => heraldShow(notice, duration), appScope),
-  world, P, PROJ, announce, waitSince,
+const { decisions: D, pacing: P } = createDecisionSurface({
+  world, PROJ, announce, waitSince, params, scope: appScope, showNotice: heraldShow,
+  conversationOf: (project) => convOfChat(project), go,
   onShown: () => edgeOver(VW),
   onGone: () => edgeBack(VW),
   render: () => schedule(),
   back: (sels) => { const here = placeRegion(); if (usable(here)) here.focus({ preventScroll: true }); redrawFocus.request([...sels, placeRegion]); schedule(); },
-  onOpenThread: (tid) => {
-    // an item hosted by a chat (no thread) opens that conversation; one hosted by the account has no page yet
-    const h = (world.state.hosts || []).find((x) => x.id === tid);
-    if (h) { if (h.chatId) go(convOfChat(h.project)); else if (h.plainSession) go("c:" + h.plainSession); else heraldShow({ kind: "calm", text: "It isn't tied to a conversation", sub: h.title }, 3600); return; }
-    go("t:" + tid);
-  },
   // a docked decision's own line ("Allowed. Undo") ends the moment its decision is undone, by its Undo or a key
   onUndone: (key) => {
     if (currentView() === "home") restoreHomeDecision(key);
@@ -244,27 +235,25 @@ const D = createDecisions({
     TP.dock?.undoReceipt(key);
   },
 });
-const IQ = createIntel({
-  world, PROJ,
-  // the shape's xo:composer/intel: "simple" opens Auto · Deep first, today's picker behind More options
+const { intelligence: IQ, toggle: toggleIq, openAlternate, activate: activateIntel } = createIntelSurface({
+  world, PROJ, announce, composers: () => composers(), redrawChip: (composer) => chipRender(false, composer),
+  openThread: (id) => go(`t:${id}`, { focus: true }),
   simple: () => SHAPE.opts("xo:composer/intel").mode === "simple",
-  onChange: () => { for (const K of composers()) chipRender(false, K); },
   record: (session, rec) => recordLine(session, rec),
-  onMoved: (next, agent) => { announce(`Continuing on ${rtName(agent)}. This thread is frozen; write in it to pick it back up.`); if (next) go(`t:${next.id}`, { focus: true }); },
 });
 
-const CH = createChats({
+const {
+  chats: CH, mountControls: mountChatControls, bindComposerButtons: bindChatButtons, handleMessageAction: chatMessageAction,
+} = createChatSurface({
   world, announce, transcriptOpen: transcriptFolds.open, heraldShow: (...a) => heraldShow(...a), go: (...a) => go(...a), schedule: () => schedule(),
-  view: currentView, listRoot: $("#msgs"),
-  // a new chat that was refused: your words go back into an empty composer on the Chats page
-  restore: (text, { force = false } = {}) => {
-    if (force && currentView() !== "chats") go("chats");
-    if (currentView() !== "chats") return false;
-    if (say.value.trim() && !force) return false;
-    putBack(text);
-    return true;
+  view: currentView, list: $("#msgs"), composer: () => say, putBack: (text) => putBack(text),
+  stop: (target) => stopRun(convAt(target).view),
+  canRetry() {
+    const block = liveBlock();
+    if (block) refuse(block, "the message stays, to retry");
+    return !block;
   },
-}, { turnHtml, turnAv, cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime });
+}, { turnHtml, turnAv });
 // what a place changed, from Space's /changes (modules/changes/store.js): the panel's Changes, Files' diffs, the chips' counts
 const CHG = createChanges({ world, api, onChange: () => schedule() });
 const { module: filesModule, viewer: VW, tree: FILES, page: FP } = createFilesModule({
@@ -342,17 +331,7 @@ const convProject = (/** @type {string} */ v) => (v === "ws" || v === "home" ? "
 const sessionOf = (/** @type {string} */ v) => (v === "home" ? "ws" : v);
 const askTitle = (/** @type {Parameters<typeof headOf>[0]} */ n) => { const h = headOf(n); return (h.verb ? `${esc(h.verb)} ` : "") + (h.md ? renderInline(h.text, true) : esc(h.text)); };
 const askShort = (/** @type {Parameters<typeof headOf>[0]} */ n) => { const h = headOf(n); return [h.verb, h.md ? plainText(h.text) : h.text].filter(Boolean).join(" "); };
-/** @type {Partial<Record<string, string>>} */
-const STATE_WORD = { working: "Working", needs_reply: "Needs you", needs_approval: "Needs you", paused: "Paused", done: "Done", failed: "Stopped", resolved: "Resolved" };
-/** @typedef {{state?: string, busy?: boolean, held?: import("../core/services/world/held.js").Hold | null}} ThreadActivity */
-const isBusy = (/** @type {ThreadActivity} */ t) => t.busy === true || (t.state === "working" && t.busy !== false);
-/** @template {ThreadActivity} T @param {T | null | undefined} t @returns {t is T & {held: NonNullable<T["held"]>}} */
-const isHeld = (t) => !!(t && t.held && !isBusy(t) && t.state === "working");
-/** @typedef {ThreadActivity & { state: string, frozen?: boolean, stop?: unknown }} ThreadStatus */
-const glyphOf = (/** @type {ThreadStatus} */ t) => (isHeld(t) ? "paused" : t.state === "working" && t.busy === false ? "idle" : t.frozen ? "resolved" : t.stop ? "stopped" : t.state);
-const wordOf = (/** @type {ThreadStatus} */ t) => (isHeld(t) ? heldShort(t.held) : glyphOf(t) === "idle" ? "Waiting" : t.frozen ? "Continued" : STATE_WORD[t.state] || t.state);
-const stOf = (/** @type {ThreadStatus} */ t) => (t.frozen ? "resolved" : isHeld(t) ? "paused" : t.stop ? "stopped" : t.state);
-setThreadInfo((/** @type {string} */ id) => { const t = world.thread(id); return t ? { state: glyphOf(t), word: wordOf(t), title: t.title } : null; });
+setThreadInfo(threadInfo(world.thread));
 const MAP = createMapModule({ go: (v) => go(v, { panel: true }), isBusy, openFile: (f, from) => VW.open(f, from), stepLineHtml });
 const { panelThreads, threadCounts } = createThreadGroups({
   world, D, MAP, convProject, askShort, threadMark: (t) => threadMark(t), isBusy, isHeld,
@@ -411,6 +390,7 @@ const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 /** The composer's target line in a thread; while its agent works, where your words land. */
 const doneToday = () => world.state.threads.filter((t) => t.state === "done" && new Date(t.lastAt).toDateString() === new Date().toDateString());
 
+const threadNotice = threadNotices({ find: world.thread, projectName: PROJ, movedHere: IQ.movedHere, show: heraldShow, waitSince });
 appScope.effect(() => world.onEvent((e) => {
   if (e.kind === "message") {
     // the coordinator answered something you asked, and you're looking elsewhere: one calm line
@@ -420,14 +400,7 @@ appScope.effect(() => world.onEvent((e) => {
     schedule();
     return;
   }
-  const t = e.thread ? world.thread(e.thread) : null;
-  const pid = e.project;
-  if (e.kind === "ask" && t && !waitSince.has(t.id)) waitSince.set(t.id, Date.now());
-  if (e.kind === "resumed" && t) waitSince.delete(t.id);
-  if (!pid || pid === "workspace") return;
-  if (e.kind === "moved" && t && !IQ.movedHere(t.id)) { heraldShow({ kind: "done", text: `${t.title} continues on ${rtName(e.agent)}`, sub: PROJ(pid), open: e.to ? "t:" + e.to : "t:" + t.id }, 5200); return; }
-  if (e.kind === "done" && t) heraldShow({ kind: "done", text: `${t.title} finished`, sub: PROJ(pid), open: "t:" + t.id }, 5200);
-  else if (e.kind === "state" && t && t.state === "failed") heraldShow({ kind: "stopped", text: `${t.title} stopped`, sub: PROJ(pid), open: "t:" + t.id }, 5200);
+  threadNotice(e);
 }));
 
 const short1 = (/** @type {string | null | undefined} */ text) => { const s = String(text || "").replace(/[*_`#>]+/g, "").replace(/\s+/g, " ").trim(); return s.length > 64 ? s.slice(0, 63).replace(/\s+\S*$/, "") + "…" : s; };
@@ -498,9 +471,8 @@ const { recordLine, undoRecord, dispose: disposeRecordLines } = createRecordLine
   dismissRecord: (id) => notices.dismiss((notice) => notice.undo === id),
 });
 // ── the composer: send, or Stop while something runs ───────────────────────
-const say = $("#say"), atList = $("#at-list");
-const MK = { main: true, get view() { return currentView(); }, say, send: $("#send"), form: $("#composer"), target: $("#target"), label: $("#say-label"), get conv() { return MAIN; },
-  tray: $("#att-tray"), attach: $("#attach"), input: $("#att-input"), note: $("#att-note"), iq: $("#iq"), at: atList };
+const MK = createMainComposer(currentView, () => MAIN);
+const { say } = MK;
 const { composerAt, composerNow, composers, dispose: disposeComposerFocus } = createComposerFocus({
   main: MK,
   panel: () => TP.K && TP.box ? { composer: TP.K, host: TP.box } : null,
@@ -509,7 +481,6 @@ const { composerAt, composerNow, composers, dispose: disposeComposerFocus } = cr
 }, schedule);
 const { saveDraft, loadDraft } = createDrafts(MK, (composer) => { mentions.reset(composer); updateComposer(composer); });
 const { startHtml, startDraft } = createConversationStarts({ SHAPE, PROJ, say, growSay: () => growSay(), saveDraft, updateComposer: () => updateComposer() });
-const attInput = $("#att-input");
 let trayFrame = false;
 const tray = createTray({ upload: uploadAttachment, onChange: () => {
   if (trayFrame) return;
@@ -537,35 +508,15 @@ const { chipRender, sendRender, chatTargetRender } = createComposerControls({
   MK, CH, IQ, PHONE, STOP_ICON, sessionOf, filesHere, running, liveBlock,
 });
 const mentions = createMentionList({ MK, world, projects, projectIcon, isBusy, saveDraft, updateComposer: (K) => updateComposer(K) });
-$("#attach").innerHTML = ICON.clip;
-appScope.listen($("#attach"), "click", () => attInput.click());
-appScope.listen(attInput, "change", () => { addFiles(attInput.files); attInput.value = ""; });
-wireTray(MK, appScope);
 const { wireComposer, growSay, updateComposer } = createComposer({
   MK, say, trayRender, chipRender, lrefRender: () => lrefRender(), chatTargetRender, syncPlaceholder, sendRender,
   targetLineRender, connDest, schedule, mentions, saveDraft, send, stopRun,
 });
-wireComposer(MK, appScope);
-appScope.effect(() => bindComposerDrop({ veil: $("#drop-veil"), icon: $("#drop-ic"), composerAt, canAttach, addFiles }));
-appScope.listen($("#target"), "click", () => {
-  if (currentView() === "chats") { CH.toggleSetup($("#target"), "cwd"); updateComposer(); return; }
-  if (currentView().startsWith("c:")) { say.focus(); return; }
-  mentions.aim(MK);
+mountMainComposer(appScope, MK, { wireTray, wireComposer, composerAt, canAttach, addFiles });
+bindChatButtons({
+  scope: appScope, target: $("#target"), permissions: $("#cs-perm"), sendNow: $("#send-now"), intelligence: $("#iq"),
+  updateComposer, aim: () => mentions.aim(MK), toggleIntelligence: (view, chip) => toggleIq(sessionOf(view), chip),
 });
-appScope.listen($("#cs-perm"), "click", () => {
-  if (currentView() !== "chats") return;
-  CH.toggleSetup($("#cs-perm"), "mode");
-  updateComposer();
-});
-appScope.listen($("#send-now"), "click", () => { CH.toggleNow(currentView()); updateComposer(); say.focus(); });
-appScope.listen($("#iq"), "click", () => {
-  if (currentView() === "chats") { CH.toggleSetup($("#iq"), "model"); updateComposer(); return; }
-  if (CH.isChats(currentView())) return;
-  toggleIq(sessionOf(currentView()), $("#iq"));
-});
-// one picker for every composer: its chip opens it and closes it, in the main chat or a thread in the panel
-/** @param {string} sid @param {HTMLElement | null} chip */
-function toggleIq(sid, chip) { if (IQ.isOpen) IQ.close(); else IQ.open(sid, chip); }
 
 const { TP, tpMount, tpShow, tpFocus, tpClose, drawThreadPage } = createThreadPage({
   STAGE, threadControls, world, D, createDock, dockDeps, wireComposer, wireTray, closeThreadMenu: () => closeThreadMenu(), addFiles, toggleIq, sessionOf, convProject, heraldRoom,
@@ -668,13 +619,7 @@ const threadMenuAction = createThreadMenuActions({
   thread: world.thread, go, controls: threadControls, editing: threadEditing, deletion: threadDelete,
   render: () => render(), schedule, scope: appScope, resolve: resolveThread, heraldShow,
   closePage: () => STAGE.closePage("thread"), showThread: (id, input) => STAGE.show("thread", id, { focus: true, input }),
-  openOtherRuntime() {
-    const sid = sessionOf(currentView()), choice = IQ.runtimeChoice(sid);
-    const to = choice.list.find((option) => option.id !== choice.on && option.usable);
-    if (!to) return false;
-    IQ.open(sid, $("#iq"), { rt: to.id });
-    return true;
-  },
+  openOtherRuntime: () => openAlternate(sessionOf(currentView()), $("#iq")),
 });
 menuKeys($("#top"), { close: () => closeThreadMenu() });
 threadEditing.bind($("#top"));
@@ -742,29 +687,7 @@ appScope.listen(document, "click", (event) => {
     else if (u) undoRecord(u);
     return;
   }
-  // A failed prompt or a cancelled send returns focus to the composer.
-  const chc = t.closest("[data-chc]");
-  const choice = chc?.getAttribute("data-chc");
-  if (chc && choice) {
-    const had = chc.contains(document.activeElement);
-    CH.resolveConfirm(currentView(), choice);
-    if (had) say.focus({ preventScroll: true });
-    return;
-  }
-  const chr = t.closest("[data-chat-retry]");
-  const chatRetry = chr?.getAttribute("data-chat-retry");
-  if (chr && chatRetry) {
-    // a Chat's Retry passes the same gate as its composer (an ended chat, XO out of reach, a limit)
-    const block = liveBlock();
-    if (block) { refuse(block, "the message stays, to retry"); return; }
-    const had = chr.contains(document.activeElement);
-    CH.retry(chatRetry);
-    if (had) say.focus({ preventScroll: true });
-    return;
-  }
-  const chatEdit = action("data-chat-edit");
-  if (chatEdit) { const text = CH.edit(chatEdit); if (text != null) putBack(text); return; }
-  if (t.closest("[data-chat-stop]")) { stopRun(convAt(t).view); return; }
+  if (chatMessageAction(t)) return;
   if (runs.openFrom(t)) return;
   // storm blocks: open or fold a block or a row (thinking steps, an activity group, a command's output)
   const tb = t.closest("[data-tb]");
@@ -915,7 +838,7 @@ const rendererOptions = {
 const renderShell = createShellRenderer(rendererOptions, appScope, schedule);
 function render() {
   renderShell();
-  if (world.state.loaded) IQ.activate(composers().filter((composer) => usable(composer.iq)).map((composer) => sessionOf(composer.view)));
+  if (world.state.loaded) activateIntel(sessionOf);
 }
 
 const SIDE = createSide({ shape: SHAPE, keys: K, announce, render, toggleJump: () => (jump.hidden ? JUMP.open() : JUMP.close()) });
@@ -1001,8 +924,8 @@ appScope.listen($("#pb-t"), "click", () => {
 
 // ── boot ────────────────────────────────────────────────────────────────────
 drawPlaceIcons();
-bindChatControls({
-  scope: appScope, list: msgsEl, scroller, greeting: $("#cs-hi"), setup: $("#cs-pop"), phone: PHONE, chats: CH, updateComposer,
+mountChatControls({
+  scope: appScope, scroller, greeting: $("#cs-hi"), setup: $("#cs-pop"), phone: PHONE, updateComposer,
 });
 drawFrameIcons(SHAPE_IC);
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";

@@ -2559,6 +2559,7 @@
     "shell/global-keys.js",
     "shell/back-steps.js",
     "modules/conversation/composer.js",
+    "modules/conversation/main-composer.js",
     "modules/settings/shortcuts-sheet.js",
     "modules/settings/surface.js",
     "modules/map/module.js",
@@ -2568,10 +2569,39 @@
     "modules/home/controller.js",
     "modules/home/decision-controls.js",
     "modules/threads/menu-actions.js",
-    "modules/threads/menu-navigation.js"
+    "modules/threads/menu-navigation.js",
+    "modules/chats/surface.js",
+    "modules/chats/intel-surface.js",
+    "modules/decisions/surface.js",
+    "modules/threads/status.js",
+    "modules/threads/notices.js"
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/chats/surface.js": {
+     "anchor": "export function createChatSurface",
+     "reason": "Chats owns its composer recovery, message actions and control bindings."
+    },
+    "modules/conversation/main-composer.js": {
+     "anchor": "export function mountMainComposer",
+     "reason": "Conversation binds the main composer, attachment picker, tray and file drop to their scope."
+    },
+    "modules/chats/intel-surface.js": {
+     "anchor": "export function createIntelSurface",
+     "reason": "Intelligence owns picker coordination, catalog activation and runtime move feedback."
+    },
+    "modules/decisions/surface.js": {
+     "anchor": "export function createDecisionSurface",
+     "reason": "Decisions owns pacing, feedback and resolution of the selected review host."
+    },
+    "modules/threads/status.js": {
+     "anchor": "export function glyphOf",
+     "reason": "Threads owns the status glyphs and labels shown by navigation and conversation."
+    },
+    "modules/threads/notices.js": {
+     "anchor": "export function threadNotices",
+     "reason": "Threads owns notices and pending ask timing derived from World events."
+    },
     "modules/decisions/feedback.js": {
      "anchor": "export function createDecisionFeedback",
      "reason": "Decisions owns its All Clear, break and failed-decision notices."
