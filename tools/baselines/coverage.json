@@ -174,14 +174,6 @@
    ["requestAnimationFrame",145,""]
   ]
  },
- "css/app.css": {
-  "sha256": "04941c3522f7dcfc91eb129c6b1d32c8fdd6e3067dc20a259cc50731c17f2d15",
-  "sites": [
-   ["changelogComment",590,""],
-   ["changelogComment",597,""],
-   ["changelogComment",617,""]
-  ]
- },
  "modules/artifacts/cards.js": {
   "sha256": "bc9d4d2b2ee4807ec65ccc253a4fadaf96beee21b315fabc8cf1a2bb1cfc130b",
   "sites": [
@@ -301,12 +293,6 @@
    ["commentOnlyCatch",95,""]
   ]
  },
- "modules/launchpad/tests/launchpad.test.mjs": {
-  "sha256": "cdabffc296206210ae3e21b6e790bb2bd209b6d7022db41cd0c8f1005f56c621",
-  "sites": [
-   ["changelogComment",63,""]
-  ]
- },
  "modules/launchpad/views.js": {
   "sha256": "1d43f2c2fbeacc42652b12b16d14532cec79b7b2c48efcda6bcf6d44f9fe8d0c",
   "sites": [
@@ -338,48 +324,10 @@
    ["commentOnlyCatch",25,""]
   ]
  },
- "tests/browser/conversation.test.cjs": {
-  "sha256": "3c3cb87d50c99a943d7e80df0431b7547e2a744308d2c687ac8ae1f198dae777",
-  "sites": [
-   ["changelogComment",142,""]
-  ]
- },
- "tests/browser/lpshell.test.cjs": {
-  "sha256": "90c639d152941c6774c175b09247f309bcdc79241f250b6fe2e499c3c82b79bc",
-  "sites": [
-   ["changelogComment",54,""]
-  ]
- },
- "tests/busy.test.mjs": {
-  "sha256": "436e43235f374c62d575101d34353baa88153af2bbb3961fd80da3e973a3ae08",
-  "sites": [
-   ["changelogComment",1,""]
-  ]
- },
  "tests/icon-gap.test.mjs": {
   "sha256": "35a38286567beb8946be75faf8477d6552089bb89afe2a10f9aecc618bab8375",
   "sites": [
    ["changelogComment",4,""]
-  ]
- },
- "tests/logic.test.mjs": {
-  "sha256": "36746edeab03607c8c1a87ee3cb8560452606ff67dc5d35102d50070ac044f44",
-  "sites": [
-   ["changelogComment",62,""],
-   ["changelogComment",499,""]
-  ]
- },
- "tests/media.test.mjs": {
-  "sha256": "2cc761c4be26bc51c6c9b700181094e1a8957bd8c9495a0788e0109d99d6e0a2",
-  "sites": [
-   ["changelogComment",194,""],
-   ["changelogComment",293,""]
-  ]
- },
- "tests/shape.test.mjs": {
-  "sha256": "973f5f8cd666252e38685c154c262d6a85a460ff5e1a6702fe852e512e0389e3",
-  "sites": [
-   ["changelogComment",3,""]
   ]
  },
  "tests/viewer-errors.test.mjs": {

@@ -19,9 +19,6 @@ let env, WIDTH = 1440, THEME = "dark", MOTION = "reduce", passed = 0, failed = 0
 const tests = [];
 const t = (name, fn) => tests.push({ name, fn });
 const open = (o = {}) => W.open(env.browser, env.base, { width: WIDTH, height: WIDTH > 760 ? 900 : 844, theme: THEME, motion: MOTION, ...o });
-// every case ends with both focus checks: Launchpad's own (a redraw with no place named) and the main build's
-// (window.__focusDrops: focus fell to the page because its control was removed or hidden)
-// Missing instrumentation fails the check: it never reads as "no drops" (Astra on 93b99ca).
 async function done(page) {
   const { lost, drops } = await page.evaluate(() => ({ lost: typeof window.__t?.LP?.lostFocus === "function" ? window.__t.LP.lostFocus() : null, drops: Array.isArray(window.__focusDrops) ? window.__focusDrops : null }));
   const errs = page.errors; await page.context().close();
@@ -51,8 +48,6 @@ t("LP10: every hint and error is whole, under its field; an invalid field takes 
   // each hint sits under its own field
   const under = await page.evaluate(() => ["name", "port"].every((k) => { const i = document.querySelector(`[data-lp-f="${k}"]`).getBoundingClientRect(), h = document.querySelector(`#lp-h-${k}`).getBoundingClientRect(); return h.top >= i.bottom - 1 && Math.abs(h.left - i.left) < 2; }));
   assert.ok(under, "hints under their fields, on their edge");
-  // every field and lit button is on the 24/32/40 scale; on a phone at least the shared 36 px floor (32fa270, b7cf1ec:
-  // every control and text field on a phone is 36 tall), so 36 or 40
   const sizes = await page.evaluate(() => [...document.querySelectorAll(".lp .lp-in, .lp .lp-go, .lp .lp-b, .lp .lp-a, .lp .lp-ib")].filter((n) => n.offsetParent).map((n) => Math.round(n.getBoundingClientRect().height)));
   assert.ok(sizes.every((h) => (WIDTH < 760 ? [36, 40] : [24, 32, 40]).includes(h)), `heights ${[...new Set(sizes)]}`);
   await done(page);
@@ -345,7 +340,6 @@ t("LP15: Size is the app's dropdown (xo-select), by keyboard, and the deploy car
   await done(page);
 });
 
-// ── Astra on 10f2580 ──
 const sse = (r, events) => r.fulfill({ status: 200, contentType: "text/event-stream", body: events.map((e) => `data: ${JSON.stringify(e)}\n\n`).join("") });
 t("LP15: Esc in the open Size list closes the list, not the panel; focus stays on Size", async () => {
   const page = await open({ launchpad: "ready", onDeploy: (r, m, p) => (/\/preflight$/.test(p) ? json(r, PRE) : r.fallback()) });
@@ -478,7 +472,6 @@ t("LP10: a repository name to choose keeps its field while you fix it, through a
   await done(page);
 });
 
-// Astra on 6d0a428 (LP-READ-ERROR-OWNERSHIP): an older read's refusal never beats a newer answer
 const gate = () => { let open; const p = new Promise((ok) => (open = ok)); return { p, open }; };
 t("LP1A: an older check refused after a newer GitHub check answered: the screen stays, nothing says Couldn't check", async () => {
   const held = gate(); let holdCheck = false, checks = 0, armedOk = false;
@@ -528,7 +521,6 @@ t("LP1A: an older GitHub check refused after a newer read answered: no stale 'Co
   await done(page);
 });
 
-// Astra on 6d0a428 (LP-ASK-EXACT-THREAD): the asked thread by its id, whatever its title, past older same-title ones
 for (const kase of ["older same-title thread", "renamed", "resolved"]) {
   t(`LP40: the asked thread's state comes from that exact thread (${kase})`, async () => {
     const at = new Date().toISOString();
@@ -736,11 +728,6 @@ t("SH31: Retry now hands focus to the shell", async () => {
   await done(page);
 });
 
-// ── RINGCLIP · C076: no clipping box cuts a focused control's ring in Launchpad and Shells ──
-// grader B on 24be023 (r23), 390 both themes: Launchpad's Deploy in its folded head ([data-lp="open"], 36 tall on a
-// phone in the 40 px head of a frame that clips) showed its ring only left and right. The sweep (harness.cjs
-// ringClips) focuses every control in view and checks every clipping box around it: Launchpad open, its section
-// folded with Deploy in the head and unfolded again, and the Shells dock with a shell open.
 const { ringClips } = require("./harness.cjs");
 t("RINGCLIP C076: no clipping box cuts a focused control's ring: Launchpad open, folded (Deploy) and open again, the Shells dock", async () => {
   const cuts = [], counts = [], small = [];

@@ -1,8 +1,3 @@
-// The UI's shape (core/services/shape): merge semantics, per-key fallback, unknown keys, ordering, capability
-// gating, versions and the cv-hops migration; and mine kept on Storm (GET/PUT /api/chat/shape, xo-space
-// 8c6bc03): read on load, written only on a change, conflicts, the live event, a backend without the route.
-// No network: the presets are read from disk, and Storm is a fake.
-//   node tests/shape.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { merge, migrate, cleanLayer, createShape, describeShape, everythingLayer, migrateDevice, createShapeStore, changesOf, applyChanges, oneKey, sameDoc, SURFACES, KEYS, SHAPE_VERSION } from "../core/services/shape/index.js";
@@ -313,8 +308,6 @@ function test_store_more() {
     assert.ok(S.patchMine([1]).error);
   });
   t("store: the chosen preset's file read at last applies at once, as a choice of it does (C101/C102/S119)", async () => {
-    // the create-project grader on dead20c: the preset's read refused, the preset chosen (XO shows everything), the
-    // read allowed and Shape opened again: its error cleared, but XO stayed as Everything until a reload
     const st = mem();
     let refuse = true;
     const S = createShapeStore({ storage: st, load: async (id) => { if (refuse) throw new Error("Preset fixture unavailable"); return preset(id); } });
@@ -725,7 +718,6 @@ t("neither kept here nor taken by XO: it says so plainly, never \"saved on this 
   assert.match(notes[0].sub, /won't keep it after a reload, and XO couldn't be reached/);
 });
 
-// ── Astra on a63139f: held changes across an offline reload, an unkept note, both refusing, a replacement in flight ──
 t("a reload while XO can't be reached, with a change held: the retry is scheduled, and it lands once XO answers", async () => {
   const F = fakeStorm({ doc: { shape: 1, preset: "marketing" } });
   const st = mem();

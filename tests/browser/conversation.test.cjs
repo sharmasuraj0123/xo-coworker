@@ -139,7 +139,6 @@ function watchFocus() {
   const name = (e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}${[...e.attributes].filter((a) => a.name.startsWith("data-")).map((a) => `[${a.name}${a.value ? "=" + a.value : ""}]`).join("")} "${(e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 30)}"`;
   addEventListener("DOMContentLoaded", () => {
     document.addEventListener("focusin", (e) => { if (e.target !== document.body) last = e.target; }, true);
-    // judged a microtask later: Chrome fires focusout for a removed node while it's still connected (harness d88441d)
     document.addEventListener("focusout", (e) => { const t = e.target; queueMicrotask(() => { if (last === t && t.isConnected && t.getClientRects().length) last = null; }); }, true);
     const check = () => {
       const a = document.activeElement;

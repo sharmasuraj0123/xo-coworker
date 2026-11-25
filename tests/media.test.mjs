@@ -191,7 +191,6 @@ t("mediaHtml: six pictures → an album of four tiles, the fourth +3, the lightb
   assert.equal(M.mediaHtml([]), "");
 });
 
-// ── titles: a shared file named in plain words (xo-space 8c6bc03) ───────────
 t("midName: a long file name is cut in its middle, its extension and its stem's end kept; short ones stay whole", () => {
   assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 17), "r3-dark…title.png");
   assert.equal(M.midName("r3-dark-panel-narrow-320-title.png", 32), "r3-dark-panel-narrow-3…title.png");
@@ -290,7 +289,6 @@ t("markdown: a bare http(s) picture address on its own line is one; in a sentenc
   const mid = seen("Look ![the pool](https://ex.com/pool.jpg) before you book.");
   assert.deepEqual(mid.runs, []);
   assert.ok(!mid.html.includes("!"), mid.html);
-  // an outbound link's last word holds the ↗ (QA F3)
   assert.match(mid.html, /<span class="lk-t">the <\/span><span class="lk-end"><span class="lk-t">pool<\/span><svg class="xi lk-ar"/);
 });
 t("markdown: only http(s): data:, javascript: and blob: are never pictures, never links", () => {

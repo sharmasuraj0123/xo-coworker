@@ -587,14 +587,12 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
   .rt-seg.is-paid{flex-wrap:wrap;align-self:stretch}
 }
 
-/* ── a move to another runtime (mixed runtimes F4) ──────────────────────────── */
 /* Place continuation events in the same columns as other events. */
 .ev.mv-ban{align-items:flex-start;margin:4px 0 16px}
 .mv-ban .ev-ic{color:var(--ink-3)}
 .mv-ban .ev-t{flex:1;white-space:normal;overflow:visible;text-overflow:clip;text-wrap:pretty}
 .mv-ban .ev-t b{color:var(--ink-2);font-weight:var(--fw-medium)}
 .mv-ban .ev-t a:not([class]){color:var(--ink-2)}
-/* ── a usage limit (mixed runtimes F5): on the card in Needs you, and at the end of each waiting thread ── */
 .lim{display:flex;flex-direction:column;gap:8px;margin:var(--s-1) 0 var(--s-1)}
 .lim-when{display:flex;align-items:center;gap:8px;font-size:var(--fs-ui);color:var(--warn)}
 .lim-when svg{width:var(--ic-sm);height:var(--ic-sm)}
@@ -614,7 +612,6 @@ body.stage-full .dock:not(.stage .dock),body.stage-full .tdock:not(.stage .tdock
 .lim-why{font-size:var(--fs-ui);line-height:var(--lh-ui);color:var(--ink-2);padding-left:24px}
 .lim-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
 
-/* ── what a coordinator did to a thread's turn (mixed runtimes F6): quiet rows; a stop reads a touch stronger ── */
 .ev-ctl.is-steer .ev-t{color:var(--ink-4)}
 .ev-ctl.is-stop .ev-t{color:var(--ink-2)}
 

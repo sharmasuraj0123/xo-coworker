@@ -59,7 +59,6 @@ t("links say where they go: inside is a token with its glyph, outside is text wi
   } finally { setThreadInfo(null); }
   const web = renderInline("[PR #37](https://github.com/a/b/pull/37)");
   assert.match(web, /class="lk lk-out"/);
-  // the last word and the ↗ never part (QA F3)
   assert.match(web, /<span class="lk-t">PR <\/span><span class="lk-end"><span class="lk-t">#37<\/span><svg class="xi lk-ar"/);
   const bare = renderInline("at http://localhost:3000/ now");
   assert.match(bare, /lk-out is-local is-bare/);
@@ -214,7 +213,6 @@ t("@project targets: only a known project routes; any other @ is text", () => {
   const none = { pid: null, token: null };
   assert.deepEqual(parseTarget("@billing-api add tests", ps), { pid: "billing-api", token: "billing-api" });
   assert.equal(parseTarget("@Workspace hi", ps).pid, "workspace");
-  // an @ that names no project is plain text: it never blocks a send (the owner, 19 Nov)
   assert.deepEqual(parseTarget("ask @nope about it", ps), none);
   assert.deepEqual(parseTarget("mail me at a@b.c", ps), none);
   assert.deepEqual(parseTarget("meet @ 5pm", ps), none);
@@ -276,7 +274,6 @@ t("a plain chat pairs each turn with the prompt that woke it, whenever the CLI w
   const at = (s) => Date.parse(`2026-10-26T11:${s}Z`);
   const turn = (id, s, n = 1) => ({ id, at: `2026-10-26T11:${s}Z`, origin: "person", wakes: Array.from({ length: n }, (_, i) => `msg:prompt:${id}${i}`) });
   const said = (out) => out.map((x) => (x.kind === "you" ? x.m.text : x.t.id)).join(" ");
-  // codex, cold: the prompt is written ~3.7 s after its turn began (live, 0.164)
   assert.equal(said(chatOrder([{ text: "hey", at: at("44:51.708") }], [turn("T1", "44:48")])), "hey T1");
   // and later turns, written well after their start, still under their own turn
   assert.equal(said(chatOrder(
@@ -496,7 +493,6 @@ await (async () => {
     let err2 = null;
     try { await p; } catch (e) { err2 = e; }
     t("a caller's own abort stays an AbortError, not a timeout", () => assert.equal(err2 && err2.name, "AbortError"));
-    // Coder's sign-in redirect (c7f1e12): fetch never follows it, and it reads as signed out, not a CORS error
     let opts3 = null, err3 = null;
     globalThis.fetch = async (url, opts) => { opts3 = opts; return { type: "opaqueredirect", ok: false, status: 0 }; };
     try { await request("/chat/status"); } catch (e) { err3 = e; }

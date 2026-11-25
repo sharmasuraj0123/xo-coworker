@@ -246,7 +246,7 @@
   "commentLines": 14
  },
  "css/app.css": {
-  "commentLines": 3
+  "commentLines": 2
  },
  "css/diffs.css": {
   "commentLines": 9
@@ -709,8 +709,7 @@
   "commentLines": 10
  },
  "tests/browser/lpshell.test.cjs": {
-  "changelogComment": 5,
-  "commentLines": 24
+  "commentLines": 17
  },
  "tests/browser/settings.test.cjs": {
   "changelogComment": 10,
@@ -721,8 +720,7 @@
   "commentLines": 4
  },
  "tests/busy.test.mjs": {
-  "changelogComment": 1,
-  "commentLines": 9
+  "commentLines": 3
  },
  "tests/conv-actions.test.mjs": {
   "commentLines": 1
@@ -795,7 +793,6 @@
   "commentLines": 8
  },
  "tests/logic.test.mjs": {
-  "changelogComment": 2,
   "commentLines": 4
  },
  "tests/main-clip.test.mjs": {
@@ -853,8 +850,7 @@
   "commentLines": 13
  },
  "tests/shape.test.mjs": {
-  "changelogComment": 2,
-  "commentLines": 7
+  "commentLines": 2
  },
  "tests/shells.test.mjs": {
   "commentLines": 1

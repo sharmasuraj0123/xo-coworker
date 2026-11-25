@@ -1,10 +1,3 @@
-// "Working": is an agent at work right now? Storm's `busy` on session and thread views (xo-space 8c6bc03:
-// on a turn, or a sub-agent working on after it), kept live between reads by the same rule from the
-// stream's session status and sub-agent runs (timeline.js sessionBusy, storm). Waiting on the person is
-// never Working, and nor is a session a gate holds back (queued: the usage limit…, no process): that one is
-// Waiting, saying for what and until when (timeline.js heldOf). The pure rule first, then storm end to end: fetch and the stream are fakes, nothing is
-// sent anywhere, and nothing but GETs is asked.
-//   node tests/busy.test.mjs
 import assert from "node:assert/strict";
 import { BUSY_STATES, readSub, sessionRead, sessionBusy, runWorks, heldOf, heldWords, heldShort, heldClock, heldBadge, soonestHeld, queuedButWorking, threadState, statusLater } from "../core/services/world/timeline.js";
 const sp = (x) => String(x).replace(/\u00a0/g, " "); // the time is one phrase (no-break spaces); read as plain spaces
@@ -95,7 +88,7 @@ t("heldOf: the backend's waiting first; an older backend's pool (closed, paid, w
   assert.deepEqual(heldOf({ state: "queued" }), { for: null, until: null, why: null, asked: false });
 });
 t("held words: one verb (starts), the reset while it's ahead, never a time gone by; each gate in plain words", () => {
-  const now = new Date(2026, 10, 14, 5, 0).getTime(); // local time: the owner's clock
+  const now = new Date(2026, 10, 14, 5, 0).getTime();
   const at = (d, h, m = 0) => new Date(2026, 10, 14 + d, h, m).toISOString();
   const limit = (until) => ({ for: "limit", until, why: null, asked: false });
   assert.match(sp(heldWords(limit(at(0, 6, 50)), now)), /^Waiting for the usage limit · starts at 6:50\sAM$/);

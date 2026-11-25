@@ -60,7 +60,6 @@ t("model: which environment names are set on Launchpad comes from preflight, by 
   assert.notEqual(formKey(m, { pre: 2, editing: true }), formKey(m, { pre: 2 }), "the app's settings are their own form");
 });
 
-// ── the machine and the address (xo-space 3886701) ─────────────────────────
 const TIERS = [{ name: "xo.mini", label: "Mini", cpu: 0.5, memory_gb: 1 }, { name: "xo.small", label: "Small", cpu: 1, memory_gb: 2 }, { name: "xo.medium", label: "Medium", cpu: 1, memory_gb: 4 }, { name: "xo.large", label: "Large", cpu: 2, memory_gb: 8 }];
 const GH = { github: { connected: true, workflow_scope: true }, repo: { mode: "origin" } };
 t("model: the size picker offers only the template's allowed sizes, in the catalog's order, with its default", () => {
