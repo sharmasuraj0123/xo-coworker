@@ -4,7 +4,7 @@ export type { ChangeFile, ChangesApi, DiffHandle, DiffOptions, HttpError, Scope 
 export interface Total { add: number; del: number }
 export interface PlaceChanges {
   state: "idle" | "loading" | "ok" | "error" | "unsupported"; data: ChangePage | null; files: Map<string, ChangeFile>; total: Total;
-  sig: string | null; inflight: boolean; again: boolean; timer: ReturnType<typeof setTimeout> | 0; err?: string | null;
+  sig: string | null; inflight: boolean; again: boolean; cancel: (() => void) | null; err?: string | null;
 }
 export interface Activity { sig: string; busy: boolean; live: Set<string>; last: string | null }
 export interface FollowState { follow: boolean; sel: string | null; pill: string | null; sig: string | null; all?: boolean; reveal?: Set<string | undefined> | null }

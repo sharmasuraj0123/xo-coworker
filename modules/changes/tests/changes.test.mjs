@@ -1,4 +1,5 @@
 // What a place changed (modules/changes/store.js) and the panel's Changes (modules/changes/frame.js): which place a view reads, when it reads again, and following.
+import { createScope } from "../../../core/kernel/scope.js";
 import assert from "node:assert/strict";
 
 globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
@@ -74,17 +75,39 @@ await t("what agents are doing there: finished edits sign it, the running one is
 await t("the store reads through the client it is handed, and hands image changes the same client", async () => {
   const asked = [];
   const own = { projectChanges: async (p, q) => { asked.push([p, q]); return { files: [] }; }, projectImage: async () => new Blob(), projectVersion: async () => new Blob() };
-  const C = createChanges({ api: own, world: world(store([])), onChange() {} });
+  const scope = createScope();
+  const C = createChanges({ scope, api: own, world: world(store([])), onChange() {} });
   C.sync("p:p");
   await tick(5);
-  assert.deepEqual(asked, [["p", {}]]);
+  assert.deepEqual(asked, [["p", { worktree: undefined, signal: scope.signal }]]);
   assert.equal(C.read, own);
+});
+
+await t("retiring Changes cancels the quiet refresh and ignores a late read", async () => {
+  const scope = createScope(), pending = Promise.withResolvers();
+  const source = world(store([])), signals = [];
+  let paints = 0;
+  const changes = createChanges({
+    world: source, scope, onChange() { paints++; },
+    api: { projectChanges(_project, options) { signals.push(options.signal); return pending.promise; } },
+  });
+  changes.sync("t:a");
+  source.state.turns = store([{ id: "editing", done: true, rows: [row(1, "edit_file", WT + "/readme.md")] }]);
+  changes.sync("t:a");
+  scope.dispose();
+  assert.ok(signals[0].aborted);
+  await tick(300);
+  assert.equal(changes.of("t:a").again, false, "retired timer never requests a second read");
+  pending.resolve({ files: [] });
+  await Promise.resolve();
+  assert.equal(paints, 0);
+  assert.equal(signals.length, 1);
 });
 
 await t("Space without /changes: one read, then the place says so and today's list stays", async () => {
   calls.length = 0;
   reply = () => ({ status: 404, body: { detail: "Not Found" } });
-  const C = createChanges({ api, world: world(store([])), onChange() {} });
+  const C = createChanges({ scope: createScope(), api, world: world(store([])), onChange() {} });
   C.sync("t:a");
   await tick(5);
   assert.equal(C.of("t:a").state, "unsupported");
@@ -98,7 +121,7 @@ await t("a project that isn't a git repository, or a thread whose worktree is go
   reply = (u) => (u.searchParams.get("worktree")
     ? { status: 404, body: { detail: { code: "worktree_not_found", message: "There is no such worktree in this project." } } }
     : { status: 404, body: { detail: { code: "not_a_repository", message: "This project isn't a git repository." } } });
-  const C = createChanges({ api, world: world(store([])), onChange() {} });
+  const C = createChanges({ scope: createScope(), api, world: world(store([])), onChange() {} });
   C.sync("t:a"); C.sync("p:p");
   await tick(10);
   assert.equal(C.of("t:a").state, "unsupported");   // this thread's worktree is gone
@@ -109,14 +132,14 @@ await t("a project that isn't a git repository, or a thread whose worktree is go
   assert.equal(calls.length, before, "a project that isn't a repository isn't asked again");
   // git older than 2.40 on Space's machine: no place can say what changed, so the same list, not an error
   reply = () => ({ status: 501, body: { detail: { code: "git_too_old", message: "Space's git is older than 2.40." } } });
-  const G = createChanges({ api, world: world(store([])), onChange() {} });
+  const G = createChanges({ scope: createScope(), api, world: world(store([])), onChange() {} });
   G.sync("t:a"); G.sync("p:p");
   await tick(10);
   assert.equal(G.of("t:a").state, "unsupported");
   assert.equal(G.of("p:p").state, "unsupported");
   // anything else is an error said in Space's own words
   reply = () => ({ status: 500, body: { detail: { code: "internal", message: "Space broke." } } });
-  const D = createChanges({ api, world: world(store([])), onChange() {} });
+  const D = createChanges({ scope: createScope(), api, world: world(store([])), onChange() {} });
   D.sync("t:a");
   await tick(10);
   assert.equal(D.of("t:a").state, "error");
@@ -142,7 +165,7 @@ await t("a place is read on opening, and once more per finished edit (not per re
   };
   let changed = 0;
   const W = world(T);
-  const C = createChanges({ api, world: W, onChange() { changed++; } });
+  const C = createChanges({ scope: createScope(), api, world: W, onChange() { changed++; } });
   for (let i = 0; i < 5; i++) C.sync("t:a");   // five renders: one read
   await tick(10);
   assert.equal(calls.filter((c) => c.startsWith("/api/xo-projects/p/changes")).length, 1);

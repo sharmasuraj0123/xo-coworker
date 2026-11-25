@@ -54,8 +54,10 @@ export function activityIn(scope, threads, turns) {
   return out;
 }
 
-/** @param {{ world: ChangesWorld, api: ChangesApi, onChange?: () => void }} deps */
-export function createChanges({ world, api, onChange }) {
+/** @typedef {Pick<import("../../core/kernel/types").ModuleContext, "timeout" | "signal">} ChangeScope */
+
+/** @param {{ world: ChangesWorld, api: ChangesApi, scope: ChangeScope, onChange?: () => void }} deps */
+export function createChanges({ world, api, scope: lifetime, onChange }) {
   /** @type {Map<string, PlaceChanges>} */
   const P = new Map();
   /** @type {Set<string>} */
@@ -66,7 +68,7 @@ export function createChanges({ world, api, onChange }) {
   const one = new Map();
 
   /** @param {string} key @returns {PlaceChanges} */
-  const placeOf_ = (key) => { if (!P.has(key)) P.set(key, { state: "idle", data: null, files: new Map(), total: { add: 0, del: 0 }, sig: null, inflight: false, again: false, timer: 0 }); return /** @type {PlaceChanges} */ (P.get(key)); };
+  const placeOf_ = (key) => { if (!P.has(key)) P.set(key, { state: "idle", data: null, files: new Map(), total: { add: 0, del: 0 }, sig: null, inflight: false, again: false, cancel: null }); return /** @type {PlaceChanges} */ (P.get(key)); };
 
   /** @param {Scope} s @param {PlaceChanges} p */
   async function read(s, p) {
@@ -74,7 +76,8 @@ export function createChanges({ world, api, onChange }) {
     p.inflight = true; p.again = false;
     if (p.state === "idle") p.state = "loading";
     try {
-      const d = await api.projectChanges(s.project, s.worktree ? { worktree: s.worktree } : {});
+      const d = await api.projectChanges(s.project, { worktree: s.worktree ?? undefined, signal: lifetime.signal });
+      if (lifetime.signal.aborted) return;
       /** @type {Map<string, ChangeFile>} */
       const files = new Map();
       let add = 0, del = 0;
@@ -83,6 +86,7 @@ export function createChanges({ world, api, onChange }) {
       // the library, its worker and the languages' grammars get ready while the browser is idle
       prefetch([...files.keys()].slice(0, 24));
     } catch (e) {
+      if (lifetime.signal.aborted) return;
       const err = /** @type {HttpError} */ (e);
       // where Space can't say what changed (no route yet, not a git repository, a gone worktree, git too old), the panel and Files show what the turns say agents touched instead.
       if ((err.status === 404 && (err.code === "http_404" || err.code === "not_a_repository")) || (err.status === 501 && err.code === "git_too_old")) { NO.add(s.project); p.state = "unsupported"; }
@@ -101,7 +105,7 @@ export function createChanges({ world, api, onChange }) {
     if (f.patch) return Promise.resolve(f.patch);
     if (f.patch_omitted !== "response_budget") return Promise.resolve(null);
     const k = `${s.key}|${path}|${p.data?.computed_at}`;
-    if (!one.has(k)) one.set(k, api.projectChanges(s.project, { ...(s.worktree ? { worktree: s.worktree } : {}), path })
+    if (!one.has(k)) one.set(k, api.projectChanges(s.project, { worktree: s.worktree ?? undefined, signal: lifetime.signal, path })
       .then((d) => d.files?.find((file) => file.path === path)?.patch || null).catch((e) => { one.delete(k); throw e; }));
     return /** @type {Promise<string | null>} */ (one.get(k));
   }
@@ -117,9 +121,9 @@ export function createChanges({ world, api, onChange }) {
       if (p.sig === a.sig && p.state !== "idle") return;
       const first = p.sig == null;
       p.sig = a.sig;
-      clearTimeout(p.timer);
+      p.cancel?.();
       if (first) read(s, p);
-      else p.timer = setTimeout(() => read(s, p), QUIET);
+      else p.cancel = lifetime.timeout(() => { p.cancel = null; void read(s, p); }, QUIET);
     },
     /** A view's changes: {state: idle|loading|ok|error|unsupported, files, total, data, err}, or null. @param {string} view @returns {PlaceChanges | { state: "unsupported", files: Map<string, ChangeFile>, total: { add: number, del: number } } | null} */
     of(view) {

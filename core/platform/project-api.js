@@ -42,8 +42,8 @@ export const projectApi = {
     }),
   undoProjectEdit: (project, editId) =>
     requestChecked(`/xo-projects/${enc(project)}/edits/${enc(editId)}/undo`, shapes.isSavedProjectFile, { method: "POST", body: {} }),
-  projectChanges: (project, { worktree, path } = {}) =>
-    requestChecked(`/xo-projects/${enc(project)}/changes`, shapes.isProjectChanges, { query: { worktree, path } }),
+  projectChanges: (project, { worktree, path, signal } = {}) =>
+    requestChecked(`/xo-projects/${enc(project)}/changes`, shapes.isProjectChanges, { query: { worktree, path }, signal }),
   projectTree: (project, relativePath, signal) =>
     requestChecked(`/xo-projects/${enc(project)}/tree`, shapes.isProjectTree, {
       query: { relative_path: relativePath, hidden: "true" }, signal,

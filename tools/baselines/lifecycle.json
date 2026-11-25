@@ -2,9 +2,6 @@
  "modules/artifacts/page.js": {
   "observer": 2
  },
- "modules/changes/store.js": {
-  "setTimeout": 1
- },
  "modules/decisions/dock.js": {
   "observer": 1
  },

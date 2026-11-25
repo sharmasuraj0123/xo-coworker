@@ -171,7 +171,8 @@ export interface ProjectApi {
   deleteProjectFile(project: string, path: string, baseVersion?: string | null, confirm?: string | null): Promise<ProjectDelete>;
   mkdirProject(project: string, path: string): Promise<ProjectFolder>;
   undoProjectEdit(project: string, editId: string): Promise<SavedProjectFile>;
-  projectChanges(project: string, options?: { worktree?: string | null; path?: string | null }): Promise<ProjectChanges>;
+  projectChanges(project: string,
+    options?: { worktree?: string | null; path?: string | null; signal?: AbortSignal }): Promise<ProjectChanges>;
   projectTree(project: string, path?: string | null, signal?: AbortSignal): Promise<ProjectTree>;
   workspaceConfig(options?: { signal?: AbortSignal }): Promise<WorkspaceRootConfig>;
   createProject(project: { path: string; displayName?: string; description?: string }): Promise<CreatedProject>;

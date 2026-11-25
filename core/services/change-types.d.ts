@@ -15,7 +15,7 @@ export interface HttpError { status?: number; code?: string; name?: string; mess
 export interface Scope { key: string; project: string; worktree: string | null; root?: string | null; tid?: string; base?: string }
 export interface DiffHandle { update(patch: string, key?: string): void; split(on: boolean): void; destroy(): void }
 export interface ChangesApi {
-  projectChanges(project: string, q?: { worktree?: string, path?: string }): Promise<ChangePage>;
+  projectChanges(project: string, q?: { worktree?: string, path?: string, signal?: AbortSignal }): Promise<ChangePage>;
   projectImage(project: string, rel: string, opts?: { signal?: AbortSignal }): Promise<Blob>;
   projectVersion(project: string, rel: string, q: { commit: string; was?: string | null }, opts?: { signal?: AbortSignal }): Promise<Blob>;
 }
