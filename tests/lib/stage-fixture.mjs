@@ -32,14 +32,14 @@ export async function stageFixture({ reduced = true, phone = false, place = (vie
   const { places } = createKernel({ warn() {}, log() {} });
   definePlaces({ places });
   const map = { agents: () => [], mode: "graph", setMode(mode) { this.mode = mode; }, show() {}, hide() {} };
-  places.contribute("panel.frame", { id: "map", title: "Map", mount() {}, api: map }, "test");
+  places.contribute("panel.frame", { id: "map", title: "Map", mount() {} }, "test");
   places.contribute("panel.frame", {
     id: "changes", title: "Changes", mount: () => ({ paint: () => false, head: () => null, wide: false }),
   }, "test");
   let view = "p:one", changed = [];
   let shellsOwnKey = false;
   const panel = createStage({
-    files: { changes: () => changed }, viewer: {}, view: () => view, place, threads, go() {}, announce() {},
+    mapControls: () => map, files: { changes: () => changed }, viewer: {}, view: () => view, place, threads, go() {}, announce() {},
     at: () => ({ view }), places, shell, owns: () => shellsOwnKey,
     openFiles: () => panel.show("files"),
   });

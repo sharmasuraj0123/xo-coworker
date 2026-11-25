@@ -22,3 +22,7 @@ export interface ThreadHead {
 declare module "../../core/kernel/types" {
   interface Services { checklist: ReturnType<typeof import("./checklist.js").createChecklistRenderer> }
 }
+
+declare module "../../core/kernel/types" {
+  interface PlaceEntries { "thread.head": ThreadHead }
+}

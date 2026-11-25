@@ -12,7 +12,7 @@ export const stageModule = {
   manifest: { id: "xo.stage", version: "1.0.0", kernel: "^1.1.0", core: true,
     needs: ["placeContext", "shape", "world", "currentView", "navigation", "mapAgents", "threadGroups",
       "shellDock", "announce", "launchpad", "conversationSession"],
-    optional: ["files", "shellPanel"], provides: ["stage"], contributes: ["panel.page"] },
+    optional: ["files", "shellPanel", "mapControls"], provides: ["stage"], contributes: ["panel.page"] },
   activate(ctx) {
     const place = ctx.use("placeContext"), shape = ctx.use("shape"), view = ctx.use("currentView");
     const session = ctx.use("conversationSession"), files = () => ctx.optional("files");
@@ -21,6 +21,7 @@ export const stageModule = {
     const at = () => place.atOf(view());
     const stage = createStage({
       at, view, go, place: panelPlace, frames: () => shape.list("panel").map((frame) => frame.id.slice("xo:panel/".length)),
+      mapControls: () => ctx.optional("mapControls"),
       files: { changes: (where) => files()?.tree.changes(where) ?? [] }, openFiles: () => files()?.page.show({ focus: true }),
       viewer: { open: (file, from) => files()?.viewer.open(file, from) }, announce: ctx.use("announce"),
       agents: ctx.use("mapAgents").agents, threads: ctx.use("threadGroups").panelThreads, owns: ctx.use("shellDock").owns,

@@ -72,9 +72,14 @@ export function createPlaces(warn = console.error) {
         changed(p);
       };
     },
-    entries(place, at = {}) { return /** @type {any} */ (ordered(need(place), at)); },
-    get(place, id) { return /** @type {any} */ (need(place).entries.find((e) => e.id === id)); },
-    first(place, at = {}) { return /** @type {any} */ (ordered(need(place), at)[0]); },
+    entries(place, at = {}) {
+      return /** @type {import("./types").Contributed<import("./types").PlaceEntry<typeof place>>[]} */ (ordered(need(place), at));
+    },
+    get(place, id) {
+      const entry = need(place).entries.find((e) => e.id === id);
+      return /** @type {import("./types").Contributed<import("./types").PlaceItem<typeof place, typeof id>> | undefined} */ (entry);
+    },
+    first(place, at = {}) { return api.entries(place, at)[0]; },
     arrange(place, fn) {
       const p = need(place);
       if (p.def.kind !== "list") throw new Error(`place "${place}" is a ${p.def.kind}; only lists can be arranged`);

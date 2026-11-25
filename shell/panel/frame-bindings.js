@@ -6,17 +6,12 @@ import { ownSurface } from "../surfaces.js";
 
 /** @import { SurfaceScope } from "../surface-types.d.ts" */
 
-/** @param {Pick<StageDeps["places"], "get">} places */
-function mapFrameAt(places) {
-  return /** @type {MapFrame | undefined} */ (places.get("panel.frame", "map"));
-}
-
 /** @typedef {{ places: StageDeps["places"], scope: SurfaceScope, hosts: { map: HTMLElement, changes: HTMLElement } }} BindHosts */
 
 /** @typedef {{ options: ChangesFrameOptions, fallback: () => HTMLElement, refresh: () => void }} BindActions */
 
-/** @param {BindHosts & BindActions} deps */
-export function bindPanelFrames({ places, scope, hosts, options, fallback, refresh }) {
+/** @param {BindHosts & BindActions & Pick<StageDeps, "mapControls">} deps */
+export function bindPanelFrames({ places, scope, mapControls, hosts, options, fallback, refresh }) {
   /** @type {MapFrame | undefined} */
   let mapFrame;
   /** @type {ChangesFrame | undefined} */
@@ -26,9 +21,9 @@ export function bindPanelFrames({ places, scope, hosts, options, fallback, refre
   let retireMap = () => {}, retireChanges = () => {};
 
   function sync() {
-    const mapEntry = mapFrameAt(places);
+    const mapEntry = places.get("panel.frame", "map");
 
-    const changesEntry = /** @type {ChangesFrame | undefined} */ (places.get("panel.frame", "changes"));
+    const changesEntry = places.get("panel.frame", "changes");
     if (mapEntry !== mapFrame) {
       retireMap();
       mapFrame = mapEntry;
@@ -55,7 +50,7 @@ export function bindPanelFrames({ places, scope, hosts, options, fallback, refre
   scope.effect(() => places.watch("panel.frame", () => { sync(); refresh(); }));
   sync();
   return {
-    get map() { return mapFrame?.api; },
+    get map() { return mapFrame ? mapControls?.() : undefined; },
     get changes() { return changes; },
     /** @param {string} theme */
     theme(theme) { changeFrame?.theme(theme); },

@@ -16,7 +16,7 @@ const { createStage } = await import("../shell/panel/panel.js");
 const { places } = createKernel({ warn() {}, log() {} });
 definePlaces({ places });
 const map = { agents: () => [], mode: "graph", setMode() {}, show() {}, hide() {} };
-places.contribute("panel.frame", { id: "map", title: "Map", mount() {}, api: map }, "test");
+places.contribute("panel.frame", { id: "map", title: "Map", mount() {} }, "test");
 places.contribute("panel.frame", {
   id: "changes", title: "Changes",
   mount: () => ({ paint: () => false, head: () => null, wide: false }),
@@ -32,7 +32,7 @@ let runsReturnFocus = false;
 let filesTitle = "Files";
 const outside = document.getElementById("outside");
 const panel = createStage({
-  files: { changes: () => [] }, viewer: {}, view: () => view,
+  mapControls: () => map, files: { changes: () => [] }, viewer: {}, view: () => view,
   place: (id) => id.startsWith("p:"), go() {}, announce() {},
   at: () => ({ view }), places, shell: (on, host, where) => { if (on) shellView = where; },
 });

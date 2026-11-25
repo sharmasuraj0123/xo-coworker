@@ -2,7 +2,9 @@ import type { At, Entry, Kernel } from "../../core/kernel/types";
 import type { Agent, Change, Group } from "./list-types";
 
 declare module "../../core/kernel/types" {
-  interface Services { stage: ReturnType<typeof import("./panel.js").createStage> }
+  interface KeyedPlaceEntries { "panel.frame:map": MapFrame; "panel.frame:changes": ChangesFrame }
+  interface PlaceEntries { "panel.page": import("./pages.js").PageSpec; "panel.title-action": PanelTitleAction }
+  interface Services { mapControls: MapApi; stage: ReturnType<typeof import("./panel.js").createStage> }
 }
 
 export type StageNavigation = Pick<ReturnType<typeof import("./panel.js").createStage>, "leave" | "close" | "isOpen">;
@@ -24,13 +26,12 @@ export interface StageState {
 }
 interface StageFile { path: string; name?: string; project?: string; rel: string; show?: "changes" }
 interface MapApi {
-  render(view: string): void;
   mode: "graph" | "tree";
   setMode(mode: "graph" | "tree"): void;
   show(view: string): void;
   hide(): void;
 }
-export interface MapFrame extends Entry { mount(host: HTMLElement): void | (() => void); api: MapApi }
+export interface MapFrame extends Entry { mount(host: HTMLElement): void | (() => void) }
 export interface ChangesFrameOptions {
   view(): string;
   openFile(scope: { project: string; worktree?: string | null }, path: string, from?: Element | null): void;
@@ -63,6 +64,7 @@ export interface PanelTitleAction extends Entry {
   leave?(): void;
 }
 export interface StageDeps {
+  mapControls?(): MapApi | undefined;
   files: { changes(view: string): Change[] };
   openFiles?: (() => void) | null;
   place?(view: string): boolean;

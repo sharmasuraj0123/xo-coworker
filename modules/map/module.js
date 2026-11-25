@@ -16,7 +16,8 @@ export const mapAgentsModule = {
 export const mapModule = {
   manifest: {
     id: "xo.map", version: "1.0.0", kernel: "^1.1.0",
-    needs: ["world", "announce", "navigation", "threadPresentation", "mapAgents", "currentView"], contributes: ["panel.frame:map"],
+    needs: ["world", "announce", "navigation", "threadPresentation", "mapAgents", "currentView"], provides: ["mapControls"],
+    contributes: ["panel.frame:map"],
   },
   activate(ctx) {
     const navigation = ctx.use("navigation");
@@ -27,8 +28,9 @@ export const mapModule = {
     });
     const view = ctx.use("currentView");
     ctx.on("app:render", () => api.render(view()));
+    ctx.provide("mapControls", api);
     ctx.contribute("panel.frame", {
-      id: "map", title: "Map", api,
+      id: "map", title: "Map",
       mount(/** @type {HTMLElement} */ host) { api.mount(host); return () => api.unmount(); },
     });
   },

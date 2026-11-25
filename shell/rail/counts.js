@@ -1,7 +1,5 @@
 // @ts-check
 
-/** @typedef {{ id: string, count(): number }} RailCount */
-
 /** @type {import("../../core/kernel/types").ModuleDef} */
 export const railCountsModule = {
   manifest: { id: "xo.rail-counts", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["world"] },
@@ -13,7 +11,6 @@ export const railCountsModule = {
     function paint() {
       for (const { badge, row, label } of rows) {
         if (!row) continue;
-        /** @type {RailCount | undefined} */
         const source = ctx.places.get("rail.count", row.getAttribute("data-go") ?? "");
         const count = world.state.loaded ? source?.count() ?? 0 : 0;
         const text = count ? String(count) : "";

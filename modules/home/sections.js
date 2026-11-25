@@ -12,7 +12,8 @@ import { createSurfaceSlots } from "../../shell/surfaces.js";
 export function createHomeSections(places, scope, schedule) {
   /** @type {ReturnType<typeof createSurfaceSlots<SectionContext<N>>>} */
   const draw = createSurfaceSlots({
-    places, place: "home.section", scope, schedule, fallback: () => document.getElementById("home"),
+    places, place: "home.section", read: () => places.entries("home.section"), scope, schedule,
+    fallback: () => document.getElementById("home"),
   });
   /** @param {HTMLElement | null} body @param {SectionContext<N>} context */
   return (body, context) => {

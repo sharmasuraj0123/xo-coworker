@@ -22,3 +22,9 @@ export interface HomeControllerOptions<N extends HomeViewNeed>
   decideKey: (key: string) => void;
   heraldShow: Parameters<typeof import("./open-next.js").createOpenNext>[0]["heraldShow"];
 }
+
+declare module "../../core/kernel/types" {
+  interface PlaceEntries {
+    "home.section": import("../../shell/surface-types").SurfaceEntry<import("./sections.js").SectionContext<unknown>>;
+  }
+}

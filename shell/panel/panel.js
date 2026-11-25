@@ -27,17 +27,16 @@ const FOLD_IC = ICON.chevron;
 const FILES_IC = ICON.folder;
 
 /** @param {StageDeps} deps */
-export function createStage({ files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, agents = () => [], threads = null, shell = null, owns = () => false, at, places }) {
+export function createStage({ mapControls, files, openFiles = null, place = () => true, viewer, view, go, announce, onChange, frames = () => ORDER, agents = () => [], threads = null, shell = null, owns = () => false,
+  at, places }) {
   const savedOpen = read(KEY, (value) => Boolean(JSON.parse(value)?.open), false);
   const layoutScope = createScope();
-  // the Map starts folded, in its Graph: Threads and Changes have the room
   /** @type {Partial<FrameState>} */
   const savedFrames = read(FR_KEY, JSON.parse, {});
   /** @type {FrameState} */
   const fr = { changes: { folded: false }, agents: { rows: null, folded: false, groups: { done: true } }, map: { h: MAP_H, folded: true }, ...savedFrames };
   if (!fr.agents.groups) fr.agents.groups = { done: true };
   if (!fr.map.h) fr.map.h = MAP_H;
-  // a height dragged before Threads went by rows: its rows
   if (fr.agents.h) { fr.agents.rows = Math.max(1, Math.min(8, Math.round((fr.agents.h - 44) / ROW))); delete fr.agents.h; }
   /** @type {StageState} */
   const S = { open: false, full: false, returnTo: null, stackH: 0, h: {}, page: null, under: null, tgMore: {} };
@@ -103,7 +102,7 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
   // Changes: Space's list and diff, or (where Space has no /changes yet) today's list
   body("changes").innerHTML = `<div class="cx-host"></div><div class="ch-old" hidden></div>`;
   const binding = bindPanelFrames({
-    places, scope: layoutScope, hosts: { map: body("map"), changes: query(".cx-host") },
+    places, mapControls, scope: layoutScope, hosts: { map: body("map"), changes: query(".cx-host") },
     options: {
       view,
       openFile: ({ project, worktree }, path, from) => viewer.open({
@@ -129,7 +128,8 @@ export function createStage({ files, openFiles = null, place = () => true, viewe
 
   /** @type {(v: string) => string} */
   let nameOf = () => "";
-  const PG = createPages({ el, S, scope: layoutScope, places, at, view, threads, shell, nameOf: () => nameOf, placeless, open, close, paint, onChange });
+  const PG = createPages({ el, S, scope: layoutScope, places, at, view, threads, shell, nameOf: () => nameOf,
+    placeless, open, close, paint, onChange });
   const { PAGES, show, back, dropPages, requestClose, setShell } = PG;
   const titleActions = bindTitleActions(query("[data-stg-shell], [data-stg-full]"), places, layoutScope);
   const mapLayout = { hide: () => binding.map?.hide(), show: (/** @type {string} */ v) => binding.map?.show(v) };

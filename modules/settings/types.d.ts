@@ -51,3 +51,7 @@ export interface SectionsDeps {
   places: Pick<Places, "entries" | "watch">;
   nav: HTMLElement; pages: HTMLElement; at: () => { project?: string }; pick: (id: string) => void; isOpen: () => boolean; onTabs?: () => void;
 }
+
+declare module "../../core/kernel/types" {
+  interface PlaceEntries { "settings.section": SectionEntry }
+}

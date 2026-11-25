@@ -12,12 +12,11 @@ export async function threadStage(threads, changes = () => []) {
   window.HTMLInputElement.prototype.select = () => {};
   const { places } = createKernel({ warn() {}, log() {} });
   definePlaces({ places });
-  places.contribute("panel.frame", { id: "map", title: "Map", mount() {}, api: {
-    agents: () => [], mode: "graph", setMode() {}, show() {}, hide() {},
-  } }, "test");
+  const map = { mode: "graph", setMode() {}, show() {}, hide() {} };
+  places.contribute("panel.frame", { id: "map", title: "Map", mount() {} }, "test");
   places.contribute("panel.frame", { id: "changes", title: "Changes", mount: () => ({ paint: () => false, head: () => null }) }, "test");
   const view = () => "p:p", destinations = [];
-  const panel = createStage({ files: { changes }, viewer: {}, view, threads, go: (id) => destinations.push(id),
+  const panel = createStage({ mapControls: () => map, files: { changes }, viewer: {}, view, threads, go: (id) => destinations.push(id),
     announce() {}, at: () => ({ view: view() }), places });
   panel.names = () => "Project";
   panel.open();

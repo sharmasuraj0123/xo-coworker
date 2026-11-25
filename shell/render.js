@@ -17,7 +17,7 @@ export function createShellRenderer({
   files, LW, titleFor, isBusy,
 }, /** @type {SurfaceScope} */ scope, /** @type {() => void} */ schedule) {
   const drawPages = createSurfaceSlots({
-    places, place: "page", scope, schedule, hideOnRetire: true,
+    places, place: "page", read: () => places.entries("page"), scope, schedule, hideOnRetire: true,
     fallback: () => [requireHtml("#nv-home", "button"), requireHtml("#pb-menu", "button")].find(usable) ?? null,
   });
   return function render() {

@@ -2,7 +2,7 @@
 
 /** @import { Surface, SurfaceOptions, SurfaceScope } from "./surface-types.d.ts" */
 
-/** @param {SurfaceScope} scope @param {HTMLElement} host @param {() => void} undo @param {SurfaceOptions["fallback"]} fallback */
+/** @param {SurfaceScope} scope @param {HTMLElement} host @param {() => void} undo @param {SurfaceOptions<unknown>["fallback"]} fallback */
 export function ownSurface(scope, host, undo, fallback, hideOnRetire = false) {
   return scope.effect(() => () => {
     const hadFocus = host.contains(host.ownerDocument.activeElement);
@@ -14,12 +14,12 @@ export function ownSurface(scope, host, undo, fallback, hideOnRetire = false) {
   });
 }
 
-/** @template C @param {SurfaceOptions} options */
-export function createSurfaceSlots({ places, place, scope, schedule, fallback, hideOnRetire = false }) {
+/** @template C @param {SurfaceOptions<C>} options */
+export function createSurfaceSlots({ read, places, place, scope, schedule, fallback, hideOnRetire = false }) {
   /** @type {Map<Surface<C>, { host: HTMLElement, retire: () => void }>} */
   const mounted = new Map();
   /** @returns {Surface<C>[]} */
-  const active = () => places.has(place) ? places.entries(place) : [];
+  const active = () => places.has(place) ? read() : [];
 
   /** @param {Surface<C>} entry @param {HTMLElement} host */
   function mount(entry, host) {

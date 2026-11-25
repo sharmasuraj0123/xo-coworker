@@ -16,7 +16,7 @@ import { RM } from "../../core/ui/motion.js";
 
 /** @param {PagesDeps} deps */
 export function createPages({ el, S, scope, places, at, view, threads, shell, nameOf, placeless, open, close, paint, onChange }) {
-  const PAGES = { get: (/** @type {string} */ name) => /** @type {PageSpec | undefined} */ (places.get("panel.page", name)) };
+  const PAGES = { get: (/** @type {string} */ name) => places.get("panel.page", name) };
   /** @type {Map<string, HTMLElement>} */
   const boxes = new Map();
   /** @type {Map<string, (() => void) | undefined>} */

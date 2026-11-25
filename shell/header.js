@@ -22,7 +22,6 @@ export function wireHeaderActions(scope, places, at) {
   scope.listen(document, "click", ({ target }) => {
     const id = target instanceof Element && target.closest("[data-header-action]")?.getAttribute("data-header-action");
     if (!id) return;
-    /** @type {Action | undefined} */
     const action = places.get("header.action", id);
     action?.onPress(at());
   });

@@ -16,7 +16,8 @@ export function createTopHeader(deps, scope, schedule) {
   const { location, convThread, isBusy, CH, STAGE, checklistRender, PROJ, conversationHeaderHtml, kernel, atOf, LP, LW, tdelRender } = deps;
   /** @type {ReturnType<typeof createSurfaceSlots<import("./app-service-types").ConversationHeaderPaint>>} */
   const drawDetails = createSurfaceSlots({
-    places: kernel.places, place: "header.detail", scope, schedule, fallback: () => requireHtml("#scroller"), hideOnRetire: true,
+    places: kernel.places, place: "header.detail", read: () => kernel.places.entries("header.detail"), scope, schedule,
+    fallback: () => requireHtml("#scroller"), hideOnRetire: true,
   });
   /** @param {N[]} needs */
   function topRender(needs) {

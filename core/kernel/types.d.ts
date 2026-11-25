@@ -31,12 +31,20 @@ export interface PlaceDef<E extends Entry = Entry> {
 
 export type Arranger = (entries: Contributed[], at: At) => Contributed[];
 
+export interface PlaceEntries {}
+export interface KeyedPlaceEntries {}
+
+export type PlaceEntry<P extends string> = P extends keyof PlaceEntries ? PlaceEntries[P] & Entry : Entry;
+export type PlaceItem<P extends string, I extends string> =
+  `${P}:${I}` extends keyof KeyedPlaceEntries ? KeyedPlaceEntries[`${P}:${I}`] & Entry
+    : PlaceEntry<P>;
+
 export interface Places {
   define<E extends Entry>(def: PlaceDef<E>, owner?: string): Undo;
-  contribute<E extends Entry>(place: string, entry: E, owner: string): Undo;
-  entries<E extends Entry>(place: string, at?: At): Contributed<E>[];
-  get<E extends Entry>(place: string, id: string): Contributed<E> | undefined;
-  first<E extends Entry>(place: string, at?: At): Contributed<E> | undefined;
+  contribute<P extends string, const E extends Entry>(place: P, entry: E & PlaceItem<NoInfer<P>, NoInfer<E["id"]>>, owner: string): Undo;
+  entries<P extends string>(place: P, at?: At): Contributed<PlaceEntry<P>>[];
+  get<P extends string, I extends string>(place: P, id: I): Contributed<PlaceItem<P, I>> | undefined;
+  first<P extends string>(place: P, at?: At): Contributed<PlaceEntry<P>> | undefined;
   arrange(place: string, fn: Arranger): Undo;
   watch(place: string, fn: () => void): Undo;
   has(place: string): boolean;
@@ -113,7 +121,7 @@ export interface ModuleContext {
   optional<Name extends string>(service: Name): ServiceValue<Name> | undefined;
   has(service: string): boolean;
   provide<Name extends string>(name: Name, api: ServiceValue<Name>): Undo;
-  contribute<E extends Entry>(place: string, entry: E): Undo;
+  contribute<P extends string, const E extends Entry>(place: P, entry: E & PlaceItem<NoInfer<P>, NoInfer<E["id"]>>): Undo;
   definePlace<E extends Entry>(def: PlaceDef<E>): Undo;
   effect(fn: () => Undo | void): Undo;
   on: Bus["on"];

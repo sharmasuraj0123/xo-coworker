@@ -3,20 +3,34 @@ import type { createScope } from "../core/kernel/scope.js";
 
 export type SurfaceScope = ReturnType<typeof createScope>;
 
-export type Surface<C> = Contributed<Entry & {
+export type SurfaceEntry<C> = Entry & {
   mount?(host: HTMLElement): Undo | void;
   render(host: HTMLElement, context: C): void;
-}>;
+};
+export type Surface<C> = Contributed<SurfaceEntry<C>>;
 
 export interface FileRouteEntry extends Entry {
   route(target: Element, event: MouseEvent): boolean;
 }
 
-export interface SurfaceOptions {
+export interface SurfaceOptions<C> {
+  read(): Surface<C>[];
   places: Places;
   place: string;
   scope: SurfaceScope;
   schedule: () => void;
   fallback: () => HTMLElement | null;
   hideOnRetire?: boolean;
+}
+
+declare module "../core/kernel/types" {
+  interface PlaceEntries {
+    "page": SurfaceEntry<undefined>;
+    "header.detail": SurfaceEntry<import("./app-service-types").ConversationHeaderPaint>;
+    "rail.count": { count(): number };
+    "header.action": import("./header.js").Action;
+    "conversation.press": import("./conversation-press-types").PressEntry;
+    "conversation.file-route": FileRouteEntry;
+    "search.provider": import("./places.js").SearchProvider;
+  }
 }
