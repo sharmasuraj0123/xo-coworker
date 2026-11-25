@@ -85,6 +85,7 @@ export interface ModuleManifest {
   kernel: string;
   description?: string;
   needs?: string[];
+  optional?: string[];
   provides?: string[];
   contributes?: string[];  // "place" or "place:id"; ctx.contribute outside this list throws
   defines?: string[];
@@ -108,6 +109,7 @@ export interface ModuleContext {
   readonly id: string;
   readonly kernelVersion: string;
   use<Name extends string>(service: Name): ServiceValue<Name>;
+  optional<Name extends string>(service: Name): ServiceValue<Name> | undefined;
   has(service: string): boolean;
   provide<Name extends string>(name: Name, api: ServiceValue<Name>): Undo;
   contribute<E extends Entry>(place: string, entry: E): Undo;

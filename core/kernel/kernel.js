@@ -44,6 +44,11 @@ export function createKernel(opts = {}) {
         if (!s) throw new Error(`${id}: service "${svc}" is not available`);
         return /** @type {ServiceValue<typeof svc>} */ (s.api);
       },
+      optional(svc) {
+        if (!m.optional?.includes(svc)) throw new Error('Undeclared optional service "' + svc + '" in ' + id);
+        if (U.signal.aborted) return undefined;
+        return /** @type {ServiceValue<typeof svc> | undefined} */ (services.get(svc)?.api);
+      },
       has: (svc) => services.has(svc),
       provide: (name, api) => U.effect(() => {
         if (!(m.provides || []).includes(name)) throw new Error(`${id}: ctx.provide("${name}") but "${name}" is not in its manifest's provides`);

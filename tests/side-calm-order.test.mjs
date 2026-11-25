@@ -71,7 +71,7 @@ await t("the sidebar waits for the pointer to leave, then moves the urgent row a
   let view = "home";
   const sideRender = createSideRows(scope, { view: () => view,
     world: { state: { threads: [{ project: "b", state: "working", busy: true }] }, act: { coordinatorBusy: () => false } },
-    CH: { isChats: () => false }, places: { get: () => undefined }, D: { needItems: () => needs },
+    CH: { isChats: () => false }, D: { needItems: () => needs },
     projects: () => [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }], convThread: () => null,
     isBusy: (thread) => thread.busy, isHeld: () => false, askShort: () => "Needs review", projectIcon: () => "", folded: () => false,
   });

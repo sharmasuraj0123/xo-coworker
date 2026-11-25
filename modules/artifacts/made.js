@@ -84,6 +84,7 @@ export function createMade({ world, go, VW, PROJ, schedule, announce, skTile, sk
     homeMade, jumpItems, dispose: scope.dispose,
     /** @param {string} tid @param {string | null} project */
     latestOf: (tid, project) => madeOf(project || null).find((x) => x.tid === tid && x.kind !== "branch" && x.kind !== "link" && x.exists !== false) || null,
-    artifacts: { mount: AP.mount, render: AP.render, count: () => (madePending(null) ? 0 : madeOf(null).length) },
+    count: () => (madePending(null) ? 0 : madeOf(null).length),
+    artifacts: { mount: AP.mount, render: AP.render },
   };
 }

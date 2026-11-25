@@ -59,5 +59,8 @@ interface MadeFile {
 }
 
 declare module "../../core/kernel/types" {
-  interface Services { homeSkeleton: Pick<MadeDeps, "skTile" | "skBar" | "rememberedMade"> }
+  interface Services {
+    homeSkeleton: Pick<MadeDeps, "skTile" | "skBar" | "rememberedMade">;
+    artifactCatalog: Pick<ReturnType<typeof import("./made.js").createMade>, "latestOf">;
+  }
 }

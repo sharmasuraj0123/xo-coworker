@@ -19,6 +19,7 @@ export function createTranscriptModule(host) {
   const module = {
     manifest: { id: "xo.transcript", version: "1.0.0", kernel: "^1.1.0",
       needs: ["world", "shape", "placeContext", "decisionPresentation", "threadPresentation", "changeData"],
+      optional: ["artifactCatalog"],
       contributes: ["conversation.press:older", "conversation.press:fold", "conversation.press:checklist",
         "conversation.press:interrupt"] },
     activate(ctx) {
@@ -38,8 +39,7 @@ export function createTranscriptModule(host) {
       }, ctx);
       const details = createMessageDetails({
         REC: { latestOf(thread, project) {
-          const page = /** @type {import("../../shell/surface-types").ArtifactsPage | undefined} */ (ctx.places.get("page", "artifacts"));
-          return page?.latestOf(thread, project) ?? null;
+          return ctx.optional("artifactCatalog")?.latestOf(thread, project) ?? null;
         } },
         ...host, ...place, ...status, ...decision, world, SHAPE: shape, aliases: host.localMessages.aliases });
       const items = createMessageItems({ ...host, ...place, ...context, ...details, world, CHG, messagesOf });

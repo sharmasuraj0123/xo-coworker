@@ -60,7 +60,6 @@
  "shell/panel/pages.js::eslint(no-shadow)": 1,
  "shell/panel/panel.js::eslint(no-shadow)": 1,
  "shell/panel/panel.js::eslint(no-unused-expressions)": 3,
- "shell/rail/rows.js::eslint(no-shadow)": 1,
  "tests/browser/chat-read-order.test.cjs::eslint(no-shadow)": 2,
  "tests/browser/chat-read-order.test.cjs::eslint(no-underscore-dangle)": 13,
  "tests/browser/conversation.test.cjs::eslint(no-shadow)": 16,

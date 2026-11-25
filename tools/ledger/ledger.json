@@ -2629,6 +2629,7 @@
     "modules/settings/application.js",
     "modules/settings/shortcuts-sheet.js",
     "modules/settings/surface.js",
+    "modules/artifacts/module.js",
     "modules/map/module.js",
     "modules/changes/module.js",
     "modules/changes/chip-route.js",
@@ -2663,6 +2664,10 @@
     "shell/panel/workspace-stage.js": {
      "anchor": "export function mountWorkspaceStage",
      "reason": "Stage owns its frame list, place names and scoped header actions."
+    },
+    "modules/artifacts/module.js": {
+     "anchor": "function paintCount",
+     "reason": "Artifacts owns its navigation count and publishes transcript records through its optional catalog service."
     },
     "modules/conversation/surfaces.js": {
      "anchor": "export function mountConversationMedia",

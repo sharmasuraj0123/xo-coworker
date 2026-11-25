@@ -145,7 +145,7 @@ const { agentOf, threadMark, rtTag, sendWhileRunning, movable } = createThreadRu
 const threadMenuHtml = createThreadMenu({ panelThreads, SH, movable, isBusy });
 
 const sideRender = createSideRows(appScope, {
-  view: currentView, world, CH, places: kernel.places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
+  view: currentView, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded: () => SIDE.folded,
 });
 
 const chatOf = convProject;

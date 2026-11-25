@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { deferred, dom, settle } from "../../../tests/lib/dom.mjs";
 
-const { document } = await dom(`<div id="home"></div>`);
+const { document } = await dom(`<div id="home"></div><button id="nv-arts"><span id="arts-n"></span></button>`);
 globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IntersectionObserver = class { observe() {} unobserve() {} disconnect() {} };
 globalThis.ResizeObserver = class { observe() {} disconnect() {} };
@@ -32,7 +32,7 @@ globalThis.fetch = async (input) => {
   return new Response(null, { status: 404 });
 };
 const threads = [{ id: "t1", project: "demo", title: "Planner" }, { id: "t2", project: "demo", title: "Brancher" }];
-const world = { state: { threads, projects: [{ id: "demo", name: "Demo", chatId: "c1" }] }, thread: (id) => threads.find((x) => x.id === id), project: (id) => (id === "demo" ? { id: "demo", name: "Demo", chatId: "c1" } : null) };
+const world = { state: { loaded: true, threads, projects: [{ id: "demo", name: "Demo", chatId: "c1" }] }, thread: (id) => threads.find((x) => x.id === id), project: (id) => (id === "demo" ? { id: "demo", name: "Demo", chatId: "c1" } : null) };
 /** @type {string[]} */
 const went = [];
 
@@ -47,6 +47,11 @@ kernel.register({
   },
 });
 kernel.register(createAppServices({ world, announce() {}, projectName: (p) => p.toUpperCase(), currentView: () => "home" }, () => {}));
+let catalog;
+kernel.register({
+  manifest: { id: "test.reader", kernel: "^1.1.0", version: "1.0.0", optional: ["artifactCatalog"] },
+  activate(ctx) { catalog = () => ctx.optional("artifactCatalog"); },
+});
 kernel.register(artifactsModule);
 await kernel.start();
 const section = places.get("home.section", "hm-made");
@@ -70,7 +75,7 @@ await t("a card's press opens its file in the viewer; a branch goes to its threa
   assert.deepEqual(opened.map((f) => [f.name, f.project, f.rel]), [["plan.md", "demo", "plan.md"]]);
   document.querySelector('[data-made-file="b"]').dispatchEvent(new window.Event("click", { bubbles: true }));
   assert.deepEqual(went, ["t:t2"]);
-  assert.equal(places.get("page", "artifacts").latestOf("t1", "demo")?.id, "a");
+  assert.equal(catalog().latestOf("t1", "demo")?.id, "a");
 });
 await t("selecting a Jump result goes to its thread and opens the file", () => {
   jump("plan")[0].run();
@@ -78,3 +83,15 @@ await t("selecting a Jump result goes to its thread and opens the file", () => {
   assert.deepEqual(opened.map((file) => file.rel), ["plan.md", "plan.md"]);
 });
 console.log(`\n${passed} passed`);
+
+kernel.bus.emit("app:paint");
+assert.equal(document.getElementById("arts-n").textContent, "2");
+assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts, 2");
+const previousCatalog = catalog();
+await kernel.disable("xo.artifacts");
+assert.equal(kernel.status("test.reader"), "active");
+assert.equal(catalog(), undefined);
+assert.equal(document.getElementById("arts-n").textContent, "");
+assert.equal(document.getElementById("nv-arts").getAttribute("aria-label"), "Artifacts");
+await kernel.enable("xo.artifacts");
+assert.ok(catalog() && catalog() !== previousCatalog);

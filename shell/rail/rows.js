@@ -9,7 +9,7 @@ import { createCalmOrder } from "../sideorder.js";
 /** @import { Hold, SideNeed, SideRowsDeps } from "./rows-types.d.ts" */
 
 /** @template {SideNeed} N @param {import("../surface-types").SurfaceScope} scope @param {SideRowsDeps<N>} deps */
-export function createSideRows(scope, { view, world, CH, places, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
+export function createSideRows(scope, { view, world, CH, D, projects, convThread, isBusy, isHeld, askShort, projectIcon, folded }) {
   const SIDE_CALM = Object.assign(createCalmOrder(), { over: false, pending: false });
   let cancelReorder = () => {};
   /** @type {Map<string, { n: number, until: number }>} */
@@ -37,11 +37,6 @@ export function createSideRows(scope, { view, world, CH, places, D, projects, co
     requireHtml("#nv-chats", "button").classList.toggle("is-on", CH.isChats(current));
     requireHtml("#nv-arts", "button").classList.toggle("is-on", current === "artifacts");
     requireHtml("#nv-lp", "button").classList.toggle("is-on", current === "launchpad");
-    const artifacts = /** @type {import("../surface-types").ArtifactsPage | undefined} */ (places.get("page", "artifacts"));
-    const count = artifacts?.count() ?? 0;
-    const label = count ? String(count) : "";
-    if (requireHtml("#arts-n").textContent !== label) requireHtml("#arts-n").textContent = label;
-    requireHtml("#nv-arts", "button").setAttribute("aria-label", count ? `Artifacts, ${count}` : "Artifacts");
     // (aria-current="page": an empty aria-current, as toggleAttribute writes it, reads as false)
     for (const id of ["nv-home", "nv-ws", "nv-chats", "nv-arts", "nv-lp"]) {
       const b = requireHtml("#" + id, "button");

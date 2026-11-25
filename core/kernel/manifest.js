@@ -12,7 +12,7 @@ export function manifestProblems(input) {
     out.push(`version must be semver like "1.0.0" (got "${String(m.version)}")`);
   }
   if (typeof m.kernel !== "string" || !m.kernel) out.push(`kernel must name the kernel API range, e.g. "^1"`);
-  for (const k of ["needs", "provides", "contributes", "defines", "routes", "storage", "styles", "vendor"]) {
+  for (const k of ["needs", "optional", "provides", "contributes", "defines", "routes", "storage", "styles", "vendor"]) {
     const value = m[k];
     if (value !== undefined && !(Array.isArray(value) && value.every((x) => typeof x === "string"))) {
       out.push(`${k} must be a list of strings`);

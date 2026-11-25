@@ -23,7 +23,6 @@ export interface SideRowsDeps<N extends SideNeed> {
     act: { coordinatorBusy: (project: string) => unknown; coordinatorHeld?: (project: string) => Hold | null };
   };
   CH: { isChats: (view: string) => boolean };
-  places: Pick<import("../../core/kernel/types").Places, "get">;
   D: { needItems: () => N[] };
   projects: () => { id: string; name: string }[];
   convThread: (view: string) => { project: string } | null | undefined;
