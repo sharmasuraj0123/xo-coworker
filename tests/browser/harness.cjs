@@ -30,6 +30,9 @@ function mockApi(W) {
     if (u.origin !== W.base) return r.abort();
     if (!p.startsWith("/api/")) return r.fallback();
     const json = (o, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(o) });
+    if (m === "PUT" && /^\/api\/chat\/chats\/[^/]+\/seen$/.test(p)) return json({ seen: { seen_at: NOW, seen_seq: null } });
+    if (m === "GET" && /^\/api\/coworker\/xo-projects\/[^/]+\/paths$/.test(p)) return json({ paths: Object.keys(W.files || {}) });
+    if (m === "GET" && /^\/api\/xo-projects\/[^/]+\/github\/issues$/.test(p)) return json({ repo: null, state: "no_repo", issues: [] });
     if (p.startsWith("/api/deploy/")) return W.launchpad ? (W.onDeploy ? W.onDeploy(r, m, p) : r.fallback()) : json({ detail: { code: "not_found", message: "no deploys in tests" } }, 404);
     if (p === "/api/chat/stream") return r.fulfill({ status: 200, contentType: "text/event-stream", body: "retry: 600000\n\n" });
     // W.pins: what a chat's PATCH saved (model, effort), so the world's refresh reads it back as the server would
@@ -272,7 +275,7 @@ async function openApp(browser, BASE, W = {}, { width = 1440, height = 900, moti
   page.on("pageerror", (e) => errors.push(e.message));
   if (W.launchpad) await installLaunchpad(page, W.launchpad);
   await page.route("**/*", mockApi(W));
-  await hooks(page);
+  if (W.hooks !== false) await hooks(page);
   // W.beforeLoad(page): a case's own routes, in place before the first request (a module held from startup)
   if (W.beforeLoad) await W.beforeLoad(page);
   // a loaded machine (other threads' crawls) can make a first load slow: that isn't what's being tested

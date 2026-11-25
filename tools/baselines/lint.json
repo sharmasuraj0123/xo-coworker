@@ -80,7 +80,7 @@
  "tests/browser/coordinator-busy.test.cjs::eslint(no-shadow)": 3,
  "tests/browser/coordinator-busy.test.cjs::eslint(no-underscore-dangle)": 10,
  "tests/browser/flows.test.cjs::eslint(no-shadow)": 77,
- "tests/browser/flows.test.cjs::eslint(no-underscore-dangle)": 213,
+ "tests/browser/flows.test.cjs::eslint(no-underscore-dangle)": 211,
  "tests/browser/flows.test.cjs::eslint(no-unused-vars)": 3,
  "tests/browser/harness.cjs::eslint(no-shadow)": 3,
  "tests/browser/harness.cjs::eslint(no-underscore-dangle)": 2,

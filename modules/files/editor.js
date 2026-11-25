@@ -13,10 +13,13 @@ const MERGE_URL = new URL("../../vendor/codemirror/merge.js", import.meta.url).h
 let cmP = null;
 /** @type {Promise<CodeMirrorMerge> | null} */
 let mergeP = null;
-export const loadCM = () => (cmP ||= /** @type {Promise<CodeMirror>} */ (import(CM_URL)));
+export const loadCM = () => (cmP ||= /** @type {Promise<CodeMirror>} */ (import(CM_URL)).catch((error) => {
+  cmP = null;
+  throw error;
+}));
 export const loadMerge = () => (mergeP ||= /** @type {Promise<CodeMirrorMerge>} */ (import(MERGE_URL)));
 
-export function prefetch() { loadCM().catch(() => { cmP = null; }); }
+export function prefetch() { return loadCM().then(() => true, () => false); }
 
 const TINT_MS = 2400;
 

@@ -711,34 +711,55 @@ t("S023: after Reset all (by the keyboard, from the foot of the list), the first
   await page.evaluate(() => localStorage.removeItem("cv-keys"));
   await done(page);
 });
+const EDITOR_ENTRY = process.env.FLOWS_BASE
+  ? /\/v\/[^/]+\/vendor\/codemirror\/cm\.js(?:\?[^#]*)?$/
+  : /\/vendor\/codemirror\/cm\.js(?:\?[^#]*)?$/;
+async function openRetryFile(page) {
+  const projects = page.locator('#projects [data-go="p:demo"]');
+  if (!await projects.isVisible() || await projects.evaluate((row) => !!row.closest("[inert]"))) {
+    await page.locator("#pb-menu").click();
+  }
+  await projects.click();
+  await page.locator("[data-stage-toggle]").filter({ visible: true }).first().click();
+  await filesOpen(page);
+  await page.locator('#stage [data-fl-file="a.js"]').filter({ visible: true }).first().click();
+}
+async function expectRecoveredEditor(page) {
+  await page.waitForFunction(() => document.querySelector("#viewer .vw-file .cm-content")?.textContent.includes("two"), null, { timeout: 15000 });
+  assert.equal(await page.locator("#viewer .vw-file .vw-empty").count(), 0, "the old error and its Try again went");
+}
 t("S139 (waiting): the file's Try again says it's trying while the renderer loads, then the file draws", async () => {
-  const ctx = { mode: "fail", gate: null };
-  // the renderer's module, from startup (its prefetch too): refused until the case says, then held
-  const page = await app({ files: { "a.js": FILE() }, beforeLoad: (p) => p.route(
-    "http://*/{vendor,v/*/vendor}/pierre-diffs/diffs.js", async (r) => {
-      if (ctx.mode === "fail") return r.abort("failed");
-      await ctx.gate;
+  const gate = Promise.withResolvers(), attempts = [];
+  let holding = false;
+  const page = await app({ hooks: false, files: { "a.js": FILE() }, beforeLoad: (p) => p.route(
+    EDITOR_ENTRY, async (r) => {
+      attempts.push({ holding, url: r.request().url() });
+      if (!holding) return r.abort("failed");
+      await gate.promise;
       return r.fallback();
     },
   ) });
-  await toDemo(page);
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  await openRetryFile(page);
   const retry = page.locator("#viewer [data-vw-retry]");
   await retry.waitFor({ timeout: 15000 });
-  let release; ctx.gate = new Promise((ok) => (release = ok)); ctx.mode = "hold";
+  assert.ok(attempts.some((attempt) => !attempt.holding), "the editor entry request was refused");
+  holding = true;
   await retry.focus();
   await page.keyboard.press("Enter");
   const state = () => page.evaluate(() => { const b = document.querySelector("#viewer [data-vw-retry]"), box = b && b.closest(".vw-empty"); return b ? { words: box.querySelector("p").textContent, busy: b.getAttribute("aria-busy"), label: b.textContent, role: box.getAttribute("role") } : null; });
   for (const ms of [150, 800]) {
     await page.waitForTimeout(ms === 150 ? 150 : 650);
     const s = await state();
-    assert.deepEqual(s, { words: "Drawing this file…", busy: "true", label: "Trying again…", role: "status" }, `${ms} ms after Try again: it says it's trying`);
+    assert.deepEqual(s, { words: "Drawing this file…", busy: "true", label: "Trying again…", role: "status" }, `${ms} ms after Try again: ${JSON.stringify(attempts)}`);
   }
+  const requested = attempts.length;
   await page.keyboard.press("Enter"); // pressed again while it's trying: nothing more
   await page.locator("#viewer [data-vw-retry]").click({ force: true }); // (it's aria-disabled: a person can still press it)
+  assert.equal(attempts.length, requested, "repeat activation starts no other load");
   assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.hasAttribute("data-vw-retry")), true, "focus on the busy Try again");
-  release();
-  await page.waitForFunction(() => !document.querySelector("#viewer [data-vw-retry]") && !!document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
+  gate.resolve();
+  await expectRecoveredEditor(page);
+  assert.ok(attempts.some((attempt) => attempt.holding), "retry reached the lazy editor entry");
   await page.waitForTimeout(150);
   assert.equal(await page.evaluate(() => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest("#viewer .vw-file, #viewer .vw-body"); }), true, "focus on the drawn file, not the page");
   await done(page);
@@ -930,22 +951,23 @@ t("C085: an image's change, then another file while it's read: the image goes at
   await done(page);
 });
 t("S139: a file whose renderer failed, tried again, shows the file and not the old error beside it", async () => {
-  let once = true;
-  const page = await app({ files: { "a.js": FILE() } });
-  // the renderer's library fails to load once (a dropped connection), then loads
-  await page.route("http://*/{vendor,v/*/vendor}/pierre-diffs/diffs.js", (r) => {
-    if (once) { once = false; return r.abort(); }
-    return r.fallback();
-  });
-  await toDemo(page);
-  await page.evaluate(() => window.__t.VW.open({ project: "demo", rel: "a.js", path: "a.js", name: "a.js" }));
+  const attempts = [];
+  let retrying = false;
+  const page = await app({ hooks: false, files: { "a.js": FILE() }, beforeLoad: (p) => p.route(
+    EDITOR_ENTRY, (r) => {
+      attempts.push({ retrying, url: r.request().url() });
+      return retrying ? r.fallback() : r.abort("failed");
+    },
+  ) });
+  await openRetryFile(page);
   const retry = page.locator("#viewer [data-vw-retry]");
   await retry.waitFor();
+  assert.ok(attempts.some((attempt) => !attempt.retrying), "the editor entry request was refused");
+  retrying = true;
   await retry.focus();
   await page.keyboard.press("Enter");
-  await page.waitForFunction(() => document.querySelector("#viewer .vw-file diffs-container"), null, { timeout: 15000 });
-  await page.waitForTimeout(200);
-  assert.equal(await page.locator("#viewer .vw-file .vw-empty").count(), 0, "the old error and its Try again went");
+  await expectRecoveredEditor(page);
+  assert.ok(attempts.some((attempt) => attempt.retrying), "retry reached the lazy editor entry");
   await done(page);
 });
 const MADE = () => [
@@ -1242,7 +1264,7 @@ t("VW-DIFF-HELD: a change whose read is held says so, never the last change's di
   assert.doesNotMatch(await viewerDiff(page), /Reading the change/, "and once it's there, only it");
   await done(page);
 });
-t("S139 (paint): the viewer's Try again looks different hovered and pressed than at rest", async () => {
+t("S253 (paint): the Changes read retry looks different hovered and pressed than at rest", async () => {
   const page = await app({ files: { "b.js": FILE() }, changesFailFor: { "b.js": 1 }, changes: [
     { path: "b.js", status: "modified", additions: 1, deletions: 1, binary: false, version: "sha256:B", patch: null, patch_omitted: "response_budget", full: PATCH("b.js", "one", "BRAVO") }] });
   await toDemo(page);
@@ -3488,10 +3510,13 @@ t("G2: a card withdrawn while you type its note hands over with the next card's 
 async function ctxDone(page) { const errs = page.errors; await page.context().close(); assert.deepEqual(errs, [], "page errors"); }
 
 (async () => {
-  server = await serve();
-  BASE = `http://127.0.0.1:${server.address().port}`;
+  if (process.env.FLOWS_BASE) BASE = new URL(process.env.FLOWS_BASE).origin;
+  else {
+    server = await serve();
+    BASE = `http://127.0.0.1:${server.address().port}`;
+  }
   browser = await launch(chromium);
-  if (!browser) { console.error("not run: no Chromium would start"); server.close(); process.exit(2); }
+  if (!browser) { console.error("not run: no Chromium would start"); server?.close(); process.exit(2); }
   const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
   // the app's flows at a desktop and a phone width; the decision module's on its own, at both widths too
   // the four cells; FLOWS_CELLS="390 light,1440 dark" runs only those (a rerun of what failed, never the record)
@@ -3509,7 +3534,7 @@ async function ctxDone(page) { const errs = page.errors; await page.context().cl
       }
     }
   }
-  await browser.close(); server.close();
+  await browser.close(); server?.close();
   console.log(`${passed} passed${failed ? `, ${failed} failed` : ""}${skipped ? `, ${skipped} skipped` : ""}`);
   process.exitCode = failed ? 1 : 0;
 })();
