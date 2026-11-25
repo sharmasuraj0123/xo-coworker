@@ -54,10 +54,10 @@
 .nrow:active,.prow:active{transform:scale(.985)}
 .nrow.is-on{background:var(--row-bg-hover);box-shadow:inset 0 0 0 1px var(--row-line)}
 .prow.is-on{background:var(--row-on);border-color:var(--row-line-hover)}
-.nr-ic,.pr-ic{position:relative;flex:none;display:grid;place-items:center;width:var(--tile-sm);height:var(--tile-sm);border-radius:calc(var(--nest-r) - var(--nest-in));background:var(--sb-g1C);border:1px solid var(--sb-g26);color:var(--ink-3)}
+.nr-ic,.pr-ic{position:relative;flex:none;display:grid;place-items:center;width:var(--tile-sm);height:var(--tile-sm);border-radius:calc(var(--nest-r) - var(--nest-in));color:var(--ink-3)}
 .nr-ic svg{width:var(--ic);height:var(--ic)}
 .nr-xo .xo-mark{width:18px;height:8px}
-.nrow.is-on .nr-ic{color:var(--ink);background:var(--sb-g26)}
+.nrow.is-on .nr-ic{color:var(--ink)}
 .nr-name{flex:1;min-width:0;font:var(--fw-regular) var(--fs-ui)/var(--lh-ui) var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nrow.is-on .nr-name{color:var(--ink);font-weight:var(--fw-medium)}
 .nr-chev{display:grid;place-items:center;color:var(--ink-4)}
@@ -82,7 +82,7 @@
   padding:var(--ring-room) var(--s-3) 14px;scrollbar-width:thin;scrollbar-color:var(--sb-g2A) transparent}
 .pr-ic svg{width:var(--ic);height:var(--ic)}
 .pr-sep{flex:none;height:1px;margin:var(--s-1) var(--s-2);background:var(--sb-line)}
-.prow.is-on .pr-ic{color:var(--ink);background:var(--sb-g26)}
+.prow.is-on .pr-ic{color:var(--ink)}
 .pr-busy{position:absolute;
   right:var(--offset-outset-small);
   bottom:var(--offset-outset-small);
@@ -102,21 +102,23 @@
 .pr-t{min-width:0;font-size:var(--fs-meta);line-height:var(--lh-meta);color:var(--ink-4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;animation:rise-in var(--d-move) var(--ease)}
 
 .prow.busy{background:color-mix(in srgb,var(--info) 5%,var(--row-bg));border-color:color-mix(in srgb,var(--info) 20%,var(--row-line))}
-.prow.busy .pr-ic{background:color-mix(in srgb,var(--info) 12%,var(--sb-g1C));border-color:color-mix(in srgb,var(--info) 28%,var(--sb-g26));color:var(--info)}
+.prow.busy .pr-ic{color:var(--info)}
 .prow.busy .pr-t{color:color-mix(in srgb,var(--info) 70%,var(--ink-3))}
 
 @property --pr-a{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes pr-orbit{to{--pr-a:360deg}}
-.prow.busy .pr-ic{border-color:transparent;background:linear-gradient(color-mix(in srgb,var(--info) 12%,var(--sb-g1C)),color-mix(in srgb,var(--info) 12%,var(--sb-g1C))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 26%,var(--sb-g26)),color-mix(in srgb,var(--info) 26%,var(--sb-g26))) border-box;box-shadow:0 0 10px -3px color-mix(in srgb,var(--info) 45%,transparent);animation:pr-orbit 2.8s linear infinite}
-@media (prefers-reduced-motion:reduce){.prow.busy .pr-ic{animation:none}}
+.prow.busy .pr-ic::after{content:"";position:absolute;inset-inline-end:0;top:0;width:var(--s-1);height:var(--s-1);
+  border-radius:var(--r-pill);background:var(--info);transform:rotate(var(--pr-a)) translateX(var(--s-1));
+  animation:pr-orbit var(--d-loop) linear infinite}
+@media (prefers-reduced-motion:reduce){.prow.busy .pr-ic::after{animation:none}}
 
-.prow.needs .pr-ic{background:color-mix(in srgb,var(--warn) 13%,var(--sb-g1C));border-color:transparent;color:var(--warn)}
+.prow.needs .pr-ic{color:var(--warn)}
 .prow.needs .pr-name{--project-name-ink:var(--ink-project-attention)}
 .prow.needs{background:color-mix(in srgb,var(--warn) 6%,var(--row-bg));border-color:transparent}
 .prow.needs .pr-t{color:color-mix(in srgb,var(--warn) 72%,var(--ink-3))}
 .prow.needs.k-red{background:color-mix(in srgb,var(--err) 6%,var(--row-bg));border-color:transparent}
 .prow.needs.k-red .pr-t,.prow.needs.k-red .pr-w{color:color-mix(in srgb,var(--err-ink) 80%,var(--ink-3))}
-.prow.needs.k-red .pr-ic{background:color-mix(in srgb,var(--err) 12%,var(--row-bg));border-color:transparent;color:var(--err-ink)}
+.prow.needs.k-red .pr-ic{color:var(--err-ink)}
 
 .prow::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;opacity:0;pointer-events:none;background:radial-gradient(130% 150% at 0% 50%,var(--need-tint-2),transparent 72%);box-shadow:inset 0 0 0 1px rgb(245 166 35 / .18)}
 .prow.wash::before{animation:wash 2.6s var(--ease)}

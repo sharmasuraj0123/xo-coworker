@@ -74,7 +74,7 @@
   --fill-drop-veil:rgb(0 0 0 / .32);
   --comp-bg:var(--float); --line-composer-focus:var(--line-strong);
   /* Floating surfaces pair a contact shadow with a short ambient shadow. */
-  --black-rgb:0,0,0; --edge-sidebar-icon:rgba(var(--black-rgb),.07); --edge-sidebar-icon-on:rgba(var(--black-rgb),.12);
+  --black-rgb:0,0,0;
   --edge-sidebar-active:rgba(var(--black-rgb),.06); --shadow-switch-track:inset 0 0 0 var(--hair) var(--sb-line);
   --fill-switch-knob:var(--ink-2); --ink-switch-knob:var(--sb-side); --shadow-switch-knob:none;
   --e-composer-idle:0 8px 24px var(--shadow-ink),0 1px 0 rgba(255,255,255,.04) inset; --e-composer-focused:var(--e-composer-idle);

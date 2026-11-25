@@ -50,24 +50,8 @@
 :root:root .side :is(.nrow,.prow):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--hover-fill),var(--hover-fill))}
 :root:root .side :is(.prow.busy,.prow.needs,.prow.is-on,.nrow.is-on):active{background-image:linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(var(--press-fill),var(--press-fill)),linear-gradient(color-mix(in srgb,var(--ink) 6%,transparent),color-mix(in srgb,var(--ink) 6%,transparent))}
 
-/* its tile: solid, in the row's colour (.side: above light.css's white tile for the open row) */
-.side .prow.is-on:not(.busy) .pr-ic{background:var(--ink);border-color:var(--ink);color:var(--sb-side)}
-.side .prow.is-on.needs .pr-ic{background:var(--warn);border-color:var(--warn);color:var(--sb-side)}
-.side .prow.is-on.needs.k-red .pr-ic{background:var(--err-ink);border-color:var(--err-ink)}
-/* a working tile keeps its orbit; open, it fills with a deeper blue under it */
-.side .prow.is-on.busy .pr-ic{background:linear-gradient(color-mix(in srgb,var(--info) 34%,var(--sb-side)),color-mix(in srgb,var(--info) 34%,var(--sb-side))) padding-box,conic-gradient(from var(--pr-a),transparent 0deg,color-mix(in srgb,var(--info) 95%,transparent) 70deg,transparent 140deg) border-box,linear-gradient(color-mix(in srgb,var(--info) 50%,var(--sb-g26)),color-mix(in srgb,var(--info) 50%,var(--sb-g26))) border-box;color:var(--ink)}
-
-/* and its glow: an 8px halo pulled in 2px, so it reaches ~6px past the tile, at low strength, no ring */
-.side .prow.is-on:not(.busy) .pr-ic{box-shadow:0 0 8px -2px color-mix(in srgb,var(--ink) 22%,transparent)}
-.side .prow.is-on.needs .pr-ic{box-shadow:0 0 8px -2px color-mix(in srgb,var(--warn) 32%,transparent)}
-.side .prow.is-on.needs.k-red .pr-ic{box-shadow:0 0 8px -2px color-mix(in srgb,var(--err-ink) 32%,transparent)}
-.side .prow.is-on.busy .pr-ic{box-shadow:0 0 8px -2px color-mix(in srgb,var(--info) 40%,transparent)}
-:root[data-theme="light"] .prow.is-on:not(.busy):not(.needs) .pr-ic{box-shadow:0 1px 3px -1px rgba(0,0,0,.28)}
-/* the glow arrives with the selection, calmly; a working tile keeps turning */
-.prow.is-on .pr-ic{animation:glow-in var(--d-move) var(--ease)}
-.side .prow.is-on.busy .pr-ic{animation:pr-orbit 2.8s linear infinite}
-@keyframes glow-in{from{box-shadow:0 0 0 0 transparent}}
-@media (prefers-reduced-motion:reduce){.prow.is-on .pr-ic{animation:none}}
+.side-foot .gear{background:transparent}
+.side > .side-top{height:var(--h-phonebar)}
 
 .app{transition:grid-template-columns var(--d-move) var(--ease)}
 .side-top{padding-left:var(--s-3);padding-right:var(--s-3)}
@@ -99,7 +83,8 @@
     box-shadow:var(--e2);z-index:var(--z-overlay)}
   .side-folded.side-peeking > .side{visibility:visible}
   .side-folded:not(.side-peeking) > .side-peek{position:fixed;display:flex;inset:var(--s-2) auto auto var(--s-2);
-    z-index:var(--z-overlay);padding:var(--s-1);border-radius:var(--r-lg);background:var(--float);box-shadow:var(--e2)}
+    z-index:var(--z-overlay);padding:var(--s-1);border:var(--hair) solid var(--sb-g26);border-radius:var(--r-lg);
+    background:var(--float);box-shadow:var(--e2)}
   .side-folded:not(.side-peeking) > .side-edge{display:block;position:fixed;inset:0 auto 0 0;width:var(--s-1);z-index:var(--z-overlay)}
   .side-folded:has(#home-n:not(:empty)) [data-side-peek]::after{content:"";width:var(--s-1);height:var(--s-1);
     background:var(--warn);border-radius:var(--r-pill);position:absolute;top:var(--s-2);left:var(--s-2)}
