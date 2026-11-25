@@ -1,13 +1,16 @@
 // @ts-check
 
-/** @param {Pick<import("./store.js").Changes, "saved">} CHG */
-export function createSavedSoon(CHG) {
-  /** @type {Map<string, ReturnType<typeof setTimeout>>} */
-  const savedT = new Map();
-  /** @param {{ project: string, rel: string }} f */
-  return function savedSoon(f) {
-    const k = `${f.project}|${f.rel}`;
-    clearTimeout(savedT.get(k));
-    savedT.set(k, setTimeout(() => { savedT.delete(k); CHG.saved(f.project, f.rel); }, 2500));
+/** @import { ModuleContext } from "../../core/kernel/types" */
+
+/** @param {Pick<import("./store.js").Changes, "saved">} changes @param {Pick<ModuleContext, "timeout" | "effect">} scope */
+export function createSavedSoon(changes, scope) {
+  /** @type {Map<string, () => void>} */
+  const pending = new Map();
+  scope.effect(() => () => pending.clear());
+  /** @param {{ project: string; rel: string }} file */
+  return function savedSoon({ project, rel }) {
+    const key = `${project}|${rel}`;
+    pending.get(key)?.();
+    pending.set(key, scope.timeout(() => { pending.delete(key); changes.saved(project, rel); }, 2500));
   };
 }

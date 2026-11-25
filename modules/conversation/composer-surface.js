@@ -23,7 +23,7 @@ export function createComposerSurface(scope, host) {
   const STOP_ICON = ICON.stop;
   const MK = createMainComposer(view, main);
   const { say } = MK;
-  const { composerAt, composerNow, composers, dispose: disposeComposerFocus } = createComposerFocus({
+  const { composerAt, composerNow, composers, inUse, dispose: disposeComposerFocus } = createComposerFocus({
     main: MK,
     panel,
     isThread: () => STAGE.pageShown?.name === "thread",
@@ -73,7 +73,7 @@ export function createComposerSurface(scope, host) {
     edit: valuePress("data-edit", (id, control) => editFailed(id, composerAt(control))),
     "remove-reference": valuePress("data-lref-x", () => { fileReferences.remove(view()); lrefRender(); say.focus(); }, true),
   }));
-  return { MK, say, composerAt, composerNow, composers, saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
+  return { MK, say, composerAt, composerNow, composers, inUse, saveDraft, loadDraft, startHtml, addFiles, insertText, wireTray,
     fileReferences, liveBlock, blockFor, refuse, connDest, deliverLive, putBack, targetLineRender,
     syncPlaceholder, chipRender, sendRender, chatTargetRender, mentions, wireComposer, updateComposer };
 }

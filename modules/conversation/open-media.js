@@ -3,7 +3,9 @@ import { retryMedia } from "../../core/services/media/hydrate.js";
 import { mediaItemOf } from "../../core/services/media/stack-data.js";
 import { viewerFile } from "../../core/services/media/items.js";
 
-/** @param {{ msgsEl: HTMLElement; LB: {open(key: string, from: HTMLElement, root: HTMLElement): unknown}; VW: {open(file: ReturnType<typeof viewerFile>, from: HTMLElement): unknown} }} options */
+/** @import { MediaOpener } from "./open-media-types" */
+
+/** @param {MediaOpener} options */
 export function createMediaOpener({ msgsEl, LB, VW }) {
   /** @param {HTMLElement} el @param {Pick<MouseEvent, "shiftKey">} e */
   return function openMedia(el, e) {

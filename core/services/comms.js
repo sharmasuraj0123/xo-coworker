@@ -10,7 +10,12 @@ import { reportFailure } from "./notices/failures.js";
 /** @type {Names} */
 let names = { thread: () => null, project: () => null, here: () => null };
 /** @param {Partial<Names>} fns */
-export function nameWith(fns) { names = { ...names, ...fns }; }
+export function nameWith(fns) {
+  const previous = names;
+  const next = { ...previous, ...fns };
+  names = next;
+  return () => { if (names === next) names = previous; };
+}
 
 const COMMS = /^(?:mcp__)?xo_comms(?:__|\/)([\w-]+)$/;
 /** @type {Record<string, (r: Record<string, unknown>) => boolean>} */

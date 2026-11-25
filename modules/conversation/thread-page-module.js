@@ -30,6 +30,7 @@ export function createThreadPageModule(options) {
     manifest: { id: "xo.thread-page", version: "1.0.0", kernel: "^1.1.0", contributes: ["panel.page:thread"] },
     activate(ctx) {
       ctx.contribute("panel.page", page);
+      ctx.on("app:decision-undone", (key) => TP.dock?.undoReceipt(key));
       /** @param {Event} event */
       function toMain({ target }) {
         const id = target instanceof Element && target.closest("[data-tp-main]")?.getAttribute("data-tp-main");

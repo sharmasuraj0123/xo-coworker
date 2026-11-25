@@ -2,14 +2,8 @@
  "modules/artifacts/page.js": {
   "observer": 2
  },
- "modules/changes/saved.js": {
-  "setTimeout": 1
- },
  "modules/changes/store.js": {
   "setTimeout": 1
- },
- "modules/conversation/typing.js": {
-  "setTimeout": 2
  },
  "modules/decisions/dock.js": {
   "observer": 1

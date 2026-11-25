@@ -1,5 +1,7 @@
 // @ts-check
 
+import { $ } from "../../core/platform/dom.js";
+import { usable } from "../../core/ui/a11y/focus.js";
 import { pressEntry } from "../../shell/conversation-press.js";
 import { createFileViewer } from "./viewer.js";
 import { applyFileEvent } from "./file-events.js";
@@ -22,25 +24,33 @@ export function createFilesModule(options) {
   const module = {
     manifest: {
       id: "xo.files", version: "1.0.0", kernel: "^1.1.0",
-      needs: ["world", "currentView", "announce"],
+      needs: ["world", "currentView", "announce", "projectName", "changeData"],
       contributes: ["panel.page:files", "conversation.file-route:shared-file", "conversation.press:reference"],
     },
     activate(ctx) {
       const announce = ctx.use("announce");
-      const mountedViewer = createFileViewer({ ...options.viewer, announce }, options.renderers);
+      const world = ctx.use("world"), stage = options.stage();
+      const { changes, save, ...renderers } = ctx.use("changeData");
+      const mountedViewer = createFileViewer({
+        announce, ask: options.ask, onChange: options.schedule, changes, edits: { saved: save(changes, ctx) },
+        threadTitle: (ts) => world.thread(ts)?.title || null,
+        away: () => { if (!page?.isOpen) return false; stage.back(); return true; },
+        opened: (_, opts) => { options.opened(); page?.show(opts); }, closed: options.closed,
+        home: () => [$("#say"), options.region()].find(usable) || null,
+      }, { $, ...renderers });
       ctx.effect(() => () => {
         viewer = undefined;
         tree = undefined;
         page = undefined;
         mountedViewer.dispose();
       });
-      const world = ctx.use("world"), treeOptions = options.tree();
+      const treeOptions = options.tree();
       ctx.effect(() => world.onEvent((event) => applyFileEvent(event, mountedViewer, treeOptions.paths)));
       const files = createFiles({
-        ...treeOptions, viewer: mountedViewer, world, onFold: (folded) => page?.treeFolded(folded),
+        ...treeOptions, changes, PROJ: ctx.use("projectName"), viewer: mountedViewer, world, onFold: (folded) => page?.treeFolded(folded),
       });
       const filesPage = createFilesPage({
-        stage: options.stage(), files, viewer: mountedViewer, view: ctx.use("currentView"), announce,
+        stage, files, viewer: mountedViewer, view: ctx.use("currentView"), announce,
       });
       viewer = mountedViewer;
       tree = files;

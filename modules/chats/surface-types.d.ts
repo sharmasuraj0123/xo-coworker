@@ -3,11 +3,15 @@ import type { IntelOptions } from "./intel-types.d.ts";
 import type { ChatControls } from "./controls-types.d.ts";
 
 export interface ChatSurfaceOptions extends Omit<ChatDeps, "listRoot" | "restore" | "view"> {
-  list: HTMLElement;
   view(): string;
   composer(): HTMLTextAreaElement;
   putBack(text: string): void;
-  canRetry(): boolean;
+  retryBlock(): string | null;
+  refuse(block: string, detail: string): void;
+  aim(): void;
+  updateComposer(): void;
+  toggleIntelligence(view: string, chip: HTMLElement): void;
+  phone: MediaQueryList;
   stop(target: Element): void;
 }
 
@@ -25,7 +29,10 @@ export interface ChatButtons extends Pick<ChatControls, "scope" | "updateCompose
   toggleIntelligence(view: string, button: HTMLElement): void;
 }
 
-export interface IntelSurfaceOptions<T extends Composer> extends Omit<IntelOptions, "onChange" | "onMoved"> {
+export interface IntelSurfaceOptions<T extends Composer> extends Omit<IntelOptions, "onChange" | "onMoved" | "record"> {
+  scope: Pick<import("../../core/kernel/types").ModuleContext, "effect">;
+  places: import("../../core/kernel/types").Places;
+  records: import("./record-lines-types").RecordDeps;
   composers(): Iterable<T>;
   redrawChip(composer: T): void;
   announce(text: string): void;

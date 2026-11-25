@@ -395,8 +395,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 511,
-  "lineLength": 21
+  "dependencyKey": 295,
+  "lineLength": 15
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -596,8 +596,7 @@
   "lineLength": 2
  },
  "modules/conversation/typing.js": {
-  "domExpando": 4,
-  "lineLength": 8
+  "lineLength": 6
  },
  "modules/conversation/words.js": {
   "lineLength": 5
@@ -697,9 +696,6 @@
  },
  "modules/files/marks.js": {
   "lineLength": 5
- },
- "modules/files/open-media.js": {
-  "lineLength": 1
  },
  "modules/files/operation-types.d.ts": {
   "lineLength": 2
@@ -1006,7 +1002,7 @@
   "lineLength": 11
  },
  "shell/header.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "shell/kernel.js": {
   "lineLength": 1,

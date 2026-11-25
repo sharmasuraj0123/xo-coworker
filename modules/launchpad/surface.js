@@ -29,5 +29,5 @@ export function createLaunchpadSurface({ world, isBusy, isHeld, PROJ, projectIco
   const LPP = createLpPage({ el: $("#lpp"), launch: LP, projects: () => projects().map((p) => p.id), iconOf: projectIcon,
     open: (v, from) => LW.open(v, from),
     press: (name) => LW.press(name) });
-  return { LP, LW, LPP, lpProject };
+  return { LP, LW, LPP, lpProject, dispose() { LPP.dispose(); LW.dispose(); } };
 }

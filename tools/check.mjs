@@ -85,7 +85,7 @@ step("ratchets", () => {
   for (const f of sourceFiles()) {
     const text = readFileSync(join(ROOT, f), "utf8");
     const lines = text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
-    if (lines > NEW_FILE_MAX) now.lines[f] = lines;
+    if (f === "js/app.js" || lines > NEW_FILE_MAX) now.lines[f] = lines;
     if (f.endsWith(".css")) { const n = (text.match(/!important/g) || []).length; if (n) now.important[f] = n; }
   }
   const base = readJson(basePath, null);

@@ -1,6 +1,7 @@
 // @ts-check
 
 // The line under a conversation: who works on it, what it waits for, and the clock that redraws it when a wait ends.
+import { createScope } from "../../../core/kernel/scope.js";
 import assert from "node:assert/strict";
 import { dom, settle } from "../../../tests/lib/dom.mjs";
 
@@ -17,6 +18,7 @@ const world = {
 };
 
 let woke = 0;
+const scope = createScope();
 const T = createTyping({
   world, CH: { working: () => false }, PROJ: (p) => p,
   convThread: (v) => (v.startsWith("t:") ? world.thread(v.slice(2)) : null),
@@ -24,9 +26,9 @@ const T = createTyping({
   isBusy: (t) => t.busy === true, heldWords: (h) => `Waiting for its ${h.reason}`, openAsk: () => null,
   sendingTo: () => null,
   schedule: () => { woke++; }, tick() {},
-});
-const A = { typing: /** @type {any} */ (document.getElementById("a")), view: "p:demo" };
-const B = { typing: /** @type {any} */ (document.getElementById("b")), view: "t:cmsg_x" };
+}, scope);
+const A = { typing: document.getElementById("a"), view: "p:demo" };
+const B = { typing: document.getElementById("b"), view: "t:cmsg_x" };
 
 // a held coordinator: its words, amber, no clock
 assert.equal(T.render(A), true);
@@ -49,5 +51,12 @@ thread.busy = false;
 assert.equal(T.render(B), true);
 assert.equal(B.typing.innerHTML, "");
 
+coordHeld.until = soon(1000);
+T.render(A);
+assert.ok(scope.size > 0);
+scope.dispose();
+assert.equal(scope.size, 0);
+await new Promise((resolve) => setTimeout(resolve, 1100));
+assert.equal(woke, 2);
 console.log("conv-typing: ok");
 process.exit(0);

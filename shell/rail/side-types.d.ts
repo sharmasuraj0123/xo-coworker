@@ -3,7 +3,7 @@ import type { createShapeStore } from "../../core/services/shape/store.js";
 
 export interface SideDeps {
   shape: Pick<ReturnType<typeof createShapeStore>, "get" | "patchMine" | "onChange" | "synced">;
-  keys: { hint(id: string): string };
+  keys?: { hint(id: string): string };
   announce(text: string): void;
   render(): void;
   toggleJump(): void;

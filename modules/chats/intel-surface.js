@@ -1,15 +1,19 @@
 // @ts-check
 
+import { mountPressRoutes, valuePress } from "../../shell/conversation-press.js";
 import { usable } from "../../core/ui/a11y/focus.js";
 import { rtName } from "../../core/services/runtimes.js";
+import { createRecordLines } from "./record-lines.js";
 import { createIntel } from "./intel.js";
 
 /** @import { Composer, IntelSurfaceOptions } from "./surface-types.d.ts" */
 
 /** @template {Composer} T @param {IntelSurfaceOptions<T>} options */
-export function createIntelSurface({ composers, redrawChip, announce, openThread, ...options }) {
+export function createIntelSurface({ composers, redrawChip, announce, openThread, records, scope, places, ...options }) {
+  const lines = createRecordLines(records);
+  scope.effect(() => mountPressRoutes(places, "xo.intelligence", { "record-undo": valuePress("data-rec-undo", lines.undoRecord) }));
   const intelligence = createIntel({
-    ...options,
+    ...options, record: lines.recordLine,
     onChange() { for (const composer of composers()) redrawChip(composer); },
     onMoved(thread, runtime) {
       announce(`Continuing on ${rtName(runtime)}. This thread is frozen; write in it to pick it back up.`);
@@ -39,5 +43,6 @@ export function createIntelSurface({ composers, redrawChip, announce, openThread
     intelligence.activate(sessions);
   }
 
-  return { intelligence, toggle, openAlternate, activate };
+  scope.effect(() => () => { lines.dispose(); intelligence.dispose(); });
+  return { intelligence, toggle, openAlternate, activate, undoRecord: lines.undoRecord };
 }

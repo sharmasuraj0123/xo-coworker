@@ -15,9 +15,10 @@ export interface ConversationHeaderPaint {
 }
 
 declare module "../core/kernel/types" {
-  interface Services extends AppServices {}
+  interface Services extends AppServices { placeContext: ReturnType<typeof import("./place-context.js").createPlaceContext> }
   interface Topics {
     "app:render": undefined;
+    "app:decision-undone": string;
     "app:pagehide": undefined;
     "app:view-leaving": ViewLeaving;
     "app:conversation-header": ConversationHeaderPaint;

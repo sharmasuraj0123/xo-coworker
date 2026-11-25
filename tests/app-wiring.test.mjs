@@ -7,6 +7,7 @@ import { xi } from "../core/ui/icons/icon.js";
 import { ICON } from "../core/ui/icons/names.js";
 import { deferred, dom } from "./lib/dom.mjs";
 import { checkSettingsPreferences } from "./lib/settings-preferences.mjs";
+import { checkFeatureOwnership } from "./lib/feature-ownership.mjs";
 import { checkConversationFileRoutes, projectChanges } from "./lib/conversation-file-routes.mjs";
 
 const connectorReplies = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/connector-responses.json", import.meta.url)));
@@ -289,7 +290,7 @@ Object.assign(globalThis, {
     if (path === "/api/chat/chats/catalog-chat/threads") return Response.json({ threads: [
       { ts: "catalog-origin", chat_id: "catalog-chat", title: "First model composer", state: "working",
         session_id: "claude-session", session: { agent: "claude_code" } },
-      { ts: "catalog-next", chat_id: "catalog-chat", title: "Next model composer", state: "working", pin: { model: "held-model" } },
+      { ts: "cmsg_catalog_next", chat_id: "catalog-chat", title: "Next model composer", state: "working", pin: { model: "held-model" } },
     ].map((thread) => ({ ...thread, created_at: new Date(lastHomeVisit).toISOString(), updated_at: new Date(lastHomeVisit).toISOString() })) });
     if (path === "/api/chat/chats/project-chat/messages" && searchParams.get("thread") === "boot-thread") {
       return Response.json({ messages: [{
@@ -574,6 +575,7 @@ assert.equal(document.querySelector("#app").dataset.conv, "home", "the shell tra
 assert.ok(document.querySelector("#ws-head").closest("[hidden]"), "Home hides the Workspace conversation");
 
 const jump = document.querySelector("#jump");
+await checkFeatureOwnership(kernel, press, flushFrames);
 const app = document.querySelector("#app");
 assert.equal(Boolean(document.querySelector('#side input[type="search"], #side #pf-in')), false, "The sidebar uses Jump for project search");
 press("#side-jump");
@@ -773,12 +775,19 @@ await new Promise(setImmediate);
 flushFrames();
 assert.ok(catalogSignal && !catalogSignal.aborted, "opening the Claude thread warms its catalog without opening the picker");
 press("#stage [data-stg-sections]", 1, "touch");
-press('#stage .ag-r[data-go="t:catalog-next"]', 1, "touch");
+press('#stage .ag-r[data-go="t:cmsg_catalog_next"]', 1, "touch");
 flushFrames();
 await new Promise((resolve) => setTimeout(resolve, 0));
 await new Promise(setImmediate);
 flushFrames();
+assert.doesNotMatch(renderMarkdown("[Next](#cmsg_catalog_next)"), /is-unknown/, "Markdown links resolve the mounted thread presentation");
 const nextModelChip = document.querySelector("#tiq");
+const typing = document.querySelector("#ttyping");
+typing.insertAdjacentHTML("beforeend", '<span class="stale-typing"></span>');
+delete typing.dataset.typingKey;
+kernel.bus.emit("app:render");
+flushFrames();
+assert.ok(!typing.querySelector(".stale-typing"), "the live thread transcript refreshes its typing line");
 assert.match(nextModelChip.textContent, /held-model/, "the next composer shows its own unresolved model");
 lateCatalog.resolve(Response.json({ models: [{ id: "held-model", name: "Late Claude catalog" }] }));
 await new Promise(setImmediate);
@@ -1350,6 +1359,7 @@ const createGithub = document.querySelector("#cp-gh").innerHTML;
 storage.delete("xo-seen");
 pagehide(false);
 assert.ok(JSON.parse(storage.get("xo-seen") || "{}")["p:demo"] > lastHomeVisit, "Since records the active project before unload disposes it");
+assert.equal(kernel.live("xo.thread-presentation"), 0);
 assert.equal(createGithubSignal?.aborted, true, "real unload aborts Create's outstanding read");
 assert.equal(createCloneSignal?.aborted, false, "real unload leaves the already issued clone write alone");
 const cloneFixture = JSON.parse(readFileSync(new URL("../core/platform/tests/fixtures/project-schedule-responses.json", import.meta.url)));

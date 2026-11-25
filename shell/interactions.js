@@ -16,6 +16,7 @@ export function mountShellInteractions(scope, layers, host) {
     JUMP, composerNow, toggleIq, sessionOf, openKeys, STAGE, SIDE, runsLayer, closeKeys, LB, setEl, closeSettings,
     VW, setDrawer, D, CH, PAGE_OF, world, updateComposer, say, toastLine, wordsOf, scroller } = host;
   const currentView = navigationState.view;
+  scope.listen($("#top-back"), "click", back);
   const GLOBAL = {
     shells: () => SH.toggle(),
     jump: () => (jump.hidden ? JUMP.open() : JUMP.close()),

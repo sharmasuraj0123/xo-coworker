@@ -9,7 +9,7 @@ import type { createScope } from "../../core/kernel/scope.js";
 type Thread = WorldThread;
 type PanelComposer = Composer & { iq: HTMLElement };
 export type DockNeed = RankedNeed;
-type DockMount = { el: HTMLElement; view(): string; region(): HTMLElement };
+type DockMount = { scope: ReturnType<typeof createScope>; el: HTMLElement; view(): string; region(): HTMLElement };
 type Dock<N extends DockNeed> = {
   reset(options?: { restoreFocus?: boolean }): void;
   render(needs: N[]): void;

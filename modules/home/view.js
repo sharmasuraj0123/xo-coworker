@@ -90,7 +90,8 @@ export function createHomeView(options, scope) {
     busy.add(card);
     card.focus({ preventScroll: true });
     if (!D.decideNow(key, choice, note)) { busy.delete(card); return; }
-    if (!RM.matches) { card.classList.add(choice === "deny" ? "st-back" : "st-allow"); await wait(choice === "deny" ? 260 : 300); }
+    if (!RM.matches) { card.classList.add(choice === "deny" ? "st-back" : "st-allow"); await wait(choice === "deny" ? 260 : 300, scope); }
+    if (scope.signal.aborted) return;
     selection.select(null);
     schedule();
     scope.frame(() => scope.frame(() => {

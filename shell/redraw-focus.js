@@ -11,6 +11,13 @@ export function createRedrawFocus() {
   return {
     /** @param {Target[]} targets */
     request(targets) { pending = targets; },
+    /** @param {Target[]} targets @param {() => HTMLElement} region @param {() => void} schedule */
+    back(targets, region, schedule) {
+      const target = region();
+      if (usable(target)) target.focus({ preventScroll: true });
+      pending = [...targets, region];
+      schedule();
+    },
     restore() {
       const targets = pending;
       if (!targets) return;

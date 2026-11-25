@@ -18,13 +18,13 @@ const committed = (d, v, size, frac) => Math.abs(d) > size * frac || (Math.abs(v
 // never start a navigation swipe on these: they take touches of their own
 const OWN = "input, textarea, select, xo-select, [contenteditable], .b-hold, pre, table, .md-code, iframe, .xterm, [data-noswipe]";
 
-/** @param {HTMLElement | null} tdock */
-export function dockGestures(tdock) {
+/** @param {HTMLElement | null} tdock @param {ReturnType<typeof createScope>} scope */
+export function dockGestures(tdock, scope) {
   if (!tdock) return;
   /** @type {HTMLElement | null} */
   let tgt = null;
   drag(tdock, {
-    axis: "y",
+    axis: "y", signal: scope.signal,
     start: ({ target }) => {
       tgt = /** @type {HTMLElement | null} */ (target.closest(".card.is-dock:not(.r-done)") || target.closest(".dock-fold"));
       if (!tgt || target.closest(OWN)) return false;
@@ -37,9 +37,10 @@ export function dockGestures(tdock) {
       if (fold ? committed(dy, vy, 60, 1) || dy < -28 : committed(dy, vy, (/** @type {HTMLElement} */ (tgt)).offsetHeight, 0.3)) {
         tick();
         if (fold) { unstyle(tgt); (/** @type {HTMLElement} */ (tgt)).click(); return; }
-        await glide(/** @type {HTMLElement} */ (tgt), `translateY(${(/** @type {HTMLElement} */ (tgt)).offsetHeight}px)`, { ms: 160, opacity: 0 });
+        await glide(/** @type {HTMLElement} */ (tgt), `translateY(${(/** @type {HTMLElement} */ (tgt)).offsetHeight}px)`, { ms: 160, opacity: 0, scope });
+        if (scope.signal.aborted) return;
         (/** @type {HTMLElement | null} */ ((/** @type {HTMLElement} */ (tgt)).querySelector(".dock-hide")))?.click();
-      } else { await glide(/** @type {HTMLElement} */ (tgt), "translateY(0)"); unstyle(tgt); }
+      } else { await glide(/** @type {HTMLElement} */ (tgt), "translateY(0)", { scope }); if (!scope.signal.aborted) unstyle(tgt); }
     },
     cancel: () => unstyle(tgt),
   });

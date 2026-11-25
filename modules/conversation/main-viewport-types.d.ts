@@ -3,7 +3,9 @@ import type { PagingDeps } from "./paging-types.d.ts";
 import type { createTranscriptFolds } from "./transcript-folds.js";
 
 export type ViewportScope = ComposerScope;
-export interface ViewportOptions extends Omit<PagingDeps, "MAIN"> {
+type Live = import("./live-types").LiveConversationDeps;
+export type ViewportOptions = Omit<PagingDeps, "MAIN"> & Live & {
+  alias(id: string): string | undefined;
   view(): string;
   takeFoldChange: ReturnType<typeof createTranscriptFolds>["takeChange"];
   heraldRoom(): void;

@@ -10,7 +10,7 @@ import { usable } from "../../core/ui/a11y/focus.js";
 /** @import { NoticeLineDeps } from "./notice-line-types.d.ts" */
 
 /** @param {NoticeLineDeps} deps */
-export function createNoticeLine({ notice, world, MK, composerNow, panelHost, connDest, placeRegion, STOP_ICON }) {
+export function createNoticeLine({ notice, world, MK, composerNow, panelHost, connDest, placeRegion }) {
   /** @type {WeakMap<HTMLElement, { notice: Notice | null, html: string }>} */
   const lines = new WeakMap();
   const heraldBox = () => (composerNow() === MK ? $("#herald") : $("#tpherald"));
@@ -26,7 +26,7 @@ export function createNoticeLine({ notice, world, MK, composerNow, panelHost, co
     const c = h ? null : connLine(world.state, box === $("#herald") ? connDest() : { thread: true });
     let html;
     if (h) {
-      const ic = h.kind === "stopped" ? `<span class="hr-ic k-stopped">${ICON.close}</span>` : h.kind === "sent" ? `<i class="dash" aria-hidden="true"></i>` : h.kind === "ping" ? `<span class="hr-ic k-ping"><i class="hr-dot"></i></span>` : h.kind === "calm" || h.kind === "halt" ? `<span class="hr-ic k-calm">${h.kind === "halt" ? STOP_ICON : ICON.pause}</span>` : h.kind === "rec" ? `<span class="hr-ic k-calm">${ICON.router}</span>` : `<span class="hr-ic k-ok">${ICON.check}</span>`;
+      const ic = h.kind === "stopped" ? `<span class="hr-ic k-stopped">${ICON.close}</span>` : h.kind === "sent" ? `<i class="dash" aria-hidden="true"></i>` : h.kind === "ping" ? `<span class="hr-ic k-ping"><i class="hr-dot"></i></span>` : h.kind === "calm" || h.kind === "halt" ? `<span class="hr-ic k-calm">${h.kind === "halt" ? ICON.stop : ICON.pause}</span>` : h.kind === "rec" ? `<span class="hr-ic k-calm">${ICON.router}</span>` : `<span class="hr-ic k-ok">${ICON.check}</span>`;
       const inner = `${ic}<span class="hr-t">${esc(h.text)}</span>${h.sub ? `<span class="hr-s">${esc(h.sub)}</span>` : ""}${h.open ? `<span class="hr-go">Open ${ICON.arrow}</span>` : h.decide ? `<span class="hr-go">Look ${ICON.arrow}</span>` : ""}`;
       html = h.open ? `<button type="button" class="hr hr-ev k-${h.kind}" data-go="${esc(h.open)}" data-hn="${h.n}">${inner}</button>`
         : h.decide ? `<button type="button" class="hr hr-ev k-${h.kind}" data-decide="${esc(h.decide)}" data-hn="${h.n}">${inner}</button>`

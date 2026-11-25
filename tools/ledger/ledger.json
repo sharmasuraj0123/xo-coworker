@@ -2589,6 +2589,24 @@
     "modules/chats/reply-notices.js",
     "modules/decisions/ask-label.js",
     "modules/conversation/markdown.js",
+    "shell/foundation.js",
+    "modules/conversation/run-controls.js",
+    "shell/panel/workspace-stage.js",
+    "modules/conversation/surfaces.js",
+    "modules/conversation/open-media.js",
+    "modules/home/module.js",
+    "modules/search/jump-module.js",
+    "modules/shells/surface.js",
+    "modules/conversation/typing.js",
+    "shell/boot.js",
+    "shell/edge-cards.js",
+    "modules/changes/data.js",
+    "modules/create-project/module.js",
+    "modules/github/surface.js",
+    "modules/threads/action-surface.js",
+    "modules/threads/presentation.js",
+    "modules/conversation/transcript-module.js",
+    "modules/decisions/dock-surface.js",
     "modules/conversation/thread-page-module.js",
     "modules/conversation/composer-surface.js",
     "modules/conversation/main-viewport.js",
@@ -2603,6 +2621,7 @@
     "shell/panel/header-controls.js",
     "modules/conversation/main-composer.js",
     "modules/settings/preferences.js",
+    "modules/settings/application.js",
     "modules/settings/shortcuts-sheet.js",
     "modules/settings/surface.js",
     "modules/map/module.js",
@@ -2624,6 +2643,38 @@
    ],
    "note": "The shell owns the sidebar, phone drawer, favicon, navigation and frame icons. Core UI owns theme application and announcements. Settings owns Accounts and Appearance.",
    "evidence": {
+    "modules/conversation/run-controls.js": {
+     "anchor": "export function mountRunControls",
+     "reason": "Conversation connects pending stops with live runs and retires their timers."
+    },
+    "shell/panel/workspace-stage.js": {
+     "anchor": "export function mountWorkspaceStage",
+     "reason": "Stage owns its frame list, place names and scoped header actions."
+    },
+    "modules/conversation/surfaces.js": {
+     "anchor": "export function mountConversationMedia",
+     "reason": "Conversation mounts its header, notice undo and media routes."
+    },
+    "modules/conversation/open-media.js": {
+     "anchor": "export function createMediaOpener",
+     "reason": "Conversation opens transcript pictures and hands files to the active viewer."
+    },
+    "modules/home/module.js": {
+     "anchor": "export function createHomeModule",
+     "reason": "Home binds its controller and Next action to its activation."
+    },
+    "modules/search/jump-module.js": {
+     "anchor": "export function createJumpModule",
+     "reason": "Jump reads active project and thread services and owns its search controls."
+    },
+    "modules/shells/surface.js": {
+     "anchor": "export function mountShells",
+     "reason": "Shells binds its dock, Stage panel and transcript links to their host scope."
+    },
+    "modules/conversation/typing.js": {
+     "anchor": "export function createTyping",
+     "reason": "Conversation owns typing indicators and their refresh deadlines."
+    },
     "modules/changes/chip-route.js": {
      "anchor": "export function createChangeChipRoute",
      "reason": "Changes resolves transcript change chips before the generic file action."
@@ -2651,6 +2702,46 @@
     "modules/conversation/markdown.js": {
      "anchor": "export function mountConversationMarkdown",
      "reason": "Conversation owns Shape-aware Markdown image and noun rendering."
+    },
+    "shell/foundation.js": {
+     "anchor": "export function createShellFoundation",
+     "reason": "The shell owns the world, view state, notices and render scheduler."
+    },
+    "shell/boot.js": {
+     "anchor": "export async function bootShell",
+     "reason": "The shell activates registered modules and retires them at permanent pagehide."
+    },
+    "shell/edge-cards.js": {
+     "anchor": "export function createEdgeCards",
+     "reason": "The shell restores the covered Decisions or Files card."
+    },
+    "modules/changes/data.js": {
+     "anchor": "export function createChangeData",
+     "reason": "Changes supplies its model and diff renderers to the active Files viewer."
+    },
+    "modules/create-project/module.js": {
+     "anchor": "export function createProjectModule",
+     "reason": "Project creation owns its sidebar opener, delegated route and dialog lifetime."
+    },
+    "modules/github/surface.js": {
+     "anchor": "export function mountGithubPage",
+     "reason": "GitHub sends issue and pull request text to the project composer."
+    },
+    "modules/threads/action-surface.js": {
+     "anchor": "export function createThreadActions",
+     "reason": "Threads owns its edit, resolve and delete actions and their receipts."
+    },
+    "modules/threads/presentation.js": {
+     "anchor": "export const threadPresentationModule",
+     "reason": "Threads publishes status and header presentation through the kernel."
+    },
+    "modules/conversation/transcript-module.js": {
+     "anchor": "export function createTranscriptModule",
+     "reason": "Conversation obtains the active presentation services and draws transcript rows."
+    },
+    "modules/decisions/dock-surface.js": {
+     "anchor": "export function mountDecisionDock",
+     "reason": "Decisions owns the mounted conversation dock and header opener."
     },
     "modules/conversation/thread-page-module.js": {
      "anchor": "export function createThreadPageModule",
@@ -2703,6 +2794,10 @@
     "modules/chats/surface.js": {
      "anchor": "export function createChatSurface",
      "reason": "Chats owns its composer recovery, message actions and control bindings."
+    },
+    "modules/settings/application.js": {
+     "anchor": "export function mountApplicationSettings",
+     "reason": "Settings binds the keyboard shortcuts sheet and applies Shape across page lifetimes."
     },
     "modules/settings/preferences.js": {
      "anchor": "export function mountPreferences",
@@ -4960,13 +5055,13 @@
    "status": "split",
    "home": [
     "modules/files/viewer.js",
-    "js/app.js"
+    "modules/changes/data.js"
    ],
-   "note": "The app supplies the existing Changes renderers directly to Files.",
+   "note": "Files receives the existing Changes renderers through the changeData service.",
    "evidence": {
-    "js/app.js": {
-     "anchor": "jump: jumpDiff, isImageChange, drawImageChange",
-     "reason": "App startup composes the file viewer with its existing diff interactions."
+    "modules/changes/data.js": {
+     "anchor": "diff, jump, isImageChange, drawImageChange",
+     "reason": "Changes supplies the renderers used in the file viewer."
     }
    }
   },
@@ -8409,7 +8504,7 @@
   },
   "js/app.js::functions::openMedia": {
    "status": "moved",
-   "home": "modules/files/open-media.js"
+   "home": "modules/conversation/open-media.js"
   },
   "js/app.js::functions::fileRoute": {
    "status": "moved",
@@ -8882,7 +8977,7 @@
    "home": "modules/changes/saved.js",
    "evidence": {
     "modules/changes/saved.js": {
-     "anchor": "const k = `${f.project}|${f.rel}`",
+     "anchor": "const key = `${project}|${rel}`",
      "reason": "The delayed saved notification keeps the same project-and-path key in its own timer map."
     }
    }

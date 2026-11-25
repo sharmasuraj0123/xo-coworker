@@ -79,7 +79,7 @@
   "commentLines": 2
  },
  "core/services/media/hydrate.js": {
-  "commentLines": 4
+  "commentLines": 3
  },
  "core/services/media/items.js": {
   "commentOnlyCatch": 1
@@ -237,7 +237,7 @@
   "commentLines": 2
  },
  "js/app.js": {
-  "commentLines": 6
+  "commentLines": 3
  },
  "modules/artifacts/cards.js": {
   "commentLines": 3
@@ -332,15 +332,8 @@
  "modules/conversation/navigation.js": {
   "commentLines": 1
  },
- "modules/conversation/tests/typing.test.mjs": {
-  "commentLines": 1,
-  "explicitAny": 2
- },
  "modules/conversation/thread-page.js": {
   "commentLines": 1
- },
- "modules/conversation/typing.js": {
-  "explicitAny": 8
  },
  "modules/conversation/working-turn.js": {
   "commentLines": 4
@@ -545,11 +538,7 @@
   "commentLines": 2
  },
  "shell/gestures.js": {
-  "commentLines": 12
- },
- "shell/header.js": {
-  "commentLines": 1,
-  "explicitAny": 3
+  "commentLines": 11
  },
  "shell/panel/frames.js": {
   "commentLines": 2,

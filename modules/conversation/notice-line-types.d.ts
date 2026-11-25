@@ -15,5 +15,4 @@ export interface NoticeLineDeps {
   panelHost(): HTMLElement | null;
   connDest(): Parameters<typeof connLine>[1];
   placeRegion(): HTMLElement | null;
-  STOP_ICON: string;
 }

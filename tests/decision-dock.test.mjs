@@ -1,20 +1,25 @@
+import { createScope } from "../core/kernel/scope.js";
 import assert from "node:assert/strict";
 import { dom, same } from "./lib/dom.mjs";
 import { MAIN_LAYERS } from "../shell/overlays.js";
-import { createDockFolds } from "../modules/decisions/dock-folds.js";
+import { createKernel } from "../core/kernel/kernel.js";
+import { definePlaces } from "../shell/places.js";
 
 const { window, document } = await dom(`
-  <section id="region" tabindex="-1"><div id="dock"></div></section>
+  <header id="top"><button data-dock-open>Open</button></header><section id="region" tabindex="-1"><div id="tdock"></div></section>
   ${MAIN_LAYERS}
 `);
 Object.assign(globalThis, {
+  cancelAnimationFrame: clearTimeout,
   matchMedia: () => ({ matches: true, addEventListener() {}, removeEventListener() {} }),
   ResizeObserver: class { observe() {} disconnect() {} },
   localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
 });
 const { createDecisions } = await import("../modules/decisions/controller.js");
 const { createPacing } = await import("../modules/decisions/pacing.js");
-const { createDock } = await import("../modules/decisions/dock.js");
+const { mountDecisionDock } = await import("../modules/decisions/dock-surface.js");
+const kernel = createKernel();
+definePlaces(kernel);
 const { estLine } = await import("../modules/decisions/rank.js");
 const { READ_MS } = await import("../modules/decisions/kit.js");
 for (const [total, expected] of [[0, ""], [1, "1 step left in its checklist"], [2, "2 steps left in its checklist"]]) {
@@ -32,17 +37,19 @@ const world = {
   state: { threads: [thread], gone: new Map() },
   act: { decide: (...args) => { calls.push(args); return Promise.resolve(); } },
 };
-const root = document.querySelector("#dock");
+const root = document.querySelector("#tdock");
 const region = document.querySelector("#region");
 const D = createDecisions({
   world, P: createPacing(), PROJ: (p) => p, announce() {}, render() {}, back() {}, later: new Set(), waitSince: new Map(),
-  onUndone: (key) => dock.undoReceipt(key),
+  onUndone: (key) => kernel.bus.emit("app:decision-undone", key),
 });
 let renders = 0;
 const renderCard = D.cardHtml;
 D.cardHtml = (...args) => { renders++; return renderCard(...args); };
-const dock = createDock({ el: root, view: () => "t:thread", region: () => region }, {
-  CH: { isChats: () => false }, D, folds: createDockFolds(), world,
+const mountScope = createScope();
+const { main: dock } = mountDecisionDock({ scope: mountScope, view: () => "t:thread", region: () => region,
+  bus: kernel.bus, places: kernel.places, announce() {},
+  CH: { isChats: () => false }, D, world,
   convThread: () => thread, convHost: () => null, askShort: (need) => need.ask.title,
   schedule() {}, dockGestures() {},
 });
@@ -65,7 +72,11 @@ press("[data-fold]");
 assert.equal(renders, 1);
 assert.equal(root.querySelector(".df-t").textContent, title);
 assert.ok(document.activeElement === region, "folding hands focus to the conversation");
-press("[data-unfold]");
+const opener = document.querySelector("[data-dock-open]");
+opener.dataset.dockOpen = root.querySelector("[data-unfold]").dataset.unfold;
+opener.click();
+await new Promise((done) => setTimeout(done, 30));
+assert.ok(root.querySelector(".card"), "the header reopens the folded main decision");
 assert.ok(document.activeElement === root.querySelector(".card"), "unfolding hands focus to the card");
 
 now += READ_MS;

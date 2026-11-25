@@ -25,7 +25,7 @@ function canRetryClone(failure) {
   );
 }
 
-/** @param {import("./types").CreateCtx} ctx @param {ReturnType<typeof import("../../core/kernel/scope.js").createScope>} scope */
+/** @param {import("./types").CreateCtx} ctx @param {import("./types").CreateScope} scope */
 export function initCreate(ctx, scope) {
   const { signal } = scope;
   const dlg = $("#create-dlg"), form = $("#create-form");

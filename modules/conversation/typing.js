@@ -5,69 +5,69 @@
 import { DOTS, ICON, XO } from "../../core/ui/icons/names.js";
 import { ARC } from "../../core/ui/icons/icon.js";
 
-/** @typedef {{ typing: HTMLElement & { _k?: string | null, _h?: string }, view: string }} TypingConv */
+/** @typedef {{ typing: HTMLElement, view: string }} TypingConv */
 
-/** @typedef {{ world: any, CH: any, PROJ: (p: string) => string, convThread: (v: string) => any, chatOf: (v: string) => string | null, isBusy: (t: any) => boolean, heldWords: (h: any) => string, openAsk: (chat: string) => any, sendingTo: (chat: string) => {at: number} | null, schedule: () => void, tick: () => void }} TypingDeps */
+/** @import { TypingDeps } from "./typing-types" */
 
-/** @param {TypingDeps} d */
-export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, sendingTo, schedule, tick }) {
-  /** @type {WeakMap<TypingConv, { held?: ReturnType<typeof setTimeout>, ask?: ReturnType<typeof setTimeout> }>} */
+/** @param {TypingDeps} d @param {Pick<import("../../core/kernel/types").ModuleContext, "timeout">} scope */
+export function createTyping({ world, CH, PROJ, convThread, chatOf, isBusy, heldWords, openAsk, sendingTo, schedule, tick }, scope) {
+  /** @type {WeakMap<TypingConv, () => void>} */
   const timers = new WeakMap();
   /** @param {TypingConv} C */
   function render(C) {
-    const tm = timers.get(C) || {};
-    timers.set(C, tm);
+    timers.get(C)?.();
+    timers.delete(C);
     const box = C.typing, view = C.view;
     const t = convThread(view);
-    /** @type {{ key: string, cls: string, icon: string, text: string, since: any, wait?: boolean } | null} */
+    /** @type {{ key: string, cls: string, icon: string, text: string, since: string | number | null, wait?: boolean } | null} */
     let spec = null;
     const chat = !t && view !== "home" ? chatOf(view) : null;
     const coHeld = chat && world.act.coordinatorHeld ? world.act.coordinatorHeld(chat) : null;
     const chHeld = !chat && view.startsWith("c:") && world.act.sessionHeld ? world.act.sessionHeld(view.slice(2)) : null;
     const held = coHeld || chHeld || (t && t.held && !isBusy(t) && t.state !== "resolved" ? t.held : null);
+    const ask = chat && chat !== "workspace" ? openAsk(chat) : null;
+    const turn = t?.sessionId && world.state.turns?.running(t.sessionId);
     if (held) {
       const who = coHeld ? (view === "ws" ? "The coordinator" : `${PROJ(/** @type {string} */ (chat))} coordinator`) : "";
       const words = heldWords(held);
-      spec = { key: `held:${coHeld ? chat : chHeld ? view : t.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
-      clearTimeout(tm.held);
+      spec = { key: `held:${coHeld ? chat : chHeld ? view : t?.id}`, cls: "av-live is-wait", icon: coHeld ? XO : ICON.thread, text: who ? `${who} · ${words.replace(/^\w/, (c) => c.toLowerCase())}` : words, since: null, wait: true };
       const at = Date.parse(held.until || "");
-      if (at > Date.now()) tm.held = setTimeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1));
+      if (at > Date.now()) timers.set(C, scope.timeout(schedule, Math.min(at - Date.now() + 50, 2 ** 31 - 1)));
     } else if (chat && (world.act.replying(chat) || sendingTo(chat))) {
       const aw = world.state.awaiting[chat];
       const who = view === "ws" ? "The coordinator" : `${PROJ(chat)} coordinator`;
       const doing = world.act.doing ? world.act.doing(chat) : null;
       const out = aw || sendingTo(chat);
       spec = { key: `co:${chat}`, cls: "av-w", icon: XO, text: doing ? `${who} · ${doing.replace(/`/g, "")}` : `${who} is ${out ? "replying" : "working"}`, since: out ? out.at : null };
-    } else if (chat && chat !== "workspace" && openAsk(chat)) {
-      const ask = openAsk(chat);
+    } else if (chat && ask) {
       spec = { key: `ask:${ask.id}`, cls: "av-w", icon: XO, text: `${PROJ(chat)} coordinator · Waiting for the Workspace coordinator to reply`, since: null };
-      clearTimeout(tm.ask);
-      tm.ask = setTimeout(schedule, Math.max(0, (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3 - Date.now()) + 50);
+      const end = (Date.parse(ask.created_at || ask.at || "") || Date.now()) + 20 * 60e3;
+      timers.set(C, scope.timeout(schedule, Math.max(0, end - Date.now()) + 50));
     } else if (view.startsWith("c:")) {
       const sid = view.slice(2), tu = world.state.turns && world.state.turns.running(sid);
       if (CH.working(view) && !(tu && world.state.turns.blocksOf(tu).length)) spec = { key: `c:${sid}`, cls: "av-live", icon: ICON.thread, text: "Working", since: null };
-    } else if (t && t.sessionId && world.state.turns && world.state.turns.running(t.sessionId) && world.state.turns.blocksOf(world.state.turns.running(t.sessionId)).length) {
+    } else if (turn && world.state.turns.blocksOf(turn).length) {
       spec = null;
     } else if (t && isBusy(t)) {
-      const cur = t.checklist.items.find((/** @type {any} */ i) => i.state === "doing");
+      const cur = t.checklist.items.find((i) => i.state === "doing");
       spec = { key: `t:${t.id}`, cls: "av-live", icon: ICON.thread, text: `Working${cur ? ` · ${cur.text}` : ""}`, since: t.lastAt };
     }
     let changed = false;
     if (!spec) {
-      if (box._k != null) { box.innerHTML = ""; box._k = null; box._h = ""; changed = true; }
+      if (box.firstChild) { box.innerHTML = ""; delete box.dataset.typingKey; changed = true; }
       return changed;
     }
-    if (box._k !== spec.key) {
+    if (box.dataset.typingKey !== spec.key) {
       box.innerHTML = spec.wait
         ? `<div class="typing is-held" role="status"><div class="av ${spec.cls}">${spec.icon}</div><div class="ty-b"><span class="ty-t"></span><span class="elapsed"></span></div></div>`
         : `<div class="typing" role="status"><div class="av ${spec.cls}">${spec.icon}${ARC}</div><div class="ty-b">${DOTS}<span class="ty-t shimmer"></span><span class="elapsed"></span></div></div>`;
-      box._k = spec.key; box._h = spec.key;
+      box.dataset.typingKey = spec.key;
       changed = true;
     }
     const tx = /** @type {HTMLElement} */ (box.querySelector(".ty-t"));
     if (tx.textContent !== spec.text) tx.textContent = spec.text;
     const el = /** @type {HTMLElement} */ (box.querySelector(".elapsed"));
-    if (spec.since) el.dataset.since = spec.since; else { delete el.dataset.since; el.textContent = ""; }
+    if (spec.since) el.dataset.since = String(spec.since); else { delete el.dataset.since; el.textContent = ""; }
     tick();
     return changed;
   }

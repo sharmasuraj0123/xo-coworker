@@ -4,9 +4,10 @@ import { once } from "../../core/platform/index.js";
 /** @typedef {{ kind: "stopped" | "done", text: string, sub: string, mid: string, back: string[], undo: () => Promise<{ ok: boolean, why?: string }>, undoLabel?: string }} ResolveNotice */
 
 /** @param {import("./resolve-types.d.ts").ResolveDeps} options */
-export function createThreadResolve({ world, schedule, announce, heraldFor, heraldShow, heraldDrop }) {
+export function createThreadResolve({ world, schedule, announce, heraldFor, heraldShow, heraldDrop, signal }) {
   /** @param {string} tid @param {boolean} resolved */
   function resolveThread(tid, resolved, { undo = true, sayFail = true } = {}) {
+    if (signal?.aborted) return Promise.resolve({ ok: false });
     const p = once(`resolve:${tid}`, async () => {
       const t = world.thread(tid);
       if (!t) return { ok: false, why: "That thread isn't loaded." };
@@ -19,18 +20,20 @@ export function createThreadResolve({ world, schedule, announce, heraldFor, hera
       try {
         await world.act.resolve(tid, resolved);
       } catch (err) {
-      announce(`${resolved ? "Couldn't resolve" : "Couldn't reopen"} ${name}. ${(/** @type {Error} */ (err)).message}`);
-      if (sayFail) say({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: (/** @type {Error} */ (err)).message, mid: about, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
+        if (signal?.aborted) return { ok: false };
+        announce(`${resolved ? "Couldn't resolve" : "Couldn't reopen"} ${name}. ${(/** @type {Error} */ (err)).message}`);
+        if (sayFail) say({ kind: "stopped", text: resolved ? "Couldn't resolve it" : "Couldn't reopen it", sub: (/** @type {Error} */ (err)).message, mid: about, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, resolved, { undo }), undoLabel: "Retry" }, 8000);
         else heraldDrop(about);
-      return { ok: false, why: (/** @type {Error} */ (err)).message };
+        return { ok: false, why: (/** @type {Error} */ (err)).message };
       }
+      if (signal?.aborted) return { ok: false };
       announce(resolved ? `Resolved ${name}.` : `Reopened ${name}.`);
       // Undo is the same call the other way (the route is idempotent); it never starts or stops a turn
       if (undo) say({ kind: "done", text: resolved ? "Resolved" : "Reopened", sub: name, mid: about, back: [`[data-resolve="${CSS.escape(tid)}"]`], undo: () => resolveThread(tid, !resolved, { undo: false }) }, 6000);
       else heraldDrop(about);
       return { ok: true };
     });
-    p.finally(schedule); // drawn again once the request is no longer out
+    p.finally(() => { if (!signal?.aborted) schedule(); });
     return p;
   }
   return resolveThread;

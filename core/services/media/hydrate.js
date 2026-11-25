@@ -19,7 +19,6 @@ import { loadPicture } from "./picture-load.js";
 const shown = createLru({ max: MEDIA_CACHE_MAX });
 const prepared = new WeakSet();
 const failedBoxes = new WeakSet();
-const dragRoots = new WeakSet();
 
 /** @param {Element | null} box @param {string | null} cls @param {string} [text] */
 function stateOf(box, cls, text) {
@@ -192,17 +191,16 @@ export function slotOf(root, key) {
   return root ? root.querySelector(`[data-mx="${CSS.escape(key)}"]`) : null;
 }
 
-/** @param {HTMLElement | null | undefined} root */
-export function wireDragOut(root) {
-  if (!root || dragRoots.has(root)) return;
-  dragRoots.add(root);
-  root.addEventListener("dragstart", (e) => {
-    const target = /** @type {Element} */ (e.target);
-    const img = target.closest && /** @type {MediaImage | null} */ (target.closest("img.mx-img"));
+/** @param {Pick<import("../../kernel/types").ModuleContext, "listen">} scope @param {HTMLElement} root */
+export function wireDragOut(scope, root) {
+  scope.listen(root, "dragstart", (event) => {
+    const transfer = (/** @type {DragEvent} */ (event)).dataTransfer;
+    if (!(event.target instanceof Element)) return;
+    const img = /** @type {MediaImage | null} */ (event.target.closest("img.mx-img"));
     const it = img && mediaItemOf(img.dataset.mxImg, img);
-    if (!it || !/** @type {MediaImage} */ (img).src || !e.dataTransfer) return;
+    if (!it || !/** @type {MediaImage} */ (img).src || !transfer) return;
     const href = new URL(/** @type {MediaImage} */ (img).src, location.href).href;
-    try { e.dataTransfer.setData("DownloadURL", `${it.type || "image/png"}:${it.name}:${href}`); }
+    try { transfer.setData("DownloadURL", `${it.type || "image/png"}:${it.name}:${href}`); }
     catch (error) {
       if (!(error instanceof DOMException) || !["NotSupportedError", "InvalidStateError"].includes(error.name)) reportFailure(error);
     }

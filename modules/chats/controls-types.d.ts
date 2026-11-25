@@ -1,4 +1,4 @@
-type Scope = ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
+type Scope = Pick<import("../../core/kernel/types").ModuleContext, "listen" | "frame" | "effect">;
 type Chats = ReturnType<typeof import("./chats.js").createChats>;
 
 export interface ChatControls {

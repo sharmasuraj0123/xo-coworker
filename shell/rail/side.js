@@ -2,6 +2,7 @@
 
 // The sidebar: folded, a rail of the same rows with their words hidden; its bar is yours to edit, and More holds the rest.
 
+import * as keys from "../../core/platform/keys.js";
 import { $, $$ } from "../../core/platform/dom.js";
 import { createScope } from "../../core/kernel/scope.js";
 import { reportFailure } from "../../core/platform/util.js";
@@ -16,7 +17,7 @@ import { listenSide } from "./side-events.js";
 /** @import { SideDeps, Place, Side } from "./side-types.d.ts" */
 
 /** The sidebar's fold, bar and More, wired to its markup in index.html. @param {SideDeps} deps */
-export function createSide({ shape: SHAPE, keys: K, announce, render, toggleJump, scope = createScope() }) {
+export function createSide({ shape: SHAPE, keys: K = keys, announce, render, toggleJump, scope = createScope() }) {
   let popHtml = "";
   /** @type {Side} */
   const SIDE = {

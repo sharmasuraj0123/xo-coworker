@@ -10,7 +10,8 @@ export interface JumpActionDeps {
   toggleStage: () => void;
 }
 export interface WorkspaceJumpDeps extends Omit<import("./types.d.ts").JumpDeps, "field" | "list" | "places" | "actions" | "more"> {
-  sources: import("../../core/kernel/types.d.ts").Places;
+  sources: Parameters<typeof import("../../shell/places.js").contributedSearch>[0] &
+    Pick<import("../../core/kernel/types").Places, "watch">;
   items: JumpItemsDeps;
   actions: JumpActionDeps;
 }
@@ -22,3 +23,8 @@ export interface JumpItemsDeps {
   glyphOf: (thread: JumpThread) => string;
   wordOf: (thread: JumpThread) => string;
 }
+export type JumpHost = Pick<WorkspaceJumpDeps, "go" | "focusIn" | "onHidden">
+  & Pick<JumpActionDeps, "create" | "settings" | "keys" | "toggleStage">
+  & Pick<JumpItemsDeps, "projectIcon"> & {
+    IQ: { kindOf(session: string): unknown; open(session: string, chip: HTMLElement): unknown };
+  };

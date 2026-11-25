@@ -38,3 +38,5 @@ export type HeaderDeps<N extends HeaderNeed> = {
   wordOf(thread: HeaderThread): string;
   rtTag(thread: HeaderThread): string;
 };
+export type MainHeader<N extends HeaderNeed> = HeaderDeps<N>
+  & Omit<import("../../shell/header-types").HeaderDeps<HeaderThread, N>, "conversationHeaderHtml">;

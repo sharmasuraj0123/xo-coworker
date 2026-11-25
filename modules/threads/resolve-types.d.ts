@@ -1,6 +1,7 @@
 type ResolveNotice = import("./resolve.js").ResolveNotice;
 
 export interface ResolveDeps {
+  signal?: AbortSignal;
   world: {
     thread: (id: string) => { title: string } | null | undefined;
     act: { resolve: (id: string, resolved: boolean) => Promise<unknown> };

@@ -73,7 +73,7 @@ export function routeConversationFile(places, target, event) {
 
 /** @typedef {{ id: string, items: (query: string) => SearchMatch[], pick: (match: SearchMatch) => void }} SearchProvider */
 
-/** @param {Kernel["places"]} places @param {string} query */
+/** @param {Pick<Kernel["places"], "has" | "entries">} places @param {string} query */
 export function contributedSearch(places, query) {
   if (!places.has("search.provider")) return [];
   /** @type {import("../core/kernel/types.d.ts").Contributed<SearchProvider>[]} */

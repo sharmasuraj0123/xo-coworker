@@ -1,5 +1,7 @@
 // @ts-check
 
+import { createNavigationLinks } from "./navigation-links.js";
+import { createCodeCopy } from "../core/ui/markdown/copy.js";
 import { routeConversationFile } from "./places.js";
 
 /** @import { Press, PressEntry, PressId, PressRoutes } from "./conversation-press-types.d.ts" */
@@ -37,8 +39,16 @@ export function valuePress(attribute, run, empty = false) {
 
 /** @import { ModuleContext, Places } from "../core/kernel/types" */
 
-/** @param {Pick<ModuleContext, "listen" | "effect">} scope @param {Places} places */
-export function bindConversationPress(scope, places) {
+/** @typedef {Pick<ModuleContext, "listen" | "effect">} Scope */
+
+/** @typedef {Parameters<typeof createNavigationLinks>[0]} Links */
+
+/** @param {Scope} scope @param {Places} places @param {(text: string) => void} announce @param {Links} links */
+export function bindConversationPress(scope, places, announce, links) {
+  scope.effect(() => mountPressRoutes(places, "xo.shell", { navigate: createNavigationLinks(links) }));
+  const code = createCodeCopy(announce);
+  scope.effect(() => code.dispose);
+  scope.effect(() => mountPressRoutes(places, "xo.shell", { copy: valuePress("data-copy", (_, el) => code.copy(el), true) }));
   /** @returns {PressEntry[]} */
   const read = () => places.entries("conversation.press");
   scope.effect(() => mountPressRoutes(places, "xo.shell", { file: (target, event) => routeConversationFile(places, target, event) }));

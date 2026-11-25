@@ -1,5 +1,8 @@
 // @ts-check
 
+import { $ } from "../../core/platform/dom.js";
+import { pressEntry } from "../../shell/conversation-press.js";
+import { replyNotices } from "./reply-notices.js";
 import { createChats } from "./chats.js";
 import { bindChatControls } from "./controls.js";
 import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../../core/services/world/timeline.js";
@@ -12,7 +15,8 @@ import { cliName, chatOrder, heldShort, heldBadge, dayGroup, rowTime } from "../
 
 /** @param {ChatSurfaceOptions} options @param {Pick<Conversation, "turnHtml" | "turnAv">} conversation */
 export function createChatSurface(options, conversation) {
-  const { world, announce, heraldShow, go, schedule, view, list, transcriptOpen, composer, putBack, canRetry, stop } = options;
+  const { world, announce, heraldShow, go, schedule, view, transcriptOpen, composer, putBack, stop } = options;
+  const list = $("#msgs");
   const chats = createChats({
     world, announce, heraldShow, go, schedule, view, listRoot: list, transcriptOpen,
     restore(text, { force = false } = {}) {
@@ -67,7 +71,8 @@ export function createChatSurface(options, conversation) {
     const retry = target.closest("[data-chat-retry]");
     const retryId = retry?.getAttribute("data-chat-retry");
     if (retry && retryId) {
-      if (!canRetry()) return true;
+      const block = options.retryBlock();
+      if (block) { options.refuse(block, "the message stays, to retry"); return true; }
       const focused = retry.contains(retry.ownerDocument.activeElement);
       chats.retry(retryId);
       if (focused) composer().focus({ preventScroll: true });
@@ -84,5 +89,21 @@ export function createChatSurface(options, conversation) {
     return true;
   }
 
-  return { chats, mountControls, bindComposerButtons, handleMessageAction };
+  /** @type {import("../../core/kernel/types").ModuleDef} */
+  const module = {
+    manifest: { id: "xo.chat-controls", version: "1.0.0", kernel: "^1.1.0",
+      needs: ["world", "projectName", "currentView", "announce"], contributes: ["conversation.press:chat-message"] },
+    activate(ctx) {
+      const { updateComposer, aim, toggleIntelligence, phone } = options;
+      bindComposerButtons({
+        scope: ctx, target: $("#target"), permissions: $("#cs-perm"), sendNow: $("#send-now"), intelligence: $("#iq"),
+        updateComposer, aim, toggleIntelligence,
+      });
+      mountControls({ scope: ctx, scroller: $("#scroller"), greeting: $("#cs-hi"), setup: $("#cs-pop"), phone, updateComposer });
+      const reply = replyNotices(ctx.use("currentView"), ctx.use("projectName"), heraldShow, ctx.use("announce"), schedule);
+      ctx.effect(() => ctx.use("world").onEvent(reply));
+      ctx.contribute("conversation.press", pressEntry("chat-message", handleMessageAction));
+    },
+  };
+  return { chats, module };
 }

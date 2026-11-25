@@ -13,7 +13,9 @@ export type DockState = {
   gen: number;
 };
 
+export type DockScope = ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
 export type Mount = {
+  scope: DockScope;
   el: HTMLElement;
   view: () => string;
   region: () => HTMLElement;
@@ -39,5 +41,5 @@ export type DockDeps = {
   convHost: (view: string) => Thread | null;
   askShort: (need: Need) => string;
   schedule: () => void;
-  dockGestures: (dock: HTMLElement) => void;
+  dockGestures: (dock: HTMLElement, scope: DockScope) => void;
 };

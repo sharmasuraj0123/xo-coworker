@@ -46,7 +46,7 @@ export function createThreadPage({
       tray: $("#tatt-tray"), attach: $("#tattach"), input: $("#tatt-input"), note: $("#tatt-note"), iq: $("#tiq"), at: $("#tat-list") };
     wireComposer(TP.K, scope);
     wireTray(TP.K, scope);
-    TP.dock = createDock({ el: $("#tptdock"), view: tpView, region: () => els.scroller }, dockDeps);
+    TP.dock = createDock({ scope, el: $("#tptdock"), view: tpView, region: () => els.scroller }, dockDeps);
 
     scope.effect(head.mount);
     const composer = TP.K;
@@ -70,7 +70,6 @@ export function createThreadPage({
     return () => {
       if (TP.tid) tpClose();
       scope.dispose();
-      TP.dock?.reset({ restoreFocus: false });
       Object.assign(TP, { box: null, C: null, K: null, follow: null, dock: undefined });
       TP.viewSubs.clear();
       mounted = undefined;

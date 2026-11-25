@@ -1,4 +1,5 @@
 // @ts-check
+import { nameWith } from "../core/services/comms.js";
 import { $ } from "../core/platform/dom.js";
 
 /** @type {Record<string, string>} */
@@ -39,5 +40,19 @@ export function createPlaceContext(world) {
     const t = convThread(v);
     return { view: v, project: t?.project ?? (v.startsWith("p:") ? v.slice(2) : undefined), thread: t?.id };
   };
-  return { PROJ, projects, threadsOf, convThread, convProject, doneToday, atOf };
+  /** @param {string} view */
+  function panelName(view) {
+    const project = atOf(view).project;
+    if (project && project !== "workspace") return PROJ(project);
+    return project === "workspace" || view === "ws" ? "Workspace" : "Your projects";
+  }
+  /** @param {() => string} activeView */
+  function mountNames(activeView) {
+    return nameWith({
+      thread: (id) => world.thread(id)?.title || null,
+      project: (chat) => world.state.projects.find((p) => p.chatId === chat)?.name || null,
+      here() { const project = atOf(activeView()).project; return project ? PROJ(project) : null; },
+    });
+  }
+  return { PROJ, projects, threadsOf, convThread, convProject, doneToday, atOf, panelName, mountNames };
 }

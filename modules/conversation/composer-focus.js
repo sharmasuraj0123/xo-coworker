@@ -29,6 +29,16 @@ export function createComposerFocus({ main, panel, isThread, coversChat }, onCha
     return side.host.contains(active) ? side.composer : main;
   }
 
+  /** @param {string} selector */
+  function inUse(selector) {
+    return () => {
+      const current = composerNow();
+      if (selector === "#send") return current.send;
+      const node = (current.main ? document : panel()?.host)?.querySelector(selector);
+      return node instanceof HTMLElement ? node : null;
+    };
+  }
+
   const composers = () => {
     const side = panel();
     return side ? [main, side.composer] : [main];
@@ -39,5 +49,5 @@ export function createComposerFocus({ main, panel, isThread, coversChat }, onCha
     const composer = composerNow();
     if (composer !== focus.get().composer) focus.set({ composer });
   });
-  return { composerAt, composerNow, composers, dispose: scope.dispose };
+  return { composerAt, composerNow, composers, inUse, dispose: scope.dispose };
 }

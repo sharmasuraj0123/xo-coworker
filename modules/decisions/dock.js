@@ -12,7 +12,7 @@ import { dockEdges, fitDock, revealDockAnswers } from "./dock-layout.js";
 /** @import { Mount, DockDeps, Thread, Need, Gone } from "./dock-types.d.ts" */
 
 /** @param {Mount} mount @param {DockDeps} deps */
-export function createDock({ el: tdock, view, region }, {
+export function createDock({ scope, el: tdock, view, region }, {
   CH, D, folds, world, convThread, convHost, askShort, schedule, dockGestures,
 }) {
   const TD = /** @type {import("./dock-types.d.ts").DockState} */ ({ key: null, item: null, busy: false, undone: null, gen: 0 });
@@ -37,7 +37,8 @@ export function createDock({ el: tdock, view, region }, {
   const keepBottom = () => {}; // pinned at the latest, follow.js keeps the view there as the card changes
   const GONE_FRESH = 5000; // a withdrawal older than this was not what just emptied the dock
   const dockRO = new ResizeObserver(() => { const f = tdock.querySelector(".card.is-dock"); if (f) fitDock(f); });
-  tdock.addEventListener("scroll", () => { const f = tdock.querySelector(".card.is-dock"); if (f) dockEdges(f); }, { capture: true, passive: true });
+  scope.effect(() => () => reset({ restoreFocus: false }));
+  scope.listen(tdock, "scroll", () => { const f = tdock.querySelector(".card.is-dock"); if (f) dockEdges(f); }, { capture: true, passive: true });
   /** @param {Need[]} needs */
   function dockRender(needs) {
     // a chat: its "send now" question first, else its own open decision (the chat's host), as a thread docks one
@@ -92,9 +93,10 @@ export function createDock({ el: tdock, view, region }, {
       surface: "dock",
       onStep: keepBottom,
       after: async (how) => {
+        if (scope.signal.aborted) return;
         TD.busy = true;
         const gen = TD.gen;
-        if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380); if (TD.gen !== gen) return; }
+        if (!RM.matches && how !== "later") { frame.classList.add(`st-${how}`); await wait(380, scope); if (TD.gen !== gen) return; }
         if (how !== "later") {
           // one calm line in place of the card, then it folds away
           const e = D.decisions()[0];
@@ -107,7 +109,7 @@ export function createDock({ el: tdock, view, region }, {
           }, { duration: 300 });
           // Keep the receipt for the Undo window and remove it as soon as it is undone.
           let undone = false;
-          await /** @type {Promise<void>} */ (new Promise((end) => { TD.undone = { key: n.key, end: () => { undone = true; end(); } }; hold(RM.matches ? 3000 : 2700).then(end); }));
+          await /** @type {Promise<void>} */ (new Promise((end) => { TD.undone = { key: n.key, end: () => { undone = true; end(); } }; hold(RM.matches ? 3000 : 2700, scope).then(end); }));
           if (TD.gen !== gen) return;
           TD.undone = null;
           if (undone) { TD.busy = false; TD.key = null; dockRender(D.needItems()); schedule(); return; }
@@ -129,7 +131,7 @@ export function createDock({ el: tdock, view, region }, {
     TD.busy = true;
     dockSwap(() => { tdock.innerHTML = ""; tdock.appendChild(line); }, null, { duration: 300 });
     const gen = TD.gen;
-    await hold(3000);
+    await hold(3000, scope);
     if (TD.gen !== gen) return;
     TD.busy = false;
     TD.key = "__settling";
@@ -137,7 +139,7 @@ export function createDock({ el: tdock, view, region }, {
     TD.key = null;
     schedule();
   }
-  tdock.addEventListener("click", (e) => {
+  scope.listen(tdock, "click", (e) => {
     const more = (/** @type {Element} */ (e.target)).closest("[data-dock-more]");
     const frame = more?.closest(".card.is-dock");
     if (frame) { revealDockAnswers(frame, RM.matches ? "instant" : "smooth"); return; }
@@ -147,12 +149,12 @@ export function createDock({ el: tdock, view, region }, {
     if (u) { folds.unfold(u.dataset.unfold); dockRender(D.needItems()); (/** @type {HTMLElement | null} */ (tdock.querySelector(".card")))?.focus({ preventScroll: true }); return; }
     if ((/** @type {Element} */ (e.target)).closest("[data-dock-undo]")) D.undo();
   });
-  tdock.addEventListener("keydown", (e) => {
+  scope.listen(tdock, "keydown", (e) => {
     const card = tdock.querySelector(".card");
     if (!(card instanceof HTMLElement)) return;
-    D.cardKeys(e, card, {});
+    D.cardKeys(/** @type {KeyboardEvent} */ (e), card, {});
   });
-  dockGestures(tdock);
+  dockGestures(tdock, scope);
   /** @param {string} key */
   const undoReceipt = (key) => { if (TD.undone?.key === key) TD.undone.end(); };
   return { render: dockRender, reset, undoReceipt, el: tdock };

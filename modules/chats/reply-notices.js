@@ -2,9 +2,9 @@
 
 /** @import { StormEvent } from "../../core/services/storm/types" */
 
-/** @import { createConversationNotices } from "../../core/services/notices/line.js" */
+/** @typedef {{ kind: "reply"; text: string; sub: string; open: string }} Reply */
 
-/** @typedef {ReturnType<typeof createConversationNotices>["show"]} Show */
+/** @typedef {(reply: Reply, duration: number) => void} Show */
 
 /** @param {string | null | undefined} text */
 function excerpt(text) {
