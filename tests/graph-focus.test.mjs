@@ -6,13 +6,15 @@ import { resolveValue, stylesheetRows, valuesFor } from "./lib/css-snapshot.mjs"
 
 const dot = (selector) => /\.gn-d\b/.test(selector);
 const focusDot = (selector) => /\.gn:focus-visible \.gn-d$/.test(selector);
+/** @param {string} value */
+const compactShadow = (value) => value.replace(/,\s*/g, ",");
 const shadow = [
   "var(--gn-in,inset 0 0 #0000)", "0 0 0 2px var(--gn-gap)",
   "var(--gn-focus,0 0 #0000)", "var(--gn-halo,0 0 #0000)",
 ];
 
 test("a graph dot composes its shadow from four independent layers", () => {
-  assert.deepEqual(valuesFor(".gn-d", "box-shadow"), [resolveValue(shadow.join(","))]);
+  assert.deepEqual(valuesFor(".gn-d", "box-shadow").map(compactShadow), [resolveValue(shadow.join(","))]);
   assert.deepEqual(valuesFor(".gn-d", "--gn-gap"), [resolveValue("var(--canvas)")]);
   assert.deepEqual(valuesFor((selector) => selector !== ".gn-d" && dot(selector), "box-shadow"), []);
 });
@@ -44,6 +46,6 @@ test("both hit pulse frames preserve the inset, gap and focus layers", () => {
   const shared = resolveValue(shadow.slice(0, 3).join(",") + ",");
   assert.equal(typeof shared, "string");
   for (const frame of frames) {
-    for (const value of [resolveValue(frame.value)].flat()) assert.ok(value.startsWith(shared));
+    for (const value of [resolveValue(frame.value)].flat()) assert.ok(compactShadow(value).startsWith(shared));
   }
 });
