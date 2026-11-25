@@ -1,5 +1,6 @@
 // @ts-check
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import { dom } from "../../../tests/lib/dom.mjs";
 import { createConversationPaging } from "../paging.js";
 
@@ -49,3 +50,25 @@ assert.deepEqual(calls, ["thread-1", "thread-1"]);
 finishes.shift()?.();
 await Promise.resolve();
 assert.ok(document.activeElement === msgs.querySelector("[data-older]"), "the new history control receives focus");
+
+const error = new Error("History failed");
+const controller = new AbortController();
+const reports = mock.method(console, "error", () => {});
+try {
+  const paging = createConversationPaging({
+    MAIN, CH: { isChats: () => false }, convThread: () => null, chatOf: () => "demo",
+    world: { state: { hist: { demo: history } }, act: { loadOlder: async () => { throw error; } } },
+    render() {},
+  }, controller.signal);
+  paging.loadOlderNow();
+  paging.loadAhead();
+  await new Promise(setImmediate);
+  assert.deepEqual(reports.mock.calls.map((call) => call.arguments[0]), [error, error]);
+  assert.ok(document.activeElement === msgs.querySelector("[data-older]"));
+  paging.loadOlderNow();
+  controller.abort();
+  await new Promise(setImmediate);
+  assert.equal(reports.mock.callCount(), 2);
+} finally {
+  reports.mock.restore();
+}

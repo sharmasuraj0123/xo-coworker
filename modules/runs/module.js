@@ -25,8 +25,7 @@ export function createRunsModule(host) {
     },
     activate(ctx) {
       const world = ctx.use("world");
-      const strip = createRunsStrip({ world, SHAPE: host.shape, schedule: () => ctx.emit("app:render") });
-      ctx.effect(() => strip.dispose);
+      const strip = createRunsStrip({ world, SHAPE: host.shape });
       const page = createRunsPage({ ...host, world, announce: ctx.use("announce") });
       ctx.effect(() => () => { active = undefined; page.dispose(); });
       active = { page, strip, world };

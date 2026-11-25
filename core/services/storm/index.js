@@ -12,6 +12,7 @@ import { installApply } from "./reducers/index.js";
 import { installSessionReads } from "./reducers/sessions.js";
 import { startStorm } from "./stream.js";
 import { createAct } from "./act.js";
+import { installWatchedRuns } from "./watched-runs.js";
 
 export { WAITING_STATES } from "./config.js";
 
@@ -55,8 +56,10 @@ export function stormSource(state, emit, event, scope) {
     installHops(ctx);
     installSessionReads(ctx);
     installApply(ctx);
+    const act = createAct(ctx);
+    installWatchedRuns(ctx, act.listRuns);
     startStorm(ctx);
-    return createAct(ctx);
+    return act;
   } catch (error) {
     scope.dispose();
     throw error;

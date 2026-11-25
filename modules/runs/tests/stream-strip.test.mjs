@@ -1,6 +1,6 @@
 // @ts-check
 import { dom } from "../../../tests/lib/dom.mjs";
-import { boot, fakeBackend, runner, until } from "../../../tests/storm-harness.mjs";
+import { boot, fakeBackend, runner, thread as threadRecord, until } from "../../../tests/storm-harness.mjs";
 import { createRunsStrip } from "../strip.js";
 
 const { t, done, assert } = runner();
@@ -22,7 +22,10 @@ async function heldReads(finish) {
   const [first, second] = replies;
   const route = "/chat/sessions/team/runs";
   let reads = 0;
-  const backend = fakeBackend({ [`GET ${route}`]: () => replies[reads++].promise });
+  const backend = fakeBackend({ [`GET ${route}`]: () => replies[reads++].promise,
+    "GET /chat/chats/chat_p/threads": { threads: [threadRecord("t", { session_id: "team", runs: { running: 2, total: 1 } })] },
+    "GET /chat/chats/chat_p/messages": { messages: [] },
+  });
   const { world } = await boot(backend);
   backend.push("run.started", { session_id: "team", seq: 2, data: { run_id: "agent", info: { title: "Check the patch" } } }, 2);
   await until(() => world.state.runs.get("agent")?.state === "running");
@@ -30,13 +33,12 @@ async function heldReads(finish) {
   await until(() => world.state.liveRuns.unrelated?.running === 1);
   assert.equal(world.act.sentAt().seq, 3);
 
-  let warmPaints = 0;
   const thread = { sessionId: "team", runs: { running: 2, total: 1 } };
   const strip = createRunsStrip({
     world, SHAPE: { on: () => true },
-    schedule: () => { warmPaints++; draw(); },
   });
   function draw() { box.innerHTML = strip.runsStrip(thread); }
+  world.act.watchThread("t");
   draw();
   assert.ok(box.querySelector('[data-run="agent"]'));
   await until(() => backend.count("GET", route) === 1);
@@ -52,14 +54,15 @@ async function heldReads(finish) {
   second.resolve(oldList);
   const explicit = await manual;
   first.resolve(oldList);
-  await until(() => warmPaints === 1);
+  await new Promise(setImmediate);
+  draw();
   assert.equal(world.state.runs.get("agent")?.state, "finished", "a held warm response cannot resurrect a finished run");
   assert.equal(world.state.runs.get("agent")?.summary, "Checked");
   assert.equal(world.state.runs.get("agent")?.seenSeq, 2, "the original working-evidence sequence is preserved");
   assert.equal(!!box.querySelector('[data-run="agent"]'), false);
   assert.equal(box.querySelector("[data-runs]")?.textContent, "1 sub-agent ran");
   assert.equal(explicit.runs[0].state, "finished", "the manual list respects the newer stream record");
-  strip.dispose();
+  world.dispose();
 }
 
 t("overlapping Runs GETs publish in dispatch order", async () => {

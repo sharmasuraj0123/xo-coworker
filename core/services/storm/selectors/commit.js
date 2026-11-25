@@ -56,6 +56,7 @@ export function installCommit(ctx) {
       hosts.set(h.id, host);
     }
     state.hosts = [...hosts.values()];
+    ctx.syncWatchedRuns();
   };
 
   /** @type {(() => void) | undefined} */

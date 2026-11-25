@@ -62,12 +62,18 @@ export function createAct(ctx) {
       for (const p of watched.projects) ctx.loadTimeline(p);
     },
     /** @param {string | null} ts */
-    watchThread: (ts) => { if (scope.signal.aborted) return; watched.thread = ts || null; if (ts) ctx.loadThread(ts); },
+    watchThread: (ts) => {
+      if (scope.signal.aborted) return;
+      watched.thread = ts || null;
+      if (ts) ctx.loadThread(ts);
+      ctx.syncWatchedRuns();
+    },
     /** The thread shown in the panel beside the main chat (null when none): watched as the main one is. @param {string | null} ts */
     watchSideThread: (ts) => {
       if (scope.signal.aborted) return;
       watched.side = ts || null;
       if (ts && ts !== watched.thread) ctx.loadThread(ts);
+      ctx.syncWatchedRuns();
     },
     /** An open plain chat: its session's turns are never pruned while it is on screen. @param {string | null} sid */
     watchSession: (sid) => { if (!scope.signal.aborted) watched.session = sid || null; },

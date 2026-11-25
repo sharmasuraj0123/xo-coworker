@@ -7,7 +7,7 @@ test("transient reads back off, stop and report the terminal failure once", asyn
   const delays = [], jobs = [], errors = [];
   t.mock.method(console, "error", (error) => errors.push(error));
   const scope = { signal: new AbortController().signal, timeout(fn, delay) { jobs.push(fn); delays.push(delay); } };
-  const error = new ApiError(503, "offline", "Unavailable");
+  const error = new ApiError(0, "network", "Unavailable");
   await retryRead(scope, async () => { throw error; });
   for (let n = 0; jobs.length && n < 8; n++) await jobs.shift()();
   assert.deepEqual(delays, [1000, 2000, 4000]);

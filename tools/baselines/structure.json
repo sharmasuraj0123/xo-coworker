@@ -865,9 +865,6 @@
  "modules/runs/read.js": {
   "lineLength": 2
  },
- "modules/runs/strip.js": {
-  "lineLength": 1
- },
  "modules/runs/view.js": {
   "lineLength": 51,
   "unusedExport": 3

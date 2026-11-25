@@ -8039,7 +8039,13 @@
   },
   "js/app.js::functions::workingRuns": {
    "status": "moved",
-   "home": "modules/runs/strip.js"
+   "home": "core/services/world/run-count.js",
+   "evidence": {
+    "core/services/world/run-count.js": {
+     "anchor": "function workingRunCount(thread, counts)",
+     "reason": "Storm and the Runs strip use the same count for the watched session."
+    }
+   }
   },
   "js/app.js::functions::runsStrip": {
    "status": "moved",

@@ -3,7 +3,7 @@ import { api, NEWEST } from "../../platform/api.js";
 import { ApiError, clientId, coderHeaders } from "../../platform/http.js";
 import { SSEStream } from "../../platform/sse.js";
 
-import { requestFailureMessage } from "../notices/failures.js";
+import { reportFailure } from "../notices/failures.js";
 
 export { clientId, NEWEST, coderHeaders, SSEStream };
 
@@ -22,7 +22,7 @@ export const client = {
 /** @param {unknown} error @param {AbortSignal} signal @param {boolean} [allowMissing] */
 export function reportReadFailure(error, signal, allowMissing = false) {
   if (signal.aborted || (allowMissing && error instanceof ApiError && error.status === 404)) return;
-  requestFailureMessage(error, "Couldn't refresh Space data.");
+  reportFailure(error);
 }
 
 /** @template T @param {AbortSignal} owner @param {AbortSignal | undefined} caller @param {(signal: AbortSignal) => Promise<T>} read */
