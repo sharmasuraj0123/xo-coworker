@@ -20,7 +20,7 @@ export const conversationHeaderModule = {
     const scope = createScope(), project = ctx.use("projectIcons"), { LP, LW } = ctx.use("launchpad");
     ctx.effect(() => scope.dispose);
     const descriptions = ctx.use("projectDescriptions");
-    /** @type {import("./header-types").MainHeader<import("../../core/services/decision-types").RankedNeed>} */
+    /** @type {import("./header-types").MainHeader<import("../../shell/render-types").FrameNeeds[number]>} */
     const header = {
       ...ctx.use("placeContext"), ...ctx.use("threadPresentation"), threadControls: ctx.use("threadControls"),
       description: (id) => descriptions.get(id), world: ctx.use("world"), ...project, LP, LW, STAGE: ctx.use("stage"), places: ctx.places,

@@ -42,5 +42,5 @@ export type MainHeader<N extends HeaderNeed> = HeaderDeps<N>
   & Omit<import("../../shell/header-types").HeaderDeps<HeaderThread, N>, "conversationHeaderHtml">;
 
 declare module "../../core/kernel/types" {
-  interface Services { conversationHeader(needs: import("../../core/services/decision-types").RankedNeed[]): void }
+  interface Services { conversationHeader(needs: import("../../shell/render-types").FrameNeeds): void }
 }

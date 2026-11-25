@@ -13,6 +13,8 @@ assert.throws(() => K.places.contribute("panel.page", { id: "files" }, "m"), /mo
 K.places.contribute("panel.page", { id: "files", mount: () => {} }, "xo.files");
 K.places.contribute("rail.entry", { id: "shells", label: "Shells", icon: "terminal", onPress: () => {} }, "xo.shells");
 
+assert.throws(() => K.places.contribute("page", { id: "home", mount() {} }, "m"), /render must be a function/);
+assert.throws(() => K.places.contribute("workspace.paint", { id: "orphan" }, "m"), /paint must be a function/);
 undo();
 assert.equal(K.places.catalog().length, 0);
 console.log("ok places: every place defined once, entries checked, all undone");
