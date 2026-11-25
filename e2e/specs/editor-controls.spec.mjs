@@ -154,6 +154,48 @@ async function saveRefusal(t, phone, theme) {
   assert.equal(await refusal.count(), 0);
 }
 
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function closeFind(t, phone, theme) {
+  const { page } = t;
+  await boot(t, phone, theme);
+  const content = await openFile(page, firstFile);
+  await content.press("ControlOrMeta+End");
+  await page.keyboard.press("ControlOrMeta+f");
+  const panel = visible(page, "#viewer .cm-search");
+  const search = panel.locator('input[name="search"]');
+  await search.pressSequentially("needle");
+  await search.press("Enter");
+  const match = visible(page, "#viewer .cm-searchMatch-selected");
+  await match.waitFor();
+  assert.equal(await match.innerText(), "needle");
+  const close = panel.getByRole("button", { name: "close", exact: true });
+  for (const key of ["Enter", "Space"]) {
+    await close.press(key);
+    await panel.waitFor({ state: "hidden" });
+    assert.equal(await content.evaluate((/** @type {Element} */ node) => node === document.activeElement), true);
+    if (key === "Enter") await page.keyboard.press("ControlOrMeta+f");
+  }
+}
+
+/** @param {Tools} t @param {boolean} phone @param {string} theme */
+async function findThenEmpty(t, phone, theme) {
+  const { page } = t;
+  await closeFind(t, phone, theme);
+  await page.keyboard.press("ControlOrMeta+p");
+  const picker = page.getByRole("dialog", { name: "Go to a file", exact: true });
+  const query = picker.getByRole("textbox");
+  await query.pressSequentially(emptyFile);
+  await picker.getByRole("option", { name: emptyFile, exact: true }).waitFor();
+  await query.press("Enter");
+  await picker.waitFor({ state: "hidden" });
+  const blank = page.locator(`#viewer .cm-content[aria-label="${emptyFile}"]`);
+  await blank.waitFor();
+  assert.equal((await blank.innerText()).trim(), "");
+  await page.waitForFunction((/** @type {string} */ name) => document.activeElement?.getAttribute("aria-label") === name, emptyFile);
+  await page.keyboard.insertText("first words in the empty file");
+  await blank.getByText("first words in the empty file", { exact: true }).waitFor();
+}
+
 /** @type {Omit<Case, "file">[]} */
 export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((theme) => {
   const phone = viewport === "phone";
@@ -162,5 +204,9 @@ export const cases = viewports.flatMap((viewport) => ["dark", "light"].flatMap((
       run: (/** @type {Tools} */ t) => saveWhileTyping(t, phone, theme) },
     { name: `Editor Save refusal preserves typing and retries at ${viewport} ${theme}`, viewport, seed,
       run: (/** @type {Tools} */ t) => saveRefusal(t, phone, theme) },
+    { name: `Editor Find Close restores the caret on Enter and Space at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => closeFind(t, phone, theme) },
+    { name: `Editor Find followed by Quick Open into an empty file at ${viewport} ${theme}`, viewport, seed,
+      run: (/** @type {Tools} */ t) => findThenEmpty(t, phone, theme) },
   ];
 }));

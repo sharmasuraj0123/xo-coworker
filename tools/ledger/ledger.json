@@ -4909,7 +4909,7 @@
   "tests/browser/flows.test.cjs": {
    "status": "planned",
    "home": "e2e/specs/flows.spec.mjs",
-   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies retained typing across a held Save and a refused Save, including the next version and exact retry request, in desktop and phone light and dark on b9083e02 and release d639012b. The legacy alert/Retry, cross-file Save, Undo and Find cases remain open."
+   "note": "rewritten as cases: seeded store, settle barrier, ARIA snapshots. e2e/specs/editor-controls.spec.mjs verifies held and refused Save, plus Find Close with Enter and Space and the Quick Open transition to an empty file (S231/C120), in desktop and phone light and dark on b9083e02 and release d639012b. The legacy alert/Retry, cross-file Save, Undo, invalid regex and Find geometry cases remain open. Find Escape on the Close button closes the viewer and drops focus on both pins."
   },
   "tests/browser/harness.cjs": {
    "status": "planned",
