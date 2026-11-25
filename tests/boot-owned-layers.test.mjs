@@ -20,5 +20,12 @@ try {
     for (const id of layers) assert.equal(ids().filter((layer) => layer === id).length, 1, module + " restored " + id);
   }
 } finally {
+  let events = 0;
+  kernel.bus.on("app:pagehide", () => { events++; });
+  window.dispatchEvent(Object.assign(new window.Event("pagehide"), { persisted: true }));
+  assert.equal(events, 1);
+  assert.equal(kernel.status("xo.page-lifetime"), "active");
   kernel.dispose();
+  window.dispatchEvent(new window.Event("pagehide"));
+  assert.equal(events, 1, "disposed boot releases its page listener");
 }

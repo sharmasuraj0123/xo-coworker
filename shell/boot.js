@@ -5,22 +5,25 @@ import { drawPlaceIcons, drawFrameIcons } from "./frame-icons.js";
 import { startShell } from "./start.js";
 import { PHONE } from "../core/platform/viewport.js";
 import { createShellKernel } from "./kernel.js";
-import { createScope } from "../core/kernel/scope.js";
 
 /** @import { ModuleDef } from "../core/kernel/types" */
 
 /** @param {ModuleDef[]} modules */
 export async function bootShell(modules) {
-  const kernel = createShellKernel(), scope = createScope();
+  const kernel = createShellKernel();
   defineXoSelect();
   drawPlaceIcons();
   drawFrameIcons();
-  scope.effect(() => kernel.dispose);
-  for (const module of modules) kernel.register(module);
-  scope.listen(window, "pagehide", (event) => {
-    kernel.bus.emit("app:pagehide");
-    if (!("persisted" in event && event.persisted)) scope.dispose();
+  kernel.register({
+    manifest: { id: "xo.page-lifetime", kernel: "^1.1.0", version: "1.0.0", core: true },
+    activate(ctx) {
+      ctx.listen(window, "pagehide", (event) => {
+        ctx.emit("app:pagehide");
+        if (!("persisted" in event && event.persisted)) kernel.dispose();
+      });
+    },
   });
+  for (const module of modules) kernel.register(module);
   const report = await kernel.start();
   kernel.bus.emit("app:started", report);
   return kernel;
