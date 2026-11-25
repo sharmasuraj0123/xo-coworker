@@ -7,7 +7,7 @@ import { currentPools } from "../world/sessions.js";
 import { mapLimit } from "./load.js";
 import { LOAD_CAP, STATUS_MS, STATUS_RETRY_MS, RUNTIMES_MS } from "./config.js";
 
-/** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
+/** @typedef {import("./types").Ctx} Ctx */
 
 /** @param {Ctx} ctx @param {(signal: AbortSignal) => Promise<void>} read @param {() => number} period */
 function poll(ctx, read, period) {
@@ -43,7 +43,7 @@ export function installAccount(ctx) {
       if (signal.aborted) return;
       state.status = status;
       state.statusError = null; state.statusCode = null;
-      const fresh = (state.status.pools || []).some((/** @type {Row} */ p) => !(p.id in state.pools));
+      const fresh = (state.status.pools || []).some((p) => !(p.id in state.pools));
       for (const p of state.status.pools || []) state.pools[p.id] = { ...(state.pools[p.id] || {}), pool: p.id, state: p.state, resets_at: p.resets_at, reason: p.reason || null };
       // a new pool is a re-login, and while something holds work back the account may have changed under it: read the runtimes now
       if (ctx.poolsSeen && (fresh || poolHeld())) ctx.refreshRuntimes();
@@ -60,7 +60,7 @@ export function installAccount(ctx) {
   }, () => state.statusError ? STATUS_RETRY_MS : STATUS_MS);
   // what a held thread waits on is its pool: a pool that changes rebuilds the threads, not only the composer
   ctx.poolsSig = () => Object.entries(state.pools).map(([id, p]) => `${id}|${p.state}|${p.resets_at}|${p.reason}`).sort().join(",");
-  const poolHeld = () => currentPools(state.pools, state.runtimes).some((/** @type {Row} */ p) => p.state === "closed" || p.state === "paid");
+  const poolHeld = () => currentPools(state.pools, state.runtimes).some((p) => p.state === "closed" || p.state === "paid");
   ctx.loadRuntimes = ctx.refreshRuntimes = poll(ctx, async (signal) => {
     try {
       const { runtimes } = await client.runtimes({ signal });

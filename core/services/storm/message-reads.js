@@ -12,6 +12,7 @@ export function beginMessageRead(initial) {
     /** @param {Row} data @param {string | null} at @param {boolean} reaction */
     record(data, at, reaction) {
       const id = reaction ? data.message_id : data.id;
+      if (typeof id !== "string") return;
       const list = edits.get(id) || [];
       list.push({ data, at, reaction });
       edits.set(id, list);

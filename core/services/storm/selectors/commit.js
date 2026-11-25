@@ -5,12 +5,12 @@ import { isLimitItem, limitItem } from "../../runtimes.js";
 import { paidItem, accountRows, heldModes } from "../../world/paid.js";
 import { WAITING_STATES } from "../config.js";
 
-/** @typedef {import("../types").Ctx} Ctx @typedef {import("../types").Row} Row */
+/** @typedef {import("../types").Ctx} Ctx @typedef {import("../../../platform/review-response-types").ReviewRecord} ReviewRecord */
 
 /** Rebuilding the thread list and the hosts of items with no thread, and announcing the changes worth a line. @param {Ctx} ctx */
 export function installCommit(ctx) {
   const { state, rawThreads, event, scope } = ctx;
-  /** @param {Row} it */
+  /** @param {ReviewRecord} it */
   const askerOf = (it) => askedBy(it, it.session_id ? state.sessions[it.session_id] : null);
 
   ctx.commit = () => {

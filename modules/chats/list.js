@@ -9,7 +9,7 @@ const RECENT = 3;
 
 /** @typedef {import("./types").Session} ChatRow */
 
-/** @typedef {{ for?: string, until?: string }} Hold */
+/** @typedef {import("../../core/services/world/held.js").Hold} Hold */
 
 /** @typedef {{ list: boolean | null, err: string | null, all: boolean, q: string, searching: boolean }} ListState */
 

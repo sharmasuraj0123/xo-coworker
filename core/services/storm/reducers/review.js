@@ -1,13 +1,20 @@
 // @ts-check
+import { isReview } from "../../../platform/review-responses.js";
+import { text } from "../../world/frame-values.js";
 
 /** @typedef {import("../types").Reducer} Reducer */
 
 /** @type {Reducer} */
-const closed = (ctx, env, d) => { ctx.state.review.delete(d.id); ctx.soon(); };
+const closed = (ctx, env, d) => {
+  if (typeof d.id !== "string") return;
+  ctx.state.review.delete(d.id);
+  ctx.soon();
+};
 
 /** @type {Reducer} */
 const gone = (ctx, env, d, tid, type) => {
-  ctx.state.gone.set(d.id, { state: type === "review.withdrawn" ? "withdrawn" : "expired", reason: d.reason || null, why: d.why || "", at: Date.now() });
+  if (typeof d.id !== "string") return;
+  ctx.state.gone.set(d.id, { state: type === "review.withdrawn" ? "withdrawn" : "expired", reason: text(d.reason) || null, why: text(d.why) || "", at: Date.now() });
   if (ctx.state.gone.size > 200) {
     const oldest = ctx.state.gone.keys().next();
     if (!oldest.done) ctx.state.gone.delete(oldest.value);
@@ -19,17 +26,21 @@ const gone = (ctx, env, d, tid, type) => {
 export const review = {
   "review.opened"(ctx, env, d) {
     if (typeof d.id !== "string") return;
-    ctx.state.review.set(d.id, { ...d, id: d.id, state: "open", seq: env.seq });
+    const item = { ...d, id: d.id, state: "open", seq: env.seq ?? undefined };
+    if (!isReview(item)) return;
+    ctx.state.review.set(d.id, item);
     ctx.soon();
   },
   "review.decided": closed,
   "review.withdrawn": gone,
   "review.expired": gone,
   "review.parked"(ctx, env, d) {
+    if (typeof d.id !== "string") return;
     const it = ctx.state.review.get(d.id);
-    if (it) { ctx.state.review.set(d.id, { ...it, parked: true, expires_at: d.expires_at || it.expires_at }); ctx.soon(); }
+    if (it) { ctx.state.review.set(d.id, { ...it, parked: true, expires_at: text(d.expires_at) || it.expires_at }); ctx.soon(); }
   },
   "review.annotated"(ctx, env, d) {
+    if (typeof d.id !== "string") return;
     const it = ctx.state.review.get(d.id);
     if (it && typeof d.by === "string" && typeof d.note === "string") {
       const annotation = { ...d, by: d.by, note: d.note };

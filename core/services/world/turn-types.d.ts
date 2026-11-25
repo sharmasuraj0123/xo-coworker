@@ -1,7 +1,4 @@
 import type { SharedFile } from "../media/types.d.ts";
-import type { Row } from "../storm/types.d.ts";
-
-export type Frame = Row & { type?: string; envelope?: Row };
 
 export type TurnStep = {
   kind: string;
@@ -44,10 +41,10 @@ export type Turn = {
   origin: string | null;
   wakes: string[];
   status: string;
-  end: Row | null;
+  end: { wall_ms?: number; reason?: string; error?: unknown } | null;
   blocks: Map<string, StoredTurnBlock>;
   lastSeq: number;
-  held?: Row[];
+  held?: string[];
   selfEnded?: boolean;
-  stopped?: Row | null;
+  stopped?: { by?: string; last_step?: string } | null;
 };

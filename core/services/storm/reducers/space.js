@@ -1,4 +1,7 @@
 // @ts-check
+import { isChat, isHop } from "../../../platform/chat-responses.js";
+import { isRouter } from "../../../platform/runtime-responses.js";
+import { text } from "../../world/frame-values.js";
 
 /** @typedef {import("../types").Reducer} Reducer */
 
@@ -13,6 +16,7 @@ export const space = {
   "file.rescan": file,
   // creation: the hop without its note; a state move: {id, state}
   hop(ctx, env, d) {
+    if (!isHop(d)) return;
     const old = ctx.state.hops.get(d.id);
     if (old || d.kind) { ctx.putHop({ ...d, id: d.id }, { seq: old?.seq ?? env.seq ?? null, at: old?.at || env.ts }); ctx.emitSoon(); }
     // a move for a hop not read yet (a cold load, its history still on the way) is held for it
@@ -21,19 +25,23 @@ export const space = {
     if (d.kind && d.thread_ts && ctx.isWatched(d.thread_ts)) ctx.hopsSoon(d.thread_ts);
   },
   chat(ctx, env, d) {
-    ctx.noteChat(d);
+    if (isChat(d)) ctx.noteChat(d);
   },
   settings(ctx, env, d) {
-    if (d.key === "router") { ctx.state.router = d.value; ctx.emit(); }
+    if (d.key === "router" && (d.value === null || isRouter(d.value))) { ctx.state.router = d.value; ctx.emit(); }
     // the person's shape changed on a device (this one's own write echoes too): the shape store decides
     else if (d.key === "ui.shape") ctx.event({ kind: "shape", value: d.value ?? null });
   },
   pool(ctx, env, d) {
     const { state } = ctx;
-    if (!d.pool) return;
+    if (typeof d.pool !== "string" || !d.pool) return;
     const fresh = !(d.pool in state.pools);
     const sig = ctx.poolsSig();
-    state.pools[d.pool] = { ...(state.pools[d.pool] || {}), ...d };
+    const old = state.pools[d.pool];
+    state.pools[d.pool] = { ...old, pool: d.pool,
+      state: "state" in d ? text(d.state) ?? null : old?.state,
+      resets_at: "resets_at" in d ? text(d.resets_at) ?? null : old?.resets_at,
+      reason: "reason" in d ? text(d.reason) ?? null : old?.reason };
     if (ctx.poolsSeen && fresh) ctx.refreshRuntimes();
     if (ctx.poolsSig() !== sig) ctx.soon(); else ctx.emit();
   },

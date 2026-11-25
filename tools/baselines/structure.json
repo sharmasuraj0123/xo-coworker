@@ -182,7 +182,7 @@
   "unusedExport": 1
  },
  "core/services/storm/account.js": {
-  "lineLength": 2
+  "lineLength": 1
  },
  "core/services/storm/act.js": {
   "lineLength": 4
@@ -214,9 +214,6 @@
   "unusedExport": 1
  },
  "core/services/storm/reducers/review.js": {
-  "lineLength": 1
- },
- "core/services/storm/reducers/runs.js": {
   "lineLength": 1
  },
  "core/services/storm/reducers/sessions.js": {

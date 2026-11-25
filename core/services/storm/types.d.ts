@@ -2,7 +2,7 @@ import type { WorldState, WorldThread } from "../world/state-types.d.ts";
 import type { StoredRun } from "../run-types.d.ts";
 import type { ChatRecord, MessageRecord, SessionRecord, ThreadRecord } from "../../platform/chat-response-types.d.ts";
 
-export type Row = import("../world/sessions.js").Row;
+export type Row = Record<string, unknown>;
 export type StoredThread = ThreadRecord & {
   chat_id: string;
   _at?: number;
@@ -12,7 +12,7 @@ export type StoredThread = ThreadRecord & {
 };
 export type MessageRow = Omit<MessageRecord, "seq"> & { seq?: number | null };
 export type HopRow = import("../world/hop-types.d.ts").Hop;
-export type Frame = { type: string; id?: string | null; envelope?: Row };
+export type Frame = { type: string; id?: string | null; envelope?: Partial<import("../../platform/chat-response-types.d.ts").StoredFrame> };
 export interface StormEvent {
   kind: string;
   at?: number;
@@ -48,7 +48,7 @@ export type Session = Omit<SessionRecord, "seq"> & {
 export type Project = Pick<ChatRecord, "id" | "pin"> & { chatId: string; hasChat?: boolean };
 export type ClosedReview = { state: "withdrawn" | "expired"; reason: string | null; why: string; at: number };
 
-export type Reducer = (ctx: Ctx, env: Row, d: Row, tid: string | null, type: string) => void;
+export type Reducer = (ctx: Ctx, env: NonNullable<Frame["envelope"]>, d: Row, tid: string | null, type: string) => void;
 
 export interface Watched {
   projects: Set<string>;
@@ -85,20 +85,20 @@ export interface Ctx {
   sessionNow: (sid: string | null, r?: StoredThread | null) => Session | null;
   evidenceOf: (sid: string, runs?: StoredRun[] | null) => NonNullable<Parameters<typeof import("../world/sessions.js").sessionBusy>[1]>;
   onTurn: (s: Session | null) => boolean;
-  heldOfSession: (s: Session | null, runs?: StoredRun[] | null) => Row | null;
+  heldOfSession: (s: Session | null, runs?: StoredRun[] | null) => ReturnType<typeof import("../world/sessions.js").heldOf>;
   agentPool: (agent: string | null | undefined) => string | null;
   threadBusy: (r: StoredThread, now: Session | null, runsBy: Map<string, StoredRun[]>) => boolean;
-  noteSession: (s: Row, sent?: Sent) => void;
+  noteSession: (s: Session, sent?: Sent) => void;
 
   indexMoves: () => void;
-  chatPolicyOf: (chat: string | null) => Row | null;
+  chatPolicyOf: (chat: string | null) => import("../../platform/runtime-response-types").RuntimePolicy | null;
   uiThread: (r: StoredThread, project: string, runsBy?: Map<string, StoredRun[]>) => WorldThread;
   runsBySession: () => Map<string, StoredRun[]>;
   commit: () => void;
   soon: () => void;
   emitSoon: () => void;
 
-  noteChat: (chat: Row) => void;
+  noteChat: (chat: ChatRecord & import("../../platform/chat-response-types").Pin) => void;
   loadChats: () => Promise<void>;
   maybeChats: () => void;
   loadThreads: (p: Project) => Promise<void>;
@@ -114,7 +114,7 @@ export interface Ctx {
   loadAll: () => Promise<void>;
   refetchThread: (chatId: string | null | undefined, ts: string) => Promise<void>;
   fillSession: (chatId: string | null | undefined, ts: string) => Promise<void>;
-  scheduleRecover: (ms?: number) => void;
+  scheduleRecover: () => void;
   recover: () => Promise<void>;
   addRows: (project: string, rows: MessageRow[]) => MessageRow[];
   loadTimeline: (project: string) => Promise<void>;
@@ -122,7 +122,7 @@ export interface Ctx {
   loadThread: (ts: string) => Promise<void>;
   loadOlderThread: (ts: string) => Promise<void>;
   loadTurns: (session: string) => Promise<void>;
-  noteControl: (env: Row, d: Row) => boolean;
+  noteControl: (env: NonNullable<Frame["envelope"]>, d: Row) => boolean;
   findRows: (project: string, ids: string[], beforeSeq?: number | null) => void;
   clearSought: () => void;
 

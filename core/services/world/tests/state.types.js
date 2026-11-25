@@ -1,4 +1,5 @@
 // @ts-check
+export {};
 
 /** @import { WorldState } from "../state-types.d.ts" */
 
@@ -21,3 +22,11 @@
 /** @typedef {WorldState["threads"][number]} Thread */
 
 /** @typedef {Closed<OpenMember<Thread["asks"][number] | Thread["messages"][number] | Thread["messages"][number]["reactions"][number]>>} Projections */
+
+/** @template T @typedef {0 extends (1 & T) ? "unchecked field" : never} Unchecked */
+
+/** @typedef {Closed<Unchecked<import("../../storm/types").Row[string]>>} StreamInput */
+
+/** @typedef {NonNullable<ReturnType<WorldState["turns"]["get"]>>} Turn */
+
+/** @typedef {Closed<OpenMember<NonNullable<Turn["end"] | Turn["stopped"]> | import("../../storm/types").StoredThread>>} PrivateRecords */

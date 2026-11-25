@@ -51,7 +51,7 @@ export interface History {
   error?: string | null;
 }
 
-interface Held { for?: string; until?: string }
+type Held = import("../../core/services/world/held.js").Hold;
 type Turns = import("../../core/services/types.d.ts").Turns;
 interface World {
   state: {

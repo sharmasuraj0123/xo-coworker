@@ -1,4 +1,5 @@
 // @ts-check
+import { text, number, strings } from "../../world/frame-values.js";
 import { statusLater, sessionRead } from "../../world/sessions.js";
 import { BUSY, COORD } from "../config.js";
 
@@ -17,7 +18,7 @@ export function installSessionReads(ctx) {
     // and so does any word a frame said since (paused, resumed); a retirement is never undone by a read
     if (old && old.frameSeq != null && sent.seq != null && old.frameSeq > sent.seq) next.paused = old.paused ?? null;
     if (old && old.retired_at && !next.retired_at) next.retired_at = old.retired_at;
-    state.sessions[s.id] = /** @type {import("../types").Session} */ (next);
+    state.sessions[s.id] = next;
   };
   // the coordinator went quiet; if it answered, the message frame already cleared this
   ctx.settleAwaiting = (chatId) => {
@@ -36,20 +37,24 @@ export const sessions = {
     if (!id) return;
     const old = state.sessions[id] || { id };
     /** @type {import("../types").Session} */
-    const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: d.status || old.state, seq: old.seq ?? env.seq ?? null, frameSeq: env.seq ?? state.lastSeq };
+    const next = { ...old, chat_id: old.chat_id || env.chat_id || null, thread_ts: old.thread_ts || env.thread_ts || null, state: text(d.status) || old.state, seq: old.seq ?? env.seq ?? null, frameSeq: env.seq ?? state.lastSeq };
     // what a gate holds it for, while queued; any other status ends the wait
-    if (d.status) {
+    if (typeof d.status === "string" && d.status) {
       next.waiting = d.status === "queued" && d.waiting && typeof d.waiting === "object" ? d.waiting : null;
       next.statusAt = Date.now(); next.statusSeq = env.seq ?? state.lastSeq;
     }
-    if (d.reason === "created") Object.assign(next, { role: d.role, agent: d.agent, preset: d.preset });
+    if (d.reason === "created") Object.assign(next, { role: text(d.role), agent: text(d.agent), preset: text(d.preset) });
     if (d.reason === "paused") next.paused = d.why || "paused";
     if (d.reason === "resumed") next.paused = null;
-    if (d.reason === "updated") Object.assign(next, { model: d.model ?? old.model, effort: d.effort ?? old.effort, permission_mode: d.permission_mode ?? old.permission_mode });
-    if (d.reason === "attached" && d.native_id) next.native_id = d.native_id;
+    if (d.reason === "updated") {
+      next.model = text(d.model) ?? old.model;
+      next.effort = text(d.effort) ?? old.effort;
+      next.permission_mode = text(d.permission_mode) ?? old.permission_mode;
+    }
+    if (d.reason === "attached" && typeof d.native_id === "string") next.native_id = d.native_id;
     if (d.reason === "retired") next.retired_at = env.ts || new Date().toISOString();
     // an unconfirmed "send now" was added to the running turn instead
-    if (d.reason === "now_became_add") ctx.event({ kind: "now_became_add", session: id, wakes: d.wakes || [], runs: d.runs || 0 });
+    if (d.reason === "now_became_add") ctx.event({ kind: "now_became_add", session: id, wakes: strings(d.wakes) || [], runs: number(d.runs) || 0 });
     state.sessions[id] = next;
     // a turn for our message ended: "replying" ends with it; a failure is said plainly
     if (next.role && COORD.has(next.role) && !BUSY.has(next.state ?? "")) ctx.settleAwaiting(next.chat_id ?? null);
@@ -67,11 +72,11 @@ export const sessions = {
     const aw = project && state.awaiting[project];
     const wake = aw && `msg:${aw.id}`;
     const mine = aw && (t.wakes || []).includes(`msg:${aw.id}`);
-    const requeued = (d.wakes_requeued || []).includes(wake);
+    const requeued = !!wake && (strings(d.wakes_requeued) || []).includes(wake);
     // "interrupted" (a restart) puts the wake back: the coordinator still answers, so we keep waiting
     if (mine && d.status === "failed" && !requeued) {
       const p = /** @type {string} */ (project);
-      state.failed[p] = { at: Date.now(), error: d.error || d.reason || d.stop_reason || "the turn failed", id: aw.id };
+      state.failed[p] = { at: Date.now(), error: text(d.error) || text(d.reason) || text(d.stop_reason) || "the turn failed", id: aw.id };
       delete state.awaiting[p];
       ctx.event({ kind: "coord_failed", project: p, text: state.failed[p].error });
     }

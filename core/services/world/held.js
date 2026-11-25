@@ -2,7 +2,7 @@
 import { clock, formatDate, isSoon } from "../../platform/time.js";
 
 const NB = "\u00a0"; // a time is one phrase: it never breaks across lines ("1:31" / "AM")
-/** @typedef {{until?: string | null, for?: string, asked?: boolean, why?: string}} Hold */
+/** @typedef {{until?: string | null, for?: string | null, asked?: boolean, why?: string | null}} Hold */
 
 /** @param {string} t */
 const nb = (t) => String(t).replace(/[ \u202f]/g, NB);

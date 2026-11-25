@@ -1,14 +1,16 @@
 // @ts-check
 import { client, NEWEST, reportReadFailure } from "./client.js";
+import { text } from "../world/frame-values.js";
+import { isRecord } from "../../platform/util.js";
 import { createLru } from "../../platform/cache.js";
 import { mergeRows, pageAfter, canPageOlder, framesShort } from "../world/rows.js";
 import { PAGE, OLDER_PAGE } from "./config.js";
 import { beginMessageRead } from "./message-reads.js";
 
-/** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
+/** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").MessageRow} MessageRow */
 const LOOKUP_RETRY_MS = 1000;
 
-/** @param {Ctx["reads"]} cycle @param {Row} page @param {"loading" | "older"} flag */
+/** @param {Ctx["reads"]} cycle @param {{loading?: boolean; older?: boolean}} page @param {"loading" | "older"} flag */
 function loading(cycle, page, flag) {
   page[flag] = true;
   return cycle.effect(() => () => { page[flag] = false; });
@@ -30,15 +32,15 @@ export function installHistory(ctx) {
   }
   ctx.noteMessageEdit = (key, data, at, reaction) => reads.get(ctx.reads.signal)?.get(key)?.record(data, at, reaction);
 
-  /** The copies of the workspace's messages in a project, for the "Routed to …" receipts. @param {string} project @param {Row[]} rows */
+  /** @param {string} project @param {MessageRow[]} rows */
   function noteCopies(project, rows) {
     const ws = ctx.chatIdOf("workspace");
     if (!ws || project === "workspace") return;
     for (const r of rows) {
       const f = r.extra && r.extra.forwarded_from;
-      if (!f || f.chat_id !== ws || !f.message_id) continue;
+      if (!isRecord(f) || f.chat_id !== ws || typeof f.message_id !== "string" || !f.message_id) continue;
       const list = state.routed[f.message_id] || (state.routed[f.message_id] = []);
-      if (!list.some((/** @type {Row} */ x) => x.chat === project)) list.push({ chat: project, messageId: r.id });
+      if (!list.some((x) => x.chat === project)) list.push({ chat: project, messageId: r.id });
     }
   }
   ctx.addRows = (project, rows) => {
@@ -162,11 +164,11 @@ export function installHistory(ctx) {
   /** A coordinator's control of a thread, once per stored event, in order. */
   ctx.noteControl = (env, d) => {
     const ts = env.thread_ts || d.thread_ts;
-    if (!ts || !d.action) return false;
+    if (typeof ts !== "string" || !ts || typeof d.action !== "string" || !d.action) return false;
     const list = state.controls[ts] || (state.controls[ts] = []);
-    if (env.seq != null && list.some((/** @type {Row} */ c) => c.seq === env.seq)) return false;
-    list.push({ ...d, action: d.action, at: env.ts, seq: env.seq ?? null });
-    list.sort((/** @type {Row} */ a, /** @type {Row} */ b) => (a.seq ?? Infinity) - (b.seq ?? Infinity));
+    if (env.seq != null && list.some((c) => c.seq === env.seq)) return false;
+    list.push({ ...d, action: d.action, by: text(d.by), reason: text(d.reason), at: env.ts ?? "", seq: env.seq ?? null });
+    list.sort((a, b) => (a.seq ?? Infinity) - (b.seq ?? Infinity));
     return true;
   };
   ctx.loadTurns = async (session) => {
@@ -188,7 +190,7 @@ export function installHistory(ctx) {
       if (f.type === "thread.control") ctx.noteControl(f, x);
       else if (f.type === "thread.continued" && f.ts) {
         const from = typeof x.from === "string" && x.from ? x.from : f.thread_ts;
-        if (from && !state.moves[from]) state.moves[from] = { ...x, at: f.ts };
+        if (from && !state.moves[from]) state.moves[from] = { to: text(x.to), text: text(x.text), at: f.ts };
       }
     }
   };
@@ -205,7 +207,7 @@ export function installHistory(ctx) {
     if (signal.aborted) return;
     let q = wanted.get(project);
     for (const id of ids) {
-      if ((state.timeline[project] || []).some((/** @type {Row} */ r) => r.id === id) || state.found[project]?.has(id)) continue;
+      if ((state.timeline[project] || []).some((r) => r.id === id) || state.found[project]?.has(id)) continue;
       const key = `${project}|${id}@${beforeSeq ?? ""}`;
       if (q?.has(id) || (sought.get(key) ?? 0) > Date.now()) continue;
       sought.set(key, Infinity);
@@ -239,7 +241,7 @@ export function installHistory(ctx) {
         const rows = d.messages || [];
         for (const r of rows) { map.set(r.id, r); q.delete(r.id); }
         if (!rows.length || !d.next_before_seq) break;
-        floor = Math.min(...rows.map((/** @type {Row} */ r) => r.seq));
+        floor = Math.min(...rows.map((r) => r.seq ?? d.next_before_seq ?? Infinity));
         for (const entry of q.values()) if (entry.before == null || entry.before >= floor) entry.before = floor - 1;
       }
     }));

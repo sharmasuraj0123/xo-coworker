@@ -5,7 +5,7 @@ import { commsLine, commsHeader, commsText } from "../comms.js";
 import { AWAIT_CAP_MS } from "./config.js";
 import { createCommands } from "./commands.js";
 
-/** @import {Ctx, Row} from "./types" */
+/** @import {Ctx, Session} from "./types" */
 
 /** @import {RunRecord} from "../../platform/run-response-types" */
 /** @type {WeakMap<Ctx, { revision: number, rows: WeakMap<import("../run-types").StoredRun, number> }>} */
@@ -96,7 +96,7 @@ export function createAct(ctx) {
     /** What a session held back by a gate waits for, or null (a plain chat's). @param {string} sessionId */
     sessionHeld: (sessionId) => ctx.heldOfSession(state.sessions[sessionId] || null),
     sentAt: ctx.sentAt,
-    /** A session read, taken in the stream's order: sent = sentAt() before the request. @param {Row} s @param {import("./types").Sent} [sent] */
+    /** A session read, taken in the stream's order: sent = sentAt() before the request. @param {Session} s @param {import("./types").Sent} [sent] */
     noteSession: (s, sent) => { if (!scope.signal.aborted && s?.id) { ctx.noteSession(s, sent || ctx.sentAt()); ctx.soon(); } },
     /** Is a session on a turn now (its status, or work seen since it said queued)? @param {string} sessionId */
     onTurn: (sessionId) => ctx.onTurn(state.sessions[sessionId] || null),
@@ -105,12 +105,12 @@ export function createAct(ctx) {
     /** What the coordinator is doing now: its running turn's latest block header, for the typing line. @param {string} project */
     doing: (project) => {
       const s = ctx.coordinatorOf(ctx.chatIdOf(project));
-      const t = ctx.onTurn(s) && state.turns.running(/** @type {Row} */ (s).id);
+      const t = s && ctx.onTurn(s) && state.turns.running(s.id);
       if (!t) return null;
       const bl = state.turns.blocksOf(t);
       const last = bl[bl.length - 1];
       if (!last) return null;
-      if (last.type === "activity") { const rows = last.rows || []; const run = rows.filter((/** @type {Row} */ r) => r.status === "running").pop(); const said = run ? commsLine(run) : commsHeader(rows); if (said) return said; }
+      if (last.type === "activity") { const rows = last.rows || []; const run = rows.filter((r) => r.status === "running").pop(); const said = run ? commsLine(run) : commsHeader(rows); if (said) return said; }
       return commsText(last.header) || (last.type === "text" ? "Writing" : null);
     },
     /** @param {string} session @param {{ signal?: AbortSignal }} [options] */
@@ -142,7 +142,7 @@ export function createAct(ctx) {
     /** What a session's runtime offers (its feature list), never decided by agent name. @param {string} session @param {string} key */
     feature: (session, key) => {
       const s = state.sessions[session];
-      const rt = (state.runtimes || []).find((/** @type {Row} */ r) => r.name === (s && s.agent)) || mainRuntime(state.runtimes);
+      const rt = (state.runtimes || []).find((r) => r.name === (s && s.agent)) || mainRuntime(state.runtimes);
       const f = rt && rt.features && rt.features.features && rt.features.features[key];
       return !!f && (f.support === "native" || f.support === "emulated");
     },
@@ -163,7 +163,7 @@ export function createAct(ctx) {
     /** The coordinator session of a chat that is working now, if any. @param {string} project */
     coordinatorBusy: (project) => {
       const s = ctx.coordinatorOf(ctx.chatIdOf(project));
-      return ctx.onTurn(s) ? /** @type {Row} */ (s).id : null;
+      return s && ctx.onTurn(s) ? s.id : null;
     },
     /** A thread's hops, read once when it's opened; the stream keeps them current. @param {string} ts */
     loadHops: (ts) => { ctx.hopsOnce(ts); },

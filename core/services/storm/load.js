@@ -2,15 +2,19 @@
 import { client, NEWEST, reportReadFailure } from "./client.js";
 import { ApiError } from "../../platform/http.js";
 import { once } from "../../platform/pending.js";
-import { retryRead } from "./read-policy.js";
+import { retryRead, retryableRead } from "./read-policy.js";
 import { CHATS_MIN_MS, LOAD_CAP } from "./config.js";
 
-/** @typedef {import("./types").Ctx} Ctx @typedef {import("./types").Row} Row */
+/** @import { Ctx } from "./types" */
 
-/** @param {Row | undefined} previous @param {Row} update */
+/** @import { ChatRecord, Pin } from "../../platform/chat-response-types" */
+
+/** @typedef {ChatRecord & Pin} Chat */
+
+/** @param {Chat | undefined} previous @param {Chat} update */
 function mergeChat(previous, update) {
   const row = { ...previous, ...update };
-  const pinKeys = ["agent", "model", "effort"].filter((key) => key in update);
+  const pinKeys = (/** @type {const} */ (["agent", "model", "effort"])).filter((key) => key in update);
   if (previous?.pin || update.pin || pinKeys.length) {
     row.pin = { ...previous?.pin, ...update.pin };
     for (const key of pinKeys) row.pin[key] = update[key];
@@ -18,11 +22,11 @@ function mergeChat(previous, update) {
   return row;
 }
 
-/** @param {Row} c @param {import("../world/state-types").WorldState["projects"][number]} [previous] */
+/** @param {Chat} c @param {import("../world/state-types").WorldState["projects"][number]} [previous] */
 function projectOfChat(c, previous) {
-  const id = c.kind === "workspace" ? "workspace" : c.project;
+  const id = c.kind === "workspace" ? "workspace" : c.project || c.id;
   return {
-    ...previous, id, name: c.kind === "workspace" ? "Workspace" : c.project, kind: c.kind,
+    ...previous, id, name: c.kind === "workspace" ? "Workspace" : id, kind: c.kind || "project",
     chatId: c.id, pid: c.project_pid || null, routing: c.routing || null, pin: c.pin || null, hasChat: true,
   };
 }
@@ -44,15 +48,15 @@ export async function mapLimit(items, cap, fn, signal) {
 export function installLoad(ctx) {
   const { state, chatProject } = ctx;
   let chatsAt = 0;
-  /** @type {WeakMap<AbortSignal, Map<string, Row>>} */
+  /** @type {WeakMap<AbortSignal, Map<string, Chat>>} */
   const updates = new WeakMap();
-  /** @param {Row[]} chats */
+  /** @param {Chat[]} chats */
   function setProjects(chats) {
     const prev = new Map(state.projects.map((p) => [p.id, p]));
     const prevChat = new Map(chatProject);
     chatProject.clear();
     state.projects = chats.filter((c) => c.kind && !c.retired_at).map((c) => {
-      const id = c.kind === "workspace" ? "workspace" : c.project;
+      const id = c.kind === "workspace" ? "workspace" : c.project || c.id;
       chatProject.set(c.id, id);
       return projectOfChat(c, prev.get(id));
     });
@@ -73,8 +77,8 @@ export function installLoad(ctx) {
       state.projects.push(project);
       ctx.soon();
     } else if (current) {
-      if ("routing" in d) current.routing = d.routing;
-      if (["agent", "model", "effort"].some((key) => key in d)) current.pin = mergeChat(current, d).pin;
+      if ("routing" in d) current.routing = d.routing ?? null;
+      if (["agent", "model", "effort"].some((key) => key in d)) current.pin = mergeChat({ id: d.id, pin: current.pin }, d).pin;
       ctx.emit();
     }
   };
@@ -83,14 +87,14 @@ export function installLoad(ctx) {
     if (signal.aborted) return;
     await once(signal, async () => {
       if (signal.aborted) return;
-      /** @type {Map<string, Row>} */
+      /** @type {Map<string, Chat>} */
       const pending = new Map();
       updates.set(signal, pending);
       try {
         const { chats } = await client.chats({ signal });
         if (signal.aborted) return;
         const before = new Set(state.projects.map((p) => p.chatId));
-        /** @type {Row[]} */
+        /** @type {Chat[]} */
         const listed = chats || [];
         const current = new Map(listed.map((c) => [c.id, c]));
         for (const [id, update] of pending) current.set(id, mergeChat(current.get(id), update));
@@ -105,7 +109,7 @@ export function installLoad(ctx) {
         state.error = err instanceof Error ? err.message : String(err);
         state.errorCode = err instanceof ApiError ? err.code : null;
         reportReadFailure(err, signal);
-        ctx.scheduleRecover();
+        if (retryableRead(err)) ctx.scheduleRecover();
       } finally { updates.delete(signal); }
       if (!signal.aborted) ctx.soon();
     });
@@ -157,7 +161,6 @@ export function installLoad(ctx) {
     if (!ws) return;
     const { hops } = await client.hops(ws, { before_seq: NEWEST, limit: 500 }, { signal });
     if (signal.aborted) return;
-    /** @type {Row[]} */
     const history = hops || [];
     const projects = history.filter((h) => h.kind === "forward").map((h) => ctx.projectOf(h.chat_id));
     const targets = new Set(projects.filter((p) => p != null));

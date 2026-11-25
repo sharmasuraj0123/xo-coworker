@@ -1,4 +1,5 @@
 // @ts-check
+import { text } from "../../world/frame-values.js";
 import { isThread, isThreadCard } from "../../../platform/chat-responses.js";
 
 /** @typedef {import("../types").Reducer} Reducer */
@@ -14,7 +15,7 @@ export const threads = {
     const now = Date.now();
     const thread = ctx.threadRecords.write(ts, {
       ...d, _at: now, ...("busy" in d ? { _readAt: now } : {}), ...ctx.sessRead(d, { at: now, seq: env.seq ?? state.lastSeq }),
-      chat_id: d.chat_id || old?.chat_id || env.chat_id, updated_at: d.updated_at || env.ts || old?.updated_at,
+      chat_id: d.chat_id || old?.chat_id || env.chat_id || undefined, updated_at: d.updated_at || env.ts || old?.updated_at,
     });
     if (thread && !thread.session) ctx.fillSession(thread.chat_id, ts);
     ctx.soon();
@@ -22,10 +23,11 @@ export const threads = {
   // the old thread froze and a linked new thread starts from its work
   "thread.continued"(ctx, env, d) {
     const { state, rawThreads } = ctx;
-    const old = d.from || env.thread_ts;
-    if (old) { state.moves[old] = { ...d, at: env.ts }; ctx.event({ kind: "moved", thread: old, project: ctx.projectOf(env.chat_id), to: d.to, agent: d.agent, by: d.by || null }); }
+    const old = text(d.from) || env.thread_ts;
+    const to = text(d.to);
+    if (old) { state.moves[old] = { to, text: text(d.text), at: env.ts ?? "" }; ctx.event({ kind: "moved", thread: old, project: ctx.projectOf(env.chat_id), to, agent: text(d.agent), by: text(d.by) || null }); }
     if (env.chat_id && old) ctx.refetchThread(env.chat_id, old);
-    if (env.chat_id && d.to && !rawThreads.has(d.to)) ctx.refetchThread(env.chat_id, d.to);
+    if (env.chat_id && to && !rawThreads.has(to)) ctx.refetchThread(env.chat_id, to);
     ctx.soon();
   },
   // a coordinator steered, interrupted or stopped a thread: kept for the thread's timeline
@@ -33,6 +35,7 @@ export const threads = {
     if (ctx.noteControl(env, d)) ctx.soon();
   },
   card(ctx, env, d) {
+    if (typeof d.ts !== "string") return;
     const r = ctx.rawThreads.get(d.ts);
     if (!r || (d.card != null && !isThreadCard(d.card))) return;
     ctx.threadRecords.write(d.ts, { card: d.card, updated_at: env.ts || r.updated_at });

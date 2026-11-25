@@ -141,11 +141,8 @@
  "core/services/world/relay.js": {
   "commentLines": 1
  },
- "core/services/world/sessions.js": {
-  "explicitAny": 1
- },
  "core/services/world/turns.js": {
-  "commentLines": 4
+  "commentLines": 1
  },
  "core/ui/a11y/ring.js": {
   "commentLines": 2

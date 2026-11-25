@@ -1,8 +1,11 @@
 // @ts-check
 
-/** @import { Row } from "../storm/types.d.ts" */
+import { turnData, turnEnvelope } from "./turn-frames.js";
+import { isRecord } from "../../platform/util.js";
 
-/** @import { Frame, Turn, TurnStep } from "./turn-types.d.ts" */
+/** @typedef {NonNullable<ReturnType<typeof turnEnvelope>>} Envelope */
+
+/** @import { Turn, TurnStep } from "./turn-types.d.ts" */
 
 const ENDED = new Set(["cold", "parked"]);
 
@@ -21,10 +24,10 @@ export function createTurns() {
   /** @type {Map<string, Turn>} */
   const turns = new Map();
   let seen = 0; // the newest seq on any frame; a block without one (a live-only frame) counts as just after it
-  /** @param {Row} env */
+  /** @param {Envelope} env */
   const seqOf = (env) => (env.seq != null ? env.seq : seen + 0.5);
 
-  /** @param {Row} env @returns {Turn | null} */
+  /** @param {Envelope} env @returns {Turn | null} */
   function turnOf(env) {
     const id = env.turn_id;
     if (!id) return null;
@@ -51,12 +54,16 @@ export function createTurns() {
     for (const [id, b] of t.blocks) if (!b.done) t.blocks.delete(id);
   }
 
-  /** @param {Frame} frame @returns {string | string[] | null} */
+  /** @param {unknown} frame @returns {string | string[] | null} */
   function apply(frame) {
-    const env = frame.envelope || frame;
-    const type = frame.type || env.type;
-    const d = env.data || {};
+    if (!isRecord(frame)) return null;
+    const env = turnEnvelope(frame.envelope || frame);
+    if (!env) return null;
+    const type = typeof frame.type === "string" ? frame.type : env.type;
+    if (!type) return null;
     if (env.seq != null && env.seq > seen) seen = env.seq;
+    if (!(type.startsWith("block.") || type.startsWith("turn.") || type === "session" || type === "snapshot")) return null;
+    const d = turnData(type, env.data);
     switch (type) {
       case "turn.started": {
         const t = turnOf(env);
@@ -76,7 +83,7 @@ export function createTurns() {
         if (!t) return null;
         t.status = d.status || "finished";
         if (t.status === "stopped" && t.selfEnded) t.status = "finished";
-        t.end = d;
+        t.end = { ...env.data, wall_ms: d.wall_ms, reason: d.reason };
         if (Array.isArray(d.wakes)) t.wakes = [...new Set([...t.wakes, ...d.wakes])];
         dropOpen(t);
         return t.id;
@@ -91,12 +98,12 @@ export function createTurns() {
           if (t.status === "stopped") t.status = "finished";
           return t.id;
         }
-        t.stopped = d;
+        t.stopped = { ...env.data, by: d.by, last_step: d.last_step };
         return t.id;
       }
       case "session": {
         // the session's process ended; only a turn older than this frame (history's old "cold" rows never end one running now)
-        if (!ENDED.has(d.status) || !env.session_id || env.seq == null) return null;
+        if (!ENDED.has(d.status ?? "") || !env.session_id || env.seq == null) return null;
         let changed = null;
         for (const t of turns.values()) {
           if (t.session === env.session_id && t.status === "running" && (t.seq ?? Infinity) < env.seq) { t.status = "ended"; dropOpen(t); changed = t.id; }
@@ -114,7 +121,7 @@ export function createTurns() {
           if (env.seq != null && (old.seq == null || env.seq < old.seq)) old.seq = env.seq; // its true first frame
         } else if (t.status === "running" || (env.seq != null && !t.end)) {
           // a finished turn met again through older frames: its finished blocks are here or come finished; open ones were dropped
-          t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((/** @type {Row} */ r) => ({ ...r })) : b.rows, done: false, n: t.blocks.size, seq: seqOf(env) });
+          t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: t.blocks.size, seq: seqOf(env) });
         }
         return t.id;
       }
@@ -123,7 +130,7 @@ export function createTurns() {
         if (!t || !d.block_id) return null;
         let b = t.blocks.get(d.block_id);
         if (!b) {
-          if (t.status !== "running") return null;
+          if (t.status !== "running" || !d.type) return null;
           b = { id: d.block_id, type: d.type, index: null, done: false, n: t.blocks.size, seq: seqOf(env) };
           t.blocks.set(b.id, b);
         }
@@ -148,8 +155,8 @@ export function createTurns() {
         if (!t || !b || !b.id) return null;
         const old = t.blocks.get(b.id);
         // a row's live command output is kept when the final form has none (claude: output only at the end)
-        const rows = b.rows ? b.rows.map((/** @type {Row} */ r) => {
-          const o = old && old.rows ? old.rows.find((/** @type {Row} */ x) => x.call_id === r.call_id) : null;
+        const rows = b.rows ? b.rows.map((r) => {
+          const o = old && old.rows ? old.rows.find((x) => x.call_id === r.call_id) : null;
           return o && o.output && r.output == null ? { ...r, output: o.output } : { ...r };
         }) : b.rows;
         t.blocks.set(b.id, { ...b, rows, done: true, n: old ? old.n : t.blocks.size, seq: old && old.seq != null ? Math.min(old.seq, seqOf(env)) : seqOf(env) });
@@ -159,7 +166,7 @@ export function createTurns() {
         // each listed turn's open blocks are replaced by the snapshot's
         const changed = [];
         for (const s of d.turns || []) {
-          const t = turnOf({ turn_id: s.turn_id, session_id: s.session_id, chat_id: s.chat_id, thread_ts: s.thread_ts, seq: s.seq });
+          const t = turnOf(s);
           if (!t) continue;
           t.status = "running";
           t.held = s.held || [];
@@ -167,7 +174,7 @@ export function createTurns() {
           for (const b of s.blocks || []) {
             const old = t.blocks.get(b.id);
             if (old && old.done) continue;
-            t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((/** @type {Row} */ r) => ({ ...r })) : b.rows, done: false, n: old ? old.n : t.blocks.size, seq: old ? old.seq : seqOf(env) });
+            t.blocks.set(b.id, { ...b, rows: b.rows ? b.rows.map((r) => ({ ...r })) : b.rows, done: false, n: old ? old.n : t.blocks.size, seq: old ? old.seq : seqOf(env) });
           }
           changed.push(t.id);
         }

@@ -33,7 +33,7 @@ const isSeen = (value) => isResponseObject(value) && typeof value.seen_at === "s
 export const isSeenAck = (value) => isResponseObject(value) && isSeen(value.seen);
 
 /** @param {unknown} value @returns {value is Wire.ChatRecord} */
-export const isChat = (value) => isResponseObject(value) && typeof value.id === "string"
+export const isChat = (value) => isResponseObject(value) && typeof value.id === "string" && isPin(value)
   && optionalText(value.kind) && [value.project_pid, value.project, value.created_at, value.retired_at].every(textOrNone)
   && (value.settings === undefined || isResponseObject(value.settings)) && (value.routing == null || isRouter(value.routing))
   && (value.pin == null || isPin(value.pin)) && (value.seen == null || isSeen(value.seen));
@@ -63,7 +63,7 @@ export const isSessions = (value) => isResponseObject(value) && hasCursor(value)
 const isThreadOutput = (value) => isResponseObject(value) && [value.name, value.path, value.type].every(optionalText)
   && textOrNone(value.title) && numberOrNone(value.bytes);
 
-/** @param {unknown} value */
+/** @param {unknown} value @returns {value is NonNullable<Wire.ThreadRecord["card"]>} */
 export const isThreadCard = (value) => isResponseObject(value)
   && [value.title, value.happened, value.needs_you, value.updated_at].every(optionalText);
 
@@ -125,7 +125,7 @@ export const isThreadContinuation = (value) => isResponseObject(value) && typeof
   && textOrNone(value.agent);
 
 /** @param {unknown} value @returns {value is Wire.StoredFrame} */
-const isFrame = (value) => isResponseObject(value) && typeof value.type === "string" && numberOrNone(value.seq)
+export const isFrame = (value) => isResponseObject(value) && typeof value.type === "string" && numberOrNone(value.seq)
   && [value.id, value.ts, value.chat_id, value.session_id, value.thread_ts, value.turn_id, value.run_id].every(textOrNone)
   && recordOrNone(value.data);
 
@@ -144,7 +144,7 @@ export const isActive = (value) => isResponseObject(value) && Array.isArray(valu
 const optionalStrings = (value) => value === undefined || (Array.isArray(value) && value.every((part) => typeof part === "string"));
 
 /** @param {unknown} value @returns {value is Wire.HopRecord} */
-const isHop = (value) => isResponseObject(value) && typeof value.id === "string" && optionalText(value.chat_id)
+export const isHop = (value) => isResponseObject(value) && typeof value.id === "string" && optionalText(value.chat_id)
   && [value.thread_ts, value.kind, value.from_role, value.to_role, value.from_session, value.to_session, value.state,
     value.created_at, value.delivered_at, value.answered_at, value.note, value.cause, value.wake_id].every(textOrNone)
   && numberOrNone(value.seq) && optionalStrings(value.via) && optionalStrings(value.message_ids);

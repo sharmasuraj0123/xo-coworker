@@ -1,5 +1,7 @@
 // @ts-check
 import { mergeRows, addReaction, updateMessage } from "../../world/rows.js";
+import { isMessage } from "../../../platform/chat-responses.js";
+import { text } from "../../world/frame-values.js";
 import { COORD } from "../config.js";
 
 /** @typedef {import("../types").Reducer} Reducer */
@@ -7,6 +9,7 @@ import { COORD } from "../config.js";
 /** @type {Record<string, Reducer>} */
 export const messages = {
   message(ctx, env, d) {
+    if (!isMessage(d)) return;
     const { state } = ctx;
     /** @type {import("../types").MessageRow} */
     const row = { ...d, id: d.id, seq: env.seq ?? d.seq ?? null };
@@ -32,7 +35,7 @@ export const messages = {
   // an agent's emoji on a message: onto the row wherever we hold it (its thread, or its timeline)
   reaction(ctx, env, d) {
     const { state } = ctx;
-    const ts = d.thread_ts || env.thread_ts;
+    const ts = text(d.thread_ts) || env.thread_ts;
     ctx.noteMessageEdit(ts ? "thread:" + ts : "project:" + ctx.projectOf(env.chat_id), d, env.ts ?? null, true);
     const inThread = ts && addReaction(state.threadMsgs[ts], d, env.ts);
     if (inThread) { state.threadMsgs[ts] = inThread; ctx.soon(); return; }
@@ -43,11 +46,11 @@ export const messages = {
   // a message changed after it was sent (files an agent shared after its turn's last reply), applied where we hold the row
   "message.updated"(ctx, env, d) {
     const { state } = ctx;
-    const ts = d.thread_ts || env.thread_ts;
-    ctx.noteMessageEdit(ts ? "thread:" + ts : "project:" + ctx.projectOf(d.chat_id || env.chat_id), d, env.ts ?? null, false);
+    const ts = text(d.thread_ts) || env.thread_ts;
+    ctx.noteMessageEdit(ts ? "thread:" + ts : "project:" + ctx.projectOf(text(d.chat_id) || env.chat_id), d, env.ts ?? null, false);
     const inThread = ts && updateMessage(state.threadMsgs[ts], d);
     if (inThread) { state.threadMsgs[ts] = inThread; ctx.soon(); return; }
-    const project = ctx.projectOf(d.chat_id || env.chat_id);
+    const project = ctx.projectOf(text(d.chat_id) || env.chat_id);
     const onTimeline = project && updateMessage(state.timeline[project], d);
     if (onTimeline) { state.timeline[/** @type {string} */ (project)] = onTimeline; ctx.soon(); }
   },

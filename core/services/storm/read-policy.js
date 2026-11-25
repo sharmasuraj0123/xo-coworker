@@ -4,6 +4,9 @@ import { reportReadFailure } from "./client.js";
 
 const delays = [1000, 2000, 4000];
 
+/** @param {unknown} error */
+export const retryableRead = (error) => error instanceof ApiError && (error.status >= 500 || [0, 408, 429].includes(error.status));
+
 /** @param {number} attempt */
 export const retryDelay = (attempt) => delays[attempt];
 
@@ -15,9 +18,8 @@ export async function retryRead(scope, read) {
     try { await read(scope.signal); }
     catch (error) {
       if (scope.signal.aborted) return;
-      const transient = error instanceof ApiError && (error.status >= 500 || [0, 408, 429].includes(error.status));
       const delay = retryDelay(attempt++);
-      if (transient && delay !== undefined) scope.timeout(run, delay);
+      if (retryableRead(error) && delay !== undefined) scope.timeout(run, delay);
       else reportReadFailure(error, scope.signal, true);
     }
   }

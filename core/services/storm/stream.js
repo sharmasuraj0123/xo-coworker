@@ -1,4 +1,6 @@
 // @ts-check
+import { isFrame } from "../../platform/chat-responses.js";
+import { isRecord } from "../../platform/util.js";
 import { client, coderHeaders, SSEStream } from "./client.js";
 import { createTurns } from "../world/turns.js";
 import { LOAD_CAP, RUNS_KEEP } from "./config.js";
@@ -35,10 +37,11 @@ export function startStorm(ctx) {
   function onFrame({ type, id, envelope }) {
     if (signal.aborted) return;
     releaseSubscription();
-    /** @type {Frame} */
-    const f = { type, id, envelope: envelope && typeof envelope === "object" ? envelope : {} };
-    const fe = f.envelope || {}, at = fe.seq ?? (type === "snapshot" && fe.data ? fe.data.seq : null);
-    if (at != null && at > state.lastSeq) state.lastSeq = at;
+    const raw = isRecord(envelope) ? { ...envelope, type } : { type };
+    if (!isFrame(raw)) return;
+    const f = { type, id, envelope: raw };
+    const fe = f.envelope, at = fe.seq ?? (type === "snapshot" && fe.data ? fe.data.seq : null);
+    if (typeof at === "number" && at > state.lastSeq) state.lastSeq = at;
     if (ctx.holding) { held.push(f); return; }
     ctx.apply(f);
   }
