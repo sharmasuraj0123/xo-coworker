@@ -42,6 +42,8 @@ def check():
             status, headers, index = get("/")
             assert status == 200 and headers["Cache-Control"] == "no-cache"
             version = re.search(rb"/v/([0-9a-f]{12})/", index)[1].decode()
+            assert headers["X-XO-UI-Version"] == version
+            assert f'<meta name="xo-ui-version" content="{version}">'.encode() in index
             if serve.PUBLIC_DIR:
                 assert version == serve.BUILD_VERSION
             for file in sorted(files):

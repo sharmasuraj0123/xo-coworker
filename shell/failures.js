@@ -1,6 +1,7 @@
 // @ts-check
 import { createFailureSurface } from "../core/platform/failure.js";
 import { mountFailurePresenter } from "./failure-surface.js";
+import { mountReleaseNotice } from "./release-notice.js";
 
 /** @typedef {Parameters<typeof createFailureSurface>[0]} Present */
 
@@ -34,6 +35,7 @@ export function createFailureReporting() {
     manifest: { id: "xo.failure-notices", version: "1.0.0", kernel: "^1.1.0", core: true, needs: ["notices"] },
     activate(ctx) {
       presenter = { show: mountFailurePresenter(ctx), schedule: ctx.frame };
+      mountReleaseNotice(ctx);
       const active = surface ??= createPolicy();
       if (startupNotice) presenter.show(startupNotice);
       startupNotice = undefined;

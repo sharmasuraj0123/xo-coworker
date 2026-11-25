@@ -360,6 +360,7 @@ def versioned_index(html: str, version: str) -> str:
     prefix = f"./v/{version}/"
     html = INDEX_PATH.sub(lambda m: f"{m[1]}{prefix}{m[2]}", html)
     imap = '<script type="importmap">{"imports":{"./js/":"%sjs/"}}</script>' % prefix
+    imap = f'<meta name="xo-ui-version" content="{version}">' + imap
     at = re.search(r"<meta charset=[^>]*>", html) or re.search(r"<head[^>]*>", html)
     return html[:at.end()] + "\n  " + imap + html[at.end():] if at else imap + html
 
@@ -536,8 +537,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         if not self._is_api():
-            # a versioned file is kept for a year; everything else is revalidated so edits show on reload
             self.send_header("Cache-Control", self._cache)
+            if self.path.partition("?")[0] in ("/", "/index.html"):
+                self.send_header("X-XO-UI-Version", STARTUP_VERSION)
         super().end_headers()
 
     def list_directory(self, path):  # no directory listings
