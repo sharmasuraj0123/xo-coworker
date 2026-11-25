@@ -62,7 +62,8 @@ for (const id of ["arts", "lpp", "panel", "pn-h", "pn-count", "pn-x", "pn-rail",
 }
 assert.deepEqual(
   [...document.querySelector("main").children].map((node) => node.id || node.className),
-  ["phonebar", "home", "arts", "lpp", "conv", "drop-veil", "dock", "panel", "viewer", "toast-wrap", "settings", "stage"],
+  ["phonebar", "home", "scheduled", "shared", "connectors", "arts", "lpp", "conv", "drop-veil", "dock",
+    "panel", "viewer", "toast-wrap", "settings", "stage"],
   "boot preserves the main landmark's region order",
 );
 assert.ok(document.querySelector("#main").nextElementSibling === document.querySelector("#shd"), "Shells follows the main landmark in the app");

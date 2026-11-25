@@ -16,7 +16,7 @@ test("the docked desktop canvas uses a shared inset and corner radius", () => {
 test("the rail has fold, search and More controls with accessible icon labels", () => {
   const markup = appDocument(fileURLToPath(new URL("../", import.meta.url)));
   for (const id of ["side-fold", "side-jump", "nv-more", "side-more"]) assert.ok(markup.getElementById(id), id);
-  assert.ok(markup.querySelector("#theme.gear.is-ic[role=switch]"));
+  assert.equal(markup.querySelector(".side-foot #theme"), null);
   const settings = markup.querySelector('#set-side.gear.is-ic[aria-label="Settings"]');
   assert.ok(settings);
   assert.ok(!settings.querySelector(".gear-t"), "the folded Settings control has no visible label");

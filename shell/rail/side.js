@@ -52,7 +52,10 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
     ],
     PLACES: [
       { id: "launchpad", name: "Launchpad", sel: "#nv-lp" },
-      { id: "runtimes", name: "Runtimes", ic: () => ICON.runtime },
+      { id: "scheduled", name: "Scheduled", page: true, ic: () => ICON.clock },
+      { id: "shared", name: "Shared", page: true, ic: () => ICON.folder },
+      { id: "connectors", name: "Connectors", page: true, ic: () => ICON.plug },
+      { id: "runtimes", name: "Usage & agents", ic: () => ICON.runtime },
       { set: true, id: "accounts", name: "Accounts", ic: () => ICON.person },
       { set: true, id: "routing", name: "Routing", ic: () => ICON.router },
       { set: true, id: "rules", name: "Rules", ic: () => ICON.rule },
@@ -110,7 +113,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
         let el = p.sel ? findHtml(p.sel) : SIDE.extras.get(id);
         if (!p.sel && on && !el) {
           const t = document.createElement("template");
-          t.innerHTML = `<button type="button" class="nrow" data-set-open="${p.id}">` +
+          t.innerHTML = `<button type="button" class="nrow" ${p.page ? "data-go" : "data-set-open"}="${p.id}">` +
             `<span class="nr-ic">${p.ic?.()}</span><span class="nr-name">${esc(p.name)}</span></button>`;
           const row = t.content.firstElementChild;
           if (row instanceof HTMLElement) { el = row; SIDE.extras.set(id, row); }
@@ -142,7 +145,7 @@ export function createSide({ shape: SHAPE, keys: K = keys, announce, render, tog
         pop.setAttribute("role", "menu"); pop.setAttribute("aria-label", "More places");
         const rest = b.order.filter((id) => !b.shown.includes(id)).map((id) => SIDE.byId(id)).filter((p) => !p.set);
         html = rest.map((p) => {
-          const go = p.sel ? `data-go="${requireHtml(p.sel).dataset.go}"` : `data-set-open="${p.id}"`;
+          const go = p.sel ? `data-go="${requireHtml(p.sel).dataset.go}"` : `${p.page ? "data-go" : "data-set-open"}="${p.id}"`;
           return `<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" ${go}><span class="nr-ic">${icon(p)}</span><span class="nr-name">${esc(p.name)}</span></button>` +
             `<button type="button" class="sm-pin" data-side-pin="${p.id}" aria-pressed="false" title="Keep in the sidebar" aria-label="Keep ${esc(p.name)} in the sidebar">${ICON.pin}</button></div>`; }).join("") +
           `${rest.length ? `<div class="sm-sep" role="separator"></div>` : ""}<div class="sm-row" role="none"><button type="button" class="nrow" role="menuitem" data-side-edit><span class="nr-ic">${ICON.edit}</span><span class="nr-name">Edit the sidebar…</span></button></div>`;

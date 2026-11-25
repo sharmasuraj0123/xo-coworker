@@ -41,7 +41,8 @@ assert.equal(SIDE.folded, true, "peeking preserves the saved fold preference");
 document.querySelector("#side-fold").click();
 assert.equal(SIDE.folded, false, "pinning docks the open sheet");
 
-const ids = ["home", "ws", "chats", "arts", "launchpad", "runtimes", "accounts", "routing", "rules", "worktrees", "keys"];
+const ids = ["home", "ws", "chats", "arts", "launchpad", "scheduled", "shared", "connectors", "runtimes",
+  "accounts", "routing", "rules", "worktrees", "keys"];
 assert.deepEqual(SIDE.bar(), { order: ids, shown: ["home", "ws", "chats", "arts"] }, "the default: the four places; Launchpad and Settings' pages in More");
 assert.ok(SIDE.isDefault());
 

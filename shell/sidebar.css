@@ -6,6 +6,10 @@
 .side-recents summary{cursor:pointer;padding:var(--s-2);color:var(--ink-3);font-size:var(--fs-meta)}
 .recent-dot{width:var(--s-1);height:var(--s-1);border-radius:var(--r-pill);background:var(--info)}
 .recent-dot.needs{background:var(--warn)}
+.space-page{overflow:auto;padding:var(--s-6);margin-inline:auto;width:min(100%,var(--col-max))}
+.space-page ul{list-style:none;padding:0}
+.space-page li{padding:var(--s-3);border-bottom:var(--hair) solid var(--line)}
+.space-page li p{color:var(--ink-3)}
 [data-project-list]{anchor-name:--project-list}
 #rail-project-picker{position:fixed;position-anchor:--project-list;inset:auto;margin:var(--s-2);
   left:anchor(right);bottom:anchor(bottom);width:min(var(--side-w),90vw);max-height:70dvh;overflow:auto;

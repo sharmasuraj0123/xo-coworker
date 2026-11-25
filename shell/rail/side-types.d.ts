@@ -9,7 +9,7 @@ export interface SideDeps {
   scope: import("../../core/kernel/types").Lifetime;
 }
 
-export interface Place { id: string; name: string; sel?: string; ic?: () => string; set?: boolean }
+export interface Place { id: string; name: string; sel?: string; ic?: () => string; set?: boolean; page?: boolean }
 export interface Bar { order: string[]; shown: string[] }
 
 export interface Side {
