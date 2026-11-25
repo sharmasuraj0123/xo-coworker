@@ -39,7 +39,9 @@ export function createRunsPage({
     readRunsList: (session) => session ? readRunsList(session) : Promise.resolve(false), scope,
   });
 
-  stage.page("runs", {
+  /** @type {import("../../shell/panel/pages.js").PageSpec & { id: string }} */
+  const page = {
+    id: "runs",
     over: true,
     title: () => RS.view === "list" ? "Sub-agents" : RS.run && isCommandRun(RS.run) ? "Command" : "Sub-agent",
     backTo: () => RS.view === "run" ? "Sub-agents" : RS.panelWas || stage.pageShown?.name !== "runs" ? "" : "the thread",
@@ -48,7 +50,7 @@ export function createRunsPage({
     close() { cancelList(); cancelDetail(); runsGone(); },
     up: () => { runsEscape(); return true; },
     escape: () => { runsEscape(); return true; },
-  });
+  };
 
   async function retry() {
     if (!RS.session) return;
@@ -115,7 +117,7 @@ export function createRunsPage({
   });
 
   return {
-    card: runsCard, open, back: runsEscape,
+    page, card: runsCard, open, back: runsEscape,
     get isOpen() { return RS.open; },
     get isDetail() { return RS.open && RS.view === "run"; },
     dispose() {

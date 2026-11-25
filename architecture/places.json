@@ -106,7 +106,7 @@
    "description": "A strip under a thread's header (checklist, sub-agents).",
    "openToApps": false,
    "requires": [
-    "mount"
+    "render"
    ]
   },
   {

@@ -36,7 +36,6 @@ test("the live phone viewer leaves horizontal drags inside CodeMirror to the edi
     wireGestures({
       phone: () => true,
       viewerOpen: () => true,
-      runsCard: document.querySelector("#runs-card"),
       sheets: [],
     }, () => "", scope);
     const touch = (target, type, clientX) => {

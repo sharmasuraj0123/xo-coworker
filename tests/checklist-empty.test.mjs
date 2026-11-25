@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { createScope } from "../core/kernel/scope.js";
+import { createPlaces } from "../core/kernel/places.js";
 import { createChecklistRenderer } from "../modules/conversation/checklist.js";
 import { dom, same } from "./lib/dom.mjs";
 
 const { document } = await dom('<header id="thead"></header>');
 const head = document.getElementById("thead");
 const scope = createScope();
+const places = createPlaces();
+places.define({ id: "thread.head", kind: "list", scope: "conversation", description: "The thread header strips." });
 const thread = { id: "thread", state: "working", checklist: { total: 0, done: 0, items: [] } };
 let runs = "";
+places.contribute("thread.head", { id: "runs", render: () => runs }, "test.runs");
 const checklist = createChecklistRenderer({
   view: () => "t:thread", scope, SHAPE: { on: () => false },
-  convThread: () => thread, runsStrip: () => runs, schedule() {},
+  convThread: () => thread, places, schedule() {},
 });
 
 checklist.render([], head);

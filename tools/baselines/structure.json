@@ -402,8 +402,8 @@
   "lineLength": 19
  },
  "js/app.js": {
-  "dependencyKey": 655,
-  "lineLength": 65
+  "dependencyKey": 652,
+  "lineLength": 64
  },
  "modules/artifacts/artifacts.css": {
   "important": 1,
@@ -1027,7 +1027,7 @@
  },
  "shell/gestures.js": {
   "functionLines": 1,
-  "lineLength": 13
+  "lineLength": 11
  },
  "shell/header.js": {
   "lineLength": 2

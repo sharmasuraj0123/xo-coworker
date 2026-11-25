@@ -25,9 +25,8 @@ import { fromSharedFile, viewerFile } from "../core/services/media/items.js";
 import { wireDragOut } from "../core/services/media/hydrate.js";
 import { startRich } from "../core/ui/markdown/rich.js";
 import { createLightbox } from "../modules/conversation/lightbox.js";
-import { createRunsPage } from "../modules/runs/page.js";
+import { createRunsModule } from "../modules/runs/module.js";
 import { createPendingRunStops } from "../core/services/run-stops.js";
-import { createRunsStrip } from "../modules/runs/strip.js";
 import { SETTINGS_PAGE_OPEN, settingsModule } from "../modules/settings/module.js";
 import { routingModule } from "../modules/routing/module.js";
 import { rulesModule } from "../modules/rules/module.js";
@@ -474,21 +473,24 @@ const { homeRender, nextDecide } = createHomeView({
 }, appScope);
 const messagesOf = createConversationMessages({ localMessages, shape: SHAPE, world, D, PROJ, convThread, chatOf, convProject, threadsOf });
 
-const { runsStrip, workingRuns, dispose: disposeRunsStrip } = createRunsStrip({ world, SHAPE, schedule });
-const { render: checklistRender, toggle: toggleChecklist } = createChecklistRenderer({ view: currentView, scope: appScope, SHAPE, convThread, runsStrip, schedule });
 const pendingStops = createPendingRunStops();
+/** @type {ReturnType<typeof createRunsModule>["working"]} */
+const workingRuns = (thread) => runs.working(thread);
 const { stopsHerald, stopRun, interruptRun, isStopping, dispose: disposeConversationStops } = createConversationStops({
   world, Kit, PROJ, announce, schedule, chatOf, pendingStops, heraldShow, running: (view) => running(view), workingRuns,
   inUse: (selector) => inUse(selector),
   dismissStops: () => notices.dismiss((notice) => notice.tag === "stops"),
 });
 const running = createRunningState({ view: currentView, isStopping, world, CH, convThread, chatOf });
-const runsPage = createRunsPage({
-  stage: STAGE, world, transcript: transcriptFolds, pendingStops, stopsHerald, announce, heraldShow, commitMs: Kit.COMMIT_MS,
+const runs = createRunsModule({
+  stage: STAGE, shape: SHAPE, transcript: transcriptFolds, pendingStops, stopsHerald, heraldShow, commitMs: Kit.COMMIT_MS,
   placeRegion: () => placeRegion(), threadScroller: () => TP.C?.scroller,
   headFor: (opener) => convAt(opener) === MAIN ? $("#thead") : $("#tpthead"),
+  threadAt: (opener) => convThread(convAt(opener).view),
 });
-const openRuns = runsPage.open;
+const { render: checklistRender, toggle: toggleChecklist } = createChecklistRenderer({
+  view: currentView, scope: appScope, SHAPE, convThread, places: kernel.places, schedule,
+});
 
 // ── the thread's own decision: docked above the composer (Today's card, #20) ──
 const tdock = $("#tdock");
@@ -813,18 +815,7 @@ appScope.listen(document, "click", (event) => {
   const chatEdit = action("data-chat-edit");
   if (chatEdit) { const text = CH.edit(chatEdit); if (text != null) putBack(text); return; }
   if (t.closest("[data-chat-stop]")) { stopRun(convAt(t).view); return; }
-  // sub-agents: the strip under the checklist, the log, a sub-agent's row in a turn
-  const rc = t.closest("[data-run-call]");
-  const runCall = rc?.getAttribute("data-run-call");
-  if (rc && runCall) {
-    const th = convThread(convAt(rc).view);
-    const run = [...(world.state.runs?.values() || [])].find((candidate) => candidate.spawn === runCall);
-    openRuns(th, run?.id ?? null);
-    return;
-  }
-  const ro = t.closest(".thead [data-run]");
-  if (ro) { openRuns(convThread(convAt(ro).view), ro.getAttribute("data-run")); return; }
-  if (t.closest(".thead [data-runs]")) { openRuns(convThread(convAt(t).view)); return; }
+  if (runs.openFrom(t)) return;
   // storm blocks: open or fold a block or a row (thinking steps, an activity group, a command's output)
   const tb = t.closest("[data-tb]");
   if (tb) {
@@ -1069,7 +1060,8 @@ const { openKeys, closeKeys } = createShortcutsSheet({ keys, closeButton: keys.q
 // ── settings: a page over the main area; closing it returns exactly where you were ──
 const setEl = $("#settings");
 kernel.register(createAppServices({ world, announce, projectName: (id) => id ? PROJ(id) : "", currentView }, schedule));
-for (const module of [sinceModule, artifacts.module, settingsModule, routingModule, rulesModule, worktreesModule]) kernel.register(module);
+const leafModules = [sinceModule, artifacts.module, runs.module, settingsModule];
+for (const module of [...leafModules, routingModule, rulesModule, worktreesModule]) kernel.register(module);
 const RTSET = createRuntimeSettings({ world, announce, PROJ });
 const ACCTS = createAccounts({ announce });
 // Settings › Shape and the page's own reading of the shape (density, work, rail)
@@ -1142,7 +1134,7 @@ const LAYERS = stackLayers(kernel.layers, [
   { id: "jump", tab: () => jump, inertsApp: true, watchHidden: jump, open: () => !jump.hidden, close: () => { JUMP.close(); } },
   { id: "intel", open: () => IQ.isOpen, close: () => { IQ.close(); } },
   { id: "quickopen", inertsApp: true, open: () => QO.isOpen, close: () => { QO.close(); } },
-  { id: "runs", open: () => runsPage.isOpen, close: runsPage.back },
+  runs.layer,
   { id: "keys", tab: () => keys, inertsApp: true, watchHidden: keys, open: () => !keys.hidden, close: () => { closeKeys(); } },
   { id: "lightbox", open: () => LB.isOpen, close: () => { LB.close(); }, overlay: false },
   { id: "settings", tab: () => PHONE.matches ? setEl : null, watchHidden: setEl, open: () => !setEl.hidden, close: () => { closeSettings(); } },
@@ -1177,7 +1169,6 @@ wireGestures({
   settingsOpen: () => !setEl.hidden, closeSettings: () => closeSettings(),
   viewerOpen: () => VW.isOpen, closeViewer: () => VW.close(),
   panelOpen: () => D.isOpen(),
-  runsDeep: () => runsPage.isDetail, runsBack: runsPage.back, runsCard: runsPage.card,
   sheets: [
     { host: $("#panel"), open: () => PHONE.matches && D.isOpen(), close: () => D.close() },
     { host: jump, card: () => jump.querySelector(".sheet-card"), open: () => !jump.hidden, close: JUMP.close },
@@ -1200,11 +1191,11 @@ bindChatControls({
 drawFrameIcons(SHAPE_IC);
 $("#send").innerHTML = ICON.send; $("#send").dataset.mode = "send";
 appScope.effect(mountMainDecoration);
+for (const module of leafModules) appScope.effect(() => () => { void kernel.disable(module.manifest.id); });
 for (const dispose of [
   codeCopy.dispose, disposeComposerFocus, KP.dispose, disposeGlobalKeys, disposeKeyboardLayers, LAYERS.undo,
-  () => { void kernel.disable(settingsModule.manifest.id); }, CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
-  () => { void kernel.disable(sinceModule.manifest.id); void kernel.disable(artifacts.module.manifest.id); },
-  runsPage.dispose, disposeRunsStrip, threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
+  CH.dispose, IQ.dispose, ACCTS.dispose, GH.dispose,
+  threadDelete.dispose, threadEditing.dispose, stopRegionRings, stopFocusInView, notices.dispose,
   disposeRecordLines,
   SH.dispose, disposeShellPanel, () => { void kernel.disable(threadPageModuleId); }, () => MAP.unmount(), disposeConversationStops,
   STAGE.disposeLayout, LPP.dispose, LW.dispose,

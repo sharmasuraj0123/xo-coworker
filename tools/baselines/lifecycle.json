@@ -93,9 +93,6 @@
  "modules/shells/term.js": {
   "observer": 2
  },
- "shell/gestures.js": {
-  "setTimeout": 1
- },
  "shell/panel/panel.js": {
   "observer": 1,
   "requestAnimationFrame": 4

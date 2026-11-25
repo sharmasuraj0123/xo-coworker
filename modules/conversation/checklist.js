@@ -8,20 +8,34 @@ import { ICON, stepMark } from "../../core/ui/icons/names.js";
 import { redraw } from "../../core/ui/redraw.js";
 import { createChecklistState } from "./checklist-state.js";
 
-/** @import { ChecklistDeps, ChecklistNeed, ChecklistHead } from "./checklist-types.d.ts" */
+/** @import { ChecklistDeps, ChecklistNeed, ChecklistHead, ThreadHead } from "./checklist-types.d.ts" */
 
 /** @param {ChecklistDeps} options */
-export function createChecklistRenderer({ view, scope, SHAPE, convThread, runsStrip, schedule }) {
+export function createChecklistRenderer({ view, scope, SHAPE, convThread, places, schedule }) {
   const state = createChecklistState(scope, schedule);
+  scope.effect(() => places.watch("thread.head", schedule));
+  /** @param {HTMLElement} host @param {string} html */
+  function paint(host, html) {
+    if (!state.changed(host, html)) return;
+    const focused = host.ownerDocument.activeElement;
+    const ownedFocus = focused && host.contains(focused);
+    redraw(host, html);
+    if (ownedFocus && !host.contains(focused)) {
+      const fallback = host.querySelector("button") ?? host.parentElement?.querySelector("div.scroller");
+      if (fallback instanceof HTMLElement) fallback.focus({ preventScroll: true });
+    }
+  }
   /** @param {ChecklistNeed[]} needs @param {ChecklistHead} [th] */
   function render(needs, th = $("#thead"), current = view(), listId = "ck-list") {
     const t = convThread(current);
     if (!t) { th.hidden = true; state.forgetMarkup(th); return; }
+    /** @type {ThreadHead[]} */
+    const strips = places.entries("thread.head", { view: current, conversation: t.id });
+    const tail = strips.map((strip) => strip.render(t)).join("");
     const c = t.checklist;
     if (!c.total) {
-      const all = runsStrip(t);
-      if (state.changed(th, all)) redraw(th, all);
-      th.hidden = !all;
+      paint(th, tail);
+      th.hidden = !tail;
       return;
     }
     th.hidden = false;
@@ -44,8 +58,7 @@ export function createChecklistRenderer({ view, scope, SHAPE, convThread, runsSt
       `<span class="ck-segs" aria-hidden="true">${segs}</span><span class="ck-n">${c.done} of ${c.total}</span>` +
       `<span class="ck-now" data-mode="${mode}">${nowHtml}</span>${t.branch && SHAPE.on("xo:thread/branch") ? `<code class="ck-br">${ICON.branch}${esc(t.branch)}</code>` : ""}<span class="ck-chev">${ICON.chevron}</span></button></div>` +
       `<div class="ck-b"><ol class="ck-list" id="${listId}" aria-label="Checklist">${list}</ol></div></div>`;
-    const all = html + runsStrip(t);
-    if (state.changed(th, all)) redraw(th, all);
+    paint(th, html + tail);
   }
   return { render, toggle: state.toggle };
 }

@@ -1,11 +1,10 @@
-import type { createPages } from "../../shell/panel/pages.js";
 import type { RunsOpening } from "./controller-types.d.ts";
 import type { RunsPanelDeps } from "./panel-types.d.ts";
 import type { RunsReadDeps } from "./read-types.d.ts";
 import type { RunsStopOptions, RunStopResult } from "./stop-types.d.ts";
 
 export interface RunsPageDeps {
-  stage: RunsPanelDeps["STAGE"] & RunsOpening["STAGE"] & Pick<ReturnType<typeof createPages>, "page"> & RunsReadDeps["STAGE"];
+  stage: RunsPanelDeps["STAGE"] & RunsOpening["STAGE"] & RunsReadDeps["STAGE"];
   world: RunsReadDeps["world"] & RunsPanelDeps["world"] & {
     act: {
       stopRun(id: string): Promise<RunStopResult | null>;

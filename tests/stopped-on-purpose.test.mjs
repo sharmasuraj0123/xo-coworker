@@ -134,7 +134,7 @@ await t("A requested stop retains its explanation across the header, checklist a
   const kernel = createKernel(), scope = createScope();
   definePlaces(kernel);
   const { render: checklistRender } = createChecklistRenderer({
-    view, scope, convThread, SHAPE: { on: () => false }, runsStrip: () => "", schedule() {},
+    view, scope, convThread, SHAPE: { on: () => false }, places: kernel.places, schedule() {},
   });
   const header = createTopHeader({ location: { view, parentOf: () => undefined },
     convThread, isBusy, checklistRender, CH: { isChats: () => false }, STAGE: { button: () => "" },

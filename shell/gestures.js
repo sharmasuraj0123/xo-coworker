@@ -8,9 +8,7 @@ import { drag, glide, follow, unstyle, tick, scrollsX, scrolledY, edgeIsSafari, 
 
 /** @typedef {(element: HTMLElement) => string} WordsOf */
 
-/** @typedef {{ host: HTMLElement, card?: () => HTMLElement | null, open: () => boolean, close: () => void }} Sheet */
-
-/** @typedef {{ phone: () => boolean, overlay: () => unknown, view: () => string, back: () => void, drawer: (open: boolean) => void, isDrawer: () => boolean, closeSettings: () => void, settingsOpen: () => boolean, viewerOpen: () => boolean, closeViewer: () => void, sheets: Sheet[], panelOpen: () => boolean, runsDeep: () => boolean, runsBack: () => void, runsCard: HTMLElement, say?: HTMLElement, toast?: (message: string) => void }} SurfaceGestures */
+/** @import { Sheet, SurfaceGestures } from "./gesture-types.d.ts" */
 
 /** @param {number} d */
 const band = (d) => d * 0.28;
@@ -150,7 +148,7 @@ export function wireGestures(A, wordsOf, scope) {
     /** @type {HTMLElement | null} */
     let el = null;
     drag(host, {
-      axis: "y",
+      axis: "y", signal: scope.signal,
       start: ({ target }) => {
         el = card();
         if (!el || !open() || !el.contains(target) || target.closest(OWN) || target.closest(".vw-img.is-actual")) return false;
@@ -164,8 +162,11 @@ export function wireGestures(A, wordsOf, scope) {
         if (committed(dy, vy, h, frac)) {
           tick();
           await glide(/** @type {HTMLElement} */ (el), `translateY(${h}px)`, { ms: 180, opacity: 0 });
+          if (scope.signal.aborted) { unstyle(el); return; }
           close();
-          setTimeout(() => unstyle(el), 360);
+          const closed = el;
+          const finish = scope.effect(() => () => unstyle(closed));
+          scope.timeout(finish, 360);
         } else { await glide(/** @type {HTMLElement} */ (el), "translateY(0)"); unstyle(el); }
       },
       cancel: () => unstyle(el),
@@ -205,22 +206,27 @@ export function wireGestures(A, wordsOf, scope) {
   });
 
 
-  // ── a sub-agent opened in its page: swipe right goes back to the list ──
-  const runsCard = A.runsCard;
+  conversationGestures({ scroller: $("#scroller"), msgs: $("#msgs"), say: A.say, toast: A.toast }, wordsOf, scope);
+}
+
+/** @param {HTMLElement} runsCard @param {() => boolean} detail @param {() => void} back @param {AbortSignal} signal */
+export function wireRunsGesture(runsCard, detail, back, signal) {
   drag(runsCard, {
-    axis: "x",
-    start: ({ x, target }) => A.runsDeep() && !edgeIsSafari(x) && !target.closest(OWN) && !scrollsX(target, runsCard),
+    axis: "x", signal,
+    start: ({ x, target }) => detail() && !edgeIsSafari(x) && !target.closest(OWN) && !scrollsX(target, runsCard),
     accept: (dx) => dx > 0,
     move: (dx) => follow(runsCard, `translateX(${dx}px)`),
     end: async (dx, _dy, vx) => {
-      if (committed(dx, vx, runsCard.offsetWidth, 0.35)) { tick(); await glide(runsCard, `translateX(${runsCard.offsetWidth}px)`, { ms: 160, opacity: 0 }); A.runsBack(); }
+      if (committed(dx, vx, runsCard.offsetWidth, 0.35)) {
+        tick();
+        await glide(runsCard, `translateX(${runsCard.offsetWidth}px)`, { ms: 160, opacity: 0 });
+        if (!signal.aborted) back();
+      }
       else await glide(runsCard, "translateX(0)");
       unstyle(runsCard);
     },
     cancel: () => unstyle(runsCard),
   });
-
-  conversationGestures({ scroller: $("#scroller"), msgs: $("#msgs"), say: A.say, toast: A.toast }, wordsOf, scope);
 }
 
 /** @param {Conversation} C @param {WordsOf} wordsOf @param {ReturnType<typeof createScope>} scope */

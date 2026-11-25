@@ -15,7 +15,7 @@ Every entry also has an `id`, and may have `order` (lists), `priority` (chains) 
 | `header.detail` | list | conversation | no | `render` | A detail drawn into a named host below the conversation header. |
 | `header.action` | list | conversation | yes | `label`, `icon`, `onPress` | A button in the header (Threads, Resolve, Deploy, Map, the panel). |
 | `thread.menu` | list | conversation | yes | `label`, `group`, `run` | An item in a thread's ⋯ menu, in a named group. |
-| `thread.head` | list | conversation | no | `mount` | A strip under a thread's header (checklist, sub-agents). |
+| `thread.head` | list | conversation | no | `render` | A strip under a thread's header (checklist, sub-agents). |
 | `panel.frame` | list | conversation | yes | `title`, `mount` | A stacked frame in the right panel (Threads, Changes, Map, Launchpad). |
 | `panel.page` | keyed | app | yes | `mount` | A page the right panel shows in place of its frames (Shell, Files, Thread). |
 | `panel.title-action` | list | app | no | `label`, `icon`, `onPress` | A button in the right panel's title bar. |

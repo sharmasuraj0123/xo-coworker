@@ -10,6 +10,11 @@ export type ChecklistDeps = {
   scope: ReturnType<typeof import("../../core/kernel/scope.js").createScope>;
   SHAPE: { on(key: string): boolean };
   convThread(view: string): ChecklistThread | null;
-  runsStrip(thread: ChecklistThread): string;
+  places: import("../../core/kernel/types.d.ts").Places;
   schedule(): void;
 };
+
+export interface ThreadHead {
+  id: string;
+  render(thread: ChecklistThread): string;
+}

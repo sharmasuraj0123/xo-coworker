@@ -106,12 +106,10 @@ try {
   const run = { id: "agent", state: "running", kind: "subagent", title: "Read the list" };
   let posts = 0;
   let listReads = 0;
-  let mountPage = () => {};
   const page = createRunsPage({
     stage: {
       isOpen: false,
-      page(_name, surface) { mountPage = () => surface.mount(host); },
-      show() { mountPage(); return true; },
+      show() { page.page.mount(host); return true; },
     },
     world: {
       state: { runs: new Map([[run.id, run]]) },

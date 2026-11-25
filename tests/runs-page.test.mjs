@@ -15,7 +15,7 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
   globalThis.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
   globalThis.getSelection = () => null;
   globalThis.innerWidth = 400;
-  const { wireGestures } = await import("../shell/gestures.js");
+  const { wireGestures, wireRunsGesture } = await import("../shell/gestures.js");
   const { wordsOf } = await import("../modules/conversation/words.js");
   const conv = document.getElementById("conv"), runsCard = document.getElementById("runs-card");
   Object.defineProperty(runsCard, "offsetWidth", { value: 400 });
@@ -24,9 +24,9 @@ const t = (name, fn) => { try { fn(); passed++; console.log("  ok  " + name); } 
   let runsDeep = false;
   wireGestures({
     view: () => "t:thread", phone: () => true, overlay: () => false,
-    back: () => calls.push("thread"), runsBack: () => calls.push("runs"),
-    runsCard, runsDeep: () => runsDeep, sheets: [],
+    back: () => calls.push("thread"), sheets: [],
   }, wordsOf, scope);
+  wireRunsGesture(runsCard, () => runsDeep, () => calls.push("runs"), scope.signal);
   const swipe = async (target, distance) => {
     const send = (type, clientX, timeStamp) => {
       const event = new window.Event(type, { bubbles: true, cancelable: true });
