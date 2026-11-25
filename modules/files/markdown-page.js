@@ -9,13 +9,11 @@ import { reportFailure } from "../../core/services/notices/failures.js";
 
 /** @import {CodeMirror, Decoration, EditorState, EditorView, Extension, TransactionSpec, ViewUpdate} from "./cm-types.d.ts" */
 
-export { rowLine, tableRows } from "./markdown-table.js";
-
 const INLINE_MATH = /(?<![\\$\w])\$(?=[^\s$])((?:\\.|[^$\\\n])*?[^\s\\$])\$(?![\w$])/g;
 const HIDE_MARKS = new Set(["HeaderMark", "EmphasisMark", "StrikethroughMark", "CodeMark", "QuoteMark", "LinkMark", "URL", "LinkTitle"]);
 
 /** @param {CodeMirror} CM @param {EditorState} state @param {string} mark @returns {TransactionSpec} */
-export function toggleMark(CM, state, mark) {
+function toggleMark(CM, state, mark) {
   const n = mark.length;
   return {
     ...state.changeByRange((r) => {

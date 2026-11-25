@@ -8,12 +8,12 @@ import { renderInline, cells } from "../../core/ui/markdown/markdown.js";
 /** @typedef {{ row: number, column: number }} CellPosition */
 
 /** @param {readonly unknown[]} list */
-export function rowLine(list) {
+function rowLine(list) {
   return `| ${list.map((c) => String(c).replace(/\n/g, " ").replace(/(?<!\\)\|/g, "\\|")).join(" | ")} |`;
 }
 
 /** @param {string} src */
-export function tableRows(src) {
+function tableRows(src) {
   const lines = src.split("\n");
   const rows = /** @type {{ line: number, cells: string[] }[]} */ ([]);
   lines.forEach((l, i) => { if (i !== 1 && l.trim()) rows.push({ line: i, cells: cells(l) }); });

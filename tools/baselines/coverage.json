@@ -175,21 +175,6 @@
    ["commentOnlyCatch",54,""]
   ]
  },
- "modules/files/markdown-page.js": {
-  "sha256": "d57d7f3922b3ae90ef1ffbbf592f2bd6f37f4b85a07e5fb310af7f11aa9d4407",
-  "sites": [
-   ["unusedExport",12,"rowLine"],
-   ["unusedExport",12,"tableRows"],
-   ["unusedExport",18,"toggleMark"]
-  ]
- },
- "modules/files/markdown-table.js": {
-  "sha256": "72430d6899dfbbfc41d4f9f77d63d113b84d814327b451db3ec15a20d4899a81",
-  "sites": [
-   ["unusedExport",11,"rowLine"],
-   ["unusedExport",16,"tableRows"]
-  ]
- },
  "modules/files/section-folds.js": {
   "sha256": "74d5100c4dae834fb95d98fde261c5a676ab6278dbc63edef324bc40efef1f9f",
   "sites": [

@@ -10935,16 +10935,16 @@
    "home": "core/ui/markdown/markdown.js"
   },
   "js/mdlive.js::exports::toggleMark": {
-   "status": "moved",
-   "home": "modules/files/markdown-page.js"
+   "status": "deleted",
+   "reason": "The formatter is private to the Markdown page keymap, which now provides the test entry point."
   },
   "js/mdlive.js::exports::rowLine": {
-   "status": "moved",
-   "home": "modules/files/markdown-table.js"
+   "status": "deleted",
+   "reason": "Row serialization is private to the mounted Markdown table widget."
   },
   "js/mdlive.js::exports::tableRows": {
-   "status": "moved",
-   "home": "modules/files/markdown-table.js"
+   "status": "deleted",
+   "reason": "Row parsing is private to the mounted Markdown table widget."
   },
   "js/mdlive.js::exports::pageView": {
    "status": "moved",

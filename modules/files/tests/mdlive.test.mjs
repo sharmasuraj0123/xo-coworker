@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 const CM = await import("../../../vendor/codemirror/cm.js");
 globalThis.document = { documentElement: { dataset: {} }, createElement: () => ({ getContext: () => null }), querySelector: () => null };
 globalThis.addEventListener ??= () => {};
-const { pageView, toggleMark, rowLine, tableRows } = await import("../markdown-page.js");
+const { pageView } = await import("../markdown-page.js");
 const { EditorState, EditorView, markdown, markdownLanguage, ensureSyntaxTree } = CM;
 
 let passed = 0;
@@ -64,14 +64,21 @@ t("the text is the file's, byte for byte", () => {
 });
 
 t("⌘B on a word makes it bold; on a bold word takes it away; with nothing selected, the pair and the caret between", () => {
-  let st = EditorState.create({ doc: "make this bold", selection: { anchor: 10, head: 14 } });
-  st = st.update(toggleMark(CM, st, "**")).state;
+  const extensions = pageView(CM);
+  const press = (state, key) => {
+    const binding = state.facet(CM.keymap).flat().find((item) => item.key === key);
+    const view = { state, dispatch(tr) { this.state = tr.state; } };
+    assert.equal(binding?.run?.(view), true, `${key} handles the editor shortcut`);
+    return view.state;
+  };
+  let st = EditorState.create({ doc: "make this bold", selection: { anchor: 10, head: 14 }, extensions });
+  st = press(st, "Mod-b");
   assert.equal(st.doc.toString(), "make this **bold**");
   assert.equal(st.sliceDoc(st.selection.main.from, st.selection.main.to), "bold", "the word stays selected");
-  st = st.update(toggleMark(CM, st, "**")).state;
+  st = press(st, "Mod-b");
   assert.equal(st.doc.toString(), "make this bold");
-  let e = EditorState.create({ doc: "ab", selection: { anchor: 1 } });
-  e = e.update(toggleMark(CM, e, "*")).state;
+  let e = EditorState.create({ doc: "ab", selection: { anchor: 1 }, extensions });
+  e = press(e, "Mod-i");
   assert.equal(e.doc.toString(), "a**b");
   assert.equal(e.selection.main.head, 2);
 });
@@ -90,21 +97,35 @@ t("a long file read a part at a time: every table is drawn once the parser has r
   assert.equal(count(st), 8, "all eight tables drawn");
 });
 
-t("a table's cells and its rows' lines: read from the source, written back one row at a time", () => {
-  const parsed = tableRows("| ID | Means |\n|:--|--:|\n| `a|b` | one \\| two |\n| x | |");
-  assert.equal(parsed.width, 2);
-  assert.deepEqual(parsed.align, ["", "right"]);
-  assert.deepEqual(parsed.rows.map((r) => r.line), [0, 2, 3], "the delimiter row is skipped");
-  assert.deepEqual(parsed.rows[1].cells, ["`a|b`", "one | two"]);
-  assert.equal(rowLine(["one | two", "x"]), "| one \\| two | x |", "a pipe in a cell is escaped");
-  assert.equal(rowLine(["", ""]), "|  |  |");
-});
-
 const { dom, same } = await import("../../../tests/lib/dom.mjs");
 const tableFrame = await dom("<main></main>");
 const { createTableWidget } = await import("../markdown-table.js");
 const { createMarkdownWidgets } = await import("../markdown-widgets.js");
 const TableWidget = createTableWidget(CM.WidgetType);
+
+t("table cells preserve alignment and write an escaped pipe to the source row", () => {
+  const source = "| ID | Means |\n|:--|--:|\n| `a|b` | one \\| two |\n| x | |";
+  const view = {
+    state: EditorState.create({ doc: source }),
+    dispatch(spec) { this.state = this.state.update(spec).state; },
+  };
+  const widget = new TableWidget(source, 0);
+  const wrap = widget.toDOM(view);
+  try {
+    assert.equal(wrap.querySelectorAll("thead th").length, 2);
+    assert.equal(wrap.querySelectorAll("tbody tr").length, 2, "the delimiter row is skipped");
+    const [first, second] = wrap.querySelectorAll('tbody [data-r="1"]');
+    assert.equal(first.style.textAlign || "", "");
+    assert.equal(second.style.textAlign, "right");
+    assert.equal(first.dataset.raw, "`a|b`");
+    assert.equal(second.dataset.raw, "one | two");
+    second.textContent = "three | four";
+    second.dispatchEvent(new tableFrame.window.Event("input", { bubbles: true }));
+    assert.equal(view.state.doc.toString(), source.replace("`a|b` | one \\| two", "`a\\|b` | three \\| four"));
+  } finally {
+    widget.destroy(wrap);
+  }
+});
 
 t("a reused table edits its current source position and focuses a newly inserted row", () => {
   const table = "| a | b |\n|---|---|\n| c | d |";
