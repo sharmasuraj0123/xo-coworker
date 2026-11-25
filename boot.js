@@ -1,4 +1,5 @@
 // @ts-check
+export {};
 
 try {
   await import("./shell/frame.js");
